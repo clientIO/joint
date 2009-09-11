@@ -15,7 +15,8 @@ obj1.show();
 var obj2 = r.rect(300, 50, 100, 100);
 obj2.attr("fill", "yellow");
 obj2.show();
-var j = new Joint(r, obj1, obj2);
+//var j = new Joint(r, obj1, obj2);
+obj1.joint(obj2);
 
 obj1.mousedown(dragger);
 obj2.mousedown(dragger);
@@ -23,7 +24,7 @@ obj2.mousedown(dragger);
 var aux = Raphael.el.translate;
 Raphael.el.translate = function(x, y){
     aux.call(this, x, y);
-    j.machine.dispatch(qevt("step"));
+    this.machine.dispatch(qevt("step"));
 }
 
 document.onmousemove = function(e){

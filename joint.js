@@ -8,7 +8,7 @@
  **************************************************/
 
 var JointMachine = qhsm("Idle");
-JointMachine.addSlots({r: null, line: null, from: null, to: null});
+JointMachine.addSlots({line: null, from: null, to: null});
 
 JointMachine.addState("Idle", "top", {
     entry: function(){},
@@ -25,6 +25,7 @@ JointMachine.addState("Idle", "top", {
 
 JointMachine.addState("Connected", "Idle", {
     entry: function(){
+	var r = this.from.paper;
 	var bb1 = this.from.getBBox();
 	var bb2 = this.to.getBBox();
 	var p = ["M", bb1.x + bb1.width/2, bb1.y + bb1.height/2, "L", bb2.x + bb2.width/2, bb2.y + bb2.height/2].join(",");
@@ -36,6 +37,7 @@ JointMachine.addState("Connected", "Idle", {
     step: {
 	guard: function(e){return true},
 	action: function(e){
+	    var r = this.from.paper;
 	    this.line.remove();
 	    var bb1 = this.from.getBBox();
 	    var bb2 = this.to.getBBox();
@@ -51,10 +53,10 @@ JointMachine.addState("Connected", "Idle", {
  * Joint
  **************************************************/
 
-function Joint(r, from, to){
+Raphael.el.joint = function(to){
     this.machine = JointMachine.clone();
-    this.machine.r = r;
-    this.machine.dispatch(qevt("connect", [from, to]));
-}
+    this.machine.dispatch(qevt("connect", [this, to]));
+};
+
 
 
