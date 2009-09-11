@@ -1,0 +1,3 @@
+- init signal in qhsm.js QHsm wrapper, it will generate
+   this.newInitialState("MyState")
+

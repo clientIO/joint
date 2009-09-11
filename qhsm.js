@@ -271,3 +271,64 @@ var QEventExit = new QEvent("exit");
 var QEventInit = new QEvent("init");
 
 
+//////////////////////////////////////////////////
+// QHsm wrapper for simple machine creation
+//////////////////////////////////////////////////
+
+function qevt(sig, args){ return new QEvent(sig, args) }
+
+function qhsm(initialState){
+    var m = function(){
+	this.base = QHsm;
+	this.base("Initial");
+    };
+    m.prototype = new QHsm;
+    m.prototype.stateInitial = function(e){
+	this.newInitialState(initialState);
+    };
+    var _archSlots = [];
+    m.prototype.addSlots = function(slots){
+	_archSlots.push(slots);
+	for (var s in slots)
+	    this[s] = slots[s];
+    };
+    var _archStates = [];	// save added states for clone operation
+    m.prototype.addState = function(name, superstate, acts){
+	_archStates.push([name, superstate, acts]);
+	var fcode = "switch (e.type) {\n";
+	for (a in acts){
+	    var act = acts[a].toString();
+	    if (a === "entry" || a === "exit")
+		fcode += "case \"" + a + "\":" + act.slice(act.search("{") + 1, act.lastIndexOf("}")) + "; return null;\n";
+	    else {
+		var gstr = acts[a].guard.toString();
+		var act = acts[a].action.toString();
+		var targ = acts[a].target;
+		fcode += "case \"" + a + "\": if (function(){" + 
+		    gstr.slice(gstr.search("{") + 1, gstr.lastIndexOf("}")) + "}){\n" + 
+		    act.slice(act.search("{") + 1, act.lastIndexOf("}")) + "}; "; 
+		if (targ)
+		    fcode += " this.newState(\"" + targ + "\");\n";
+		fcode += " return null;\n";
+		
+	    }
+	}
+	if (superstate === "top")
+	    fcode += "} return this.top();";
+	else
+	    fcode += "} return this.state(\"" + superstate + "\");";
+//	alert(fcode);
+	this["state" + name] = new Function("e", fcode);
+    };
+    m.prototype.clone = function(){
+	var newm = new m();
+	for (var i = _archStates.length - 1; i >= 0; --i)
+	    newm.addState(_archStates[i][0], _archStates[i][1], _archStates[i][2]);
+	for (var i = _archSlots.length - 1; i >= 0; --i)
+	    newm.addSlots(_archSlots[i]);
+	newm.init(null);
+	return newm;
+    }
+    return new m();
+};
+

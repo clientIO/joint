@@ -1,0 +1,60 @@
+/**
+ * Main joint.js file.
+ * @author David Durman
+ */
+
+/**************************************************
+ * Machine
+ **************************************************/
+
+var JointMachine = qhsm("Idle");
+JointMachine.addSlots({r: null, line: null, from: null, to: null});
+
+JointMachine.addState("Idle", "top", {
+    entry: function(){},
+    exit: function(){},
+    connect: {
+	guard: function(e){return true},
+	action: function(e){
+	    this.from = e.args[0];
+	    this.to = e.args[1];
+	},
+	target: "Connected"
+    }
+});// Idle state
+
+JointMachine.addState("Connected", "Idle", {
+    entry: function(){
+	var bb1 = this.from.getBBox();
+	var bb2 = this.to.getBBox();
+	var p = ["M", bb1.x + bb1.width/2, bb1.y + bb1.height/2, "L", bb2.x + bb2.width/2, bb2.y + bb2.height/2].join(",");
+	this.line = r.path({stroke: "#036"}, p);
+	this.line.toBack();
+	this.line.show();
+    },
+    exit: function(){},
+    step: {
+	guard: function(e){return true},
+	action: function(e){
+	    this.line.remove();
+	    var bb1 = this.from.getBBox();
+	    var bb2 = this.to.getBBox();
+	    var p = ["M", bb1.x + bb1.width/2, bb1.y + bb1.height/2, "L", bb2.x + bb2.width/2, bb2.y + bb2.height/2].join(",");
+	    this.line = r.path({stroke: "#036"}, p);
+	    this.line.toBack();
+	    this.line.show();
+	}
+    }
+});// Connected state
+
+/**************************************************
+ * Joint
+ **************************************************/
+
+function Joint(r, from, to){
+    this.machine = JointMachine.clone();
+    this.machine.r = r;
+    this.machine.dispatch(qevt("connect", [from, to]));
+}
+
+
