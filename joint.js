@@ -53,10 +53,22 @@ JointMachine.addState("Connected", "Idle", {
  * Joint
  **************************************************/
 
-Raphael.el.joint = function(to){
+function Joint(){
+    this.path = null;	// path
     this.machine = JointMachine.clone();
-    this.machine.dispatch(qevt("connect", [this, to]));
+}
+
+Raphael.el.joint = function(to){
+    this.j = new Joint();
+    to.j = this.j;
+    this.j.machine.dispatch(qevt("connect", [this, to]));
 };
+
+var _translate = Raphael.el.translate;
+Raphael.el.translate = function(x, y){
+    _translate.call(this, x, y);
+    this.j && this.j.machine.dispatch(qevt("step"));
+}
 
 
 
