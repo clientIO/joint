@@ -8,7 +8,7 @@ var dragger = function(e){
 //    j.machine.dispatch(qevt("step"));
 };
 
-var r = Raphael("world", 600, 300);
+var r = Raphael("world", 640, 480);
 var obj1 = r.rect(50, 50, 100, 100);
 obj1.attr("fill", "blue");
 obj1.show();
