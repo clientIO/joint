@@ -1,3 +1,6 @@
-- init signal in qhsm.js QHsm wrapper, it will generate
++ init signal in qhsm.js QHsm wrapper, it will generate
    this.newInitialState("MyState")
+- addMethod in qhsm.js QHsm wrapper, to add custom method to the
+   machine
+
 

@@ -287,45 +287,82 @@ function qhsm(initialState){
 	this.newInitialState(initialState);
     };
     var _archSlots = [];
+    /**
+     * Add new slots to the machine.
+     * @param slots object slots names and their initial values
+     */
     m.prototype.addSlots = function(slots){
 	_archSlots.push(slots);
 	for (var s in slots)
 	    this[s] = slots[s];
     };
+    var _archMethods = [];
+    /**
+     * Add custom method to the machine.
+     * @param name string name of the method
+     * @param lambda function an anonymous function
+     */
+    m.prototype.addMethod = function(name, lambda){
+	_archMethods.push([name, lambda]);
+	this[name] = lambda;
+    }
     var _archStates = [];	// save added states for clone operation
+    /**
+     * Add a new state to the machine.
+     * @param name string name of the new state
+     * @param superstate string name of my superstate (or "top" if it is a top state)
+     * @param acts object state actions and transition reacting on custom events
+     */
     m.prototype.addState = function(name, superstate, acts){
 	_archStates.push([name, superstate, acts]);
 	var fcode = "switch (e.type) {\n";
 	for (a in acts){
 	    var act = acts[a].toString();
+	    // entry/exit
 	    if (a === "entry" || a === "exit")
 		fcode += "case \"" + a + "\":" + act.slice(act.search("{") + 1, act.lastIndexOf("}")) + "; return null;\n";
-	    else {
-		var gstr = acts[a].guard.toString();
-		var act = acts[a].action.toString();
-		var targ = acts[a].target;
-		fcode += "case \"" + a + "\": if (function(){" + 
-		    gstr.slice(gstr.search("{") + 1, gstr.lastIndexOf("}")) + "}){\n" + 
-		    act.slice(act.search("{") + 1, act.lastIndexOf("}")) + "}; "; 
-		if (targ)
-		    fcode += " this.newState(\"" + targ + "\");\n";
-		fcode += " return null;\n";
-		
+	    // init
+	    else if (a === "init")
+		fcode += "case \"init\": this.newInitialState(\"" + act + "\"); return null;\n";
+	    // custom event
+	    else { 
+		var gstr = (acts[a].guard) ? acts[a].guard.toString() : null;
+		gstr = (gstr) 
+		    ? "function(){" + gstr.slice(gstr.search("{") + 1, gstr.lastIndexOf("}")) + "}"
+		    : "true";
+		var astr = (acts[a].action) ? acts[a].action.toString() : null;
+		astr = (astr)
+		    ? astr.slice(astr.search("{") + 1, astr.lastIndexOf("}"))
+		    : "";
+		var tstr = acts[a].target;
+		tstr = (tstr)
+		    ? "this.newState(\"" + tstr + "\");\n"
+		    : "";
+		fcode += "case \"" + a + "\": if (" + gstr + "){\n" + astr + tstr + "};\n";
+		fcode += "return null;\n";
 	    }
 	}
-	if (superstate === "top")
-	    fcode += "} return this.top();";
-	else
-	    fcode += "} return this.state(\"" + superstate + "\");";
+	fcode += (superstate === "top")
+	    ? "} return this.top();"
+	    : "} return this.state(\"" + superstate + "\");";
 //	alert(fcode);
 	this["state" + name] = new Function("e", fcode);
     };
+    /**
+     * Use this method to create a new machine instance.
+     */
     m.prototype.clone = function(){
 	var newm = new m();
+	// clone states
 	for (var i = _archStates.length - 1; i >= 0; --i)
 	    newm.addState(_archStates[i][0], _archStates[i][1], _archStates[i][2]);
+	// clone slots
 	for (var i = _archSlots.length - 1; i >= 0; --i)
 	    newm.addSlots(_archSlots[i]);
+	// clone methods
+	for (var i = _archMethods.length - 1; i >= 0; --i)
+	    newm.addMethod(_archMethods[i][0], _archMethods[i][1]);
+	// initialize the machine
 	newm.init(null);
 	return newm;
     }

@@ -8,17 +8,16 @@
  **************************************************/
 
 var JointMachine = qhsm("Idle");
-JointMachine.addSlots({line: null, from: null, to: null});
+JointMachine.addSlots({path: null, from: null, to: null});
+JointMachine.addMethod("mymethod", function(){alert(this.from)});
 
 JointMachine.addState("Idle", "top", {
     entry: function(){},
     exit: function(){},
+//    init: "Connected",
     connect: {
-	guard: function(e){return true},
-	action: function(e){
-	    this.from = e.args[0];
-	    this.to = e.args[1];
-	},
+//	guard: function(e){return true},
+	action: function(e){this.mymethod()},
 	target: "Connected"
     }
 });// Idle state
@@ -29,22 +28,22 @@ JointMachine.addState("Connected", "Idle", {
 	var bb1 = this.from.getBBox();
 	var bb2 = this.to.getBBox();
 	var p = ["M", bb1.x + bb1.width/2, bb1.y + bb1.height/2, "L", bb2.x + bb2.width/2, bb2.y + bb2.height/2].join(",");
-	this.line = r.path({stroke: "#036"}, p);
-	this.line.toBack();
-	this.line.show();
+	this.path = r.path({stroke: "#036"}, p);
+	this.path.toBack();
+	this.path.show();
     },
     exit: function(){},
     step: {
-	guard: function(e){return true},
+//	guard: function(e){return true},
 	action: function(e){
 	    var r = this.from.paper;
-	    this.line.remove();
+	    this.path.remove();
 	    var bb1 = this.from.getBBox();
 	    var bb2 = this.to.getBBox();
 	    var p = ["M", bb1.x + bb1.width/2, bb1.y + bb1.height/2, "L", bb2.x + bb2.width/2, bb2.y + bb2.height/2].join(",");
-	    this.line = r.path({stroke: "#036"}, p);
-	    this.line.toBack();
-	    this.line.show();
+	    this.path = r.path({stroke: "#036"}, p);
+	    this.path.toBack();
+	    this.path.show();
 	}
     }
 });// Connected state
@@ -54,14 +53,16 @@ JointMachine.addState("Connected", "Idle", {
  **************************************************/
 
 function Joint(){
-    this.path = null;	// path
     this.machine = JointMachine.clone();
 }
 
 Raphael.el.joint = function(to){
-    this.j = new Joint();
-    to.j = this.j;
-    this.j.machine.dispatch(qevt("connect", [this, to]));
+    var j = new Joint();
+    j.machine.from = this;
+    j.machine.to = to;
+    this.j = j;
+    to.j = j;
+    j.machine.dispatch(qevt("connect"));
 };
 
 var _translate = Raphael.el.translate;
