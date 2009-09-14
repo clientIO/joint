@@ -328,7 +328,7 @@ function qhsm(initialState){
 	    else { 
 		var gstr = (acts[a].guard) ? acts[a].guard.toString() : null;
 		gstr = (gstr) 
-		    ? "function(){" + gstr.slice(gstr.search("{") + 1, gstr.lastIndexOf("}")) + "}"
+		    ? "(function(){" + gstr.slice(gstr.search("{") + 1, gstr.lastIndexOf("}")) + "}).apply(this)"
 		    : "true";
 		var astr = (acts[a].action) ? acts[a].action.toString() : null;
 		astr = (astr)

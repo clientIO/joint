@@ -9,6 +9,17 @@
 
 var JointMachine = qhsm("Idle");
 JointMachine.addSlots({path: null, from: null, to: null});
+JointMachine.addMethod("rectsIntersection", function(rect, another){
+    var rOrigin = {x: rect.x, y: rect.y},
+    rCorner = {x: rect.x + rect.width, y: rect.y + rect.height},
+    aOrigin = {x: another.x, y: another.y},
+    aCorner = {x: another.x + another.width, y: another.y + another.height};
+    if (aCorner.x <= rOrigin.x) return false;
+    if (aCorner.y <= rOrigin.y) return false;
+    if (aOrigin.x >= rCorner.x) return false;
+    if (aOrigin.y >= rCorner.y) return false;
+    return true;
+});
 JointMachine.addMethod("linesIntersection", function(line, another){
     // from Squeak Smalltalk, LineSegment>>intersectionWith:
     /*
@@ -64,6 +75,14 @@ JointMachine.addMethod("theta", function(){
 	radians: Math.asin(h/d)
     }
 });
+JointMachine.addMethod("overlapped", function(){
+    if (this.from.type === "rect" && this.to.type === "rect"){
+//	console.log(this.rectsIntersection(this.from.getBBox(), this.to.getBBox()));
+	return this.rectsIntersection(this.from.getBBox(), this.to.getBBox());
+    }
+    // TODO: other objects
+    return false;
+});
 JointMachine.addMethod("endPoint", function(from, to){
     var bbFrom = from.getBBox();
     var bbTo = to.getBBox();
@@ -115,7 +134,7 @@ JointMachine.addState("Connected", "Idle", {
     },
     exit: function(){},
     step: {
-	//	guard: function(e){return true},
+	guard: function(e){ return !this.overlapped() },
 	action: function(e){
 	    var epf = this.endPoint(this.from, this.to);
 	    var ept = this.endPoint(this.to, this.from);
