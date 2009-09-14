@@ -3,16 +3,16 @@ var dragger = function(e){
     this.dx = e.clientX;
     this.dy = e.clientY;
     isDrag = this;
-    this.animate({"fill-opacity": .5}, 500);
+    this.animate({"fill-opacity": .1}, 500);
     e.preventDefault && e.preventDefault();
 };
 
 var r = Raphael("world", 640, 480);
 var obj1 = r.rect(50, 50, 100, 100);
-obj1.attr("fill", "blue");
+obj1.attr({"fill": "blue", "fill-opacity": .2});
 obj1.show();
 var obj2 = r.rect(300, 50, 100, 100);
-obj2.attr("fill", "yellow");
+obj2.attr({"fill": "yellow", "fill-opacity": .2});
 obj2.show();
 obj1.joint(obj2);
 
@@ -29,7 +29,7 @@ document.onmousemove = function(e){
     }
 };
 document.onmouseup = function(){
-    isDrag && isDrag.animate({"fill-opacity": 0}, 500);
+    isDrag && isDrag.animate({"fill-opacity": .2}, 500);
     isDrag = false;
 };
 
