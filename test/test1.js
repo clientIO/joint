@@ -8,16 +8,25 @@ var dragger = function(e){
 };
 
 var r = Raphael("world", 640, 480);
-var obj1 = r.rect(50, 50, 100, 100);
+//var obj1 = r.rect(50, 50, 100, 100);
+//var obj1 = r.circle(80, 80, 50);
+var obj1 = r.ellipse(80, 80, 50, 30);
 obj1.attr({"fill": "blue", "fill-opacity": .2});
 obj1.show();
 var obj2 = r.rect(300, 50, 100, 100);
 obj2.attr({"fill": "yellow", "fill-opacity": .2});
 obj2.show();
+var obj3 = r.circle(100, 200, 50);
+obj3.attr({"fill": "green", "fill-opacity": .2});
+obj3.show();
+
 obj1.joint(obj2);
+obj3.joint(obj1);
+obj2.joint(obj3);
 
 obj1.mousedown(dragger);
 obj2.mousedown(dragger);
+obj3.mousedown(dragger);
 
 document.onmousemove = function(e){
     e = e || window.event;
