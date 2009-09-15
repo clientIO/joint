@@ -9,7 +9,7 @@
 
 var JointEngine = qhsm("Idle");
 JointEngine.addSlots({
-    path: null, 
+    connector: null, 
     pathOptions: {
 	"stroke": "#000",
 	"fill": "#fff",
@@ -22,6 +22,7 @@ JointEngine.addSlots({
 	"stroke-miterlimit": 10,
 	"stroke-opacity": 0.2*/
     },
+    basicArrow: ["M","25","0","L","0","50","L","50","50","L","25","0"],
     from: null, 
     to: null
 });
@@ -93,7 +94,7 @@ JointEngine.addMethod("rectPointNearestToPoint", function(rect, point){
 	case "top": return {x: point.x, y: rect.y};
 	}
     } else
-	return this.pointAdhereToRect(rect);
+	return this.pointAdhereToRect(point, rect);
     
 });
 JointEngine.addMethod("ellipseLineIntersectionFromCenterToPoint", function(ellipse, point){
@@ -160,6 +161,24 @@ JointEngine.addMethod("bboxMiddle", function(bb){
     }
 });
 JointEngine.addMethod("theta", function(){
+    var bbFrom = this.from.getBBox();
+    var bbTo = this.to.getBBox();
+    var A = {x: bbFrom.x + bbFrom.width/2, y: bbFrom.y + bbFrom.height/2};
+    var C = {x: bbTo.x + bbTo.width/2, y: bbTo.y + bbTo.height/2};
+    var B = {x: A.x + 50, y: A.y};
+    var a = this.lineLength(B.x, B.y, C.x, C.y);
+    var b = this.lineLength(A.x, A.y, C.x, C.y);    
+    var c = this.lineLength(A.x, A.y, B.x, B.y);
+    var alpha = Math.acos((b*b + c*c - a*a) / (2*b*c));
+    var deg = (180*alpha/Math.PI);
+    if (A.y < C.y)	// correction for III. and IV. quadrant
+	deg = 360 - deg;
+    return {
+	degrees: deg,
+	radians: (Math.PI * deg)/180
+    }
+
+/*
     var bb1m = this.bboxMiddle(this.from.getBBox());
     var bb2m = this.bboxMiddle(this.to.getBBox());
     var d = this.lineLength(bb1m.x, bb1m.y, bb2m.x, bb2m.y);
@@ -168,6 +187,7 @@ JointEngine.addMethod("theta", function(){
 	degrees: (180*Math.asin(h/d))/Math.PI,
 	radians: Math.asin(h/d)
     }
+*/
 });
 JointEngine.addMethod("overlapped", function(){
     if (this.from.type === "rect" && this.to.type === "rect"){
@@ -215,10 +235,26 @@ JointEngine.addMethod("drawPath", function(){
     var ept = this.endPoint(this.to, this.from);
     var r = this.from.paper;
     var p = ["M", epf.x, epf.y, "L", ept.x, ept.y].join(",");
-    this.path && this.path.remove();    
-    this.path = r.path(this.pathOptions, p);
-    this.path.toBack();
-    this.path.show();
+
+    if (this.connector){
+	this.connector.path && this.connector.path.remove();
+	this.connector.toEnd && this.connector.toEnd.remove();
+	this.connector.fromEnd && this.connector.fromEnd.remove();
+    } else 
+	this.connector = {};
+
+    this.connector.path = r.path(this.pathOptions, p);
+    this.connector.path.toBack();
+    this.connector.path.show();
+
+    this.connector.toEnd = r.path({stroke: "#000"}, this.basicArrow);
+    this.connector.toEnd.translate(ept.x, ept.y);
+    
+/*
+    this.connector.toEnd = r.circle(ept.x, ept.y, 5);
+    this.connector.toEnd.toBack();
+    this.connector.toEnd.show();
+*/
 });
 
 /**************************************************/
@@ -237,7 +273,10 @@ JointEngine.addState("Connected", "Idle", {
     exit: function(){},
     step: {
 	guard: function(e){ return !this.overlapped() },
-	action: function(e){ this.drawPath() }
+	action: function(e){ 
+	    this.drawPath();
+	    console.log(this.theta().degrees);
+	}
     }
 });// Connected state
 
@@ -253,7 +292,13 @@ Raphael.el.joint = function(to, opt){
     var j = new Joint();
     j.engine.from = this;
     j.engine.to = to;
-    for (var k in opt)
+
+    // set attributes (prevent of shallow copy)
+    var temp = j.engine.pathOptions;
+    j.engine.pathOptions = {};
+    for (var k in temp)	// default options
+	j.engine.pathOptions[k] = temp[k];
+    for (var k in opt)	// custom options
 	j.engine.pathOptions[k] = opt[k];
 
     if (this.joints)

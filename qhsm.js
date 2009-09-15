@@ -13,6 +13,22 @@ function asString(obj){
     return "null";
 }
 
+function deepCopy(obj) {
+    if (Object.prototype.toString.call(obj) === '[object Array]'){
+        var out = [], i = 0, len = obj.length;
+        for ( ; i < len; i++ )
+            out[i] = arguments.callee(obj[i]);
+        return out;
+    }
+    if (typeof obj === 'object'){
+        var out = {}, i;
+        for ( i in obj )
+            out[i] = arguments.callee(obj[i]);
+        return out;
+    }
+    return obj;
+}
+
 //////////////////////////////////////////////////
 // QHsm.
 //////////////////////////////////////////////////
@@ -356,8 +372,9 @@ function qhsm(initialState){
 	// clone states
 	for (var i = _archStates.length - 1; i >= 0; --i)
 	    newm.addState(_archStates[i][0], _archStates[i][1], _archStates[i][2]);
-	// clone slots
+	// clone slots (deep copy)
 	for (var i = _archSlots.length - 1; i >= 0; --i)
+//	    newm.addSlots(deepCopy(_archSlots[i]));
 	    newm.addSlots(_archSlots[i]);
 	// clone methods
 	for (var i = _archMethods.length - 1; i >= 0; --i)

@@ -1,6 +1,6 @@
-+ init signal in qhsm.js QHsm wrapper, it will generate
-   this.newInitialState("MyState")
-- addMethod in qhsm.js QHsm wrapper, to add custom method to the
-   machine
+- various arrow types
+- support for groupped objects (first step to make state objects)
++ init signal in qhsm.js QHsm wrapper, it will generate this.newInitialState("MyState")
++ addMethod in qhsm.js QHsm wrapper, to add custom method to the machine
 
 
