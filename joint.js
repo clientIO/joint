@@ -28,7 +28,7 @@ JointEngine.addSlots({
 	dx: 15,	// x correction
 	dy: 15, // y correction
 	opt: {
-	    stroke: "black",
+	    stroke: "black"
 //	    fill: "black"
 	}
     },
@@ -51,13 +51,23 @@ JointEngine.addSlots({
 	    "stroke-width": 1.0
 	}
     },
+    aggregationArrow: {
+	path: ["M","15","0","L","0","10","L","-15","0", "L", "0", "-10", "z"],
+	dx: 16,	// x correction
+	dy: 16, // y correction
+	opt: {
+	    stroke: "black",
+//	    fill: "black",
+	    "stroke-width": 2.0
+	}
+    },
+    
 
     fromEndCap: "basicArrow",
-    toEndCap: "rectEnd",
+    toEndCap: "aggregationArrow",
 
     from: null, 
-    to: null,
-    
+    to: null
 });
 
 /***************************************************
@@ -113,7 +123,7 @@ JointEngine.addMethod("pointAdhereToRect", function(point, rect){
 	return point;
     return {
 	x: Math.min(Math.max(point.x, rect.x), rect.x + rect.width),
-	y: Math.min(Math.max(point.y, rect.y), rect.y + rect.height),
+	y: Math.min(Math.max(point.y, rect.y), rect.y + rect.height)
     }
 });
 /**
@@ -166,7 +176,7 @@ JointEngine.addMethod("ellipseLineIntersectionFromCenterToPoint", function(ellip
     var y = m * x;
     return {
 	x: ellipse.center.x + Math.round(x),
-	y: ellipse.center.y + Math.round(y),
+	y: ellipse.center.y + Math.round(y)
     }
 });
 /**
