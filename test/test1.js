@@ -18,13 +18,15 @@ var obj2 = r.rect(300, 50, 100, 100);
 obj2.attr({"fill": "yellow", "fill-opacity": .2});
 obj2.node.style.cursor = "move";
 obj2.show();
+
 var obj3 = r.circle(100, 200, 50);
 obj3.attr({"fill": "green", "fill-opacity": .2});
 obj3.node.style.cursor = "move";
 obj3.show();
 
+
 obj1.joint(obj2);
-//obj3.joint(obj1, {stroke: "red"});
+obj3.joint(obj1, {stroke: "red"});
 //obj2.joint(obj3);
 
 /*

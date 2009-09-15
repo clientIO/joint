@@ -1,16 +1,17 @@
-/**
- * Main joint.js file.
+/****************************************************
+ * joint.js
  * @author David Durman
- */
+ ****************************************************/
 
 /**************************************************
- * Engine
+ * Engine.
  **************************************************/
 
 var JointEngine = qhsm("Idle");
+
 JointEngine.addSlots({
     connector: null, 
-    pathOptions: {
+    pathOptions: {	// default options
 	"stroke": "#000",
 	"fill": "#fff",
 	"fill-opacity": 1.0,
@@ -22,13 +23,50 @@ JointEngine.addSlots({
 	"stroke-miterlimit": 10,
 	"stroke-opacity": 0.2*/
     },
-    basicArrow: ["M","25","0","L","0","50","L","50","50","L","25","0"],
+    basicArrow: {
+	path: ["M","15","0","L","-15","-15","L","-15","15","z"],
+	dx: 15,	// x correction
+	dy: 15, // y correction
+	opt: {
+	    stroke: "black",
+//	    fill: "black"
+	}
+    },
+    basicEnd: {
+	path: ["M","15","0","L","-15","0", "z"],
+	dx: 15,	// x correction
+	dy: 15, // y correction
+	opt: {
+	    stroke: "black",
+	    "stroke-width": 5	// TODO: must have the same properties as the path has
+	}
+    },
+    rectEnd: {
+	path: ["M","15","5","L","-15","5","L","-15","-5", "L", "15", "-5", "z"],
+	dx: 15,	// x correction
+	dy: 15, // y correction
+	opt: {
+	    stroke: "black",
+//	    fill: "black",
+	    "stroke-width": 1.0
+	}
+    },
+
+    fromEndCap: "basicArrow",
+    toEndCap: "rectEnd",
+
     from: null, 
-    to: null
+    to: null,
+    
 });
 
-/***************************************************/
+/***************************************************
+ * Engine methods.
+ ***************************************************/
 
+/**
+ * return true if two rects rect and another intersect
+ */
 JointEngine.addMethod("rectsIntersect", function(rect, another){
     var rOrigin = {x: rect.x, y: rect.y},
     rCorner = {x: rect.x + rect.width, y: rect.y + rect.height},
@@ -40,6 +78,9 @@ JointEngine.addMethod("rectsIntersect", function(rect, another){
     if (aOrigin.y >= rCorner.y) return false;
     return true;
 });
+/**
+ * return string representing side on rect which is nearest to point
+ */
 JointEngine.addMethod("sideNearestToPoint", function(rect, point){
     // from Squeak Smalltalk, Rectangle>>sideNearestTo:
     var distToLeft = point.x - rect.x;
@@ -63,7 +104,8 @@ JointEngine.addMethod("sideNearestToPoint", function(rect, point){
     return side;
 });
 /**
- * if point lies outside rect, return the nearest point on the boundary of rect, otherwise return point
+ * if point lies outside rect, return the nearest point on the boundary of rect, 
+ * otherwise return point
  */
 JointEngine.addMethod("pointAdhereToRect", function(point, rect){
     // from Squeak Smalltalk, Point>>adhereTo:
@@ -74,6 +116,9 @@ JointEngine.addMethod("pointAdhereToRect", function(point, rect){
 	y: Math.min(Math.max(point.y, rect.y), rect.y + rect.height),
     }
 });
+/**
+ * return true if rect contains point
+ */
 JointEngine.addMethod("rectContainsPoint", function(rect, point){
     if (point.x > rect.x && point.x < rect.x + rect.width &&
 	point.y > rect.y && point.y < rect.y + rect.height)
@@ -95,8 +140,11 @@ JointEngine.addMethod("rectPointNearestToPoint", function(rect, point){
 	}
     } else
 	return this.pointAdhereToRect(point, rect);
-    
 });
+/**
+ * find point on ellipse where line from the center of the ellipse to
+ * point intersects the ellipse
+ */
 JointEngine.addMethod("ellipseLineIntersectionFromCenterToPoint", function(ellipse, point){
     // from Squeak Smalltalk, EllipseMorph>>intersectionWithLineSegmentFromCenterTo:    
     var dx = point.x - ellipse.center.x;
@@ -121,6 +169,9 @@ JointEngine.addMethod("ellipseLineIntersectionFromCenterToPoint", function(ellip
 	y: ellipse.center.y + Math.round(y),
     }
 });
+/**
+ * find point where two lines line and another intersect
+ */
 JointEngine.addMethod("linesIntersection", function(line, another){
     // from Squeak Smalltalk, LineSegment>>intersectionWith:
     var pt1Dir = {x: line.end.x - line.start.x, y: line.end.y - line.start.y};
@@ -151,15 +202,16 @@ JointEngine.addMethod("linesIntersection", function(line, another){
 JointEngine.addMethod("lineLength", function(x0, y0, x1, y1){
     return Math.sqrt((x0 -= x1) * x0 + (y0 -= y1) * y0);
 });
-JointEngine.addMethod("bboxDistance", function(bb1, bb2){
-    return this.lineLength(bb1.x, bb1.y, bb2.x, bb2.y);
-});
 JointEngine.addMethod("bboxMiddle", function(bb){
     return {
 	x: bb.x + bb.width/2,
 	y: bb.y + bb.height/2
     }
 });
+/**
+ * compute the angle between this.from middle point and this.to middle point
+ * TODO: needs optimization!
+ */
 JointEngine.addMethod("theta", function(){
     var bbFrom = this.from.getBBox();
     var bbTo = this.to.getBBox();
@@ -169,34 +221,30 @@ JointEngine.addMethod("theta", function(){
     var a = this.lineLength(B.x, B.y, C.x, C.y);
     var b = this.lineLength(A.x, A.y, C.x, C.y);    
     var c = this.lineLength(A.x, A.y, B.x, B.y);
-    var alpha = Math.acos((b*b + c*c - a*a) / (2*b*c));
-    var deg = (180*alpha/Math.PI);
-    if (A.y < C.y)	// correction for III. and IV. quadrant
+    var rad = Math.acos((b*b + c*c - a*a) / (2*b*c));
+    var deg = (180*rad/Math.PI);
+    if (A.y < C.y){	// correction for III. and IV. quadrant
 	deg = 360 - deg;
+	rad = 2*Math.PI - rad;
+    }
     return {
 	degrees: deg,
-	radians: (Math.PI * deg)/180
+	radians: rad
     }
-
-/*
-    var bb1m = this.bboxMiddle(this.from.getBBox());
-    var bb2m = this.bboxMiddle(this.to.getBBox());
-    var d = this.lineLength(bb1m.x, bb1m.y, bb2m.x, bb2m.y);
-    var h = this.lineLength(bb2m.x, bb2m.y, bb2m.x, bb1m.y);
-    return {
-	degrees: (180*Math.asin(h/d))/Math.PI,
-	radians: Math.asin(h/d)
-    }
-*/
 });
+/**
+ * return true if this.from's bbox and this.to's bbox are overlapped
+ */
 JointEngine.addMethod("overlapped", function(){
     if (this.from.type === "rect" && this.to.type === "rect"){
-	//	console.log(this.rectsIntersect(this.from.getBBox(), this.to.getBBox()));
 	return this.rectsIntersect(this.from.getBBox(), this.to.getBBox());
     }
     // TODO: other objects
     return this.rectsIntersect(this.from.getBBox(), this.to.getBBox());
 });
+/**
+ * find point on from where connection line should start
+ */
 JointEngine.addMethod("endPoint", function(from, to){
     var bbFrom = from.getBBox();
     var bbTo = to.getBBox();
@@ -230,11 +278,40 @@ JointEngine.addMethod("endPoint", function(from, to){
 	return this.ellipseLineIntersectionFromCenterToPoint(ellipse, point);
     }
 });
+JointEngine.addMethod("simplexCentroid", function(vertices){
+    var len = vertices.length;
+    var centroid = {x: 0, y: 0};
+    for (var i = len - 1; i >= 0; --i){
+	centroid.x += vertices[i].x;
+	centroid.y += vertices[i].y;
+    }
+    return {
+	x: centroid.x / len,
+	y: centroid.y / len
+    }
+});
+/**
+ * draw a connection line between this.from and this.to
+ */
 JointEngine.addMethod("drawPath", function(){
+    var toEndCap = this[this.toEndCap];
+    var fromEndCap = this[this.fromEndCap];
+    var t = this.theta();
+
+    // draw and position the arrow ending
     var epf = this.endPoint(this.from, this.to);
     var ept = this.endPoint(this.to, this.from);
+
+    // path start point
+    var pathEpf = {x: epf.x + 2*fromEndCap.dx * Math.cos(t.radians),
+		   y: epf.y + -2*fromEndCap.dy * Math.sin(t.radians)};
+
+    // path end point
+    var pathEpt = {x: ept.x + -2*toEndCap.dx * Math.cos(t.radians),
+		   y: ept.y + 2*toEndCap.dy * Math.sin(t.radians)};
+
     var r = this.from.paper;
-    var p = ["M", epf.x, epf.y, "L", ept.x, ept.y].join(",");
+    var p = ["M", pathEpf.x, pathEpf.y, "L", pathEpt.x, pathEpt.y].join(",");
 
     if (this.connector){
 	this.connector.path && this.connector.path.remove();
@@ -247,9 +324,20 @@ JointEngine.addMethod("drawPath", function(){
     this.connector.path.toBack();
     this.connector.path.show();
 
-    this.connector.toEnd = r.path({stroke: "#000"}, this.basicArrow);
+    // end glyph
+    this.connector.toEnd = r.path(toEndCap.opt, toEndCap.path);
     this.connector.toEnd.translate(ept.x, ept.y);
-    
+    this.connector.toEnd.translate(-toEndCap.dx * Math.cos(t.radians), toEndCap.dy * (Math.sin(t.radians)));
+    this.connector.toEnd.rotate(360 - t.degrees);
+
+    // start glyph
+    this.connector.fromEnd = r.path(fromEndCap.opt, fromEndCap.path);
+    this.connector.fromEnd.translate(epf.x, epf.y);
+    this.connector.fromEnd.translate(fromEndCap.dx * Math.cos(t.radians), -fromEndCap.dy * (Math.sin(t.radians)));
+    this.connector.fromEnd.rotate(360 - t.degrees);
+    this.connector.fromEnd.rotate(180);
+
+
 /*
     this.connector.toEnd = r.circle(ept.x, ept.y, 5);
     this.connector.toEnd.toBack();
@@ -257,7 +345,9 @@ JointEngine.addMethod("drawPath", function(){
 */
 });
 
-/**************************************************/
+/**************************************************
+ * Engine states.
+ **************************************************/
 
 JointEngine.addState("Idle", "top", {
     entry: function(){},
@@ -273,15 +363,12 @@ JointEngine.addState("Connected", "Idle", {
     exit: function(){},
     step: {
 	guard: function(e){ return !this.overlapped() },
-	action: function(e){ 
-	    this.drawPath();
-	    console.log(this.theta().degrees);
-	}
+	action: function(e){ this.drawPath() }
     }
 });// Connected state
 
 /**************************************************
- * Joint
+ * Joint.
  **************************************************/
 
 function Joint(){
