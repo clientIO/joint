@@ -1,5 +1,6 @@
 /****************************************************
- * joint.js
+ * Joint library.
+ * @file joint.js
  * @author David Durman
  ****************************************************/
 
@@ -14,13 +15,13 @@ function JointEngine(){
 JointEngine.prototype = new QHsm;
 JointEngine.prototype.stateInitial = function(e){
     // slots
-    this._con = null;
-    this._startCap = null;
-    this._endCap = null;
+    this._con = null;		// holds the joint path
+    this._startCap = null;	// start glyph (arrow)
+    this._endCap = null;	// end glyph (arrow)
     // connection from start to end
-    this._start = null;
-    this._end = null;
-
+    this._start = null;		// start Raphael object
+    this._end = null;		// end Raphael object
+    // _con path options
     this._opt = {
 	attrs: {
 	    "stroke": "#000",
@@ -34,12 +35,11 @@ JointEngine.prototype.stateInitial = function(e){
 	    "stroke-opacity": 1.0
 	}
     };
+    // various ready-to-use arrows
     this._arrows = {
 	basic: {
 	    path: ["M","15","0","L","-15","0", "z"],
 	    dx: 15, dy: 15, // x, y correction
-	    // TODO: must have the same properties as the path has
-//	    attrs: { stroke: "black", "stroke-width": 5	}
 	    attrs: this._opt.attrs
 	},
 	basicArrow: {
@@ -57,24 +57,24 @@ JointEngine.prototype.stateInitial = function(e){
 	    dx: 16, dy: 16,
 	    attrs: { stroke: "black", "stroke-width": 2.0 }
 	}
-    };// endof _arrows
-
-    // TODO options preprocessing
-    // used arrows
+    };
+    // used arrows (default values)
     this._arrow = {
 	start: this._arrows.aggregationArrow,
 	end: this._arrows.basicArrow
     };
-
-    // initial state
+    // initial state of the engine
     this.newInitialState("Idle");
-    return null;
+    return null;	// QHsm convention (@see qhsm.js)
 };
 
-/**************************************************
- * Engine states.
- **************************************************/
+/*************************************************************
+ * Engine states. (engine behaviour is managed by StateChart)
+ *************************************************************/
 
+/**
+ * Idle state. - any joint is wiring.
+ */
 JointEngine.prototype.stateIdle = function(e){
     switch (e.type){
     case "entry": return null;
@@ -86,6 +86,9 @@ JointEngine.prototype.stateIdle = function(e){
     return this.top();
 };
 
+/**
+ * Connected state. - substate of Idle, both joint sides are connected.
+ */
 JointEngine.prototype.stateConnected = function(e){
     switch (e.type){
     case "entry": 
@@ -106,11 +109,11 @@ JointEngine.prototype.stateConnected = function(e){
 };
 
 /**************************************************
- * Helper methods.
+ * Helper methods. (mainly geometric operations)
  **************************************************/
 
 /**
- * return true if two rects rect and another intersect
+ * @return bool true if two rects rect and another intersect each other
  */
 JointEngine.prototype.rectsIntersect = function(rect, another){
     var rOrigin = {x: rect.x, y: rect.y},
@@ -125,7 +128,7 @@ JointEngine.prototype.rectsIntersect = function(rect, another){
 };
 
 /**
- * @return string side on rect which is nearest to point
+ * @return string (left|right|top|bottom) side on rect which is nearest to point
  * @see Squeak Smalltalk, Rectangle>>sideNearestTo:
  */
 JointEngine.prototype.sideNearestToPoint = function(rect, point){
@@ -176,7 +179,7 @@ JointEngine.prototype.pointAdhereToRect = function(point, rect){
 
 /**
  * @return point a point on rect border nearest to parameter point
- * @see Squeak Smalltalk, Rectangle>>pointNearestTo:    
+ * @see Squeak Smalltalk, Rectangle>>pointNearestTo:
  */
 JointEngine.prototype.rectPointNearestToPoint = function(rect, point){
     if (this.rectContainsPoint(rect, point)){
@@ -197,19 +200,19 @@ JointEngine.prototype.rectPointNearestToPoint = function(rect, point){
  * @see Squeak Smalltalk, EllipseMorph>>intersectionWithLineSegmentFromCenterTo:    
  */
 JointEngine.prototype.ellipseLineIntersectionFromCenterToPoint = function(ellipse, point){
-    var dx = point.x - ellipse.center.x;
-    var dy = point.y - ellipse.center.y;
+    var dx = point.x - ellipse.center.x,
+    dy = point.y - ellipse.center.y;
     if (dx == 0)
 	return this.rectPointNearestToPoint(ellipse.bb, point);
 
-    var m = dy / dx;
-    var mSquared = m * m;
-    var aSquared = ellipse.bb.width / 2;
+    var m = dy / dx,
+    mSquared = m * m,
+    aSquared = ellipse.bb.width / 2;
     aSquared = aSquared * aSquared;
     var bSquared = ellipse.bb.height / 2;
     bSquared = bSquared * bSquared;
-    var xSquared = 1 / ((1 / aSquared) + (mSquared / bSquared));
-    var x = Math.sqrt(xSquared);
+    var xSquared = 1 / ((1 / aSquared) + (mSquared / bSquared)),
+    x = Math.sqrt(xSquared);
     if (dx < 0) 
 	x = -x;
     var y = m * x;
@@ -224,12 +227,12 @@ JointEngine.prototype.ellipseLineIntersectionFromCenterToPoint = function(ellips
  * @see Squeak Smalltalk, LineSegment>>intersectionWith:
  */
 JointEngine.prototype.linesIntersection = function(line, another){
-    var pt1Dir = {x: line.end.x - line.start.x, y: line.end.y - line.start.y};
-    var pt2Dir = {x: another.end.x - another.start.x, y: another.end.y - another.start.y};
-    var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
-    var deltaPt = {x: another.start.x - line.start.x, y: another.start.y - line.start.y};
-    var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
-    var beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
+    var pt1Dir = {x: line.end.x - line.start.x, y: line.end.y - line.start.y},
+    pt2Dir = {x: another.end.x - another.start.x, y: another.end.y - another.start.y},
+    det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x),
+    deltaPt = {x: another.start.x - line.start.x, y: another.start.y - line.start.y},
+    alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x),
+    beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
 
     if (det == 0 ||
 	alpha * det < 0 ||
@@ -257,9 +260,9 @@ JointEngine.prototype.lineLength = function(x0, y0, x1, y1){
  * Compute the angle between this.from middle point and this.to middle point.
  */
 JointEngine.prototype.theta = function(point1, point2){
-    var y = -(point2.y - point1.y);	// invert the y-axis
-    var x = point2.x - point1.x;
-    var rad = Math.atan2(y, x);
+    var y = -(point2.y - point1.y),	// invert the y-axis
+    x = point2.x - point1.x,
+    rad = Math.atan2(y, x);
     if (rad < 0) // correction for III. and IV. quadrant
 	rad = 2*Math.PI + rad;
     return {
@@ -283,7 +286,7 @@ JointEngine.prototype.boundPoint = function(bb, type, point){
     var bbCenter = {x: bb.x + bb.width/2, y: bb.y + bb.height/2};
 
     if (type === "circle" || type === "ellipse"){
-	var ellipse = {center: bbCenter, "bb": bb}; // TODO remove quotes
+	var ellipse = {center: bbCenter, bb: bb}; 
 	return this.ellipseLineIntersectionFromCenterToPoint(ellipse, point);
 
 	// other types 
@@ -294,9 +297,8 @@ JointEngine.prototype.boundPoint = function(bb, type, point){
 	    {start: {x: bb.x + bb.width, y: bb.y}, end: {x: bb.x + bb.width, y: bb.y + bb.height}}, 
 	    {start: {x: bb.x + bb.width, y: bb.y + bb.height}, end: {x: bb.x, y: bb.y + bb.height}},
 	    {start: {x: bb.x, y: bb.y + bb.height}, end: {x: bb.x, y: bb.y}}
-	];
-
-	var connector = {start: bbCenter, end: point};
+	],
+	connector = {start: bbCenter, end: point};
 	for (var i = sides.length - 1; i >= 0; --i){
 	    var intersection = this.linesIntersection(sides[i], connector);
 	    if (intersection !== null)
@@ -322,22 +324,18 @@ JointEngine.prototype.drawLine = function(start, end, attrs){
  * (connection path will be saved in this._con)
  */
 JointEngine.prototype.drawConnection = function(){
-    var sbb = this._start.getBBox();
-    var sbbCenter = {x: sbb.x + sbb.width/2, y: sbb.y + sbb.height/2};
-    var ebb = this._end.getBBox();
-    var ebbCenter = {x: ebb.x + ebb.width/2, y: ebb.y + ebb.height/2};
-    var theta = this.theta(sbbCenter, ebbCenter);
-    
-    var sBoundPoint = this.boundPoint(sbb, this._start.type, ebbCenter);
-    var eBoundPoint = this.boundPoint(ebb, this._end.type, sbbCenter);
-
-    // connection start point
-    var sPoint = {
+    var sbb = this._start.getBBox(),
+    sbbCenter = {x: sbb.x + sbb.width/2, y: sbb.y + sbb.height/2},
+    ebb = this._end.getBBox(),
+    ebbCenter = {x: ebb.x + ebb.width/2, y: ebb.y + ebb.height/2},
+    theta = this.theta(sbbCenter, ebbCenter),
+    sBoundPoint = this.boundPoint(sbb, this._start.type, ebbCenter),
+    eBoundPoint = this.boundPoint(ebb, this._end.type, sbbCenter),
+    sPoint = { // connection start point
 	x: sBoundPoint.x + (2 * this._arrow.start.dx * Math.cos(theta.radians)),
 	y: sBoundPoint.y + (-2 * this._arrow.start.dy * Math.sin(theta.radians))
-    };
-    // connection end point
-    var ePoint = {
+    },
+    ePoint = { // connection end point
 	x: eBoundPoint.x + (-2 * this._arrow.end.dx * Math.cos(theta.radians)),
 	y: eBoundPoint.y + (2 * this._arrow.end.dy * Math.sin(theta.radians))
     };
@@ -360,8 +358,7 @@ JointEngine.prototype.clearStartCap = function(){ this._startCap && this._startC
 JointEngine.prototype.drawEndCap = function(eBoundPoint, theta){
     var a = this._arrow.end;
     this._endCap = this._raphael.path(a.attrs, a.path);
-    this._endCap.translate(eBoundPoint.x, eBoundPoint.y);
-    this._endCap.translate(-a.dx * Math.cos(theta.radians), a.dy * Math.sin(theta.radians));
+    this._endCap.translate(eBoundPoint.x - a.dx * Math.cos(theta.radians), eBoundPoint.y + a.dy * Math.sin(theta.radians));
     this._endCap.rotate(360 - theta.degrees);
     this._endCap.show();
 };
@@ -369,10 +366,8 @@ JointEngine.prototype.drawEndCap = function(eBoundPoint, theta){
 JointEngine.prototype.drawStartCap = function(sBoundPoint, theta){
     var a = this._arrow.start;
     this._startCap = this._raphael.path(a.attrs, a.path);
-    this._startCap.translate(sBoundPoint.x, sBoundPoint.y);
-    this._startCap.translate(a.dx * Math.cos(theta.radians), -a.dy * Math.sin(theta.radians));
-    this._startCap.rotate(360 - theta.degrees);
-    this._startCap.rotate(180);
+    this._startCap.translate(sBoundPoint.x + a.dx * Math.cos(theta.radians), sBoundPoint.y - a.dy * Math.sin(theta.radians));
+    this._startCap.rotate(360 - theta.degrees + 180);
     this._startCap.show();
 };
 
@@ -384,9 +379,8 @@ JointEngine.prototype.drawStartCap = function(sBoundPoint, theta){
 
 function Joint(){
     this.engine = new JointEngine();
-    this.engine.init(null);
+    this.engine.init(null);	// initial StateChart transition
 }
-
 
 /**************************************************
  * Caps DOM events handles.
