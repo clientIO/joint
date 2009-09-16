@@ -7,77 +7,112 @@
  * Engine.
  **************************************************/
 
-var JointEngine = qhsm("Idle");
+function JointEngine(){
+    this.base = QHsm;
+    this.base("Initial");
+}
+JointEngine.prototype = new QHsm;
+JointEngine.prototype.stateInitial = function(e){
+    // slots
+    this._con = null;
+    this._startCap = null;
+    this._endCap = null;
+    // connection from start to end
+    this._start = null;
+    this._end = null;
 
-JointEngine.addSlots({
-    connector: null, 
-    pathOptions: {	// default options
-	"stroke": "#000",
-	"fill": "#fff",
-	"fill-opacity": 1.0,
-	"stroke-width": 5
-
-	/*	"stroke-dasharray": "--",
-	"stroke-linecap": "miter", // butt/square/round/mitter
-	"stroke-linejoin": "miter", // butt/square/round/mitter
-	"stroke-miterlimit": 10,
-	"stroke-opacity": 0.2*/
-    },
-    basicArrow: {
-	path: ["M","15","0","L","-15","-15","L","-15","15","z"],
-	dx: 15,	// x correction
-	dy: 15, // y correction
-	opt: {
-	    stroke: "black"
-	    //	    fill: "black"
+    this._opt = {
+	attrs: {
+	    "stroke": "#000",
+	    "fill": "#fff",
+	    "fill-opacity": 1.0,
+	    "stroke-width": 1,
+	    "stroke-dasharray": "-",
+	    "stroke-linecap": "round", // butt/square/round/mitter
+	    "stroke-linejoin": "round", // butt/square/round/mitter
+	    "stroke-miterlimit": 1,
+	    "stroke-opacity": 1.0
 	}
-    },
-    basicEnd: {
-	path: ["M","15","0","L","-15","0", "z"],
-	dx: 15,	// x correction
-	dy: 15, // y correction
-	opt: {
-	    stroke: "black",
-	    "stroke-width": 5	// TODO: must have the same properties as the path has
+    };
+    this._arrows = {
+	basic: {
+	    path: ["M","15","0","L","-15","0", "z"],
+	    dx: 15, dy: 15, // x, y correction
+	    // TODO: must have the same properties as the path has
+//	    attrs: { stroke: "black", "stroke-width": 5	}
+	    attrs: this._opt.attrs
+	},
+	basicArrow: {
+	    path: ["M","15","0","L","-15","-15","L","-15","15","z"],
+	    dx: 15, dy: 15,
+	    attrs: { stroke: "black", fill: "black" }
+	},
+	basicRect: {
+	    path: ["M","15","5","L","-15","5","L","-15","-5", "L", "15", "-5", "z"],
+	    dx: 15, dy: 15,
+	    attrs: { stroke: "black", "stroke-width": 1.0 }
+	},
+	aggregationArrow: {
+	    path: ["M","15","0","L","0","10","L","-15","0", "L", "0", "-10", "z"],
+	    dx: 16, dy: 16,
+	    attrs: { stroke: "black", "stroke-width": 2.0 }
 	}
-    },
-    rectEnd: {
-	path: ["M","15","5","L","-15","5","L","-15","-5", "L", "15", "-5", "z"],
-	dx: 15,	// x correction
-	dy: 15, // y correction
-	opt: {
-	    stroke: "black",
-	    //	    fill: "black",
-	    "stroke-width": 1.0
+    };// endof _arrows
+
+    // TODO options preprocessing
+    // used arrows
+    this._arrow = {
+	start: this._arrows.aggregationArrow,
+	end: this._arrows.basicArrow
+    };
+
+    // initial state
+    this.newInitialState("Idle");
+    return null;
+};
+
+/**************************************************
+ * Engine states.
+ **************************************************/
+
+JointEngine.prototype.stateIdle = function(e){
+    switch (e.type){
+    case "entry": return null;
+    case "exit": return null;	
+    case "connect": 
+	this.newState("Connected");
+	return null;
+    }
+    return this.top();
+};
+
+JointEngine.prototype.stateConnected = function(e){
+    switch (e.type){
+    case "entry": 
+	this.clearConnection();
+	this.clearCaps();
+	this.drawConnection();
+	return null;
+    case "exit": return null;	
+    case "step": 
+	if (!this.overlappedBBoxes(this._start.getBBox(), this._end.getBBox())){	// guard
+	    this.clearConnection();
+	    this.clearCaps();
+	    this.drawConnection();
 	}
-    },
-    aggregationArrow: {
-	path: ["M","15","0","L","0","10","L","-15","0", "L", "0", "-10", "z"],
-	dx: 16,	// x correction
-	dy: 16, // y correction
-	opt: {
-	    stroke: "black",
-	    //	    fill: "black",
-	    "stroke-width": 2.0
-	}
-    },
-    
+	return null;
+    }
+    return this.state("Idle");
+};
 
-    fromEndCap: "basicArrow",
-    toEndCap: "aggregationArrow",
-
-    from: null, 
-    to: null
-});
-
-/***************************************************
- * Engine methods.
- ***************************************************/
+/**************************************************
+ * Helper methods.
+ **************************************************/
 
 /**
  * return true if two rects rect and another intersect
  */
-JointEngine.addMethod("rectsIntersect", function(rect, another){
+JointEngine.prototype.rectsIntersect = function(rect, another){
     var rOrigin = {x: rect.x, y: rect.y},
     rCorner = {x: rect.x + rect.width, y: rect.y + rect.height},
     aOrigin = {x: another.x, y: another.y},
@@ -87,12 +122,13 @@ JointEngine.addMethod("rectsIntersect", function(rect, another){
     if (aOrigin.x >= rCorner.x) return false;
     if (aOrigin.y >= rCorner.y) return false;
     return true;
-});
+};
+
 /**
- * return string representing side on rect which is nearest to point
+ * @return string side on rect which is nearest to point
+ * @see Squeak Smalltalk, Rectangle>>sideNearestTo:
  */
-JointEngine.addMethod("sideNearestToPoint", function(rect, point){
-    // from Squeak Smalltalk, Rectangle>>sideNearestTo:
+JointEngine.prototype.sideNearestToPoint = function(rect, point){
     var distToLeft = point.x - rect.x;
     var distToRight = (rect.x + rect.width) - point.x;
     var distToTop = point.y - rect.y;
@@ -112,34 +148,37 @@ JointEngine.addMethod("sideNearestToPoint", function(rect, point){
 	side = "bottom";
     }
     return side;
-});
+};
+
 /**
- * if point lies outside rect, return the nearest point on the boundary of rect, 
- * otherwise return point
+ * @return bool true if rect contains point
  */
-JointEngine.addMethod("pointAdhereToRect", function(point, rect){
-    // from Squeak Smalltalk, Point>>adhereTo:
+JointEngine.prototype.rectContainsPoint = function(rect, point){
+    if (point.x > rect.x && point.x < rect.x + rect.width &&
+	point.y > rect.y && point.y < rect.y + rect.height)
+	return true;
+    return false;
+};
+
+/**
+ * If point lies outside rect, return the nearest point on the boundary of rect, 
+ * otherwise return point.
+ * @see Squeak Smalltalk, Point>>adhereTo:
+ */
+JointEngine.prototype.pointAdhereToRect = function(point, rect){
     if (this.rectContainsPoint(rect, point))
 	return point;
     return {
 	x: Math.min(Math.max(point.x, rect.x), rect.x + rect.width),
 	y: Math.min(Math.max(point.y, rect.y), rect.y + rect.height)
     }
-});
+};
+
 /**
- * return true if rect contains point
+ * @return point a point on rect border nearest to parameter point
+ * @see Squeak Smalltalk, Rectangle>>pointNearestTo:    
  */
-JointEngine.addMethod("rectContainsPoint", function(rect, point){
-    if (point.x > rect.x && point.x < rect.x + rect.width &&
-	point.y > rect.y && point.y < rect.y + rect.height)
-	return true;
-    return false;
-});
-/**
- * return a point on rect border nearest to point
- */
-JointEngine.addMethod("rectPointNearestToPoint", function(rect, point){
-    // from Squeak Smalltalk, Rectangle>>pointNearestTo:    
+JointEngine.prototype.rectPointNearestToPoint = function(rect, point){
     if (this.rectContainsPoint(rect, point)){
 	var side = this.sideNearestTo(rect, point);
 	switch (side){
@@ -150,16 +189,16 @@ JointEngine.addMethod("rectPointNearestToPoint", function(rect, point){
 	}
     } else
 	return this.pointAdhereToRect(point, rect);
-});
+};
+
 /**
- * find point on ellipse where line from the center of the ellipse to
- * point intersects the ellipse
+ * Find point on ellipse where line from the center of the ellipse to
+ * point intersects the ellipse.
+ * @see Squeak Smalltalk, EllipseMorph>>intersectionWithLineSegmentFromCenterTo:    
  */
-JointEngine.addMethod("ellipseLineIntersectionFromCenterToPoint", function(ellipse, point){
-    // from Squeak Smalltalk, EllipseMorph>>intersectionWithLineSegmentFromCenterTo:    
+JointEngine.prototype.ellipseLineIntersectionFromCenterToPoint = function(ellipse, point){
     var dx = point.x - ellipse.center.x;
     var dy = point.y - ellipse.center.y;
-    
     if (dx == 0)
 	return this.rectPointNearestToPoint(ellipse.bb, point);
 
@@ -178,12 +217,13 @@ JointEngine.addMethod("ellipseLineIntersectionFromCenterToPoint", function(ellip
 	x: ellipse.center.x + Math.round(x),
 	y: ellipse.center.y + Math.round(y)
     }
-});
+};
+
 /**
- * find point where two lines line and another intersect
+ * Find point where two lines line and another intersect.
+ * @see Squeak Smalltalk, LineSegment>>intersectionWith:
  */
-JointEngine.addMethod("linesIntersection", function(line, another){
-    // from Squeak Smalltalk, LineSegment>>intersectionWith:
+JointEngine.prototype.linesIntersection = function(line, another){
     var pt1Dir = {x: line.end.x - line.start.x, y: line.end.y - line.start.y};
     var pt2Dir = {x: another.end.x - another.start.x, y: another.end.y - another.start.y};
     var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
@@ -203,49 +243,22 @@ JointEngine.addMethod("linesIntersection", function(line, another){
 	if (alpha < det || beta < det)
 	    return null;
     }
-
     return {
 	x: line.start.x + (alpha * pt1Dir.x / det),
 	y: line.start.y + (alpha * pt1Dir.y / det)
     }
-});
-JointEngine.addMethod("lineLength", function(x0, y0, x1, y1){
-    return Math.sqrt((x0 -= x1) * x0 + (y0 -= y1) * y0);
-});
-JointEngine.addMethod("bboxMiddle", function(bb){
-    return {
-	x: bb.x + bb.width/2,
-	y: bb.y + bb.height/2
-    }
-});
-/**
- * CORDIC algorithm to convert between cartesian coordinates and polar coordinates.
- * use this in Python: higher n -> more constants -> higher precision
- * [round(scale * degrees(atan(2**-i))) for i in range(n)]
- * @usage Math.atan(toPolar(point)[1])  ... is an angle in radians between x-axis and [0@0, point] line
- */
-JointEngine.addMethod("toPolar", function(point){
-    var theta = 0, x = point.x, y = point.y;
-    var adjs = [4500000, 2656505, 1403624, 712502, 357633, 178991, 89517, 44761];
-    for (var i = 0; i < 8; i++){
-	var sign = (y < 0) ? 1 : -1;
-	theta = theta - sign * adjs[i];
-	var _y = y;
-	y = y + sign * (x >> i);
-	x = x - sign * (_y >> i);
-    }
-    return [x * 60726 / 100000, theta];
-});
-/**
- * compute the angle between this.from middle point and this.to middle point
- * TODO: needs optimization!
- */
-JointEngine.addMethod("theta", function(){
-    var bbFrom = this.from.getBBox();
-    var bbTo = this.to.getBBox();
+};
 
-    var y = -(bbTo.y - bbFrom.y);	// invert the y-axis
-    var x = bbTo.x - bbFrom.x;
+JointEngine.prototype.lineLength = function(x0, y0, x1, y1){
+    return Math.sqrt((x0 -= x1) * x0 + (y0 -= y1) * y0);
+};
+
+/**
+ * Compute the angle between this.from middle point and this.to middle point.
+ */
+JointEngine.prototype.theta = function(point1, point2){
+    var y = -(point2.y - point1.y);	// invert the y-axis
+    var x = point2.x - point1.x;
     var rad = Math.atan2(y, x);
     if (rad < 0) // correction for III. and IV. quadrant
 	rad = 2*Math.PI + rad;
@@ -253,171 +266,144 @@ JointEngine.addMethod("theta", function(){
 	degrees: 180*rad / Math.PI,
 	radians: rad
     }
-});
-/**
- * return true if this.from's bbox and this.to's bbox are overlapped
- */
-JointEngine.addMethod("overlapped", function(){
-    if (this.from.type === "rect" && this.to.type === "rect"){
-	return this.rectsIntersect(this.from.getBBox(), this.to.getBBox());
-    }
-    // TODO: other objects
-    return this.rectsIntersect(this.from.getBBox(), this.to.getBBox());
-});
-/**
- * find point on from where connection line should start
- */
-JointEngine.addMethod("endPoint", function(from, to){
-    var bbFrom = from.getBBox();
-    var bbTo = to.getBBox();
+};
 
-    if (from.type === "rect"){
+/**
+ * @return bool true if bbox1 and bbox2 are overlapped
+ */
+JointEngine.prototype.overlappedBBoxes = function(bbox1, bbox2){
+    return this.rectsIntersect(bbox1, bbox2);
+};
+
+/**
+ * Find point on an object of type type with bounding box bb where line starting
+ * from bb center ending in point intersects the object.
+ */
+JointEngine.prototype.boundPoint = function(bb, type, point){
+    var bbCenter = {x: bb.x + bb.width/2, y: bb.y + bb.height/2};
+
+    if (type === "circle" || type === "ellipse"){
+	var ellipse = {center: bbCenter, "bb": bb}; // TODO remove quotes
+	return this.ellipseLineIntersectionFromCenterToPoint(ellipse, point);
+
+	// other types 
+    } else {
 	// sides of the this.from rectangle (clockwise, starting from the top side)
 	var sides = [
-	    {start: {x: bbFrom.x, y: bbFrom.y}, 
-	     end: {x: bbFrom.x + bbFrom.width, y: bbFrom.y}},
-	    {start: {x: bbFrom.x + bbFrom.width, y: bbFrom.y}, 
-	     end: {x: bbFrom.x + bbFrom.width, y: bbFrom.y + bbFrom.height}}, 
-	    {start: {x: bbFrom.x + bbFrom.width, y: bbFrom.y + bbFrom.height}, 
-	     end: {x: bbFrom.x, y: bbFrom.y + bbFrom.height}},
-	    {start: {x: bbFrom.x, y: bbFrom.y + bbFrom.height}, 
-	     end: {x: bbFrom.x, y: bbFrom.y}}
+	    {start: {x: bb.x, y: bb.y}, end: {x: bb.x + bb.width, y: bb.y}},
+	    {start: {x: bb.x + bb.width, y: bb.y}, end: {x: bb.x + bb.width, y: bb.y + bb.height}}, 
+	    {start: {x: bb.x + bb.width, y: bb.y + bb.height}, end: {x: bb.x, y: bb.y + bb.height}},
+	    {start: {x: bb.x, y: bb.y + bb.height}, end: {x: bb.x, y: bb.y}}
 	];
 
-	var connector = {start: {x: bbFrom.x + bbFrom.width/2, y: bbFrom.y + bbFrom.height/2},
-			 end: {x: bbTo.x + bbTo.width/2, y: bbTo.y + bbTo.height/2}};
-
+	var connector = {start: bbCenter, end: point};
 	for (var i = sides.length - 1; i >= 0; --i){
 	    var intersection = this.linesIntersection(sides[i], connector);
 	    if (intersection !== null)
 		return intersection;
 	}
-
-    } else if (from.type === "circle" || from.type === "ellipse"){
-	var point = {x: bbTo.x + bbTo.width/2, y: bbTo.y + bbTo.height/2};
-	var ellipse = {center: {x: bbFrom.x + bbFrom.width/2, y: bbFrom.y + bbFrom.height/2},
-		       bb: from.getBBox()};
-	return this.ellipseLineIntersectionFromCenterToPoint(ellipse, point);
     }
-});
-JointEngine.addMethod("simplexCentroid", function(vertices){
-    var len = vertices.length;
-    var centroid = {x: 0, y: 0};
-    for (var i = len - 1; i >= 0; --i){
-	centroid.x += vertices[i].x;
-	centroid.y += vertices[i].y;
-    }
-    return {
-	x: centroid.x / len,
-	y: centroid.y / len
-    }
-});
-/**
- * draw a connection line between this.from and this.to
- */
-JointEngine.addMethod("drawPath", function(){
-    var toEndCap = this[this.toEndCap];
-    var fromEndCap = this[this.fromEndCap];
-    var t = this.theta();
-
-    // draw and position the arrow ending
-    var epf = this.endPoint(this.from, this.to);
-    var ept = this.endPoint(this.to, this.from);
-
-    // path start point
-    var pathEpf = {x: epf.x + 2*fromEndCap.dx * Math.cos(t.radians),
-		   y: epf.y + -2*fromEndCap.dy * Math.sin(t.radians)};
-
-    // path end point
-    var pathEpt = {x: ept.x + -2*toEndCap.dx * Math.cos(t.radians),
-		   y: ept.y + 2*toEndCap.dy * Math.sin(t.radians)};
-
-    var r = this.from.paper;
-    var p = ["M", pathEpf.x, pathEpf.y, "L", pathEpt.x, pathEpt.y].join(",");
-
-    if (this.connector){
-	this.connector.path && this.connector.path.remove();
-	this.connector.toEnd && this.connector.toEnd.remove();
-	this.connector.fromEnd && this.connector.fromEnd.remove();
-    } else 
-	this.connector = {};
-
-    this.connector.path = r.path(this.pathOptions, p);
-    this.connector.path.toBack();
-    this.connector.path.show();
-
-    // end glyph
-    this.connector.toEnd = r.path(toEndCap.opt, toEndCap.path);
-    this.connector.toEnd.translate(ept.x, ept.y);
-    this.connector.toEnd.translate(-toEndCap.dx * Math.cos(t.radians), toEndCap.dy * (Math.sin(t.radians)));
-    this.connector.toEnd.rotate(360 - t.degrees);
-    //TODO: if caps are draggable:
-/*
-    this.connector.toEnd.engine = this;
-    this.connector.toEnd.mousedown(this.endDragStart);
-    this.connector.toEnd.node.style.cursor = "move";
-*/
-
-    // start glyph
-    this.connector.fromEnd = r.path(fromEndCap.opt, fromEndCap.path);
-    this.connector.fromEnd.translate(epf.x, epf.y);
-    this.connector.fromEnd.translate(fromEndCap.dx * Math.cos(t.radians), -fromEndCap.dy * (Math.sin(t.radians)));
-    this.connector.fromEnd.rotate(360 - t.degrees);
-    this.connector.fromEnd.rotate(180);
-    //TODO: if caps are draggable:
-/*
-    this.connector.fromEnd.engine = this;
-    this.connector.fromEnd.mousedown(this.endDragStart);
-    this.connector.fromEnd.node.style.cursor = "move";
-*/
-
-
-    /*
-    this.connector.toEnd = r.circle(ept.x, ept.y, 5);
-    this.connector.toEnd.toBack();
-    this.connector.toEnd.show();
-*/
-});
-
-JointEngine.addMethod("endDragStart", function(e){
-    this.dx = e.clientX;
-    this.dy = e.clientY;
-    Joint.isEndDrag = this;
-    this.animate({"fill-opacity": .1}, 500);
-    e.preventDefault && e.preventDefault();
-});
+};
 
 /**************************************************
- * Engine states.
+ * Engine specific methods.
  **************************************************/
 
-JointEngine.addState("Idle", "top", {
-    entry: function(){},
-    exit: function(){},
-    //    init: "Connected",
-    connect: {
-	target: "Connected"
-    }
-});// Idle state
+/**
+ * Draw a line from start to end with attributes attrs.
+ */
+JointEngine.prototype.drawLine = function(start, end, attrs){
+    var p = ["M", start.x, start.y, "L", end.x, end.y].join(",");
+    return this._raphael.path(attrs, p);
+};
 
-JointEngine.addState("Connected", "Idle", {
-    entry: function(){ this.drawPath() },
-    exit: function(){},
-    step: {
-	guard: function(e){ return !this.overlapped() },
-	action: function(e){ this.drawPath() }
-    }
-});// Connected state
+/**
+ * Draw connection line without start/end caps.
+ * (connection path will be saved in this._con)
+ */
+JointEngine.prototype.drawConnection = function(){
+    var sbb = this._start.getBBox();
+    var sbbCenter = {x: sbb.x + sbb.width/2, y: sbb.y + sbb.height/2};
+    var ebb = this._end.getBBox();
+    var ebbCenter = {x: ebb.x + ebb.width/2, y: ebb.y + ebb.height/2};
+    var theta = this.theta(sbbCenter, ebbCenter);
+    
+    var sBoundPoint = this.boundPoint(sbb, this._start.type, ebbCenter);
+    var eBoundPoint = this.boundPoint(ebb, this._end.type, sbbCenter);
+
+    // connection start point
+    var sPoint = {
+	x: sBoundPoint.x + (2 * this._arrow.start.dx * Math.cos(theta.radians)),
+	y: sBoundPoint.y + (-2 * this._arrow.start.dy * Math.sin(theta.radians))
+    };
+    // connection end point
+    var ePoint = {
+	x: eBoundPoint.x + (-2 * this._arrow.end.dx * Math.cos(theta.radians)),
+	y: eBoundPoint.y + (2 * this._arrow.end.dy * Math.sin(theta.radians))
+    };
+    
+    this._con = this.drawLine(sPoint, ePoint, this._opt.attrs);
+    this._con.show();
+
+    this.drawStartCap(sBoundPoint, theta);
+    this.drawEndCap(eBoundPoint, theta);
+};
+
+/**
+ * Clear operations. Remove the DOM elements if they exist.
+ */
+JointEngine.prototype.clearConnection = function(){ this._con && this._con.remove() };
+JointEngine.prototype.clearCaps = function(){ this.clearStartCap(); this.clearEndCap() };
+JointEngine.prototype.clearEndCap = function(){ this._endCap && this._endCap.remove() };
+JointEngine.prototype.clearStartCap = function(){ this._startCap && this._startCap.remove() };
+
+JointEngine.prototype.drawEndCap = function(eBoundPoint, theta){
+    var a = this._arrow.end;
+    this._endCap = this._raphael.path(a.attrs, a.path);
+    this._endCap.translate(eBoundPoint.x, eBoundPoint.y);
+    this._endCap.translate(-a.dx * Math.cos(theta.radians), a.dy * Math.sin(theta.radians));
+    this._endCap.rotate(360 - theta.degrees);
+    this._endCap.show();
+};
+
+JointEngine.prototype.drawStartCap = function(sBoundPoint, theta){
+    var a = this._arrow.start;
+    this._startCap = this._raphael.path(a.attrs, a.path);
+    this._startCap.translate(sBoundPoint.x, sBoundPoint.y);
+    this._startCap.translate(a.dx * Math.cos(theta.radians), -a.dy * Math.sin(theta.radians));
+    this._startCap.rotate(360 - theta.degrees);
+    this._startCap.rotate(180);
+    this._startCap.show();
+};
+
+
 
 /**************************************************
  * Joint.
  **************************************************/
 
 function Joint(){
-    this.engine = JointEngine.clone();
+    this.engine = new JointEngine();
+    this.engine.init(null);
 }
 
+
+/**************************************************
+ * Caps DOM events handles.
+ **************************************************/
+
 Joint.isEndDrag = false;
+
+/**
+ * TODO: rename, optimize
+ */
+JointEngine.prototype.endDragStart = function(e){
+    this.dx = e.clientX;
+    this.dy = e.clientY;
+    Joint.isEndDrag = this;
+    this.animate({"fill-opacity": .1}, 500);
+    e.preventDefault && e.preventDefault();
+};
 
 Joint.mouseMove = function(e){
     if (Joint.isEndDrag){
@@ -434,37 +420,13 @@ Joint.mouseUp = function(e){
     Joint.isEndDrag = false;
 };
 
-document.addEventListener("mousemove", Joint.mouseMove, false);
-document.addEventListener("mouseup", Joint.mouseUp, false);
+//document.addEventListener("mousemove", Joint.mouseMove, false);
+//document.addEventListener("mouseup", Joint.mouseUp, false);
 
 
-
-Raphael.el.joint = function(to, opt){
-    var j = new Joint();
-    j.engine.from = this;
-    j.engine.to = to;
-
-    // set attributes (prevent of shallow copy)
-    var temp = j.engine.pathOptions;
-    j.engine.pathOptions = {};
-    for (var k in temp)	// default options
-	j.engine.pathOptions[k] = temp[k];
-    for (var k in opt)	// custom options
-	j.engine.pathOptions[k] = opt[k];
-
-    if (this.joints)
-	this.joints.push(j);
-    else
-	this.joints = [j];
-
-    if (to.joints) 
-	to.joints.push(j);
-    else 
-	to.joints = [j];
-
-    j.engine.dispatch(qevt("connect"));
-};
-
+/**
+ * Hack of the default Raphael translate method.
+ */
 var _translate = Raphael.el.translate;
 Raphael.el.translate = function(x, y){
     _translate.call(this, x, y);
@@ -474,5 +436,59 @@ Raphael.el.translate = function(x, y){
     }
 }
 
+/**************************************************
+ * This is the only Joint library API.
+ **************************************************/
+
+/**
+ * Create a joint between the this and to objects.
+ * @param to object Raphael object (rect/ellipse/circle)
+ * @param opt object options
+ *	possible options:
+ * {
+ *   attrs: connection options, @see Raphael path options
+ *   startArrow: {
+ *            type: basic|basicArrow|basicRect|aggregationArrow
+ *            attrs: @see Raphael path options
+ *   },
+ *   endArrow: {
+ *            type: basic|basicArrow|basicRect|aggregationArrow
+ *            attrs: @see Raphael path options
+ *   }
+ * }
+ */
+Raphael.el.joint = function(to, opt){
+    var j = new Joint();
+    j.engine._start = this;
+    j.engine._end = to;
+    j.engine._raphael = this.paper;
+
+    if (opt && opt.attrs){
+	for (var key in opt.attrs)
+	    j.engine._opt.attrs[key] = opt.attrs[key];
+    }
+    if (opt && opt.startArrow){
+	if (opt.startArrow.type) 
+	    j.engine._arrow.start = j.engine._arrows[opt.startArrow.type];
+	else 
+	    opt.startArrow.type = "aggregationArrow";
+	if (opt.startArrow.attrs)
+	    for (var key in opt.startArrow.attrs)
+		j.engine._arrows[opt.startArrow.type].attrs[key] = opt.startArrow.attrs[key];
+    }
+    if (opt && opt.endArrow){
+	if (opt.endArrow.type) 
+	    j.engine._arrow.end = j.engine._arrows[opt.endArrow.type];
+	else 
+	    opt.endArrow.type = "basicArrow";
+	if (opt.endArrow.attrs)
+	    for (var key in opt.endArrow.attrs)
+		j.engine._arrows[opt.endArrow.type].attrs[key] = opt.endArrow.attrs[key];
+    }
 
 
+    (this.joints) ? this.joints.push(j) : this.joints = [j];
+    (to.joints) ? to.joints.push(j) : to.joints = [j];
+
+    j.engine.dispatch(qevt("connect"));
+};
