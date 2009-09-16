@@ -17,7 +17,7 @@ JointEngine.addSlots({
 	"fill-opacity": 1.0,
 	"stroke-width": 5
 
-/*	"stroke-dasharray": "--",
+	/*	"stroke-dasharray": "--",
 	"stroke-linecap": "miter", // butt/square/round/mitter
 	"stroke-linejoin": "miter", // butt/square/round/mitter
 	"stroke-miterlimit": 10,
@@ -29,7 +29,7 @@ JointEngine.addSlots({
 	dy: 15, // y correction
 	opt: {
 	    stroke: "black"
-//	    fill: "black"
+	    //	    fill: "black"
 	}
     },
     basicEnd: {
@@ -47,7 +47,7 @@ JointEngine.addSlots({
 	dy: 15, // y correction
 	opt: {
 	    stroke: "black",
-//	    fill: "black",
+	    //	    fill: "black",
 	    "stroke-width": 1.0
 	}
     },
@@ -57,7 +57,7 @@ JointEngine.addSlots({
 	dy: 16, // y correction
 	opt: {
 	    stroke: "black",
-//	    fill: "black",
+	    //	    fill: "black",
 	    "stroke-width": 2.0
 	}
     },
@@ -219,26 +219,38 @@ JointEngine.addMethod("bboxMiddle", function(bb){
     }
 });
 /**
+ * CORDIC algorithm to convert between cartesian coordinates and polar coordinates.
+ * use this in Python: higher n -> more constants -> higher precision
+ * [round(scale * degrees(atan(2**-i))) for i in range(n)]
+ * @usage Math.atan(toPolar(point)[1])  ... is an angle in radians between x-axis and [0@0, point] line
+ */
+JointEngine.addMethod("toPolar", function(point){
+    var theta = 0, x = point.x, y = point.y;
+    var adjs = [4500000, 2656505, 1403624, 712502, 357633, 178991, 89517, 44761];
+    for (var i = 0; i < 8; i++){
+	var sign = (y < 0) ? 1 : -1;
+	theta = theta - sign * adjs[i];
+	var _y = y;
+	y = y + sign * (x >> i);
+	x = x - sign * (_y >> i);
+    }
+    return [x * 60726 / 100000, theta];
+});
+/**
  * compute the angle between this.from middle point and this.to middle point
  * TODO: needs optimization!
  */
 JointEngine.addMethod("theta", function(){
     var bbFrom = this.from.getBBox();
     var bbTo = this.to.getBBox();
-    var A = {x: bbFrom.x + bbFrom.width/2, y: bbFrom.y + bbFrom.height/2};
-    var C = {x: bbTo.x + bbTo.width/2, y: bbTo.y + bbTo.height/2};
-    var B = {x: A.x + 50, y: A.y};
-    var a = this.lineLength(B.x, B.y, C.x, C.y);
-    var b = this.lineLength(A.x, A.y, C.x, C.y);    
-    var c = this.lineLength(A.x, A.y, B.x, B.y);
-    var rad = Math.acos((b*b + c*c - a*a) / (2*b*c));
-    var deg = (180*rad/Math.PI);
-    if (A.y < C.y){	// correction for III. and IV. quadrant
-	deg = 360 - deg;
-	rad = 2*Math.PI - rad;
-    }
+
+    var y = -(bbTo.y - bbFrom.y);	// invert the y-axis
+    var x = bbTo.x - bbFrom.x;
+    var rad = Math.atan2(y, x);
+    if (rad < 0) // correction for III. and IV. quadrant
+	rad = 2*Math.PI + rad;
     return {
-	degrees: deg,
+	degrees: 180*rad / Math.PI,
 	radians: rad
     }
 });
@@ -339,6 +351,12 @@ JointEngine.addMethod("drawPath", function(){
     this.connector.toEnd.translate(ept.x, ept.y);
     this.connector.toEnd.translate(-toEndCap.dx * Math.cos(t.radians), toEndCap.dy * (Math.sin(t.radians)));
     this.connector.toEnd.rotate(360 - t.degrees);
+    //TODO: if caps are draggable:
+/*
+    this.connector.toEnd.engine = this;
+    this.connector.toEnd.mousedown(this.endDragStart);
+    this.connector.toEnd.node.style.cursor = "move";
+*/
 
     // start glyph
     this.connector.fromEnd = r.path(fromEndCap.opt, fromEndCap.path);
@@ -346,13 +364,27 @@ JointEngine.addMethod("drawPath", function(){
     this.connector.fromEnd.translate(fromEndCap.dx * Math.cos(t.radians), -fromEndCap.dy * (Math.sin(t.radians)));
     this.connector.fromEnd.rotate(360 - t.degrees);
     this.connector.fromEnd.rotate(180);
-
-
+    //TODO: if caps are draggable:
 /*
+    this.connector.fromEnd.engine = this;
+    this.connector.fromEnd.mousedown(this.endDragStart);
+    this.connector.fromEnd.node.style.cursor = "move";
+*/
+
+
+    /*
     this.connector.toEnd = r.circle(ept.x, ept.y, 5);
     this.connector.toEnd.toBack();
     this.connector.toEnd.show();
 */
+});
+
+JointEngine.addMethod("endDragStart", function(e){
+    this.dx = e.clientX;
+    this.dy = e.clientY;
+    Joint.isEndDrag = this;
+    this.animate({"fill-opacity": .1}, 500);
+    e.preventDefault && e.preventDefault();
 });
 
 /**************************************************
@@ -384,6 +416,28 @@ JointEngine.addState("Connected", "Idle", {
 function Joint(){
     this.engine = JointEngine.clone();
 }
+
+Joint.isEndDrag = false;
+
+Joint.mouseMove = function(e){
+    if (Joint.isEndDrag){
+        Joint.isEndDrag.translate(e.clientX - Joint.isEndDrag.dx, e.clientY - Joint.isEndDrag.dy);
+        r.safari();
+        Joint.isEndDrag.dx = e.clientX;
+        Joint.isEndDrag.dy = e.clientY;
+	console.log(e.clientX);
+    }
+};
+
+Joint.mouseUp = function(e){
+    Joint.isEndDrag && Joint.isEndDrag.animate({"fill-opacity": .2}, 500);
+    Joint.isEndDrag = false;
+};
+
+document.addEventListener("mousemove", Joint.mouseMove, false);
+document.addEventListener("mouseup", Joint.mouseUp, false);
+
+
 
 Raphael.el.joint = function(to, opt){
     var j = new Joint();

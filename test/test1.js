@@ -18,6 +18,7 @@ var obj2 = r.rect(300, 50, 100, 100);
 obj2.attr({"fill": "yellow", "fill-opacity": .2});
 obj2.node.style.cursor = "move";
 obj2.show();
+/*
 var obj3 = r.circle(100, 200, 50);
 obj3.attr({"fill": "green", "fill-opacity": .2});
 obj3.node.style.cursor = "move";
@@ -30,26 +31,29 @@ var obj5 = r.circle(500, 400, 50);
 obj5.attr({"fill": "red", "fill-opacity": .2});
 obj5.node.style.cursor = "move";
 obj5.show();
+*/
 
+var ostate = r.circle(100, 100, 30);
+var ot = r.text(100, 100, "state1");
+var s = r.set();
+s.push(ostate, ot);
+//ostate.show();
+
+var startTime = new Date().getTime();
 
 obj1.joint(obj2);
-obj3.joint(obj1, {stroke: "red"});
-obj2.joint(obj3, {stroke: "green"});
-obj4.joint(obj3);
-obj5.joint(obj3);
+//obj3.joint(obj1, {stroke: "red"});
+//obj2.joint(obj3, {stroke: "green"});
+//obj4.joint(obj3);
+//obj5.joint(obj3);
 
-/*
-var ba = obj1.joints[0].engine.basicArrow.join(",");
-console.log(ba);
-var oba = r.path({stroke: "#000", "stroke-width": 2}, ba);
-oba.rotate(80);
-*/
+var _t_ = new Date().getTime() - startTime;
 
 obj1.mousedown(dragger);
 obj2.mousedown(dragger);
-obj3.mousedown(dragger);
-obj4.mousedown(dragger);
-obj5.mousedown(dragger);
+//obj3.mousedown(dragger);
+//obj4.mousedown(dragger);
+//obj5.mousedown(dragger);
 
 document.onmousemove = function(e){
     e = e || window.event;
@@ -58,8 +62,9 @@ document.onmousemove = function(e){
         r.safari();
         isDrag.dx = e.clientX;
         isDrag.dy = e.clientY;
-    }
+    } 
 };
+
 document.onmouseup = function(){
     isDrag && isDrag.animate({"fill-opacity": .2}, 500);
     isDrag = false;
