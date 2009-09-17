@@ -35,7 +35,7 @@ function createMyObject(type, geometry, attrs){
 /**************************************************/
 
 var o1 = createMyObject("ellipse", [300, 400, 50, 30], {fill: "blue"});
-var o2 = createMyObject("rect", [300, 50, 100, 100], {fill: "yellow"});
+var o2 = createMyObject("rect", [300, 50, 150, 100], {fill: "yellow"});
 var o3 = createMyObject("circle", [100, 300, 50], {fill: "green"});
 //var o4 = createMyObject("path", [{}, "M100 100L190 190"], {stroke: "black", "stroke-width": 2.0});
 
@@ -48,12 +48,24 @@ var o4 = createMyObject("path", [{fill: "#CB9737"}, p], {stroke: "black", "strok
 var opt1 = {
     attrs: {stroke: "red", "stroke-dasharray": "none"},
     startArrow: {type: "basic"},
-    endArrow: {attrs: {fill: "white"}}
+    endArrow: {attrs: {fill: "white"}},
+    bboxCorrection: {
+	start: {
+	    x: 0,
+	    width: 0
+	}
+    }
 };
 
 var opt2 = {
     attrs: {stroke: "black", "stroke-width": 3.0, "stroke-dasharray": "none"},
-    endArrow: {type: "basicRect", attrs: {stroke: "red"}}
+    endArrow: {type: "basicRect", attrs: {stroke: "red"}},
+    bboxCorrection: {
+	end: {
+	    x: 50,
+	    width: -100
+	}
+    }
 };
 
 o1.joint(o2, opt1);

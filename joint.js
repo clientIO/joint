@@ -33,6 +33,12 @@ JointEngine.prototype.stateInitial = function(e){
 	    "stroke-linejoin": "round", // butt/square/round/mitter
 	    "stroke-miterlimit": 1,
 	    "stroke-opacity": 1.0
+	},
+	// bounding box correction 
+	// (useful when the connection should start in the center of an object, etc...)
+	bboxCorrection: {
+	    start: { type: null, x: 0, y: 0, width: 0, height: 0 },
+	    end: { type: null, x: 0, y: 0, width: 0, height: 0 }
 	}
     };
     // various ready-to-use arrows
@@ -132,12 +138,12 @@ JointEngine.prototype.rectsIntersect = function(rect, another){
  * @see Squeak Smalltalk, Rectangle>>sideNearestTo:
  */
 JointEngine.prototype.sideNearestToPoint = function(rect, point){
-    var distToLeft = point.x - rect.x;
-    var distToRight = (rect.x + rect.width) - point.x;
-    var distToTop = point.y - rect.y;
-    var distToBottom = (rect.y + rect.height) - point.y;
-    var closest = distToLeft;
-    var side = "left";
+    var distToLeft = point.x - rect.x,
+    distToRight = (rect.x + rect.width) - point.x,
+    distToTop = point.y - rect.y,
+    distToBottom = (rect.y + rect.height) - point.y,
+    closest = distToLeft,
+    side = "left";
     if (distToRight < closest){
 	closest = distToRight;
 	side = "right";
@@ -207,18 +213,15 @@ JointEngine.prototype.ellipseLineIntersectionFromCenterToPoint = function(ellips
 
     var m = dy / dx,
     mSquared = m * m,
-    aSquared = ellipse.bb.width / 2;
-    aSquared = aSquared * aSquared;
-    var bSquared = ellipse.bb.height / 2;
-    bSquared = bSquared * bSquared;
-    var xSquared = 1 / ((1 / aSquared) + (mSquared / bSquared)),
-    x = Math.sqrt(xSquared);
+    aSquared = (aSquared = ellipse.bb.width / 2) * aSquared,
+    bSquared = (bSquared = ellipse.bb.height / 2) * bSquared,
+    x = Math.sqrt(1 / ((1 / aSquared) + (mSquared / bSquared)));
     if (dx < 0) 
 	x = -x;
     var y = m * x;
     return {
-	x: ellipse.center.x + Math.round(x),
-	y: ellipse.center.y + Math.round(y)
+	x: ellipse.center.x + x,
+	y: ellipse.center.y + y
     }
 };
 
@@ -252,9 +255,9 @@ JointEngine.prototype.linesIntersection = function(line, another){
     }
 };
 
-JointEngine.prototype.lineLength = function(x0, y0, x1, y1){
-    return Math.sqrt((x0 -= x1) * x0 + (y0 -= y1) * y0);
-};
+//JointEngine.prototype.lineLength = function(x0, y0, x1, y1){
+//    return Math.sqrt((x0 -= x1) * x0 + (y0 -= y1) * y0);
+//};
 
 /**
  * Compute the angle between this.from middle point and this.to middle point.
@@ -320,17 +323,33 @@ JointEngine.prototype.drawLine = function(start, end, attrs){
 };
 
 /**
+ * Correct bounding box of start/end object.
+ * @see this._opt.bboxCorrection
+ */
+JointEngine.prototype.correctBBox = function(bb, side){
+    var cor = this._opt.bboxCorrection[side];
+    return {
+	x: bb.x + cor.x,
+	y: bb.y + cor.y,
+	width: bb.width + cor.width,
+	height: bb.height + cor.height
+    }
+};
+
+/**
  * Draw connection line without start/end caps.
  * (connection path will be saved in this._con)
  */
 JointEngine.prototype.drawConnection = function(){
-    var sbb = this._start.getBBox(),
+    var sbb = this.correctBBox(this._start.getBBox(), "start"),
     sbbCenter = {x: sbb.x + sbb.width/2, y: sbb.y + sbb.height/2},
-    ebb = this._end.getBBox(),
+    ebb = this.correctBBox(this._end.getBBox(), "end"),
     ebbCenter = {x: ebb.x + ebb.width/2, y: ebb.y + ebb.height/2},
     theta = this.theta(sbbCenter, ebbCenter),
-    sBoundPoint = this.boundPoint(sbb, this._start.type, ebbCenter),
-    eBoundPoint = this.boundPoint(ebb, this._end.type, sbbCenter),
+
+    sBoundPoint = this.boundPoint(sbb, this._opt.bboxCorrection.start.type || this._start.type, ebbCenter),
+    eBoundPoint = this.boundPoint(ebb, this._opt.bboxCorrection.end.type || this._end.type, sbbCenter),
+
     sPoint = { // connection start point
 	x: sBoundPoint.x + (2 * this._arrow.start.dx * Math.cos(theta.radians)),
 	y: sBoundPoint.y + (-2 * this._arrow.start.dy * Math.sin(theta.radians))
@@ -424,17 +443,17 @@ Joint.mouseUp = function(e){
 var _translate = Raphael.el.translate;
 Raphael.el.translate = function(x, y){
     _translate.call(this, x, y);
+    // simple hack: uncomment to improve performance in slow browsers
+//    if (new Date().getTime() % 2 == 0)  
     if (this.joints){
 	for (var i = this.joints.length - 1; i >= 0; --i)
 	    this.joints[i].engine.dispatch(qevt("step"));
     }
-}
+};
 
 /**************************************************
  * This is the only Joint library API.
- **************************************************/
-
-/**
+ *
  * Create a joint between the this and to objects.
  * @param to object Raphael object (rect/ellipse/circle)
  * @param opt object options
@@ -448,9 +467,25 @@ Raphael.el.translate = function(x, y){
  *   endArrow: {
  *            type: basic|basicArrow|basicRect|aggregationArrow
  *            attrs: @see Raphael path options
+ *   },
+ *   bboxCorrection: {  correction of bounding box (usefule when the connection should start in the center of an object, etc...
+ *            start: {
+ *                type: ellipse|rect,
+ *                x: number,
+ *                y: number,
+ *                width: number,
+ *                height: number
+ *            },
+ *            end: {
+ *                type: ellipse|rect,
+ *                x: number,
+ *                y: number,
+ *                width: number,
+ *                height: number
+ *            }
  *   }
  * }
- */
+ ***************************************************/
 Raphael.el.joint = function(to, opt){
     var j = new Joint();
     j.engine._start = this;
@@ -478,6 +513,16 @@ Raphael.el.joint = function(to, opt){
 	if (opt.endArrow.attrs)
 	    for (var key in opt.endArrow.attrs)
 		j.engine._arrows[opt.endArrow.type].attrs[key] = opt.endArrow.attrs[key];
+    }
+    if (opt && opt.bboxCorrection){
+	if (opt.bboxCorrection.start){
+	    for (var key in opt.bboxCorrection.start)
+		j.engine._opt.bboxCorrection.start[key] = opt.bboxCorrection.start[key];
+	}
+	if (opt.bboxCorrection.end){
+	    for (var key in opt.bboxCorrection.end)
+		j.engine._opt.bboxCorrection.end[key] = opt.bboxCorrection.end[key];
+	}
     }
 
 
