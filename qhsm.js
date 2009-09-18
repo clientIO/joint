@@ -53,6 +53,7 @@ QHsm.prototype.initialState = function(aStateOrName){
  * Must be called only once for a given QHsm before dispatching any events to it.
  */
 QHsm.prototype.init = function(anEventOrNil){
+//    anEventOrNil = anEventOrNil || null; 
 //    eval(assert(this.myState.name == "TOP" && this.mySource != null));
     var s = this.myState;	// save top in temp
     this.mySource.trigger(anEventOrNil);	// topmost initial transition
@@ -64,6 +65,7 @@ QHsm.prototype.init = function(anEventOrNil){
 	s = this.myState;
 	s.enter();
     }
+    return this;
 }
 
 QHsm.prototype.state = function(stateOrName){ 

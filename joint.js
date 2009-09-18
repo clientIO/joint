@@ -1,17 +1,39 @@
 /****************************************************
- * Joint library.
- * @file joint.js
- * @author David Durman
+ * Joint 0.1.2 - JavaScript Connection Library
+ *
+ * Copyright (c) 2009 David Durman
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
  ****************************************************/
+
+//(function(){	// BEGIN CLOSURE
 
 /**************************************************
  * Engine.
  **************************************************/
 
-function JointEngine(){
-    this.base = QHsm;
-    this.base("Initial");
-}
+function JointEngine(){ 
+    QHsm.apply(this, ["Initial"]) 
+    this.self = this;
+};
+
 JointEngine.prototype = new QHsm;
 JointEngine.prototype.stateInitial = function(e){
     // slots
@@ -98,17 +120,51 @@ JointEngine.prototype.stateIdle = function(e){
 JointEngine.prototype.stateConnected = function(e){
     switch (e.type){
     case "entry": 
-	this.clearConnection();
-	this.clearCaps();
-	this.drawConnection();
+	this.clean().connection().startCap().endCap();
+	this.draw().connection().startCap().endCap();
+
+	/*
+	this._end = this._raphael.circle(this._endCap.dx, this._endCap.dy, 5);
+
+	var j = new Joint();
+	j.engine = this;
+	j.engine._start = this._start;
+	j.engine._end = this._end;
+	j.engine._raphael = this.paper;
+	this._end.joints = [this];
+
+	this._endCap.engine = this;
+	this._endCap.mousedown(this.endDragStart);
+*/
+
 	return null;
     case "exit": return null;	
     case "step": 
 	if (!this.overlappedBBoxes(this._start.getBBox(), this._end.getBBox())){	// guard
-	    this.clearConnection();
-	    this.clearCaps();
-	    this.drawConnection();
+	    this.clean().connection().startCap().endCap();
+	    this.draw().connection().startCap().endCap();
 	}
+	return null;
+    case "wire":
+	this.newState("Wiring");
+	return null;
+    }
+    return this.top();
+};
+
+/**
+ * Wiring state.
+ */
+JointEngine.prototype.stateWiring = function(e){
+    switch (e.type){
+    case "entry": 
+	this.clean().connection().startCap().endCap();
+	this.draw().connection();
+	return null;
+    case "exit": return null;	
+    case "step": 
+	this.clean().connection().startCap().endCap();
+	this.draw().connection();
 	return null;
     }
     return this.state("Idle");
@@ -255,10 +311,6 @@ JointEngine.prototype.linesIntersection = function(line, another){
     }
 };
 
-//JointEngine.prototype.lineLength = function(x0, y0, x1, y1){
-//    return Math.sqrt((x0 -= x1) * x0 + (y0 -= y1) * y0);
-//};
-
 /**
  * Compute the angle between this.from middle point and this.to middle point.
  */
@@ -310,96 +362,121 @@ JointEngine.prototype.boundPoint = function(bb, type, point){
     }
 };
 
+/**
+ * Move and expand bounding box.
+ * @param bb rectangle
+ * @param rect rectangle representing delta
+ */
+JointEngine.prototype.moveAndExpandBBox = function(bb, rect){
+    return {
+	x: bb.x + rect.x,
+	y: bb.y + rect.y,
+	width: bb.width + rect.width,
+	height: bb.height + rect.height
+    }
+};
+
 /**************************************************
  * Engine specific methods.
  **************************************************/
 
 /**
- * Draw a line from start to end with attributes attrs.
+ * This is the beginning of every drawing.
+ * Prepares parameters for drawing objects.
+ * Defines primitives for drawing.
+ * Draw functions (not primitives) store the resulting DOM element into self._con, self_startCap and self_endCap respectively.
+ * Draw functions support chaining.
  */
-JointEngine.prototype.drawLine = function(start, end, attrs){
-    var p = ["M", start.x, start.y, "L", end.x, end.y].join(",");
-    return this._raphael.path(attrs, p);
-};
+JointEngine.prototype.draw = function(){
+    var self = this,
+    __raphael = self._raphael,
 
-/**
- * Correct bounding box of start/end object.
- * @see this._opt.bboxCorrection
- */
-JointEngine.prototype.correctBBox = function(bb, side){
-    var cor = this._opt.bboxCorrection[side];
+    // primitives
+    __line = function(start, end, attrs){ return __raphael.path(attrs, ["M", start.x, start.y, "L", end.x, end.y].join(",")) },
+    __path = function(commands, attrs){	return __raphael.path(attrs, commands) },
+    __circle = function(pos, radius, attrs){ return __raphael.circle(pos.x, pos.y, radius).attr(attrs) },
+    __rect = function(pos, width, height, attrs){ return __raphael.rect(pos.x, pos.y, width, height).attr(attrs) },
+
+    // start object bounding box
+    __sbb = self.moveAndExpandBBox(self._start.getBBox(), self._opt.bboxCorrection.start),
+    // start boject bounding box center point
+    __sbbCenter = {x: __sbb.x + __sbb.width/2, y: __sbb.y + __sbb.height/2},
+    // end object bounding box
+    __ebb = self.moveAndExpandBBox(self._end.getBBox(), self._opt.bboxCorrection.end),
+    // end object bounding box center point
+    __ebbCenter = {x: __ebb.x + __ebb.width/2, y: __ebb.y + __ebb.height/2},
+    // angle between __sbbCenter and __ebbCenter
+    __theta = self.theta(__sbbCenter, __ebbCenter),
+    // intersection of a line leading from __sbbCenter to __ebbCenter and the start object
+    __sBoundPoint = self.boundPoint(__sbb, self._opt.bboxCorrection.start.type || self._start.type, __ebbCenter),
+    // intersection of a line leading from __ebbCenter to __sbbCenter and the end object
+    __eBoundPoint = self.boundPoint(__ebb, self._opt.bboxCorrection.end.type || self._end.type, __sbbCenter),
+    // __sBoundPoint moved in the direction of __eBoundPoint by start cap width
+    __sPoint = { 
+	x: __sBoundPoint.x + (2 * self._arrow.start.dx * Math.cos(__theta.radians)),
+	y: __sBoundPoint.y + (-2 * self._arrow.start.dy * Math.sin(__theta.radians))
+    },
+    // __eBoundPoint moved in the direction of __sBoundPoint by end cap width
+    __ePoint = { 
+	x: __eBoundPoint.x + (-2 * self._arrow.end.dx * Math.cos(__theta.radians)),
+	y: __eBoundPoint.y + (2 * self._arrow.end.dy * Math.sin(__theta.radians))
+    };
+
     return {
-	x: bb.x + cor.x,
-	y: bb.y + cor.y,
-	width: bb.width + cor.width,
-	height: bb.height + cor.height
+	connection: function(){
+	    self._con = __line(__sPoint, __ePoint, self._opt.attrs);
+	    self._con.show();
+	    return this;
+	},
+	startCap: function(){
+	    var a = self._arrow.start;
+	    self._startCap = __path(a.path, a.attrs);
+	    self._startCap.translate(__sBoundPoint.x + a.dx * Math.cos(__theta.radians), 
+				     __sBoundPoint.y - a.dy * Math.sin(__theta.radians));
+	    self._startCap.rotate(360 - __theta.degrees + 180);
+	    self._startCap.show();
+	    return this;
+	},
+	endCap: function(){
+	    var a = self._arrow.end;
+	    self._endCap = __path(a.path, a.attrs);
+	    self._endCap.translate(__eBoundPoint.x - a.dx * Math.cos(__theta.radians), 
+				   __eBoundPoint.y + a.dy * Math.sin(__theta.radians));
+	    self._endCap.rotate(360 - __theta.degrees);
+	    self._endCap.show();
+	    return this;
+	},
     }
 };
 
 /**
- * Draw connection line without start/end caps.
- * (connection path will be saved in this._con)
+ * Clean operations. 
+ * Remove the DOM elements of connection/startCap/endCap if they exist.
+ * Clean operations support chaining.
  */
-JointEngine.prototype.drawConnection = function(){
-    var sbb = this.correctBBox(this._start.getBBox(), "start"),
-    sbbCenter = {x: sbb.x + sbb.width/2, y: sbb.y + sbb.height/2},
-    ebb = this.correctBBox(this._end.getBBox(), "end"),
-    ebbCenter = {x: ebb.x + ebb.width/2, y: ebb.y + ebb.height/2},
-    theta = this.theta(sbbCenter, ebbCenter),
-
-    sBoundPoint = this.boundPoint(sbb, this._opt.bboxCorrection.start.type || this._start.type, ebbCenter),
-    eBoundPoint = this.boundPoint(ebb, this._opt.bboxCorrection.end.type || this._end.type, sbbCenter),
-
-    sPoint = { // connection start point
-	x: sBoundPoint.x + (2 * this._arrow.start.dx * Math.cos(theta.radians)),
-	y: sBoundPoint.y + (-2 * this._arrow.start.dy * Math.sin(theta.radians))
-    },
-    ePoint = { // connection end point
-	x: eBoundPoint.x + (-2 * this._arrow.end.dx * Math.cos(theta.radians)),
-	y: eBoundPoint.y + (2 * this._arrow.end.dy * Math.sin(theta.radians))
-    };
-    
-    this._con = this.drawLine(sPoint, ePoint, this._opt.attrs);
-    this._con.show();
-
-    this.drawStartCap(sBoundPoint, theta);
-    this.drawEndCap(eBoundPoint, theta);
+JointEngine.prototype.clean = function(){
+    var self = this;
+    return {
+	connection: function(){ 
+	    self._con && self._con.remove() ;
+	    return this;
+	},
+	startCap: function(){
+	    self._startCap && self._startCap.remove() 
+	    return this;
+	},
+	endCap: function(){ 
+	    self._endCap && self._endCap.remove() 
+	    return this;
+	}
+    }
 };
-
-/**
- * Clear operations. Remove the DOM elements if they exist.
- */
-JointEngine.prototype.clearConnection = function(){ this._con && this._con.remove() };
-JointEngine.prototype.clearCaps = function(){ this.clearStartCap(); this.clearEndCap() };
-JointEngine.prototype.clearEndCap = function(){ this._endCap && this._endCap.remove() };
-JointEngine.prototype.clearStartCap = function(){ this._startCap && this._startCap.remove() };
-
-JointEngine.prototype.drawEndCap = function(eBoundPoint, theta){
-    var a = this._arrow.end;
-    this._endCap = this._raphael.path(a.attrs, a.path);
-    this._endCap.translate(eBoundPoint.x - a.dx * Math.cos(theta.radians), eBoundPoint.y + a.dy * Math.sin(theta.radians));
-    this._endCap.rotate(360 - theta.degrees);
-    this._endCap.show();
-};
-
-JointEngine.prototype.drawStartCap = function(sBoundPoint, theta){
-    var a = this._arrow.start;
-    this._startCap = this._raphael.path(a.attrs, a.path);
-    this._startCap.translate(sBoundPoint.x + a.dx * Math.cos(theta.radians), sBoundPoint.y - a.dy * Math.sin(theta.radians));
-    this._startCap.rotate(360 - theta.degrees + 180);
-    this._startCap.show();
-};
-
-
 
 /**************************************************
  * Joint.
  **************************************************/
 
-function Joint(){
-    this.engine = new JointEngine();
-    this.engine.init(null);	// initial StateChart transition
-}
+function Joint(){ this.engine = new JointEngine().init() }
 
 /**************************************************
  * Caps DOM events handles.
@@ -416,15 +493,19 @@ JointEngine.prototype.endDragStart = function(e){
     Joint.isEndDrag = this;
     this.animate({"fill-opacity": .1}, 500);
     e.preventDefault && e.preventDefault();
+    Joint.isEndDrag.engine.dispatch(qevt("wire"));
 };
 
 Joint.mouseMove = function(e){
     if (Joint.isEndDrag){
-        Joint.isEndDrag.translate(e.clientX - Joint.isEndDrag.dx, e.clientY - Joint.isEndDrag.dy);
+	//        Joint.isEndDrag.translate(e.clientX - Joint.isEndDrag.dx, 
+	//				  e.clientY - Joint.isEndDrag.dy);
+        Joint.isEndDrag.engine._end.translate(e.clientX - Joint.isEndDrag.dx, 
+					      e.clientY - Joint.isEndDrag.dy);
         r.safari();
         Joint.isEndDrag.dx = e.clientX;
         Joint.isEndDrag.dy = e.clientY;
-	console.log(e.clientX);
+	Joint.isEndDrag.engine.dispatch(qevt("step"));
     }
 };
 
@@ -433,8 +514,8 @@ Joint.mouseUp = function(e){
     Joint.isEndDrag = false;
 };
 
-//document.addEventListener("mousemove", Joint.mouseMove, false);
-//document.addEventListener("mouseup", Joint.mouseUp, false);
+document.addEventListener("mousemove", Joint.mouseMove, false);
+document.addEventListener("mouseup", Joint.mouseUp, false);
 
 
 /**
@@ -444,7 +525,7 @@ var _translate = Raphael.el.translate;
 Raphael.el.translate = function(x, y){
     _translate.call(this, x, y);
     // simple hack: uncomment to improve performance in slow browsers
-//    if (new Date().getTime() % 2 == 0)  
+    //    if (new Date().getTime() % 2 == 0)  
     if (this.joints){
 	for (var i = this.joints.length - 1; i >= 0; --i)
 	    this.joints[i].engine.dispatch(qevt("step"));
@@ -452,8 +533,6 @@ Raphael.el.translate = function(x, y){
 };
 
 /**************************************************
- * This is the only Joint library API.
- *
  * Create a joint between the this and to objects.
  * @param to object Raphael object (rect/ellipse/circle)
  * @param opt object options
@@ -468,7 +547,7 @@ Raphael.el.translate = function(x, y){
  *            type: basic|basicArrow|basicRect|aggregationArrow
  *            attrs: @see Raphael path options
  *   },
- *   bboxCorrection: {  correction of bounding box (usefule when the connection should start in the center of an object, etc...
+ *   bboxCorrection: {  // correction of bounding box (useful when the connection should start in the center of an object, etc...
  *            start: {
  *                type: ellipse|rect,
  *                x: number,
@@ -531,3 +610,5 @@ Raphael.el.joint = function(to, opt){
 
     j.engine.dispatch(qevt("connect"));
 };
+
+//})();	// END CLOSURE

@@ -72,7 +72,7 @@ o1.joint(o2, opt1);
 o1.joint(o3, opt2);
 o2.joint(o4);
 
-
+//o1.animate({cx: 20, r: 20}, 2000, "bounce");
 
 
 
