@@ -254,9 +254,17 @@ QState.prototype.trigger = function(anEvent){
     return this.dispatchEvent(evt, selector);
 }
 
-QState.prototype.enter = function(){ return this.trigger(QEventEntry) }
-QState.prototype.exit = function(){ return this.trigger(QEventExit) }
-QState.prototype.init = function(){ return this.trigger(QEventInit) }
+QState.prototype.enter = function(){ 
+    if (!NDEBUG) console.log("[STATE " + this.name + "] entry");    
+    return this.trigger(QEventEntry) 
+}
+QState.prototype.exit = function(){ 
+    if (!NDEBUG) console.log("[STATE " + this.name + "] exit");
+    return this.trigger(QEventExit) 
+}
+QState.prototype.init = function(){ 
+    return this.trigger(QEventInit) 
+}
 
 /**
  * Answer my superstate. Default is to return fsm top state.

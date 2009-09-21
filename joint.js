@@ -1,3 +1,4 @@
+var NDEBUG = false;
 /****************************************************
  * Joint 0.1.2 - JavaScript Connection Library
  *
@@ -40,9 +41,21 @@ JointEngine.prototype.stateInitial = function(e){
     this._con = null;		// holds the joint path
     this._startCap = null;	// start glyph (arrow)
     this._endCap = null;	// end glyph (arrow)
+    this._joint = null;		// back reference to Joint object
     // connection from start to end
-    this._start = null;		// start Raphael object
-    this._end = null;		// end Raphael object
+    this._start = { // start object
+	joints: [],		// Joints
+	curEngine: null,	// currently used engine (when wired)
+	shape: null,		// Raphael object
+	dummy: false		// is it a dummy object?
+    };		
+    this._end = { // end object
+	joints: [],		// Joints
+	curEngine: null,	// currently used engine (when wired)
+	shape: null,		// Raphael object
+	dummy: false		// is it a dummy object?
+    };		
+
     // _con path options
     this._opt = {
 	attrs: {
@@ -100,78 +113,187 @@ JointEngine.prototype.stateInitial = function(e){
  * Engine states. (engine behaviour is managed by StateChart)
  *************************************************************/
 
-/**
- * Idle state. - any joint is wiring.
- */
 JointEngine.prototype.stateIdle = function(e){
     switch (e.type){
     case "entry": return null;
     case "exit": return null;	
-    case "connect": 
+    case "mouseDown":
+	if (e.args.onCap){
+	    if (e.args.isEndCap)
+		this.draw().dummyEnd();
+	    else
+		this.draw().dummyStart();
+	    this.newState("CapDragging");
+	}
+	return null;
+    case "step":
+	this.redraw();
+	this.listenOnMouseDown(this.endCap());
+	this.listenOnMouseDown(this.startCap());
+	return null;
+    case "connect":
 	this.newState("Connected");
 	return null;
     }
     return this.top();
 };
 
-/**
- * Connected state. - substate of Idle, both joint sides are connected.
- */
-JointEngine.prototype.stateConnected = function(e){
+JointEngine.prototype.stateDisconnected = function(e){
     switch (e.type){
     case "entry": 
-	this.clean().connection().startCap().endCap();
-	this.draw().connection().startCap().endCap();
-
-	/*
-	this._end = this._raphael.circle(this._endCap.dx, this._endCap.dy, 5);
-
-	var j = new Joint();
-	j.engine = this;
-	j.engine._start = this._start;
-	j.engine._end = this._end;
-	j.engine._raphael = this.paper;
-	this._end.joints = [this];
-
-	this._endCap.engine = this;
-	this._endCap.mousedown(this.endDragStart);
-*/
-
+	// TODO: remove joint from the old objects joints arrays
+	this.listenOnMouseDown(this.endCap());
+	this.listenOnMouseDown(this.startCap());
 	return null;
     case "exit": return null;	
-    case "step": 
-	if (!this.overlappedBBoxes(this._start.getBBox(), this._end.getBBox())){	// guard
-	    this.clean().connection().startCap().endCap();
-	    this.draw().connection().startCap().endCap();
-	}
-	return null;
-    case "wire":
-	this.newState("Wiring");
-	return null;
-    }
-    return this.top();
-};
-
-/**
- * Wiring state.
- */
-JointEngine.prototype.stateWiring = function(e){
-    switch (e.type){
-    case "entry": 
-	this.clean().connection().startCap().endCap();
-	this.draw().connection();
-	return null;
-    case "exit": return null;	
-    case "step": 
-	this.clean().connection().startCap().endCap();
-	this.draw().connection();
-	return null;
+    case "connect": 
+	this.newState("Connected"); return null;
     }
     return this.state("Idle");
 };
 
+JointEngine.prototype.stateConnected = function(e){
+    switch (e.type){
+    case "entry": 
+	this.redraw();
+	this.listenOnMouseDown(this.endCap());
+	this.listenOnMouseDown(this.startCap());
+	return null;
+    case "exit": return null;	
+    }
+    return this.state("Idle");
+};
+
+JointEngine.prototype.stateOneCapConnected = function(e){
+    switch (e.type){
+    case "entry": 
+	this.redraw();
+	this.listenOnMouseDown(this.endCap());
+	this.listenOnMouseDown(this.startCap());
+	return null;
+    case "exit": return null;	
+    }
+    return this.state("Idle");
+};
+
+JointEngine.prototype.stateDragging = function(e){
+    switch (e.type){
+    case "entry": return null;
+    case "exit": return null;	
+    }	
+    return this.top();
+};
+
+JointEngine.prototype.stateCapDragging = function(e){
+    switch (e.type){
+    case "entry": return null;
+    case "exit": return null;	
+    case "step":
+	this.redraw();
+	return null;
+    case "mouseUp":
+	var 
+	e = this.endCapConnected(),
+	s = this.startCapConnected();
+	
+	if (e && s)
+	    this.newState("Connected");
+	else if ( (!e) && (!s) )
+	    this.newState("Disconnected");
+	else
+	    this.newState("OneCapConnected");
+	return null;
+    }	
+    return this.state("Dragging");
+};
+
+/**
+ * Getters.
+ */
+JointEngine.prototype.endObject = function(){ return this._end };
+JointEngine.prototype.startObject = function(){ return this._start };
+JointEngine.prototype.endCap = function(){ return this._endCap };
+JointEngine.prototype.endCapConnected = function(){ return !this._end.dummy };
+JointEngine.prototype.startCap = function(){ return this._startCap };
+JointEngine.prototype.startCapConnected = function(){ return !this._start.dummy };
+JointEngine.prototype.joint = function(){ return this._joint };
+
+/**************************************************
+ * End caps listeners.
+ **************************************************/
+
+JointEngine.prototype.listenOnMouseDown = function(cap){
+    cap.engine = this;
+    cap.mousedown(this.capDragStart);
+};
+
+Joint.draggedCap = null;
+Joint.registeredObjects = [];	// TODO: multiple raphael 'windows'
+
+JointEngine.prototype.capDragStart = function(e){
+    Joint.draggedCap = this;
+    if (this === this.engine.endCap())
+	// end cap
+	Joint.draggedCap.isEndCap = true;
+    else	
+	// start cap
+	Joint.draggedCap.isEndCap = false;
+
+    Joint.draggedCap.dx = e.clientX;
+    Joint.draggedCap.dy = e.clientY;
+    e.preventDefault && e.preventDefault();
+    // tell the engine that cap dragging has just started
+    Joint.draggedCap.engine.dispatch(qevt("mouseDown", {onCap: true, isEndCap: Joint.draggedCap.isEndCap}));
+};
+
+Joint.mouseMove = function(e){
+    if (Joint.draggedCap !== null){
+
+	// move dummy object
+	if (Joint.draggedCap.isEndCap)
+            Joint.draggedCap.engine.endObject().shape.translate(e.clientX - Joint.draggedCap.dx, e.clientY - Joint.draggedCap.dy);
+	else
+            Joint.draggedCap.engine.startObject().shape.translate(e.clientX - Joint.draggedCap.dx, e.clientY - Joint.draggedCap.dy);
+
+        r.safari();
+        Joint.draggedCap.dx = e.clientX;
+        Joint.draggedCap.dy = e.clientY;
+	// wake up the engine to redraw the joint
+	Joint.draggedCap.engine.dispatch(qevt("step"));
+    }
+};
+
+Joint.mouseUp = function(e){
+    if (Joint.draggedCap !== null){
+	var dummy = (Joint.draggedCap.isEndCap) ? Joint.draggedCap.engine.endObject() : Joint.draggedCap.engine.startObject(),
+	dummyBB = dummy.shape.getBBox();
+
+	// dropped on object?
+	for (var i = Joint.registeredObjects.length - 1; i >= 0; --i){
+	    if (Joint.draggedCap.engine.rectContainsPoint(Joint.registeredObjects[i].getBBox(), {x: dummyBB.x, y: dummyBB.y})){
+		var o = Joint.registeredObjects[i];
+		o.animate({scale: 1.2}, 100, function(){o.animate({scale: 1.0}, 100)});
+		dummy.shape = o;	// it is no longer dummy
+		dummy.dummy = false;
+		// only if o.joints already doesn't have that Joint object
+		if (o.joints.indexOf(Joint.draggedCap.engine.joint()) == -1)
+		    o.joints.push(Joint.draggedCap.engine.joint());
+		break;
+	    }
+	} 
+	Joint.draggedCap.engine.dispatch(qevt("mouseUp"));
+    }
+    Joint.draggedCap = null;
+};
+
+document.addEventListener("mousemove", Joint.mouseMove, false);
+document.addEventListener("mouseup", Joint.mouseUp, false);
+
+
 /**************************************************
  * Helper methods. (mainly geometric operations)
+ * TODO: put them out of the engine, 
+ *       make Rect and Point prototype for this purpose
  **************************************************/
 
 /**
@@ -360,6 +482,10 @@ JointEngine.prototype.boundPoint = function(bb, type, point){
 		return intersection;
 	}
     }
+    // BUG: in lines intersection, can be all null
+    // it happens when point is located on the bb boundary
+
+    return bbCenter;	// it shouldn't reach this (but see BUG above)
 };
 
 /**
@@ -380,6 +506,11 @@ JointEngine.prototype.moveAndExpandBBox = function(bb, rect){
  * Engine specific methods.
  **************************************************/
 
+JointEngine.prototype.redraw = function(){
+    this.clean().connection().startCap().endCap();
+    this.draw().connection().startCap().endCap();
+};
+
 /**
  * This is the beginning of every drawing.
  * Prepares parameters for drawing objects.
@@ -389,60 +520,73 @@ JointEngine.prototype.moveAndExpandBBox = function(bb, rect){
  */
 JointEngine.prototype.draw = function(){
     var self = this,
-    __raphael = self._raphael,
+    __ = {};
+    __.raphael = self._raphael;
 
     // primitives
-    __line = function(start, end, attrs){ return __raphael.path(attrs, ["M", start.x, start.y, "L", end.x, end.y].join(",")) },
-    __path = function(commands, attrs){	return __raphael.path(attrs, commands) },
-    __circle = function(pos, radius, attrs){ return __raphael.circle(pos.x, pos.y, radius).attr(attrs) },
-    __rect = function(pos, width, height, attrs){ return __raphael.rect(pos.x, pos.y, width, height).attr(attrs) },
+    __.line = function(start, end, attrs){ return __.raphael.path(attrs, ["M", start.x, start.y, "L", end.x, end.y].join(",")) };
+    __.path = function(commands, attrs){	return __.raphael.path(attrs, commands) };
+    __.circle = function(pos, radius, attrs){ return __.raphael.circle(pos.x, pos.y, radius).attr(attrs) };
+    __.rect = function(pos, width, height, attrs){ return __.raphael.rect(pos.x, pos.y, width, height).attr(attrs) };
 
     // start object bounding box
-    __sbb = self.moveAndExpandBBox(self._start.getBBox(), self._opt.bboxCorrection.start),
-    // start boject bounding box center point
-    __sbbCenter = {x: __sbb.x + __sbb.width/2, y: __sbb.y + __sbb.height/2},
+    __.sbb = self.moveAndExpandBBox(self._start.shape.getBBox(), self._opt.bboxCorrection.start);
+    // start object bounding box center point
+    __.sbbCenter = {x: __.sbb.x + __.sbb.width/2, y: __.sbb.y + __.sbb.height/2};
     // end object bounding box
-    __ebb = self.moveAndExpandBBox(self._end.getBBox(), self._opt.bboxCorrection.end),
+    __.ebb = self.moveAndExpandBBox(self._end.shape.getBBox(), self._opt.bboxCorrection.end);
     // end object bounding box center point
-    __ebbCenter = {x: __ebb.x + __ebb.width/2, y: __ebb.y + __ebb.height/2},
+    __.ebbCenter = {x: __.ebb.x + __.ebb.width/2, y: __.ebb.y + __.ebb.height/2};
     // angle between __sbbCenter and __ebbCenter
-    __theta = self.theta(__sbbCenter, __ebbCenter),
+    __.theta = self.theta(__.sbbCenter, __.ebbCenter);
     // intersection of a line leading from __sbbCenter to __ebbCenter and the start object
-    __sBoundPoint = self.boundPoint(__sbb, self._opt.bboxCorrection.start.type || self._start.type, __ebbCenter),
+    __.sBoundPoint = self.boundPoint(__.sbb, self._opt.bboxCorrection.start.type || self._start.shape.type, __.ebbCenter);
     // intersection of a line leading from __ebbCenter to __sbbCenter and the end object
-    __eBoundPoint = self.boundPoint(__ebb, self._opt.bboxCorrection.end.type || self._end.type, __sbbCenter),
+    __.eBoundPoint = self.boundPoint(__.ebb, self._opt.bboxCorrection.end.type || self._end.shape.type, __.sbbCenter);
     // __sBoundPoint moved in the direction of __eBoundPoint by start cap width
-    __sPoint = { 
-	x: __sBoundPoint.x + (2 * self._arrow.start.dx * Math.cos(__theta.radians)),
-	y: __sBoundPoint.y + (-2 * self._arrow.start.dy * Math.sin(__theta.radians))
-    },
+    __.sPoint = { 
+	x: __.sBoundPoint.x + (2 * self._arrow.start.dx * Math.cos(__.theta.radians)),
+	y: __.sBoundPoint.y + (-2 * self._arrow.start.dy * Math.sin(__.theta.radians))
+    };
     // __eBoundPoint moved in the direction of __sBoundPoint by end cap width
-    __ePoint = { 
-	x: __eBoundPoint.x + (-2 * self._arrow.end.dx * Math.cos(__theta.radians)),
-	y: __eBoundPoint.y + (2 * self._arrow.end.dy * Math.sin(__theta.radians))
+    __.ePoint = { 
+	x: __.eBoundPoint.x + (-2 * self._arrow.end.dx * Math.cos(__.theta.radians)),
+	y: __.eBoundPoint.y + (2 * self._arrow.end.dy * Math.sin(__.theta.radians))
     };
 
     return {
+	dummyEnd: function(){
+	    self._end.dummy = true;
+	    self._end.shape = __.circle(__.eBoundPoint, 1, {"opacity": .0});
+	    self._end.shape.show();
+	    return this;
+	},
+	dummyStart: function(){
+	    self._start.dummy = true;
+	    self._start.shape = __.circle(__.sBoundPoint, 1, {"opacity": .0});
+	    self._start.shape.show();
+	    return this;
+	},
 	connection: function(){
-	    self._con = __line(__sPoint, __ePoint, self._opt.attrs);
+	    self._con = __.line(__.sPoint, __.ePoint, self._opt.attrs);
 	    self._con.show();
 	    return this;
 	},
 	startCap: function(){
 	    var a = self._arrow.start;
-	    self._startCap = __path(a.path, a.attrs);
-	    self._startCap.translate(__sBoundPoint.x + a.dx * Math.cos(__theta.radians), 
-				     __sBoundPoint.y - a.dy * Math.sin(__theta.radians));
-	    self._startCap.rotate(360 - __theta.degrees + 180);
+	    self._startCap = __.path(a.path, a.attrs);
+	    self._startCap.translate(__.sBoundPoint.x + a.dx * Math.cos(__.theta.radians), 
+				     __.sBoundPoint.y - a.dy * Math.sin(__.theta.radians));
+	    self._startCap.rotate(360 - __.theta.degrees + 180);
 	    self._startCap.show();
 	    return this;
 	},
 	endCap: function(){
 	    var a = self._arrow.end;
-	    self._endCap = __path(a.path, a.attrs);
-	    self._endCap.translate(__eBoundPoint.x - a.dx * Math.cos(__theta.radians), 
-				   __eBoundPoint.y + a.dy * Math.sin(__theta.radians));
-	    self._endCap.rotate(360 - __theta.degrees);
+	    self._endCap = __.path(a.path, a.attrs);
+	    self._endCap.translate(__.eBoundPoint.x - a.dx * Math.cos(__.theta.radians), 
+				   __.eBoundPoint.y + a.dy * Math.sin(__.theta.radians));
+	    self._endCap.rotate(360 - __.theta.degrees);
 	    self._endCap.show();
 	    return this;
 	},
@@ -481,42 +625,6 @@ function Joint(){ this.engine = new JointEngine().init() }
 /**************************************************
  * Caps DOM events handles.
  **************************************************/
-
-Joint.isEndDrag = false;
-
-/**
- * TODO: rename, optimize
- */
-JointEngine.prototype.endDragStart = function(e){
-    this.dx = e.clientX;
-    this.dy = e.clientY;
-    Joint.isEndDrag = this;
-    this.animate({"fill-opacity": .1}, 500);
-    e.preventDefault && e.preventDefault();
-    Joint.isEndDrag.engine.dispatch(qevt("wire"));
-};
-
-Joint.mouseMove = function(e){
-    if (Joint.isEndDrag){
-	//        Joint.isEndDrag.translate(e.clientX - Joint.isEndDrag.dx, 
-	//				  e.clientY - Joint.isEndDrag.dy);
-        Joint.isEndDrag.engine._end.translate(e.clientX - Joint.isEndDrag.dx, 
-					      e.clientY - Joint.isEndDrag.dy);
-        r.safari();
-        Joint.isEndDrag.dx = e.clientX;
-        Joint.isEndDrag.dy = e.clientY;
-	Joint.isEndDrag.engine.dispatch(qevt("step"));
-    }
-};
-
-Joint.mouseUp = function(e){
-    Joint.isEndDrag && Joint.isEndDrag.animate({"fill-opacity": .2}, 500);
-    Joint.isEndDrag = false;
-};
-
-document.addEventListener("mousemove", Joint.mouseMove, false);
-document.addEventListener("mouseup", Joint.mouseUp, false);
-
 
 /**
  * Hack of the default Raphael translate method.
@@ -567,8 +675,8 @@ Raphael.el.translate = function(x, y){
  ***************************************************/
 Raphael.el.joint = function(to, opt){
     var j = new Joint();
-    j.engine._start = this;
-    j.engine._end = to;
+    j.engine._start.shape = this;
+    j.engine._end.shape = to;
     j.engine._raphael = this.paper;
 
     if (opt && opt.attrs){
@@ -604,7 +712,11 @@ Raphael.el.joint = function(to, opt){
 	}
     }
 
+    j.engine._start.joints.push(j);
+    j.engine._end.joints.push(j);
+    j.engine._joint = j;
 
+    // to be able to dispatch events in Raphael element translate method
     (this.joints) ? this.joints.push(j) : this.joints = [j];
     (to.joints) ? to.joints.push(j) : to.joints = [j];
 

@@ -59,7 +59,8 @@ var opt1 = {
 
 var opt2 = {
     attrs: {stroke: "black", "stroke-width": 3.0, "stroke-dasharray": "none"},
-    endArrow: {type: "basicRect", attrs: {stroke: "red"}},
+    startArrow: {type: "aggregationArrow", attrs: {stroke: "black", fill: "black"}},
+    endArrow: {type: "basicRect", attrs: {stroke: "red", fill: "red"}},
     bboxCorrection: {
 	end: {
 	    x: 50,
@@ -71,6 +72,11 @@ var opt2 = {
 o1.joint(o2, opt1);
 o1.joint(o3, opt2);
 o2.joint(o4);
+
+Joint.registeredObjects.push(o1);
+Joint.registeredObjects.push(o2);
+Joint.registeredObjects.push(o3);
+Joint.registeredObjects.push(o4);
 
 //o1.animate({cx: 20, r: 20}, 2000, "bounce");
 
