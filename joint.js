@@ -37,7 +37,10 @@ function JointEngine(){
 
 JointEngine.prototype = new QHsm;
 JointEngine.prototype.stateInitial = function(e){
-    // slots
+    /**
+     * Slots.
+     */
+
     this._con = null;		// holds the joint path
     this._startCap = null;	// start glyph (arrow)
     this._endCap = null;	// end glyph (arrow)
@@ -223,287 +226,101 @@ JointEngine.prototype.joint = function(){ return this._joint };
  **************************************************/
 
 JointEngine.prototype.listenOnMouseDown = function(cap){
-    cap.engine = this;
-    cap.mousedown(this.capDragStart);
+    cap.engine = this;	// keep self reference
+    cap.mousedown(this.capDragStart);  // register mouseDown event callback
 };
 
 Joint.draggedCap = null;
 Joint.registeredObjects = [];	// TODO: multiple raphael 'windows'
 
+/**
+ * MouseDown event callback when on cap.
+ */
 JointEngine.prototype.capDragStart = function(e){
-    Joint.draggedCap = this;
-    if (this === this.engine.endCap())
-	// end cap
+    Joint.draggedCap = this;	// keep reference to cap
+    if (this === this.engine.endCap())	// end cap
 	Joint.draggedCap.isEndCap = true;
-    else	
-	// start cap
+    else	// start cap
 	Joint.draggedCap.isEndCap = false;
 
     Joint.draggedCap.dx = e.clientX;
     Joint.draggedCap.dy = e.clientY;
     e.preventDefault && e.preventDefault();
+
     // tell the engine that cap dragging has just started
-    Joint.draggedCap.engine.dispatch(qevt("mouseDown", {onCap: true, isEndCap: Joint.draggedCap.isEndCap}));
+    var qe = qevt("mouseDown", {onCap: true, isEndCap: Joint.draggedCap.isEndCap});
+    Joint.draggedCap.engine.dispatch(qe);
 };
 
+/**
+ * MouseMove event callback.
+ */
 Joint.mouseMove = function(e){
     if (Joint.draggedCap !== null){
 
+	var 
+	eShape = Joint.draggedCap.engine.endObject().shape,
+	sShape = Joint.draggedCap.engine.startObject().shape;
+
 	// move dummy object
 	if (Joint.draggedCap.isEndCap)
-            Joint.draggedCap.engine.endObject().shape.translate(e.clientX - Joint.draggedCap.dx, e.clientY - Joint.draggedCap.dy);
+            eShape.translate(e.clientX - Joint.draggedCap.dx, e.clientY - Joint.draggedCap.dy);
 	else
-            Joint.draggedCap.engine.startObject().shape.translate(e.clientX - Joint.draggedCap.dx, e.clientY - Joint.draggedCap.dy);
+            sShape.translate(e.clientX - Joint.draggedCap.dx, e.clientY - Joint.draggedCap.dy);
 
         r.safari();
-        Joint.draggedCap.dx = e.clientX;
+
+	// save old x and y positions
+        Joint.draggedCap.dx = e.clientX;	
         Joint.draggedCap.dy = e.clientY;
+
 	// wake up the engine to redraw the joint
 	Joint.draggedCap.engine.dispatch(qevt("step"));
     }
 };
 
+/**
+ * MouseUp event callback.
+ */
 Joint.mouseUp = function(e){
     if (Joint.draggedCap !== null){
-	var dummy = (Joint.draggedCap.isEndCap) ? Joint.draggedCap.engine.endObject() : Joint.draggedCap.engine.startObject(),
+	var 
+	engine = Joint.draggedCap.engine,
+	dummy = (Joint.draggedCap.isEndCap) ? engine.endObject() : engine.startObject(),
 	dummyBB = dummy.shape.getBBox();
 
 	// dropped on object?
 	for (var i = Joint.registeredObjects.length - 1; i >= 0; --i){
-	    if (Joint.draggedCap.engine.rectContainsPoint(Joint.registeredObjects[i].getBBox(), {x: dummyBB.x, y: dummyBB.y})){
-		var o = Joint.registeredObjects[i];
+	    var o = Joint.registeredObjects[i];
+
+	    if (rect(o.getBBox()).containsPoint(point(dummyBB.x, dummyBB.y))){
+		// if yes, do an effect, replace dummy with found object
+		// and append connection's Joint object to the object's joints array
+
 		o.animate({scale: 1.2}, 100, function(){o.animate({scale: 1.0}, 100)});
-		dummy.shape = o;	// it is no longer dummy
-		dummy.dummy = false;
+		dummy.shape.remove();	// remove old dummy shape
+		dummy.dummy = false;    // it is no longer dummy
+		dummy.shape = o;	
+
 		// only if o.joints already doesn't have that Joint object
-		if (o.joints.indexOf(Joint.draggedCap.engine.joint()) == -1)
-		    o.joints.push(Joint.draggedCap.engine.joint());
+		if (o.joints.indexOf(engine.joint()) == -1)
+		    o.joints.push(engine.joint());
 		break;
 	    }
-	} 
-	Joint.draggedCap.engine.dispatch(qevt("mouseUp"));
+	}
+	// tell the engine about this event
+	engine.dispatch(qevt("mouseUp"));
     }
-    Joint.draggedCap = null;
+    Joint.draggedCap = null;	// cap is no longer dragged
 };
 
+// TODO: platform neutral event listeners
 document.addEventListener("mousemove", Joint.mouseMove, false);
 document.addEventListener("mouseup", Joint.mouseUp, false);
 
 
 /**************************************************
- * Helper methods. (mainly geometric operations)
- * TODO: put them out of the engine, 
- *       make Rect and Point prototype for this purpose
- **************************************************/
-
-/**
- * @return bool true if two rects rect and another intersect each other
- */
-JointEngine.prototype.rectsIntersect = function(rect, another){
-    var rOrigin = {x: rect.x, y: rect.y},
-    rCorner = {x: rect.x + rect.width, y: rect.y + rect.height},
-    aOrigin = {x: another.x, y: another.y},
-    aCorner = {x: another.x + another.width, y: another.y + another.height};
-    if (aCorner.x <= rOrigin.x) return false;
-    if (aCorner.y <= rOrigin.y) return false;
-    if (aOrigin.x >= rCorner.x) return false;
-    if (aOrigin.y >= rCorner.y) return false;
-    return true;
-};
-
-/**
- * @return string (left|right|top|bottom) side on rect which is nearest to point
- * @see Squeak Smalltalk, Rectangle>>sideNearestTo:
- */
-JointEngine.prototype.sideNearestToPoint = function(rect, point){
-    var distToLeft = point.x - rect.x,
-    distToRight = (rect.x + rect.width) - point.x,
-    distToTop = point.y - rect.y,
-    distToBottom = (rect.y + rect.height) - point.y,
-    closest = distToLeft,
-    side = "left";
-    if (distToRight < closest){
-	closest = distToRight;
-	side = "right";
-    }
-    if (distToTop < closest){
-	closest = distToTop;
-	side = "top";
-    }
-    if (distToBottom < closest){
-	closest = distToBottom;
-	side = "bottom";
-    }
-    return side;
-};
-
-/**
- * @return bool true if rect contains point
- */
-JointEngine.prototype.rectContainsPoint = function(rect, point){
-    if (point.x > rect.x && point.x < rect.x + rect.width &&
-	point.y > rect.y && point.y < rect.y + rect.height)
-	return true;
-    return false;
-};
-
-/**
- * If point lies outside rect, return the nearest point on the boundary of rect, 
- * otherwise return point.
- * @see Squeak Smalltalk, Point>>adhereTo:
- */
-JointEngine.prototype.pointAdhereToRect = function(point, rect){
-    if (this.rectContainsPoint(rect, point))
-	return point;
-    return {
-	x: Math.min(Math.max(point.x, rect.x), rect.x + rect.width),
-	y: Math.min(Math.max(point.y, rect.y), rect.y + rect.height)
-    }
-};
-
-/**
- * @return point a point on rect border nearest to parameter point
- * @see Squeak Smalltalk, Rectangle>>pointNearestTo:
- */
-JointEngine.prototype.rectPointNearestToPoint = function(rect, point){
-    if (this.rectContainsPoint(rect, point)){
-	var side = this.sideNearestTo(rect, point);
-	switch (side){
-	case "right": return {x: rect.x + rect.width, y: point.y};
-	case "left": return {x: rect.x, y: point.y};	    
-	case "bottom": return {x: point.x, y: rect.y + rect.height};
-	case "top": return {x: point.x, y: rect.y};
-	}
-    } else
-	return this.pointAdhereToRect(point, rect);
-};
-
-/**
- * Find point on ellipse where line from the center of the ellipse to
- * point intersects the ellipse.
- * @see Squeak Smalltalk, EllipseMorph>>intersectionWithLineSegmentFromCenterTo:    
- */
-JointEngine.prototype.ellipseLineIntersectionFromCenterToPoint = function(ellipse, point){
-    var dx = point.x - ellipse.center.x,
-    dy = point.y - ellipse.center.y;
-    if (dx == 0)
-	return this.rectPointNearestToPoint(ellipse.bb, point);
-
-    var m = dy / dx,
-    mSquared = m * m,
-    aSquared = (aSquared = ellipse.bb.width / 2) * aSquared,
-    bSquared = (bSquared = ellipse.bb.height / 2) * bSquared,
-    x = Math.sqrt(1 / ((1 / aSquared) + (mSquared / bSquared)));
-    if (dx < 0) 
-	x = -x;
-    var y = m * x;
-    return {
-	x: ellipse.center.x + x,
-	y: ellipse.center.y + y
-    }
-};
-
-/**
- * Find point where two lines line and another intersect.
- * @see Squeak Smalltalk, LineSegment>>intersectionWith:
- */
-JointEngine.prototype.linesIntersection = function(line, another){
-    var pt1Dir = {x: line.end.x - line.start.x, y: line.end.y - line.start.y},
-    pt2Dir = {x: another.end.x - another.start.x, y: another.end.y - another.start.y},
-    det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x),
-    deltaPt = {x: another.start.x - line.start.x, y: another.start.y - line.start.y},
-    alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x),
-    beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
-
-    if (det == 0 ||
-	alpha * det < 0 ||
-	beta * det < 0)
-	return null;	// no intersection
-
-    if (det > 0){
-	if (alpha > det || beta > det)
-	    return null;
-    } else {
-	if (alpha < det || beta < det)
-	    return null;
-    }
-    return {
-	x: line.start.x + (alpha * pt1Dir.x / det),
-	y: line.start.y + (alpha * pt1Dir.y / det)
-    }
-};
-
-/**
- * Compute the angle between this.from middle point and this.to middle point.
- */
-JointEngine.prototype.theta = function(point1, point2){
-    var y = -(point2.y - point1.y),	// invert the y-axis
-    x = point2.x - point1.x,
-    rad = Math.atan2(y, x);
-    if (rad < 0) // correction for III. and IV. quadrant
-	rad = 2*Math.PI + rad;
-    return {
-	degrees: 180*rad / Math.PI,
-	radians: rad
-    }
-};
-
-/**
- * @return bool true if bbox1 and bbox2 are overlapped
- */
-JointEngine.prototype.overlappedBBoxes = function(bbox1, bbox2){
-    return this.rectsIntersect(bbox1, bbox2);
-};
-
-/**
- * Find point on an object of type type with bounding box bb where line starting
- * from bb center ending in point intersects the object.
- */
-JointEngine.prototype.boundPoint = function(bb, type, point){
-    var bbCenter = {x: bb.x + bb.width/2, y: bb.y + bb.height/2};
-
-    if (type === "circle" || type === "ellipse"){
-	var ellipse = {center: bbCenter, bb: bb}; 
-	return this.ellipseLineIntersectionFromCenterToPoint(ellipse, point);
-
-	// other types 
-    } else {
-	// sides of the this.from rectangle (clockwise, starting from the top side)
-	var sides = [
-	    {start: {x: bb.x, y: bb.y}, end: {x: bb.x + bb.width, y: bb.y}},
-	    {start: {x: bb.x + bb.width, y: bb.y}, end: {x: bb.x + bb.width, y: bb.y + bb.height}}, 
-	    {start: {x: bb.x + bb.width, y: bb.y + bb.height}, end: {x: bb.x, y: bb.y + bb.height}},
-	    {start: {x: bb.x, y: bb.y + bb.height}, end: {x: bb.x, y: bb.y}}
-	],
-	connector = {start: bbCenter, end: point};
-	for (var i = sides.length - 1; i >= 0; --i){
-	    var intersection = this.linesIntersection(sides[i], connector);
-	    if (intersection !== null)
-		return intersection;
-	}
-    }
-    // BUG: in lines intersection, can be all null
-    // it happens when point is located on the bb boundary
-
-    return bbCenter;	// it shouldn't reach this (but see BUG above)
-};
-
-/**
- * Move and expand bounding box.
- * @param bb rectangle
- * @param rect rectangle representing delta
- */
-JointEngine.prototype.moveAndExpandBBox = function(bb, rect){
-    return {
-	x: bb.x + rect.x,
-	y: bb.y + rect.y,
-	width: bb.width + rect.width,
-	height: bb.height + rect.height
-    }
-};
-
-/**************************************************
- * Engine specific methods.
+ * Engine draw/clean methods.
  **************************************************/
 
 JointEngine.prototype.redraw = function(){
@@ -529,20 +346,36 @@ JointEngine.prototype.draw = function(){
     __.circle = function(pos, radius, attrs){ return __.raphael.circle(pos.x, pos.y, radius).attr(attrs) };
     __.rect = function(pos, width, height, attrs){ return __.raphael.rect(pos.x, pos.y, width, height).attr(attrs) };
 
+    // helpers
+
+    /**
+     * Find point on an object of type type with bounding box r where line starting
+     * from r's center ending in point intersects the object.
+     */
+    __.boundPoint = function(r, type, p){
+	var rCenter = r.center();
+	if (type === "circle" || type === "ellipse")
+	    return ellipse(rCenter.x, rCenter.y, r.width/2, r.height/2).intersectionWithLineFromCenterToPoint(p);
+	// BUG: in lines intersection, can be all null
+	// it happens when point is located on the bb boundary
+	return r.boundPoint(p) || rCenter;
+    };
+
     // start object bounding box
-    __.sbb = self.moveAndExpandBBox(self._start.shape.getBBox(), self._opt.bboxCorrection.start);
+    __.sbb = rect(self._start.shape.getBBox()).moveAndExpand(self._opt.bboxCorrection.start);
     // start object bounding box center point
-    __.sbbCenter = {x: __.sbb.x + __.sbb.width/2, y: __.sbb.y + __.sbb.height/2};
+    __.sbbCenter = __.sbb.center();
     // end object bounding box
-    __.ebb = self.moveAndExpandBBox(self._end.shape.getBBox(), self._opt.bboxCorrection.end);
+    __.ebb = rect(self._end.shape.getBBox()).moveAndExpand(self._opt.bboxCorrection.end);
     // end object bounding box center point
-    __.ebbCenter = {x: __.ebb.x + __.ebb.width/2, y: __.ebb.y + __.ebb.height/2};
+    __.ebbCenter = __.ebb.center();
     // angle between __sbbCenter and __ebbCenter
-    __.theta = self.theta(__.sbbCenter, __.ebbCenter);
+    __.theta = __.sbbCenter.theta(__.ebbCenter);
+
     // intersection of a line leading from __sbbCenter to __ebbCenter and the start object
-    __.sBoundPoint = self.boundPoint(__.sbb, self._opt.bboxCorrection.start.type || self._start.shape.type, __.ebbCenter);
+    __.sBoundPoint = __.boundPoint(__.sbb, self._opt.bboxCorrection.start.type || self._start.shape.type, __.ebbCenter);
     // intersection of a line leading from __ebbCenter to __sbbCenter and the end object
-    __.eBoundPoint = self.boundPoint(__.ebb, self._opt.bboxCorrection.end.type || self._end.shape.type, __.sbbCenter);
+    __.eBoundPoint = __.boundPoint(__.ebb, self._opt.bboxCorrection.end.type || self._end.shape.type, __.sbbCenter);
     // __sBoundPoint moved in the direction of __eBoundPoint by start cap width
     __.sPoint = { 
 	x: __.sBoundPoint.x + (2 * self._arrow.start.dx * Math.cos(__.theta.radians)),
@@ -620,7 +453,7 @@ JointEngine.prototype.clean = function(){
  * Joint.
  **************************************************/
 
-function Joint(){ this.engine = new JointEngine().init() }
+function Joint(){ this.engine = new JointEngine().init() };
 
 /**************************************************
  * Caps DOM events handles.
