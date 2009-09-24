@@ -78,7 +78,8 @@ Joint.registeredObjects.push(o2);
 Joint.registeredObjects.push(o3);
 Joint.registeredObjects.push(o4);
 
-//o1.animate({cx: 20, r: 20}, 2000, "bounce");
+
+o1.animate({cx: 20, r: 20}, 2000, "bounce");
 
 
 

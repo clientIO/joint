@@ -24,11 +24,12 @@ var NDEBUG = false;
  *
  ****************************************************/
 
-(function(){	// BEGIN CLOSURE
+//(function(){	// BEGIN CLOSURE
 
 /**************************************************
  * Quantum hierarchical state machines in JavaScript.
- * Based on the ideas of Miro Samek's C/C++ Quantum hierarchical state machines framework.
+ * Based on the ideas of Miro Samek's C/C++ Quantum hierarchical state machines framework
+ * and on the QHsm implementation in Squeak Smalltalk by Ned Konz.
  **************************************************/
 
 
@@ -556,6 +557,10 @@ JointEngine.prototype.stateInitial = function(e){
      * Slots.
      */
 
+    // hack for slow browsers
+//    this._nRedraws = 0;
+//    this._nRedrawsMod = 2;
+    
     this._con = null;		// holds the joint path
     this._startCap = null;	// start glyph (arrow)
     this._endCap = null;	// end glyph (arrow)
@@ -614,7 +619,7 @@ JointEngine.prototype.stateInitial = function(e){
 	aggregationArrow: {
 	    path: ["M","15","0","L","0","10","L","-15","0", "L", "0", "-10", "z"],
 	    dx: 16, dy: 16,
-	    attrs: { stroke: "black", "stroke-width": 2.0 }
+	    attrs: { stroke: "black", "stroke-width": 2.0, fill: "black" }
 	}
     };
     // used arrows (default values)
@@ -637,19 +642,50 @@ JointEngine.prototype.stateIdle = function(e){
     case "exit": return null;	
     case "mouseDown":
 	if (e.args.onCap){
-	    if (e.args.isEndCap)
+	    if (e.args.isEndCap){
+
+/*
+TODO: removing of reference to Joint can not be here.
+better solution is to place it to the appropriate substate
+where I know whether is a cap connected or not.
+*/
+
+		if (this.endCapConnected()){
+		    // remove reference to Joint from end object.
+		    var 
+		    jar = this.endObject().shape.joints,
+		    i = jar.indexOf(this._joint);
+		    this.endObject().shape.joints.splice(i, 1);
+		    if (jar.length === 0)
+			delete this.endObject().shape.joints;
+		}
+		// draw dummy end object
 		this.draw().dummyEnd();
-	    else
+	    } else {
+		if (this.startCapConnected()){
+		    // remove reference to Joint from start object.
+		    var 
+		    jar = this.startObject().shape.joints,
+		    i = jar.indexOf(this._joint);
+		    this.startObject().shape.joints.splice(i, 1);
+		    if (jar.length === 0)
+			delete this.startObject().shape.joints;
+		}
+		// draw dummy start object
 		this.draw().dummyStart();
+	    }
 	    this.newState("CapDragging");
 	}
 	return null;
-    case "step":
+    case "positionChanged":
+//	if (this._nRedraws++ % this._nRedrawsMod == 0){
 	this.redraw();
 	this.listenOnMouseDown(this.endCap());
 	this.listenOnMouseDown(this.startCap());
+//	}
 	return null;
     case "connect":
+	this.redraw();
 	this.newState("Connected");
 	return null;
     }
@@ -673,7 +709,6 @@ JointEngine.prototype.stateDisconnected = function(e){
 JointEngine.prototype.stateConnected = function(e){
     switch (e.type){
     case "entry": 
-	this.redraw();
 	this.listenOnMouseDown(this.endCap());
 	this.listenOnMouseDown(this.startCap());
 	return null;
@@ -685,11 +720,27 @@ JointEngine.prototype.stateConnected = function(e){
 JointEngine.prototype.stateOneCapConnected = function(e){
     switch (e.type){
     case "entry": 
-	this.redraw();
 	this.listenOnMouseDown(this.endCap());
 	this.listenOnMouseDown(this.startCap());
 	return null;
-    case "exit": return null;	
+    case "exit": 
+/*
+PROBLEM: when mouseDown, idle draws a dummy start/end,
+so I lose obj.shape.joints array reference.
+
+	var e = this.endCapConnected(),
+	i;
+	if (e){  // start cap is disconnected
+	    // remove reference to Joint from start object.
+	    i = this.startObject().shape.joints.indexOf(this._joint);
+	    this.startObject().shape.joints.splice(i, 1);
+	} else { // end cap is disconnected
+	    // remove reference to Joint from end object.
+	    i = this.endObject().shape.joints.indexOf(this._joint);
+	    this.endObject().shape.joints.splice(i, 1);
+	}
+*/
+	return null;	
     }
     return this.state("Idle");
 };
@@ -705,8 +756,10 @@ JointEngine.prototype.stateDragging = function(e){
 JointEngine.prototype.stateCapDragging = function(e){
     switch (e.type){
     case "entry": return null;
-    case "exit": return null;	
-    case "step":
+    case "exit": 
+	this.redraw();
+	return null;	
+    case "positionChanged":
 	this.redraw();
 	return null;
     case "mouseUp":
@@ -735,6 +788,11 @@ JointEngine.prototype.endCapConnected = function(){ return !this._end.dummy };
 JointEngine.prototype.startCap = function(){ return this._startCap };
 JointEngine.prototype.startCapConnected = function(){ return !this._start.dummy };
 JointEngine.prototype.joint = function(){ return this._joint };
+
+/**
+ * Helpers.
+ */
+
 
 
 /**************************************************
@@ -866,7 +924,7 @@ Joint.mouseMove = function(e){
         Joint.draggedCap.dy = e.clientY;
 
 	// wake up the engine to redraw the joint
-	Joint.draggedCap.engine.dispatch(qevt("step"));
+	Joint.draggedCap.engine.dispatch(qevt("positionChanged"));
     }
 };
 
@@ -905,7 +963,10 @@ Joint.mouseUp = function(e){
     Joint.draggedCap = null;	// cap is no longer dragged
 };
 
-
+/**
+ * TODO: register handlers only if draggable caps
+ * is allowed in options. Applications may not need it.
+ */
 // register document event handlers
 addEvent(document, "mousemove", Joint.mouseMove);
 addEvent(document, "mouseup", Joint.mouseUp);
@@ -1051,6 +1112,7 @@ window.Joint = Joint;	// the only global variable
 /**
  * Hack of the default Raphael translate method.
  */
+/*
 var _translate = Raphael.el.translate;
 Raphael.el.translate = function(x, y){
     _translate.call(this, x, y);
@@ -1060,6 +1122,60 @@ Raphael.el.translate = function(x, y){
 	for (var i = this.joints.length - 1; i >= 0; --i)
 	    this.joints[i].engine.dispatch(qevt("step"));
     }
+};
+*/
+
+/**
+ * TODO: rotation support. there is a problem because
+ * rotation does not set any attribute in this.attrs but
+ * instead it set transformation directly to let the browser
+ * SVG engine compute the position.
+ */
+var _attr = Raphael.el.attr;
+Raphael.el.attr = function(){
+    // is it a getter or not a joint object?
+    if ((arguments.length == 1 && (typeof arguments[0] === "string" || typeof arguments[0] === "array")) ||
+	(typeof this.joints === "undefined"))
+	return _attr.apply(this, arguments);	// yes
+
+    // old attributes
+    var o = {
+	x: this.attrs.x,	// rect/image/text x
+	y: this.attrs.y,	// rect/image/text y
+	cx: this.attrs.cx,	// circle/ellipse x
+	cy: this.attrs.cy,	// circle/ellipse y
+	path: this.attrs.path,	// path string
+	stroke: this.attrs.stroke,
+	r: this.attrs.r,
+	rotation: this.attrs.rotation,
+	translation: this.attrs.translation
+    };
+
+    _attr.apply(this, arguments);
+
+    
+    var 
+    n = this.attrs,	// new attributes
+    qevts = [];		// array of events
+    
+    if (o.x != n.x || o.y != n.y ||
+	o.cx != n.cx || o.cy != n.cy ||
+	o.path != n.path)
+	qevts.push(qevt("positionChanged"));
+    if (o.stroke != n.stroke)
+	qevts.push(qevt("strokeChanged"));
+    if (o.r != n.r)
+	qevts.push(qevt("positionChanged"));	
+    if (o.rotation != n.rotation)
+	qevts.push(qevt("positionChanged"));	
+    if (o.translation != n.translation)
+	qevts.push(qevt("positionChanged"));	
+
+    for (var i = this.joints.length - 1; i >= 0; --i)
+	for (var j = qevts.length - 1; j >= 0; --j)
+	    this.joints[i].engine.dispatch(qevts[j]);
+
+    return this;
 };
 
 /**************************************************
@@ -1145,4 +1261,4 @@ Raphael.el.joint = function(to, opt){
     j.engine.dispatch(qevt("connect"));
 };
 
-})();	// END CLOSURE
+//})();	// END CLOSURE

@@ -110,6 +110,26 @@ o18.joint(o10);
 o19.joint(o10);
 
 
+Joint.registeredObjects.push(o1);
+Joint.registeredObjects.push(o2);
+Joint.registeredObjects.push(o3);
+Joint.registeredObjects.push(o4);
+Joint.registeredObjects.push(o5);
+Joint.registeredObjects.push(o6);
+Joint.registeredObjects.push(o7);
+Joint.registeredObjects.push(o8);
+Joint.registeredObjects.push(o9);
+Joint.registeredObjects.push(o10);
+Joint.registeredObjects.push(o11);
+Joint.registeredObjects.push(o12);
+Joint.registeredObjects.push(o13);
+Joint.registeredObjects.push(o14);
+Joint.registeredObjects.push(o15);
+Joint.registeredObjects.push(o16);
+Joint.registeredObjects.push(o17);
+Joint.registeredObjects.push(o18);
+Joint.registeredObjects.push(o19);
+
 
 
 
