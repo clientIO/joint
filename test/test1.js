@@ -48,7 +48,7 @@ var o4 = createMyObject("path", [{fill: "#CB9737"}, p], {stroke: "black", "strok
 var opt1 = {
     attrs: {stroke: "red", "stroke-dasharray": "none"},
     startArrow: {type: "basic"},
-    endArrow: {attrs: {fill: "white"}},
+    endArrow: {attrs: {fill: "red"}},
     bboxCorrection: {
 	start: {
 	    x: 0,
@@ -58,9 +58,9 @@ var opt1 = {
 };
 
 var opt2 = {
-    attrs: {stroke: "black", "stroke-width": 3.0, "stroke-dasharray": "none"},
-    startArrow: {type: "aggregationArrow", attrs: {stroke: "black", fill: "black"}},
-    endArrow: {type: "basicRect", attrs: {stroke: "red", fill: "red"}},
+    attrs: {stroke: "black", "stroke-width": 1.0, "stroke-dasharray": "-"},
+    startArrow: {type: "basic", attrs: {stroke: "black", fill: "black"}},
+    endArrow: {type: "hand", attrs: {stroke: "black", fill: "yellow"}},
     bboxCorrection: {
 	end: {
 	    x: 50,
@@ -70,8 +70,8 @@ var opt2 = {
 };
 
 o1.joint(o2, opt1);
-o1.joint(o3, opt2);
-o2.joint(o4);
+o1.joint(o3, {endArrow: {type: "flower", attrs: {fill: "orange"}}});
+o2.joint(o4, opt2);
 
 Joint.registeredObjects.push(o1);
 Joint.registeredObjects.push(o2);
@@ -79,7 +79,8 @@ Joint.registeredObjects.push(o3);
 Joint.registeredObjects.push(o4);
 
 
-o1.animate({cx: 20, r: 20}, 2000, "bounce");
+
+
 
 
 

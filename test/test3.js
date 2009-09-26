@@ -26,8 +26,8 @@ center.joint(min, {
     startArrow: {attrs: {stroke: "red", fill: "red"}}
 });
 center.joint(sec, {
-    attrs: {"stroke-width": 2}
-    //    startArrow: {type: "basic"}
+    attrs: {"stroke-width": 2},
+    endArrow: {type: "hand", attrs: {fill: "orange"}}
 });
 
 Joint.registeredObjects.push(center);

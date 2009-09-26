@@ -1,3 +1,5 @@
+- QHsm support for transitions to history
+
 - speed it all up (recounting draw parameters only each two steps?)
 - curved connection
 - connection wiring

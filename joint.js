@@ -1,8 +1,10 @@
-var NDEBUG = false;
+var NDEBUG = true;
 /****************************************************
  * Joint 0.1.2 - JavaScript library for connecting vector objects
  *
  * Copyright (c) 2009 David Durman
+ *
+ * Licensed under MIT license:
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +27,17 @@ var NDEBUG = false;
  ****************************************************/
 
 //(function(){	// BEGIN CLOSURE
+
+
+// Array.indexOf is missing in IE 8
+if (!Array.indexOf){
+    Array.prototype.indexOf = function (obj, start){
+	for (var i = (start || 0), len = this.length; i < len; i++)
+	    if (this[i] == obj)
+		return i;
+	return -1;
+    }
+}
 
 /**************************************************
  * Quantum hierarchical state machines in JavaScript.
@@ -51,19 +64,23 @@ QHsm.prototype.initialState = function(aStateOrName){
     this.mySource = this.state(aStateOrName);
 }
 
+QHsm.prototype.getState = function(){
+    return this.myState;
+}
+
 /**
  * Trigger the initial transition and recursively enter the submachine of the top state.
  * Must be called only once for a given QHsm before dispatching any events to it.
  */
 QHsm.prototype.init = function(anEventOrNil){
-//    anEventOrNil = anEventOrNil || null; 
+    //    anEventOrNil = anEventOrNil || null; 
     var s = this.myState;	// save top in temp
     this.mySource.trigger(anEventOrNil);	// topmost initial transition
-//    eval(assert(s.equals(this.myState.superstate())));	// verify that we only went one level deep
+    //    eval(assert(s.equals(this.myState.superstate())));	// verify that we only went one level deep
     s = this.myState;
     s.enter();
     while (s.init() === null){	// while init is handled
-//	eval(assert(s.equals(this.myState.superstate())));	// verify that we only went one level deep
+	//	eval(assert(s.equals(this.myState.superstate())));	// verify that we only went one level deep
 	s = this.myState;
 	s.enter();
     }
@@ -138,14 +155,14 @@ QHsm.prototype.newInitialState = function(aStateOrName){
  * Dynamic transition. (Q_TRAN_DYN())
  */
 QHsm.prototype.transition = function(target){
-//    eval(assert(!target.equals(this.top())));
+    //    eval(assert(!target.equals(this.top())));
     var entry = [];
     var thisMySource = this.mySource;	// for better performance
 
     // exit all the nested states between myState and mySource
     var s = this.myState;
     while (!s.equals(thisMySource)){
-//	eval(assert(s != null));
+	//	eval(assert(s != null));
 	s = s.exit() || s.superstate();
     }
 
@@ -163,7 +180,7 @@ QHsm.prototype.transition = function(target){
     if (thisMySource.equals(p))
 	return this.enterVia(target, entry);
     
-//    eval(assert(thisMySource != null));
+    //    eval(assert(thisMySource != null));
 
     // (c) mySource.superstate == target.superstate (most common - fsa)
     var q = thisMySource.superstate();
@@ -227,7 +244,7 @@ QHsm.prototype.enterVia = function(target, entry){
     this.myState = target;
     while (target.init() == null){
 	// initial transition must go one level deep
-//	eval(assert(target.equals(this.myState.superstate())));	
+	//	eval(assert(target.equals(this.myState.superstate())));	
 	target = this.myState;
 	target.enter();
     }
@@ -553,13 +570,29 @@ function JointEngine(){
 
 JointEngine.prototype = new QHsm;
 JointEngine.prototype.stateInitial = function(e){
+    this.myIdleHistory = null;	// allows transition to history of Idle state
+
     /**
      * Slots.
      */
 
+    // temporaries for moving objects
+    this._dx = undefined;	
+    this._dy = undefined;
+    
+    // callbacks
+    this._callbacks = {
+	// called when a joint has just connected to an object
+	// the object is accessed using this
+	justConnected: function(){
+	    var self = this;
+//	    self.animate({scale: 1.2}, 100, function(){self.animate({scale: 1.0}, 100)});
+	}
+    };
+
     // hack for slow browsers
-//    this._nRedraws = 0;
-//    this._nRedrawsMod = 2;
+    //    this._nRedraws = 0;
+    //    this._nRedrawsMod = 2;
     
     this._con = null;		// holds the joint path
     this._startCap = null;	// start glyph (arrow)
@@ -611,6 +644,29 @@ JointEngine.prototype.stateInitial = function(e){
 	    dx: 15, dy: 15,
 	    attrs: { stroke: "black", fill: "black" }
 	},
+	// sizes, TODO: find a better solution then list of all sizes!
+	basicArrow1: {path: ["M","1","0","L","-1","-1","L","-1","1","z"], dx: 1, dy: 1, attrs: { stroke: "black", fill: "black" }},
+	basicArrow2: {path: ["M","2","0","L","-2","-2","L","-2","2","z"], dx: 2, dy: 2, attrs: { stroke: "black", fill: "black" }},
+	basicArrow3: {path: ["M","3","0","L","-3","-3","L","-3","3","z"], dx: 3, dy: 3, attrs: { stroke: "black", fill: "black" }},
+	basicArrow4: {path: ["M","4","0","L","-4","-4","L","-4","4","z"], dx: 4, dy: 4, attrs: { stroke: "black", fill: "black" }},
+	basicArrow5: {path: ["M","5","0","L","-5","-5","L","-5","5","z"], dx: 5, dy: 5, attrs: { stroke: "black", fill: "black" }},
+	basicArrow6: {path: ["M","6","0","L","-6","-6","L","-6","6","z"], dx: 6, dy: 6, attrs: { stroke: "black", fill: "black" }},
+	basicArrow7: {path: ["M","7","0","L","-7","-7","L","-7","7","z"], dx: 7, dy: 7, attrs: { stroke: "black", fill: "black" }},
+	basicArrow8: {path: ["M","8","0","L","-8","-8","L","-8","8","z"], dx: 8, dy: 8, attrs: { stroke: "black", fill: "black" }},
+	basicArrow9: {path: ["M","","0","L","-9","-9","L","-9","9","z"], dx: 9, dy: 9, attrs: { stroke: "black", fill: "black" }},
+	basicArrow10: {path: ["M","10","0","L","-10","-10","L","-10","10","z"], dx: 10, dy: 10, attrs: { stroke: "black", fill: "black" }},
+	basicArrow11: {path: ["M","11","0","L","-11","-11","L","-11","11","z"], dx: 11, dy: 11, attrs: { stroke: "black", fill: "black" }},
+	basicArrow12: {path: ["M","12","0","L","-12","-12","L","-12","12","z"], dx: 12, dy: 12, attrs: { stroke: "black", fill: "black" }},
+	hand: {
+	    path: "M -15.681352,-5.1927657 C -15.208304,-5.2925912 -14.311293,-5.5561164 -13.687993,-5.7783788 C -13.06469,-6.0006406 -12.343434,-6.2537623 -12.085196,-6.3408738 C -10.972026,-6.7163768 -7.6682017,-8.1305627 -5.9385615,-8.9719142 C -4.9071402,-9.4736293 -3.9010109,-9.8815423 -3.7027167,-9.8783923 C -3.5044204,-9.8752373 -2.6780248,-9.5023173 -1.8662751,-9.0496708 C -0.49317056,-8.2840047 -0.31169266,-8.2208528 0.73932854,-8.142924 L 1.8690327,-8.0591623 L 2.039166,-7.4474021 C 2.1327395,-7.1109323 2.1514594,-6.8205328 2.0807586,-6.8020721 C 2.010064,-6.783614 1.3825264,-6.7940997 0.68622374,-6.8253794 C -0.66190616,-6.8859445 -1.1814444,-6.8071497 -1.0407498,-6.5634547 C -0.99301966,-6.4807831 -0.58251196,-6.4431792 -0.12850911,-6.4798929 C 1.2241412,-6.5892761 4.7877672,-6.1187783 8.420785,-5.3511477 C 14.547755,-4.056566 16.233479,-2.9820024 15.666933,-0.73209438 C 15.450654,0.12678873 14.920327,0.61899573 14.057658,0.76150753 C 13.507869,0.85232533 12.818867,0.71394493 9.8149232,-0.090643373 C 7.4172698,-0.73284018 6.1067424,-1.0191399 5.8609814,-0.95442248 C 5.6587992,-0.90118658 4.8309652,-0.89582008 4.0213424,-0.94250688 C 3.0856752,-0.99645868 2.5291546,-0.95219288 2.4940055,-0.82101488 C 2.4635907,-0.70750508 2.4568664,-0.61069078 2.4790596,-0.60585818 C 2.5012534,-0.60103228 2.9422761,-0.59725718 3.4591019,-0.59747878 C 3.9759261,-0.59770008 4.4500472,-0.58505968 4.512693,-0.56939128 C 4.7453841,-0.51117988 4.6195024,0.92436343 4.318067,1.650062 C 3.8772746,2.7112738 2.9836566,3.9064107 2.2797382,4.3761637 C 1.5987482,4.8306065 1.52359,4.9484512 1.8576616,5.0379653 C 1.9860795,5.0723748 2.2155555,4.9678227 2.3676284,4.8056312 C 2.6253563,4.5307504 2.6497332,4.5328675 2.7268401,4.8368824 C 2.8605098,5.3638848 2.3264901,6.4808604 1.6782299,7.0301956 C 1.3498639,7.30845 0.75844624,8.0404548 0.36396655,8.6568609 C -0.58027706,10.132325 -0.69217806,10.238528 -1.4487256,10.377186 C -2.2048498,10.515767 -4.6836995,9.9021604 -6.41268,9.1484214 C -9.9464649,7.6078865 -10.697587,7.3186028 -12.142194,6.9417312 C -13.020384,6.712621 -14.184145,6.4654454 -14.72833,6.3924328 C -15.272516,6.3194263 -15.731691,6.241583 -15.748724,6.2194535 C -15.813855,6.1348086 -16.609132,-4.7586323 -16.562804,-4.9315285 C -16.551052,-4.9753876 -16.154402,-5.0929474 -15.681351,-5.192769 L -15.681352,-5.1927657 z M 11.288619,-1.446424 L 10.957631,-0.2111606 L 11.627189,-0.031753373 C 13.374637,0.43647423 14.580622,0.18262123 15.042031,-0.75056578 C 15.503958,-1.6847955 14.648263,-2.6070187 12.514834,-3.4742549 L 11.634779,-3.8320046 L 11.627191,-3.2568392 C 11.623019,-2.9405087 11.470661,-2.1258178 11.288619,-1.446424 z",
+	    dx: 17, dy: 17,
+	    attrs: {}
+	},
+	flower: {
+	    path: "M 14.407634,0.14101164 C 13.49394,-0.67828198 12.640683,-1.3981484 11.695412,-1.9684748 C 9.0580339,-3.5615387 6.1975385,-4.0965167 3.8809003,-3.2050972 C -1.0202735,-1.4355585 -2.2650956,-0.75266958 -6.1678175,-0.75266958 L -6.1678175,-2.0100414 C -1.8745566,-2.0888183 1.0024122,-3.7090503 1.8649218,-6.1147565 C 2.2734082,-7.1733737 2.0690534,-8.5444386 0.7737959,-9.8037723 C -0.82956951,-11.36162 -5.2455289,-11.821547 -6.0950803,-7.2474282 C -5.3751604,-7.7316963 -3.8041596,-7.6860056 -3.2477662,-6.7174716 C -2.8775009,-5.9772878 -3.0228781,-5.1443269 -3.3412911,-4.7534348 C -3.7218578,-4.1236184 -4.935379,-3.5168459 -6.1678175,-3.5168459 L -6.1678175,-5.6886834 L -8.5890734,-5.6886834 L -8.5890734,-1.1787104 C -9.8368017,-1.2379009 -10.838424,-1.918296 -11.394817,-3.1843135 C -11.92063,-3.0214395 -12.984452,-2.2582108 -12.911997,-1.2099015 C -14.045721,-1.0028338 -14.687381,-0.80225028 -15.717737,0.14101164 C -14.687714,1.0836088 -14.046053,1.2744822 -12.911997,1.4815506 C -12.984786,2.5298263 -11.92063,3.2930879 -11.394817,3.4559626 C -10.838424,2.1902771 -9.8368017,1.5095164 -8.5890734,1.4503588 L -8.5890734,5.9603315 L -6.1678175,5.9603315 L -6.1678175,3.788495 C -4.935379,3.788495 -3.7218578,4.3958989 -3.3412911,5.0250837 C -3.0228781,5.4159757 -2.8775009,6.2482381 -3.2477662,6.9891209 C -3.8041596,7.9569902 -5.3751604,8.003345 -6.0950803,7.5190778 C -5.2455353,12.093197 -0.82956631,11.643978 0.7737959,10.08583 C 2.0693864,8.827128 2.2734082,7.4453226 1.8649218,6.3864056 C 1.00208,3.980998 -1.8745566,2.3705098 -6.1678175,2.2920986 L -6.1678175,1.0243179 C -2.2650956,1.0243179 -1.0206064,1.7065088 3.8809003,3.4767455 C 6.1975385,4.367168 9.0580339,3.8331873 11.695412,2.2401238 C 12.640683,1.669431 13.493608,0.95964074 14.407634,0.14101164 z",
+	    dx: 15, dy: 15,
+	    attrs: {}
+	},
 	basicRect: {
 	    path: ["M","15","5","L","-15","5","L","-15","-5", "L", "15", "-5", "z"],
 	    dx: 15, dy: 15,
@@ -629,79 +685,63 @@ JointEngine.prototype.stateInitial = function(e){
     };
     // initial state of the engine
     this.newInitialState("Idle");
-    return null;	// QHsm convention (@see qhsm.js)
+    return null;	// QHsm convention 
 };
 
 /*************************************************************
  * Engine states. (engine behaviour is managed by StateChart)
  *************************************************************/
 
-JointEngine.prototype.stateIdle = function(e){
+JointEngine.prototype.stateGeneric = function(e){
     switch (e.type){
     case "entry": return null;
-    case "exit": return null;	
-    case "mouseDown":
-	if (e.args.onCap){
-	    if (e.args.isEndCap){
-
-/*
-TODO: removing of reference to Joint can not be here.
-better solution is to place it to the appropriate substate
-where I know whether is a cap connected or not.
-*/
-
-		if (this.endCapConnected()){
-		    // remove reference to Joint from end object.
-		    var 
-		    jar = this.endObject().shape.joints,
-		    i = jar.indexOf(this._joint);
-		    this.endObject().shape.joints.splice(i, 1);
-		    if (jar.length === 0)
-			delete this.endObject().shape.joints;
-		}
-		// draw dummy end object
-		this.draw().dummyEnd();
-	    } else {
-		if (this.startCapConnected()){
-		    // remove reference to Joint from start object.
-		    var 
-		    jar = this.startObject().shape.joints,
-		    i = jar.indexOf(this._joint);
-		    this.startObject().shape.joints.splice(i, 1);
-		    if (jar.length === 0)
-			delete this.startObject().shape.joints;
-		}
-		// draw dummy start object
-		this.draw().dummyStart();
-	    }
-	    this.newState("CapDragging");
-	}
-	return null;
-    case "positionChanged":
-//	if (this._nRedraws++ % this._nRedrawsMod == 0){
-	this.redraw();
-	this.listenOnMouseDown(this.endCap());
-	this.listenOnMouseDown(this.startCap());
-//	}
-	return null;
-    case "connect":
-	this.redraw();
-	this.newState("Connected");
+    case "exit": return null;
+    case "init": 
+	this.newInitialState("Idle");
 	return null;
     }
     return this.top();
+}
+
+JointEngine.prototype.stateIdle = function(e){
+    switch (e.type){
+    case "entry": return null;
+    case "exit": 
+	this.myIdleHistory = this.getState();	// save the most recently active state
+	return null;	
+    case "init":
+	this.newInitialState("Disconnected");
+	return null;
+    case "startPositionChanged":
+	this.newState("StartObjectMoving");
+	return null;
+    case "endPositionChanged":
+	this.newState("EndObjectMoving");
+	return null;
+    case "capMouseDown":
+	var cap = e.args.cap;
+	this._dx = e.args.jsEvt.clientX;
+	this._dy = e.args.jsEvt.clientY;
+
+	if (cap === this.startCap()){
+	    this.draw().dummyStart();
+	    this.newState("StartCapDragging");
+	} else {
+	    this.draw().dummyEnd();
+	    this.newState("EndCapDragging");
+	}
+	return null;
+    }
+    return this.state("Generic");
 };
 
 JointEngine.prototype.stateDisconnected = function(e){
     switch (e.type){
-    case "entry": 
-	// TODO: remove joint from the old objects joints arrays
-	this.listenOnMouseDown(this.endCap());
-	this.listenOnMouseDown(this.startCap());
-	return null;
+    case "entry": return null;
     case "exit": return null;	
-    case "connect": 
-	this.newState("Connected"); return null;
+    case "connect":
+	this.newState("Connected");
+	return null;
     }
     return this.state("Idle");
 };
@@ -709,74 +749,176 @@ JointEngine.prototype.stateDisconnected = function(e){
 JointEngine.prototype.stateConnected = function(e){
     switch (e.type){
     case "entry": 
-	this.listenOnMouseDown(this.endCap());
+	this.redraw();
 	this.listenOnMouseDown(this.startCap());
+	this.listenOnMouseDown(this.endCap());
 	return null;
     case "exit": return null;	
     }
     return this.state("Idle");
 };
 
-JointEngine.prototype.stateOneCapConnected = function(e){
-    switch (e.type){
-    case "entry": 
-	this.listenOnMouseDown(this.endCap());
-	this.listenOnMouseDown(this.startCap());
-	return null;
-    case "exit": 
-/*
-PROBLEM: when mouseDown, idle draws a dummy start/end,
-so I lose obj.shape.joints array reference.
-
-	var e = this.endCapConnected(),
-	i;
-	if (e){  // start cap is disconnected
-	    // remove reference to Joint from start object.
-	    i = this.startObject().shape.joints.indexOf(this._joint);
-	    this.startObject().shape.joints.splice(i, 1);
-	} else { // end cap is disconnected
-	    // remove reference to Joint from end object.
-	    i = this.endObject().shape.joints.indexOf(this._joint);
-	    this.endObject().shape.joints.splice(i, 1);
-	}
-*/
-	return null;	
-    }
-    return this.state("Idle");
-};
-
-JointEngine.prototype.stateDragging = function(e){
+JointEngine.prototype.stateStartCapConnected = function(e){
     switch (e.type){
     case "entry": return null;
-    case "exit": return null;	
-    }	
-    return this.top();
+    case "exit": return null;
+    }
+    return this.state("Idle");
 };
+
+JointEngine.prototype.stateEndCapConnected = function(e){
+    switch (e.type){
+    case "entry": return null;
+    case "exit": return null;
+    }
+    return this.state("Idle");
+};
+//end of Idle
 
 JointEngine.prototype.stateCapDragging = function(e){
     switch (e.type){
     case "entry": return null;
-    case "exit": 
+    case "exit": return null;	
+    }	
+    return this.state("Generic");
+};
+
+JointEngine.prototype.stateStartCapDragging = function(e){
+    switch (e.type){
+    case "entry": return null;
+    case "exit": return null;	
+    case "mouseMove":
+	// move dummy object
+	this.startObject().shape.translate(e.args.jsEvt.clientX - this._dx,
+					   e.args.jsEvt.clientY - this._dy);
+	this._dx = e.args.jsEvt.clientX;
+	this._dy = e.args.jsEvt.clientY;
+	
 	this.redraw();
-	return null;	
-    case "positionChanged":
-	this.redraw();
+	this.listenOnMouseDown(this.startCap());
+	this.listenOnMouseDown(this.endCap());
 	return null;
     case "mouseUp":
 	var 
 	e = this.endCapConnected(),
-	s = this.startCapConnected();
+	dummy = this.startObject(),
+	dummyBB = dummy.shape.getBBox(),
+	o = this.objectContainingPoint(point(dummyBB.x, dummyBB.y));
 	
-	if (e && s)
-	    this.newState("Connected");
-	else if ( (!e) && (!s) )
-	    this.newState("Disconnected");
-	else
-	    this.newState("OneCapConnected");
+	if (o === null){
+	    if (e)
+		this.newState("EndCapConnected");
+	    else
+		this.newState("Disconnected");
+	} else {
+	    this.callback("justConnected", o, ["start"]);
+	    dummy.shape.remove();	// remove old dummy shape
+	    dummy.dummy = false;	// it is no longer dummy
+	    dummy.shape = o;		// instead it is the new object
+
+	    // push the Joint object into o.joints array
+	    // but only if o.joints already doesn't have that Joint object
+	    if (o.joints.indexOf(this.joint()) == -1)
+		o.joints.push(this.joint());
+
+	    // make a transition
+	    if (e)
+		this.newState("Connected");
+	    else
+		this.newState("StartCapConnected");
+	}
 	return null;
     }	
-    return this.state("Dragging");
+    return this.state("CapDragging");
 };
+
+JointEngine.prototype.stateEndCapDragging = function(e){
+    switch (e.type){
+    case "entry": return null;
+    case "exit": return null;	
+    case "mouseMove":
+	// move dummy object
+	this.endObject().shape.translate(e.args.jsEvt.clientX - this._dx,
+					 e.args.jsEvt.clientY - this._dy);
+	this._dx = e.args.jsEvt.clientX;
+	this._dy = e.args.jsEvt.clientY;
+
+	this.redraw();
+	this.listenOnMouseDown(this.startCap());
+	this.listenOnMouseDown(this.endCap());
+	return null;
+    case "mouseUp":
+	var 
+	s = this.startCapConnected(),
+	dummy = this.endObject(),
+	dummyBB = dummy.shape.getBBox(),
+	o = this.objectContainingPoint(point(dummyBB.x, dummyBB.y));
+	
+	if (o === null){
+	    if (s)
+		this.newState("StartCapConnected");
+	    else
+		this.newState("Disconnected");
+	} else {
+	    this.callback("justConnected", o, ["end"]);
+	    dummy.shape.remove();	// remove old dummy shape
+	    dummy.dummy = false;	// it is no longer dummy
+	    dummy.shape = o;		// instead it is the new object
+
+	    // push the Joint object into o.joints array
+	    // but only if o.joints already doesn't have that Joint object
+	    if (o.joints.indexOf(this.joint()) == -1)
+		o.joints.push(this.joint());
+
+	    // make a transition
+	    if (s)
+		this.newState("Connected");
+	    else
+		this.newState("EndCapConnected");
+	}
+	return null;
+    }	
+    return this.state("CapDragging");
+};
+// end of CapDragging
+
+JointEngine.prototype.stateObjectMoving = function(e){
+    switch (e.type){
+    case "entry": return null;
+    case "exit": return null;
+    case "mouseUp":
+    case "done":
+	this.newState(this.myIdleHistory);	// transition to history of Idle
+	return null;
+    }
+    return this.state("Generic");
+};
+
+JointEngine.prototype.stateStartObjectMoving = function(e){
+    switch (e.type){
+    case "entry": 
+	this.redraw();
+	this.listenOnMouseDown(this.startCap());
+	this.listenOnMouseDown(this.endCap());
+	return null;
+    case "exit": return null;
+    }
+    return this.state("ObjectMoving");
+};
+
+JointEngine.prototype.stateEndObjectMoving = function(e){
+    switch (e.type){
+    case "entry": 
+	this.redraw();
+	this.listenOnMouseDown(this.startCap());
+	this.listenOnMouseDown(this.endCap());
+	return null;
+    case "exit": return null;
+    }
+    return this.state("ObjectMoving");
+};
+// end of ObjectMoving
+
 
 /**
  * Getters.
@@ -792,7 +934,42 @@ JointEngine.prototype.joint = function(){ return this._joint };
 /**
  * Helpers.
  */
+JointEngine.prototype.callback = function(fnc, scope, args){
+    this._callbacks[fnc].apply(scope, args);
+};
 
+JointEngine.prototype.objectContainingPoint = function(p){
+    for (var i = Joint.registeredObjects.length - 1; i >= 0; --i){
+	var o = Joint.registeredObjects[i];
+
+	if (rect(o.getBBox()).containsPoint(p)){
+	    return o;
+
+	    o.animate({scale: 1.2}, 100, function(){o.animate({scale: 1.0}, 100)});
+	    dummy.shape.remove();	// remove old dummy shape
+	    dummy.dummy = false;    // it is no longer dummy
+	    dummy.shape = o;	
+
+	    // only if o.joints already doesn't have that Joint object
+	    if (o.joints.indexOf(this.joint()) == -1)
+		o.joints.push(this.joint());
+	    break;
+	}
+    }
+    return null;
+};
+
+/**
+ * Remove reference to Joint from obj.
+ */
+JointEngine.prototype.freeJoint = function(obj){
+    var 
+    jar = obj.shape.joints,
+    i = jar.indexOf(this._joint);
+    jar.splice(i, 1);
+    if (jar.length === 0)
+	delete obj.shape.joints;
+}
 
 
 /**************************************************
@@ -868,63 +1045,35 @@ fixEvent.stopPropagation = function() {
 
 
 /**************************************************
- * End caps event processing.
+ * Event dispatching.
  **************************************************/
 
 JointEngine.prototype.listenOnMouseDown = function(cap){
-    cap.engine = this;	// keep self reference
-    // register mouseDown event callback
-    addEvent(cap.node, "mousedown", function(e){ cap.engine.capDragStart(e, cap) });
+    var self = this;
+    // register mousedown event callback
+    addEvent(cap.node, "mousedown", function(e){ self.capMouseDown(e, cap) });
     // TODO: remove event when not needed 
 };
 
-Joint.draggedCap = null;
+Joint.currentEngine = null;
 Joint.registeredObjects = [];	// TODO: multiple raphael 'windows'
 
 /**
  * MouseDown event callback when on cap.
  */
-JointEngine.prototype.capDragStart = function(e, cap){
-    console.log("cap drag start");
-    Joint.draggedCap = cap;	// keep reference to cap
-    if (cap === cap.engine.endCap())	// end cap
-	Joint.draggedCap.isEndCap = true;
-    else	// start cap
-	Joint.draggedCap.isEndCap = false;
-
-    Joint.draggedCap.dx = e.clientX;
-    Joint.draggedCap.dy = e.clientY;
+JointEngine.prototype.capMouseDown = function(e, cap){
+    Joint.currentEngine = this;	// keep global reference to me
+    this.dispatch(qevt("capMouseDown", {"cap": cap, jsEvt: e}));
     e.preventDefault && e.preventDefault();
-
-    // tell the engine that cap dragging has just started
-    var qe = qevt("mouseDown", {onCap: true, isEndCap: Joint.draggedCap.isEndCap});
-    Joint.draggedCap.engine.dispatch(qe);
 };
 
 /**
  * MouseMove event callback.
  */
 Joint.mouseMove = function(e){
-    if (Joint.draggedCap !== null){
-
-	var 
-	eShape = Joint.draggedCap.engine.endObject().shape,
-	sShape = Joint.draggedCap.engine.startObject().shape;
-
-	// move dummy object
-	if (Joint.draggedCap.isEndCap)
-            eShape.translate(e.clientX - Joint.draggedCap.dx, e.clientY - Joint.draggedCap.dy);
-	else
-            sShape.translate(e.clientX - Joint.draggedCap.dx, e.clientY - Joint.draggedCap.dy);
-
+    if (Joint.currentEngine !== null){
+	Joint.currentEngine.dispatch(qevt("mouseMove", {jsEvt: e}));
         r.safari();
-
-	// save old x and y positions
-        Joint.draggedCap.dx = e.clientX;	
-        Joint.draggedCap.dy = e.clientY;
-
-	// wake up the engine to redraw the joint
-	Joint.draggedCap.engine.dispatch(qevt("positionChanged"));
     }
 };
 
@@ -932,35 +1081,10 @@ Joint.mouseMove = function(e){
  * MouseUp event callback.
  */
 Joint.mouseUp = function(e){
-    if (Joint.draggedCap !== null){
-	var 
-	engine = Joint.draggedCap.engine,
-	dummy = (Joint.draggedCap.isEndCap) ? engine.endObject() : engine.startObject(),
-	dummyBB = dummy.shape.getBBox();
-
-	// dropped on object?
-	for (var i = Joint.registeredObjects.length - 1; i >= 0; --i){
-	    var o = Joint.registeredObjects[i];
-
-	    if (rect(o.getBBox()).containsPoint(point(dummyBB.x, dummyBB.y))){
-		// if yes, do an effect, replace dummy with found object
-		// and append connection's Joint object to the object's joints array
-
-		o.animate({scale: 1.2}, 100, function(){o.animate({scale: 1.0}, 100)});
-		dummy.shape.remove();	// remove old dummy shape
-		dummy.dummy = false;    // it is no longer dummy
-		dummy.shape = o;	
-
-		// only if o.joints already doesn't have that Joint object
-		if (o.joints.indexOf(engine.joint()) == -1)
-		    o.joints.push(engine.joint());
-		break;
-	    }
-	}
-	// tell the engine about this event
-	engine.dispatch(qevt("mouseUp"));
+    if (Joint.currentEngine !== null){
+	Joint.currentEngine.dispatch(qevt("mouseUp"));
     }
-    Joint.draggedCap = null;	// cap is no longer dragged
+    Joint.currentEngine = null;
 };
 
 /**
@@ -1075,7 +1199,7 @@ JointEngine.prototype.draw = function(){
 	    self._endCap.rotate(360 - __.theta.degrees);
 	    self._endCap.show();
 	    return this;
-	},
+	}
     }
 };
 
@@ -1110,25 +1234,9 @@ function Joint(){ this.engine = new JointEngine().init() };
 window.Joint = Joint;	// the only global variable
 
 /**
- * Hack of the default Raphael translate method.
- */
-/*
-var _translate = Raphael.el.translate;
-Raphael.el.translate = function(x, y){
-    _translate.call(this, x, y);
-    // simple hack: uncomment to improve performance in slow browsers
-    //    if (new Date().getTime() % 2 == 0)  
-    if (this.joints){
-	for (var i = this.joints.length - 1; i >= 0; --i)
-	    this.joints[i].engine.dispatch(qevt("step"));
-    }
-};
-*/
-
-/**
  * TODO: rotation support. there is a problem because
  * rotation does not set any attribute in this.attrs but
- * instead it set transformation directly to let the browser
+ * instead it sets transformation directly to let the browser
  * SVG engine compute the position.
  */
 var _attr = Raphael.el.attr;
@@ -1139,41 +1247,32 @@ Raphael.el.attr = function(){
 	return _attr.apply(this, arguments);	// yes
 
     // old attributes
-    var o = {
-	x: this.attrs.x,	// rect/image/text x
-	y: this.attrs.y,	// rect/image/text y
-	cx: this.attrs.cx,	// circle/ellipse x
-	cy: this.attrs.cy,	// circle/ellipse y
-	path: this.attrs.path,	// path string
-	stroke: this.attrs.stroke,
-	r: this.attrs.r,
-	rotation: this.attrs.rotation,
-	translation: this.attrs.translation
-    };
+    var o = {};
+    for (var key in this.attrs)
+	o[key] = this.attrs[key];
 
     _attr.apply(this, arguments);
-
     
-    var 
-    n = this.attrs,	// new attributes
-    qevts = [];		// array of events
-    
-    if (o.x != n.x || o.y != n.y ||
-	o.cx != n.cx || o.cy != n.cy ||
-	o.path != n.path)
-	qevts.push(qevt("positionChanged"));
-    if (o.stroke != n.stroke)
-	qevts.push(qevt("strokeChanged"));
-    if (o.r != n.r)
-	qevts.push(qevt("positionChanged"));	
-    if (o.rotation != n.rotation)
-	qevts.push(qevt("positionChanged"));	
-    if (o.translation != n.translation)
-	qevts.push(qevt("positionChanged"));	
+    var n = this.attrs;	// new attributes
 
-    for (var i = this.joints.length - 1; i >= 0; --i)
-	for (var j = qevts.length - 1; j >= 0; --j)
-	    this.joints[i].engine.dispatch(qevts[j]);
+    for (var i = this.joints.length - 1; i >= 0; --i){
+	var engine = this.joints[i].engine;
+	
+	if (o.x != n.x || o.y != n.y ||	// rect/image/text
+	    o.cx != n.cx || o.cy != n.cy ||	// circle/ellipse
+	    o.path != n.path ||	// path
+	    o.r != n.r){	// radius
+
+	    if (this === engine.startObject().shape)
+		engine.dispatch(qevt("startPositionChanged"));
+	    else
+		engine.dispatch(qevt("endPositionChanged"));
+	    engine.dispatch(qevt("done"));
+	}
+	
+	if (o.stroke != n.stroke)
+	    engine.dispatch(qevt("strokeChanged"));
+    }
 
     return this;
 };
@@ -1254,7 +1353,8 @@ Raphael.el.joint = function(to, opt){
     j.engine._end.joints.push(j);
     j.engine._joint = j;
 
-    // to be able to dispatch events in Raphael element translate method
+    // to be able to dispatch events in Raphael element attr method
+    // TODO: possible source for memory leaks!
     (this.joints) ? this.joints.push(j) : this.joints = [j];
     (to.joints) ? to.joints.push(j) : to.joints = [j];
 
