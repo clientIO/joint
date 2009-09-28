@@ -1,5 +1,35 @@
+/****************************************************
+ * Joint.dia 0.0.2 - Joint plugin for creating composite shapes.
+ *
+ * Copyright (c) 2009 David Durman
+ *
+ * Licensed under MIT license:
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ ****************************************************/
+
 Shape.currentDrag = false;
 
+/**
+ * Top prototype for composite objects.
+ */
 function Shape(opt){
     this.wrapper = null;
     this.subShapes = [];
@@ -24,6 +54,9 @@ function Shape(opt){
     };
 };
 
+/**
+ * Shape mousedown event.
+ */
 Shape.prototype.dragger = function(e){
     Shape.currentDrag = this.wholeShape;
     Shape.currentDrag.dx = e.clientX;
@@ -31,6 +64,9 @@ Shape.prototype.dragger = function(e){
     e.preventDefault && e.preventDefault();
 };
 
+/**
+ * Document mousemove event.
+ */
 Shape.mouseMove = function(e){
     e = e || window.event;
     if (Shape.currentDrag){
@@ -41,6 +77,9 @@ Shape.mouseMove = function(e){
     }
 };
 
+/**
+ * Document mouseup event.
+ */
 Shape.mouseUp = function(e){
     Shape.currentDrag = false;
 };
@@ -55,10 +94,16 @@ Shape.prototype.translate = function(dx, dy){
     }
 };
 
+/**
+ * Add subshape.
+ */
 Shape.prototype.add = function(s){
     this.subShapes.push(s);
 };
 
+/**
+ * Add wrapper.
+ */
 Shape.prototype.addMain = function(s){
     this.wrapper = s;
     this.wrapper.wholeShape = this;
@@ -68,15 +113,24 @@ Shape.prototype.addMain = function(s){
     }
 };
 
+/**
+ * Delegate getBBox message to my wrapper.
+ */
 Shape.prototype.getBBox = function(){
     return this.wrapper.getBBox();
 };
 
+/**
+ * Delegate joint message to my wrapper.
+ */
 Shape.prototype.joint = function(to, opt){
     var toobj = (to.isShape) ? to.wrapper : to;
     this.wrapper.joint.apply(this.wrapper, [toobj, opt]);
 };
 
+/**
+ * Delegate attr message to my wrapper.
+ */
 Shape.prototype.attr = function(){
     return Raphael.el.attr.apply(this.wrapper, arguments);
 };
@@ -115,7 +169,7 @@ UMLState.prototype = new Shape;
 
 UMLState.prototype.drawSwimlane = function(){
     var bb = this.wrapper.getBBox();
-    return this._raphael.path({}, ["M", bb.x, bb.y + this.opt.text.dy + this.opt.swimlane.dy, "L", bb.x + bb.width, bb.y + this.opt.text.dy + this.opt.swimlane.dy]);
+    return this._raphael.path(["M", bb.x, bb.y + this.opt.text.dy + this.opt.swimlane.dy, "L", bb.x + bb.width, bb.y + this.opt.text.dy + this.opt.swimlane.dy].join(" "));
 };
 
 UMLState.prototype.drawText = function(){

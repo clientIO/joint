@@ -1,4 +1,5 @@
-var NDEBUG = true;
+var NDEBUG = false;
+var DBG = [];	// collector for debugging messages
 /****************************************************
  * Joint 0.1.2 - JavaScript library for connecting vector objects
  *
@@ -274,11 +275,11 @@ QState.prototype.trigger = function(anEvent){
 }
 
 QState.prototype.enter = function(){ 
-    if (!NDEBUG) console.log("[STATE " + this.name + "] entry");    
+//    if (!NDEBUG && console) console.log("[STATE " + this.name + "] entry");    
     return this.trigger(QEventEntry) 
 }
 QState.prototype.exit = function(){ 
-    if (!NDEBUG) console.log("[STATE " + this.name + "] exit");
+//    if (!NDEBUG && console) console.log("[STATE " + this.name + "] exit");
     return this.trigger(QEventExit) 
 }
 QState.prototype.init = function(){ 
@@ -331,6 +332,10 @@ function Point(x, y){
     this.y = y;
 };
 
+Point.prototype.toString = function(){
+    return this.x + "@" + this.y;
+};
+
 /**
  * If I lie outside rectangle r, return the nearest point on the boundary of rect r, 
  * otherwise return me.
@@ -370,6 +375,11 @@ function Line(p1, p2){
     this.end = p2;
 };
 
+Line.prototype.toString = function(){
+    return "start: " + this.start.toString() + " end:" + this.end.toString();
+};
+
+
 /**
  * @return <point> where I intersect l.
  * @see Squeak Smalltalk, LineSegment>>intersectionWith:
@@ -408,6 +418,10 @@ function Rect(o){
     this.y = o.y;
     this.width = o.width;
     this.height = o.height;
+};
+
+Rect.prototype.toString = function(){
+    return "origin: " + this.origin().toString() + " corner: " + this.corner().toString();
 };
 
 Rect.prototype.origin = function(){ return point(this.x, this.y) };
@@ -595,6 +609,7 @@ JointEngine.prototype.stateInitial = function(e){
     //    this._nRedrawsMod = 2;
     
     this._con = null;		// holds the joint path
+    this._conVertices = [];	// joint path vertices
     this._startCap = null;	// start glyph (arrow)
     this._endCap = null;	// end glyph (arrow)
     this._joint = null;		// back reference to Joint object
@@ -617,7 +632,7 @@ JointEngine.prototype.stateInitial = function(e){
 	attrs: {
 	    "stroke": "#000",
 	    "fill": "#fff",
-	    "fill-opacity": 1.0,
+	    "fill-opacity": 0.0,
 	    "stroke-width": 1,
 	    "stroke-dasharray": "-",
 	    "stroke-linecap": "round", // butt/square/round/mitter
@@ -635,7 +650,7 @@ JointEngine.prototype.stateInitial = function(e){
     // various ready-to-use arrows
     this._arrows = {
 	basic: {
-	    path: ["M","15","0","L","-15","0", "z"],
+	    path: ["M","15","0","L","-15","0"],
 	    dx: 15, dy: 15, // x, y correction
 	    attrs: this._opt.attrs
 	},
@@ -658,12 +673,12 @@ JointEngine.prototype.stateInitial = function(e){
 	basicArrow11: {path: ["M","11","0","L","-11","-11","L","-11","11","z"], dx: 11, dy: 11, attrs: { stroke: "black", fill: "black" }},
 	basicArrow12: {path: ["M","12","0","L","-12","-12","L","-12","12","z"], dx: 12, dy: 12, attrs: { stroke: "black", fill: "black" }},
 	hand: {
-	    path: "M -15.681352,-5.1927657 C -15.208304,-5.2925912 -14.311293,-5.5561164 -13.687993,-5.7783788 C -13.06469,-6.0006406 -12.343434,-6.2537623 -12.085196,-6.3408738 C -10.972026,-6.7163768 -7.6682017,-8.1305627 -5.9385615,-8.9719142 C -4.9071402,-9.4736293 -3.9010109,-9.8815423 -3.7027167,-9.8783923 C -3.5044204,-9.8752373 -2.6780248,-9.5023173 -1.8662751,-9.0496708 C -0.49317056,-8.2840047 -0.31169266,-8.2208528 0.73932854,-8.142924 L 1.8690327,-8.0591623 L 2.039166,-7.4474021 C 2.1327395,-7.1109323 2.1514594,-6.8205328 2.0807586,-6.8020721 C 2.010064,-6.783614 1.3825264,-6.7940997 0.68622374,-6.8253794 C -0.66190616,-6.8859445 -1.1814444,-6.8071497 -1.0407498,-6.5634547 C -0.99301966,-6.4807831 -0.58251196,-6.4431792 -0.12850911,-6.4798929 C 1.2241412,-6.5892761 4.7877672,-6.1187783 8.420785,-5.3511477 C 14.547755,-4.056566 16.233479,-2.9820024 15.666933,-0.73209438 C 15.450654,0.12678873 14.920327,0.61899573 14.057658,0.76150753 C 13.507869,0.85232533 12.818867,0.71394493 9.8149232,-0.090643373 C 7.4172698,-0.73284018 6.1067424,-1.0191399 5.8609814,-0.95442248 C 5.6587992,-0.90118658 4.8309652,-0.89582008 4.0213424,-0.94250688 C 3.0856752,-0.99645868 2.5291546,-0.95219288 2.4940055,-0.82101488 C 2.4635907,-0.70750508 2.4568664,-0.61069078 2.4790596,-0.60585818 C 2.5012534,-0.60103228 2.9422761,-0.59725718 3.4591019,-0.59747878 C 3.9759261,-0.59770008 4.4500472,-0.58505968 4.512693,-0.56939128 C 4.7453841,-0.51117988 4.6195024,0.92436343 4.318067,1.650062 C 3.8772746,2.7112738 2.9836566,3.9064107 2.2797382,4.3761637 C 1.5987482,4.8306065 1.52359,4.9484512 1.8576616,5.0379653 C 1.9860795,5.0723748 2.2155555,4.9678227 2.3676284,4.8056312 C 2.6253563,4.5307504 2.6497332,4.5328675 2.7268401,4.8368824 C 2.8605098,5.3638848 2.3264901,6.4808604 1.6782299,7.0301956 C 1.3498639,7.30845 0.75844624,8.0404548 0.36396655,8.6568609 C -0.58027706,10.132325 -0.69217806,10.238528 -1.4487256,10.377186 C -2.2048498,10.515767 -4.6836995,9.9021604 -6.41268,9.1484214 C -9.9464649,7.6078865 -10.697587,7.3186028 -12.142194,6.9417312 C -13.020384,6.712621 -14.184145,6.4654454 -14.72833,6.3924328 C -15.272516,6.3194263 -15.731691,6.241583 -15.748724,6.2194535 C -15.813855,6.1348086 -16.609132,-4.7586323 -16.562804,-4.9315285 C -16.551052,-4.9753876 -16.154402,-5.0929474 -15.681351,-5.192769 L -15.681352,-5.1927657 z M 11.288619,-1.446424 L 10.957631,-0.2111606 L 11.627189,-0.031753373 C 13.374637,0.43647423 14.580622,0.18262123 15.042031,-0.75056578 C 15.503958,-1.6847955 14.648263,-2.6070187 12.514834,-3.4742549 L 11.634779,-3.8320046 L 11.627191,-3.2568392 C 11.623019,-2.9405087 11.470661,-2.1258178 11.288619,-1.446424 z",
+	    path: ["M","-15.681352","-5.1927657","C","-15.208304","-5.2925912","-14.311293","-5.5561164","-13.687993","-5.7783788","C","-13.06469","-6.0006406","-12.343434","-6.2537623","-12.085196","-6.3408738","C","-10.972026","-6.7163768","-7.6682017","-8.1305627","-5.9385615","-8.9719142","C","-4.9071402","-9.4736293","-3.9010109","-9.8815423","-3.7027167","-9.8783923","C","-3.5044204","-9.8752373","-2.6780248","-9.5023173","-1.8662751","-9.0496708","C","-0.49317056","-8.2840047","-0.31169266","-8.2208528","0.73932854","-8.142924","L","1.8690327","-8.0591623","L","2.039166","-7.4474021","C","2.1327395","-7.1109323","2.1514594","-6.8205328","2.0807586","-6.8020721","C","2.010064","-6.783614","1.3825264","-6.7940997","0.68622374","-6.8253794","C","-0.66190616","-6.8859445","-1.1814444","-6.8071497","-1.0407498","-6.5634547","C","-0.99301966","-6.4807831","-0.58251196","-6.4431792","-0.12850911","-6.4798929","C","1.2241412","-6.5892761","4.7877672","-6.1187783","8.420785","-5.3511477","C","14.547755","-4.056566","16.233479","-2.9820024","15.666933","-0.73209438","C","15.450654","0.12678873","14.920327","0.61899573","14.057658","0.76150753","C","13.507869","0.85232533","12.818867","0.71394493","9.8149232","-0.090643373","C","7.4172698","-0.73284018","6.1067424","-1.0191399","5.8609814","-0.95442248","C","5.6587992","-0.90118658","4.8309652","-0.89582008","4.0213424","-0.94250688","C","3.0856752","-0.99645868","2.5291546","-0.95219288","2.4940055","-0.82101488","C","2.4635907","-0.70750508","2.4568664","-0.61069078","2.4790596","-0.60585818","C","2.5012534","-0.60103228","2.9422761","-0.59725718","3.4591019","-0.59747878","C","3.9759261","-0.59770008","4.4500472","-0.58505968","4.512693","-0.56939128","C","4.7453841","-0.51117988","4.6195024","0.92436343","4.318067","1.650062","C","3.8772746","2.7112738","2.9836566","3.9064107","2.2797382","4.3761637","C","1.5987482","4.8306065","1.52359","4.9484512","1.8576616","5.0379653","C","1.9860795","5.0723748","2.2155555","4.9678227","2.3676284","4.8056312","C","2.6253563","4.5307504","2.6497332","4.5328675","2.7268401","4.8368824","C","2.8605098","5.3638848","2.3264901","6.4808604","1.6782299","7.0301956","C","1.3498639","7.30845","0.75844624","8.0404548","0.36396655","8.6568609","C","-0.58027706","10.132325","-0.69217806","10.238528","-1.4487256","10.377186","C","-2.2048498","10.515767","-4.6836995","9.9021604","-6.41268","9.1484214","C","-9.9464649","7.6078865","-10.697587","7.3186028","-12.142194","6.9417312","C","-13.020384","6.712621","-14.184145","6.4654454","-14.72833","6.3924328","C","-15.272516","6.3194263","-15.731691","6.241583","-15.748724","6.2194535","C","-15.813855","6.1348086","-16.609132","-4.7586323","-16.562804","-4.9315285","C","-16.551052","-4.9753876","-16.154402","-5.0929474","-15.681351","-5.192769","L","-15.681352","-5.1927657","z","M","11.288619","-1.446424","L","10.957631","-0.2111606","L","11.627189","-0.031753373","C","13.374637","0.43647423","14.580622","0.18262123","15.042031","-0.75056578","C","15.503958","-1.6847955","14.648263","-2.6070187","12.514834","-3.4742549","L","11.634779","-3.8320046","L","11.627191","-3.2568392","C","11.623019","-2.9405087","11.470661","-2.1258178","11.288619","-1.446424","z"],
 	    dx: 17, dy: 17,
 	    attrs: {}
 	},
 	flower: {
-	    path: "M 14.407634,0.14101164 C 13.49394,-0.67828198 12.640683,-1.3981484 11.695412,-1.9684748 C 9.0580339,-3.5615387 6.1975385,-4.0965167 3.8809003,-3.2050972 C -1.0202735,-1.4355585 -2.2650956,-0.75266958 -6.1678175,-0.75266958 L -6.1678175,-2.0100414 C -1.8745566,-2.0888183 1.0024122,-3.7090503 1.8649218,-6.1147565 C 2.2734082,-7.1733737 2.0690534,-8.5444386 0.7737959,-9.8037723 C -0.82956951,-11.36162 -5.2455289,-11.821547 -6.0950803,-7.2474282 C -5.3751604,-7.7316963 -3.8041596,-7.6860056 -3.2477662,-6.7174716 C -2.8775009,-5.9772878 -3.0228781,-5.1443269 -3.3412911,-4.7534348 C -3.7218578,-4.1236184 -4.935379,-3.5168459 -6.1678175,-3.5168459 L -6.1678175,-5.6886834 L -8.5890734,-5.6886834 L -8.5890734,-1.1787104 C -9.8368017,-1.2379009 -10.838424,-1.918296 -11.394817,-3.1843135 C -11.92063,-3.0214395 -12.984452,-2.2582108 -12.911997,-1.2099015 C -14.045721,-1.0028338 -14.687381,-0.80225028 -15.717737,0.14101164 C -14.687714,1.0836088 -14.046053,1.2744822 -12.911997,1.4815506 C -12.984786,2.5298263 -11.92063,3.2930879 -11.394817,3.4559626 C -10.838424,2.1902771 -9.8368017,1.5095164 -8.5890734,1.4503588 L -8.5890734,5.9603315 L -6.1678175,5.9603315 L -6.1678175,3.788495 C -4.935379,3.788495 -3.7218578,4.3958989 -3.3412911,5.0250837 C -3.0228781,5.4159757 -2.8775009,6.2482381 -3.2477662,6.9891209 C -3.8041596,7.9569902 -5.3751604,8.003345 -6.0950803,7.5190778 C -5.2455353,12.093197 -0.82956631,11.643978 0.7737959,10.08583 C 2.0693864,8.827128 2.2734082,7.4453226 1.8649218,6.3864056 C 1.00208,3.980998 -1.8745566,2.3705098 -6.1678175,2.2920986 L -6.1678175,1.0243179 C -2.2650956,1.0243179 -1.0206064,1.7065088 3.8809003,3.4767455 C 6.1975385,4.367168 9.0580339,3.8331873 11.695412,2.2401238 C 12.640683,1.669431 13.493608,0.95964074 14.407634,0.14101164 z",
+	    path: ["M","14.407634","0.14101164","C","13.49394","-0.67828198","12.640683","-1.3981484","11.695412","-1.9684748","C","9.0580339","-3.5615387","6.1975385","-4.0965167","3.8809003","-3.2050972","C","-1.0202735","-1.4355585","-2.2650956","-0.75266958","-6.1678175","-0.75266958","L","-6.1678175","-2.0100414","C","-1.8745566","-2.0888183","1.0024122","-3.7090503","1.8649218","-6.1147565","C","2.2734082","-7.1733737","2.0690534","-8.5444386","0.7737959","-9.8037723","C","-0.82956951","-11.36162","-5.2455289","-11.821547","-6.0950803","-7.2474282","C","-5.3751604","-7.7316963","-3.8041596","-7.6860056","-3.2477662","-6.7174716","C","-2.8775009","-5.9772878","-3.0228781","-5.1443269","-3.3412911","-4.7534348","C","-3.7218578","-4.1236184","-4.935379","-3.5168459","-6.1678175","-3.5168459","L","-6.1678175","-5.6886834","L","-8.5890734","-5.6886834","L","-8.5890734","-1.1787104","C","-9.8368017","-1.2379009","-10.838424","-1.918296","-11.394817","-3.1843135","C","-11.92063","-3.0214395","-12.984452","-2.2582108","-12.911997","-1.2099015","C","-14.045721","-1.0028338","-14.687381","-0.80225028","-15.717737","0.14101164","C","-14.687714","1.0836088","-14.046053","1.2744822","-12.911997","1.4815506","C","-12.984786","2.5298263","-11.92063","3.2930879","-11.394817","3.4559626","C","-10.838424","2.1902771","-9.8368017","1.5095164","-8.5890734","1.4503588","L","-8.5890734","5.9603315","L","-6.1678175","5.9603315","L","-6.1678175","3.788495","C","-4.935379","3.788495","-3.7218578","4.3958989","-3.3412911","5.0250837","C","-3.0228781","5.4159757","-2.8775009","6.2482381","-3.2477662","6.9891209","C","-3.8041596","7.9569902","-5.3751604","8.003345","-6.0950803","7.5190778","C","-5.2455353","12.093197","-0.82956631","11.643978","0.7737959","10.08583","C","2.0693864","8.827128","2.2734082","7.4453226","1.8649218","6.3864056","C","1.00208","3.980998","-1.8745566","2.3705098","-6.1678175","2.2920986","L","-6.1678175","1.0243179","C","-2.2650956","1.0243179","-1.0206064","1.7065088","3.8809003","3.4767455","C","6.1975385","4.367168","9.0580339","3.8331873","11.695412","2.2401238","C","12.640683","1.669431","13.493608","0.95964074","14.407634","0.14101164","z"],
 	    dx: 15, dy: 15,
 	    attrs: {}
 	},
@@ -731,6 +746,23 @@ JointEngine.prototype.stateIdle = function(e){
 	    this.newState("EndCapDragging");
 	}
 	return null;
+    case "connectionMouseDown":
+//	this._conVertices.push(point(e.args.jsEvt.clientX, e.args.jsEvt.clientY));
+	console.log(e.args.jsEvt);
+//	this._conVertices.push(point(e.args.jsEvt.pageX, e.args.jsEvt.pageY));
+	this._conVertices.push(point(e.args.jsEvt.layerX, e.args.jsEvt.layerY));
+//	this._conVertices.push(point(e.args.jsEvt.screenX, e.args.jsEvt.screenY));
+//	this._conVertices.push(point(50, 50));
+	this.newState("ConnectionWiring");
+	return null;
+    case "connectionDblClick":
+	this._conVertices = [];	// straighten the connection path
+	this.redraw();
+	this.listenOnMouseDown(this.startCap());
+	this.listenOnMouseDown(this.endCap());
+	this.listenOnMouseDown(this.connection());
+	this.listenOnDblClick(this.connection());
+	return null;
     }
     return this.state("Generic");
 };
@@ -752,6 +784,8 @@ JointEngine.prototype.stateConnected = function(e){
 	this.redraw();
 	this.listenOnMouseDown(this.startCap());
 	this.listenOnMouseDown(this.endCap());
+	this.listenOnMouseDown(this.connection());
+	this.listenOnDblClick(this.connection());
 	return null;
     case "exit": return null;	
     }
@@ -797,6 +831,8 @@ JointEngine.prototype.stateStartCapDragging = function(e){
 	this.redraw();
 	this.listenOnMouseDown(this.startCap());
 	this.listenOnMouseDown(this.endCap());
+	this.listenOnMouseDown(this.connection());
+	this.listenOnDblClick(this.connection());
 	return null;
     case "mouseUp":
 	var 
@@ -846,6 +882,8 @@ JointEngine.prototype.stateEndCapDragging = function(e){
 	this.redraw();
 	this.listenOnMouseDown(this.startCap());
 	this.listenOnMouseDown(this.endCap());
+	this.listenOnMouseDown(this.connection());
+	this.listenOnDblClick(this.connection());
 	return null;
     case "mouseUp":
 	var 
@@ -900,6 +938,8 @@ JointEngine.prototype.stateStartObjectMoving = function(e){
 	this.redraw();
 	this.listenOnMouseDown(this.startCap());
 	this.listenOnMouseDown(this.endCap());
+	this.listenOnMouseDown(this.connection());
+	this.listenOnDblClick(this.connection());
 	return null;
     case "exit": return null;
     }
@@ -912,6 +952,8 @@ JointEngine.prototype.stateEndObjectMoving = function(e){
 	this.redraw();
 	this.listenOnMouseDown(this.startCap());
 	this.listenOnMouseDown(this.endCap());
+	this.listenOnMouseDown(this.connection());
+	this.listenOnDblClick(this.connection());
 	return null;
     case "exit": return null;
     }
@@ -919,10 +961,36 @@ JointEngine.prototype.stateEndObjectMoving = function(e){
 };
 // end of ObjectMoving
 
+JointEngine.prototype.stateConnectionWiring = function(e){
+    switch (e.type){
+    case "entry": 
+	this.redraw();
+	this.listenOnMouseDown(this.startCap());
+	this.listenOnMouseDown(this.endCap());
+	this.listenOnMouseDown(this.connection());
+	this.listenOnDblClick(this.connection());
+	return null;
+    case "exit": return null;
+    case "mouseMove":
+	//TODO: layerX/layerY only in gecko, webkit but not IE
+	this._conVertices[0] = point(e.args.jsEvt.layerX, e.args.jsEvt.layerY);
+	this.redraw();
+	this.listenOnMouseDown(this.startCap());
+	this.listenOnMouseDown(this.endCap());
+	this.listenOnMouseDown(this.connection());
+	this.listenOnDblClick(this.connection());
+	return null;
+    case "mouseUp":
+	this.newState(this.myIdleHistory);
+	return null;
+    }
+    return this.state("Generic");
+};// end of ConnectionWiring
 
 /**
  * Getters.
  */
+JointEngine.prototype.connection = function(){ return this._con };
 JointEngine.prototype.endObject = function(){ return this._end };
 JointEngine.prototype.startObject = function(){ return this._start };
 JointEngine.prototype.endCap = function(){ return this._endCap };
@@ -1048,10 +1116,21 @@ fixEvent.stopPropagation = function() {
  * Event dispatching.
  **************************************************/
 
-JointEngine.prototype.listenOnMouseDown = function(cap){
+JointEngine.prototype.listenOnMouseDown = function(obj){
     var self = this;
     // register mousedown event callback
-    addEvent(cap.node, "mousedown", function(e){ self.capMouseDown(e, cap) });
+    if (obj === this.connection())
+	addEvent(obj.node, "mousedown", function(e){ self.connectionMouseDown(e) });
+    else
+	addEvent(obj.node, "mousedown", function(e){ self.capMouseDown(e, obj) });
+    // TODO: remove event when not needed 
+};
+
+JointEngine.prototype.listenOnDblClick = function(obj){
+    var self = this;
+    // register dblclick event callback
+    if (obj === this.connection())
+	addEvent(obj.node, "dblclick", function(e){ self.connectionDblClick(e) });
     // TODO: remove event when not needed 
 };
 
@@ -1064,6 +1143,23 @@ Joint.registeredObjects = [];	// TODO: multiple raphael 'windows'
 JointEngine.prototype.capMouseDown = function(e, cap){
     Joint.currentEngine = this;	// keep global reference to me
     this.dispatch(qevt("capMouseDown", {"cap": cap, jsEvt: e}));
+    e.preventDefault && e.preventDefault();
+};
+
+/**
+ * MouseDown event callback when on connection.
+ */
+JointEngine.prototype.connectionMouseDown = function(e){
+    Joint.currentEngine = this;	// keep global reference to me
+    this.dispatch(qevt("connectionMouseDown", {jsEvt: e}));
+    e.preventDefault && e.preventDefault();
+};
+
+/**
+ * DblClick event callback when on connection.
+ */
+JointEngine.prototype.connectionDblClick = function(e){
+    this.dispatch(qevt("connectionDblClick", {jsEvt: e}));
     e.preventDefault && e.preventDefault();
 };
 
@@ -1118,12 +1214,14 @@ JointEngine.prototype.draw = function(){
     __.raphael = self._raphael;
 
     // primitives
-    __.line = function(start, end, attrs){ return __.raphael.path(attrs, ["M", start.x, start.y, "L", end.x, end.y].join(",")) };
-    __.path = function(commands, attrs){	return __.raphael.path(attrs, commands) };
+    __.line = function(start, end, attrs){ return __.raphael.path(["M", start.x, start.y, "L", end.x, end.y].join(" ")).attr(attrs) };
+    __.path = function(commands, attrs){ return __.raphael.path(commands.join(" ")).attr(attrs) };
     __.circle = function(pos, radius, attrs){ return __.raphael.circle(pos.x, pos.y, radius).attr(attrs) };
     __.rect = function(pos, width, height, attrs){ return __.raphael.rect(pos.x, pos.y, width, height).attr(attrs) };
 
-    // helpers
+    /**
+     * Helpers.
+     */
 
     /**
      * Find point on an object of type type with bounding box r where line starting
@@ -1138,31 +1236,82 @@ JointEngine.prototype.draw = function(){
 	return r.boundPoint(p) || rCenter;
     };
 
+    /**
+     * Drawing parameters.
+     */
+
     // start object bounding box
     __.sbb = rect(self._start.shape.getBBox()).moveAndExpand(self._opt.bboxCorrection.start);
+    if (!NDEBUG) DBG.push("sbb: " + __.sbb.toString());
+
     // start object bounding box center point
     __.sbbCenter = __.sbb.center();
+    if (!NDEBUG) DBG.push("sbbCenter: " + __.sbbCenter.toString());
+
     // end object bounding box
     __.ebb = rect(self._end.shape.getBBox()).moveAndExpand(self._opt.bboxCorrection.end);
+    if (!NDEBUG) DBG.push("ebb: " + __.ebb.toString());
+
     // end object bounding box center point
     __.ebbCenter = __.ebb.center();
-    // angle between __sbbCenter and __ebbCenter
-    __.theta = __.sbbCenter.theta(__.ebbCenter);
+    if (!NDEBUG) DBG.push("ebbCenter: " + __.ebbCenter.toString());
 
-    // intersection of a line leading from __sbbCenter to __ebbCenter and the start object
-    __.sBoundPoint = __.boundPoint(__.sbb, self._opt.bboxCorrection.start.type || self._start.shape.type, __.ebbCenter);
-    // intersection of a line leading from __ebbCenter to __sbbCenter and the end object
-    __.eBoundPoint = __.boundPoint(__.ebb, self._opt.bboxCorrection.end.type || self._end.shape.type, __.sbbCenter);
-    // __sBoundPoint moved in the direction of __eBoundPoint by start cap width
-    __.sPoint = { 
-	x: __.sBoundPoint.x + (2 * self._arrow.start.dx * Math.cos(__.theta.radians)),
-	y: __.sBoundPoint.y + (-2 * self._arrow.start.dy * Math.sin(__.theta.radians))
-    };
-    // __eBoundPoint moved in the direction of __sBoundPoint by end cap width
-    __.ePoint = { 
-	x: __.eBoundPoint.x + (-2 * self._arrow.end.dx * Math.cos(__.theta.radians)),
-	y: __.eBoundPoint.y + (2 * self._arrow.end.dy * Math.sin(__.theta.radians))
-    };
+    // intersection of a line leading from __sbbCenter to __ebbCenter 
+    // (or first connection vertex) and the start object
+    if (self._conVertices.length > 0)
+	__.sBoundPoint = __.boundPoint(__.sbb, self._opt.bboxCorrection.start.type || self._start.shape.type, self._conVertices[0]);	
+    else
+	__.sBoundPoint = __.boundPoint(__.sbb, self._opt.bboxCorrection.start.type || self._start.shape.type, __.ebbCenter);	
+    if (!NDEBUG) DBG.push("sBoundPoint: " + __.sBoundPoint.toString());
+
+    // intersection of a line leading from __ebbCenter to __sbbCenter 
+    // (or last connection vertex) and the end object
+    if (self._conVertices.length > 0)
+	__.eBoundPoint = __.boundPoint(__.ebb, self._opt.bboxCorrection.end.type || self._end.shape.type, self._conVertices[self._conVertices.length - 1]);	
+    else
+	__.eBoundPoint = __.boundPoint(__.ebb, self._opt.bboxCorrection.end.type || self._end.shape.type, __.sbbCenter);
+    if (!NDEBUG) DBG.push("eBoundPoint: " + __.eBoundPoint.toString());
+
+    // angle between __sbbCenter and __ebbCenter (or first connection vertex)
+    if (self._conVertices.length > 0)
+	__.sTheta = __.sbbCenter.theta(self._conVertices[0]);
+    else
+	__.sTheta = __.sbbCenter.theta(__.ebbCenter);	
+    if (!NDEBUG) DBG.push("theta: " + __.sTheta.degrees + ", " + __.sTheta.radians);
+
+    // angle between __ebbCenter and __sbbCenter (or last connection vertex)
+    if (self._conVertices.length > 0)
+	__.eTheta = self._conVertices[self._conVertices.length - 1].theta(__.ebbCenter);
+    else 
+	__.eTheta = __.sbbCenter.theta(__.ebbCenter);
+    if (!NDEBUG) DBG.push("theta: " + __.eTheta.degrees + ", " + __.eTheta.radians);
+
+    // __sBoundPoint moved in the direction of __eBoundPoint (or first connection vertex) 
+    // by start cap width
+    __.sPoint = point(
+	__.sBoundPoint.x + (2 * self._arrow.start.dx * Math.cos(__.sTheta.radians)),
+	__.sBoundPoint.y + (-2 * self._arrow.start.dy * Math.sin(__.sTheta.radians))
+    );
+    if (!NDEBUG) DBG.push("sPoint: " + __.sPoint.toString());
+
+    // __eBoundPoint moved in the direction of __sBoundPoint (or last connection vertex) 
+    // by end cap width
+    __.ePoint = point(
+	__.eBoundPoint.x + (-2 * self._arrow.end.dx * Math.cos(__.eTheta.radians)),
+	__.eBoundPoint.y + (2 * self._arrow.end.dy * Math.sin(__.eTheta.radians))
+    );
+    if (!NDEBUG) DBG.push("ePoint: " + __.ePoint.toString());
+
+    // connection path vertices
+    __.conVertices = ["M", __.sPoint.x, __.sPoint.y];	
+    for (var i = 0, len = self._conVertices.length; i < len; i++){
+	__.conVertices.push("L");
+	__.conVertices.push(self._conVertices[i].x);
+	__.conVertices.push(self._conVertices[i].y);
+    }
+    __.conVertices.push("L");	
+    __.conVertices.push(__.ePoint.x);
+    __.conVertices.push(__.ePoint.y);
 
     return {
 	dummyEnd: function(){
@@ -1178,25 +1327,31 @@ JointEngine.prototype.draw = function(){
 	    return this;
 	},
 	connection: function(){
-	    self._con = __.line(__.sPoint, __.ePoint, self._opt.attrs);
+//	    self._con = __.line(__.sPoint, __.ePoint, self._opt.attrs);
+	    self._con = __.path(__.conVertices, self._opt.attrs);
+//	    self._con.toBack();
 	    self._con.show();
 	    return this;
 	},
 	startCap: function(){
 	    var a = self._arrow.start;
 	    self._startCap = __.path(a.path, a.attrs);
-	    self._startCap.translate(__.sBoundPoint.x + a.dx * Math.cos(__.theta.radians), 
-				     __.sBoundPoint.y - a.dy * Math.sin(__.theta.radians));
-	    self._startCap.rotate(360 - __.theta.degrees + 180);
+	    self._startCap.translate(__.sBoundPoint.x + (a.dx * Math.cos(__.sTheta.radians)), 
+				     __.sBoundPoint.y - (a.dy * Math.sin(__.sTheta.radians)));
+	    if (!NDEBUG) DBG.push("startCap translation: " + (__.sBoundPoint.x + a.dx * Math.cos(__.sTheta.radians)) + ", " + (__.sBoundPoint.y - a.dy * Math.sin(__.sTheta.radians)));
+	    self._startCap.rotate(360 - (__.sTheta.degrees) + 180);
+	    if (!NDEBUG) DBG.push("startCap rotation: " + (360 - __.sTheta.degrees + 180));
 	    self._startCap.show();
 	    return this;
 	},
 	endCap: function(){
 	    var a = self._arrow.end;
 	    self._endCap = __.path(a.path, a.attrs);
-	    self._endCap.translate(__.eBoundPoint.x - a.dx * Math.cos(__.theta.radians), 
-				   __.eBoundPoint.y + a.dy * Math.sin(__.theta.radians));
-	    self._endCap.rotate(360 - __.theta.degrees);
+	    self._endCap.translate(__.eBoundPoint.x - (a.dx * Math.cos(__.eTheta.radians)), 
+				   __.eBoundPoint.y + (a.dy * Math.sin(__.eTheta.radians)));
+	    if (!NDEBUG) DBG.push("endCap translation: " + (__.eBoundPoint.x - a.dx * Math.cos(__.eTheta.radians)) + ", " + (__.eBoundPoint.y + a.dy * Math.sin(__.eTheta.radians)));
+	    self._endCap.rotate(360 - (__.eTheta.degrees));
+	    if (!NDEBUG) DBG.push("endCap rotation: " + (360 - __.eTheta.degrees));
 	    self._endCap.show();
 	    return this;
 	}
