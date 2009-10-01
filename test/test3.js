@@ -19,18 +19,19 @@ center.joint(hour, {
     attrs: {stroke: "blue", "stroke-width": 3, "stroke-dasharray": "none"},
     endArrow: {attrs: {stroke: "blue", fill: "blue"}},
     startArrow: {attrs: {stroke: "blue", fill: "blue"}}
-});
+}).register(center);
+
 center.joint(min, {
     attrs: {stroke: "red", "stroke-width": 3, "stroke-dasharray": "none"},
     endArrow: {attrs: {stroke: "red", fill: "red"}},
     startArrow: {attrs: {stroke: "red", fill: "red"}}
-});
+}).register(center);
+
 center.joint(sec, {
     attrs: {"stroke-width": 2},
     endArrow: {type: "hand", attrs: {fill: "orange"}}
-});
+}).register(center);
 
-Joint.registeredObjects.push(center);
 
 var 
 secDeg = 276,

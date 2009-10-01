@@ -67,14 +67,12 @@ var opt2 = {
     }
 };
 
-o1.joint(o2, opt1);
-o1.joint(o3, {endArrow: {type: "flower", attrs: {fill: "orange"}}});
-o2.joint(o4, opt2);
+var all = [o1, o2, o3, o4];
 
-Joint.registeredObjects.push(o1);
-Joint.registeredObjects.push(o2);
-Joint.registeredObjects.push(o3);
-Joint.registeredObjects.push(o4);
+o1.joint(o2, opt1).register(all);
+o1.joint(o3, {endArrow: {type: "flower", attrs: {fill: "orange"}}}).register(all);
+o2.joint(o4, opt2).register(all);
+
 
 
 

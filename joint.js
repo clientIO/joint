@@ -43,13 +43,21 @@ if (!Array.indexOf){
     }
 }
 
-function getMousePosition(e){
+/**
+ * Get the mouse position relative to the raphael paper.
+ * @param <e> Javascript event object
+ * @param <r> raphael paper
+ * @return <point>
+ */
+function getMousePosition(e, r){
     var pos;
     if (e.layerX || e.layerY)
 	pos = point(e.layerX, e.layerY);
     else if (e.clientX || e.clientY)
-	pos = point(e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft,
-		    e.clientY + document.body.scrollTop + document.documentElement.scrollTop);
+//	pos = point(e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft,
+//		    e.clientY + document.body.scrollTop + document.documentElement.scrollTop);
+	pos = point(e.clientX - r.canvas.offsetParent.offsetLeft,
+		    e.clientY - r.canvas.offsetParent.offsetTop);
     return pos;
 }
 
@@ -925,6 +933,11 @@ JointEngine.prototype.stateInitial = function(e){
     // hack for slow browsers
     //    this._nRedraws = 0;
     //    this._nRedrawsMod = 2;
+
+    // these objects are the ones I can connect to
+    this.registeredObjects = [];
+
+    this._label = null;		// label that keeps its position with connection path middle point
     
     this._con = null;		// holds the joint path
     this._conVertices = [];	// joint path vertices
@@ -961,7 +974,7 @@ JointEngine.prototype.stateInitial = function(e){
 	    "stroke-opacity": 1.0
 	},
 	cursor: "move",	// CSS cursor property
-	beSmooth: true,// be a smooth line? (bezier curve aproximation)
+	beSmooth: false,// be a smooth line? (bezier curve aproximation)
 	// bounding box correction 
 	// (useful when the connection should start in the center of an object, etc...)
 	bboxCorrection: {
@@ -1074,7 +1087,7 @@ JointEngine.prototype.stateIdle = function(e){
 	}
 	return null;
     case "connectionMouseDown":
-	var mousePos = getMousePosition(e.args.jsEvt);
+	var mousePos = getMousePosition(e.args.jsEvt, this._raphael);
 
 	// if the mouse position is nearby a connection vertex
 	// do not create a new one, move the selected one instead
@@ -1189,21 +1202,21 @@ JointEngine.prototype.stateStartCapDragging = function(e){
 	dummyBB = dummy.shape.getBBox(),
 	o = this.objectContainingPoint(point(dummyBB.x, dummyBB.y));
 	
-	if (o === null){
+	if (o === null || o.cap === "end"){
 	    if (e)
 		this.newState("EndCapConnected");
 	    else
 		this.newState("Disconnected");
 	} else {
-	    this.callback("justConnected", o, ["start"]);
+	    this.callback("justConnected", o.target, ["start"]);
 	    dummy.shape.remove();	// remove old dummy shape
 	    dummy.dummy = false;	// it is no longer dummy
-	    dummy.shape = o;		// instead it is the new object
+	    dummy.shape = o.target;	// instead it is the new object
 
 	    // push the Joint object into o.joints array
 	    // but only if o.joints already doesn't have that Joint object
-	    if (o.joints.indexOf(this.joint()) == -1)
-		o.joints.push(this.joint());
+	    if (o.target.joints.indexOf(this.joint()) == -1)
+		o.target.joints.push(this.joint());
 
 	    // make a transition
 	    if (e)
@@ -1240,21 +1253,21 @@ JointEngine.prototype.stateEndCapDragging = function(e){
 	dummyBB = dummy.shape.getBBox(),
 	o = this.objectContainingPoint(point(dummyBB.x, dummyBB.y));
 	
-	if (o === null){
+	if (o === null || o.cap === "start"){
 	    if (s)
 		this.newState("StartCapConnected");
 	    else
 		this.newState("Disconnected");
 	} else {
-	    this.callback("justConnected", o, ["end"]);
+	    this.callback("justConnected", o.target, ["end"]);
 	    dummy.shape.remove();	// remove old dummy shape
 	    dummy.dummy = false;	// it is no longer dummy
-	    dummy.shape = o;		// instead it is the new object
+	    dummy.shape = o.target;	// instead it is the new object
 
 	    // push the Joint object into o.joints array
 	    // but only if o.joints already doesn't have that Joint object
-	    if (o.joints.indexOf(this.joint()) == -1)
-		o.joints.push(this.joint());
+	    if (o.target.joints.indexOf(this.joint()) == -1)
+		o.target.joints.push(this.joint());
 
 	    // make a transition
 	    if (s)
@@ -1320,7 +1333,7 @@ JointEngine.prototype.stateConnectionWiring = function(e){
 	return null;
     case "exit": return null;
     case "mouseMove":
-	this._conVertices[this._conVerticesCurrentIndex] = getMousePosition(e.args.jsEvt);
+	this._conVertices[this._conVerticesCurrentIndex] = getMousePosition(e.args.jsEvt, this._raphael);
 	this.redraw();
 	this.listenOnMouseDown(this.startCap());
 	this.listenOnMouseDown(this.endCap());
@@ -1358,22 +1371,10 @@ JointEngine.prototype.callback = function(fnc, scope, args){
  * who's bounding box contains the point p.
  */
 JointEngine.prototype.objectContainingPoint = function(p){
-    for (var i = Joint.registeredObjects.length - 1; i >= 0; --i){
-	var o = Joint.registeredObjects[i];
-
-	if (rect(o.getBBox()).containsPoint(p)){
+    for (var i = this.registeredObjects.length - 1; i >= 0; --i){
+	var o = this.registeredObjects[i];
+	if (rect(o.target.getBBox()).containsPoint(p))
 	    return o;
-
-	    o.animate({scale: 1.2}, 100, function(){o.animate({scale: 1.0}, 100)});
-	    dummy.shape.remove();	// remove old dummy shape
-	    dummy.dummy = false;    // it is no longer dummy
-	    dummy.shape = o;	
-
-	    // only if o.joints already doesn't have that Joint object
-	    if (o.joints.indexOf(this.joint()) == -1)
-		o.joints.push(this.joint());
-	    break;
-	}
     }
     return null;
 };
@@ -1498,8 +1499,9 @@ JointEngine.prototype.listenOnDblClick = function(obj){
     // TODO: remove event when not needed 
 };
 
+// reference to current engine when object dragging
+// can be global across all raphael 'worlds' because only one object can be dragged at a time
 Joint.currentEngine = null;
-Joint.registeredObjects = [];	// TODO: multiple raphael 'windows'
 
 /**
  * MouseDown event callback when on cap.
@@ -1756,6 +1758,41 @@ function Joint(){ this.engine = new JointEngine().init() };
 window.Joint = Joint;	// the only global variable
 
 /**
+ * Register object so that it can be pointed by my cap.
+ * @param <obj> raphael object or Shape (or array of raphael objects or Shapes)
+ * @param <cap> string "start|end|both" default: "both"
+ */
+Joint.prototype.register = function(obj, cap){
+    if (typeof cap === "undefined")
+	var cap = "both";
+    if (obj.constructor == Array){
+	for (var i = 0, len = obj.length; i < len; i++)
+	    this.engine.registeredObjects.push({target: obj[i], cap: cap});
+    } else 
+	this.engine.registeredObjects.push({target: obj, cap: cap});
+    return this;
+};
+
+/**
+ * Cancel registration of an object.
+ * @param <obj> raphael object or Shape
+ * @param <cap> string "start|end|both" default: "both"
+ */
+Joint.prototype.unregister = function(obj, cap){
+    if (typeof cap === "undefined")
+	var cap = "both";
+    var index = -1;
+    for (var i = 0, len = this.engine.registeredObjects.length; i < len; i++){
+	if (this.engine.registeredObjects[i].target === obj && 
+	    this.engine.registeredObjects[i].cap === cap)
+	    index = i;
+	    break;
+    }
+    if (index !== -1)
+	this.engine.registeredObjects.splice(index, 1);
+};
+
+/**
  * TODO: rotation support. there is a problem because
  * rotation does not set any attribute in this.attrs but
  * instead it sets transformation directly to let the browser
@@ -1881,6 +1918,7 @@ Raphael.el.joint = function(to, opt){
     (to.joints) ? to.joints.push(j) : to.joints = [j];
 
     j.engine.dispatch(qevt("connect"));
+    return j;
 };
 
 //})();	// END CLOSURE

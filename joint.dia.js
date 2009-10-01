@@ -125,7 +125,7 @@ Shape.prototype.getBBox = function(){
  */
 Shape.prototype.joint = function(to, opt){
     var toobj = (to.isShape) ? to.wrapper : to;
-    this.wrapper.joint.apply(this.wrapper, [toobj, opt]);
+    return this.wrapper.joint.apply(this.wrapper, [toobj, opt]);
 };
 
 /**
@@ -286,4 +286,89 @@ FSAEndState.prototype = new Shape;
 FSAEndState.prototype.scale = function(){
     this.wrapper.scale.apply(this.wrapper, arguments);
     this.subShapes[0].scale.apply(this.subShapes[0], arguments);
+};
+
+
+/**
+ * Petri net place.
+ * @param raphael raphael paper
+ * @param p point position
+ * @param r radius
+ * @param rToken radius of my tokens
+ * @param nTokens number of tokens
+ * @param attrs shape SVG attributes
+ */
+function PNPlace(raphael, p, r, rToken, nTokens, attrs){
+//    Shape.apply(this, arguments[5]);
+    Shape.apply(this);
+    this.opt = {
+	point: p,
+	radius: r,
+	radiusToken: rToken,
+	nTokens: nTokens,
+	attrs: attrs
+    };
+
+    this._raphael = raphael;
+    this.addMain(this._raphael.circle(this.opt.point.x, this.opt.point.y, 
+				      this.opt.radius).attr(this.opt.attrs).attr("fill", "white"));
+    switch (this.opt.nTokens){
+    case 0:
+	break;
+    case 1:
+	this.add(this._raphael.circle(this.opt.point.x, this.opt.point.y, 
+				      this.opt.radiusToken).attr(this.opt.attrs).attr("fill", "black"));
+	break;
+    case 2:
+	this.add(this._raphael.circle(this.opt.point.x - this.opt.radiusToken*2, this.opt.point.y, 
+				      this.opt.radiusToken).attr(this.opt.attrs).attr("fill", "black"));
+	this.add(this._raphael.circle(this.opt.point.x + this.opt.radiusToken*2, this.opt.point.y, 
+				      this.opt.radiusToken).attr(this.opt.attrs).attr("fill", "black"));
+	break;
+    case 3:
+	this.add(this._raphael.circle(this.opt.point.x - this.opt.radiusToken*2, this.opt.point.y + this.opt.radiusToken, 
+				      this.opt.radiusToken).attr(this.opt.attrs).attr("fill", "black"));
+	this.add(this._raphael.circle(this.opt.point.x + this.opt.radiusToken*2, this.opt.point.y + this.opt.radiusToken, 
+				      this.opt.radiusToken).attr(this.opt.attrs).attr("fill", "black"));
+	this.add(this._raphael.circle(this.opt.point.x, this.opt.point.y - this.opt.radiusToken*2, 
+				      this.opt.radiusToken).attr(this.opt.attrs).attr("fill", "black"));
+	break;
+    default:
+	this.add(this._raphael.text(this.opt.point.x, this.opt.point.y, this.opt.nTokens.toString()));
+	break;
+    }
+};
+PNPlace.prototype = new Shape;
+
+PNPlace.prototype.scale = function(){
+    this.wrapper.scale.apply(this.wrapper, arguments);
+    for (var i = 0, len = this.subShapes.length; i < len; i++)
+	this.subShapes[i].scale.apply(this.subShapes[i], arguments);
+};
+
+/**
+ * Petri net event.
+ * @param raphael raphael paper
+ * @param r rectangle
+ * @param attrs shape SVG attributes
+ */
+function PNEvent(raphael, r, attrs){
+    Shape.apply(this);
+    this.opt = {
+	rect: r,
+	attrs: attrs
+    };
+
+    this._raphael = raphael;
+    this.addMain(this._raphael.rect(this.opt.rect.x, this.opt.rect.y, 
+				    this.opt.rect.width, this.opt.rect.height));
+    // default
+    this.wrapper.attr({fill: "black", stroke: "black"});
+    // custom
+    this.wrapper.attr(this.opt.attrs);
+};
+PNEvent.prototype = new Shape;
+
+PNEvent.prototype.scale = function(){
+    this.wrapper.scale.apply(this.wrapper, arguments);
 };

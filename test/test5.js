@@ -12,12 +12,10 @@ var subuml2 = new UMLState(r, rect({x: 420, y: 120, width: 80, height: 50}), {fi
 subuml2.wrapper.node.style.cursor = "pointer";
 uml2.add(subuml2);
 
-uml1.joint(uml2, {endArrow: {type: "basicArrow5"}, attrs: {"stroke-dasharray": "none"}, startArrow: {type: "basic"}});
-uml3.joint(subuml2, {endArrow: {type: "basicArrow5"}, attrs: {"stroke-dasharray": "none"}, startArrow: {type: "basic"}});
+var all = [uml1, uml2, uml3, subuml2];
 
-Joint.registeredObjects.push(uml1);
-Joint.registeredObjects.push(uml2);
-Joint.registeredObjects.push(uml3);
-Joint.registeredObjects.push(subuml2);
+uml1.joint(uml2, {endArrow: {type: "basicArrow5"}, attrs: {"stroke-dasharray": "none"}, startArrow: {type: "basic"}}).register(all);
+uml3.joint(subuml2, {endArrow: {type: "basicArrow5"}, attrs: {"stroke-dasharray": "none"}, startArrow: {type: "basic"}}).register(all);
+
 
 

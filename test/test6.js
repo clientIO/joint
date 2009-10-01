@@ -24,23 +24,15 @@ var opt = {
     attrs: {"stroke-dasharray": "none"}
 };
 
-s0.joint(s1, opt);
-s1.joint(s2, opt);
-s1.joint(s3, opt);
-s2.joint(se, opt);
-s3.joint(s2, opt);
-s3.joint(s5, opt);
-s5.joint(s4, opt);
-s4.joint(s6, opt);
-s6.joint(s2, opt);
+var all = [s0, se, s1, s2, s3, s4, s5, s6];
 
-Joint.registeredObjects.push(s0);
-Joint.registeredObjects.push(se);
-Joint.registeredObjects.push(s1);
-Joint.registeredObjects.push(s2);
-Joint.registeredObjects.push(s3);
-Joint.registeredObjects.push(s4);
-Joint.registeredObjects.push(s5);
-Joint.registeredObjects.push(s6);
-
+s0.joint(s1, opt).register(all);
+s1.joint(s2, opt).register(all);
+s1.joint(s3, opt).register(all);
+s2.joint(se, opt).register(all);
+s3.joint(s2, opt).register(all);
+s3.joint(s5, opt).register(all);
+s5.joint(s4, opt).register(all);
+s4.joint(s6, opt).register(all);
+s6.joint(s2, opt).register(all);
 
