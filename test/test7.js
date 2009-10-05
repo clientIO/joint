@@ -28,7 +28,7 @@ var opt = {
 };
 
 
-e0.joint(p0, opt).register([e0, e1, e2, p0, p1, p2]);
+e0.joint(p0, opt).register([e0, e1, e2, p0, p1, p2]).setVertices([point(200, 160)]).toggleSmoothing();
 p0.joint(e1, opt).register([e0, e1, e2, p0, p1, p2]);
 e1.joint(p1, opt).register([e0, e1, e2, p0, p1, p2]);
 p1.joint(e2, opt).register([e0, e1, e2, p0, p1, p2]);

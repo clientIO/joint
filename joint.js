@@ -910,6 +910,8 @@ function JointEngine(){
 
 JointEngine.prototype = new QHsm;
 JointEngine.prototype.stateInitial = function(e){
+    var self = this;
+
     this.myIdleHistory = null;	// allows transition to history of Idle state
 
     /**
@@ -960,6 +962,7 @@ JointEngine.prototype.stateInitial = function(e){
 	dummy: false		// is it a dummy object?
     };		
 
+
     // _con path options
     this._opt = {
 	attrs: {
@@ -982,6 +985,8 @@ JointEngine.prototype.stateInitial = function(e){
 	    end: { type: null, x: 0, y: 0, width: 0, height: 0 }
 	}
     };
+
+
     // various ready-to-use arrows
     this._arrows = {
 	basic15: {
@@ -1033,11 +1038,13 @@ JointEngine.prototype.stateInitial = function(e){
 	    attrs: { stroke: "black", "stroke-width": 2.0, fill: "black" }
 	}
     };
+
     // used arrows (default values)
-    this._arrow = {
-	start: this._arrows.aggregationArrow,
-	end: this._arrows.basicArrow
+    this._opt.arrow = {
+	start: self._arrows.aggregationArrow,
+	end: self._arrows.basicArrow
     };
+
     // initial state of the engine
     this.newInitialState("Idle");
     return null;	// QHsm convention 
@@ -1119,10 +1126,7 @@ JointEngine.prototype.stateIdle = function(e){
     case "connectionDblClick":
 	this._conVertices = [];	// straighten the connection path
 	this.redraw();
-	this.listenOnMouseDown(this.startCap());
-	this.listenOnMouseDown(this.endCap());
-	this.listenOnMouseDown(this.connection());
-	this.listenOnDblClick(this.connection());
+	this.listenAll();
 	return null;
     }
     return this.state("Generic");
@@ -1143,10 +1147,7 @@ JointEngine.prototype.stateConnected = function(e){
     switch (e.type){
     case "entry": 
 	this.redraw();
-	this.listenOnMouseDown(this.startCap());
-	this.listenOnMouseDown(this.endCap());
-	this.listenOnMouseDown(this.connection());
-	this.listenOnDblClick(this.connection());
+	this.listenAll();
 	return null;
     case "exit": return null;	
     }
@@ -1190,10 +1191,7 @@ JointEngine.prototype.stateStartCapDragging = function(e){
 	this._dy = e.args.jsEvt.clientY;
 	
 	this.redraw();
-	this.listenOnMouseDown(this.startCap());
-	this.listenOnMouseDown(this.endCap());
-	this.listenOnMouseDown(this.connection());
-	this.listenOnDblClick(this.connection());
+	this.listenAll();
 	return null;
     case "mouseUp":
 	var 
@@ -1241,10 +1239,7 @@ JointEngine.prototype.stateEndCapDragging = function(e){
 	this._dy = e.args.jsEvt.clientY;
 
 	this.redraw();
-	this.listenOnMouseDown(this.startCap());
-	this.listenOnMouseDown(this.endCap());
-	this.listenOnMouseDown(this.connection());
-	this.listenOnDblClick(this.connection());
+	this.listenAll();
 	return null;
     case "mouseUp":
 	var 
@@ -1297,10 +1292,7 @@ JointEngine.prototype.stateStartObjectMoving = function(e){
     switch (e.type){
     case "entry": 
 	this.redraw();
-	this.listenOnMouseDown(this.startCap());
-	this.listenOnMouseDown(this.endCap());
-	this.listenOnMouseDown(this.connection());
-	this.listenOnDblClick(this.connection());
+	this.listenAll();
 	return null;
     case "exit": return null;
     }
@@ -1311,10 +1303,7 @@ JointEngine.prototype.stateEndObjectMoving = function(e){
     switch (e.type){
     case "entry": 
 	this.redraw();
-	this.listenOnMouseDown(this.startCap());
-	this.listenOnMouseDown(this.endCap());
-	this.listenOnMouseDown(this.connection());
-	this.listenOnDblClick(this.connection());
+	this.listenAll();
 	return null;
     case "exit": return null;
     }
@@ -1326,19 +1315,13 @@ JointEngine.prototype.stateConnectionWiring = function(e){
     switch (e.type){
     case "entry": 
 	this.redraw();
-	this.listenOnMouseDown(this.startCap());
-	this.listenOnMouseDown(this.endCap());
-	this.listenOnMouseDown(this.connection());
-	this.listenOnDblClick(this.connection());
+	this.listenAll();
 	return null;
     case "exit": return null;
     case "mouseMove":
 	this._conVertices[this._conVerticesCurrentIndex] = getMousePosition(e.args.jsEvt, this._raphael);
 	this.redraw();
-	this.listenOnMouseDown(this.startCap());
-	this.listenOnMouseDown(this.endCap());
-	this.listenOnMouseDown(this.connection());
-	this.listenOnDblClick(this.connection());
+	this.listenAll();
 	return null;
     case "mouseUp":
 	this.newState(this.myIdleHistory);
@@ -1564,6 +1547,13 @@ JointEngine.prototype.redraw = function(){
     this.draw().connection().startCap().endCap();
 };
 
+JointEngine.prototype.listenAll = function(){
+    this.listenOnMouseDown(this.startCap());
+    this.listenOnMouseDown(this.endCap());
+    this.listenOnMouseDown(this.connection());
+    this.listenOnDblClick(this.connection());
+};
+
 /**
  * This is the beginning of every drawing.
  * Prepares parameters for drawing objects.
@@ -1652,16 +1642,16 @@ JointEngine.prototype.draw = function(){
     // __sBoundPoint moved in the direction of __eBoundPoint (or first connection vertex) 
     // by start cap width
     __.sPoint = point(
-	__.sBoundPoint.x + (2 * self._arrow.start.dx * Math.cos(__.sTheta.radians)),
-	__.sBoundPoint.y + (-2 * self._arrow.start.dy * Math.sin(__.sTheta.radians))
+	__.sBoundPoint.x + (2 * self._opt.arrow.start.dx * Math.cos(__.sTheta.radians)),
+	__.sBoundPoint.y + (-2 * self._opt.arrow.start.dy * Math.sin(__.sTheta.radians))
     );
     if (!NDEBUG) DBG.push("sPoint: " + __.sPoint.toString());
 
     // __eBoundPoint moved in the direction of __sBoundPoint (or last connection vertex) 
     // by end cap width
     __.ePoint = point(
-	__.eBoundPoint.x + (-2 * self._arrow.end.dx * Math.cos(__.eTheta.radians)),
-	__.eBoundPoint.y + (2 * self._arrow.end.dy * Math.sin(__.eTheta.radians))
+	__.eBoundPoint.x + (-2 * self._opt.arrow.end.dx * Math.cos(__.eTheta.radians)),
+	__.eBoundPoint.y + (2 * self._opt.arrow.end.dy * Math.sin(__.eTheta.radians))
     );
     if (!NDEBUG) DBG.push("ePoint: " + __.ePoint.toString());
 
@@ -1703,7 +1693,7 @@ JointEngine.prototype.draw = function(){
 	    return this;
 	},
 	startCap: function(){
-	    var a = self._arrow.start;
+	    var a = self._opt.arrow.start;
 	    self._startCap = __.path(a.path, a.attrs);
 	    self._startCap.translate(__.sBoundPoint.x + (a.dx * Math.cos(__.sTheta.radians)), 
 				     __.sBoundPoint.y - (a.dy * Math.sin(__.sTheta.radians)));
@@ -1714,7 +1704,7 @@ JointEngine.prototype.draw = function(){
 	    return this;
 	},
 	endCap: function(){
-	    var a = self._arrow.end;
+	    var a = self._opt.arrow.end;
 	    self._endCap = __.path(a.path, a.attrs);
 	    self._endCap.translate(__.eBoundPoint.x - (a.dx * Math.cos(__.eTheta.radians)), 
 				   __.eBoundPoint.y + (a.dy * Math.sin(__.eTheta.radians)));
@@ -1754,7 +1744,10 @@ JointEngine.prototype.clean = function(){
  * Joint.
  **************************************************/
 
-function Joint(){ this.engine = new JointEngine().init() };
+function Joint(raphael){ 
+    this.engine = new JointEngine().init();
+    this.engine._raphael = raphael;
+};
 window.Joint = Joint;	// the only global variable
 
 /**
@@ -1790,6 +1783,24 @@ Joint.prototype.unregister = function(obj, cap){
     }
     if (index !== -1)
 	this.engine.registeredObjects.splice(index, 1);
+};
+
+/**
+ * Set the vertices of the connection
+ * @param <vertices> array of points
+ */
+Joint.prototype.setVertices = function(vertices){
+    this.engine._conVertices = vertices;
+    this.engine.redraw();
+    this.engine.listenAll();
+    return this;
+};
+
+Joint.prototype.toggleSmoothing = function(){
+    this.engine._opt.beSmooth = !this.engine._opt.beSmooth;
+    this.engine.redraw();
+    this.engine.listenAll();
+    return this;
 };
 
 /**
@@ -1870,10 +1881,10 @@ Raphael.el.attr = function(){
  * }
  ***************************************************/
 Raphael.el.joint = function(to, opt){
-    var j = new Joint();
+    var j = new Joint(this.paper);
     j.engine._start.shape = this;
     j.engine._end.shape = to;
-    j.engine._raphael = this.paper;
+//    j.engine._raphael = this.paper;
 
     if (opt && opt.attrs){
 	for (var key in opt.attrs)
@@ -1881,7 +1892,7 @@ Raphael.el.joint = function(to, opt){
     }
     if (opt && opt.startArrow){
 	if (opt.startArrow.type) 
-	    j.engine._arrow.start = j.engine._arrows[opt.startArrow.type];
+	    j.engine._opt.arrow.start = j.engine._arrows[opt.startArrow.type];
 	else 
 	    opt.startArrow.type = "aggregationArrow";
 	if (opt.startArrow.attrs)
@@ -1890,7 +1901,7 @@ Raphael.el.joint = function(to, opt){
     }
     if (opt && opt.endArrow){
 	if (opt.endArrow.type) 
-	    j.engine._arrow.end = j.engine._arrows[opt.endArrow.type];
+	    j.engine._opt.arrow.end = j.engine._arrows[opt.endArrow.type];
 	else 
 	    opt.endArrow.type = "basicArrow";
 	if (opt.endArrow.attrs)
