@@ -36,12 +36,29 @@ var DBG = [];	// collector for debugging messages
 // Array.indexOf is missing in IE 8
 if (!Array.indexOf){
     Array.prototype.indexOf = function (obj, start){
-	for (var i = (start || 0), len = this.length; i < len; i++)
-	    if (this[i] == obj)
+	for (var i = (start || 0), len = this.length; i < len; i++){
+	    if (this[i] == obj){
 		return i;
+	    }
+	}
 	return -1;
-    }
+    };
 }
+
+/**
+ * Get an absolute position of an element.
+ * @return point
+ */
+Joint.findPos = function(el){
+    var p = point(0, 0);
+    if (el.offsetParent){
+	while (el){
+	    p.offset(el.offsetLeft, el.offsetTop);
+	    el = el.offsetParent;
+	}
+    }
+    return p;
+};
 
 /**
  * Get the mouse position relative to the raphael paper.
@@ -49,17 +66,24 @@ if (!Array.indexOf){
  * @param <r> raphael paper
  * @return <point>
  */
-function getMousePosition(e, r){
+Joint.getMousePosition = function(e, r){
     var pos;
-    if (e.layerX || e.layerY)
-	pos = point(e.layerX, e.layerY);
-    else if (e.clientX || e.clientY)
-//	pos = point(e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft,
-//		    e.clientY + document.body.scrollTop + document.documentElement.scrollTop);
-	pos = point(e.clientX - r.canvas.offsetParent.offsetLeft,
-		    e.clientY - r.canvas.offsetParent.offsetTop);
-    return pos;
-}
+    if (e.pageX || e.pageY) {
+        pos = point(e.pageX, e.pageY);
+    } 
+    else {
+	pos = point(e.clientX + 
+		    (document.documentElement.scrollLeft || 
+		     document.body.scrollLeft) - 
+		    document.documentElement.clientLeft,
+		    e.clientY + 
+		    (document.documentElement.scrollTop || 
+		     document.body.scrollTop) - 
+		    document.documentElement.clientTop);
+    }
+    var rp = Joint.findPos(r.canvas);
+    return point(pos.x - rp.x, pos.y - rp.y);
+};
 
 /*********************************************************************
  * Quantum hierarchical state machines in JavaScript.
@@ -84,11 +108,11 @@ function QHsm(initialStateName){
 QHsm.prototype.initialState = function(aStateOrName){
     this.myState = this.top();
     this.mySource = this.state(aStateOrName);
-}
+};
 
 QHsm.prototype.getState = function(){
     return this.myState;
-}
+};
 
 /**
  * Trigger the initial transition and recursively enter the submachine of the top state.
@@ -107,19 +131,20 @@ QHsm.prototype.init = function(anEventOrNil){
 	s.enter();
     }
     return this;
-}
+};
 
 QHsm.prototype.state = function(stateOrName){ 
-    if (stateOrName && stateOrName._QState)
+    if (stateOrName && stateOrName._QState){
 	return stateOrName;
-    return new QState(this, stateOrName) 
-}
-QHsm.prototype.top = function(stateOrName){ return new QState(this, "TOP") }
-QHsm.prototype.currentState = function(){ return this.myState }
-QHsm.prototype.selectorFor = function(stateName){ return "state" + stateName }
+    }
+    return new QState(this, stateOrName);
+};
+QHsm.prototype.top = function(stateOrName){ return new QState(this, "TOP"); };
+QHsm.prototype.currentState = function(){ return this.myState; };
+QHsm.prototype.selectorFor = function(stateName){ return "state" + stateName; };
 QHsm.prototype.dispatchEvent = function(anEvent, aSelector){ 
-    return this[aSelector](anEvent) 
-}
+    return this[aSelector](anEvent);
+};
 
 /**
  * This should not be overridden.
@@ -128,17 +153,18 @@ QHsm.prototype.stateTOP = function(anEvent){
     if (anEvent.type === "entry" ||
 	anEvent.type === "exit" ||
 	anEvent.type === "init" ||
-	anEvent.type === "empty")
+	anEvent.type === "empty"){
 	return null;
+    }
     return this.handleUnhandledEvent(anEvent);
-}
+};
 
 /**
  * Override this when needed.
  */
 QHsm.prototype.handleUnhandledEvent = function(anEvent){
     return null;
-}
+};
 
 /**
  * Traverse the state hierarchy starting from the currently active state myState.
@@ -147,13 +173,14 @@ QHsm.prototype.handleUnhandledEvent = function(anEvent){
  * returned from a state handler to obtain the superstate needed to advance to the next level.
  */
 QHsm.prototype.dispatch = function(anEvent){
-    if (!(anEvent && anEvent._QEvent))
+    if (!(anEvent && anEvent._QEvent)){
 	anEvent = new QEvent(anEvent);
+    }
     this.mySource = this.myState;
     while (this.mySource !== null){
 	this.mySource = this.mySource.trigger(anEvent);
     }
-}
+};
 
 /**
  * Performs dynamic transition. (macro Q_TRAN_DYN())
@@ -161,7 +188,7 @@ QHsm.prototype.dispatch = function(anEvent){
 QHsm.prototype.newState = function(aStateName){ 
     this.transition(this.state(aStateName)); 
     return null;
-}
+};
 
 /**
  * Used by handlers only in response to the #init event. (macro Q_INIT())
@@ -171,7 +198,7 @@ QHsm.prototype.newState = function(aStateName){
 QHsm.prototype.newInitialState = function(aStateOrName){ 
     this.myState = this.state(aStateOrName); 
     return null;
-}
+};
 
 /**
  * Dynamic transition. (Q_TRAN_DYN())
@@ -199,8 +226,9 @@ QHsm.prototype.transition = function(target){
 
     // (b) mySource == target.superstate (one level deep)
     var p = target.superstate();
-    if (thisMySource.equals(p))
+    if (thisMySource.equals(p)){
 	return this.enterVia(target, entry);
+    }
     
     //    eval(assert(thisMySource != null));
 
@@ -222,8 +250,9 @@ QHsm.prototype.transition = function(target){
     entry[entry.length] = p;
     s = p.superstate();
     while (s !== null){
-	if (thisMySource.equals(s))
+	if (thisMySource.equals(s)){
 	    return this.enterVia(target, entry);
+	}
 	entry[entry.length] = s;
 	s = s.superstate();
     }
@@ -253,7 +282,7 @@ QHsm.prototype.transition = function(target){
 	s.exit();
 	s = s.superstate();
     }
-}
+};
 
 // tail of transition()
 // we are in the LCA of mySource and target
@@ -264,13 +293,13 @@ QHsm.prototype.enterVia = function(target, entry){
 	entry[i].enter();
     }
     this.myState = target;
-    while (target.init() == null){
+    while (target.init() === null){
 	// initial transition must go one level deep
 	//	eval(assert(target.equals(this.myState.superstate())));	
 	target = this.myState;
 	target.enter();
     }
-}
+};
 
 /**************************************************
  * QState.
@@ -283,43 +312,45 @@ function QState(fsm, name){
 }
 
 QState.prototype.equals = function(state){
-    return (this.name === state.name && this.fsm === state.fsm)
-}
+    return (this.name === state.name && this.fsm === state.fsm);
+};
 QState.prototype.dispatchEvent = function(anEvent, aSelector){ 
     return this.fsm.dispatchEvent(anEvent, aSelector);
-}
+};
 QState.prototype.trigger = function(anEvent){
     var evt = anEvent || new QEvent("NullEvent");
     var selector = this.fsm.selectorFor(this.name);
     //!//TODO: if selector is null than throw an error: "no handler for anEvent.type in state this.name"
     return this.dispatchEvent(evt, selector);
-}
+};
 
 QState.prototype.enter = function(){ 
     //    if (!NDEBUG && console) console.log("[STATE " + this.name + "] entry");    
-    return this.trigger(QEventEntry) 
-}
+    return this.trigger(QEventEntry);
+};
 QState.prototype.exit = function(){ 
     //    if (!NDEBUG && console) console.log("[STATE " + this.name + "] exit");
-    return this.trigger(QEventExit) 
-}
+    return this.trigger(QEventExit);
+};
 QState.prototype.init = function(){ 
-    return this.trigger(QEventInit) 
-}
+    return this.trigger(QEventInit);
+};
 
 /**
  * Answer my superstate. Default is to return fsm top state.
  */
 QState.prototype.superstate = function(){ 
     var superstate = this.trigger(new QEvent("empty"));
-    if (superstate && superstate._QState)
+    if (superstate && superstate._QState){
 	return superstate;
+    }
     superstate = this.fsm.top();
-    if (this.name === superstate.name)
+    if (this.name === superstate.name){
 	return null;
+    }
     return superstate;
     //return this.fsm.top();
-}
+};
 
 /**************************************************
  * QEvent.
@@ -338,7 +369,7 @@ var QEventExit = new QEvent("exit");
 var QEventInit = new QEvent("init");
 
 // shorthand
-function qevt(sig, args){ return new QEvent(sig, args) }
+function qevt(sig, args){ return new QEvent(sig, args); }
 
 
 /**************************************************
@@ -351,7 +382,7 @@ function qevt(sig, args){ return new QEvent(sig, args) }
 function Point(x, y){
     this.x = x;
     this.y = y;
-};
+}
 
 Point.prototype.toString = function(){
     return this.x + "@" + this.y;
@@ -363,8 +394,9 @@ Point.prototype.toString = function(){
  * @see Squeak Smalltalk, Point>>adhereTo:
  */
 Point.prototype.adhereToRect = function(r){
-    if (r.containsPoint(this))
+    if (r.containsPoint(this)){
 	return this;
+    }
     this.x = Math.min(Math.max(this.x, r.x), r.x + r.width);
     this.y = Math.min(Math.max(this.y, r.y), r.y + r.height);
     return this;
@@ -378,8 +410,9 @@ Point.prototype.theta = function(p){
     var y = -(p.y - this.y),	// invert the y-axis
     x = p.x - this.x,
     rad = Math.atan2(y, x);
-    if (rad < 0) // correction for III. and IV. quadrant
+    if (rad < 0){ // correction for III. and IV. quadrant
 	rad = 2*Math.PI + rad;
+    }
     return {
 	degrees: 180*rad / Math.PI,
 	radians: rad
@@ -414,7 +447,7 @@ Point.fromPolar = function(r, angle){
     return point(r * Math.cos(angle), r * Math.sin(angle));
 };
 
-function point(x, y){ return new Point(x, y) };
+function point(x, y){ return new Point(x, y); }
 
 /**
  * Line object.
@@ -422,7 +455,7 @@ function point(x, y){ return new Point(x, y) };
 function Line(p1, p2){
     this.start = p1;
     this.end = p2;
-};
+}
 
 Line.prototype.toString = function(){
     return "start: " + this.start.toString() + " end:" + this.end.toString();
@@ -447,6 +480,15 @@ Line.prototype.squaredLength = function(){
 };
 
 /**
+ * @return <point> my midpoint 
+ */
+Line.prototype.midpoint = function(){
+    return point((this.start.x + this.end.x) / 2,
+		 (this.start.y + this.end.y) / 2);
+};
+
+
+/**
  * @return <point> where I intersect l.
  * @see Squeak Smalltalk, LineSegment>>intersectionWith:
  */
@@ -458,23 +500,26 @@ Line.prototype.intersection = function(l){
     alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x),
     beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
 
-    if (det == 0 ||
+    if (det === 0 ||
 	alpha * det < 0 ||
-	beta * det < 0)
+	beta * det < 0){
 	return null;	// no intersection
+    }
 
     if (det > 0){
-	if (alpha > det || beta > det)
+	if (alpha > det || beta > det){
 	    return null;
+	}
     } else {
-	if (alpha < det || beta < det)
+	if (alpha < det || beta < det){
 	    return null;
+	}
     }
     return point(this.start.x + (alpha * pt1Dir.x / det),
 		 this.start.y + (alpha * pt1Dir.y / det));
-}
+};
 
-function line(p1, p2) { return new Line(p1, p2) };
+function line(p1, p2) { return new Line(p1, p2); }
 
 /**
  * Rectangle object.
@@ -484,30 +529,30 @@ function Rect(o){
     this.y = o.y;
     this.width = o.width;
     this.height = o.height;
-};
+}
 
 Rect.prototype.toString = function(){
     return "origin: " + this.origin().toString() + " corner: " + this.corner().toString();
 };
 
-Rect.prototype.origin = function(){ return point(this.x, this.y) };
-Rect.prototype.corner = function(){ return point(this.x + this.width, this.y + this.height) };
-Rect.prototype.topRight = function(){ return point(this.x + this.width, this.y) };
-Rect.prototype.bottomLeft = function(){ return point(this.x, this.y + this.height) };
-Rect.prototype.center = function(){ return point(this.x + this.width/2, this.y + this.height/2) };
+Rect.prototype.origin = function(){ return point(this.x, this.y); };
+Rect.prototype.corner = function(){ return point(this.x + this.width, this.y + this.height); };
+Rect.prototype.topRight = function(){ return point(this.x + this.width, this.y); };
+Rect.prototype.bottomLeft = function(){ return point(this.x, this.y + this.height); };
+Rect.prototype.center = function(){ return point(this.x + this.width/2, this.y + this.height/2); };
 
 /**
  * @return <bool> true if rectangles intersect
  */
 Rect.prototype.intersect = function(r){
-    var myOrigin = this.origin();
+    var myOrigin = this.origin(),
     myCorner = this.corner(),
     rOrigin = r.origin(),
     rCorner = r.corner();
-    if (rCorner.x <= myOrigin.x) return false;
-    if (rCorner.y <= myOrigin.y) return false;
-    if (rOrigin.x >= myCorner.x) return false;
-    if (rOrigin.y >= myCorner.y) return false;
+    if (rCorner.x <= myOrigin.x){ return false; }
+    if (rCorner.y <= myOrigin.y){ return false; }
+    if (rOrigin.x >= myCorner.x){ return false; }
+    if (rOrigin.y >= myCorner.y){ return false; }
     return true;
 };
 
@@ -542,8 +587,9 @@ Rect.prototype.sideNearestToPoint = function(p){
  */
 Rect.prototype.containsPoint = function(p){
     if (p.x > this.x && p.x < this.x + this.width &&
-	p.y > this.y && p.y < this.y + this.height)
+	p.y > this.y && p.y < this.y + this.height){
 	return true;
+    }
     return false;
 };
 
@@ -560,8 +606,9 @@ Rect.prototype.pointNearestToPoint = function(p){
 	case "bottom": return point(p.x, this.y + this.height);
 	case "top": return point(p.x, this.y);
 	}
-    } else
+    } else {
 	return p.adhereToRect(this);
+    }
 };
 
 /**
@@ -580,8 +627,9 @@ Rect.prototype.boundPoint = function(p){
     connector = line(center, p);
     for (var i = sides.length - 1; i >= 0; --i){
 	var intersection = sides[i].intersection(connector);
-	if (intersection !== null)
+	if (intersection !== null){
 	    return intersection;
+	}
     }
     // assert(false)
 };
@@ -598,7 +646,7 @@ Rect.prototype.moveAndExpand = function(r){
     return this;
 };
 
-function rect(o){ return new Rect(o) };
+function rect(o){ return new Rect(o); }
 
 /**
  * Ellipse object.
@@ -608,7 +656,7 @@ function Ellipse(x, y, a, b){
     this.y = y;
     this.a = a;
     this.b = b;
-};
+}
 
 Ellipse.prototype.bbox = function(){
     return rect({x: this.x - this.a, y: this.y - this.b, width: 2*this.a, height: 2*this.b});
@@ -622,21 +670,23 @@ Ellipse.prototype.bbox = function(){
 Ellipse.prototype.intersectionWithLineFromCenterToPoint = function(p){
     var dx = p.x - this.x,
     dy = p.y - this.y;
-    if (dx == 0)
+    if (dx === 0){
 	return this.bbox().pointNearestToPoint(p);
+    }
 
     var m = dy / dx,
     mSquared = m * m,
     aSquared = this.a * this.a,
     bSquared = this.b * this.b,
     x = Math.sqrt(1 / ((1 / aSquared) + (mSquared / bSquared)));
-    if (dx < 0) 
+    if (dx < 0){
 	x = -x;
+    }
     var y = m * x;
     return point(this.x + x, this.y + y);
 };
 
-function ellipse(x, y, a, b){ return new Ellipse(x, y, a, b) };
+function ellipse(x, y, a, b){ return new Ellipse(x, y, a, b); }
 
 /**
  * Bezier segment object.
@@ -646,7 +696,7 @@ function BezierSegment(p0, p1, p2, p3){
     this.p1 = p1;
     this.p2 = p2;
     this.p3 = p3;
-};
+}
 
 /**
  * Get a point on me at the specified time t.
@@ -665,45 +715,52 @@ BezierSegment.prototype.getPoint = function(t){
 
 function bezierSegment(p0, p1, p2, p3){
     return new BezierSegment(p0, p1, p2, p3);
-};
+}
 
 /**
  * Various methods for Bezier curves manipulation.
  */
-function Bezier(){};
+function Bezier(){}
 
 /** 
- * Cubic Bézier curve path through points.
- * @author Andy Woodruff (http://cartogrammar.com/blog || awoodruff@gmail.com)
- * @date May 2008, updated January 2009
- * @description	Method for drawing a continuous series of cubic Bézier 
- *		curves through specified points.
+ * Cubic Bezier curve path through points.
+ * Ported from ActionScript implementation by Andy Woodruff (http://cartogrammar.com/blog)
  */
 Bezier.curveThroughPoints = function(points, z, angleFactor){
     // default values
-    if (typeof z === "undefined")
-	var z = 0.5;
-    if (typeof angleFactor === "undefined")
-	var angleFactor = 0.75;
+    if (typeof z === "undefined"){
+	z = 0.5;
+    }
+    if (typeof angleFactor === "undefined"){
+	angleFactor = 0.75;
+    }
     
     var path = [];	// the result SVG path as an array of path commands
-    if (points.length < 2)
+    if (points.length < 2){
 	throw new Error("Points array must have minimum of two points.");
+    }
 
     var p = [points[0]];
     // remove duplicate neighbours
     for (var i = 1, len = points.length; i < len; i++){
-	if (points[i].x != points[i-1].x || points[i].y != points[i-1].y)
+	if (points[i].x != points[i-1].x || points[i].y != points[i-1].y){
 	    p.push(points[i]);
+	}
     }
 
     // z is_in (0,1]
-    if (z <= 0)	z = .5;
-    else if (z > 1) z = 1;
+    if (z <= 0){
+	z = 0.5;
+    } else if (z > 1){
+	z = 1;
+    }
 
     // angleFactor is_in [0,1]
-    if (angleFactor < 0) angleFactor = 0;
-    else if (angleFactor > 1) angleFactor = 1;
+    if (angleFactor < 0){
+	angleFactor = 0;
+    } else if (angleFactor > 1){
+	angleFactor = 1;
+    }
     
     /**
      * Calculate all the curve control points.
@@ -741,17 +798,17 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
 	    var a = p0.distance(p1);
 	    // Correct for near-zero distances, a cheap way to prevent 
 	    // division by zero
-	    if (a < 0.001) a = .001;
+	    if (a < 0.001){ a = 0.001; }
 	    // Distance from current point to next point
 	    var b = p1.distance(p2);
-	    if (b < 0.001) b = .001;
+	    if (b < 0.001){ b = 0.001; }
 	    // Distance from previous point to next point
 	    var c = p0.distance(p2);
-	    if (c < 0.001) c = .001;
+	    if (c < 0.001){ c = 0.001; }
 	    var cos = (b*b+a*a-c*c)/(2*b*a);
 	    // Make sure above value is between -1 and 1 so that Math.acos will work
-	    if (cos < -1) cos = -1;
-	    else if (cos > 1) cos = 1;
+	    if (cos < -1){ cos = -1; }
+	    else if (cos > 1){ cos = 1; }
 	    // Angle formed by the two sides of the triangle 
 	    // (described by the three points above) adjacent to the current point
 	    var C = Math.acos(cos);
@@ -797,22 +854,22 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
 	    var rx = ax + bx;
 	    var ry = ay + by;
 	    // Correct for three points in a line by finding the angle between just two of them
-	    if (rx == 0 && ry == 0){
+	    if (rx === 0 && ry === 0){
 		// Really not sure why this seems to have to be negative
 		rx = -bx;
 		ry = by;
 	    }
 	    // Switch rx and ry when y or x difference is 0. This seems to prevent 
 	    // the angle from being perpendicular to what it should be.
-	    if (ay == 0 && by == 0){
+	    if (ay === 0 && by === 0){
 		rx = 0;
 		ry = 1;
-	    } else if (ax == 0 && bx == 0){
+	    } else if (ax === 0 && bx === 0){
 		rx = 1;
 		ry = 0;
 	    }
 	    // length of the summed vector - not being used, but there it is anyway
-	    var r = Math.sqrt(rx*rx+ry*ry);
+	    // var r = Math.sqrt(rx*rx+ry*ry);
 	    // angle of the new vector
 	    var theta = Math.atan2(ry,rx);
 	    // Distance of curve control points from current point: a fraction 
@@ -856,21 +913,23 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
 	// console.log(controlPts);
 
 	// If this isn't a closed line
-	if (firstPt == 1)
+	if (firstPt == 1){
 	    // Draw a regular quadratic Bézier curve from the first to second points, 
 	    // using the first control point of the second point
 	    path.push("S", controlPts[1][0].x,controlPts[1][0].y,p[1].x,p[1].y);
+	}
 
 	// Change to true if you want to use lineTo for straight lines of 3 or 
 	// more points rather than curves. You'll get straight lines but possible sharp corners!
 	var straightLines = true;
 	// Loop through points to draw cubic Bézier curves through the penultimate 
 	// point, or through the last point if the line is closed.
-	for (var i = firstPt;i < lastPt - 1; i++){
+	for (var i = firstPt; i < lastPt - 1; i++){
 	    // Determine if multiple points in a row are in a straight line
 	    var isStraight = false;
-	    if ( ( i > 0 && Math.atan2(p[i].y-p[i-1].y,p[i].x-p[i-1].x) == Math.atan2(p[i+1].y-p[i].y,p[i+1].x-p[i].x) )|| ( i < p.length - 2 && Math.atan2(p[i+2].y-p[i+1].y,p[i+2].x-p[i+1].x) == Math.atan2(p[i+1].y-p[i].y,p[i+1].x-p[i].x) ) )
+	    if ( ( i > 0 && Math.atan2(p[i].y-p[i-1].y,p[i].x-p[i-1].x) == Math.atan2(p[i+1].y-p[i].y,p[i+1].x-p[i].x) )|| ( i < p.length - 2 && Math.atan2(p[i+2].y-p[i+1].y,p[i+2].x-p[i+1].x) == Math.atan2(p[i+1].y-p[i].y,p[i+1].x-p[i].x) ) ){
 		isStraight = true;
+	    }
 
 	    if (straightLines && isStraight){
 		path.push("L", p[i+1].x,p[i+1].y);
@@ -879,7 +938,7 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
 		// point, the next point's first control point, and the next point
 		var bezier = bezierSegment(p[i],controlPts[i][1],controlPts[i+1][0],p[i+1]);
 		// Construct the curve out of 100 segments (adjust number for less/more detail)
-		for (var t=.01;t<1.01;t+=.01){
+		for (var t = 0.01; t < 1.01; t += 0.01){
 		    // x,y on the curve for a given t
 		    var val = bezier.getPoint(t);
 		    path.push("L", val.x, val.y);
@@ -887,9 +946,10 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
 	    }
 	}
 	// If this isn't a closed line	
-	if (lastPt == p.length-1)
+	if (lastPt == p.length-1){
 	    // Curve to the last point using the second control point of the penultimate point.
 	    path.push("S", controlPts[i][1].x,controlPts[i][1].y,p[i+1].x,p[i+1].y);
+	}
 
 	// just draw a line if only two points
     } else if (p.length == 2){	
@@ -904,14 +964,13 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
  **************************************************/
 
 function JointEngine(){ 
-    QHsm.apply(this, ["Initial"]) 
+    QHsm.apply(this, ["Initial"]);
     this.self = this;
-};
+}
 
-JointEngine.prototype = new QHsm;
+JointEngine.prototype = new QHsm();
 JointEngine.prototype.stateInitial = function(e){
     var self = this;
-
     this.myIdleHistory = null;	// allows transition to history of Idle state
 
     /**
@@ -927,8 +986,8 @@ JointEngine.prototype.stateInitial = function(e){
 	// called when a joint has just connected to an object
 	// the object is accessed using this
 	justConnected: function(){
-	    var self = this;
-	    //	    self.animate({scale: 1.2}, 100, function(){self.animate({scale: 1.0}, 100)});
+	    // var self = this;
+	    // self.animate({scale: 1.2}, 100, function(){self.animate({scale: 1.0}, 100)});
 	}
     };
 
@@ -939,7 +998,11 @@ JointEngine.prototype.stateInitial = function(e){
     // these objects are the ones I can connect to
     this.registeredObjects = [];
 
-    this._label = null;		// label that keeps its position with connection path middle point
+    // label related properties
+    this._labelString = "";	// label string
+    this._labelBox = null;	// rectangle where labelText is located
+    this._labelText = null;	// label that keeps its position with connection path middle point
+    this._labelAttrs = {stroke: "white", fill: "white"};
     
     this._con = null;		// holds the joint path
     this._conVertices = [];	// joint path vertices
@@ -1004,7 +1067,7 @@ JointEngine.prototype.stateInitial = function(e){
 	    dx: 15, dy: 15,
 	    attrs: { stroke: "black", fill: "black" }
 	},
-	// sizes, TODO: find a better solution then list of all sizes!
+	// sizes, TODO: find a better solution then list of all sizes!!!
 	basicArrow1: {path: ["M","1","0","L","-1","-1","L","-1","1","z"], dx: 1, dy: 1, attrs: { stroke: "black", fill: "black" }},
 	basicArrow2: {path: ["M","2","0","L","-2","-2","L","-2","2","z"], dx: 2, dy: 2, attrs: { stroke: "black", fill: "black" }},
 	basicArrow3: {path: ["M","3","0","L","-3","-3","L","-3","3","z"], dx: 3, dy: 3, attrs: { stroke: "black", fill: "black" }},
@@ -1033,16 +1096,18 @@ JointEngine.prototype.stateInitial = function(e){
 	    attrs: { stroke: "black", "stroke-width": 1.0 }
 	},
 	aggregationArrow: {
-	    path: ["M","15","0","L","0","10","L","-15","0", "L", "0", "-10", "z"],
-	    dx: 16, dy: 16,
+//	    path: ["M","15","0","L","0","10","L","-15","0", "L", "0", "-10", "z"],
+//	    dx: 16, dy: 16,
+	    path: ["M","7","0","L","0","5","L","-7","0", "L", "0", "-5", "z"],
+	    dx: 9, dy: 9,
 	    attrs: { stroke: "black", "stroke-width": 2.0, fill: "black" }
 	}
     };
 
     // used arrows (default values)
     this._opt.arrow = {
-	start: self._arrows.aggregationArrow,
-	end: self._arrows.basicArrow
+	start: self._arrows.basic,
+	end: self._arrows.basicArrow5
     };
 
     // initial state of the engine
@@ -1063,7 +1128,7 @@ JointEngine.prototype.stateGeneric = function(e){
 	return null;
     }
     return this.top();
-}
+};
 
 JointEngine.prototype.stateIdle = function(e){
     switch (e.type){
@@ -1094,10 +1159,10 @@ JointEngine.prototype.stateIdle = function(e){
 	}
 	return null;
     case "connectionMouseDown":
-	var mousePos = getMousePosition(e.args.jsEvt, this._raphael);
+	var mousePos = Joint.getMousePosition(e.args.jsEvt, this._raphael);
 
 	// if the mouse position is nearby a connection vertex
-	// do not create a new one, move the selected one instead
+	// do not create a new one but move the selected one instead
 	for (var i = 0, len = this._conVertices.length; i < len; i++){
 	    var v = this._conVertices[i];
 	    if (line(v, mousePos).squaredLength() < this._nearbyVertexSqrDist){
@@ -1109,16 +1174,20 @@ JointEngine.prototype.stateIdle = function(e){
 
 	// new vertices can be added CORRECTLY only at the end
 	// or at the start of the connection
-	// -> TODO
+	// -> TODO 
 	var 
 	sbbCenter = rect(this.startObject().shape.getBBox()).center(),
 	ebbCenter = rect(this.endObject().shape.getBBox()).center(),
+	// squared lengths of the lines from the center of 
+	// start/end object bbox to the mouse position
 	smLineSqrLen = line(sbbCenter, mousePos).squaredLength(),
 	emLineSqrLen = line(ebbCenter, mousePos).squaredLength();
 	if (smLineSqrLen < emLineSqrLen){
+	    // new vertex is added to the beginning of the vertex array
 	    this._conVerticesCurrentIndex = 0;
 	    this._conVertices.unshift(mousePos);
 	} else {
+	    // new vertex is added to the end of the vertex array
 	    this._conVerticesCurrentIndex = this._conVertices.push(mousePos) - 1;
 	}
 	this.newState("ConnectionWiring");
@@ -1169,7 +1238,7 @@ JointEngine.prototype.stateEndCapConnected = function(e){
     }
     return this.state("Idle");
 };
-//end of Idle
+//end of Idle (composite state)
 
 JointEngine.prototype.stateCapDragging = function(e){
     switch (e.type){
@@ -1195,16 +1264,17 @@ JointEngine.prototype.stateStartCapDragging = function(e){
 	return null;
     case "mouseUp":
 	var 
-	e = this.endCapConnected(),
+	ec = this.endCapConnected(),
 	dummy = this.startObject(),
 	dummyBB = dummy.shape.getBBox(),
 	o = this.objectContainingPoint(point(dummyBB.x, dummyBB.y));
 	
 	if (o === null || o.cap === "end"){
-	    if (e)
+	    if (ec){
 		this.newState("EndCapConnected");
-	    else
+	    } else {
 		this.newState("Disconnected");
+	    }
 	} else {
 	    this.callback("justConnected", o.target, ["start"]);
 	    dummy.shape.remove();	// remove old dummy shape
@@ -1213,14 +1283,16 @@ JointEngine.prototype.stateStartCapDragging = function(e){
 
 	    // push the Joint object into o.joints array
 	    // but only if o.joints already doesn't have that Joint object
-	    if (o.target.joints.indexOf(this.joint()) == -1)
+	    if (o.target.joints.indexOf(this.joint()) == -1){
 		o.target.joints.push(this.joint());
+	    }
 
 	    // make a transition
-	    if (e)
+	    if (ec){
 		this.newState("Connected");
-	    else
+	    } else {
 		this.newState("StartCapConnected");
+	    }
 	}
 	return null;
     }	
@@ -1243,16 +1315,17 @@ JointEngine.prototype.stateEndCapDragging = function(e){
 	return null;
     case "mouseUp":
 	var 
-	s = this.startCapConnected(),
+	sc = this.startCapConnected(),
 	dummy = this.endObject(),
 	dummyBB = dummy.shape.getBBox(),
 	o = this.objectContainingPoint(point(dummyBB.x, dummyBB.y));
 	
 	if (o === null || o.cap === "start"){
-	    if (s)
+	    if (sc){
 		this.newState("StartCapConnected");
-	    else
+	    } else {
 		this.newState("Disconnected");
+	    }
 	} else {
 	    this.callback("justConnected", o.target, ["end"]);
 	    dummy.shape.remove();	// remove old dummy shape
@@ -1261,14 +1334,16 @@ JointEngine.prototype.stateEndCapDragging = function(e){
 
 	    // push the Joint object into o.joints array
 	    // but only if o.joints already doesn't have that Joint object
-	    if (o.target.joints.indexOf(this.joint()) == -1)
+	    if (o.target.joints.indexOf(this.joint()) == -1){
 		o.target.joints.push(this.joint());
+	    }
 
 	    // make a transition
-	    if (s)
+	    if (sc){
 		this.newState("Connected");
-	    else
+	    } else {
 		this.newState("EndCapConnected");
+	    }
 	}
 	return null;
     }	
@@ -1319,7 +1394,7 @@ JointEngine.prototype.stateConnectionWiring = function(e){
 	return null;
     case "exit": return null;
     case "mouseMove":
-	this._conVertices[this._conVerticesCurrentIndex] = getMousePosition(e.args.jsEvt, this._raphael);
+	this._conVertices[this._conVerticesCurrentIndex] = Joint.getMousePosition(e.args.jsEvt, this._raphael);
 	this.redraw();
 	this.listenAll();
 	return null;
@@ -1333,14 +1408,14 @@ JointEngine.prototype.stateConnectionWiring = function(e){
 /**
  * Getters.
  */
-JointEngine.prototype.connection = function(){ return this._con };
-JointEngine.prototype.endObject = function(){ return this._end };
-JointEngine.prototype.startObject = function(){ return this._start };
-JointEngine.prototype.endCap = function(){ return this._endCap };
-JointEngine.prototype.endCapConnected = function(){ return !this._end.dummy };
-JointEngine.prototype.startCap = function(){ return this._startCap };
-JointEngine.prototype.startCapConnected = function(){ return !this._start.dummy };
-JointEngine.prototype.joint = function(){ return this._joint };
+JointEngine.prototype.connection = function(){ return this._con; };
+JointEngine.prototype.endObject = function(){ return this._end; };
+JointEngine.prototype.startObject = function(){ return this._start; };
+JointEngine.prototype.endCap = function(){ return this._endCap; };
+JointEngine.prototype.endCapConnected = function(){ return !this._end.dummy; };
+JointEngine.prototype.startCap = function(){ return this._startCap; };
+JointEngine.prototype.startCapConnected = function(){ return !this._start.dummy; };
+JointEngine.prototype.joint = function(){ return this._joint; };
 
 /**
  * Helpers.
@@ -1356,8 +1431,9 @@ JointEngine.prototype.callback = function(fnc, scope, args){
 JointEngine.prototype.objectContainingPoint = function(p){
     for (var i = this.registeredObjects.length - 1; i >= 0; --i){
 	var o = this.registeredObjects[i];
-	if (rect(o.target.getBBox()).containsPoint(p))
+	if (rect(o.target.getBBox()).containsPoint(p)){
 	    return o;
+	}
     }
     return null;
 };
@@ -1368,12 +1444,13 @@ JointEngine.prototype.objectContainingPoint = function(p){
  */
 JointEngine.prototype.freeJoint = function(obj){
     var 
-    jar = obj.shape.joints,
+    jar = obj.shape.joints,	// joints array
     i = jar.indexOf(this._joint);
     jar.splice(i, 1);
-    if (jar.length === 0)
+    if (jar.length === 0){
 	delete obj.shape.joints;
-}
+    }
+};
 
 
 /**************************************************
@@ -1386,9 +1463,9 @@ function addEvent(element, type, handler) {
 	element.addEventListener(type, handler, false);
     } else {
 	// assign each event handler a unique ID
-	if (!handler.$$guid) handler.$$guid = addEvent.guid++;
+	if (!handler.$$guid){ handler.$$guid = addEvent.guid++; }
 	// create a hash table of event types for the element
-	if (!element.events) element.events = {};
+	if (!element.events){ element.events = {}; }
 	// create a hash table of event handlers for each element/event pair
 	var handlers = element.events[type];
 	if (!handlers) {
@@ -1403,7 +1480,7 @@ function addEvent(element, type, handler) {
 	// assign a global event handler to do all the work
 	element["on" + type] = handleEvent;
     }
-};
+}
 // a counter used to create unique IDs
 addEvent.guid = 1;
 
@@ -1412,13 +1489,13 @@ function removeEvent(element, type, handler) {
 	element.removeEventListener(type, handler, false);
     } else {
 	// delete the event handler from the hash table
-	if (element.events && element.events[type]) {
+	if (element.events && element.events[type]){
 	    delete element.events[type][handler.$$guid];
 	}
     }
-};
+}
 
-function handleEvent(event) {
+function handleEvent(event){
     var returnValue = true;
     // grab the event object (IE uses a global event object)
     event = event || fixEvent(((this.ownerDocument || this.document || this).parentWindow || window).event);
@@ -1432,17 +1509,19 @@ function handleEvent(event) {
 	}
     }
     return returnValue;
-};
+}
 
 function fixEvent(event) {
     // add W3C standard event methods
     event.preventDefault = fixEvent.preventDefault;
     event.stopPropagation = fixEvent.stopPropagation;
     return event;
-};
+}
+
 fixEvent.preventDefault = function() {
     this.returnValue = false;
 };
+
 fixEvent.stopPropagation = function() {
     this.cancelBubble = true;
 };
@@ -1455,34 +1534,36 @@ fixEvent.stopPropagation = function() {
 JointEngine.prototype.listenOnMouseDown = function(obj){
     var self = this;
     // register mousedown event callback
-    if (obj === this.connection())	// on connection
+    if (obj === this.connection()){	// on connection
 	addEvent(obj.node, "mousedown", function(e){ 
 	    self.connectionMouseDown(e); 
 	    e.stopPropagation();	// prevent bubbling
 	    e.preventDefault();		// prevent browser's default action
 	});
-    else	// on cap
+    } else {	// on cap
 	addEvent(obj.node, "mousedown", function(e){ 
 	    self.capMouseDown(e, obj);
 	    e.stopPropagation();	// prevent bubbling
 	    e.preventDefault();		// prevent browser's default action
 	});
+    }
     // TODO: remove event when not needed 
 };
 
 JointEngine.prototype.listenOnDblClick = function(obj){
     var self = this;
     // register dblclick event callback
-    if (obj === this.connection())
+    if (obj === this.connection()){
 	addEvent(obj.node, "dblclick", function(e){ 
 	    self.connectionDblClick(e); 
 	    e.stopPropagation();	// prevent bubbling
 	    e.preventDefault();		// prevent browser's default action
 	});
+    }
     // TODO: remove event when not needed 
 };
 
-// reference to current engine when object dragging
+// reference to current engine when an object is dragging
 // can be global across all raphael 'worlds' because only one object can be dragged at a time
 Joint.currentEngine = null;
 
@@ -1531,7 +1612,7 @@ Joint.mouseUp = function(e){
 
 /**
  * TODO: register handlers only if draggable caps
- * is allowed in options. Applications may not need it.
+ * are allowed in options. Applications may not need it.
  */
 // register document event handlers
 addEvent(document, "mousemove", Joint.mouseMove);
@@ -1543,8 +1624,8 @@ addEvent(document, "mouseup", Joint.mouseUp);
  **************************************************/
 
 JointEngine.prototype.redraw = function(){
-    this.clean().connection().startCap().endCap();
-    this.draw().connection().startCap().endCap();
+    this.clean().connection().startCap().endCap().label();
+    this.draw().connection().startCap().endCap().label();
 };
 
 JointEngine.prototype.listenAll = function(){
@@ -1558,7 +1639,8 @@ JointEngine.prototype.listenAll = function(){
  * This is the beginning of every drawing.
  * Prepares parameters for drawing objects.
  * Defines primitives for drawing.
- * Draw functions (not primitives) store the resulting DOM element into self._con, self_startCap and self_endCap respectively.
+ * Draw functions (not primitives) store the resulting DOM element 
+ * into self._con, self._startCap, self._endCap, self._labelText and self._labelBox respectively.
  * Draw functions support chaining.
  */
 JointEngine.prototype.draw = function(){
@@ -1567,23 +1649,25 @@ JointEngine.prototype.draw = function(){
     __.raphael = self._raphael;
 
     // primitives
-    __.line = function(start, end, attrs){ return __.raphael.path(["M", start.x, start.y, "L", end.x, end.y].join(" ")).attr(attrs) };
-    __.path = function(commands, attrs){ return __.raphael.path(commands.join(" ")).attr(attrs) };
-    __.circle = function(pos, radius, attrs){ return __.raphael.circle(pos.x, pos.y, radius).attr(attrs) };
-    __.rect = function(pos, width, height, attrs){ return __.raphael.rect(pos.x, pos.y, width, height).attr(attrs) };
+    __.line = function(start, end, attrs){ return __.raphael.path(["M", start.x, start.y, "L", end.x, end.y].join(" ")).attr(attrs); };
+    __.path = function(commands, attrs){ return __.raphael.path(commands.join(" ")).attr(attrs); };
+    __.circle = function(pos, radius, attrs){ return __.raphael.circle(pos.x, pos.y, radius).attr(attrs); };
+    __.rect = function(pos, width, height, attrs){ return __.raphael.rect(pos.x, pos.y, width, height).attr(attrs); };
+    __.text = function(pos, str){ return __.raphael.text(pos.x, pos.y, str); };
 
     /**
      * Helpers.
      */
 
     /**
-     * Find point on an object of type type with bounding box r where line starting
-     * from r's center ending in point intersects the object.
+     * Find point on an object of type 'type' with bounding box 'r' where line starting
+     * from r's center ending in point 'p' intersects the object.
      */
     __.boundPoint = function(r, type, p){
 	var rCenter = r.center();
-	if (type === "circle" || type === "ellipse")
+	if (type === "circle" || type === "ellipse"){
 	    return ellipse(rCenter.x, rCenter.y, r.width/2, r.height/2).intersectionWithLineFromCenterToPoint(p);
+	}
 	// BUG: in lines intersection, can be all null
 	// it happens when point is located on the bb boundary
 	return r.boundPoint(p) || rCenter;
@@ -1595,49 +1679,53 @@ JointEngine.prototype.draw = function(){
 
     // start object bounding box
     __.sbb = rect(self._start.shape.getBBox()).moveAndExpand(self._opt.bboxCorrection.start);
-    if (!NDEBUG) DBG.push("sbb: " + __.sbb.toString());
+    if (!NDEBUG){ DBG.push("sbb: " + __.sbb.toString()); }
 
     // start object bounding box center point
     __.sbbCenter = __.sbb.center();
-    if (!NDEBUG) DBG.push("sbbCenter: " + __.sbbCenter.toString());
+    if (!NDEBUG){ DBG.push("sbbCenter: " + __.sbbCenter.toString()); }
 
     // end object bounding box
     __.ebb = rect(self._end.shape.getBBox()).moveAndExpand(self._opt.bboxCorrection.end);
-    if (!NDEBUG) DBG.push("ebb: " + __.ebb.toString());
+    if (!NDEBUG){ DBG.push("ebb: " + __.ebb.toString()); }
 
     // end object bounding box center point
     __.ebbCenter = __.ebb.center();
-    if (!NDEBUG) DBG.push("ebbCenter: " + __.ebbCenter.toString());
+    if (!NDEBUG){ DBG.push("ebbCenter: " + __.ebbCenter.toString()); }
 
     // intersection of a line leading from __sbbCenter to __ebbCenter 
     // (or first connection vertex) and the start object
-    if (self._conVertices.length > 0)
+    if (self._conVertices.length > 0){
 	__.sBoundPoint = __.boundPoint(__.sbb, self._opt.bboxCorrection.start.type || self._start.shape.type, self._conVertices[0]);	
-    else
+    } else {
 	__.sBoundPoint = __.boundPoint(__.sbb, self._opt.bboxCorrection.start.type || self._start.shape.type, __.ebbCenter);	
-    if (!NDEBUG) DBG.push("sBoundPoint: " + __.sBoundPoint.toString());
+    }
+    if (!NDEBUG){ DBG.push("sBoundPoint: " + __.sBoundPoint.toString()); }
 
     // intersection of a line leading from __ebbCenter to __sbbCenter 
     // (or last connection vertex) and the end object
-    if (self._conVertices.length > 0)
+    if (self._conVertices.length > 0){
 	__.eBoundPoint = __.boundPoint(__.ebb, self._opt.bboxCorrection.end.type || self._end.shape.type, self._conVertices[self._conVertices.length - 1]);	
-    else
+    } else {
 	__.eBoundPoint = __.boundPoint(__.ebb, self._opt.bboxCorrection.end.type || self._end.shape.type, __.sbbCenter);
-    if (!NDEBUG) DBG.push("eBoundPoint: " + __.eBoundPoint.toString());
+    }
+    if (!NDEBUG){ DBG.push("eBoundPoint: " + __.eBoundPoint.toString()); }
 
     // angle between __sbbCenter and __ebbCenter (or first connection vertex)
-    if (self._conVertices.length > 0)
+    if (self._conVertices.length > 0){
 	__.sTheta = __.sbbCenter.theta(self._conVertices[0]);
-    else
+    } else {
 	__.sTheta = __.sbbCenter.theta(__.ebbCenter);	
-    if (!NDEBUG) DBG.push("theta: " + __.sTheta.degrees + ", " + __.sTheta.radians);
+    }
+    if (!NDEBUG){ DBG.push("theta: " + __.sTheta.degrees + ", " + __.sTheta.radians); }
 
     // angle between __ebbCenter and __sbbCenter (or last connection vertex)
-    if (self._conVertices.length > 0)
+    if (self._conVertices.length > 0){
 	__.eTheta = self._conVertices[self._conVertices.length - 1].theta(__.ebbCenter);
-    else 
+    } else { 
 	__.eTheta = __.sbbCenter.theta(__.ebbCenter);
-    if (!NDEBUG) DBG.push("theta: " + __.eTheta.degrees + ", " + __.eTheta.radians);
+    }
+    if (!NDEBUG){ DBG.push("theta: " + __.eTheta.degrees + ", " + __.eTheta.radians); }
 
     // __sBoundPoint moved in the direction of __eBoundPoint (or first connection vertex) 
     // by start cap width
@@ -1645,7 +1733,7 @@ JointEngine.prototype.draw = function(){
 	__.sBoundPoint.x + (2 * self._opt.arrow.start.dx * Math.cos(__.sTheta.radians)),
 	__.sBoundPoint.y + (-2 * self._opt.arrow.start.dy * Math.sin(__.sTheta.radians))
     );
-    if (!NDEBUG) DBG.push("sPoint: " + __.sPoint.toString());
+    if (!NDEBUG){ DBG.push("sPoint: " + __.sPoint.toString()); }
 
     // __eBoundPoint moved in the direction of __sBoundPoint (or last connection vertex) 
     // by end cap width
@@ -1653,7 +1741,7 @@ JointEngine.prototype.draw = function(){
 	__.eBoundPoint.x + (-2 * self._opt.arrow.end.dx * Math.cos(__.eTheta.radians)),
 	__.eBoundPoint.y + (2 * self._opt.arrow.end.dy * Math.sin(__.eTheta.radians))
     );
-    if (!NDEBUG) DBG.push("ePoint: " + __.ePoint.toString());
+    if (!NDEBUG){ DBG.push("ePoint: " + __.ePoint.toString()); }
 
     // connection path commands
     if (self._opt.beSmooth){
@@ -1670,17 +1758,27 @@ JointEngine.prototype.draw = function(){
 	__.conPathCommands.push(__.ePoint.y);
     }
 
+    // label position
+    if (self._labelString != ""){
+	__.labelPoint = __.sPoint;
+	for (var i = 0, len = self._conVertices.length; i < len; i++){
+	    var v = self._conVertices[i];
+	    __.labelPoint = line(__.labelPoint, v).midpoint();
+	}
+	__.labelPoint = line(__.labelPoint, __.ePoint).midpoint();
+    }
+
 
     return {
 	dummyEnd: function(){
 	    self._end.dummy = true;
-	    self._end.shape = __.circle(__.eBoundPoint, 1, {"opacity": .0});
+	    self._end.shape = __.circle(__.eBoundPoint, 1, {"opacity": 0.0});
 	    self._end.shape.show();
 	    return this;
 	},
 	dummyStart: function(){
 	    self._start.dummy = true;
-	    self._start.shape = __.circle(__.sBoundPoint, 1, {"opacity": .0});
+	    self._start.shape = __.circle(__.sBoundPoint, 1, {"opacity": 0.0});
 	    self._start.shape.show();
 	    return this;
 	},
@@ -1692,14 +1790,22 @@ JointEngine.prototype.draw = function(){
 	    self._con.show();
 	    return this;
 	},
+	label: function(){
+	    if (self._labelString == ""){ return this; }
+	    self._labelText = __.text(__.labelPoint, self._labelString);
+	    var bb = self._labelText.getBBox();
+	    self._labelBox = __.rect(bb, bb.width, bb.height, self._labelAttrs);
+	    self._labelText.insertAfter(self._labelBox);
+	    return this;
+	},
 	startCap: function(){
 	    var a = self._opt.arrow.start;
 	    self._startCap = __.path(a.path, a.attrs);
 	    self._startCap.translate(__.sBoundPoint.x + (a.dx * Math.cos(__.sTheta.radians)), 
 				     __.sBoundPoint.y - (a.dy * Math.sin(__.sTheta.radians)));
-	    if (!NDEBUG) DBG.push("startCap translation: " + (__.sBoundPoint.x + a.dx * Math.cos(__.sTheta.radians)) + ", " + (__.sBoundPoint.y - a.dy * Math.sin(__.sTheta.radians)));
+	    if (!NDEBUG){ DBG.push("startCap translation: " + (__.sBoundPoint.x + a.dx * Math.cos(__.sTheta.radians)) + ", " + (__.sBoundPoint.y - a.dy * Math.sin(__.sTheta.radians))); }
 	    self._startCap.rotate(360 - (__.sTheta.degrees) + 180);
-	    if (!NDEBUG) DBG.push("startCap rotation: " + (360 - __.sTheta.degrees + 180));
+	    if (!NDEBUG){ DBG.push("startCap rotation: " + (360 - __.sTheta.degrees + 180)); }
 	    self._startCap.show();
 	    return this;
 	},
@@ -1708,36 +1814,40 @@ JointEngine.prototype.draw = function(){
 	    self._endCap = __.path(a.path, a.attrs);
 	    self._endCap.translate(__.eBoundPoint.x - (a.dx * Math.cos(__.eTheta.radians)), 
 				   __.eBoundPoint.y + (a.dy * Math.sin(__.eTheta.radians)));
-	    if (!NDEBUG) DBG.push("endCap translation: " + (__.eBoundPoint.x - a.dx * Math.cos(__.eTheta.radians)) + ", " + (__.eBoundPoint.y + a.dy * Math.sin(__.eTheta.radians)));
+	    if (!NDEBUG){ DBG.push("endCap translation: " + (__.eBoundPoint.x - a.dx * Math.cos(__.eTheta.radians)) + ", " + (__.eBoundPoint.y + a.dy * Math.sin(__.eTheta.radians))); }
 	    self._endCap.rotate(360 - (__.eTheta.degrees));
-	    if (!NDEBUG) DBG.push("endCap rotation: " + (360 - __.eTheta.degrees));
+	    if (!NDEBUG){ DBG.push("endCap rotation: " + (360 - __.eTheta.degrees)); }
 	    self._endCap.show();
 	    return this;
 	}
-    }
+    };
 };
 
 /**
  * Clean operations. 
- * Remove the DOM elements of connection/startCap/endCap if they exist.
+ * Remove the DOM elements of connection/startCap/endCap/label if they exist.
  * Clean operations support chaining.
  */
 JointEngine.prototype.clean = function(){
     var self = this;
     return {
 	connection: function(){ 
-	    self._con && self._con.remove() ;
+	    self._con && self._con.remove();
 	    return this;
 	},
 	startCap: function(){
-	    self._startCap && self._startCap.remove() 
+	    self._startCap && self._startCap.remove();
 	    return this;
 	},
 	endCap: function(){ 
-	    self._endCap && self._endCap.remove() 
+	    self._endCap && self._endCap.remove();
 	    return this;
+	},
+	label: function(){
+	    self._labelBox && self._labelBox.remove();
+	    self._labelText && self._labelText.remove();
 	}
-    }
+    };
 };
 
 /**************************************************
@@ -1747,7 +1857,7 @@ JointEngine.prototype.clean = function(){
 function Joint(raphael){ 
     this.engine = new JointEngine().init();
     this.engine._raphael = raphael;
-};
+}
 window.Joint = Joint;	// the only global variable
 
 /**
@@ -1756,13 +1866,16 @@ window.Joint = Joint;	// the only global variable
  * @param <cap> string "start|end|both" default: "both"
  */
 Joint.prototype.register = function(obj, cap){
-    if (typeof cap === "undefined")
-	var cap = "both";
+    if (typeof cap === "undefined"){
+	cap = "both";
+    }
     if (obj.constructor == Array){
-	for (var i = 0, len = obj.length; i < len; i++)
+	for (var i = 0, len = obj.length; i < len; i++){
 	    this.engine.registeredObjects.push({target: obj[i], cap: cap});
-    } else 
+	}
+    } else {
 	this.engine.registeredObjects.push({target: obj, cap: cap});
+    }
     return this;
 };
 
@@ -1772,17 +1885,20 @@ Joint.prototype.register = function(obj, cap){
  * @param <cap> string "start|end|both" default: "both"
  */
 Joint.prototype.unregister = function(obj, cap){
-    if (typeof cap === "undefined")
-	var cap = "both";
+    if (typeof cap === "undefined"){
+	cap = "both";
+    }
     var index = -1;
     for (var i = 0, len = this.engine.registeredObjects.length; i < len; i++){
 	if (this.engine.registeredObjects[i].target === obj && 
-	    this.engine.registeredObjects[i].cap === cap)
+	    this.engine.registeredObjects[i].cap === cap){
 	    index = i;
 	    break;
+	}
     }
-    if (index !== -1)
+    if (index !== -1){
 	this.engine.registeredObjects.splice(index, 1);
+    }
 };
 
 /**
@@ -1796,6 +1912,9 @@ Joint.prototype.setVertices = function(vertices){
     return this;
 };
 
+/**
+ * Toggle the connection smoothing (bezier/straight).
+ */
 Joint.prototype.toggleSmoothing = function(){
     this.engine._opt.beSmooth = !this.engine._opt.beSmooth;
     this.engine.redraw();
@@ -1811,15 +1930,16 @@ Joint.prototype.toggleSmoothing = function(){
  */
 var _attr = Raphael.el.attr;
 Raphael.el.attr = function(){
-    // is it a getter or not a joint object?
-    if ((arguments.length == 1 && (typeof arguments[0] === "string" || typeof arguments[0] === "array")) ||
-	(typeof this.joints === "undefined"))
+    // is it a getter or el is not a joint object?
+    if ((arguments.length == 1 && (typeof arguments[0] === "string" || typeof arguments[0] === "array")) || (typeof this.joints === "undefined")){
 	return _attr.apply(this, arguments);	// yes
+    }
 
     // old attributes
     var o = {};
-    for (var key in this.attrs)
+    for (var key in this.attrs){
 	o[key] = this.attrs[key];
+    }
 
     _attr.apply(this, arguments);
     
@@ -1833,21 +1953,24 @@ Raphael.el.attr = function(){
 	    o.path != n.path ||	// path
 	    o.r != n.r){	// radius
 
-	    if (this === engine.startObject().shape)
+	    if (this === engine.startObject().shape){
 		engine.dispatch(qevt("startPositionChanged"));
-	    else
+	    } else {
 		engine.dispatch(qevt("endPositionChanged"));
+	    }
 	    engine.dispatch(qevt("done"));
 	}
 	
-	if (o.stroke != n.stroke)
+	if (o.stroke != n.stroke){
 	    engine.dispatch(qevt("strokeChanged"));
+	}
     }
 
     return this;
 };
 
 /**************************************************
+ * TODO: desrcibe all options.
  * Create a joint between the this and to objects.
  * @param to object Raphael object (rect/ellipse/circle)
  * @param opt object options
@@ -1886,36 +2009,49 @@ Raphael.el.joint = function(to, opt){
     j.engine._end.shape = to;
 //    j.engine._raphael = this.paper;
 
+    if (opt && opt.label){
+	j.engine._labelString = opt.label;
+    }
+
     if (opt && opt.attrs){
-	for (var key in opt.attrs)
+	for (var key in opt.attrs){
 	    j.engine._opt.attrs[key] = opt.attrs[key];
+	}
     }
     if (opt && opt.startArrow){
-	if (opt.startArrow.type) 
+	if (opt.startArrow.type){
 	    j.engine._opt.arrow.start = j.engine._arrows[opt.startArrow.type];
-	else 
+	} else { 
 	    opt.startArrow.type = "aggregationArrow";
-	if (opt.startArrow.attrs)
-	    for (var key in opt.startArrow.attrs)
+	}
+	if (opt.startArrow.attrs){
+	    for (var key in opt.startArrow.attrs){
 		j.engine._arrows[opt.startArrow.type].attrs[key] = opt.startArrow.attrs[key];
+	    }
+	}
     }
     if (opt && opt.endArrow){
-	if (opt.endArrow.type) 
+	if (opt.endArrow.type){
 	    j.engine._opt.arrow.end = j.engine._arrows[opt.endArrow.type];
-	else 
+	} else { 
 	    opt.endArrow.type = "basicArrow";
-	if (opt.endArrow.attrs)
-	    for (var key in opt.endArrow.attrs)
+	}
+	if (opt.endArrow.attrs){
+	    for (var key in opt.endArrow.attrs){
 		j.engine._arrows[opt.endArrow.type].attrs[key] = opt.endArrow.attrs[key];
+	    }
+	}
     }
     if (opt && opt.bboxCorrection){
 	if (opt.bboxCorrection.start){
-	    for (var key in opt.bboxCorrection.start)
+	    for (var key in opt.bboxCorrection.start){
 		j.engine._opt.bboxCorrection.start[key] = opt.bboxCorrection.start[key];
+	    }
 	}
 	if (opt.bboxCorrection.end){
-	    for (var key in opt.bboxCorrection.end)
+	    for (var key in opt.bboxCorrection.end){
 		j.engine._opt.bboxCorrection.end[key] = opt.bboxCorrection.end[key];
+	    }
 	}
     }
 
