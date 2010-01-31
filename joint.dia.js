@@ -107,22 +107,17 @@ Element.prototype = {
 	    dia._registeredObjects[paper] = [this];
 	}
     },
+    self: this,
 
     // this is needed in joint library when
     // manipulation with a raphael object joints array
     // - just delegate joints array methods to the wrapper
-    joints: {
-	self: this,
-	indexOf: function(){
-	    return self.wrapper.joints.indexOf.apply(self.wrapper.joints, arguments);
-	},
-	push: function(){
-	    return self.wrapper.joints.push.apply(self.wrapper.joints, arguments);
-	}
+    joints: function(){
+	return this.wrapper.joints();
     },
 
     updateJoints: function(){
-	var joints = this.wrapper.joints;
+	var joints = this.wrapper.joints();
 	if (joints){
 	    for (var i = 0, l = joints.length; i < l; i++){
 		joints[i].engine.redraw();

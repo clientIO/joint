@@ -117,13 +117,15 @@ if (!Array.indexOf){
  * @return {Point}
  */
 Joint.findPos = function(el){
-    console.log(el);
     var p = point(0, 0);
     if (el.offsetParent){
 	while (el){
 	    p.offset(el.offsetLeft, el.offsetTop);
 	    el = el.offsetParent;
 	}
+    } else {
+	// firefox (supposing el is Raphael canvas element)
+	p.offset(el.parentNode.offsetLeft, el.parentNode.offsetTop);
     }
     return p;
 };
@@ -132,10 +134,10 @@ Joint.findPos = function(el){
  * Get the mouse position relative to the raphael paper.
  * @private
  * @param {Event} e Javascript event object
- * @param {RaphaelPaper}
+ * @param {Element} el DOM element
  * @return {Point}
  */
-Joint.getMousePosition = function(e, r){
+Joint.getMousePosition = function(e, el){
     var pos;
     if (e.pageX || e.pageY) {
         pos = point(e.pageX, e.pageY);
@@ -146,7 +148,7 @@ Joint.getMousePosition = function(e, r){
 	pos = point(e.clientX + (docEl.scrollLeft || docBody.scrollLeft) - docEl.clientLeft,
 		    e.clientY + (docEl.scrollTop || docBody.scrollTop) - docEl.clientTop);
     }
-    var rp = Joint.findPos(r.canvas);
+    var rp = Joint.findPos(el);
     return point(pos.x - rp.x, pos.y - rp.y);
 };
 
@@ -370,7 +372,7 @@ JointEngine.prototype.stateIdle = function(e){
 	}
 	return null;
     case "connectionMouseDown":
-	var mousePos = Joint.getMousePosition(e.args.jsEvt, this.joint.raphael);
+	var mousePos = Joint.getMousePosition(e.args.jsEvt, this.joint.raphael.canvas);
 
 	// if the mouse position is nearby a connection vertex
 	// do not create a new one but move the selected one instead
@@ -596,7 +598,7 @@ JointEngine.prototype.stateConnectionWiring = function(e){
 	return null;
     case "exit": return null;
     case "mouseMove":
-	this._conVertices[this._conVerticesCurrentIndex] = Joint.getMousePosition(e.args.jsEvt, this.joint.raphael);
+	this._conVertices[this._conVerticesCurrentIndex] = Joint.getMousePosition(e.args.jsEvt, this.joint.raphael.canvas);
 	this.redraw();
 	this.listenAll();
 	return null;
@@ -709,11 +711,11 @@ JointEngine.prototype.objectContainingPoint = function(p){
  */
 JointEngine.prototype.freeJoint = function(obj){
     var 
-    jar = obj.shape.joints,	// joints array
+    jar = obj.shape.joints(),	// joints array
     i = jar.indexOf(this.joint);
     jar.splice(i, 1);
     if (jar.length === 0){
-	delete obj.shape.joints;
+	delete obj.shape.joints();
     }
 };
 
@@ -723,12 +725,13 @@ JointEngine.prototype.freeJoint = function(obj){
  */
 JointEngine.prototype.addJoint = function(obj){
     if (!obj.joints){
-	obj.joints = [];
+	obj._joints = [];
+	obj.joints = function(){ return this._joints; };
     }
     // push the Joint object into obj.joints array
     // but only if obj.joints already doesn't have that Joint object
-    if (obj.joints.indexOf(this.joint) === -1){
-	obj.joints.push(this.joint);
+    if (obj.joints().indexOf(this.joint) === -1){
+	obj.joints().push(this.joint);
     }
 };
 
@@ -1625,8 +1628,8 @@ Raphael.el.attr = function(){
 	strokeChanged = true;
     }    
 
-    for (var i = this.joints.length - 1; i >= 0; --i){
-	var engine = this.joints[i].engine;
+    for (var i = this.joints().length - 1; i >= 0; --i){
+	var engine = this.joints()[i].engine;
 	
 	if (positionChanged){
 	    if (this === engine.startObject().shape){
