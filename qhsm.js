@@ -298,6 +298,8 @@ QHsm.prototype = {
 	    s.exit();
 	    s = s.superstate();
 	}
+	
+	return undefined;	// shouldn't be reached
     },
     
     // tail of transition()

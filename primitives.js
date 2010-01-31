@@ -175,7 +175,15 @@ function Rect(o){
     this.height = o.height;
 }
 
-function rect(o){ return new Rect(o); }
+function rect(o){ 
+    if (typeof o.width === "undefined"){
+	return new Rect({x: arguments[0],
+			 y: arguments[1],
+			 width: arguments[2],
+			 height: arguments[3]});
+    }
+    return new Rect(o); 
+}
 
 Rect.prototype = {
     constructor: Rect,

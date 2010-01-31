@@ -32,6 +32,70 @@ var DBG = [];	// collector for debugging messages
 
 //(function(){	// BEGIN CLOSURE
 
+/**
+ * Copies all the properties to the first argument from the following arguments.
+ * All the properties will be overwritten by the properties from the following
+ * arguments. Inherited properties are ignored.
+ */
+function Mixin() {
+    var target = arguments[0];
+    for (var i = 1, l = arguments.length; i < l; i++){
+        var extension = arguments[i];
+        for (var key in extension){
+            if (!extension.hasOwnProperty(key)){
+		continue;
+	    }
+            var copy = extension[key];
+            if (copy === target[key]){
+		continue;
+	    }
+            // copying super with the name base if it does'nt has one already
+            if (typeof copy == "function" && typeof target[key] == "function" && !copy.base){
+		copy.base = target[key];
+	    }
+            target[key] = copy;
+        }
+    }
+    return target;
+}
+
+/**
+ * Copies all properties to the first argument from the following
+ * arguments only in case if they don't exists in the first argument.
+ * All the function propererties in the first argument will get
+ * additional property base pointing to the extenders same named
+ * property function's call method.
+ * @example
+ * // usage of base
+ * Bar.extend({
+ * // function should have name
+ * foo: function foo(digit) {
+ * return foo.base(this, parseInt(digit))
+ * }
+ * });
+ */
+function Supplement() {
+    var target = arguments[0];
+    for (var i = 1, l = arguments.length; i < l; i++){
+        var extension = arguments[i];
+        for (var key in extension) {
+                var copy = extension[key];
+                if (copy === target[key]){
+		    continue;
+		}
+                // copying super with the name base if it does'nt has one already
+                if (typeof copy == "function" && typeof target[key] == "function" && !target[key].base){
+		    target[key].base = copy;
+		}
+                // target doesn't has propery that is owned by extension copying it
+                if (!target.hasOwnProperty(key) && extension.hasOwnProperty(key)){
+		    target[key] = copy;
+		}
+        }
+    }
+    return target;
+}
+
 if (!Array.indexOf){
     /**
      * Array.indexOf is missing in IE 8.
@@ -97,7 +161,7 @@ function JointEngine(){
     QHsm.apply(this, ["Initial"]);
 }
 
-JointEngine.prototype = new QHsm();
+JointEngine.prototype = new QHsm;
 
 JointEngine.prototype.stateInitial = function(e){
     this.joint = null;		// back reference to Joint object
@@ -146,13 +210,11 @@ JointEngine.prototype.stateInitial = function(e){
 
     // connection from start to end
     this._start = { // start object
-	joints: [],		// Joints
 	curEngine: null,	// currently used engine (when wired)
 	shape: null,		// Raphael object
 	dummy: false		// is it a dummy object?
     };		
     this._end = { // end object
-	joints: [],		// Joints
 	curEngine: null,	// currently used engine (when wired)
 	shape: null,		// Raphael object
 	dummy: false		// is it a dummy object?
@@ -433,12 +495,7 @@ JointEngine.prototype.stateStartCapDragging = function(e){
 	} else {
 	    this.callback("justConnected", o, ["start"]);
 	    this.replaceDummy(this.startObject(), o);
-
-	    // push the Joint object into o.joints array
-	    // but only if o.joints already doesn't have that Joint object
-	    if (o.joints.indexOf(this.joint) == -1){
-		o.joints.push(this.joint);
-	    }
+	    this.addJoint(o);
 
 	    // make a transition
 	    if (ec){
@@ -486,12 +543,7 @@ JointEngine.prototype.stateEndCapDragging = function(e){
 	} else {
 	    this.callback("justConnected", o, ["end"]);
 	    this.replaceDummy(this.endObject(), o);
-
-	    // push the Joint object into o.joints array
-	    // but only if o.joints already doesn't have that Joint object
-	    if (o.joints.indexOf(this.joint) == -1){
-		o.joints.push(this.joint);
-	    }
+	    this.addJoint(o);
 
 	    if (sc){
 		// both caps are connected
@@ -662,6 +714,21 @@ JointEngine.prototype.freeJoint = function(obj){
     jar.splice(i, 1);
     if (jar.length === 0){
 	delete obj.shape.joints;
+    }
+};
+
+/**
+ * Add reference to Joint to obj.
+ * @param {RaphaelObject} obj
+ */
+JointEngine.prototype.addJoint = function(obj){
+    if (!obj.joints){
+	obj.joints = [];
+    }
+    // push the Joint object into obj.joints array
+    // but only if obj.joints already doesn't have that Joint object
+    if (obj.joints.indexOf(this.joint) === -1){
+	obj.joints.push(this.joint);
     }
 };
 
@@ -1433,16 +1500,8 @@ function Joint(raphael, from, to, opt){
 
     // to be able to dispatch events in Raphael element attr method
     // TODO: possible source of memory leaks!!!
-    if (engine._start.shape.joints){
-	engine._start.shape.joints.push(this) 
-    } else {
-	engine._start.shape.joints = [this];
-    }
-    if (engine._end.shape.joints){
-	engine._end.shape.joints.push(this) 
-    } else {
-	engine._end.shape.joints = [this];
-    }
+    engine.addJoint(engine._start.shape);
+    engine.addJoint(engine._end.shape);
 
     // notice the machine
     if (from._isPoint && !to._isPoint){
@@ -1604,9 +1663,10 @@ Joint.prototype.register = function(obj, cap){
     }
     // register all objects in toRegister array
     for (var i = 0, len = toRegister.length; i < len; i++){
-	if (!toRegister[i].joints){
-	    toRegister[i].joints = [];
-	}
+	// @remove ?
+//	if (!toRegister[i].joints){
+//	    toRegister[i].joints = [];
+//	}
 	toRegister[i]._capToStick = cap;
 	this.engine._registeredObjects.push(toRegister[i]);
     }
