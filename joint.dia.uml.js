@@ -1,26 +1,46 @@
-/**************************************************
- * UML StateChart
- **************************************************/
+/**
+ * Joint.dia.uml 0.1.0 - Joint.dia plugin for creating UML diagrams.
+ * Copyright (c) 2009 David Durman
+ * Licensed under the MIT license: (http://www.opensource.org/licenses/mit-license.php)
+ */
+(function(global){	// BEGIN CLOSURE
+
+var Joint = global.Joint;
 
 var uml = Joint.dia.uml = {};
 var Element = Joint.dia.Element;
 
+var point = Joint.point;
+
 /**
  * Predefined arrows for Class diagram.
  */
+global.Joint.arrows.aggregation = function(size){
+    return {
+	path: ["M","7","0","L","0","5","L","-7","0", "L", "0", "-5", "z"],
+	dx: 9, 
+	dy: 9,
+	attrs: { 
+	    stroke: "black", 
+	    "stroke-width": 2.0, 
+	    fill: "black" 
+	}
+    };
+};
+
 uml.aggregationArrow = {
-  endArrow: { type: "aggregationArrow" },
-  startArrow: {type: "basic"},
+  endArrow: { type: "aggregation" },
+  startArrow: {type: "none"},
   attrs: { "stroke-dasharray": "none" }
 };
 uml.dependencyArrow = {
-  endArrow: { type: "basicArrow", size: 5 },
-  startArrow: {type: "basic"},
+  endArrow: { type: "basic", size: 5 },
+  startArrow: {type: "none"},
   attrs: { "stroke-dasharray": "none" }
 };
 uml.generalizationArrow = {
-  endArrow: { type: "basicArrow", size: 10, attrs: {fill: "white"} },
-  startArrow: {type: "basic"},
+  endArrow: { type: "basic", size: 10, attrs: {fill: "white"} },
+  startArrow: {type: "none"},
   attrs: { "stroke-dasharray": "none" }
 };
 
@@ -28,8 +48,8 @@ uml.generalizationArrow = {
  * Predefined arrow for StateChart.
  */
 uml.arrow = {
-    startArrow: {type: "basic"},
-    endArrow: {type: "basicArrow", size: 5}, 
+    startArrow: {type: "none"},
+    endArrow: {type: "basic", size: 5}, 
     attrs: {"stroke-dasharray": "none"}
 };
 
@@ -41,7 +61,7 @@ uml.arrow = {
  * @param attrs shape SVG attributes
  * @param actions object entry/exit/inner actions
  */
-uml.state = Element.extend({
+uml.State = Element.extend({
     init: function(properties){
 	// options
 	var rect = this.rect = properties.rect;
@@ -121,14 +141,7 @@ uml.state = Element.extend({
  * @param r radius
  * @param attrs shape SVG attributes
  */
-/**
- * FSA start state.
- * @param paper raphael paper
- * @param p point position
- * @param r radius
- * @param attrs shape SVG attributes
- */
-uml.startState = Element.extend({
+uml.StartState = Element.extend({
      init: function(properties){
 	 // options
 	 this.position = properties.position || point(0, 0);
@@ -150,7 +163,7 @@ uml.startState = Element.extend({
  * @param r radius
  * @param attrs shape SVG attributes
  */
-uml.endState = Element.extend({
+uml.EndState = Element.extend({
      init: function(properties){
 	 // options
 	 this.position = properties.position || point(0, 0);
@@ -179,11 +192,14 @@ uml.endState = Element.extend({
  * UML Class Diagram
  **************************************************/
 
-uml.class = Element.extend({
+uml.Class = Element.extend({
     init: function(properties){
 	var rect = this.rect = properties.rect;
 	var attrs = this.attrs = properties.attrs || {};
-	this.label = properties.label || {};
+	if (!attrs.fill){
+	    attrs.fill = "white";
+	}
+	this.label = properties.label || "";
 	this.labelOffsetX = properties.labelOffsetX || 20;
 	this.labelOffsetY = properties.labelOffsetY || 5;
 	this.swimlane1OffsetY = properties.swimlane1OffsetY || 18;
@@ -266,3 +282,5 @@ uml.class = Element.extend({
 	this.inner[4] = this.getMethodsElement();
     }			       
 });
+
+})(this);	// END CLOSURE

@@ -1,5 +1,5 @@
-/****************************************************
- * Joint.dia 0.0.2 - Joint plugin for creating composite shapes.
+/**
+ * Joint.dia 0.1.0 - Joint plugin for creating diagram elements.
  *
  * Copyright (c) 2009 David Durman
  *
@@ -22,8 +22,13 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- *
- ****************************************************/
+ */
+(function(global){	// BEGIN CLOSURE
+
+var Joint = global.Joint;
+
+var point = Joint.point;
+var rect = Joint.rect;
 
 var dia = Joint.dia = {
     /**
@@ -39,17 +44,77 @@ var dia = Joint.dia = {
      *  - registered objects can embed and can be embedded
      *  - the table is of the form: {RaphaelPaper1: [shape1, shape2, ...]}
      */
-    _registeredObjects: {},
-    /**
-     * Raphael paper.
-     */
-    paper: null
+    _registeredObjects: {}
 };
 
 /**
  * Composite object.
  */
 var Element = dia.Element = function(){};
+
+/**
+ * Copies all the properties to the first argument from the following arguments.
+ * All the properties will be overwritten by the properties from the following
+ * arguments. Inherited properties are ignored.
+ */
+function Mixin() {
+    var target = arguments[0];
+    for (var i = 1, l = arguments.length; i < l; i++){
+        var extension = arguments[i];
+        for (var key in extension){
+            if (!extension.hasOwnProperty(key)){
+		continue;
+	    }
+            var copy = extension[key];
+            if (copy === target[key]){
+		continue;
+	    }
+            // copying super with the name base if it does'nt has one already
+            if (typeof copy == "function" && typeof target[key] == "function" && !copy.base){
+		copy.base = target[key];
+	    }
+            target[key] = copy;
+        }
+    }
+    return target;
+}
+
+/**
+ * Copies all properties to the first argument from the following
+ * arguments only in case if they don't exists in the first argument.
+ * All the function propererties in the first argument will get
+ * additional property base pointing to the extenders same named
+ * property function's call method.
+ * @example
+ * // usage of base
+ * Bar.extend({
+ * // function should have name
+ * foo: function foo(digit) {
+ * return foo.base(this, parseInt(digit))
+ * }
+ * });
+ */
+function Supplement() {
+    var target = arguments[0];
+    for (var i = 1, l = arguments.length; i < l; i++){
+        var extension = arguments[i];
+        for (var key in extension) {
+            var copy = extension[key];
+            if (copy === target[key]){
+		continue;
+	    }
+            // copying super with the name base if it does'nt has one already
+            if (typeof copy == "function" && typeof target[key] == "function" && !target[key].base){
+		target[key].base = copy;
+	    }
+            // target doesn't has propery that is owned by extension copying it
+            if (!target.hasOwnProperty(key) && extension.hasOwnProperty(key)){
+		target[key] = copy;
+	    }
+        }
+    }
+    return target;
+}
 
 Element.create = function(properties){
     var instance = new this(properties);
@@ -73,7 +138,6 @@ Element.extend = function(prototype){
 Element.prototype = {
     parentShape: null,
     toolbox: null,
-    _isShape: true,	// @remove ?
     _isElement: true,
     // auxiliaries for scaling and translating
     lastScaleX: 1.0,
@@ -99,7 +163,7 @@ Element.prototype = {
 	    toolbox: false		// enable toolbox?
 	};
 
-	var paper = this.paper = dia.paper;
+	var paper = this.paper = Joint.paper();
 	// register me in the global table
 	if (dia._registeredObjects[paper]){
 	    dia._registeredObjects[paper].push(this);
@@ -107,8 +171,6 @@ Element.prototype = {
 	    dia._registeredObjects[paper] = [this];
 	}
     },
-    self: this,
-
     // this is needed in joint library when
     // manipulation with a raphael object joints array
     // - just delegate joints array methods to the wrapper
@@ -120,8 +182,7 @@ Element.prototype = {
 	var joints = this.wrapper.joints();
 	if (joints){
 	    for (var i = 0, l = joints.length; i < l; i++){
-		joints[i].engine.redraw();
-		joints[i].engine.listenAll();
+		joints[i].update();
 	    }
 	}
     },
@@ -259,6 +320,11 @@ Element.prototype = {
 	    this.wrapper.mousedown(this.dragger);
 	    this.wrapper.node.style.cursor = "move";
 	}
+	// make sure wrapper has the joints method
+	if (!this.wrapper.joints){
+	    this.wrapper._joints = [];
+	    this.wrapper.joints = function(){ return this._joints; };
+	}
 	// add toolbox if enabled
 	this.addToolbox();
 	return this;
@@ -318,9 +384,9 @@ Element.prototype = {
 	// zoom in/out
 	this.toolbox.push(this.paper.image("../mint_icons/icons/search.png", tx, ty, 11, 11));
 	this.toolbox[this.toolbox.length-1].toFront();
-	addEvent(this.toolbox[this.toolbox.length-1].node, "mousedown", function(e){
-		     dia.Element.prototype.zoomer.apply(self, [e]);
-		 });
+	Joint.addEvent(this.toolbox[this.toolbox.length-1].node, "mousedown", function(e){
+			   dia.Element.prototype.zoomer.apply(self, [e]);
+		       });
 	// embed
 	this.toolbox.push(this.paper.image("../mint_icons/icons/page_spearmint_up.png", tx + 22, ty, 11, 11));
 	this.toolbox[this.toolbox.length-1].toFront();
@@ -447,7 +513,7 @@ Element.prototype = {
      * Delegate joint message to my wrapper.
      */
     joint: function(to, opt){
-	var toobj = (to._isShape) ? to.wrapper : to;
+	var toobj = (to._isElement) ? to.wrapper : to;
 	return this.wrapper.joint.apply(this.wrapper, [toobj, opt]);
     },
 
@@ -473,7 +539,6 @@ Element.mouseMove = function(e){
 	else	// otherwise, move the whole shape
 	    dia._currentDrag.translate(e.clientX - dia._currentDrag.dx, e.clientY - dia._currentDrag.dy);
 
-	r.safari();
 	dia._currentDrag.dx = e.clientX;
 	dia._currentDrag.dy = e.clientY;
     }
@@ -552,7 +617,8 @@ Element.mouseUp = function(e){
     dia._currentZoom = false;
 };
 
-addEvent(document, "mousemove", Element.mouseMove);
-addEvent(document, "mouseup", Element.mouseUp);
+Joint.addEvent(document, "mousemove", Element.mouseMove);
+Joint.addEvent(document, "mouseup", Element.mouseUp);
 
 
+})(this);	// END CLOSURE

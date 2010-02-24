@@ -1,11 +1,23 @@
-/**************************************************
- * DEVS 
- **************************************************/
+/**
+ * Joint.dia.devs 0.1.0 - Joint.dia plugin for creating Discrete Event System Specification (DEVS) diagrams.
+ * Copyright (c) 2009 David Durman
+ * Licensed under the MIT license: (http://www.opensource.org/licenses/mit-license.php)
+ */
+(function(global){	// BEGIN CLOSURE
 
-var devs = Joint.dia.devs = {};
-var Element = Joint.dia.Element;
+var devs = global.Joint.dia.devs = {};
+var Element = global.Joint.dia.Element;
 
-devs.model = Element.extend({
+/**
+ * Predefined arrow.
+ */
+devs.arrow = {
+  endArrow: { type: "none" },
+  startArrow: {type: "none"},
+  attrs: { "stroke-dasharray": "none" }
+};
+
+devs.Model = Element.extend({
      init: function(properties){
 	 // options
 	 this._isDEVS = true;
@@ -105,4 +117,4 @@ devs.model = Element.extend({
      }				
 });
 
-
+})(this);	// END CLOSURE

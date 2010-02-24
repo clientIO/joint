@@ -1,7 +1,9 @@
-/**************************************************
- * FSA
- **************************************************/
-
+/**
+ * Joint.dia.fsa 0.1.0 - Joint.dia plugin for creating FSA diagrams.
+ * Copyright (c) 2009 David Durman
+ * Licensed under the MIT license: (http://www.opensource.org/licenses/mit-license.php)
+ */
+(function(global){	// BEGIN CLOSURE
 /**
  * @example
  * dia.paper(r);
@@ -11,15 +13,18 @@
  *		  label: "state 1"
  *	      });
  */
+var Joint = global.Joint;
 var fsa = Joint.dia.fsa = {};
 var Element = Joint.dia.Element;
+
+var point = Joint.point;
 
 /**
  * Predefined arrow.
  */
 fsa.arrow = {
-    startArrow: {type: "basic"},
-    endArrow: {type: "basicArrow", size: 5}, 
+    startArrow: {type: "none"},
+    endArrow: {type: "basic", size: 5}, 
     attrs: {"stroke-dasharray": "none"}
 };
 
@@ -31,7 +36,7 @@ fsa.arrow = {
  * @param attrs shape SVG attributes
  * @param text string state name
  */
-fsa.state = Element.extend({
+fsa.State = Element.extend({
     init: function(properties){
 	// options
 	this.position = properties.position || point(0, 0);
@@ -66,7 +71,7 @@ fsa.state = Element.extend({
  * @param r radius
  * @param attrs shape SVG attributes
  */
-fsa.startState = Element.extend({
+fsa.StartState = Element.extend({
      init: function(properties){
 	 // options
 	 this.position = properties.position || point(0, 0);
@@ -87,7 +92,7 @@ fsa.startState = Element.extend({
  * @param r radius
  * @param attrs shape SVG attributes
  */
-fsa.endState = Element.extend({
+fsa.EndState = Element.extend({
      init: function(properties){
 	 // options
 	 this.position = properties.position || point(0, 0);
@@ -110,3 +115,5 @@ fsa.endState = Element.extend({
 	 this.inner[0].scale.apply(this.inner[0], arguments);
      }
 });
+
+})(this);	// END CLOSURE

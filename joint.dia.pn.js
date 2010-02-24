@@ -1,16 +1,19 @@
-/**************************************************
- * PN
- **************************************************/
+/**
+ * Joint.dia.pn 0.1.0 - Joint.dia plugin for creating Petri net diagrams.
+ * Copyright (c) 2009 David Durman
+ * Licensed under the MIT license: (http://www.opensource.org/licenses/mit-license.php)
+ */
+(function(global){	// BEGIN CLOSURE
 
-var pn = Joint.dia.pn = {};
-var Element = Joint.dia.Element;
+var pn = global.Joint.dia.pn = {};
+var Element = global.Joint.dia.Element;
 
 /**
  * Predefined arrow.
  */
 pn.arrow = {
-    startArrow: {type: "basic"},
-    endArrow: {type: "basicArrow", size: 5}, 
+    startArrow: {type: "none"},
+    endArrow: {type: "basic", size: 5}, 
     attrs: {"stroke-dasharray": "none"}
 };
 
@@ -23,13 +26,13 @@ pn.arrow = {
  * @param nTokens number of tokens
  * @param attrs shape SVG attributes
  */
-pn.place = Element.extend({
+pn.Place = Element.extend({
      init: function(properties){
 	 // options
 	 var position = this.position = properties.position;
 	 var radius = this.radius = properties.radius || 20;
 	 var tokenRadius = this.tokenRadius = properties.tokenRadius || 3;
-	 var tokens = this.tokens = properties.tokens || 0;
+	 var tokens = this.tokens = parseInt(properties.tokens) || 0;
 	 var label = this.label = properties.label;
 	 var attrs = this.attrs = properties.attrs || {};
 	 if (!attrs.fill){
@@ -43,6 +46,7 @@ pn.place = Element.extend({
 	 var paper = this.paper;
 	 this.setWrapper(paper.circle(position.x, position.y, radius).attr(attrs));
 	 // inner
+	 var strut = 2; // px
 	 switch (tokens){
 	 case 0:
 	     break;
@@ -54,8 +58,8 @@ pn.place = Element.extend({
 	     this.addInner(paper.circle(position.x + (tokenRadius * 2), position.y, tokenRadius).attr(tokenAttrs));
 	     break;
 	 case 3:
-	     this.addInner(paper.circle(position.x - (tokenRadius * 2), position.y, tokenRadius).attr(tokenAttrs));
-	     this.addInner(paper.circle(position.x + (tokenRadius * 2), position.y, tokenRadius).attr(tokenAttrs));
+	     this.addInner(paper.circle(position.x - (tokenRadius * 2) - strut, position.y, tokenRadius).attr(tokenAttrs));
+	     this.addInner(paper.circle(position.x + (tokenRadius * 2) + strut, position.y, tokenRadius).attr(tokenAttrs));
 	     this.addInner(paper.circle(position.x, position.y, tokenRadius).attr(tokenAttrs));
 	     break;
 	 default:
@@ -88,7 +92,7 @@ pn.place = Element.extend({
  * @param r rectangle
  * @param attrs shape SVG attributes
  */
-pn.event = Element.extend({
+pn.Event = Element.extend({
      init: function(properties){
 	 // options
 	 var rect = this.rect = properties.rect;
@@ -114,3 +118,4 @@ pn.event = Element.extend({
      }
 });
 
+})(this);	// END CLOSURE
