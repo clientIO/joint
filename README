@@ -1,8 +1,7 @@
-Joint - JavaScript library for connecting vector objects
+Joint - JavaScript diagramming tool
 ========================================================
 
-This library provides a variaty of programmable connectors 
-that can be used to connect vector objects created by Raphael library.
+For details, see http://www.jointjs.com.
 
 Author : David Durman (daviddurman@seznam.cz)
 
