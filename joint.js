@@ -1130,7 +1130,7 @@ Joint.prototype = {
 		}
 		if (opt.handle.start.attrs){
 		    for (key in opt.handle.start.attrs){
-			this._opt.handle.start.attrs[key] = opt.dummy.handle.attrs[key];
+			this._opt.handle.start.attrs[key] = opt.handle.start.attrs[key];
 		    }
 		}
 	    }
