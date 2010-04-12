@@ -44,7 +44,35 @@ var dia = Joint.dia = {
      *  - registered objects can embed and can be embedded
      *  - the table is of the form: {RaphaelPaper1: [shape1, shape2, ...]}
      */
-    _registeredObjects: {}
+    _registeredObjects: {},
+    /**
+     * Table whith all registered joints.
+     *  - the table is of the form: {RaphaelPaper1: [joint1, joint2, ...]}
+     */
+    _registeredJoints: {},
+    /**
+     * Create new joint and register it. 
+     * @param {JointArguments} args Joint parameters. @see Joint
+     * @return Joint
+     */
+    Joint: function(args){
+	var j = Joint.apply(null, arguments);
+	this.registerJoint(j);
+	return j;
+    },
+    /**
+     * Register object to the current paper.
+     * @param {Element|Joint} obj Object to be registered.
+     * @return {Element|Joint} Registered object.
+     */
+    register: function(obj){
+	var paper = Joint.paper();
+	(this._registeredObjects[paper] || (this._registeredObjects[paper] = [])).push(obj);
+    },
+    registerJoint: function(j){
+	var paper = Joint.paper();
+	(this._registeredJoints[paper] || (this._registeredJoints[paper] = [])).push(j);	
+    }
 };
 
 /**
@@ -57,7 +85,7 @@ var Element = dia.Element = function(){};
  * All the properties will be overwritten by the properties from the following
  * arguments. Inherited properties are ignored.
  */
-function Mixin() {
+var Mixin = Joint.Mixin = function() {
     var target = arguments[0];
     for (var i = 1, l = arguments.length; i < l; i++){
         var extension = arguments[i];
@@ -77,7 +105,7 @@ function Mixin() {
         }
     }
     return target;
-}
+};
 
 /**
  * Copies all properties to the first argument from the following
@@ -94,7 +122,7 @@ function Mixin() {
  * }
  * });
  */
-function Supplement() {
+var Supplement = Joint.Supplement = function() {
     var target = arguments[0];
     for (var i = 1, l = arguments.length; i < l; i++){
         var extension = arguments[i];
@@ -114,7 +142,7 @@ function Supplement() {
         }
     }
     return target;
-}
+};
 
 Element.create = function(properties){
     var instance = new this(properties);
@@ -149,6 +177,13 @@ Element.prototype = {
     origBBox: undefined,
 
     construct: function(properties){
+	this.properties = { 
+	    dx: 0, dy: 0,		// translation
+	    rot: 0,			// rotation
+	    sx: 1.0, sy: 1.0,		// scale
+	    module: this.module, 
+	    object: this.object 
+	};
 	this.wrapper = null;
 	this.inner = [];
 	// ghost attributes
@@ -163,16 +198,17 @@ Element.prototype = {
 	    toolbox: false		// enable toolbox?
 	};
 
-	var paper = this.paper = Joint.paper();
-	// register me in the global table
-	if (dia._registeredObjects[paper]){
-	    dia._registeredObjects[paper].push(this);
-	} else {
-	    dia._registeredObjects[paper] = [this];
-	}
+	this.paper = Joint.paper();
+	dia.register(this); // register me in the global table
+    },
+    /**
+     * Returns element unique id.
+     */
+    euid: function(){
+	return Joint.generateEuid.call(this);
     },
     // this is needed in joint library when
-    // manipulation with a raphael object joints array
+    // manipulating with a raphael object joints array
     // - just delegate joints array methods to the wrapper
     joints: function(){
 	return this.wrapper.joints();
@@ -299,6 +335,9 @@ Element.prototype = {
     },
 
     translate: function(dx, dy){
+	// save translation
+	this.properties.dx += dx;
+	this.properties.dy += dy;
 	// translate wrapper, all inner and toolbox
 	this.wrapper.translate(dx, dy);
 	for (var i = this.inner.length - 1; i >= 0; --i){
@@ -513,8 +552,10 @@ Element.prototype = {
      * Delegate joint message to my wrapper.
      */
     joint: function(to, opt){
-	var toobj = (to._isElement) ? to.wrapper : to;
-	return this.wrapper.joint.apply(this.wrapper, [toobj, opt]);
+	var toobj = (to._isElement) ? to.wrapper : to,
+	    j = this.wrapper.joint.apply(this.wrapper, [toobj, opt]);
+	Joint.dia.registerJoint(j);
+	return j;
     },
 
     /**
@@ -523,7 +564,6 @@ Element.prototype = {
     attr: function(){
 	return Raphael.el.attr.apply(this.wrapper, arguments);
     }
-
 };
 
 

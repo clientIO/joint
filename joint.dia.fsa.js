@@ -37,29 +37,33 @@ fsa.arrow = {
  * @param text string state name
  */
 fsa.State = Element.extend({
+    object: "State",
+    module: "fsa",
     init: function(properties){
 	// options
-	this.position = properties.position || point(0, 0);
-	this.radius = properties.radius || 30;
-	this.label = properties.label || "State";
-	this.labelOffsetX = properties.labelOffsetX || (this.radius / 2);
-	this.labelOffsetY = properties.labelOffsetY || (this.radius / 2 + 8);
-	this.attrs = properties.attrs || {};
-	if (!this.attrs.fill){
-	    this.attrs.fill = "white";
+	var p = this.properties;
+	p.position = properties.position || point(0, 0);
+	p.radius = properties.radius || 30;
+	p.label = properties.label || "State";
+	p.labelOffsetX = properties.labelOffsetX || (p.radius / 2);
+	p.labelOffsetY = properties.labelOffsetY || (p.radius / 2 + 8);
+	p.attrs = properties.attrs || {};
+	if (!p.attrs.fill){
+	    p.attrs.fill = "white";
 	}
 	// wrapper
-	this.setWrapper(this.paper.circle(this.position.x, this.position.y, this.radius).attr(this.attrs));
+	this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius).attr(p.attrs));
 	// inner
 	this.addInner(this.getLabelElement());
     },
     getLabelElement: function(){
 	var 
+	p = this.properties,
 	bb = this.wrapper.getBBox(),
-	t = this.paper.text(bb.x, bb.y, this.label),
+	t = this.paper.text(bb.x, bb.y, p.label),
 	tbb = t.getBBox();
-	t.translate(bb.x - tbb.x + this.labelOffsetX, 
-		    bb.y - tbb.y + this.labelOffsetY);
+	t.translate(bb.x - tbb.x + p.labelOffsetX, 
+		    bb.y - tbb.y + p.labelOffsetY);
 	return t;
     }
 });
@@ -72,16 +76,19 @@ fsa.State = Element.extend({
  * @param attrs shape SVG attributes
  */
 fsa.StartState = Element.extend({
+     object: "StartState",
+     module: "fsa",
      init: function(properties){
 	 // options
-	 this.position = properties.position || point(0, 0);
-	 this.radius = properties.radius || 10;
-	 this.attrs = properties.attrs || {};
-	 if (!this.attrs.fill){
-	     this.attrs.fill = "black";
+	 var p = this.properties;
+	 p.position = properties.position || point(0, 0);
+	 p.radius = properties.radius || 10;
+	 p.attrs = properties.attrs || {};
+	 if (!p.attrs.fill){
+	     p.attrs.fill = "black";
 	 }
 	 // wrapper
-	 this.setWrapper(this.paper.circle(this.position.x, this.position.y, this.radius).attr(this.attrs));
+	 this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius).attr(p.attrs));
      }
 });
 
@@ -93,23 +100,26 @@ fsa.StartState = Element.extend({
  * @param attrs shape SVG attributes
  */
 fsa.EndState = Element.extend({
+     object: "EndState",
+     module: "fsa",
      init: function(properties){
 	 // options
-	 this.position = properties.position || point(0, 0);
-	 this.radius = properties.radius || 10;
-	 this.innerRadius = properties.innerRadius || (this.radius / 2);
-	 this.attrs = properties.attrs || {};
-	 if (!this.attrs.fill){
-	     this.attrs.fill = "white";
+	 var p = this.properties;
+	 p.position = properties.position || point(0, 0);
+	 p.radius = properties.radius || 10;
+	 p.innerRadius = properties.innerRadius || (p.radius / 2);
+	 p.attrs = properties.attrs || {};
+	 if (!p.attrs.fill){
+	     p.attrs.fill = "white";
 	 }
-	 this.innerAttrs = properties.innerAttrs || {};
-	 if (!this.innerAttrs.fill){
-	     this.innerAttrs.fill = "black";
+	 p.innerAttrs = properties.innerAttrs || {};
+	 if (!p.innerAttrs.fill){
+	     p.innerAttrs.fill = "black";
 	 }
 	 // wrapper
-	 this.setWrapper(this.paper.circle(this.position.x, this.position.y, this.radius).attr(this.attrs));
+	 this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius).attr(p.attrs));
 	 // inner
-	 this.addInner(this.paper.circle(this.position.x, this.position.y, this.innerRadius).attr(this.innerAttrs));
+	 this.addInner(this.paper.circle(p.position.x, p.position.y, p.innerRadius).attr(p.innerAttrs));
      },
      zoom: function(){
 	 this.inner[0].scale.apply(this.inner[0], arguments);

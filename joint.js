@@ -363,6 +363,9 @@ ConstraintSolver.prototype = {
  * @param {RaphaelObject|Shape|object} to Object/position where the connection ends.
  * @param {object} [opts] opt Options
  * @param {object} [opts.interactive] Is the joint interactive?  [default = true]
+ * @param {array} [opts.vertices] Connection path vertices.
+ * @param {string} [opts.label] Label.
+ * @param {object} [opts.labelBoxAttrs] SVG Attributes of the label bounding rectangle.
  * @param {object} [opts.attrs] Connection options (see Raphael path options)
  * @param {object} [opts.startArrow] Start arrow options
  * @param {string} [opts.startArrow.type] "basic"|"basicArrow"|...
@@ -398,18 +401,15 @@ function Joint(from, to, opt){
     this._registeredObjects = [];
 
     // label related properties
-    this._labelString = "";	// label string
     this._labelBox = null;	// rectangle where labelText is located
-    this._labelText = null;	// label that keeps its position with connection path middle point
-    this._labelAttrs = {stroke: "white", fill: "white"};
+    this._labelText = null;	// Raphael text element that keeps its position with connection path middle point
     
     this._con = null;		// holds the joint path
-    this._conVertices = [];	// joint path vertices
     this._conVerticesCurrentIndex = 0;
     this._nearbyVertexSqrDist = 500;	// sqrt(this._nearbyVertexSqrDist) is tolerable distance of vertex moving
     this._startCap = null;	// start glyph (arrow)
     this._endCap = null;	// end glyph (arrow)
-    this._lastStartCapSticker = null;
+    this._lastStartCapSticker = null;	// temporaries for last start/end cap stickers (objects to which the caps sticked to e.g. while moving)
     this._lastEndCapSticker = null;
 
     // connection from start to end
@@ -424,6 +424,7 @@ function Joint(from, to, opt){
 
     // _con path options
     this._opt = {
+	vertices: [],	// joint path vertices
 	attrs: {
 	    "stroke": "#000",
 	    //	    "fill": "#fff",	// can not be used if connection wiring is enabled
@@ -438,7 +439,8 @@ function Joint(from, to, opt){
 	cursor: "move",	// CSS cursor property
 	beSmooth: false,// be a smooth line? (bezier curve aproximation)
 	interactive: true, // is the connection interactive? 
-	label: false,	// enabled/disabled connection label
+	label: undefined,
+	labelBoxAttrs: {stroke: "white", fill: "white"},
 	// bounding box correction 
 	// (useful when the connection should start in the center of an object, etc...)
 	bboxCorrection: {
@@ -477,9 +479,8 @@ function Joint(from, to, opt){
 	end: Joint.getArrow("basic", 5)
     };
     // options
-    if (opt){
-	this.processOptions(opt);
-    }
+    if (opt) this.processOptions(opt);
+
     var 
     startObject = this._start,
     endObject = this._end;
@@ -521,6 +522,13 @@ function Joint(from, to, opt){
     this.update();
 }
 global.Joint = Joint;	// the only global variable
+
+Joint.euid = 1;	// elements/joints unique id 
+Joint.generateEuid = function(){
+    if (this._euid === undefined) this._euid = Joint.euid++;
+    return this._euid;
+};
+
 /**
  * @private
  */
@@ -549,6 +557,12 @@ Joint.prototype = {
 	justBroken: function(mousePos){},
 	wiring: function(mousePos){},
 	objectMoving: function(obj){}
+    },
+    /**
+     * Return joint unique identifier.
+     */
+    euid: function(){
+	return Joint.generateEuid.call(this);
     },
     /**
      * Getters.
@@ -661,8 +675,8 @@ Joint.prototype = {
 
 	// if the mouse position is nearby a connection vertex
 	// do not create a new one but move the selected one instead
-	for (var i = 0, len = this._conVertices.length; i < len; i++){
-	    var v = this._conVertices[i];
+	for (var i = 0, len = this._opt.vertices.length; i < len; i++){
+	    var v = this._opt.vertices[i];
 	    if (line(v, mousePos).squaredLength() < this._nearbyVertexSqrDist){
 		this._conVerticesCurrentIndex = i;
 		this.state = this.CONNECTIONWIRING;
@@ -683,10 +697,10 @@ Joint.prototype = {
 	if (smLineSqrLen < emLineSqrLen){
 	    // new vertex is added to the beginning of the vertex array
 	    this._conVerticesCurrentIndex = 0;
-	    this._conVertices.unshift(mousePos);
+	    this._opt.vertices.unshift(mousePos);
 	} else {
 	    // new vertex is added to the end of the vertex array
-	    this._conVerticesCurrentIndex = this._conVertices.push(mousePos) - 1;
+	    this._conVerticesCurrentIndex = this._opt.vertices.push(mousePos) - 1;
 	}
 	this.state = this.CONNECTIONWIRING;
 	this.callback("justBroken", this, [mousePos]);
@@ -743,7 +757,7 @@ Joint.prototype = {
     },
     connectionWiring: function(e){
 	var mousePos = Joint.getMousePosition(e, this.paper.canvas);
-	this._conVertices[this._conVerticesCurrentIndex] = mousePos;
+	this._opt.vertices[this._conVerticesCurrentIndex] = mousePos;
 	this.update();
 	this.callback("wiring", this, [mousePos]);
     },
@@ -871,13 +885,13 @@ Joint.prototype = {
 		return this;
 	    },
 	    label: function(){
-		if (!self._opt.label){ 
+		if (self._opt.label === undefined){ 
 		    return this; 
 		}
 		var pos = csolver.labelPoint();
-		self._labelText = paper.text(pos.x, pos.y, self._labelString);
+		self._labelText = paper.text(pos.x, pos.y, self._opt.label);
 		var bb = self._labelText.getBBox();
-		self._labelBox = paper.rect(bb.x, bb.y, bb.width, bb.height).attr(self._labelAttrs);
+		self._labelBox = paper.rect(bb.x, bb.y, bb.width, bb.height).attr(self._opt.labelBoxAttrs);
 		self._labelText.insertAfter(self._labelBox);
 		return this;
 	    },
@@ -1041,12 +1055,12 @@ Joint.prototype = {
 	    csolver._endShapeType = "rect";
 	}
 
-	csolver._conVertices = this._conVertices;
+	csolver._conVertices = this._opt.vertices;
 	csolver._arrowStartShift = {dx: this._opt.arrow.start.dx, dy: this._opt.arrow.start.dy};
 	csolver._arrowEndShift = {dx: this._opt.arrow.end.dx, dy: this._opt.arrow.end.dy};
 	csolver._bboxCorrection = this._opt.bboxCorrection;
 	csolver._flags.smooth = this._opt.beSmooth;
-	csolver._flags.label = this._opt.label;    
+	csolver._flags.label = (this._opt.label !== undefined);    
     },
     /**
      * Process options.
@@ -1055,24 +1069,22 @@ Joint.prototype = {
      */
     processOptions: function(opt){
 	var key;
-	if (opt.interactive !== undefined){
-	    this._opt.interactive = opt.interactive;
-	}
+	if (opt.interactive !== undefined) this._opt.interactive = opt.interactive;
 	if (opt.attrs){
 	    for (key in opt.attrs){
 		this._opt.attrs[key] = opt.attrs[key];
 	    }
 	}
-	if (opt.cursor){
-	    this._opt.cursor = opt.cursor;
+	if (opt.cursor)   this._opt.cursor = opt.cursor;
+	if (opt.beSmooth) this._opt.beSmooth = opt.beSmooth;
+	if (opt.label)    this._opt.label = opt.label;
+	if (opt.vertices){
+	    // cast vertices to points
+	    for (var i = 0, l = opt.vertices.length; i < l; i++){
+		this._opt.vertices.push(point(opt.vertices[i].x, opt.vertices[i].y));
+	    }
 	}
-	if (opt.beSmooth){
-	    this._opt.beSmooth = opt.beSmooth;
-	}
-	if (opt.label){
-	    this._opt.label = true;
-	    this._labelString = opt.label;
-	}
+
 	if (opt.bboxCorrection){
 	    if (opt.bboxCorrection.start){
 		for (key in opt.bboxCorrection.start){
@@ -1085,21 +1097,13 @@ Joint.prototype = {
 		}
 	    }
 	}
-	if (opt.startArrow){
-	    if (opt.startArrow.type){
-		this._opt.arrow.start = Joint.getArrow(opt.startArrow.type, opt.startArrow.size, opt.startArrow.attrs);
-	    }
-	}
-	if (opt.endArrow){
-	    if (opt.endArrow.type){
-		this._opt.arrow.end = Joint.getArrow(opt.endArrow.type, opt.endArrow.size, opt.endArrow.attrs);
-	    }
-	}
+	var sa = opt.startArrow, ea = opt.endArrow;
+	if (sa && sa.type) this._opt.arrow.start = Joint.getArrow(sa.type, sa.size, sa.attrs);
+	if (ea && ea.type) this._opt.arrow.end = Joint.getArrow(ea.type, ea.size, ea.attrs);
+
 	if (opt.dummy){
 	    if (opt.dummy.start){
-		if (opt.dummy.start.radius){
-		    this._opt.dummy.start.radius = opt.dummy.start.radius;
-		}
+		if (opt.dummy.start.radius) this._opt.dummy.start.radius = opt.dummy.start.radius;
 		if (opt.dummy.start.attrs){
 		    for (key in opt.dummy.start.attrs){
 			this._opt.dummy.start.attrs[key] = opt.dummy.start.attrs[key];
@@ -1107,9 +1111,7 @@ Joint.prototype = {
 		}
 	    }
 	    if (opt.dummy.end){
-		if (opt.dummy.end.radius){
-		    this._opt.dummy.end.radius = opt.dummy.end.radius;
-		}
+		if (opt.dummy.end.radius) this._opt.dummy.end.radius = opt.dummy.end.radius;
 		if (opt.dummy.end.attrs){
 		    for (key in opt.dummy.end.attrs){
 			this._opt.dummy.end.attrs[key] = opt.dummy.end.attrs[key];
@@ -1118,16 +1120,10 @@ Joint.prototype = {
 	    }
 	}
 	if (opt.handle){
-	    if (opt.handle.timeout){
-		this._opt.handle.timeout = opt.handle.timeout;
-	    }
+	    if (opt.handle.timeout) this._opt.handle.timeout = opt.handle.timeout;
 	    if (opt.handle.start){
-		if (opt.handle.start.enabled){
-		    this._opt.handle.start.enabled = opt.handle.start.enabled;
-		}
-		if (opt.handle.start.radius){
-		    this._opt.handle.start.radius = opt.handle.start.radius;
-		}
+		if (opt.handle.start.enabled) this._opt.handle.start.enabled = opt.handle.start.enabled;
+		if (opt.handle.start.radius) this._opt.handle.start.radius = opt.handle.start.radius;
 		if (opt.handle.start.attrs){
 		    for (key in opt.handle.start.attrs){
 			this._opt.handle.start.attrs[key] = opt.handle.start.attrs[key];
@@ -1135,12 +1131,8 @@ Joint.prototype = {
 		}
 	    }
 	    if (opt.handle.end){
-		if (opt.handle.end.enabled){
-		    this._opt.handle.end.enabled = opt.handle.end.enabled;
-		}
-		if (opt.handle.end.radius){
-		    this._opt.handle.end.radius = opt.handle.end.radius;
-		}
+		if (opt.handle.end.enabled) this._opt.handle.end.enabled = opt.handle.end.enabled;
+		if (opt.handle.end.radius) this._opt.handle.end.radius = opt.handle.end.radius;
 		if (opt.handle.end.attrs){
 		    for (key in opt.handle.end.attrs){
 			this._opt.handle.end.attrs[key] = opt.handle.end.attrs[key];
@@ -1206,7 +1198,7 @@ Joint.prototype = {
      * @return {Joint}
      */
     setVertices: function(vertices){
-	var conVertices = this._conVertices = [];
+	var conVertices = this._opt.vertices = [];
 	// cast vertices to points
 	for (var i = 0, l = vertices.length; i < l; i++){
 	    conVertices.push(point(vertices[i].x, vertices[i].y));
@@ -1219,7 +1211,7 @@ Joint.prototype = {
      * @return {array} array of connection vertices
      */
     getVertices: function(){
-	return this._conVertices;
+	return this._opt.vertices;
     },
     /**
      * Toggle the connection smoothing (bezier/straight).
@@ -1243,8 +1235,7 @@ Joint.prototype = {
      * @return {Joint}
      */
     label: function(str){
-	this._opt.label = true;
-	this._labelString = str;
+	this._opt.label = str;
 	this.update();
 	return this;
     },
@@ -1265,7 +1256,7 @@ Joint.prototype = {
      */
     straighten: function(){
 	this._con.remove();
-	this._conVertices = [];
+	this._opt.vertices = [];
 	this.update();
 	return this;
     },
@@ -2235,6 +2226,13 @@ global.Raphael.el.attr = function(){
 global.Raphael.el.joint = function(to, opt){
     Joint.paper(this.paper);
     return new Joint(this, to, opt);
+};
+
+/**
+ * Return element unique id.
+ */
+global.Raphael.el.euid = function(){
+    return Joint.generateEuid.call(this);
 };
 
 })(this);	// END CLOSURE
