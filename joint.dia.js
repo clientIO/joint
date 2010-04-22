@@ -164,7 +164,7 @@ Element.extend = function(prototype){
 };
 
 Element.prototype = {
-    parentShape: null,
+    parentElement: null,
     toolbox: null,
     _isElement: true,
     // auxiliaries for scaling and translating
@@ -182,7 +182,8 @@ Element.prototype = {
 	    rot: 0,			// rotation
 	    sx: 1.0, sy: 1.0,		// scale
 	    module: this.module, 
-	    object: this.object 
+	    object: this.object,
+	    parent: properties.parent
 	};
 	this.wrapper = null;
 	this.inner = [];
@@ -376,7 +377,8 @@ Element.prototype = {
 	this.inner.push(s);
 	// @remove one of them?
 	s.wholeShape = this;	
-	s.parentShape = this;
+	s.parentElement = this;
+	if (s._isElement) s.properties.parent = this.euid();
 	// if dragging enabled, register mouse down event handler
 	if (!s._isElement && this._opt && this._opt.draggable){
 	    s.mousedown(this.dragger);
@@ -398,7 +400,8 @@ Element.prototype = {
 		break;
 	if (i < len){
 	    this.inner.splice(i, 1);
-	    s.parentShape = null;
+	    s.parentElement = null;
+	    if (s._isElement) s.properties.parent = undefined;
 	}
 	return this;
     },
@@ -474,6 +477,7 @@ Element.prototype = {
     /**
      * Embed me into the first registered dia.Element whos bounding box 
      * contains my bounding box origin.
+     * @todo It is probably out of date. Retest!!!
      */
     embed: function(){
 	var 
@@ -491,7 +495,7 @@ Element.prototype = {
 	    if (shapeBB.containsPoint(myBB.origin()))
 		embedTo = shape;	// if yes, save the shape
 
-	    if (shape == this.parentShape){
+	    if (shape == this.parentElement){
 		shape.del(this);
 
 		// just for optimization, a shape can be a subshape of 
@@ -511,9 +515,10 @@ Element.prototype = {
      * of any other dia.Element.
      */
     unembed: function(){
-	if (this.parentShape){
-	    this.parentShape.del(this);
-	    this.parentShape = null;
+	if (this.parentElement){
+	    this.parentElement.del(this);
+	    this.parentElement = null;
+	    this.properties.parent = undefined;
 	}
 	return this;
     },
@@ -528,9 +533,9 @@ Element.prototype = {
 	this.zoom.apply(this, arguments);
 	// apply scale to all subshapes that are Elements (were embeded) 
 	for (var i = 0, len = this.inner.length; i < len; i++){
-	    var subShape = this.inner[i];
-	    if (subShape._isElement){
-		subShape.scale.apply(inner, arguments);
+	    var inner = this.inner[i];
+	    if (inner._isElement){
+		inner.scale.apply(inner, arguments);
 	    }
 	}
 	if (this._doNotRedrawToolbox) return;

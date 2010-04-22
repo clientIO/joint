@@ -762,7 +762,10 @@ Joint.prototype = {
 	this.callback("wiring", this, [mousePos]);
     },
     update: function(){
-	this.redraw().listenAll();
+//	this.redraw().listenAll();	
+	// setTimeout makes drawing much faster!
+	var self = this; 
+	setTimeout(function(){self.redraw().listenAll();}, 0);
     },
     redraw: function(){
 	this.clean().connection().startCap().endCap().handleStart().handleEnd().label();
@@ -1100,6 +1103,11 @@ Joint.prototype = {
 	var sa = opt.startArrow, ea = opt.endArrow;
 	if (sa && sa.type) this._opt.arrow.start = Joint.getArrow(sa.type, sa.size, sa.attrs);
 	if (ea && ea.type) this._opt.arrow.end = Joint.getArrow(ea.type, ea.size, ea.attrs);
+	// direct arrow specification rewrites types
+	if (opt.arrow){
+	    if (opt.arrow.start) this._opt.arrow.start = opt.arrow.start;
+	    if (opt.arrow.end) this._opt.arrow.end = opt.arrow.end;
+	}
 
 	if (opt.dummy){
 	    if (opt.dummy.start){

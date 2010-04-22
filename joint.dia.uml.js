@@ -62,26 +62,29 @@ uml.arrow = {
  * @param actions object entry/exit/inner actions
  */
 uml.State = Element.extend({
+    object: "State",
+    module: "uml",
     init: function(properties){
 	// options
-	var rect = this.rect = properties.rect;
-	var radius = this.radius = properties.radius || 15;
-	var attrs = this.attrs = properties.attrs || {};
-	if (!this.attrs.fill){
-	    this.attrs.fill = "white";
+	var p = this.properties;
+	var rect = p.rect = properties.rect;
+	var radius = p.radius = properties.radius || 15;
+	var attrs = p.attrs = properties.attrs || {};
+	if (!p.attrs.fill){
+	    p.attrs.fill = "white";
 	}
-	this.label = properties.label || "";
-	this.labelOffsetX = properties.labelOffsetX || 20;
-	this.labelOffsetY = properties.labelOffsetY || 5;
-	this.swimlaneOffsetY = properties.swimlaneOffsetY || 18;
+	p.label = properties.label || "";
+	p.labelOffsetX = properties.labelOffsetX || 20;
+	p.labelOffsetY = properties.labelOffsetY || 5;
+	p.swimlaneOffsetY = properties.swimlaneOffsetY || 18;
 	if (!properties.actions){
 	    properties.actions = {};
 	}
-	this.entryAction = properties.actions.entry || null;
-	this.exitAction = properties.actions.exit || null;
-	this.innerActions = properties.actions.inner || [];
-	this.actionsOffsetX = properties.actionsOffsetX || 5;
-	this.actionsOffsetY = properties.actionsOffsetY || 5;
+	p.entryAction = properties.actions.entry || null;
+	p.exitAction = properties.actions.exit || null;
+	p.innerActions = properties.actions.inner || [];
+	p.actionsOffsetX = properties.actionsOffsetX || 5;
+	p.actionsOffsetY = properties.actionsOffsetY || 5;
 	// wrapper
 	this.setWrapper(this.paper.rect(rect.x, rect.y, rect.width, rect.height, radius).attr(attrs));
 	// inner
@@ -91,24 +94,26 @@ uml.State = Element.extend({
     },
     getLabelElement: function(){
 	var 
+	p = this.properties,
 	bb = this.wrapper.getBBox(),
-	t = this.paper.text(bb.x, bb.y, this.label),
+	t = this.paper.text(bb.x, bb.y, p.label),
 	tbb = t.getBBox();
-	t.translate(bb.x - tbb.x + this.labelOffsetX, 
-		    bb.y - tbb.y + this.labelOffsetY);
+	t.translate(bb.x - tbb.x + p.labelOffsetX, 
+		    bb.y - tbb.y + p.labelOffsetY);
 	return t;
     },
     getSwimlaneElement: function(){
-	var bb = this.wrapper.getBBox();
-	return this.paper.path(["M", bb.x, bb.y + this.labelOffsetY + this.swimlaneOffsetY, "L", bb.x + bb.width, bb.y + this.labelOffsetY + this.swimlaneOffsetY].join(" "));
+	var bb = this.wrapper.getBBox(), p = this.properties;
+	return this.paper.path(["M", bb.x, bb.y + p.labelOffsetY + p.swimlaneOffsetY, "L", bb.x + bb.width, bb.y + p.labelOffsetY + p.swimlaneOffsetY].join(" "));
     },
     getActionsElement: function(){
 	// collect all actions
-	var str = (this.entryAction) ? "entry/ " + this.entryAction + "\n" : "";
-	str += (this.exitAction) ? "exit/ " + this.exitAction + "\n" : "";
-	var l = this.innerActions.length;
+	var p = this.properties;
+	var str = (p.entryAction) ? "entry/ " + p.entryAction + "\n" : "";
+	str += (p.exitAction) ? "exit/ " + p.exitAction + "\n" : "";
+	var l = p.innerActions.length;
 	for (var i = 0; i < l; i += 2){
-	    str += this.innerActions[i] + "/ " + this.innerActions[i+1] + "\n";
+	    str += p.innerActions[i] + "/ " + p.innerActions[i+1] + "\n";
 	}
 	// trim
 	str = str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
@@ -116,14 +121,14 @@ uml.State = Element.extend({
 	// draw text with actions
 	var 
 	bb = this.wrapper.getBBox(),
-	t = this.paper.text(bb.x + this.actionsOffsetX, bb.y + this.labelOffsetY + this.swimlaneOffsetY + this.actionsOffsetY, str),
+	t = this.paper.text(bb.x + p.actionsOffsetX, bb.y + p.labelOffsetY + p.swimlaneOffsetY + p.actionsOffsetY, str),
 	tbb = t.getBBox();
 	t.attr("text-anchor", "start");
 	t.translate(0, tbb.height/2);	// tune the y position
 	return t;
     },
     zoom: function(){
-	this.wrapper.attr("r", this.radius); 	// set wrapper's radius back to its initial value (it deformates after scaling)
+	this.wrapper.attr("r", this.properties.radius); 	// set wrapper's radius back to its initial value (it deformates after scaling)
 	this.inner[0].remove();	// label
 	this.inner[1].remove();	// swimlane
 	this.inner[2].remove();	// actions
@@ -142,16 +147,19 @@ uml.State = Element.extend({
  * @param attrs shape SVG attributes
  */
 uml.StartState = Element.extend({
+     object: "StartState",
+     module: "uml",
      init: function(properties){
 	 // options
-	 this.position = properties.position || point(0, 0);
-	 this.radius = properties.radius || 10;
-	 this.attrs = properties.attrs || {};
-	 if (!this.attrs.fill){
-	     this.attrs.fill = "black";
+	 var p = this.properties;
+	 p.position = properties.position || point(0, 0);
+	 p.radius = properties.radius || 10;
+	 p.attrs = properties.attrs || {};
+	 if (!p.attrs.fill){
+	     p.attrs.fill = "black";
 	 }
 	 // wrapper
-	 this.setWrapper(this.paper.circle(this.position.x, this.position.y, this.radius).attr(this.attrs));
+	 this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius).attr(p.attrs));
      }
 });
 
@@ -164,23 +172,26 @@ uml.StartState = Element.extend({
  * @param attrs shape SVG attributes
  */
 uml.EndState = Element.extend({
+     object: "EndState",
+     module: "uml",
      init: function(properties){
 	 // options
-	 this.position = properties.position || point(0, 0);
-	 this.radius = properties.radius || 10;
-	 this.innerRadius = properties.innerRadius || (this.radius / 2);
-	 this.attrs = properties.attrs || {};
-	 if (!this.attrs.fill){
-	     this.attrs.fill = "white";
+	 var p = this.properties;
+	 p.position = properties.position || point(0, 0);
+	 p.radius = properties.radius || 10;
+	 p.innerRadius = properties.innerRadius || (p.radius / 2);
+	 p.attrs = properties.attrs || {};
+	 if (!p.attrs.fill){
+	     p.attrs.fill = "white";
 	 }
-	 this.innerAttrs = properties.innerAttrs || {};
-	 if (!this.innerAttrs.fill){
-	     this.innerAttrs.fill = "black";
+	 p.innerAttrs = properties.innerAttrs || {};
+	 if (!p.innerAttrs.fill){
+	     p.innerAttrs.fill = "black";
 	 }
 	 // wrapper
-	 this.setWrapper(this.paper.circle(this.position.x, this.position.y, this.radius).attr(this.attrs));
+	 this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius).attr(p.attrs));
 	 // inner
-	 this.addInner(this.paper.circle(this.position.x, this.position.y, this.innerRadius).attr(this.innerAttrs));
+	 this.addInner(this.paper.circle(p.position.x, p.position.y, p.innerRadius).attr(p.innerAttrs));
      },
      zoom: function(){
 	 this.inner[0].scale.apply(this.inner[0], arguments);
@@ -193,23 +204,26 @@ uml.EndState = Element.extend({
  **************************************************/
 
 uml.Class = Element.extend({
+    object: "Class",
+    module: "uml",
     init: function(properties){
-	var rect = this.rect = properties.rect;
-	var attrs = this.attrs = properties.attrs || {};
+	var p = this.properties;
+	var rect = p.rect = properties.rect;
+	var attrs = p.attrs = properties.attrs || {};
 	if (!attrs.fill){
 	    attrs.fill = "white";
 	}
-	this.label = properties.label || "";
-	this.labelOffsetX = properties.labelOffsetX || 20;
-	this.labelOffsetY = properties.labelOffsetY || 5;
-	this.swimlane1OffsetY = properties.swimlane1OffsetY || 18;
-	this.swimlane2OffsetY = properties.swimlane2OffsetY || 18;
-	this.attributes = properties.attributes || [];
-	this.attributesOffsetX = properties.attributesOffsetX || 5;
-	this.attributesOffsetY = properties.attributesOffsetY || 5;
-	this.methods = properties.methods || [];
-	this.methodsOffsetX = properties.methodsOffsetX || 5;
-	this.methodsOffsetY = properties.methodsOffsetY || 5;
+	p.label = properties.label || "";
+	p.labelOffsetX = properties.labelOffsetX || 20;
+	p.labelOffsetY = properties.labelOffsetY || 5;
+	p.swimlane1OffsetY = properties.swimlane1OffsetY || 18;
+	p.swimlane2OffsetY = properties.swimlane2OffsetY || 18;
+	p.attributes = properties.attributes || [];
+	p.attributesOffsetX = properties.attributesOffsetX || 5;
+	p.attributesOffsetY = properties.attributesOffsetY || 5;
+	p.methods = properties.methods || [];
+	p.methodsOffsetX = properties.methodsOffsetX || 5;
+	p.methodsOffsetY = properties.methodsOffsetY || 5;
 	// wrapper
 	this.setWrapper(this.paper.rect(rect.x, rect.y, rect.width, rect.height).attr(attrs));
 	// inner
@@ -220,50 +234,52 @@ uml.Class = Element.extend({
 	this.addInner(this.getMethodsElement());
     },
     getLabelElement: function(){
-	var 
+	var
+	p = this.properties,
 	bb = this.wrapper.getBBox(),
-	t = this.paper.text(bb.x, bb.y, this.label),
+	t = this.paper.text(bb.x, bb.y, p.label),
 	tbb = t.getBBox();
-	t.translate(bb.x - tbb.x + this.labelOffsetX, bb.y - tbb.y + this.labelOffsetY);
+	t.translate(bb.x - tbb.x + p.labelOffsetX, bb.y - tbb.y + p.labelOffsetY);
 	return t;
     },
     getSwimlane1Element: function(){
-	var bb = this.wrapper.getBBox();
-	return this.paper.path(["M", bb.x, bb.y + this.labelOffsetY + this.swimlane1OffsetY, "L", bb.x + bb.width, bb.y + this.labelOffsetY + this.swimlane1OffsetY].join(" "));
+	var bb = this.wrapper.getBBox(), p = this.properties;
+	return this.paper.path(["M", bb.x, bb.y + p.labelOffsetY + p.swimlane1OffsetY, "L", bb.x + bb.width, bb.y + p.labelOffsetY + p.swimlane1OffsetY].join(" "));
     },
     getSwimlane2Element: function(){
 	var 
+	p = this.properties,
 	bb = this.wrapper.getBBox(),
 	bbAtrrs = this.inner[2].getBBox();  // attributes
-	return this.paper.path(["M", bb.x, bb.y + this.labelOffsetY + this.swimlane1OffsetY + bbAtrrs.height + this.swimlane2OffsetY, "L", bb.x + bb.width, bb.y + this.labelOffsetY + this.swimlane1OffsetY + bbAtrrs.height + this.swimlane2OffsetY].join(" "));
+	return this.paper.path(["M", bb.x, bb.y + p.labelOffsetY + p.swimlane1OffsetY + bbAtrrs.height + p.swimlane2OffsetY, "L", bb.x + bb.width, bb.y + p.labelOffsetY + p.swimlane1OffsetY + bbAtrrs.height + p.swimlane2OffsetY].join(" "));
     },
     getAttributesElement: function(){
-	var str = " ";
-	for (var i = 0, len = this.attributes.length; i < len; i++){
-	    str += this.attributes[i] + "\n";
+	var str = " ", p = this.properties;
+	for (var i = 0, len = p.attributes.length; i < len; i++){
+	    str += p.attributes[i] + "\n";
 	}
 	// trim
 	str = str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
     
 	var
 	bb = this.wrapper.getBBox(),
-	t = this.paper.text(bb.x + this.attributesOffsetX, bb.y + this.labelOffsetY + this.swimlane1OffsetY + this.attributesOffsetY, str),
+	t = this.paper.text(bb.x + p.attributesOffsetX, bb.y + p.labelOffsetY + p.swimlane1OffsetY + p.attributesOffsetY, str),
 	tbb = t.getBBox();
 	t.attr("text-anchor", "start");
 	t.translate(0, tbb.height/2);	// tune the y-position
 	return t;
     },
     getMethodsElement: function(){
-	var str = " ";
-	for (var i = 0, len = this.methods.length; i < len; i++){
-	    str += this.methods[i] + "\n";
+	var str = " ", p = this.properties;
+	for (var i = 0, len = p.methods.length; i < len; i++){
+	    str += p.methods[i] + "\n";
 	}
 	// trim
 	str = str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
     	var
 	bb = this.wrapper.getBBox(),
 	bbAtrrs = this.inner[2].getBBox(),  // attributes
-	t = this.paper.text(bb.x + this.methodsOffsetX, bb.y + this.labelOffsetY + this.swimlane1OffsetY + this.attributesOffsetY + bbAtrrs.height + this.swimlane2OffsetY + this.methodsOffsetY, str),
+	t = this.paper.text(bb.x + p.methodsOffsetX, bb.y + p.labelOffsetY + p.swimlane1OffsetY + p.attributesOffsetY + bbAtrrs.height + p.swimlane2OffsetY + p.methodsOffsetY, str),
 	tbb = t.getBBox();
 	t.attr("text-anchor", "start");
 	t.translate(0, tbb.height/2);	// tune the y-position

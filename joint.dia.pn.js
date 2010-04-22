@@ -27,18 +27,21 @@ pn.arrow = {
  * @param attrs shape SVG attributes
  */
 pn.Place = Element.extend({
+     object: "Place",
+     module: "pn",
      init: function(properties){
 	 // options
-	 var position = this.position = properties.position;
-	 var radius = this.radius = properties.radius || 20;
-	 var tokenRadius = this.tokenRadius = properties.tokenRadius || 3;
-	 var tokens = this.tokens = parseInt(properties.tokens) || 0;
-	 var label = this.label = properties.label;
-	 var attrs = this.attrs = properties.attrs || {};
+	 var p = this.properties;
+	 var position = p.position = properties.position;
+	 var radius = p.radius = properties.radius || 20;
+	 var tokenRadius = p.tokenRadius = properties.tokenRadius || 3;
+	 var tokens = p.tokens = parseInt(properties.tokens) || 0;
+	 var label = p.label = properties.label;
+	 var attrs = p.attrs = properties.attrs || {};
 	 if (!attrs.fill){
 	     attrs.fill = "white";
 	 }
-	 var tokenAttrs = this.tokenAttrs = properties.tokenAttrs || {};
+	 var tokenAttrs = p.tokenAttrs = properties.tokenAttrs || {};
 	 if (!tokenAttrs.fill){
 	     tokenAttrs.fill = "black";
 	 }
@@ -80,7 +83,7 @@ pn.Place = Element.extend({
 	 if (this.label){
 	     this.inner[this.inner.length - 1].remove();
 	     var bb = this.wrapper.getBBox();
-	     this.inner[this.inner.length - 1] = this.paper.text(bb.x, bb.y, this.label);
+	     this.inner[this.inner.length - 1] = this.paper.text(bb.x, bb.y, this.properties.label);
 	     this.inner[this.inner.length - 1].translate(0, -this.inner[this.inner.length - 1].getBBox().height);
 	 }
      }
@@ -93,13 +96,16 @@ pn.Place = Element.extend({
  * @param attrs shape SVG attributes
  */
 pn.Event = Element.extend({
+     object: "Event",
+     module: "pn",
      init: function(properties){
 	 // options
-	 var rect = this.rect = properties.rect;
-	 var attrs = this.attrs = properties.attrs || {};
+	 var p = this.properties;
+	 var rect = p.rect = properties.rect;
+	 var attrs = p.attrs = properties.attrs || {};
 	 if (!attrs.fill){ attrs.fill = "black"; }
 	 if (!attrs.stroke){ attrs.stroke = "black"; }
-	 var label = this.label = properties.label;
+	 var label = p.label = properties.label;
 	 // wrapper
 	 var paper = this.paper;
 	 this.setWrapper(paper.rect(rect.x, rect.y, rect.width, rect.height).attr(attrs));
@@ -112,7 +118,7 @@ pn.Event = Element.extend({
 	 if (this.label){
 	     this.inner[0].remove();
 	     var bb = this.wrapper.getBBox();
-	     this.inner[0] = this.paper.text(bb.x, bb.y, this.label);
+	     this.inner[0] = this.paper.text(bb.x, bb.y, this.properties.label);
 	     this.inner[0].translate(0, -this.inner[0].getBBox().height);
 	 }
      }

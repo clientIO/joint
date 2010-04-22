@@ -93,7 +93,7 @@ var diaSerializer = {
 	var arr = JSON.parse(json), o, m, e, 
 	    element, joints = [], i, len, elements = {};
 
-	if (toString.call(arr) !== "[object Array]") arr = [arr];
+	if (!(arr instanceof Array)) arr = [arr];
 
 	// for all elements
 	for (i = 0, len = arr.length; i < len; i++){
@@ -109,6 +109,7 @@ var diaSerializer = {
 		continue;
 	    }
 	    // construct the element
+	    console.log(this);
 	    if (this[m]){
 		if (this[m][e]){
 		    element = this[m][e].create(o);
@@ -127,8 +128,18 @@ var diaSerializer = {
 	    // element.rotate(o.rot);
 	    element.scale(o.sx, o.sy);
 	}
+	this.hierarchize(elements);
 	this.createJoints(joints, elements);
 	return arr;
+    },
+    hierarchize: function(elements){
+	var euid, element;
+	for (euid in elements){
+	    if (!elements.hasOwnProperty(euid)) continue;
+	    element = elements[euid];
+	    if (element.properties.parent && elements[element.properties.parent])
+		elements[element.properties.parent].addInner(element);
+	}
     },
     /**
      * Create joints.
@@ -185,7 +196,8 @@ var diaSerializer = {
 	    iObjs = objs.length;
 	    while (iObjs--){
 		o = objs[iObjs];
-		str.push(o.stringify());
+		if (o.object)
+		    str.push(o.stringify());
 	    }
 	}
 	// joints
