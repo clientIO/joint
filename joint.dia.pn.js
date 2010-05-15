@@ -1,15 +1,19 @@
-/**
- * Joint.dia.pn 0.1.0 - Joint.dia plugin for creating Petri net diagrams.
- * Copyright (c) 2009 David Durman
- * Licensed under the MIT license: (http://www.opensource.org/licenses/mit-license.php)
- */
 (function(global){	// BEGIN CLOSURE
 
-var pn = global.Joint.dia.pn = {};
-var Element = global.Joint.dia.Element;
+var Joint = global.Joint,
+     Element = Joint.dia.Element;
+
+/**
+ * @name Joint.dia.pn
+ * @namespace Holds functionality related to Petri net diagrams.
+ */
+var pn = Joint.dia.pn = {};
 
 /**
  * Predefined arrow.
+ * @name Joint.dia.pn.arrow
+ * @memberOf Joint.dia.pn
+ * @example p1.joint(e2, Joint.dia.pn.arrow);
  */
 pn.arrow = {
     startArrow: {type: "none"},
@@ -19,12 +23,30 @@ pn.arrow = {
 
 /**
  * Petri net place.
- * @param raphael raphael paper
- * @param p point position
- * @param r radius
- * @param rToken radius of my tokens
- * @param nTokens number of tokens
- * @param attrs shape SVG attributes
+ * @name Place.create
+ * @methodOf Joint.dia.pn
+ * @param {Object} properties
+ * @param {Object} properties.position Position of the place (e.g. {x: 50, y: 100}).
+ * @param {Number} [properties.radius] Radius of the circle of the place.
+ * @param {Number} [properties.tokenRadius] Radius of the tokens of the place.
+ * @param {Number} [properties.tokens] Number of tokens.
+ * @param {String} [properties.label] The name of the place.
+ * @param {Object} [properties.attrs] SVG attributes of the appearance of the place.
+ * @param {Object} [properties.tokenAttrs] SVG attributes of the appearance of the token circles.
+ * @example
+var p1 = Joint.dia.pn.Place.create({
+  position: {x: 120, y: 70},
+  radius: 25,
+  tokenRadius: 4,
+  tokens: 3,
+  label: "p1",
+  attrs: {
+    stroke: "blue"
+  },
+  tokenAttrs: {
+    fill: "red"
+  }
+});
  */
 pn.Place = Element.extend({
      object: "Place",
@@ -91,9 +113,21 @@ pn.Place = Element.extend({
 
 /**
  * Petri net event.
- * @param raphael raphael paper
- * @param r rectangle
- * @param attrs shape SVG attributes
+ * @name Event.create
+ * @methodOf Joint.dia.pn
+ * @param {Object} properties
+ * @param {Object} properties.rect Bounding box of the event (e.g. {x: 50, y: 100, width: 30, height: 100}).
+ * @param {String} [properties.label] The name of the event.
+ * @param {Object} [properties.attrs] SVG attributes of the appearance of the event.
+ * @example
+var p1 = Joint.dia.pn.Event.create({
+  rect: {x: 120, y: 70, width: 50, height: 7},
+  label: "e1",
+  attrs: {
+    stroke: "blue",
+    fill: "yellow"
+  }
+});
  */
 pn.Event = Element.extend({
      object: "Event",

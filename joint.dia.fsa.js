@@ -1,26 +1,22 @@
-/**
- * Joint.dia.fsa 0.1.0 - Joint.dia plugin for creating FSA diagrams.
- * Copyright (c) 2009 David Durman
- * Licensed under the MIT license: (http://www.opensource.org/licenses/mit-license.php)
- */
 (function(global){	// BEGIN CLOSURE
+
+var Joint = global.Joint,
+     Element = Joint.dia.Element,
+     point = Joint.point;
+
 /**
- * @example
- * dia.paper(r);
- * var s = dia.fsa.state({
- *		  position: point(10,10), 
- *		  radius: 5, 
- *		  label: "state 1"
- *	      });
+ * @name Joint.dia.fsa
+ * @namespace Holds functionality related to FSA diagrams.
  */
-var Joint = global.Joint;
 var fsa = Joint.dia.fsa = {};
-var Element = Joint.dia.Element;
-
-var point = Joint.point;
 
 /**
- * Predefined arrow.
+ * Predefined arrow. You are free to use this arrow as the option parameter to joint method.
+ * @name arrow
+ * @memberOf Joint.dia.fsa
+ * @example 
+ * var arrow = Joint.dia.fsa.arrow;
+ * s1.joint(s2, (arrow.label = "anEvent", arrow));
  */
 fsa.arrow = {
     startArrow: {type: "none"},
@@ -30,11 +26,25 @@ fsa.arrow = {
 
 /**
  * Finite state machine state.
- * @param paper raphael paper
- * @param p point position
- * @param r radius
- * @param attrs shape SVG attributes
- * @param text string state name
+ * @name State.create
+ * @methodOf Joint.dia.fsa
+ * @param {Object} properties
+ * @param {Object} properties.position Position of the State (e.g. {x: 50, y: 100}).
+ * @param {Number} [properties.radius] Radius of the circle of the state.
+ * @param {String} [properties.label] The name of the state.
+ * @param {Number} [properties.labelOffsetX] Offset in x-axis of the label from the state circle origin.
+ * @param {Number} [properties.labelOffsetY] Offset in y-axis of the label from the state circle origin.
+ * @param {Object} [properties.attrs] SVG attributes of the appearance of the state.
+ * @example
+var s1 = Joint.dia.fsa.State.create({
+  position: {x: 120, y: 70},
+  label: "state 1",
+  radius: 40,
+  attrs: {
+    stroke: "blue",
+    fill: "yellow"
+  }
+});
  */
 fsa.State = Element.extend({
     object: "State",
@@ -69,11 +79,22 @@ fsa.State = Element.extend({
 });
 
 /**
- * FSA start state.
- * @param paper raphael paper
- * @param p point position
- * @param r radius
- * @param attrs shape SVG attributes
+ * Finite state machine start state.
+ * @name StartState.create
+ * @methodOf Joint.dia.fsa
+ * @param {Object} properties
+ * @param {Object} properties.position Position of the start state (e.g. {x: 50, y: 100}).
+ * @param {Number} [properties.radius] Radius of the circle of the start state.
+ * @param {Object} [properties.attrs] SVG attributes of the appearance of the start state.
+ * @example
+var s0 = Joint.dia.fsa.StartState.create({
+  position: {x: 120, y: 70},
+  radius: 15,
+  attrs: {
+    stroke: "blue",
+    fill: "yellow"
+  }
+});
  */
 fsa.StartState = Element.extend({
      object: "StartState",
@@ -93,11 +114,28 @@ fsa.StartState = Element.extend({
 });
 
 /**
- * FSA end state.
- * @param paper raphael paper
- * @param p point position
- * @param r radius
- * @param attrs shape SVG attributes
+ * Finite state machine end state.
+ * @name EndState.create
+ * @methodOf Joint.dia.fsa
+ * @param {Object} properties
+ * @param {Object} properties.position Position of the end state (e.g. {x: 50, y: 100}).
+ * @param {Number} [properties.radius] Radius of the circle of the end state.
+ * @param {Number} [properties.innerRadius] Radius of the inner circle of the end state.
+ * @param {Object} [properties.attrs] SVG attributes of the appearance of the end state.
+ * @param {Object} [properties.innerAttrs] SVG attributes of the appearance of the inner circle of the end state.
+ * @example
+var s0 = Joint.dia.fsa.EndState.create({
+  position: {x: 120, y: 70},
+  radius: 15,
+  innerRadius: 8,
+  attrs: {
+    stroke: "blue",
+    fill: "yellow"
+  },
+  innerAttrs: {
+    fill: "red"
+  }
+});
  */
 fsa.EndState = Element.extend({
      object: "EndState",

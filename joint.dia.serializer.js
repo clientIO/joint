@@ -1,36 +1,12 @@
-/**
- * Joint.dia.serializer 0.1.0 - Joint plugin for serializing diagrams and joints.
- *
- * Copyright (c) 2010 David Durman
- *
- * Licensed under MIT license:
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
-
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
-
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
 (function(global){	// BEGIN CLOSURE
 
 var Joint = global.Joint;
 
-var JointSerializer = {
+Joint.Mixin(Joint.prototype, {
     /**
-     * Return compact object representation of joint. Used for serialization.
-     * @todo Improve, see below. Put into separate module: Joint.dia.serializer.
+     * Returns compact object representation of joint. Used for serialization.
+     * @methodOf Joint.prototype
+     * @return {Object} Compact representation of the joint.
      */
     compact: function(){
 	var start = this.startObject(), end = this.endObject(),
@@ -48,7 +24,6 @@ var JointSerializer = {
 		}
 	    };
 	// @todo Ugly!!! Joint shouldn't know anything about Joint.dia! Remove!
-	// => SOLUTION: Put this method to the separate module: Joint.dia.serializer.
 
 	// from/to
 	if (start.shape.wholeShape)
@@ -69,24 +44,27 @@ var JointSerializer = {
 	return j;
     },
     /**
-     * Returns JSON representation of joint.
+     * @methodOf Joint.prototype
+     * @return {String} JSON representation of joint.
      */
     stringify: function(){
 	return JSON.stringify(this.compact());
     }
-};
+});
 
-var diaSerializer = {
+Joint.Mixin(Joint.dia, {
      /**
-     * Clones diagram in the current paper.
-     * @return {Array} Array of the constructed elements.
-     */
+      * Clones diagram in the current paper.
+      * @methodOf Joint.dia
+      * @return {Array} Array of the constructed elements.
+      */
     clone: function(){
 	return this.parse(this.stringify(Joint.paper()));
     },
     /**
      * Construct a diagram from the JSON representation.
-     * @param {String} json
+     * @methodOf Joint.dia
+     * @param {String} JSON
      * @return {Array} Array of the constructed elements.
      */
     parse: function(json){
@@ -143,10 +121,9 @@ var diaSerializer = {
     },
     /**
      * Create joints.
+     * @private
      * @param {Array} joints Matrix of joints for each element.
      * @param {Object} elements Hash table of elements (key: euid, value: element).
-     * @todo Joints for non-standard diagrams (DEVS) are created differently, they do not use wrappers for connections. 
-     *        => WRONG: DEVS should be reimplemented such that it will use sub elements to represent Ports.
      */
     createJoints: function(joints, elements){
 	var iJoints = joints.length, 
@@ -184,6 +161,7 @@ var diaSerializer = {
     },
     /**
      * Stringify the whole diagram (occupying a paper).
+     * @methodOf Joint.dia
      * @param {RaphaelPaper} paper Raphael paper the diagram belongs to.
      * @return {String} JSON representation of the diagram.
      */
@@ -211,19 +189,16 @@ var diaSerializer = {
 	}
 	return "[" + str.join(",") + "]";
     }
-};
+});
 
-var ElementSerializer = {
+Joint.Mixin(Joint.dia.Element.prototype, {
     /**
-     * Return JSON representation of the element.
+     * @methodOf Joint.dia.Element#
+     * @return JSON representation of the element.
      */
     stringify: function(){
 	return JSON.stringify(Joint.Mixin(this.properties, { euid: this.euid() }));
     }
-};
-
-Joint.Mixin(Joint.prototype, JointSerializer);
-Joint.Mixin(Joint.dia, diaSerializer);
-Joint.Mixin(Joint.dia.Element.prototype, ElementSerializer);
+});
 
 })(this);	// END CLOSURE

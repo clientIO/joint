@@ -1,21 +1,16 @@
-/**
- * Joint.dia.uml 0.1.0 - Joint.dia plugin for creating UML diagrams.
- * Copyright (c) 2009 David Durman
- * Licensed under the MIT license: (http://www.opensource.org/licenses/mit-license.php)
- */
 (function(global){	// BEGIN CLOSURE
 
-var Joint = global.Joint;
-
-var uml = Joint.dia.uml = {};
-var Element = Joint.dia.Element;
-
-var point = Joint.point;
+var Joint = global.Joint,
+     Element = Joint.dia.Element,
+     point = Joint.point;
 
 /**
- * Predefined arrows for Class diagram.
+ * @name Joint.dia.uml
+ * @namespace Holds functionality related to UML diagrams.
  */
-global.Joint.arrows.aggregation = function(size){
+var uml = Joint.dia.uml = {};
+
+Joint.arrows.aggregation = function(size){
     return {
 	path: ["M","7","0","L","0","5","L","-7","0", "L", "0", "-5", "z"],
 	dx: 9, 
@@ -28,24 +23,44 @@ global.Joint.arrows.aggregation = function(size){
     };
 };
 
+/**
+ * Predefined aggregation arrow for Class diagram.
+ * @name aggregationArrow
+ * @memberOf Joint.dia.uml
+ * @example c1.joint(c2, Joint.dia.uml.aggregationArrow);
+ */
 uml.aggregationArrow = {
   endArrow: { type: "aggregation" },
   startArrow: {type: "none"},
   attrs: { "stroke-dasharray": "none" }
 };
+/**
+ * Predefined dependency arrow for Class diagram.
+ * @name dependencyArrow
+ * @memberOf Joint.dia.uml
+ * @example c1.joint(c2, Joint.dia.uml.dependencyArrow);
+ */
 uml.dependencyArrow = {
   endArrow: { type: "basic", size: 5 },
   startArrow: {type: "none"},
   attrs: { "stroke-dasharray": "none" }
 };
+/**
+ * Predefined generalization arrow for Class diagram.
+ * @name generalizationArrow
+ * @memberOf Joint.dia.uml
+ * @example c1.joint(c2, Joint.dia.uml.generalizationArrow);
+ */
 uml.generalizationArrow = {
   endArrow: { type: "basic", size: 10, attrs: {fill: "white"} },
   startArrow: {type: "none"},
   attrs: { "stroke-dasharray": "none" }
 };
-
 /**
  * Predefined arrow for StateChart.
+ * @name arrow
+ * @memberOf Joint.dia.uml
+ * @example s1.joint(s2, Joint.dia.uml.arrow);
  */
 uml.arrow = {
     startArrow: {type: "none"},
@@ -55,11 +70,35 @@ uml.arrow = {
 
 /**
  * UML StateChart state.
- * @param raphael raphael paper
- * @param r rectangle
- * @param name string state name
- * @param attrs shape SVG attributes
- * @param actions object entry/exit/inner actions
+ * @name State.create
+ * @methodOf Joint.dia.uml
+ * @param {Object} properties
+ * @param {Object} properties.rect Bounding box of the State (e.g. {x: 50, y: 100, width: 100, height: 80}).
+ * @param {Number} [properties.radius] Radius of the corners of the state rectangle.
+ * @param {String} [properties.label] The name of the state.
+ * @param {Number} [properties.labelOffsetX] Offset in x-axis of the label from the state rectangle origin.
+ * @param {Number} [properties.labelOffsetY] Offset in y-axis of the label from the state rectangle origin.
+ * @param {Number} [properties.swimlaneOffsetY] Offset in y-axis of the swimlane shown after the state label.
+ * @param {Object} [properties.attrs] SVG attributes of the appearance of the state.
+ * @param {Object} [properties.actions] Actions of the state.
+ * @param {String} [properties.actions.entry] Entry action of the state.
+ * @param {String} [properties.actions.exit] Exit action of the state.
+ * @param {String[]} [properties.actions.inner] Actions of the state (e.g. ["Evt1", "Action1()", "Evt2", "Action2()"])
+ * @param {Number} [properties.actionsOffsetX] Offset in x-axis of the actions.
+ * @param {Number} [properties.actionsOffsetY] Offset in y-axis of the actions.
+ * @example
+var s1 = Joint.dia.uml.State.create({
+  rect: {x: 120, y: 70, width: 100, height: 60},
+  label: "state 1",
+  attrs: {
+    fill: "90-#000-green:1-#fff"
+  },
+  actions: {
+    entry: "init()",
+    exit: "destroy()",
+    inner: ["Evt1", "foo()", "Evt2", "bar()"]
+  }
+});
  */
 uml.State = Element.extend({
     object: "State",
@@ -141,10 +180,21 @@ uml.State = Element.extend({
 
 /**
  * UML StateChart start state.
- * @param raphael raphael paper
- * @param p point position
- * @param r radius
- * @param attrs shape SVG attributes
+ * @name StartState.create
+ * @methodOf Joint.dia.uml
+ * @param {Object} properties
+ * @param {Object} properties.position Position of the start state (e.g. {x: 50, y: 100}).
+ * @param {Number} [properties.radius] Radius of the circle of the start state.
+ * @param {Object} [properties.attrs] SVG attributes of the appearance of the start state.
+ * @example
+var s0 = Joint.dia.uml.StartState.create({
+  position: {x: 120, y: 70},
+  radius: 15,
+  attrs: {
+    stroke: "blue",
+    fill: "yellow"
+  }
+});
  */
 uml.StartState = Element.extend({
      object: "StartState",
@@ -166,10 +216,27 @@ uml.StartState = Element.extend({
 
 /**
  * UML StateChart end state.
- * @param raphael raphael paper
- * @param p point position
- * @param r radius
- * @param attrs shape SVG attributes
+ * @name EndState.create
+ * @methodOf Joint.dia.uml
+ * @param {Object} properties
+ * @param {Object} properties.position Position of the end state (e.g. {x: 50, y: 100}).
+ * @param {Number} [properties.radius] Radius of the circle of the end state.
+ * @param {Number} [properties.innerRadius] Radius of the inner circle of the end state.
+ * @param {Object} [properties.attrs] SVG attributes of the appearance of the end state.
+ * @param {Object} [properties.innerAttrs] SVG attributes of the appearance of the inner circle of the end state.
+ * @example
+var s0 = Joint.dia.uml.EndState.create({
+  position: {x: 120, y: 70},
+  radius: 15,
+  innerRadius: 8,
+  attrs: {
+    stroke: "blue",
+    fill: "yellow"
+  },
+  innerAttrs: {
+    fill: "red"
+  }
+});
  */
 uml.EndState = Element.extend({
      object: "EndState",
@@ -199,10 +266,35 @@ uml.EndState = Element.extend({
 });
 
 
-/**************************************************
- * UML Class Diagram
- **************************************************/
-
+/**
+ * UML StateChart class.
+ * @name Class.create
+ * @methodOf Joint.dia.uml
+ * @param {Object} properties
+ * @param {Object} properties.rect Bounding box of the Class (e.g. {x: 50, y: 100, width: 100, height: 80}).
+ * @param {String} [properties.label] The name of the class.
+ * @param {Number} [properties.labelOffsetX] Offset in x-axis of the label from the class rectangle origin.
+ * @param {Number} [properties.labelOffsetY] Offset in y-axis of the label from the class rectangle origin.
+ * @param {Number} [properties.swimlane1OffsetY] Offset in y-axis of the swimlane shown after the class label.
+ * @param {Number} [properties.swimlane2OffsetY] Offset in y-axis of the swimlane shown after the class attributes.
+ * @param {Object} [properties.attrs] SVG attributes of the appearance of the state.
+ * @param {String[]} [properties.attributes] Attributes of the class.
+ * @param {String[]} [properties.methods] Methods of the class.
+ * @param {Number} [properties.attributesOffsetX] Offset in x-axis of the attributes.
+ * @param {Number} [properties.attributesOffsetY] Offset in y-axis of the attributes.
+ * @param {Number} [properties.methodsOffsetX] Offset in x-axis of the methods.
+ * @param {Number} [properties.methodsOffsetY] Offset in y-axis of the methods.
+ * @example
+var c1 = Joint.dia.uml.Class.create({
+  rect: {x: 120, y: 70, width: 120, height: 80},
+  label: "MyClass",
+  attrs: {
+    fill: "90-#000-yellow:1-#fff"
+  },
+  attributes: ["-position"],
+  methods: ["+createIterator()"]
+});
+ */
 uml.Class = Element.extend({
     object: "Class",
     module: "uml",

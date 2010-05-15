@@ -1,28 +1,3 @@
-/**
- * Joint.dia 0.1.0 - Joint plugin for creating diagram elements.
- *
- * Copyright (c) 2009 David Durman
- *
- * Licensed under MIT license:
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
-
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
-
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
 (function(global){	// BEGIN CLOSURE
 
 var Joint = global.Joint;
@@ -30,30 +5,41 @@ var Joint = global.Joint;
 var point = Joint.point;
 var rect = Joint.rect;
 
+/**
+ * @name Joint.dia
+ * @namespace Holds functionality related to all diagrams and their elements.
+ */
 var dia = Joint.dia = {
     /**
      * Current dragged object.
+     * @private
      */ 
     _currentDrag: false,
     /**
      * Current zoomed object.
+     * @private
      */ 
     _currentZoom: false,
     /**
      * Table with all registered objects.
      *  - registered objects can embed and can be embedded
      *  - the table is of the form: {RaphaelPaper1: [shape1, shape2, ...]}
+     * @private
      */
     _registeredObjects: {},
     /**
      * Table whith all registered joints.
      *  - the table is of the form: {RaphaelPaper1: [joint1, joint2, ...]}
+     * @private
      */
     _registeredJoints: {},
     /**
-     * Create new joint and register it. 
-     * @param {JointArguments} args Joint parameters. @see Joint
-     * @return Joint
+     * Create new joint and register it. All joints appearing in a diagram should
+     * be created using this function. Otherwise they won't be registered and 
+     * therefore not serialized when needed.
+     * @param {Object} args Joint parameters. 
+     * @see Joint
+     * @return {Joint}
      */
     Joint: function(args){
 	var j = Joint.apply(null, arguments);
@@ -62,6 +48,7 @@ var dia = Joint.dia = {
     },
     /**
      * Register object to the current paper.
+     * You don't have to use this method unless you really know what you're doing.
      * @param {Element|Joint} obj Object to be registered.
      * @return {Element|Joint} Registered object.
      */
@@ -69,6 +56,11 @@ var dia = Joint.dia = {
 	var paper = Joint.paper();
 	(this._registeredObjects[paper] || (this._registeredObjects[paper] = [])).push(obj);
     },
+    /**
+     * Register joint to the current paper. Avoid registering the the same joint twice.
+     * You don't have to use this method unless you really know what you're doing.
+     * @param {Joint}
+     */
     registerJoint: function(j){
 	var paper = Joint.paper();
 	(this._registeredJoints[paper] || (this._registeredJoints[paper] = [])).push(j);	
@@ -76,7 +68,54 @@ var dia = Joint.dia = {
 };
 
 /**
- * Composite object.
+ * Abstract object of all diagram elements.
+ * This object is never used directly, instead, specific diagram elements inherits from it.
+ * Allows easy creation of new specific diagram elements preserving all features that Joint library and Joint.dia plugin offer.
+ * <h3>Wrapper</h3>
+ *  All custom elements must have a wrapper set. Wrapper is the key object that Joint library counts with. 
+ *  There cannot be any element without a wrapper. Usually it is an object which wraps all the subelements 
+ *  that a specific diagram element contains. The wrapper must be set in init method.
+ *  To set a wrapper, use setWrapper(aWrapper) method. The single parameter to the method is a Raphaël vector object. 
+ *  Later on, you can access this object using wrapper property.
+ * <h3>Inner</h3>
+ *  Inner objects are subelements of an element. Although they are optional, they are commonly used. To add a subelement 
+ *  to the element, use addInner(anInner) method. It takes a Raphaël vector object as an argument. All inner objects are 
+ *  placed to an array that you can access using inner property.
+ * <h3><i>init</i> method</h3>
+ *  The <i>init</i> method has to be part of every element you create. It takes all element options as an argument, 
+ *  sets wrapper and adds inners.
+ * <h3><i>joint</i> method</h3>
+ *  If you have specific elements, in which connections are not controlled by wrapper, you can implement your own joint method.
+ * <h3><i>zoom</i> method</h3>
+ *  As Joint.dia library does not know how your specific element should behave after scaling, you can use zoom method to implement 
+ *  the desired behaviour.
+ * @name Element
+ * @memberOf Joint.dia
+ * @constructor
+ * @example
+var mydia = Joint.dia.mydia = {};
+var Element = Joint.dia.Element;
+
+mydia.MyElement = Element.extend({
+  // init method must be always presented
+  init: function(properties){
+    var p = this.properties;
+    // parameters processing
+    p.position = properties.position;
+    p.radius = properties.radius || 30;
+    // every element must have a wrapper
+    this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius));
+    // optional inner elements 
+    this.addInner(this.paper.text(p.position.x, p.position.y, "my element"));
+  }
+});
+
+// ...
+
+var e = mydia.MyElement.create({
+  position: {x: 50, y: 50},
+  radius: 20
+});
  */
 var Element = dia.Element = function(){};
 
@@ -84,6 +123,7 @@ var Element = dia.Element = function(){};
  * Copies all the properties to the first argument from the following arguments.
  * All the properties will be overwritten by the properties from the following
  * arguments. Inherited properties are ignored.
+ * @private
  */
 var Mixin = Joint.Mixin = function() {
     var target = arguments[0];
@@ -121,6 +161,7 @@ var Mixin = Joint.Mixin = function() {
  * return foo.base(this, parseInt(digit))
  * }
  * });
+ * @private
  */
 var Supplement = Joint.Supplement = function() {
     var target = arguments[0];
@@ -144,6 +185,10 @@ var Supplement = Joint.Supplement = function() {
     return target;
 };
 
+/**
+ * Use this to instantiate particular elements.
+ * @private
+ */
 Element.create = function(properties){
     var instance = new this(properties);
     if (instance.init){
@@ -152,6 +197,9 @@ Element.create = function(properties){
     return instance;
 };
 
+/**
+ * @private
+ */
 Element.extend = function(prototype){
     var C = prototype.constructor = function(properties){ 
 	this.construct(properties); 
@@ -203,7 +251,8 @@ Element.prototype = {
 	dia.register(this); // register me in the global table
     },
     /**
-     * Returns element unique id.
+     * @methodOf Joint.dia.Element#
+     * @return Element unique id.
      */
     euid: function(){
 	return Joint.generateEuid.call(this);
@@ -224,6 +273,15 @@ Element.prototype = {
 	}
     },
 
+    /**
+     * Toggle ghosting of the element.
+     * Dragging a diagram object causes moving of the wrapper and all inners, and update 
+     * of all correspondent connections. It can be sometimes expensive. If your elements 
+     * are complex and you want to prevent all this rendering and computations, 
+     * you can enable ghosting. It means that only a ghost of your wrapper will be dragged.
+     * @methodOf Joint.dia.Element#
+     * @return {Element}
+     */
     toggleGhosting: function(){
 	this._opt.ghosting = !this._opt.ghosting;
 	return this;
@@ -232,6 +290,7 @@ Element.prototype = {
     /**
      * Create a ghost shape which is used when dragging.
      * (in the case _opt.ghosting is enabled)
+     * @private
      */
     createGhost: function(){
 	var 
@@ -257,6 +316,7 @@ Element.prototype = {
 
     /**
      * Get object position.
+     * @private
      * @return point
      */
     objPos: function(objname){
@@ -279,7 +339,9 @@ Element.prototype = {
     },
 
     /**
-     * Recursively call toFront() on inner.
+     * Sends the wrapper and all inners to the front.
+     * @methodOf Joint.dia.Element#
+     * @return {Element}
      */
     toFront: function(){
 	this.wrapper && this.wrapper.toFront();
@@ -289,7 +351,9 @@ Element.prototype = {
     },
 
     /**
-     * Recursively call toBack() on inner (in reverse order than toFront()).
+     * Sends the wrapper and all inners to the back.
+     * @methodOf Joint.dia.Element#
+     * @return {Element}
      */
     toBack: function(){
 	for (var i = this.inner.length - 1; i <= 0; --i)
@@ -300,6 +364,7 @@ Element.prototype = {
 
     /**
      * dia.Element mousedown event.
+     * @private
      */
     dragger: function(e){
 	dia._currentDrag = this.wholeShape;
@@ -320,6 +385,7 @@ Element.prototype = {
 
     /**
      * dia.Element zoom tool mousedown event.
+     * @private
      */
     zoomer: function(e){
 	dia._currentZoom = this;
@@ -334,7 +400,12 @@ Element.prototype = {
 
 	e.preventDefault && e.preventDefault();
     },
-
+    /**
+     * Move the element by offsets.
+     * @methodOf Joint.dia.Element#
+     * @param {Number} dx Offset in x-axis.
+     * @param {Number} dy Offset in y-axis.
+     */
     translate: function(dx, dy){
 	// save translation
 	this.properties.dx += dx;
@@ -349,6 +420,8 @@ Element.prototype = {
 
     /**
      * Add wrapper.
+     * @methodOf Joint.dia.Element#
+     * @param {RaphaelObject} s Vector object specifying a wrapper.
      */
     setWrapper: function(s){
 	this.wrapper = s;			// set wrapper
@@ -371,7 +444,10 @@ Element.prototype = {
     },
 
     /**
-     * Add subshape.
+     * Add a subelement.
+     * @methodOf Joint.dia.Element#
+     * @param {Element} s The subelement to be added.
+     * @return {Element} this
      */
     addInner: function(s){
 	this.inner.push(s);
@@ -389,7 +465,10 @@ Element.prototype = {
     },
 
     /**
-     * Remove subshape.
+     * Remove a subelement.
+     * @methodOf Joint.dia.Element#
+     * @param {Element} s The subelement to be removed.
+     * @return {Element} this
      */
     delInner: function(s){
 	var 
@@ -408,6 +487,7 @@ Element.prototype = {
 
     /**
      * Show toolbox.
+     * @private
      */
     addToolbox: function(){
 	// do not show toolbox if it is not enabled
@@ -443,6 +523,8 @@ Element.prototype = {
 
     /**
      * Hide (remove) toolbox.
+     * @todo Will be public after it is properly tested.
+     * @private
      */
     removeToolbox: function(){
 	if (this.toolbox)
@@ -454,6 +536,8 @@ Element.prototype = {
 
     /**
      * Show/hide toolbox.
+     * @todo Will be public after it is properly tested.
+     * @private
      */
     toggleToolbox: function(){
 	this._opt.toolbox = !this._opt.toolbox;
@@ -467,6 +551,7 @@ Element.prototype = {
 
     /**
      * Move toolbox by offset (dx, dy).
+     * @private
      */
     translateToolbox: function(dx, dy){
 	if (this.toolbox)
@@ -476,8 +561,10 @@ Element.prototype = {
 
     /**
      * Embed me into the first registered dia.Element whos bounding box 
-     * contains my bounding box origin.
+     * contains my bounding box origin. Both elements will behave as a whole.
      * @todo It is probably out of date. Retest!!!
+     * @methodOf Joint.dia.Element#
+     * @return {Element}
      */
     embed: function(){
 	var 
@@ -496,7 +583,7 @@ Element.prototype = {
 		embedTo = shape;	// if yes, save the shape
 
 	    if (shape == this.parentElement){
-		shape.del(this);
+		shape.delInner(this);
 
 		// just for optimization, a shape can be a subshape of 
 		// only one shape, so if I have been deleted from my parent, 
@@ -511,8 +598,9 @@ Element.prototype = {
     },
 
     /**
-     * Free me. After this method call, I am no longer a subshape
-     * of any other dia.Element.
+     * Decouple embedded element from its parent.
+     * @methodOf Joint.dia.Element#
+     * @return {Element}
      */
     unembed: function(){
 	if (this.parentElement){
@@ -524,11 +612,13 @@ Element.prototype = {
     },
 
     /**
-     * Scale.
-     * Derived objects have to implement their own scale method!
-     * Must be called at the end of each derived object's scale method!
+     * Scale element.
+     * @methodOf Joint.dia.Element#
+     * @param {Number} sx Scale in x-axis.
+     * @param {Number} &optional sy Scale in y-axis.
+     * @example e.scale(1.5);
      */
-    scale: function(){
+    scale: function(sx, sy){
 	this.wrapper.scale.apply(this.wrapper, arguments);
 	this.zoom.apply(this, arguments);
 	// apply scale to all subshapes that are Elements (were embeded) 
@@ -542,19 +632,28 @@ Element.prototype = {
 	this.removeToolbox();
 	this.addToolbox();
     },
-    zoom: function(){
+    /**
+     * This method should be overriden by inherited elements to implement
+     * the desired scaling behaviour.
+     * @methodOf Joint.dia.Element#
+     * @param {Number} sx Scale in x-axis.
+     * @param {Number} &optional sy Scale in y-axis.
+     */
+    zoom: function(sx, sy){
 	// does nothing, overriden by specific elements
     },
 
     /**
-     * Delegate getBBox message to my wrapper.
+     * @methodOf Joint.dia.Element#
+     * @return {Object} Bounding box of the element.
      */
     getBBox: function(){
 	return this.wrapper.getBBox();
     },
 
     /**
-     * Delegate joint message to my wrapper.
+     * @see Joint
+     * @methodOf Joint.dia.Element#
      */
     joint: function(to, opt){
 	var toobj = (to._isElement) ? to.wrapper : to,
@@ -565,6 +664,7 @@ Element.prototype = {
 
     /**
      * Delegate attr message to my wrapper.
+     * @private
      */
     attr: function(){
 	return Raphael.el.attr.apply(this.wrapper, arguments);
@@ -574,6 +674,7 @@ Element.prototype = {
 
 /**
  * Document mousemove event.
+ * @private
  */
 Element.mouseMove = function(e){
     e = e || window.event;
@@ -620,6 +721,7 @@ Element.mouseMove = function(e){
 
 /**
  * Document mouseup event.
+ * @private
  */
 Element.mouseUp = function(e){
     // if ghosting is enabled, translate whole shape to the position of

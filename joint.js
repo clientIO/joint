@@ -1,30 +1,3 @@
-/**
- * @fileoverview Joint - JavaScript library for connecting vector objects
- * @author David Durman
- * @version 0.1.3
- *
- * Copyright (c) 2009 David Durman
- *
- * Licensed under MIT license:
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
-
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
-
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
 (function(global){	// BEGIN CLOSURE
 
 var 
@@ -156,8 +129,8 @@ ConstraintSolver.prototype = {
 	return r.boundPoint(p) || rCenter;
     },
     /**
-     * intersection of a line leading from __sbbCenter to __ebbCenter 
-     * (or first connection vertex) and the start object boundary
+     * Intersection of a line leading from __sbbCenter to __ebbCenter 
+     * (or first connection vertex) and the start object boundary.
      */
     sBoundPoint: function(){
 	if (this._state.sBoundPoint){
@@ -190,7 +163,7 @@ ConstraintSolver.prototype = {
 	return this._state.eBoundPoint;
     },
     /**
-     * angle between __sbbCenter and __ebbCenter (or first connection vertex)	
+     * Angle between __sbbCenter and __ebbCenter (or first connection vertex).
      */
     sTheta: function(){
 	if (this._state.sTheta){
@@ -206,7 +179,7 @@ ConstraintSolver.prototype = {
 	return this._state.sTheta;
     },
     /**
-     * angle between __ebbCenter and __sbbCenter (or last connection vertex)
+     * Angle between __ebbCenter and __sbbCenter (or last connection vertex).
      */
     eTheta: function(){
 	if (this._state.eTheta){
@@ -222,7 +195,7 @@ ConstraintSolver.prototype = {
 	return this._state.eTheta;
     },
     /**
-     * connection path commands
+     * Connection path commands.
      */
     conPathCommands: function(){
 	if (this._state.conPathCommands){
@@ -245,7 +218,7 @@ ConstraintSolver.prototype = {
 	return state.conPathCommands;
     },
     /**
-     * label position
+     * Label position.
      */
     labelPoint: function(){
 	var state = this._state;
@@ -265,7 +238,7 @@ ConstraintSolver.prototype = {
 	return state.labelPoint;
     },
     /**
-     * start object bounding box
+     * Start object bounding box.
      */
     sbb: function(){
 	var aux = this._aux;
@@ -277,7 +250,7 @@ ConstraintSolver.prototype = {
 	return aux.sbb;
     },
     /**
-     * start object bounding box center point
+     * Start object bounding box center point.
      */
     sbbCenter: function(){
 	var aux = this._aux;
@@ -289,7 +262,7 @@ ConstraintSolver.prototype = {
 	return aux.sbbCenter;
     },
     /**
-     * end object bounding box
+     * End object bounding box.
      */
     ebb: function(){
 	var aux = this._aux;
@@ -301,7 +274,7 @@ ConstraintSolver.prototype = {
 	return aux.ebb;
     },
     /**
-     * end object bounding box center point
+     * End object bounding box center point.
      */
     ebbCenter: function(){
 	var aux = this._aux;
@@ -314,7 +287,7 @@ ConstraintSolver.prototype = {
     },
     /**
      * __sBoundPoint moved in the direction of __eBoundPoint (or first connection vertex) 
-     * by start cap width
+     * by start cap width.
      */
     sPoint: function(){
 	var aux = this._aux;
@@ -335,7 +308,7 @@ ConstraintSolver.prototype = {
     },
     /**
      * __eBoundPoint moved in the direction of __sBoundPoint (or last connection vertex) 
-     * by end cap width
+     * by end cap width.
      */
     ePoint: function(){
 	var aux = this._aux;
@@ -356,36 +329,88 @@ ConstraintSolver.prototype = {
     }
 };
 
+
+
 /**
  * @name Joint
  * @constructor
  * @param {RaphaelObject|Shape|object} from Object/position where the connection starts.
  * @param {RaphaelObject|Shape|object} to Object/position where the connection ends.
  * @param {object} [opts] opt Options
- * @param {object} [opts.interactive] Is the joint interactive?  [default = true]
- * @param {array} [opts.vertices] Connection path vertices.
- * @param {string} [opts.label] Label.
+ * @param {object} [opts.interactive] Is the joint interactive? [default = true]
+ * @param {object} [opts.attrs] Connection options (see  Raphael possible parameters)
+ * @param {string} [opts.cursor] Connection CSS cursor property
+ * @param {boolean} [opts.beSmooth] Connection enable/disable smoothing
+ * @param {string} [opts.label] Connection label 
  * @param {object} [opts.labelBoxAttrs] SVG Attributes of the label bounding rectangle.
- * @param {object} [opts.attrs] Connection options (see Raphael path options)
  * @param {object} [opts.startArrow] Start arrow options
- * @param {string} [opts.startArrow.type] "basic"|"basicArrow"|...
- * @param {object} [opts.startArrow.attrs] Start Arrow options (see Raphael path options)
+ * @param {string} [opts.startArrow.type] "none"|"basic"
+ * @param {number} [opts.startArrow.size] Start arrow size
+ * @param {object} [opts.startArrow.attrs] Start Arrow options (see  Raphael possible parameters)
  * @param {object} [opts.endArrow] End arrow options
- * @param {string} [opts.endArrow.type] "basic"|"basicArrow"|...
- * @param {object} [opts.endArrow.attrs] End Arrow options (see Raphael path options)
- * @param {object} [opts.bboxCorrection] Correction of bounding box (useful when the connection should start in the center of an object, etc...
- * @param {object} [opts.bboxCorrection.start] BBox correction of start object.
+ * @param {string} [opts.endArrow.type] "none"|"basic"
+ * @param {number} [opts.endArrow.size] End arrow size
+ * @param {object} [opts.endArrow.attrs] End Arrow options (see  Raphael possible parameters)
+ * @param {object} [opts.dummy] Dummy node options (shows when dragging arrows)
+ * @param {object} [opts.dummy.start] Start dummy node options
+ * @param {number} [opts.dummy.start.radius] Start dummy radius
+ * @param {object} [opts.dummy.start.attrs] Start dummy options (see  Raphael possible parameters)
+ * @param {object} [opts.dummy.end] End dummy node options
+ * @param {number} [opts.dummy.end.radius] End dummy radius
+ * @param {object} [opts.dummy.end.attrs] End dummy options (see  Raphael possible parameters)
+ * @param {object} [opts.handle] Handle options
+ * @param {number} [opts.handle.timeout] Number of milliseconds handle stays shown
+ * @param {object} [opts.handle.start] Start handle options
+ * @param {boolean} [opts.handle.start.enabled] Start handle enabled/disabled
+ * @param {number} [opts.handle.start.radius] Start handle radius
+ * @param {object} [opts.handle.start.attrs] Start handle attributes (see  Raphael possible parameters)
+ * @param {object} [opts.handle.end] End handle options
+ * @param {boolean} [opts.handle.end.enabled] End handle enabled/disabled
+ * @param {number} [opts.handle.end.radius] End handle radius
+ * @param {object} [opts.handle.end.attrs] End handle attributes (see  Raphael possible parameters)
+ * @param {object} [opts.bboxCorrection] Correction of a bounding box (useful when, e.g., the connection should start in the center of an object)
+ * @param {object} [opts.bboxCorrection.start] BBox correction of the start object.
  * @param {string} [opts.bboxCorrection.start.type] "ellipse"|"rect"
- * @param {number} [opts.bboxCorrection.start.x] Translation in x-axis
- * @param {number} [opts.bboxCorrection.start.y] Translation in y-axis
+ * @param {number} [opts.bboxCorrection.start.x] Translation in the x-axis
+ * @param {number} [opts.bboxCorrection.start.y] Translation in the y-axis
  * @param {number} [opts.bboxCorrection.start.width] BBox width
  * @param {number} [opts.bboxCorrection.start.height] BBox height
- * @param {object} [opts.bboxCorrection.end] BBox correction of end object.
+ * @param {object} [opts.bboxCorrection.end] BBox correction of the end object.
  * @param {string} [opts.bboxCorrection.end.type] "ellipse"|"rect"
- * @param {number} [opts.bboxCorrection.end.x] Translation in x-axis
- * @param {number} [opts.bboxCorrection.end.y] Translation in y-axis
+ * @param {number} [opts.bboxCorrection.end.x] Translation in the x-axis
+ * @param {number} [opts.bboxCorrection.end.y] Translation in the y-axis
  * @param {number} [opts.bboxCorrection.end.width] BBox width
  * @param {number} [opts.bboxCorrection.end.height] BBox height
+ * @example
+ * Joint({x: 10, y: 10}, {x: 300, y: 100}, {
+ *  label: "my label",
+ *  beSmooth: true,
+ *  startArrow: {
+ *    type: "basic",
+ *    size: 7,
+ *    attrs: {
+ *      fill: "red",
+ *      stroke: "blue"
+ *    }
+ *  },
+ *  handle: {
+ *    timeout: 4000,
+ *    start: {
+ *      radius: 6,
+ *      attrs: {
+ *        fill: "green",
+ *        stroke: "black"
+ *      }
+ *    },
+ *    end: {
+ *      radius: 4,
+ *      attrs: {
+ *        fill: "red",
+ *        stroke: "black"
+ *      }
+ *    }
+ *  }
+ * });
  */
 function Joint(from, to, opt){ 
     if (!(this instanceof Joint)){
@@ -524,6 +549,11 @@ function Joint(from, to, opt){
 global.Joint = Joint;	// the only global variable
 
 Joint.euid = 1;	// elements/joints unique id 
+/**
+ * Assign unique id to this.
+ * @private
+ * @example Joint.generateEuid.call(obj);
+ */
 Joint.generateEuid = function(){
     if (this._euid === undefined) this._euid = Joint.euid++;
     return this._euid;
@@ -536,7 +566,7 @@ Joint.prototype = {
     // temporaries for moving objects
     _dx: undefined,
     _dy: undefined,
-    /**
+    /*
      * States.
      */
     IDLE: 0,
@@ -544,7 +574,7 @@ Joint.prototype = {
     ENDCAPDRAGGING: 2,
     CONNECTIONWIRING: 3,
     state: 0,	// IDLE
-    /**
+    /*
      * Callbacks.
      * @name Callbacks
      */
@@ -559,12 +589,12 @@ Joint.prototype = {
 	objectMoving: function(obj){}
     },
     /**
-     * Return joint unique identifier.
+     * @return {String} Joint unique identifier.
      */
     euid: function(){
 	return Joint.generateEuid.call(this);
     },
-    /**
+    /*
      * Getters.
      */
     connection: function(){ return this._con; },
@@ -580,6 +610,7 @@ Joint.prototype = {
     isEndDummy: function(){ return this._end.dummy; },
     /**
      * Replaces dummy object with a new object.
+     * @private
      * @param {object} startOrEnd start or end object (old dummy)
      * @param {RaphaelObject} o
      */
@@ -591,6 +622,7 @@ Joint.prototype = {
     },
     /**
      * Calls a callback.
+     * @private
      * @param {function} fnc Callback function
      * @param {object} scope Scope of the callback
      * @param {array} args Array of arguments
@@ -602,6 +634,7 @@ Joint.prototype = {
      * Search the registered objects and get the one (if any)
      * who's bounding box contains the point p.
      * @todo check document.elementFromPoint(x, y)
+     * @private
      * @param {Point}
      */
     objectContainingPoint: function(p){
@@ -615,6 +648,7 @@ Joint.prototype = {
     },
     /**
      * Remove reference to Joint from obj.
+     * @private
      * @param {StartObject|EndObject} obj
      */
     freeJoint: function(obj){
@@ -628,6 +662,7 @@ Joint.prototype = {
     },
     /**
      * Add reference to Joint to obj.
+     * @private
      * @param {RaphaelObject} obj
      */
     addJoint: function(obj){
@@ -643,6 +678,7 @@ Joint.prototype = {
     },
     /**
      * MouseDown event callback when on cap.
+     * @private
      * @param {Event} e
      * @param {RaphaelObject} cap
      */
@@ -667,6 +703,7 @@ Joint.prototype = {
     },
     /**
      * MouseDown event callback when on connection.
+     * @private
      * @param {Event} e
      */
     connectionMouseDown: function(e){
@@ -832,6 +869,7 @@ Joint.prototype = {
      *
      * @todo for better performance, get primitives out of draw() method, otherwise
      * they will be created each time draw() method is called.
+     * @private
      */
     draw: function(){
 	var 
@@ -984,6 +1022,7 @@ Joint.prototype = {
      * Clean operations. 
      * Remove the DOM elements of connection/startCap/endCap/label if they exist.
      * Clean operations support chaining.
+     * @private
      */
     clean: function(){
 	var self = this;
@@ -1149,11 +1188,14 @@ Joint.prototype = {
 	    }
 	}
     },
+    // Public API
+
     /**
      * Register object(s) so that it can be pointed by my cap.
      * @param {RaphaelObject|Shape|array} obj
      * @param {string} cap "start|end|both" cap to register default: "both"
      * @return {Joint}
+     * @example j.register(circle, "end")
      */
     register: function(obj, cap){
 	if (!cap){
@@ -1173,6 +1215,19 @@ Joint.prototype = {
 	}
 	return this;
     },
+    /**
+     * The difference between register and registerForever is that registerForever 
+     * saves reference to an array passed as argument. It means that all objects pushed 
+     * into the array before and/or after the call of this method will be registered (for both caps). 
+     * This method is useful for applications that do not know to which objects the connection 
+     * can be sticked when the joint is created.
+     * @param {Array} An array holding objects which the joint is going to be registered to.
+     * @return {Joint}
+     * @example 
+     * var all = []; 
+     * j.registerForever(all);  
+     * // ... create objects and push them into all array
+     */
     registerForever: function(arr){
 	this._registeredObjects = arr;	
 	return this;
@@ -1182,6 +1237,7 @@ Joint.prototype = {
      * @param {RaphaelObject|Shape} obj
      * @param {string} cap "start|end|both" cap to unregister default: "both"
      * @return {Joint}
+     * @example j.unregister(circle, "end");
      */
     unregister: function(obj, cap){
 	if (typeof cap === "undefined"){
@@ -1238,7 +1294,7 @@ Joint.prototype = {
 	return this._opt.beSmooth;
     },
     /**
-     * Set label.
+     * Set a label of the connection.
      * @param {string} str label
      * @return {Joint}
      */
@@ -1250,9 +1306,23 @@ Joint.prototype = {
     /**
      * Register callback function on various events.
      * @link Callbacks 
-     * @param {string} evt Possible values can be found in {@link Callbacks}
+     * @param {string} evt "justConnected"|"disconnected"|"justBroken"|"wiring"|"objectMoving"
      * @param {function} fnc 
      * @return {Joint}
+     * @example
+     * j.registerCallback("justConnected", function(side){ ... this points to the object the joint was just connected to ... });
+     * j.registerCallback("disconnected", function(side){ ... this points to the object the joint was just disconnected from ... });
+     * j.registerCallback("justBroken", function(mousePos){ ... this points to the joint object ... });
+     * j.registerCallback("wiring", function(mousePos){ ... this points to the joint object ... });
+     * j.registerCallback("objectMoving", function(obj){ ... this points to the joint object ... });
+     * 
+     * j.registerCallback("justConnected", function(side){
+     *   if (side === "start"){
+     *     console.log("Start cap connected.");
+     *   } else {  // side === "end"
+     *     console.log("End cap connected");
+     *   }
+     * });
      */
     registerCallback: function(evt, fnc){
 	this._callbacks[evt] = fnc;
@@ -1269,7 +1339,9 @@ Joint.prototype = {
 	return this;
     },
     /**
-     * Show handle(s).
+     * Show/hide handle(s).
+     * If a connection arrow is, e.g., of type none, it is difficult to grab the end of the connection. 
+     * For these cases, you can use handles, which are just simple circles showing at the end of a connection.
      * @param {string} cap &optional [start|end] Specifies on what side handle should be shown.
      * @return {Joint}
      */
@@ -1283,6 +1355,10 @@ Joint.prototype = {
 	this.update();
 	return this;
     },
+    /**
+     * Show handle.
+     * @return {Joint}
+     */
     showHandle: function(cap){
 	if (typeof cap === "undefined"){
 	    this._opt.handle.start.enabled = true;
@@ -1293,6 +1369,10 @@ Joint.prototype = {
 	this.update();
 	return this;
     },
+    /**
+     * Hide handle.
+     * @return {Joint}
+     */
     hideHandle: function(cap){
 	if (typeof cap === "undefined"){
 	    this._opt.handle.start.enabled = false;
@@ -1303,11 +1383,45 @@ Joint.prototype = {
 	this.update();
 	return this;
     },
-    setBBoxCorrection: function(opt, cap){
+    /**
+     * Set bounding box correction.
+     * This advanced feature of Joint library allows you to shift a point to which a connection sticks. 
+     * You can for example modify a connection to point to the center of an object or you can set a distance 
+     * between an object and a connection arrow.
+     * @param {object} [corr] correction Correction
+     * @param {string} [corr.type] fake type of an object to which a cap points
+     * @param {number} [corr.x] x-axis shift of an object bounding box
+     * @param {number} [corr.y] y-axis shift of an object bounding box
+     * @param {number} [corr.width] change in an object bounding box width (can be negative)
+     * @param {number} [corr.height] change in an object bounding box height (can be negative)
+     * @param {string} cap "start|end"|undefined cap (undefined === both caps)
+     * @return {Joint}
+     * @example
+     * // 1.) both sides of the connection will point to the center of
+     * //     a circular object with radius == 30 
+     * j.setBBoxCorrection({
+     *   type: "ellipse",
+     *   x: 30,
+     *   y: 30,
+     *   width: -60,
+     *   height: -60
+     * });
+     *
+     * // 2.) keep 20px distance between connection's arrow
+     * //     and a circular object
+     * j.setBBoxCorrection({
+     *   type: "ellipse",
+     *   x: -20,
+     *   y: -20,
+     *   width: 40,
+     *   height: 40
+     * });
+     */
+    setBBoxCorrection: function(corr, cap){
 	if (cap === undefined){
-	    this._opt.bboxCorrection["start"] = this._opt.bboxCorrection["end"] = opt;
+	    this._opt.bboxCorrection["start"] = this._opt.bboxCorrection["end"] = corr;
 	} else {
-	    this._opt.bboxCorrection[cap] = opt;	    
+	    this._opt.bboxCorrection[cap] = corr;	    
 	}
 	this.update();
 	return this;
@@ -1322,6 +1436,20 @@ Joint.prototype = {
  */
 Joint.currentJoint = null;
 
+/**
+ * Set a paper for graphics rendering.
+ * @param {Raphael|number,number,number,number|string,number,number|HTMLElement} p
+ * @return {Raphael} Paper.
+ * @example
+ * // create paper from existing HTMLElement with id "world" specifying width and height
+ * Joint.paper("world", 640, 480);
+ * // create paper specifying x, y position and width and height
+ * Joint.paper(50, 50, 640, 480);
+ * // paper is created from the HTMLElement with id "world"
+ * Joint.paper(document.getElementById("world"));
+ * // create paper using Raphael
+ * Joint.paper(Raphael("world", 640, 480));
+ */
 Joint.paper = function paper(){
     var p = arguments[0];
     if (p === undefined){
@@ -1336,6 +1464,12 @@ Joint.paper = function paper(){
 
 /**
  * Clear paper, reset again.
+ * @example
+ * // create paper from existing HTMLElement with id "world" specifying width and height
+ * Joint.paper("world", 640, 480);
+ * // ... draw objects, diagrams, etc. ...
+ * Joint.resetPaper();
+ * // paper is clear and ready for next usage
  */
 Joint.resetPaper = function resetPaper(){
     if (!this._paper){
@@ -1364,7 +1498,11 @@ Joint.getArrow = function(type, size, attrs){
 };
 
 /**
- * Basic arrows.
+ * This object contains predefined arrow types. Currently, there are only two types: none and basic. 
+ * These are considered general types and are suitable for most diagrams. Nevertheless, new arrows 
+ * can be easily added. See arrows.js plugin, which provides some fancier arrows.
+ * The names can be used as startArrow|endArrow types.
+ * @example circle.joint(rect, { startArrow: { type: basic, size: 5, attrs: ... } });
  */
 Joint.arrows = {
     none: function(size){
@@ -1461,12 +1599,6 @@ Joint.mouseUp = function(e){
     }
     Joint.currentJoint = null;
 };
-
-
-/**************************************************
- * Cross-browser event handling.
- * From Dean Edwards' addEvent library.
- **************************************************/
 
 Joint.fixEvent = function(event) {
     // add W3C standard event methods

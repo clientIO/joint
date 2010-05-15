@@ -1,15 +1,19 @@
-/**
- * Joint.dia.devs 0.1.0 - Joint.dia plugin for creating Discrete Event System Specification (DEVS) diagrams.
- * Copyright (c) 2009 David Durman
- * Licensed under the MIT license: (http://www.opensource.org/licenses/mit-license.php)
- */
 (function(global){	// BEGIN CLOSURE
 
-var devs = global.Joint.dia.devs = {};
-var Element = global.Joint.dia.Element;
+var Joint = global.Joint,
+     Element = Joint.dia.Element;
+
+/**
+ * @name Joint.dia.devs
+ * @namespace Holds functionality related to Discrete EVent System (DEVS) diagrams.
+ */
+var devs = Joint.dia.devs = {};
 
 /**
  * Predefined arrow.
+ * @name Joint.dia.devs.arrow
+ * @memberOf Joint.dia.devs
+ * @example a1.port("o", "out1").joint(c1.port("i", "in"), Joint.dia.devs.arrow);
  */
 devs.arrow = {
   endArrow: { type: "none" },
@@ -17,6 +21,37 @@ devs.arrow = {
   attrs: { "stroke-dasharray": "none" }
 };
 
+/**
+ * DEVS atomic/coupled model.
+ * @name Model.create
+ * @methodOf Joint.dia.devs
+ * @param {Object} properties
+ * @param {Object} properties.rect Bounding box of the model (e.g. {x: 50, y: 100, width: 150, height: 100}).
+ * @param {String} [properties.label] The name of the model.
+ * @param {Number} [properties.labelOffsetX] Offset in x-axis of the label from the model rectangle origin.
+ * @param {Number} [properties.labelOffsetY] Offset in y-axis of the label from the model rectangle origin.
+ * @param {Number} [properties.portsOffsetX] Offset in x-axis of the ports from the model rectangle origin.
+ * @param {Number} [properties.portsOffsetY] Offset in y-axis of the ports from the model rectangle origin.
+ * @param {Number} [properties.iPortRadius] Radius of the input ports circle.
+ * @param {Number} [properties.oPortRadius] Radius of the output ports circle.
+ * @param {Object} [properties.iPortAttrs] SVG attributes of the appearance of the input ports.
+ * @param {Object} [properties.oPortAttrs] SVG attributes of the appearance of the output ports.
+ * @param {Number} [properties.iPortLabelOffsetX] Offset in x-axis of the input ports label.
+ * @param {Number} [properties.oPortLabelOffsetX] Offset in x-axis of the output ports label.
+ * @param {String[]} [properties.iPorts] The input port names.
+ * @param {String[]} [properties.oPorts] The output port names.
+ * @param {Object} [properties.attrs] SVG attributes of the appearance of the model.
+ * @example
+var a1 = Joint.dia.devs.Model.create({
+  rect: {x: 30, y: 90, width: 100, height: 60},
+  label: "Atomic 1",
+  attrs: {
+    fill: "90-#000-#f00:1-#fff"
+  },
+  iPorts: ["in1"],
+  oPorts: ["out1", "out2"]
+});
+ */
 devs.Model = Element.extend({
      object: "Model",
      module: "devs",
@@ -81,6 +116,12 @@ devs.Model = Element.extend({
 				     });
 	 return port;
      },
+     /**
+      * Get a port object. It can be used further for connecting other port objects.
+      * @param {String} type "i"|"o"
+      * @param {String} label Name of the port.
+      * @return {Port}
+      */
      port: function(type, label){
 	 var el;
 	 for (var i = 0, l = this.inner.length; i < l; i++){
@@ -89,6 +130,7 @@ devs.Model = Element.extend({
 		 return el;
 	     }
 	 }
+	 return undefined;
      },
      joint: function(oPort, to, iPort, opt){
 	 // shorthand
