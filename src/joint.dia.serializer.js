@@ -2,10 +2,9 @@
 
 var Joint = global.Joint;
 
-Joint.Mixin(Joint.prototype, {
+Joint.Mixin(Joint.prototype, /** @lends Joint.prototype */ {
     /**
      * Returns compact object representation of joint. Used for serialization.
-     * @methodOf Joint.prototype
      * @return {Object} Compact representation of the joint.
      */
     compact: function(){
@@ -44,7 +43,6 @@ Joint.Mixin(Joint.prototype, {
 	return j;
     },
     /**
-     * @methodOf Joint.prototype
      * @return {String} JSON representation of joint.
      */
     stringify: function(){
@@ -52,10 +50,9 @@ Joint.Mixin(Joint.prototype, {
     }
 });
 
-Joint.Mixin(Joint.dia, {
+Joint.Mixin(Joint.dia, /** @lends Joint.dia */ {
      /**
       * Clones diagram in the current paper.
-      * @methodOf Joint.dia
       * @return {Array} Array of the constructed elements.
       */
     clone: function(){
@@ -63,7 +60,6 @@ Joint.Mixin(Joint.dia, {
     },
     /**
      * Construct a diagram from the JSON representation.
-     * @methodOf Joint.dia
      * @param {String} JSON
      * @return {Array} Array of the constructed elements.
      */
@@ -161,7 +157,6 @@ Joint.Mixin(Joint.dia, {
     },
     /**
      * Stringify the whole diagram (occupying a paper).
-     * @methodOf Joint.dia
      * @param {RaphaelPaper} paper Raphael paper the diagram belongs to.
      * @return {String} JSON representation of the diagram.
      */
@@ -191,9 +186,8 @@ Joint.Mixin(Joint.dia, {
     }
 });
 
-Joint.Mixin(Joint.dia.Element.prototype, {
+Joint.Mixin(Joint.dia.Element.prototype, /** @lends Joint.dia.Element.prototype */ {
     /**
-     * @methodOf Joint.dia.Element#
      * @return JSON representation of the element.
      */
     stringify: function(){
