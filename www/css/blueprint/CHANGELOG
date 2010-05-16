@@ -1,0 +1,159 @@
+Blueprint CSS Framework Change Log
+----------------------------------------------------------------
+
+Version 0.9 - Date May 29, 2009
+--
+  New features:
+    * Changed all conditional comments to [if lt IE 8] for IE 8 compatibility [CMM]
+    * Updated forms code to align inline form elements, with additions for IE 6 [CMM]
+      * Use <form class="inline"> for inline forms
+      * Use classes "text", "button", "radio" and "checkbox" on inputs for IE 6 compatibility
+
+
+Version 0.8 - Date November 11, 2008
+--
+  New features:
+    * Much of the flexibility of 0.6 has been pushed back into the core [CMM]
+    * Plugins from 0.6 are now back in the core [CMM]
+
+  Bug fixes:
+    * Lots. See http://blueprintcss.lighthouseapp.com/projects/15318-blueprint-css
+
+
+Version 0.7.1 - Date February 21, 2008
+--
+  New features:
+    * Rubydoc for compressor [JC]
+
+  Bug fixes:
+    * Fixed bug in the compressor related to Rubygems. [JC]
+    * <tt> should be inline, not block. [OFB]
+
+
+Version 0.7 - February 19, 2008
+--
+  New features:
+    * New directory structure. [OFB]
+    * New compressor script. [JC]
+      * Ability to set custom namespace for BP classes. [JC]
+      * Optional custom column count and widths. [JC]
+      * Ability to add your own CSS files. [JC]
+      * Custom output paths. [JC]
+      * Support for multiple projects. [JC]
+      * Semantic class naming from CSS rules. [JC]
+      * Automatic compression for plugins. [JC]
+    * Compressed version of ie.css. [OFB]
+    * Alternating table row colors. [OFB]
+    * Added class .showgrid to see the grid of any column or container. [OFB]
+    * No need for .column! You now have to use divs for columns,
+      but you can still use span/prepend/append for other elements as well.
+      In other words, div.span-x now implies that the element is a .column. [OFB]
+
+  Bug fixes:
+    * Sidebar alignment in tests/sample.html. [OFB]
+    * Line-height on sub/sup. [OFB]
+    * Clearfix not properly applied to container. [OFB]
+    * Misc validation errors in tests. [OFB]
+    * Proper margin on address. [OFB]
+    * Unwanted bottom margin on nested lists. [OFB]
+    * Form labels with unwanted fancy-type indentation. [OFB]
+    * Proper margin on all form elements. [OFB]
+    * No margins for images in headings. [OFB]
+    * Push-x bottom margin. [OFB]
+    * Vertical align set to middle on tables. [OFB]
+    * Improved .notice, .error and .success color contrast. [OFB]
+    * Size of input[text]. [OFB]
+    * Baseline alignment of <h4>. [OFB]
+
+  Misc:
+    * Improved structure in print.css. [OFB]
+    * Dual-licensed under MIT and GPL licenses. [OFB]
+    * Changed name of .clear to .clearfix, and added .clear (clear:both;). [OFB]
+
+
+Version 0.6 - September 21, 2007
+--
+  * Created a new plugin, "iepngfix", that adds support for PNG transparency in IE5.5+ [OFB]
+  * Added an IE stylesheet, updated the test files and the readme accordingly [OFB]
+  * Re-added improved support for em units [OFB]
+  * Lots of minor changes to typography.css and reset.css, provided by Christian Montoya [OFB]
+  * Extracted the fancy typography section in typography.css to a new plugin [OFB]
+  * Extracted the support for CSS buttons into a new plugin. [OFB]
+  * Added new plugin structure. [OFB]
+  * Changed some default fonts so that BP works better with ClearType in XP [OFB]
+  * Re-added the hack for clearing floats without extra markup. [OFB]
+  * Added Changelog.txt to track changes in each release. [GR]
+  * Cleaned up and rationalized SVN dir structure. [GR, OFB]
+  * print.css : removed reference to 'baseline.png' as it no longer exists. [GR]
+  * grid.css : removed reference to '.first' css class as it no longer exists. [GR]
+  * Added append-13 to append-23 and prepend-13 to prepend-23 to allow pushing elements
+    to both extreme sides of the grid. Added test cases to tests/grid.css [GR]
+  * Moved test sample files to blueprint/tests sub-directory so tests stay with the code. [GR]
+  * Consolidated all references to release version number to screen.css [OFB]
+  * Added ruby script (generate_compressed_css.rb) to scripts dir, and 'csstidy' binary (OS X Universal)
+    for generating tidied version of Blueprint (lib/compressed.css).
+  * Consolidated test pages into one single page (test.html).  Uses compressed stylesheet by default.  This ensures test of
+    the chain of generation.  (todo) Intention is to delete other test files if single file works well. (todo) ensure singular
+    test file contains latest changes to other test files.   [GR]
+  * Moved the blueprint framework to its own folder in the package, so that the tests, script,
+    license and readme don't clutter up our BP folder. [OFB]
+  * Re-saved grid.png with Photoshop to remove Fireworks data which was bloating it.
+    Now its about 3KB instead of 40+KB. Resolves Issue 22. [GR]
+  * Moved compressed files to new compressed dir [OFB]
+  * print.css is now also being generated by the compressor ruby script and is available for use.
+  * Added new script 'validate_css.rb' which will validate all css files and present a report with
+    a local java binary of the W3C validator.
+  * Created an experimental CSS classes plugin, by popular demand. [OFB]
+  * Improved handling of multi-line headings. [OFB]
+  * Improved styling of <table>s, you may now use .span classes on <th>s to create tables that follow the grid. [OFB]
+  * Added support for indented paragraphs to the Fancy-type plugin. [OFB]
+  * Added a new plugin: link-icons. [OFB]
+  * Seperated the plugins tests into their own file. [OFB]
+  * Re-structured some of the tests.html sections. [OFB]
+  * Added class ".colborder" to grid.css. [OFB]
+  * Added .error, .notice and .success classes to typography.css. [OFB]
+  * Added tests for more elements which gets reset in reset.css [OFB, GR]
+  * Added forms.css, awaiting implementation. Moved form styling from typography.css [OFB]
+  * Updated compressor script to include forms.css [OFB]
+  * Improved forms.html tests for upcoming forms.css implementation. This will change based on the
+    markup that forms.css will use. [OFB]
+  * Fixed clearing image in button element bug in buttons.css [OFB]
+  * Fixed bug where IE6 clips pushed/pulled elements. [OFB]
+  * Fixed typo in grid.css formula. [OFB]
+  * Fixed varying formatting across core files. [OFB]
+  * Fixed legend element in IE6. [OFB]
+  * Fixed indentation in test files. [OFB]
+  * Removed tests for plugins not bundled with the next release. [OFB]
+  * Improved styling of <h3>. [OFB]
+  * Fixed indentation bug in ul/ol, removed some redundant styling. [OFB]
+  * Fixed validation errors in tests. [OFB]
+  * Changed IE stylesheet condition comment to include all versions of IE. [OFB]
+  * Started on a new approach for the PNG plugin. Will not be included in this release. [OFB]
+  * Fixed incorrect rendering of ol in IE6/7. [OFB]
+  * Created a new, spiffier sample page. [OFB]
+
+
+Version 0.5 - August 28, 2007
+--
+  * Changed grid width from 14 to 24 columns [OFB]
+  * Removed 'first' CSS class and the need to apply it to the first column in a row of columns. [OFB]
+  * Reverted to using pixels instead of em units to specify vertical spacing due to baseline issues with
+    all browsers except Firefox. [OFB]
+  * New set of default fonts. (Experimental) [OFB]
+  * Added test files [OFB]
+
+
+Version 0.4 - August 11, 2007
+--
+  * All font sizes and vertical margins are now elastic, through the use of em units.
+    Resizing works great in every tested browser. [OFB]
+  * Comes with a new, compressed version of BP, which reduces the size of the core files by 60 percent. [OFB]
+  * Support for incremental leading, contributed by Mark Boulton. [OFB]
+  * Adds perfected CSS buttons, by Kevin Hale of Particletree fame. [OFB]
+  * Fixes all known IE bugs. [OFB]
+  * Loads of minor fixes and additions. [OFB]
+
+
+Version 0.3 - March 8, 2007
+--
+  * Initial release of Blueprint (versions 0.1 and 0.2 were internal only).

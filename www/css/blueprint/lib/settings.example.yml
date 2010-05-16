@@ -1,0 +1,33 @@
+# refer to http://www.yaml.org/spec/1.1/ for clarification on YAML collections
+project1:
+  path: /path/to/my/project/stylesheets
+  namespace: custom-namespace-1-
+  custom_css:
+    ie.css:
+      - custom-ie.css
+    print.css:
+      - docs.css
+      - my-print-styles.css
+    screen.css:
+      - subfolder-of-stylesheets/sub_css.css
+  custom_layout:
+    column_count: 12
+    column_width: 70
+    gutter_width: 10
+  plugins:
+    - fancy-type
+    - buttons
+project2:
+  path: /path/to/different/stylesheets
+  namespace: different-namespace-
+  custom_css:
+    screen.css:
+      - custom_screen.css
+  semantic_classes:
+    "#footer, #header": ".span-24, div.span-24"
+    "#content": ".span-17, div.span-17, div.colborder"
+    "#extra-content": ".span-6, div.span-6"
+    "div#navigation": "div.span_24, .span-24"
+    "div.section, div.entry, .feeds": ".span-6 div.span-6"
+project3:
+  path: /path/to/another/projects/styles

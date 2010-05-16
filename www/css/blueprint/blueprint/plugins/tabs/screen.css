@@ -1,0 +1,63 @@
+/* -----------------------------------------------------------------------
+
+
+ Tabs Plugin 0.1 for the Blueprint CSS Framework
+ http://blueprintcss.org
+
+   * Copyright (c) 2008-Present. Refer to the main Blueprint license.
+   * See README for instructions on how to use this plugin.
+   * For credits and origins, see AUTHORS.
+
+----------------------------------------------------------------------- */
+
+.tabs { 
+	border-bottom:1px solid #ccc;
+	height:1%; /* fixing IE 6 */
+	margin:0 0 .75em 0;
+	min-height:auto;
+	overflow:auto;
+}
+.tabs li {
+  border:1px solid #ccc;
+  border-bottom:none;
+  float:left;
+  line-height:1.5; 
+  list-style-type:none;
+  margin:0 .25em 0 0;
+  padding:0;
+}
+.tabs li a { 
+	background:#ddd;
+  border:1px solid #eee;
+  border-bottom:none;
+  color:#222;
+  cursor:pointer;
+  display:block;
+  float:left;
+  font-weight:bold;
+  padding:.15em .33em .25em .33em;
+}
+.tabs li a.selected { 
+  background:#666;
+  border:1px solid #666;
+  border-bottom:none;
+  color:#fff;
+  cursor:default;
+}
+.tabs li a, .tabs li a:focus, .tabs li a:hover { 
+  text-decoration:none;
+}
+.tabs li a:focus, .tabs li a:hover { 
+  color:#555;
+  outline:none;
+}
+.tabs li a.selected:focus, .tabs li a.selected:hover { 
+  color:#fafafa;
+}	
+.tabs li.label { 
+	border:none;
+	font-weight:bold;
+	line-height:1.5; 
+	margin-right:.5em; 
+	padding:.25em .33em .25em .33em;
+}

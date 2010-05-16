@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<script src="../joint/raphael-min.js" type="text/javascript"></script>
+<script src="../joint/joint.js" type="text/javascript"></script>
+<script src="../joint/joint.dia.js" type="text/javascript"></script>
+<script src="../joint/joint.dia.devs.js" type="text/javascript"></script>
+
+<style type="text/css">
+body {
+  background-color: #161c1c
+}
+#world {
+  background-color: white;
+  margin: 0 auto 0 auto;
+  width: 640px;
+  height: 380px;
+  border: 3px solid gray;
+  border-radius: 30px;
+}
+</style>
+
+<title>DEVS.</title>
+</head>
+
+<body>
+<div id="world"></div>
+<script type="text/javascript">
+var devs = Joint.dia.devs;
+Joint.paper("world", 640, 380);
+
+var a1 = devs.Model.create({
+  rect: {x: 30, y: 90, width: 100, height: 60},
+  label: "Atomic 1",
+  attrs: {
+    fill: "90-#000-#f00:1-#fff"
+  },
+  oPorts: ["out1"]
+});
+
+var a2 = devs.Model.create({
+  rect: {x: 480, y: 105, width: 100, height: 60},
+  label: "Atomic 2",
+  attrs: {
+    fill: "90-#000-#f00:1-#fff"
+  },
+  iPorts: ["in1", "in2"]
+});
+
+var c1 = devs.Model.create({
+  rect: {x: 200, y: 100, width: 200, height: 160},
+  label: "Coupled 1",
+  attrs: {
+    fill: "90-#000-green:1-#fff"
+  },
+  iPorts: ["in"],
+  oPorts: ["out1", "out2"]
+});
+
+var a3 = devs.Model.create({
+  rect: {x: 250, y: 170, width: 100, height: 60},
+  label: "Atomic 3",
+  attrs: {
+    fill: "90-#000-#f00:1-#fff"
+  },
+  iPorts: ["in"],
+  oPorts: ["out1", "out2"]
+});
+
+c1.addInner(a3);
+
+var arrow = devs.arrow;
+
+a1.port("o", "out1").joint(c1.port("i", "in"), arrow);
+c1.port("i", "in").joint(a3.port("i", "in"), arrow);
+a3.port("o", "out1").joint(c1.port("o", "out1"), arrow);
+a3.port("o", "out2").joint(c1.port("o", "out2"), arrow);
+c1.port("o", "out1").joint(a2.port("i", "in1"), arrow);
+c1.port("o", "out2").joint(a2.port("i", "in2"), arrow);
+
+</script>
+</body>
+</html>
+

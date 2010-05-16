@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<script src="../joint/raphael-min.js" type="text/javascript"></script>
+<script src="../joint/joint.js" type="text/javascript"></script>
+<script src="../joint/joint.dia.js" type="text/javascript"></script>
+<script src="../joint/joint.dia.fsa.js" type="text/javascript"></script>
+<script src="../joint/joint.dia.pn.js" type="text/javascript"></script>
+<script src="../joint/joint.dia.uml.js" type="text/javascript"></script>
+<script src="../joint/joint.dia.devs.js" type="text/javascript"></script>
+<script src="app.js" type="text/javascript"></script>
+<link media="screen, projection" type="text/css" rel="stylesheet" href="app.css"/>
+
+<title>App.</title>
+</head>
+
+<body>
+<fieldset id="fsa">
+  <legend onclick="toggle('fsa')">Finite State Machine</legend>
+  <label for="fsa-positionX">position.x:</label><input id="fsa-positionX" type="text" value="120"/><button onclick="opt('fsa', 'positionX', '120')">default</button>
+  <label for="fsa-positionY">position.y:</label><input id="fsa-positionY" type="text" value="70"/><button onclick="opt('fsa', 'positionY', '70')">default</button>
+  <label for="fsa-radius">(State) radius:</label><input id="fsa-radius" type="text" value="30"/><button onclick="opt('fsa', 'radius', '30')">default</button>
+  <label for="fsa-label">label: </label><input id="fsa-label" value=""/><button onclick="opt('fsa', 'label', '')">clear</button>
+  <br/>
+  <button id="newFsaState" onclick="newFsaState()">FSA state</button>
+  <button id="newFsaStartState" onclick="newFsaStartState()">FSA start state</button>
+  <button id="newFsaEndState" onclick="newFsaEndState()">FSA end state</button>
+  <button class="newJoint" onclick="newJoint('fsa')">arrow</button>
+</fieldset>
+
+<fieldset id="pn">
+  <legend onclick="toggle('pn')">Petri net</legend>
+  <label for="pn-positionX">position.x:</label><input id="pn-positionX" type="text" value="120"/><button onclick="opt('pn', 'positionX', '120')">default</button>
+  <label for="pn-positionY">position.y:</label><input id="pn-positionY" type="text" value="70"/><button onclick="opt('pn', 'positionY', '70')">default</button>
+  <label for="pn-radius">(Place) radius:</label><input id="pn-radius" type="text" value="20"/><button onclick="opt('pn', 'radius', '20')">default</button>
+  <label for="pn-rectX">rect.x:</label><input id="pn-rectX" type="text" value="120"/><button onclick="opt('pn', 'rectX', '120')">default</button>
+  <label for="pn-rectY">rect.y:</label><input id="pn-rectY" type="text" value="120"/><button onclick="opt('pn', 'rectY', '120')">default</button>
+  <label for="pn-rectWidth">rect.width:</label><input id="pn-rectWidth" type="text" value="8"/><button onclick="opt('pn', 'rectWidth', '8')">default</button>
+  <label for="pn-rectHeight">rect.height:</label><input id="pn-rectHeight" type="text" value="50"/><button onclick="opt('pn', 'rectHeight', '50')">default</button>
+  <label for="pn-label">label: </label><input id="pn-label" value=""/><button onclick="opt('pn', 'label', '')">clear</button>
+  <label for="pn-tokens">tokens: </label><input id="pn-tokens" value="1"/><button onclick="opt('pn', 'tokens', '')">clear</button>
+  <br/>
+  <button id="newPnPlace" onclick="newPnPlace()">PN place</button>
+  <button id="newPnEvent" onclick="newPnEvent()">PN event</button>
+  <button class="newJoint" onclick="newJoint('pn')">arrow</button>
+</fieldset>
+
+<fieldset id="uml">
+  <legend onclick="toggle('uml')">UML Class/StateChart</legend>
+  <label for="uml-positionX">position.x:</label><input id="uml-positionX" type="text" value="120"/><button onclick="opt('uml', 'positionX', '120')">default</button>
+  <label for="uml-positionY">position.y:</label><input id="uml-positionY" type="text" value="70"/><button onclick="opt('uml', 'positionY', '70')">default</button>
+  <label for="uml-rectX">rect.x:</label><input id="uml-rectX" type="text" value="120"/><button onclick="opt('uml', 'rectX', '120')">default</button>
+  <label for="uml-rectY">rect.y:</label><input id="uml-rectY" type="text" value="120"/><button onclick="opt('uml', 'rectY', '120')">default</button>
+  <label for="uml-rectWidth">rect.width:</label><input id="uml-rectWidth" type="text" value="120"/><button onclick="opt('uml', 'rectWidth', '120')">default</button>
+  <label for="uml-rectHeight">rect.height:</label><input id="uml-rectHeight" type="text" value="80"/><button onclick="opt('uml', 'rectHeight', '80')">default</button>
+  <label for="uml-label">label: </label><input id="uml-label" value=""/><button onclick="opt('uml', 'label', '')">clear</button><br/>
+  <label for="uml-attributes">attributes (split by ','): </label><input id="uml-attributes" class="long" value=""/><button onclick="opt('uml', 'attributes', '')">clear</button><br/>
+  <label for="uml-methods">methods (split by ','): </label><input id="uml-methods" class="long" value=""/><button onclick="opt('uml', 'methods', '')">clear</button><br/>
+  <label for="uml-entry">entry action: </label><input id="uml-entry" class="long" value=""/><button onclick="opt('uml', 'entry', '')">clear</button><br/>
+  <label for="uml-exit">exit action: </label><input id="uml-exit" class="long" value=""/><button onclick="opt('uml', 'exit', '')">clear</button><br/>
+  <label for="uml-inner">inner actions (interleave events with actions and split by ','): </label><input id="uml-inner" class="long" value=""/><button onclick="opt('uml', 'inner', '')">clear</button><br/>
+  <button id="newUmlClass" onclick="newUmlClass()">UML class</button>
+  <button id="newUmlState" onclick="newUmlState()">UML state</button>
+  <button id="newUmlStartState" onclick="newUmlStartState()">UML start state</button>
+  <button id="newUmlEndState" onclick="newUmlEndState()">UML end state</button>
+  <button class="newJoint" onclick="newJoint('uml', 'aggregationArrow')">aggregation arrow</button>
+  <button class="newJoint" onclick="newJoint('uml', 'dependencyArrow')">dependency arrow</button>
+  <button class="newJoint" onclick="newJoint('uml', 'generalizationArrow')">generalization arrow</button>
+  <button class="newJoint" onclick="newJoint('uml', 'arrow')">arrow</button>
+</fieldset>
+
+<fieldset id="general">
+  <legend onclick="toggle('general')">General</legend>
+
+  <label for="attrs-fill">attrs.fill: </label>
+  <input id="attrs-fill" type="text" value="white"/>
+  <label for="attrs-stroke">attrs.stroke: </label>
+  <input id="attrs-stroke" type="text" value="black"/>
+
+  <button id="toggleGhosting" onclick="toggleGhosting()">toggleGhosting</button>
+  <button id="clearDiagram" onclick="Joint.resetPaper()">clear diagram</button>  
+</fieldset>
+
+
+<div id="world"></div>
+</body>
+</html>
+

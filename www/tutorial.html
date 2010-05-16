@@ -1,0 +1,316 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link media="screen, projection" type="text/css" rel="stylesheet" href="css/blueprint/blueprint/screen.css"/>
+<link media="print" type="text/css" rel="stylesheet" href="css/blueprint/blueprint/print.css"/>
+<link media="screen, projection" type="text/css" rel="stylesheet" href="css/blueprint/blueprint/plugins/fancy-type/screen.css"/>
+<link media="screen, projection" type="text/css" rel="stylesheet" href="css/blueprint/blueprint/plugins/tabs/screen.css"/>
+
+<script type="text/javascript" src="js/jquery/jquery-1.3.2.js"></script>
+<script type="text/javascript" src="js/jquery/jquery.corner.js"></script>
+
+<link href="css/prettify/prettify.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="css/prettify/prettify.js"></script>
+
+<link media="screen, projection" type="text/css" rel="stylesheet" href="css/styles.css"/>
+
+<script src="joint/joint.all-min.js" type="text/javascript"></script>
+
+<title>Joint - JavaScript diagramming library.</title>
+</head>
+
+<body onload="prettyPrint()">
+
+<a name="top"></a>
+<div class="container">
+  <div id="header-top" class="span-24 last">&nbsp;</div>
+</div>
+<div id="header">
+  <div class="container">
+    <div class="span-24 last">
+      <h1 id="title">
+        <img src="img/header.png" alt="Joint - JavaScript library for connecting vector objects"/>
+      </h1>
+    </div>
+  </div>
+</div>
+
+<div class="container main">
+
+<div class="span-4 box leftmenu">
+  <ul>
+    <li class="list-item header">Current version: <span class="version">0.2.0</span></li>
+    <li><span class="ss_sprite ss_cup">&nbsp;</span><a href="about.html">About the library</a></li>
+<!--    <li><span class="ss_sprite ss_drink">&nbsp;</span><a href="aboutme.html">About the author</a></li> -->
+    <li><span class="ss_sprite ss_page_white_text">&nbsp;</span><a href="license.html">License</a></li>
+    <li><span class="ss_sprite ss_brick">&nbsp;</span><a href="tutorial.html">Quick tutorial</a></li>
+    <li><span class="ss_sprite ss_brick">&nbsp;</span><a href="manual.html">User's manual</a></li>
+    <li><span class="ss_sprite ss_cog">&nbsp;</span><a href="api/index.html"><b>API Reference</b></a>
+    <li><span class="ss_sprite ss_comments">&nbsp;</span><a href="http://groups.google.com/group/jointjs">Discussion</a></li>
+    <li><b>Examples</b>
+      <ul>
+	<li><span class="ss_sprite ss_tag_orange">&nbsp;</span><a href="examples/umlstatechart.html">StateChart</a></li>
+	<li><span class="ss_sprite ss_tag_orange">&nbsp;</span><a href="examples/umlclassdiagram.html">Class Diagram</a></li>
+	<li><span class="ss_sprite ss_tag_orange">&nbsp;</span><a href="examples/fsa.html">FSA</a></li>
+	<li><span class="ss_sprite ss_tag_orange">&nbsp;</span><a href="examples/pn.html">Petri Net</a></li>
+	<li><span class="ss_sprite ss_tag_orange">&nbsp;</span><a href="examples/devs.html">DEVS</a></li>
+	<li><span class="ss_sprite ss_tag_orange">&nbsp;</span><a href="examples/app.html">Application</a></li>		
+      </ul>
+    </li>
+    <li><b>Downloads</b>
+      <ul class="downloads">
+	<li><a href="joint/joint-min.js">Joint library</a></li>
+	<li><a href="joint/joint.dia-min.js">Joint.dia library</a></li>
+	<li><a href="joint/joint.dia.uml-min.js">Joint.dia.uml plugin</a></li>
+	<li><a href="joint/joint.dia.fsa-min.js">Joint.dia.fsa plugin</a></li>
+	<li><a href="joint/joint.dia.pn-min.js">Joint.dia.pn plugin</a></li>
+	<li><a href="joint/joint.dia.devs-min.js">Joint.dia.devs plugin</a></li>
+	<li><a href="joint/joint.arrows-min.js">Joint.arrows plugin</a></li>	
+	<li><a href="joint/joint.all-min.js">Joint standalone package (includes all plugins and Raphaël library)</a></li>
+	<li><a href="http://github.com/DavidDurman/joint">full source hosted on github</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="pledgie">
+    <!--
+    <a href='http://pledgie.com/campaigns/6447'><img alt='Click here to lend your support to: joint and make a donation at www.pledgie.com !' src='http://www.pledgie.com/campaigns/6447.png?skin_name=chrome' border='0' /></a>
+    -->
+  </div>
+
+</div>
+
+
+<div class="span-16 content">
+  <h1 class="subpage-header">Quick tutorial</h1>
+<hr/>
+
+<p>
+This tutorial is probably your first touch with <em>Joint</em> library. It shows you
+how to create a simple Finite State Machine diagram. At the end of this tutorial
+you can also find a popular "Hello world" program.
+</p>
+<h3>Getting started</h3>
+
+<h4>Scripts:</h4>
+<ul>
+  <li><tt>raphael-min.js</tt>: <a href="http://raphaeljs.com">Raphaël</a> library,
+  provides cross browser abstract layer for rendering vector objects.</li>
+  <li><tt>joint.js</tt>: Joint library core.</li>
+  <li><tt>joint.dia.js</tt>: Joint diagramming library core, provides abstraction
+  for diagrams elements.
+  (necessary for diagram plugins, see below)</li>
+  <li><tt>joint.dia.fsa.js</tt>: Finite state machine diagram plugin.</li>
+  <li><tt>joint.dia.uml.js</tt>: Uml StateChart and Class diagram plugin.</li>
+  <li><tt>joint.dia.pn.js</tt>: Petri net diagram plugin.</li>
+  <li><tt>joint.dia.devs.js</tt>: Discrete Event System Specification diagram plugin.</li>  
+</ul>
+<p><em>Example: </em>To create a Finite state machine diagram, put these scripts into your document's header:</p>
+<pre class="prettyprint">
+&lt;script src="raphael-min.js" type="text/javascript"&gt;&lt;/script&gt;
+&lt;script src="joint.js" type="text/javascript"&gt;&lt;/script&gt;
+&lt;script src="joint.dia.js" type="text/javascript"&gt;&lt;/script&gt;
+&lt;script src="joint.dia.fsa.js" type="text/javascript"&gt;&lt;/script&gt;
+</pre>
+Or alternatively you can use standalone package which includes both
+<tt>Joint</tt> and <tt>Joint.dia</tt> libraries,
+all plugins and Raphaël library, all in one file.
+<pre class="prettyprint">
+&lt;script src="joint.all-min.js" type="text/javascript"&gt;&lt;/script&gt;
+</pre>
+<p>
+Then you have to create a holder for diagram.
+</p>
+<pre class="prettyprint">
+&lt;div id="myfsa"&gt;&lt;/div&gt;
+</pre>
+
+<p>
+Once you have the holder created, you have to initialize diagram paper.
+</p>
+<pre class="prettyprint">
+Joint.paper("myfsa", 620, 200);  /*(id or HTMLElement, width, height)*/
+</pre>
+
+<h3>Creating your first Finite State Machine diagram</h3>
+<p>Each kind of diagram is implemented as a separate plugin. Elements
+are part of a module. FSA module contains elements such as <tt>State</tt>, <tt>StartState</tt> and <tt>EndState</tt>.
+A concrete element is created using <tt>create</tt> method. This method takes as an argument object containing
+all necessary parameters for the element. (for list of all options, see FSA plugin API)</p>
+<pre class="prettyprint">
+var s0 = fsa.StartState.create({
+  position: {x: 50, y: 50}
+});
+
+var s1 = fsa.State.create({
+  position: {x: 120, y: 120},
+  label: "state 1"
+});
+
+var s2 = fsa.State.create({
+  position: {x: 300, y: 50},
+  label: "state 2"
+});
+
+var se = fsa.EndState.create({
+  position: {x: 450, y: 150}
+});
+</pre>
+
+<p>
+Joint library provides API for creating your own arrows which reside both connection
+ends. Usually, diagram plugins should provide arrows specific for diagrams they implement.
+FSA plugin is not an exception.
+Connections can register objects to which they can stick. You can also refine what
+connection end you want to stick to what object. For normal purposes (especially FSA
+diagrams) it is a good practice to create an array which holds all
+the diagram elements.
+</p>
+
+<pre class="prettyprint">
+var all = [s0, s1, s2, se];
+s0.joint(s1, fsa.arrow).register(all);
+s1.joint(s2, fsa.arrow).register(all);
+s2.joint(se, fsa.arrow).register(all);
+</pre>
+
+<p>
+The final diagram is by default interactive,
+so you can drag arrows, break connections and move states:
+</p>
+
+<div style="border: 1px solid gray" id="myfsa"></div>
+<script type="text/javascript">
+Joint.paper("myfsa", 620, 200);  /*(id or HTMLElement, width, height)*/
+var fsa = Joint.dia.fsa;
+
+var s0 = fsa.StartState.create({
+  position: {x: 50, y: 50}
+});
+
+var s1 = fsa.State.create({
+  position: {x: 120, y: 120},
+  label: "state 1"
+});
+
+var s2 = fsa.State.create({
+  position: {x: 300, y: 50},
+  label: "state 2"
+});
+
+var se = fsa.EndState.create({
+  position: {x: 450, y: 150}
+});
+
+var all = [s0, s1, s2, se];
+s0.joint(s1, fsa.arrow).register(all);
+s1.joint(s2, fsa.arrow).register(all);
+s2.joint(se, fsa.arrow).register(all);
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h3>Hello world!</h3>
+<p>
+<em>Joint</em> library is independent of diagram plugins. It means that
+it can be used itself for connecting vector objects created by
+Raphaël library. It can be usefull if you just want a functionality
+of connecting vector objects together. Connections as well as arrows
+and behavior is fully customizable. For more details, see Joint library
+API.
+</p>
+<pre class="prettyprint">
+&lt;html&gt;
+&lt;head&gt;
+&lt;script type="text/javascript" src="joint.all-min.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="hello_world"&gt;&lt;/&gt;
+&lt;script type="text/javascript"&gt;
+var
+r = Raphael("hello_world", 620, 50),
+c1 = r.circle(50, 20, 10),
+c2 = r.circle(250, 25, 10);
+c1.joint(c2);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+
+<div style="border: 1px solid gray" id="hello_world"></div>
+<script type="text/javascript">
+var
+r = Raphael("hello_world", 620, 50),
+c1 = r.circle(50, 20, 10),
+c2 = r.circle(250, 25, 10);
+
+c1.joint(c2);
+</script>
+
+
+
+
+</div>
+
+<div class="span-2 last">
+  <!--
+  <p>
+  Current version: 0.0.1
+  </p>
+  -->
+<!--
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="hidden" name="hosted_button_id" value="7744763">
+<input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+</form>
+-->
+
+<!-- email: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7744763 -->
+</div>
+  <hr/>
+<div class="span-24 last foot">
+  <div class="span-16">
+    <em>&copy; 2009 - 2010 David Durman</em>
+    <!--
+    Thanks to:&nbsp;
+    <a href="http://www.raphaeljs.com">Raphaël</a>&nbsp;|&nbsp;
+    <a href="http://www.squeak.org">Squeak</a>&nbsp;|&nbsp;
+    <a href="http://www.state-machine.com">www.state-machine.com</a>&nbsp;|&nbsp;
+    <a href="http://www.blueprintcss.org">Blueprint</a>&nbsp;&nbsp;
+    -->
+  </div>
+  <div class="span-8 last last-modified">
+    <!-- hhmts start -->Last modified: Sun May 16 13:20:52 CEST 2010 <!-- hhmts end -->
+  </div>
+</div>
+
+</div>
+
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-5029684-2");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+</body>
+</html>
