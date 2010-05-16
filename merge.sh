@@ -1,8 +1,8 @@
 #!/bin/bash
 
-cat joint.all.js.HEADER > joint.all-min.js
+cat HEADER > /tmp/joint.all-min.js
 for p in $@; do
-    cat $p-min.js >> joint.all-min.js
+    cat /tmp/$p-min.js >> /tmp/joint.all-min.js
 done
 
-echo File joint.all-min.js created.
+echo "File /tmp/joint.all-min.js ($(du -h /tmp/joint.all-min.js | cut -f1)) created".
