@@ -6,6 +6,11 @@ PACKAGES=" joint joint.dia joint.dia.uml joint.dia.fsa joint.dia.pn joint.dia.de
 TIMESTAMP=$(date +%s)
 BUILDDIR="./build-"$TIMESTAMP
 
+VERSION=$(cat version)
+
+# Prepare HEADER
+sed -i.bak -e s/{VERSION}/$VERSION/g HEADER
+
 # Minification.
 echo ">>> Minifying..."
 ./minify.sh $PACKAGES
@@ -47,6 +52,9 @@ cp $BUILDDIR/dep/* www/joint/
 # Copy web.
 echo ">>> Copying web..."
 cp -R www/* $BUILDDIR/www/
+
+# Revert HEADER
+mv HEADER.bak HEADER
 
 echo "Build completed ($BUILDDIR)."
 

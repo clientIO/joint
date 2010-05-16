@@ -12,7 +12,7 @@ Main features include:
   <li>broken line smoothing</li>
   <li>ready-to-use elements of well-known diagrams (FSA, UML, PN, DEVS)</li>
   <li>building hierarchical diagrams</li>
-  <li>serialization (to/from JSON format) <span class="new">NEW in the 0.2 version</span></li>
+  <li>serialization (to/from JSON format) <span class="new">NEW in the {VERSION} version</span></li>
   <li>extensible - easy implementation of new plugins</li>
   <li>customization - easy customization of arrows and element attributes</li>
 </ul>
