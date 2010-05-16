@@ -1,17 +1,29 @@
 #!/bin/bash
 
-PACKAGES="raphael joint joint.dia joint.dia.uml joint.dia.fsa joint.dia.pn joint.dia.devs joint.arrows"
+DEPENDENCIES=" raphael "
+PACKAGES=" joint joint.dia joint.dia.uml joint.dia.fsa joint.dia.pn joint.dia.devs joint.arrows joint.dia.serializer "
 
-./minify.sh
-echo "minification completed"
-./merge.sh
-echo "merge completed"
-rm -rf build
-mkdir build
-mv *-min.js ./build
-cp ./build/raphael-min.js . # copy raphael-min.js back
-mkdir ./build/src
+TIMESTAMP=$(date +%s)
+BUILDDIR="./build-"$TIMESTAMP
+
+# Minification.
+./minify.sh $PACKAGES
+echo "--- Minification completed. ---"
+
+# Merging.
+./merge.sh $DEPENDENCIES$PACKAGES
+echo "--- Merge completed. ---"
+
+# Copying to an appropriate subdirectories of builddir.
+mkdir -p $BUILDDIR/{src,lib,dep,doc,tests,www}
 for p in $PACKAGES; do
-    cp $p.js ./build/src
+    cp $p.js $BUILDDIR/src
+    cp $p-min.js $BUILDDIR/lib
 done
-echo "build completed"
+for p in $DEPENDENCIES; do
+    cp $p.js $BUILDDIR/dep
+    cp $p-min.js $BUILDDIR/dep
+done
+echo --- Build completed \($BUILDDIR\). ---
+
+# Generating documentation.
