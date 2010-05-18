@@ -45,6 +45,8 @@ echo ">>> Building api reference..."
 
 # Copy Joint build.
 cp /tmp/joint.all-min.js $BUILDDIR/lib/
+rm -rf www/joint/
+mkdir www/joint
 cp $BUILDDIR/lib/* www/joint/
 cp $BUILDDIR/src/* www/joint/
 cp $BUILDDIR/dep/* www/joint/
