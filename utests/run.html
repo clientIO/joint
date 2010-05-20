@@ -1,0 +1,45 @@
+<html>
+    <head>
+        <script type="text/javascript" src="../lib/raphael-min.js"></script>
+        <script type="text/javascript" src="../lib/json2.js"></script>
+        <script type="text/javascript" src="../src/joint.js"></script>
+        <script type="text/javascript" src="../src/joint.arrows.js"></script>
+        <script type="text/javascript" src="../src/joint.dia.js"></script>
+        <script type="text/javascript" src="../src/joint.dia.serializer.js"></script>
+        <script type="text/javascript" src="../src/joint.dia.fsa.js"></script>
+        <script type="text/javascript" src="../src/joint.dia.uml.js"></script>
+        <script type="text/javascript" src="../src/joint.dia.devs.js"></script>
+
+        <style type="text/css">
+            #paper {
+              border: 1px solid gray;
+              width: 640px;
+              height: 480px;
+            }
+        </style>
+
+        <title>Tests.</title>
+    </head>
+    <body>
+        <div id="paper"></div>
+        <script type="text/javascript">
+            function gup(name){
+              name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+              var regexS = "[\\?&]" + name + "=([^&#]*)";
+              var regex = new RegExp(regexS);
+              var results = regex.exec(window.location.href);
+              if (results == null)
+                return "";
+              else
+                return results[1];
+            }
+
+            Joint.paper("paper", 640, 480);
+
+            var sel = document.createElement("script");
+            sel.type = "text/javascript";
+            sel.src = gup("unit") + ".js";
+            document.head.appendChild(sel);
+        </script>
+    </body>
+</html>
