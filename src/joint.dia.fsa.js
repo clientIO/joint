@@ -14,13 +14,13 @@ var fsa = Joint.dia.fsa = {};
  * Predefined arrow. You are free to use this arrow as the option parameter to joint method.
  * @name arrow
  * @memberOf Joint.dia.fsa
- * @example 
+ * @example
  * var arrow = Joint.dia.fsa.arrow;
  * s1.joint(s2, (arrow.label = "anEvent", arrow));
  */
 fsa.arrow = {
     startArrow: {type: "none"},
-    endArrow: {type: "basic", size: 5}, 
+    endArrow: {type: "basic", size: 5},
     attrs: {"stroke-dasharray": "none"}
 };
 
@@ -67,12 +67,12 @@ fsa.State = Element.extend({
 	this.addInner(this.getLabelElement());
     },
     getLabelElement: function(){
-	var 
+	var
 	p = this.properties,
 	bb = this.wrapper.getBBox(),
 	t = this.paper.text(bb.x, bb.y, p.label),
 	tbb = t.getBBox();
-	t.translate(bb.x - tbb.x + p.labelOffsetX, 
+	t.translate(bb.x - tbb.x + p.labelOffsetX,
 		    bb.y - tbb.y + p.labelOffsetY);
 	return t;
     }

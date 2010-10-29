@@ -25,20 +25,20 @@ Joint.Mixin(Joint.prototype, /** @lends Joint.prototype */ {
 	// @todo Ugly!!! Joint shouldn't know anything about Joint.dia! Remove!
 
 	// from/to
-	if (start.shape.wholeShape)
-	    j.from = start.shape.wholeShape.euid();
-	if (end.shape.wholeShape)
-	    j.to = end.shape.wholeShape.euid();
+	if (start.wholeShape)
+	    j.from = start.wholeShape.euid();
+	if (end.wholeShape)
+	    j.to = end.wholeShape.euid();
 
-	if (start.dummy)
-	    j.from = start.shape.attrs.cx + "@" + start.shape.attrs.cy;
-	if (end.dummy)
-	    j.to = end.shape.attrs.cx + "@" + end.shape.attrs.cy;
+	if (this.isStartDummy())
+	    j.from = start.attrs.cx + "@" + start.attrs.cy;
+	if (this.isEndDummy())
+	    j.to = end.attrs.cx + "@" + end.attrs.cy;
 
 	// registered objects processing
 	while(iRegs--){
 	    reg = regs[iRegs];
-	    j.registered[reg._capToStick].push(reg.euid());
+	    j.registered[reg._capToStick || "both"].push(reg.euid());
 	}
 	return j;
     },
@@ -64,8 +64,9 @@ Joint.Mixin(Joint.dia, /** @lends Joint.dia */ {
      * @return {Array} Array of the constructed elements.
      */
     parse: function(json){
-	var arr = JSON.parse(json), o, m, e, 
-	    element, joints = [], i, len, elements = {};
+	var arr = JSON.parse(json), o, m, e,
+	    element, joints = [], i, len, elements = {},
+	    objects = [];
 
 	if (!(arr instanceof Array)) arr = [arr];
 
@@ -79,11 +80,11 @@ Joint.Mixin(Joint.dia, /** @lends Joint.dia */ {
 	    // create joints separatly, after all elements are created
 	    // so that they can connect them
 	    if (e === "joint"){
-		joints.push(o);		
+		joints.push(o);
+		objects.push(o);
 		continue;
 	    }
 	    // construct the element
-	    console.log(this);
 	    if (this[m]){
 		if (this[m][e]){
 		    element = this[m][e].create(o);
@@ -101,11 +102,15 @@ Joint.Mixin(Joint.dia, /** @lends Joint.dia */ {
 	    element.translate(o.dx, o.dy);
 	    // element.rotate(o.rot);
 	    element.scale(o.sx, o.sy);
+	    objects.push(element);
 	}
 	this.hierarchize(elements);
 	this.createJoints(joints, elements);
-	return arr;
+	return objects;
     },
+    /**
+     * @private
+     */
     hierarchize: function(elements){
 	var euid, element;
 	for (euid in elements){
@@ -122,10 +127,10 @@ Joint.Mixin(Joint.dia, /** @lends Joint.dia */ {
      * @param {Object} elements Hash table of elements (key: euid, value: element).
      */
     createJoints: function(joints, elements){
-	var iJoints = joints.length, 
+	var iJoints = joints.length,
             joint, from, to, realFrom, realTo,
             newJoint, toRegister, toRegisterElement, iRegister, cap,
-	    sides = ["start", "end", "both"], iSides = 3;
+	    sides = ["start", "end", "both"], iSides = sides.length;
 	// for all joints of all elements
 	while (iJoints--){
 	    joint = joints[iJoints];
@@ -140,7 +145,7 @@ Joint.Mixin(Joint.dia, /** @lends Joint.dia */ {
 	    newJoint = this.Joint(realFrom, realTo, joint.opt);
 	    // register caps - elements
 	    toRegister = [];
-	    iSides = 3;
+	    iSides = sides.length;
 	    while (iSides--){
 		cap = sides[iSides];
 		iRegister = joint.registered[cap].length;
@@ -162,10 +167,11 @@ Joint.Mixin(Joint.dia, /** @lends Joint.dia */ {
      */
     stringify: function(paper){
 	var objs, iObjs, o, str = [],
-	    registeredObjects = this._registeredObjects, registeredJoints = this._registeredJoints;
+            registeredObjects = this._registeredObjects, registeredJoints = this._registeredJoints,
+            paperEuid = paper.euid();
 	// elements
-	if (registeredObjects[paper]){
-	    objs = registeredObjects[paper];
+	if (registeredObjects[paperEuid]){
+	    objs = registeredObjects[paperEuid];
 	    iObjs = objs.length;
 	    while (iObjs--){
 		o = objs[iObjs];
@@ -174,8 +180,8 @@ Joint.Mixin(Joint.dia, /** @lends Joint.dia */ {
 	    }
 	}
 	// joints
-	if (registeredJoints[paper]){
-	    objs = registeredJoints[paper];
+	if (registeredJoints[paperEuid]){
+	    objs = registeredJoints[paperEuid];
 	    iObjs = objs.length;
 	    while (iObjs--){
 		o = objs[iObjs];
@@ -192,6 +198,13 @@ Joint.Mixin(Joint.dia.Element.prototype, /** @lends Joint.dia.Element.prototype 
      */
     stringify: function(){
 	return JSON.stringify(Joint.Mixin(this.properties, { euid: this.euid() }));
+    },
+    /**
+     * Clone element.
+     * @return {Element} Cloned element.
+     */
+    clone: function(){
+	return Joint.dia.parse(this.stringify())[0];
     }
 });
 

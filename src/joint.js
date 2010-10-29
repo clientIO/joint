@@ -1,6 +1,6 @@
 (function(global){	// BEGIN CLOSURE
 
-var 
+var
 math = global.Math,
 cos = math.cos,
 sin = math.sin,
@@ -10,6 +10,10 @@ mmax = math.max,
 atan2 = math.atan2,
 acos = math.acos,
 PI = math.PI;
+
+var enqueue = function(fnc){
+    setTimeout(fnc, 0);
+};
 
 if (!global.console){
     global.console = {
@@ -36,302 +40,6 @@ if (!Array.indexOf){
 }
 
 /**
- * Computes all the neccessary variables for drawing a connection.
- * Singleton.
- * @private
- * @constructor
- * @todo implement Memento object.
- */
-function ConstraintSolver(){}
-
-ConstraintSolver.prototype = {
-    _startShapeBBox: null,
-    _endShapeBBox: null,
-    _startShapeType: null,
-    _endShapeType: null,    
-    _conVertices: [],
-    _arrowStartShift: {dx: 0, dy: 0},
-    _arrowEndShift: {dx: 0, dy: 0},
-    _bboxCorrection: {
-	start: { type: null, x: 0, y: 0, width: 0, height: 0 },
-	end: { type: null, x: 0, y: 0, width: 0, height: 0 }
-    },
-    _flags: {
-	smooth: false,
-	label: false
-    },
-    _state: {
-	/*
-	 sBoundPoint: undefined,
-	 eBoundPoint: undefined,
-	 conPathCommands: undefined,
-	 labelPoint: undefined,
-	 sTheta: undefined,
-	 eTheta: undefined
-	 */
-    },
-    _aux: {
-	/*
-	 sbb: undefined,
-	 ebb: undefined,
-	 sbbCenter: undefined,
-	 ebbCenter: undefined,
-	 sPoint: undefined,
-	 ePoint: undefined
-	 */
-    },
-    /**
-     * Get state of csolver. Useful for possible undo operations. (Command design pattern)
-     * @todo get a deep copy of the state.
-     */    
-    getMemento: function(){
-	var s = this._state;
-	if (!s.sBoundPoint || !s.eBoundPoint){
-	    return {
-		empty: true,
-		sBoundPoint: point(0, 0),
-		eBoundPoint: point(0, 0),
-		conPathCommands: [],
-		labelPoint: point(0, 0),
-		sTheta: {degrees: 0, radians: 0},
-		eTheta: {degrees: 0, radians: 0}
-	    };
-	} else {
-	    return {
-		sBoundPoint: s.sBoundPoint.deepCopy(),
-		eBoundPoint: s.eBoundPoint.deepCopy(),
-		conPathCommands: s.conPathCommands.slice(0),
-		labelPoint: (s.labelPoint) ? s.labelPoint.deepCopy() : point(0, 0),
-		sTheta: {degrees: s.sTheta.degrees, radians: s.sTheta.radians},
-		eTheta: {degrees: s.eTheta.degrees, radians: s.eTheta.radians}
-	    };
-	}
-    },
-    /**
-     * Invalidate csolver, i.e. each variable will be computed again.
-     */
-    invalidate: function(){
-	this._state = {};
-	this._aux = {};
-    },
-    /**
-     * Find point on an object of type 'type' with bounding box 'r' where line starting
-     * from r's center ending in point 'p' intersects the object.
-     */
-    boundPoint: function(r, type, p){
-	var rCenter = r.center();
-	if (type === "circle" || 
-	    type === "ellipse"){
-	    return ellipse(rCenter, r.width/2, r.height/2).intersectionWithLineFromCenterToPoint(p);
-	}
-	// BUG: in lines intersection, can be all null
-	// it happens when point is located on the bb boundary
-	return r.boundPoint(p) || rCenter;
-    },
-    /**
-     * Intersection of a line leading from __sbbCenter to __ebbCenter 
-     * (or first connection vertex) and the start object boundary.
-     */
-    sBoundPoint: function(){
-	if (this._state.sBoundPoint){
-	    return this._state.sBoundPoint;
-	}
-	var from;
-	if (this._conVertices.length > 0){
-	    from = this._conVertices[0];
-	} else {
-	    from = this.ebbCenter();
-	}
-	this._state.sBoundPoint = this.boundPoint(this.sbb(), this._bboxCorrection.start.type || this._startShapeType, from);
-	return this._state.sBoundPoint;
-    },
-    /** 
-     * intersection of a line leading from __ebbCenter to __sbbCenter 
-     * (or last connection vertex) and the end object boundary
-     */
-    eBoundPoint: function(){
-	if (this._state.eBoundPoint){
-	    return this._state.eBoundPoint;
-	}
-	var from;
-	if (this._conVertices.length > 0){
-	    from = this._conVertices[this._conVertices.length - 1];
-	} else {
-	    from = this.sbbCenter();
-	}
-	this._state.eBoundPoint = this.boundPoint(this.ebb(), this._bboxCorrection.end.type || this._endShapeType, from);
-	return this._state.eBoundPoint;
-    },
-    /**
-     * Angle between __sbbCenter and __ebbCenter (or first connection vertex).
-     */
-    sTheta: function(){
-	if (this._state.sTheta){
-	    return this._state.sTheta;
-	}
-	var to;
-	if (this._conVertices.length > 0){
-	    to = this._conVertices[0];
-	} else {
-	    to = this.ebbCenter();
-	}
-	this._state.sTheta = this.sbbCenter().theta(to);
-	return this._state.sTheta;
-    },
-    /**
-     * Angle between __ebbCenter and __sbbCenter (or last connection vertex).
-     */
-    eTheta: function(){
-	if (this._state.eTheta){
-	    return this._state.eTheta;
-	}
-	var from;
-	if (this._conVertices.length > 0){
-	    from = this._conVertices[this._conVertices.length - 1];
-	} else {
-	    from = this.sbbCenter();
-	}
-	this._state.eTheta = from.theta(this.ebbCenter());
-	return this._state.eTheta;
-    },
-    /**
-     * Connection path commands.
-     */
-    conPathCommands: function(){
-	if (this._state.conPathCommands){
-	    return this._state.conPathCommands;
-	}
-	var
-	sPoint = this.sPoint(),
-	ePoint = this.ePoint(),
-	state = this._state;
-
-	if (this._flags.smooth){
-	    state.conPathCommands = Bezier.curveThroughPoints([point(sPoint.x, sPoint.y)].concat(this._conVertices, [point(ePoint.x, ePoint.y)]));
-	} else {
-	    state.conPathCommands = ["M", sPoint.x, sPoint.y];
-	    for (var i = 0, len = this._conVertices.length; i < len; i++){
-		state.conPathCommands.push("L", this._conVertices[i].x, this._conVertices[i].y);
-	    }
-	    state.conPathCommands.push("L", ePoint.x, ePoint.y);
-	}
-	return state.conPathCommands;
-    },
-    /**
-     * Label position.
-     */
-    labelPoint: function(){
-	var state = this._state;
-
-	if (state.labelPoint){
-	    return state.labelPoint;
-	}
-	var 
-	sPoint = this.sPoint(),
-	ePoint = this.ePoint();
-
-	state.labelPoint = sPoint;
-	for (var i = 0, len = this._conVertices.length; i < len; i++){
-	    state.labelPoint = line(state.labelPoint, this._conVertices[i]).midpoint();
-	}
-	state.labelPoint = line(state.labelPoint, ePoint).midpoint();
-	return state.labelPoint;
-    },
-    /**
-     * Start object bounding box.
-     */
-    sbb: function(){
-	var aux = this._aux;
-
-	if (aux.sbb){
-	    return aux.sbb;
-	}
-	aux.sbb = rect(this._startShapeBBox).moveAndExpand(this._bboxCorrection.start);
-	return aux.sbb;
-    },
-    /**
-     * Start object bounding box center point.
-     */
-    sbbCenter: function(){
-	var aux = this._aux;
-
-	if (aux.sbbCenter){
-	    return aux.sbbCenter;
-	}
-	aux.sbbCenter = this.sbb().center();
-	return aux.sbbCenter;
-    },
-    /**
-     * End object bounding box.
-     */
-    ebb: function(){
-	var aux = this._aux;
-
-	if (aux.ebb){
-	    return aux.ebb;
-	}
-	aux.ebb = rect(this._endShapeBBox).moveAndExpand(this._bboxCorrection.end);
-	return aux.ebb;
-    },
-    /**
-     * End object bounding box center point.
-     */
-    ebbCenter: function(){
-	var aux = this._aux;
-
-	if (aux.ebbCenter){
-	    return aux.ebbCenter;
-	}
-	aux.ebbCenter = this.ebb().center();
-	return aux.ebbCenter;
-    },
-    /**
-     * __sBoundPoint moved in the direction of __eBoundPoint (or first connection vertex) 
-     * by start cap width.
-     */
-    sPoint: function(){
-	var aux = this._aux;
-
-	if (aux.sPoint){
-	    return aux.sPoint;
-	}
-	var 
-	sBoundPoint = this.sBoundPoint(),
-	sTheta = this.sTheta(),
-	arrowStartShift = this._arrowStartShift;
-	
-	aux.sPoint = point(
-	    sBoundPoint.x + (2 * arrowStartShift.dx * cos(sTheta.radians)),
-	    sBoundPoint.y + (-2 * arrowStartShift.dy * sin(sTheta.radians))
-	);
-	return aux.sPoint;
-    },
-    /**
-     * __eBoundPoint moved in the direction of __sBoundPoint (or last connection vertex) 
-     * by end cap width.
-     */
-    ePoint: function(){
-	var aux = this._aux;
-
-	if (aux.ePoint){
-	    return aux.ePoint;
-	}
-	var 
-	eBoundPoint = this.eBoundPoint(),
-	eTheta = this.eTheta(),
-	arrowEndShift = this._arrowEndShift;
-	
-	aux.ePoint = point(
-	    eBoundPoint.x + (-2 * arrowEndShift.dx * cos(eTheta.radians)),
-	    eBoundPoint.y + (2 * arrowEndShift.dy * sin(eTheta.radians))
-	);
-	return aux.ePoint;
-    }
-};
-
-
-
-/**
  * @name Joint
  * @constructor
  * @param {RaphaelObject|Shape|object} from Object/position where the connection starts.
@@ -341,7 +49,8 @@ ConstraintSolver.prototype = {
  * @param {object} [opts.attrs] Connection options (see  Raphael possible parameters)
  * @param {string} [opts.cursor] Connection CSS cursor property
  * @param {boolean} [opts.beSmooth] Connection enable/disable smoothing
- * @param {string} [opts.label] Connection label 
+ * @param {string} [opts.label] Connection label
+ * @param {object} [opts.labelAttrs] Label options (see  Raphael possible parameters)
  * @param {object} [opts.labelBoxAttrs] SVG Attributes of the label bounding rectangle.
  * @param {object} [opts.startArrow] Start arrow options
  * @param {string} [opts.startArrow.type] "none"|"basic"
@@ -412,7 +121,7 @@ ConstraintSolver.prototype = {
  *  }
  * });
  */
-function Joint(from, to, opt){ 
+function Joint(from, to, opt){
     if (!(this instanceof Joint)){
 	return new Joint(from, to, opt);
     }
@@ -425,29 +134,24 @@ function Joint(from, to, opt){
     // these objects are the ones I can connect to
     this._registeredObjects = [];
 
-    // label related properties
-    this._labelBox = null;	// rectangle where labelText is located
-    this._labelText = null;	// Raphael text element that keeps its position with connection path middle point
-    
-    this._con = null;		// holds the joint path
     this._conVerticesCurrentIndex = 0;
     this._nearbyVertexSqrDist = 500;	// sqrt(this._nearbyVertexSqrDist) is tolerable distance of vertex moving
-    this._startCap = null;	// start glyph (arrow)
-    this._endCap = null;	// end glyph (arrow)
     this._lastStartCapSticker = null;	// temporaries for last start/end cap stickers (objects to which the caps sticked to e.g. while moving)
     this._lastEndCapSticker = null;
+
+    this.dom = {};	// holds all dom elements
 
     // connection from start to end
     this._start = { // start object
 	shape: null,		// Raphael object
 	dummy: false		// is it a dummy object?
-    };		
+    };
     this._end = { // end object
 	shape: null,		// Raphael object
 	dummy: false		// is it a dummy object?
-    };		
+    };
 
-    // _con path options
+    // connection options
     this._opt = {
 	vertices: [],	// joint path vertices
 	attrs: {
@@ -463,10 +167,14 @@ function Joint(from, to, opt){
 	},
 	cursor: "move",	// CSS cursor property
 	beSmooth: false,// be a smooth line? (bezier curve aproximation)
-	interactive: true, // is the connection interactive? 
+	interactive: true, // is the connection interactive?
 	label: undefined,
+	labelAttrs: {
+	    "font-size": 12,
+	    "fill": "#000"
+	},
 	labelBoxAttrs: {stroke: "white", fill: "white"},
-	// bounding box correction 
+	// bounding box correction
 	// (useful when the connection should start in the center of an object, etc...)
 	bboxCorrection: {
 	    start: { type: null, x: 0, y: 0, width: 0, height: 0 },
@@ -506,38 +214,20 @@ function Joint(from, to, opt){
     // options
     if (opt) this.processOptions(opt);
 
-    var 
-    startObject = this._start,
-    endObject = this._end;
+    JointDOMBuilder.init(this.paper, this._opt, this._start, this._end);
 
-//    if (from._isPoint){
-    if (from.x && from.y){
-	// draw dummy start
-	var dummyStart = this._opt.dummy.start;
-	startObject.shape = paper.circle(from.x, from.y, dummyStart.radius).attr(dummyStart.attrs);
-	startObject.dummy = true;
-	startObject.shape.show();
-    } else {
-	startObject.shape = from;
-    }
-//    if (to._isPoint){
-    if (to.x && to.y){
-	// draw dummy end
-	var dummyEnd = this._opt.dummy.end;
-	endObject.shape = paper.circle(to.x, to.y, dummyEnd.radius).attr(dummyEnd.attrs);
-	endObject.dummy = true;
-	endObject.shape.show();
-    } else {
-	endObject.shape = to;
-    }
-    /**
-     * Constraint solver.
-     * @private
-     * @type ConstraintSolver
-     */
-    this.csolver = new ConstraintSolver();
-    // has to be set after shapes assignment and option processing
-    this.setConstraintSolver(this.csolver);
+    var startObject = this._start,
+        endObject = this._end;
+
+    if (from.x && from.y)	// from is point?
+	JointDOMBuilder.dummy(startObject, from, this._opt.dummy.start);
+    else
+	startObject.shape = from.yourself();
+
+    if (to.x && to.y)		// to is point?
+	JointDOMBuilder.dummy(endObject, to, this._opt.dummy.end);
+    else
+	endObject.shape = to.yourself();
 
     // to be able to dispatch events in Raphael element attr method
     // TODO: possible source of memory leaks!!!
@@ -548,7 +238,7 @@ function Joint(from, to, opt){
 }
 global.Joint = Joint;	// the only global variable
 
-Joint.euid = 1;	// elements/joints unique id 
+Joint.euid = 1;	// elements/joints unique id
 /**
  * Assign unique id to this.
  * @private
@@ -580,7 +270,7 @@ Joint.prototype = {
      */
     _callbacks: {
 	// called when a joint has just connected to an object
-	// the object is accessed using this, 
+	// the object is accessed using this,
 	// the only argument is what side has been connected ("start" | "end")
 	justConnected: function(side){},
 	disconnected: function(side){},
@@ -597,15 +287,13 @@ Joint.prototype = {
     /*
      * Getters.
      */
-    connection: function(){ return this._con; },
-    endObject: function(){ return this._end; },
-    startObject: function(){ return this._start; },
-    endCap: function(){ return this._endCap; },
+    connection: function(){ return this.dom.connection; },
+    endObject: function(){ return this._end.shape; },
+    startObject: function(){ return this._start.shape; },
+    endCap: function(){ return this.dom.endCap; },
     endCapConnected: function(){ return !this._end.dummy; },
-    startCap: function(){ return this._startCap; },
+    startCap: function(){ return this.dom.startCap; },
     startCapConnected: function(){ return !this._start.dummy; },
-    isStartCap: function(cap){ return (cap === this.startCap()) ? true : false; },
-    isEndCap: function(cap){ return (cap === this.endCap()) ? true : false; },
     isStartDummy: function(){ return this._start.dummy; },
     isEndDummy: function(){ return this._end.dummy; },
     /**
@@ -615,7 +303,7 @@ Joint.prototype = {
      * @param {RaphaelObject} o
      */
     replaceDummy: function(startOrEnd, o){
-	// assert(startOrEnd.dummy == true)    
+	// assert(startOrEnd.dummy == true)
 	startOrEnd.shape.remove();
 	startOrEnd.dummy = false;
 	startOrEnd.shape = o;
@@ -635,14 +323,15 @@ Joint.prototype = {
      * who's bounding box contains the point p.
      * @todo check document.elementFromPoint(x, y)
      * @private
-     * @param {Point}
+     * @param {Point} p
      */
     objectContainingPoint: function(p){
-	for (var i = this._registeredObjects.length - 1; i >= 0; --i){
-	    var o = this._registeredObjects[i];
-	    if (rect(o.getBBox()).containsPoint(p)){
+	var register = this._registeredObjects,
+	    idx = (register ? register.length : 0), o;
+	while (idx--){
+	    o = register[idx].yourself();
+	    if (rect(o.getBBox()).containsPoint(p))
 		return o;
-	    }
 	}
 	return null;
     },
@@ -652,13 +341,10 @@ Joint.prototype = {
      * @param {StartObject|EndObject} obj
      */
     freeJoint: function(obj){
-	var 
-	jar = obj.shape.joints(),	// joints array
-	i = jar.indexOf(this);
+	var jar = obj.yourself().joints(),
+	    i = jar.indexOf(this);
 	jar.splice(i, 1);
-	if (jar.length === 0){
-	    delete obj.shape._joints;
-	}
+	return this;
     },
     /**
      * Add reference to Joint to obj.
@@ -666,15 +352,10 @@ Joint.prototype = {
      * @param {RaphaelObject} obj
      */
     addJoint: function(obj){
-	if (!obj.joints){
-	    obj._joints = [];
-	    obj.joints = function(){ return this._joints; };
-	}
+	var joints = obj.joints();;
 	// push the Joint object into obj.joints array
 	// but only if obj.joints already doesn't have that Joint object
-	if (obj.joints().indexOf(this) === -1){
-	    obj.joints().push(this);
-	}
+	if (joints.indexOf(this) === -1) joints.push(this);
     },
     /**
      * MouseDown event callback when on cap.
@@ -687,16 +368,16 @@ Joint.prototype = {
 	this._dx = e.clientX;
 	this._dy = e.clientY;
 
-	if (this.isStartCap(cap)){
+	if (cap === this.dom.startCap){
 	    if (!this.isStartDummy()){
 		this._lastStartCapSticker = this.startObject();
-		this.draw().dummyStart();
+		this.draw(["dummyStart"]);
 	    }
 	    this.state = this.STARTCAPDRAGGING;
-	} else if (this.isEndCap(cap)){
+	} else if (cap === this.dom.endCap){
 	    if (!this.isEndDummy()){
 		this._lastEndCapSticker = this.endObject();
-		this.draw().dummyEnd();
+		this.draw(["dummyEnd"]);
 	    }
 	    this.state = this.ENDCAPDRAGGING;
 	}
@@ -723,14 +404,13 @@ Joint.prototype = {
 
 	// new vertices can be added CORRECTLY only at the end
 	// or at the start of the connection
-	// -> @todo 
-	var 
-	sbbCenter = rect(this.startObject().shape.getBBox()).center(),
-	ebbCenter = rect(this.endObject().shape.getBBox()).center(),
-	// squared lengths of the lines from the center of 
-	// start/end object bbox to the mouse position
-	smLineSqrLen = line(sbbCenter, mousePos).squaredLength(),
-	emLineSqrLen = line(ebbCenter, mousePos).squaredLength();
+	// -> @todo
+	var sbbCenter = rect(this.startObject().getBBox()).center(),
+	    ebbCenter = rect(this.endObject().getBBox()).center(),
+	    // squared lengths of the lines from the center of
+	    // start/end object bbox to the mouse position
+	    smLineSqrLen = line(sbbCenter, mousePos).squaredLength(),
+	    emLineSqrLen = line(ebbCenter, mousePos).squaredLength();
 	if (smLineSqrLen < emLineSqrLen){
 	    // new vertex is added to the beginning of the vertex array
 	    this._conVerticesCurrentIndex = 0;
@@ -745,51 +425,43 @@ Joint.prototype = {
     capDragging: function(e){
 	// move dummy object
 	if (this.state === this.STARTCAPDRAGGING){
-	    this.startObject().shape.translate(e.clientX - this._dx, e.clientY - this._dy);
+	    this.startObject().translate(e.clientX - this._dx, e.clientY - this._dy);
 	} else if (this.state === this.ENDCAPDRAGGING) {
-	    this.endObject().shape.translate(e.clientX - this._dx, e.clientY - this._dy);	
+	    this.endObject().translate(e.clientX - this._dx, e.clientY - this._dy);
 	} else {
 	    return;	// should not happen
 	}
 	this._dx = e.clientX;
 	this._dy = e.clientY;
-	
+
 	this.update();
     },
     capEndDragging: function(){
-	var dummyBB, capType;
+	var dummyBB, disconnectedFrom,
+	    STARTCAPDRAGGING = (this.state === this.STARTCAPDRAGGING),
+	    ENDCAPDRAGGING = (this.state === this.ENDCAPDRAGGING),
+	    capType = (STARTCAPDRAGGING) ? "start" : "end";
 
-	if (this.state === this.STARTCAPDRAGGING){
-	    dummyBB = this.startObject().shape.getBBox();
-	} else if (this.state === this.ENDCAPDRAGGING){
-	    dummyBB = this.endObject().shape.getBBox();
+	if (STARTCAPDRAGGING){
+	    dummyBB = this.startObject().getBBox();
+	    disconnectedFrom = this._lastStartCapSticker;
+	} else if (ENDCAPDRAGGING){
+	    dummyBB = this.endObject().getBBox();
+	    disconnectedFrom = this._lastEndCapSticker;
+	}
+	this._lastStartCapSticker = this._lastEndCapSticker = null;
+
+	// remove pointer to me from the old object
+	if (disconnectedFrom){
+	    this.freeJoint(disconnectedFrom);
+	    this.callback("disconnected", disconnectedFrom, [capType]);
 	}
 	var o = this.objectContainingPoint(point(dummyBB.x, dummyBB.y));
-	if (o === null){
-	    var disconnectedFrom = null;
-	    if (this.state === this.STARTCAPDRAGGING){
-		capType = "start";
-		disconnectedFrom = this._lastStartCapSticker;
-	    } else if (this.state === this.ENDCAPDRAGGING){
-		capType = "end";
-		disconnectedFrom = this._lastEndCapSticker;
-	    }
-	    if (disconnectedFrom !== null){
-		this.callback("disconnected", disconnectedFrom, [capType]);
-	    }
-	    return;
+	if (o){
+	    this.callback("justConnected", o, [capType]);
+	    this.replaceDummy(this["_" + capType], o);
+	    this.addJoint(o);
 	}
-
-	if (this.state === this.STARTCAPDRAGGING && o._capToStick !== "end"){
-	    capType = "start";
-	} else if (this.state === this.ENDCAPDRAGGING && o._capToStick !== "start"){
-	    capType = "end";
-	}
-	this.callback("justConnected", o, [capType]);
-	this.replaceDummy(this[capType + "Object"](), o);
-	this.addJoint(o);
-	this._lastStartCapSticker = null;
-	this._lastEndCapSticker = null;
 	this.update();
     },
     connectionWiring: function(e){
@@ -799,18 +471,14 @@ Joint.prototype = {
 	this.callback("wiring", this, [mousePos]);
     },
     update: function(){
-//	this.redraw().listenAll();	
+	this.redraw().listenAll();
 	// setTimeout makes drawing much faster!
-	var self = this; 
-	setTimeout(function(){self.redraw().listenAll();}, 0);
+//	var self = this;
+//	enqueue(function(){self.redraw().listenAll();});
     },
     redraw: function(){
-	this.clean().connection().startCap().endCap().handleStart().handleEnd().label();
-	this.draw().connection().startCap().endCap().handleStart().handleEnd().label();
-/*
-	this.clean().connection().label();
-	this.draw().connection().transStartCap().transEndCap().label();
-*/
+	this.clean(["connection", "startCap", "endCap", "handleStart", "handleEnd", "label"]);
+	this.draw(["connection", "startCap", "endCap", "handleStart", "handleEnd", "label"]);
 	return this;
     },
     listenAll: function(){
@@ -818,292 +486,219 @@ Joint.prototype = {
 	    return this;
 	}
 	var self = this;
-	Joint.addEvent(this.startCap().node, "mousedown", function(e){ 
-			   self.capMouseDown(e, self.startCap());
+	this.dom.startCap.mousedown(function(e){
+		           Joint.fixEvent(e);
+			   self.capMouseDown(e, self.dom.startCap);
 			   e.stopPropagation();
 			   e.preventDefault();
-		       });
+        });
+	this.dom.endCap.mousedown(function(e){
+		           Joint.fixEvent(e);
+			   self.capMouseDown(e, self.dom.endCap);
+			   e.stopPropagation();
+			   e.preventDefault();
+	});
+	this.dom.connection.mousedown(function(e){
+		           Joint.fixEvent(e);
+			   self.connectionMouseDown(e);
+			   e.stopPropagation();
+			   e.preventDefault();
+        });
 	if (this._opt.handle.start.enabled){
-	    Joint.addEvent(this._startHandle.node, "mousedown", function(e){ 
-			       self.capMouseDown(e, self.startCap());
+	    this.dom.handleStart.mousedown(function(e){
+			       Joint.fixEvent(e);
+			       self.capMouseDown(e, self.dom.startCap);
 			       e.stopPropagation();
 			       e.preventDefault();
-			   });
+	    });
 	}
 	if (this._opt.handle.end.enabled){
-	    Joint.addEvent(this._endHandle.node, "mousedown", function(e){ 
-			       self.capMouseDown(e, self.endCap());
+	    this.dom.handleEnd.mousedown(function(e){
+			       Joint.fixEvent(e);
+			       self.capMouseDown(e, self.dom.endCap);
 			       e.stopPropagation();
 			       e.preventDefault();
-			   });
+	    });
 	}
 	if (this._opt.handle.timeout !== Infinity){
-	    Joint.addEvent(this.connection().node, "mouseover", function(e){ 
+	    this.dom.connection.mouseover(function(e){
+			       Joint.fixEvent(e);
 			       self.showHandle();
 			       setTimeout(function(){
 					      self.hideHandle();
 					  }, self._opt.handle.timeout);
 			       e.stopPropagation();
 			       e.preventDefault();
-			   });
+	    });
 	}
-	Joint.addEvent(this.endCap().node, "mousedown", function(e){ 
-			   self.capMouseDown(e, self.endCap());
-			   e.stopPropagation();
-			   e.preventDefault();
-		       });
-	Joint.addEvent(this.connection().node, "mousedown", function(e){
-			   self.connectionMouseDown(e); 
-			   e.stopPropagation();
-			   e.preventDefault();
-		       });
 	return this;
     },
     /**
-     * This is the beginning of every drawing.
-     * Prepares parameters for drawing objects.
-     * Defines primitives for drawing.
-     * Draw functions (not primitives) store the resulting DOM element 
-     * into self._con, self._startCap, self._endCap, self._labelText and self._labelBox respectively.
-     * Draw functions support chaining.
-     *
-     * @todo for better performance, get primitives out of draw() method, otherwise
-     * they will be created each time draw() method is called.
      * @private
      */
-    draw: function(){
-	var 
-	self = this,
-	csolver = this.csolver,
-	paper = this.paper,
-	csolverMemento = csolver.getMemento();
+    boundPoint: function(bbox, type, p){
+	if (type === "circle" || type === "ellipse")
+	    return ellipse(bbox.center(), bbox.width/2, bbox.height/2).intersectionWithLineFromCenterToPoint(p);
+	return bbox.boundPoint(p) || bbox.center();
+    },
+    /**
+     * @private
+     * @param {object} start
+     * @param {rect} start.bbox Start object bounding box.
+     * @param {string} start.type Start object geometrical type.
+     * @param {point} start.shift Start arrow offsets.
+     * @param {object} end
+     * @param {rect} end.bbox End object bounding box.
+     * @param {string} end.type End object geometrical type.
+     * @param {point} end.shift End arrow offsets.
+     * @param {array} vertices Connection vertices.
+     * @return {object} Object containing location of start/end of the joint.
+     */
+    jointLocation: function(start, end, vertices){
+	var verticesLength = vertices.length, theta,
+        firstVertex = (vertices.length ? vertices[0] : undefined),
+        lastVertex = (vertices.length ? vertices[verticesLength - 1] : undefined),
+        p1, p1bp, c1t, c1r, p2, p2bp, c2t, c2r;
 
-	// set contraint solver
-	this.setConstraintSolver(csolver);
-	// invalidate contraint solver
-	// @todo invalidation must be done elsewhere
-	// and must invalidate only specific variables
-	csolver.invalidate();
+	// start object boundary point
+	p1bp = this.boundPoint(start.bbox, start.type, firstVertex || end.bbox.center());
+	// shift
+	theta = start.bbox.center().theta(firstVertex || end.bbox.center());
+	// first point of the connection
+	p1 = point(p1bp.x + (2 * start.shift.dx * cos(theta.radians)),
+		   p1bp.y + (-2 * start.shift.dy * sin(theta.radians)));
+	// start arrow translation
+	c1t = point(p1bp.x + start.shift.dx * cos(theta.radians),
+		    p1bp.y - start.shift.dy * sin(theta.radians));
+	// start arrow rotation
+	c1r = 360 - theta.degrees + 180;
+
+	// end object boundary point
+	p2bp = this.boundPoint(end.bbox, end.type, lastVertex || start.bbox.center());
+	// shift
+	theta = (lastVertex || start.bbox.center()).theta(end.bbox.center());
+	// last point of the connection
+	p2 = point(p2bp.x + (-2 * end.shift.dx * cos(theta.radians)),
+		   p2bp.y + (2 * end.shift.dy * sin(theta.radians)));
+	// end arrow translation
+	c2t = point(p2bp.x - end.shift.dx * cos(theta.radians),
+	            p2bp.y + end.shift.dy * sin(theta.radians));
+	// end arrow rotation
+	c2r = 360 - theta.degrees;
 
 	return {
-	    dummy: function(startOrEnd, pos, opt){
-		startOrEnd.dummy = true;
-		startOrEnd.shape = paper.circle(pos.x, pos.y, opt.radius).attr(opt.attrs);
-		startOrEnd.shape.show();
-		return this;
+	    start: {
+		bound: p1bp,
+		connection: p1,
+		translate: c1t,
+		rotate: c1r
 	    },
-	    dummyStart: function(){
-		return this.dummy(self._start, csolver.sBoundPoint(), self._opt.dummy.start);
-	    },
-	    dummyEnd: function(){
-		return this.dummy(self._end, csolver.eBoundPoint(), self._opt.dummy.end);
-	    },
-	    handleStart: function(){
-		var opt = self._opt.handle.start;
-		if (!opt.enabled){
-		    return this;
-		}
-		var pos = csolver.sBoundPoint();
-		self._startHandle = paper.circle(pos.x, pos.y, opt.radius).attr(opt.attrs);
-		return this;
-	    },
-	    handleEnd: function(){
-		var opt = self._opt.handle.end;
-		if (!opt.enabled){
-		    return this;
-		}
-		var pos = csolver.eBoundPoint();
-		self._endHandle = paper.circle(pos.x, pos.y, opt.radius).attr(opt.attrs);
-		return this;
-	    },
-	    connection: function(){
-		var opt = self._opt;
-		self._con = paper.path(csolver.conPathCommands().join(" ")).attr(opt.attrs);
-		var con = self._con;
-		con.node.style.cursor = opt.cursor;	
-		//	   self._con.toBack();
-		con.show();
-		return this;
-	    },
-	    label: function(){
-		if (self._opt.label === undefined){ 
-		    return this; 
-		}
-		var pos = csolver.labelPoint();
-		self._labelText = paper.text(pos.x, pos.y, self._opt.label);
-		var bb = self._labelText.getBBox();
-		self._labelBox = paper.rect(bb.x, bb.y, bb.width, bb.height).attr(self._opt.labelBoxAttrs);
-		self._labelText.insertAfter(self._labelBox);
-		return this;
-	    },
-	    transStartCap: function(){
-		var 
-		opt = self._opt.arrow.start,
-		sBoundPoint = csolver.sBoundPoint(),
-		sTheta = csolver.sTheta();
-
-		if (!self._startCap){
-		    this.startCap();
-		} else {
-		    var 
-		    startCap = self._startCap,
-		    csm = csolverMemento,
-		    rotNew = 360 - sTheta.degrees + 180,
-		    rotOld = 360 - csm.sTheta.degrees + 180,
-		    trNewX = sBoundPoint.x + (opt.dx * cos(sTheta.radians)),
-		    trNewY = sBoundPoint.y - (opt.dy * sin(sTheta.radians)),
-		    trOldX = csm.sBoundPoint.x + (opt.dx * cos(csm.sTheta.radians)),
-		    trOldY = csm.sBoundPoint.y - (opt.dy * sin(csm.sTheta.radians));
-
-		    if (!csm.empty){
-			startCap.translate(trNewX - trOldX, trNewY - trOldY);
-			startCap.rotate(rotNew - rotOld);
-		    } // else no change
-		}
-		return this;
-	    },
-	    transEndCap: function(){
-		var 
-		opt = self._opt.arrow.end,
-		eBoundPoint = csolver.eBoundPoint(),
-		eTheta = csolver.eTheta();
-
-		if (!self._endCap){
-		    this.endCap();
-		} else {
-		    var 
-		    endCap = self._endCap,
-		    csm = csolverMemento,
-		    rotNew = 360 - eTheta.degrees + 180,
-		    rotOld = 360 - csm.eTheta.degrees + 180,
-		    trNewX = eBoundPoint.x - (opt.dx * cos(eTheta.radians)),
-		    trNewY = eBoundPoint.y + (opt.dy * sin(eTheta.radians)),
-		    trOldX = csm.eBoundPoint.x - (opt.dx * cos(csm.eTheta.radians)),
-		    trOldY = csm.eBoundPoint.y + (opt.dy * sin(csm.eTheta.radians));
-
-		    if (!csm.empty){
-			endCap.translate(trNewX - trOldX, trNewY - trOldY);
-			endCap.rotate(rotNew - rotOld);
-		    } // else no change
-		}
-		return this;
-	    },
-	    startCap: function(){
-		var 
-		opt = self._opt.arrow.start,
-		sBoundPoint = csolver.sBoundPoint(),
-		sTheta = csolver.sTheta();
-
-		self._startCap = paper.path(opt.path.join(" ")).attr(opt.attrs);
-		var startCap = self._startCap;
-		startCap.translate(sBoundPoint.x + (opt.dx * cos(sTheta.radians)), 
-				   sBoundPoint.y - (opt.dy * sin(sTheta.radians)));
-		startCap.rotate(360 - (sTheta.degrees) + 180);
-		startCap.show();
-		return this;
-	    },
-	    endCap: function(){
-		var 
-		opt = self._opt.arrow.end,
-		eBoundPoint = csolver.eBoundPoint(),
-		eTheta = csolver.eTheta();
-
-		self._endCap = paper.path(opt.path.join(" ")).attr(opt.attrs);
-		var endCap = self._endCap;
-		endCap.translate(eBoundPoint.x - (opt.dx * cos(eTheta.radians)), 
-				 eBoundPoint.y + (opt.dy * sin(eTheta.radians)));
-		endCap.rotate(360 - (eTheta.degrees));
-		endCap.show();
-		return this;
+	    end: {
+		bound: p2bp,
+		connection: p2,
+		translate: c2t,
+		rotate: c2r
 	    }
 	};
     },
     /**
-     * Clean operations. 
+     * @private
+     * @param {point} start Joint start location.
+     * @param {point} end Joint end location.
+     * @param {array} vertices Connection vertices.
+     * @param {boolean} smooth Connection smooth flag.
+     * @return {array} SVG path commands.
+     */
+    connectionPathCommands: function(start, end, vertices, smooth){
+	if (smooth)
+	    return Bezier.curveThroughPoints([start].concat(vertices, [end]));
+	var commands = ["M", start.x, start.y], i = 0, l = vertices.length;
+	for (; i < l; i++)
+	    commands.push("L", vertices[i].x, vertices[i].y);
+	commands.push("L", end.x, end.y);
+	return commands;
+    },
+
+    /**
+     * @private
+     * @param {point} start Joint start location.
+     * @param {point} end Joint end location.
+     * @param {array} vertices Connection vertices.
+     * @return {point} Location of the label.
+     */
+    labelLocation: function(start, end, vertices){
+	var p = start, i = 0, l = vertices.length;
+	for (; i < l; i++)
+	    p = line(p, vertices[i]).midpoint();
+	return line(p, end).midpoint();
+    },
+
+    /**
+     * @private
+     */
+    draw: function(components){
+	var self = this,
+	    paper = this.paper,
+	    jointLocation = this.jointLocation(
+	        {
+	            bbox: rect(this.startObject().getBBox()).moveAndExpand(this._opt.bboxCorrection.start),
+		    type: this.startObject().type,
+		    shift: this._opt.arrow.start
+	        },
+	        {
+	            bbox: rect(this.endObject().getBBox()).moveAndExpand(this._opt.bboxCorrection.end),
+		    type: this.endObject().type,
+		    shift: this._opt.arrow.end
+	        },
+	        this._opt.vertices
+	    ),
+            connectionPathCommands = this.connectionPathCommands(
+		jointLocation.start.connection,
+		jointLocation.end.connection,
+		this._opt.vertices,
+		this._opt.beSmooth
+	    ),
+	    labelLocation = this.labelLocation(
+		jointLocation.start.connection,
+		jointLocation.end.connection,
+		this._opt.vertices
+	    ),
+	    dom = JointDOMBuilder.init(this.paper, this._opt, this._start, this._end, jointLocation, connectionPathCommands, labelLocation),
+	    l = components.length,
+	    component;
+
+	for (var i = 0; i < l; i++){
+	    component = components[i];
+	    this.dom[component] = dom[component]();
+	}
+    },
+    /**
+     * Clean operations.
      * Remove the DOM elements of connection/startCap/endCap/label if they exist.
      * Clean operations support chaining.
      * @private
      */
-    clean: function(){
-	var self = this;
-	return {
-	    connection: function(){ 
-		var con = self._con;
-		if (con){ con.remove(); }
-		return this;
-	    },
-	    startCap: function(){
-		var startCap = self._startCap;
-		if (startCap){ startCap.remove(); }
-		return this;
-	    },
-	    endCap: function(){ 
-		var endCap = self._endCap;
-		if (endCap){ endCap.remove(); }
-		return this;
-	    },
-	    label: function(){
-		var 
-		labelBox = self._labelBox,
-		labelText = self._labelText;
-		if (labelBox){ labelBox.remove(); }
-		if (labelText){ labelText.remove(); }
-		return this;
-	    },
-	    dummyEnd: function(){
-		var end = self._end;
-		if (end.dummy && end.shape){
-		    end.shape.remove();
+    clean: function(components){
+	var component, name, subComponents, idx = components.length;
+	while (idx--){
+	    name = components[idx];
+	    component = this.dom[name];
+	    if (component){
+		if (component.node){
+		    component.remove();
+		    this.dom[name] = null;
+		} else {  // component is a composite object
+		    subComponents = component;
+		    for (var key in subComponents){
+			if (subComponents.hasOwnProperty(key))
+			    subComponents[key].remove();
+		    }
 		}
-		return this;
-	    },
-	    dummyStart: function(){
-		var start = self._start;
-		if (start.dummy && start.shape){
-		    start.shape.remove();
-		}
-		return this;
-	    },
-	    handleStart: function(){
-		var startHandle = self._startHandle;
-		if (startHandle){
-		    startHandle.remove();
-		}
-		return this;
-	    },
-	    handleEnd: function(){
-		var endHandle = self._endHandle;
-		if (endHandle){
-		    endHandle.remove();
-		}
-		return this;
+		this.dom[name] = null;
 	    }
-	};
+	}
     },
 
-    setConstraintSolver: function(csolver){
-	if (this._start.shape){
-	    csolver._startShapeBBox = this._start.shape.getBBox();
-	    csolver._startShapeType = this._start.shape.type;
-	} else {
-	    csolver._startShapeBBox = {x: 0, y: 0, width: 0, height: 0};
-	    csolver._startShapeType = "rect";
-	}
-	if (this._end.shape){
-	    csolver._endShapeBBox = this._end.shape.getBBox();
-	    csolver._endShapeType = this._end.shape.type;
-	} else {
-	    csolver._endShapeBBox = {x: 0, y: 0, width: 0, height: 0};
-	    csolver._endShapeType = "rect";
-	}
-
-	csolver._conVertices = this._opt.vertices;
-	csolver._arrowStartShift = {dx: this._opt.arrow.start.dx, dy: this._opt.arrow.start.dy};
-	csolver._arrowEndShift = {dx: this._opt.arrow.end.dx, dy: this._opt.arrow.end.dy};
-	csolver._bboxCorrection = this._opt.bboxCorrection;
-	csolver._flags.smooth = this._opt.beSmooth;
-	csolver._flags.label = (this._opt.label !== undefined);    
-    },
     /**
      * Process options.
      * @private
@@ -1120,6 +715,11 @@ Joint.prototype = {
 	if (opt.cursor)   this._opt.cursor = opt.cursor;
 	if (opt.beSmooth) this._opt.beSmooth = opt.beSmooth;
 	if (opt.label)    this._opt.label = opt.label;
+	if (opt.labelAttrs){
+	    for (key in opt.labelAttrs){
+		this._opt.labelAttrs[key] = opt.labelAttrs[key];
+	    }
+	}
 	if (opt.vertices){
 	    // cast vertices to points
 	    for (var i = 0, l = opt.vertices.length; i < l; i++){
@@ -1202,34 +802,31 @@ Joint.prototype = {
 	    cap = "both";
 	}
 	// prepare array of objects that are to be registered
-	var toRegister = [];
-	if (obj.constructor == Array){
-	    toRegister = obj;
-	} else {
-	    toRegister = [obj];
-	}
+	var toRegister = (obj.constructor == Array) ? obj : [obj];
 	// register all objects in toRegister array
 	for (var i = 0, len = toRegister.length; i < len; i++){
-	    toRegister[i]._capToStick = cap;
+	    toRegister[i].yourself()._capToStick = cap;
 	    this._registeredObjects.push(toRegister[i]);
 	}
 	return this;
     },
     /**
-     * The difference between register and registerForever is that registerForever 
-     * saves reference to an array passed as argument. It means that all objects pushed 
-     * into the array before and/or after the call of this method will be registered (for both caps). 
-     * This method is useful for applications that do not know to which objects the connection 
+     * The difference between register and registerForever is that registerForever
+     * saves reference to an array passed as argument. It means that all objects pushed
+     * into the array before and/or after the call of this method will be registered (for both caps).
+     * This method is useful for applications that do not know to which objects the connection
      * can be sticked when the joint is created.
-     * @param {Array} An array holding objects which the joint is going to be registered to.
+     * @param {Array|arg1, arg2, ...} An array holding objects which the joint is going to be registered to.
      * @return {Joint}
-     * @example 
-     * var all = []; 
-     * j.registerForever(all);  
+     * @example
+     * var all = [];
+     * j.registerForever(all);
      * // ... create objects and push them into all array
      */
     registerForever: function(arr){
-	this._registeredObjects = arr;	
+        if (Object.prototype.toString.call(arr) !== "[object Array]")
+            arr = Array.prototype.slice.call(arguments);
+	this._registeredObjects = arr;
 	return this;
     },
     /**
@@ -1240,13 +837,12 @@ Joint.prototype = {
      * @example j.unregister(circle, "end");
      */
     unregister: function(obj, cap){
-	if (typeof cap === "undefined"){
-	    cap = "both";
-	}
+	cap = cap || "both";
+
 	var index = -1;
 	for (var i = 0, len = this._registeredObjects.length; i < len; i++){
-	    if (this._registeredObjects[i] === obj && 
-		this._registeredObjects[i]._capToStick === cap){
+            var capToStick = this._registeredObjects[i].yourself()._capToStick || "both";
+	    if (this._registeredObjects[i] === obj && capToStick === cap){
 		index = i;
 		break;
 	    }
@@ -1257,15 +853,23 @@ Joint.prototype = {
 	return this;
     },
     /**
+     * @return {array} Registered Objects.
+     */
+    registeredObjects: function(){
+        return this._registeredObjects;
+    },
+    /**
      * Set the vertices of the connection
-     * @param {array} vertices Array of points (vertices)
+     * @param {array} vertices Array of points (vertices) - either of the form: {x: 5, y; 10} or "5 10" or "5@10"
      * @return {Joint}
      */
     setVertices: function(vertices){
-	var conVertices = this._opt.vertices = [];
+	var conVertices = this._opt.vertices = [], p;
 	// cast vertices to points
 	for (var i = 0, l = vertices.length; i < l; i++){
-	    conVertices.push(point(vertices[i].x, vertices[i].y));
+            p = (vertices[i].y === undefined) ?
+                    point(vertices[i]) : point(vertices[i].x, vertices[i].y);
+	    conVertices.push(p);
 	}
 	this.update();
 	return this;
@@ -1305,9 +909,9 @@ Joint.prototype = {
     },
     /**
      * Register callback function on various events.
-     * @link Callbacks 
+     * @link Callbacks
      * @param {string} evt "justConnected"|"disconnected"|"justBroken"|"wiring"|"objectMoving"
-     * @param {function} fnc 
+     * @param {function} fnc
      * @return {Joint}
      * @example
      * j.registerCallback("justConnected", function(side){ ... this points to the object the joint was just connected to ... });
@@ -1315,7 +919,7 @@ Joint.prototype = {
      * j.registerCallback("justBroken", function(mousePos){ ... this points to the joint object ... });
      * j.registerCallback("wiring", function(mousePos){ ... this points to the joint object ... });
      * j.registerCallback("objectMoving", function(obj){ ... this points to the joint object ... });
-     * 
+     *
      * j.registerCallback("justConnected", function(side){
      *   if (side === "start"){
      *     console.log("Start cap connected.");
@@ -1333,24 +937,24 @@ Joint.prototype = {
      * @return {Joint}
      */
     straighten: function(){
-	this._con.remove();
 	this._opt.vertices = [];
 	this.update();
 	return this;
     },
     /**
      * Show/hide handle(s).
-     * If a connection arrow is, e.g., of type none, it is difficult to grab the end of the connection. 
+     * If a connection arrow is, e.g., of type none, it is difficult to grab the end of the connection.
      * For these cases, you can use handles, which are just simple circles showing at the end of a connection.
      * @param {string} cap &optional [start|end] Specifies on what side handle should be shown.
      * @return {Joint}
      */
     toggleHandle: function(cap){
-	if (typeof cap === "undefined"){
-	    this._opt.handle.start.enabled = !this._opt.handle.start.enabled;
-	    this._opt.handle.end.enabled = !this._opt.handle.start.enabled;
+	var handle = this._opt.handle;
+	if (!cap){
+	    handle.start.enabled = !handle.start.enabled;
+	    handle.end.enabled = !handle.end.enabled;
 	} else {
-	    this._opt.handle[cap].enabled = !this._opt.handle[cap].enabled;
+	    handle[cap].enabled = !handle[cap].enabled;
 	}
 	this.update();
 	return this;
@@ -1360,11 +964,12 @@ Joint.prototype = {
      * @return {Joint}
      */
     showHandle: function(cap){
-	if (typeof cap === "undefined"){
-	    this._opt.handle.start.enabled = true;
-	    this._opt.handle.end.enabled = true;
+	var handle = this._opt.handle;
+	if (!cap){
+	    handle.start.enabled = true;
+	    handle.end.enabled = true;
 	} else {
-	    this._opt.handle[cap].enabled = true;
+	    handle[cap].enabled = true;
 	}
 	this.update();
 	return this;
@@ -1374,19 +979,20 @@ Joint.prototype = {
      * @return {Joint}
      */
     hideHandle: function(cap){
-	if (typeof cap === "undefined"){
-	    this._opt.handle.start.enabled = false;
-	    this._opt.handle.end.enabled = false;
+	var handle = this._opt.handle;
+	if (!cap){
+	    handle.start.enabled = false;
+	    handle.end.enabled = false;
 	} else {
-	    this._opt.handle[cap].enabled = false;
+	    handle[cap].enabled = false;
 	}
 	this.update();
 	return this;
     },
     /**
      * Set bounding box correction.
-     * This advanced feature of Joint library allows you to shift a point to which a connection sticks. 
-     * You can for example modify a connection to point to the center of an object or you can set a distance 
+     * This advanced feature of Joint library allows you to shift a point to which a connection sticks.
+     * You can for example modify a connection to point to the center of an object or you can set a distance
      * between an object and a connection arrow.
      * @param {object} [corr] correction Correction
      * @param {string} [corr.type] fake type of an object to which a cap points
@@ -1398,7 +1004,7 @@ Joint.prototype = {
      * @return {Joint}
      * @example
      * // 1.) both sides of the connection will point to the center of
-     * //     a circular object with radius == 30 
+     * //     a circular object with radius == 30
      * j.setBBoxCorrection({
      *   type: "ellipse",
      *   x: 30,
@@ -1418,12 +1024,32 @@ Joint.prototype = {
      * });
      */
     setBBoxCorrection: function(corr, cap){
-	if (cap === undefined){
-	    this._opt.bboxCorrection["start"] = this._opt.bboxCorrection["end"] = corr;
+	if (!cap){
+	    this._opt.bboxCorrection.start = this._opt.bboxCorrection.end = corr;
 	} else {
-	    this._opt.bboxCorrection[cap] = corr;	    
+	    this._opt.bboxCorrection[cap] = corr;
 	}
 	this.update();
+	return this;
+    },
+
+    /**
+     * Highlight connection.
+     * Note that highlight diseappears after the first update.
+     * @return {Joint} Return this.
+     */
+    highlight: function(color){
+        color = color || "red";
+	this.connection().attr("stroke", color);
+	return this;
+    },
+
+    /**
+     * Unhighlight connection.
+     * @return {Joint} Return this.
+     */
+    unhighlight: function(){
+	this.connection().attr("stroke", this._opt.attrs.stroke || "#000");
 	return this;
     }
 };
@@ -1476,20 +1102,19 @@ Joint.resetPaper = function resetPaper(){
 	return;
     }
     var canvas = this._paper.canvas;
-    canvas.parentNode.removeChild(canvas);    
+    canvas.parentNode.removeChild(canvas);
     Joint.paper.apply(Joint, this._paperArguments);
 };
 
     // get an arrow object
 Joint.getArrow = function(type, size, attrs){
-    if (!size){	
+    if (!size){
 	size = 2; // default
     }
     var arrow = Joint.arrows[type](size);
+    if (!arrow.attrs) arrow.attrs = {};
+
     if (attrs){
-	if (!arrow.attrs){
-	    arrow.attrs = {};
-	}
 	for (var key in attrs){
 	    arrow.attrs[key] = attrs[key];
 	}
@@ -1498,8 +1123,8 @@ Joint.getArrow = function(type, size, attrs){
 };
 
 /**
- * This object contains predefined arrow types. Currently, there are only two types: none and basic. 
- * These are considered general types and are suitable for most diagrams. Nevertheless, new arrows 
+ * This object contains predefined arrow types. Currently, there are only two types: none and basic.
+ * These are considered general types and are suitable for most diagrams. Nevertheless, new arrows
  * can be easily added. See arrows.js plugin, which provides some fancier arrows.
  * The names can be used as startArrow|endArrow types.
  * @example circle.joint(rect, { startArrow: { type: basic, size: 5, attrs: ... } });
@@ -1509,7 +1134,7 @@ Joint.arrows = {
 	if (!size){ size = 2; }
 	return {
 	    path: ["M",size.toString(),"0","L",(-size).toString(),"0"],
-	    dx: size, 
+	    dx: size,
 	    dy: size
 	};
     },
@@ -1518,12 +1143,12 @@ Joint.arrows = {
    	return {
 	    path: ["M",size.toString(),"0",
 		   "L",(-size).toString(),(-size).toString(),
-		   "L",(-size).toString(),size.toString(),"z"], 
-	    dx: size, 
-	    dy: size, 
-	    attrs: { 
-		stroke: "black", 
-		fill: "black" 
+		   "L",(-size).toString(),size.toString(),"z"],
+	    dx: size,
+	    dy: size,
+	    attrs: {
+		stroke: "black",
+		fill: "black"
 	    }
 	};
     }
@@ -1559,7 +1184,7 @@ Joint.getMousePosition = function(e, el){
     if (e.pageX || e.pageY) {
         pos = point(e.pageX, e.pageY);
     } else {
-	var 
+	var
 	docEl = document.documentElement,
 	docBody = document.body;
 	pos = point(e.clientX + (docEl.scrollLeft || docBody.scrollLeft) - docEl.clientLeft,
@@ -1671,6 +1296,77 @@ Joint.removeEvent = function(element, type, handler){
 Joint.addEvent(document, "mousemove", Joint.mouseMove);
 Joint.addEvent(document, "mouseup", Joint.mouseUp);
 
+var JointDOMBuilder = {
+    init: function(paper, opt, start, end, jointLocation, connectionPathCommands, labelLocation){
+	this.paper = paper;
+	this.opt = opt;
+	this.start = start;
+	this.end = end;
+	this.jointLocation = jointLocation;
+	this.connectionPathCommands = connectionPathCommands;
+	this.labelLocation = labelLocation;
+	return this;
+    },
+    dummy: function(startOrEnd, pos, opt){
+	startOrEnd.dummy = true;
+	startOrEnd.shape = this.paper.circle(pos.x, pos.y, opt.radius).attr(opt.attrs);
+	startOrEnd.shape.show();
+	return startOrEnd.shape;
+    },
+    dummyStart: function(){
+	return this.dummy(this.start, this.jointLocation.start.bound, this.opt.dummy.start);
+    },
+    dummyEnd: function(){
+	return this.dummy(this.end, this.jointLocation.end.bound, this.opt.dummy.end);
+    },
+    handleStart: function(){
+	var opt = this.opt.handle.start;
+	if (!opt.enabled) return undefined;
+	var pos = this.jointLocation.start.bound;
+	return this.paper.circle(pos.x, pos.y, opt.radius).attr(opt.attrs);
+    },
+    handleEnd: function(){
+	var opt = this.opt.handle.end;
+	if (!opt.enabled) return undefined;
+	var pos = this.jointLocation.end.bound;
+	return this.paper.circle(pos.x, pos.y, opt.radius).attr(opt.attrs);
+    },
+    connection: function(){
+	var opt = this.opt,
+	    con = this.paper.path(this.connectionPathCommands.join(" ")).attr(opt.attrs);
+	con.node.style.cursor = opt.cursor;
+	con.show();
+	return con;
+    },
+    label: function(){
+	if (this.opt.label === undefined) return undefined;
+	var pos = this.labelLocation,
+	    labelText = this.paper.text(pos.x, pos.y, this.opt.label).attr(this.opt.labelAttrs),
+	    bb = labelText.getBBox(),
+	    labelBox = this.paper.rect(bb.x, bb.y, bb.width, bb.height).attr(this.opt.labelBoxAttrs);
+	labelText.insertAfter(labelBox);
+	return { text: labelText, box: labelBox };
+    },
+    startCap: function(){
+	var opt = this.opt.arrow.start,
+	    startCap = this.paper.path(opt.path.join(" ")).attr(opt.attrs);
+	startCap.translate(this.jointLocation.start.translate.x,
+			   this.jointLocation.start.translate.y);
+	startCap.rotate(this.jointLocation.start.rotate);
+	startCap.show();
+	return startCap;
+    },
+    endCap: function(){
+	var opt = this.opt.arrow.end,
+	    endCap = this.paper.path(opt.path.join(" ")).attr(opt.attrs);
+	endCap.translate(this.jointLocation.end.translate.x,
+			 this.jointLocation.end.translate.y);
+	endCap.rotate(this.jointLocation.end.rotate);
+	endCap.show();
+	return endCap;
+    }
+};
+
 /**
  * Geometry-Primitives.
  */
@@ -1680,8 +1376,16 @@ Joint.addEvent(document, "mouseup", Joint.mouseUp);
  * @constructor
  */
 function Point(x, y){
-    this.x = x;
-    this.y = y;
+    var xy;
+    if (y === undefined){
+        // from string
+        xy = x.split(x.indexOf("@") === -1 ? " " : "@");
+        this.x = parseInt(xy[0], 10);
+        this.y = parseInt(xy[1], 10);
+    } else {
+        this.x = x;
+        this.y = y;
+    }
 }
 function point(x, y){ return new Point(x, y); }
 
@@ -1693,10 +1397,10 @@ Point.prototype = {
 
     deepCopy: function(){ return point(this.x, this.y); },
     /**
-     * If I lie outside rectangle r, return the nearest point on the boundary of rect r, 
+     * If I lie outside rectangle r, return the nearest point on the boundary of rect r,
      * otherwise return me.
      * (see Squeak Smalltalk, Point>>adhereTo:)
-     * @param {Rect} r 
+     * @param {Rect} r
      * @return {Point}
      */
     adhereToRect: function(r){
@@ -1780,23 +1484,23 @@ Line.prototype = {
     },
 
     /**
-     * @return <double> length of the line
+     * @return {double} length of the line
      */
     length: function(){ return sqrt(this.squaredLength()); },
 
     /**
-     * @return <integer> length without sqrt
+     * @return {integer} length without sqrt
      * @note for applications where the exact length is not necessary (e.g. compare only)
      */
     squaredLength: function(){
-	var 
+	var
 	x0 = this.start.x, y0 = this.start.y,
 	x1 = this.end.x, y1 = this.end.y;
 	return (x0 -= x1)*x0 + (y0 -= y1)*y0;
     },
 
     /**
-     * @return <point> my midpoint 
+     * @return {point} my midpoint
      */
     midpoint: function(){
 	return point((this.start.x + this.end.x) / 2,
@@ -1805,7 +1509,7 @@ Line.prototype = {
 
 
     /**
-     * @return <point> where I intersect l.
+     * @return {point} where I intersect l.
      * @see Squeak Smalltalk, LineSegment>>intersectionWith:
      */
     intersection: function(l){
@@ -1846,14 +1550,14 @@ function Rect(o){
     this.height = o.height;
 }
 
-function rect(o){ 
+function rect(o){
     if (typeof o.width === "undefined"){
 	return new Rect({x: arguments[0],
 			 y: arguments[1],
 			 width: arguments[2],
 			 height: arguments[3]});
     }
-    return new Rect(o); 
+    return new Rect(o);
 }
 
 Rect.prototype = {
@@ -1870,7 +1574,7 @@ Rect.prototype = {
     center: function(){ return point(this.x + this.width/2, this.y + this.height/2); },
 
     /**
-     * @return <bool> true if rectangles intersect
+     * @return {boolean} true if rectangles intersect
      */
     intersect: function(r){
 	var myOrigin = this.origin(),
@@ -1885,7 +1589,7 @@ Rect.prototype = {
     },
 
     /**
-     * @return <string> (left|right|top|bottom) side which is nearest to point
+     * @return {string} (left|right|top|bottom) side which is nearest to point
      * @see Squeak Smalltalk, Rectangle>>sideNearestTo:
      */
     sideNearestToPoint: function(p){
@@ -1911,7 +1615,7 @@ Rect.prototype = {
     },
 
     /**
-     * @return <bool> true if point p is insight me
+     * @return {bool} true if point p is insight me
      */
     containsPoint: function(p){
 	if (p.x > this.x && p.x < this.x + this.width &&
@@ -1922,7 +1626,7 @@ Rect.prototype = {
     },
 
     /**
-     * @return <point> a point on my border nearest to parameter point
+     * @return {point} a point on my border nearest to parameter point
      * @see Squeak Smalltalk, Rectangle>>pointNearestTo:
      */
     pointNearestToPoint: function(p){
@@ -1930,7 +1634,7 @@ Rect.prototype = {
 	    var side = this.sideNearestToPoint(p);
 	    switch (side){
 	    case "right": return point(this.x + this.width, p.y);
-	    case "left": return point(this.x, p.y);	    
+	    case "left": return point(this.x, p.y);
 	    case "bottom": return point(p.x, this.y + this.height);
 	    case "top": return point(p.x, this.y);
 	    }
@@ -1948,7 +1652,7 @@ Rect.prototype = {
 	// (clockwise, starting from the top side)
 	var sides = [
 	    line(this.origin(), this.topRight()),
-	    line(this.topRight(), this.corner()), 
+	    line(this.topRight(), this.corner()),
 	    line(this.corner(), this.bottomLeft()),
 	    line(this.bottomLeft(), this.origin())
 	],
@@ -1964,7 +1668,7 @@ Rect.prototype = {
 
     /**
      * Move and expand me.
-     * @param r <rectangle> representing deltas
+     * @param r {rectangle} representing deltas
      */
     moveAndExpand: function(r){
 	this.x += r.x;
@@ -1997,7 +1701,7 @@ Ellipse.prototype = {
     /**
      * Find point on me where line from my center to
      * point p intersects my boundary.
-     * @see Squeak Smalltalk, EllipseMorph>>intersectionWithLineSegmentFromCenterTo:    
+     * @see Squeak Smalltalk, EllipseMorph>>intersectionWithLineSegmentFromCenterTo:
      */
     intersectionWithLineFromCenterToPoint: function(p){
 	var dx = p.x - this.x,
@@ -2017,7 +1721,7 @@ Ellipse.prototype = {
 	var y = m * x;
 	return point(this.x + x, this.y + y);
     }
-    
+
 };
 
 /**
@@ -2041,7 +1745,7 @@ BezierSegment.prototype = {
      * Get a point on me at the specified time t.
      */
     getPoint: function(t){
-	var 
+	var
 	a = 1 - t,	// (1 - t)
 	b = a*a,	// (1 - t)^2
 	c = b*a,	// (1 - t)^3
@@ -2051,7 +1755,7 @@ BezierSegment.prototype = {
 	return point(c*this.p0.x + 3*b*t*this.p1.x + 3*a*tt*this.p2.x + ttt*this.p3.x,
 		     c*this.p0.y + 3*b*t*this.p1.y + 3*a*tt*this.p2.y + ttt*this.p3.y);
     }
-    
+
 };
 
 /**
@@ -2059,7 +1763,7 @@ BezierSegment.prototype = {
  */
 function Bezier(){}
 
-/** 
+/**
  * Cubic Bezier curve path through points.
  * Ported from ActionScript implementation by Andy Woodruff (http://cartogrammar.com/blog)
  */
@@ -2071,7 +1775,7 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
     if (typeof angleFactor === "undefined"){
 	angleFactor = 0.75;
     }
-    
+
     var path = [];	// the result SVG path as an array of path commands
     if (points.length < 2){
 	throw new Error("Points array must have minimum of two points.");
@@ -2098,14 +1802,14 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
     } else if (angleFactor > 1){
 	angleFactor = 1;
     }
-    
+
     /**
      * Calculate all the curve control points.
      */
 
     // None of this junk will do any good if there are only two points
     if (p.length > 2){
-	// Ordinarily, curve calculations will start with the second point 
+	// Ordinarily, curve calculations will start with the second point
 	// and go through the second-to-last point
 	var firstPt = 1;
 	var lastPt = p.length-1;
@@ -2117,23 +1821,23 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
 	}
 
 	// An array to store the two control points for each point
-	var controlPts = [];	
-	// Loop through all the points (except the first and last 
+	var controlPts = [];
+	// Loop through all the points (except the first and last
 	// if not a closed line) to get curve control points for each.
 	for (var i = firstPt; i < lastPt; i++) {
 	    // The previous, current, and next points
 
-	    // If the first point (of a closed line), use the 
+	    // If the first point (of a closed line), use the
 	    // second-to-last point as the previous point
 	    var p0 = (i-1 < 0) ? p[p.length-2] : p[i-1];
 	    var p1 = p[i];
-	    // If the last point (of a closed line), use the 
+	    // If the last point (of a closed line), use the
 	    // second point as the next point
 	    var p2 = (i+1 == p.length) ? p[1] : p[i+1];
 
 	    // Distance from previous point to current point
 	    var a = p0.distance(p1);
-	    // Correct for near-zero distances, a cheap way to prevent 
+	    // Correct for near-zero distances, a cheap way to prevent
 	    // division by zero
 	    if (a < 0.001){ a = 0.001; }
 	    // Distance from current point to next point
@@ -2146,44 +1850,44 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
 	    // Make sure above value is between -1 and 1 so that acos will work
 	    if (cos < -1){ cos = -1; }
 	    else if (cos > 1){ cos = 1; }
-	    // Angle formed by the two sides of the triangle 
+	    // Angle formed by the two sides of the triangle
 	    // (described by the three points above) adjacent to the current point
 	    var C = acos(cos);
-	    // Duplicate set of points. Start by giving previous and next points 
+	    // Duplicate set of points. Start by giving previous and next points
 	    // values RELATIVE to the current point.
 	    var aPt = point(p0.x-p1.x,p0.y-p1.y);
 	    var bPt = point(p1.x,p1.y);
 	    var cPt = point(p2.x-p1.x,p2.y-p1.y);
 
-	    /* We'll be adding adding the vectors from the previous and next points 
-	       to the current point, but we don't want differing magnitudes (i.e. 
-	       line segment lengths) to affect the direction of the new vector. 
+	    /* We'll be adding adding the vectors from the previous and next points
+	       to the current point, but we don't want differing magnitudes (i.e.
+	       line segment lengths) to affect the direction of the new vector.
                Therefore we make sure the segments we use, based on the duplicate points
-	       created above, are of equal length. The angle of the new vector will 
-               thus bisect angle C (defined above) and the perpendicular to this is 
-               nice for the line tangent to the curve. The curve control points will 
+	       created above, are of equal length. The angle of the new vector will
+               thus bisect angle C (defined above) and the perpendicular to this is
+               nice for the line tangent to the curve. The curve control points will
                be along that tangent line.
 	    */
 	    if (a > b){
-		// Scale the segment to aPt (bPt to aPt) to the size of b 
+		// Scale the segment to aPt (bPt to aPt) to the size of b
 		// (bPt to cPt) if b is shorter.
 		aPt.normalize(b);
 	    } else if (b > a){
-		// Scale the segment to cPt (bPt to cPt) to the size of a (aPt to bPt) 
+		// Scale the segment to cPt (bPt to cPt) to the size of a (aPt to bPt)
 		// if a is shorter.
 		cPt.normalize(a);
 	    }
-	    // Offset aPt and cPt by the current point to get them back to 
+	    // Offset aPt and cPt by the current point to get them back to
 	    // their absolute position.
 	    aPt.offset(p1.x,p1.y);
 	    cPt.offset(p1.x,p1.y);
 
-	    // Get the sum of the two vectors, which is perpendicular to the line 
+	    // Get the sum of the two vectors, which is perpendicular to the line
 	    // along which our curve control points will lie.
 
 	    // x component of the segment from previous to current point
 	    var ax = bPt.x-aPt.x;
-	    var ay = bPt.y-aPt.y; 
+	    var ay = bPt.y-aPt.y;
 	    // x component of the segment from next to current point
 	    var bx = bPt.x-cPt.x;
 	    var by = bPt.y-cPt.y;
@@ -2196,7 +1900,7 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
 		rx = -bx;
 		ry = by;
 	    }
-	    // Switch rx and ry when y or x difference is 0. This seems to prevent 
+	    // Switch rx and ry when y or x difference is 0. This seems to prevent
 	    // the angle from being perpendicular to what it should be.
 	    if (ay === 0 && by === 0){
 		rx = 0;
@@ -2209,20 +1913,20 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
 	    // var r = sqrt(rx*rx+ry*ry);
 	    // angle of the new vector
 	    var theta = atan2(ry,rx);
-	    // Distance of curve control points from current point: a fraction 
+	    // Distance of curve control points from current point: a fraction
 	    // the length of the shorter adjacent triangle side
 	    var controlDist = mmin(a,b)*z;
-	    // Scale the distance based on the acuteness of the angle. Prevents 
+	    // Scale the distance based on the acuteness of the angle. Prevents
 	    // big loops around long, sharp-angled triangles.
 	    var controlScaleFactor = C/PI;
 	    // Mess with this for some fine-tuning
 	    controlDist *= ((1-angleFactor) + angleFactor*controlScaleFactor);
-	    // The angle from the current point to control points: 
+	    // The angle from the current point to control points:
 	    // the new vector angle plus 90 degrees (tangent to the curve).
 	    var controlAngle = theta+PI/2;
 	    // Control point 2, curving to the next point.
 	    var controlPoint2 = Point.fromPolar(controlDist,controlAngle);
-	    // Control point 1, curving from the previous point 
+	    // Control point 1, curving from the previous point
 	    // (180 degrees away from control point 2).
 	    var controlPoint1 = Point.fromPolar(controlDist,controlAngle+PI);
 
@@ -2230,8 +1934,8 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
 	    controlPoint1.offset(p1.x,p1.y);
 	    controlPoint2.offset(p1.x,p1.y);
 
-	    /* Haven't quite worked out how this happens, but some control 
-	       points will be reversed. In this case controlPoint2 will be 
+	    /* Haven't quite worked out how this happens, but some control
+	       points will be reversed. In this case controlPoint2 will be
                farther from the next point than controlPoint1 is.
 	       Check for that and switch them if it's true.
 	    */
@@ -2251,15 +1955,15 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
 
 	// If this isn't a closed line
 	if (firstPt == 1){
-	    // Draw a regular quadratic Bézier curve from the first to second points, 
+	    // Draw a regular quadratic Bézier curve from the first to second points,
 	    // using the first control point of the second point
 	    path.push("S", controlPts[1][0].x,controlPts[1][0].y,p[1].x,p[1].y);
 	}
 
-	// Change to true if you want to use lineTo for straight lines of 3 or 
+	// Change to true if you want to use lineTo for straight lines of 3 or
 	// more points rather than curves. You'll get straight lines but possible sharp corners!
 	var straightLines = true;
-	// Loop through points to draw cubic Bézier curves through the penultimate 
+	// Loop through points to draw cubic Bézier curves through the penultimate
 	// point, or through the last point if the line is closed.
 	for (var i = firstPt; i < lastPt - 1; i++){
 	    // Determine if multiple points in a row are in a straight line
@@ -2271,7 +1975,7 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
 	    if (straightLines && isStraight){
 		path.push("L", p[i+1].x,p[i+1].y);
 	    } else {
-		// BezierSegment instance using the current point, its second control 
+		// BezierSegment instance using the current point, its second control
 		// point, the next point's first control point, and the next point
 		var bezier = bezierSegment(p[i],controlPts[i][1],controlPts[i+1][0],p[i+1]);
 		// Construct the curve out of 100 segments (adjust number for less/more detail)
@@ -2282,14 +1986,14 @@ Bezier.curveThroughPoints = function(points, z, angleFactor){
 		}
 	    }
 	}
-	// If this isn't a closed line	
+	// If this isn't a closed line
 	if (lastPt == p.length-1){
 	    // Curve to the last point using the second control point of the penultimate point.
 	    path.push("S", controlPts[i][1].x,controlPts[i][1].y,p[i+1].x,p[i+1].y);
 	}
 
 	// just draw a line if only two points
-    } else if (p.length == 2){	
+    } else if (p.length == 2){
 	path.push("M", p[0].x,p[0].y);
 	path.push("L", p[1].x,p[1].y);
     }
@@ -2317,7 +2021,9 @@ Joint.Bezier = Bezier;
 var _attr = global.Raphael.el.attr;
 global.Raphael.el.attr = function(){
     // is it a getter or el is not a joint object?
-    if ((arguments.length == 1 && (typeof arguments[0] === "string" || typeof arguments[0] === "array")) || (typeof this.joints === "undefined")){
+    if ((arguments.length == 1 &&
+	 (typeof arguments[0] === "string" || typeof arguments[0] === "array")) ||
+	(typeof this.joints === "undefined")){
 	return _attr.apply(this, arguments);	// yes
     }
 
@@ -2328,8 +2034,8 @@ global.Raphael.el.attr = function(){
     }
 
     _attr.apply(this, arguments);
-    
-    var 
+
+    var
     n = this.attrs,	// new attributes
     positionChanged = false,
     strokeChanged = false;
@@ -2342,11 +2048,11 @@ global.Raphael.el.attr = function(){
     }
     if (o.stroke != n.stroke){
 	strokeChanged = true;
-    }    
+    }
 
     for (var i = this.joints().length - 1; i >= 0; --i){
 	var joint = this.joints()[i];
-	
+
 	if (positionChanged){
 	    joint.update();
 	    joint.callback("objectMoving", joint, [this]);
@@ -2359,7 +2065,7 @@ global.Raphael.el.attr = function(){
 
 /**
  * Create a joint between a Raphael object and to object.
- * @param {RaphaelObject} to 
+ * @param {RaphaelObject} to
  * @param {object} [opts] opt {@link Joint}
  * @return {Joint}
  */
@@ -2372,6 +2078,18 @@ global.Raphael.el.joint = function(to, opt){
  * Return element unique id.
  */
 global.Raphael.el.euid = function(){
+    return Joint.generateEuid.call(this);
+};
+
+global.Raphael.el.yourself = function(){
+    return this;
+};
+
+global.Raphael.el.joints = function(){
+    return (this._joints || (this._joints = []));
+};
+
+global.Raphael.fn.euid = function(){
     return Joint.generateEuid.call(this);
 };
 
