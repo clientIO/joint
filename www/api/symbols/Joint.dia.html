@@ -342,6 +342,24 @@ pageTracker._trackPageview();
 						<tr>
 							<td class="attributes">&lt;static&gt; &nbsp;</td>
 							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.registeredElements">registeredElements</a></b>()
+								</div>
+								<div class="description">Returns registered elements of the current paper.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.registeredJoints">registeredJoints</a></b>()
+								</div>
+								<div class="description">Returns registered joints of the current paper.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
 								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.registerJoint">registerJoint</a></b>()
 								</div>
 								<div class="description">Register joint to the current paper.</div>
@@ -354,6 +372,24 @@ pageTracker._trackPageview();
 								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.stringify">stringify</a></b>(paper)
 								</div>
 								<div class="description">Stringify the whole diagram (occupying a paper).</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.unregister">unregister</a></b>(obj)
+								</div>
+								<div class="description">Cancel registration of an element in the current paper.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.unregisterJoint">unregisterJoint</a></b>(j)
+								</div>
+								<div class="description">Cancel registration of a joint in the current paper.</div>
 							</td>
 						</tr>
 					
@@ -449,7 +485,7 @@ pageTracker._trackPageview();
 					</div>
 					<div class="description">
 						Create new joint and register it. All joints appearing in a diagram should
-be created using this function. Otherwise they won't be registered and 
+be created using this function. Otherwise they won't be registered and
 therefore not serialized when needed.
 						
 						
@@ -582,6 +618,70 @@ You don't have to use this method unless you really know what you're doing.
 
 					<hr />
 				
+					<a name=".registeredElements"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{Element[]}</span>
+					<span class="light">Joint.dia.</span><b>registeredElements</b>()
+					
+					</div>
+					<div class="description">
+						Returns registered elements of the current paper.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element[]}</span> Array of registered elements.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".registeredJoints"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{<a href="../symbols/Joint.html">Joint</a>[]}</span>
+					<span class="light">Joint.dia.</span><b>registeredJoints</b>()
+					
+					</div>
+					<div class="description">
+						Returns registered joints of the current paper.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Joint.html">Joint</a>[]}</span> Array of registered joints.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
 					<a name=".registerJoint"> </a>
 					<div class="fixedFont">&lt;static&gt; 
 					
@@ -659,6 +759,78 @@ You don't have to use this method unless you really know what you're doing.
 								<dd><span class="light fixedFont">{String}</span> JSON representation of the diagram.</dd>
 							
 							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".unregister"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					
+					<span class="light">Joint.dia.</span><b>unregister</b>(obj)
+					
+					</div>
+					<div class="description">
+						Cancel registration of an element in the current paper.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{Element}</span> <b>obj</b>
+									
+								</dt>
+								<dd>Object to be unregistered.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name=".unregisterJoint"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					
+					<span class="light">Joint.dia.</span><b>unregisterJoint</b>(j)
+					
+					</div>
+					<div class="description">
+						Cancel registration of a joint in the current paper.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Joint.html">Joint</a>}</span> <b>j</b>
+									
+								</dt>
+								<dd>Joint to be unregistered.</dd>
+							
+							</dl>
+						
+						
+						
+						
 						
 						
 						

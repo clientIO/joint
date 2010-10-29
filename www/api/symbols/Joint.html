@@ -342,6 +342,15 @@ pageTracker._trackPageview();
 						<tr>
 							<td class="attributes">&nbsp;</td>
 							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.html#highlight">highlight</a></b>(color)
+								</div>
+								<div class="description">Highlight connection.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
 								<div class="fixedFont"><b><a href="../symbols/Joint.html#isSmooth">isSmooth</a></b>()
 								</div>
 								<div class="description">Find out whether the connection is smooth or not.</div>
@@ -387,9 +396,18 @@ pageTracker._trackPageview();
 						<tr>
 							<td class="attributes">&nbsp;</td>
 							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.html#registeredObjects">registeredObjects</a></b>()
+								</div>
+								<div class="description"></div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
 								<div class="fixedFont"><b><a href="../symbols/Joint.html#registerForever">registerForever</a></b>(An)
 								</div>
-								<div class="description">The difference between register and registerForever is that registerForever 
+								<div class="description">The difference between register and registerForever is that registerForever
 saves reference to an array passed as argument.</div>
 							</td>
 						</tr>
@@ -463,6 +481,15 @@ saves reference to an array passed as argument.</div>
 								<div class="fixedFont"><b><a href="../symbols/Joint.html#toggleSmoothing">toggleSmoothing</a></b>()
 								</div>
 								<div class="description">Toggle the connection smoothing (bezier/straight).</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.html#unhighlight">unhighlight</a></b>()
+								</div>
+								<div class="description">Unhighlight connection.</div>
 							</td>
 						</tr>
 					
@@ -586,6 +613,12 @@ saves reference to an array passed as argument.</div>
 								<i>Optional</i>
 							</dt>
 								<dd>Connection label</dd>
+						
+							<dt>
+								<span class="light fixedFont">{object}</span>  <b>opts.labelAttrs</b>
+								<i>Optional</i>
+							</dt>
+								<dd>Label options (see  Raphael possible parameters)</dd>
 						
 							<dt>
 								<span class="light fixedFont">{object}</span>  <b>opts.labelBoxAttrs</b>
@@ -984,6 +1017,50 @@ saves reference to an array passed as argument.</div>
 
 					<hr />
 				
+					<a name="highlight"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Joint.html">Joint</a>}</span>
+					<b>highlight</b>(color)
+					
+					</div>
+					<div class="description">
+						Highlight connection.
+Note that highlight diseappears after the first update.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>color</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Joint.html">Joint</a>}</span> Return this.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
 					<a name="isSmooth"> </a>
 					<div class="fixedFont">
 					
@@ -1238,6 +1315,38 @@ j.registerCallback("justConnected", function(side){
 
 					<hr />
 				
+					<a name="registeredObjects"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{array}</span>
+					<b>registeredObjects</b>()
+					
+					</div>
+					<div class="description">
+						
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{array}</span> Registered Objects.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
 					<a name="registerForever"> </a>
 					<div class="fixedFont">
 					
@@ -1246,10 +1355,10 @@ j.registerCallback("justConnected", function(side){
 					
 					</div>
 					<div class="description">
-						The difference between register and registerForever is that registerForever 
-saves reference to an array passed as argument. It means that all objects pushed 
-into the array before and/or after the call of this method will be registered (for both caps). 
-This method is useful for applications that do not know to which objects the connection 
+						The difference between register and registerForever is that registerForever
+saves reference to an array passed as argument. It means that all objects pushed
+into the array before and/or after the call of this method will be registered (for both caps).
+This method is useful for applications that do not know to which objects the connection
 can be sticked when the joint is created.
 						
 						
@@ -1257,9 +1366,8 @@ can be sticked when the joint is created.
 					
 					
 					
-					<pre class="code">
-var all = []; 
-j.registerForever(all);  
+					<pre class="code">var all = [];
+j.registerForever(all);
 // ... create objects and push them into all array</pre>
 					
 					
@@ -1269,7 +1377,7 @@ j.registerForever(all);
 							<dt class="heading">Parameters:</dt>
 							
 								<dt>
-									<span class="light fixedFont">{Array}</span> <b>An</b>
+									<span class="light fixedFont">{Array|arg1|arg2|...}</span> <b>An</b>
 									
 								</dt>
 								<dd>array holding objects which the joint is going to be registered to.</dd>
@@ -1334,8 +1442,8 @@ Joint.resetPaper();
 					</div>
 					<div class="description">
 						Set bounding box correction.
-This advanced feature of Joint library allows you to shift a point to which a connection sticks. 
-You can for example modify a connection to point to the center of an object or you can set a distance 
+This advanced feature of Joint library allows you to shift a point to which a connection sticks.
+You can for example modify a connection to point to the center of an object or you can set a distance
 between an object and a connection arrow.
 						
 						
@@ -1344,7 +1452,7 @@ between an object and a connection arrow.
 					
 					
 					<pre class="code">// 1.) both sides of the connection will point to the center of
-//     a circular object with radius == 30 
+//     a circular object with radius == 30
 j.setBBoxCorrection({
   type: "ellipse",
   x: 30,
@@ -1452,7 +1560,7 @@ j.setBBoxCorrection({
 									<span class="light fixedFont">{array}</span> <b>vertices</b>
 									
 								</dt>
-								<dd>Array of points (vertices)</dd>
+								<dd>Array of points (vertices) - either of the form: {x: 5, y; 10} or "5 10" or "5@10"</dd>
 							
 							</dl>
 						
@@ -1591,7 +1699,7 @@ j.setBBoxCorrection({
 					</div>
 					<div class="description">
 						Show/hide handle(s).
-If a connection arrow is, e.g., of type none, it is difficult to grab the end of the connection. 
+If a connection arrow is, e.g., of type none, it is difficult to grab the end of the connection.
 For these cases, you can use handles, which are just simple circles showing at the end of a connection.
 						
 						
@@ -1651,6 +1759,38 @@ For these cases, you can use handles, which are just simple circles showing at t
 							<dt class="heading">Returns:</dt>
 							
 								<dd><span class="light fixedFont">{<a href="../symbols/Joint.html">Joint</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="unhighlight"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Joint.html">Joint</a>}</span>
+					<b>unhighlight</b>()
+					
+					</div>
+					<div class="description">
+						Unhighlight connection.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Joint.html">Joint</a>}</span> Return this.</dd>
 							
 							</dl>
 						

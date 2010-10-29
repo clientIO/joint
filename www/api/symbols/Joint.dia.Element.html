@@ -301,6 +301,15 @@ pageTracker._trackPageview();
 						<tr>
 							<td class="attributes">&nbsp;</td>
 							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#clone">clone</a></b>()
+								</div>
+								<div class="description">Clone element.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
 								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#addInner">Element#addInner</a></b>(s)
 								</div>
 								<div class="description">Add a subelement.</div>
@@ -321,7 +330,7 @@ pageTracker._trackPageview();
 							<td class="nameDescription">
 								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#embed">Element#embed</a></b>()
 								</div>
-								<div class="description">Embed me into the first registered dia.Element whos bounding box 
+								<div class="description">Embed me into the first registered dia.Element whos bounding box
 contains my bounding box origin.</div>
 							</td>
 						</tr>
@@ -460,22 +469,22 @@ the desired scaling behaviour.</div>
 This object is never used directly, instead, specific diagram elements inherits from it.
 Allows easy creation of new specific diagram elements preserving all features that Joint library and Joint.dia plugin offer.
 <h3>Wrapper</h3>
- All custom elements must have a wrapper set. Wrapper is the key object that Joint library counts with. 
- There cannot be any element without a wrapper. Usually it is an object which wraps all the subelements 
+ All custom elements must have a wrapper set. Wrapper is the key object that Joint library counts with.
+ There cannot be any element without a wrapper. Usually it is an object which wraps all the subelements
  that a specific diagram element contains. The wrapper must be set in init method.
- To set a wrapper, use setWrapper(aWrapper) method. The single parameter to the method is a Raphaël vector object. 
+ To set a wrapper, use setWrapper(aWrapper) method. The single parameter to the method is a Raphaël vector object.
  Later on, you can access this object using wrapper property.
 <h3>Inner</h3>
- Inner objects are subelements of an element. Although they are optional, they are commonly used. To add a subelement 
- to the element, use addInner(anInner) method. It takes a Raphaël vector object as an argument. All inner objects are 
+ Inner objects are subelements of an element. Although they are optional, they are commonly used. To add a subelement
+ to the element, use addInner(anInner) method. It takes a Raphaël vector object as an argument. All inner objects are
  placed to an array that you can access using inner property.
 <h3><i>init</i> method</h3>
- The <i>init</i> method has to be part of every element you create. It takes all element options as an argument, 
+ The <i>init</i> method has to be part of every element you create. It takes all element options as an argument,
  sets wrapper and adds inners.
 <h3><i>joint</i> method</h3>
  If you have specific elements, in which connections are not controlled by wrapper, you can implement your own joint method.
 <h3><i>zoom</i> method</h3>
- As Joint.dia library does not know how your specific element should behave after scaling, you can use zoom method to implement 
+ As Joint.dia library does not know how your specific element should behave after scaling, you can use zoom method to implement
  the desired behaviour.
 					
 				</div>
@@ -494,7 +503,7 @@ mydia.MyElement = Element.extend({
     p.radius = properties.radius || 30;
     // every element must have a wrapper
     this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius));
-    // optional inner elements 
+    // optional inner elements
     this.addInner(this.paper.text(p.position.x, p.position.y, "my element"));
   }
 });
@@ -528,6 +537,41 @@ var e = mydia.MyElement.create({
 				<div class="sectionTitle">
 					Method Detail
 				</div>
+				
+					<a name="clone"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>clone</b>()
+					
+					</div>
+					<div class="description">
+						Clone element.
+						
+							<br />
+							<i>Defined in: </i> <a href="../symbols/src/src_joint.dia.serializer.js.html">joint.dia.serializer.js</a>.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> Cloned element.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
 				
 					<a name="Element#addInner"> </a>
 					<div class="fixedFont">
@@ -623,7 +667,7 @@ var e = mydia.MyElement.create({
 					
 					</div>
 					<div class="description">
-						Embed me into the first registered dia.Element whos bounding box 
+						Embed me into the first registered dia.Element whos bounding box
 contains my bounding box origin. Both elements will behave as a whole.
 						
 						
@@ -916,9 +960,9 @@ contains my bounding box origin. Both elements will behave as a whole.
 					</div>
 					<div class="description">
 						Toggle ghosting of the element.
-Dragging a diagram object causes moving of the wrapper and all inners, and update 
-of all correspondent connections. It can be sometimes expensive. If your elements 
-are complex and you want to prevent all this rendering and computations, 
+Dragging a diagram object causes moving of the wrapper and all inners, and update
+of all correspondent connections. It can be sometimes expensive. If your elements
+are complex and you want to prevent all this rendering and computations,
 you can enable ghosting. It means that only a ghost of your wrapper will be dragged.
 						
 						

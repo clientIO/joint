@@ -618,6 +618,7 @@ Element.prototype = {
     /**
      * Disconnects element from all joints. Empties the element joints array.
      * Note that it preserves registration of the element in its joints.
+     * @methodOf Joint.dia.Element#
      */
     disconnect: function(){
 	var joints = this.joints(), idx = joints.length, j;
@@ -650,6 +651,7 @@ Element.prototype = {
 
     /**
      * Remove element.
+     * @methodOf Joint.dia.Element#
      */
     remove: function(){
 	var inners = this.inner, idx = inners.length;
@@ -666,6 +668,7 @@ Element.prototype = {
 
     /**
      * Remove element and all joints pointing from and to this element.
+     * @methodOf Joint.dia.Element#
      */
     liquidate: function(){
 	var joints = this.joints(), idx = joints.length, j, inners = this.inner;
@@ -694,6 +697,7 @@ Element.prototype = {
 
     /**
      * Enable/disable dragging of the element.
+     * @methodOf Joint.dia.Element#
      * @param {boolean} enable True/false.
      * @return {Element} Return this.
      */
@@ -708,6 +712,7 @@ Element.prototype = {
     /**
      * Highlights the element.
      * Override in inherited objects or @todo set in options.
+     * @methodOf Joint.dia.Element#
      * @return {Element} Return this.
      */
     highlight: function(){
@@ -717,6 +722,7 @@ Element.prototype = {
 
     /**
      * Unhighlights the element.
+     * @methodOf Joint.dia.Element#
      * @return {Element} Return this.
      */
     unhighlight: function(){
