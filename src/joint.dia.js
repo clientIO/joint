@@ -652,6 +652,7 @@ Element.prototype = {
     /**
      * Remove element.
      * @methodOf Joint.dia.Element#
+     * @return {null}
      */
     remove: function(){
 	var inners = this.inner, idx = inners.length;
@@ -669,6 +670,7 @@ Element.prototype = {
     /**
      * Remove element and all joints pointing from and to this element.
      * @methodOf Joint.dia.Element#
+     * @return {null}
      */
     liquidate: function(){
 	var joints = this.joints(), idx = joints.length, j, inners = this.inner;

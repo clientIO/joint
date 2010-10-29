@@ -328,6 +328,24 @@ pageTracker._trackPageview();
 						<tr>
 							<td class="attributes">&nbsp;</td>
 							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#disconnect">Element#disconnect</a></b>()
+								</div>
+								<div class="description">Disconnects element from all joints.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#draggable">Element#draggable</a></b>(enable)
+								</div>
+								<div class="description">Enable/disable dragging of the element.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
 								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#embed">Element#embed</a></b>()
 								</div>
 								<div class="description">Embed me into the first registered dia.Element whos bounding box
@@ -356,9 +374,36 @@ contains my bounding box origin.</div>
 						<tr>
 							<td class="attributes">&nbsp;</td>
 							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#highlight">Element#highlight</a></b>()
+								</div>
+								<div class="description">Highlights the element.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
 								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#joint">Element#joint</a></b>(to, opt)
 								</div>
 								<div class="description"></div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#liquidate">Element#liquidate</a></b>()
+								</div>
+								<div class="description">Remove element and all joints pointing from and to this element.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#remove">Element#remove</a></b>()
+								</div>
+								<div class="description">Remove element.</div>
 							</td>
 						</tr>
 					
@@ -422,6 +467,15 @@ contains my bounding box origin.</div>
 								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#unembed">Element#unembed</a></b>()
 								</div>
 								<div class="description">Decouple embedded element from its parent.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#unhighlight">Element#unhighlight</a></b>()
+								</div>
+								<div class="description">Unhighlights the element.</div>
 							</td>
 						</tr>
 					
@@ -659,6 +713,75 @@ var e = mydia.MyElement.create({
 
 					<hr />
 				
+					<a name="Element#disconnect"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>Element#disconnect</b>()
+					
+					</div>
+					<div class="description">
+						Disconnects element from all joints. Empties the element joints array.
+Note that it preserves registration of the element in its joints.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#draggable"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>Element#draggable</b>(enable)
+					
+					</div>
+					<div class="description">
+						Enable/disable dragging of the element.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{boolean}</span> <b>enable</b>
+									
+								</dt>
+								<dd>True/false.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> Return this.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
 					<a name="Element#embed"> </a>
 					<div class="fixedFont">
 					
@@ -756,6 +879,39 @@ contains my bounding box origin. Both elements will behave as a whole.
 
 					<hr />
 				
+					<a name="Element#highlight"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>Element#highlight</b>()
+					
+					</div>
+					<div class="description">
+						Highlights the element.
+Override in inherited objects or @todo set in options.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> Return this.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
 					<a name="Element#joint"> </a>
 					<div class="fixedFont">
 					
@@ -801,6 +957,56 @@ contains my bounding box origin. Both elements will behave as a whole.
 								<dd><a href="../symbols/Joint.html">Joint</a></dd>
 							
 							</dl>
+						
+
+					<hr />
+				
+					<a name="Element#liquidate"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>Element#liquidate</b>()
+					
+					</div>
+					<div class="description">
+						Remove element and all joints pointing from and to this element.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#remove"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>Element#remove</b>()
+					
+					</div>
+					<div class="description">
+						Remove element.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+						
 						
 
 					<hr />
@@ -1053,6 +1259,38 @@ you can enable ghosting. It means that only a ghost of your wrapper will be drag
 							<dt class="heading">Returns:</dt>
 							
 								<dd><span class="light fixedFont">{Element}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#unhighlight"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>Element#unhighlight</b>()
+					
+					</div>
+					<div class="description">
+						Unhighlights the element.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> Return this.</dd>
 							
 							</dl>
 						
