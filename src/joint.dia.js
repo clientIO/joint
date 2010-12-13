@@ -401,7 +401,7 @@ Element.prototype = {
      * @return {Element}
      */
     toBack: function(){
-	for (var i = this.inner.length - 1; i <= 0; --i)
+	for (var i = this.inner.length - 1; i >= 0; --i)
 	    this.inner[i].toBack();
 	this.wrapper && this.wrapper.toBack();
 	return this;
