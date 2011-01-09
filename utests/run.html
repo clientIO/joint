@@ -2,6 +2,10 @@
             "http://www.w3.org/TR/html4/transitional.dtd">
 <html>
     <head>
+        <meta http-equiv='cache-control' content='no-cache'>
+        <meta http-equiv='expires' content='0'>
+        <meta http-equiv='pragma' content='no-cache'>
+
         <script src="../lib/json2.js" type="text/javascript"></script>
         <script src="../lib/raphael.js" type="text/javascript"></script>
 	<script type="text/javascript" src="../src/joint.js"></script>
@@ -42,7 +46,7 @@
 	      for (var i = 0, l = srcs.length; i < l; i++){
 	        var sel = document.createElement("script");
                 sel.type = "text/javascript";
-                sel.src = srcs[i] + ".js";
+                sel.src = srcs[i] + ".js?" + new Date;
                 document.getElementsByTagName("head").item(0).appendChild(sel);
 	      }
             }

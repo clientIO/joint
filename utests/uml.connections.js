@@ -371,3 +371,20 @@ j2122.setBBoxCorrection({
     height: 40
 }, "end");
 
+/**
+ * Self loop.
+ */
+
+var s23 = uml.State.create({
+  rect: {x: 450, y: 750, width: 100, height: 60},
+  label: "state 23",
+  attrs: {
+    fill: "90-#000-blue:1-#fff"
+  },
+  actions: {
+    entry: "init()",
+    exit: "destroy()"
+  }
+});
+
+var j2323 = s23.joint(s23, uml.arrow).setVertices(["470 720", "600 730"]).register(s23);

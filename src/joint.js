@@ -136,8 +136,6 @@ function Joint(from, to, opt){
 
     this._conVerticesCurrentIndex = 0;
     this._nearbyVertexSqrDist = 500;	// sqrt(this._nearbyVertexSqrDist) is tolerable distance of vertex moving
-    this._lastStartCapSticker = null;	// temporaries for last start/end cap stickers (objects to which the caps sticked to e.g. while moving)
-    this._lastEndCapSticker = null;
 
     this.dom = {};	// holds all dom elements
 
@@ -317,6 +315,7 @@ Joint.prototype = {
      */
     callback: function(fnc, scope, args){
 	this._callbacks[fnc].apply(scope, args);
+        return this;
     },
     /**
      * Search the registered objects and get the one (if any)
@@ -369,16 +368,10 @@ Joint.prototype = {
 	this._dy = e.clientY;
 
 	if (cap === this.dom.startCap){
-	    if (!this.isStartDummy()){
-		this._lastStartCapSticker = this.startObject();
-		this.draw(["dummyStart"]);
-	    }
+            this.disconnect("start");
 	    this.state = this.STARTCAPDRAGGING;
 	} else if (cap === this.dom.endCap){
-	    if (!this.isEndDummy()){
-		this._lastEndCapSticker = this.endObject();
-		this.draw(["dummyEnd"]);
-	    }
+            this.disconnect("end");
 	    this.state = this.ENDCAPDRAGGING;
 	}
     },
@@ -437,31 +430,25 @@ Joint.prototype = {
 	this.update();
     },
     capEndDragging: function(){
-	var dummyBB, disconnectedFrom,
+	var dummyBB, 
 	    STARTCAPDRAGGING = (this.state === this.STARTCAPDRAGGING),
 	    ENDCAPDRAGGING = (this.state === this.ENDCAPDRAGGING),
 	    capType = (STARTCAPDRAGGING) ? "start" : "end";
 
+        
 	if (STARTCAPDRAGGING){
-	    dummyBB = this.startObject().getBBox();
-	    disconnectedFrom = this._lastStartCapSticker;
+            dummyBB = this.startObject().getBBox();	    
 	} else if (ENDCAPDRAGGING){
 	    dummyBB = this.endObject().getBBox();
-	    disconnectedFrom = this._lastEndCapSticker;
 	}
-	this._lastStartCapSticker = this._lastEndCapSticker = null;
-
-	// remove pointer to me from the old object
-	if (disconnectedFrom){
-	    this.freeJoint(disconnectedFrom);
-	    this.callback("disconnected", disconnectedFrom, [capType]);
-	}
+        
 	var o = this.objectContainingPoint(point(dummyBB.x, dummyBB.y));
 	if (o){
 	    this.callback("justConnected", o, [capType]);
 	    this.replaceDummy(this["_" + capType], o);
 	    this.addJoint(o);
 	}
+
 	this.update();
     },
     connectionWiring: function(e){
@@ -789,6 +776,46 @@ Joint.prototype = {
 	}
     },
     // Public API
+
+    /**
+     * Disconnects joint from objects.
+     * @param {string} cap "start|end|both" which side to disconnect
+     * @return {Joint} return this to allow chaining
+     */
+    disconnect: function(cap){
+        var disconnectedFrom, camelCap = (cap === "start")
+                                          ? "Start"
+                                          : (cap === "end"
+                                             ? "End"
+                                             : "Both");
+
+        if (cap === "both" || cap === undefined){
+            this.freeJoint(this.startObject())
+                .freeJoint(this.endObject());
+            
+            if (!this.isStartDummy()){
+                disconnectedFrom = this.startObject();
+                this.draw(["dummyStart"]);
+	        this.callback("disconnected", disconnectedFrom, [cap]);
+            }
+            if (!this.isEndDummy()){
+                disconnectedFrom = this.endObject();
+                this.draw(["dummyEnd"]);
+	        this.callback("disconnected", disconnectedFrom, [cap]);
+            }
+            
+        } else if (!this["is" + camelCap + "Dummy" ]()){
+            // do not do anything with already disconnected side
+            disconnectedFrom = this[cap + "Object"]();
+            if (this.startObject() !== this.endObject()){
+                this.freeJoint(disconnectedFrom);                
+            }
+            this.draw(["dummy" + camelCap]);
+	    this.callback("disconnected", disconnectedFrom, [cap]);
+        }
+
+        return this;
+    },
 
     /**
      * Register object(s) so that it can be pointed by my cap.

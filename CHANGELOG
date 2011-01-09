@@ -1,0 +1,6 @@
+0.4
+
+- new method Joint>>disconnect for programmatic joint disconnection
+- disconnect callback is now called right after the joint has
+  been disconnected, not just before it's new connection.
+
