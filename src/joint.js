@@ -707,6 +707,11 @@ Joint.prototype = {
 		this._opt.labelAttrs[key] = opt.labelAttrs[key];
 	    }
 	}
+	if (opt.labelBoxAttrs){
+	    for (key in opt.labelBoxAttrs){
+		this._opt.labelBoxAttrs[key] = opt.labelBoxAttrs[key];
+	    }
+	}
 	if (opt.vertices){
 	    // cast vertices to points
 	    for (var i = 0, l = opt.vertices.length; i < l; i++){
