@@ -159,7 +159,9 @@ paper.circle(50, 550, 20).joint(paper.circle(720, 750, 30), {
         'font-size': 25
     },
     labelBoxAttrs: {
-        fill: '90-#fff-#000'
+        fill: '90-#fff-#000',
+        padding: 10,
+        r: 15
     }
 }).setVertices(['250 550', '70 620', '70 700', '250 600', '250 750']).toggleSmoothing();
 

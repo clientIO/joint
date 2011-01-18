@@ -51,7 +51,7 @@ if (!Array.indexOf){
  * @param {boolean} [opts.beSmooth] Connection enable/disable smoothing
  * @param {string} [opts.label] Connection label
  * @param {object} [opts.labelAttrs] Label options (see  Raphael possible parameters)
- * @param {object} [opts.labelBoxAttrs] SVG Attributes of the label bounding rectangle.
+ * @param {object} [opts.labelBoxAttrs] SVG Attributes of the label bounding rectangle + padding attribute.
  * @param {object} [opts.startArrow] Start arrow options
  * @param {string} [opts.startArrow.type] "none"|"basic"
  * @param {number} [opts.startArrow.size] Start arrow size
@@ -1372,7 +1372,8 @@ var JointDOMBuilder = {
 	var pos = this.labelLocation,
 	    labelText = this.paper.text(pos.x, pos.y, this.opt.label).attr(this.opt.labelAttrs),
 	    bb = labelText.getBBox(),
-	    labelBox = this.paper.rect(bb.x, bb.y, bb.width, bb.height).attr(this.opt.labelBoxAttrs);
+            padding = this.opt.labelBoxAttrs.padding || 0,
+	    labelBox = this.paper.rect(bb.x - padding, bb.y - padding, bb.width + 2*padding, bb.height + 2*padding).attr(this.opt.labelBoxAttrs);
 	labelText.insertAfter(labelBox);
 	return { text: labelText, box: labelBox };
     },
