@@ -613,11 +613,12 @@ Joint.prototype = {
      * @param {array} vertices Connection vertices.
      * @return {point} Location of the label.
      */
-    labelLocation: function(start, end, vertices){
-	var p = start, i = 0, l = vertices.length;
-	for (; i < l; i++)
-	    p = line(p, vertices[i]).midpoint();
-	return line(p, end).midpoint();
+    labelLocation: function(connectionPathCommands){
+        var path = this.paper.path(connectionPathCommands.join(' ')),
+            length = path.getTotalLength(),
+            loc = path.getPointAtLength(length / 2);
+        path.remove();
+        return loc;
     },
 
     /**
@@ -645,11 +646,7 @@ Joint.prototype = {
 		this._opt.vertices,
 		this._opt.beSmooth
 	    ),
-	    labelLocation = this.labelLocation(
-		jointLocation.start.connection,
-		jointLocation.end.connection,
-		this._opt.vertices
-	    ),
+	    labelLocation = this.labelLocation(connectionPathCommands),
 	    dom = JointDOMBuilder.init(this.paper, this._opt, this._start, this._end, jointLocation, connectionPathCommands, labelLocation),
 	    l = components.length,
 	    component;
