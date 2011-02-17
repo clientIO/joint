@@ -15,6 +15,10 @@ var enqueue = function(fnc){
     setTimeout(fnc, 0);
 };
 
+var isArray = Array.isArray || function (obj) {
+    return Object.prototype.toString.call(obj) === '[object Array]';
+};
+
 if (!global.console){
     global.console = {
 	log: function(){},
@@ -40,6 +44,73 @@ if (!Array.indexOf){
 }
 
 /**
+ * Copies all the properties to the first argument from the following arguments.
+ * All the properties will be overwritten by the properties from the following
+ * arguments. Inherited properties are ignored.
+ * @private
+ */
+var Mixin = function() {
+    var target = arguments[0];
+    for (var i = 1, l = arguments.length; i < l; i++){
+        var extension = arguments[i];
+        for (var key in extension){
+            if (!extension.hasOwnProperty(key)){
+		continue;
+	    }
+            var copy = extension[key];
+            if (copy === target[key]){
+		continue;
+	    }
+            // copying super with the name base if it does'nt has one already
+            if (typeof copy == "function" && typeof target[key] == "function" && !copy.base){
+		copy.base = target[key];
+	    }
+            target[key] = copy;
+        }
+    }
+    return target;
+};
+
+/**
+ * Copies all properties to the first argument from the following
+ * arguments only in case if they don't exists in the first argument.
+ * All the function propererties in the first argument will get
+ * additional property base pointing to the extenders same named
+ * property function's call method.
+ * @example
+ * // usage of base
+ * Bar.extend({
+ * // function should have name
+ * foo: function foo(digit) {
+ * return foo.base(this, parseInt(digit))
+ * }
+ * });
+ * @private
+ */
+var Supplement = function() {
+    var target = arguments[0];
+    for (var i = 1, l = arguments.length; i < l; i++){
+        var extension = arguments[i];
+        for (var key in extension) {
+            var copy = extension[key];
+            if (copy === target[key]){
+		continue;
+	    }
+            // copying super with the name base if it does'nt has one already
+            if (typeof copy == "function" && typeof target[key] == "function" && !target[key].base){
+		target[key].base = copy;
+	    }
+            // target doesn't has propery that is owned by extension copying it
+            if (!target.hasOwnProperty(key) && extension.hasOwnProperty(key)){
+		target[key] = copy;
+	    }
+        }
+    }
+    return target;
+};
+
+
+/**
  * @name Joint
  * @constructor
  * @param {RaphaelObject|Shape|object} from Object/position where the connection starts.
@@ -49,9 +120,9 @@ if (!Array.indexOf){
  * @param {object} [opts.attrs] Connection options (see  Raphael possible parameters)
  * @param {string} [opts.cursor] Connection CSS cursor property
  * @param {boolean} [opts.beSmooth] Connection enable/disable smoothing
- * @param {string} [opts.label] Connection label
- * @param {object} [opts.labelAttrs] Label options (see  Raphael possible parameters)
- * @param {object} [opts.labelBoxAttrs] SVG Attributes of the label bounding rectangle + padding attribute.
+ * @param {string|array} [opts.label] Connection label(s)
+ * @param {object|array} [opts.labelAttrs] Label(s) options (see  Raphael possible parameters)  + position attribute (<0, [0, 1], >1)
+ * @param {object|array} [opts.labelBoxAttrs] SVG Attributes of the label(s) bounding rectangle + padding attribute
  * @param {object} [opts.startArrow] Start arrow options
  * @param {string} [opts.startArrow.type] "none"|"basic"
  * @param {number} [opts.startArrow.size] Start arrow size
@@ -167,11 +238,14 @@ function Joint(from, to, opt){
 	beSmooth: false,// be a smooth line? (bezier curve aproximation)
 	interactive: true, // is the connection interactive?
 	label: undefined,
-	labelAttrs: {
+	labelAttrsDefault: {
+            position: 1/2,
 	    "font-size": 12,
 	    "fill": "#000"
 	},
-	labelBoxAttrs: {stroke: "white", fill: "white"},
+        labelAttrs: [],
+	labelBoxAttrsDefault: { stroke: "white", fill: "white" },
+        labelBoxAttrs: [],
 	// bounding box correction
 	// (useful when the connection should start in the center of an object, etc...)
 	bboxCorrection: {
@@ -611,14 +685,21 @@ Joint.prototype = {
      * @param {point} start Joint start location.
      * @param {point} end Joint end location.
      * @param {array} vertices Connection vertices.
-     * @return {point} Location of the label.
+     * @return {array} Locations of the label (array of points).
      */
     labelLocation: function(connectionPathCommands){
         var path = this.paper.path(connectionPathCommands.join(' ')),
             length = path.getTotalLength(),
-            loc = path.getPointAtLength(length / 2);
+            locations = [], attrs = this._opt.labelAttrs, len = attrs.length, i = 0,
+            position;
+        for (; i < len; i++) {
+            position = attrs[i].position;
+            position = (position > length) ? length : position; // sanity check
+            position = (position < 0) ? length + position : position;
+            locations.push(path.getPointAtLength(position > 1 ? position : length * position));
+        }
         path.remove();
-        return loc;
+        return locations;
     },
 
     /**
@@ -685,6 +766,7 @@ Joint.prototype = {
 
     /**
      * Process options.
+     * @todo Please fix me! I look like spagethi.
      * @private
      * @param {object} opt
      */
@@ -698,16 +780,25 @@ Joint.prototype = {
 	}
 	if (opt.cursor)   this._opt.cursor = opt.cursor;
 	if (opt.beSmooth) this._opt.beSmooth = opt.beSmooth;
-	if (opt.label)    this._opt.label = opt.label;
-	if (opt.labelAttrs){
-	    for (key in opt.labelAttrs){
-		this._opt.labelAttrs[key] = opt.labelAttrs[key];
-	    }
-	}
-	if (opt.labelBoxAttrs){
-	    for (key in opt.labelBoxAttrs){
-		this._opt.labelBoxAttrs[key] = opt.labelBoxAttrs[key];
-	    }
+	if (opt.label) {
+            this._opt.label = isArray(opt.label) ? opt.label : [opt.label];
+            if (!isArray(opt.labelAttrs)) opt.labelAttrs = [opt.labelAttrs];
+            for (var i = 0; i < this._opt.label.length; i++) {
+                Supplement(opt.labelAttrs[i] || (opt.labelAttrs[i] = {}), this._opt.labelAttrsDefault);
+            }
+	    this._opt.labelAttrs = opt.labelAttrs;      // make a copy? (parse(stringify(opt)))
+
+            var spread = undefined;
+            if (!isArray(opt.labelBoxAttrs)) {
+                if (typeof opt.labelBoxAttrs === 'object')
+                    spread = opt.labelBoxAttrs;
+                opt.labelBoxAttrs = [opt.labelBoxAttrs];
+            }
+            for (var i = 0; i < this._opt.label.length; i++) {
+                if (spread) opt.labelBoxAttrs[i] = spread;
+                Supplement(opt.labelBoxAttrs[i] || (opt.labelBoxAttrs[i] = {}), this._opt.labelBoxAttrsDefault);
+            }
+	    this._opt.labelBoxAttrs = opt.labelBoxAttrs;      // make a copy? (parse(stringify(opt)))
 	}
 	if (opt.vertices){
 	    // cast vertices to points
@@ -928,11 +1019,15 @@ Joint.prototype = {
     },
     /**
      * Set a label of the connection.
-     * @param {string} str label
+     * @param {string|array} str label(s)
      * @return {Joint}
      */
     label: function(str){
-	this._opt.label = str;
+        this._opt.label = isArray(str) ? str : [str];
+        for (var i = 0; i < str.length; i++) {
+            this._opt.labelAttrs[i] = this._opt.labelAttrsDefault;
+            this._opt.labelBoxAttrs[i] = this._opt.labelBoxAttrsDefault;
+        }
 	this.update();
 	return this;
     },
@@ -1369,13 +1464,20 @@ var JointDOMBuilder = {
     },
     label: function(){
 	if (this.opt.label === undefined) return undefined;
-	var pos = this.labelLocation,
-	    labelText = this.paper.text(pos.x, pos.y, this.opt.label).attr(this.opt.labelAttrs),
-	    bb = labelText.getBBox(),
-            padding = this.opt.labelBoxAttrs.padding || 0,
-	    labelBox = this.paper.rect(bb.x - padding, bb.y - padding, bb.width + 2*padding, bb.height + 2*padding).attr(this.opt.labelBoxAttrs);
-	labelText.insertAfter(labelBox);
-	return { text: labelText, box: labelBox };
+	var labels = isArray(this.opt.label) ? this.opt.label : [this.opt.label],
+            attrs = this.opt.labelAttrs,
+            len = labels.length, i = 0, components = [];
+
+        for (; i < len; i++) {
+            var pos = this.labelLocation[i],
+	        labelText = this.paper.text(pos.x, pos.y, labels[i]).attr(attrs[i]),
+	        bb = labelText.getBBox(),
+                padding = attrs[i].padding || 0,
+	        labelBox = this.paper.rect(bb.x - padding, bb.y - padding, bb.width + 2*padding, bb.height + 2*padding).attr(this.opt.labelBoxAttrs[i]);
+	    labelText.insertAfter(labelBox);
+            components.push(labelText, labelBox)
+        }
+	return components;
     },
     startCap: function(){
 	var opt = this.opt.arrow.start,
@@ -2041,6 +2143,8 @@ Joint.ellipse = ellipse;
 Joint.BezierSegment = BezierSegment;
 Joint.bezierSegment = bezierSegment;
 Joint.Bezier = Bezier;
+Joint.Mixin = Mixin;
+Joint.Supplement = Supplement;
 
 /**
  * TODO: rotation support. there is a problem because

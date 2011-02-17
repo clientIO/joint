@@ -165,3 +165,21 @@ paper.circle(50, 550, 20).joint(paper.circle(720, 750, 30), {
     }
 }).setVertices(['250 550', '70 620', '70 700', '250 600', '250 750']).toggleSmoothing();
 
+/**
+ * multiple labels
+ */
+
+paper.circle(50, 950, 20).joint(paper.circle(720, 950, 30), {
+    label: ['label 1', 'label 2', 'label 3', 'label 4'],
+    labelAttrs: [
+        { position: 50, fill: '90-green-red', 'font-size': 25 },
+        { position: 1/3, fill: 'blue', 'font-size': 25 },
+        { position: 2/3, fill: '90-green-red', 'font-size': 25 },
+        { position: -50, fill: 'red', 'font-size': 25 }
+    ],
+    labelBoxAttrs: [
+        { fill: 'lightgray' },
+        { fill: 'yellow' }
+    ]
+}).setVertices(['70 850', '170 870', '270 850', '290 830', '300 900']);
+
