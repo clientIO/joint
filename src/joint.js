@@ -771,22 +771,28 @@ Joint.prototype = {
      * @param {object} opt
      */
     processOptions: function(opt){
-	var key;
-	if (opt.interactive !== undefined) this._opt.interactive = opt.interactive;
-	if (opt.attrs){
-	    for (key in opt.attrs){
-		this._opt.attrs[key] = opt.attrs[key];
-	    }
-	}
-	if (opt.cursor)   this._opt.cursor = opt.cursor;
-	if (opt.beSmooth) this._opt.beSmooth = opt.beSmooth;
+	var key, myopt = this._opt,
+            topOptions = ['interactive', 'cursor', 'beSmooth'], i = topOptions.length;
+        
+        // top options
+        while (i--) {
+            if (opt[topOptions[i]] !== undefined)
+                myopt[topOptions[i]] = opt[topOptions[i]];
+        }
+
+	Mixin(myopt.attrs, opt.attrs);
+        Mixin(myopt.bboxCorrection.start, opt.bboxCorrection && opt.bboxCorrection.start);
+        Mixin(myopt.bboxCorrection.end, opt.bboxCorrection && opt.bboxCorrection.end);
+        if (opt.vertices) this._setVertices(opt.vertices);
+
+        // label(s) related options
 	if (opt.label) {
-            this._opt.label = isArray(opt.label) ? opt.label : [opt.label];
+            myopt.label = isArray(opt.label) ? opt.label : [opt.label];
             if (!isArray(opt.labelAttrs)) opt.labelAttrs = [opt.labelAttrs];
-            for (var i = 0; i < this._opt.label.length; i++) {
-                Supplement(opt.labelAttrs[i] || (opt.labelAttrs[i] = {}), this._opt.labelAttrsDefault);
+            for (i = 0; i < myopt.label.length; i++) {
+                Supplement(opt.labelAttrs[i] || (opt.labelAttrs[i] = {}), myopt.labelAttrsDefault);
             }
-	    this._opt.labelAttrs = opt.labelAttrs;      // make a copy? (parse(stringify(opt)))
+	    myopt.labelAttrs = opt.labelAttrs;      // make a copy? (parse(stringify(opt)))
 
             var spread = undefined;
             if (!isArray(opt.labelBoxAttrs)) {
@@ -794,77 +800,44 @@ Joint.prototype = {
                     spread = opt.labelBoxAttrs;
                 opt.labelBoxAttrs = [opt.labelBoxAttrs];
             }
-            for (var i = 0; i < this._opt.label.length; i++) {
+            for (i = 0; i < myopt.label.length; i++) {
                 if (spread) opt.labelBoxAttrs[i] = spread;
                 Supplement(opt.labelBoxAttrs[i] || (opt.labelBoxAttrs[i] = {}), this._opt.labelBoxAttrsDefault);
             }
-	    this._opt.labelBoxAttrs = opt.labelBoxAttrs;      // make a copy? (parse(stringify(opt)))
-	}
-	if (opt.vertices){
-	    // cast vertices to points
-	    for (var i = 0, l = opt.vertices.length; i < l; i++){
-		this._opt.vertices.push(point(opt.vertices[i].x, opt.vertices[i].y));
-	    }
+	    myopt.labelBoxAttrs = opt.labelBoxAttrs;      // make a copy? (parse(stringify(opt)))
 	}
 
-	if (opt.bboxCorrection){
-	    if (opt.bboxCorrection.start){
-		for (key in opt.bboxCorrection.start){
-		    this._opt.bboxCorrection.start[key] = opt.bboxCorrection.start[key];
-		}
-	    }
-	    if (opt.bboxCorrection.end){
-		for (key in opt.bboxCorrection.end){
-		    this._opt.bboxCorrection.end[key] = opt.bboxCorrection.end[key];
-		}
-	    }
-	}
+        // arrowheads
 	var sa = opt.startArrow, ea = opt.endArrow;
-	if (sa && sa.type) this._opt.arrow.start = Joint.getArrow(sa.type, sa.size, sa.attrs);
-	if (ea && ea.type) this._opt.arrow.end = Joint.getArrow(ea.type, ea.size, ea.attrs);
+	if (sa && sa.type) myopt.arrow.start = Joint.getArrow(sa.type, sa.size, sa.attrs);
+	if (ea && ea.type) myopt.arrow.end = Joint.getArrow(ea.type, ea.size, ea.attrs);
 	// direct arrow specification rewrites types
-	if (opt.arrow){
-	    if (opt.arrow.start) this._opt.arrow.start = opt.arrow.start;
-	    if (opt.arrow.end) this._opt.arrow.end = opt.arrow.end;
+	if (opt.arrow) {
+            myopt.arrow.start = opt.arrow.start || myopt.arrow.start;
+            myopt.arrow.end = opt.arrow.end || myopt.arrow.end;
 	}
 
-	if (opt.dummy){
-	    if (opt.dummy.start){
-		if (opt.dummy.start.radius) this._opt.dummy.start.radius = opt.dummy.start.radius;
-		if (opt.dummy.start.attrs){
-		    for (key in opt.dummy.start.attrs){
-			this._opt.dummy.start.attrs[key] = opt.dummy.start.attrs[key];
-		    }
-		}
-	    }
-	    if (opt.dummy.end){
-		if (opt.dummy.end.radius) this._opt.dummy.end.radius = opt.dummy.end.radius;
-		if (opt.dummy.end.attrs){
-		    for (key in opt.dummy.end.attrs){
-			this._opt.dummy.end.attrs[key] = opt.dummy.end.attrs[key];
-		    }
-		}
-	    }
+        // dummies
+	if (opt.dummy && opt.dummy.start) {
+	    if (opt.dummy.start.radius) myopt.dummy.start.radius = opt.dummy.start.radius;
+            Mixin(myopt.dummy.start.attrs, opt.dummy.start.attrs);
+        }
+	if (opt.dummy && opt.dummy.end) {
+	    if (opt.dummy.end.radius) myopt.dummy.end.radius = opt.dummy.end.radius;
+            Mixin(myopt.dummy.end.attrs, opt.dummy.end.attrs);
 	}
+        // handles
 	if (opt.handle){
-	    if (opt.handle.timeout) this._opt.handle.timeout = opt.handle.timeout;
+	    if (opt.handle.timeout) myopt.handle.timeout = opt.handle.timeout;
 	    if (opt.handle.start){
-		if (opt.handle.start.enabled) this._opt.handle.start.enabled = opt.handle.start.enabled;
-		if (opt.handle.start.radius) this._opt.handle.start.radius = opt.handle.start.radius;
-		if (opt.handle.start.attrs){
-		    for (key in opt.handle.start.attrs){
-			this._opt.handle.start.attrs[key] = opt.handle.start.attrs[key];
-		    }
-		}
+		if (opt.handle.start.enabled) myopt.handle.start.enabled = opt.handle.start.enabled;
+		if (opt.handle.start.radius) myopt.handle.start.radius = opt.handle.start.radius;
+                Mixin(myopt.handle.start.attrs, opt.handle.start.attrs);
 	    }
 	    if (opt.handle.end){
-		if (opt.handle.end.enabled) this._opt.handle.end.enabled = opt.handle.end.enabled;
-		if (opt.handle.end.radius) this._opt.handle.end.radius = opt.handle.end.radius;
-		if (opt.handle.end.attrs){
-		    for (key in opt.handle.end.attrs){
-			this._opt.handle.end.attrs[key] = opt.handle.end.attrs[key];
-		    }
-		}
+		if (opt.handle.end.enabled) myopt.handle.end.enabled = opt.handle.end.enabled;
+		if (opt.handle.end.radius) myopt.handle.end.radius = opt.handle.end.radius;
+                Mixin(myopt.handle.end.attrs, opt.handle.end.attrs);
 	    }
 	}
     },
@@ -984,6 +957,15 @@ Joint.prototype = {
      * @return {Joint}
      */
     setVertices: function(vertices){
+        this._setVertices(vertices);
+        this.update();
+        return this;
+    },
+    /**
+     * Set connection vertices.
+     * @private
+     */
+    _setVertices: function(vertices) {
 	var conVertices = this._opt.vertices = [], p;
 	// cast vertices to points
 	for (var i = 0, l = vertices.length; i < l; i++){
@@ -991,7 +973,6 @@ Joint.prototype = {
                     point(vertices[i]) : point(vertices[i].x, vertices[i].y);
 	    conVertices.push(p);
 	}
-	this.update();
 	return this;
     },
     /**
