@@ -159,10 +159,9 @@ var Element = dia.Element = function(){};
  */
 Element.create = function(properties){
     var instance = new this(properties);
-    if (instance.init){
-	instance.init(properties);
-        instance.paper.safari();        // fix webkit bug
-    }
+    if (instance.init) instance.init(properties);
+    instance.defaults(instance.properties);
+    instance.paper.safari();        // fix webkit bug
     return instance;
 };
 
@@ -203,6 +202,12 @@ Element.prototype = {
 	    parent: properties.parent
 	};
 	this.wrapper = null;
+        this.shadow = null;
+        this.shadowAttrs = {
+            stroke: 'none', 
+            fill: '#555', 
+            translation: '4,4'
+        };
 	this.inner = [];
 	// ghost attributes
 	this.ghostAttrs = {
@@ -218,6 +223,12 @@ Element.prototype = {
 
 	this.paper = Joint.paper();
 	dia.register(this); // register me in the global table
+    },
+    defaults: function(properties) {
+        if (properties.shadow) {
+            Joint.Mixin(this.shadowAttrs, properties.shadow);
+            this.createShadow();
+        }
     },
     /**
      * @methodOf Joint.dia.Element#
@@ -272,25 +283,44 @@ Element.prototype = {
      * @private
      */
     createGhost: function(){
-	var
-	wa = this.wrapper.attrs,
-	paper = this.wrapper.paper;
+        this.ghost = this.cloneWrapper(this.ghostAttrs);
+    },
 
-	switch (this.wrapper.type){
+    /**
+     * Create a shadow.
+     * @private
+     */
+    createShadow: function(){
+        this.shadow = this.cloneWrapper(this.shadowAttrs);
+        this.shadow.toBack();
+    },
+
+    /**
+     * Creates the same object as the wrapper is.
+     * Used for ghosting and shadows.
+     * @private
+     * @return {RaphaelObject} created clone
+     */
+    cloneWrapper: function(attrs) {
+	var wa = this.wrapper.attrs,
+	    paper = this.wrapper.paper,
+            clone;
+
+	switch (this.wrapper.type) {
 	case "rect":
-	    this.ghost = paper.rect(wa.x, wa.y, wa.width, wa.height, wa.r);
+	    clone = paper.rect(wa.x, wa.y, wa.width, wa.height, wa.r);
 	    break;
 	case "circle":
-	    this.ghost = paper.circle(wa.cx, wa.cy, wa.r);
+	    clone = paper.circle(wa.cx, wa.cy, wa.r);
 	    break;
 	case "ellipse":
-	    this.ghost = paper.ellipse(wa.cx, wa.cy, wa.rx, wa.ry);
+	    clone = paper.ellipse(wa.cx, wa.cy, wa.rx, wa.ry);
 	    break;
 	default:
 	    break;
 	}
-	//    this.ghost.scale(this.lastScaleX, this.lastScaleY);
-	this.ghost.attr(this.ghostAttrs);
+	clone.attr(attrs);
+        return clone;
     },
 
     /**
@@ -323,6 +353,7 @@ Element.prototype = {
      * @return {Element}
      */
     toFront: function(){
+        this.shadow && this.shadow.toFront();
 	this.wrapper && this.wrapper.toFront();
 	for (var i = 0, len = this.inner.length; i < len; i++)
 	    this.inner[i].toFront();
@@ -338,6 +369,7 @@ Element.prototype = {
 	for (var i = this.inner.length - 1; i >= 0; --i)
 	    this.inner[i].toBack();
 	this.wrapper && this.wrapper.toBack();
+        this.shadow && this.shadow.toBack();
 	return this;
     },
 
@@ -392,6 +424,7 @@ Element.prototype = {
 	this.properties.dy += dy;
 	// translate wrapper, all inner and toolbox
 	this.wrapper.translate(dx, dy);
+	this.shadow && this.shadow.translate(dx, dy);
 	for (var i = this.inner.length - 1; i >= 0; --i){
 	    this.inner[i].translate(dx, dy);
 	}
