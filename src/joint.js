@@ -240,6 +240,7 @@ function Joint(from, to, opt){
 	label: undefined,
 	labelAttrsDefault: {
             position: 1/2,
+            offset: 0,  // y-offset
 	    "font-size": 12,
 	    "fill": "#000"
 	},
@@ -1478,10 +1479,10 @@ var JointDOMBuilder = {
 
         for (; i < len; i++) {
             var pos = this.labelLocation[i],
-	        labelText = this.paper.text(pos.x, pos.y, labels[i]).attr(attrs[i]),
+	        labelText = this.paper.text(pos.x, pos.y + (attrs[i].offset || 0), labels[i]).attr(attrs[i]),
 	        bb = labelText.getBBox(),
                 padding = attrs[i].padding || 0,
-	        labelBox = this.paper.rect(bb.x - padding, bb.y - padding, bb.width + 2*padding, bb.height + 2*padding).attr(this.opt.labelBoxAttrs[i]);
+	        labelBox = this.paper.rect(bb.x - padding, bb.y - padding + (attrs[i].offset || 0), bb.width + 2*padding, bb.height + 2*padding).attr(this.opt.labelBoxAttrs[i]);
 	    labelText.insertAfter(labelBox);
             components.push(labelText, labelBox)
         }
