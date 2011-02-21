@@ -53,47 +53,40 @@ pn.Place = Element.extend({
      module: "pn",
      init: function(properties){
 	 // options
-	 var p = this.properties;
-	 var position = p.position = properties.position;
-	 var radius = p.radius = properties.radius || 20;
-	 var tokenRadius = p.tokenRadius = properties.tokenRadius || 3;
-	 var tokens = p.tokens = parseInt(properties.tokens) || 0;
-	 var label = p.label = properties.label;
-	 var attrs = p.attrs = properties.attrs || {};
-	 if (!attrs.fill){
-	     attrs.fill = "white";
-	 }
-	 var tokenAttrs = p.tokenAttrs = properties.tokenAttrs || {};
-	 if (!tokenAttrs.fill){
-	     tokenAttrs.fill = "black";
-	 }
+	 var p = Joint.DeepSupplement(this.properties, properties, {
+             radius: 20,
+             tokenRadius: 3,
+             tokens: 0,
+             attrs: { fill: 'white' },
+             tokenAttrs: { fill: 'black' }
+         });
 	 // wrapper
 	 var paper = this.paper;
-	 this.setWrapper(paper.circle(position.x, position.y, radius).attr(attrs));
+	 this.setWrapper(paper.circle(p.position.x, p.position.y, p.radius).attr(p.attrs));
 	 // inner
 	 var strut = 2; // px
-	 switch (tokens){
+	 switch (p.tokens){
 	 case 0:
 	     break;
 	 case 1:
-	     this.addInner(paper.circle(position.x, position.y, tokenRadius).attr(tokenAttrs));
+	     this.addInner(paper.circle(p.position.x, p.position.y, p.tokenRadius).attr(p.tokenAttrs));
 	     break;
 	 case 2:
-	     this.addInner(paper.circle(position.x - (tokenRadius * 2), position.y, tokenRadius).attr(tokenAttrs));
-	     this.addInner(paper.circle(position.x + (tokenRadius * 2), position.y, tokenRadius).attr(tokenAttrs));
+	     this.addInner(paper.circle(p.position.x - (p.tokenRadius * 2), p.position.y, p.tokenRadius).attr(p.tokenAttrs));
+	     this.addInner(paper.circle(p.position.x + (p.tokenRadius * 2), p.position.y, p.tokenRadius).attr(p.tokenAttrs));
 	     break;
 	 case 3:
-	     this.addInner(paper.circle(position.x - (tokenRadius * 2) - strut, position.y, tokenRadius).attr(tokenAttrs));
-	     this.addInner(paper.circle(position.x + (tokenRadius * 2) + strut, position.y, tokenRadius).attr(tokenAttrs));
-	     this.addInner(paper.circle(position.x, position.y, tokenRadius).attr(tokenAttrs));
+	     this.addInner(paper.circle(p.position.x - (p.tokenRadius * 2) - strut, p.position.y, p.tokenRadius).attr(p.tokenAttrs));
+	     this.addInner(paper.circle(p.position.x + (p.tokenRadius * 2) + strut, p.position.y, p.tokenRadius).attr(p.tokenAttrs));
+	     this.addInner(paper.circle(p.position.x, p.position.y, p.tokenRadius).attr(p.tokenAttrs));
 	     break;
 	 default:
-	     this.addInner(paper.text(position.x, position.y, tokens.toString()));
+	     this.addInner(paper.text(p.position.x, p.position.y, p.tokens.toString()));
 	     break;
 	 }
 	 // label
-	 if (label){
-	     this.addInner(paper.text(position.x, position.y - radius, label));
+	 if (p.label){
+	     this.addInner(paper.text(p.position.x, p.position.y - p.radius, p.label));
 	     this.inner[this.inner.length - 1].translate(0, -this.inner[this.inner.length - 1].getBBox().height);
 	 }
      },
@@ -134,22 +127,19 @@ pn.Event = Element.extend({
      module: "pn",
      init: function(properties){
 	 // options
-	 var p = this.properties;
-	 var rect = p.rect = properties.rect;
-	 var attrs = p.attrs = properties.attrs || {};
-	 if (!attrs.fill){ attrs.fill = "black"; }
-	 if (!attrs.stroke){ attrs.stroke = "black"; }
-	 var label = p.label = properties.label;
+	 var p = Joint.DeepSupplement(this.properties, properties, {
+             attrs: { fill: 'black', stroke: 'black' }
+         });
 	 // wrapper
 	 var paper = this.paper;
-	 this.setWrapper(paper.rect(rect.x, rect.y, rect.width, rect.height).attr(attrs));
-	 if (label){
-	     this.addInner(paper.text(rect.x, rect.y, label));
+	 this.setWrapper(paper.rect(p.rect.x, p.rect.y, p.rect.width, p.rect.height).attr(p.attrs));
+	 if (p.label){
+	     this.addInner(paper.text(p.rect.x, p.rect.y, p.label));
 	     this.inner[0].translate(0, -this.inner[0].getBBox().height);
 	 }
      },
      zoom: function(){
-	 if (this.label){
+	 if (this.properties.label){
 	     this.inner[0].remove();
 	     var bb = this.wrapper.getBBox();
 	     this.inner[0] = this.paper.text(bb.x, bb.y, this.properties.label);

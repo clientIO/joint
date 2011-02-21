@@ -51,16 +51,14 @@ fsa.State = Element.extend({
     module: "fsa",
     init: function(properties){
 	// options
-	var p = this.properties;
-	p.position = properties.position || point(0, 0);
-	p.radius = properties.radius || 30;
-	p.label = properties.label || "State";
-	p.labelOffsetX = properties.labelOffsetX || (p.radius / 2);
-	p.labelOffsetY = properties.labelOffsetY || (p.radius / 2 + 8);
-	p.attrs = properties.attrs || {};
-	if (!p.attrs.fill){
-	    p.attrs.fill = "white";
-	}
+	var p = Joint.DeepSupplement(this.properties, properties, {
+            position: point(0,0),
+            radius: 30,
+            label: 'State',
+            labelOffsetX: 30/2,
+            labelOffsetY: 30/2 + 8,
+            attrs: { fill: 'white' }
+        });
 	// wrapper
 	this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius).attr(p.attrs));
 	// inner
@@ -101,13 +99,11 @@ fsa.StartState = Element.extend({
      module: "fsa",
      init: function(properties){
 	 // options
-	 var p = this.properties;
-	 p.position = properties.position || point(0, 0);
-	 p.radius = properties.radius || 10;
-	 p.attrs = properties.attrs || {};
-	 if (!p.attrs.fill){
-	     p.attrs.fill = "black";
-	 }
+         var p = Joint.DeepSupplement(this.properties, properties, {
+             position: point(0,0),
+             radius: 10,
+             attrs: { fill: 'black' }
+         });
 	 // wrapper
 	 this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius).attr(p.attrs));
      }
@@ -142,18 +138,13 @@ fsa.EndState = Element.extend({
      module: "fsa",
      init: function(properties){
 	 // options
-	 var p = this.properties;
-	 p.position = properties.position || point(0, 0);
-	 p.radius = properties.radius || 10;
-	 p.innerRadius = properties.innerRadius || (p.radius / 2);
-	 p.attrs = properties.attrs || {};
-	 if (!p.attrs.fill){
-	     p.attrs.fill = "white";
-	 }
-	 p.innerAttrs = properties.innerAttrs || {};
-	 if (!p.innerAttrs.fill){
-	     p.innerAttrs.fill = "black";
-	 }
+	 var p = Joint.DeepSupplement(this.properties, properties, {
+             position: point(0,0),
+             radius: 10,
+             innerRadius: (properties.radius && (properties.radius / 2)) || 5,
+             attrs: { fill: 'white' },
+             innerAttrs: { fill: 'black' }
+         });
 	 // wrapper
 	 this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius).attr(p.attrs));
 	 // inner

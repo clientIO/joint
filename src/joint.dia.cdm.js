@@ -253,43 +253,33 @@ cdm.Entity = Element.extend({
     module: "cdm",
     init: function(properties){
 	// options
-	var p = this.properties;
-	var rect = p.rect = properties.rect;
-	var radius = p.radius = properties.radius || 10;
-	var attrs = p.attrs = properties.attrs || {};
-	if (!p.attrs.fill){
-	    p.attrs.fill = "white";
-	}
-	p.label = properties.label || "";
-	p.labelAttrs = properties.labelAttrs || "";
-	p.labelOffsetX = properties.labelOffsetX || 20;
-	p.labelOffsetY = properties.labelOffsetY || 5;
-	if (!properties.actions){
-	    properties.actions = {};
-	}
-        p.actions = {
-            entry: properties.actions.entry || null,
-            exit: properties.actions.exit || null,
-            inner: properties.actions.inner || []
-        };
-	p.attributesOffsetX = properties.attributesOffsetX || 5;
-	p.attributesOffsetY = properties.attributesOffsetY || 5;
-        p.shadow = true;
+	var p = Joint.DeepSupplement(this.properties, properties, {
+            radius: 10,
+            attrs: { fill: 'white' },
+            label: '',
+            labelOffsetX: 20,
+            labelOffsetY: 5,
+            actions: {
+                entry: null,
+                exit: null,
+                inner: []
+            },
+            attributesOffsetX: 5,
+            attributesOffsetY: 5
+        });
 	// wrapper
-	this.setWrapper(this.paper.rect(rect.x, rect.y, rect.width, rect.height, radius).attr(attrs));
+	this.setWrapper(this.paper.rect(p.rect.x, p.rect.y, p.rect.width, p.rect.height, p.radius).attr(p.attrs));
 	// inner
 	this.addInner(this.getLabelElement());
 	this.addInner(this.getAttributesElement());
 
     },
     getLabelElement: function(){
-	var
-	p = this.properties,
-	bb = this.wrapper.getBBox(),
-	t = this.paper.text(bb.x, bb.y, p.label).attr(p.labelAttrs || {}),
-	tbb = t.getBBox();
-	t.translate(bb.x - tbb.x + p.labelOffsetX,
-		    bb.y - tbb.y + p.labelOffsetY);
+	var p = this.properties,
+	    bb = this.wrapper.getBBox(),
+	    t = this.paper.text(bb.x, bb.y, p.label).attr(p.labelAttrs || {}),
+	    tbb = t.getBBox();
+	t.translate(bb.x - tbb.x + p.labelOffsetX, bb.y - tbb.y + p.labelOffsetY);
 	return t;
     },
     getAttributesElement: function(){
@@ -305,16 +295,16 @@ cdm.Entity = Element.extend({
 	str = str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
 
 	// draw text with actions
-	var
-	bb = this.wrapper.getBBox(),
-	t = this.paper.text(bb.x + p.attributesOffsetX, bb.y + p.labelOffsetY + p.attributesOffsetY, str),
-	tbb = t.getBBox();
+	var bb = this.wrapper.getBBox(),
+	    t = this.paper.text(bb.x + p.attributesOffsetX, bb.y + p.labelOffsetY + p.attributesOffsetY, str),
+	    tbb = t.getBBox();
 	t.attr("text-anchor", "start");
 	t.translate(0, tbb.height/2);	// tune the y position
 	return t;
     },
     zoom: function(){
 	this.wrapper.attr("r", this.properties.radius); 	// set wrapper's radius back to its initial value (it deformates after scaling)
+	this.shadow && this.shadow.attr("r", this.properties.radius); 	// update shadow as well if there is one 
 	this.inner[0].remove();	// label
 	this.inner[1].remove();	// entityAttributes
 	this.inner[0] = this.getLabelElement();

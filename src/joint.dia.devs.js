@@ -57,63 +57,56 @@ devs.Model = Element.extend({
      module: "devs",
      init: function(properties){
 	 // options
-	 var p = this.properties;
-	 var rect = p.rect = properties.rect;
-	 var attrs = p.attrs = properties.attrs || {};
-	 var label = p.label = properties.label;
-	 p.labelOffsetX = properties.labelOffsetX || 20;
-	 p.labelOffsetY = properties.labelOffsetY || 5;
-	 p.portsOffsetX = properties.portsOffsetX || 5;
-	 p.portsOffsetY = properties.portsOffsetY || 20;
-	 p.iPortRadius = properties.iPortRadius || 5;
-	 p.oPortRadius = properties.oPortRadius || 5;
-	 p.iPortAttrs = properties.iPortAttrs || {};
-	 if (!p.iPortAttrs.fill){ p.iPortAttrs.fill = "green"; }
-	 if (!p.iPortAttrs.stroke){ p.iPortAttrs.stroke = "black"; }
-	 p.oPortAttrs = properties.oPortAttrs || {};
-	 if (!p.oPortAttrs.fill){ p.oPortAttrs.fill = "red"; }
-	 if (!p.oPortAttrs.stroke){ p.oPortAttrs.stroke = "black"; }
-	 p.iPortLabelOffsetX = properties.iPortLabelOffsetX || -10;
-	 p.iPortLabelOffsetY = properties.iPortLabelOffsetY || -10;
-	 p.oPortLabelOffsetX = properties.oPortLabelOffsetX || 10;
-	 p.oPortLabelOffsetY = properties.oPortLabelOffsetY || -10;
-	 var iPorts = p.iPorts = properties.iPorts || [];
-	 var oPorts = p.oPorts = properties.oPorts || [];
+	 var p = Joint.DeepSupplement(this.properties, properties, {
+             labelOffsetX: 20,
+             labelOffsetY: 5,
+             portsOffsetX: 5,
+             portsOffsetY: 20,
+             iPortRadius: 5,
+             oPortRadius: 5,
+             iPortAttrs: { fill: 'green', stroke: 'black' },
+             oPortAttrs: { fill: 'red', stroke: 'black' },
+             iPortLabelOffsetX: -10,
+             iPortLabelOffsetY: -10,
+             oPortLabelOffsetX: 10,
+             oPortLabelOffsetY: -10,
+             iPorts: [],
+             oPorts: []
+         });
 	 // wrapper
-	 var paper = this.paper;
-	 this.setWrapper(paper.rect(rect.x, rect.y, rect.width, rect.height).attr(attrs));
+	 var paper = this.paper, i;
+	 this.setWrapper(paper.rect(p.rect.x, p.rect.y, p.rect.width, p.rect.height).attr(p.attrs));
 	 // inner
 	 this.addInner(this.getLabelElement());	// label
 	 // draw ports
-	 for (var i = 0, l = iPorts.length; i < l; i++){
-	     this.addInner(this.getPortElement("i", i + 1, iPorts[i]));
+	 for (i = 0, l = p.iPorts.length; i < l; i++){
+	     this.addInner(this.getPortElement("i", i + 1, p.iPorts[i]));
 	 }
-	 for (var i = 0, l = oPorts.length; i < l; i++){
-	     this.addInner(this.getPortElement("o", i + 1, oPorts[i]));
+	 for (i = 0, l = p.oPorts.length; i < l; i++){
+	     this.addInner(this.getPortElement("o", i + 1, p.oPorts[i]));
 	 }
 	 // delete all ports related properties, they are saved in port objects
 	 p.iPorts = p.oPorts = p.portsOffsetX = p.portsOffsetY = p.iPortRadius = p.oPortRadius = p.iPortAttrs = p.oPortAttrs = p.iPortLabelOffsetX = p.iPortLabelOffsetY = p.oPortLabelOffsetX = p.oPortLabelOffsetY = undefined;
      },
      getLabelElement: function(){
-	 var 
-	 p = this.properties,
-	 bb = this.wrapper.getBBox(),
-	 t = this.paper.text(bb.x, bb.y, p.label),
-	 tbb = t.getBBox();
+	 var p = this.properties,
+	     bb = this.wrapper.getBBox(),
+	     t = this.paper.text(bb.x, bb.y, p.label).attr(p.labelAttrs || {}),
+	     tbb = t.getBBox();
 	 t.translate(bb.x - tbb.x + p.labelOffsetX, bb.y - tbb.y + p.labelOffsetY);
 	 return t;
      },
      getPortElement: function(type, index, label){
-	 var bb = this.wrapper.getBBox(), p = this.properties;
-	 var port = devs.Port.create({
-					 label: label,
-					 type: type,
-					 position: {x: bb.x + ((type === "o") ? bb.width : 0), y: bb.y + p.portsOffsetY * index},
-					 radius: p[type + "PortRadius"],
-					 attrs: p[type + "PortAttrs"],
-					 offsetX: p[type + "PortLabelOffsetX"],
-					 offsetY: p[type + "PortLabelOffsetY"]
-				     });
+	 var bb = this.wrapper.getBBox(), p = this.properties,
+	     port = devs.Port.create({
+	         label: label,
+    	         type: type,
+	         position: {x: bb.x + ((type === "o") ? bb.width : 0), y: bb.y + p.portsOffsetY * index},
+	         radius: p[type + "PortRadius"],
+	         attrs: p[type + "PortAttrs"],
+	         offsetX: p[type + "PortLabelOffsetX"],
+	         offsetY: p[type + "PortLabelOffsetY"]
+             });
 	 return port;
      },
      /**
@@ -147,22 +140,19 @@ devs.Port = Element.extend({
      module: "devs",
      // doesn't have object and module properties => it's invisible for serializer
      init: function(properties){
-	 var p = this.properties;
-	 p.position = properties.position;
-	 p.radius = properties.radius;
-	 p.attrs = properties.attrs;
-	 p.label = properties.label || "";
-	 p.offsetX = properties.offsetX || 0;
-	 p.offsetY = properties.offsetY || 0;
-	 p.type = properties.type || "i";
-	 
+	 var p = Joint.DeepSupplement(this.properties, properties, {
+             label: '',
+             offsetX: 0,
+             offsetY: 0,
+             type: 'i'
+         });
 	 this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius).attr(p.attrs));
 	 this.addInner(this.getLabelElement());
      },
      getLabelElement: function(){
 	 var bb = this.wrapper.getBBox(), p = this.properties,
-	 t = this.paper.text(bb.x, bb.y, p.label),
-	 tbb = t.getBBox();
+	     t = this.paper.text(bb.x, bb.y, p.label),
+	     tbb = t.getBBox();
 	 t.translate(bb.x - tbb.x + p.offsetX, bb.y - tbb.y + p.offsetY);
 	 return t;
      },

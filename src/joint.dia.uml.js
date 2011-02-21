@@ -105,22 +105,21 @@ uml.State = Element.extend({
     module: "uml",
     init: function(properties){
 	// options
-        var p = Joint.Mixin(this.properties, properties);
-	p.radius = p.radius || 15;
-	p.attrs = p.attrs || {};
-	if (!p.attrs.fill) p.attrs.fill = "white";
-	p.label = p.label || "";
-	p.labelOffsetX = p.labelOffsetX || 20;
-	p.labelOffsetY = p.labelOffsetY || 5;
-	p.swimlaneOffsetY = p.swimlaneOffsetY || 18;
-	if (!properties.actions) properties.actions = {};
-        p.actions = {
-            entry: p.actions.entry || null,
-            exit: p.actions.exit || null,
-            inner: p.actions.inner || []
-        };
-	p.actionsOffsetX = p.actionsOffsetX || 5;
-	p.actionsOffsetY = p.actionsOffsetY || 5;
+        var p = Joint.DeepSupplement(this.properties, properties, {
+            radius: 15,
+            attrs: { fill: 'white' },
+            label: '',
+            labelOffsetX: 20,
+            labelOffsetY: 5,
+            swimlaneOffsetY: 18,
+            actions: {
+                entry: null,
+                exit: null,
+                inner: []
+            },
+            actionsOffsetX: 5,
+            actionsOffsetY: 5
+        });
 	// wrapper
 	this.setWrapper(this.paper.rect(p.rect.x, p.rect.y, p.rect.width, p.rect.height, p.radius).attr(p.attrs));
 	// inner
@@ -132,7 +131,7 @@ uml.State = Element.extend({
 	var
 	p = this.properties,
 	bb = this.wrapper.getBBox(),
-	t = this.paper.text(bb.x, bb.y, p.label),
+	t = this.paper.text(bb.x, bb.y, p.label).attr(p.labelAttrs || {}),
 	tbb = t.getBBox();
 	t.translate(bb.x - tbb.x + p.labelOffsetX,
 		    bb.y - tbb.y + p.labelOffsetY);
@@ -199,11 +198,11 @@ uml.StartState = Element.extend({
      module: "uml",
      init: function(properties){
 	 // options
-	 var p = Joint.Mixin(this.properties, properties);
-	 p.position = p.position || point(0, 0);
-	 p.radius = p.radius || 10;
-	 p.attrs = p.attrs || {};
-	 if (!p.attrs.fill) p.attrs.fill = "black";
+	 var p = Joint.DeepSupplement(this.properties, properties, {
+             position: point(0,0),
+             radius: 10,
+             attrs: { fill: 'black' }
+         });
 	 // wrapper
 	 this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius).attr(p.attrs));
      }
@@ -239,15 +238,13 @@ uml.EndState = Element.extend({
      module: "uml",
      init: function(properties){
 	 // options
-	 var p = Joint.Mixin(this.properties, properties);
-	 p.position = p.position || point(0, 0);
-	 p.radius = p.radius || 10;
-	 p.innerRadius = p.innerRadius || (p.radius / 2);
-	 p.attrs = p.attrs || {};
-	 if (!p.attrs.fill) p.attrs.fill = "white";
-	 p.innerAttrs = p.innerAttrs || {};
-	 if (!p.innerAttrs.fill) p.innerAttrs.fill = "black";
-
+	 var p = Joint.DeepSupplement(this.properties, properties, {
+             position: point(0,0),
+             radius: 10,
+             innerRadius: (properties.radius && properties.radius / 2) || 5,
+             attrs: { fill: 'white' },
+             innerAttrs: { fill: 'black' }
+         });
 	 // wrapper
 	 this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius).attr(p.attrs));
 	 // inner
@@ -292,20 +289,20 @@ uml.Class = Element.extend({
     object: "Class",
     module: "uml",
     init: function(properties){
-	var p = Joint.Mixin(this.properties, properties);
-	p.attrs = p.attrs || {};
-	if (!p.attrs.fill) p.attrs.fill = "white";
-	p.label = p.label || "";
-	p.labelOffsetX = p.labelOffsetX || 20;
-	p.labelOffsetY = p.labelOffsetY || 5;
-	p.swimlane1OffsetY = p.swimlane1OffsetY || 18;
-	p.swimlane2OffsetY = p.swimlane2OffsetY || 18;
-	p.attributes = p.attributes || [];
-	p.attributesOffsetX = p.attributesOffsetX || 5;
-	p.attributesOffsetY = p.attributesOffsetY || 5;
-	p.methods = p.methods || [];
-	p.methodsOffsetX = p.methodsOffsetX || 5;
-	p.methodsOffsetY = p.methodsOffsetY || 5;
+	var p = Joint.DeepSupplement(this.properties, properties, {
+            attrs: { fill: 'white' },
+            label: '',
+            labelOffsetX: 20,
+            labelOffsetY: 5,
+            swimlane1OffsetY: 18,
+            swimlane2OffsetY: 18,
+            attributes: [],
+            attributesOffsetX: 5,
+            attributesOffsetY: 5,
+            methods: [],
+            methodsOffsetX: 5,
+            methodsOffsetY: 5
+        });
 	// wrapper
 	this.setWrapper(this.paper.rect(p.rect.x, p.rect.y, p.rect.width, p.rect.height).attr(p.attrs));
 	// inner
@@ -319,7 +316,7 @@ uml.Class = Element.extend({
 	var
 	p = this.properties,
 	bb = this.wrapper.getBBox(),
-	t = this.paper.text(bb.x, bb.y, p.label),
+	t = this.paper.text(bb.x, bb.y, p.label).attr(p.labelAttrs || {}),
 	tbb = t.getBBox();
 	t.translate(bb.x - tbb.x + p.labelOffsetX, bb.y - tbb.y + p.labelOffsetY);
 	return t;

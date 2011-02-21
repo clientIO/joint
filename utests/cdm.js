@@ -12,7 +12,7 @@ var person = cdm.Entity.create({
   attrs: {
     fill: "315-#fff-#EAB515"
   },
-  shadow: { translation: '5,5' }
+  shadow: true
 }).toggleGhosting();
 
 var s2 = cdm.Entity.create({
@@ -20,7 +20,8 @@ var s2 = cdm.Entity.create({
   label: "Organization 200,200",
   attrs: {
     fill: "315-#fff-#EAB515"
-  }
+  },
+  shadow: true
 }).toggleGhosting();
 
 var s3 = cdm.Entity.create({
@@ -28,7 +29,8 @@ var s3 = cdm.Entity.create({
   label: "Language",
   attrs: {
     fill: "315-#fff-#800080"
-  }
+  },
+  shadow: true
 }).toggleGhosting();
 
 var s4 = cdm.Entity.create({
@@ -36,7 +38,8 @@ var s4 = cdm.Entity.create({
   label: "Nonprofits",
   attrs: {
     fill: "315-#fff-#EAB515"
-  }
+  },
+  shadow: true
 }).toggleGhosting();
 
 var s5 = cdm.Entity.create({
@@ -44,7 +47,8 @@ var s5 = cdm.Entity.create({
   label: "NGO's",
   attrs: {
     fill: "315-#fff-#EAB515"
-  }
+  },
+  shadow: true
 }).toggleGhosting();
 
 var all = [person, s2, s3, s4, s5];

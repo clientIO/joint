@@ -19,6 +19,10 @@ var isArray = Array.isArray || function (obj) {
     return Object.prototype.toString.call(obj) === '[object Array]';
 };
 
+var isObject = function (obj) {
+    return Object.prototype.toString.call(obj) === '[object Object]';
+};
+
 if (!global.console){
     global.console = {
 	log: function(){},
@@ -100,6 +104,69 @@ var Supplement = function() {
             if (typeof copy == "function" && typeof target[key] == "function" && !target[key].base){
 		target[key].base = copy;
 	    }
+            // target doesn't has propery that is owned by extension copying it
+            if (!target.hasOwnProperty(key) && extension.hasOwnProperty(key)){
+		target[key] = copy;
+	    }
+        }
+    }
+    return target;
+};
+
+/**
+ * Copies all the properties to the first argument from the following arguments.
+ * All the properties will be overwritten by the properties from the following
+ * arguments. Inherited properties are ignored.
+ * Deep version.
+ * @private
+ */
+var DeepMixin = function() {
+    var target = arguments[0];
+    for (var i = 1, l = arguments.length; i < l; i++) {
+        var extension = arguments[i];
+        for (var key in extension) {
+            var copy = extension[key];
+            if (copy === target[key]) continue;
+            if (isObject(copy)) DeepMixin((target[key] || (target[key] = {})), copy);
+            // copying super with the name base if it does'nt has one already
+            if (typeof copy == 'function' && typeof target[key] == 'function' && !target[key].base) {
+                target[key].base = copy;
+            }
+	    target[key] = copy;
+        }
+    }
+    return target;
+};
+
+/**
+ * Copies all properties to the first argument from the following
+ * arguments only in case if they don't exists in the first argument.
+ * All the function propererties in the first argument will get
+ * additional property base pointing to the extenders same named
+ * property function's call method.
+ * @example
+ * // usage of base
+ * Bar.extend({
+ * // function should have name
+ * foo: function foo(digit) {
+ * return foo.base(this, parseInt(digit))
+ * }
+ * });
+ * Deep version.
+ * @private
+ */
+var DeepSupplement = function() {
+    var target = arguments[0];
+    for (var i = 1, l = arguments.length; i < l; i++) {
+        var extension = arguments[i];
+        for (var key in extension) {
+            var copy = extension[key];
+            if (copy === target[key]) continue;
+            if (isObject(copy)) DeepSupplement((target[key] || (target[key] = {})), copy);
+            // copying super with the name base if it does'nt has one already
+            if (typeof copy == 'function' && typeof target[key] == 'function' && !target[key].base) {
+                target[key].base = copy;
+            }
             // target doesn't has propery that is owned by extension copying it
             if (!target.hasOwnProperty(key) && extension.hasOwnProperty(key)){
 		target[key] = copy;
@@ -2154,6 +2221,8 @@ Joint.bezierSegment = bezierSegment;
 Joint.Bezier = Bezier;
 Joint.Mixin = Mixin;
 Joint.Supplement = Supplement;
+Joint.DeepMixin = DeepMixin;
+Joint.DeepSupplement = DeepSupplement;
 
 /**
  * TODO: rotation support. there is a problem because
