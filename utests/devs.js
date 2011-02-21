@@ -4,11 +4,8 @@ Joint.paper("world", 800, 1000);
 var a1 = devs.Model.create({
   rect: {x: 30, y: 90, width: 100, height: 60},
   label: "Atomic 1",
-  labelAttrs: { 'font-weight': 'bold' },
-  attrs: {
-//    fill: "90-#000-#f00:1-#fff"
-    fill: "red"
-  },
+  labelAttrs: { 'font-weight': 'bold', fill: 'white', 'font-size': '12px' },
+  attrs: { fill: "red" },
   shadow: true,
   oPorts: ["out1"]
 });
@@ -16,11 +13,8 @@ var a1 = devs.Model.create({
 var a2 = devs.Model.create({
   rect: {x: 480, y: 105, width: 100, height: 60},
   label: "Atomic 2",
-  attrs: {
-//    fill: "90-#000-#f00:1-#fff"
-    fill: "red"
-  },
-  labelAttrs: { 'font-weight': 'bold' },
+  attrs: { fill: "red" },
+  labelAttrs: { 'font-weight': 'bold', fill: 'white', 'font-size': '12px' },
   shadow: true,
   iPorts: ["in1", "in2"]
 });
@@ -28,11 +22,8 @@ var a2 = devs.Model.create({
 var c1 = devs.Model.create({
   rect: {x: 200, y: 100, width: 200, height: 160},
   label: "Coupled 1",
-  attrs: {
-//    fill: "90-#000-green:1-#fff"
-    fill: "green"
-  },
-  labelAttrs: { 'font-weight': 'bold' },
+  attrs: { fill: "green" },
+  labelAttrs: { 'font-weight': 'bold', fill: 'white', 'font-size': '12px' },
   shadow: true,
   iPorts: ["in"],
   oPorts: ["out1", "out2"]
@@ -41,11 +32,8 @@ var c1 = devs.Model.create({
 var a3 = devs.Model.create({
   rect: {x: 250, y: 170, width: 100, height: 60},
   label: "Atomic 3",
-  attrs: {
-//    fill: "90-#000-#f00:1-#fff"
-    fill: "red"
-  },
-  labelAttrs: { 'font-weight': 'bold' },
+  attrs: { fill: "red" },
+  labelAttrs: { 'font-weight': 'bold', fill: 'white', 'font-size': '12px' },
   shadow: true,
   iPorts: ["in"],
   oPorts: ["out1", "out2"]
