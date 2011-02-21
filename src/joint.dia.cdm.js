@@ -173,11 +173,27 @@ cdm.manyToOneDashes = {
  * @memberOf Joint.dia.cdm
  * @example c1.joint(c2, Joint.dia.cdm.manyToManyDashes);
  */
-
 cdm.manyToManyDashes = {
-    startArrow: {type: "crowfootdashed"},
+    startArrow: {type: "crowfoot"},
+    endArrow: {type: "crowfoot"},
+    attrs: {"stroke-dasharray": "-- ", stroke:"#800040"}
+};
+
+/**
+ * This is an example showing styling subpaths of connections.
+ */
+cdm.exampleArrow = {
+    startArrow: {type: "crowfoot"},
     endArrow: {type: "crowfootdashed"},
-    attrs: {"stroke-dasharray": "--", stroke:"#800040"}
+    attrs: {"stroke-dasharray": "--", stroke:"#800040"},
+    subConnectionAttrs: [ 
+        {from: 1.1, to: 1/2, 'stroke-dasharray': 'none', stroke: '#800040'}
+    ],
+    label: ['many', 'many'],
+    labelAttrs: [
+        {position: 20, offset: -10},
+        {position: -20, offset: -10}
+    ]
 };
 
 /**

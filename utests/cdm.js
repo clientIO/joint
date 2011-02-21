@@ -8,7 +8,6 @@ Joint.paper("world", 800, 1000);
 var person = cdm.Entity.create({
   rect: {x: 50, y: 50, width: 100, height: 50},
   label: "Person 50,50",
-  labelAttrs: { 'font-size': '12px', 'font-weight': 'bold' },
   labelOffsetX: 5,
   attrs: {
     fill: "315-#fff-#EAB515"
@@ -83,4 +82,4 @@ var ex2 = cdm.Entity.create({
   shadow: { translation: '5,5' }
 });
 
-ex1.joint(ex2, cdm.manyToManyDashes);
+ex1.joint(ex2, cdm.exampleArrow);
