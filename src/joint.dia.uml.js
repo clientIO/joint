@@ -105,29 +105,24 @@ uml.State = Element.extend({
     module: "uml",
     init: function(properties){
 	// options
-	var p = this.properties;
-	var rect = p.rect = properties.rect;
-	var radius = p.radius = properties.radius || 15;
-	var attrs = p.attrs = properties.attrs || {};
-	if (!p.attrs.fill){
-	    p.attrs.fill = "white";
-	}
-	p.label = properties.label || "";
-	p.labelOffsetX = properties.labelOffsetX || 20;
-	p.labelOffsetY = properties.labelOffsetY || 5;
-	p.swimlaneOffsetY = properties.swimlaneOffsetY || 18;
-	if (!properties.actions){
-	    properties.actions = {};
-	}
+        var p = Joint.Mixin(this.properties, properties);
+	p.radius = p.radius || 15;
+	p.attrs = p.attrs || {};
+	if (!p.attrs.fill) p.attrs.fill = "white";
+	p.label = p.label || "";
+	p.labelOffsetX = p.labelOffsetX || 20;
+	p.labelOffsetY = p.labelOffsetY || 5;
+	p.swimlaneOffsetY = p.swimlaneOffsetY || 18;
+	if (!properties.actions) properties.actions = {};
         p.actions = {
-            entry: properties.actions.entry || null,
-            exit: properties.actions.exit || null,
-            inner: properties.actions.inner || []
+            entry: p.actions.entry || null,
+            exit: p.actions.exit || null,
+            inner: p.actions.inner || []
         };
-	p.actionsOffsetX = properties.actionsOffsetX || 5;
-	p.actionsOffsetY = properties.actionsOffsetY || 5;
+	p.actionsOffsetX = p.actionsOffsetX || 5;
+	p.actionsOffsetY = p.actionsOffsetY || 5;
 	// wrapper
-	this.setWrapper(this.paper.rect(rect.x, rect.y, rect.width, rect.height, radius).attr(attrs));
+	this.setWrapper(this.paper.rect(p.rect.x, p.rect.y, p.rect.width, p.rect.height, p.radius).attr(p.attrs));
 	// inner
 	this.addInner(this.getLabelElement());
 	this.addInner(this.getSwimlaneElement());
@@ -170,6 +165,7 @@ uml.State = Element.extend({
     },
     zoom: function(){
 	this.wrapper.attr("r", this.properties.radius); 	// set wrapper's radius back to its initial value (it deformates after scaling)
+	this.shadow && this.shadow.attr("r", this.properties.radius); 	// update shadow as well if there is one 
 	this.inner[0].remove();	// label
 	this.inner[1].remove();	// swimlane
 	this.inner[2].remove();	// actions
@@ -203,13 +199,11 @@ uml.StartState = Element.extend({
      module: "uml",
      init: function(properties){
 	 // options
-	 var p = this.properties;
-	 p.position = properties.position || point(0, 0);
-	 p.radius = properties.radius || 10;
-	 p.attrs = properties.attrs || {};
-	 if (!p.attrs.fill){
-	     p.attrs.fill = "black";
-	 }
+	 var p = Joint.Mixin(this.properties, properties);
+	 p.position = p.position || point(0, 0);
+	 p.radius = p.radius || 10;
+	 p.attrs = p.attrs || {};
+	 if (!p.attrs.fill) p.attrs.fill = "black";
 	 // wrapper
 	 this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius).attr(p.attrs));
      }
@@ -245,18 +239,15 @@ uml.EndState = Element.extend({
      module: "uml",
      init: function(properties){
 	 // options
-	 var p = this.properties;
-	 p.position = properties.position || point(0, 0);
-	 p.radius = properties.radius || 10;
-	 p.innerRadius = properties.innerRadius || (p.radius / 2);
-	 p.attrs = properties.attrs || {};
-	 if (!p.attrs.fill){
-	     p.attrs.fill = "white";
-	 }
-	 p.innerAttrs = properties.innerAttrs || {};
-	 if (!p.innerAttrs.fill){
-	     p.innerAttrs.fill = "black";
-	 }
+	 var p = Joint.Mixin(this.properties, properties);
+	 p.position = p.position || point(0, 0);
+	 p.radius = p.radius || 10;
+	 p.innerRadius = p.innerRadius || (p.radius / 2);
+	 p.attrs = p.attrs || {};
+	 if (!p.attrs.fill) p.attrs.fill = "white";
+	 p.innerAttrs = p.innerAttrs || {};
+	 if (!p.innerAttrs.fill) p.innerAttrs.fill = "black";
+
 	 // wrapper
 	 this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius).attr(p.attrs));
 	 // inner
@@ -301,25 +292,22 @@ uml.Class = Element.extend({
     object: "Class",
     module: "uml",
     init: function(properties){
-	var p = this.properties;
-	var rect = p.rect = properties.rect;
-	var attrs = p.attrs = properties.attrs || {};
-	if (!attrs.fill){
-	    attrs.fill = "white";
-	}
-	p.label = properties.label || "";
-	p.labelOffsetX = properties.labelOffsetX || 20;
-	p.labelOffsetY = properties.labelOffsetY || 5;
-	p.swimlane1OffsetY = properties.swimlane1OffsetY || 18;
-	p.swimlane2OffsetY = properties.swimlane2OffsetY || 18;
-	p.attributes = properties.attributes || [];
-	p.attributesOffsetX = properties.attributesOffsetX || 5;
-	p.attributesOffsetY = properties.attributesOffsetY || 5;
-	p.methods = properties.methods || [];
-	p.methodsOffsetX = properties.methodsOffsetX || 5;
-	p.methodsOffsetY = properties.methodsOffsetY || 5;
+	var p = Joint.Mixin(this.properties, properties);
+	p.attrs = p.attrs || {};
+	if (!p.attrs.fill) p.attrs.fill = "white";
+	p.label = p.label || "";
+	p.labelOffsetX = p.labelOffsetX || 20;
+	p.labelOffsetY = p.labelOffsetY || 5;
+	p.swimlane1OffsetY = p.swimlane1OffsetY || 18;
+	p.swimlane2OffsetY = p.swimlane2OffsetY || 18;
+	p.attributes = p.attributes || [];
+	p.attributesOffsetX = p.attributesOffsetX || 5;
+	p.attributesOffsetY = p.attributesOffsetY || 5;
+	p.methods = p.methods || [];
+	p.methodsOffsetX = p.methodsOffsetX || 5;
+	p.methodsOffsetY = p.methodsOffsetY || 5;
 	// wrapper
-	this.setWrapper(this.paper.rect(rect.x, rect.y, rect.width, rect.height).attr(attrs));
+	this.setWrapper(this.paper.rect(p.rect.x, p.rect.y, p.rect.width, p.rect.height).attr(p.attrs));
 	// inner
 	this.addInner(this.getLabelElement());
 	this.addInner(this.getSwimlane1Element());
