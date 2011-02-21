@@ -672,9 +672,18 @@ Joint.prototype = {
     /**
      * @private
      */
-    boundPoint: function(bbox, type, p){
+    boundPoint: function(bbox, type, rotation, p){
 	if (type === "circle" || type === "ellipse")
 	    return ellipse(bbox.center(), bbox.width/2, bbox.height/2).intersectionWithLineFromCenterToPoint(p);
+        else if (type === 'rect' && bbox.width == bbox.height) {
+            // @todo Compute intersection properly
+            var w = bbox.width,
+                dia = Math.sqrt(w*w + w*w),
+                mid = point(bbox.x + bbox.width/2, bbox.y + bbox.height/2);
+            mid.offset(-(dia/2), -(dia/2));
+            bbox = rect(mid.x, mid.y, dia, dia);
+            return bbox.boundPoint(p) || bbox.center();
+        }
 	return bbox.boundPoint(p) || bbox.center();
     },
     /**
@@ -697,7 +706,7 @@ Joint.prototype = {
         p1, p1bp, c1t, c1r, p2, p2bp, c2t, c2r;
 
 	// start object boundary point
-	p1bp = this.boundPoint(start.bbox, start.type, firstVertex || end.bbox.center());
+	p1bp = this.boundPoint(start.bbox, start.type, start.rotation, firstVertex || end.bbox.center());
 	// shift
 	theta = start.bbox.center().theta(firstVertex || end.bbox.center());
 	// first point of the connection
@@ -710,7 +719,7 @@ Joint.prototype = {
 	c1r = 360 - theta.degrees + 180;
 
 	// end object boundary point
-	p2bp = this.boundPoint(end.bbox, end.type, lastVertex || start.bbox.center());
+	p2bp = this.boundPoint(end.bbox, end.type, end.rotation, lastVertex || start.bbox.center());
 	// shift
 	theta = (lastVertex || start.bbox.center()).theta(end.bbox.center());
 	// last point of the connection
@@ -788,11 +797,13 @@ Joint.prototype = {
 	        {
 	            bbox: rect(this.startObject().getBBox()).moveAndExpand(this._opt.bboxCorrection.start),
 		    type: this.startObject().type,
+                    rotation: this.startObject().attrs.rotation,
 		    shift: this._opt.arrow.start
 	        },
 	        {
 	            bbox: rect(this.endObject().getBBox()).moveAndExpand(this._opt.bboxCorrection.end),
 		    type: this.endObject().type,
+                    rotation: this.endObject().attrs.rotation,
 		    shift: this._opt.arrow.end
 	        },
 	        this._opt.vertices

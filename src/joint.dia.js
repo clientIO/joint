@@ -291,6 +291,7 @@ Element.prototype = {
      * @private
      */
     createShadow: function(){
+        this.shadowAttrs.rotation = this.wrapper.attrs.rotation;
         this.shadow = this.cloneWrapper(this.shadowAttrs);
         this.shadow.toBack();
     },
