@@ -359,7 +359,7 @@ Joint.prototype = {
     /*
      * Getters.
      */
-    connection: function(){ return this.dom.connection; },
+    connection: function(){ return this.dom.connection[0]; },
     endObject: function(){ return this._end.shape; },
     startObject: function(){ return this._start.shape; },
     endCap: function(){ return this.dom.endCap; },
@@ -559,12 +559,16 @@ Joint.prototype = {
 			   e.stopPropagation();
 			   e.preventDefault();
 	});
-	this.dom.connection.mousedown(function(e){
-		           Joint.fixEvent(e);
-			   self.connectionMouseDown(e);
-			   e.stopPropagation();
-			   e.preventDefault();
-        });
+        var i;
+        i = this.dom.connection.length;
+        while (i--) {
+	    this.dom.connection[i].mousedown(function(e){
+                Joint.fixEvent(e);
+		self.connectionMouseDown(e);
+		e.stopPropagation();
+		e.preventDefault();
+            });
+        }
 	if (this._opt.handle.start.enabled){
 	    this.dom.handleStart.mousedown(function(e){
 			       Joint.fixEvent(e);
@@ -582,15 +586,18 @@ Joint.prototype = {
 	    });
 	}
 	if (this._opt.handle.timeout !== Infinity){
-	    this.dom.connection.mouseover(function(e){
-			       Joint.fixEvent(e);
-			       self.showHandle();
-			       setTimeout(function(){
-					      self.hideHandle();
-					  }, self._opt.handle.timeout);
-			       e.stopPropagation();
-			       e.preventDefault();
-	    });
+            i = this.dom.connection.length;
+            while (i--) {
+	       this.dom.connection[i].mouseover(function(e){
+	           Joint.fixEvent(e);
+		   self.showHandle();
+	           setTimeout(function(){
+		       self.hideHandle();
+		   }, self._opt.handle.timeout);
+		   e.stopPropagation();
+		   e.preventDefault();
+	        });
+            }
 	}
 	return this;
     },
@@ -696,7 +703,8 @@ Joint.prototype = {
             position = attrs[i].position;
             position = (position > length) ? length : position; // sanity check
             position = (position < 0) ? length + position : position;
-            locations.push(path.getPointAtLength(position > 1 ? position : length * position));
+            position = position > 1 ? position : length * position;
+            locations.push(path.getPointAtLength(position));
         }
         path.remove();
         return locations;
@@ -779,6 +787,8 @@ Joint.prototype = {
             if (opt[topOptions[i]] !== undefined)
                 myopt[topOptions[i]] = opt[topOptions[i]];
         }
+
+        myopt.subConnectionAttrs = opt.subConnectionAttrs || undefined;
 
 	Mixin(myopt.attrs, opt.attrs);
         Mixin(myopt.bboxCorrection.start, opt.bboxCorrection && opt.bboxCorrection.start);
@@ -1437,11 +1447,28 @@ var JointDOMBuilder = {
 	return this.paper.circle(pos.x, pos.y, opt.radius).attr(opt.attrs);
     },
     connection: function(){
-	var opt = this.opt,
+	var opt = this.opt, paths = [],
 	    con = this.paper.path(this.connectionPathCommands.join(" ")).attr(opt.attrs);
+        if (opt.subConnectionAttrs) {
+            var i = 0, l = opt.subConnectionAttrs.length, 
+                length = con.getTotalLength();
+            for (; i < l; i++) {
+                var attrs = opt.subConnectionAttrs[i];
+                var from = attrs.from || 2, to = attrs.to || 1;
+                from = from > length ? length : from;
+                from = from < 0 ? length + from : from;
+                from = from > 1 ? from : length * from;
+                to = to > length ? length : to;
+                to = to < 0 ? length + to : to;
+                to = to > 1 ? to : length * to;                
+                var subPath = this.paper.path(con.getSubpath(from, to)).attr(attrs);
+                subPath.node.style.cursor = opt.cursor;
+                paths.push(subPath);
+            }
+        }
 	con.node.style.cursor = opt.cursor;
 	con.show();
-	return con;
+	return [con].concat(paths);
     },
     label: function(){
 	if (this.opt.label === undefined) return undefined;

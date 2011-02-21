@@ -24,3 +24,22 @@ paper.circle(300, 130, 20).joint(paper.circle(470, 140, 30), { endArrow: { type:
 paper.circle(300, 210, 20).joint(paper.circle(470, 220, 30), { endArrow: { type: 'flower' }});
 paper.circle(300, 290, 20).joint(paper.circle(470, 300, 30), { endArrow: { type: 'hand', size: 15 }});
 paper.circle(300, 370, 20).joint(paper.circle(470, 380, 30), { endArrow: { type: 'hand' }});
+
+/**
+ * sub connection styling.
+ */
+paper.circle(50, 450, 20).joint(paper.circle(470, 450, 30), { 
+  endArrow: { type: 'hand' },
+  subConnectionAttrs: [
+    { from: 2, to: 1/2 }
+  ]
+});
+paper.circle(50, 530, 20).joint(paper.circle(470, 530, 30), { 
+  endArrow: { type: 'hand' },
+  subConnectionAttrs: [
+    { from: 2, to: 1/3, stroke: 'red' },
+    { from: 1/3, to: 2/3, stroke: 'purple', 'stroke-width': 3 },
+    { from: 2/3, to: 1, stroke: 'blue', 'stroke-width': 5 }
+  ]
+});
+
