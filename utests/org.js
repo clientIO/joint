@@ -44,7 +44,7 @@ var maggie = org.Member.create({
 
 var lenny = org.Member.create({
   rect: { x: 190, y: 350, width: 150, height: 60 },
-  name: "Lenny Leopard",
+  name: "Lenny Leonard",
   position: "Manager",
   avatar: 'img/lenny.jpg',
   attrs: { fill: '#4192d3', stroke: 'black' }
