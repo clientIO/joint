@@ -1,3 +1,7 @@
+title('Labeling capabilities');
+description('Exhibition of labeling features.');
+dimension(800, 1000);
+
 var paper = Joint.paper('world', 800, 1000);
 
 /**

@@ -1,5 +1,9 @@
+title('UML Class Diagrams');
+description('Describe your object-oriented software architecture.');
+dimension(800, 450);
+
 var uml = Joint.dia.uml;
-Joint.paper("world", 800, 1000);
+Joint.paper("world", 800, 450);
 
 var client = uml.Class.create({
   rect: {x: 260, y: 20, width: 100, height: 50},

@@ -18,6 +18,7 @@
         <script src="../src/joint.dia.devs.js" type="text/javascript"></script>
         <script src="../src/joint.dia.cdm.js" type="text/javascript"></script>
         <script src="../src/joint.dia.erd.js" type="text/javascript"></script>
+        <script src="../src/joint.dia.org.js" type="text/javascript"></script>
         <title>Runner.</title>
         <style type="text/css">
           body {
@@ -30,6 +31,21 @@
             height: 1000px;
             border: 3px solid gray;
             border-radius: 30px;
+          }
+          #title {
+            position: fixed;
+            left: 10px;
+            top: 10px;
+            color: white;
+            font-size: 14px;
+          }
+          #description {
+            position: fixed;
+            left: 10px;
+            top: 30px;
+            color: white;
+            font-size: 12px;
+            width: 250px;
           }
         </style>
         <script type="text/javascript">
@@ -52,9 +68,22 @@
                 document.getElementsByTagName("head").item(0).appendChild(sel);
 	      }
             }
+            function title(s) {
+              document.getElementById('title').innerHTML = s;
+            }
+            function description(s) {
+              document.getElementById('description').innerHTML = s;
+            }
+            function dimension(w, h) {
+              var world = document.getElementById('world');
+              world.style.width = w + 'px';
+              world.style.height = h + 'px';
+            }
         </script>
     </head>
     <body onload="init()">
         <div id="world"></div>
+        <h1 id="title"></h1>
+        <p id="description"></p>
     </body>
 </html>

@@ -1,9 +1,9 @@
-/**
- * Test init.
- */
+title('UML Connections test');
+description('Exhibition of some UML connections features.');
+dimension(800, 900);
 
 var uml = Joint.dia.uml;
-var paper = Joint.paper("world", 800, 1000);
+var paper = Joint.paper("world", 800, 900);
 
 /**
  * Arrow.

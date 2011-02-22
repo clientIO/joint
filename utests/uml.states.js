@@ -1,9 +1,10 @@
-/**
- * Test init.
- */
+title('UML States test');
+description('Exhibition of some UML States features.');
+dimension(800, 768);
+
 
 var uml = Joint.dia.uml;
-Joint.paper("world", 800, 1000);
+Joint.paper("world", 800, 768);
 
 /**
  * Creation.

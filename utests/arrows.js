@@ -1,4 +1,8 @@
-var paper = Joint.paper('world', 800, 1000);
+title('Build-in arrows');
+description('Exhibition of build-in arrows and sub connections styling. More arrows can be found in plugins.');
+dimension(800, 700);
+
+var paper = Joint.paper('world', 800, 700);
 
 /**
  * Default.

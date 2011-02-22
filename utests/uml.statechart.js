@@ -1,5 +1,9 @@
+title('UML StateChart diagrams');
+description('Describe behaviour of your components visually.');
+dimension(800, 400);
+
 var uml = Joint.dia.uml;
-Joint.paper("world", 800, 1000);
+Joint.paper("world", 800, 400);
 
 var s1 = uml.State.create({
   rect: {x: 100, y: 50, width: 100, height: 60},

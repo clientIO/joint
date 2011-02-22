@@ -1,9 +1,9 @@
-/**
- * Test init.
- */
+title('Conceptual data models');
+description('');
+dimension(800, 450);
 
 var cdm = Joint.dia.cdm;
-Joint.paper("world", 800, 1000);
+Joint.paper("world", 800, 450);
 
 var person = cdm.Entity.create({
   rect: {x: 50, y: 50, width: 100, height: 50},
@@ -53,7 +53,6 @@ var s5 = cdm.Entity.create({
 
 var all = [person, s2, s3, s4, s5];
 
-//s2.scale(2);
 s2.addInner(s4);
 
 person.joint(s2, cdm.arrow).register(all);
@@ -63,27 +62,3 @@ s4.joint(s5,cdm.manyToOne).register(all);
 s5.joint(s3, cdm.manyToMany).register(all);
 
 
-
-var ex1 = cdm.Entity.create({
-  rect: {x: 50, y: 400, width: 100, height: 50},
-  label: "example 1",
-  labelAttrs: { 'font-size': '12px', 'font-weight': 'bold' },
-  labelOffsetX: 5,
-  attrs: {
-    fill: "315-#fff-#EAB515"
-  },
-  shadow: { translation: '5,5' }
-});
-
-var ex2 = cdm.Entity.create({
-  rect: {x: 400, y: 400, width: 100, height: 50},
-  label: "example 2",
-  labelAttrs: { 'font-size': '12px', 'font-weight': 'bold' },
-  labelOffsetX: 5,
-  attrs: {
-    fill: "315-#fff-#EAB515"
-  },
-  shadow: { translation: '5,5' }
-});
-
-ex1.joint(ex2, cdm.exampleArrow);

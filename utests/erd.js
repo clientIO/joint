@@ -1,5 +1,9 @@
+title('Entity-relationship diagram.');
+description('Make your database structure visible.');
+dimension(800, 250);
+
 var erd = Joint.dia.erd;
-Joint.paper("world", 800, 1000);
+Joint.paper("world", 800, 250);
 
 var e1 = erd.Entity.create({
   rect: { x: 220, y: 70, width: 100, height: 60 },
