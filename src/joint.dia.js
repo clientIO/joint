@@ -764,7 +764,7 @@ Element.prototype = {
 	this.properties.sx = sx;
 	this.properties.sy = sy;
 
-	this.shadow.scale.apply(this.shadow, arguments);
+	this.shadow && this.shadow.scale.apply(this.shadow, arguments);
 	this.wrapper.scale.apply(this.wrapper, arguments);
 	this.zoom.apply(this, arguments);
 	// apply scale to all subshapes that are Elements (were embeded)
