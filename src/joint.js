@@ -675,13 +675,13 @@ Joint.prototype = {
     boundPoint: function(bbox, type, rotation, p){
 	if (type === "circle" || type === "ellipse")
 	    return ellipse(bbox.center(), bbox.width/2, bbox.height/2).intersectionWithLineFromCenterToPoint(p);
-        else if (type === 'rect' && bbox.width == bbox.height) {
+        else if (type === 'rect' && bbox.width == bbox.height && rotation != 0) {
+            // compute new bounding box of a rotated square
             // @todo Compute intersection properly
             var w = bbox.width,
                 dia = Math.sqrt(w*w + w*w),
-                mid = point(bbox.x + bbox.width/2, bbox.y + bbox.height/2);
-            mid.offset(-(dia/2), -(dia/2));
-            bbox = rect(mid.x, mid.y, dia, dia);
+                origin = bbox.center().offset(-dia/2, -dia/2);
+            bbox = rect(origin.x, origin.y, dia, dia);
             return bbox.boundPoint(p) || bbox.center();
         }
 	return bbox.boundPoint(p) || bbox.center();
