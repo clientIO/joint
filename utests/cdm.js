@@ -1,5 +1,5 @@
 title('Conceptual data models');
-description('');
+description('Create map of your concepts and their relationships.');
 dimension(800, 450);
 
 var cdm = Joint.dia.cdm;
