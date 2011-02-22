@@ -1,5 +1,9 @@
+title('Finite State Machines');
+description('Give light to your components state transitions.');
+dimension(800, 400);
+
 var fsa = Joint.dia.fsa;
-Joint.paper("world", 800, 1000);
+Joint.paper("world", 800, 400);
 
 var s1 = fsa.State.create({
   position: {x: 120, y: 70},

@@ -1,5 +1,9 @@
+title('Discrete Event System Specification');
+description('Describe your hierarchicaly organized communicating components.');
+dimension(800, 400);
+
 var devs = Joint.dia.devs;
-Joint.paper("world", 800, 1000);
+Joint.paper("world", 800, 400);
 
 var a1 = devs.Model.create({
   rect: {x: 30, y: 90, width: 100, height: 60},

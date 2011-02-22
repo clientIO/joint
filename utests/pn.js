@@ -1,5 +1,9 @@
+title('Petri Nets');
+description('Describe your parallel processes.');
+dimension(800, 400);
+
 var pn = Joint.dia.pn;
-Joint.paper("world", 800, 1000);
+Joint.paper("world", 800, 400);
 
 var p1 = pn.Place.create({position: {x: 80, y: 110}, label: "p1", tokens: 1});
 var p2 = pn.Place.create({position: {x: 410, y: 110}, label: "p2", tokens: 2});
