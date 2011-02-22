@@ -1329,7 +1329,8 @@ Joint.arrows = {
 	return {
 	    path: ["M",size.toString(),"0","L",(-size).toString(),"0"],
 	    dx: size,
-	    dy: size
+	    dy: size,
+            attrs: { opacity: 0 }
 	};
     },
     basic: function(size){
