@@ -205,8 +205,9 @@ Element.prototype = {
         this.shadow = null;
         this.shadowAttrs = {
             stroke: 'none', 
-            fill: '#555', 
-            translation: '4,4'
+            fill: '#999', 
+            translation: '7,7',
+            opacity: 0.5
         };
 	this.inner = [];
 	// ghost attributes
