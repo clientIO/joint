@@ -1,3 +1,0 @@
-h1. Blueprint CSS Tabs Plugin Authors and Contributors
-
-* "Christian Montoya":http://christianmontoya.com
