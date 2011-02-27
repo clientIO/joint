@@ -41,10 +41,17 @@
           #description {
             position: fixed;
             left: 10px;
-            top: 30px;
+            top: 45px;
             color: white;
             font-size: 12px;
             width: 250px;
+          }
+          #source {
+            position: fixed;
+            left: 20px;
+            top: 37px;
+            color: white;
+            font-size: 12px;
           }
         </style>
         <script type="text/javascript">
@@ -64,6 +71,7 @@
 	        var sel = document.createElement("script");
                 sel.type = "text/javascript";
                 sel.src = srcs[i] + ".js?" + new Date;
+                document.getElementById("source").href = srcs[i] + ".js";
                 document.getElementsByTagName("head").item(0).appendChild(sel);
 	      }
             }
@@ -84,5 +92,6 @@
         <div id="world"></div>
         <h1 id="title"></h1>
         <p id="description"></p>
+        <a id="source" href="">(source)</a>
     </body>
 </html>
