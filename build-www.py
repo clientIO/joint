@@ -10,11 +10,10 @@ TARGET_DIR = 'www/'
 template = 'template.tpl'
 
 if __name__ == "__main__":
-    
     # copy demos to www
-    shutil.rmtree(TARGET_DIR + 'demos');
-    shutil.rmtree(TARGET_DIR + 'lib');
-    shutil.rmtree(TARGET_DIR + 'src');
+    shutil.rmtree(TARGET_DIR + 'demos/');
+    shutil.rmtree(TARGET_DIR + 'lib/');
+    shutil.rmtree(TARGET_DIR + 'src/');
     shutil.copytree('demos', TARGET_DIR + 'demos')
     shutil.copytree('lib', TARGET_DIR + 'lib')
     shutil.copytree('src', TARGET_DIR + 'src')

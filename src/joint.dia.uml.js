@@ -83,7 +83,7 @@ uml.arrow = {
  * @param {Object} [properties.actions] Actions of the state.
  * @param {String} [properties.actions.entry] Entry action of the state.
  * @param {String} [properties.actions.exit] Exit action of the state.
- * @param {String[]} [properties.actions.inner] Actions of the state (e.g. ["Evt1", "Action1()", "Evt2", "Action2()"])
+ * @param {array} [properties.actions.inner] Actions of the state (e.g. ["Evt1", "Action1()", "Evt2", "Action2()"])
  * @param {Number} [properties.actionsOffsetX] Offset in x-axis of the actions.
  * @param {Number} [properties.actionsOffsetY] Offset in y-axis of the actions.
  * @example
@@ -268,8 +268,8 @@ uml.EndState = Element.extend({
  * @param {Number} [properties.swimlane1OffsetY] Offset in y-axis of the swimlane shown after the class label.
  * @param {Number} [properties.swimlane2OffsetY] Offset in y-axis of the swimlane shown after the class attributes.
  * @param {Object} [properties.attrs] SVG attributes of the appearance of the state.
- * @param {String[]} [properties.attributes] Attributes of the class.
- * @param {String[]} [properties.methods] Methods of the class.
+ * @param {array} [properties.attributes] Attributes of the class.
+ * @param {array} [properties.methods] Methods of the class.
  * @param {Number} [properties.attributesOffsetX] Offset in x-axis of the attributes.
  * @param {Number} [properties.attributesOffsetY] Offset in y-axis of the attributes.
  * @param {Number} [properties.methodsOffsetX] Offset in x-axis of the methods.

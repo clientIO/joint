@@ -135,9 +135,7 @@ h4 {
     width: 1000px;
     padding: 30px 50px;
     margin: 2px auto 0 auto;
-    background-color: white;
-    background-image: url(../img/pat2.gif);
-    background-repeat: xy-repeat;
+    background-color: #2f2f2f;
     color: white;
 }
 

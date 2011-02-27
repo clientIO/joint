@@ -7,6 +7,8 @@
     <ul>
         <li><a href="build/joint.min.js">Joint library</a></li>
         <li><a href="build/joint.dia.min.js">Joint dia module</a></li>
+        <li><a href="build/joint.dia.serializer.min.js">Joint serialization module</a></li>
+        <li><a href="build/joint.dia.arrows.min.js">Additional arrows</a></li>
         <li><a href="build/joint.dia.uml.min.js">UML plugin</a></li>
         <li><a href="build/joint.dia.fsa.min.js">FSA (Finite State Machines) plugin</a></li>
         <li><a href="build/joint.dia.pn.min.js">PN (Petri Nets) plugin</a></li>
