@@ -29,7 +29,7 @@
     <li><a href="demos.html">Demos</a></li>    
     <li><a href="license.html">License</a></li>
     <li><a href="tutorial.html">Quick tutorial</a></li>
-    <li><a href="api/index.html"><b>API Reference</b></a>
+    <li><a href="api.html"><b>API Reference</b></a>
     <li><a href="http://groups.google.com/group/jointjs">Discussion</a></li>
   </ul>
 
@@ -55,8 +55,10 @@
   <em class="copyright">Copyright &copy; 2009 - 2011 David Durman</em>
   <p class="notes">
       <span>About the author</span><br/>
-      Author is a passionate JavaScript developer
-      based in Amsterdam, the Netherlands.
+      Author is a Software Developer
+      based in Amsterdam, the Netherlands. 
+      He is currently most interested in JavaScript on both
+      client and server side.
   </p>
   <p class="notes">
       <span>How to contribute</span><br/>

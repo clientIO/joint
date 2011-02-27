@@ -38,8 +38,8 @@ devs.arrow = {
  * @param {Object} [properties.oPortAttrs] SVG attributes of the appearance of the output ports.
  * @param {Number} [properties.iPortLabelOffsetX] Offset in x-axis of the input ports label.
  * @param {Number} [properties.oPortLabelOffsetX] Offset in x-axis of the output ports label.
- * @param {String[]} [properties.iPorts] The input port names.
- * @param {String[]} [properties.oPorts] The output port names.
+ * @param {array} [properties.iPorts] The input port names.
+ * @param {array} [properties.oPorts] The output port names.
  * @param {Object} [properties.attrs] SVG attributes of the appearance of the model.
  * @example
 var a1 = Joint.dia.devs.Model.create({

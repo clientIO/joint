@@ -3,6 +3,7 @@ body
 {
 	font: 12px "Lucida Grande", Tahoma, Arial, Helvetica, sans-serif;
 	width: 800px;
+        color: white;
 }
 
 .header
@@ -75,7 +76,10 @@ h1.classTitle
 	line-height:130%;
 }
 
-h2 { font-size: 110%; }
+h2 
+{ 
+    font-size: 110%; 
+}
 caption, div.sectionTitle
 {
 	background-color: #7F8FB1;
@@ -108,7 +112,8 @@ div.sectionTitle { margin-bottom: 8px; }
 td.attributes, .fixedFont
 {
 	line-height: 15px;
-	color: #002EBE;
+	color: white;
+        font-weight: bold;
 	font-family: "Courier New",Courier,monospace;
 	font-size: 13px;
 }
@@ -173,3 +178,15 @@ ul.inheritsList
   text-decoration: none;
   color: inherit;
 }
+a {
+    color: white;
+    text-decoration: underline;
+}
+
+#index a,
+#index h2 {
+    color: black;
+}
+
+
+

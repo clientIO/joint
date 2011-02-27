@@ -58,7 +58,7 @@ uml.generalizationArrow = {
 };
 /**
  * Predefined arrow for StateChart.
- * @name arrow
+ * @name Joint.dia.uml.arrow
  * @memberOf Joint.dia.uml
  * @example s1.joint(s2, Joint.dia.uml.arrow);
  */

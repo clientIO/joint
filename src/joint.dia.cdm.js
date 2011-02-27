@@ -118,7 +118,7 @@ cdm.plain = {
 
 /**
  * Predefined arrow similar to that in UML, in case that script isn't loaded. This produces a solid line for the length of the arrow.
- * @name arrow
+ * @name Joint.dia.cdm.arrow
  * @memberOf Joint.dia.cdm
  * @example s1.joint(s2, Joint.dia.cdm.arrow);
  */
@@ -210,18 +210,8 @@ cdm.dashes = {
     attrs: {"stroke-dasharray": "--", stroke:"#800040"}
 };
 
-
 /**
- * Relationships with one optional member and one mandatory member are not yet defined
- */
-
-
-
-
-
-
-/**
- * CDM EntityChart .
+ * CDM EntityChart.
  * @name Entity.create
  * @methodOf Joint.dia.cdm
  * @param {Object} properties

@@ -4,7 +4,6 @@
 <ul>
     <li><a href="demos/run.html?unit=org">Org chart</a></li>
     <li><a href="demos/run.html?unit=erd">ERD diagram</a></li>
-    <li><a href="demos/run.html?unit=cdm">Conceptual data model</a></li>
     <li><a href="demos/run.html?unit=uml.statechart">UML StateChart</a></li>
     <li><a href="demos/run.html?unit=uml.classdiagram">UML Class diagram</a></li>
     <li><a href="demos/run.html?unit=fsa">Finite State Machine</a></li>

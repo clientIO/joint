@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="generator" content="JsDoc Toolkit" />
+		
+		<title>JointJS API Reference - Joint.dia</title>
+
+		<style type="text/css">
+			/* default.css */
+body
+{
+	font: 12px "Lucida Grande", Tahoma, Arial, Helvetica, sans-serif;
+	width: 800px;
+        color: white;
+}
+
+.header
+{
+	clear: both;
+	background-color: #ccc;
+	padding: 8px;
+}
+
+h1
+{
+	font-size: 150%;
+	font-weight: bold;
+	padding: 0;
+	margin: 1em 0 0 .3em;
+}
+
+hr
+{
+	border: none 0;
+	border-top: 1px solid #7F8FB1;
+	height: 1px;
+}
+
+pre.code
+{
+	display: block;
+	padding: 8px;
+	border: 1px dashed #ccc;
+}
+
+#index
+{
+	margin-top: 24px;
+	float: left;
+	width: 160px;
+	position: absolute;
+	left: 8px;
+	background-color: #F3F3F3;
+	padding: 8px;
+}
+
+#content
+{
+	margin-left: 190px;
+	width: 600px;
+}
+
+.classList
+{
+	list-style-type: none;
+	padding: 0;
+	margin: 0 0 0 8px;
+	font-family: arial, sans-serif;
+	font-size: 1em;
+	overflow: auto;
+}
+
+.classList li
+{
+	padding: 0;
+	margin: 0 0 8px 0;
+}
+
+.summaryTable { width: 100%; }
+
+h1.classTitle
+{
+	font-size:170%;
+	line-height:130%;
+}
+
+h2 
+{ 
+    font-size: 110%; 
+}
+caption, div.sectionTitle
+{
+	background-color: #7F8FB1;
+	color: #fff;
+	font-size:130%;
+	text-align: left;
+	padding: 2px 6px 2px 6px;
+	border: 1px #7F8FB1 solid;
+}
+
+div.sectionTitle { margin-bottom: 8px; }
+.summaryTable thead { display: none; }
+
+.summaryTable td
+{
+	vertical-align: top;
+	padding: 4px;
+	border-bottom: 1px #7F8FB1 solid;
+	border-right: 1px #7F8FB1 solid;
+}
+
+/*col#summaryAttributes {}*/
+.summaryTable td.attributes
+{
+	border-left: 1px #7F8FB1 solid;
+	width: 140px;
+	text-align: right;
+}
+
+td.attributes, .fixedFont
+{
+	line-height: 15px;
+	color: white;
+        font-weight: bold;
+	font-family: "Courier New",Courier,monospace;
+	font-size: 13px;
+}
+
+.summaryTable td.nameDescription
+{
+	text-align: left;
+	font-size: 13px;
+	line-height: 15px;
+}
+
+.summaryTable td.nameDescription, .description
+{
+	line-height: 15px;
+	padding: 4px;
+	padding-left: 4px;
+}
+
+.summaryTable { margin-bottom: 8px; }
+
+ul.inheritsList
+{
+	list-style: square;
+	margin-left: 20px;
+	padding-left: 0;
+}
+
+.detailList {
+	margin-left: 20px; 
+	line-height: 15px;
+}
+.detailList dt { margin-left: 20px; }
+
+.detailList .heading
+{
+	font-weight: bold;
+	padding-bottom: 6px;
+	margin-left: 0;
+}
+
+.light, td.attributes, .light a:link, .light a:visited
+{
+	color: #777;
+	font-style: italic;
+}
+
+.fineprint
+{
+	text-align: right;
+	font-size: 10px;
+}
+
+#header { 
+  display: block;
+  text-align: center;
+  background-color: #26A2E0;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+}
+#header a { 
+  text-decoration: none;
+  color: inherit;
+}
+a {
+    color: white;
+    text-decoration: underline;
+}
+
+#index a,
+#index h2 {
+    color: black;
+}
+
+
+
+
+		</style>
+	</head>
+
+	<body>
+<!-- ============================== header ================================= -->	
+		<!-- begin static/header.html -->
+		
+		<!-- end static/header.html -->
+
+<!-- ============================== classes index ============================ -->
+		<div id="index">
+			<!-- begin publish.classesIndex -->
+			<div align="center"><a href="../index.html">Class Index</a>
+| <a href="../files.html">File Index</a></div>
+<hr />
+<h2>Classes</h2>
+<ul class="classList">
+	
+	<li></li>
+	
+	<li><a href="../symbols/Joint.html">Joint</a></li>
+	
+	<li><a href="../symbols/Joint.arrows.html">Joint.arrows</a></li>
+	
+	<li><a href="../symbols/Joint.dia.html">Joint.dia</a></li>
+	
+	<li><a href="../symbols/Joint.dia.devs.html">Joint.dia.devs</a></li>
+	
+	<li><a href="../symbols/Joint.dia.Element.html">Joint.dia.Element</a></li>
+	
+	<li><a href="../symbols/Joint.dia.erd.html">Joint.dia.erd</a></li>
+	
+	<li><a href="../symbols/Joint.dia.fsa.html">Joint.dia.fsa</a></li>
+	
+	<li><a href="../symbols/Joint.dia.org.html">Joint.dia.org</a></li>
+	
+	<li><a href="../symbols/Joint.dia.pn.html">Joint.dia.pn</a></li>
+	
+	<li><a href="../symbols/Joint.dia.uml.html">Joint.dia.uml</a></li>
+	
+</ul>
+<hr />
+			<!-- end publish.classesIndex -->
+		</div>
+		
+		<div id="content">
+<!-- ============================== class title ============================ -->
+			<h1 class="classTitle">
+				
+				Namespace Joint.dia
+			</h1>
+
+<!-- ============================== class summary ========================== -->			
+			<p class="description">
+				
+				
+			
+				Holds functionality related to all diagrams and their elements.
+				
+				
+					<br /><i>Defined in: </i> <a href="../symbols/src/src_joint.dia.js.html">joint.dia.js</a>.
+				
+			</p>
+
+<!-- ============================== constructor summary ==================== -->			
+			
+			<table class="summaryTable" cellspacing="0" summary="A summary of the constructor documented in the class Joint.dia.">
+				<caption>Namespace Summary</caption>
+				<thead>
+					<tr>
+						<th scope="col">Constructor Attributes</th>
+						<th scope="col">Constructor Name and Description</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="attributes">&nbsp;</td>
+						<td class="nameDescription" >
+							<div class="fixedFont">
+								<b><a href="../symbols/Joint.dia.html#constructor">Joint.dia</a></b>
+							</div>
+							<div class="description"></div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			
+
+<!-- ============================== properties summary ===================== -->
+			
+				
+				
+				
+				
+			
+
+<!-- ============================== methods summary ======================== -->
+			
+				
+				
+				<table class="summaryTable" cellspacing="0" summary="A summary of the methods documented in the class Joint.dia.">
+					<caption>Method Summary</caption>
+					<thead>
+						<tr>
+							<th scope="col">Method Attributes</th>
+							<th scope="col">Method Name and Description</th>
+						</tr>
+					</thead>
+					<tbody>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.clone">clone</a></b>()
+								</div>
+								<div class="description">Clones diagram in the current paper.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.Joint">Joint</a></b>(args)
+								</div>
+								<div class="description">Create new joint and register it.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.parse">parse</a></b>(JSON)
+								</div>
+								<div class="description">Construct a diagram from the JSON representation.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.register">register</a></b>(obj)
+								</div>
+								<div class="description">Register object to the current paper.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.registeredElements">registeredElements</a></b>()
+								</div>
+								<div class="description">Returns registered elements of the current paper.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.registeredJoints">registeredJoints</a></b>()
+								</div>
+								<div class="description">Returns registered joints of the current paper.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.registerJoint">registerJoint</a></b>(j)
+								</div>
+								<div class="description">Register joint to the current paper.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.stringify">stringify</a></b>(paper)
+								</div>
+								<div class="description">Stringify the whole diagram (occupying a paper).</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.unregister">unregister</a></b>(obj)
+								</div>
+								<div class="description">Cancel registration of an element in the current paper.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.<b><a href="../symbols/Joint.dia.html#.unregisterJoint">unregisterJoint</a></b>(j)
+								</div>
+								<div class="description">Cancel registration of a joint in the current paper.</div>
+							</td>
+						</tr>
+					
+					</tbody>
+				</table>
+				
+				
+				
+			
+<!-- ============================== events summary ======================== -->
+			
+
+<!-- ============================== constructor details ==================== -->		
+			
+			<div class="details"><a name="constructor"> </a>
+				<div class="sectionTitle">
+					Namespace Detail
+				</div>
+				
+				<div class="fixedFont">
+						<b>Joint.dia</b>
+				</div>
+				
+				<div class="description">
+					
+					
+				</div>
+				
+				
+				
+				
+					
+					
+					
+					
+					
+					
+					
+
+			</div>
+			
+
+<!-- ============================== field details ========================== -->		
+			
+
+<!-- ============================== method details ========================= -->		
+			
+				<div class="sectionTitle">
+					Method Detail
+				</div>
+				
+					<a name=".clone"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{Array}</span>
+					<span class="light">Joint.dia.</span><b>clone</b>()
+					
+					</div>
+					<div class="description">
+						Clones diagram in the current paper.
+						
+							<br />
+							<i>Defined in: </i> <a href="../symbols/src/src_joint.dia.serializer.js.html">joint.dia.serializer.js</a>.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Array}</span> Array of the constructed elements.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".Joint"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{<a href="../symbols/Joint.html">Joint</a>}</span>
+					<span class="light">Joint.dia.</span><b>Joint</b>(args)
+					
+					</div>
+					<div class="description">
+						Create new joint and register it. All joints appearing in a diagram should
+be created using this function. Otherwise they won't be registered and
+therefore not serialized when needed.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>args</b>
+									
+								</dt>
+								<dd>Joint parameters.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Joint.html">Joint</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">See:</dt>
+							
+								<dd><a href="../symbols/Joint.html">Joint</a></dd>
+							
+							</dl>
+						
+
+					<hr />
+				
+					<a name=".parse"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{Array}</span>
+					<span class="light">Joint.dia.</span><b>parse</b>(JSON)
+					
+					</div>
+					<div class="description">
+						Construct a diagram from the JSON representation.
+						
+							<br />
+							<i>Defined in: </i> <a href="../symbols/src/src_joint.dia.serializer.js.html">joint.dia.serializer.js</a>.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{String}</span> <b>JSON</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Array}</span> Array of the constructed elements.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".register"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{Element|<a href="../symbols/Joint.html">Joint</a>}</span>
+					<span class="light">Joint.dia.</span><b>register</b>(obj)
+					
+					</div>
+					<div class="description">
+						Register object to the current paper.
+You don't have to use this method unless you really know what you're doing.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{Element|<a href="../symbols/Joint.html">Joint</a>}</span> <b>obj</b>
+									
+								</dt>
+								<dd>Object to be registered.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element|<a href="../symbols/Joint.html">Joint</a>}</span> Registered object.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".registeredElements"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{array}</span>
+					<span class="light">Joint.dia.</span><b>registeredElements</b>()
+					
+					</div>
+					<div class="description">
+						Returns registered elements of the current paper.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{array}</span> Array of registered elements.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".registeredJoints"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{array}</span>
+					<span class="light">Joint.dia.</span><b>registeredJoints</b>()
+					
+					</div>
+					<div class="description">
+						Returns registered joints of the current paper.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{array}</span> Array of registered joints.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".registerJoint"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					
+					<span class="light">Joint.dia.</span><b>registerJoint</b>(j)
+					
+					</div>
+					<div class="description">
+						Register joint to the current paper. Avoid registering the the same joint twice.
+You don't have to use this method unless you really know what you're doing.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Joint.html">Joint</a>}</span> <b>j</b>
+									
+								</dt>
+								<dd>Joint object to be registered.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name=".stringify"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{String}</span>
+					<span class="light">Joint.dia.</span><b>stringify</b>(paper)
+					
+					</div>
+					<div class="description">
+						Stringify the whole diagram (occupying a paper).
+						
+							<br />
+							<i>Defined in: </i> <a href="../symbols/src/src_joint.dia.serializer.js.html">joint.dia.serializer.js</a>.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{RaphaelPaper}</span> <b>paper</b>
+									
+								</dt>
+								<dd>Raphael paper the diagram belongs to.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{String}</span> JSON representation of the diagram.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".unregister"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					
+					<span class="light">Joint.dia.</span><b>unregister</b>(obj)
+					
+					</div>
+					<div class="description">
+						Cancel registration of an element in the current paper.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{Element}</span> <b>obj</b>
+									
+								</dt>
+								<dd>Object to be unregistered.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name=".unregisterJoint"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					
+					<span class="light">Joint.dia.</span><b>unregisterJoint</b>(j)
+					
+					</div>
+					<div class="description">
+						Cancel registration of a joint in the current paper.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Joint.html">Joint</a>}</span> <b>j</b>
+									
+								</dt>
+								<dd>Joint to be unregistered.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					
+				
+			
+			
+<!-- ============================== event details ========================= -->		
+			
+			
+			<hr />
+		</div>
+
+		
+<!-- ============================== footer ================================= -->
+		<div class="fineprint" style="clear:both">
+		  JointJS - JavaScript diagramming library, &copy; David Durman, 2009 - 2011
+		</div>
+	</body>
+</html>

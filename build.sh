@@ -97,6 +97,7 @@ while [ $# -gt 0 ]; do
         -b) MODE="build"; shift 1;;
         -c) MODE="minify"; MINIFIED_FILE=$2; shift 2;;
         -m) MODE="merge"; MERGED_FILE=$2; shift 2;;
+        -a) MODE="api"; shift 1;;
         *)  print_usage; exit 1
     esac
 done
@@ -104,6 +105,7 @@ done
 case $MODE in
     buildall) build_all ;;
     build) build ;;
+    api) build_api_reference ;;
     minify) print_info "Minifying..."; 
             minify "$DEPENDENCIES$PACKAGES"; 
             print_info "Size before minification: $(files_size "$DEPENDENCIES$PACKAGES") B"

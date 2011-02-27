@@ -13,7 +13,7 @@ var erd = Joint.dia.erd = {};
 /**
  * Predefined arrow. You are free to use this arrow as the option parameter to joint method.
  * Implements Chen-style cardinality notation.
- * @name arrow
+ * @name Joint.dia.erd.arrow
  * @memberOf Joint.dia.erd
  * @example
  * var arrow = Joint.dia.erd.arrow;

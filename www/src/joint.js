@@ -451,7 +451,7 @@ Joint.prototype = {
     /**
      * Calls a callback.
      * @private
-     * @param {function} fnc Callback function
+     * @param fnc Callback 
      * @param {object} scope Scope of the callback
      * @param {array} args Array of arguments
      */
@@ -998,7 +998,7 @@ Joint.prototype = {
      * into the array before and/or after the call of this method will be registered (for both caps).
      * This method is useful for applications that do not know to which objects the connection
      * can be sticked when the joint is created.
-     * @param {Array|arg1, arg2, ...} An array holding objects which the joint is going to be registered to.
+     * @param {array} arr An array holding objects which the joint is going to be registered to.
      * @return {Joint}
      * @example
      * var all = [];
@@ -1105,7 +1105,7 @@ Joint.prototype = {
      * Register callback function on various events.
      * @link Callbacks
      * @param {string} evt "justConnected"|"disconnected"|"justBroken"|"wiring"|"objectMoving"
-     * @param {function} fnc
+     * @param fnc Callback
      * @return {Joint}
      * @example
      * j.registerCallback("justConnected", function(side){ ... this points to the object the joint was just connected to ... });

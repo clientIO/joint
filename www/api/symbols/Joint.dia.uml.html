@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="generator" content="JsDoc Toolkit" />
+		
+		<title>JointJS API Reference - Joint.dia.uml</title>
+
+		<style type="text/css">
+			/* default.css */
+body
+{
+	font: 12px "Lucida Grande", Tahoma, Arial, Helvetica, sans-serif;
+	width: 800px;
+        color: white;
+}
+
+.header
+{
+	clear: both;
+	background-color: #ccc;
+	padding: 8px;
+}
+
+h1
+{
+	font-size: 150%;
+	font-weight: bold;
+	padding: 0;
+	margin: 1em 0 0 .3em;
+}
+
+hr
+{
+	border: none 0;
+	border-top: 1px solid #7F8FB1;
+	height: 1px;
+}
+
+pre.code
+{
+	display: block;
+	padding: 8px;
+	border: 1px dashed #ccc;
+}
+
+#index
+{
+	margin-top: 24px;
+	float: left;
+	width: 160px;
+	position: absolute;
+	left: 8px;
+	background-color: #F3F3F3;
+	padding: 8px;
+}
+
+#content
+{
+	margin-left: 190px;
+	width: 600px;
+}
+
+.classList
+{
+	list-style-type: none;
+	padding: 0;
+	margin: 0 0 0 8px;
+	font-family: arial, sans-serif;
+	font-size: 1em;
+	overflow: auto;
+}
+
+.classList li
+{
+	padding: 0;
+	margin: 0 0 8px 0;
+}
+
+.summaryTable { width: 100%; }
+
+h1.classTitle
+{
+	font-size:170%;
+	line-height:130%;
+}
+
+h2 
+{ 
+    font-size: 110%; 
+}
+caption, div.sectionTitle
+{
+	background-color: #7F8FB1;
+	color: #fff;
+	font-size:130%;
+	text-align: left;
+	padding: 2px 6px 2px 6px;
+	border: 1px #7F8FB1 solid;
+}
+
+div.sectionTitle { margin-bottom: 8px; }
+.summaryTable thead { display: none; }
+
+.summaryTable td
+{
+	vertical-align: top;
+	padding: 4px;
+	border-bottom: 1px #7F8FB1 solid;
+	border-right: 1px #7F8FB1 solid;
+}
+
+/*col#summaryAttributes {}*/
+.summaryTable td.attributes
+{
+	border-left: 1px #7F8FB1 solid;
+	width: 140px;
+	text-align: right;
+}
+
+td.attributes, .fixedFont
+{
+	line-height: 15px;
+	color: white;
+        font-weight: bold;
+	font-family: "Courier New",Courier,monospace;
+	font-size: 13px;
+}
+
+.summaryTable td.nameDescription
+{
+	text-align: left;
+	font-size: 13px;
+	line-height: 15px;
+}
+
+.summaryTable td.nameDescription, .description
+{
+	line-height: 15px;
+	padding: 4px;
+	padding-left: 4px;
+}
+
+.summaryTable { margin-bottom: 8px; }
+
+ul.inheritsList
+{
+	list-style: square;
+	margin-left: 20px;
+	padding-left: 0;
+}
+
+.detailList {
+	margin-left: 20px; 
+	line-height: 15px;
+}
+.detailList dt { margin-left: 20px; }
+
+.detailList .heading
+{
+	font-weight: bold;
+	padding-bottom: 6px;
+	margin-left: 0;
+}
+
+.light, td.attributes, .light a:link, .light a:visited
+{
+	color: #777;
+	font-style: italic;
+}
+
+.fineprint
+{
+	text-align: right;
+	font-size: 10px;
+}
+
+#header { 
+  display: block;
+  text-align: center;
+  background-color: #26A2E0;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+}
+#header a { 
+  text-decoration: none;
+  color: inherit;
+}
+a {
+    color: white;
+    text-decoration: underline;
+}
+
+#index a,
+#index h2 {
+    color: black;
+}
+
+
+
+
+		</style>
+	</head>
+
+	<body>
+<!-- ============================== header ================================= -->	
+		<!-- begin static/header.html -->
+		
+		<!-- end static/header.html -->
+
+<!-- ============================== classes index ============================ -->
+		<div id="index">
+			<!-- begin publish.classesIndex -->
+			<div align="center"><a href="../index.html">Class Index</a>
+| <a href="../files.html">File Index</a></div>
+<hr />
+<h2>Classes</h2>
+<ul class="classList">
+	
+	<li></li>
+	
+	<li><a href="../symbols/Joint.html">Joint</a></li>
+	
+	<li><a href="../symbols/Joint.arrows.html">Joint.arrows</a></li>
+	
+	<li><a href="../symbols/Joint.dia.html">Joint.dia</a></li>
+	
+	<li><a href="../symbols/Joint.dia.devs.html">Joint.dia.devs</a></li>
+	
+	<li><a href="../symbols/Joint.dia.Element.html">Joint.dia.Element</a></li>
+	
+	<li><a href="../symbols/Joint.dia.erd.html">Joint.dia.erd</a></li>
+	
+	<li><a href="../symbols/Joint.dia.fsa.html">Joint.dia.fsa</a></li>
+	
+	<li><a href="../symbols/Joint.dia.org.html">Joint.dia.org</a></li>
+	
+	<li><a href="../symbols/Joint.dia.pn.html">Joint.dia.pn</a></li>
+	
+	<li><a href="../symbols/Joint.dia.uml.html">Joint.dia.uml</a></li>
+	
+</ul>
+<hr />
+			<!-- end publish.classesIndex -->
+		</div>
+		
+		<div id="content">
+<!-- ============================== class title ============================ -->
+			<h1 class="classTitle">
+				
+				Namespace Joint.dia.uml
+			</h1>
+
+<!-- ============================== class summary ========================== -->			
+			<p class="description">
+				
+				
+			
+				Holds functionality related to UML diagrams.
+				
+				
+					<br /><i>Defined in: </i> <a href="../symbols/src/src_joint.dia.uml.js.html">joint.dia.uml.js</a>.
+				
+			</p>
+
+<!-- ============================== constructor summary ==================== -->			
+			
+			<table class="summaryTable" cellspacing="0" summary="A summary of the constructor documented in the class Joint.dia.uml.">
+				<caption>Namespace Summary</caption>
+				<thead>
+					<tr>
+						<th scope="col">Constructor Attributes</th>
+						<th scope="col">Constructor Name and Description</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="attributes">&nbsp;</td>
+						<td class="nameDescription" >
+							<div class="fixedFont">
+								<b><a href="../symbols/Joint.dia.uml.html#constructor">Joint.dia.uml</a></b>
+							</div>
+							<div class="description"></div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			
+
+<!-- ============================== properties summary ===================== -->
+			
+				
+				
+				<table class="summaryTable" cellspacing="0" summary="A summary of the fields documented in the class Joint.dia.uml.">
+					<caption>Field Summary</caption>
+					<thead>
+						<tr>
+							<th scope="col">Field Attributes</th>
+							<th scope="col">Field Name and Description</th>
+						</tr>
+					</thead>
+					<tbody>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">
+								Joint.dia.uml.<b><a href="../symbols/Joint.dia.uml.html#.aggregationArrow">aggregationArrow</a></b>
+								</div>
+								<div class="description">Predefined aggregation arrow for Class diagram.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">
+								Joint.dia.uml.<b><a href="../symbols/Joint.dia.uml.html#.arrow">arrow</a></b>
+								</div>
+								<div class="description">Predefined arrow for StateChart.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">
+								Joint.dia.uml.<b><a href="../symbols/Joint.dia.uml.html#.dependencyArrow">dependencyArrow</a></b>
+								</div>
+								<div class="description">Predefined dependency arrow for Class diagram.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">
+								Joint.dia.uml.<b><a href="../symbols/Joint.dia.uml.html#.generalizationArrow">generalizationArrow</a></b>
+								</div>
+								<div class="description">Predefined generalization arrow for Class diagram.</div>
+							</td>
+						</tr>
+					
+					</tbody>
+				</table>
+				
+				
+				
+			
+
+<!-- ============================== methods summary ======================== -->
+			
+				
+				
+				<table class="summaryTable" cellspacing="0" summary="A summary of the methods documented in the class Joint.dia.uml.">
+					<caption>Method Summary</caption>
+					<thead>
+						<tr>
+							<th scope="col">Method Attributes</th>
+							<th scope="col">Method Name and Description</th>
+						</tr>
+					</thead>
+					<tbody>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.uml.<b><a href="../symbols/Joint.dia.uml.html#.Class.create">Class.create</a></b>(properties)
+								</div>
+								<div class="description">UML StateChart class.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.uml.<b><a href="../symbols/Joint.dia.uml.html#.EndState.create">EndState.create</a></b>(properties)
+								</div>
+								<div class="description">UML StateChart end state.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.uml.<b><a href="../symbols/Joint.dia.uml.html#.StartState.create">StartState.create</a></b>(properties)
+								</div>
+								<div class="description">UML StateChart start state.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Joint.dia.uml.<b><a href="../symbols/Joint.dia.uml.html#.State.create">State.create</a></b>(properties)
+								</div>
+								<div class="description">UML StateChart state.</div>
+							</td>
+						</tr>
+					
+					</tbody>
+				</table>
+				
+				
+				
+			
+<!-- ============================== events summary ======================== -->
+			
+
+<!-- ============================== constructor details ==================== -->		
+			
+			<div class="details"><a name="constructor"> </a>
+				<div class="sectionTitle">
+					Namespace Detail
+				</div>
+				
+				<div class="fixedFont">
+						<b>Joint.dia.uml</b>
+				</div>
+				
+				<div class="description">
+					
+					
+				</div>
+				
+				
+				
+				
+					
+					
+					
+					
+					
+					
+					
+
+			</div>
+			
+
+<!-- ============================== field details ========================== -->		
+			
+				<div class="sectionTitle">
+					Field Detail
+				</div>
+				
+					<a name=".aggregationArrow"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					
+					<span class="light">Joint.dia.uml.</span><b>aggregationArrow</b>
+					
+					</div>
+					<div class="description">
+						Predefined aggregation arrow for Class diagram.
+						
+						
+					</div>
+					
+					
+					
+					<pre class="code">c1.joint(c2, Joint.dia.uml.aggregationArrow);</pre>
+					
+					
+
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name=".arrow"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					
+					<span class="light">Joint.dia.uml.</span><b>arrow</b>
+					
+					</div>
+					<div class="description">
+						Predefined arrow for StateChart.
+						
+						
+					</div>
+					
+					
+					
+					<pre class="code">s1.joint(s2, Joint.dia.uml.arrow);</pre>
+					
+					
+
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name=".dependencyArrow"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					
+					<span class="light">Joint.dia.uml.</span><b>dependencyArrow</b>
+					
+					</div>
+					<div class="description">
+						Predefined dependency arrow for Class diagram.
+						
+						
+					</div>
+					
+					
+					
+					<pre class="code">c1.joint(c2, Joint.dia.uml.dependencyArrow);</pre>
+					
+					
+
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name=".generalizationArrow"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					
+					<span class="light">Joint.dia.uml.</span><b>generalizationArrow</b>
+					
+					</div>
+					<div class="description">
+						Predefined generalization arrow for Class diagram.
+						
+						
+					</div>
+					
+					
+					
+					<pre class="code">c1.joint(c2, Joint.dia.uml.generalizationArrow);</pre>
+					
+					
+
+						
+						
+						
+						
+
+					
+				
+			
+
+<!-- ============================== method details ========================= -->		
+			
+				<div class="sectionTitle">
+					Method Detail
+				</div>
+				
+					<a name=".Class.create"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					
+					<span class="light">Joint.dia.uml.</span><b>Class.create</b>(properties)
+					
+					</div>
+					<div class="description">
+						UML StateChart class.
+						
+						
+					</div>
+					
+					
+					
+					<pre class="code">var c1 = Joint.dia.uml.Class.create({
+  rect: {x: 120, y: 70, width: 120, height: 80},
+  label: "MyClass",
+  attrs: {
+    fill: "90-#000-yellow:1-#fff"
+  },
+  attributes: ["-position"],
+  methods: ["+createIterator()"]
+});</pre>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>properties</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>properties.rect</b>
+									
+								</dt>
+								<dd>Bounding box of the Class (e.g. {x: 50, y: 100, width: 100, height: 80}).</dd>
+							
+								<dt>
+									<span class="light fixedFont">{String}</span> <b>properties.label</b>
+									<i>Optional</i>
+								</dt>
+								<dd>The name of the class.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.labelOffsetX</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Offset in x-axis of the label from the class rectangle origin.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.labelOffsetY</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Offset in y-axis of the label from the class rectangle origin.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.swimlane1OffsetY</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Offset in y-axis of the swimlane shown after the class label.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.swimlane2OffsetY</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Offset in y-axis of the swimlane shown after the class attributes.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>properties.attrs</b>
+									<i>Optional</i>
+								</dt>
+								<dd>SVG attributes of the appearance of the state.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{array}</span> <b>properties.attributes</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Attributes of the class.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{array}</span> <b>properties.methods</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Methods of the class.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.attributesOffsetX</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Offset in x-axis of the attributes.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.attributesOffsetY</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Offset in y-axis of the attributes.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.methodsOffsetX</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Offset in x-axis of the methods.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.methodsOffsetY</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Offset in y-axis of the methods.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name=".EndState.create"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					
+					<span class="light">Joint.dia.uml.</span><b>EndState.create</b>(properties)
+					
+					</div>
+					<div class="description">
+						UML StateChart end state.
+						
+						
+					</div>
+					
+					
+					
+					<pre class="code">var s0 = Joint.dia.uml.EndState.create({
+  position: {x: 120, y: 70},
+  radius: 15,
+  innerRadius: 8,
+  attrs: {
+    stroke: "blue",
+    fill: "yellow"
+  },
+  innerAttrs: {
+    fill: "red"
+  }
+});</pre>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>properties</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>properties.position</b>
+									
+								</dt>
+								<dd>Position of the end state (e.g. {x: 50, y: 100}).</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.radius</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Radius of the circle of the end state.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.innerRadius</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Radius of the inner circle of the end state.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>properties.attrs</b>
+									<i>Optional</i>
+								</dt>
+								<dd>SVG attributes of the appearance of the end state.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>properties.innerAttrs</b>
+									<i>Optional</i>
+								</dt>
+								<dd>SVG attributes of the appearance of the inner circle of the end state.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name=".StartState.create"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					
+					<span class="light">Joint.dia.uml.</span><b>StartState.create</b>(properties)
+					
+					</div>
+					<div class="description">
+						UML StateChart start state.
+						
+						
+					</div>
+					
+					
+					
+					<pre class="code">var s0 = Joint.dia.uml.StartState.create({
+  position: {x: 120, y: 70},
+  radius: 15,
+  attrs: {
+    stroke: "blue",
+    fill: "yellow"
+  }
+});</pre>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>properties</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>properties.position</b>
+									
+								</dt>
+								<dd>Position of the start state (e.g. {x: 50, y: 100}).</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.radius</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Radius of the circle of the start state.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>properties.attrs</b>
+									<i>Optional</i>
+								</dt>
+								<dd>SVG attributes of the appearance of the start state.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name=".State.create"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					
+					<span class="light">Joint.dia.uml.</span><b>State.create</b>(properties)
+					
+					</div>
+					<div class="description">
+						UML StateChart state.
+						
+						
+					</div>
+					
+					
+					
+					<pre class="code">var s1 = Joint.dia.uml.State.create({
+  rect: {x: 120, y: 70, width: 100, height: 60},
+  label: "state 1",
+  attrs: {
+    fill: "90-#000-green:1-#fff"
+  },
+  actions: {
+    entry: "init()",
+    exit: "destroy()",
+    inner: ["Evt1", "foo()", "Evt2", "bar()"]
+  }
+});</pre>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>properties</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>properties.rect</b>
+									
+								</dt>
+								<dd>Bounding box of the State (e.g. {x: 50, y: 100, width: 100, height: 80}).</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.radius</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Radius of the corners of the state rectangle.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{String}</span> <b>properties.label</b>
+									<i>Optional</i>
+								</dt>
+								<dd>The name of the state.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.labelOffsetX</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Offset in x-axis of the label from the state rectangle origin.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.labelOffsetY</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Offset in y-axis of the label from the state rectangle origin.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.swimlaneOffsetY</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Offset in y-axis of the swimlane shown after the state label.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>properties.attrs</b>
+									<i>Optional</i>
+								</dt>
+								<dd>SVG attributes of the appearance of the state.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Object}</span> <b>properties.actions</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Actions of the state.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{String}</span> <b>properties.actions.entry</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Entry action of the state.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{String}</span> <b>properties.actions.exit</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Exit action of the state.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{array}</span> <b>properties.actions.inner</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Actions of the state (e.g. ["Evt1", "Action1()", "Evt2", "Action2()"])</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.actionsOffsetX</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Offset in x-axis of the actions.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>properties.actionsOffsetY</b>
+									<i>Optional</i>
+								</dt>
+								<dd>Offset in y-axis of the actions.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					
+				
+			
+			
+<!-- ============================== event details ========================= -->		
+			
+			
+			<hr />
+		</div>
+
+		
+<!-- ============================== footer ================================= -->
+		<div class="fineprint" style="clear:both">
+		  JointJS - JavaScript diagramming library, &copy; David Durman, 2009 - 2011
+		</div>
+	</body>
+</html>

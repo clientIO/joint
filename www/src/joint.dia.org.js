@@ -25,8 +25,8 @@ org.arrow = {
 
 
 /**
- * ERD Entity and Weak Entity.
- * @methodOf Joint.dia.erd
+ * Organizational chart member.
+ * @methodOf Joint.dia.org
  */
 org.Member = Element.extend({
     object: 'Member',

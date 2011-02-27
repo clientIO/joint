@@ -9,6 +9,10 @@ p {
     line-height: 1.5em;
 }
 
+iframe {
+    border: none;
+}
+
 .highlight {
     color: #00b7fc;
 }

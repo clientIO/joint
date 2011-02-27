@@ -48,14 +48,14 @@ var dia = Joint.dia = {
     },
     /**
      * Returns registered elements of the current paper.
-     * @return {Element[]} Array of registered elements.
+     * @return {array} Array of registered elements.
      */
     registeredElements: function(){
 	return (this._registeredObjects[Joint.paper().euid()] || (this._registeredObjects[Joint.paper().euid()] = []));
     },
     /**
      * Returns registered joints of the current paper.
-     * @return {Joint[]} Array of registered joints.
+     * @return {array} Array of registered joints.
      */
     registeredJoints: function(){
 	return (this._registeredJoints[Joint.paper().euid()] || (this._registeredJoints[Joint.paper().euid()] = []));
@@ -83,7 +83,7 @@ var dia = Joint.dia = {
     /**
      * Register joint to the current paper. Avoid registering the the same joint twice.
      * You don't have to use this method unless you really know what you're doing.
-     * @param {Joint}
+     * @param {Joint} j Joint object to be registered.
      */
     registerJoint: function(j){
 	(this._registeredJoints[Joint.paper().euid()] || (this._registeredJoints[Joint.paper().euid()] = [])).push(j);
@@ -890,14 +890,6 @@ Element.mouseUp = function(e){
 	dia._currentDrag.translate(1,1);
     }
 
-    // if ghosting is enabled, scale whole shape as
-    // the ghost is, then remove ghost and update joints
-    if (dia._currentZoom && dia._currentZoom._opt.ghosting){
-	// current ghost scale
-	//	dia._currentZoom.scale(dia._currentZoom.lastScaleX, dia._currentZoom.lastScaleY);
-	//	dia._currentZoom.ghost.remove();
-	//	dia._currentZoom.joints.update();
-    }
     // add toolbar again when zooming is stopped
     if (dia._currentZoom){
 	// remove toolbox, because scale above may create one,

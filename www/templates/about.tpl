@@ -10,7 +10,7 @@ Joint library is suitable for both implementing a <b>diagramming tool</b> as wel
   <li>interacting with connections and objects</li>
   <li>custom handlers for various events</li>
   <li>bent lines smoothing</li>
-  <li>ready-to-use elements of well-known diagrams (ERD, Org chart, FSA, UML, PN, DEVS, CDM, LDM)</li>
+  <li>ready-to-use elements of well-known diagrams (ERD, Org chart, FSA, UML, PN, DEVS, LDM)</li>
   <li>hierarchical diagrams</li>
   <li>serialization (to/from JSON format, SVG export only in browsers that support it) 
   <li>extensible</li>
