@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="generator" content="JsDoc Toolkit" />
+		
+		<title>JointJS API Reference - Joint.dia.Element</title>
+
+		<style type="text/css">
+			/* default.css */
+body
+{
+	font: 12px "Lucida Grande", Tahoma, Arial, Helvetica, sans-serif;
+	width: 800px;
+        color: white;
+}
+
+.header
+{
+	clear: both;
+	background-color: #ccc;
+	padding: 8px;
+}
+
+h1
+{
+	font-size: 150%;
+	font-weight: bold;
+	padding: 0;
+	margin: 1em 0 0 .3em;
+}
+
+hr
+{
+	border: none 0;
+	border-top: 1px solid #7F8FB1;
+	height: 1px;
+}
+
+pre.code
+{
+	display: block;
+	padding: 8px;
+	border: 1px dashed #ccc;
+}
+
+#index
+{
+	margin-top: 24px;
+	float: left;
+	width: 160px;
+	position: absolute;
+	left: 8px;
+	background-color: #F3F3F3;
+	padding: 8px;
+}
+
+#content
+{
+	margin-left: 190px;
+	width: 600px;
+}
+
+.classList
+{
+	list-style-type: none;
+	padding: 0;
+	margin: 0 0 0 8px;
+	font-family: arial, sans-serif;
+	font-size: 1em;
+	overflow: auto;
+}
+
+.classList li
+{
+	padding: 0;
+	margin: 0 0 8px 0;
+}
+
+.summaryTable { width: 100%; }
+
+h1.classTitle
+{
+	font-size:170%;
+	line-height:130%;
+}
+
+h2 
+{ 
+    font-size: 110%; 
+}
+caption, div.sectionTitle
+{
+	background-color: #7F8FB1;
+	color: #fff;
+	font-size:130%;
+	text-align: left;
+	padding: 2px 6px 2px 6px;
+	border: 1px #7F8FB1 solid;
+}
+
+div.sectionTitle { margin-bottom: 8px; }
+.summaryTable thead { display: none; }
+
+.summaryTable td
+{
+	vertical-align: top;
+	padding: 4px;
+	border-bottom: 1px #7F8FB1 solid;
+	border-right: 1px #7F8FB1 solid;
+}
+
+/*col#summaryAttributes {}*/
+.summaryTable td.attributes
+{
+	border-left: 1px #7F8FB1 solid;
+	width: 140px;
+	text-align: right;
+}
+
+td.attributes, .fixedFont
+{
+	line-height: 15px;
+	color: white;
+        font-weight: bold;
+	font-family: "Courier New",Courier,monospace;
+	font-size: 13px;
+}
+
+.summaryTable td.nameDescription
+{
+	text-align: left;
+	font-size: 13px;
+	line-height: 15px;
+}
+
+.summaryTable td.nameDescription, .description
+{
+	line-height: 15px;
+	padding: 4px;
+	padding-left: 4px;
+}
+
+.summaryTable { margin-bottom: 8px; }
+
+ul.inheritsList
+{
+	list-style: square;
+	margin-left: 20px;
+	padding-left: 0;
+}
+
+.detailList {
+	margin-left: 20px; 
+	line-height: 15px;
+}
+.detailList dt { margin-left: 20px; }
+
+.detailList .heading
+{
+	font-weight: bold;
+	padding-bottom: 6px;
+	margin-left: 0;
+}
+
+.light, td.attributes, .light a:link, .light a:visited
+{
+	color: #777;
+	font-style: italic;
+}
+
+.fineprint
+{
+	text-align: right;
+	font-size: 10px;
+}
+
+#header { 
+  display: block;
+  text-align: center;
+  background-color: #26A2E0;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+}
+#header a { 
+  text-decoration: none;
+  color: inherit;
+}
+a {
+    color: white;
+    text-decoration: underline;
+}
+
+#index a,
+#index h2 {
+    color: black;
+}
+
+
+
+
+		</style>
+	</head>
+
+	<body>
+<!-- ============================== header ================================= -->	
+		<!-- begin static/header.html -->
+		
+		<!-- end static/header.html -->
+
+<!-- ============================== classes index ============================ -->
+		<div id="index">
+			<!-- begin publish.classesIndex -->
+			<div align="center"><a href="../index.html">Class Index</a>
+| <a href="../files.html">File Index</a></div>
+<hr />
+<h2>Classes</h2>
+<ul class="classList">
+	
+	<li></li>
+	
+	<li><a href="../symbols/Joint.html">Joint</a></li>
+	
+	<li><a href="../symbols/Joint.arrows.html">Joint.arrows</a></li>
+	
+	<li><a href="../symbols/Joint.dia.html">Joint.dia</a></li>
+	
+	<li><a href="../symbols/Joint.dia.devs.html">Joint.dia.devs</a></li>
+	
+	<li><a href="../symbols/Joint.dia.Element.html">Joint.dia.Element</a></li>
+	
+	<li><a href="../symbols/Joint.dia.erd.html">Joint.dia.erd</a></li>
+	
+	<li><a href="../symbols/Joint.dia.fsa.html">Joint.dia.fsa</a></li>
+	
+	<li><a href="../symbols/Joint.dia.org.html">Joint.dia.org</a></li>
+	
+	<li><a href="../symbols/Joint.dia.pn.html">Joint.dia.pn</a></li>
+	
+	<li><a href="../symbols/Joint.dia.uml.html">Joint.dia.uml</a></li>
+	
+</ul>
+<hr />
+			<!-- end publish.classesIndex -->
+		</div>
+		
+		<div id="content">
+<!-- ============================== class title ============================ -->
+			<h1 class="classTitle">
+				
+				Class Joint.dia.Element
+			</h1>
+
+<!-- ============================== class summary ========================== -->			
+			<p class="description">
+				
+				
+			
+				
+				
+				
+					<br /><i>Defined in: </i> <a href="../symbols/src/src_joint.dia.js.html">joint.dia.js</a>.
+				
+			</p>
+
+<!-- ============================== constructor summary ==================== -->			
+			
+			<table class="summaryTable" cellspacing="0" summary="A summary of the constructor documented in the class Joint.dia.Element.">
+				<caption>Class Summary</caption>
+				<thead>
+					<tr>
+						<th scope="col">Constructor Attributes</th>
+						<th scope="col">Constructor Name and Description</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="attributes">&nbsp;</td>
+						<td class="nameDescription" >
+							<div class="fixedFont">
+								<b><a href="../symbols/Joint.dia.Element.html#constructor">Joint.dia.Element</a></b>()
+							</div>
+							<div class="description">Abstract object of all diagram elements.</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			
+
+<!-- ============================== properties summary ===================== -->
+			
+
+<!-- ============================== methods summary ======================== -->
+			
+				
+				
+				<table class="summaryTable" cellspacing="0" summary="A summary of the methods documented in the class Joint.dia.Element.">
+					<caption>Method Summary</caption>
+					<thead>
+						<tr>
+							<th scope="col">Method Attributes</th>
+							<th scope="col">Method Name and Description</th>
+						</tr>
+					</thead>
+					<tbody>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#clone">clone</a></b>()
+								</div>
+								<div class="description">Clone element.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#addInner">Element#addInner</a></b>(s)
+								</div>
+								<div class="description">Add a subelement.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#delInner">Element#delInner</a></b>(s)
+								</div>
+								<div class="description">Remove a subelement.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#disconnect">Element#disconnect</a></b>()
+								</div>
+								<div class="description">Disconnects element from all joints.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#draggable">Element#draggable</a></b>(enable)
+								</div>
+								<div class="description">Enable/disable dragging of the element.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#embed">Element#embed</a></b>()
+								</div>
+								<div class="description">Embed me into the first registered dia.Element whos bounding box
+contains my bounding box origin.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#euid">Element#euid</a></b>()
+								</div>
+								<div class="description"></div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#getBBox">Element#getBBox</a></b>()
+								</div>
+								<div class="description"></div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#highlight">Element#highlight</a></b>()
+								</div>
+								<div class="description">Highlights the element.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#joint">Element#joint</a></b>(to, opt)
+								</div>
+								<div class="description"></div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#liquidate">Element#liquidate</a></b>()
+								</div>
+								<div class="description">Remove element and all joints pointing from and to this element.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#remove">Element#remove</a></b>()
+								</div>
+								<div class="description">Remove element.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#scale">Element#scale</a></b>(sx, &optional)
+								</div>
+								<div class="description">Scale element.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#setWrapper">Element#setWrapper</a></b>(s)
+								</div>
+								<div class="description">Add wrapper.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#toBack">Element#toBack</a></b>()
+								</div>
+								<div class="description">Sends the wrapper and all inners to the back.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#toFront">Element#toFront</a></b>()
+								</div>
+								<div class="description">Sends the wrapper and all inners to the front.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#toggleGhosting">Element#toggleGhosting</a></b>()
+								</div>
+								<div class="description">Toggle ghosting of the element.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#translate">Element#translate</a></b>(dx, dy)
+								</div>
+								<div class="description">Move the element by offsets.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#unembed">Element#unembed</a></b>()
+								</div>
+								<div class="description">Decouple embedded element from its parent.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#unhighlight">Element#unhighlight</a></b>()
+								</div>
+								<div class="description">Unhighlights the element.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#Element#zoom">Element#zoom</a></b>(sx, &optional)
+								</div>
+								<div class="description">This method should be overriden by inherited elements to implement
+the desired scaling behaviour.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Joint.dia.Element.html#stringify">stringify</a></b>()
+								</div>
+								<div class="description"></div>
+							</td>
+						</tr>
+					
+					</tbody>
+				</table>
+				
+				
+				
+			
+<!-- ============================== events summary ======================== -->
+			
+
+<!-- ============================== constructor details ==================== -->		
+			
+			<div class="details"><a name="constructor"> </a>
+				<div class="sectionTitle">
+					Class Detail
+				</div>
+				
+				<div class="fixedFont">
+						<b>Joint.dia.Element</b>()
+				</div>
+				
+				<div class="description">
+					Abstract object of all diagram elements.
+This object is never used directly, instead, specific diagram elements inherits from it.
+Allows easy creation of new specific diagram elements preserving all features that Joint library and Joint.dia plugin offer.
+<h3>Wrapper</h3>
+ All custom elements must have a wrapper set. Wrapper is the key object that Joint library counts with.
+ There cannot be any element without a wrapper. Usually it is an object which wraps all the subelements
+ that a specific diagram element contains. The wrapper must be set in init method.
+ To set a wrapper, use setWrapper(aWrapper) method. The single parameter to the method is a Raphaël vector object.
+ Later on, you can access this object using wrapper property.
+<h3>Inner</h3>
+ Inner objects are subelements of an element. Although they are optional, they are commonly used. To add a subelement
+ to the element, use addInner(anInner) method. It takes a Raphaël vector object as an argument. All inner objects are
+ placed to an array that you can access using inner property.
+<h3><i>init</i> method</h3>
+ The <i>init</i> method has to be part of every element you create. It takes all element options as an argument,
+ sets wrapper and adds inners.
+<h3><i>joint</i> method</h3>
+ If you have specific elements, in which connections are not controlled by wrapper, you can implement your own joint method.
+<h3><i>zoom</i> method</h3>
+ As Joint.dia library does not know how your specific element should behave after scaling, you can use zoom method to implement
+ the desired behaviour.
+					
+				</div>
+				
+				
+				
+				<pre class="code">var mydia = Joint.dia.mydia = {};
+var Element = Joint.dia.Element;
+
+mydia.MyElement = Element.extend({
+  // init method must be always presented
+  init: function(properties){
+    var p = this.properties;
+    // parameters processing
+    p.position = properties.position;
+    p.radius = properties.radius || 30;
+    // every element must have a wrapper
+    this.setWrapper(this.paper.circle(p.position.x, p.position.y, p.radius));
+    // optional inner elements
+    this.addInner(this.paper.text(p.position.x, p.position.y, "my element"));
+  }
+});
+
+// ...
+
+var e = mydia.MyElement.create({
+  position: {x: 50, y: 50},
+  radius: 20
+});</pre>
+				
+				
+				
+				
+					
+					
+					
+					
+					
+					
+					
+
+			</div>
+			
+
+<!-- ============================== field details ========================== -->		
+			
+
+<!-- ============================== method details ========================= -->		
+			
+				<div class="sectionTitle">
+					Method Detail
+				</div>
+				
+					<a name="clone"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>clone</b>()
+					
+					</div>
+					<div class="description">
+						Clone element.
+						
+							<br />
+							<i>Defined in: </i> <a href="../symbols/src/src_joint.dia.serializer.js.html">joint.dia.serializer.js</a>.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> Cloned element.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#addInner"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>Element#addInner</b>(s)
+					
+					</div>
+					<div class="description">
+						Add a subelement.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{Element}</span> <b>s</b>
+									
+								</dt>
+								<dd>The subelement to be added.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> this</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#delInner"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>Element#delInner</b>(s)
+					
+					</div>
+					<div class="description">
+						Remove a subelement.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{Element}</span> <b>s</b>
+									
+								</dt>
+								<dd>The subelement to be removed.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> this</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#disconnect"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>Element#disconnect</b>()
+					
+					</div>
+					<div class="description">
+						Disconnects element from all joints. Empties the element joints array.
+Note that it preserves registration of the element in its joints.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#draggable"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>Element#draggable</b>(enable)
+					
+					</div>
+					<div class="description">
+						Enable/disable dragging of the element.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{boolean}</span> <b>enable</b>
+									
+								</dt>
+								<dd>True/false.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> Return this.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#embed"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>Element#embed</b>()
+					
+					</div>
+					<div class="description">
+						Embed me into the first registered dia.Element whos bounding box
+contains my bounding box origin. Both elements will behave as a whole.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#euid"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>Element#euid</b>()
+					
+					</div>
+					<div class="description">
+						
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd>Element unique id.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#getBBox"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Object}</span>
+					<b>Element#getBBox</b>()
+					
+					</div>
+					<div class="description">
+						
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Object}</span> Bounding box of the element.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#highlight"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>Element#highlight</b>()
+					
+					</div>
+					<div class="description">
+						Highlights the element.
+Override in inherited objects or @todo set in options.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> Return this.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#joint"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>Element#joint</b>(to, opt)
+					
+					</div>
+					<div class="description">
+						
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>to</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>opt</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">See:</dt>
+							
+								<dd><a href="../symbols/Joint.html">Joint</a></dd>
+							
+							</dl>
+						
+
+					<hr />
+				
+					<a name="Element#liquidate"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{null}</span>
+					<b>Element#liquidate</b>()
+					
+					</div>
+					<div class="description">
+						Remove element and all joints pointing from and to this element.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{null}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#remove"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{null}</span>
+					<b>Element#remove</b>()
+					
+					</div>
+					<div class="description">
+						Remove element.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{null}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#scale"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>Element#scale</b>(sx, &optional)
+					
+					</div>
+					<div class="description">
+						Scale element.
+						
+						
+					</div>
+					
+					
+					
+					<pre class="code">e.scale(1.5);</pre>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>sx</b>
+									
+								</dt>
+								<dd>Scale in x-axis.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>&optional</b>
+									
+								</dt>
+								<dd>sy Scale in y-axis.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#setWrapper"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>Element#setWrapper</b>(s)
+					
+					</div>
+					<div class="description">
+						Add wrapper.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{RaphaelObject}</span> <b>s</b>
+									
+								</dt>
+								<dd>Vector object specifying a wrapper.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#toBack"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>Element#toBack</b>()
+					
+					</div>
+					<div class="description">
+						Sends the wrapper and all inners to the back.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#toFront"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>Element#toFront</b>()
+					
+					</div>
+					<div class="description">
+						Sends the wrapper and all inners to the front.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#toggleGhosting"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>Element#toggleGhosting</b>()
+					
+					</div>
+					<div class="description">
+						Toggle ghosting of the element.
+Dragging a diagram object causes moving of the wrapper and all inners, and update
+of all correspondent connections. It can be sometimes expensive. If your elements
+are complex and you want to prevent all this rendering and computations,
+you can enable ghosting. It means that only a ghost of your wrapper will be dragged.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#translate"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>Element#translate</b>(dx, dy)
+					
+					</div>
+					<div class="description">
+						Move the element by offsets.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>dx</b>
+									
+								</dt>
+								<dd>Offset in x-axis.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>dy</b>
+									
+								</dt>
+								<dd>Offset in y-axis.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#unembed"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>Element#unembed</b>()
+					
+					</div>
+					<div class="description">
+						Decouple embedded element from its parent.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#unhighlight"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Element}</span>
+					<b>Element#unhighlight</b>()
+					
+					</div>
+					<div class="description">
+						Unhighlights the element.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Element}</span> Return this.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="Element#zoom"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>Element#zoom</b>(sx, &optional)
+					
+					</div>
+					<div class="description">
+						This method should be overriden by inherited elements to implement
+the desired scaling behaviour.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>sx</b>
+									
+								</dt>
+								<dd>Scale in x-axis.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{Number}</span> <b>&optional</b>
+									
+								</dt>
+								<dd>sy Scale in y-axis.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="stringify"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>stringify</b>()
+					
+					</div>
+					<div class="description">
+						
+						
+							<br />
+							<i>Defined in: </i> <a href="../symbols/src/src_joint.dia.serializer.js.html">joint.dia.serializer.js</a>.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd>JSON representation of the element.</dd>
+							
+							</dl>
+						
+						
+						
+
+					
+				
+			
+			
+<!-- ============================== event details ========================= -->		
+			
+			
+			<hr />
+		</div>
+
+		
+<!-- ============================== footer ================================= -->
+		<div class="fineprint" style="clear:both">
+		  JointJS - JavaScript diagramming library, &copy; David Durman, 2009 - 2011
+		</div>
+	</body>
+</html>

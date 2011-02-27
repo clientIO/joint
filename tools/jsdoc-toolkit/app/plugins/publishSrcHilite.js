@@ -40,12 +40,14 @@ function JsHilite(src, charset) {
 	
 	this.header = '<html><head><meta http-equiv="content-type" content="text/html; charset='+charset+'"> '+
 	"<style>\n\
-	.KEYW {color: #933;}\n\
+	.KEYW {color: yellow;}\n\
 	.COMM {color: #bbb; font-style: italic;}\n\
 	.NUMB {color: #393;}\n\
 	.STRN {color: #393;}\n\
 	.REGX {color: #339;}\n\
-	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}\n\
+	.NAME {color: white;}\n\
+	.PUNC {color: #5ca29c;}\n\
+        .line {border-right: 1px dotted #666; color: #666; font-style: normal;}\n\
 	</style></head><body><pre>";
 	this.footer = "</pre></body></html>";
 	this.showLinenumbers = true;

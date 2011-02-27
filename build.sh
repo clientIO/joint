@@ -1,20 +1,14 @@
 #!/bin/bash
 
 DEPENDENCIES=" lib/raphael-min.js lib/json2-min.js "
-PACKAGES=" src/joint.js src/joint.dia.js src/joint.dia.uml.js src/joint.dia.fsa.js src/joint.dia.pn.js src/joint.dia.devs.js src/joint.arrows.js src/joint.dia.serializer.js "
-
-SRC_DIR="src/"
+PACKAGES=" src/joint.js src/joint.dia.js src/joint.dia.uml.js src/joint.dia.fsa.js src/joint.dia.pn.js src/joint.dia.devs.js src/joint.dia.cdm.js src/joint.dia.erd.js src/joint.dia.org.js src/joint.arrows.js src/joint.dia.serializer.js "
 
 TIMESTAMP=$(date +%s)
-BUILDDIR="./build-"$TIMESTAMP
+BUILDID="build-"$TIMESTAMP
+BUILDLOG="BUILDLOG"
 
 VERSION=$(cat version)
 HEADER=$(sed -e s/{VERSION}/$VERSION/g ./HEADER)
-
-TEMPLATES_DIR="www/templates/"
-WWW_TARGET_DIR="$BUILDDIR/www/"
-WWW_PAGE_TEMPLATE="template.tpl"
-
 
 ##################################################
 # Main functions
@@ -22,28 +16,27 @@ WWW_PAGE_TEMPLATE="template.tpl"
 
 print_info () {
 #    echo -e "\033[1;33m$1\e[0m";
-    echo -e "$1" | tee -a $BUILDDIR/buildlog
+    echo -e "$1" | tee -a $BUILDLOG
 }
 
 # Result is stored in $MINIFIED_CONTENT
 minify () {
-    MINIFIED_CONTENT=""
-    for f in $1; do
-        MINIFIED_CONTENT="$MINIFIED_CONTENT $(python tools/jsmin/jsmin.py < $f)"
-    done
-}
+#    MINIFIED_CONTENT=""
+#    for f in $1; do
+#        MINIFIED_CONTENT="$MINIFIED_CONTENT $(python tools/jsmin/jsmin.py < $f)"
+#    done
 
-build_www () {
-    for f in $TEMPLATES_DIR*; do
-        FILE_NAME=${f##*/}
-        sed -e "/{CONTENT}/r $f" -e "/{CONTENT}/d" -e "s/{VERSION}/$VERSION/g" $TEMPLATES_DIR$WWW_PAGE_TEMPLATE >$WWW_TARGET_DIR${FILE_NAME%.tpl}.html
-        sed -i -e "s/{VERSION}/$VERSION/g" $WWW_TARGET_DIR${FILE_NAME%.tpl}.html
+    CLOSURE_COMPILER_ARGUMENTS=""
+    for f in $1; do
+        CLOSURE_COMPILER_ARGUMENTS="$CLOSURE_COMPILER_ARGUMENTS --js $f"
     done
+    MINIFIED_CONTENT="$(java -jar tools/closure_compiler/compiler.jar $CLOSURE_COMPILER_ARGUMENTS 2>>$BUILDLOG)"
 }
 
 # Generates API reference and saves it to ./docs/ folder.
 build_api_reference () {
-    java -jar tools/jsdoc-toolkit/jsrun.jar tools/jsdoc-toolkit/app/run.js -c=tools/jsdoc-toolkit/conf/joint.conf -d="$BUILDDIR/www/api"
+    rm -rf www/api
+    java -jar tools/jsdoc-toolkit/jsrun.jar tools/jsdoc-toolkit/app/run.js -c=tools/jsdoc-toolkit/conf/joint.conf -d="www/api"
 }
 
 print_usage () {
@@ -54,46 +47,41 @@ files_size () {
     echo $(du -b $1 | cut -f1 | (tr '\n' + ; echo 0) | bc)
 }
 
+# build and create api reference
 build_all () {
+    build;
 
-    # Copying to an appropriate subdirectories of builddir.
-    mkdir -p $BUILDDIR/{src,lib,dep,doc,tests,www}
+    # Build web and api reference
+    print_info "\nBuilding api reference..."; build_api_reference
+}
+
+build () {
+    rm -rf www/build/*
 
     # Init log file.
-    touch $BUILDDIR/buildlog
-    print_info "Build ID: $BUILDDIR"
+    if [ -f $BUILDLOG ]; then
+        rm -f $BUILDLOG
+    fi
+    touch $BUILDLOG
+    print_info "Build ID: $BUILDID"
     print_info "$(date)"
     print_info ""
 
-    print_info "Copying sources..."
-    cp $SRC_DIR* $BUILDDIR/src/
-    cp $DEPENDENCIES $BUILDDIR/dep/
-
     # Minification.
-    print_info "Creating standalone package (joint.all-min.js)..."
+    print_info "Creating standalone package (joint.all.min.js)..."
     minify "$DEPENDENCIES$PACKAGES"
     print_info "Size before minification: $(files_size "$DEPENDENCIES$PACKAGES") B"
-    print_info "Size after minification: ${#MINIFIED_CONTENT} B"
+    print_info "Size after minification: ${#MINIFIED_CONTENT} B \n"
 
     # Create Joint build.
-    echo "$HEADER"$MINIFIED_CONTENT >$BUILDDIR/lib/joint.all-min.js
+    echo "$HEADER"$MINIFIED_CONTENT >www/build/joint.all.min.js
 
     # Minify all sources separately.
     for f in $PACKAGES; do
         minify $f
         print_info "Minifying $f: $(files_size "$f") B => ${#MINIFIED_CONTENT} B"
-        echo "$HEADER"$MINIFIED_CONTENT >$BUILDDIR/lib/$(basename $f .js)-min.js
+        echo "$HEADER"$MINIFIED_CONTENT >www/build/$(basename $f .js).min.js
     done
-
-    cp -R www/* $BUILDDIR/www/
-    # Copy whole build to www/joint for web site use.
-    cp $BUILDDIR/lib/* $BUILDDIR/src/* $BUILDDIR/dep/* $BUILDDIR/www/joint/
-
-    # Build web and api reference
-    print_info "Building web..."; build_www
-    print_info "Building api reference..."; build_api_reference
-
-    print_info "Build completed ($BUILDDIR)."
 }
 
 ##################################################
@@ -106,15 +94,18 @@ fi
 
 while [ $# -gt 0 ]; do 
     case $1 in
-        -b) MODE="build"; BUILD_FILE=$2; shift 2;;
+        -b) MODE="build"; shift 1;;
         -c) MODE="minify"; MINIFIED_FILE=$2; shift 2;;
         -m) MODE="merge"; MERGED_FILE=$2; shift 2;;
+        -a) MODE="api"; shift 1;;
         *)  print_usage; exit 1
     esac
 done
 
 case $MODE in
     buildall) build_all ;;
+    build) build ;;
+    api) build_api_reference ;;
     minify) print_info "Minifying..."; 
             minify "$DEPENDENCIES$PACKAGES"; 
             print_info "Size before minification: $(files_size "$DEPENDENCIES$PACKAGES") B"
@@ -122,7 +113,6 @@ case $MODE in
             echo "$HEADER"$MINIFIED_CONTENT > $MINIFIED_FILE; 
             print_info "Minified file: "$MINIFIED_FILE ;;
     merge) print_info "Merging..."; ls -1 $DEPENDENCIES $PACKAGES; echo "$HEADER" >$MERGED_FILE; cat $DEPENDENCIES$PACKAGES >> $MERGED_FILE; print_info "Merged file: "$MERGED_FILE ;;
-    build) 
 esac
 
 

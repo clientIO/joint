@@ -2,34 +2,34 @@
 
 # Generate www.
 
-fVersion = open('version')
-JOINT_VERSION = fVersion.read()
-fVersion.close()
+import os
+import shutil
+
 TEMPLATES_DIR = 'www/templates/'
-TEMPLATE_SUFFIX = '.tpl'
 TARGET_DIR = 'www/'
-TARGET_SUFFIX = '.html'
-
 template = 'template.tpl'
-pages = ['index', 'about', 'aboutme', 'license', 'tutorial', 'manual']
-
 
 if __name__ == "__main__":
+    # copy demos to www
+    shutil.rmtree(TARGET_DIR + 'demos/');
+    shutil.rmtree(TARGET_DIR + 'lib/');
+    shutil.rmtree(TARGET_DIR + 'src/');
+    shutil.copytree('demos', TARGET_DIR + 'demos')
+    shutil.copytree('lib', TARGET_DIR + 'lib')
+    shutil.copytree('src', TARGET_DIR + 'src')
 
-    fTemplate = open(TEMPLATES_DIR + template)
-    sTemplate = fTemplate.read()
-    sTemplate = sTemplate.replace('{VERSION}', JOINT_VERSION)
-    fTemplate.close()
+    template = open(TEMPLATES_DIR + template)
+    templateContent = template.read()
+    template.close()
+    templates = os.listdir(TEMPLATES_DIR)
 
-    for p in pages:
-        fPage = open(TEMPLATES_DIR + p + TEMPLATE_SUFFIX)
-        sPage = fPage.read()
-        sPage = sPage.replace('{VERSION}', JOINT_VERSION)
-        fNewpage = open(TARGET_DIR + p + TARGET_SUFFIX, 'w')
-        fNewpage.write(sTemplate.replace('{CONTENT}', sPage))
-        fPage.close()
-        fNewpage.close()
+    for tpl in templates:
+        if tpl == template: continue
 
-
-    
+        tplFile = open(TEMPLATES_DIR + tpl)
+        tplContent = tplFile.read()
+        page = open(TARGET_DIR + os.path.splitext(tpl)[0] + '.html', 'w')
+        page.write(templateContent.replace('{CONTENT}', tplContent))
+        page.close()
+        tplFile.close()
 
