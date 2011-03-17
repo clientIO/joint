@@ -175,6 +175,11 @@ a {
 #foot .facebook {
     height: 35px;
 }
+#foot .diasketch {
+    height: 55px;
+    float: right;
+    width: 200px;
+}
 #foot .pledgie {
     height: 55px;
     float: right;
