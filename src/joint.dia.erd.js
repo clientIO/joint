@@ -85,6 +85,8 @@ erd.Entity = Element.extend({
             attrs: { fill: 'lightgreen', stroke: '#008e09', 'stroke-width': 2 },
             label: '',
             labelAttrs: { 'font-weight': 'bold' },
+            labelOffsetX: 0,
+            labelOffsetY: 0,
             shadow: true,
             weak: false,        // Weak Entity?
             padding: 5
@@ -118,6 +120,8 @@ erd.Relationship = Element.extend({
         var p = Joint.DeepSupplement(this.properties, properties, {
             attrs: { rotation: 45, fill: 'lightblue', stroke: '#000d5b', 'stroke-width': 2 },
             label: '',
+            labelOffsetX: 0,
+            labelOffsetY: 0,
             labelAttrs: { 'font-weight': 'bold' }
         });
         this.setWrapper(this.paper.rect(p.rect.x, p.rect.y, p.rect.width, p.rect.height).attr(p.attrs));
@@ -148,6 +152,8 @@ erd.Attribute = Element.extend({
                      'stroke-dasharray': (properties.derived ? '.' : 'none') },
             label: '',
             labelAttrs: { 'font-weight': 'bold' },
+            labelOffsetX: 0,
+            labelOffsetY: 0,
             multivalued: false,
             derived: false,
             padding: 5
