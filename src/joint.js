@@ -524,7 +524,7 @@ Joint.prototype = {
      */
     connectionMouseDown: function(e){
 	Joint.currentJoint = this;	// keep global reference to me
-	var mousePos = Joint.getMousePosition(e, this.paper.canvas);
+	var mousePos = Joint.getMousePosition(e, this.paper);
 
 	// if the mouse position is nearby a connection vertex
 	// do not create a new one but move the selected one instead
@@ -594,7 +594,7 @@ Joint.prototype = {
 	this.update();
     },
     connectionWiring: function(e){
-	var mousePos = Joint.getMousePosition(e, this.paper.canvas);
+	var mousePos = Joint.getMousePosition(e, this.paper);
 	this._opt.vertices[this._conVerticesCurrentIndex] = mousePos;
 	this.update();
 	this.callback("wiring", this, [mousePos]);
@@ -1348,45 +1348,46 @@ Joint.arrows = {
 	};
     }
 };
-
-/**
- * Get an absolute position of an element.
- * @private
- * @return {Point}
- */
-Joint.findPos = function(el){
-    var p = point(0, 0);
-    if (el.offsetParent){
-	while (el){
-	    p.offset(el.offsetLeft, el.offsetTop);
-	    el = el.offsetParent;
-	}
-    } else {
-	// firefox (supposing el is Raphael canvas element)
-	p.offset(el.parentNode.offsetLeft, el.parentNode.offsetTop);
-    }
-    return p;
-};
 /**
  * Get the mouse position relative to the raphael paper.
  * @private
- * @param {Event} e Javascript event object
- * @param {Element} el DOM element
- * @return {Point}
+ * @param {Event} evt event object
+ * @param {Element} paper Raphael paper element (SVG root element)
+ * @return {Point} Position of the mouse pointer relative to the paper canvas element.
  */
-Joint.getMousePosition = function(e, el){
-    var pos;
-    if (e.pageX || e.pageY) {
-        pos = point(e.pageX, e.pageY);
-    } else {
-	var
-	docEl = document.documentElement,
-	docBody = document.body;
-	pos = point(e.clientX + (docEl.scrollLeft || docBody.scrollLeft) - docEl.clientLeft,
-		    e.clientY + (docEl.scrollTop || docBody.scrollTop) - docEl.clientTop);
+Joint.getMousePosition = function(evt, paper){
+    // IE:
+    if (window.event && window.event.contentOverflow !== undefined) {
+        return point(window.event.x, window.event.y);
     }
-    var rp = Joint.findPos(el);
-    return point(pos.x - rp.x, pos.y - rp.y);
+    
+    // Webkit:
+    if (evt.offsetX !== undefined && evt.offsetY !== undefined) {
+        return point(evt.offsetX, evt.offsetY);
+    }
+
+    // Firefox:
+    
+    // get position relative to the whole document
+    // note that it also counts on scrolling (as opposed to clientX/Y).
+    var pageX = evt.pageX,
+        pageY = evt.pageY,
+        el = paper.canvas.parentNode,   // SVG's element parent node is world
+        // get position of the paper element relative to its offsetParent
+        offsetLeft = el.offsetLeft,
+        offsetTop = el.offsetTop,
+        offsetParent = el.offsetParent,
+    
+        offsetX = pageX - offsetLeft,
+        offsetY = pageY - offsetTop;
+
+    // climb up positioned elements to sum up their offsets
+    while (offsetParent) {
+        offsetX += offsetParent.offsetLeft;
+        offsetY += offsetParent.offsetTop;
+        offsetParent = offsetParent.offsetParent;
+    }
+    return point(offsetX, offsetY);
 };
 /**
  * MouseMove event callback.
