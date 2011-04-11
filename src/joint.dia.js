@@ -631,6 +631,7 @@ Element.prototype = {
 	this.unembed();
 	while (idx--) inners[idx].remove();
 	this.wrapper.remove();
+        this.shadow && this.shadow.remove();
 	dia.unregister(this);
         this.removed = true;
         return null;
@@ -661,6 +662,7 @@ Element.prototype = {
 	    else inners[idx].remove();
 	}
 	this.wrapper.remove();
+        this.shadow && this.shadow.remove();
 	dia.unregister(this);
         this.removed = true;
         return null;
