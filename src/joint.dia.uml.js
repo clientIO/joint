@@ -113,8 +113,8 @@ uml.State = Element.extend({
             labelOffsetY: 5,
             swimlaneOffsetY: 18,
             actions: {
-                entry: null,
-                exit: null,
+                entry: "",
+                exit: "",
                 inner: []
             },
             actionsOffsetX: 5,
@@ -144,8 +144,8 @@ uml.State = Element.extend({
     getActionsElement: function(){
 	// collect all actions
 	var p = this.properties;
-	var str = (p.actions.entry) ? "entry/ " + p.actions.entry + "\n" : "";
-	str += (p.actions.exit) ? "exit/ " + p.actions.exit + "\n" : "";
+	var str = (p.actions. != "") ? "entry/ " + p.actions.entry + "\n" : "";
+	str += (p.actions.exit != "") ? "exit/ " + p.actions.exit + "\n" : "";
 	var l = p.actions.inner.length;
 	for (var i = 0; i < l; i += 2){
 	    str += p.actions.inner[i] + "/ " + p.actions.inner[i+1] + "\n";
