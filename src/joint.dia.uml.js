@@ -144,7 +144,7 @@ uml.State = Element.extend({
     getActionsElement: function(){
 	// collect all actions
 	var p = this.properties;
-	var str = (p.actions. != "") ? "entry/ " + p.actions.entry + "\n" : "";
+	var str = (p.actions.entry != "") ? "entry/ " + p.actions.entry + "\n" : "";
 	str += (p.actions.exit != "") ? "exit/ " + p.actions.exit + "\n" : "";
 	var l = p.actions.inner.length;
 	for (var i = 0; i < l; i += 2){
