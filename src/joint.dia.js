@@ -391,6 +391,7 @@ Element.prototype = {
 	dia._currentDrag.removeToolbox();
 	// small hack to get the connections to front
 	dia._currentDrag.translate(1,1);
+	dia._currentDrag.translate(-1,-1);
 
 	dia._currentDrag.dx = e.clientX;
 	dia._currentDrag.dy = e.clientY;
@@ -890,6 +891,7 @@ Element.mouseUp = function(e){
 	dia._currentDrag.toFront();
 	// small hack: change slightely the position to get the connections to front
 	dia._currentDrag.translate(1,1);
+	dia._currentDrag.translate(-1,-1);
     }
 
     // add toolbar again when zooming is stopped
