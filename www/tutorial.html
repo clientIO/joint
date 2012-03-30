@@ -89,6 +89,7 @@ Once you have the holder created, you have to initialize diagram paper.
 <pre>
     <code>
 Joint.paper("myfsa", 1000, 200);  /*(id or HTMLElement, width, height)*/
+
     </code>
 </pre>
 
@@ -100,6 +101,7 @@ Concrete elements are created using <tt>create</tt> method. This method takes as
 all necessary parameters for the element. (for list of all options, see FSA plugin API)</p>
 <pre>
     <code>
+var fsa = Joint.dia.fsa;
 var s0 = fsa.StartState.create({ position: {x: 50, y: 50} });
 var se = fsa.EndState.create({ position: {x: 450, y: 150} });
 var s1 = fsa.State.create({ position: {x: 120, y: 120}, label: "state 1" });
