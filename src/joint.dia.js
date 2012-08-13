@@ -859,7 +859,7 @@ Element.mouseMove = function(e){
 	// do not redraw toolbox because it is not there
 	dia._currentZoom._doNotRedrawToolbox = true;
 	dia._currentZoom.scale(sx, sy);	// scale
-	r.safari();
+	dia._currentZoom.paper.safari();
 
 	// save for later usage
 	dia._currentZoom.dx = e.clientX;
