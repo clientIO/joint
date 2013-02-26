@@ -286,7 +286,20 @@ function Joint(from, to, opt){
 	shape: null,		// Raphael object
 	dummy: false		// is it a dummy object?
     };
-
+    /*
+     * Callbacks.
+     * (moved from the prototype..)
+     */
+    this._callbacks = {
+		// called when a joint has just connected to an object
+		// the object is accessed using this,
+		// the only argument is what side has been connected ("start" | "end")
+		justConnected: function(side){},
+		disconnected: function(side){},
+		justBroken: function(mousePos){},
+		wiring: function(mousePos){},
+		objectMoving: function(obj){}
+    },
     // connection options
     this._opt = {
 	vertices: [],	// joint path vertices
@@ -404,20 +417,7 @@ Joint.prototype = {
     ENDCAPDRAGGING: 2,
     CONNECTIONWIRING: 3,
     state: 0,	// IDLE
-    /*
-     * Callbacks.
-     * @name Callbacks
-     */
-    _callbacks: {
-	// called when a joint has just connected to an object
-	// the object is accessed using this,
-	// the only argument is what side has been connected ("start" | "end")
-	justConnected: function(side){},
-	disconnected: function(side){},
-	justBroken: function(mousePos){},
-	wiring: function(mousePos){},
-	objectMoving: function(obj){}
-    },
+
     /**
      * @return {String} Joint unique identifier.
      */
