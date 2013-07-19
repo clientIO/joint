@@ -1,5 +1,2 @@
-*~
-BUILD*
-doc/
-tmp/
-SIMILAR_PROJECTS
+node_modules/
+docs/
