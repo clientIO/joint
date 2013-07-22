@@ -1,7 +1,13 @@
 joint.shapes.fsa = {};
 
 joint.shapes.fsa.State = joint.shapes.basic.Circle.extend({
-    defaults: joint.util.deepSupplement({ type: 'fsa.State' }, joint.shapes.basic.Circle.prototype.defaults)
+    defaults: joint.util.deepSupplement({
+        type: 'fsa.State',
+        attrs: {
+            circle: { 'stroke-width': 3 },
+            text: { 'font-weight': 'bold' }
+        }
+    }, joint.shapes.basic.Circle.prototype.defaults)
 });
 
 joint.shapes.fsa.StartState = joint.dia.Element.extend({
@@ -52,8 +58,7 @@ joint.shapes.fsa.EndState = joint.dia.Element.extend({
 joint.shapes.fsa.Arrow = joint.dia.Link.extend({
 
     defaults: joint.util.deepSupplement({
-
-        attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
-        
+        attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }},
+        smooth: true
     }, joint.dia.Link.prototype.defaults)
 });

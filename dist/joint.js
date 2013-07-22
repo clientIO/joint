@@ -1,4 +1,4 @@
-/*! JointJS v0.6.0 - JavaScript diagramming library  2013-07-19 
+/*! JointJS v0.6.0 - JavaScript diagramming library  2013-07-22 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -14716,7 +14716,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var relativelyPositioned = [];
 
         var attrs = renderingOnlyAttrs || this.model.get('attrs');
-        var decomposedTransform = V.decomposeMatrix(this.model.get('transform') || { f: 0, e: 0, d: 1, c: 0, b: 0, a: 1 });
         
         _.each(attrs, function(attrs, selector) {
 
@@ -15110,14 +15109,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     ].join(''),
 
     labelMarkup: [
-        '<g class="label" transform="translate(<%= x %>, <%= y %>)">',
+        '<g class="label">',
         '<rect />',
         '<text />',
         '</g>'
     ].join(''),
     
     toolMarkup: [
-        '<g class="link-tool" transform="translate(<%= x %>, <%= y %>)">',
+        '<g class="link-tool">',
         '<g class="tool-remove" event="remove">',
         '<circle r="11" />',
         '<path transform="scale(.8) translate(-16, -16)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z"/>',
@@ -15149,7 +15148,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
 
-        _.bindAll(this, 'update', 'updateEnds', 'render');
+        _.bindAll(
+            this,
+            'update', 'updateEnds', 'render', 'renderVertexMarkers', 'renderLabels', 'renderTools',
+            'onSourceModelChange', 'onTargetModelChange'
+        );
         
         // Assign CSS class to the element based on the element type.
         V(this.el).attr({ 'class': 'link', 'model-id': this.model.id });
@@ -15160,20 +15163,61 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             'change:source': this.updateEnds,
             'change:target': this.updateEnds,
 	    'change:markup': this.render,
-            'change:labels': this.update,
             'change:smooth': this.update
         });
+
+        this.model.on({
+
+            'change:vertices': this.renderVertexMarkers,
+            'change:vertexMarkup': this.renderVertexMarkers
+        });
+
+        this.model.on({
+
+            'change:labels': this.renderLabels,
+            'change:labelMarkup': this.renderLabels
+        });
+
+        this.model.on({
+
+            'change:toolMarkup': this.renderTools
+        });
+
+        // `_.labelCache` is a mapping of indexes of labels in the `this.get('labels')` array to
+        // `<g class="label">` nodes wrapped by Vectorizer. This allows for quick access to the
+        // nodes in `updateLabelPosition()` in order to update the label positions.
+        this._labelCache = {};
+
+        // These are the bounding boxes for the source/target elements.
+        this._sourceBbox = undefined;
+        this._targetBbox = undefined;
+    },
+
+    onSourceModelChange: function() {
+
+        var source = this.model.get('source');
+        
+        if (!this._isPoint(source)) {
+            
+            this._sourceBbox = V(this.paper.$(this._makeSelector(source))[0]).bbox(false, this.paper.viewport);
+        }
+        this.update();
+    },
+    onTargetModelChange: function() {
+
+        var target = this.model.get('target');
+        
+        if (!this._isPoint(target)) {
+            
+            this._targetBbox = V(this.paper.$(this._makeSelector(target))[0]).bbox(false, this.paper.viewport);
+        }
+        this.update();
     },
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
     update: function() {
 
-        this.renderVertexMarkers();
-
         this.renderArrowheadMarkers();
-
-        this.renderTools();
-
 
         // Update attributes.
         _.each(this.model.get('attrs'), function(attrs, selector) {
@@ -15187,16 +15231,20 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var firstVertex = _.first(this.model.get('vertices'));
         var lastVertex = _.last(this.model.get('vertices'));
 
-        var sourcePosition = this.getConnectionPoint(this.model.get('source'), firstVertex || this.model.get('target')).round();
-        var targetPosition = this.getConnectionPoint(this.model.get('target'), lastVertex || sourcePosition);
+        var sourcePosition = this.getConnectionPoint('source', this.model.get('source'), firstVertex || this.model.get('target')).round();
+        var targetPosition = this.getConnectionPoint('target', this.model.get('target'), lastVertex || sourcePosition);
 
         // Make the markers "point" to their sticky points being auto-oriented towards `targetPosition`/`sourcePosition`.
-        V(this.$('.marker-source')[0]).translateAndAutoOrient(sourcePosition, firstVertex || targetPosition, this.paper.viewport);
-        V(this.$('.marker-target')[0]).translateAndAutoOrient(targetPosition, lastVertex || sourcePosition, this.paper.viewport);
-        
-        this.$('.connection, .connection-wrap').attr('d', this.getPathData(this.model.get('vertices')));
+        this._markerSource.translateAndAutoOrient(sourcePosition, firstVertex || targetPosition, this.paper.viewport);
+        this._markerTarget.translateAndAutoOrient(targetPosition, lastVertex || sourcePosition, this.paper.viewport);
 
-        this.renderLabels();
+        var pathData = this.getPathData(this.model.get('vertices'));
+        this._connection.attr('d', pathData);
+        this._connectionWrap.attr('d', pathData);
+
+        this.updateLabelPositions();
+
+        this.updateToolsPosition();
         
         return this;
     },
@@ -15215,14 +15263,28 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 	$(this.el).empty();
         V(this.el).append(children);
 
+        // Cache some important elements for quicker access.
+        this._markerSource = V(this.$('.marker-source')[0]);
+        this._markerTarget = V(this.$('.marker-target')[0]);
+        this._connection = V(this.$('.connection')[0]);
+        this._connectionWrap = V(this.$('.connection-wrap')[0]);
+
+        this.renderLabels();
+        this.renderTools();
+        
         // Note that `updateEnds()` calls `update()` internally.
         this.updateEnds();
+
+        this.renderVertexMarkers();
 
         return this;
     },
 
     updateEnds: function() {
 
+        this.onSourceModelChange();
+        this.onTargetModelChange();
+        
         var cell;
 
         // First, stop listening to `change` and `remove` events on previous `source` and `target` cells.
@@ -15241,29 +15303,29 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (this._isModel(this.model.get('source'))) {
 
             cell = this.paper.getModelById(this.model.get('source').id);
-            this.listenTo(cell, 'change', this.update);
+            this.listenTo(cell, 'change', this.onSourceModelChange);
         }
         if (this._isModel(this.model.get('target'))) {
 
             cell = this.paper.getModelById(this.model.get('target').id);
-            this.listenTo(cell, 'change', this.update);
+            this.listenTo(cell, 'change', this.onTargetModelChange);
         }
 
         this.update();
     },
 
-    renderLabels: function() {
+    updateLabelPositions: function() {
 
-        var $labels = this.$('.labels').empty();
-
-        var labelTemplate = _.template(this.model.get('labelMarkup') || this.labelMarkup);
+        // This method assumes all the label nodes are stored in the `this._labelCache` hash table
+        // by their indexes in the `this.get('labels')` array. This is done in the `renderLabels()` method.
 
         var labels = this.model.get('labels') || [];
-
-        var connectionElement = this.$('.connection')[0];
+        if (!labels.length) return;
+        
+        var connectionElement = this._connection.node;
         var connectionLength = connectionElement.getTotalLength();
-
-        _.each(labels, function(label) {
+        
+        _.each(labels, function(label, idx) {
 
             var position = label.position;
             position = (position > connectionLength) ? connectionLength : position; // sanity check
@@ -15271,8 +15333,34 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             position = position > 1 ? position : connectionLength * position;
 
             var labelCoordinates = connectionElement.getPointAtLength(position);
+
+            this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
             
-            var labelNode = V(labelTemplate({ x: labelCoordinates.x, y: labelCoordinates.y })).node;
+        }, this);
+    },
+
+    renderLabels: function() {
+
+        this._labelCache = {};
+        var $labels = this.$('.labels').empty();
+
+        var labels = this.model.get('labels') || [];
+        if (!labels.length) return;
+        
+        var labelTemplate = _.template(this.model.get('labelMarkup') || this.labelMarkup);
+        // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
+        // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
+        // node to create a duplicate.
+        var labelNodeInstance = V(labelTemplate());
+
+        var connectionElement = this._connection.node;
+        var connectionLength = connectionElement.getTotalLength();
+
+        _.each(labels, function(label, idx) {
+
+            var labelNode = labelNodeInstance.clone().node;
+            // Cache label nodes so that the `updateLabels()` can just update the label node positions.
+            this._labelCache[idx] = V(labelNode);
 
             var $text = $(labelNode).find('text');
             var $rect = $(labelNode).find('rect');
@@ -15313,6 +15401,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }));
             
         }, this);
+
+        this.updateLabelPositions();
     },
 
     renderTools: function() {
@@ -15324,24 +15414,24 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var $tools = this.$('.link-tools').empty();
 
         var toolTemplate = _.template(this.model.get('toolMarkup') || this.toolMarkup);
+        var tool = V(toolTemplate());
+        $tools.append(tool.node);
 
-        var firstVertex = _.first(this.model.get('vertices'));
-        var lastVertex = _.last(this.model.get('vertices'));
-        
-        var sourcePosition = this.getConnectionPoint(this.model.get('source'), firstVertex || this.model.get('target')).round();
-        var targetPosition = this.getConnectionPoint(this.model.get('target'), lastVertex || sourcePosition);
+        // Cache the tool node so that the `updateToolsPosition()` can update the tool position quickly.
+        this._toolCache = tool;
+        this.updateToolsPosition();
+    },
 
-        // Move the halo a bit to the target position but don't cover the `sourceArrowhead` marker.
-        var offset = -50;
-        var sourceArrowhead = this.$('.marker-arrowhead[end="source"]')[0];
-        if (sourceArrowhead) {
-            offset = -V(sourceArrowhead).bbox().width * 2;
-        }
-        sourcePosition.move(firstVertex || targetPosition, offset);
-        
-        var tool = V(toolTemplate({ x: sourcePosition.x, y: sourcePosition.y })).node;
+    updateToolsPosition: function() {
 
-        $tools.append(tool);
+        // Move the tools a bit to the target position but don't cover the `sourceArrowhead` marker.
+        // Note that the offset is hardcoded here. The offset should be always
+        // more than the `this.$('.marker-arrowhead[end="source"]')[0].bbox().width` but looking
+        // this up all the time would be slow.
+        var offset = 40;
+        var toolPosition = this.getPointAtLength(offset);
+
+        this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ')');
     },
 
     renderVertexMarkers: function() {
@@ -15379,8 +15469,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var firstVertex = _.first(this.model.get('vertices'));
         var lastVertex = _.last(this.model.get('vertices'));
 
-        var sourcePosition = this.getConnectionPoint(this.model.get('source'), firstVertex || this.model.get('target')).round();
-        var targetPosition = this.getConnectionPoint(this.model.get('target'), lastVertex || sourcePosition);
+        var sourcePosition = this.getConnectionPoint('source', this.model.get('source'), firstVertex || this.model.get('target')).round();
+        var targetPosition = this.getConnectionPoint('target', this.model.get('target'), lastVertex || sourcePosition);
         
         var sourceArrowhead = V(markupTemplate({ x: sourcePosition.x, y: sourcePosition.y, 'end': 'source' })).node;
         var targetArrowhead = V(markupTemplate({ x: targetPosition.x, y: targetPosition.y, 'end': 'target' })).node;
@@ -15428,7 +15518,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var originalVertices = vertices.slice();
 
         // A `<path>` element used to compute the length of the path during heuristics.
-        var path = this.$('.connection')[0].cloneNode(false);
+        var path = this._connection.node.cloneNode(false);
         
         // Length of the original path.        
         var originalPathLength = path.getTotalLength();
@@ -15474,21 +15564,19 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var firstVertex = _.first(vertices);
         var lastVertex = _.last(vertices);
 
-        var sourcePoint = this.getConnectionPoint(this.model.get('source'), firstVertex || this.model.get('target')).round();
-        var targetPoint = this.getConnectionPoint(this.model.get('target'), lastVertex || sourcePoint);
+        var sourcePoint = this.getConnectionPoint('source', this.model.get('source'), firstVertex || this.model.get('target')).round();
+        var targetPoint = this.getConnectionPoint('target', this.model.get('target'), lastVertex || sourcePoint);
 
-        var markerSource = this.$('.marker-source')[0];
         // Move the source point by the width of the marker taking into account its scale around x-axis.
         // Note that scale is the only transform that makes sense to be set in `.marker-source` attributes object
         // as all other transforms (translate/rotate) will be replaced by the `translateAndAutoOrient()` function.
-        var markerSourceBbox = V(markerSource).bbox(true);
-        var markerSourceScaleX = V(markerSource).scale().sx;
+        var markerSourceBbox = this._markerSource.bbox(true);
+        var markerSourceScaleX = this._markerSource.scale().sx;
 
         sourcePoint.move(firstVertex || targetPoint, -markerSourceBbox.width * markerSourceScaleX);
 
-        var markerTarget = this.$('.marker-target')[0];
-        var markerTargetBbox = V(markerTarget).bbox(true);
-        var markerTargetScaleX = V(markerTarget).scale().sx;
+        var markerTargetBbox = this._markerTarget.bbox(true);
+        var markerTargetScaleX = this._markerTarget.scale().sx;
 
         targetPoint.move(lastVertex || sourcePoint, -markerTargetBbox.width * markerTargetScaleX);
 
@@ -15515,7 +15603,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // If `selectorOrPoint` is a point, then we're done and that point is the start of the connection.
     // If the `selectorOrPoint` is an element however, we need to know a reference point (or element)
     // that the link leads to in order to determine the start of the connection on the original element.
-    getConnectionPoint: function(selectorOrPoint, referenceSelectorOrPoint) {
+    getConnectionPoint: function(end, selectorOrPoint, referenceSelectorOrPoint) {
 
         var spot;
 
@@ -15530,7 +15618,21 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             // Get the bounding box of the spot relative to the paper viewport. This is necessary
             // in order to follow paper viewport transformations (scale/rotate).
-            var spotBbox = V(this.paper.$(this._makeSelector(selectorOrPoint))[0]).bbox(false, this.paper.viewport);
+            var spotBbox;
+            // If there are cached bounding boxes of source/target elements, use them. Otherwise,
+            // find it.
+            if (end === 'source' && this._sourceBbox) {
+                
+                spotBbox = this._sourceBbox;
+                
+            } else if (end === 'target' && this._targetBbox) {
+
+                spotBbox = this._targetBbox;
+                
+            } else {
+                
+                spotBbox = V(this.paper.$(this._makeSelector(selectorOrPoint))[0]).bbox(false, this.paper.viewport);
+            }
             
             var reference;
             
@@ -15545,7 +15647,20 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 // Get the bounding box of the spot relative to the paper viewport. This is necessary
                 // in order to follow paper viewport transformations (scale/rotate).
-                var referenceBbox = V(this.paper.$(this._makeSelector(referenceSelectorOrPoint))[0]).bbox(false, this.paper.viewport);
+                var referenceBbox;
+
+                if (end === 'source' && this._targetBbox) {
+
+                    referenceBbox = this._targetBbox;
+                    
+                } else if (end === 'target' && this._sourceBbox) {
+
+                    referenceBbox = this._sourceBbox;
+                    
+                } else {
+                    
+                    referenceBbox = V(this.paper.$(this._makeSelector(referenceSelectorOrPoint))[0]).bbox(false, this.paper.viewport);
+                }
                 
                 reference = g.rect(referenceBbox).intersectionWithLineFromCenterToPoint(g.rect(spotBbox).center());
                 reference = reference || g.rect(referenceBbox).center();
@@ -15630,7 +15745,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     getConnectionLength: function() {
 
-        return this.$('.connection')[0].getTotalLength();
+        return this._connection.node.getTotalLength();
+    },
+
+    getPointAtLength: function(length) {
+
+        return this._connection.node.getPointAtLength(length);
     },
 
 

@@ -90,7 +90,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var relativelyPositioned = [];
 
         var attrs = renderingOnlyAttrs || this.model.get('attrs');
-        var decomposedTransform = V.decomposeMatrix(this.model.get('transform') || { f: 0, e: 0, d: 1, c: 0, b: 0, a: 1 });
         
         _.each(attrs, function(attrs, selector) {
 
