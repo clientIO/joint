@@ -57,5 +57,5 @@ Copyright (c) 2013 client IO
 Contributors
 ------------
 
-[David Durman](http://github.com/DavidDurman)
-[Roman Bruckner](http://github.com/kumilingus)
+- [David Durman](http://github.com/DavidDurman)
+- [Roman Bruckner](http://github.com/kumilingus)
