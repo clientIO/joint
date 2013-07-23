@@ -1,4 +1,4 @@
-/*! JointJS v0.6.0 - JavaScript diagramming library  2013-07-22 
+/*! JointJS v0.6.0 - JavaScript diagramming library  2013-07-23 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -3882,6 +3882,21 @@ joint.shapes.basic.Image = joint.shapes.basic.Generic.extend({
         type: 'basic.Image',
         attrs: {
             'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'image', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+        }
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><path/></g><text/></g>',
+    
+    defaults: joint.util.deepSupplement({
+
+        type: 'basic.Path',
+        size: { width: 60, height: 60 },
+        attrs: {
+            'path': { fill: 'white', stroke: 'black' },
+            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'path', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
