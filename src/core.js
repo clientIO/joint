@@ -16,8 +16,14 @@ var joint = {
     // `joint.ui` namespace.
     ui: {},
 
+    // `joint.layout` namespace.
+    layout: {},
+
     // `joint.shapes` namespace.
     shapes: {},
+
+    // `joint.format` namespace.
+    format: {},
 
     util: {
 

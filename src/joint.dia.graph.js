@@ -100,20 +100,15 @@ joint.dia.Graph = Backbone.Model.extend({
         
         this.set(attrs);
         
-        this.addCells(cells);
+        this.resetCells(cells);
     },
 
     clear: function() {
 
         this.get('cells').remove(this.get('cells').models);
     },
-    
-    addCell: function(cell) {
 
-        if (_.isArray(cell)) {
-
-            return this.addCells(cell);
-        }
+    _prepareCell: function(cell) {
 
         if (cell instanceof Backbone.Model && _.isUndefined(cell.get('z'))) {
 
@@ -123,15 +118,36 @@ joint.dia.Graph = Backbone.Model.extend({
 
             cell.z = this.get('cells').length;
         }
+
+        return cell;
+    },
+    
+    addCell: function(cell) {
+
+        if (_.isArray(cell)) {
+
+            return this.addCells(cell);
+        }
+
         
-        this.get('cells').add(cell);
+        this.get('cells').add(this._prepareCell(cell));
         
         return this;
     },
 
     addCells: function(cells) {
 
-        _.each(cells, function(cell) { this.addCell(cell); }, this);
+        _.each(cells, function(cell) { this.addCell(this._prepareCell(cell)); }, this);
+
+        return this;
+    },
+
+    // When adding a lot of cells, it is much more efficient to
+    // reset the entire cells collection in one go.
+    // Useful for bulk operations and optimizations.
+    resetCells: function(cells) {
+        
+        this.get('cells').reset(_.map(cells, this._prepareCell, this));
 
         return this;
     },

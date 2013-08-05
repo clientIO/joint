@@ -24,7 +24,9 @@ module.exports = function(grunt) {
             'shapes.chess': ['plugins/joint.shapes.chess.js'],
             'shapes.pn': ['plugins/joint.shapes.pn.js'],
             'shapes.devs': ['plugins/joint.shapes.devs.js'],
-            'shapes.uml': ['plugins/joint.shapes.uml.js']
+            'shapes.uml': ['plugins/joint.shapes.uml.js'],
+
+            'layout.DirectedGraph': ['plugins/layout/DirectedGraph/lib/dagre.js', 'plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js']
         }
     };
 

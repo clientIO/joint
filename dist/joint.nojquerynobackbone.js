@@ -1,4 +1,4 @@
-/*! JointJS v0.6.0 - JavaScript diagramming library  2013-07-23 
+/*! JointJS v0.6.0 - JavaScript diagramming library  2013-08-05 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -405,8 +405,14 @@ var joint = {
     // `joint.ui` namespace.
     ui: {},
 
+    // `joint.layout` namespace.
+    layout: {},
+
     // `joint.shapes` namespace.
     shapes: {},
+
+    // `joint.format` namespace.
+    format: {},
 
     util: {
 
@@ -1726,20 +1732,15 @@ joint.dia.Graph = Backbone.Model.extend({
         
         this.set(attrs);
         
-        this.addCells(cells);
+        this.resetCells(cells);
     },
 
     clear: function() {
 
         this.get('cells').remove(this.get('cells').models);
     },
-    
-    addCell: function(cell) {
 
-        if (_.isArray(cell)) {
-
-            return this.addCells(cell);
-        }
+    _prepareCell: function(cell) {
 
         if (cell instanceof Backbone.Model && _.isUndefined(cell.get('z'))) {
 
@@ -1749,15 +1750,36 @@ joint.dia.Graph = Backbone.Model.extend({
 
             cell.z = this.get('cells').length;
         }
+
+        return cell;
+    },
+    
+    addCell: function(cell) {
+
+        if (_.isArray(cell)) {
+
+            return this.addCells(cell);
+        }
+
         
-        this.get('cells').add(cell);
+        this.get('cells').add(this._prepareCell(cell));
         
         return this;
     },
 
     addCells: function(cells) {
 
-        _.each(cells, function(cell) { this.addCell(cell); }, this);
+        _.each(cells, function(cell) { this.addCell(this._prepareCell(cell)); }, this);
+
+        return this;
+    },
+
+    // When adding a lot of cells, it is much more efficient to
+    // reset the entire cells collection in one go.
+    // Useful for bulk operations and optimizations.
+    resetCells: function(cells) {
+        
+        this.get('cells').reset(_.map(cells, this._prepareCell, this));
 
         return this;
     },
@@ -2745,6 +2767,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         '<path class="marker-arrowhead" end="<%= end %>" d="M 26 0 L 0 13 L 26 26 z" />',
         '</g>'
     ].join(''),
+
+    options: {
+
+        shortLinkLength: 100
+    },
     
     initialize: function() {
 
@@ -2819,8 +2846,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
     update: function() {
 
-        this.renderArrowheadMarkers();
-
         // Update attributes.
         _.each(this.model.get('attrs'), function(attrs, selector) {
 
@@ -2844,6 +2869,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this._connection.attr('d', pathData);
         this._connectionWrap.attr('d', pathData);
 
+        this.renderArrowheadMarkers();
+        
         this.updateLabelPositions();
 
         this.updateToolsPosition();
@@ -3030,10 +3057,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Note that the offset is hardcoded here. The offset should be always
         // more than the `this.$('.marker-arrowhead[end="source"]')[0].bbox().width` but looking
         // this up all the time would be slow.
+        var scale = '';
         var offset = 40;
+        // If the link is too short, make the tools half the size and the offset twice as low.
+        if (this.getConnectionLength() < this.options.shortLinkLength) {
+            scale = 'scale(.5)';
+            offset /= 2;
+        }
         var toolPosition = this.getPointAtLength(offset);
-
-        this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ')');
+        
+        this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
     },
 
     renderVertexMarkers: function() {
@@ -3077,6 +3110,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var sourceArrowhead = V(markupTemplate({ x: sourcePosition.x, y: sourcePosition.y, 'end': 'source' })).node;
         var targetArrowhead = V(markupTemplate({ x: targetPosition.x, y: targetPosition.y, 'end': 'target' })).node;
 
+        if (this.getConnectionLength() < this.options.shortLinkLength) {
+
+            V(sourceArrowhead).scale(.5);
+            V(targetArrowhead).scale(.5);
+        }
+        
         $markerArrowheads.append(sourceArrowhead);
         $markerArrowheads.append(targetArrowhead);
 
@@ -3539,7 +3578,7 @@ joint.dia.Paper = Backbone.View.extend({
 
     initialize: function() {
 
-        _.bindAll(this, 'addCell', 'sortCells');
+        _.bindAll(this, 'addCell', 'sortCells', 'resetCells');
 
         this.svg = V('svg').node;
         this.viewport = V('g').node;
@@ -3555,6 +3594,7 @@ joint.dia.Paper = Backbone.View.extend({
         this.model.on({
 
             'add': this.addCell,
+            'reset': this.resetCells,
             'sort': this.sortCells
         });
     },
@@ -3568,8 +3608,8 @@ joint.dia.Paper = Backbone.View.extend({
         V(this.svg).attr('height', this.options.height);
     },
 
-    addCell: function(cell) {
-
+    createViewForModel: function(cell) {
+        
         var view;
         
         var type = cell.get('type');
@@ -3590,6 +3630,13 @@ joint.dia.Paper = Backbone.View.extend({
             view = new this.options.linkView({ model: cell, interactive: this.options.interactive });
         }
 
+        return view;
+    },
+    
+    addCell: function(cell) {
+
+        var view = this.createViewForModel(cell);
+
         V(this.viewport).append(view.el);
         view.paper = this;
         view.render();
@@ -3597,6 +3644,13 @@ joint.dia.Paper = Backbone.View.extend({
         // This is the only way to prevent image dragging in Firefox that works.
         // Setting -moz-user-select: none, draggable="false" attribute or user-drag: none didn't help.
         $(view.el).find('image').on('dragstart', function() { return false; });
+    },
+
+    resetCells: function(cellsCollection) {
+
+        $(this.viewport).empty();
+        
+        _.each(cellsCollection.models, this.addCell, this);
     },
 
     sortCells: function() {
