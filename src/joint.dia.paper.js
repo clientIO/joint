@@ -303,11 +303,17 @@ joint.dia.Paper = Backbone.View.extend({
 
         evt.preventDefault();
         evt = this.normalizeEvent(evt);
+
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
         
         if (this.sourceView) {
 
-            this.sourceView.pointerup(evt);
+            this.sourceView.pointerup(evt, localPoint.x, localPoint.y);
             delete this.sourceView;
+            
+        } else {
+
+            this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
         }
     }
 });

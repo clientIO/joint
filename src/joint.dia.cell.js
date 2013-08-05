@@ -407,8 +407,8 @@ joint.dia.CellView = Backbone.View.extend({
         this.notify('cell:pointermove', evt, x, y);
     },
     
-    pointerup: function(evt) {
+    pointerup: function(evt, x, y) {
 
-        this.notify('cell:pointerup', evt);
+        this.notify('cell:pointerup', evt, x, y);
     }
 });
