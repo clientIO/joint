@@ -96,6 +96,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         '<path class="marker-arrowhead" end="<%= end %>" d="M 26 0 L 0 13 L 26 26 z" />',
         '</g>'
     ].join(''),
+
+    options: {
+
+        shortLinkLength: 100
+    },
     
     initialize: function() {
 
@@ -170,8 +175,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
     update: function() {
 
-        this.renderArrowheadMarkers();
-
         // Update attributes.
         _.each(this.model.get('attrs'), function(attrs, selector) {
 
@@ -195,6 +198,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this._connection.attr('d', pathData);
         this._connectionWrap.attr('d', pathData);
 
+        this.renderArrowheadMarkers();
+        
         this.updateLabelPositions();
 
         this.updateToolsPosition();
@@ -381,10 +386,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Note that the offset is hardcoded here. The offset should be always
         // more than the `this.$('.marker-arrowhead[end="source"]')[0].bbox().width` but looking
         // this up all the time would be slow.
+        var scale = '';
         var offset = 40;
+        // If the link is too short, make the tools half the size and the offset twice as low.
+        if (this.getConnectionLength() < this.options.shortLinkLength) {
+            scale = 'scale(.5)';
+            offset /= 2;
+        }
         var toolPosition = this.getPointAtLength(offset);
-
-        this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ')');
+        
+        this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
     },
 
     renderVertexMarkers: function() {
@@ -428,6 +439,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var sourceArrowhead = V(markupTemplate({ x: sourcePosition.x, y: sourcePosition.y, 'end': 'source' })).node;
         var targetArrowhead = V(markupTemplate({ x: targetPosition.x, y: targetPosition.y, 'end': 'target' })).node;
 
+        if (this.getConnectionLength() < this.options.shortLinkLength) {
+
+            V(sourceArrowhead).scale(.5);
+            V(targetArrowhead).scale(.5);
+        }
+        
         $markerArrowheads.append(sourceArrowhead);
         $markerArrowheads.append(targetArrowhead);
 

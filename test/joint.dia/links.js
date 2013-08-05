@@ -80,7 +80,7 @@ test('disconnect(), connect()', function() {
     var myrect2View = this.paper.findViewByModel(myrect2);
     
     // disconnect:
-    link.set('source', linkView.getConnectionPoint(link.previous('source'), link.get('target')));
+    link.set('source', linkView.getConnectionPoint('source', link.previous('source'), link.get('target')));
     
     ok(link.get('source') instanceof g.point, 'source of the link became a point');
     ok(!(link.get('target') instanceof g.point), 'target of the link is still not a point');
@@ -101,7 +101,7 @@ test('disconnect(), connect()', function() {
     equal(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data updated after the just connected source moved');
 
     // disconnect:
-    link.set('target', linkView.getConnectionPoint(link.previous('target'), link.get('source')));
+    link.set('target', linkView.getConnectionPoint('target', link.previous('target'), link.get('source')));
 
     ok(link.get('target') instanceof g.point, 'target of the link became a point');
     ok(!(link.get('source') instanceof g.point), 'source of the link is still not a point');

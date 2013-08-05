@@ -1,4 +1,4 @@
-/*! JointJS v0.6.0 - JavaScript diagramming library  2013-07-23 
+/*! JointJS v0.6.0 - JavaScript diagramming library  2013-08-05 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -223,7 +223,7 @@ joint.shapes.uml.EndState = joint.shapes.basic.Generic.extend({
 
     defaults: joint.util.deepSupplement({
 
-        type: 'fsa.EndState',
+        type: 'uml.EndState',
         size: { width: 20, height: 20 },
         attrs: {
             'circle.outer': {

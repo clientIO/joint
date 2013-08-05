@@ -216,7 +216,7 @@ joint.shapes.uml.EndState = joint.shapes.basic.Generic.extend({
 
     defaults: joint.util.deepSupplement({
 
-        type: 'fsa.EndState',
+        type: 'uml.EndState',
         size: { width: 20, height: 20 },
         attrs: {
             'circle.outer': {

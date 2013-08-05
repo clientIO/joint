@@ -30,7 +30,7 @@ joint.dia.Paper = Backbone.View.extend({
 
     initialize: function() {
 
-        _.bindAll(this, 'addCell', 'sortCells');
+        _.bindAll(this, 'addCell', 'sortCells', 'resetCells');
 
         this.svg = V('svg').node;
         this.viewport = V('g').node;
@@ -46,6 +46,7 @@ joint.dia.Paper = Backbone.View.extend({
         this.model.on({
 
             'add': this.addCell,
+            'reset': this.resetCells,
             'sort': this.sortCells
         });
     },
@@ -59,8 +60,8 @@ joint.dia.Paper = Backbone.View.extend({
         V(this.svg).attr('height', this.options.height);
     },
 
-    addCell: function(cell) {
-
+    createViewForModel: function(cell) {
+        
         var view;
         
         var type = cell.get('type');
@@ -81,6 +82,13 @@ joint.dia.Paper = Backbone.View.extend({
             view = new this.options.linkView({ model: cell, interactive: this.options.interactive });
         }
 
+        return view;
+    },
+    
+    addCell: function(cell) {
+
+        var view = this.createViewForModel(cell);
+
         V(this.viewport).append(view.el);
         view.paper = this;
         view.render();
@@ -88,6 +96,13 @@ joint.dia.Paper = Backbone.View.extend({
         // This is the only way to prevent image dragging in Firefox that works.
         // Setting -moz-user-select: none, draggable="false" attribute or user-drag: none didn't help.
         $(view.el).find('image').on('dragstart', function() { return false; });
+    },
+
+    resetCells: function(cellsCollection) {
+
+        $(this.viewport).empty();
+        
+        _.each(cellsCollection.models, this.addCell, this);
     },
 
     sortCells: function() {
