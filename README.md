@@ -37,7 +37,7 @@ Only the good ones (those that support SVG):
 * Latest Google Chrome (including mobile)
 * Latest Firefox
 * Safari (including mobile)
-* IE 9+ (partially; most of things work, for others there are workarounds; we are working on that)
+* IE 9+
 
 
 Tests
