@@ -443,9 +443,16 @@
             p.x = x;
             p.y = y;
 
-            var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
+	    try {
 
-            var globalToLocalMatrix = this.node.getTransformToElement(svg).inverse();
+		var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
+		var globalToLocalMatrix = this.node.getTransformToElement(svg).inverse();
+
+	    } catch(e) {
+		// IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
+		// We have to make do with the original coordianates.
+		return p;
+	    }
 
             return globalPoint.matrixTransform(globalToLocalMatrix);
         },
