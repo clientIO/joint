@@ -39,10 +39,12 @@ joint.shapes.pn.Place = joint.shapes.basic.Generic.extend({
             '.tokens.three > circle:nth-child(3)': { transform: 'translate(32, 29)' },
             
             '.tokens.alot > text': {
-                x: 25,
-                y: 20,
-                fill: 'black',
-                'text-anchor': 'middle'
+                'ref-x': .5,
+                'ref-y': .5,
+		'y-alignment': 'middle',
+		'x-alignment': 'middle',
+                ref: '.root',
+                fill: 'black'
             }
         }
 

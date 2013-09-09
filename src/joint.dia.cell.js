@@ -85,6 +85,12 @@ joint.dia.Cell = Backbone.Model.extend({
 
     remove: function(options) {
 
+	var collection = this.collection;
+
+	if (collection) {
+	    collection.trigger('batch:start');
+	}
+
         // First, unembed this cell from its parent cell if there is one.
         var parentCellId = this.get('parent');
         if (parentCellId) {
@@ -96,6 +102,10 @@ joint.dia.Cell = Backbone.Model.extend({
         _.invoke(this.getEmbeddedCells(), 'remove', options);
         
         this.trigger('remove', this, this.collection, options);
+
+	if (collection) {
+	    collection.trigger('batch:stop');
+	}
     },
 
     toFront: function() {
@@ -116,18 +126,26 @@ joint.dia.Cell = Backbone.Model.extend({
 
     embed: function(cell) {
 
+	this.trigger('batch:start');
+
         var cellId = cell.id;
         cell.set('parent', this.id);
 
         this.set('embeds', _.uniq((this.get('embeds') || []).concat([cellId])));
+
+	this.trigger('batch:stop');
     },
 
     unembed: function(cell) {
+
+	this.trigger('batch:start');
 
         var cellId = cell.id;
         cell.unset('parent');
 
         this.set('embeds', _.without(this.get('embeds'), cellId));
+
+	this.trigger('batch:stop');
     },
 
     getEmbeddedCells: function() {
@@ -309,38 +327,18 @@ joint.dia.CellView = Backbone.View.extend({
 
     highlight: function(el) {
 
-        var $el;
+        el = !el ? this.el : this.$(el)[0] || this.el;
 
-        $el = !el ? this.$el : this.$(el);
-        $el = $el.length ? $el : this.$el;
+	var attrClass = V(el).attr('class').trim();
 
-        // For some reason, CSS `outline` property does not work on `<text>` elements.
-        if ($el[0].tagName.toUpperCase() === 'TEXT') {
-            
-            $el.css('fill', '#FF0000');
-            
-        } else {
-            
-            $el.css('outline', '2px solid #FF0000');
-        }
+	if (!/\b(highlighted)\b/.exec(attrClass)) V(el).attr('class', attrClass + ' highlighted');
     },
 
     unhighlight: function(el) {
 
-        var $el;
+        el = !el ? this.el : this.$(el)[0] || this.el;
 
-        $el = !el ? this.$el : this.$(el);
-        $el = $el.length ? $el : this.$el;
-
-        // For some reason, CSS `outline` property does not work on `<text>` elements.
-        if ($el[0].tagName.toUpperCase() === 'TEXT') {
-            
-            $el.css('fill', '');
-            
-        } else {
-            
-            $el.css('outline', '');
-        }
+	V(el).attr('class', V(el).attr('class').replace(/\b([ ]highlighted)\b/, ''));
     },
 
     // Find the closest element that has the `magnet` attribute set to `true`. If there was not such
@@ -396,8 +394,13 @@ joint.dia.CellView = Backbone.View.extend({
 
     // These functions are supposed to be overriden by the views that inherit from `joint.dia.Cell`,
     // i.e. `joint.dia.Element` and `joint.dia.Link`.
-    
+
     pointerdown: function(evt, x, y) {
+
+	if (this.model.collection) {
+	    this.model.trigger('batch:start');
+	    this._collection = this.model.collection;
+	}
 
         this.notify('cell:pointerdown', evt, x, y);
     },
@@ -410,5 +413,13 @@ joint.dia.CellView = Backbone.View.extend({
     pointerup: function(evt, x, y) {
 
         this.notify('cell:pointerup', evt, x, y);
+
+	if (this._collection) {
+	    // we don't want to trigger event on model as model doesn't
+	    // need to be member of collection anymore (remove)
+	    this._collection.trigger('batch:stop');
+	    delete this._collection;
+	}
+
     }
 });

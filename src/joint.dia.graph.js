@@ -122,22 +122,21 @@ joint.dia.Graph = Backbone.Model.extend({
         return cell;
     },
     
-    addCell: function(cell) {
+    addCell: function(cell, options) {
 
         if (_.isArray(cell)) {
 
-            return this.addCells(cell);
+            return this.addCells(cell, options);
         }
 
-        
-        this.get('cells').add(this._prepareCell(cell));
-        
+        this.get('cells').add(this._prepareCell(cell), options || {});
+
         return this;
     },
 
-    addCells: function(cells) {
+    addCells: function(cells, options) {
 
-        _.each(cells, function(cell) { this.addCell(this._prepareCell(cell)); }, this);
+        _.each(cells, function(cell) { this.addCell(this._prepareCell(cell), options || {}); }, this);
 
         return this;
     },
@@ -179,10 +178,57 @@ joint.dia.Graph = Backbone.Model.extend({
         return this.get('cells').get(id);
     },
 
+    getElements: function() {
+
+        return this.get('cells').filter(function(cell) {
+
+            return cell instanceof joint.dia.Element;
+        });
+    },
+    
+    getLinks: function() {
+
+        return this.get('cells').filter(function(cell) {
+
+            return cell instanceof joint.dia.Link;
+        });
+    },
+
     // Get all inbound and outbound links connected to the cell `model`.
     getConnectedLinks: function(model, opt) {
 
         return this.get('cells').getConnectedLinks(model, opt);
+    },
+
+    getNeighbors: function(el) {
+
+        var links = this.getConnectedLinks(el);
+        var neighbors = [];
+        var cells = this.get('cells');
+        
+        _.each(links, function(link) {
+
+            var source = link.get('source');
+            var target = link.get('target');
+
+            // Discard if it is a point.
+            if (!source.x) {
+                var sourceElement = cells.get(source.id);
+                if (sourceElement !== el) {
+
+                    neighbors.push(sourceElement);
+                }
+            }
+            if (!target.x) {
+                var targetElement = cells.get(target.id);
+                if (targetElement !== el) {
+
+                    neighbors.push(targetElement);
+                }
+            }
+        });
+
+        return neighbors;
     },
     
     // Disconnect links connected to the cell `model`.

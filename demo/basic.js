@@ -40,6 +40,16 @@ var ib = new joint.shapes.basic.Image({
 });
 graph.addCell(ib);
 
+var pb = new joint.shapes.basic.Path({
+    position: { x: 50, y: 150 },
+    size: { width: 40, height: 40 },
+    attrs: {
+        path: { d: 'M25.979,12.896 19.312,12.896 19.312,6.229 12.647,6.229 12.647,12.896 5.979,12.896 5.979,19.562 12.647,19.562 12.647,26.229 19.312,26.229 19.312,19.562 25.979,19.562z' },
+        text: { text: 'basic.Path' }
+    }
+});
+graph.addCell(pb);
+
 
 // An example of a custom element.
 // -------------------------------

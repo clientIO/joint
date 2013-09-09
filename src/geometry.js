@@ -112,6 +112,9 @@
 	    this.y += dy || 0;
 	    return this;
         },
+        magnitude: function() {
+            return sqrt((this.x*this.x) + (this.y*this.y)) || 0.01;
+        },
         update: function(x, y) {
             this.x = x || 0;
             this.y = y || 0;
@@ -124,10 +127,13 @@
         },
         // Scale the line segment between (0,0) and me to have a length of len.
         normalize: function(len) {
-	    var s = len / sqrt((this.x*this.x) + (this.y*this.y));
+	    var s = (len || 1) / this.magnitude();
 	    this.x = s * this.x;
 	    this.y = s * this.y;
 	    return this;
+        },
+        difference: function(p) {
+            return point(this.x - p.x, this.y - p.y);
         },
         // Converts rectangular to polar coordinates.
         // An origin can be specified, otherwise it's 0@0.

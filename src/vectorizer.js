@@ -339,9 +339,13 @@
             var lines = content.split('\n'), i = 0,
                 tspan;
 
-            // `alignment-baseline` does not work in Firefox. Setting `dominant-baseline` on the `<text>` element
-            // fixes the issue.
-            this.attr('dominant-baseline', 'hanging');
+            // `alignment-baseline` does not work in Firefox.
+	    // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
+            // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
+	    // in the top left corner we translate the `<text>` element by `0.8em`.
+	    // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
+	    // See also `http://apike.ca/prog_svg_text_style.html`.
+	    this.attr('y', '0.8em');
             
             if (lines.length === 1) {
                 this.node.textContent = content;
@@ -352,10 +356,8 @@
             
             for (; i < lines.length; i++) {
 
-                // Shift the <tspan> by one line (`1em`) and set the `alignment-baseline` to `hanging` in
-                // order to have the top left coordinate of the `<tspan>` aligned with the top left
-                // coordinate of the `<text>`. See `http://apike.ca/prog_svg_text_style.html`.
-                tspan = V('tspan', { dy: (i == 0 ? '0em' : '1em'), x: this.attr('x') || 0, 'alignment-baseline': 'hanging' });
+                // Shift all the <tspan> but first by one line (`1em`)
+                tspan = V('tspan', { dy: (i == 0 ? '0em' : '1em'), x: this.attr('x') || 0});
                 tspan.node.textContent = lines[i];
                 
                 this.append(tspan);
@@ -526,7 +528,24 @@
                 animateMotion.node.beginElement();
             } catch (e) {
                 // Fallback for IE 9.
-                animateMotion.node.setAttributeNS(null, 'begin', 'indefinite');
+		// Run the animation programatically if FakeSmile (`http://leunen.me/fakesmile/`) present 
+		if (document.documentElement.getAttribute('smiling') === 'fake') {
+
+		    // Register the animation. (See `https://answers.launchpad.net/smil/+question/203333`)
+		    var animation = animateMotion.node;
+		    animation.animators = new Array();
+
+		    var animationID = animation.getAttribute('id');
+		    if (animationID) id2anim[animationID] = animation;
+
+		    _.each(getTargets(animation), function(target, index) {
+			var animator = new Animator(animation, target, index);
+			animators.push(animator);
+			animation.animators[index] = animator;
+		    });
+
+		    _.invoke(animation.animators, 'register');
+		}
             }
         }
     };

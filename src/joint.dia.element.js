@@ -16,7 +16,7 @@ joint.dia.Element = joint.dia.Cell.extend({
         this.set('position', { x: x, y: y });
     },
     
-    translate: function(tx, ty) {
+    translate: function(tx, ty, opt) {
 
         ty = ty || 0;
 
@@ -31,8 +31,8 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             x: position.x + tx || 0,
             y: position.y + ty || 0
-        });
-
+            
+        }, opt);
 
         // Recursively call `translate()` on all the embeds cells.
         _.invoke(this.getEmbeddedCells(), 'translate', tx, ty);
@@ -42,7 +42,11 @@ joint.dia.Element = joint.dia.Cell.extend({
 
     resize: function(width, height) {
 
-        return this.set('size', { width: width, height: height });
+	this.trigger('batch:start');
+        this.set('size', { width: width, height: height });
+	this.trigger('batch:stop');
+
+	return this;
     },
 
     rotate: function(angle, absolute) {
@@ -269,24 +273,25 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
+	var velbbox = vel.bbox(false, this.paper.viewport);
         // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
         if (yAlignment === 'middle') {
 
-            ty -= vel.bbox().height/2;
+            ty -= velbbox.height/2;
             
         } else if (isDefined(yAlignment)) {
 
-            ty += (yAlignment > 0 && yAlignment < 1) ?  vel.bbox().height * yAlignment : yAlignment;
+            ty += (yAlignment > 0 && yAlignment < 1) ?  velbbox.height * yAlignment : yAlignment;
         }
 
         // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
         if (xAlignment === 'middle') {
             
-            tx -= vel.bbox().width/2;
+            tx -= velbbox.width/2;
             
         } else if (isDefined(xAlignment)) {
 
-            tx += (xAlignment > 0 && xAlignment < 1) ?  vel.bbox().width * xAlignment : xAlignment;
+            tx += (xAlignment > 0 && xAlignment < 1) ?  velbbox.width * xAlignment : xAlignment;
         }
 
         vel.translate(tx, ty);
@@ -357,7 +362,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (rotation && rotation !== 'null') {
 
             rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width/2) + ',' + (size.height/2) + ')');
-            var rotatableBbox = scalable.bbox();
+            var rotatableBbox = scalable.bbox(false, this.paper.viewport);
             
             // Store new x, y and perform rotate() again against the new rotation origin.
             this.model.set('position', { x: rotatableBbox.x, y: rotatableBbox.y });
@@ -369,10 +374,28 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.update();
     },
 
-    translate: function() {
+    translate: function(model, changes, opt) {
 
         var position = this.model.get('position') || { x: 0, y: 0 };
-        V(this.el).attr('transform', 'translate(' + position.x + ',' + position.y + ')');
+
+        if (opt && opt.animation) {
+
+            var animateTransform = V('animateTransform', {
+                attributeName: 'transform',
+                attributeType: 'XML',
+                type: 'translate',
+                from: (this.model.previous('position').x || 0) + ' ' + (this.model.previous('position').y || 0),
+                to: position.x + ' ' + position.y,
+                dur: '100ms',
+                fill: 'freeze'
+            });
+            V(this.el).append(animateTransform);
+            animateTransform.node.beginElement();
+            
+        } else {
+
+            V(this.el).attr('transform', 'translate(' + position.x + ',' + position.y + ')');
+        }
     },
 
     rotate: function() {
