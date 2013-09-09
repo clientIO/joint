@@ -16,7 +16,7 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
         type: 'uml.Class',
 
         attrs: {
-            rect: { 'width': 1, 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
+            rect: { 'width': 200, 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
             text: { 'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman' },
 
             '.uml-class-name-rect': { 'fill': '#3498db' },
@@ -68,12 +68,13 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
         _.each(rects, function(rect) {
 
             var lines = _.isArray(rect.text) ? rect.text : [rect.text];
+	    var rectHeight = lines.length * 20 + 20;
 
             attrs['.uml-class-' + rect.type + '-text'].text = lines.join('\n');
-            attrs['.uml-class-' + rect.type + '-rect'].height = lines.length + 1;
+            attrs['.uml-class-' + rect.type + '-rect'].height = rectHeight;
             attrs['.uml-class-' + rect.type + '-rect'].transform = 'translate(0,'+ offsetY + ')';
 
-            offsetY += lines.length + 1;
+            offsetY += rectHeight;
         });
     }
 
@@ -156,8 +157,8 @@ joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
         type: 'uml.State',
 
         attrs: {
-            rect: { 'width': 20, 'height': 20, 'fill': '#ecf0f1', 'stroke': '#bdc3c7', 'stroke-width': 3, 'rx': 1, 'ry': 1 },
-            path: { 'd': 'M 0 20 L 20 20', 'stroke': '#bdc3c7', 'stroke-width': 2 },
+            rect: { 'width': 200, 'height': 200, 'fill': '#ecf0f1', 'stroke': '#bdc3c7', 'stroke-width': 3, 'rx': 10, 'ry': 10 },
+            path: { 'd': 'M 0 20 L 200 20', 'stroke': '#bdc3c7', 'stroke-width': 2 },
             text: { 'font-family': 'Courier New', 'font-size': 14, fill: 'black' },
             '.uml-state-name': { 'ref': 'rect', 'ref-x': .5, 'ref-y': 5, 'text-anchor': 'middle' },
             '.uml-state-events': { 'ref': 'path', 'ref-x': 5, 'ref-y': 5 }

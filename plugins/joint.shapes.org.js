@@ -16,7 +16,7 @@ joint.shapes.org.Member = joint.dia.Element.extend({
 
             '.card': {
                 fill: 'white', stroke: 'black', 'stroke-width': 2,
-                'pointer-events': 'auto',
+                'pointer-events': 'visiblePainted',
                 magnet: true
             },
 

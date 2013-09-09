@@ -23,14 +23,12 @@ joint.dia.Paper = Backbone.View.extend({
         'mousedown': 'pointerdown',
         'touchstart': 'pointerdown',
         'mousemove': 'pointermove',
-        'touchmove': 'pointermove',
-        'mouseup': 'pointerup',
-        'touchend': 'pointerup'
+        'touchmove': 'pointermove'
     },
 
     initialize: function() {
 
-        _.bindAll(this, 'addCell', 'sortCells', 'resetCells');
+        _.bindAll(this, 'addCell', 'sortCells', 'resetCells', 'pointerup');
 
         this.svg = V('svg').node;
         this.viewport = V('g').node;
@@ -49,6 +47,15 @@ joint.dia.Paper = Backbone.View.extend({
             'reset': this.resetCells,
             'sort': this.sortCells
         });
+
+	$(document).on('mouseup touchend', this.pointerup);
+    },
+
+    remove: function() {
+
+	$(document).off('mouseup touchend', this.pointerup);
+
+	Backbone.View.prototype.remove.call(this);
     },
 
     setDimensions: function(width, height) {
@@ -143,9 +150,7 @@ joint.dia.Paper = Backbone.View.extend({
         
         V(this.viewport).scale(sx, sy);
 
-        if (ox || oy) {
-            //V(this.viewport).translate(ox, oy);
-        }
+	this.trigger('scale', ox, oy);
 
         return this;
     },
@@ -163,6 +168,14 @@ joint.dia.Paper = Backbone.View.extend({
         }
 
         V(this.viewport).rotate(deg, ox, oy);
+    },
+
+    zoom: function(level) {
+
+	level = level || 1;
+
+        V(this.svg).attr('width', this.options.width * level);
+        V(this.svg).attr('height', this.options.height * level);
     },
 
     // Find the first view climbing up the DOM tree starting at element `el`. Note that `el` can also

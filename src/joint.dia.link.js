@@ -117,28 +117,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         this.model.on({
 
-            'change:vertices': this.update,
-            'change:source': this.updateEnds,
-            'change:target': this.updateEnds,
+            'change:vertices change:smooth': this.update,
+            'change:source change:target': this.updateEnds,
 	    'change:markup': this.render,
-            'change:smooth': this.update
-        });
-
-        this.model.on({
-
-            'change:vertices': this.renderVertexMarkers,
-            'change:vertexMarkup': this.renderVertexMarkers
-        });
-
-        this.model.on({
-
-            'change:labels': this.renderLabels,
-            'change:labelMarkup': this.renderLabels
-        });
-
-        this.model.on({
-
-            'change:toolMarkup': this.renderTools
+	    'change:vertices change:vertexMarkup': this.renderVertexMarkers,
+	    'change:labels change:labelMarkup': _.bind(function() { this.renderLabels(); this.updateLabelPositions(); }, this),
+            'change:toolMarkup': _.bind(function() { this.renderTools(); this.updateToolsPosition(); }, this)
         });
 
         // `_.labelCache` is a mapping of indexes of labels in the `this.get('labels')` array to
@@ -159,7 +143,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             
             this._sourceBbox = V(this.paper.$(this._makeSelector(source))[0]).bbox(false, this.paper.viewport);
         }
-        this.update();
     },
     onTargetModelChange: function() {
 
@@ -169,7 +152,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             
             this._targetBbox = V(this.paper.$(this._makeSelector(target))[0]).bbox(false, this.paper.viewport);
         }
-        this.update();
     },
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
@@ -261,12 +243,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (this._isModel(this.model.get('source'))) {
 
             cell = this.paper.getModelById(this.model.get('source').id);
-            this.listenTo(cell, 'change', this.onSourceModelChange);
+            this.listenTo(cell, 'change', function() { this.onSourceModelChange(); this.update() });
         }
         if (this._isModel(this.model.get('target'))) {
 
             cell = this.paper.getModelById(this.model.get('target').id);
-            this.listenTo(cell, 'change', this.onTargetModelChange);
+            this.listenTo(cell, 'change', function() { this.onTargetModelChange(); this.update() });
         }
 
         this.update();
@@ -310,9 +292,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
         var labelNodeInstance = V(labelTemplate());
-
-        var connectionElement = this._connection.node;
-        var connectionLength = connectionElement.getTotalLength();
 
         _.each(labels, function(label, idx) {
 
@@ -359,8 +338,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }));
             
         }, this);
-
-        this.updateLabelPositions();
     },
 
     renderTools: function() {
@@ -377,7 +354,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Cache the tool node so that the `updateToolsPosition()` can update the tool position quickly.
         this._toolCache = tool;
-        this.updateToolsPosition();
     },
 
     updateToolsPosition: function() {
@@ -851,8 +827,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (this._action === 'arrowhead-move') {
 
-            // Put `pointer-events` back to `auto`. See `pointerdown()` for explanation.
-            this.$el.css({ 'pointer-events': 'auto' });
+            // Put `pointer-events` back to its original value. See `pointerdown()` for explanation.
+	    // Value `auto` doesn't work in IE9. We force to use `visiblePainted` instead.
+	    // See `https://developer.mozilla.org/en-US/docs/Web/CSS/pointer-events`.
+            this.$el.css({ 'pointer-events': 'visiblePainted' });
 
             this.model.set('z', this._originalZ);
             delete this._originalZ;
