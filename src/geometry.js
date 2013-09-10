@@ -106,6 +106,10 @@
         distance: function(p) {
 	    return line(this, p).length();
         },
+        // Returns a manhattan (taxi-cab) distance between me and point `p`.
+        manhattanDistance: function(p) {
+            return abs(p.x - this.x) + abs(p.y - this.y);
+        },
         // Offset me by the specified amount.
         offset: function(dx, dy) {
 	    this.x += dx || 0;
