@@ -1,4 +1,4 @@
-/*! JointJS v0.6.0 - JavaScript diagramming library  2013-08-05 
+/*! JointJS v0.6.0 - JavaScript diagramming library  2013-09-10 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -46,10 +46,12 @@ joint.shapes.pn.Place = joint.shapes.basic.Generic.extend({
             '.tokens.three > circle:nth-child(3)': { transform: 'translate(32, 29)' },
             
             '.tokens.alot > text': {
-                x: 25,
-                y: 20,
-                fill: 'black',
-                'text-anchor': 'middle'
+                'ref-x': .5,
+                'ref-y': .5,
+		'y-alignment': 'middle',
+		'x-alignment': 'middle',
+                ref: '.root',
+                fill: 'black'
             }
         }
 

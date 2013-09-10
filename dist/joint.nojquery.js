@@ -1,4 +1,4 @@
-/*! JointJS v0.6.0 - JavaScript diagramming library  2013-08-05 
+/*! JointJS v0.6.0 - JavaScript diagramming library  2013-09-10 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -3316,6 +3316,7 @@ var joint = {
     }
 };
 
+
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -3657,9 +3658,13 @@ var joint = {
             var lines = content.split('\n'), i = 0,
                 tspan;
 
-            // `alignment-baseline` does not work in Firefox. Setting `dominant-baseline` on the `<text>` element
-            // fixes the issue.
-            this.attr('dominant-baseline', 'hanging');
+            // `alignment-baseline` does not work in Firefox.
+	    // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
+            // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
+	    // in the top left corner we translate the `<text>` element by `0.8em`.
+	    // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
+	    // See also `http://apike.ca/prog_svg_text_style.html`.
+	    this.attr('y', '0.8em');
             
             if (lines.length === 1) {
                 this.node.textContent = content;
@@ -3670,10 +3675,8 @@ var joint = {
             
             for (; i < lines.length; i++) {
 
-                // Shift the <tspan> by one line (`1em`) and set the `alignment-baseline` to `hanging` in
-                // order to have the top left coordinate of the `<tspan>` aligned with the top left
-                // coordinate of the `<text>`. See `http://apike.ca/prog_svg_text_style.html`.
-                tspan = V('tspan', { dy: (i == 0 ? '0em' : '1em'), x: this.attr('x') || 0, 'alignment-baseline': 'hanging' });
+                // Shift all the <tspan> but first by one line (`1em`)
+                tspan = V('tspan', { dy: (i == 0 ? '0em' : '1em'), x: this.attr('x') || 0});
                 tspan.node.textContent = lines[i];
                 
                 this.append(tspan);
@@ -3759,9 +3762,16 @@ var joint = {
             p.x = x;
             p.y = y;
 
-            var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
+	    try {
 
-            var globalToLocalMatrix = this.node.getTransformToElement(svg).inverse();
+		var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
+		var globalToLocalMatrix = this.node.getTransformToElement(svg).inverse();
+
+	    } catch(e) {
+		// IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
+		// We have to make do with the original coordianates.
+		return p;
+	    }
 
             return globalPoint.matrixTransform(globalToLocalMatrix);
         },
@@ -3844,7 +3854,24 @@ var joint = {
                 animateMotion.node.beginElement();
             } catch (e) {
                 // Fallback for IE 9.
-                animateMotion.node.setAttributeNS(null, 'begin', 'indefinite');
+		// Run the animation programatically if FakeSmile (`http://leunen.me/fakesmile/`) present 
+		if (document.documentElement.getAttribute('smiling') === 'fake') {
+
+		    // Register the animation. (See `https://answers.launchpad.net/smil/+question/203333`)
+		    var animation = animateMotion.node;
+		    animation.animators = new Array();
+
+		    var animationID = animation.getAttribute('id');
+		    if (animationID) id2anim[animationID] = animation;
+
+		    _.each(getTargets(animation), function(target, index) {
+			var animator = new Animator(animation, target, index);
+			animators.push(animator);
+			animation.animators[index] = animator;
+		    });
+
+		    _.invoke(animation.animators, 'register');
+		}
             }
         }
     };
@@ -3986,11 +4013,18 @@ var joint = {
         distance: function(p) {
 	    return line(this, p).length();
         },
+        // Returns a manhattan (taxi-cab) distance between me and point `p`.
+        manhattanDistance: function(p) {
+            return abs(p.x - this.x) + abs(p.y - this.y);
+        },
         // Offset me by the specified amount.
         offset: function(dx, dy) {
 	    this.x += dx || 0;
 	    this.y += dy || 0;
 	    return this;
+        },
+        magnitude: function() {
+            return sqrt((this.x*this.x) + (this.y*this.y)) || 0.01;
         },
         update: function(x, y) {
             this.x = x || 0;
@@ -4004,10 +4038,13 @@ var joint = {
         },
         // Scale the line segment between (0,0) and me to have a length of len.
         normalize: function(len) {
-	    var s = len / sqrt((this.x*this.x) + (this.y*this.y));
+	    var s = (len || 1) / this.magnitude();
 	    this.x = s * this.x;
 	    this.y = s * this.y;
 	    return this;
+        },
+        difference: function(p) {
+            return point(this.x - p.x, this.y - p.y);
         },
         // Converts rectangular to polar coordinates.
         // An origin can be specified, otherwise it's 0@0.
@@ -4507,10 +4544,9 @@ joint.dia.Graph = Backbone.Model.extend({
 
     initialize: function() {
 
-        this.set('paper', new Backbone.Model);
         this.set('cells', new joint.dia.GraphCells);
 
-        // Make all the events fired in either the `paper` model or the `cells` collection available
+        // Make all the events fired in the `cells` collection available.
         // to the outside world.
         this.get('cells').on('all', this.trigger, this);
         
@@ -4519,9 +4555,9 @@ joint.dia.Graph = Backbone.Model.extend({
 
     fromJSON: function(json) {
 
-        if (!json.paper || !json.cells) {
+        if (!json.cells) {
 
-            throw new Error('Graph JSON must contain paper and cells properties.');
+            throw new Error('Graph JSON must contain cells array.');
         }
 
         var attrs = json;
@@ -4554,22 +4590,21 @@ joint.dia.Graph = Backbone.Model.extend({
         return cell;
     },
     
-    addCell: function(cell) {
+    addCell: function(cell, options) {
 
         if (_.isArray(cell)) {
 
-            return this.addCells(cell);
+            return this.addCells(cell, options);
         }
 
-        
-        this.get('cells').add(this._prepareCell(cell));
-        
+        this.get('cells').add(this._prepareCell(cell), options || {});
+
         return this;
     },
 
-    addCells: function(cells) {
+    addCells: function(cells, options) {
 
-        _.each(cells, function(cell) { this.addCell(this._prepareCell(cell)); }, this);
+        _.each(cells, function(cell) { this.addCell(this._prepareCell(cell), options || {}); }, this);
 
         return this;
     },
@@ -4611,10 +4646,57 @@ joint.dia.Graph = Backbone.Model.extend({
         return this.get('cells').get(id);
     },
 
+    getElements: function() {
+
+        return this.get('cells').filter(function(cell) {
+
+            return cell instanceof joint.dia.Element;
+        });
+    },
+    
+    getLinks: function() {
+
+        return this.get('cells').filter(function(cell) {
+
+            return cell instanceof joint.dia.Link;
+        });
+    },
+
     // Get all inbound and outbound links connected to the cell `model`.
     getConnectedLinks: function(model, opt) {
 
         return this.get('cells').getConnectedLinks(model, opt);
+    },
+
+    getNeighbors: function(el) {
+
+        var links = this.getConnectedLinks(el);
+        var neighbors = [];
+        var cells = this.get('cells');
+        
+        _.each(links, function(link) {
+
+            var source = link.get('source');
+            var target = link.get('target');
+
+            // Discard if it is a point.
+            if (!source.x) {
+                var sourceElement = cells.get(source.id);
+                if (sourceElement !== el) {
+
+                    neighbors.push(sourceElement);
+                }
+            }
+            if (!target.x) {
+                var targetElement = cells.get(target.id);
+                if (targetElement !== el) {
+
+                    neighbors.push(targetElement);
+                }
+            }
+        });
+
+        return neighbors;
     },
     
     // Disconnect links connected to the cell `model`.
@@ -4720,6 +4802,12 @@ joint.dia.Cell = Backbone.Model.extend({
 
     remove: function(options) {
 
+	var collection = this.collection;
+
+	if (collection) {
+	    collection.trigger('batch:start');
+	}
+
         // First, unembed this cell from its parent cell if there is one.
         var parentCellId = this.get('parent');
         if (parentCellId) {
@@ -4731,6 +4819,10 @@ joint.dia.Cell = Backbone.Model.extend({
         _.invoke(this.getEmbeddedCells(), 'remove', options);
         
         this.trigger('remove', this, this.collection, options);
+
+	if (collection) {
+	    collection.trigger('batch:stop');
+	}
     },
 
     toFront: function() {
@@ -4751,18 +4843,26 @@ joint.dia.Cell = Backbone.Model.extend({
 
     embed: function(cell) {
 
+	this.trigger('batch:start');
+
         var cellId = cell.id;
         cell.set('parent', this.id);
 
         this.set('embeds', _.uniq((this.get('embeds') || []).concat([cellId])));
+
+	this.trigger('batch:stop');
     },
 
     unembed: function(cell) {
+
+	this.trigger('batch:start');
 
         var cellId = cell.id;
         cell.unset('parent');
 
         this.set('embeds', _.without(this.get('embeds'), cellId));
+
+	this.trigger('batch:stop');
     },
 
     getEmbeddedCells: function() {
@@ -4944,38 +5044,18 @@ joint.dia.CellView = Backbone.View.extend({
 
     highlight: function(el) {
 
-        var $el;
+        el = !el ? this.el : this.$(el)[0] || this.el;
 
-        $el = !el ? this.$el : this.$(el);
-        $el = $el.length ? $el : this.$el;
+	var attrClass = V(el).attr('class').trim();
 
-        // For some reason, CSS `outline` property does not work on `<text>` elements.
-        if ($el[0].tagName.toUpperCase() === 'TEXT') {
-            
-            $el.css('fill', '#FF0000');
-            
-        } else {
-            
-            $el.css('outline', '2px solid #FF0000');
-        }
+	if (!/\b(highlighted)\b/.exec(attrClass)) V(el).attr('class', attrClass + ' highlighted');
     },
 
     unhighlight: function(el) {
 
-        var $el;
+        el = !el ? this.el : this.$(el)[0] || this.el;
 
-        $el = !el ? this.$el : this.$(el);
-        $el = $el.length ? $el : this.$el;
-
-        // For some reason, CSS `outline` property does not work on `<text>` elements.
-        if ($el[0].tagName.toUpperCase() === 'TEXT') {
-            
-            $el.css('fill', '');
-            
-        } else {
-            
-            $el.css('outline', '');
-        }
+	V(el).attr('class', V(el).attr('class').replace(/\b([ ]highlighted)\b/, ''));
     },
 
     // Find the closest element that has the `magnet` attribute set to `true`. If there was not such
@@ -5031,8 +5111,13 @@ joint.dia.CellView = Backbone.View.extend({
 
     // These functions are supposed to be overriden by the views that inherit from `joint.dia.Cell`,
     // i.e. `joint.dia.Element` and `joint.dia.Link`.
-    
+
     pointerdown: function(evt, x, y) {
+
+	if (this.model.collection) {
+	    this.model.trigger('batch:start');
+	    this._collection = this.model.collection;
+	}
 
         this.notify('cell:pointerdown', evt, x, y);
     },
@@ -5045,6 +5130,14 @@ joint.dia.CellView = Backbone.View.extend({
     pointerup: function(evt, x, y) {
 
         this.notify('cell:pointerup', evt, x, y);
+
+	if (this._collection) {
+	    // we don't want to trigger event on model as model doesn't
+	    // need to be member of collection anymore (remove)
+	    this._collection.trigger('batch:stop');
+	    delete this._collection;
+	}
+
     }
 });
 
@@ -5066,7 +5159,7 @@ joint.dia.Element = joint.dia.Cell.extend({
         this.set('position', { x: x, y: y });
     },
     
-    translate: function(tx, ty) {
+    translate: function(tx, ty, opt) {
 
         ty = ty || 0;
 
@@ -5081,8 +5174,8 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             x: position.x + tx || 0,
             y: position.y + ty || 0
-        });
-
+            
+        }, opt);
 
         // Recursively call `translate()` on all the embeds cells.
         _.invoke(this.getEmbeddedCells(), 'translate', tx, ty);
@@ -5092,7 +5185,11 @@ joint.dia.Element = joint.dia.Cell.extend({
 
     resize: function(width, height) {
 
-        return this.set('size', { width: width, height: height });
+	this.trigger('batch:start');
+        this.set('size', { width: width, height: height });
+	this.trigger('batch:stop');
+
+	return this;
     },
 
     rotate: function(angle, absolute) {
@@ -5319,24 +5416,25 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
+	var velbbox = vel.bbox(false, this.paper.viewport);
         // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
         if (yAlignment === 'middle') {
 
-            ty -= vel.bbox().height/2;
+            ty -= velbbox.height/2;
             
         } else if (isDefined(yAlignment)) {
 
-            ty += (yAlignment > 0 && yAlignment < 1) ?  vel.bbox().height * yAlignment : yAlignment;
+            ty += (yAlignment > 0 && yAlignment < 1) ?  velbbox.height * yAlignment : yAlignment;
         }
 
         // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
         if (xAlignment === 'middle') {
             
-            tx -= vel.bbox().width/2;
+            tx -= velbbox.width/2;
             
         } else if (isDefined(xAlignment)) {
 
-            tx += (xAlignment > 0 && xAlignment < 1) ?  vel.bbox().width * xAlignment : xAlignment;
+            tx += (xAlignment > 0 && xAlignment < 1) ?  velbbox.width * xAlignment : xAlignment;
         }
 
         vel.translate(tx, ty);
@@ -5407,7 +5505,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (rotation && rotation !== 'null') {
 
             rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width/2) + ',' + (size.height/2) + ')');
-            var rotatableBbox = scalable.bbox();
+            var rotatableBbox = scalable.bbox(false, this.paper.viewport);
             
             // Store new x, y and perform rotate() again against the new rotation origin.
             this.model.set('position', { x: rotatableBbox.x, y: rotatableBbox.y });
@@ -5419,10 +5517,28 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.update();
     },
 
-    translate: function() {
+    translate: function(model, changes, opt) {
 
         var position = this.model.get('position') || { x: 0, y: 0 };
-        V(this.el).attr('transform', 'translate(' + position.x + ',' + position.y + ')');
+
+        if (opt && opt.animation) {
+
+            var animateTransform = V('animateTransform', {
+                attributeName: 'transform',
+                attributeType: 'XML',
+                type: 'translate',
+                from: (this.model.previous('position').x || 0) + ' ' + (this.model.previous('position').y || 0),
+                to: position.x + ' ' + position.y,
+                dur: '100ms',
+                fill: 'freeze'
+            });
+            V(this.el).append(animateTransform);
+            animateTransform.node.beginElement();
+            
+        } else {
+
+            V(this.el).attr('transform', 'translate(' + position.x + ',' + position.y + ')');
+        }
     },
 
     rotate: function() {
@@ -5588,28 +5704,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         this.model.on({
 
-            'change:vertices': this.update,
-            'change:source': this.updateEnds,
-            'change:target': this.updateEnds,
+            'change:vertices change:smooth': this.update,
+            'change:source change:target': this.updateEnds,
 	    'change:markup': this.render,
-            'change:smooth': this.update
-        });
-
-        this.model.on({
-
-            'change:vertices': this.renderVertexMarkers,
-            'change:vertexMarkup': this.renderVertexMarkers
-        });
-
-        this.model.on({
-
-            'change:labels': this.renderLabels,
-            'change:labelMarkup': this.renderLabels
-        });
-
-        this.model.on({
-
-            'change:toolMarkup': this.renderTools
+	    'change:vertices change:vertexMarkup': this.renderVertexMarkers,
+	    'change:labels change:labelMarkup': _.bind(function() { this.renderLabels(); this.updateLabelPositions(); }, this),
+            'change:toolMarkup': _.bind(function() { this.renderTools(); this.updateToolsPosition(); }, this)
         });
 
         // `_.labelCache` is a mapping of indexes of labels in the `this.get('labels')` array to
@@ -5630,7 +5730,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             
             this._sourceBbox = V(this.paper.$(this._makeSelector(source))[0]).bbox(false, this.paper.viewport);
         }
-        this.update();
     },
     onTargetModelChange: function() {
 
@@ -5640,7 +5739,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             
             this._targetBbox = V(this.paper.$(this._makeSelector(target))[0]).bbox(false, this.paper.viewport);
         }
-        this.update();
     },
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
@@ -5732,12 +5830,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (this._isModel(this.model.get('source'))) {
 
             cell = this.paper.getModelById(this.model.get('source').id);
-            this.listenTo(cell, 'change', this.onSourceModelChange);
+            this.listenTo(cell, 'change', function() { this.onSourceModelChange(); this.update() });
         }
         if (this._isModel(this.model.get('target'))) {
 
             cell = this.paper.getModelById(this.model.get('target').id);
-            this.listenTo(cell, 'change', this.onTargetModelChange);
+            this.listenTo(cell, 'change', function() { this.onTargetModelChange(); this.update() });
         }
 
         this.update();
@@ -5781,9 +5879,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
         var labelNodeInstance = V(labelTemplate());
-
-        var connectionElement = this._connection.node;
-        var connectionLength = connectionElement.getTotalLength();
 
         _.each(labels, function(label, idx) {
 
@@ -5830,8 +5925,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }));
             
         }, this);
-
-        this.updateLabelPositions();
     },
 
     renderTools: function() {
@@ -5848,7 +5941,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Cache the tool node so that the `updateToolsPosition()` can update the tool position quickly.
         this._toolCache = tool;
-        this.updateToolsPosition();
     },
 
     updateToolsPosition: function() {
@@ -6322,8 +6414,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (this._action === 'arrowhead-move') {
 
-            // Put `pointer-events` back to `auto`. See `pointerdown()` for explanation.
-            this.$el.css({ 'pointer-events': 'auto' });
+            // Put `pointer-events` back to its original value. See `pointerdown()` for explanation.
+	    // Value `auto` doesn't work in IE9. We force to use `visiblePainted` instead.
+	    // See `https://developer.mozilla.org/en-US/docs/Web/CSS/pointer-events`.
+            this.$el.css({ 'pointer-events': 'visiblePainted' });
 
             this.model.set('z', this._originalZ);
             delete this._originalZ;
@@ -6371,14 +6465,12 @@ joint.dia.Paper = Backbone.View.extend({
         'mousedown': 'pointerdown',
         'touchstart': 'pointerdown',
         'mousemove': 'pointermove',
-        'touchmove': 'pointermove',
-        'mouseup': 'pointerup',
-        'touchend': 'pointerup'
+        'touchmove': 'pointermove'
     },
 
     initialize: function() {
 
-        _.bindAll(this, 'addCell', 'sortCells', 'resetCells');
+        _.bindAll(this, 'addCell', 'sortCells', 'resetCells', 'pointerup');
 
         this.svg = V('svg').node;
         this.viewport = V('g').node;
@@ -6397,6 +6489,15 @@ joint.dia.Paper = Backbone.View.extend({
             'reset': this.resetCells,
             'sort': this.sortCells
         });
+
+	$(document).on('mouseup touchend', this.pointerup);
+    },
+
+    remove: function() {
+
+	$(document).off('mouseup touchend', this.pointerup);
+
+	Backbone.View.prototype.remove.call(this);
     },
 
     setDimensions: function(width, height) {
@@ -6449,8 +6550,18 @@ joint.dia.Paper = Backbone.View.extend({
     resetCells: function(cellsCollection) {
 
         $(this.viewport).empty();
+
+        var cells = cellsCollection.models.slice();
+
+        // Make sure links are always added AFTER elements.
+        // They wouldn't find their sources/targets in the DOM otherwise.
+        cells.sort(function(a, b) { return a instanceof joint.dia.Link ? 1 : -1; });
         
-        _.each(cellsCollection.models, this.addCell, this);
+        _.each(cells, this.addCell, this);
+
+        // Sort the cells in the DOM manually as we might have changed the order they
+        // were added to the DOM (see above).
+        this.sortCells();
     },
 
     sortCells: function() {
@@ -6491,9 +6602,7 @@ joint.dia.Paper = Backbone.View.extend({
         
         V(this.viewport).scale(sx, sy);
 
-        if (ox || oy) {
-            //V(this.viewport).translate(ox, oy);
-        }
+	this.trigger('scale', ox, oy);
 
         return this;
     },
@@ -6511,6 +6620,14 @@ joint.dia.Paper = Backbone.View.extend({
         }
 
         V(this.viewport).rotate(deg, ox, oy);
+    },
+
+    zoom: function(level) {
+
+	level = level || 1;
+
+        V(this.svg).attr('width', this.options.width * level);
+        V(this.svg).attr('height', this.options.height * level);
     },
 
     // Find the first view climbing up the DOM tree starting at element `el`. Note that `el` can also
