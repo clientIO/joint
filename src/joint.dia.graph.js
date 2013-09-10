@@ -75,10 +75,9 @@ joint.dia.Graph = Backbone.Model.extend({
 
     initialize: function() {
 
-        this.set('paper', new Backbone.Model);
         this.set('cells', new joint.dia.GraphCells);
 
-        // Make all the events fired in either the `paper` model or the `cells` collection available
+        // Make all the events fired in the `cells` collection available.
         // to the outside world.
         this.get('cells').on('all', this.trigger, this);
         
@@ -87,9 +86,9 @@ joint.dia.Graph = Backbone.Model.extend({
 
     fromJSON: function(json) {
 
-        if (!json.paper || !json.cells) {
+        if (!json.cells) {
 
-            throw new Error('Graph JSON must contain paper and cells properties.');
+            throw new Error('Graph JSON must contain cells array.');
         }
 
         var attrs = json;

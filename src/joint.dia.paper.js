@@ -108,8 +108,18 @@ joint.dia.Paper = Backbone.View.extend({
     resetCells: function(cellsCollection) {
 
         $(this.viewport).empty();
+
+        var cells = cellsCollection.models.slice();
+
+        // Make sure links are always added AFTER elements.
+        // They wouldn't find their sources/targets in the DOM otherwise.
+        cells.sort(function(a, b) { return a instanceof joint.dia.Link ? 1 : -1; });
         
-        _.each(cellsCollection.models, this.addCell, this);
+        _.each(cells, this.addCell, this);
+
+        // Sort the cells in the DOM manually as we might have changed the order they
+        // were added to the DOM (see above).
+        this.sortCells();
     },
 
     sortCells: function() {
