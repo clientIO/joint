@@ -162,7 +162,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (rotatable) {
 
-            rotatable.attr('transform', rotation);
+            rotatable.attr('transform', rotation || '');
         }
     },
 
@@ -195,7 +195,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // relative to the root bounding box following the `ref-x` and `ref-y` attributes.
         if (vel.attr('transform')) {
 
-            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, ''));
+            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '') || '');
         }
 
         function isDefined(x) {
