@@ -277,7 +277,10 @@
                     height: this.node.clientHeight
                 };
             }
-            
+
+	    // BBox in Opera 12 can contain an INFINITE value
+	    if (_.find(box, function(val) { return !isFinite(val); })) return { x: 0, y: 0, width: 0, height: 0 };
+
             if (withoutTransformations) {
 
                 return box;
