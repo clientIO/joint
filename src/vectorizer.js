@@ -264,9 +264,16 @@
 
             var box;
             try {
-                
+
                 box = this.node.getBBox();
-                
+
+		// Opera returns infinite values in some cases.
+		// Note that Infinity | 0 produces 0 as opposed to Infinity || 0.
+		box.x |= 0;
+		box.y |= 0;
+		box.width |= 0;
+		box.height |= 0;
+
             } catch (e) {
 
                 // Fallback for IE.
@@ -277,9 +284,6 @@
                     height: this.node.clientHeight
                 };
             }
-
-	    // BBox in Opera 12 can contain an INFINITE value
-	    if (_.find(box, function(val) { return !isFinite(val); })) return { x: 0, y: 0, width: 0, height: 0 };
 
             if (withoutTransformations) {
 
