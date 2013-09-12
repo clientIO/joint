@@ -5,7 +5,15 @@ joint.layout.DirectedGraph = {
         opt = opt || {};
 
         var data = this._prepareData(graph);
-        dagre.layout().nodes(data.nodeData).edges(data.edgeData).debugLevel(3).run();
+        var runner = dagre.layout().nodes(data.nodeData).edges(data.edgeData);
+
+        if (opt.debugLevel) { runner.debugLevel(opt.debugLevel); }
+        if (opt.rankDir) { runner.rankDir(opt.rankDir); }
+        if (opt.rankSep) { runner.rankSep(opt.rankSep); }
+        if (opt.edgeSep) { runner.edgeSep(opt.edgeSep); }
+        if (opt.nodeSep) { runner.nodeSep(opt.nodeSep); }
+
+        runner.run();
         
         _.each(data.nodeData, function(node) {
 
