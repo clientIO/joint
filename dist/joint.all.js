@@ -1,4 +1,4 @@
-/*! JointJS v0.6.0 - JavaScript diagramming library  2013-09-10 
+/*! JointJS v0.6.3 - JavaScript diagramming library  2013-09-13 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -13181,9 +13181,16 @@ var joint = {
 
             var box;
             try {
-                
+
                 box = this.node.getBBox();
-                
+
+		// Opera returns infinite values in some cases.
+		// Note that Infinity | 0 produces 0 as opposed to Infinity || 0.
+		box.x |= 0;
+		box.y |= 0;
+		box.width |= 0;
+		box.height |= 0;
+
             } catch (e) {
 
                 // Fallback for IE.
@@ -13194,7 +13201,7 @@ var joint = {
                     height: this.node.clientHeight
                 };
             }
-            
+
             if (withoutTransformations) {
 
                 return box;
@@ -14903,7 +14910,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (rotatable) {
 
-            rotatable.attr('transform', rotation);
+            rotatable.attr('transform', rotation || '');
         }
     },
 
@@ -14936,7 +14943,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // relative to the root bounding box following the `ref-x` and `ref-y` attributes.
         if (vel.attr('transform')) {
 
-            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, ''));
+            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '') || '');
         }
 
         function isDefined(x) {
@@ -17513,8 +17520,9 @@ joint.shapes.uml.Transition = joint.dia.Link.extend({
     }
 });
 
-/*
-Copyright (c) 2012 Chris Pettitt
+;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var global=self;/*
+Copyright (c) 2012-2013 Chris Pettitt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -17534,232 +17542,340 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-(function() {
-  dagre = {};
-dagre.version = "0.0.6";
+global.dagre = require("./index");
+
+},{"./index":2}],2:[function(require,module,exports){
 /*
- * Directed multi-graph used during layout.
+Copyright (c) 2012-2013 Chris Pettitt
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+exports.dot = require("./lib/dot");
+exports.layout = require("./lib/layout/layout");
+exports.util = require("./lib/util");
+exports.version = require("./lib/version");
+
+},{"./lib/dot":7,"./lib/layout/layout":9,"./lib/util":13,"./lib/version":14}],3:[function(require,module,exports){
+/*
+ * Returns all components in the graph using undirected navigation.
  */
-dagre.graph = {};
+module.exports = function(g) {
+  var results = [];
+  var visited = {};
+
+  function dfs(u, component) {
+    if (!(u in visited)) {
+      visited[u] = true;
+      component.push(u);
+      g.neighbors(u).forEach(function(v) {
+        dfs(v, component);
+      });
+    }
+  }
+
+  g.eachNode(function(u) {
+    var component = [];
+    dfs(u, component);
+    if (component.length > 0) {
+      results.push(component);
+    }
+  });
+
+  return results;
+};
+
+},{}],4:[function(require,module,exports){
+var PriorityQueue = require("../data/PriorityQueue");
 
 /*
- * Creates a new directed multi-graph. This should be invoked with
- * `var g = dagre.graph()` and _not_ `var g = new dagre.graph()`.
+ * This algorithm uses undirected traversal to find a miminum spanning tree
+ * using the supplied weight function. The algorithm is described in
+ * Cormen, et al., "Introduction to Algorithms". The returned structure
+ * is an array of node id to an array of adjacent nodes.
  */
-dagre.graph = function() {
-  var nodes = {},
-      inEdges = {},
-      outEdges = {},
-      edges = {},
-      graph = {},
-      idCounter = 0;
+module.exports = function(g, weight) {
+  var result = {};
+  var parent = {};
+  var q = new PriorityQueue();
 
-  graph.addNode = function(u, value) {
-    if (graph.hasNode(u)) {
-      throw new Error("Graph already has node '" + u + "':\n" + graph.toString());
-    }
-    nodes[u] = { id: u, value: value };
-    inEdges[u] = {};
-    outEdges[u] = {};
-  };
+  if (g.nodes().length === 0) {
+    return result;
+  }
 
-  graph.delNode = function(u) {
-    strictGetNode(u);
+  g.eachNode(function(u) {
+    q.add(u, Number.POSITIVE_INFINITY);
+    result[u] = [];
+  });
 
-    graph.edges(u).forEach(function(e) { graph.delEdge(e); });
+  // Start from arbitrary node
+  q.decrease(g.nodes()[0], 0);
 
-    delete inEdges[u];
-    delete outEdges[u];
-    delete nodes[u];
-  };
-
-  graph.node = function(u) {
-    return strictGetNode(u).value;
-  };
-
-  graph.hasNode = function(u) {
-    return u in nodes;
-  };
-
-  graph.addEdge = function(e, source, target, value) {
-    strictGetNode(source);
-    strictGetNode(target);
-
-    if (e === null) {
-      e = "_ANON-" + ++idCounter;
-    }
-    else if (graph.hasEdge(e)) {
-      throw new Error("Graph already has edge '" + e + "':\n" + graph.toString());
+  var u;
+  var init = false;
+  while (q.size() > 0) {
+    u = q.removeMin();
+    if (u in parent) {
+      result[u].push(parent[u]);
+      result[parent[u]].push(u);
+    } else if (init) {
+      throw new Error("Input graph is not connected:\n" + g.toString());
+    } else {
+      init = true;
     }
 
-    edges[e] = { id: e, source: source, target: target, value: value };
-    addEdgeToMap(inEdges[target], source, e);
-    addEdgeToMap(outEdges[source], target, e);
-  };
-
-  graph.delEdge = function(e) {
-    var edge = strictGetEdge(e);
-    delEdgeFromMap(inEdges[edge.target], edge.source, e);
-    delEdgeFromMap(outEdges[edge.source], edge.target, e);
-    delete edges[e];
-  };
-
-  graph.edge = function(e) {
-    return strictGetEdge(e).value;
-  };
-
-  graph.source = function(e) {
-    return strictGetEdge(e).source;
-  };
-
-  graph.target = function(e) {
-    return strictGetEdge(e).target;
-  };
-
-  graph.hasEdge = function(e) {
-    return e in edges;
-  };
-
-  graph.successors = function(u) {
-    strictGetNode(u);
-    return keys(outEdges[u]).map(function(v) { return nodes[v].id; });
-  };
-
-  graph.predecessors = function(u) {
-    strictGetNode(u);
-    return keys(inEdges[u]).map(function(v) { return nodes[v].id; });
-  };
-
-  graph.neighbors = function(u) {
-    strictGetNode(u);
-    var vs = {};
-    keys(outEdges[u]).map(function(v) { vs[v] = true; });
-    keys(inEdges[u]).map(function(v) { vs[v] = true; });
-    return keys(vs).map(function(v) { return nodes[v].id; });
-  };
-
-  graph.nodes = function() {
-    var nodes = [];
-    graph.eachNode(function(id, _) { nodes.push(id); });
-    return nodes;
-  };
-
-  graph.eachNode = function(func) {
-    for (var k in nodes) {
-      var node = nodes[k];
-      func(node.id, node.value);
-    }
-  };
-
-  /*
-   * Return all edges with no arguments,
-   * the ones that are incident on a node (one argument),
-   * or all edges from a source to a target (two arguments)
-   */
-  graph.edges = function(u, v) {
-    var es, sourceEdges;
-    if (!arguments.length) {
-      es = [];
-      graph.eachEdge(function(id) { es.push(id); });
-      return es;
-    } else if (arguments.length === 1) {
-      return union([graph.inEdges(u), graph.outEdges(u)]);
-    } else if (arguments.length === 2) {
-      strictGetNode(u);
-      strictGetNode(v);
-      sourceEdges = outEdges[u];
-      es = (v in sourceEdges) ? keys(sourceEdges[v].edges) : [];
-      return es.map(function(e) { return edges[e].id; });
-    }
-  };
-
-  graph.eachEdge = function(func) {
-    for (var k in edges) {
-      var edge = edges[k];
-      func(edge.id, edge.source, edge.target, edge.value);
-    }
-  };
-
-  /*
-   * Return all in edges to a target node
-   */
-  graph.inEdges = function(target) {
-    strictGetNode(target);
-    return concat(values(inEdges[target]).map(function(es) { return keys(es.edges); }));
-  };
-
-  /*
-   * Return all out edges from a source node
-   */
-  graph.outEdges = function(source) {
-    strictGetNode(source);
-    return concat(values(outEdges[source]).map(function(es) { return keys(es.edges); }));
-  };
-
-  graph.subgraph = function(us) {
-    var g = dagre.graph();
-    us.forEach(function(u) {
-      g.addNode(u, graph.node(u));
-    });
-    values(edges).forEach(function(e) {
-      if (g.hasNode(e.source) && g.hasNode(e.target)) {
-        g.addEdge(e.id, e.source, e.target, graph.edge(e.id));
+    g.neighbors(u).forEach(function(v) {
+      var pri = q.priority(v);
+      if (pri !== undefined) {
+        var edgeWeight = weight(u, v);
+        if (edgeWeight < pri) {
+          parent[v] = u;
+          q.decrease(v, edgeWeight);
+        }
       }
     });
-    return g;
-  };
-
-  graph.toString = function() {
-    var str = "GRAPH:\n";
-    str += "    Nodes:\n";
-    keys(nodes).forEach(function(u) {
-      str += "        " + u + ": " + JSON.stringify(nodes[u].value) + "\n";
-    });
-    str += "    Edges:\n";
-    keys(edges).forEach(function(e) {
-      var edge = edges[e];
-      str += "        " + e + " (" + edge.source + " -> " + edge.target + "): " + JSON.stringify(edges[e].value) + "\n";
-    });
-    return str;
-  };
-
-  function addEdgeToMap(map, v, e) {
-    var vEntry = map[v];
-    if (!vEntry) {
-      vEntry = map[v] = { count: 0, edges: {} };
-    }
-    vEntry.count++;
-    vEntry.edges[e] = true;
   }
 
-  function delEdgeFromMap(map, v, e) {
-    var vEntry = map[v];
-    if (--vEntry.count === 0) {
-      delete map[v];
-    } else {
-      delete vEntry.edges[e];
-    }
-  }
-
-  function strictGetNode(u) {
-    var node = nodes[u];
-    if (!(u in nodes)) {
-      throw new Error("Node '" + u + "' is not in graph:\n" + graph.toString());
-    }
-    return node;
-  }
-
-  function strictGetEdge(e) {
-    var edge = edges[e];
-    if (!edge) {
-      throw new Error("Edge '" + e + "' is not in graph:\n" + graph.toString());
-    }
-    return edge;
-  }
-
-  return graph;
+  return result;
 };
-dagre.layout = function() {
+
+
+},{"../data/PriorityQueue":5}],5:[function(require,module,exports){
+module.exports = PriorityQueue;
+
+function PriorityQueue() {
+  this._arr = [];
+  this._keyIndices = {};
+}
+
+PriorityQueue.prototype.size = function() { return this._arr.length; };
+
+PriorityQueue.prototype.keys = function() { return Object.keys(this._keyIndices); };
+
+PriorityQueue.prototype.has = function(key) { return key in this._keyIndices; };
+
+PriorityQueue.prototype.priority = function(key) {
+  var i = this._keyIndices[key];
+  if (i !== undefined) {
+    return this._arr[i].pri;
+  }
+};
+
+PriorityQueue.prototype.add = function(key, pri) {
+  if (!(key in this._keyIndices)) {
+    var entry = {key: key, pri: pri};
+    var index = this._arr.length;
+    this._keyIndices[key] = index;
+    this._arr.push(entry);
+    this._decrease(index);
+    return true;
+  }
+  return false;
+};
+
+PriorityQueue.prototype.min = function() {
+  if (this.size() > 0) {
+    return this._arr[0].key;
+  }
+};
+
+PriorityQueue.prototype.removeMin = function() {
+  this._swap(0, this._arr.length - 1);
+  var min = this._arr.pop();
+  delete this._keyIndices[min.key];
+  this._heapify(0);
+  return min.key;
+};
+
+PriorityQueue.prototype.decrease = function(key, pri) {
+  var index = this._keyIndices[key];
+  if (pri > this._arr[index].pri) {
+    throw new Error("New priority is greater than current priority. " +
+        "Key: " + key + " Old: " + this._arr[index].pri + " New: " + pri);
+  }
+  this._arr[index].pri = pri;
+  this._decrease(index);
+};
+
+PriorityQueue.prototype._heapify = function(i) {
+  var arr = this._arr;
+  var l = 2 * i,
+      r = l + 1,
+      largest = i;
+  if (l < arr.length) {
+    largest = arr[l].pri < arr[largest].pri ? l : largest;
+    if (r < arr.length) {
+      largest = arr[r].pri < arr[largest].pri ? r : largest;
+    }
+    if (largest !== i) {
+      this._swap(i, largest);
+      this._heapify(largest);
+    }
+  }
+};
+
+PriorityQueue.prototype._decrease = function(i) {
+  var pri = this._arr[i].pri;
+  var parent;
+  while (i > 0) {
+    parent = i >> 1;
+    if (this._arr[parent].pri < pri) {
+      break;
+    }
+    this._swap(i, parent);
+    i = parent;
+  }
+};
+
+PriorityQueue.prototype._swap = function(i, j) {
+  var arr = this._arr;
+  var keyIndices = this._keyIndices;
+  var tmp = arr[i];
+  arr[i] = arr[j];
+  arr[j] = tmp;
+  keyIndices[arr[i].key] = i;
+  keyIndices[arr[j].key] = j;
+};
+
+},{}],6:[function(require,module,exports){
+module.exports = Set;
+
+function Set(initialKeys) {
+  this._size = 0;
+  this._keys = {};
+
+  if (initialKeys) {
+    initialKeys.forEach(function(key) {
+      this.add(key);
+    }, this);
+  }
+}
+
+Set.prototype.size = function() { return this._size; };
+
+Set.prototype.keys = function() { return Object.keys(this._keys); };
+
+Set.prototype.has = function(key) { return key in this._keys; };
+
+Set.prototype.add = function(key) {
+  if (!(key in this._keys)) {
+    this._keys[key] = true;
+    ++this._size;
+    return true;
+  }
+  return false;
+};
+
+Set.prototype.remove = function(key) {
+  if (key in this._keys) {
+    delete this._keys[key];
+    --this._size;
+    return true;
+  }
+  return false;
+};
+
+},{}],7:[function(require,module,exports){
+var util = require("./util"),
+    Graph = require("graphlib").Graph,
+    dot = require("graphlib-dot");
+
+// For now we re-export with old names for backwards compatibility
+exports.toGraph = dot.parse;
+exports.toGraphArray = dot.parseMany;
+
+// This is new, so no name change
+exports.write = dot.write;
+
+// TODO: move this and the object reading stuff in layout.js to their own file.
+exports.toObjects = function(str) {
+  var g = exports.toGraph(str);
+  var nodes = g.nodes().map(function(u) { return g.node(u); });
+  var edges = g.edges().map(function(e) {
+    var edge = g.edge(e);
+    edge.source = g.node(g.source(e));
+    edge.target = g.node(g.target(e));
+    return edge;
+  });
+  return { nodes: nodes, edges: edges };
+};
+
+},{"./util":13,"graphlib":27,"graphlib-dot":16}],8:[function(require,module,exports){
+var util = require("../util");
+
+module.exports = instrumentedRun;
+module.exports.undo = undo;
+
+function instrumentedRun(g, debugLevel) {
+  var timer = util.createTimer();
+  var reverseCount = util.createTimer().wrap("Acyclic Phase", run)(g);
+  if (debugLevel >= 2) console.log("Acyclic Phase: reversed " + reverseCount + " edge(s)");
+}
+
+function run(g) {
+  var onStack = {},
+      visited = {},
+      reverseCount = 0;
+
+  function dfs(u) {
+    if (u in visited) return;
+
+    visited[u] = onStack[u] = true;
+    g.outEdges(u).forEach(function(e) {
+      var t = g.target(e),
+          a;
+
+      if (t in onStack) {
+        a = g.edge(e);
+        g.delEdge(e);
+        a.reversed = true;
+        ++reverseCount;
+        g.addEdge(e, t, u, a);
+      } else {
+        dfs(t);
+      }
+    });
+
+    delete onStack[u];
+  }
+
+  g.eachNode(function(u) { dfs(u); });
+
+  return reverseCount;
+}
+
+function undo(g) {
+  g.eachEdge(function(e, s, t, a) {
+    if (a.reversed) {
+      delete a.reversed;
+      g.delEdge(e);
+      g.addEdge(e, t, s, a);
+    }
+  });
+}
+
+},{"../util":13}],9:[function(require,module,exports){
+var util = require("../util"),
+    rank = require("./rank"),
+    acyclic = require("./acyclic"),
+    Digraph = require("graphlib").Digraph;
+
+module.exports = function() {
   // External configuration
   var config = {
       // Nodes to lay out. At minimum must have `width` and `height` attributes.
@@ -17770,20 +17886,18 @@ dagre.layout = function() {
       debugLevel: 0,
   };
 
-  var timer = createTimer();
+  var timer = util.createTimer();
 
   // Phase functions
   var
-      acyclic = dagre.layout.acyclic(),
-      rank = dagre.layout.rank(),
-      order = dagre.layout.order(),
-      position = dagre.layout.position();
+      order = require("./order")(),
+      position = require("./position")();
 
   // This layout object
   var self = {};
 
-  self.nodes = propertyAccessor(self, config, "nodes");
-  self.edges = propertyAccessor(self, config, "edges");
+  self.nodes = util.propertyAccessor(self, config, "nodes");
+  self.edges = util.propertyAccessor(self, config, "edges");
 
   self.orderIters = delegateProperty(order.iterations);
 
@@ -17794,10 +17908,8 @@ dagre.layout = function() {
   self.rankDir = delegateProperty(position.rankDir);
   self.debugAlignment = delegateProperty(position.debugAlignment);
 
-  self.debugLevel = propertyAccessor(self, config, "debugLevel", function(x) {
+  self.debugLevel = util.propertyAccessor(self, config, "debugLevel", function(x) {
     timer.enabled(x);
-    acyclic.debugLevel(x);
-    rank.debugLevel(x);
     order.debugLevel(x);
     position.debugLevel(x);
   });
@@ -17822,13 +17934,23 @@ dagre.layout = function() {
    * the original nodes and edges passed in via config.
    */
   function buildAdjacencyGraph() {
-    var g = dagre.graph();
+    var g = new Digraph();
     var nextId = 0;
 
     // Get the node id for the type ("source" or "target") or throw if we
     // haven't seen the node.
     function safeGetNodeId(type, edge) {
-      var nodeId = edge[type].dagre.id;
+      var nodeId;
+      if (type in edge) {
+        nodeId = edge[type].dagre.id;
+      } else {
+        if (!(type + "Id" in edge)) {
+          throw new Error("Edge must have either a " + type + " or " + type + "Id attribute");
+        }
+        nodeId = edge[type + "Id"];
+        edge[type] = g.node(nodeId);
+      }
+
       if (!g.hasNode(nodeId)) {
         throw new Error(type + " node for '" + e + "' not in node list");
       }
@@ -17882,11 +18004,11 @@ dagre.layout = function() {
 
       // Reverse edges to get an acyclic graph, we keep the graph in an acyclic
       // state until the very end.
-      acyclic.run(g);
+      acyclic(g, config.debugLevel);
 
       // Determine the rank for each node. Nodes with a lower rank will appear
       // above nodes of higher rank.
-      rank.run(g);
+      rank(g, config.debugLevel);
 
       // Normalize the graph by ensuring that every edge is proper (each edge has
       // a length of 1). We achieve this by adding dummy nodes to long edges,
@@ -17931,7 +18053,7 @@ dagre.layout = function() {
       var targetRank = g.node(t).rank;
       if (sourceRank + 1 < targetRank) {
         for (var u = s, rank = sourceRank + 1, i = 0; rank < targetRank; ++rank, ++i) {
-          var v = "_D" + ++dummyCount;
+          var v = "_D" + (++dummyCount);
           var node = {
             width: a.width,
             height: a.height,
@@ -17998,180 +18120,31 @@ dagre.layout = function() {
     };
   }
 };
-dagre.layout.acyclic = function() {
-  // External configuration
-  var config = {
-    debugLevel: 0
-  };
 
-  var timer = createTimer();
+},{"../util":13,"./acyclic":8,"./order":10,"./position":11,"./rank":12,"graphlib":27}],10:[function(require,module,exports){
+var util = require("../util");
 
-  var self = {};
-
-  self.debugLevel = propertyAccessor(self, config, "debugLevel", function(x) {
-    timer.enabled(x);
-  });
-
-  self.run = timer.wrap("Acyclic Phase", run);
-
-  self.undo = function(g) {
-    g.eachEdge(function(e, s, t, a) {
-      if (a.reversed) {
-        delete a.reversed;
-        g.delEdge(e);
-        g.addEdge(e, t, s, a);
-      }
-    });
-  };
-
-  return self;
-
-  function run(g) {
-    var onStack = {},
-        visited = {},
-        reverseCount = 0;
-
-    function dfs(u) {
-      if (u in visited) return;
-
-      visited[u] = onStack[u] = true;
-      g.outEdges(u).forEach(function(e) {
-        var t = g.target(e),
-            a;
-
-        if (t in onStack) {
-          a = g.edge(e);
-          g.delEdge(e);
-          a.reversed = true;
-          ++reverseCount;
-          g.addEdge(e, t, u, a);
-        } else {
-          dfs(t);
-        }
-      });
-
-      delete onStack[u];
-    }
-
-    g.eachNode(function(u) { dfs(u); });
-
-    if (config.debugLevel >= 2) console.log("Acyclic Phase: reversed " + reverseCount + " edge(s)");
-  }
-};
-dagre.layout.rank = function() {
-  // External configuration
-  var config = {
-    debugLevel: 0
-  };
-
-  var timer = createTimer();
-
-  var self = {};
-
-  self.debugLevel = propertyAccessor(self, config, "debugLevel", function(x) {
-    timer.enabled(x);
-  });
-
-  self.run = timer.wrap("Rank Phase", run);
-
-  return self;
-
-  function run(g) {
-    initRank(g);
-    components(g).forEach(function(cmpt) {
-      var subgraph = g.subgraph(cmpt);
-      feasibleTree(subgraph);
-      normalize(subgraph);
-    });
-  }
-
-  function initRank(g) {
-    var minRank = {};
-    var pq = priorityQueue();
-
-    g.eachNode(function(u) {
-      pq.add(u, g.inEdges(u).length);
-      minRank[u] = 0;
-    });
-
-    while (pq.size() > 0) {
-      var minId = pq.min();
-      if (pq.priority(minId) > 0) {
-        throw new Error("Input graph is not acyclic: " + g.toString());
-      }
-      pq.removeMin();
-
-      var rank = minRank[minId];
-      g.node(minId).rank = rank;
-
-      g.outEdges(minId).forEach(function(e) {
-        var target = g.target(e);
-        minRank[target] = Math.max(minRank[target], rank + (g.edge(e).minLen || 1));
-        pq.decrease(target, pq.priority(target) - 1);
-      });
-    }
-  }
-
-  function feasibleTree(g) {
-    // Precompute minimum lengths for each directed edge
-    var minLen = {};
-    g.eachEdge(function(e, source, target, edge) {
-      var id = incidenceId(source, target);
-      minLen[id] = Math.max(minLen[id] || 1, edge.minLen || 1);
-    });
-
-    var tree = dagre.util.prim(g, function(u, v) {
-      return Math.abs(g.node(u).rank - g.node(v).rank) - minLen[incidenceId(u, v)];
-    });
-
-    var visited = {};
-    function dfs(u, rank) {
-      visited[u] = true;
-      g.node(u).rank = rank;
-
-      tree[u].forEach(function(v) {
-        if (!(v in visited)) {
-          var delta = minLen[incidenceId(u, v)];
-          dfs(v, rank + (g.edges(u, v).length ? delta : -delta));
-        }
-      });
-    }
-
-    dfs(g.nodes()[0], 0);
-
-    return tree;
-  }
-
-  function normalize(g) {
-    var m = min(g.nodes().map(function(u) { return g.node(u).rank; }));
-    g.eachNode(function(u, node) { node.rank -= m; });
-  }
-
-  /*
-   * This id can be used to group (in an undirected manner) multi-edges
-   * incident on the same two nodes.
-   */
-  function incidenceId(u, v) {
-    return u < v ?  u.length + ":" + u + "-" + v : v.length + ":" + v + "-" + u;
-  }
-};
-dagre.layout.order = function() {
+module.exports = function() {
   var config = {
     iterations: 24, // max number of iterations
     debugLevel: 0
   };
 
-  var timer = createTimer();
+  var timer = util.createTimer();
 
   var self = {};
 
-  self.iterations = propertyAccessor(self, config, "iterations");
+  self.iterations = util.propertyAccessor(self, config, "iterations");
 
-  self.debugLevel = propertyAccessor(self, config, "debugLevel", function(x) {
+  self.debugLevel = util.propertyAccessor(self, config, "debugLevel", function(x) {
     timer.enabled(x);
   });
 
+  self._initOrder = initOrder;
+
   self.run = timer.wrap("Order Phase", run);
+  self.crossCount = crossCount;
+  self.bilayerCrossCount = bilayerCrossCount;
 
   return self;
 
@@ -18206,6 +18179,13 @@ dagre.layout.order = function() {
     if (config.debugLevel >= 2) {
       console.log("Order iterations: " + i);
       console.log("Order phase best cross count: " + bestCC);
+    }
+
+    if (config.debugLevel >= 4) {
+      console.log("Final layering:");
+      bestLayering.forEach(function(layer, i) {
+        console.log("Layer: " + i, layer);
+      });
     }
 
     return bestLayering;
@@ -18298,7 +18278,7 @@ dagre.layout.order = function() {
       var vs = neighbors(u);
       var b = -1;
       if (vs.length > 0)
-        b = sum(vs.map(function(v) { return weights[v]; })) / vs.length;
+        b = util.sum(vs.map(function(v) { return weights[v]; })) / vs.length;
       bs[u] = b;
     });
 
@@ -18308,73 +18288,78 @@ dagre.layout.order = function() {
   function copyLayering(layering) {
     return layering.map(function(l) { return l.slice(0); });
   }
-};
 
-var crossCount = dagre.layout.order.crossCount = function(g, layering) {
-  var cc = 0;
-  var prevLayer;
-  layering.forEach(function(layer) {
-    if (prevLayer) {
-      cc += bilayerCrossCount(g, prevLayer, layer);
-    }
-    prevLayer = layer;
-  });
-  return cc;
-};
-
-/*
- * This function searches through a ranked and ordered graph and counts the
- * number of edges that cross. This algorithm is derived from:
- *
- *    W. Barth et al., Bilayer Cross Counting, JGAA, 8(2) 179–194 (2004)
- */
-var bilayerCrossCount = dagre.layout.order.bilayerCrossCount = function(g, layer1, layer2) {
-  var layer2Pos = layerPos(layer2);
-
-  var indices = [];
-  layer1.forEach(function(u) {
-    var nodeIndices = [];
-    g.outEdges(u).forEach(function(e) { nodeIndices.push(layer2Pos[g.target(e)]); });
-    nodeIndices.sort(function(x, y) { return x - y; });
-    indices = indices.concat(nodeIndices);
-  });
-
-  var firstIndex = 1;
-  while (firstIndex < layer2.length) firstIndex <<= 1;
-
-  var treeSize = 2 * firstIndex - 1;
-  firstIndex -= 1;
-
-  var tree = [];
-  for (var i = 0; i < treeSize; ++i) { tree[i] = 0; }
-
-  var cc = 0;
-  indices.forEach(function(i) {
-    var treeIndex = i + firstIndex;
-    ++tree[treeIndex];
-    var weightSum = 0;
-    while (treeIndex > 0) {
-      if (treeIndex % 2) {
-        cc += tree[treeIndex + 1];
+  function crossCount(g, layering) {
+    var cc = 0;
+    var prevLayer;
+    layering.forEach(function(layer) {
+      if (prevLayer) {
+        cc += bilayerCrossCount(g, prevLayer, layer);
       }
-      treeIndex = (treeIndex - 1) >> 1;
-      ++tree[treeIndex];
-    }
-  });
+      prevLayer = layer;
+    });
+    return cc;
+  }
 
-  return cc;
+  /*
+   * This function searches through a ranked and ordered graph and counts the
+   * number of edges that cross. This algorithm is derived from:
+   *
+   *    W. Barth et al., Bilayer Cross Counting, JGAA, 8(2) 179–194 (2004)
+   */
+  function bilayerCrossCount(g, layer1, layer2) {
+    var layer2Pos = layerPos(layer2);
+
+    var indices = [];
+    layer1.forEach(function(u) {
+      var nodeIndices = [];
+      g.outEdges(u).forEach(function(e) { nodeIndices.push(layer2Pos[g.target(e)]); });
+      nodeIndices.sort(function(x, y) { return x - y; });
+      indices = indices.concat(nodeIndices);
+    });
+
+    var firstIndex = 1;
+    while (firstIndex < layer2.length) firstIndex <<= 1;
+
+    var treeSize = 2 * firstIndex - 1;
+    firstIndex -= 1;
+
+    var tree = [];
+    for (var i = 0; i < treeSize; ++i) { tree[i] = 0; }
+
+    var cc = 0;
+    indices.forEach(function(i) {
+      var treeIndex = i + firstIndex;
+      ++tree[treeIndex];
+      var weightSum = 0;
+      while (treeIndex > 0) {
+        if (treeIndex % 2) {
+          cc += tree[treeIndex + 1];
+        }
+        treeIndex = (treeIndex - 1) >> 1;
+        ++tree[treeIndex];
+      }
+    });
+
+    return cc;
+  }
 };
+
 
 function layerPos(layer) {
   var pos = {};
   layer.forEach(function(u, i) { pos[u] = i; });
   return pos;
 }
+
+},{"../util":13}],11:[function(require,module,exports){
+var util = require("../util");
+
 /*
  * The algorithms here are based on Brandes and Köpf, "Fast and Simple
  * Horizontal Coordinate Assignment".
  */
-dagre.layout.position = function() {
+module.exports = function() {
   // External configuration
   var config = {
     nodeSep: 50,
@@ -18385,19 +18370,19 @@ dagre.layout.position = function() {
     debugLevel: 0
   };
 
-  var timer = createTimer();
+  var timer = util.createTimer();
 
   var self = {};
 
-  self.nodeSep = propertyAccessor(self, config, "nodeSep");
-  self.edgeSep = propertyAccessor(self, config, "edgeSep");
+  self.nodeSep = util.propertyAccessor(self, config, "nodeSep");
+  self.edgeSep = util.propertyAccessor(self, config, "edgeSep");
   // If not null this separation value is used for all nodes and edges
   // regardless of their widths. `nodeSep` and `edgeSep` are ignored with this
   // option.
-  self.universalSep = propertyAccessor(self, config, "universalSep");
-  self.rankSep = propertyAccessor(self, config, "rankSep");
-  self.rankDir = propertyAccessor(self, config, "rankDir");
-  self.debugLevel = propertyAccessor(self, config, "debugLevel", function(x) {
+  self.universalSep = util.propertyAccessor(self, config, "universalSep");
+  self.rankSep = util.propertyAccessor(self, config, "rankSep");
+  self.rankDir = util.propertyAccessor(self, config, "rankDir");
+  self.debugLevel = util.propertyAccessor(self, config, "debugLevel", function(x) {
     timer.enabled(x);
   });
 
@@ -18424,6 +18409,10 @@ dagre.layout.position = function() {
         var dir = vertDir + horizDir;
         var align = verticalAlignment(g, layering, conflicts, vertDir === "u" ? "predecessors" : "successors");
         xss[dir]= horizontalCompaction(g, layering, align.pos, align.root, align.align);
+
+        if (config.debugLevel >= 3)
+          debugPositioning(vertDir + horizDir, g, layering, xss[dir]);
+
         if (horizDir === "r") flipHorizontally(xss[dir]);
 
         if (horizDir === "r") reverseInnerOrder(layering);
@@ -18444,13 +18433,13 @@ dagre.layout.position = function() {
     });
 
     // Translate layout so left edge of bounding rectangle has coordinate 0
-    var minX = min(g.nodes().map(function(u) { return x(g, u) - width(g, u) / 2; }));
+    var minX = util.min(g.nodes().map(function(u) { return x(g, u) - width(g, u) / 2; }));
     g.eachNode(function(u) { x(g, u, x(g, u) - minX); });
 
     // Align y coordinates with ranks
     var posY = 0;
     layering.forEach(function(layer) {
-      var maxHeight = max(layer.map(function(u) { return height(g, u); }));
+      var maxHeight = util.max(layer.map(function(u) { return height(g, u); }));
       posY += maxHeight / 2;
       layer.forEach(function(u) { y(g, u, posY); });
       posY += maxHeight / 2 + config.rankSep;
@@ -18557,18 +18546,28 @@ dagre.layout.position = function() {
   // the original algorithm that is described in Carstens, "Node and Label
   // Placement in a Layered Layout Algorithm".
   function horizontalCompaction(g, layering, pos, root, align) {
-    var sink = {},  // Mapping of node id -> sink node id for class
-        shift = {}, // Mapping of sink node id -> x delta
-        pred = {},  // Mapping of node id -> predecessor node (or null)
-        xs = {};    // Calculated X positions
+    var sink = {},       // Mapping of node id -> sink node id for class
+        maybeShift = {}, // Mapping of sink node id -> { class node id, min shift }
+        shift = {},      // Mapping of sink node id -> shift
+        pred = {},       // Mapping of node id -> predecessor node (or null)
+        xs = {};         // Calculated X positions
 
     layering.forEach(function(layer) {
       layer.forEach(function(u, i) {
         sink[u] = u;
+        maybeShift[u] = {};
         if (i > 0)
           pred[u] = layer[i - 1];
       });
     });
+
+    function updateShift(toShift, neighbor, delta) {
+      if (!(neighbor in maybeShift[toShift])) {
+        maybeShift[toShift][neighbor] = delta;
+      } else {
+        maybeShift[toShift][neighbor] = Math.min(maybeShift[toShift][neighbor], delta);
+      }
+    }
 
     function placeBlock(v) {
       if (!(v in xs)) {
@@ -18583,7 +18582,7 @@ dagre.layout.position = function() {
             }
             var delta = sep(g, pred[w]) + sep(g, w);
             if (sink[v] !== sink[u]) {
-              shift[sink[u]] = Math.min(shift[sink[u]] || Number.POSITIVE_INFINITY, xs[v] - xs[u] - delta);
+              updateShift(sink[u], sink[v], xs[v] - xs[u] - delta);
             } else {
               xs[v] = Math.max(xs[v], xs[u] + delta);
             }
@@ -18594,17 +18593,34 @@ dagre.layout.position = function() {
     }
 
     // Root coordinates relative to sink
-    values(root).forEach(function(v) {
+    util.values(root).forEach(function(v) {
       placeBlock(v);
     });
 
     // Absolute coordinates
+    // There is an assumption here that we've resolved shifts for any classes
+    // that begin at an earlier layer. We guarantee this by visiting layers in
+    // order.
     layering.forEach(function(layer) {
       layer.forEach(function(v) {
         xs[v] = xs[root[v]];
-        var xDelta = shift[sink[v]];
-        if (root[v] === v && xDelta < Number.POSITIVE_INFINITY)
-          xs[v] += xDelta;
+        if (v === root[v] && v === sink[v]) {
+          var minShift = 0;
+          if (v in maybeShift && Object.keys(maybeShift[v]).length > 0) {
+            minShift = util.min(Object.keys(maybeShift[v])
+                                 .map(function(u) {
+                                      return maybeShift[v][u] + (u in shift ? shift[u] : 0);
+                                      }
+                                 ));
+          }
+          shift[v] = minShift;
+        }
+      });
+    });
+
+    layering.forEach(function(layer) {
+      layer.forEach(function(v) {
+        xs[v] += shift[sink[root[v]]] || 0;
       });
     });
 
@@ -18612,14 +18628,14 @@ dagre.layout.position = function() {
   }
 
   function findMinCoord(g, layering, xs) {
-    return min(layering.map(function(layer) {
+    return util.min(layering.map(function(layer) {
       var u = layer[0];
       return xs[u];
     }));
   }
 
   function findMaxCoord(g, layering, xs) {
-    return max(layering.map(function(layer) {
+    return util.max(layering.map(function(layer) {
       var u = layer[layer.length - 1];
       return xs[u];
     }));
@@ -18749,53 +18765,192 @@ dagre.layout.position = function() {
         }
     }
   }
-};
-dagre.util = {};
 
+  function debugPositioning(align, g, layering, xs) {
+    layering.forEach(function(l, li) {
+      var u, xU;
+      l.forEach(function(v) {
+        var xV = xs[v];
+        if (u) {
+          var s = sep(g, u) + sep(g, v);
+          if (xV - xU < s)
+            console.log("Position phase: sep violation. Align: " + align + ". Layer: " + li + ". " +
+              "U: " + u + " V: " + v + ". Actual sep: " + (xV - xU) + " Expected sep: " + s);
+        }
+        u = v;
+        xU = xV;
+      });
+    });
+  }
+};
+
+},{"../util":13}],12:[function(require,module,exports){
+var util = require("../util"),
+    components = require("../algo/components"),
+    prim = require("../algo/prim"),
+    PriorityQueue = require("../data/PriorityQueue"),
+    Set = require("../data/Set");
+
+module.exports = function(g, debugLevel) {
+  var timer = util.createTimer(debugLevel >= 1);
+  timer.wrap("Rank phase", function() {
+    initRank(g);
+
+    components(g).forEach(function(cmpt) {
+      var subgraph = g.subgraph(cmpt);
+      feasibleTree(subgraph);
+      normalize(subgraph);
+    });
+  })();
+};
+
+function initRank(g) {
+  var minRank = {};
+  var pq = new PriorityQueue();
+
+  g.eachNode(function(u) {
+    pq.add(u, g.inEdges(u).length);
+    minRank[u] = 0;
+  });
+
+  while (pq.size() > 0) {
+    var minId = pq.min();
+    if (pq.priority(minId) > 0) {
+      throw new Error("Input graph is not acyclic: " + g.toString());
+    }
+    pq.removeMin();
+
+    var rank = minRank[minId];
+    g.node(minId).rank = rank;
+
+    g.outEdges(minId).forEach(function(e) {
+      var target = g.target(e);
+      minRank[target] = Math.max(minRank[target], rank + (g.edge(e).minLen || 1));
+      pq.decrease(target, pq.priority(target) - 1);
+    });
+  }
+}
+
+function feasibleTree(g) {
+  var remaining = new Set(g.nodes()),
+      minLen = []; // Array of {u, v, len}
+
+  // Collapse multi-edges and precompute the minLen, which will be the
+  // max value of minLen for any edge in the multi-edge.
+  var minLenMap = {};
+  g.eachEdge(function(e, u, v, edge) {
+    var id = incidenceId(u, v);
+    if (!(id in minLenMap)) {
+      minLen.push(minLenMap[id] = { u: u, v: v, len: 1 });
+    }
+    minLenMap[id].len = Math.max(minLenMap[id].len, edge.minLen || 1);
+  });
+
+  function slack(mle /* minLen entry*/) {
+    return Math.abs(g.node(mle.u).rank - g.node(mle.v).rank) - mle.len;
+  }
+
+  // Remove arbitrary node - it is effectively the root of the spanning tree.
+  remaining.remove(g.nodes()[0]);
+
+  // Finds the next edge with the minimum slack.
+  function findMinSlack() {
+    var result,
+        eSlack = Number.POSITIVE_INFINITY;
+    minLen.forEach(function(mle /* minLen entry */) {
+      if (remaining.has(mle.u) !== remaining.has(mle.v)) {
+        var mleSlack = slack(mle);
+        if (mleSlack < eSlack) {
+          if (!remaining.has(mle.u)) {
+            result = { treeNode: mle.u, graphNode: mle.v, len: mle.len};
+          } else {
+            result = { treeNode: mle.v, graphNode: mle.u, len: -mle.len };
+          }
+          eSlack = mleSlack;
+        }
+      }
+    });
+
+    return result;
+  }
+
+  while (remaining.size() > 0) {
+    var result = findMinSlack();
+    remaining.remove(result.graphNode);
+    g.node(result.graphNode).rank = g.node(result.treeNode).rank + result.len;
+  }
+}
+
+function normalize(g) {
+  var m = util.min(g.nodes().map(function(u) { return g.node(u).rank; }));
+  g.eachNode(function(u, node) { node.rank -= m; });
+}
+
+/*
+ * This id can be used to group (in an undirected manner) multi-edges
+ * incident on the same two nodes.
+ */
+function incidenceId(u, v) {
+  return u < v ?  u.length + ":" + u + "-" + v : v.length + ":" + v + "-" + u;
+}
+
+},{"../algo/components":3,"../algo/prim":4,"../data/PriorityQueue":5,"../data/Set":6,"../util":13}],13:[function(require,module,exports){
 /*
  * Copies attributes from `src` to `dst`. If an attribute name is in both
  * `src` and `dst` then the attribute value from `src` takes precedence.
  */
-function mergeAttributes(src, dst) {
+exports.mergeAttributes = function(src, dst) {
   Object.keys(src).forEach(function(k) { dst[k] = src[k]; });
-}
+};
 
 /*
  * Returns the smallest value in the array.
  */
-function min(values) {
+exports.min = function(values) {
   return Math.min.apply(null, values);
-}
+};
 
 /*
  * Returns the largest value in the array.
  */
-function max(values) {
+exports.max = function(values) {
   return Math.max.apply(null, values);
-}
+};
+
+/*
+ * Returns `true` only if `f(x)` is `true` for all `x` in `xs`. Otherwise
+ * returns `false`. This function will return immediately if it finds a
+ * case where `f(x)` does not hold.
+ */
+exports.all = function(xs, f) {
+  for (var i = 0; i < xs.length; ++i) {
+    if (!f(xs[i])) {
+      return false; 
+    }
+  }
+  return true;
+};
 
 /*
  * Accumulates the sum of elements in the given array using the `+` operator.
  */
-var sum = dagre.util.sum = function(values) {
+exports.sum = function(values) {
   return values.reduce(function(acc, x) { return acc + x; }, 0);
 };
 
 /*
  * Joins all of the given arrays into a single array.
  */
-function concat(arrays) {
+exports.concat = function(arrays) {
   return Array.prototype.concat.apply([], arrays);
-}
-
-var keys = dagre.util.keys = Object.keys;
+};
 
 /*
  * Returns an array of all values in the given object.
  */
-function values(obj) {
+exports.values = function(obj) {
   return Object.keys(obj).map(function(k) { return obj[k]; });
-}
+};
 
 /*
  * Treats each input array as a set and returns the union of all of the arrays.
@@ -18803,7 +18958,7 @@ function values(obj) {
  * key appears in more than on array, the resulting array will contain the last
  * "equivalent" key.
  */
-function union(arrays) {
+exports.union = function(arrays) {
   var obj = {};
   for (var i = 0; i < arrays.length; ++i) {
     var a = arrays[i];
@@ -18819,88 +18974,9 @@ function union(arrays) {
   }
 
   return results;
-}
-
-/*
- * Returns all components in the graph using undirected navigation.
- */
-var components = dagre.util.components = function(g) {
-  var results = [];
-  var visited = {};
-
-  function dfs(u, component) {
-    if (!(u in visited)) {
-      visited[u] = true;
-      component.push(u);
-      g.neighbors(u).forEach(function(v) {
-        dfs(v, component);
-      });
-    }
-  }
-
-  g.eachNode(function(u) {
-    var component = [];
-    dfs(u, component);
-    if (component.length > 0) {
-      results.push(component);
-    }
-  });
-
-  return results;
 };
 
-/*
- * This algorithm uses undirected traversal to find a miminum spanning tree
- * using the supplied weight function. The algorithm is described in
- * Cormen, et al., "Introduction to Algorithms". The returned structure
- * is an array of node id to an array of adjacent nodes.
- */
-var prim = dagre.util.prim = function(g, weight) {
-  var result = {};
-  var parent = {};
-  var q = priorityQueue();
-
-  if (g.nodes().length === 0) {
-    return result;
-  }
-
-  g.eachNode(function(u) {
-    q.add(u, Number.POSITIVE_INFINITY);
-    result[u] = [];
-  });
-
-  // Start from arbitrary node
-  q.decrease(g.nodes()[0], 0);
-
-  var u;
-  var init = false;
-  while (q.size() > 0) {
-    u = q.removeMin();
-    if (u in parent) {
-      result[u].push(parent[u]);
-      result[parent[u]].push(u);
-    } else if (init) {
-      throw new Error("Input graph is not connected:\n" + g.toString());
-    } else {
-      init = true;
-    }
-
-    g.neighbors(u).forEach(function(v) {
-      var pri = q.priority(v);
-      if (pri !== undefined) {
-        var edgeWeight = weight(u, v);
-        if (edgeWeight < pri) {
-          parent[v] = u;
-          q.decrease(v, edgeWeight);
-        }
-      }
-    });
-  }
-
-  return result;
-};
-
-var intersectRect = dagre.util.intersectRect = function(rect, point) {
+exports.intersectRect = function(rect, point) {
   var x = rect.x;
   var y = rect.y;
 
@@ -18933,13 +19009,15 @@ var intersectRect = dagre.util.intersectRect = function(rect, point) {
   return {x: x + sx, y: y + sy};
 };
 
-var pointStr = dagre.util.pointStr = function(point) {
+exports.pointStr = function(point) {
   return point.x + "," + point.y;
 };
 
-var createTimer = function() {
-  var self = {},
-      enabled = false;
+exports.createTimer = function(enabled) {
+  var self = {};
+
+  // Default to disabled
+  enabled = enabled || false;
 
   self.enabled = function(x) {
     if (!arguments.length) return enabled;
@@ -18961,288 +19039,20 @@ var createTimer = function() {
   return self;
 };
 
-function propertyAccessor(self, config, field, setHook) {
+exports.propertyAccessor = function(self, config, field, setHook) {
   return function(x) {
     if (!arguments.length) return config[field];
     config[field] = x;
     if (setHook) setHook(x);
     return self;
   };
-}
-function priorityQueue() {
-  var _arr = [];
-  var _keyIndices = {};
-
-  function _heapify(i) {
-    var arr = _arr;
-    var l = 2 * i,
-        r = l + 1,
-        largest = i;
-    if (l < arr.length) {
-      largest = arr[l].pri < arr[largest].pri ? l : largest;
-      if (r < arr.length) {
-        largest = arr[r].pri < arr[largest].pri ? r : largest;
-      }
-      if (largest !== i) {
-        _swap(i, largest);
-        _heapify(largest);
-      }
-    }
-  }
-
-  function _decrease(index) {
-    var arr = _arr;
-    var pri = arr[index].pri;
-    var parent;
-    while (index > 0) {
-      parent = index >> 1;
-      if (arr[parent].pri < pri) {
-        break;
-      }
-      _swap(index, parent);
-      index = parent;
-    }
-  }
-
-  function _swap(i, j) {
-    var arr = _arr;
-    var keyIndices = _keyIndices;
-    var tmp = arr[i];
-    arr[i] = arr[j];
-    arr[j] = tmp;
-    keyIndices[arr[i].key] = i;
-    keyIndices[arr[j].key] = j;
-  }
-
-  function size() { return _arr.length; }
-
-  function keys() { return Object.keys(_keyIndices); }
-
-  function has(key) { return key in _keyIndices; }
-
-  function priority(key) {
-    var index = _keyIndices[key];
-    if (index !== undefined) {
-      return _arr[index].pri;
-    }
-  }
-
-  function add(key, pri) {
-    if (!(key in _keyIndices)) {
-      var entry = {key: key, pri: pri};
-      var index = _arr.length;
-      _keyIndices[key] = index;
-      _arr.push(entry);
-      _decrease(index);
-      return true;
-    }
-    return false;
-  }
-
-  function min() {
-    if (size() > 0) {
-      return _arr[0].key;
-    }
-  }
-
-  function removeMin() {
-    _swap(0, _arr.length - 1);
-    var min = _arr.pop();
-    delete _keyIndices[min.key];
-    _heapify(0);
-    return min.key;
-  }
-
-  function decrease(key, pri) {
-    var index = _keyIndices[key];
-    if (pri > _arr[index].pri) {
-      throw new Error("New priority is greater than current priority. " +
-          "Key: " + key + " Old: " + _arr[index].pri + " New: " + pri);
-    }
-    _arr[index].pri = pri;
-    _decrease(index);
-  }
-
-  return {
-    size: size,
-    keys: keys,
-    has: has,
-    priority: priority,
-    add: add,
-    min: min,
-    removeMin: removeMin,
-    decrease: decrease
-  };
-}
-dagre.dot = {};
-
-dagre.dot.toGraph = function(str) {
-  var parseTree = dot_parser.parse(str);
-  var g = dagre.graph();
-  var undir = parseTree.type === "graph";
-
-  function createNode(id, attrs) {
-    if (!(g.hasNode(id))) {
-      // We only apply default attributes to a node when it is first defined.
-      // If the node is subsequently used in edges, we skip apply default
-      // attributes.
-      g.addNode(id, defaultAttrs.get("node", { id: id }));
-
-      // The "label" attribute is given special treatment: if it is not
-      // defined we set it to the id of the node.
-      if (g.node(id).label === undefined) {
-        g.node(id).label = id;
-      }
-    }
-    if (attrs) {
-      mergeAttributes(attrs, g.node(id));
-    }
-  }
-
-  var edgeCount = {};
-  function createEdge(source, target, attrs) {
-    var edgeKey = source + "-" + target;
-    var count = edgeCount[edgeKey];
-    if (!count) {
-      count = edgeCount[edgeKey] = 0;
-    }
-    edgeCount[edgeKey]++;
-
-    var id = attrs.id || edgeKey + "-" + count;
-    var edge = {};
-    mergeAttributes(defaultAttrs.get("edge", attrs), edge);
-    mergeAttributes({ id: id }, edge);
-    g.addEdge(id, source, target, edge);
-  }
-
-  function collectNodeIds(stmt) {
-    var ids = {},
-        stack = [],
-        curr;
-    function pushStack(e) { stack.push(e); }
-
-    pushStack(stmt);
-    while (stack.length !== 0) {
-      curr = stack.pop();
-      switch (curr.type) {
-        case "node": ids[curr.id] = true; break;
-        case "edge":
-          curr.elems.forEach(pushStack);
-          break;
-        case "subgraph":
-          curr.stmts.forEach(pushStack);
-          break;
-      }
-    }
-    return dagre.util.keys(ids);
-  }
-
-  /*
-   * We use a chain of prototypes to maintain properties as we descend into
-   * subgraphs. This allows us to simply get the value for a property and have
-   * the VM do appropriate resolution. When we leave a subgraph we simply set
-   * the current context to the prototype of the current defaults object.
-   * Alternatively, this could have been written using a stack.
-   */
-  var defaultAttrs = {
-    _default: {},
-
-    get: function get(type, attrs) {
-      if (typeof this._default[type] !== "undefined") {
-        var mergedAttrs = {};
-        // clone default attributes so they won't get overwritten in the next step
-        mergeAttributes(this._default[type], mergedAttrs);
-        // merge statement attributes with default attributes, precedence give to stmt attributes
-        mergeAttributes(attrs, mergedAttrs);
-        return mergedAttrs;
-      } else {
-        return attrs;
-      }
-    },
-
-    set: function set(type, attrs) {
-      this._default[type] = this.get(type, attrs);
-    },
-
-    enterSubGraph: function() {
-      function SubGraph() {}
-      SubGraph.prototype = this._default;
-      var subgraph = new SubGraph();
-      this._default = subgraph;
-    },
-
-    exitSubGraph: function() {
-      this._default = Object.getPrototypeOf(this._default);
-    }
-  };
-
-  function handleStmt(stmt) {
-    var attrs = stmt.attrs;
-    switch (stmt.type) {
-      case "node":
-        createNode(stmt.id, attrs);
-        break;
-      case "edge":
-        var prev,
-            curr;
-        stmt.elems.forEach(function(elem) {
-          handleStmt(elem);
-
-          switch(elem.type) {
-            case "node": curr = [elem.id]; break;
-            case "subgraph": curr = collectNodeIds(elem); break;
-            default:
-              // We don't currently support subgraphs incident on an edge
-              throw new Error("Unsupported type incident on edge: " + elem.type);
-          }
-
-          if (prev) {
-            prev.forEach(function(p) {
-              curr.forEach(function(c) {
-                createEdge(p, c, attrs);
-                if (undir) {
-                  createEdge(c, p, attrs);
-                }
-              });
-            });
-          }
-          prev = curr;
-        });
-        break;
-      case "subgraph":
-        defaultAttrs.enterSubGraph();
-        stmt.stmts.forEach(function(s) { handleStmt(s); });
-        defaultAttrs.exitSubGraph();
-        break;
-      case "attr":
-        defaultAttrs.set(stmt.attrType, attrs);
-        break;
-      default:
-        throw new Error("Unsupported statement type: " + stmt.type);
-    }
-  }
-
-  if (parseTree.stmts) {
-    parseTree.stmts.forEach(function(stmt) {
-      handleStmt(stmt);
-    });
-  }
-
-  return g;
 };
 
-dagre.dot.toObjects = function(str) {
-  var g = dagre.dot.toGraph(str);
-  var nodes = g.nodes().map(function(u) { return g.node(u); });
-  var edges = g.edges().map(function(e) {
-    var edge = g.edge(e);
-    edge.source = g.node(g.source(e));
-    edge.target = g.node(g.target(e));
-    return edge;
-  });
-  return { nodes: nodes, edges: edges };
-};
-dot_parser = (function(){
+},{}],14:[function(require,module,exports){
+module.exports = '0.2.0';
+
+},{}],15:[function(require,module,exports){
+module.exports = (function(){
   /*
    * Generated by PEG.js 0.7.0.
    *
@@ -19282,6 +19092,7 @@ dot_parser = (function(){
     parse: function(input, startRule) {
       var parseFunctions = {
         "start": parse_start,
+        "graphStmt": parse_graphStmt,
         "stmtList": parse_stmtList,
         "stmt": parse_stmt,
         "attrStmt": parse_attrStmt,
@@ -19365,6 +19176,22 @@ dot_parser = (function(){
       }
       
       function parse_start() {
+        var result0, result1;
+        
+        result1 = parse_graphStmt();
+        if (result1 !== null) {
+          result0 = [];
+          while (result1 !== null) {
+            result0.push(result1);
+            result1 = parse_graphStmt();
+          }
+        } else {
+          result0 = null;
+        }
+        return result0;
+      }
+      
+      function parse_graphStmt() {
         var result0, result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12;
         var pos0, pos1, pos2;
         
@@ -19976,6 +19803,7 @@ dot_parser = (function(){
             }
             if (result2 !== null) {
               result3 = parse_stmtList();
+              result3 = result3 !== null ? result3 : "";
               if (result3 !== null) {
                 result4 = [];
                 result5 = parse__();
@@ -21696,8 +21524,1937 @@ dot_parser = (function(){
   
   return result;
 })();
-})();
 
+},{}],16:[function(require,module,exports){
+var parse = require("./parse"),
+    write = require("./write");
+
+exports.parse = exports.decode = parse;
+exports.parseMany = parse.parseMany;
+exports.write = exports.encode = write;
+
+// This makes graphlib-dot a valid levelup encoding.
+exports.type = 'dot';
+exports.buffer = false;
+
+
+},{"./parse":17,"./write":19}],17:[function(require,module,exports){
+var util = require("./util"),
+    Digraph = require("graphlib").Digraph;
+
+var dot_parser = require("./dot-grammar");
+
+module.exports = parse;
+module.exports.parseMany = parseMany;
+
+/*
+ * Parses a single DOT graph from the given string and returns its `Digraph`
+ * representation.
+ *
+ * Note: this is exported as the module export.
+ *
+ * @param {String} str the DOT string representation of one or more graphs
+ */
+function parse(str) {
+  return parseMany(str)[0];
+}
+
+/*
+ * Parses one or more DOT graphs in the given string and returns a `Digraph`
+ * representation.
+ *
+ * @param {String} str the DOT string representation of one or more graphs
+ */
+function parseMany(str) {
+  var parseTree = dot_parser.parse(str);
+
+  return parseTree.map(function(subtree) {
+    return buildParseTree(subtree);
+  });
+}
+
+function buildParseTree(parseTree) {
+  var g = new Digraph();
+  var undir = parseTree.type === "graph";
+  g.type = parseTree.type;
+
+  function createNode(id, attrs) {
+    if (!(g.hasNode(id))) {
+      // We only apply default attributes to a node when it is first defined.
+      // If the node is subsequently used in edges, we skip apply default
+      // attributes.
+      g.addNode(id, defaultAttrs.get("node", { id: id }));
+
+      // The "label" attribute is given special treatment: if it is not
+      // defined we set it to the id of the node.
+      if (g.node(id).label === undefined) {
+        g.node(id).label = id;
+      }
+    }
+    if (attrs) {
+      util.mergeAttributes(attrs, g.node(id));
+    }
+  }
+
+  var edgeCount = {};
+  function createEdge(source, target, attrs) {
+    var edgeKey = source + "-" + target;
+    var count = edgeCount[edgeKey];
+    if (!count) {
+      count = edgeCount[edgeKey] = 0;
+    }
+    edgeCount[edgeKey]++;
+
+    var id = attrs.id || edgeKey + "-" + count;
+    var edge = {};
+    util.mergeAttributes(defaultAttrs.get("edge", attrs), edge);
+    util.mergeAttributes({ id: id }, edge);
+    g.addEdge(id, source, target, edge);
+  }
+
+  function collectNodeIds(stmt) {
+    var ids = {},
+        stack = [],
+        curr;
+    function pushStack(e) { stack.push(e); }
+
+    pushStack(stmt);
+    while (stack.length !== 0) {
+      curr = stack.pop();
+      switch (curr.type) {
+        case "node": ids[curr.id] = true; break;
+        case "edge":
+          curr.elems.forEach(pushStack);
+          break;
+        case "subgraph":
+          curr.stmts.forEach(pushStack);
+          break;
+      }
+    }
+    return Object.keys(ids);
+  }
+
+  /*!
+   * We use a chain of prototypes to maintain properties as we descend into
+   * subgraphs. This allows us to simply get the value for a property and have
+   * the VM do appropriate resolution. When we leave a subgraph we simply set
+   * the current context to the prototype of the current defaults object.
+   * Alternatively, this could have been written using a stack.
+   */
+  var defaultAttrs = {
+    _default: {},
+
+    get: function get(type, attrs) {
+      if (typeof this._default[type] !== "undefined") {
+        var mergedAttrs = {};
+        // clone default attributes so they won't get overwritten in the next step
+        util.mergeAttributes(this._default[type], mergedAttrs);
+        // merge statement attributes with default attributes, precedence give to stmt attributes
+        util.mergeAttributes(attrs, mergedAttrs);
+        return mergedAttrs;
+      } else {
+        return attrs;
+      }
+    },
+
+    set: function set(type, attrs) {
+      this._default[type] = this.get(type, attrs);
+    },
+
+    enterSubDigraph: function() {
+      function SubDigraph() {}
+      SubDigraph.prototype = this._default;
+      var subgraph = new SubDigraph();
+      this._default = subgraph;
+    },
+
+    exitSubDigraph: function() {
+      this._default = Object.getPrototypeOf(this._default);
+    }
+  };
+
+  function handleStmt(stmt) {
+    var attrs = stmt.attrs;
+    switch (stmt.type) {
+      case "node":
+        createNode(stmt.id, attrs);
+        break;
+      case "edge":
+        var prev,
+            curr;
+        stmt.elems.forEach(function(elem) {
+          handleStmt(elem);
+
+          switch(elem.type) {
+            case "node": curr = [elem.id]; break;
+            case "subgraph": curr = collectNodeIds(elem); break;
+            default:
+              // We don't currently support subgraphs incident on an edge
+              throw new Error("Unsupported type incident on edge: " + elem.type);
+          }
+
+          if (prev) {
+            prev.forEach(function(p) {
+              curr.forEach(function(c) {
+                createEdge(p, c, attrs);
+                if (undir) {
+                  createEdge(c, p, attrs);
+                }
+              });
+            });
+          }
+          prev = curr;
+        });
+        break;
+      case "subgraph":
+        defaultAttrs.enterSubDigraph();
+        if (stmt.stmts) {
+          stmt.stmts.forEach(function(s) { handleStmt(s); });
+        }
+        defaultAttrs.exitSubDigraph();
+        break;
+      case "attr":
+        defaultAttrs.set(stmt.attrType, attrs);
+        break;
+      default:
+        throw new Error("Unsupported statement type: " + stmt.type);
+    }
+  }
+
+  if (parseTree.stmts) {
+    parseTree.stmts.forEach(function(stmt) {
+      handleStmt(stmt);
+    });
+  }
+
+  return g;
+}
+
+// TODO: move this and the object reading stuff in layout.js to their own file.
+exports.toObjects = function(str) {
+  var g = exports.toDigraph(str);
+  var nodes = g.nodes().map(function(u) { return g.node(u); });
+  var edges = g.edges().map(function(e) {
+    var edge = g.edge(e);
+    edge.source = g.node(g.source(e));
+    edge.target = g.node(g.target(e));
+    return edge;
+  });
+  return { nodes: nodes, edges: edges };
+};
+
+},{"./dot-grammar":15,"./util":18,"graphlib":20}],18:[function(require,module,exports){
+/*
+ * Copies attributes from `src` to `dst`. If an attribute name is in both
+ * `src` and `dst` then the attribute value from `src` takes precedence.
+ */
+exports.mergeAttributes = function(src, dst) {
+  Object.keys(src).forEach(function(k) { dst[k] = src[k]; });
+};
+
+/*
+ * Returns the smallest value in the array.
+ */
+exports.min = function(values) {
+  return Math.min.apply(null, values);
+};
+
+/*
+ * Returns the largest value in the array.
+ */
+exports.max = function(values) {
+  return Math.max.apply(null, values);
+};
+
+/*
+ * Returns `true` only if `f(x)` is `true` for all `x` in `xs`. Otherwise
+ * returns `false`. This function will return immediately if it finds a
+ * case where `f(x)` does not hold.
+ */
+exports.all = function(xs, f) {
+  for (var i = 0; i < xs.length; ++i) {
+    if (!f(xs[i])) {
+      return false; 
+    }
+  }
+  return true;
+};
+
+/*
+ * Accumulates the sum of elements in the given array using the `+` operator.
+ */
+exports.sum = function(values) {
+  return values.reduce(function(acc, x) { return acc + x; }, 0);
+};
+
+/*
+ * Joins all of the given arrays into a single array.
+ */
+exports.concat = function(arrays) {
+  return Array.prototype.concat.apply([], arrays);
+};
+
+/*
+ * Returns an array of all values in the given object.
+ */
+exports.values = function(obj) {
+  return Object.keys(obj).map(function(k) { return obj[k]; });
+};
+
+/*
+ * Treats each input array as a set and returns the union of all of the arrays.
+ * This function biases towards the last array. That is, if an "equivalent"
+ * key appears in more than on array, the resulting array will contain the last
+ * "equivalent" key.
+ */
+exports.union = function(arrays) {
+  var obj = {};
+  for (var i = 0; i < arrays.length; ++i) {
+    var a = arrays[i];
+    for (var j = 0; j < a.length; ++j) {
+      var v = a[j];
+      obj[v] = v;
+    }
+  }
+
+  var results = [];
+  for (var k in obj) {
+    results.push(obj[k]);
+  }
+
+  return results;
+};
+
+exports.intersectRect = function(rect, point) {
+  var x = rect.x;
+  var y = rect.y;
+
+  // For now we only support rectangles
+
+  // Rectangle intersection algorithm from:
+  // http://math.stackexchange.com/questions/108113/find-edge-between-two-boxes
+  var dx = point.x - x;
+  var dy = point.y - y;
+  var w = rect.width / 2;
+  var h = rect.height / 2;
+
+  var sx, sy;
+  if (Math.abs(dy) * w > Math.abs(dx) * h) {
+    // Intersection is top or bottom of rect.
+    if (dy < 0) {
+      h = -h;
+    }
+    sx = dy === 0 ? 0 : h * dx / dy;
+    sy = h;
+  } else {
+    // Intersection is left or right of rect.
+    if (dx < 0) {
+      w = -w;
+    }
+    sx = w;
+    sy = dx === 0 ? 0 : w * dy / dx;
+  }
+
+  return {x: x + sx, y: y + sy};
+};
+
+exports.pointStr = function(point) {
+  return point.x + "," + point.y;
+};
+
+exports.createTimer = function(enabled) {
+  var self = {};
+
+  // Default to disabled
+  enabled = enabled || false;
+
+  self.enabled = function(x) {
+    if (!arguments.length) return enabled;
+    enabled = x;
+    return self;
+  };
+
+  self.wrap = function(name, func) {
+    return function() {
+      var start = enabled ? new Date().getTime() : null;
+      try {
+        return func.apply(null, arguments);
+      } finally {
+        if (start) console.log(name + " time: " + (new Date().getTime() - start) + "ms");
+      }
+    };
+  };
+
+  return self;
+};
+
+exports.propertyAccessor = function(self, config, field, setHook) {
+  return function(x) {
+    if (!arguments.length) return config[field];
+    config[field] = x;
+    if (setHook) setHook(x);
+    return self;
+  };
+};
+
+},{}],19:[function(require,module,exports){
+module.exports = write;
+
+/*
+ * Writes a string representation of the given graph in the DOT language.
+ *
+ * Note: this is exported as the module export
+ *
+ * @param {Digraph} g the graph to serialize
+ */
+function write(g) {
+  var edgeConnector = g.type == 'digraph' ? "->" : "--";
+  var str = (g.type || 'digraph') + " {\n";
+
+  g.nodes().forEach(function(u) {
+    str += _writeNode(u, g.node(u));
+  });
+
+  g.eachEdge(function(id, source, target, value) {
+    str += _writeEdge(id, edgeConnector, source, target, value);
+  });
+
+  str += "}\n";
+  return str;
+}
+
+function id(obj) {
+  return '"' + obj.toString().replace(/"/g, '\\"') + '"';
+}
+
+function idVal(obj) {
+  if (Object.prototype.toString.call(obj) === "[object Object]" ||
+      Object.prototype.toString.call(obj) === "[object Array]") {
+    return id(JSON.stringify(obj));
+  }
+  return id(obj);
+}
+
+function _writeNode(u, attrs) {
+  var _id = id(u);
+  var str = "    " + id(u);
+  var hasAttrs = false;
+  for (var k in attrs) {
+    
+    if((k == 'label' || k == 'id') && id(attrs[k]) != _id) {
+      if (!hasAttrs) {
+        str += ' [';
+        hasAttrs = true;
+      } else {
+        str += ',';
+      }
+      str += id(k) + "=" + idVal(attrs[k]);
+    }
+  }
+  if (hasAttrs) {
+    str += "]";
+  }
+  str += "\n";
+  return str;
+}
+
+function _writeEdge(eId, edgeConnector, u, v, attrs) {
+  var _id = id(eId);
+  var str = "    " + id(u) + " " + edgeConnector + " " + id(v);
+  var hasAttrs = false;
+  for (var k in attrs) {
+//TODO: don't output edge id if it's only the default id.
+//not sure where the default id is created...
+//      if((k == 'id') && id(attrs[k]) != _id) {
+      if (!hasAttrs) {
+        str += ' [';
+        hasAttrs = true;
+      } else {
+        str += ',';
+      }
+      str += id(k) + "=" + idVal(attrs[k]);
+//    }
+  }
+  if (hasAttrs) {
+    str += "]";
+  }
+  str += "\n";
+  return str;
+}
+
+
+},{}],20:[function(require,module,exports){
+exports.Digraph = require("./lib/Digraph");
+exports.alg = require("./lib/alg");
+exports.version = require("./lib/version");
+
+// Backwards compatibility - to remove at next minor version bump
+exports.Graph = exports.Digraph
+
+},{"./lib/Digraph":21,"./lib/alg":22,"./lib/version":26}],21:[function(require,module,exports){
+/*!
+ * This file is organized with in the following order:
+ *
+ * Exports
+ * Graph constructors
+ * Graph queries (e.g. nodes(), edges()
+ * Graph mutators
+ * Helper functions
+ */
+
+var util = require("./util");
+
+module.exports = Digraph;
+
+/*
+ * Constructor to create a new directed multi-graph.
+ */
+function Digraph() {
+  /*! Map of nodeId -> {id, value} */
+  this._nodes = {};
+
+  /*! Map of sourceId -> {targetId -> {count, edgeId -> true}} */
+  this._inEdges = {};
+
+  /*! Map of targetId -> {sourceId -> {count, edgeId -> true}} */
+  this._outEdges = {};
+
+  /*! Map of edgeId -> {id, source, target, value} */
+  this._edges = {};
+
+  /*! Used to generate anonymous edge ids */
+  this._nextEdgeId = 0;
+}
+
+/*
+ * Constructs and returns a new graph that includes only the nodes in `us`. Any
+ * edges that have both their source and target in the set `us` are also
+ * included in the subgraph.
+ * 
+ * Changes to the graph itself are not reflected in the original graph.
+ * However, the values for nodes and edges are not copied. If the values are
+ * objects then their changes will be reflected in the original graph and the
+ * subgraph.
+ *
+ * If any of the nodes in `us` are not in this graph this function raises an
+ * Error.
+ *
+ * @param {String[]} us the node ids to include in the subgraph
+ */
+Digraph.prototype.subgraph = function(us) {
+  var g = new Digraph();
+  var self = this;
+
+  us.forEach(function(u) { g.addNode(u, self.node(u)); });
+  util.values(this._edges).forEach(function(e) {
+    if (g.hasNode(e.source) && g.hasNode(e.target)) {
+      g.addEdge(e.id, e.source, e.target, self.edge(e.id));
+    }
+  });
+
+  return g;
+};
+
+/*
+ * Returns the number of nodes in this graph.
+ */
+Digraph.prototype.order = function() {
+  return Object.keys(this._nodes).length;
+};
+
+/*
+ * Returns the number of edges in this graph.
+ */
+Digraph.prototype.size = function() {
+  return Object.keys(this._edges).length;
+};
+
+/*
+ * Returns `true` if this graph contains a node with the id `u`. Otherwise
+ * returns false.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.hasNode = function(u) {
+  return u in this._nodes;
+};
+
+/*
+ * Returns the value for a node in the graph with the id `u`. If no such node
+ * is in the graph this function will throw an Error.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.node = function(u) {
+  return this._strictGetNode(u).value;
+};
+
+/*
+ * Returns the ids of all nodes in this graph. Use `graph.node(u)` to get the
+ * value for a specific node.
+ */
+Digraph.prototype.nodes = function() {
+  var nodes = [];
+  this.eachNode(function(id, _) { nodes.push(id); });
+  return nodes;
+};
+
+/*
+ * Applies a function that takes the parameters (`id`, `value`) to each node in
+ * the graph in arbitrary order.
+ *
+ * @param {Function} func the function to apply to each node
+ */
+Digraph.prototype.eachNode = function(func) {
+  for (var k in this._nodes) {
+    var node = this._nodes[k];
+    func(node.id, node.value);
+  }
+};
+
+/*
+ * Returns all successors of the node with the id `u`. That is, all nodes
+ * that have the node `u` as their source are returned.
+ * 
+ * If no node `u` exists in the graph this function throws an Error.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.successors = function(u) {
+  this._strictGetNode(u);
+  return Object.keys(this._outEdges[u])
+               .map(function(v) { return this._nodes[v].id; }, this);
+};
+
+/*
+ * Returns all predecessors of the node with the id `u`. That is, all nodes
+ * that have the node `u` as their target are returned.
+ * 
+ * If no node `u` exists in the graph this function throws an Error.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.predecessors = function(u) {
+  this._strictGetNode(u);
+  return Object.keys(this._inEdges[u])
+               .map(function(v) { return this._nodes[v].id; }, this);
+};
+
+/*
+ * Returns all nodes that are adjacent to the node with the id `u`. In other
+ * words, this function returns the set of all successors and predecessors of
+ * node `u`.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.neighbors = function(u) {
+  this._strictGetNode(u);
+  var vs = {};
+
+  Object.keys(this._outEdges[u])
+        .map(function(v) { vs[v] = true; });
+
+  Object.keys(this._inEdges[u])
+        .map(function(v) { vs[v] = true; });
+
+  return Object.keys(vs)
+               .map(function(v) { return this._nodes[v].id; }, this);
+};
+
+/*
+ * Returns all nodes in the graph that have no in-edges.
+ */
+Digraph.prototype.sources = function() {
+  var self = this;
+  return this._filterNodes(function(u) {
+    // This could have better space characteristics if we had an inDegree function.
+    return self.inEdges(u).length === 0;
+  });
+};
+
+/*
+ * Returns all nodes in the graph that have no out-edges.
+ */
+Digraph.prototype.sinks = function() {
+  var self = this;
+  return this._filterNodes(function(u) {
+    // This could have better space characteristics if we have an outDegree function.
+    return self.outEdges(u).length === 0;
+  });
+};
+
+/*
+ * Returns `true` if this graph has an edge with the id `e`. Otherwise this
+ * function returns `false`.
+ *
+ * @param {String} e an edge id
+ */
+Digraph.prototype.hasEdge = function(e) {
+  return e in this._edges;
+};
+
+/*
+ * Returns the value for an edge with the id `e`. If no such edge exists in
+ * the graph this function throws an Error.
+ *
+ * @param {String} e the edge id
+ */
+Digraph.prototype.edge = function(e) {
+  return this._strictGetEdge(e).value;
+};
+
+/*
+ * Return all edges with no arguments,
+ * the ones that are incident on a node (one argument),
+ * or all edges from a source to a target (two arguments)
+ *
+ * @param {String} [u] an optional node id
+ * @param {String} [v] an optional node id
+ */
+Digraph.prototype.edges = function(u, v) {
+  var es, sourceEdges;
+  if (!arguments.length) {
+    es = [];
+    this.eachEdge(function(id) { es.push(id); });
+    return es;
+  } else if (arguments.length === 1) {
+    return util.mergeKeys([this.inEdges(u), this.outEdges(u)]);
+  } else if (arguments.length === 2) {
+    this._strictGetNode(u);
+    this._strictGetNode(v);
+    sourceEdges = this._outEdges[u];
+    es = (v in sourceEdges) ? Object.keys(sourceEdges[v].edges) : [];
+    return es.map(function(e) { return this._edges[e].id; }, this);
+  }
+};
+
+/*
+ * Applies a function that takes the parameters (`id`, `source`, `target`,
+ * `value`) to each edge in this graph in arbitrary order.
+ *
+ * @param {Function} func a function to apply to each edge
+ */
+Digraph.prototype.eachEdge = function(func) {
+  for (var k in this._edges) {
+    var edge = this._edges[k];
+    func(edge.id, edge.source, edge.target, edge.value);
+  }
+};
+
+/*
+ * Returns the source node incident on the edge identified by the id `e`. If no
+ * such edge exists in the graph this function throws an Error.
+ *
+ * @param {String} e an edge id
+ */
+Digraph.prototype.source = function(e) {
+  return this._strictGetEdge(e).source;
+};
+
+/*
+ * Returns the target node incident on the edge identified by the id `e`. If no
+ * such edge exists in the graph this function throws an Error.
+ *
+ * @param {String} e an edge id
+ */
+Digraph.prototype.target = function(e) {
+  return this._strictGetEdge(e).target;
+};
+
+/*
+ * Returns the ids of all edges in the graph that have the node `target` as
+ * their target. If the node `target` is not in the graph this function raises
+ * an Error.
+ *
+ * @param {String} target the target node id
+ */
+Digraph.prototype.inEdges = function(target) {
+  this._strictGetNode(target);
+  return util.concat(util.values(this._inEdges[target])
+             .map(function(es) { return Object.keys(es.edges); }, this));
+};
+
+/*
+ * Returns the ids of all nodes in the graph that have the node `source` as
+ * their source. If the node `source` is not in the graph this function raises
+ * an Error.
+ *
+ * @param {String} source the source node id
+ */
+Digraph.prototype.outEdges = function(source) {
+  this._strictGetNode(source);
+  return util.concat(util.values(this._outEdges[source])
+             .map(function(es) { return Object.keys(es.edges); }, this));
+};
+
+/*
+ * Returns `true` if the values of all nodes and all edges are equal (===)
+ *
+ * @param {Digraph} other the graph to test for equality with this graph
+ */
+Digraph.prototype.equals = function(other) {
+  var self = this;
+
+  return self.order() === other.order() &&
+         self.size() === other.size() &&
+         util.all(self.nodes(), function(x) { return other.hasNode(x) && self.node(x) === other.node(x); }) &&
+         util.all(self.edges(), function(x) { return other.hasEdge(x) && self.edge(x) === other.edge(x); });
+};
+
+/*
+ * Returns a string representation of this graph.
+ */
+Digraph.prototype.toString = function() {
+  var self = this;
+  var str = "GRAPH:\n";
+
+  str += "    Nodes:\n";
+  Object.keys(this._nodes)
+        .forEach(function(u) {
+          str += "        " + u + ": " + JSON.stringify(self._nodes[u].value) + "\n";
+        });
+
+  str += "    Edges:\n";
+  Object.keys(this._edges)
+        .forEach(function(e) {
+          var edge = self._edges[e];
+          str += "        " + e + " (" + edge.source + " -> " + edge.target + "): " +
+                 JSON.stringify(self._edges[e].value) + "\n";
+        });
+
+  return str;
+};
+
+/*
+ * Adds a new node with the id `u` to the graph and assigns it the value
+ * `value`. If a node with the id is already a part of the graph this function
+ * throws an Error.
+ *
+ * @param {String} u a node id
+ * @param {Object} [value] an optional value to attach to the node
+ */
+Digraph.prototype.addNode = function(u, value) {
+  if (this.hasNode(u)) {
+    throw new Error("Graph already has node '" + u + "':\n" + this.toString());
+  }
+  this._nodes[u] = { id: u, value: value };
+  this._inEdges[u] = {};
+  this._outEdges[u] = {};
+};
+
+/*
+ * Removes a node from the graph that has the id `u`. Any edges incident on the
+ * node are also removed. If the graph does not contain a node with the id this
+ * function will throw an Error.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.delNode = function(u) {
+  this._strictGetNode(u);
+
+  var self = this;
+  this.edges(u).forEach(function(e) { self.delEdge(e); });
+
+  delete this._inEdges[u];
+  delete this._outEdges[u];
+  delete this._nodes[u];
+};
+
+/*
+ * Adds a new edge to the graph with the id `e` from a node with the id `source`
+ * to a noce with an id `target` and assigns it the value `value`. This graph
+ * allows more than one edge from `source` to `target` as long as the id `e`
+ * is unique in the set of edges. If `e` is `null` the graph will assign a
+ * unique identifier to the edge.
+ *
+ * If `source` or `target` are not present in the graph this function will
+ * throw an Error.
+ *
+ * @param {String} [e] an edge id
+ * @param {String} source the source node id
+ * @param {String} target the target node id
+ * @param {Object} [value] an optional value to attach to the edge
+ */
+Digraph.prototype.addEdge = function(e, source, target, value) {
+  this._strictGetNode(source);
+  this._strictGetNode(target);
+
+  if (e === null) {
+    e = "_ANON-" + (++this._nextEdgeId);
+  }
+  else if (this.hasEdge(e)) {
+    throw new Error("Graph already has edge '" + e + "':\n" + this.toString());
+  }
+
+  this._edges[e] = { id: e, source: source, target: target, value: value };
+  addEdgeToMap(this._inEdges[target], source, e);
+  addEdgeToMap(this._outEdges[source], target, e);
+};
+
+/*
+ * Removes an edge in the graph with the id `e`. If no edge in the graph has
+ * the id `e` this function will throw an Error.
+ *
+ * @param {String} e an edge id
+ */
+Digraph.prototype.delEdge = function(e) {
+  var edge = this._strictGetEdge(e);
+  delEdgeFromMap(this._inEdges[edge.target], edge.source, e);
+  delEdgeFromMap(this._outEdges[edge.source], edge.target, e);
+  delete this._edges[e];
+};
+
+Digraph.prototype._strictGetNode = function(u) {
+  var node = this._nodes[u];
+  if (node === undefined) {
+    throw new Error("Node '" + u + "' is not in graph:\n" + this.toString());
+  }
+  return node;
+};
+
+Digraph.prototype._strictGetEdge = function(e) {
+  var edge = this._edges[e];
+  if (edge === undefined) {
+    throw new Error("Edge '" + e + "' is not in graph:\n" + this.toString());
+  }
+  return edge;
+};
+
+Digraph.prototype._filterNodes = function(pred) {
+  var filtered = [];
+  this.eachNode(function(u, value) {
+    if (pred(u)) {
+      filtered.push(u);
+    }
+  });
+  return filtered;
+};
+
+function addEdgeToMap(map, v, e) {
+  var vEntry = map[v];
+  if (!vEntry) {
+    vEntry = map[v] = { count: 0, edges: {} };
+  }
+  vEntry.count++;
+  vEntry.edges[e] = true;
+}
+
+function delEdgeFromMap(map, v, e) {
+  var vEntry = map[v];
+  if (--vEntry.count === 0) {
+    delete map[v];
+  } else {
+    delete vEntry.edges[e];
+  }
+}
+
+
+},{"./util":25}],22:[function(require,module,exports){
+module.exports = {
+  isAcyclic: require("./alg/isAcyclic"),
+  topsort: require("./alg/topsort")
+};
+
+},{"./alg/isAcyclic":23,"./alg/topsort":24}],23:[function(require,module,exports){
+var topsort = require("./topsort");
+
+module.exports = isAcyclic;
+
+/*
+ * Given a Graph **g** this function returns `true` if the graph has no cycles
+ * and returns `false` if it does.
+ *
+ * @param {Graph} g the graph to test for cycles
+ */
+function isAcyclic(g) {
+  try {
+    topsort(g);
+  } catch (e) {
+    if (e instanceof topsort.CycleException) return false;
+    throw e;
+  }
+  return true;
+}
+
+},{"./topsort":24}],24:[function(require,module,exports){
+module.exports = topsort;
+topsort.CycleException = CycleException;
+
+/*
+ * Given a graph **g**, this function returns an ordered list of nodes such
+ * that for each edge `u -> v`, `u` appears before `v` in the list. If the
+ * graph has a cycle it is impossible to generate such a list and
+ * **CycleException** is thrown.
+ *
+ * See [topological sorting](https://en.wikipedia.org/wiki/Topological_sorting)
+ * for more details about how this algorithm works.
+ *
+ * @param {Graph} g the graph to sort
+ */
+function topsort(g) {
+  var visited = {};
+  var stack = {};
+  var results = [];
+
+  function visit(node) {
+    if (node in stack) {
+      throw new CycleException();
+    }
+
+    if (!(node in visited)) {
+      stack[node] = true;
+      visited[node] = true;
+      g.predecessors(node).forEach(function(pred) {
+        visit(pred);
+      });
+      delete stack[node];
+      results.push(node);
+    }
+  }
+
+  var sinks = g.sinks();
+  if (g.order() !== 0 && sinks.length === 0) {
+    throw new CycleException();
+  }
+
+  g.sinks().forEach(function(sink) {
+    visit(sink);
+  });
+
+  return results;
+}
+
+function CycleException() {}
+
+CycleException.prototype.toString = function() {
+  return "Graph has at least one cycle";
+};
+
+},{}],25:[function(require,module,exports){
+// Returns `true` only if `f(x)` is `true` for all `x` in **xs**. Otherwise
+// returns `false`. This function will return immediately if it finds a
+// case where `f(x)` does not hold.
+exports.all = function(xs, f) {
+  for (var i = 0; i < xs.length; ++i) {
+    if (!f(xs[i])) return false;
+  }
+  return true;
+}
+
+// Returns an array of all values for properties of **o**.
+exports.values = function(o) {
+  return Object.keys(o).map(function(k) { return o[k]; });
+}
+
+// Joins all of the arrays **xs** into a single array.
+exports.concat = function(xs) {
+  return Array.prototype.concat.apply([], xs);
+}
+
+// Similar to **concat**, but all duplicates are removed
+exports.mergeKeys = function(xs) {
+  var obj = {};
+  xs.forEach(function(x) {
+    x.forEach(function(o) {
+      obj[o] = o;
+    });
+  });
+  return exports.values(obj);
+}
+
+},{}],26:[function(require,module,exports){
+module.exports = '0.0.3';
+
+},{}],27:[function(require,module,exports){
+exports.Digraph = require("./lib/Digraph");
+exports.alg = {
+  isAcyclic: require("./lib/alg/isAcyclic"),
+  findCycles: require("./lib/alg/findCycles"),
+  tarjan: require("./lib/alg/tarjan"),
+  topsort: require("./lib/alg/topsort")
+};
+exports.data = {
+  PriorityQueue: require("./lib/data/PriorityQueue")
+};
+exports.version = require("./lib/version");
+
+},{"./lib/Digraph":28,"./lib/alg/findCycles":29,"./lib/alg/isAcyclic":30,"./lib/alg/tarjan":31,"./lib/alg/topsort":32,"./lib/data/PriorityQueue":33,"./lib/version":35}],28:[function(require,module,exports){
+/*!
+ * This file is organized with in the following order:
+ *
+ * Exports
+ * Graph constructors
+ * Graph queries (e.g. nodes(), edges()
+ * Graph mutators
+ * Helper functions
+ */
+
+var util = require("./util");
+
+module.exports = Digraph;
+
+/*
+ * Constructor to create a new directed multi-graph.
+ */
+function Digraph() {
+  /*! The value assigned to the graph itself */
+  this._value = undefined;
+
+  /*! Map of nodeId -> {id, value} */
+  this._nodes = {};
+
+  /*! Map of sourceId -> {targetId -> {count, edgeId -> true}} */
+  this._inEdges = {};
+
+  /*! Map of targetId -> {sourceId -> {count, edgeId -> true}} */
+  this._outEdges = {};
+
+  /*! Map of edgeId -> {id, source, target, value} */
+  this._edges = {};
+
+  /*! Used to generate anonymous edge ids */
+  this._nextEdgeId = 0;
+}
+
+/*
+ * Constructs and returns a new graph that includes only the nodes in `us`. Any
+ * edges that have both their source and target in the set `us` are also
+ * included in the subgraph.
+ * 
+ * Changes to the graph itself are not reflected in the original graph.
+ * However, the values for nodes and edges are not copied. If the values are
+ * objects then their changes will be reflected in the original graph and the
+ * subgraph.
+ *
+ * If any of the nodes in `us` are not in this graph this function raises an
+ * Error.
+ *
+ * @param {String[]} us the node ids to include in the subgraph
+ */
+Digraph.prototype.subgraph = function(us) {
+  var g = new Digraph();
+  var self = this;
+
+  us.forEach(function(u) { g.addNode(u, self.node(u)); });
+  util.values(this._edges).forEach(function(e) {
+    if (g.hasNode(e.source) && g.hasNode(e.target)) {
+      g.addEdge(e.id, e.source, e.target, self.edge(e.id));
+    }
+  });
+
+  return g;
+};
+
+/*
+ * Returns the number of nodes in this graph.
+ */
+Digraph.prototype.order = function() {
+  return Object.keys(this._nodes).length;
+};
+
+/*
+ * Returns the number of edges in this graph.
+ */
+Digraph.prototype.size = function() {
+  return Object.keys(this._edges).length;
+};
+
+/*
+ * Accessor for a graph-level value. If called with no arguments this function
+ * returns the graph value object. If called with the **value** argument this
+ * function sets the value for the graph, replacing the previous value.
+ *
+ * @param {Object} [value] optional value to set for this graph.
+ */
+Digraph.prototype.graph = function(value) {
+  if (arguments.length === 0) {
+    return this._value;
+  }
+  this._value = value;
+};
+
+/*
+ * Returns `true` if this graph contains a node with the id `u`. Otherwise
+ * returns false.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.hasNode = function(u) {
+  return u in this._nodes;
+};
+
+/*
+ * Accessor for node values. If called with a single argument this function
+ * returns the value for the node **u**. If called with two arguments, this
+ * function assigns **value** as the value for node **u**.
+ *
+ * If no such node is in the graph this function will throw an Error.
+ *
+ * @param {String} u a node id
+ * @param {Object} [value] option value to set for this node
+ */
+Digraph.prototype.node = function(u, value) {
+  var node = this._strictGetNode(u);
+  if (arguments.length === 1) {
+    return node.value;
+  }
+  node.value = value;
+};
+
+/*
+ * Returns the ids of all nodes in this graph. Use `graph.node(u)` to get the
+ * value for a specific node.
+ */
+Digraph.prototype.nodes = function() {
+  var nodes = [];
+  this.eachNode(function(id, _) { nodes.push(id); });
+  return nodes;
+};
+
+/*
+ * Applies a function that takes the parameters (`id`, `value`) to each node in
+ * the graph in arbitrary order.
+ *
+ * @param {Function} func the function to apply to each node
+ */
+Digraph.prototype.eachNode = function(func) {
+  for (var k in this._nodes) {
+    var node = this._nodes[k];
+    func(node.id, node.value);
+  }
+};
+
+/*
+ * Returns all successors of the node with the id `u`. That is, all nodes
+ * that have the node `u` as their source are returned.
+ * 
+ * If no node `u` exists in the graph this function throws an Error.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.successors = function(u) {
+  this._strictGetNode(u);
+  return Object.keys(this._outEdges[u])
+               .map(function(v) { return this._nodes[v].id; }, this);
+};
+
+/*
+ * Returns all predecessors of the node with the id `u`. That is, all nodes
+ * that have the node `u` as their target are returned.
+ * 
+ * If no node `u` exists in the graph this function throws an Error.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.predecessors = function(u) {
+  this._strictGetNode(u);
+  return Object.keys(this._inEdges[u])
+               .map(function(v) { return this._nodes[v].id; }, this);
+};
+
+/*
+ * Returns all nodes that are adjacent to the node with the id `u`. In other
+ * words, this function returns the set of all successors and predecessors of
+ * node `u`.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.neighbors = function(u) {
+  this._strictGetNode(u);
+  var vs = {};
+
+  Object.keys(this._outEdges[u])
+        .map(function(v) { vs[v] = true; });
+
+  Object.keys(this._inEdges[u])
+        .map(function(v) { vs[v] = true; });
+
+  return Object.keys(vs)
+               .map(function(v) { return this._nodes[v].id; }, this);
+};
+
+/*
+ * Returns all nodes in the graph that have no in-edges.
+ */
+Digraph.prototype.sources = function() {
+  var self = this;
+  return this._filterNodes(function(u) {
+    // This could have better space characteristics if we had an inDegree function.
+    return self.inEdges(u).length === 0;
+  });
+};
+
+/*
+ * Returns all nodes in the graph that have no out-edges.
+ */
+Digraph.prototype.sinks = function() {
+  var self = this;
+  return this._filterNodes(function(u) {
+    // This could have better space characteristics if we have an outDegree function.
+    return self.outEdges(u).length === 0;
+  });
+};
+
+/*
+ * Returns `true` if this graph has an edge with the id `e`. Otherwise this
+ * function returns `false`.
+ *
+ * @param {String} e an edge id
+ */
+Digraph.prototype.hasEdge = function(e) {
+  return e in this._edges;
+};
+
+/*
+ * Accessor for edge values. If called with a single argument this function
+ * returns the value for the edge **e**. If called with two arguments, this
+ * function assigns **value** as the value for edge **e**.
+ *
+ * If no such edge is in the graph this function will throw an Error.
+ *
+ * @param {String} e an edge id
+ * @param {Object} [value] option value to set for this node
+ */
+Digraph.prototype.edge = function(e, value) {
+  var edge = this._strictGetEdge(e);
+  if (arguments.length === 1) {
+    return edge.value;
+  }
+  edge.value = value;
+};
+
+/*
+ * Returns the ids of all edges in the graph.
+ */
+Digraph.prototype.edges = function(u) {
+  if (arguments.length === 1) {
+    throw new Error("Digraph.edges() cannot be called with 1 argument. " +
+                    "Use Digraph.incidentEdges() instead.");
+  } else if (arguments.length > 1) {
+    throw new Error("Digraph.edges() cannot be called with more than 1 argument. " +
+                    "Use Digraph.outEdges() instead.");
+  }
+
+  var es = [];
+  this.eachEdge(function(id) { es.push(id); });
+  return es;
+};
+
+/*
+ * Applies a function that takes the parameters (`id`, `source`, `target`,
+ * `value`) to each edge in this graph in arbitrary order.
+ *
+ * @param {Function} func a function to apply to each edge
+ */
+Digraph.prototype.eachEdge = function(func) {
+  for (var k in this._edges) {
+    var edge = this._edges[k];
+    func(edge.id, edge.source, edge.target, edge.value);
+  }
+};
+
+/*
+ * Returns the source node incident on the edge identified by the id `e`. If no
+ * such edge exists in the graph this function throws an Error.
+ *
+ * @param {String} e an edge id
+ */
+Digraph.prototype.source = function(e) {
+  return this._strictGetEdge(e).source;
+};
+
+/*
+ * Returns the target node incident on the edge identified by the id `e`. If no
+ * such edge exists in the graph this function throws an Error.
+ *
+ * @param {String} e an edge id
+ */
+Digraph.prototype.target = function(e) {
+  return this._strictGetEdge(e).target;
+};
+
+/*
+ * Returns an array of ids for all edges in the graph that have the node
+ * `target` as their target. If the node `target` is not in the graph this
+ * function raises an Error.
+ *
+ * Optionally a `source` node can also be specified. This causes the results
+ * to be filtered such that only edges from `source` to `target` are included.
+ * If the node `source` is specified but is not in the graph then this function
+ * raises an Error.
+ *
+ * @param {String} target the target node id
+ * @param {String} [source] an optional source node id
+ */
+Digraph.prototype.inEdges = function(target, source) {
+  this._strictGetNode(target);
+  var results = util.concat(util.values(this._inEdges[target])
+                    .map(function(es) { return Object.keys(es.edges); }, this));
+  if (arguments.length > 1) {
+    this._strictGetNode(source);
+    results = results.filter(function(e) { return this.source(e) === source; }, this);
+  }
+  return results;
+};
+
+/*
+ * Returns an array of ids for all edges in the graph that have the node
+ * `source` as their source. If the node `source` is not in the graph this
+ * function raises an Error.
+ *
+ * Optionally a `target` node may also be specified. This causes the results
+ * to be filtered such that only edges from `source` to `target` are included.
+ * If the node `target` is specified but is not in the graph then this function
+ * raises an Error.
+ *
+ * @param {String} source the source node id
+ * @param {String} [target] an optional target node id
+ */
+Digraph.prototype.outEdges = function(source, target) {
+  this._strictGetNode(source);
+  var results =  util.concat(util.values(this._outEdges[source])
+                     .map(function(es) { return Object.keys(es.edges); }, this));
+  if (arguments.length > 1) {
+    this._strictGetNode(target);
+    results = results.filter(function(e) { return this.target(e) === target; }, this);
+  }
+  return results;
+};
+
+/*
+ * Returns an array of ids for all edges in the graph that have the `u` as
+ * their source or their target. If the node `u` is not in the graph this
+ * function raises an Error.
+ *
+ * Optionally a `v` node may also be specified. This causes the results to be
+ * filtered such that only edges between `u` and `v` - in either direction -
+ * are included. IF the node `v` is specified but not in the graph then this
+ * function raises an Error.
+ *
+ * @param {String} u the node for which to find incident edges
+ * @param {String} [v] option node that must be adjacent to `u`
+ */
+Digraph.prototype.incidentEdges = function(u, v) {
+  if (arguments.length > 1) {
+    return util.mergeKeys([this.outEdges(u, v), this.outEdges(v, u)]);
+  } else {
+    return util.mergeKeys([this.inEdges(u), this.outEdges(u)]);
+  }
+};
+
+/*
+ * Returns `true` if the values of all nodes and all edges are equal (===)
+ *
+ * @param {Digraph} other the graph to test for equality with this graph
+ */
+Digraph.prototype.equals = function(other) {
+  var self = this;
+
+  return self.order() === other.order() &&
+         self.size() === other.size() &&
+         util.all(self.nodes(), function(x) { return other.hasNode(x) && self.node(x) === other.node(x); }) &&
+         util.all(self.edges(), function(x) { return other.hasEdge(x) && self.edge(x) === other.edge(x); });
+};
+
+/*
+ * Returns a string representation of this graph.
+ */
+Digraph.prototype.toString = function() {
+  var self = this;
+  var str = "GRAPH: " + JSON.stringify(self._value) + "\n";
+  str += "    Nodes:\n";
+  Object.keys(this._nodes)
+        .forEach(function(u) {
+          str += "        " + u + ": " + JSON.stringify(self._nodes[u].value) + "\n";
+        });
+
+  str += "    Edges:\n";
+  Object.keys(this._edges)
+        .forEach(function(e) {
+          var edge = self._edges[e];
+          str += "        " + e + " (" + edge.source + " -> " + edge.target + "): " +
+                 JSON.stringify(self._edges[e].value) + "\n";
+        });
+
+  return str;
+};
+
+/*
+ * Adds a new node with the id `u` to the graph and assigns it the value
+ * `value`. If a node with the id is already a part of the graph this function
+ * throws an Error.
+ *
+ * @param {String} u a node id
+ * @param {Object} [value] an optional value to attach to the node
+ */
+Digraph.prototype.addNode = function(u, value) {
+  if (this.hasNode(u)) {
+    throw new Error("Graph already has node '" + u + "':\n" + this.toString());
+  }
+  this._nodes[u] = { id: u, value: value };
+  this._inEdges[u] = {};
+  this._outEdges[u] = {};
+};
+
+/*
+ * Removes a node from the graph that has the id `u`. Any edges incident on the
+ * node are also removed. If the graph does not contain a node with the id this
+ * function will throw an Error.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.delNode = function(u) {
+  this._strictGetNode(u);
+
+  var self = this;
+  this.incidentEdges(u).forEach(function(e) { self.delEdge(e); });
+
+  delete this._inEdges[u];
+  delete this._outEdges[u];
+  delete this._nodes[u];
+};
+
+/*
+ * Adds a new edge to the graph with the id `e` from a node with the id `source`
+ * to a noce with an id `target` and assigns it the value `value`. This graph
+ * allows more than one edge from `source` to `target` as long as the id `e`
+ * is unique in the set of edges. If `e` is `null` the graph will assign a
+ * unique identifier to the edge.
+ *
+ * If `source` or `target` are not present in the graph this function will
+ * throw an Error.
+ *
+ * @param {String} [e] an edge id
+ * @param {String} source the source node id
+ * @param {String} target the target node id
+ * @param {Object} [value] an optional value to attach to the edge
+ */
+Digraph.prototype.addEdge = function(e, source, target, value) {
+  this._strictGetNode(source);
+  this._strictGetNode(target);
+
+  if (e === null) {
+    e = "_ANON-" + (++this._nextEdgeId);
+  }
+  else if (this.hasEdge(e)) {
+    throw new Error("Graph already has edge '" + e + "':\n" + this.toString());
+  }
+
+  this._edges[e] = { id: e, source: source, target: target, value: value };
+  addEdgeToMap(this._inEdges[target], source, e);
+  addEdgeToMap(this._outEdges[source], target, e);
+};
+
+/*
+ * Removes an edge in the graph with the id `e`. If no edge in the graph has
+ * the id `e` this function will throw an Error.
+ *
+ * @param {String} e an edge id
+ */
+Digraph.prototype.delEdge = function(e) {
+  var edge = this._strictGetEdge(e);
+  delEdgeFromMap(this._inEdges[edge.target], edge.source, e);
+  delEdgeFromMap(this._outEdges[edge.source], edge.target, e);
+  delete this._edges[e];
+};
+
+Digraph.prototype._strictGetNode = function(u) {
+  var node = this._nodes[u];
+  if (node === undefined) {
+    throw new Error("Node '" + u + "' is not in graph:\n" + this.toString());
+  }
+  return node;
+};
+
+Digraph.prototype._strictGetEdge = function(e) {
+  var edge = this._edges[e];
+  if (edge === undefined) {
+    throw new Error("Edge '" + e + "' is not in graph:\n" + this.toString());
+  }
+  return edge;
+};
+
+Digraph.prototype._filterNodes = function(pred) {
+  var filtered = [];
+  this.eachNode(function(u, value) {
+    if (pred(u)) {
+      filtered.push(u);
+    }
+  });
+  return filtered;
+};
+
+function addEdgeToMap(map, v, e) {
+  var vEntry = map[v];
+  if (!vEntry) {
+    vEntry = map[v] = { count: 0, edges: {} };
+  }
+  vEntry.count++;
+  vEntry.edges[e] = true;
+}
+
+function delEdgeFromMap(map, v, e) {
+  var vEntry = map[v];
+  if (--vEntry.count === 0) {
+    delete map[v];
+  } else {
+    delete vEntry.edges[e];
+  }
+}
+
+
+},{"./util":34}],29:[function(require,module,exports){
+var tarjan = require("./tarjan");
+
+module.exports = findCycles;
+
+/*
+ * Given a Digraph **g** this function returns all nodes that are part of a
+ * cycle. Since there may be more than one cycle in a graph this function
+ * returns an array of these cycles, where each cycle is itself represented
+ * by an array of ids for each node involved in that cycle.
+ *
+ * [alg.isAcyclic][] is more efficient if you only need to determine whether
+ * a graph has a cycle or not.
+ *
+ * [alg.isAcyclic]: isAcyclic.js.html#isAcyclic
+ *
+ * @param {Digraph} g the graph to search for cycles.
+ */
+function findCycles(g) {
+  return tarjan(g).filter(function(cmpt) { return cmpt.length > 1; });
+}
+
+},{"./tarjan":31}],30:[function(require,module,exports){
+var topsort = require("./topsort");
+
+module.exports = isAcyclic;
+
+/*
+ * Given a Digraph **g** this function returns `true` if the graph has no
+ * cycles and returns `false` if it does. This algorithm returns as soon as it
+ * detects the first cycle.
+ *
+ * Use [alg.findCycles][] if you need the actual list of cycles in a graph.
+ *
+ * [alg.findCycles]: findCycles.js.html#findCycles
+ *
+ * @param {Digraph} g the graph to test for cycles
+ */
+function isAcyclic(g) {
+  try {
+    topsort(g);
+  } catch (e) {
+    if (e instanceof topsort.CycleException) return false;
+    throw e;
+  }
+  return true;
+}
+
+},{"./topsort":32}],31:[function(require,module,exports){
+module.exports = tarjan;
+
+/*
+ * This function is an implementation of [Tarjan's algorithm][] which finds
+ * all [strongly connected components][] in the directed graph **g**. Each
+ * strongly connected component is composed of nodes that can reach all other
+ * nodes in the component via directed edges. A strongly connected component
+ * can consist of a single node if that node cannot both reach and be reached
+ * by any other specific node in the graph. Components of more than one node
+ * are guaranteed to have at least one cycle.
+ *
+ * This function returns an array of components. Each component is itself an
+ * array that contains the ids of all nodes in the component.
+ *
+ * @param {Digraph} g the graph to search for strongly connected components
+ *
+ * [Tarjan's algorithm]: http://en.wikipedia.org/wiki/Tarjan's_strongly_connected_components_algorithm
+ * [strongly connected components]: http://en.wikipedia.org/wiki/Strongly_connected_component
+ */
+function tarjan(g) {
+  var index = 0,
+      stack = [],
+      visited = {}; // node id -> { onStack, lowlink, index }
+      results = [];
+
+  function dfs(u) {
+    var entry = visited[u] = {
+      onStack: true,
+      lowlink: index,
+      index: index++
+    };
+    stack.push(u);
+
+    g.successors(u).forEach(function(v) {
+      if (!(v in visited)) {
+        dfs(v);
+        entry.lowlink = Math.min(entry.lowlink, visited[v].lowlink);
+      } else if (visited[v].onStack) {
+        entry.lowlink = Math.min(entry.lowlink, visited[v].index);
+      }
+    });
+
+    if (entry.lowlink === entry.index) {
+      var cmpt = [],
+          v;
+      do {
+        v = stack.pop();
+        visited[v].onStack = false;
+        cmpt.push(v);
+      } while (u !== v);
+      results.push(cmpt);
+    }
+  }
+
+  g.nodes().forEach(function(u) {
+    if (!(u in visited)) {
+      dfs(u);
+    }
+  });
+
+  return results;
+}
+
+},{}],32:[function(require,module,exports){
+module.exports = topsort;
+topsort.CycleException = CycleException;
+
+/*
+ * Given a graph **g**, this function returns an ordered list of nodes such
+ * that for each edge `u -> v`, `u` appears before `v` in the list. If the
+ * graph has a cycle it is impossible to generate such a list and
+ * **CycleException** is thrown.
+ *
+ * See [topological sorting](https://en.wikipedia.org/wiki/Topological_sorting)
+ * for more details about how this algorithm works.
+ *
+ * @param {Digraph} g the graph to sort
+ */
+function topsort(g) {
+  var visited = {};
+  var stack = {};
+  var results = [];
+
+  function visit(node) {
+    if (node in stack) {
+      throw new CycleException();
+    }
+
+    if (!(node in visited)) {
+      stack[node] = true;
+      visited[node] = true;
+      g.predecessors(node).forEach(function(pred) {
+        visit(pred);
+      });
+      delete stack[node];
+      results.push(node);
+    }
+  }
+
+  var sinks = g.sinks();
+  if (g.order() !== 0 && sinks.length === 0) {
+    throw new CycleException();
+  }
+
+  g.sinks().forEach(function(sink) {
+    visit(sink);
+  });
+
+  return results;
+}
+
+function CycleException() {}
+
+CycleException.prototype.toString = function() {
+  return "Graph has at least one cycle";
+};
+
+},{}],33:[function(require,module,exports){
+module.exports = PriorityQueue;
+
+/**
+ * A min-priority queue data structure. This algorithm is derived from Cormen,
+ * et al., "Introduction to Algorithms". The basic idea of a min-priority
+ * queue is that you can efficiently (in O(1) time) get the smallest key in
+ * the queue. Adding and removing elements takes O(log n) time. A key can
+ * have its priority decreased in O(log n) time.
+ */
+function PriorityQueue() {
+  this._arr = [];
+  this._keyIndices = {};
+}
+
+/**
+ * Returns the number of elements in the queue. Takes `O(1)` time.
+ */
+PriorityQueue.prototype.size = function() {
+  return this._arr.length;
+};
+
+/**
+ * Returns the keys that are in the queue. Takes `O(n)` time.
+ */
+PriorityQueue.prototype.keys = function() {
+  return this._arr.map(function(x) { return x.key; });
+};
+
+/**
+ * Returns `true` if **key** is in the queue and `false` if not.
+ */
+PriorityQueue.prototype.has = function(key) {
+  return key in this._keyIndices;
+};
+
+/**
+ * Returns the priority for **key**. If **key** is not present in the queue
+ * then this function returns `undefined`. Takes `O(1)` time.
+ *
+ * @param {Object} key
+ */
+PriorityQueue.prototype.priority = function(key) {
+  var index = this._keyIndices[key];
+  if (index !== undefined) {
+    return this._arr[index].priority;
+  }
+};
+
+/**
+ * Returns the key for the minimum element in this queue. If the queue is
+ * empty this function throws an Error. Takes `O(1)` time.
+ */
+PriorityQueue.prototype.min = function(key) {
+  if (this.size() === 0) {
+    throw new Error("Queue underflow");
+  }
+  return this._arr[0].key;
+};
+
+/**
+ * Inserts a new key into the priority queue. If the key already exists in
+ * the queue this function returns `false`; otherwise it will return `true`.
+ * Takes `O(n)` time.
+ *
+ * @param {Object} key the key to add
+ * @param {Number} priority the initial priority for the key
+ */
+PriorityQueue.prototype.add = function(key, priority) {
+  if (!(key in this._keyIndices)) {
+    var entry = {key: key, priority: priority};
+    var index = this._arr.length;
+    this._keyIndices[key] = index;
+    this._arr.push(entry);
+    this._decrease(index);
+    return true;
+  }
+  return false;
+};
+
+/**
+ * Removes and returns the smallest key in the queue. Takes `O(log n)` time.
+ */
+PriorityQueue.prototype.removeMin = function() {
+  this._swap(0, this._arr.length - 1);
+  var min = this._arr.pop();
+  delete this._keyIndices[min.key];
+  this._heapify(0);
+  return min.key;
+};
+
+/**
+ * Decreases the priority for **key** to **priority**. If the new priority is
+ * greater than the previous priority, this function will throw an Error.
+ *
+ * @param {Object} key the key for which to raise priority
+ * @param {Number} priority the new priority for the key
+ */
+PriorityQueue.prototype.decrease = function(key, priority) {
+  var index = this._keyIndices[key];
+  if (priority > this._arr[index].priority) {
+    throw new Error("New priority is greater than current priority. " +
+        "Key: " + key + " Old: " + this._arr[index].priority + " New: " + priority);
+  }
+  this._arr[index].priority = priority;
+  this._decrease(index);
+};
+
+PriorityQueue.prototype._heapify = function(i) {
+  var arr = this._arr;
+  var l = 2 * i,
+      r = l + 1,
+      largest = i;
+  if (l < arr.length) {
+    largest = arr[l].priority < arr[largest].priority ? l : largest;
+    if (r < arr.length) {
+      largest = arr[r].priority < arr[largest].priority ? r : largest;
+    }
+    if (largest !== i) {
+      this._swap(i, largest);
+      this._heapify(largest);
+    }
+  }
+};
+
+PriorityQueue.prototype._decrease = function(index) {
+  var arr = this._arr;
+  var priority = arr[index].priority;
+  var parent;
+  while (index > 0) {
+    parent = index >> 1;
+    if (arr[parent].priority < priority) {
+      break;
+    }
+    this._swap(index, parent);
+    index = parent;
+  }
+};
+
+PriorityQueue.prototype._swap = function(i, j) {
+  var arr = this._arr;
+  var keyIndices = this._keyIndices;
+  var tmp = arr[i];
+  arr[i] = arr[j];
+  arr[j] = tmp;
+  keyIndices[arr[i].key] = i;
+  keyIndices[arr[j].key] = j;
+};
+
+},{}],34:[function(require,module,exports){
+// Returns `true` only if `f(x)` is `true` for all `x` in **xs**. Otherwise
+// returns `false`. This function will return immediately if it finds a
+// case where `f(x)` does not hold.
+exports.all = function(xs, f) {
+  for (var i = 0; i < xs.length; ++i) {
+    if (!f(xs[i])) return false;
+  }
+  return true;
+}
+
+// Returns an array of all values for properties of **o**.
+exports.values = function(o) {
+  return Object.keys(o).map(function(k) { return o[k]; });
+}
+
+// Joins all of the arrays **xs** into a single array.
+exports.concat = function(xs) {
+  return Array.prototype.concat.apply([], xs);
+}
+
+// Similar to **concat**, but all duplicates are removed
+exports.mergeKeys = function(xs) {
+  var obj = {};
+  xs.forEach(function(x) {
+    x.forEach(function(o) {
+      obj[o] = o;
+    });
+  });
+  return exports.values(obj);
+}
+
+},{}],35:[function(require,module,exports){
+module.exports = '0.1.0';
+
+},{}]},{},[1])
+;
 joint.layout.DirectedGraph = {
 
     layout: function(graph, opt) {
@@ -21705,7 +23462,15 @@ joint.layout.DirectedGraph = {
         opt = opt || {};
 
         var data = this._prepareData(graph);
-        dagre.layout().nodes(data.nodeData).edges(data.edgeData).debugLevel(3).run();
+        var runner = dagre.layout().nodes(data.nodeData).edges(data.edgeData);
+
+        if (opt.debugLevel) { runner.debugLevel(opt.debugLevel); }
+        if (opt.rankDir) { runner.rankDir(opt.rankDir); }
+        if (opt.rankSep) { runner.rankSep(opt.rankSep); }
+        if (opt.edgeSep) { runner.edgeSep(opt.edgeSep); }
+        if (opt.nodeSep) { runner.nodeSep(opt.nodeSep); }
+
+        runner.run();
         
         _.each(data.nodeData, function(node) {
 

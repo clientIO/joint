@@ -1,4 +1,4 @@
-/*! JointJS v0.6.0 - JavaScript diagramming library  2013-09-10 
+/*! JointJS v0.6.3 - JavaScript diagramming library  2013-09-13 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -783,9 +783,16 @@ var joint = {
 
             var box;
             try {
-                
+
                 box = this.node.getBBox();
-                
+
+		// Opera returns infinite values in some cases.
+		// Note that Infinity | 0 produces 0 as opposed to Infinity || 0.
+		box.x |= 0;
+		box.y |= 0;
+		box.width |= 0;
+		box.height |= 0;
+
             } catch (e) {
 
                 // Fallback for IE.
@@ -796,7 +803,7 @@ var joint = {
                     height: this.node.clientHeight
                 };
             }
-            
+
             if (withoutTransformations) {
 
                 return box;
@@ -2505,7 +2512,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (rotatable) {
 
-            rotatable.attr('transform', rotation);
+            rotatable.attr('transform', rotation || '');
         }
     },
 
@@ -2538,7 +2545,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // relative to the root bounding box following the `ref-x` and `ref-y` attributes.
         if (vel.attr('transform')) {
 
-            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, ''));
+            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '') || '');
         }
 
         function isDefined(x) {
