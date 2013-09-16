@@ -370,3 +370,62 @@ test('labels', function() {
     label1Bbox = V(linkView.$('.label')[0]).bbox();
     ok(label1Bbox.x > label2Bbox.x, 'second label is positioned before the first one after changing the first one position');    
 });
+
+test('manhattan routing', function() {
+
+    // One vertex.
+    
+    var r1 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 } });
+    var r2 = new joint.shapes.basic.Rect({ position: { x: 125, y: 60 }, size: { width: 50, height: 30 } });
+
+    var l1 = new joint.dia.Link({
+        source: { id: r1.id },
+        target: { id: r2.id },
+        manhattan: true,
+        vertices: [{ x: 150, y: 200 }]
+    });
+
+    this.graph.addCells([r1, r2, l1]);
+
+    var l1View = this.paper.findViewByModel(l1);
+    var l1PathData = l1View.$('.connection').attr('d');
+    
+    equal(l1PathData, 'M 225 90 225 200 150 200 150 90', 'link with one vertex was correctly routed');
+
+    // No vertex.
+
+    var r3 = new joint.shapes.basic.Rect({ position: { x: 40, y: 40 }, size: { width: 50, height: 30 } });
+    var r4 = new joint.shapes.basic.Rect({ position: { x: 220, y: 120 }, size: { width: 50, height: 30 } });
+
+    var l2 = new joint.dia.Link({
+        source: { id: r3.id },
+        target: { id: r4.id },
+        manhattan: true
+    });
+
+    this.graph.addCells([r3, r4, l2]);
+
+    var l2View = this.paper.findViewByModel(l2);
+    var l2PathData = l2View.$('.connection').attr('d');
+
+    equal(l2PathData, 'M 65 70 65 135 220 135', 'link with no vertex was correctly routed');
+
+    // Check for spikes.
+
+    var r5 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 } });
+    var r6 = new joint.shapes.basic.Rect({ position: { x: 350, y: 40 }, size: { width: 50, height: 30 } });
+
+    var l3 = new joint.dia.Link({
+        source: { id: r5.id },
+        target: { id: r6.id },
+        manhattan: true,
+        vertices: [{ x: 150, y: 200 }]
+    });
+
+    this.graph.addCells([r5, r6, l3]);
+
+    var l3View = this.paper.findViewByModel(l3);
+    var l3PathData = l3View.$('.connection').attr('d');
+
+    equal(l3PathData, 'M 225 90 225 200 150 200 150 55 350 55', 'no spike (a return path segment) was created');
+});

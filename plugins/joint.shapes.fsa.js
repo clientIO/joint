@@ -58,6 +58,7 @@ joint.shapes.fsa.EndState = joint.dia.Element.extend({
 joint.shapes.fsa.Arrow = joint.dia.Link.extend({
 
     defaults: joint.util.deepSupplement({
+	type: 'fsa.Arrow',
         attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }},
         smooth: true
     }, joint.dia.Link.prototype.defaults)

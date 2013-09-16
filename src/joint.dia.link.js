@@ -169,6 +169,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var firstVertex = _.first(this.model.get('vertices'));
         var lastVertex = _.last(this.model.get('vertices'));
 
+        // If manhattan routing is enabled, reference points for determining orientation of the arrowheads
+        // might be different than vertices defined on the model.
+        if (this.model.get('manhattan')) {
+            
+            var manhattanRoute = this.findManhattanRoute(this.model.get('vertices'));
+            firstVertex = _.first(manhattanRoute);
+            lastVertex = _.last(manhattanRoute);
+        }
+
         var sourcePosition = this.getConnectionPoint('source', this.model.get('source'), firstVertex || this.model.get('target')).round();
         var targetPosition = this.getConnectionPoint('target', this.model.get('target'), lastVertex || sourcePosition);
 
@@ -405,9 +414,17 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
         var markupTemplate = _.template(this.model.get('arrowheadMarkup') || this.arrowheadMarkup);
 
-
         var firstVertex = _.first(this.model.get('vertices'));
         var lastVertex = _.last(this.model.get('vertices'));
+
+        // If manhattan routing is enabled, reference points for determining orientation of the arrowheads
+        // might be different than vertices defined on the model.
+        if (this.model.get('manhattan')) {
+            
+            var manhattanRoute = this.findManhattanRoute(this.model.get('vertices'));
+            firstVertex = _.first(manhattanRoute);
+            lastVertex = _.last(manhattanRoute);
+        }
 
         var sourcePosition = this.getConnectionPoint('source', this.model.get('source'), firstVertex || this.model.get('target')).round();
         var targetPosition = this.getConnectionPoint('target', this.model.get('target'), lastVertex || sourcePosition);
@@ -472,7 +489,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var pathLength;
         // Tolerance determines the highest possible difference between the length
         // of the old and new path. The number has been chosen heuristically.
-        var pathLengthTolerance = 10;
+        var pathLengthTolerance = 20;
         // Total number of vertices including source and target points.
         var idx = vertices.length + 1;
 
@@ -501,12 +518,21 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         this.model.set('vertices', vertices);
 
-        return idx;
+        // In manhattan routing, if there are no vertices, the path length changes significantly
+        // with the first vertex added. Shall we check vertices.length === 0? at beginning of addVertex()
+        // in order to avoid the temporary path construction and other operations?
+        return Math.max(idx, 0);
     },
 
     // Return the `d` attribute value of the `<path>` element representing the link between `source` and `target`.
     getPathData: function(vertices) {
 
+        // If manhattan routing is enabled, find new vertices so that the link is orthogonally routed.
+        if (this.model.get('manhattan')) {
+
+            vertices = this.findManhattanRoute(vertices);
+        }
+        
         var firstVertex = _.first(vertices);
         var lastVertex = _.last(vertices);
 
@@ -684,6 +710,124 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     _makeSelector: function(end) {
 
         return '[model-id="' + end.id + '"]' + (end.selector ? ' ' + end.selector : '');
+    },
+
+    // Return points that one needs to draw a connection through in order to have a manhattan link routing from
+    // source to target going through `vertices`.
+    findManhattanRoute: function(vertices) {
+
+        vertices = (vertices || []).slice();
+        var manhattanVertices = [];
+
+        // Return the direction that one would have to take traveling from `p1` to `p2`.
+        // This function assumes the line between `p1` and `p2` is orthogonal.
+        function direction(p1, p2) {
+            
+            if (p1.y < p2.y && p1.x === p2.x) {
+                return 'down';
+            } else if (p1.y > p2.y && p1.x === p2.x) {
+                return 'up';
+            } else if (p1.x < p2.x && p1.y === p2.y) {
+                return 'right';
+            }
+            return 'left';
+        }
+        
+        function bestDirection(p1, p2, preferredDirection) {
+
+            var directions;
+
+            // This branching determines possible directions that one can take to travel
+            // from `p1` to `p2`.
+            if (p1.x < p2.x) {
+                
+                if (p1.y > p2.y) { directions = ['up', 'right']; }
+                else if (p1.y < p2.y) { directions = ['down', 'right']; }
+                else { directions = ['right']; }
+                
+            } else if (p1.x > p2.x) {
+                
+                if (p1.y > p2.y) { directions = ['up', 'left']; }
+                else if (p1.y < p2.y) { directions = ['down', 'left']; }
+                else { directions = ['left']; }
+                
+            } else {
+                
+                if (p1.y > p2.y) { directions = ['up']; }
+                else { directions = ['down']; }
+            }
+            
+            if (_.contains(directions, preferredDirection)) {
+                return preferredDirection;
+            }
+            
+            var direction = _.first(directions);
+
+            // Should the direction be the exact opposite of the preferred direction,
+            // try another one if such direction exists.
+            switch (preferredDirection) {
+              case 'down': if (direction === 'up') return _.last(directions); break;
+              case 'up': if (direction === 'down') return _.last(directions); break;
+              case 'left': if (direction === 'right') return _.last(directions); break;
+              case 'right': if (direction === 'left') return _.last(directions); break;
+            }
+            return direction;
+        }
+        
+        // Find a vertex in between the vertices `p1` and `p2` so that the route between those vertices
+        // is orthogonal. Prefer going the direction determined by `preferredDirection`.
+        function findMiddleVertex(p1, p2, preferredDirection) {
+            
+            var direction = bestDirection(p1, p2, preferredDirection);
+            if (direction === 'down' || direction === 'up') {
+                return { x: p1.x, y: p2.y, d: direction };
+            }
+            return { x: p2.x, y: p1.y, d: direction };
+        }
+
+        var sourceCenter = g.rect(this._sourceBbox).center();
+        var targetCenter = g.rect(this._targetBbox).center();
+
+        vertices.unshift(sourceCenter);
+        vertices.push(targetCenter);
+
+        var manhattanVertex;
+        var lastManhattanVertex;
+        var vertex;
+        var nextVertex;
+
+        // For all the pairs of link model vertices...
+        for (var i = 0; i < vertices.length - 1; i++) {
+
+            vertex = vertices[i];
+            nextVertex = vertices[i + 1];
+            lastManhattanVertex = _.last(manhattanVertices);
+            
+            if (i > 0) {
+                // Push all the link vertices to the manhattan route.
+                manhattanVertex = vertex;
+                // Determine a direction between the last vertex and the new one.
+                // Therefore, each vertex contains the `d` property describing the direction that one
+                // would have to take to travel to that vertex.
+                manhattanVertex.d = lastManhattanVertex ? direction(lastManhattanVertex, vertex) : 'top';
+                manhattanVertices.push(manhattanVertex);
+                lastManhattanVertex = manhattanVertex;
+            }
+
+            // Make sure that we don't create a vertex that would go the opposite direction then that of the
+            // previous one. Othwerwise, a 'spike' segment would be created which is not desirable.
+            // Find a dummy vertex to keep the link orthogonal. Preferably, take the same direction
+            // as the previous one.
+            var d = lastManhattanVertex && lastManhattanVertex.d;
+            manhattanVertex = findMiddleVertex(vertex, nextVertex, d);
+
+            // Do not add a new vertex that is the same as one of the vertices already added.
+            if (!g.point(manhattanVertex).equals(g.point(vertex)) && !g.point(manhattanVertex).equals(g.point(nextVertex))) {
+
+                manhattanVertices.push(manhattanVertex);
+            }
+        }
+        return manhattanVertices;
     },
 
     // Public API

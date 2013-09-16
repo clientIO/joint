@@ -170,6 +170,9 @@
         changeInAngle: function(dx, dy, ref) {
             // Revert the translation and measure the change in angle around x-axis.
             return point(this).offset(-dx, -dy).theta(ref) - this.theta(ref);
+        },
+        equals: function(p) {
+            return this.x === p.x && this.y === p.y;
         }
     };
     // Alternative constructor, from polar coordinates.
