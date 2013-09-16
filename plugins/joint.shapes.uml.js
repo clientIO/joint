@@ -83,6 +83,7 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
 joint.shapes.uml.Abstract = joint.shapes.uml.Class.extend({
 
     defaults: joint.util.deepSupplement({
+        type: 'uml.Abstract',
         attrs: { 'rect' : { fill : '#c0392b' }, '.uml-class-name-rect': { fill : '#e74c3c' }}
     }, joint.shapes.uml.Class.prototype.defaults),
 
@@ -95,6 +96,7 @@ joint.shapes.uml.Abstract = joint.shapes.uml.Class.extend({
 joint.shapes.uml.Interface = joint.shapes.uml.Class.extend({
 
     defaults: joint.util.deepSupplement({
+        type: 'uml.Interface',
         attrs: { 'rect' : { fill : '#f39c12' }, '.uml-class-name-rect': { fill : '#f1c40f' }}
     }, joint.shapes.uml.Class.prototype.defaults),
 

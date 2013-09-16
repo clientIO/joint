@@ -4,7 +4,7 @@ var paper = new joint.dia.Paper({
 
     el: $('#paper'),
     width: 800,
-    height: 900,
+    height: 1200,
     gridSize: 10,
     perpendicularLinks: false,
     model: graph
@@ -289,3 +289,24 @@ c.animateAlongPath({ dur: '4s', repeatCount: 'indefinite' }, paper.findViewByMod
 V(paper.svg).append(c);
 */
 
+
+// Manhattan routing.
+// ------------------
+
+title(250, 850, 'Manhattan routing');
+
+var r15 = r13.clone();
+graph.addCell(r15);
+r15.translate(0, 100);
+
+var r16 = r15.clone();
+graph.addCell(r16);
+r16.translate(300, 80);
+
+var link8 = new joint.dia.Link({
+    source: { id: r15.id },
+    target: { id: r16.id },
+    manhattan: true
+});
+
+graph.addCell(link8);
