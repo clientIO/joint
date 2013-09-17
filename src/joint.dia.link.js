@@ -555,7 +555,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var d;
         if (this.model.get('smooth')) {
 
-            d = g.bezier.curveThroughPoints([sourcePoint].concat(vertices || []).concat([targetPoint]));
+            if (vertices && vertices.length) {
+                d = g.bezier.curveThroughPoints([sourcePoint].concat(vertices || []).concat([targetPoint]));
+            } else {
+                // if we have no vertices use a default cubic bezier curve
+                // the control points are defined with X as mid way between the start and end points, Y being equal to start/end Y values.
+                // this gives a smooth S shape.
+                var controlPointX = targetPoint.x - (Math.abs(targetPoint.x - sourcePoint.x) / 2);
+                d = ['M', sourcePoint.x, sourcePoint.y, 'C', controlPointX, sourcePoint.y, controlPointX, targetPoint.y, targetPoint.x, targetPoint.y];
+            }
             
         } else {
             
