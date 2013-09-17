@@ -324,7 +324,6 @@ joint.dia.Paper = Backbone.View.extend({
 
     pointerup: function(evt) {
 
-        evt.preventDefault();
         evt = this.normalizeEvent(evt);
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
