@@ -250,6 +250,7 @@ joint.dia.Cell = Backbone.Model.extend({
     attr: function(attrs, value) {
 
         var currentAttrs = this.get('attrs');
+        var delim = '/';
         
         if (_.isString(attrs)) {
             // Get/set an attribute by a special path syntax that delimits
@@ -258,12 +259,12 @@ joint.dia.Cell = Backbone.Model.extend({
             if (value) {
 
                 var attr = {};
-                joint.util.setByPath(attr, attrs, value, ':');
+                joint.util.setByPath(attr, attrs, value, delim);
                 return this.set('attrs', _.deepExtend({}, currentAttrs, attr));
                 
             } else {
                 
-                return joint.util.getByPath(currentAttrs, attrs, ':');
+                return joint.util.getByPath(currentAttrs, attrs, delim);
             }
         }
         
