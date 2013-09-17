@@ -247,9 +247,26 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     // A convenient way to set nested attributes.
-    attr: function(attrs) {
+    attr: function(attrs, value) {
 
         var currentAttrs = this.get('attrs');
+        
+        if (_.isString(attrs)) {
+            // Get/set an attribute by a special path syntax that delimits
+            // nested objects by the colon character.
+
+            if (value) {
+
+                var attr = {};
+                joint.util.setByPath(attr, attrs, value, ':');
+                return this.set('attrs', _.deepExtend({}, currentAttrs, attr));
+                
+            } else {
+                
+                return joint.util.getByPath(currentAttrs, attrs, ':');
+            }
+        }
+        
         return this.set('attrs', _.deepExtend({}, currentAttrs, attrs));
     }
 });
@@ -329,22 +346,16 @@ joint.dia.CellView = Backbone.View.extend({
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
-	var attrClass = (V(el).attr('class') || '').trim();
+	var attrClass = V(el).attr('class') || '';
 
-	if (!/\b(highlighted)\b/.exec(attrClass)) {
-
-            V(el).attr('class', attrClass + ' highlighted');
-        }
+	if (!/\bhighlighted\b/.exec(attrClass)) V(el).attr('class', attrClass.trim() + ' highlighted');
     },
 
     unhighlight: function(el) {
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
-        var attrClass = V(el).attr('class') || '';
-        attrClass = attrClass.replace('highlighted', '').trim();
-        
-	V(el).attr('class', attrClass);
+	V(el).attr('class', (V(el).attr('class') || '').replace(/\bhighlighted\b/, '').trim());
     },
 
     // Find the closest element that has the `magnet` attribute set to `true`. If there was not such

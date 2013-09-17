@@ -27,6 +27,72 @@ var joint = {
 
     util: {
 
+        getByPath: function(obj, path, delim) {
+            
+            delim = delim || '.';
+            var keys = path.split(delim);
+            var key;
+            
+            while (keys.length) {
+                key = keys.shift();
+                if (key in obj) {
+                    obj = obj[key];
+                } else {
+                    return undefined;
+                }
+            }
+            return obj;
+        },
+
+        setByPath: function(obj, path, value, delim) {
+
+            delim = delim || '.';
+
+            var keys = path.split(delim);
+            var diver = obj;
+            var i = 0;
+
+            if (path.indexOf(delim) > -1) {
+
+                for (var len = keys.length; i < len - 1; i++) {
+                    // diver creates an empty object if there is no nested object under such a key.
+                    // This means that one can populate an empty nested object with setByPath().
+                    diver = diver[keys[i]] || (diver[keys[i]] = {});
+                }
+                diver[keys[len - 1]] = value;
+            } else {
+                obj[path] = value;
+            }
+            return obj;
+        },
+
+        flattenObject: function(obj, delim, stop) {
+            
+            delim = delim || '.';
+            var ret = {};
+	    
+	    for (var key in obj) {
+		if (!obj.hasOwnProperty(key)) continue;
+
+                var shouldGoDeeper = typeof obj[key] === 'object';
+                if (shouldGoDeeper && stop && stop(obj[key])) {
+                    shouldGoDeeper = false;
+                }
+                
+		if (shouldGoDeeper) {
+		    var flatObject = this.flattenObject(obj[key], delim, stop);
+		    for (var flatKey in flatObject) {
+			if (!flatObject.hasOwnProperty(flatKey)) continue;
+			
+			ret[key + delim + flatKey] = flatObject[flatKey];
+		    }
+		} else {
+		    ret[key] = obj[key];
+		}
+	    }
+	    return ret;
+        },
+
         uuid: function() {
 
             // credit: http://stackoverflow.com/posts/2117523/revisions
