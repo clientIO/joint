@@ -29,7 +29,7 @@ joint.layout.DirectedGraph = {
         }
     },
     
-    _prepareData: function() {
+    _prepareData: function(graph) {
 
         var nodeData = [];
         var edgeData = [];
