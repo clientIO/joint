@@ -8,7 +8,7 @@ module.exports = function(grunt) {
         libs: {
             jquery: ['lib/jquery.js'],
             backbone: ['lib/underscore.js', 'lib/backbone.js'],
-            helpers: ['lib/jquery.sortElements.js', 'lib/underscore.mixin.deepExtend.js', 'lib/backbone.mutators.js']
+            helpers: ['lib/jquery.sortElements.js', 'lib/underscore.mixin.deepExtend.js']
         },
         
         core: [
