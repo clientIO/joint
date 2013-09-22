@@ -128,7 +128,9 @@ Vertex markers are `<circle>` elements that appear at connection vertex position
    opacity: 0;
    cursor: pointer;
 }
-
+.link-tools .tool-options {
+   display: none;       /* by default, we don't display link options tool */
+}
 .link-tools .tool-remove circle {
    fill: red;
 }
