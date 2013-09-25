@@ -360,7 +360,7 @@ joint.dia.CellView = Backbone.View.extend({
             strokeWidth = this.model.attr('rect/stroke-width') || this.model.attr('circle/stroke-width') || this.model.attr('ellipse/stroke-width') || this.model.attr('path/stroke-width');
         }
 
-        strokeWidth = parseFloat(strokeWidth) || 1;
+        strokeWidth = parseFloat(strokeWidth) || 0;
 
         return g.rect(bbox).moveAndExpand({ x: -strokeWidth/2, y: -strokeWidth/2, width: strokeWidth, height: strokeWidth });
     },
