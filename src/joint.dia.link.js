@@ -145,8 +145,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var source = this.model.get('source');
         
         if (!this._isPoint(source)) {
-            
-            this._sourceBbox = V(this.paper.$(this._makeSelector(source))[0]).bbox(false, this.paper.viewport);
+
+            var magnetEl = this.paper.$(this._makeSelector(source))[0];
+            var cellView = this.paper.findView(magnetEl);
+            this._sourceBbox = cellView.getStrokeBBox(source.selector ? magnetEl : undefined);
         }
     },
     onTargetModelChange: function() {
@@ -154,8 +156,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var target = this.model.get('target');
         
         if (!this._isPoint(target)) {
-            
-            this._targetBbox = V(this.paper.$(this._makeSelector(target))[0]).bbox(false, this.paper.viewport);
+
+            var magnetEl = this.paper.$(this._makeSelector(target))[0];
+            var cellView = this.paper.findView(magnetEl);
+            this._targetBbox = cellView.getStrokeBBox(target.selector ? magnetEl : undefined);
         }
     },
 
