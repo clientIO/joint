@@ -11,6 +11,10 @@
 
 joint.dia.Element = joint.dia.Cell.extend({
 
+    defaults: {
+	size: { width: 1, height: 1 }
+    },
+
     position: function(x, y) {
 
         this.set('position', { x: x, y: y });
