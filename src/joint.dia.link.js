@@ -122,7 +122,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         this.model.on({
 
-            'change:vertices change:smooth': this.update,
+            'change:vertices change:smooth change:manhattan': this.update,
             'change:source change:target': this.updateEnds,
 	    'change:markup': this.render,
 	    'change:vertices change:vertexMarkup': this.renderVertexMarkers,
