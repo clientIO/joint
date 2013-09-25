@@ -104,6 +104,8 @@ very thin.
    fill: black;
    stroke: black;
 */
+   /* This makes the arrowheads point to the border of objects even though the transform: scale() is applied on them. */
+   vector-effect: non-scaling-stroke;
 }
 
 /* 
