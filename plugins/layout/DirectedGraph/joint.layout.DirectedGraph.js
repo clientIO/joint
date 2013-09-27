@@ -4,8 +4,8 @@ joint.layout.DirectedGraph = {
 
         opt = opt || {};
 
-        var data = this._prepareData(graph);
-        var runner = dagre.layout().nodes(data.nodeData).edges(data.edgeData);
+        var inputGraph = this._prepareData(graph);
+        var runner = dagre.layout();
 
         if (opt.debugLevel) { runner.debugLevel(opt.debugLevel); }
         if (opt.rankDir) { runner.rankDir(opt.rankDir); }
@@ -13,47 +13,35 @@ joint.layout.DirectedGraph = {
         if (opt.edgeSep) { runner.edgeSep(opt.edgeSep); }
         if (opt.nodeSep) { runner.nodeSep(opt.nodeSep); }
 
-        runner.run();
+        var layoutGraph = runner.run(inputGraph);
         
-        _.each(data.nodeData, function(node) {
-
-            graph.get('cells').get(node.id).set('position', { x: node.dagre.x, y: node.dagre.y });
+        layoutGraph.eachNode(function(u, value) {
+            graph.get('cells').get(u).set('position', { x: value.x, y: value.y });
         });
 
         if (opt.setLinkVertices) {
 
-            _.each(data.edgeData, function(edge) {
-
-                graph.get('cells').get(edge.id).set('vertices', edge.dagre.points);
+            layoutGraph.eachEdge(function(e, u, v, value) {
+                graph.get('cells').get(e).set('vertices', value.points);
             });
         }
     },
     
     _prepareData: function(graph) {
 
-        var nodeData = [];
-        var edgeData = [];
-
-        var nodeDataHash = {};
-        var edgeDataHash = {};
+        var dagreGraph = new dagre.Digraph();
 
         // For each element.
         graph.get('cells').each(function(cell) {
 
             if (!(cell instanceof joint.dia.Element)) return;
 
-            if (!nodeDataHash[cell.id]) {
-                
-                var node = {
-                    id: cell.id,
-                    inEdges: [],
-                    outEdges: [],
-                    width: cell.get('size').width,
-                    height: cell.get('size').height
-                };
-                nodeData.push(node);
-                nodeDataHash[cell.id] = node;
-            }
+            if (dagreGraph.hasNode(cell.id)) return;
+
+            dagreGraph.addNode(cell.id, {
+                width: cell.get('size').width,
+                height: cell.get('size').height
+            });
         });
 
         // For each link.
@@ -61,31 +49,14 @@ joint.layout.DirectedGraph = {
 
             if (!(cell instanceof joint.dia.Link)) return;
             
+            if (dagreGraph.hasEdge(cell.id)) return;
+
             var sourceId = cell.get('source').id;
             var targetId = cell.get('target').id;
 
-            var source = nodeDataHash[sourceId];
-            var target = nodeDataHash[targetId];
-
-            var edge;
-            if (edgeDataHash[cell.id]) {
-
-                edge = edgeDataHash[cell.id];
-                
-            } else {
-
-                edge = { id: cell.id, source: source, target: target, label: 'fooedge' };
-                edgeDataHash[cell.id] = edge;
-                edgeData.push(edge);
-            }
-            
-            if (!_.contains(source.outEdges, edge)) source.outEdges.push(edge);
-            if (!_.contains(target.inEdges, edge)) target.inEdges.push(edge);
+            dagreGraph.addEdge(cell.id, sourceId, targetId);
         });
 
-        return {
-            nodeData: nodeData,
-            edgeData: edgeData
-        };
+        return dagreGraph;
     }
 };
