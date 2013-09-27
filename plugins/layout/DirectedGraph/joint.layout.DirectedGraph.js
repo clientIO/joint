@@ -16,13 +16,18 @@ joint.layout.DirectedGraph = {
         var layoutGraph = runner.run(inputGraph);
         
         layoutGraph.eachNode(function(u, value) {
-            graph.get('cells').get(u).set('position', { x: value.x, y: value.y });
+            if (!value.dummy) {
+                graph.get('cells').get(u).set('position', { x: value.x, y: value.y });
+            }
         });
 
         if (opt.setLinkVertices) {
 
             layoutGraph.eachEdge(function(e, u, v, value) {
-                graph.get('cells').get(e).set('vertices', value.points);
+                var link = graph.get('cells').get(e);
+                if (link) {
+                    graph.get('cells').get(e).set('vertices', value.points);
+                }
             });
         }
     },
