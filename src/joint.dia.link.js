@@ -149,6 +149,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var magnetEl = this.paper.$(this._makeSelector(source))[0];
             var cellView = this.paper.findView(magnetEl);
             this._sourceBbox = cellView.getStrokeBBox(source.selector ? magnetEl : undefined);
+            
+        } else {
+
+            this._sourceBbox = _.extend({ width: 1, height: 1 }, source);
         }
     },
     onTargetModelChange: function() {
@@ -160,6 +164,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var magnetEl = this.paper.$(this._makeSelector(target))[0];
             var cellView = this.paper.findView(magnetEl);
             this._targetBbox = cellView.getStrokeBBox(target.selector ? magnetEl : undefined);
+            
+        } else {
+
+            this._targetBbox = _.extend({ width: 1, height: 1 }, target);
         }
     },
 
