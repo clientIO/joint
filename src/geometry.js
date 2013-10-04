@@ -38,7 +38,7 @@
     var toDeg = function(rad) { return (180*rad / PI) % 360; };
     var toRad = function(deg) { return (deg % 360) * PI / 180; };
     var snapToGrid = function(val, gridSize) { return gridSize * Math.round(val/gridSize); };
-
+    var normalizeAngle = function(angle) { return (angle % 360) + (angle < 0 ? 360 : 0); };
 
     // Point
     // -----
@@ -183,7 +183,7 @@
         o = (o && point(o)) || point(0,0);
         var x = abs(r * cos(angle));
         var y = abs(r * sin(angle));
-        var deg = toDeg(angle);
+        var deg = normalizeAngle(toDeg(angle));
 
         if (deg < 90) y = -y;
         else if (deg < 180) { x = -x; y = -y; }
@@ -555,6 +555,7 @@
         toDeg: toDeg,
         toRad: toRad,
         snapToGrid: snapToGrid,
+	normalizeAngle: normalizeAngle,
         point: point,
         line: line,
         rect: rect,

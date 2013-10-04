@@ -56,6 +56,14 @@ joint.dia.Element = joint.dia.Cell.extend({
     rotate: function(angle, absolute) {
 
         return this.set('angle', absolute ? angle : ((this.get('angle') || 0) + angle) % 360);
+    },
+
+    getBBox: function() {
+
+	var position = this.get('position');
+	var size = this.get('size');
+
+	return g.rect(position.x, position.y, size.width, size.height);
     }
 });
 
