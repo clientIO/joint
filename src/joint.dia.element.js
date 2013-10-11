@@ -444,7 +444,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (this.options.interactive !== false) {
 
-            this.model.translate(x - this._dx, y - this._dy);
+	    var position = this.model.get('position');
+
+	    // Make sure the new element's position always snaps to the current grid after
+	    // translate as the previous one could be calculated with a different grid size.
+	    this.model.position(
+		g.snapToGrid(position.x + x - this._dx, this.paper.options.gridSize),
+		g.snapToGrid(position.y + y - this._dy, this.paper.options.gridSize)
+	    );
         }
         
         this._dx = x;
