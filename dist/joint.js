@@ -1,4 +1,4 @@
-/*! JointJS v0.6.3 - JavaScript diagramming library  2013-09-13 
+/*! JointJS v0.6.4 - JavaScript diagramming library  2013-10-15 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -12573,218 +12573,6 @@ jQuery.fn.sortElements = (function(){
  
 }).call(this);
 
-/*! Backbone.Mutators - v0.4.0
-------------------------------
-Build @ 2013-05-01
-Documentation and Full License Available at:
-http://asciidisco.github.com/Backbone.Mutators/index.html
-git://github.com/asciidisco/Backbone.Mutators.git
-Copyright (c) 2013 Sebastian Golasch <public@asciidisco.com>
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the "Software"),
-to deal in the Software without restriction, including without limitation
-the rights to use, copy, modify, merge, publish, distribute, sublicense,
-and/or sell copies of the Software, and to permit persons to whom the
-
-Software is furnished to do so, subject to the following conditions:
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-IN THE SOFTWARE.*/
-(function (root, factory, undef) {
-    'use strict';
-
-    if (typeof exports === 'object') {
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like enviroments that support module.exports,
-        // like Node.
-        module.exports = factory(require('underscore'), require('Backbone'));
-    } else if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define(['underscore', 'backbone'], function (_, Backbone) {
-            // Check if we use the AMD branch of Back
-            _ = _ === undef ? root._ : _;
-            Backbone = Backbone === undef ? root.Backbone : Backbone;
-            return (root.returnExportsGlobal = factory(_, Backbone, root));
-        });
-    } else {
-        // Browser globals
-        root.returnExportsGlobal = factory(root._, root.Backbone);
-    }
-
-// Usage:
-//
-// Note: This plugin is UMD compatible, you can use it in node, amd and vanilla js envs
-//
-// Vanilla JS:
-// <script src="underscore.js"></script>
-// <script src="backbone.js"></script>
-// <script src="backbone.mutators.js"></script>
-//
-// Node:
-// var _ = require('underscore');
-// var Backbone = require('backbone');
-// var Mutators = require('backbone.mutators');
-//
-//
-// AMD:
-// define(['underscore', 'backbone', 'backbone.mutators'], function (_, Backbone, Mutators) {
-//    // insert sample from below
-//    return User;
-// });
-//
-// var User = Backbone.Model.extend({
-//    mutators: {
-//        fullname: function () {
-//            return this.firstname + ' ' + this.lastname;
-//        }
-//    },
-//
-//    defaults: {
-//        firstname: 'Sebastian',
-//        lastname: 'Golasch'
-//    }
-// });
-//
-// var user = new User();
-// user.get('fullname') // returns 'Sebastian Golasch'
-// user.toJSON() // return '{firstname: 'Sebastian', lastname: 'Golasch', fullname: 'Sebastian Golasch'}'
-
-}(this, function (_, Backbone, root, undef) {
-    'use strict';
-
-    // check if we use the amd branch of backbone and underscore
-    Backbone = Backbone === undef ? root.Backbone : Backbone;
-    _ = _ === undef ? root._ : _;
-
-    // extend backbones model prototype with the mutator functionality
-    var Mutator     = function () {},
-        oldGet      = Backbone.Model.prototype.get,
-        oldSet      = Backbone.Model.prototype.set,
-        oldToJson   = Backbone.Model.prototype.toJSON;
-
-    // This is necessary to ensure that Models declared without the mutators object do not throw and error
-    Mutator.prototype.mutators = {};
-
-    // override get functionality to fetch the mutator props
-    Mutator.prototype.get = function (attr) {
-        var isMutator = this.mutators !== undef;
-
-        // check if we have a getter mutation
-        if (isMutator === true && _.isFunction(this.mutators[attr]) === true) {
-            return this.mutators[attr].call(this);
-        }
-
-        // check if we have a deeper nested getter mutation
-        if (isMutator === true && _.isObject(this.mutators[attr]) === true && _.isFunction(this.mutators[attr].get) === true) {
-            return this.mutators[attr].get.call(this);
-        }
-
-        return oldGet.call(this, attr);
-    };
-
-    // override set functionality to set the mutator props
-    Mutator.prototype.set = function (key, value, options) {
-        var isMutator = this.mutators !== undef,
-            ret = null,
-            attrs = null;
-
-        // seamleassly stolen from backbone core
-        // check if the setter action is triggered
-        // using key <-> value or object
-        if (_.isObject(key) || key === null) {
-            attrs = key;
-            options = value;
-        } else {
-            attrs = {};
-            attrs[key] = value;
-        }
-
-        // check if we have a deeper nested setter mutation
-        if (isMutator === true && _.isObject(this.mutators[key]) === true) {
-
-            // check if we need to set a single value
-            if (_.isFunction(this.mutators[key].set) === true) {
-                ret = this.mutators[key].set.call(this, key, attrs[key], options, _.bind(oldSet, this));
-            } else if(_.isFunction(this.mutators[key])){
-                ret = this.mutators[key].call(this, key, attrs[key], options, _.bind(oldSet, this));
-            }
-        }
-
-        if (_.isObject(attrs)) {
-            _.each(attrs, _.bind(function (attr, attrKey) {
-                var cur_ret = null;
-                if (isMutator === true && _.isObject(this.mutators[attrKey]) === true) {
-                    // check if we need to set a single value
-
-                    var meth = this.mutators[attrKey];
-                    if(_.isFunction(meth.set)){
-                        meth = meth.set;
-                    }
-
-                    if(_.isFunction(meth)){
-                        if (options === undef || (_.isObject(options) === true && options.silent !== true && (options.mutators !== undef && options.mutators.silent !== true))) {
-                            this.trigger('mutators:set:' + attrKey);
-                        }
-                        cur_ret = meth.call(this, attrKey, attr, options, _.bind(oldSet, this));
-                    }
-
-                }
-                if (cur_ret === null) {
-                    cur_ret = _.bind(oldSet, this)(attrKey, attr, options);
-                }
-
-                if (ret !== false) { ret = cur_ret; }
-
-            }, this));
-        }
-
-        //validation purposes
-        if (ret !== null) {
-            return ret;
-        }
-
-        return oldSet.call(this, key, value, options);
-    };
-
-    // override toJSON functionality to serialize mutator properties
-    Mutator.prototype.toJSON = function () {
-        // fetch ye olde values
-        var attr = oldToJson.call(this);
-        // iterate over all mutators (if there are some)
-        _.each(this.mutators, _.bind(function (mutator, name) {
-            // check if we have some getter mutations
-            if (_.isObject(this.mutators[name]) === true && _.isFunction(this.mutators[name].get)) {
-                attr[name] = _.bind(this.mutators[name].get, this)();
-            } else {
-                attr[name] = _.bind(this.mutators[name], this)();
-            }
-        }, this));
-
-        return attr;
-    };
-
-    // override get functionality to get HTML-escaped the mutator props
-    Mutator.prototype.escape = function (attr){
-        var val = this.get(attr);
-        return _.escape(val == null ? '' : '' + val);
-    };
-
-    // extend the models prototype
-    _.extend(Backbone.Model.prototype, Mutator.prototype);
-
-    // make mutators globally available under the Backbone namespace
-    Backbone.Mutators = Mutator;
-    return Mutator;
-}));
-
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -12813,6 +12601,72 @@ var joint = {
     format: {},
 
     util: {
+
+        getByPath: function(obj, path, delim) {
+            
+            delim = delim || '.';
+            var keys = path.split(delim);
+            var key;
+            
+            while (keys.length) {
+                key = keys.shift();
+                if (key in obj) {
+                    obj = obj[key];
+                } else {
+                    return undefined;
+                }
+            }
+            return obj;
+        },
+
+        setByPath: function(obj, path, value, delim) {
+
+            delim = delim || '.';
+
+            var keys = path.split(delim);
+            var diver = obj;
+            var i = 0;
+
+            if (path.indexOf(delim) > -1) {
+
+                for (var len = keys.length; i < len - 1; i++) {
+                    // diver creates an empty object if there is no nested object under such a key.
+                    // This means that one can populate an empty nested object with setByPath().
+                    diver = diver[keys[i]] || (diver[keys[i]] = {});
+                }
+                diver[keys[len - 1]] = value;
+            } else {
+                obj[path] = value;
+            }
+            return obj;
+        },
+
+        flattenObject: function(obj, delim, stop) {
+            
+            delim = delim || '.';
+            var ret = {};
+	    
+	    for (var key in obj) {
+		if (!obj.hasOwnProperty(key)) continue;
+
+                var shouldGoDeeper = typeof obj[key] === 'object';
+                if (shouldGoDeeper && stop && stop(obj[key])) {
+                    shouldGoDeeper = false;
+                }
+                
+		if (shouldGoDeeper) {
+		    var flatObject = this.flattenObject(obj[key], delim, stop);
+		    for (var flatKey in flatObject) {
+			if (!flatObject.hasOwnProperty(flatKey)) continue;
+			
+			ret[key + delim + flatKey] = flatObject[flatKey];
+		    }
+		} else {
+		    ret[key] = obj[key];
+		}
+	    }
+	    return ret;
+        },
 
         uuid: function() {
 
@@ -13186,10 +13040,9 @@ var joint = {
 
 		// Opera returns infinite values in some cases.
 		// Note that Infinity | 0 produces 0 as opposed to Infinity || 0.
-		box.x |= 0;
-		box.y |= 0;
-		box.width |= 0;
-		box.height |= 0;
+		// We also have to create new object as the standard says that you can't
+		// modify the attributes of a bbox.
+		box = { x: box.x | 0, y: box.y | 0, width: box.width | 0, height: box.height | 0};
 
             } catch (e) {
 
@@ -13550,7 +13403,7 @@ var joint = {
     var toDeg = function(rad) { return (180*rad / PI) % 360; };
     var toRad = function(deg) { return (deg % 360) * PI / 180; };
     var snapToGrid = function(val, gridSize) { return gridSize * Math.round(val/gridSize); };
-
+    var normalizeAngle = function(angle) { return (angle % 360) + (angle < 0 ? 360 : 0); };
 
     // Point
     // -----
@@ -13682,6 +13535,9 @@ var joint = {
         changeInAngle: function(dx, dy, ref) {
             // Revert the translation and measure the change in angle around x-axis.
             return point(this).offset(-dx, -dy).theta(ref) - this.theta(ref);
+        },
+        equals: function(p) {
+            return this.x === p.x && this.y === p.y;
         }
     };
     // Alternative constructor, from polar coordinates.
@@ -13692,7 +13548,7 @@ var joint = {
         o = (o && point(o)) || point(0,0);
         var x = abs(r * cos(angle));
         var y = abs(r * sin(angle));
-        var deg = toDeg(angle);
+        var deg = normalizeAngle(toDeg(angle));
 
         if (deg < 90) y = -y;
         else if (deg < 180) { x = -x; y = -y; }
@@ -14064,6 +13920,7 @@ var joint = {
         toDeg: toDeg,
         toRad: toRad,
         snapToGrid: snapToGrid,
+	normalizeAngle: normalizeAngle,
         point: point,
         line: line,
         rect: rect,
@@ -14569,9 +14426,27 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     // A convenient way to set nested attributes.
-    attr: function(attrs) {
+    attr: function(attrs, value) {
 
         var currentAttrs = this.get('attrs');
+        var delim = '/';
+        
+        if (_.isString(attrs)) {
+            // Get/set an attribute by a special path syntax that delimits
+            // nested objects by the colon character.
+
+            if (value) {
+
+                var attr = {};
+                joint.util.setByPath(attr, attrs, value, delim);
+                return this.set('attrs', _.deepExtend({}, currentAttrs, attr));
+                
+            } else {
+                
+                return joint.util.getByPath(currentAttrs, attrs, delim);
+            }
+        }
+        
         return this.set('attrs', _.deepExtend({}, currentAttrs, attrs));
     }
 });
@@ -14642,6 +14517,33 @@ joint.dia.CellView = Backbone.View.extend({
         }
     },
 
+    getStrokeBBox: function(el) {
+        // Return a bounding box rectangle that takes into account stroke.
+        // Note that this is a naive and ad-hoc implementation that does not
+        // works only in certain cases and should be replaced as soon as browsers will
+        // start supporting the getStrokeBBox() SVG method.
+        // @TODO any better solution is very welcome!
+
+        var isMagnet = !!el;
+        
+        el = el || this.el;
+        var bbox = V(el).bbox(false, this.paper.viewport);
+
+        var strokeWidth;
+        if (isMagnet) {
+
+            strokeWidth = V(el).attr('stroke-width');
+            
+        } else {
+
+            strokeWidth = this.model.attr('rect/stroke-width') || this.model.attr('circle/stroke-width') || this.model.attr('ellipse/stroke-width') || this.model.attr('path/stroke-width');
+        }
+
+        strokeWidth = parseFloat(strokeWidth) || 0;
+
+        return g.rect(bbox).moveAndExpand({ x: -strokeWidth/2, y: -strokeWidth/2, width: strokeWidth, height: strokeWidth });
+    },
+    
     getBBox: function() {
 
         return V(this.el).bbox();
@@ -14651,16 +14553,16 @@ joint.dia.CellView = Backbone.View.extend({
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
-	var attrClass = V(el).attr('class').trim();
+	var attrClass = V(el).attr('class') || '';
 
-	if (!/\b(highlighted)\b/.exec(attrClass)) V(el).attr('class', attrClass + ' highlighted');
+	if (!/\bhighlighted\b/.exec(attrClass)) V(el).attr('class', attrClass.trim() + ' highlighted');
     },
 
     unhighlight: function(el) {
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
-	V(el).attr('class', V(el).attr('class').replace(/\b([ ]highlighted)\b/, ''));
+	V(el).attr('class', (V(el).attr('class') || '').replace(/\bhighlighted\b/, '').trim());
     },
 
     // Find the closest element that has the `magnet` attribute set to `true`. If there was not such
@@ -14759,6 +14661,10 @@ joint.dia.CellView = Backbone.View.extend({
 
 joint.dia.Element = joint.dia.Cell.extend({
 
+    defaults: {
+	size: { width: 1, height: 1 }
+    },
+
     position: function(x, y) {
 
         this.set('position', { x: x, y: y });
@@ -14800,6 +14706,14 @@ joint.dia.Element = joint.dia.Cell.extend({
     rotate: function(angle, absolute) {
 
         return this.set('angle', absolute ? angle : ((this.get('angle') || 0) + angle) % 360);
+    },
+
+    getBBox: function() {
+
+	var position = this.get('position');
+	var size = this.get('size');
+
+	return g.rect(position.x, position.y, size.width, size.height);
     }
 });
 
@@ -15180,7 +15094,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (this.options.interactive !== false) {
 
-            this.model.translate(x - this._dx, y - this._dy);
+	    var position = this.model.get('position');
+
+	    // Make sure the new element's position always snaps to the current grid after
+	    // translate as the previous one could be calculated with a different grid size.
+	    this.model.position(
+		g.snapToGrid(position.x + x - this._dx, this.paper.options.gridSize),
+		g.snapToGrid(position.y + y - this._dy, this.paper.options.gridSize)
+	    );
         }
         
         this._dx = x;
@@ -15263,10 +15184,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     toolMarkup: [
         '<g class="link-tool">',
         '<g class="tool-remove" event="remove">',
-        '<circle r="11" />',
-        '<path transform="scale(.8) translate(-16, -16)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z"/>',
-        '<title>Remove link.</title>',
+          '<circle r="11" />',
+          '<path transform="scale(.8) translate(-16, -16)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z"/>',
+          '<title>Remove link.</title>',
         '</g>',
+        '<g class="tool-options" event="link:options">',
+          '<circle r="11" transform="translate(25)"/>',
+          '<path fill="white" transform="scale(.55) translate(29, -16)" d="M31.229,17.736c0.064-0.571,0.104-1.148,0.104-1.736s-0.04-1.166-0.104-1.737l-4.377-1.557c-0.218-0.716-0.504-1.401-0.851-2.05l1.993-4.192c-0.725-0.91-1.549-1.734-2.458-2.459l-4.193,1.994c-0.647-0.347-1.334-0.632-2.049-0.849l-1.558-4.378C17.165,0.708,16.588,0.667,16,0.667s-1.166,0.041-1.737,0.105L12.707,5.15c-0.716,0.217-1.401,0.502-2.05,0.849L6.464,4.005C5.554,4.73,4.73,5.554,4.005,6.464l1.994,4.192c-0.347,0.648-0.632,1.334-0.849,2.05l-4.378,1.557C0.708,14.834,0.667,15.412,0.667,16s0.041,1.165,0.105,1.736l4.378,1.558c0.217,0.715,0.502,1.401,0.849,2.049l-1.994,4.193c0.725,0.909,1.549,1.733,2.459,2.458l4.192-1.993c0.648,0.347,1.334,0.633,2.05,0.851l1.557,4.377c0.571,0.064,1.148,0.104,1.737,0.104c0.588,0,1.165-0.04,1.736-0.104l1.558-4.377c0.715-0.218,1.399-0.504,2.049-0.851l4.193,1.993c0.909-0.725,1.733-1.549,2.458-2.458l-1.993-4.193c0.347-0.647,0.633-1.334,0.851-2.049L31.229,17.736zM16,20.871c-2.69,0-4.872-2.182-4.872-4.871c0-2.69,2.182-4.872,4.872-4.872c2.689,0,4.871,2.182,4.871,4.872C20.871,18.689,18.689,20.871,16,20.871z"/>',
+          '<title>Link options.</title>',
+          '</g>',
         '</g>'
     ].join(''),
 
@@ -15309,7 +15235,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         this.model.on({
 
-            'change:vertices change:smooth': this.update,
+            'change:vertices change:smooth change:manhattan': this.update,
             'change:source change:target': this.updateEnds,
 	    'change:markup': this.render,
 	    'change:vertices change:vertexMarkup': this.renderVertexMarkers,
@@ -15332,8 +15258,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var source = this.model.get('source');
         
         if (!this._isPoint(source)) {
+
+            var magnetEl = this.paper.$(this._makeSelector(source))[0];
+            var cellView = this.paper.findView(magnetEl);
+            this._sourceBbox = cellView.getStrokeBBox(source.selector ? magnetEl : undefined);
             
-            this._sourceBbox = V(this.paper.$(this._makeSelector(source))[0]).bbox(false, this.paper.viewport);
+        } else {
+
+            this._sourceBbox = _.extend({ width: 1, height: 1 }, source);
         }
     },
     onTargetModelChange: function() {
@@ -15341,8 +15273,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var target = this.model.get('target');
         
         if (!this._isPoint(target)) {
+
+            var magnetEl = this.paper.$(this._makeSelector(target))[0];
+            var cellView = this.paper.findView(magnetEl);
+            this._targetBbox = cellView.getStrokeBBox(target.selector ? magnetEl : undefined);
             
-            this._targetBbox = V(this.paper.$(this._makeSelector(target))[0]).bbox(false, this.paper.viewport);
+        } else {
+
+            this._targetBbox = _.extend({ width: 1, height: 1 }, target);
         }
     },
 
@@ -15360,6 +15298,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var firstVertex = _.first(this.model.get('vertices'));
         var lastVertex = _.last(this.model.get('vertices'));
+
+        // If manhattan routing is enabled, reference points for determining orientation of the arrowheads
+        // might be different than vertices defined on the model.
+        if (this.model.get('manhattan')) {
+            
+            var manhattanRoute = this.findManhattanRoute(this.model.get('vertices'));
+            firstVertex = _.first(manhattanRoute);
+            lastVertex = _.last(manhattanRoute);
+        }
 
         var sourcePosition = this.getConnectionPoint('source', this.model.get('source'), firstVertex || this.model.get('target')).round();
         var targetPosition = this.getConnectionPoint('target', this.model.get('target'), lastVertex || sourcePosition);
@@ -15597,9 +15544,17 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
         var markupTemplate = _.template(this.model.get('arrowheadMarkup') || this.arrowheadMarkup);
 
-
         var firstVertex = _.first(this.model.get('vertices'));
         var lastVertex = _.last(this.model.get('vertices'));
+
+        // If manhattan routing is enabled, reference points for determining orientation of the arrowheads
+        // might be different than vertices defined on the model.
+        if (this.model.get('manhattan')) {
+            
+            var manhattanRoute = this.findManhattanRoute(this.model.get('vertices'));
+            firstVertex = _.first(manhattanRoute);
+            lastVertex = _.last(manhattanRoute);
+        }
 
         var sourcePosition = this.getConnectionPoint('source', this.model.get('source'), firstVertex || this.model.get('target')).round();
         var targetPosition = this.getConnectionPoint('target', this.model.get('target'), lastVertex || sourcePosition);
@@ -15664,7 +15619,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var pathLength;
         // Tolerance determines the highest possible difference between the length
         // of the old and new path. The number has been chosen heuristically.
-        var pathLengthTolerance = 10;
+        var pathLengthTolerance = 20;
         // Total number of vertices including source and target points.
         var idx = vertices.length + 1;
 
@@ -15693,12 +15648,21 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         this.model.set('vertices', vertices);
 
-        return idx;
+        // In manhattan routing, if there are no vertices, the path length changes significantly
+        // with the first vertex added. Shall we check vertices.length === 0? at beginning of addVertex()
+        // in order to avoid the temporary path construction and other operations?
+        return Math.max(idx, 0);
     },
 
     // Return the `d` attribute value of the `<path>` element representing the link between `source` and `target`.
     getPathData: function(vertices) {
 
+        // If manhattan routing is enabled, find new vertices so that the link is orthogonally routed.
+        if (this.model.get('manhattan')) {
+
+            vertices = this.findManhattanRoute(vertices);
+        }
+        
         var firstVertex = _.first(vertices);
         var lastVertex = _.last(vertices);
 
@@ -15721,7 +15685,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var d;
         if (this.model.get('smooth')) {
 
-            d = g.bezier.curveThroughPoints([sourcePoint].concat(vertices || []).concat([targetPoint]));
+            if (vertices && vertices.length) {
+                d = g.bezier.curveThroughPoints([sourcePoint].concat(vertices || []).concat([targetPoint]));
+            } else {
+                // if we have no vertices use a default cubic bezier curve, cubic bezier requires two control points.
+                // the two control points are both defined with X as mid way between the source and target points.
+                // sourceControlPoint Y is equal to sourcePoint Y and targetControlPointY being equal to targetPointY.
+                // handle situation were sourcePointX is greater or less then targetPointX.
+                var controlPointX = (sourcePoint.x < targetPoint.x) 
+                    ? targetPoint.x - ((targetPoint.x - sourcePoint.x) / 2)
+                    : sourcePoint.x - ((sourcePoint.x - targetPoint.x) / 2);
+                    d = ['M', sourcePoint.x, sourcePoint.y, 'C', controlPointX, sourcePoint.y, controlPointX, targetPoint.y, targetPoint.x, targetPoint.y];
+            }
             
         } else {
             
@@ -15876,6 +15851,124 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     _makeSelector: function(end) {
 
         return '[model-id="' + end.id + '"]' + (end.selector ? ' ' + end.selector : '');
+    },
+
+    // Return points that one needs to draw a connection through in order to have a manhattan link routing from
+    // source to target going through `vertices`.
+    findManhattanRoute: function(vertices) {
+
+        vertices = (vertices || []).slice();
+        var manhattanVertices = [];
+
+        // Return the direction that one would have to take traveling from `p1` to `p2`.
+        // This function assumes the line between `p1` and `p2` is orthogonal.
+        function direction(p1, p2) {
+            
+            if (p1.y < p2.y && p1.x === p2.x) {
+                return 'down';
+            } else if (p1.y > p2.y && p1.x === p2.x) {
+                return 'up';
+            } else if (p1.x < p2.x && p1.y === p2.y) {
+                return 'right';
+            }
+            return 'left';
+        }
+        
+        function bestDirection(p1, p2, preferredDirection) {
+
+            var directions;
+
+            // This branching determines possible directions that one can take to travel
+            // from `p1` to `p2`.
+            if (p1.x < p2.x) {
+                
+                if (p1.y > p2.y) { directions = ['up', 'right']; }
+                else if (p1.y < p2.y) { directions = ['down', 'right']; }
+                else { directions = ['right']; }
+                
+            } else if (p1.x > p2.x) {
+                
+                if (p1.y > p2.y) { directions = ['up', 'left']; }
+                else if (p1.y < p2.y) { directions = ['down', 'left']; }
+                else { directions = ['left']; }
+                
+            } else {
+                
+                if (p1.y > p2.y) { directions = ['up']; }
+                else { directions = ['down']; }
+            }
+            
+            if (_.contains(directions, preferredDirection)) {
+                return preferredDirection;
+            }
+            
+            var direction = _.first(directions);
+
+            // Should the direction be the exact opposite of the preferred direction,
+            // try another one if such direction exists.
+            switch (preferredDirection) {
+              case 'down': if (direction === 'up') return _.last(directions); break;
+              case 'up': if (direction === 'down') return _.last(directions); break;
+              case 'left': if (direction === 'right') return _.last(directions); break;
+              case 'right': if (direction === 'left') return _.last(directions); break;
+            }
+            return direction;
+        }
+        
+        // Find a vertex in between the vertices `p1` and `p2` so that the route between those vertices
+        // is orthogonal. Prefer going the direction determined by `preferredDirection`.
+        function findMiddleVertex(p1, p2, preferredDirection) {
+            
+            var direction = bestDirection(p1, p2, preferredDirection);
+            if (direction === 'down' || direction === 'up') {
+                return { x: p1.x, y: p2.y, d: direction };
+            }
+            return { x: p2.x, y: p1.y, d: direction };
+        }
+
+        var sourceCenter = g.rect(this._sourceBbox).center();
+        var targetCenter = g.rect(this._targetBbox).center();
+
+        vertices.unshift(sourceCenter);
+        vertices.push(targetCenter);
+
+        var manhattanVertex;
+        var lastManhattanVertex;
+        var vertex;
+        var nextVertex;
+
+        // For all the pairs of link model vertices...
+        for (var i = 0; i < vertices.length - 1; i++) {
+
+            vertex = vertices[i];
+            nextVertex = vertices[i + 1];
+            lastManhattanVertex = _.last(manhattanVertices);
+            
+            if (i > 0) {
+                // Push all the link vertices to the manhattan route.
+                manhattanVertex = vertex;
+                // Determine a direction between the last vertex and the new one.
+                // Therefore, each vertex contains the `d` property describing the direction that one
+                // would have to take to travel to that vertex.
+                manhattanVertex.d = lastManhattanVertex ? direction(lastManhattanVertex, vertex) : 'top';
+                manhattanVertices.push(manhattanVertex);
+                lastManhattanVertex = manhattanVertex;
+            }
+
+            // Make sure that we don't create a vertex that would go the opposite direction then that of the
+            // previous one. Othwerwise, a 'spike' segment would be created which is not desirable.
+            // Find a dummy vertex to keep the link orthogonal. Preferably, take the same direction
+            // as the previous one.
+            var d = lastManhattanVertex && lastManhattanVertex.d;
+            manhattanVertex = findMiddleVertex(vertex, nextVertex, d);
+
+            // Do not add a new vertex that is the same as one of the vertices already added.
+            if (!g.point(manhattanVertex).equals(g.point(vertex)) && !g.point(manhattanVertex).equals(g.point(nextVertex))) {
+
+                manhattanVertices.push(manhattanVertex);
+            }
+        }
+        return manhattanVertices;
     },
 
     // Public API
@@ -16112,6 +16205,25 @@ joint.dia.Paper = Backbone.View.extend({
         
         V(this.svg).attr('width', this.options.width);
         V(this.svg).attr('height', this.options.height);
+
+	this.trigger('resize');
+    },
+
+    fitToContent: function(unitWidth, unitHeight) {
+
+	unitWidth = unitWidth || 1;
+	unitHeight = unitHeight || 1;
+
+	// Calculate the paper size to accomodate all the graph's elements.
+	var bbox = V(this.viewport).bbox(true, this.svg);
+
+	var calcWidth = Math.ceil((bbox.width + bbox.x) / unitWidth) * unitWidth;
+	var calcHeight = Math.ceil((bbox.height + bbox.y) / unitHeight) * unitHeight;
+
+	// Change the dimensions only if there is a size discrepency
+	if (calcWidth != this.options.width || calcHeight != this.options.height) {
+	    this.setDimensions(calcWidth || this.options.width , calcHeight || this.options.height);
+	}
     },
 
     createViewForModel: function(cell) {
@@ -16371,7 +16483,6 @@ joint.dia.Paper = Backbone.View.extend({
 
     pointerup: function(evt) {
 
-        evt.preventDefault();
         evt = this.normalizeEvent(evt);
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
@@ -16405,7 +16516,7 @@ joint.shapes.basic.Generic = joint.dia.Element.extend({
         
         type: 'basic.Generic',
         attrs: {
-            '.': { fill: 'white', stroke: 'none' }
+            '.': { fill: '#FFFFFF', stroke: 'none' }
         }
         
     }, joint.dia.Element.prototype.defaults)
@@ -16419,7 +16530,7 @@ joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
     
         type: 'basic.Rect',
         attrs: {
-            'rect': { fill: 'white', stroke: 'black', width: 1, height: 1 },
+            'rect': { fill: '#FFFFFF', stroke: 'black', width: 1, height: 1 },
             'text': { 'font-size': 14, text: '', 'ref-x': .5, 'ref-y': .5, ref: 'rect', 'y-alignment': 'middle', 'x-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
         }
         
@@ -16449,7 +16560,7 @@ joint.shapes.basic.Circle = joint.shapes.basic.Generic.extend({
         type: 'basic.Circle',
         size: { width: 60, height: 60 },
         attrs: {
-            'circle': { fill: 'white', stroke: 'black', r: 30, transform: 'translate(30, 30)' },
+            'circle': { fill: '#FFFFFF', stroke: 'black', r: 30, transform: 'translate(30, 30)' },
             'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-y': .5, ref: 'circle', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
@@ -16477,7 +16588,7 @@ joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
         type: 'basic.Path',
         size: { width: 60, height: 60 },
         attrs: {
-            'path': { fill: 'white', stroke: 'black' },
+            'path': { fill: '#FFFFFF', stroke: 'black' },
             'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'path', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)

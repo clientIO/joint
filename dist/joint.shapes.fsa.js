@@ -1,4 +1,4 @@
-/*! JointJS v0.6.3 - JavaScript diagramming library  2013-09-13 
+/*! JointJS v0.6.4 - JavaScript diagramming library  2013-10-15 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -45,17 +45,17 @@ joint.shapes.fsa.EndState = joint.dia.Element.extend({
         type: 'fsa.EndState',
         size: { width: 20, height: 20 },
         attrs: {
-            'circle.outer': {
+            '.outer': {
                 transform: 'translate(10, 10)',
                 r: 10,
-                fill: 'white',
+                fill: '#FFFFFF',
                 stroke: 'black'
             },
 
-            'circle.inner': {
+            '.inner': {
                 transform: 'translate(10, 10)',
                 r: 6,
-                fill: 'black'
+                fill: '#000000'
             }
         }
 
@@ -65,6 +65,7 @@ joint.shapes.fsa.EndState = joint.dia.Element.extend({
 joint.shapes.fsa.Arrow = joint.dia.Link.extend({
 
     defaults: joint.util.deepSupplement({
+	type: 'fsa.Arrow',
         attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }},
         smooth: true
     }, joint.dia.Link.prototype.defaults)
