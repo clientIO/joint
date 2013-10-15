@@ -75,9 +75,10 @@ joint.dia.Paper = Backbone.View.extend({
 	unitHeight = unitHeight || 1;
 
 	// Calculate the paper size to accomodate all the graph's elements.
-	var bbox = this.viewport.getBBox(),
-	    calcWidth = Math.ceil((bbox.width + bbox.x) / unitWidth) * unitWidth,
-	    calcHeight = Math.ceil((bbox.height + bbox.y) / unitHeight) * unitHeight;
+	var bbox = V(this.viewport).bbox(true, this.svg);
+
+	var calcWidth = Math.ceil((bbox.width + bbox.x) / unitWidth) * unitWidth;
+	var calcHeight = Math.ceil((bbox.height + bbox.y) / unitHeight) * unitHeight;
 
 	// Change the dimensions only if there is a size discrepency
 	if (calcWidth != this.options.width || calcHeight != this.options.height) {
