@@ -1,4 +1,4 @@
-/*! JointJS v0.6.3 - JavaScript diagramming library  2013-09-13 
+/*! JointJS v0.6.4 - JavaScript diagramming library  2013-10-15 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -9,27 +9,25 @@ joint.shapes.erd = {};
 
 joint.shapes.erd.Entity = joint.dia.Element.extend({
 
-    markup: '<g class="rotatable"><g class="scalable"><rect class="outer"/><rect class="inner"/></g><text/></g>',
+    markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
 
     defaults: joint.util.deepSupplement({
 
         type: 'erd.Entity',
         size: { width: 150, height: 60 },
         attrs: {
-            rect: {
-                fill: 'lightgreen', stroke: 'green', 'stroke-width': 2
-            },
             '.outer': {
-                width: 150, height: 60
+                fill: '#2ECC71', stroke: '#27AE60', 'stroke-width': 2,
+                points: '100,0 100,60 0,60 0,0'
             },
             '.inner': {
-                width: 140, height: 50,
-                ref: '.outer', 'ref-x': .03, 'ref-y': .08,
+                fill: '#2ECC71', stroke: '#27AE60', 'stroke-width': 2,
+                points: '95,5 95,55 5,55 5,5',
                 display: 'none'
             },
             text: {
                 text: 'Entity',
-                'font-family': 'Courier New', 'font-size': '.8em',
+                'font-family': 'Arial', 'font-size': 14,
                 ref: '.outer', 'ref-x': .5, 'ref-y': .5,
                 'x-alignment': 'middle', 'y-alignment': 'middle'
             }
@@ -61,18 +59,18 @@ joint.shapes.erd.Relationship = joint.dia.Element.extend({
         type: 'erd.Relationship',
         size: { width: 80, height: 80 },
         attrs: {
-
-            polygon: { fill: 'lightblue', stroke: 'blue', 'stroke-width': 2},
             '.outer': {
+                fill: '#3498DB', stroke: '#2980B9', 'stroke-width': 2,
                 points: '40,0 80,40 40,80 0,40'
             },
             '.inner': {
+                fill: '#3498DB', stroke: '#2980B9', 'stroke-width': 2,
                 points: '40,5 75,40 40,75 5,40',
                 display: 'none'
             },
             text: {
                 text: 'Relationship',
-                'font-family': 'Courier New', 'font-size': '.6em',
+                'font-family': 'Arial', 'font-size': 12,
                 ref: '.', 'ref-x': .5, 'ref-y': .5,
                 'x-alignment': 'middle', 'y-alignment': 'middle'
             }
@@ -105,20 +103,20 @@ joint.shapes.erd.Attribute = joint.dia.Element.extend({
         size: { width: 100, height: 50 },
         attrs: {
             'ellipse': {
-                stroke: 'red', 'stroke-width': 2,
-                transform: 'translate(50, 25)',
-                opacity: .6
+                transform: 'translate(50, 25)'
             },
             '.outer': {
-                cx: 50, cy: 25, rx: 50, ry: 25,
-                fill: 'coral'
+                stroke: '#D35400', 'stroke-width': 2,
+                cx: 0, cy: 0, rx: 50, ry: 25,
+                fill: '#E67E22'
             },
             '.inner': {
-                cx: 50, cy: 25, rx: 45, ry: 20,
+                stroke: '#D35400', 'stroke-width': 2,
+                cx: 0, cy: 0, rx: 45, ry: 20,
                 fill: 'transparent', display: 'none'
             },
             text: {
-                 'font-family': 'Courier New', 'font-size': '.8em',
+                 'font-family': 'Arial', 'font-size': 14,
                  ref: '.', 'ref-x': .5, 'ref-y': .5,
                  'x-alignment': 'middle', 'y-alignment': 'middle'
              }
@@ -148,7 +146,7 @@ joint.shapes.erd.Attribute = joint.dia.Element.extend({
          type: 'erd.Derived',
 
          attrs: {
-             '.outer': { 'stroke-dasharray': '3, 5' },
+             '.outer': { 'stroke-dasharray': '3,5' },
              text: { text: 'derived' }
          }
 
@@ -190,7 +188,7 @@ joint.shapes.erd.ISA = joint.dia.Element.extend({
         attrs: {
             polygon: {
                 points: '0,0 50,50 100,0',
-                fill: 'gold', stroke: 'goldenrod', 'stroke-width': 2
+                fill: '#F1C40F', stroke: '#F39C12', 'stroke-width': 2
             },
             text: {
                 text: 'ISA',
