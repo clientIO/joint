@@ -12292,10 +12292,11 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     pointermove: function(evt, x, y) {
 
+	var grid = this.paper.options.gridSize;
+        
         if (this.options.interactive !== false) {
 
 	    var position = this.model.get('position');
-	    var grid = this.paper.options.gridSize;
 
 	    // Make sure the new element's position always snaps to the current grid after
 	    // translate as the previous one could be calculated with a different grid size.
@@ -12305,8 +12306,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 	    );
         }
         
-        this._dx = x;
-        this._dy = y;
+        this._dx = g.snapToGrid(x, grid);
+        this._dy = g.snapToGrid(y, grid);
 
         joint.dia.CellView.prototype.pointermove.apply(this, arguments);
     }
