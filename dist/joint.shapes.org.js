@@ -1,10 +1,22 @@
-/*! JointJS v0.6.4 - JavaScript diagramming library  2013-10-15 
+/*! JointJS v0.6.4 - JavaScript diagramming library  2013-10-22 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+if (typeof exports === 'object') {
+
+    var joint = {
+        util: require('../src/core').util,
+        shapes: {},
+        dia: {
+            Element: require('../src/joint.dia.element').Element,
+            Link: require('../src/joint.dia.link').Link
+        }
+    };
+}
+
 joint.shapes.org = {};
 
 joint.shapes.org.Member = joint.dia.Element.extend({
@@ -55,3 +67,9 @@ joint.shapes.org.Arrow = joint.dia.Link.extend({
         z: -1
     }
 });
+
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.shapes.org;
+}
