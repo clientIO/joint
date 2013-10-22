@@ -6,12 +6,25 @@
 //      (c) 2011-2013 client IO
 
 
+if (typeof exports === 'object') {
+
+    var joint = {
+        util: require('./core').util,
+        dia: {
+            Link: require('./joint.dia.link').Link
+        }
+    };
+    var Backbone = require('backbone');
+    var _ = require('lodash');
+}
+
+
 // joint.dia.Cell base model.
 // --------------------------
 
 joint.dia.Cell = Backbone.Model.extend({
 
-    // This is the same as Backbone.Model with the only difference that is uses _.deepExtend
+    // This is the same as Backbone.Model with the only difference that is uses _.merge
     // instead of just _.extend. The reason is that we want to mixin attributes set in upper classes.
     constructor: function(attributes, options) {
 
@@ -23,8 +36,8 @@ joint.dia.Cell = Backbone.Model.extend({
         if (options && options.parse) attrs = this.parse(attrs, options) || {};
         if (defaults = _.result(this, 'defaults')) {
             //<custom code>
-            // Replaced the call to _.defaults with _.deepExtend.
-            attrs = _.deepExtend({}, defaults, attrs);
+            // Replaced the call to _.defaults with _.merge.
+            attrs = _.merge({}, defaults, attrs);
             //</custom code>
         }
         this.set(attrs, options);
@@ -43,7 +56,7 @@ joint.dia.Cell = Backbone.Model.extend({
         _.each(attrs, function(attr, selector) {
 
             var defaultAttr = defaultAttrs[selector];
-            
+
             _.each(attr, function(value, name) {
                 
                 // attr is mainly flat though it might have one more level (consider the `style` attribute).
@@ -69,9 +82,10 @@ joint.dia.Cell = Backbone.Model.extend({
             });
         });
 
-        var attributes = _.deepClone(_.omit(this.attributes, 'attrs'));
+        var attributes = _.cloneDeep(_.omit(this.attributes, 'attrs'));
+        //var attributes = JSON.parse(JSON.stringify(_.omit(this.attributes, 'attrs')));
         attributes.attrs = finalAttrs;
-        
+
         return attributes;
     },
 
@@ -260,7 +274,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
                 var attr = {};
                 joint.util.setByPath(attr, attrs, value, delim);
-                return this.set('attrs', _.deepExtend({}, currentAttrs, attr));
+                return this.set('attrs', _.merge({}, currentAttrs, attr));
                 
             } else {
                 
@@ -268,7 +282,7 @@ joint.dia.Cell = Backbone.Model.extend({
             }
         }
         
-        return this.set('attrs', _.deepExtend({}, currentAttrs, attrs));
+        return this.set('attrs', _.merge({}, currentAttrs, attrs));
     }
 });
 
@@ -468,3 +482,10 @@ joint.dia.CellView = Backbone.View.extend({
 
     }
 });
+
+
+if (typeof exports === 'object') {
+
+    module.exports.Cell = joint.dia.Cell;
+    module.exports.CellView = joint.dia.CellView;
+}

@@ -6,6 +6,19 @@
 //      (c) 2011-2013 client IO
 
 
+if (typeof exports === 'object') {
+
+    var joint = {
+        dia: {
+            Cell: require('./joint.dia.cell').Cell,
+            CellView: require('./joint.dia.cell').CellView
+        }
+    };
+    var Backbone = require('backbone');
+    var _ = require('lodash');
+}
+
+
 // joint.dia.Element base model.
 // -----------------------------
 
@@ -462,3 +475,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         joint.dia.CellView.prototype.pointermove.apply(this, arguments);
     }
 });
+
+if (typeof exports === 'object') {
+
+    module.exports.Element = joint.dia.Element;
+    module.exports.ElementView = joint.dia.ElementView;
+}

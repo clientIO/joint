@@ -6,6 +6,18 @@
 //      (c) 2011-2013 client IO
 
 
+if (typeof exports === 'object') {
+
+    var joint = {
+        util: require('../src/core').util,
+        shapes: {},
+        dia: {
+            Element: require('../src/joint.dia.element').Element
+        }
+    };
+}
+
+
 joint.shapes.basic = {};
 
 
@@ -92,3 +104,9 @@ joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
+
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.shapes.basic;
+}
