@@ -1,3 +1,18 @@
+if (typeof exports === 'object') {
+
+    var joint = {
+        util: require('../src/core').util,
+        shapes: {
+            basic: require('./joint.shapes.basic')
+        },
+        dia: {
+            ElementView: require('../src/joint.dia.element').ElementView,
+            Link: require('../src/joint.dia.link').Link
+        }
+    };
+    var _ = require('lodash');
+}
+
 joint.shapes.uml = {}
 
 joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
@@ -284,3 +299,8 @@ joint.shapes.uml.Transition = joint.dia.Link.extend({
         }
     }
 });
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.shapes.uml;
+}

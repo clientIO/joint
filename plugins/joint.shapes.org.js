@@ -1,3 +1,15 @@
+if (typeof exports === 'object') {
+
+    var joint = {
+        util: require('../src/core').util,
+        shapes: {},
+        dia: {
+            Element: require('../src/joint.dia.element').Element,
+            Link: require('../src/joint.dia.link').Link
+        }
+    };
+}
+
 joint.shapes.org = {};
 
 joint.shapes.org.Member = joint.dia.Element.extend({
@@ -48,3 +60,9 @@ joint.shapes.org.Arrow = joint.dia.Link.extend({
         z: -1
     }
 });
+
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.shapes.org;
+}
