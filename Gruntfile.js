@@ -7,8 +7,8 @@ module.exports = function(grunt) {
         
         libs: {
             jquery: ['lib/jquery.js'],
-            backbone: ['lib/underscore.js', 'lib/backbone.js'],
-            helpers: ['lib/jquery.sortElements.js', 'lib/underscore.mixin.deepExtend.js']
+            backbone: ['lib/lodash.js', 'lib/backbone.js'],
+            helpers: ['lib/jquery.sortElements.js']
         },
         
         core: [
@@ -64,6 +64,11 @@ module.exports = function(grunt) {
     var config = {
         
         pkg: grunt.file.readJSON('package.json'),
+        
+        qunit: {
+            all: ['test/**/*.html']
+        },
+        
         concat: {
             options: {
                 banner: '/*! <%= pkg.title %> v<%= pkg.version %> - <%= pkg.description %>  <%= grunt.template.today("yyyy-mm-dd") %> \n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n */\n'
@@ -236,6 +241,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
+    grunt.loadNpmTasks('grunt-contrib-qunit');
 
     // Default task(s).
     grunt.registerTask('default', ['concat:dist', 'uglify:dist', 'cssmin:dist']);
