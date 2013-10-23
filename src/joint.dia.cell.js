@@ -138,14 +138,14 @@ joint.dia.Cell = Backbone.Model.extend({
         }
     },
 
-    embed: function(cell) {
-	
-        if(this.get('parent') == cell.id) {
-            
-            throw new Error('Recursive embedding not allowed.');
-			
-        } else {
-		
+	embed: function(cell) {
+
+		if(this.get('parent') == cell.id) {
+
+			throw new Error('Recursive embedding not allowed.');
+
+		} else {
+
 			this.trigger('batch:start');
 
 			cell.set('parent', this.id);
@@ -154,7 +154,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
 			this.trigger('batch:stop');
 		}
-    },
+	},
 
     unembed: function(cell) {
 
