@@ -138,17 +138,23 @@ joint.dia.Cell = Backbone.Model.extend({
         }
     },
 
-    embed: function(cell) {
+	embed: function(cell) {
 
-	this.trigger('batch:start');
+		if(this.get('parent') == cell.id) {
 
-        var cellId = cell.id;
-        cell.set('parent', this.id);
+			throw new Error('Recursive embedding not allowed.');
 
-        this.set('embeds', _.uniq((this.get('embeds') || []).concat([cellId])));
+		} else {
 
-	this.trigger('batch:stop');
-    },
+			this.trigger('batch:start');
+
+			cell.set('parent', this.id);
+
+			this.set('embeds', _.uniq((this.get('embeds') || []).concat([cell.id])));
+
+			this.trigger('batch:stop');
+		}
+	},
 
     unembed: function(cell) {
 
