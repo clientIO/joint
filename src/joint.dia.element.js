@@ -6,6 +6,19 @@
 //      (c) 2011-2013 client IO
 
 
+if (typeof exports === 'object') {
+
+    var joint = {
+        dia: {
+            Cell: require('./joint.dia.cell').Cell,
+            CellView: require('./joint.dia.cell').CellView
+        }
+    };
+    var Backbone = require('backbone');
+    var _ = require('lodash');
+}
+
+
 // joint.dia.Element base model.
 // -----------------------------
 
@@ -56,6 +69,14 @@ joint.dia.Element = joint.dia.Cell.extend({
     rotate: function(angle, absolute) {
 
         return this.set('angle', absolute ? angle : ((this.get('angle') || 0) + angle) % 360);
+    },
+
+    getBBox: function() {
+
+	var position = this.get('position');
+	var size = this.get('size');
+
+	return g.rect(position.x, position.y, size.width, size.height);
     }
 });
 
@@ -434,14 +455,29 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     pointermove: function(evt, x, y) {
 
+	var grid = this.paper.options.gridSize;
+        
         if (this.options.interactive !== false) {
 
-            this.model.translate(x - this._dx, y - this._dy);
+	    var position = this.model.get('position');
+
+	    // Make sure the new element's position always snaps to the current grid after
+	    // translate as the previous one could be calculated with a different grid size.
+	    this.model.translate(
+		g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - this._dx, grid),
+		g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - this._dy, grid)
+	    );
         }
         
-        this._dx = x;
-        this._dy = y;
+        this._dx = g.snapToGrid(x, grid);
+        this._dy = g.snapToGrid(y, grid);
 
         joint.dia.CellView.prototype.pointermove.apply(this, arguments);
     }
 });
+
+if (typeof exports === 'object') {
+
+    module.exports.Element = joint.dia.Element;
+    module.exports.ElementView = joint.dia.ElementView;
+}

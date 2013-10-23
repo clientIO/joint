@@ -6,6 +6,21 @@
 //      (c) 2011-2013 client IO
 
 
+if (typeof exports === 'object') {
+
+    var joint = {
+        dia: {
+            Link: require('./joint.dia.link').Link,
+            Element: require('./joint.dia.element').Element
+        },
+        shapes: require('../plugins/shapes')
+    };
+    var Backbone = require('backbone');
+    var _ = require('lodash');
+}
+
+
+
 joint.dia.GraphCells = Backbone.Collection.extend({
 
     initialize: function() {
@@ -245,3 +260,9 @@ joint.dia.Graph = Backbone.Model.extend({
         _.invoke(this.getConnectedLinks(model), 'remove');
     }
 });
+
+
+if (typeof exports === 'object') {
+
+    module.exports.Graph = joint.dia.Graph;
+}

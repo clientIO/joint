@@ -1,8 +1,20 @@
+if (typeof exports === 'object') {
+
+    var joint = {
+        util: require('../src/core').util,
+        shapes: {},
+        dia: {
+            Element: require('../src/joint.dia.element').Element,
+            Link: require('../src/joint.dia.link').Link
+        }
+    };
+}
+
 joint.shapes.org = {};
 
 joint.shapes.org.Member = joint.dia.Element.extend({
 
-    markup: '<g class="rotatable"><g class="scalable"><rect class="shadow"/><rect class="card"/><image/><text class="rank"/><text class="name"/></g></g>',
+    markup: '<g class="rotatable"><g class="scalable"><rect class="card"/><image/></g><text class="rank"/><text class="name"/></g>',
 
     defaults: joint.util.deepSupplement({
 
@@ -10,38 +22,30 @@ joint.shapes.org.Member = joint.dia.Element.extend({
         size: { width: 180, height: 70 },
         attrs: {
 
-            '.': { 'pointer-events': 'none' },
-
-            rect: { width: 170, height: 60, rx: 10, ry: 10 },
+            rect: { width: 170, height: 60 },
 
             '.card': {
-                fill: 'white', stroke: 'black', 'stroke-width': 2,
-                'pointer-events': 'visiblePainted',
-                magnet: true
-            },
-
-            '.shadow': {
-                opacity: 0.2,
-                ref: '.card', 'ref-x': 7, 'ref-y': 7
+                fill: '#FFFFFF', stroke: '#000000', 'stroke-width': 2,
+                'pointer-events': 'visiblePainted', rx: 10, ry: 10
             },
 
             image: {
 		width: 48, height: 48,
                 ref: '.card', 'ref-x': 10, 'ref-y': 5
             },
-
-            text: {
-                'font-family': 'Courier New', 'font-size': '.8em'
-            },
-
+            
             '.rank': {
                 'text-decoration': 'underline',
-                ref: '.card', 'ref-x': 0.38, 'ref-y': 0.2
+                ref: '.card', 'ref-x': 0.9, 'ref-y': 0.2,
+                'font-family': 'Courier New', 'font-size': 14,
+		'text-anchor': 'end'
             },
 
             '.name': {
                 'font-weight': 'bold',
-                ref: '.card', 'ref-x': 0.38, 'ref-y': 0.6
+                ref: '.card', 'ref-x': 0.9, 'ref-y': 0.6,
+                'font-family': 'Courier New', 'font-size': 14,
+		'text-anchor': 'end'
             }
         }
     }, joint.dia.Element.prototype.defaults)
@@ -56,3 +60,9 @@ joint.shapes.org.Arrow = joint.dia.Link.extend({
         z: -1
     }
 });
+
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.shapes.org;
+}

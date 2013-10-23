@@ -1,4 +1,4 @@
-/*! JointJS v0.6.3 - JavaScript diagramming library  2013-09-13 
+/*! JointJS v0.6.4 - JavaScript diagramming library  2013-10-22 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -111,6 +111,8 @@ very thin.
    fill: black;
    stroke: black;
 */
+   /* This makes the arrowheads point to the border of objects even though the transform: scale() is applied on them. */
+   vector-effect: non-scaling-stroke;
 }
 
 /* 
@@ -127,13 +129,17 @@ Vertex markers are `<circle>` elements that appear at connection vertex position
 .marker-arrowheads {
    opacity: 0;
    cursor: move;
+   cursor: -webkit-grab;
+   cursor: -moz-grab;
 /*   display: none;   */   /* setting `display: none` on .marker-arrowheads effectivelly switches of links reconnecting */
 }
 .link-tools {
    opacity: 0;
    cursor: pointer;
 }
-
+.link-tools .tool-options {
+   display: none;       /* by default, we don't display link options tool */
+}
 .link-tools .tool-remove circle {
    fill: red;
 }
@@ -180,6 +186,37 @@ Vertex markers are `<circle>` elements that appear at connection vertex position
 }
 .marker-vertex-group:hover .marker-vertex-remove-area {
    opacity: 1;
+}
+
+/*
+
+/* Cell highlighting - e.g a cell underneath the dragged link get highlighted.
+   See joint.dia.cell.js highlight(); */
+
+/* For some reason, CSS `outline` property does not work on `<text>` elements. */
+text.highlighted {
+    fill: #FF0000;
+}
+
+.highlighted {
+    outline: 2px solid #FF0000; /* `outline` doesn't work in Firefox, Opera and IE9+ correctly. */
+    opacity: 0.7 \9; /* It targets only IE9. */
+}
+
+/*
+use '@-moz-document url-prefix()' to target all versions if Firefox and nothing else.
+See `https://developer.mozilla.org/en-US/docs/Web/CSS/@document`.
+*/
+@-moz-document url-prefix() {
+    .highlighted { opacity: 0.7; } /* only for FF */
+}
+
+/*
+`-o-prefocus` is a pseudo-class that allows styles to be targeted for Opera only.
+See `http://www.opera.com/docs/specs/presto2.12/css/o-vendor/`.
+*/
+doesnotexist:-o-prefocus, .highlighted {
+    opacity: 0.7;
 }
 
 /*

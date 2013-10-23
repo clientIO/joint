@@ -1,10 +1,24 @@
-/*! JointJS v0.6.3 - JavaScript diagramming library  2013-09-13 
+/*! JointJS v0.6.4 - JavaScript diagramming library  2013-10-22 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+if (typeof exports === 'object') {
+
+    var joint = {
+        util: require('../src/core').util,
+        shapes: {
+            basic: require('./joint.shapes.basic')
+        },
+        dia: {
+            ElementView: require('../src/joint.dia.element').ElementView,
+            Link: require('../src/joint.dia.link').Link
+        }
+    };
+}
+
 joint.shapes.devs = {};
 
 joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
@@ -35,7 +49,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                 fill: 'black',
                 'pointer-events': 'none'
             },
-            '.label': { text: 'Model', dx: 5, dy: 5 },
+            '.label': { text: 'Model', 'ref-x': .3, 'ref-y': .2 },
             '.inPorts text': { x:-15, dy: 4, 'text-anchor': 'end' },
             '.outPorts text':{ x: 15, dy: 4 }
         }
@@ -153,7 +167,7 @@ joint.shapes.devs.ModelView = joint.dia.ElementView.extend({
 
         });
 
-        this.update(this.model, _.extend(attributes, this.model.get('attrs')));
+        this.update(this.model, _.extend({}, attributes, this.model.get('attrs')));
     },
 
     updatePorts: function(cell, transform) {
@@ -165,3 +179,9 @@ joint.shapes.devs.ModelView = joint.dia.ElementView.extend({
 
 joint.shapes.devs.AtomicView = joint.shapes.devs.ModelView;
 joint.shapes.devs.CoupledView = joint.shapes.devs.ModelView;
+
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.shapes.devs;
+}
