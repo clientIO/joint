@@ -1,3 +1,14 @@
+if (typeof exports === 'object') {
+
+    var joint = {
+        util: require('../src/core').util,
+        shapes: {
+            basic: require('./joint.shapes.basic')
+        },
+        dia: {}
+    };
+}
+
 joint.shapes.chess = {};
 
 joint.shapes.chess.KingWhite = joint.shapes.basic.Generic.extend({
@@ -144,3 +155,7 @@ joint.shapes.chess.PawnBlack = joint.shapes.basic.Generic.extend({
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
+if (typeof exports === 'object') {
+
+    module.exports = joint.shapes.chess;
+}

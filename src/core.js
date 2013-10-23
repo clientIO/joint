@@ -5,6 +5,11 @@
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
+if (typeof exports === 'object') {
+
+    var _ = require('lodash');
+}
+
 
 // Global namespace.
 
@@ -193,3 +198,7 @@ var joint = {
     }
 };
 
+if (typeof exports === 'object') {
+
+    module.exports = joint;
+}

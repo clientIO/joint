@@ -6,6 +6,18 @@
 //      (c) 2011-2013 client IO
 
 
+if (typeof exports === 'object') {
+
+    var joint = {
+        util: require('../src/core').util,
+        shapes: {},
+        dia: {
+            Element: require('../src/joint.dia.element').Element
+        }
+    };
+}
+
+
 joint.shapes.basic = {};
 
 
@@ -15,7 +27,7 @@ joint.shapes.basic.Generic = joint.dia.Element.extend({
         
         type: 'basic.Generic',
         attrs: {
-            '.': { fill: 'white', stroke: 'none' }
+            '.': { fill: '#FFFFFF', stroke: 'none' }
         }
         
     }, joint.dia.Element.prototype.defaults)
@@ -29,7 +41,7 @@ joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
     
         type: 'basic.Rect',
         attrs: {
-            'rect': { fill: 'white', stroke: 'black', width: 1, height: 1 },
+            'rect': { fill: '#FFFFFF', stroke: 'black', width: 1, height: 1 },
             'text': { 'font-size': 14, text: '', 'ref-x': .5, 'ref-y': .5, ref: 'rect', 'y-alignment': 'middle', 'x-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
         }
         
@@ -59,7 +71,7 @@ joint.shapes.basic.Circle = joint.shapes.basic.Generic.extend({
         type: 'basic.Circle',
         size: { width: 60, height: 60 },
         attrs: {
-            'circle': { fill: 'white', stroke: 'black', r: 30, transform: 'translate(30, 30)' },
+            'circle': { fill: '#FFFFFF', stroke: 'black', r: 30, transform: 'translate(30, 30)' },
             'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-y': .5, ref: 'circle', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
@@ -87,8 +99,14 @@ joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
         type: 'basic.Path',
         size: { width: 60, height: 60 },
         attrs: {
-            'path': { fill: 'white', stroke: 'black' },
+            'path': { fill: '#FFFFFF', stroke: 'black' },
             'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'path', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
+
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.shapes.basic;
+}

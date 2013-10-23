@@ -1,3 +1,17 @@
+if (typeof exports === 'object') {
+
+    var joint = {
+        util: require('../src/core').util,
+        shapes: {
+            basic: require('./joint.shapes.basic')
+        },
+        dia: {
+            Element: require('../src/joint.dia.element').Element,
+            Link: require('../src/joint.dia.link').Link
+        }
+    };
+}
+
 joint.shapes.fsa = {};
 
 joint.shapes.fsa.State = joint.shapes.basic.Circle.extend({
@@ -38,17 +52,17 @@ joint.shapes.fsa.EndState = joint.dia.Element.extend({
         type: 'fsa.EndState',
         size: { width: 20, height: 20 },
         attrs: {
-            'circle.outer': {
+            '.outer': {
                 transform: 'translate(10, 10)',
                 r: 10,
-                fill: 'white',
+                fill: '#FFFFFF',
                 stroke: 'black'
             },
 
-            'circle.inner': {
+            '.inner': {
                 transform: 'translate(10, 10)',
                 r: 6,
-                fill: 'black'
+                fill: '#000000'
             }
         }
 
@@ -63,3 +77,8 @@ joint.shapes.fsa.Arrow = joint.dia.Link.extend({
         smooth: true
     }, joint.dia.Link.prototype.defaults)
 });
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.shapes.fsa;
+}
