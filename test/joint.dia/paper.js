@@ -35,7 +35,7 @@ test('graph.resetCells()', function() {
     equal(this.paper.$('.element').length, 2, 'previous cells were removed from the paper after calling graph.resetCells()');
 });
 
-test('graph.fromJSON()', function() {
+test('graph.fromJSON(), graph.toJSON()', function() {
 
     var json = {
         "cells":[
@@ -54,6 +54,18 @@ test('graph.fromJSON()', function() {
     var linkView = this.paper.findViewByModel('b4289c08-07ea-49d2-8dde-e67eb2f2a06a');
     var rectView = this.paper.findViewByModel('cbd1109e-4d34-4023-91b0-f31bce1318e6');
     var circleView = this.paper.findViewByModel('bbb9e641-9756-4f42-997a-f4818b89f374');
+
+    ok(rectView.el.previousSibling === linkView.el, 'link view is before rect element in the DOM');
+    ok(linkView.el.previousSibling === circleView.el, 'link view is after circle element in the DOM');
+
+    this.graph.fromJSON(this.graph.toJSON());
+    equal(this.graph.get('cells').length, 3, 'all the cells were reconstructed from JSON');
+    
+    // Check that the link is before the last cell in the DOM. This check is there because
+    // paper might have resorted the cells so that links are always AFTER elements.
+    linkView = this.paper.findViewByModel('b4289c08-07ea-49d2-8dde-e67eb2f2a06a');
+    rectView = this.paper.findViewByModel('cbd1109e-4d34-4023-91b0-f31bce1318e6');
+    circleView = this.paper.findViewByModel('bbb9e641-9756-4f42-997a-f4818b89f374');
 
     ok(rectView.el.previousSibling === linkView.el, 'link view is before rect element in the DOM');
     ok(linkView.el.previousSibling === circleView.el, 'link view is after circle element in the DOM');

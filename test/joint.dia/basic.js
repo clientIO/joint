@@ -439,3 +439,117 @@ test('x-alignment, y-alignment', function() {
     );
 });
 
+asyncTest('transition: sanity', 5, function() {
+
+    var p0 = true, p1 = true, p2 = true;
+
+    var el = new joint.shapes.basic.Rect({
+	property: 1,
+    });
+
+    this.graph.addCell(el);
+
+    el.transition('property', 3, {
+	valueFunction: function(a, b) {
+
+	    equal(a, 2, 'The method passes the current value to a valueFunction as start.');
+	    equal(b, 3, 'The method passes the requested value to a valueFunction as end.');
+
+	    return function(t) {
+
+		if (t < .1 && p0) {
+		    ok(true, 'Transition starts.');
+		    p0 = false;
+		};
+
+		if (t > .1 && t < .9 && p1) {
+		    ok(true, 'Transition runs.');
+		    p1 = false;
+		}
+
+		if (t > .9 && p2) {
+		    ok(true, 'Transition ends.');
+		    p2 = false;
+		    start();
+		}
+
+		return 0;
+	    }
+	}
+    });
+
+    el.set('property', 2);
+});
+
+asyncTest('transition: primitive value', function() {
+
+    var el = new joint.shapes.basic.Rect({
+	timer: -1,
+    });
+
+    this.graph.addCell(el);
+
+    var timerArray = [];
+
+    el.transition('timer', 100, {
+	delay: 100,
+	duration: 100,
+	valueFunction: function(a, b) { return function(t) { return t; }}
+    });
+
+    el.on('change:timer', function(cell, changed) { timerArray.push(changed); });
+
+    setTimeout(function() {
+
+	var timerMedian = timerArray[Math.floor(timerArray.length / 2)];
+
+	equal(el.get('timer'), 1, 'The transition sets the primitive property.');
+
+	deepEqual(timerArray.sort(), timerArray, 'The transition changes the primitive property gradually, ');
+
+	ok(0 < timerMedian && timerMedian < 1, 'The transition median value is between min and max.');
+
+	start();
+
+    }, 300);
+
+});
+
+asyncTest('transition: nested value', function() {
+
+    var el = new joint.shapes.basic.Rect({
+	nested: {
+	    timer: -1,
+	    other: 'nochange'
+	}
+    });
+
+    this.graph.addCell(el);
+
+    var timerArray = [];
+
+    el.transition('nested/timer', 100, {
+	delay: 100,
+	duration: 100,
+	valueFunction: function(a, b) { return function(t) { return t; }}
+    });
+
+    el.on('change:nested', function(cell, changed) { timerArray.push(changed.timer); });
+
+    setTimeout(function() {
+
+	var timerMedian = timerArray[Math.floor(timerArray.length / 2)];
+
+	equal(el.get('nested').timer, 1, 'The transition sets the nested property.');
+
+	equal(el.get('nested').other, 'nochange', "The transition affects no other property.");
+
+	deepEqual(timerArray.sort(), timerArray, 'The transition changes the nested property gradually, ');
+
+	ok(0 < timerMedian && timerMedian < 1, 'The transition median value is between min and max.');
+
+	start();
+
+    }, 300);
+
+});
