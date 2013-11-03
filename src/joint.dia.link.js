@@ -1,7 +1,3 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 //      JointJS diagramming library.
 //      (c) 2011-2013 client IO
 
@@ -22,7 +18,6 @@ if (typeof exports === 'object') {
 
 // joint.dia.Link base model.
 // --------------------------
-
 joint.dia.Link = joint.dia.Cell.extend({
 
     defaults: {
@@ -134,15 +129,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Assign CSS class to the element based on the element type.
         V(this.el).attr({ 'class': 'link', 'model-id': this.model.id });
 
-        this.model.on({
-
-            'change:vertices change:smooth change:manhattan': this.update,
-            'change:source change:target': this.updateEnds,
-	    'change:markup': this.render,
-	    'change:vertices change:vertexMarkup': this.renderVertexMarkers,
-	    'change:labels change:labelMarkup': _.bind(function() { this.renderLabels(); this.updateLabelPositions(); }, this),
-            'change:toolMarkup': _.bind(function() { this.renderTools(); this.updateToolsPosition(); }, this)
-        });
+	this.listenTo(this.model, 'change:vertices change:smooth change:manhattan', this.update);
+	this.listenTo(this.model, 'change:source change:target', this.updateEnds);
+	this.listenTo(this.model, 'change:markup', this.render);
+	this.listenTo(this.model, 'change:vertices change:vertexMarkup', this.renderVertexMarkers);
+	this.listenTo(this.model, 'change:labels change:labelMarkup', function() {
+	    this.renderLabels(); this.updateLabelPositions();
+	});
+	this.listenTo(this.model, 'change:toolMarkup', function() {
+	    this.renderTools(); this.updateToolsPosition();
+	});
 
         // `_.labelCache` is a mapping of indexes of labels in the `this.get('labels')` array to
         // `<g class="label">` nodes wrapped by Vectorizer. This allows for quick access to the
@@ -230,7 +226,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     },
 
     render: function() {
-
         // A special markup can be given in the `properties.markup` property. This might be handy
         // if e.g. arrowhead markers should be `<image>` elements or any other element than `<path>`s.
         // `.connection`, `.connection-wrap`, `.marker-source` and `.marker-target` selectors

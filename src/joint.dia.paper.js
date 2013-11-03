@@ -1,7 +1,3 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
@@ -41,12 +37,9 @@ joint.dia.Paper = Backbone.View.extend({
 
         this.setDimensions();
 
-        this.model.on({
-
-            'add': this.addCell,
-            'reset': this.resetCells,
-            'sort': this.sortCells
-        });
+	this.listenTo(this.model, 'add', this.addCell);
+	this.listenTo(this.model, 'reset', this.resetCells);
+	this.listenTo(this.model, 'sort', this.sortCells);
 
 	$(document).on('mouseup touchend', this.pointerup);
     },
@@ -87,7 +80,7 @@ joint.dia.Paper = Backbone.View.extend({
     },
 
     createViewForModel: function(cell) {
-        
+
         var view;
         
         var type = cell.get('type');
@@ -257,7 +250,7 @@ joint.dia.Paper = Backbone.View.extend({
 	}, this);
     },
 
-    // Find all views at given point
+    // Find all views in given area
     findViewsInArea: function(r) {
 
 	r = g.rect(r);
