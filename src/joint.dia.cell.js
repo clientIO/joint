@@ -1,7 +1,3 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 //      JointJS.
 //      (c) 2011-2013 client IO
 
@@ -95,6 +91,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
             this.set('id', joint.util.uuid(), { silent: true });
         }
+
+	this._transitionIds = {};
     },
 
     remove: function(options) {
@@ -288,6 +286,96 @@ joint.dia.Cell = Backbone.Model.extend({
         }
         
         return this.set('attrs', _.merge({}, currentAttrs, attrs));
+    },
+
+    transition: function(path, value, opt, delim) {
+
+	delim = delim || '/';
+
+	var defaults = {
+	    duration: 100,
+	    delay: 10,
+	    timingFunction: joint.util.timing.linear,
+	    valueFunction: joint.util.interpolate.number,
+	    setOpt: {}
+	};
+
+	opt = _.extend(defaults, opt);
+
+	var pathArray = path.split(delim);
+        var property = pathArray[0];
+	var isPropertyNested = pathArray.length > 1;
+	var firstFrameTime = 0;
+	var interpolatingFunction;
+
+	var setter = _.bind(function(runtime) {
+
+	    var id, progress, propertyValue, status;
+
+	    firstFrameTime = firstFrameTime || runtime;
+	    runtime -= firstFrameTime;
+	    progress = runtime / opt.duration;
+
+	    if (progress < 1) {
+		this._transitionIds[path] = id = joint.util.nextFrame(setter);
+	    } else {
+		progress = 1;
+		delete this._transitionIds[path];
+	    }
+
+	    propertyValue = interpolatingFunction(opt.timingFunction(progress));
+
+	    if (isPropertyNested) {
+		var nestedPropertyValue = joint.util.setByPath({}, path, propertyValue, delim)[property];
+		propertyValue = _.merge({}, this.get(property), nestedPropertyValue);
+	    }
+
+	    opt.setOpt.transitionId = id;
+
+	    this.set(property, propertyValue, opt.setOpt);
+
+	    if (!id) this.trigger('transition:end', this, path);
+
+	}, this);
+
+	var initiator =_.bind(function(callback) {
+
+	    this.stopTransitions(path);
+
+	    interpolatingFunction = opt.valueFunction(joint.util.getByPath(this.attributes, path, delim), value);
+
+	    this._transitionIds[path] = joint.util.nextFrame(callback);
+
+	    this.trigger('transition:start', this, path);
+
+	}, this);
+
+	return _.delay(initiator, opt.delay, setter);
+    },
+
+    getTransitions: function() {
+	return _.keys(this._transitionIds);
+    },
+
+    stopTransitions: function(path, delim) {
+
+	delim = delim || '/';
+
+	var pathArray = path && path.split(delim);
+
+	_(this._transitionIds).keys().filter(pathArray && function(key) {
+
+	    return _.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
+
+	}).each(function(key) {
+
+	    joint.util.cancelFrame(this._transitionIds[key]);
+
+	    delete this._transitionIds[key];
+
+	    this.trigger('transition:end', this, key);
+
+	}, this);
     }
 });
 
@@ -305,11 +393,8 @@ joint.dia.CellView = Backbone.View.extend({
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);
 
-        this.model.on({
-
-            'remove': this.remove,
-            'change:attrs': this.update
-        });
+	this.listenTo(this.model, 'remove', this.remove);
+	this.listenTo(this.model, 'change:attrs', this.update);
     },
 
     _configure: function(options) {

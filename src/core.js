@@ -1,7 +1,3 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
@@ -193,8 +189,172 @@ var joint = {
             var ret = this.mixin.apply(this, arguments);
             this.mixin.deep = this.mixin.supplement = false;
             return ret;
-        }
-        
+        },
+
+	nextFrame:(function() {
+
+	    var raf;
+	    var client = typeof window != 'undefined';
+
+	    if (client) {
+
+		raf = window.requestAnimationFrame       ||
+		      window.webkitRequestAnimationFrame ||
+	              window.mozRequestAnimationFrame    ||
+		      window.oRequestAnimationFrame      ||
+		      window.msRequestAnimationFrame;
+
+	    }
+
+	    if (!raf) {
+
+		var lastTime = 0;
+
+		raf = function(callback) {
+
+		    var currTime = new Date().getTime();
+		    var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+		    var id = setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
+		    lastTime = currTime + timeToCall;
+		    return id;
+
+		};
+	    }
+
+	    return client ? _.bind(raf, window) : raf;
+	})(),
+
+	cancelFrame: (function() {
+
+	    var caf;
+	    var client = typeof window != 'undefined';
+
+	    if (client) {
+
+		caf = window.cancelAnimationFrame              ||
+		      window.webkitCancelAnimationFrame        ||
+	              window.webkitCancelRequestAnimationFrame ||
+		      window.msCancelAnimationFrame            ||
+	              window.msCancelRequestAnimationFrame     ||
+		      window.oCancelAnimationFrame             ||
+	              window.oCancelRequestAnimationFrame      ||
+	              window.mozCancelAnimationFrame           ||
+		      window.mozCancelRequestAnimationFrame;
+
+	    }
+
+	    caf = caf || clearTimeout;
+
+	    return client ? _.bind(caf, window) : caf;
+	})(),
+
+	timing: {
+
+	    linear: function(t) {
+		return t;
+	    },
+
+	    quad: function(t) {
+		return t * t;
+	    },
+
+	    cubic: function(t) {
+		return t * t * t;
+	    },
+
+	    inout: function(t) {
+		if (t <= 0) return 0;
+		if (t >= 1) return 1;
+		var t2 = t * t, t3 = t2 * t;
+		return 4 * (t < .5 ? t3 : 3 * (t - t2) + t3 - .75);
+	    },
+
+	    exponential: function(t) {
+		return Math.pow(2, 10 * (t - 1));
+	    },
+
+	    bounce: function(t) {
+		for(var a = 0, b = 1; 1; a += b, b /= 2) {
+		    if (t >= (7 - 4 * a) / 11) {
+			var q = (11 - 6 * a - 11 * t) / 4;
+			return -q * q + b * b;
+		    }
+		}
+	    },
+
+	    reverse: function(f) {
+		return function(t) {
+		    return 1 - f(1 - t)
+		}
+	    },
+
+	    reflect: function(f) {
+		return function(t) {
+		    return .5 * (t < .5 ? f(2 * t) : (2 - f(2 - 2 * t)));
+		};
+	    },
+
+	    back: function(s) {
+		if (!s) s = 1.70158;
+		return function(t) {
+		    return t * t * ((s + 1) * t - s);
+		};
+	    },
+
+	    elastic: function(x) {
+		if (!x) x = 1.5;
+		return function(t) {
+		    return Math.pow(2, 10 * (t - 1)) * Math.cos(20*Math.PI*x/3*t);
+		}
+	    }
+
+	},
+
+	interpolate: {
+
+	    number: function(a, b) {
+		var d = b - a;
+		return function(t) { return a + d * t; };
+	    },
+
+	    object: function(a, b) {
+		var s = _.keys(a);
+		return function(t) {
+		    var i, p, r = {};
+		    for (i = s.length - 1; i != -1; i--) {
+			p = s[i];
+			r[p] = a[p] + (b[p] - a[p]) * t;
+		    }
+		    return  r;
+		}
+	    },
+
+	    hexColor: function(a, b) {
+
+		var ca = parseInt(a.slice(1), 16), cb = parseInt(b.slice(1), 16);
+
+		var ra = ca & 0x0000ff, rd = (cb & 0x0000ff) - ra;
+		var ga = ca & 0x00ff00, gd = (cb & 0x00ff00) - ga;
+		var ba = ca & 0xff0000, bd = (cb & 0xff0000) - ba;
+
+		return function(t) {
+		    return '#' + (1 << 24 |(ra + rd * t)|(ga + gd * t)|(ba + bd * t)).toString(16).slice(1);
+		};
+	    },
+
+	    unit: function(a, b) {
+
+		var r = /(-?[0-9]*.[0-9]*)(px|em|cm|mm|in|pt|pc|%)/;
+
+		var ma = r.exec(a), mb = r.exec(b);
+		var p = mb[1].indexOf('.'), f = p > 0 ? mb[1].length - p - 1 : 0;
+		var a = +ma[1], d = +mb[1] - a, u = ma[2];
+
+		return function(t) {
+		    return (a + d * t).toFixed(f) + u;
+		}
+	    }
+	}
     }
 };
 

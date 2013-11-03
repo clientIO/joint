@@ -1,7 +1,3 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
@@ -43,16 +39,23 @@ joint.dia.Element = joint.dia.Cell.extend({
         }
 
         var position = this.get('position') || { x: 0, y: 0 };
-        
-        this.set('position', {
+	var translatedPosition = { x: position.x + tx || 0, y: position.y + ty || 0 };
 
-            x: position.x + tx || 0,
-            y: position.y + ty || 0
-            
-        }, opt);
+	if (opt && opt.transition) {
 
-        // Recursively call `translate()` on all the embeds cells.
-        _.invoke(this.getEmbeddedCells(), 'translate', tx, ty);
+	    if (!_.isObject(opt.transition)) opt.transition = {};
+
+	    this.transition('position', translatedPosition, _.extend({}, opt.transition, {
+		valueFunction: joint.util.interpolate.object
+	    }));
+
+	} else {
+
+            this.set('position', translatedPosition, opt);
+
+            // Recursively call `translate()` on all the embeds cells.
+            _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
+	}
 
         return this;
     },
@@ -98,12 +101,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             'model-id': this.model.id
         });
 
-        this.model.on({
-
-            'change:position': this.translate,
-            'change:size': this.resize,
-            'change:angle': this.rotate
-        });
+	this.listenTo(this.model, 'change:position', this.translate);
+	this.listenTo(this.model, 'change:size', this.resize);
+	this.listenTo(this.model, 'change:angle', this.rotate);
     },
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
@@ -403,24 +403,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var position = this.model.get('position') || { x: 0, y: 0 };
 
-        if (opt && opt.animation) {
-
-            var animateTransform = V('animateTransform', {
-                attributeName: 'transform',
-                attributeType: 'XML',
-                type: 'translate',
-                from: (this.model.previous('position').x || 0) + ' ' + (this.model.previous('position').y || 0),
-                to: position.x + ' ' + position.y,
-                dur: '100ms',
-                fill: 'freeze'
-            });
-            V(this.el).append(animateTransform);
-            animateTransform.node.beginElement();
-            
-        } else {
-
-            V(this.el).attr('transform', 'translate(' + position.x + ',' + position.y + ')');
-        }
+        V(this.el).attr('transform', 'translate(' + position.x + ',' + position.y + ')');
     },
 
     rotate: function() {
