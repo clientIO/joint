@@ -296,8 +296,7 @@ joint.dia.Cell = Backbone.Model.extend({
 	    duration: 100,
 	    delay: 10,
 	    timingFunction: joint.util.timing.linear,
-	    valueFunction: joint.util.interpolate.number,
-	    setOpt: {}
+	    valueFunction: joint.util.interpolate.number
 	};
 
 	opt = _.extend(defaults, opt);
@@ -330,9 +329,9 @@ joint.dia.Cell = Backbone.Model.extend({
 		propertyValue = _.merge({}, this.get(property), nestedPropertyValue);
 	    }
 
-	    opt.setOpt.transitionId = id;
+	    opt.transitionId = id;
 
-	    this.set(property, propertyValue, opt.setOpt);
+	    this.set(property, propertyValue, opt);
 
 	    if (!id) this.trigger('transition:end', this, path);
 
