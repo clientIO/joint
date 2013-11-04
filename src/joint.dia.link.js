@@ -888,9 +888,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
 
-        delete this._action;
-        
-        this._dx = x;
+	this._dx = x;
         this._dy = y;
 
         if (this.options.interactive === false) {
@@ -1031,6 +1029,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 delete this._magnetUnderPointer;
             }
         }
+
+        delete this._action;
     }
 });
 
