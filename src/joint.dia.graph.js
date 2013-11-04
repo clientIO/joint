@@ -1,7 +1,3 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 //      JointJS, the JavaScript diagramming library.
 //      (c) 2011-2013 client IO
 
@@ -99,6 +95,15 @@ joint.dia.Graph = Backbone.Model.extend({
         this.get('cells').on('remove', this.removeCell, this);
     },
 
+    toJSON: function() {
+
+        // Backbone does not recursively call `toJSON()` on attributes that are themselves models/collections.
+        // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitely.
+        var json = Backbone.Model.prototype.toJSON.apply(this, arguments);
+        json.cells = this.get('cells').toJSON();
+        return json;
+    },
+
     fromJSON: function(json) {
 
         if (!json.cells) {
@@ -150,7 +155,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
     addCells: function(cells, options) {
 
-        _.each(cells, function(cell) { this.addCell(this._prepareCell(cell), options || {}); }, this);
+        _.each(cells, function(cell) { this.addCell(cell, options); }, this);
 
         return this;
     },
