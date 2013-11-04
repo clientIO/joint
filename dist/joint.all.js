@@ -1,4 +1,4 @@
-/*! JointJS v0.6.4 - JavaScript diagramming library  2013-10-22 
+/*! JointJS v0.7.0 - JavaScript diagramming library  2013-11-04 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -17605,10 +17605,6 @@ jQuery.fn.sortElements = (function(){
     };
     
 })();
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
@@ -17800,8 +17796,172 @@ var joint = {
             var ret = this.mixin.apply(this, arguments);
             this.mixin.deep = this.mixin.supplement = false;
             return ret;
-        }
-        
+        },
+
+	nextFrame:(function() {
+
+	    var raf;
+	    var client = typeof window != 'undefined';
+
+	    if (client) {
+
+		raf = window.requestAnimationFrame       ||
+		      window.webkitRequestAnimationFrame ||
+	              window.mozRequestAnimationFrame    ||
+		      window.oRequestAnimationFrame      ||
+		      window.msRequestAnimationFrame;
+
+	    }
+
+	    if (!raf) {
+
+		var lastTime = 0;
+
+		raf = function(callback) {
+
+		    var currTime = new Date().getTime();
+		    var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+		    var id = setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
+		    lastTime = currTime + timeToCall;
+		    return id;
+
+		};
+	    }
+
+	    return client ? _.bind(raf, window) : raf;
+	})(),
+
+	cancelFrame: (function() {
+
+	    var caf;
+	    var client = typeof window != 'undefined';
+
+	    if (client) {
+
+		caf = window.cancelAnimationFrame              ||
+		      window.webkitCancelAnimationFrame        ||
+	              window.webkitCancelRequestAnimationFrame ||
+		      window.msCancelAnimationFrame            ||
+	              window.msCancelRequestAnimationFrame     ||
+		      window.oCancelAnimationFrame             ||
+	              window.oCancelRequestAnimationFrame      ||
+	              window.mozCancelAnimationFrame           ||
+		      window.mozCancelRequestAnimationFrame;
+
+	    }
+
+	    caf = caf || clearTimeout;
+
+	    return client ? _.bind(caf, window) : caf;
+	})(),
+
+	timing: {
+
+	    linear: function(t) {
+		return t;
+	    },
+
+	    quad: function(t) {
+		return t * t;
+	    },
+
+	    cubic: function(t) {
+		return t * t * t;
+	    },
+
+	    inout: function(t) {
+		if (t <= 0) return 0;
+		if (t >= 1) return 1;
+		var t2 = t * t, t3 = t2 * t;
+		return 4 * (t < .5 ? t3 : 3 * (t - t2) + t3 - .75);
+	    },
+
+	    exponential: function(t) {
+		return Math.pow(2, 10 * (t - 1));
+	    },
+
+	    bounce: function(t) {
+		for(var a = 0, b = 1; 1; a += b, b /= 2) {
+		    if (t >= (7 - 4 * a) / 11) {
+			var q = (11 - 6 * a - 11 * t) / 4;
+			return -q * q + b * b;
+		    }
+		}
+	    },
+
+	    reverse: function(f) {
+		return function(t) {
+		    return 1 - f(1 - t)
+		}
+	    },
+
+	    reflect: function(f) {
+		return function(t) {
+		    return .5 * (t < .5 ? f(2 * t) : (2 - f(2 - 2 * t)));
+		};
+	    },
+
+	    back: function(s) {
+		if (!s) s = 1.70158;
+		return function(t) {
+		    return t * t * ((s + 1) * t - s);
+		};
+	    },
+
+	    elastic: function(x) {
+		if (!x) x = 1.5;
+		return function(t) {
+		    return Math.pow(2, 10 * (t - 1)) * Math.cos(20*Math.PI*x/3*t);
+		}
+	    }
+
+	},
+
+	interpolate: {
+
+	    number: function(a, b) {
+		var d = b - a;
+		return function(t) { return a + d * t; };
+	    },
+
+	    object: function(a, b) {
+		var s = _.keys(a);
+		return function(t) {
+		    var i, p, r = {};
+		    for (i = s.length - 1; i != -1; i--) {
+			p = s[i];
+			r[p] = a[p] + (b[p] - a[p]) * t;
+		    }
+		    return  r;
+		}
+	    },
+
+	    hexColor: function(a, b) {
+
+		var ca = parseInt(a.slice(1), 16), cb = parseInt(b.slice(1), 16);
+
+		var ra = ca & 0x0000ff, rd = (cb & 0x0000ff) - ra;
+		var ga = ca & 0x00ff00, gd = (cb & 0x00ff00) - ga;
+		var ba = ca & 0xff0000, bd = (cb & 0xff0000) - ba;
+
+		return function(t) {
+		    return '#' + (1 << 24 |(ra + rd * t)|(ga + gd * t)|(ba + bd * t)).toString(16).slice(1);
+		};
+	    },
+
+	    unit: function(a, b) {
+
+		var r = /(-?[0-9]*.[0-9]*)(px|em|cm|mm|in|pt|pc|%)/;
+
+		var ma = r.exec(a), mb = r.exec(b);
+		var p = mb[1].indexOf('.'), f = p > 0 ? mb[1].length - p - 1 : 0;
+		var a = +ma[1], d = +mb[1] - a, u = ma[2];
+
+		return function(t) {
+		    return (a + d * t).toFixed(f) + u;
+		}
+	    }
+	}
     }
 };
 
@@ -17809,10 +17969,6 @@ if (typeof exports === 'object') {
 
     module.exports = joint;
 }
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 // Vectorizer.
 // -----------
 
@@ -18403,10 +18559,6 @@ if (typeof exports === 'object') {
 }));
 
 
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 //      Geometry library.
 //      (c) 2011-2013 client IO
 
@@ -18969,10 +19121,6 @@ if (typeof exports === 'object') {
     }
 }));
 
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 //      JointJS, the JavaScript diagramming library.
 //      (c) 2011-2013 client IO
 
@@ -19070,6 +19218,15 @@ joint.dia.Graph = Backbone.Model.extend({
         this.get('cells').on('remove', this.removeCell, this);
     },
 
+    toJSON: function() {
+
+        // Backbone does not recursively call `toJSON()` on attributes that are themselves models/collections.
+        // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitely.
+        var json = Backbone.Model.prototype.toJSON.apply(this, arguments);
+        json.cells = this.get('cells').toJSON();
+        return json;
+    },
+
     fromJSON: function(json) {
 
         if (!json.cells) {
@@ -19121,7 +19278,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
     addCells: function(cells, options) {
 
-        _.each(cells, function(cell) { this.addCell(this._prepareCell(cell), options || {}); }, this);
+        _.each(cells, function(cell) { this.addCell(cell, options); }, this);
 
         return this;
     },
@@ -19237,10 +19394,6 @@ if (typeof exports === 'object') {
 
     module.exports.Graph = joint.dia.Graph;
 }
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 //      JointJS.
 //      (c) 2011-2013 client IO
 
@@ -19334,6 +19487,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
             this.set('id', joint.util.uuid(), { silent: true });
         }
+
+	this._transitionIds = {};
     },
 
     remove: function(options) {
@@ -19379,14 +19534,19 @@ joint.dia.Cell = Backbone.Model.extend({
 
     embed: function(cell) {
 
-	this.trigger('batch:start');
+	if (this.get('parent') == cell.id) {
 
-        var cellId = cell.id;
-        cell.set('parent', this.id);
+	    throw new Error('Recursive embedding not allowed.');
 
-        this.set('embeds', _.uniq((this.get('embeds') || []).concat([cellId])));
+	} else {
 
-	this.trigger('batch:stop');
+	    this.trigger('batch:start');
+
+	    cell.set('parent', this.id);
+	    this.set('embeds', _.uniq((this.get('embeds') || []).concat([cell.id])));
+
+	    this.trigger('batch:stop');
+	}
     },
 
     unembed: function(cell) {
@@ -19522,6 +19682,95 @@ joint.dia.Cell = Backbone.Model.extend({
         }
         
         return this.set('attrs', _.merge({}, currentAttrs, attrs));
+    },
+
+    transition: function(path, value, opt, delim) {
+
+	delim = delim || '/';
+
+	var defaults = {
+	    duration: 100,
+	    delay: 10,
+	    timingFunction: joint.util.timing.linear,
+	    valueFunction: joint.util.interpolate.number
+	};
+
+	opt = _.extend(defaults, opt);
+
+	var pathArray = path.split(delim);
+        var property = pathArray[0];
+	var isPropertyNested = pathArray.length > 1;
+	var firstFrameTime = 0;
+	var interpolatingFunction;
+
+	var setter = _.bind(function(runtime) {
+
+	    var id, progress, propertyValue, status;
+
+	    firstFrameTime = firstFrameTime || runtime;
+	    runtime -= firstFrameTime;
+	    progress = runtime / opt.duration;
+
+	    if (progress < 1) {
+		this._transitionIds[path] = id = joint.util.nextFrame(setter);
+	    } else {
+		progress = 1;
+		delete this._transitionIds[path];
+	    }
+
+	    propertyValue = interpolatingFunction(opt.timingFunction(progress));
+
+	    if (isPropertyNested) {
+		var nestedPropertyValue = joint.util.setByPath({}, path, propertyValue, delim)[property];
+		propertyValue = _.merge({}, this.get(property), nestedPropertyValue);
+	    }
+
+	    opt.transitionId = id;
+
+	    this.set(property, propertyValue, opt);
+
+	    if (!id) this.trigger('transition:end', this, path);
+
+	}, this);
+
+	var initiator =_.bind(function(callback) {
+
+	    this.stopTransitions(path);
+
+	    interpolatingFunction = opt.valueFunction(joint.util.getByPath(this.attributes, path, delim), value);
+
+	    this._transitionIds[path] = joint.util.nextFrame(callback);
+
+	    this.trigger('transition:start', this, path);
+
+	}, this);
+
+	return _.delay(initiator, opt.delay, setter);
+    },
+
+    getTransitions: function() {
+	return _.keys(this._transitionIds);
+    },
+
+    stopTransitions: function(path, delim) {
+
+	delim = delim || '/';
+
+	var pathArray = path && path.split(delim);
+
+	_(this._transitionIds).keys().filter(pathArray && function(key) {
+
+	    return _.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
+
+	}).each(function(key) {
+
+	    joint.util.cancelFrame(this._transitionIds[key]);
+
+	    delete this._transitionIds[key];
+
+	    this.trigger('transition:end', this, key);
+
+	}, this);
     }
 });
 
@@ -19539,11 +19788,8 @@ joint.dia.CellView = Backbone.View.extend({
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);
 
-        this.model.on({
-
-            'remove': this.remove,
-            'change:attrs': this.update
-        });
+	this.listenTo(this.model, 'remove', this.remove);
+	this.listenTo(this.model, 'change:attrs', this.update);
     },
 
     _configure: function(options) {
@@ -19728,9 +19974,6 @@ if (typeof exports === 'object') {
     module.exports.Cell = joint.dia.Cell;
     module.exports.CellView = joint.dia.CellView;
 }
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 //      JointJS library.
 //      (c) 2011-2013 client IO
@@ -19773,16 +20016,23 @@ joint.dia.Element = joint.dia.Cell.extend({
         }
 
         var position = this.get('position') || { x: 0, y: 0 };
-        
-        this.set('position', {
+	var translatedPosition = { x: position.x + tx || 0, y: position.y + ty || 0 };
 
-            x: position.x + tx || 0,
-            y: position.y + ty || 0
-            
-        }, opt);
+	if (opt && opt.transition) {
 
-        // Recursively call `translate()` on all the embeds cells.
-        _.invoke(this.getEmbeddedCells(), 'translate', tx, ty);
+	    if (!_.isObject(opt.transition)) opt.transition = {};
+
+	    this.transition('position', translatedPosition, _.extend({}, opt.transition, {
+		valueFunction: joint.util.interpolate.object
+	    }));
+
+	} else {
+
+            this.set('position', translatedPosition, opt);
+
+            // Recursively call `translate()` on all the embeds cells.
+            _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
+	}
 
         return this;
     },
@@ -19828,12 +20078,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             'model-id': this.model.id
         });
 
-        this.model.on({
-
-            'change:position': this.translate,
-            'change:size': this.resize,
-            'change:angle': this.rotate
-        });
+	this.listenTo(this.model, 'change:position', this.translate);
+	this.listenTo(this.model, 'change:size', this.resize);
+	this.listenTo(this.model, 'change:angle', this.rotate);
     },
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
@@ -20133,24 +20380,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var position = this.model.get('position') || { x: 0, y: 0 };
 
-        if (opt && opt.animation) {
-
-            var animateTransform = V('animateTransform', {
-                attributeName: 'transform',
-                attributeType: 'XML',
-                type: 'translate',
-                from: (this.model.previous('position').x || 0) + ' ' + (this.model.previous('position').y || 0),
-                to: position.x + ' ' + position.y,
-                dur: '100ms',
-                fill: 'freeze'
-            });
-            V(this.el).append(animateTransform);
-            animateTransform.node.beginElement();
-            
-        } else {
-
-            V(this.el).attr('transform', 'translate(' + position.x + ',' + position.y + ')');
-        }
+        V(this.el).attr('transform', 'translate(' + position.x + ',' + position.y + ')');
     },
 
     rotate: function() {
@@ -20212,10 +20442,6 @@ if (typeof exports === 'object') {
     module.exports.ElementView = joint.dia.ElementView;
 }
 
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 //      JointJS diagramming library.
 //      (c) 2011-2013 client IO
 
@@ -20236,7 +20462,6 @@ if (typeof exports === 'object') {
 
 // joint.dia.Link base model.
 // --------------------------
-
 joint.dia.Link = joint.dia.Cell.extend({
 
     defaults: {
@@ -20348,15 +20573,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Assign CSS class to the element based on the element type.
         V(this.el).attr({ 'class': 'link', 'model-id': this.model.id });
 
-        this.model.on({
-
-            'change:vertices change:smooth change:manhattan': this.update,
-            'change:source change:target': this.updateEnds,
-	    'change:markup': this.render,
-	    'change:vertices change:vertexMarkup': this.renderVertexMarkers,
-	    'change:labels change:labelMarkup': _.bind(function() { this.renderLabels(); this.updateLabelPositions(); }, this),
-            'change:toolMarkup': _.bind(function() { this.renderTools(); this.updateToolsPosition(); }, this)
-        });
+	this.listenTo(this.model, 'change:vertices change:smooth change:manhattan', this.update);
+	this.listenTo(this.model, 'change:source change:target', this.updateEnds);
+	this.listenTo(this.model, 'change:markup', this.render);
+	this.listenTo(this.model, 'change:vertices change:vertexMarkup', this.renderVertexMarkers);
+	this.listenTo(this.model, 'change:labels change:labelMarkup', function() {
+	    this.renderLabels(); this.updateLabelPositions();
+	});
+	this.listenTo(this.model, 'change:toolMarkup', function() {
+	    this.renderTools(); this.updateToolsPosition();
+	});
 
         // `_.labelCache` is a mapping of indexes of labels in the `this.get('labels')` array to
         // `<g class="label">` nodes wrapped by Vectorizer. This allows for quick access to the
@@ -20444,7 +20670,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     },
 
     render: function() {
-
         // A special markup can be given in the `properties.markup` property. This might be handy
         // if e.g. arrowhead markers should be `<image>` elements or any other element than `<path>`s.
         // `.connection`, `.connection-wrap`, `.marker-source` and `.marker-target` selectors
@@ -21259,10 +21484,6 @@ if (typeof exports === 'object') {
     module.exports.Link = joint.dia.Link;
     module.exports.LinkView = joint.dia.LinkView;
 }
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
@@ -21302,12 +21523,9 @@ joint.dia.Paper = Backbone.View.extend({
 
         this.setDimensions();
 
-        this.model.on({
-
-            'add': this.addCell,
-            'reset': this.resetCells,
-            'sort': this.sortCells
-        });
+	this.listenTo(this.model, 'add', this.addCell);
+	this.listenTo(this.model, 'reset', this.resetCells);
+	this.listenTo(this.model, 'sort', this.sortCells);
 
 	$(document).on('mouseup touchend', this.pointerup);
     },
@@ -21348,7 +21566,7 @@ joint.dia.Paper = Backbone.View.extend({
     },
 
     createViewForModel: function(cell) {
-        
+
         var view;
         
         var type = cell.get('type');
@@ -21518,7 +21736,7 @@ joint.dia.Paper = Backbone.View.extend({
 	}, this);
     },
 
-    // Find all views at given point
+    // Find all views in given area
     findViewsInArea: function(r) {
 
 	r = g.rect(r);
@@ -21619,10 +21837,6 @@ joint.dia.Paper = Backbone.View.extend({
         }
     }
 });
-
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 //      JointJS library.
 //      (c) 2011-2013 client IO
