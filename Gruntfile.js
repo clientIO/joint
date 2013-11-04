@@ -75,55 +75,55 @@ module.exports = function(grunt) {
             },
             dist: {
                 files: {
-                    'dist/<%= pkg.name %>.js': [].concat(
+                    'dist/joint.js': [].concat(
                         js.libs.jquery, js.libs.backbone, js.libs.helpers,
                         js.core
                     ),
-                    'dist/<%= pkg.name %>.css': [].concat(
+                    'dist/joint.css': [].concat(
                         css.core
                     )
                 }
             },
             allinone: {
                 files: {
-                    'dist/<%= pkg.name %>.all.js': [].concat(
+                    'dist/joint.all.js': [].concat(
                         js.libs.jquery, js.libs.backbone, js.libs.helpers,
                         js.core, allJSPlugins()
                     ),
-                    'dist/<%= pkg.name %>.all.css': [].concat(
+                    'dist/joint.all.css': [].concat(
                         css.core, allCSSPlugins()
                     )
                 }
             },
             nojquery: {
                 files: {
-                    'dist/<%= pkg.name %>.nojquery.js': [].concat(
+                    'dist/joint.nojquery.js': [].concat(
                         js.libs.backbone, js.libs.helpers,
                         js.core
                     ),
-                    'dist/<%= pkg.name %>.nojquery.css': [].concat(
+                    'dist/joint.nojquery.css': [].concat(
                         css.core
                     )
                 }
             },
             nobackbone: {
                 files: {
-                    'dist/<%= pkg.name %>.nobackbone.js': [].concat(
+                    'dist/joint.nobackbone.js': [].concat(
                         js.libs.jquery, js.libs.helpers,
                         js.core
                     ),
-                    'dist/<%= pkg.name %>.nojquery.css': [].concat(
+                    'dist/joint.nojquery.css': [].concat(
                         css.core
                     )
                 }
             },
             nojquerynobackbone: {
                 files: {
-                    'dist/<%= pkg.name %>.nojquerynobackbone.js': [].concat(
+                    'dist/joint.nojquerynobackbone.js': [].concat(
                         js.libs.helpers,
                         js.core
                     ),
-                    'dist/<%= pkg.name %>.nojquerynobackbone.css': [].concat(
+                    'dist/joint.nojquerynobackbone.css': [].concat(
                         css.core
                     )
                 }
@@ -137,7 +137,7 @@ module.exports = function(grunt) {
             
             dist: {
                 files: {
-                    'dist/<%= pkg.name %>.min.js': [].concat(
+                    'dist/joint.min.js': [].concat(
                         js.libs.jquery, js.libs.backbone, js.libs.helpers,
                         js.core
                     )
@@ -145,7 +145,7 @@ module.exports = function(grunt) {
             },
             allinone: {
                 files: {
-                    'dist/<%= pkg.name %>.all.min.js': [].concat(
+                    'dist/joint.all.min.js': [].concat(
                         js.libs.jquery, js.libs.backbone, js.libs.helpers,
                         js.core, allJSPlugins()
                     )
@@ -153,7 +153,7 @@ module.exports = function(grunt) {
             },
             nojquery: {
                 files: {
-                    'dist/<%= pkg.name %>.nojquery.min.js': [].concat(
+                    'dist/joint.nojquery.min.js': [].concat(
                         js.libs.backbone, js.libs.helpers,
                         js.core
                     )
@@ -161,7 +161,7 @@ module.exports = function(grunt) {
             },
             nobackbone: {
                 files: {
-                    'dist/<%= pkg.name %>.nobackbone.min.js': [].concat(
+                    'dist/joint.nobackbone.min.js': [].concat(
                         js.libs.jquery, js.libs.helpers,
                         js.core
                     )
@@ -169,7 +169,7 @@ module.exports = function(grunt) {
             },
             nojquerynobackbone: {
                 files: {
-                    'dist/<%= pkg.name %>.nojquerynobackbone.min.js': [].concat(
+                    'dist/joint.nojquerynobackbone.min.js': [].concat(
                         js.libs.helpers,
                         js.core
                     )
@@ -183,35 +183,35 @@ module.exports = function(grunt) {
             },
             dist: {
                 files: {
-                    'dist/<%= pkg.name %>.min.css': [].concat(
+                    'dist/joint.min.css': [].concat(
                         css.core
                     )
                 }
             },
             allinone: {
                 files: {
-                    'dist/<%= pkg.name %>.all.min.css': [].concat(
+                    'dist/joint.all.min.css': [].concat(
                         css.core, allCSSPlugins()
                     )
                 }
             },
             nojquery: {
                 files: {
-                    'dist/<%= pkg.name %>.nojquery.min.css': [].concat(
+                    'dist/joint.nojquery.min.css': [].concat(
                         css.core
                     )
                 }
             },
             nobackbone: {
                 files: {
-                    'dist/<%= pkg.name %>.nojquery.min.css': [].concat(
+                    'dist/joint.nojquery.min.css': [].concat(
                         css.core
                     )
                 }
             },
             nojquerynobackbone: {
                 files: {
-                    'dist/<%= pkg.name %>.nojquerynobackbone.min.css': [].concat(
+                    'dist/joint.nojquerynobackbone.min.css': [].concat(
                         css.core
                     )
                 }
