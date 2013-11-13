@@ -17,6 +17,7 @@ joint.dia.Paper = Backbone.View.extend({
     events: {
 
         'mousedown': 'pointerdown',
+        'dblclick': 'mousedblclick',
         'touchstart': 'pointerdown',
         'mousemove': 'pointermove',
         'touchmove': 'pointermove'
@@ -298,6 +299,24 @@ joint.dia.Paper = Backbone.View.extend({
     normalizeEvent: function(evt) {
 
         return (evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches.length) ? evt.originalEvent.changedTouches[0] : evt;
+    },
+
+    mousedblclick: function(evt) {
+        
+        evt.preventDefault();
+        evt = this.normalizeEvent(evt);
+        
+        var view = this.findView(evt.target);
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+        if (view) {
+            
+            view.pointerdblclick(evt, localPoint.x, localPoint.y);
+            
+        } else {
+            
+            this.trigger('blank:pointerdblclick', evt, localPoint.x, localPoint.y);
+        }
     },
 
     pointerdown: function(evt) {
