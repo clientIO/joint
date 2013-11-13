@@ -543,6 +543,11 @@ joint.dia.CellView = Backbone.View.extend({
     // These functions are supposed to be overriden by the views that inherit from `joint.dia.Cell`,
     // i.e. `joint.dia.Element` and `joint.dia.Link`.
 
+    pointerdblclick: function(evt, x, y) {
+
+        this.notify('cell:pointerdblclick', evt, x, y);
+    },
+    
     pointerdown: function(evt, x, y) {
 
 	if (this.model.collection) {
