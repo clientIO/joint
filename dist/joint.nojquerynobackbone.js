@@ -1,4 +1,4 @@
-/*! JointJS v0.7.0 - JavaScript diagramming library  2013-11-04 
+/*! JointJS v0.7.0 - JavaScript diagramming library  2013-11-13 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -2408,6 +2408,11 @@ joint.dia.CellView = Backbone.View.extend({
     // These functions are supposed to be overriden by the views that inherit from `joint.dia.Cell`,
     // i.e. `joint.dia.Element` and `joint.dia.Link`.
 
+    pointerdblclick: function(evt, x, y) {
+
+        this.notify('cell:pointerdblclick', evt, x, y);
+    },
+    
     pointerdown: function(evt, x, y) {
 
 	if (this.model.collection) {
@@ -3801,9 +3806,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
 
-        delete this._action;
-        
-        this._dx = x;
+	this._dx = x;
         this._dy = y;
 
         if (this.options.interactive === false) {
@@ -3944,6 +3947,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 delete this._magnetUnderPointer;
             }
         }
+
+        delete this._action;
     }
 });
 
@@ -3972,6 +3977,7 @@ joint.dia.Paper = Backbone.View.extend({
     events: {
 
         'mousedown': 'pointerdown',
+        'dblclick': 'mousedblclick',
         'touchstart': 'pointerdown',
         'mousemove': 'pointermove',
         'touchmove': 'pointermove'
@@ -4253,6 +4259,24 @@ joint.dia.Paper = Backbone.View.extend({
     normalizeEvent: function(evt) {
 
         return (evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches.length) ? evt.originalEvent.changedTouches[0] : evt;
+    },
+
+    mousedblclick: function(evt) {
+        
+        evt.preventDefault();
+        evt = this.normalizeEvent(evt);
+        
+        var view = this.findView(evt.target);
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+        if (view) {
+            
+            view.pointerdblclick(evt, localPoint.x, localPoint.y);
+            
+        } else {
+            
+            this.trigger('blank:pointerdblclick', evt, localPoint.x, localPoint.y);
+        }
     },
 
     pointerdown: function(evt) {
