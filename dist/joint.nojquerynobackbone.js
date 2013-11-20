@@ -1,4 +1,4 @@
-/*! JointJS v0.7.0 - JavaScript diagramming library  2013-11-13 
+/*! JointJS v0.7.0 - JavaScript diagramming library  2013-11-20 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -4023,17 +4023,23 @@ joint.dia.Paper = Backbone.View.extend({
 	this.trigger('resize');
     },
 
-    fitToContent: function(unitWidth, unitHeight) {
+    // Expand/shrink the paper to fit the content. Snap the width/height to the grid
+    // defined in `gridWidth`, `gridHeight`. `padding` adds to the resulting width/height of the paper.
+    fitToContent: function(gridWidth, gridHeight, padding) {
 
-	unitWidth = unitWidth || 1;
-	unitHeight = unitHeight || 1;
+	gridWidth = gridWidth || 1;
+	gridHeight = gridHeight || 1;
+        padding = padding || 0;
 
 	// Calculate the paper size to accomodate all the graph's elements.
 	var bbox = V(this.viewport).bbox(true, this.svg);
 
-	var calcWidth = Math.ceil((bbox.width + bbox.x) / unitWidth) * unitWidth;
-	var calcHeight = Math.ceil((bbox.height + bbox.y) / unitHeight) * unitHeight;
+	var calcWidth = Math.ceil((bbox.width + bbox.x) / gridWidth) * gridWidth;
+	var calcHeight = Math.ceil((bbox.height + bbox.y) / gridHeight) * gridHeight;
 
+        calcWidth += padding;
+        calcHeight += padding;
+        
 	// Change the dimensions only if there is a size discrepency
 	if (calcWidth != this.options.width || calcHeight != this.options.height) {
 	    this.setDimensions(calcWidth || this.options.width , calcHeight || this.options.height);
