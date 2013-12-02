@@ -30,6 +30,8 @@ joint.layout.DirectedGraph = {
                 }
             });
         }
+
+        return { width: layoutGraph.graph().width, height: layoutGraph.graph().height };
     },
     
     _prepareData: function(graph) {
@@ -37,29 +39,26 @@ joint.layout.DirectedGraph = {
         var dagreGraph = new dagre.Digraph();
 
         // For each element.
-        graph.get('cells').each(function(cell) {
-
-            if (!(cell instanceof joint.dia.Element)) return;
+        _.each(graph.getElements(), function(cell) {
 
             if (dagreGraph.hasNode(cell.id)) return;
 
             dagreGraph.addNode(cell.id, {
                 width: cell.get('size').width,
-                height: cell.get('size').height
+                height: cell.get('size').height,
+                rank: cell.get('rank')
             });
         });
 
         // For each link.
-        graph.get('cells').each(function(cell) {
+        _.each(graph.getLinks(), function(cell) {
 
-            if (!(cell instanceof joint.dia.Link)) return;
-            
             if (dagreGraph.hasEdge(cell.id)) return;
 
             var sourceId = cell.get('source').id;
             var targetId = cell.get('target').id;
 
-            dagreGraph.addEdge(cell.id, sourceId, targetId);
+            dagreGraph.addEdge(cell.id, sourceId, targetId, { minLen: cell.get('minLen') || 1 });
         });
 
         return dagreGraph;
