@@ -191,6 +191,11 @@ var joint = {
             return ret;
         },
 
+        normalizeEvent: function(evt) {
+
+            return (evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches.length) ? evt.originalEvent.changedTouches[0] : evt;
+        },
+
 	nextFrame:(function() {
 
 	    var raf;

@@ -283,15 +283,10 @@ joint.dia.Paper = Backbone.View.extend({
     // Interaction.
     // ------------
 
-    normalizeEvent: function(evt) {
-
-        return (evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches.length) ? evt.originalEvent.changedTouches[0] : evt;
-    },
-
     mousedblclick: function(evt) {
         
         evt.preventDefault();
-        evt = this.normalizeEvent(evt);
+        evt = joint.util.normalizeEvent(evt);
         
         var view = this.findView(evt.target);
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
@@ -309,7 +304,7 @@ joint.dia.Paper = Backbone.View.extend({
     pointerdown: function(evt) {
 
         evt.preventDefault();
-        evt = this.normalizeEvent(evt);
+        evt = joint.util.normalizeEvent(evt);
         
         var view = this.findView(evt.target);
 
@@ -330,7 +325,7 @@ joint.dia.Paper = Backbone.View.extend({
     pointermove: function(evt) {
 
         evt.preventDefault();
-        evt = this.normalizeEvent(evt);
+        evt = joint.util.normalizeEvent(evt);
 
         if (this.sourceView) {
 
@@ -342,7 +337,7 @@ joint.dia.Paper = Backbone.View.extend({
 
     pointerup: function(evt) {
 
-        evt = this.normalizeEvent(evt);
+        evt = joint.util.normalizeEvent(evt);
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
         
