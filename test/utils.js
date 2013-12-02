@@ -28,3 +28,42 @@ function checkBbox(paper, el, x, y, w, h, msg) {
 
     deepEqual(bboxObject, { x: x, y: y, width: w, height: h }, msg);
 }
+
+// Simulate user events.
+// ---------------------
+
+var simulate = {
+
+    mouseevent: function(opt) {
+        
+        var evt = document.createEvent('MouseEvents');
+        evt.initMouseEvent(
+            opt.type, /*canBubble*/ true, /*cancelable*/ true, /*view*/ window, /*click count*/1,
+            opt.screenX || 0, opt.screenY || 0, opt.clientX || 0, opt.clientY || 0,
+            /*ctrlKey*/ false, /*altKey*/ false, /*shiftKey*/ false, /*metaKey*/ false, opt.button || 0, /*relatedTarget*/ null
+        );
+
+        if (opt.el) {
+            opt.el.dispatchEvent(evt);
+        }
+        return evt;
+    },
+    
+    mousedown: function(opt) {
+
+        opt.type = 'mousedown';
+        return this.mouseevent(opt);
+    },
+
+    mousemove: function(opt) {
+
+        opt.type = 'mousemove';
+        return this.mouseevent(opt);
+    },
+
+    mouseup: function(opt) {
+
+        opt.type = 'mouseup';
+        return this.mouseevent(opt);
+    }
+};
