@@ -244,17 +244,11 @@ joint.dia.Paper = Backbone.View.extend({
 
 	p = g.point(p);
 
-	var isNotALink = function(cell) {
-	    return !(cell instanceof joint.dia.Link);
-	};
-
-	var elements = this.model.get('cells').filter(isNotALink);
-
-        var views = _.map(elements, this.findViewByModel);
+        var views = _.map(this.model.getElements(), this.findViewByModel);
 
 	return _.filter(views, function(view) {
 	    return g.rect(view.getBBox()).containsPoint(p);
-	}, this);
+	});
     },
 
     // Find all views in given area
@@ -262,26 +256,13 @@ joint.dia.Paper = Backbone.View.extend({
 
 	r = g.rect(r);
 
-	var isNotALink = function(cell) {
-	    return !(cell instanceof joint.dia.Link);
-	};
+        var views = _.map(this.model.getElements(), this.findViewByModel);
 
-	var elements = this.model.get('cells').filter(isNotALink);
-
-        var elementViews = [];
-        
-	_.each(elements, function(element) {
-
-            var view = this.findViewByModel(element);
-	    if (r.containsPoint(g.point(view.getBBox()))) {
-
-                elementViews.push(view);
-            }
-	}, this);
-
-        return elementViews;
+	return _.filter(views, function(view) {
+	    return r.intersect(g.rect(view.getBBox()));
+	});
     },
-    
+
     getModelById: function(id) {
 
         return this.model.getCell(id);
