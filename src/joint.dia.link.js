@@ -431,7 +431,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var $markerArrowheads = this.$('.marker-arrowheads');
 
         // Custom markups might not have arrowhead markers. Therefore, jump of this function immediately if that's the case.
-        if ($markerArrowheads.length === 0) return;
+        if ($markerArrowheads.length === 0 || $markerArrowheads.css('display') == 'none') return;
         
         $markerArrowheads.empty();
 
