@@ -37,7 +37,7 @@ joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
     
         type: 'basic.Rect',
         attrs: {
-            'rect': { fill: '#FFFFFF', stroke: 'black', width: 1, height: 1 },
+            'rect': { fill: '#FFFFFF', stroke: 'black', width: 100, height: 60 },
             'text': { 'font-size': 14, text: '', 'ref-x': .5, 'ref-y': .5, ref: 'rect', 'y-alignment': 'middle', 'x-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
         }
         
