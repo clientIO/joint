@@ -294,6 +294,15 @@ var joint = {
 		};
 	    },
 
+	    clamp: function(f,n,x) {
+		n = n || 0;
+		x = x || 1;
+		return function(t) {
+		    var r = f(t);
+		    return r < n ? n : r > x ? x : r;
+		}
+	    },
+
 	    back: function(s) {
 		if (!s) s = 1.70158;
 		return function(t) {
