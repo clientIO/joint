@@ -344,8 +344,10 @@ joint.dia.Paper = Backbone.View.extend({
         if (this.sourceView) {
 
             this.sourceView.pointerup(evt, localPoint.x, localPoint.y);
-            delete this.sourceView;
-            
+
+            //"delete sourceView" occasionally throws an error in chrome (illegal access exception)
+	    this.sourceView = null;
+
         } else {
 
             this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
