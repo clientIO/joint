@@ -385,6 +385,13 @@ joint.dia.Cell = Backbone.Model.extend({
 
 joint.dia.CellView = Backbone.View.extend({
 
+    tagName: 'g',
+
+    attributes: function() {
+
+        return { 'model-id': this.model.id }
+    },
+
     initialize: function() {
 
         _.bindAll(this, 'remove', 'update');
@@ -411,12 +418,20 @@ joint.dia.CellView = Backbone.View.extend({
     // all the nodes of the Cell view.
     _ensureElement: function() {
 
+        var el;
+
         if (!this.el) {
 
-            this.el = V('g', { id: this.id }).node;
+            var attrs = _.extend({ id: this.id }, _.result(this, 'attributes'));
+            if (this.className) attrs['class'] = _.result(this, 'className');
+            el = V(_.result(this, 'tagName'), attrs).node;
+
+        } else {
+
+            el = _.result(this, 'el')
         }
-            
-        this.setElement(this.el, false);
+
+        this.setElement(el, false);
     },
     
     findBySelector: function(selector) {
