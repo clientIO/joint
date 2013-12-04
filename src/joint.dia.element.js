@@ -87,20 +87,17 @@ joint.dia.Element = joint.dia.Cell.extend({
 // -------------------------------------------
 
 joint.dia.ElementView = joint.dia.CellView.extend({
-    
+
+    className: function() {
+        return 'element ' + this.model.get('type').split('.').join(' ');
+    },
+
     initialize: function() {
 
         _.bindAll(this, 'translate', 'resize', 'rotate');
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
         
-        // Assign CSS class to the element based on the element type.
-        V(this.el).attr({
-            
-            'class': 'element ' + this.model.get('type').split('.').join(' '),
-            'model-id': this.model.id
-        });
-
 	this.listenTo(this.model, 'change:position', this.translate);
 	this.listenTo(this.model, 'change:size', this.resize);
 	this.listenTo(this.model, 'change:angle', this.rotate);

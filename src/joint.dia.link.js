@@ -111,6 +111,8 @@ joint.dia.Link = joint.dia.Cell.extend({
 
 joint.dia.LinkView = joint.dia.CellView.extend({
 
+    className: 'link',
+
     options: {
 
         shortLinkLength: 100
@@ -125,9 +127,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             'update', 'updateEnds', 'render', 'renderVertexMarkers', 'renderLabels', 'renderTools',
             'onSourceModelChange', 'onTargetModelChange'
         );
-
-        // Assign CSS class to the element based on the element type.
-        V(this.el).attr({ 'class': 'link', 'model-id': this.model.id });
 
 	this.listenTo(this.model, 'change:vertices change:smooth change:manhattan', this.update);
 	this.listenTo(this.model, 'change:source change:target', this.updateEnds);
