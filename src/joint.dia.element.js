@@ -21,7 +21,9 @@ if (typeof exports === 'object') {
 joint.dia.Element = joint.dia.Cell.extend({
 
     defaults: {
-	size: { width: 1, height: 1 }
+        position: { x: 0, y: 0 },
+	size: { width: 1, height: 1 },
+        angle: 0
     },
 
     position: function(x, y) {
