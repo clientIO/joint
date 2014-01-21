@@ -11,7 +11,23 @@ joint.dia.Paper = Backbone.View.extend({
         gridSize: 50,
         perpendicularLinks: false,
         elementView: joint.dia.ElementView,
-        linkView: joint.dia.LinkView
+        linkView: joint.dia.LinkView,
+
+        // Defines what link model is added to the graph after an user clicks on an active magnet.
+        // Value could be the Backbone.model or a function returning the Backbone.model
+        // defaultLink: function(elementView, magnet) { return condition ? new customLink1() : new customLink2() }
+        defaultLink: new joint.dia.Link,
+
+        // Check whether to add a new link to the graph when user clicks on an a magnet.
+        validateMagnet: function(cellView, magnet) {
+            return magnet.getAttribute('magnet') !== 'passive';
+        },
+
+        // Check whether to allow or disallow the link connection while an arrowhead end (source/target)
+        // being changed.
+        validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
+            return (end === 'target' ? cellViewT : cellViewS) instanceof joint.dia.ElementView;
+        }
     },
 
     events: {
@@ -29,6 +45,9 @@ joint.dia.Paper = Backbone.View.extend({
 
         this.svg = V('svg').node;
         this.viewport = V('g').node;
+
+        // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
+        V(this.svg).append(V('defs').node);
 
         V(this.viewport).attr({ 'class': 'viewport' });
         
@@ -278,6 +297,15 @@ joint.dia.Paper = Backbone.View.extend({
             x: g.snapToGrid(localPoint.x, this.options.gridSize),
             y: g.snapToGrid(localPoint.y, this.options.gridSize)
         };
+    },
+
+    getDefaultLink: function(cellView, magnet) {
+
+        return _.isFunction(this.options.defaultLink)
+        // default link is a function producing link model
+            ? this.options.defultLink.call(this, cellView, magnet)
+        // default link is the Backbone model
+            : this.options.defaultLink.clone();
     },
 
     // Interaction.

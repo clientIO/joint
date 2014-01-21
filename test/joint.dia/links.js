@@ -24,33 +24,115 @@ module('links', {
 
 test('construction', function() {
 
-    var myrect = new joint.shapes.basic.Rect({
-        position: { x: 20, y: 30 },
-        size: { width: 120, height: 80 }
-    });
+    var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+    var r2 = r1.clone().translate(300);
 
-    this.graph.addCell(myrect);
+    this.graph.addCell([r1,r2]);
 
-    var myrect2 = myrect.clone();
-    myrect2.translate(300);
-    this.graph.addCell(myrect2);
-
-    var link = new joint.dia.Link({
-
-        source: { id: myrect.id },
-        target: { id: myrect2.id },
+    var l0 = new joint.dia.Link({
+        source: { id: r1.id },
+        target: { id: r2.id },
         attrs: { '.connection': { stroke: 'black' } }
     });
 
-    this.graph.addCell(link);
+    this.graph.addCell(l0);
 
-    strictEqual(link.constructor, joint.dia.Link, 'link.constructor === joint.dia.Link');
+    strictEqual(l0.constructor, joint.dia.Link, 'link.constructor === joint.dia.Link');
 
-    var linkView = this.paper.findViewByModel(link);
+    var v0 = this.paper.findViewByModel(l0);
 
-    equal(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data starts at the source right-middle point and ends in the target left-middle point');
+    equal(v0.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data starts at the source right-middle point and ends in the target left-middle point');
+
+    var l1 = new joint.dia.Link({
+        source: { id: r1.id },
+        target: { id: r2.id },
+        markup: '<path class="connection"/>'
+    });
+    this.graph.addCell(l1);
+    var v1 = this.paper.findViewByModel(l1);
+
+    ok(v1, 'link with custom markup (1 child) is rendered.');
+
+    var l2 = new joint.dia.Link({
+        source: { id: r1.id },
+        target: { id: r2.id },
+        markup: '<path class="connection"/><path class="connection-wrap"/>'
+    });
+    this.graph.addCell(l2);
+    var v2 = this.paper.findViewByModel(l2);
+
+    ok(v2, 'link with custom markup (2 children) is rendered.')
+
+    var l3 = new joint.dia.Link({
+        source: { id: r1.id },
+        target: { id: r2.id },
+        markup: '<path class="no-connection"/>'
+    });
+
+    throws(function() {
+        this.graph.addCell(l3);
+    }, 'Markup with no connection throws an exception.');
+
 });
 
+test('interaction', function() {
+
+    expect(6);
+
+    var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+    var r2 = r1.clone().translate(300);
+    var r3 = r2.clone().translate(300);
+
+    this.graph.addCell([r1,r2, r3]);
+
+    var vr1 = this.paper.findViewByModel(r1);
+    var vr2 = this.paper.findViewByModel(r2);
+    var vr3 = this.paper.findViewByModel(r3);
+
+    var l0 = new joint.dia.Link({
+        source: { id: r1.id },
+        target: { id: r2.id },
+        attrs: { '.connection': { stroke: 'black' } }
+    });
+
+    this.graph.addCell(l0);
+
+    var v0 = this.paper.findViewByModel(l0);
+
+    this.paper.options.validateConnection = function(vs, ms, vt, mt, v) {
+        ok(vs === vr1 && vt === vr3, 'connection validation executed');
+        return vt instanceof joint.dia.ElementView;
+    };
+
+    // adding vertices
+
+    v0.pointerdown({ target: v0.el.querySelector('.connection')}, 200, 70);
+    v0.pointerup();
+    deepEqual(l0.get('vertices'), [{x: 200, y: 70}], 'vertex added after click the connection.');
+
+    var firstVertexRemoveArea = v0.el.querySelector('.marker-vertex-remove-area');
+
+    v0.pointerdown({ target: v0.el.querySelector('.connection-wrap') }, 300, 70);
+    v0.pointermove({}, 300, 100);
+    v0.pointerup();
+    deepEqual(l0.get('vertices'), [{x: 200, y: 70}, {x: 300, y: 100}], 'vertex added and translated after click the connection wrapper and mousemove.');
+
+    v0.pointerdown({ target: firstVertexRemoveArea });
+    v0.pointerup();
+
+    // arrowheadmove
+
+    v0.pointerdown({ target: v0.el.querySelector('.marker-arrowhead[end="target"]') });
+    v0.pointermove({ target: vr3.el, type: 'mousemove' }, 630, 40);
+    ok(vr3.el.getAttribute('class').indexOf('highlighted') >= 0, 'moving pointer over the rectangle makes the rectangle highlighted');
+
+    v0.pointermove({ target: this.paper.el, type: 'mousemove' }, 400, 400);
+    ok(vr3.el.getAttribute('class').indexOf('highlighted') == -1, 'after moving the pointer to coordinates 400,400 the rectangle is not highlighted anymore');
+
+    v0.pointerup();
+    equal(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 300 100 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400,400');
+
+});
 
 test('disconnect(), connect()', function() {
 
@@ -428,4 +510,34 @@ test('manhattan routing', function() {
     var l3PathData = l3View.$('.connection').attr('d');
 
     equal(l3PathData, 'M 225 90 225 200 150 200 150 55 350 55', 'no spike (a return path segment) was created');
+});
+
+test('magnets & ports', function() {
+
+    var myrect = new joint.shapes.basic.Rect;
+    var myrect2 = myrect.clone();
+    myrect2.translate(300);
+
+    this.graph.addCells([myrect, myrect2]);
+    
+    myrect.attr('text', { magnet: true, port: 'port1' });
+    myrect2.attr('text', { magnet: true, port: 'port2' });
+    
+    var myrectView = this.paper.findViewByModel(myrect);
+    var myrect2View = this.paper.findViewByModel(myrect2);
+    
+    simulate.mousedown({ el: myrectView.$('text')[0] });
+    simulate.mousemove({ el: myrect2View.$('text')[0] });
+    simulate.mouseup({ el: myrect2View.$('text')[0] });
+
+    var link = this.graph.getLinks()[0];
+
+    equal(link.get('source').port, 'port1', 'port was automatically assigned to the link source');
+    equal(link.get('target').port, 'port2', 'port was automatically assigned to the link target');
+    equal(myrectView.$(link.get('source').selector)[0], myrectView.$('text')[0], 'source selector points to the magnet element');
+    equal(myrect2View.$(link.get('target').selector)[0], myrect2View.$('text')[0], 'target selector points to the magnet element');
+
+    // The functionality below is not implemented, hence skiping the test.
+    // myrect.attr('text', { port: 'port3' });
+    // equal(link.get('source').port, 'port3', 'changing port on an element automatically changes the same port on a link');
 });

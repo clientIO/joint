@@ -13,6 +13,7 @@ if (typeof exports === 'object') {
     };
     var Backbone = require('backbone');
     var _ = require('lodash');
+    var g = require('./geometry').g;
 }
 
 
@@ -263,7 +264,25 @@ joint.dia.Graph = Backbone.Model.extend({
     removeLinks: function(model) {
 
         _.invoke(this.getConnectedLinks(model), 'remove');
+    },
+
+    // Find all views at given point
+    findModelsFromPoint: function(p) {
+
+	return _.filter(this.getElements(), function(el) {
+	    return el.getBBox().containsPoint(p);
+	});
+    },
+
+
+    // Find all views in given area
+    findModelsInArea: function(r) {
+
+	return _.filter(this.getElements(), function(el) {
+	    return el.getBBox().intersect(r);
+	});
     }
+
 });
 
 

@@ -258,6 +258,10 @@
         // If `target` is specified, bounding box will be computed relatively to `target` element.
         bbox: function(withoutTransformations, target) {
 
+            // If the element is not in the live DOM, it does not have a bounding box defined and
+            // so fall back to 'zero' dimension element.
+            if (!this.node.ownerSVGElement) return { x: 0, y: 0, width: 0, height: 0 };
+            
             var box;
             try {
 

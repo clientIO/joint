@@ -93,6 +93,62 @@ joint.dia.Cell = Backbone.Model.extend({
         }
 
 	this._transitionIds = {};
+
+        // Collect ports defined in `attrs` and keep collecting whenever `attrs` object changes.
+        this.processPorts();
+        this.on('change:attrs', this.processPorts, this);
+    },
+
+    processPorts: function() {
+
+        // Whenever `attrs` changes, we extract ports from the `attrs` object and store it
+        // in a more accessible way. Also, if any port got removed and there were links that had `target`/`source`
+        // set to that port, we remove those links as well (to follow the same behaviour as
+        // with a removed element).
+
+        var previousPorts = this.ports;
+
+        // Collect ports from the `attrs` object.
+        var ports = {};
+        _.each(this.get('attrs'), function(attrs, selector) {
+
+            if (attrs.port) {
+
+                // `port` can either be directly an `id` or an object containing an `id` (and potentially other data).
+                if (!_.isUndefined(attrs.port.id)) {
+                    ports[attrs.port.id] = attrs.port;
+                } else {
+                    ports[attrs.port] = { id: attrs.port };
+                }
+            }
+        });
+
+        // Collect ports that have been removed (compared to the previous ports) - if any.
+        // Use hash table for quick lookup.
+        var removedPorts = {};
+        _.each(previousPorts, function(port, id) {
+
+            if (!ports[id]) removedPorts[id] = true;
+        });
+
+        // Remove all the incoming/outgoing links that have source/target port set to any of the removed ports.
+        if (this.collection && !_.isEmpty(removedPorts)) {
+            
+            var inboundLinks = this.collection.getConnectedLinks(this, { inbound: true });
+            _.each(inboundLinks, function(link) {
+
+                if (removedPorts[link.get('target').port]) link.remove();
+            });
+
+            var outboundLinks = this.collection.getConnectedLinks(this, { outbound: true });
+            _.each(outboundLinks, function(link) {
+
+                if (removedPorts[link.get('source').port]) link.remove();
+            });
+        }
+
+        // Update the `ports` object.
+        this.ports = ports;
     },
 
     remove: function(options) {
@@ -264,7 +320,7 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     // A convenient way to set nested attributes.
-    attr: function(attrs, value) {
+    attr: function(attrs, value, opt) {
 
         var currentAttrs = this.get('attrs');
         var delim = '/';
@@ -277,7 +333,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
                 var attr = {};
                 joint.util.setByPath(attr, attrs, value, delim);
-                return this.set('attrs', _.merge({}, currentAttrs, attr));
+                return this.set('attrs', _.merge({}, currentAttrs, attr), opt);
                 
             } else {
                 
@@ -285,7 +341,7 @@ joint.dia.Cell = Backbone.Model.extend({
             }
         }
         
-        return this.set('attrs', _.merge({}, currentAttrs, attrs));
+        return this.set('attrs', _.merge({}, currentAttrs, attrs), value);
     },
 
     transition: function(path, value, opt, delim) {
@@ -516,11 +572,11 @@ joint.dia.CellView = Backbone.View.extend({
             // announce there is no magnet found for this cell.
             // This is especially useful to set on cells that have 'ports'. In this case,
             // only the ports have set `magnet === true` and the overall element has `magnet === false`.
-            var attrs = this.model.get('attrs');
+            var attrs = this.model.get('attrs') || {};
             if (attrs['.'] && attrs['.']['magnet'] === false) {
-
                 return undefined;
             }
+
             return this.el;
         }
 
@@ -530,6 +586,75 @@ joint.dia.CellView = Backbone.View.extend({
         }
 
         return this.findMagnet($el.parent());
+    },
+
+    // `selector` is a CSS selector or `'.'`. `filter` must be in the special JointJS filter format:
+    // `{ name: <name of the filter>, args: { <arguments>, ... }`.
+    // An example is: `{ filter: { name: 'blur', args: { radius: 5 } } }`.
+    applyFilter: function(selector, filter) {
+
+        var $selected = this.findBySelector(selector);
+
+        // Generate a hash code from the stringified filter definition. This gives us
+        // a unique filter ID for different definitions.
+        var filterId = filter.name + this.paper.svg.id + joint.util.hashCode(JSON.stringify(filter));
+
+        // If the filter already exists in the document,
+        // we're done and we can just use it (reference it using `url()`).
+        // If not, create one.
+        if (!this.paper.svg.getElementById(filterId)) {
+
+            var filterSVGString = joint.util.filter[filter.name] && joint.util.filter[filter.name](filter.args || {});
+            if (!filterSVGString) {
+                throw new Error('Non-existing filter ' + filter.name);
+            }
+            var filterElement = V(filterSVGString);
+            filterElement.attr('filterUnits', 'userSpaceOnUse');
+            filterElement.node.id = filterId;
+            V(this.paper.svg).defs().append(filterElement);
+        }
+
+        $selected.each(function() {
+            
+            V(this).attr('filter', 'url(#' + filterId + ')');
+        });
+    },
+
+    // `selector` is a CSS selector or `'.'`. `attr` is either a `'fill'` or `'stroke'`.
+    // `gradient` must be in the special JointJS gradient format:
+    // `{ type: <linearGradient|radialGradient>, stops: [ { offset: <offset>, color: <color> }, ... ]`.
+    // An example is: `{ fill: { type: 'linearGradient', stops: [ { offset: '10%', color: 'green' }, { offset: '50%', color: 'blue' } ] } }`.
+    applyGradient: function(selector, attr, gradient) {
+
+        var $selected = this.findBySelector(selector);
+
+        // Generate a hash code from the stringified filter definition. This gives us
+        // a unique filter ID for different definitions.
+        var gradientId = gradient.type + this.paper.svg.id + joint.util.hashCode(JSON.stringify(gradient));
+
+        // If the gradient already exists in the document,
+        // we're done and we can just use it (reference it using `url()`).
+        // If not, create one.
+        if (!this.paper.svg.getElementById(gradientId)) {
+
+            var gradientSVGString = [
+                '<' + gradient.type + '>',
+                _.map(gradient.stops, function(stop) {
+                    return '<stop offset="' + stop.offset + '" stop-color="' + stop.color + '" stop-opacity="' + (_.isFinite(stop.opacity) ? stop.opacity : 1) + '" />'
+                }).join(''),
+                '</' + gradient.type + '>'
+            ].join('');
+            
+            var gradientElement = V(gradientSVGString);
+            if (gradient.attrs) { gradientElement.attr(gradient.attrs); }
+            gradientElement.node.id = gradientId;
+            V(this.paper.svg).defs().append(gradientElement);
+        }
+
+        $selected.each(function() {
+            
+            V(this).attr(attr, 'url(#' + gradientId + ')');
+        });
     },
 
     // Construct a unique selector for the `el` element within this view.
