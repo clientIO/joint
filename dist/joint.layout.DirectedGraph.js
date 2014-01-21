@@ -1,4 +1,4 @@
-/*! JointJS v0.7.0 - JavaScript diagramming library  2013-11-20 
+/*! JointJS v0.8.0 - JavaScript diagramming library  2014-01-21 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -6,7 +6,7 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 ;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var global=self;/**
+var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};/**
  * @license
  * Copyright (c) 2012-2013 Chris Pettitt
  *
@@ -54,104 +54,52 @@ THE SOFTWARE.
 */
 exports.Digraph = require("graphlib").Digraph;
 exports.Graph = require("graphlib").Graph;
-exports.layout = require("./lib/layout/layout");
+exports.layout = require("./lib/layout");
 exports.version = require("./lib/version");
 
-},{"./lib/layout/layout":4,"./lib/version":9,"graphlib":10}],3:[function(require,module,exports){
-var util = require("../util");
-
-module.exports = instrumentedRun;
-module.exports.undo = undo;
-
-function instrumentedRun(g, debugLevel) {
-  var timer = util.createTimer();
-  var reverseCount = util.createTimer().wrap("Acyclic Phase", run)(g);
-  if (debugLevel >= 2) console.log("Acyclic Phase: reversed " + reverseCount + " edge(s)");
-}
-
-function run(g) {
-  var onStack = {},
-      visited = {},
-      reverseCount = 0;
-
-  function dfs(u) {
-    if (u in visited) return;
-
-    visited[u] = onStack[u] = true;
-    g.outEdges(u).forEach(function(e) {
-      var t = g.target(e),
-          a;
-
-      if (t in onStack) {
-        a = g.edge(e);
-        g.delEdge(e);
-        a.reversed = true;
-        ++reverseCount;
-        g.addEdge(e, t, u, a);
-      } else {
-        dfs(t);
-      }
-    });
-
-    delete onStack[u];
-  }
-
-  g.eachNode(function(u) { dfs(u); });
-
-  return reverseCount;
-}
-
-function undo(g) {
-  g.eachEdge(function(e, s, t, a) {
-    if (a.reversed) {
-      delete a.reversed;
-      g.delEdge(e);
-      g.addEdge(e, t, s, a);
-    }
-  });
-}
-
-},{"../util":8}],4:[function(require,module,exports){
-var util = require("../util"),
-    rank = require("./rank"),
-    acyclic = require("./acyclic"),
-    Digraph = require("graphlib").Digraph,
-    Graph = require("graphlib").Graph,
-    Set = require("graphlib").data.Set;
+},{"./lib/layout":3,"./lib/version":18,"graphlib":23}],3:[function(require,module,exports){
+var util = require('./util'),
+    rank = require('./rank'),
+    order = require('./order'),
+    CGraph = require('graphlib').CGraph,
+    CDigraph = require('graphlib').CDigraph;
 
 module.exports = function() {
   // External configuration
   var config = {
-      // How much debug information to include?
-      debugLevel: 0,
+    // How much debug information to include?
+    debugLevel: 0,
+    // Max number of sweeps to perform in order phase
+    orderMaxSweeps: order.DEFAULT_MAX_SWEEPS,
+    // Use network simplex algorithm in ranking
+    rankSimplex: false,
+    // Rank direction. Valid values are (TB, LR)
+    rankDir: 'TB'
   };
 
-  var timer = util.createTimer();
-
   // Phase functions
-  var
-      order = require("./order")(),
-      position = require("./position")();
+  var position = require('./position')();
 
   // This layout object
   var self = {};
 
-  self.orderIters = delegateProperty(order.iterations);
+  self.orderIters = util.propertyAccessor(self, config, 'orderMaxSweeps');
+
+  self.rankSimplex = util.propertyAccessor(self, config, 'rankSimplex');
 
   self.nodeSep = delegateProperty(position.nodeSep);
   self.edgeSep = delegateProperty(position.edgeSep);
   self.universalSep = delegateProperty(position.universalSep);
   self.rankSep = delegateProperty(position.rankSep);
-  self.rankDir = delegateProperty(position.rankDir);
+  self.rankDir = util.propertyAccessor(self, config, 'rankDir');
   self.debugAlignment = delegateProperty(position.debugAlignment);
 
-  self.debugLevel = util.propertyAccessor(self, config, "debugLevel", function(x) {
-    timer.enabled(x);
-    order.debugLevel(x);
+  self.debugLevel = util.propertyAccessor(self, config, 'debugLevel', function(x) {
+    util.log.level = x;
     position.debugLevel(x);
   });
 
-  self.run = timer.wrap("Total layout", run);
+  self.run = util.time('Total layout', run);
 
   self._normalize = normalize;
 
@@ -170,8 +118,8 @@ module.exports = function() {
    * After the adjacency graph is constructed the code no longer needs to use
    * the original nodes and edges passed in via config.
    */
-  function buildAdjacencyGraph(inputGraph) {
-    var g = new Digraph();
+  function initLayoutGraph(inputGraph) {
+    var g = new CDigraph();
 
     inputGraph.eachNode(function(u, value) {
       if (value === undefined) value = {};
@@ -179,7 +127,17 @@ module.exports = function() {
         width: value.width,
         height: value.height
       });
+      if (value.hasOwnProperty('rank')) {
+        g.node(u).prefRank = value.rank;
+      }
     });
+
+    // Set up subgraphs
+    if (inputGraph.parent) {
+      inputGraph.nodes().forEach(function(u) {
+        g.parent(u, inputGraph.parent(u));
+      });
+    }
 
     inputGraph.eachEdge(function(e, u, v, value) {
       if (value === undefined) value = {};
@@ -192,12 +150,12 @@ module.exports = function() {
       };
 
       g.addEdge(null, u, v, newValue);
+    });
 
-      // If input graph is not directed, we create also add a reverse edge.
-      // After we've run the acyclic algorithm we'll remove one of these edges.
-      if (!inputGraph.isDirected()) {
-        g.addEdge(null, v, u, newValue);
-      }
+    // Initial graph attributes
+    var graphValue = inputGraph.graph() || {};
+    g.graph({
+      rankDir: graphValue.rankDir || config.rankDir
     });
 
     return g;
@@ -208,7 +166,7 @@ module.exports = function() {
     var g;
     try {
       // Build internal graph
-      g = buildAdjacencyGraph(inputGraph);
+      g = util.time('initLayoutGraph', initLayoutGraph)(inputGraph);
 
       if (g.order() === 0) {
         return g;
@@ -220,62 +178,41 @@ module.exports = function() {
       });
       self.rankSep(rankSep / 2);
 
-      // Reverse edges to get an acyclic graph, we keep the graph in an acyclic
-      // state until the very end.
-      acyclic(g, config.debugLevel);
-
-      // Our intermediate graph is always directed. However, the input graph
-      // may be undirected, so we create duplicate edges in opposite directions
-      // in the buildAdjacencyGraph function. At this point one of each pair of
-      // edges was reversed, so we remove the redundant edge.
-      if (!inputGraph.isDirected()) {
-        removeDupEdges(g);
-      }
-
       // Determine the rank for each node. Nodes with a lower rank will appear
       // above nodes of higher rank.
-      rank(g, config.debugLevel);
+      util.time('rank.run', rank.run)(g, config.rankSimplex);
 
       // Normalize the graph by ensuring that every edge is proper (each edge has
       // a length of 1). We achieve this by adding dummy nodes to long edges,
       // thus shortening them.
-      normalize(g);
+      util.time('normalize', normalize)(g);
 
       // Order the nodes so that edge crossings are minimized.
-      order.run(g);
+      util.time('order', order)(g, config.orderMaxSweeps);
 
       // Find the x and y coordinates for every node in the graph.
-      position.run(g);
+      util.time('position', position.run)(g);
 
       // De-normalize the graph by removing dummy nodes and augmenting the
       // original long edges with coordinate information.
-      undoNormalize(g);
+      util.time('undoNormalize', undoNormalize)(g);
 
       // Reverses points for edges that are in a reversed state.
-      fixupEdgePoints(g);
+      util.time('fixupEdgePoints', fixupEdgePoints)(g);
 
-      // Reverse edges that were revered previously to get an acyclic graph.
-      acyclic.undo(g);
+      // Restore delete edges and reverse edges that were reversed in the rank
+      // phase.
+      util.time('rank.restoreEdges', rank.restoreEdges)(g);
 
       // Construct final result graph and return it
-      return createFinalGraph(g, inputGraph.isDirected());
+      return util.time('createFinalGraph', createFinalGraph)(g, inputGraph.isDirected());
     } finally {
       self.rankSep(rankSep);
     }
   }
 
-  function removeDupEdges(g) {
-    var visited = new Set();
-    g.eachEdge(function(e, u, v, value) {
-      if (visited.has(value.e)) {
-        g.delEdge(e);
-      }
-      visited.add(value.e);
-    });
-  }
-
   /*
-   * This function is responsible for "normalizing" the graph. The process of
+   * This function is responsible for 'normalizing' the graph. The process of
    * normalization ensures that no edge in the graph has spans more than one
    * rank. To do this it inserts dummy nodes as needed and links them by adding
    * dummy edges. This function keeps enough information in the dummy nodes and
@@ -290,7 +227,7 @@ module.exports = function() {
       var targetRank = g.node(t).rank;
       if (sourceRank + 1 < targetRank) {
         for (var u = s, rank = sourceRank + 1, i = 0; rank < targetRank; ++rank, ++i) {
-          var v = "_D" + (++dummyCount);
+          var v = '_D' + (++dummyCount);
           var node = {
             width: a.width,
             height: a.height,
@@ -318,18 +255,20 @@ module.exports = function() {
 
   /*
    * Reconstructs the graph as it was before normalization. The positions of
-   * dummy nodes are used to build an array of points for the original "long"
+   * dummy nodes are used to build an array of points for the original 'long'
    * edge. Dummy nodes and edges are removed.
    */
   function undoNormalize(g) {
     g.eachNode(function(u, a) {
-      if (a.dummy && "index" in a) {
-        var edge = a.edge;
-        if (!g.hasEdge(edge.id)) {
-          g.addEdge(edge.id, edge.source, edge.target, edge.attrs);
+      if (a.dummy) {
+        if ('index' in a) {
+          var edge = a.edge;
+          if (!g.hasEdge(edge.id)) {
+            g.addEdge(edge.id, edge.source, edge.target, edge.attrs);
+          }
+          var points = g.edge(edge.id).points;
+          points[a.index] = { x: a.x, y: a.y, ul: a.ul, ur: a.ur, dl: a.dl, dr: a.dr };
         }
-        var points = g.edge(edge.id).points;
-        points[a.index] = { x: a.x, y: a.y, ul: a.ul, ur: a.ur, dl: a.dl, dr: a.dr };
         g.delNode(u);
       }
     });
@@ -344,12 +283,31 @@ module.exports = function() {
   }
 
   function createFinalGraph(g, isDirected) {
-    var out = isDirected ? new Digraph() : new Graph();
+    var out = isDirected ? new CDigraph() : new CGraph();
+    out.graph(g.graph());
     g.eachNode(function(u, value) { out.addNode(u, value); });
+    g.eachNode(function(u) { out.parent(u, g.parent(u)); });
     g.eachEdge(function(e, u, v, value) {
-      out.addEdge("e" in value ? value.e : e, u, v, value);
-      delete value.e;
+      out.addEdge(value.e, u, v, value);
     });
+
+    // Attach bounding box information
+    var maxX = 0, maxY = 0;
+    g.eachNode(function(u, value) {
+      if (!g.children(u).length) {
+        maxX = Math.max(maxX, value.x + value.width / 2);
+        maxY = Math.max(maxY, value.y + value.height / 2);
+      }
+    });
+    g.eachEdge(function(e, u, v, value) {
+      var maxXPoints = Math.max.apply(Math, value.points.map(function(p) { return p.x; }));
+      var maxYPoints = Math.max.apply(Math, value.points.map(function(p) { return p.y; }));
+      maxX = Math.max(maxX, maxXPoints + value.width / 2);
+      maxY = Math.max(maxY, maxYPoints + value.height / 2);
+    });
+    out.graph().width = maxX;
+    out.graph().height = maxY;
+
     return out;
   }
 
@@ -366,239 +324,437 @@ module.exports = function() {
   }
 };
 
-},{"../util":8,"./acyclic":3,"./order":5,"./position":6,"./rank":7,"graphlib":10}],5:[function(require,module,exports){
-var util = require("../util");
 
-module.exports = function() {
-  var config = {
-    iterations: 24, // max number of iterations
-    debugLevel: 0
-  };
+},{"./order":4,"./position":9,"./rank":10,"./util":17,"graphlib":23}],4:[function(require,module,exports){
+var util = require('./util'),
+    crossCount = require('./order/crossCount'),
+    initLayerGraphs = require('./order/initLayerGraphs'),
+    initOrder = require('./order/initOrder'),
+    sortLayer = require('./order/sortLayer');
 
-  var timer = util.createTimer();
+module.exports = order;
 
-  var self = {};
+// The maximum number of sweeps to perform before finishing the order phase.
+var DEFAULT_MAX_SWEEPS = 24;
+order.DEFAULT_MAX_SWEEPS = DEFAULT_MAX_SWEEPS;
 
-  self.iterations = util.propertyAccessor(self, config, "iterations");
+/*
+ * Runs the order phase with the specified `graph, `maxSweeps`, and
+ * `debugLevel`. If `maxSweeps` is not specified we use `DEFAULT_MAX_SWEEPS`.
+ * If `debugLevel` is not set we assume 0.
+ */
+function order(g, maxSweeps) {
+  if (arguments.length < 2) {
+    maxSweeps = DEFAULT_MAX_SWEEPS;
+  }
 
-  self.debugLevel = util.propertyAccessor(self, config, "debugLevel", function(x) {
-    timer.enabled(x);
+  var layerGraphs = initLayerGraphs(g);
+  // TODO: remove this when we add back support for ordering clusters
+  layerGraphs.forEach(function(lg) {
+    lg = lg.filterNodes(function(u) { return !g.children(u).length; });
   });
 
-  self._initOrder = initOrder;
+  initOrder(g);
 
-  self.run = timer.wrap("Order Phase", run);
-  self.crossCount = crossCount;
-  self.bilayerCrossCount = bilayerCrossCount;
+  util.log(2, 'Order phase start cross count: ' + g.graph().orderInitCC);
 
-  return self;
-
-  function run(g) {
-    var layering = initOrder(g);
-    var bestLayering = copyLayering(layering);
-    var bestCC = crossCount(g, layering);
-
-    if (config.debugLevel >= 2) {
-      console.log("Order phase start cross count: " + bestCC);
+  var i, lastBest;
+  for (i = 0, lastBest = 0; lastBest < 4 && i < maxSweeps; ++i, ++lastBest) {
+    sweep(g, layerGraphs, i);
+    if (saveBest(g)) {
+      lastBest = 0;
     }
-
-    var cc, i, lastBest;
-    for (i = 0, lastBest = 0; lastBest < 4 && i < config.iterations; ++i, ++lastBest) {
-      cc = sweep(g, i, layering);
-      if (cc < bestCC) {
-        bestLayering = copyLayering(layering);
-        bestCC = cc;
-        lastBest = 0;
-      }
-      if (config.debugLevel >= 3) {
-        console.log("Order phase iter " + i + " cross count: " + bestCC);
-      }
-    }
-
-    bestLayering.forEach(function(layer) {
-      layer.forEach(function(u, i) {
-        g.node(u).order = i;
-      });
-    });
-
-    if (config.debugLevel >= 2) {
-      console.log("Order iterations: " + i);
-      console.log("Order phase best cross count: " + bestCC);
-    }
-
-    if (config.debugLevel >= 4) {
-      console.log("Final layering:");
-      bestLayering.forEach(function(layer, i) {
-        console.log("Layer: " + i, layer);
-      });
-    }
-
-    return bestLayering;
+    util.log(3, 'Order phase iter ' + i + ' cross count: ' + g.graph().orderCC);
   }
 
-  function initOrder(g) {
-    var layering = [];
-    g.eachNode(function(n, a) {
-      var layer = layering[a.rank] || (layering[a.rank] = []);
-      layer.push(n);
-    });
-    return layering;
-  }
+  restoreBest(g);
 
-  /*
-   * Returns a function that will return the predecessors for a node. This
-   * function differs from `g.predecessors(u)` in that a predecessor appears
-   * for each incident edge (`g.predecessors(u)` treats predecessors as a set).
-   * This allows pseudo-weighting of predecessor nodes.
-   */
-  function multiPredecessors(g) {
-    return function(u) {
-      var preds = [];
-      g.inEdges(u).forEach(function(e) {
-        preds.push(g.source(e));
-      });
-      return preds;
-    };
-  }
-
-  /*
-   * Same as `multiPredecessors(g)` but for successors.
-   */
-  function multiSuccessors(g) {
-    return function(u) {
-      var sucs = [];
-      g.outEdges(u).forEach(function(e) {
-        sucs.push(g.target(e));
-      });
-      return sucs;
-    };
-  }
-
-  function sweep(g, iter, layering) {
-    var i;
-    if (iter % 2 === 0) {
-      for (i = 1; i < layering.length; ++i) {
-        sortLayer(layering[i], multiPredecessors(g), layerPos(layering[i-1]));
-      }
-    } else {
-      for (i = layering.length - 2; i >= 0; --i) {
-        sortLayer(layering[i], multiSuccessors(g), layerPos(layering[i+1]));
-      }
-    }
-    return crossCount(g, layering);
-  }
-
-  /*
-   * Given a list of nodes, a function that returns neighbors of a node, and
-   * a mapping of the neighbor nodes to their weights, this function sorts
-   * the node list by the barycenter calculated for each node.
-   */
-  function sortLayer(nodes, neighbors, weights) {
-    var pos = layerPos(nodes);
-    var bs = barycenters(nodes, neighbors, weights);
-
-    var toSort = nodes.filter(function(u) { return bs[u] !== -1; });
-    toSort.sort(function(x, y) {
-      return bs[x] - bs[y] || pos[x] - pos[y];
-    });
-
-    for (var i = nodes.length - 1; i >= 0; --i) {
-      if (bs[nodes[i]] !== -1) {
-        nodes[i] = toSort.pop();
-      }
-    }
-  }
-
-  /*
-   * Given a list of nodes, a function that returns neighbors of a node, and
-   * a mapping of the neighbor nodes to their weights, this function returns
-   * a mapping of the input nodes to their calculated barycenters. The
-   * barycenter values are the average weights of all neighbors of the
-   * node. If a node has no neighbors it is assigned a barycenter of -1.
-   */
-  function barycenters(nodes, neighbors, weights) {
-    var bs = {}; // barycenters
-
-    nodes.forEach(function(u) {
-      var vs = neighbors(u);
-      var b = -1;
-      if (vs.length > 0)
-        b = util.sum(vs.map(function(v) { return weights[v]; })) / vs.length;
-      bs[u] = b;
-    });
-
-    return bs;
-  }
-
-  function copyLayering(layering) {
-    return layering.map(function(l) { return l.slice(0); });
-  }
-
-  function crossCount(g, layering) {
-    var cc = 0;
-    var prevLayer;
-    layering.forEach(function(layer) {
-      if (prevLayer) {
-        cc += bilayerCrossCount(g, prevLayer, layer);
-      }
-      prevLayer = layer;
-    });
-    return cc;
-  }
-
-  /*
-   * This function searches through a ranked and ordered graph and counts the
-   * number of edges that cross. This algorithm is derived from:
-   *
-   *    W. Barth et al., Bilayer Cross Counting, JGAA, 8(2) 179–194 (2004)
-   */
-  function bilayerCrossCount(g, layer1, layer2) {
-    var layer2Pos = layerPos(layer2);
-
-    var indices = [];
-    layer1.forEach(function(u) {
-      var nodeIndices = [];
-      g.outEdges(u).forEach(function(e) { nodeIndices.push(layer2Pos[g.target(e)]); });
-      nodeIndices.sort(function(x, y) { return x - y; });
-      indices = indices.concat(nodeIndices);
-    });
-
-    var firstIndex = 1;
-    while (firstIndex < layer2.length) firstIndex <<= 1;
-
-    var treeSize = 2 * firstIndex - 1;
-    firstIndex -= 1;
-
-    var tree = [];
-    for (var i = 0; i < treeSize; ++i) { tree[i] = 0; }
-
-    var cc = 0;
-    indices.forEach(function(i) {
-      var treeIndex = i + firstIndex;
-      ++tree[treeIndex];
-      var weightSum = 0;
-      while (treeIndex > 0) {
-        if (treeIndex % 2) {
-          cc += tree[treeIndex + 1];
-        }
-        treeIndex = (treeIndex - 1) >> 1;
-        ++tree[treeIndex];
-      }
-    });
-
-    return cc;
-  }
-};
-
-
-function layerPos(layer) {
-  var pos = {};
-  layer.forEach(function(u, i) { pos[u] = i; });
-  return pos;
+  util.log(2, 'Order iterations: ' + i);
+  util.log(2, 'Order phase best cross count: ' + g.graph().orderCC);
 }
 
-},{"../util":8}],6:[function(require,module,exports){
-var util = require("../util");
+function predecessorWeights(g, nodes) {
+  var weights = {};
+  nodes.forEach(function(u) {
+    weights[u] = g.inEdges(u).map(function(e) {
+      return g.node(g.source(e)).order;
+    });
+  });
+  return weights;
+}
+
+function successorWeights(g, nodes) {
+  var weights = {};
+  nodes.forEach(function(u) {
+    weights[u] = g.outEdges(u).map(function(e) {
+      return g.node(g.target(e)).order;
+    });
+  });
+  return weights;
+}
+
+function sweep(g, layerGraphs, iter) {
+  if (iter % 2 === 0) {
+    sweepDown(g, layerGraphs, iter);
+  } else {
+    sweepUp(g, layerGraphs, iter);
+  }
+}
+
+function sweepDown(g, layerGraphs) {
+  var cg;
+  for (i = 1; i < layerGraphs.length; ++i) {
+    cg = sortLayer(layerGraphs[i], cg, predecessorWeights(g, layerGraphs[i].nodes()));
+  }
+}
+
+function sweepUp(g, layerGraphs) {
+  var cg;
+  for (i = layerGraphs.length - 2; i >= 0; --i) {
+    sortLayer(layerGraphs[i], cg, successorWeights(g, layerGraphs[i].nodes()));
+  }
+}
+
+/*
+ * Checks if the current ordering of the graph has a lower cross count than the
+ * current best. If so, saves the ordering of the current nodes and the new
+ * best cross count. This can be used with restoreBest to restore the last best
+ * ordering.
+ *
+ * If this is the first time running the function the current ordering will be
+ * assumed as the best.
+ *
+ * Returns `true` if this layout represents a new best.
+ */
+function saveBest(g) {
+  var graph = g.graph();
+  var cc = crossCount(g);
+  if (!('orderCC' in graph) || graph.orderCC > cc) {
+    graph.orderCC = cc;
+    graph.order = {};
+    g.eachNode(function(u, value) {
+      if ('order' in value) {
+        graph.order[u] = value.order;
+      }
+    });
+    return true;
+  }
+  return false;
+}
+
+function restoreBest(g) {
+  var order = g.graph().order;
+  g.eachNode(function(u, value) {
+    if ('order' in value) {
+      value.order = order[u];
+    }
+  });
+}
+
+},{"./order/crossCount":5,"./order/initLayerGraphs":6,"./order/initOrder":7,"./order/sortLayer":8,"./util":17}],5:[function(require,module,exports){
+var util = require('../util');
+
+module.exports = crossCount;
+
+/*
+ * Returns the cross count for the given graph.
+ */
+function crossCount(g) {
+  var cc = 0;
+  var ordering = util.ordering(g);
+  for (var i = 1; i < ordering.length; ++i) {
+    cc += twoLayerCrossCount(g, ordering[i-1], ordering[i]);
+  }
+  return cc;
+}
+
+/*
+ * This function searches through a ranked and ordered graph and counts the
+ * number of edges that cross. This algorithm is derived from:
+ *
+ *    W. Barth et al., Bilayer Cross Counting, JGAA, 8(2) 179–194 (2004)
+ */
+function twoLayerCrossCount(g, layer1, layer2) {
+  var indices = [];
+  layer1.forEach(function(u) {
+    var nodeIndices = [];
+    g.outEdges(u).forEach(function(e) { nodeIndices.push(g.node(g.target(e)).order); });
+    nodeIndices.sort(function(x, y) { return x - y; });
+    indices = indices.concat(nodeIndices);
+  });
+
+  var firstIndex = 1;
+  while (firstIndex < layer2.length) firstIndex <<= 1;
+
+  var treeSize = 2 * firstIndex - 1;
+  firstIndex -= 1;
+
+  var tree = [];
+  for (var i = 0; i < treeSize; ++i) { tree[i] = 0; }
+
+  var cc = 0;
+  indices.forEach(function(i) {
+    var treeIndex = i + firstIndex;
+    ++tree[treeIndex];
+    while (treeIndex > 0) {
+      if (treeIndex % 2) {
+        cc += tree[treeIndex + 1];
+      }
+      treeIndex = (treeIndex - 1) >> 1;
+      ++tree[treeIndex];
+    }
+  });
+
+  return cc;
+}
+
+},{"../util":17}],6:[function(require,module,exports){
+var nodesFromList = require('graphlib').filter.nodesFromList,
+    /* jshint -W079 */
+    Set = require('cp-data').Set;
+
+module.exports = initLayerGraphs;
+
+/*
+ * This function takes a compound layered graph, g, and produces an array of
+ * layer graphs. Each entry in the array represents a subgraph of nodes
+ * relevant for performing crossing reduction on that layer.
+ */
+function initLayerGraphs(g) {
+  var ranks = [];
+
+  function dfs(u) {
+    if (u === null) {
+      g.children(u).forEach(function(v) { dfs(v); });
+      return;
+    }
+
+    var value = g.node(u);
+    value.minRank = ('rank' in value) ? value.rank : Number.MAX_VALUE;
+    value.maxRank = ('rank' in value) ? value.rank : Number.MIN_VALUE;
+    var uRanks = new Set();
+    g.children(u).forEach(function(v) {
+      var rs = dfs(v);
+      uRanks = Set.union([uRanks, rs]);
+      value.minRank = Math.min(value.minRank, g.node(v).minRank);
+      value.maxRank = Math.max(value.maxRank, g.node(v).maxRank);
+    });
+
+    if ('rank' in value) uRanks.add(value.rank);
+
+    uRanks.keys().forEach(function(r) {
+      if (!(r in ranks)) ranks[r] = [];
+      ranks[r].push(u);
+    });
+
+    return uRanks;
+  }
+  dfs(null);
+
+  var layerGraphs = [];
+  ranks.forEach(function(us, rank) {
+    layerGraphs[rank] = g.filterNodes(nodesFromList(us));
+  });
+
+  return layerGraphs;
+}
+
+},{"cp-data":19,"graphlib":23}],7:[function(require,module,exports){
+var crossCount = require('./crossCount');
+
+module.exports = initOrder;
+
+/*
+ * Given a graph with a set of layered nodes (i.e. nodes that have a `rank`
+ * attribute) this function attaches an `order` attribute that uniquely
+ * arranges each node of each rank. If no constraint graph is provided the
+ * order of the nodes in each rank is entirely arbitrary.
+ */
+function initOrder(g) {
+  var orderCount = [];
+
+  function addNode(u, value) {
+    if ('order' in value) return;
+    if (g.children && g.children(u).length > 0) return;
+    if (!(value.rank in orderCount)) {
+      orderCount[value.rank] = 0;
+    }
+    value.order = orderCount[value.rank]++;
+  }
+
+  g.eachNode(function(u, value) { addNode(u, value); });
+  var cc = crossCount(g);
+  g.graph().orderInitCC = cc;
+  g.graph().orderCC = Number.MAX_VALUE;
+}
+
+},{"./crossCount":5}],8:[function(require,module,exports){
+var util = require('../util');
+/*
+    Digraph = require('graphlib').Digraph,
+    topsort = require('graphlib').alg.topsort,
+    nodesFromList = require('graphlib').filter.nodesFromList;
+*/
+
+module.exports = sortLayer;
+
+/*
+function sortLayer(g, cg, weights) {
+  var result = sortLayerSubgraph(g, null, cg, weights);
+  result.list.forEach(function(u, i) {
+    g.node(u).order = i;
+  });
+  return result.constraintGraph;
+}
+*/
+
+function sortLayer(g, cg, weights) {
+  var ordering = [];
+  var bs = {};
+  g.eachNode(function(u, value) {
+    ordering[value.order] = u;
+    var ws = weights[u];
+    if (ws.length) {
+      bs[u] = util.sum(ws) / ws.length;
+    }
+  });
+
+  var toSort = g.nodes().filter(function(u) { return bs[u] !== undefined; });
+  toSort.sort(function(x, y) {
+    return bs[x] - bs[y] || g.node(x).order - g.node(y).order;
+  });
+
+  for (var i = 0, j = 0, jl = toSort.length; j < jl; ++i) {
+    if (bs[ordering[i]] !== undefined) {
+      g.node(toSort[j++]).order = i;
+    }
+  }
+}
+
+// TOOD: re-enable constrained sorting once we have a strategy for handling
+// undefined barycenters.
+/*
+function sortLayerSubgraph(g, sg, cg, weights) {
+  cg = cg ? cg.filterNodes(nodesFromList(g.children(sg))) : new Digraph();
+
+  var nodeData = {};
+  g.children(sg).forEach(function(u) {
+    if (g.children(u).length) {
+      nodeData[u] = sortLayerSubgraph(g, u, cg, weights);
+      nodeData[u].firstSG = u;
+      nodeData[u].lastSG = u;
+    } else {
+      var ws = weights[u];
+      nodeData[u] = {
+        degree: ws.length,
+        barycenter: ws.length > 0 ? util.sum(ws) / ws.length : 0,
+        list: [u]
+      };
+    }
+  });
+
+  resolveViolatedConstraints(g, cg, nodeData);
+
+  var keys = Object.keys(nodeData);
+  keys.sort(function(x, y) {
+    return nodeData[x].barycenter - nodeData[y].barycenter;
+  });
+
+  var result =  keys.map(function(u) { return nodeData[u]; })
+                    .reduce(function(lhs, rhs) { return mergeNodeData(g, lhs, rhs); });
+  return result;
+}
+
+/*
+function mergeNodeData(g, lhs, rhs) {
+  var cg = mergeDigraphs(lhs.constraintGraph, rhs.constraintGraph);
+
+  if (lhs.lastSG !== undefined && rhs.firstSG !== undefined) {
+    if (cg === undefined) {
+      cg = new Digraph();
+    }
+    if (!cg.hasNode(lhs.lastSG)) { cg.addNode(lhs.lastSG); }
+    cg.addNode(rhs.firstSG);
+    cg.addEdge(null, lhs.lastSG, rhs.firstSG);
+  }
+
+  return {
+    degree: lhs.degree + rhs.degree,
+    barycenter: (lhs.barycenter * lhs.degree + rhs.barycenter * rhs.degree) /
+                (lhs.degree + rhs.degree),
+    list: lhs.list.concat(rhs.list),
+    firstSG: lhs.firstSG !== undefined ? lhs.firstSG : rhs.firstSG,
+    lastSG: rhs.lastSG !== undefined ? rhs.lastSG : lhs.lastSG,
+    constraintGraph: cg
+  };
+}
+
+function mergeDigraphs(lhs, rhs) {
+  if (lhs === undefined) return rhs;
+  if (rhs === undefined) return lhs;
+
+  lhs = lhs.copy();
+  rhs.nodes().forEach(function(u) { lhs.addNode(u); });
+  rhs.edges().forEach(function(e, u, v) { lhs.addEdge(null, u, v); });
+  return lhs;
+}
+
+function resolveViolatedConstraints(g, cg, nodeData) {
+  // Removes nodes `u` and `v` from `cg` and makes any edges incident on them
+  // incident on `w` instead.
+  function collapseNodes(u, v, w) {
+    // TODO original paper removes self loops, but it is not obvious when this would happen
+    cg.inEdges(u).forEach(function(e) {
+      cg.delEdge(e);
+      cg.addEdge(null, cg.source(e), w);
+    });
+
+    cg.outEdges(v).forEach(function(e) {
+      cg.delEdge(e);
+      cg.addEdge(null, w, cg.target(e));
+    });
+
+    cg.delNode(u);
+    cg.delNode(v);
+  }
+
+  var violated;
+  while ((violated = findViolatedConstraint(cg, nodeData)) !== undefined) {
+    var source = cg.source(violated),
+        target = cg.target(violated);
+
+    var v;
+    while ((v = cg.addNode(null)) && g.hasNode(v)) {
+      cg.delNode(v);
+    }
+
+    // Collapse barycenter and list
+    nodeData[v] = mergeNodeData(g, nodeData[source], nodeData[target]);
+    delete nodeData[source];
+    delete nodeData[target];
+
+    collapseNodes(source, target, v);
+    if (cg.incidentEdges(v).length === 0) { cg.delNode(v); }
+  }
+}
+
+function findViolatedConstraint(cg, nodeData) {
+  var us = topsort(cg);
+  for (var i = 0; i < us.length; ++i) {
+    var u = us[i];
+    var inEdges = cg.inEdges(u);
+    for (var j = 0; j < inEdges.length; ++j) {
+      var e = inEdges[j];
+      if (nodeData[cg.source(e)].barycenter >= nodeData[u].barycenter) {
+        return e;
+      }
+    }
+  }
+}
+*/
+
+},{"../util":17}],9:[function(require,module,exports){
+var util = require('./util');
 
 /*
  * The algorithms here are based on Brandes and Köpf, "Fast and Simple
@@ -610,86 +766,86 @@ module.exports = function() {
     nodeSep: 50,
     edgeSep: 10,
     universalSep: null,
-    rankSep: 30,
-    rankDir: "TB",
-    debugLevel: 0
+    rankSep: 30
   };
-
-  var timer = util.createTimer();
 
   var self = {};
 
-  self.nodeSep = util.propertyAccessor(self, config, "nodeSep");
-  self.edgeSep = util.propertyAccessor(self, config, "edgeSep");
+  self.nodeSep = util.propertyAccessor(self, config, 'nodeSep');
+  self.edgeSep = util.propertyAccessor(self, config, 'edgeSep');
   // If not null this separation value is used for all nodes and edges
   // regardless of their widths. `nodeSep` and `edgeSep` are ignored with this
   // option.
-  self.universalSep = util.propertyAccessor(self, config, "universalSep");
-  self.rankSep = util.propertyAccessor(self, config, "rankSep");
-  self.rankDir = util.propertyAccessor(self, config, "rankDir");
-  self.debugLevel = util.propertyAccessor(self, config, "debugLevel", function(x) {
-    timer.enabled(x);
-  });
+  self.universalSep = util.propertyAccessor(self, config, 'universalSep');
+  self.rankSep = util.propertyAccessor(self, config, 'rankSep');
+  self.debugLevel = util.propertyAccessor(self, config, 'debugLevel');
 
-  self.run = timer.wrap("Position Phase", run);
+  self.run = run;
 
   return self;
 
   function run(g) {
-    var layering = [];
-    g.eachNode(function(u, node) {
-      var layer = layering[node.rank] || (layering[node.rank] = []);
-      layer[node.order] = u;
-    });
+    g = g.filterNodes(util.filterNonSubgraphs(g));
+
+    var layering = util.ordering(g);
 
     var conflicts = findConflicts(g, layering);
 
     var xss = {};
-    ["u", "d"].forEach(function(vertDir) {
-      if (vertDir === "d") layering.reverse();
+    ['u', 'd'].forEach(function(vertDir) {
+      if (vertDir === 'd') layering.reverse();
 
-      ["l", "r"].forEach(function(horizDir) {
-        if (horizDir === "r") reverseInnerOrder(layering);
+      ['l', 'r'].forEach(function(horizDir) {
+        if (horizDir === 'r') reverseInnerOrder(layering);
 
         var dir = vertDir + horizDir;
-        var align = verticalAlignment(g, layering, conflicts, vertDir === "u" ? "predecessors" : "successors");
+        var align = verticalAlignment(g, layering, conflicts, vertDir === 'u' ? 'predecessors' : 'successors');
         xss[dir]= horizontalCompaction(g, layering, align.pos, align.root, align.align);
 
         if (config.debugLevel >= 3)
           debugPositioning(vertDir + horizDir, g, layering, xss[dir]);
 
-        if (horizDir === "r") flipHorizontally(xss[dir]);
+        if (horizDir === 'r') flipHorizontally(xss[dir]);
 
-        if (horizDir === "r") reverseInnerOrder(layering);
+        if (horizDir === 'r') reverseInnerOrder(layering);
       });
 
-      if (vertDir === "d") layering.reverse();
+      if (vertDir === 'd') layering.reverse();
     });
 
     balance(g, layering, xss);
+
     g.eachNode(function(v) {
       var xs = [];
       for (var alignment in xss) {
-        xDebug(alignment, g, v, xss[alignment][v]);
-        xs.push(xss[alignment][v]);
+        var alignmentX = xss[alignment][v];
+        posXDebug(alignment, g, v, alignmentX);
+        xs.push(alignmentX);
       }
       xs.sort(function(x, y) { return x - y; });
-      x(g, v, (xs[1] + xs[2]) / 2);
+      posX(g, v, (xs[1] + xs[2]) / 2);
     });
-
-    // Translate layout so left edge of bounding rectangle has coordinate 0
-    var minX = util.min(g.nodes().map(function(u) { return x(g, u) - width(g, u) / 2; }));
-    g.eachNode(function(u) { x(g, u, x(g, u) - minX); });
 
     // Align y coordinates with ranks
-    var posY = 0;
+    var y = 0, reverseY = g.graph().rankDir === 'BT' || g.graph().rankDir === 'RL';
     layering.forEach(function(layer) {
       var maxHeight = util.max(layer.map(function(u) { return height(g, u); }));
-      posY += maxHeight / 2;
-      layer.forEach(function(u) { y(g, u, posY); });
-      posY += maxHeight / 2 + config.rankSep;
+      y += maxHeight / 2;
+      layer.forEach(function(u) {
+        posY(g, u, reverseY ? -y : y);
+      });
+      y += maxHeight / 2 + config.rankSep;
     });
-  };
+
+    // Translate layout so that top left corner of bounding rectangle has
+    // coordinate (0, 0).
+    var minX = util.min(g.nodes().map(function(u) { return posX(g, u) - width(g, u) / 2; }));
+    var minY = util.min(g.nodes().map(function(u) { return posY(g, u) - height(g, u) / 2; }));
+    g.eachNode(function(u) {
+      posX(g, u, posX(g, u) - minX);
+      posY(g, u, posY(g, u) - minY);
+    });
+  }
 
   /*
    * Generate an ID that can be used to represent any undirected edge that is
@@ -697,22 +853,35 @@ module.exports = function() {
    */
   function undirEdgeId(u, v) {
     return u < v
-      ? u.toString().length + ":" + u + "-" + v
-      : v.toString().length + ":" + v + "-" + u;
+      ? u.toString().length + ':' + u + '-' + v
+      : v.toString().length + ':' + v + '-' + u;
   }
 
   function findConflicts(g, layering) {
     var conflicts = {}, // Set of conflicting edge ids
-        pos = {};       // Position of node in its layer
+        pos = {},       // Position of node in its layer
+        prevLayer,
+        currLayer,
+        k0,     // Position of the last inner segment in the previous layer
+        l,      // Current position in the current layer (for iteration up to `l1`)
+        k1;     // Position of the next inner segment in the previous layer or
+                // the position of the last element in the previous layer
 
     if (layering.length <= 2) return conflicts;
 
+    function updateConflicts(v) {
+      var k = pos[v];
+      if (k < k0 || k > k1) {
+        conflicts[undirEdgeId(currLayer[l], v)] = true;
+      }
+    }
+
     layering[1].forEach(function(u, i) { pos[u] = i; });
     for (var i = 1; i < layering.length - 1; ++i) {
-      var prevLayer = layering[i];
-      var currLayer = layering[i+1];
-      var k0 = 0; // Position of the last inner segment in the previous layer
-      var l = 0;  // Current position in the current layer (for iteration up to `l1`)
+      prevLayer = layering[i];
+      currLayer = layering[i+1];
+      k0 = 0;
+      l = 0;
 
       // Scan current layer for next node that is incident to an inner segement
       // between layering[i+1] and layering[i].
@@ -720,9 +889,8 @@ module.exports = function() {
         var u = currLayer[l1]; // Next inner segment in the current layer or
                                // last node in the current layer
         pos[u] = l1;
+        k1 = undefined;
 
-        var k1 = undefined; // Position of the next inner segment in the previous layer or
-                            // the position of the last element in the previous layer
         if (g.node(u).dummy) {
           var uPred = g.predecessors(u)[0];
           if (g.node(uPred).dummy)
@@ -733,11 +901,7 @@ module.exports = function() {
 
         if (k1 !== undefined) {
           for (; l <= l1; ++l) {
-            g.predecessors(currLayer[l]).forEach(function(v) {
-              var k = pos[v];
-              if (k < k0 || k > k1)
-                conflicts[undirEdgeId(currLayer[l], v)] = true;
-            });
+            g.predecessors(currLayer[l]).forEach(updateConflicts);
           }
           k0 = k1;
         }
@@ -892,6 +1056,10 @@ module.exports = function() {
         smallestAlignment,
         shift = {};                          // Amount to shift a given alignment
 
+    function updateAlignment(v) {
+      xss[alignment][v] += shift[alignment];
+    }
+
     var smallest = Number.POSITIVE_INFINITY;
     for (var alignment in xss) {
       var xs = xss[alignment];
@@ -905,20 +1073,18 @@ module.exports = function() {
     }
 
     // Determine how much to adjust positioning for each alignment
-    ["u", "d"].forEach(function(vertDir) {
-      ["l", "r"].forEach(function(horizDir) {
+    ['u', 'd'].forEach(function(vertDir) {
+      ['l', 'r'].forEach(function(horizDir) {
         var alignment = vertDir + horizDir;
-        shift[alignment] = horizDir === "l"
+        shift[alignment] = horizDir === 'l'
             ? min[smallestAlignment] - min[alignment]
             : max[smallestAlignment] - max[alignment];
       });
     });
 
     // Find average of medians for xss array
-    for (var alignment in xss) {
-      g.eachNode(function(v) {
-        xss[alignment][v] += shift[alignment];
-      });
+    for (alignment in xss) {
+      g.eachNode(updateAlignment);
     }
   }
 
@@ -935,15 +1101,17 @@ module.exports = function() {
   }
 
   function width(g, u) {
-    switch (config.rankDir) {
-      case "LR": return g.node(u).height;
+    switch (g.graph().rankDir) {
+      case 'LR': return g.node(u).height;
+      case 'RL': return g.node(u).height;
       default:   return g.node(u).width;
     }
   }
 
   function height(g, u) {
-    switch(config.rankDir) {
-      case "LR": return g.node(u).width;
+    switch(g.graph().rankDir) {
+      case 'LR': return g.node(u).width;
+      case 'RL': return g.node(u).width;
       default:   return g.node(u).height;
     }
   }
@@ -957,57 +1125,51 @@ module.exports = function() {
     return (w + s) / 2;
   }
 
-  function x(g, u, x) {
-    switch (config.rankDir) {
-      case "LR":
-        if (arguments.length < 3) {
-          return g.node(u).y;
-        } else {
-          g.node(u).y = x;
-        }
-        break;
-      default:
-        if (arguments.length < 3) {
-          return g.node(u).x;
-        } else {
-          g.node(u).x = x;
-        }
+  function posX(g, u, x) {
+    if (g.graph().rankDir === 'LR' || g.graph().rankDir === 'RL') {
+      if (arguments.length < 3) {
+        return g.node(u).y;
+      } else {
+        g.node(u).y = x;
+      }
+    } else {
+      if (arguments.length < 3) {
+        return g.node(u).x;
+      } else {
+        g.node(u).x = x;
+      }
     }
   }
 
-  function xDebug(name, g, u, x) {
-    switch (config.rankDir) {
-      case "LR":
-        if (arguments.length < 3) {
-          return g.node(u)[name];
-        } else {
-          g.node(u)[name] = x;
-        }
-        break;
-      default:
-        if (arguments.length < 3) {
-          return g.node(u)[name];
-        } else {
-          g.node(u)[name] = x;
-        }
+  function posXDebug(name, g, u, x) {
+    if (g.graph().rankDir === 'LR' || g.graph().rankDir === 'RL') {
+      if (arguments.length < 3) {
+        return g.node(u)[name];
+      } else {
+        g.node(u)[name] = x;
+      }
+    } else {
+      if (arguments.length < 3) {
+        return g.node(u)[name];
+      } else {
+        g.node(u)[name] = x;
+      }
     }
   }
 
-  function y(g, u, y) {
-    switch (config.rankDir) {
-      case "LR":
-        if (arguments.length < 3) {
-          return g.node(u).x;
-        } else {
-          g.node(u).x = y;
-        }
-        break;
-      default:
-        if (arguments.length < 3) {
-          return g.node(u).y;
-        } else {
-          g.node(u).y = y;
-        }
+  function posY(g, u, y) {
+    if (g.graph().rankDir === 'LR' || g.graph().rankDir === 'RL') {
+      if (arguments.length < 3) {
+        return g.node(u).x;
+      } else {
+        g.node(u).x = y;
+      }
+    } else {
+      if (arguments.length < 3) {
+        return g.node(u).y;
+      } else {
+        g.node(u).y = y;
+      }
     }
   }
 
@@ -1019,8 +1181,8 @@ module.exports = function() {
         if (u) {
           var s = sep(g, u) + sep(g, v);
           if (xV - xU < s)
-            console.log("Position phase: sep violation. Align: " + align + ". Layer: " + li + ". " +
-              "U: " + u + " V: " + v + ". Actual sep: " + (xV - xU) + " Expected sep: " + s);
+            console.log('Position phase: sep violation. Align: ' + align + '. Layer: ' + li + '. ' +
+              'U: ' + u + ' V: ' + v + '. Actual sep: ' + (xV - xU) + ' Expected sep: ' + s);
         }
         u = v;
         xU = xV;
@@ -1029,56 +1191,385 @@ module.exports = function() {
   }
 };
 
-},{"../util":8}],7:[function(require,module,exports){
-var util = require("../util"),
-    components = require("graphlib").alg.components,
-    filter = require("graphlib").filter;
-    PriorityQueue = require("graphlib").data.PriorityQueue,
-    Set = require("graphlib").data.Set;
+},{"./util":17}],10:[function(require,module,exports){
+var util = require('./util'),
+    acyclic = require('./rank/acyclic'),
+    initRank = require('./rank/initRank'),
+    feasibleTree = require('./rank/feasibleTree'),
+    constraints = require('./rank/constraints'),
+    simplex = require('./rank/simplex'),
+    components = require('graphlib').alg.components,
+    filter = require('graphlib').filter;
 
-module.exports = function(g, debugLevel) {
-  var timer = util.createTimer(debugLevel >= 1);
-  timer.wrap("Rank phase", function() {
-    initRank(g);
+exports.run = run;
+exports.restoreEdges = restoreEdges;
 
-    components(g).forEach(function(cmpt) {
-      var subgraph = g.filterNodes(filter.nodesFromList(cmpt));
-      feasibleTree(subgraph);
-      normalize(subgraph);
+/*
+ * Heuristic function that assigns a rank to each node of the input graph with
+ * the intent of minimizing edge lengths, while respecting the `minLen`
+ * attribute of incident edges.
+ *
+ * Prerequisites:
+ *
+ *  * Each edge in the input graph must have an assigned 'minLen' attribute
+ */
+function run(g, useSimplex) {
+  var selfLoops = removeSelfLoops(g);
+
+  // If there are rank constraints on nodes, then build a new graph that
+  // encodes the constraints.
+  util.time('constraints.apply', constraints.apply)(g);
+
+  // Since we already removed self loops before applying rank constraints we
+  // know that self loops indicate sideways edges induced by rank constraints.
+  // Currently we do not have any support for sideways edges, so we remove
+  // them. Since the edges we remove are between collapsed nodes, we need to
+  // take care to save the original edge information.
+  var sidewaysEdges = removeSelfLoops(g)
+    .map(function(edge) {
+      return edge.value.originalEdge;
     });
-  })();
-};
 
-function initRank(g) {
-  var minRank = {};
-  var pq = new PriorityQueue();
+  // Reverse edges to get an acyclic graph, we keep the graph in an acyclic
+  // state until the very end.
+  util.time('acyclic', acyclic)(g);
 
-  g.eachNode(function(u) {
-    pq.add(u, g.inEdges(u).length);
-    minRank[u] = 0;
+  // Convert the graph into a flat graph for ranking
+  var flatGraph = g.filterNodes(util.filterNonSubgraphs(g));
+
+  // Assign an initial ranking using DFS.
+  initRank(flatGraph);
+
+  // For each component improve the assigned ranks.
+  components(flatGraph).forEach(function(cmpt) {
+    var subgraph = flatGraph.filterNodes(filter.nodesFromList(cmpt));
+    rankComponent(subgraph, useSimplex);
   });
 
-  while (pq.size() > 0) {
-    var minId = pq.min();
-    if (pq.priority(minId) > 0) {
-      throw new Error("Input graph is not acyclic: " + g.toString());
+  // Relax original constraints
+  util.time('constraints.relax', constraints.relax(g));
+
+  // When handling nodes with constrained ranks it is possible to end up with
+  // edges that point to previous ranks. Most of the subsequent algorithms assume
+  // that edges are pointing to successive ranks only. Here we reverse any "back
+  // edges" and mark them as such. The acyclic algorithm will reverse them as a
+  // post processing step.
+  util.time('reorientEdges', reorientEdges)(g);
+
+  // Save removed edges so that they can be restored later
+  g.graph().rankRemovedEdges = selfLoops.concat(sidewaysEdges);
+}
+
+function restoreEdges(g) {
+  g.graph().rankRemovedEdges.forEach(function(edge) {
+    // It's possible that the removed edge collides with an auto-assigned id,
+    // so we check for and resolve such cases here.
+    if (g.hasEdge(edge.e)) {
+      g.addEdge(null, g.source(edge.e), g.target(edge.e), g.edge(edge.e));
+      g.delEdge(edge.e);
     }
-    pq.removeMin();
+    g.addEdge(edge.e, edge.u, edge.v, edge.value);
+  });
 
-    var rank = minRank[minId];
-    g.node(minId).rank = rank;
+  acyclic.undo(g);
+}
 
-    g.outEdges(minId).forEach(function(e) {
-      var target = g.target(e);
-      minRank[target] = Math.max(minRank[target], rank + (g.edge(e).minLen || 1));
-      pq.decrease(target, pq.priority(target) - 1);
+/*
+ * Find any self loops and remove them from the input graph. Return the removed
+ * edges in the form { e, u, v, value }.
+ */
+function removeSelfLoops(g) {
+  var selfLoops = [];
+
+  g.eachEdge(function(e, u, v, value) {
+    if (u === v) {
+      selfLoops.push({e: e, u: u, v: v, value: value});
+      g.delEdge(e);
+    }
+  });
+
+  return selfLoops;
+}
+
+function reorientEdges(g) {
+  g.eachEdge(function(e, u, v, value) {
+    if (g.node(u).rank > g.node(v).rank) {
+      g.delEdge(e);
+      value.reversed = true;
+      g.addEdge(e, v, u, value);
+    }
+  });
+}
+
+function rankComponent(subgraph, useSimplex) {
+  var spanningTree = feasibleTree(subgraph);
+
+  if (useSimplex) {
+    util.log(1, 'Using network simplex for ranking');
+    simplex(subgraph, spanningTree);
+  }
+  normalize(subgraph);
+}
+
+function normalize(g) {
+  var m = util.min(g.nodes().map(function(u) { return g.node(u).rank; }));
+  g.eachNode(function(u, node) { node.rank -= m; });
+}
+
+},{"./rank/acyclic":11,"./rank/constraints":12,"./rank/feasibleTree":13,"./rank/initRank":14,"./rank/simplex":16,"./util":17,"graphlib":23}],11:[function(require,module,exports){
+var util = require('../util');
+
+module.exports = acyclic;
+module.exports.undo = undo;
+
+/*
+ * This function takes a directed graph that may have cycles and reverses edges
+ * as appropriate to break these cycles. Each reversed edge is assigned a
+ * `reversed` attribute with the value `true`.
+ *
+ * There should be no self loops in the graph.
+ */
+function acyclic(g) {
+  var onStack = {},
+      visited = {},
+      reverseCount = 0;
+  
+  function dfs(u) {
+    if (u in visited) return;
+    visited[u] = onStack[u] = true;
+    g.outEdges(u).forEach(function(e) {
+      var t = g.target(e),
+          value;
+
+      if (u === t) {
+        console.error('Warning: found self loop "' + e + '" for node "' + u + '"');
+      } else if (t in onStack) {
+        value = g.edge(e);
+        g.delEdge(e);
+        value.reversed = true;
+        ++reverseCount;
+        g.addEdge(e, t, u, value);
+      } else {
+        dfs(t);
+      }
+    });
+
+    delete onStack[u];
+  }
+
+  g.eachNode(function(u) { dfs(u); });
+
+  util.log(2, 'Acyclic Phase: reversed ' + reverseCount + ' edge(s)');
+
+  return reverseCount;
+}
+
+/*
+ * Given a graph that has had the acyclic operation applied, this function
+ * undoes that operation. More specifically, any edge with the `reversed`
+ * attribute is again reversed to restore the original direction of the edge.
+ */
+function undo(g) {
+  g.eachEdge(function(e, s, t, a) {
+    if (a.reversed) {
+      delete a.reversed;
+      g.delEdge(e);
+      g.addEdge(e, t, s, a);
+    }
+  });
+}
+
+},{"../util":17}],12:[function(require,module,exports){
+exports.apply = function(g) {
+  function dfs(sg) {
+    var rankSets = {};
+    g.children(sg).forEach(function(u) {
+      if (g.children(u).length) {
+        dfs(u);
+        return;
+      }
+
+      var value = g.node(u),
+          prefRank = value.prefRank;
+      if (prefRank !== undefined) {
+        if (!checkSupportedPrefRank(prefRank)) { return; }
+
+        if (!(prefRank in rankSets)) {
+          rankSets.prefRank = [u];
+        } else {
+          rankSets.prefRank.push(u);
+        }
+
+        var newU = rankSets[prefRank];
+        if (newU === undefined) {
+          newU = rankSets[prefRank] = g.addNode(null, { originalNodes: [] });
+          g.parent(newU, sg);
+        }
+
+        redirectInEdges(g, u, newU, prefRank === 'min');
+        redirectOutEdges(g, u, newU, prefRank === 'max');
+
+        // Save original node and remove it from reduced graph
+        g.node(newU).originalNodes.push({ u: u, value: value, parent: sg });
+        g.delNode(u);
+      }
+    });
+
+    addLightEdgesFromMinNode(g, sg, rankSets.min);
+    addLightEdgesToMaxNode(g, sg, rankSets.max);
+  }
+
+  dfs(null);
+};
+
+function checkSupportedPrefRank(prefRank) {
+  if (prefRank !== 'min' && prefRank !== 'max' && prefRank.indexOf('same_') !== 0) {
+    console.error('Unsupported rank type: ' + prefRank);
+    return false;
+  }
+  return true;
+}
+
+function redirectInEdges(g, u, newU, reverse) {
+  g.inEdges(u).forEach(function(e) {
+    var origValue = g.edge(e),
+        value;
+    if (origValue.originalEdge) {
+      value = origValue;
+    } else {
+      value =  {
+        originalEdge: { e: e, u: g.source(e), v: g.target(e), value: origValue },
+        minLen: g.edge(e).minLen
+      };
+    }
+    if (reverse) {
+      // Ensure that all edges to min are reversed
+      g.addEdge(null, newU, g.source(e), value);
+      value.reversed = true;
+    } else {
+      g.addEdge(null, g.source(e), newU, value);
+    }
+  });
+}
+
+function redirectOutEdges(g, u, newU, reverse) {
+  g.outEdges(u).forEach(function(e) {
+    var origValue = g.edge(e),
+        value;
+    if (origValue.originalEdge) {
+      value = origValue;
+    } else {
+      value =  {
+        originalEdge: { e: e, u: g.source(e), v: g.target(e), value: origValue },
+        minLen: g.edge(e).minLen
+      };
+    }
+    if (reverse) {
+      // Ensure that all edges from max are reversed
+      g.addEdge(null, g.target(e), newU, value);
+      value.reversed = true;
+    } else {
+      g.addEdge(null, newU, g.target(e), value);
+    }
+  });
+}
+
+function addLightEdgesFromMinNode(g, sg, minNode) {
+  if (minNode !== undefined) {
+    g.children(sg).forEach(function(u) {
+      if (u !== minNode && !g.outEdges(minNode, u).length) {
+        g.addEdge(null, minNode, u, { minLen: 0 });
+      }
     });
   }
 }
 
+function addLightEdgesToMaxNode(g, sg, maxNode) {
+  if (maxNode !== undefined) {
+    g.children(sg).forEach(function(u) {
+      if (u !== maxNode && !g.outEdges(u, maxNode).length) {
+        g.addEdge(null, u, maxNode, { minLen: 0 });
+      }
+    });
+  }
+}
+
+/*
+ * This function "relaxes" the constraints applied previously by the "apply"
+ * function. It expands any nodes that were collapsed and assigns the rank of
+ * the collapsed node to each of the expanded nodes. It also restores the
+ * original edges and removes any dummy edges pointing at the collapsed nodes.
+ *
+ * Note that the process of removing collapsed nodes also removes dummy edges
+ * automatically.
+ */
+exports.relax = function(g) {
+  // Save original edges
+  var originalEdges = [];
+  g.eachEdge(function(e, u, v, value) {
+    var originalEdge = value.originalEdge;
+    if (originalEdge) {
+      originalEdges.push(originalEdge);
+    }
+  });
+
+  // Expand collapsed nodes
+  g.eachNode(function(u, value) {
+    var originalNodes = value.originalNodes;
+    if (originalNodes) {
+      originalNodes.forEach(function(originalNode) {
+        originalNode.value.rank = value.rank;
+        g.addNode(originalNode.u, originalNode.value);
+        g.parent(originalNode.u, originalNode.parent);
+      });
+      g.delNode(u);
+    }
+  });
+
+  // Restore original edges
+  originalEdges.forEach(function(edge) {
+    g.addEdge(edge.e, edge.u, edge.v, edge.value);
+  });
+};
+
+},{}],13:[function(require,module,exports){
+/* jshint -W079 */
+var Set = require('cp-data').Set,
+/* jshint +W079 */
+    Digraph = require('graphlib').Digraph,
+    rankUtil = require('./rankUtil');
+
+module.exports = feasibleTree;
+
+/*
+ * Given an acyclic graph with each node assigned a `rank` attribute, this
+ * function constructs and returns a spanning tree. This function may reduce
+ * the length of some edges from the initial rank assignment while maintaining
+ * the `minLen` specified by each edge.
+ *
+ * Prerequisites:
+ *
+ * * The input graph is acyclic
+ * * Each node in the input graph has an assigned `rank` attribute
+ * * Each edge in the input graph has an assigned `minLen` attribute
+ *
+ * Outputs:
+ *
+ * A feasible spanning tree for the input graph (i.e. a spanning tree that
+ * respects each graph edge's `minLen` attribute) represented as a Digraph with
+ * a `root` attribute on graph.
+ *
+ * Nodes have the same id and value as that in the input graph.
+ *
+ * Edges in the tree have arbitrarily assigned ids. The attributes for edges
+ * include `reversed` and `weight`. `reversed` indicates that the edge is a
+ * back edge in the input graph. `weight` is used to indicate how many multi-
+ * edges are represented by the tree edge.
+ */
 function feasibleTree(g) {
   var remaining = new Set(g.nodes()),
-      minLen = []; // Array of {u, v, len}
+      minLen = [], // Array of {u, v, len}
+      tree = new Digraph();
 
   // Collapse multi-edges and precompute the minLen, which will be the
   // max value of minLen for any edge in the multi-edge.
@@ -1086,17 +1577,19 @@ function feasibleTree(g) {
   g.eachEdge(function(e, u, v, edge) {
     var id = incidenceId(u, v);
     if (!(id in minLenMap)) {
-      minLen.push(minLenMap[id] = { u: u, v: v, len: 1 });
+      minLen.push(minLenMap[id] = { u: u, v: v, len: 0, weight: 0 });
     }
-    minLenMap[id].len = Math.max(minLenMap[id].len, edge.minLen || 1);
+    var mle = minLenMap[id];
+    mle.len = Math.max(mle.len, edge.minLen);
+    mle.weight++;
   });
 
-  function slack(mle /* minLen entry*/) {
-    return Math.abs(g.node(mle.u).rank - g.node(mle.v).rank) - mle.len;
-  }
-
   // Remove arbitrary node - it is effectively the root of the spanning tree.
-  remaining.remove(g.nodes()[0]);
+  var root = g.nodes()[0];
+  remaining.remove(root);
+  var nodeVal = g.node(root);
+  tree.addNode(root, nodeVal);
+  tree.graph({root: root});
 
   // Finds the next edge with the minimum slack.
   function findMinSlack() {
@@ -1104,12 +1597,24 @@ function feasibleTree(g) {
         eSlack = Number.POSITIVE_INFINITY;
     minLen.forEach(function(mle /* minLen entry */) {
       if (remaining.has(mle.u) !== remaining.has(mle.v)) {
-        var mleSlack = slack(mle);
+        var mleSlack = rankUtil.slack(g, mle.u, mle.v, mle.len);
         if (mleSlack < eSlack) {
           if (!remaining.has(mle.u)) {
-            result = { treeNode: mle.u, graphNode: mle.v, len: mle.len};
+            result = {
+              treeNode: mle.u,
+              graphNode: mle.v,
+              len: mle.len,
+              reversed: false,
+              weight: mle.weight
+            };
           } else {
-            result = { treeNode: mle.v, graphNode: mle.u, len: -mle.len };
+            result = {
+              treeNode: mle.v,
+              graphNode: mle.u,
+              len: -mle.len,
+              reversed: true,
+              weight: mle.weight
+            };
           }
           eSlack = mleSlack;
         }
@@ -1121,14 +1626,17 @@ function feasibleTree(g) {
 
   while (remaining.size() > 0) {
     var result = findMinSlack();
+    nodeVal = g.node(result.graphNode);
     remaining.remove(result.graphNode);
-    g.node(result.graphNode).rank = g.node(result.treeNode).rank + result.len;
+    tree.addNode(result.graphNode, nodeVal);
+    tree.addEdge(null, result.treeNode, result.graphNode, {
+      reversed: result.reversed,
+      weight: result.weight
+    });
+    nodeVal.rank = g.node(result.treeNode).rank + result.len;
   }
-}
 
-function normalize(g) {
-  var m = util.min(g.nodes().map(function(u) { return g.node(u).rank; }));
-  g.eachNode(function(u, node) { node.rank -= m; });
+  return tree;
 }
 
 /*
@@ -1136,22 +1644,382 @@ function normalize(g) {
  * incident on the same two nodes.
  */
 function incidenceId(u, v) {
-  return u < v ?  u.length + ":" + u + "-" + v : v.length + ":" + v + "-" + u;
+  return u < v ?  u.length + ':' + u + '-' + v : v.length + ':' + v + '-' + u;
 }
 
-},{"../util":8,"graphlib":10}],8:[function(require,module,exports){
+},{"./rankUtil":15,"cp-data":19,"graphlib":23}],14:[function(require,module,exports){
+var util = require('../util'),
+    topsort = require('graphlib').alg.topsort;
+
+module.exports = initRank;
+
+/*
+ * Assigns a `rank` attribute to each node in the input graph and ensures that
+ * this rank respects the `minLen` attribute of incident edges.
+ *
+ * Prerequisites:
+ *
+ *  * The input graph must be acyclic
+ *  * Each edge in the input graph must have an assigned 'minLen' attribute
+ */
+function initRank(g) {
+  var sorted = topsort(g);
+
+  sorted.forEach(function(u) {
+    var inEdges = g.inEdges(u);
+    if (inEdges.length === 0) {
+      g.node(u).rank = 0;
+      return;
+    }
+
+    var minLens = inEdges.map(function(e) {
+      return g.node(g.source(e)).rank + g.edge(e).minLen;
+    });
+    g.node(u).rank = util.max(minLens);
+  });
+}
+
+},{"../util":17,"graphlib":23}],15:[function(require,module,exports){
+module.exports = {
+  slack: slack
+};
+
+/*
+ * A helper to calculate the slack between two nodes (`u` and `v`) given a
+ * `minLen` constraint. The slack represents how much the distance between `u`
+ * and `v` could shrink while maintaining the `minLen` constraint. If the value
+ * is negative then the constraint is currently violated.
+ *
+  This function requires that `u` and `v` are in `graph` and they both have a
+  `rank` attribute.
+ */
+function slack(graph, u, v, minLen) {
+  return Math.abs(graph.node(u).rank - graph.node(v).rank) - minLen;
+}
+
+},{}],16:[function(require,module,exports){
+var util = require('../util'),
+    rankUtil = require('./rankUtil');
+
+module.exports = simplex;
+
+function simplex(graph, spanningTree) {
+  // The network simplex algorithm repeatedly replaces edges of
+  // the spanning tree with negative cut values until no such
+  // edge exists.
+  initCutValues(graph, spanningTree);
+  while (true) {
+    var e = leaveEdge(spanningTree);
+    if (e === null) break;
+    var f = enterEdge(graph, spanningTree, e);
+    exchange(graph, spanningTree, e, f);
+  }
+}
+
+/*
+ * Set the cut values of edges in the spanning tree by a depth-first
+ * postorder traversal.  The cut value corresponds to the cost, in
+ * terms of a ranking's edge length sum, of lengthening an edge.
+ * Negative cut values typically indicate edges that would yield a
+ * smaller edge length sum if they were lengthened.
+ */
+function initCutValues(graph, spanningTree) {
+  computeLowLim(spanningTree);
+
+  spanningTree.eachEdge(function(id, u, v, treeValue) {
+    treeValue.cutValue = 0;
+  });
+
+  // Propagate cut values up the tree.
+  function dfs(n) {
+    var children = spanningTree.successors(n);
+    for (var c in children) {
+      var child = children[c];
+      dfs(child);
+    }
+    if (n !== spanningTree.graph().root) {
+      setCutValue(graph, spanningTree, n);
+    }
+  }
+  dfs(spanningTree.graph().root);
+}
+
+/*
+ * Perform a DFS postorder traversal, labeling each node v with
+ * its traversal order 'lim(v)' and the minimum traversal number
+ * of any of its descendants 'low(v)'.  This provides an efficient
+ * way to test whether u is an ancestor of v since
+ * low(u) <= lim(v) <= lim(u) if and only if u is an ancestor.
+ */
+function computeLowLim(tree) {
+  var postOrderNum = 0;
+  
+  function dfs(n) {
+    var children = tree.successors(n);
+    var low = postOrderNum;
+    for (var c in children) {
+      var child = children[c];
+      dfs(child);
+      low = Math.min(low, tree.node(child).low);
+    }
+    tree.node(n).low = low;
+    tree.node(n).lim = postOrderNum++;
+  }
+
+  dfs(tree.graph().root);
+}
+
+/*
+ * To compute the cut value of the edge parent -> child, we consider
+ * it and any other graph edges to or from the child.
+ *          parent
+ *             |
+ *           child
+ *          /      \
+ *         u        v
+ */
+function setCutValue(graph, tree, child) {
+  var parentEdge = tree.inEdges(child)[0];
+
+  // List of child's children in the spanning tree.
+  var grandchildren = [];
+  var grandchildEdges = tree.outEdges(child);
+  for (var gce in grandchildEdges) {
+    grandchildren.push(tree.target(grandchildEdges[gce]));
+  }
+
+  var cutValue = 0;
+
+  // TODO: Replace unit increment/decrement with edge weights.
+  var E = 0;    // Edges from child to grandchild's subtree.
+  var F = 0;    // Edges to child from grandchild's subtree.
+  var G = 0;    // Edges from child to nodes outside of child's subtree.
+  var H = 0;    // Edges from nodes outside of child's subtree to child.
+
+  // Consider all graph edges from child.
+  var outEdges = graph.outEdges(child);
+  var gc;
+  for (var oe in outEdges) {
+    var succ = graph.target(outEdges[oe]);
+    for (gc in grandchildren) {
+      if (inSubtree(tree, succ, grandchildren[gc])) {
+        E++;
+      }
+    }
+    if (!inSubtree(tree, succ, child)) {
+      G++;
+    }
+  }
+
+  // Consider all graph edges to child.
+  var inEdges = graph.inEdges(child);
+  for (var ie in inEdges) {
+    var pred = graph.source(inEdges[ie]);
+    for (gc in grandchildren) {
+      if (inSubtree(tree, pred, grandchildren[gc])) {
+        F++;
+      }
+    }
+    if (!inSubtree(tree, pred, child)) {
+      H++;
+    }
+  }
+
+  // Contributions depend on the alignment of the parent -> child edge
+  // and the child -> u or v edges.
+  var grandchildCutSum = 0;
+  for (gc in grandchildren) {
+    var cv = tree.edge(grandchildEdges[gc]).cutValue;
+    if (!tree.edge(grandchildEdges[gc]).reversed) {
+      grandchildCutSum += cv;
+    } else {
+      grandchildCutSum -= cv;
+    }
+  }
+
+  if (!tree.edge(parentEdge).reversed) {
+    cutValue += grandchildCutSum - E + F - G + H;
+  } else {
+    cutValue -= grandchildCutSum - E + F - G + H;
+  }
+
+  tree.edge(parentEdge).cutValue = cutValue;
+}
+
+/*
+ * Return whether n is a node in the subtree with the given
+ * root.
+ */
+function inSubtree(tree, n, root) {
+  return (tree.node(root).low <= tree.node(n).lim &&
+          tree.node(n).lim <= tree.node(root).lim);
+}
+
+/*
+ * Return an edge from the tree with a negative cut value, or null if there
+ * is none.
+ */
+function leaveEdge(tree) {
+  var edges = tree.edges();
+  for (var n in edges) {
+    var e = edges[n];
+    var treeValue = tree.edge(e);
+    if (treeValue.cutValue < 0) {
+      return e;
+    }
+  }
+  return null;
+}
+
+/*
+ * The edge e should be an edge in the tree, with an underlying edge
+ * in the graph, with a negative cut value.  Of the two nodes incident
+ * on the edge, take the lower one.  enterEdge returns an edge with
+ * minimum slack going from outside of that node's subtree to inside
+ * of that node's subtree.
+ */
+function enterEdge(graph, tree, e) {
+  var source = tree.source(e);
+  var target = tree.target(e);
+  var lower = tree.node(target).lim < tree.node(source).lim ? target : source;
+
+  // Is the tree edge aligned with the graph edge?
+  var aligned = !tree.edge(e).reversed;
+
+  var minSlack = Number.POSITIVE_INFINITY;
+  var minSlackEdge;
+  if (aligned) {
+    graph.eachEdge(function(id, u, v, value) {
+      if (id !== e && inSubtree(tree, u, lower) && !inSubtree(tree, v, lower)) {
+        var slack = rankUtil.slack(graph, u, v, value.minLen);
+        if (slack < minSlack) {
+          minSlack = slack;
+          minSlackEdge = id;
+        }
+      }
+    });
+  } else {
+    graph.eachEdge(function(id, u, v, value) {
+      if (id !== e && !inSubtree(tree, u, lower) && inSubtree(tree, v, lower)) {
+        var slack = rankUtil.slack(graph, u, v, value.minLen);
+        if (slack < minSlack) {
+          minSlack = slack;
+          minSlackEdge = id;
+        }
+      }
+    });
+  }
+
+  if (minSlackEdge === undefined) {
+    var outside = [];
+    var inside = [];
+    graph.eachNode(function(id) {
+      if (!inSubtree(tree, id, lower)) {
+        outside.push(id);
+      } else {
+        inside.push(id);
+      }
+    });
+    throw new Error('No edge found from outside of tree to inside');
+  }
+
+  return minSlackEdge;
+}
+
+/*
+ * Replace edge e with edge f in the tree, recalculating the tree root,
+ * the nodes' low and lim properties and the edges' cut values.
+ */
+function exchange(graph, tree, e, f) {
+  tree.delEdge(e);
+  var source = graph.source(f);
+  var target = graph.target(f);
+
+  // Redirect edges so that target is the root of its subtree.
+  function redirect(v) {
+    var edges = tree.inEdges(v);
+    for (var i in edges) {
+      var e = edges[i];
+      var u = tree.source(e);
+      var value = tree.edge(e);
+      redirect(u);
+      tree.delEdge(e);
+      value.reversed = !value.reversed;
+      tree.addEdge(e, v, u, value);
+    }
+  }
+
+  redirect(target);
+
+  var root = source;
+  var edges = tree.inEdges(root);
+  while (edges.length > 0) {
+    root = tree.source(edges[0]);
+    edges = tree.inEdges(root);
+  }
+
+  tree.graph().root = root;
+
+  tree.addEdge(null, source, target, {cutValue: 0});
+
+  initCutValues(graph, tree);
+
+  adjustRanks(graph, tree);
+}
+
+/*
+ * Reset the ranks of all nodes based on the current spanning tree.
+ * The rank of the tree's root remains unchanged, while all other
+ * nodes are set to the sum of minimum length constraints along
+ * the path from the root.
+ */
+function adjustRanks(graph, tree) {
+  function dfs(p) {
+    var children = tree.successors(p);
+    children.forEach(function(c) {
+      var minLen = minimumLength(graph, p, c);
+      graph.node(c).rank = graph.node(p).rank + minLen;
+      dfs(c);
+    });
+  }
+
+  dfs(tree.graph().root);
+}
+
+/*
+ * If u and v are connected by some edges in the graph, return the
+ * minimum length of those edges, as a positive number if v succeeds
+ * u and as a negative number if v precedes u.
+ */
+function minimumLength(graph, u, v) {
+  var outEdges = graph.outEdges(u, v);
+  if (outEdges.length > 0) {
+    return util.max(outEdges.map(function(e) {
+      return graph.edge(e).minLen;
+    }));
+  }
+
+  var inEdges = graph.inEdges(u, v);
+  if (inEdges.length > 0) {
+    return -util.max(inEdges.map(function(e) {
+      return graph.edge(e).minLen;
+    }));
+  }
+}
+
+},{"../util":17,"./rankUtil":15}],17:[function(require,module,exports){
 /*
  * Returns the smallest value in the array.
  */
 exports.min = function(values) {
-  return Math.min.apply(null, values);
+  return Math.min.apply(Math, values);
 };
 
 /*
  * Returns the largest value in the array.
  */
 exports.max = function(values) {
-  return Math.max.apply(null, values);
+  return Math.max.apply(Math, values);
 };
 
 /*
@@ -1162,7 +2030,7 @@ exports.max = function(values) {
 exports.all = function(xs, f) {
   for (var i = 0; i < xs.length; ++i) {
     if (!f(xs[i])) {
-      return false; 
+      return false;
     }
   }
   return true;
@@ -1182,32 +2050,6 @@ exports.values = function(obj) {
   return Object.keys(obj).map(function(k) { return obj[k]; });
 };
 
-exports.createTimer = function(enabled) {
-  var self = {};
-
-  // Default to disabled
-  enabled = enabled || false;
-
-  self.enabled = function(x) {
-    if (!arguments.length) return enabled;
-    enabled = x;
-    return self;
-  };
-
-  self.wrap = function(name, func) {
-    return function() {
-      var start = enabled ? new Date().getTime() : null;
-      try {
-        return func.apply(null, arguments);
-      } finally {
-        if (start) console.log(name + " time: " + (new Date().getTime() - start) + "ms");
-      }
-    };
-  };
-
-  return self;
-};
-
 exports.propertyAccessor = function(self, config, field, setHook) {
   return function(x) {
     if (!arguments.length) return config[field];
@@ -1217,1369 +2059,73 @@ exports.propertyAccessor = function(self, config, field, setHook) {
   };
 };
 
-},{}],9:[function(require,module,exports){
-module.exports = '0.3.0';
-
-},{}],10:[function(require,module,exports){
-exports.Graph = require("./lib/Graph");
-exports.Digraph = require("./lib/Digraph");
-exports.CGraph = require("./lib/CGraph");
-exports.CDigraph = require("./lib/CDigraph");
-require("./lib/graph-converters");
-
-exports.alg = {
-  isAcyclic: require("./lib/alg/isAcyclic"),
-  components: require("./lib/alg/components"),
-  dijkstra: require("./lib/alg/dijkstra"),
-  dijkstraAll: require("./lib/alg/dijkstraAll"),
-  findCycles: require("./lib/alg/findCycles"),
-  floydWarshall: require("./lib/alg/floydWarshall"),
-  prim: require("./lib/alg/prim"),
-  tarjan: require("./lib/alg/tarjan"),
-  topsort: require("./lib/alg/topsort")
-};
-
-exports.converter = {
-  json: require("./lib/converter/json.js")
-};
-
-exports.data = {
-  PriorityQueue: require("./lib/data/PriorityQueue"),
-  Set: require("./lib/data/Set")
-};
-
-var filter = require("./lib/filter");
-exports.filter = {
-  all: filter.all,
-  nodesFromList: filter.nodesFromList
-};
-
-exports.version = require("./lib/version");
-
-},{"./lib/CDigraph":12,"./lib/CGraph":13,"./lib/Digraph":14,"./lib/Graph":15,"./lib/alg/components":16,"./lib/alg/dijkstra":17,"./lib/alg/dijkstraAll":18,"./lib/alg/findCycles":19,"./lib/alg/floydWarshall":20,"./lib/alg/isAcyclic":21,"./lib/alg/prim":22,"./lib/alg/tarjan":23,"./lib/alg/topsort":24,"./lib/converter/json.js":26,"./lib/data/PriorityQueue":27,"./lib/data/Set":28,"./lib/filter":29,"./lib/graph-converters":30,"./lib/version":32}],11:[function(require,module,exports){
-var filter = require("./filter"),
-    /* jshint -W079 */
-    Set = require("./data/Set");
-
-module.exports = BaseGraph;
-
-function BaseGraph() {
-  // The value assigned to the graph itself.
-  this._value = undefined;
-
-  // Map of node id -> { id, value }
-  this._nodes = {};
-
-  // Map of edge id -> { id, u, v, value }
-  this._edges = {};
-
-  // Used to generate a unique id in the graph
-  this._nextId = 0;
-}
-
-// Number of nodes
-BaseGraph.prototype.order = function() {
-  return Object.keys(this._nodes).length;
-};
-
-// Number of edges
-BaseGraph.prototype.size = function() {
-  return Object.keys(this._edges).length;
-};
-
-// Accessor for graph level value
-BaseGraph.prototype.graph = function(value) {
-  if (arguments.length === 0) {
-    return this._value;
-  }
-  this._value = value;
-};
-
-BaseGraph.prototype.hasNode = function(u) {
-  return u in this._nodes;
-};
-
-BaseGraph.prototype.node = function(u, value) {
-  var node = this._strictGetNode(u);
-  if (arguments.length === 1) {
-    return node.value;
-  }
-  node.value = value;
-};
-
-BaseGraph.prototype.nodes = function() {
-  var nodes = [];
-  this.eachNode(function(id) { nodes.push(id); });
-  return nodes;
-};
-
-BaseGraph.prototype.eachNode = function(func) {
-  for (var k in this._nodes) {
-    var node = this._nodes[k];
-    func(node.id, node.value);
-  }
-};
-
-BaseGraph.prototype.hasEdge = function(e) {
-  return e in this._edges;
-};
-
-BaseGraph.prototype.edge = function(e, value) {
-  var edge = this._strictGetEdge(e);
-  if (arguments.length === 1) {
-    return edge.value;
-  }
-  edge.value = value;
-};
-
-BaseGraph.prototype.edges = function() {
-  var es = [];
-  this.eachEdge(function(id) { es.push(id); });
-  return es;
-};
-
-BaseGraph.prototype.eachEdge = function(func) {
-  for (var k in this._edges) {
-    var edge = this._edges[k];
-    func(edge.id, edge.u, edge.v, edge.value);
-  }
-};
-
-BaseGraph.prototype.incidentNodes = function(e) {
-  var edge = this._strictGetEdge(e);
-  return [edge.u, edge.v];
-};
-
-BaseGraph.prototype.addNode = function(u, value) {
-  if (u === undefined || u === null) {
-    do {
-      u = "_" + (++this._nextId);
-    } while (this.hasNode(u));
-  } else if (this.hasNode(u)) {
-    throw new Error("Graph already has node '" + u + "':\n" + this.toString());
-  }
-  this._nodes[u] = { id: u, value: value };
-  return u;
-};
-
-BaseGraph.prototype.delNode = function(u) {
-  this._strictGetNode(u);
-  this.incidentEdges(u).forEach(function(e) { this.delEdge(e); }, this);
-  delete this._nodes[u];
-};
-
-// inMap and outMap are opposite sides of an incidence map. For example, for
-// Graph these would both come from the _incidentEdges map, while for Digraph
-// they would come from _inEdges and _outEdges.
-BaseGraph.prototype._addEdge = function(e, u, v, value, inMap, outMap) {
-  this._strictGetNode(u);
-  this._strictGetNode(v);
-
-  if (e === undefined || e === null) {
-    do {
-      e = "_" + (++this._nextId);
-    } while (this.hasEdge(e));
-  }
-  else if (this.hasEdge(e)) {
-    throw new Error("Graph already has edge '" + e + "':\n" + this.toString());
-  }
-
-  this._edges[e] = { id: e, u: u, v: v, value: value };
-  addEdgeToMap(inMap[v], u, e);
-  addEdgeToMap(outMap[u], v, e);
-
-  return e;
-};
-
-// See note for _addEdge regarding inMap and outMap.
-BaseGraph.prototype._delEdge = function(e, inMap, outMap) {
-  var edge = this._strictGetEdge(e);
-  delEdgeFromMap(inMap[edge.v], edge.u, e);
-  delEdgeFromMap(outMap[edge.u], edge.v, e);
-  delete this._edges[e];
-};
-
-BaseGraph.prototype.copy = function() {
-  var copy = new this.constructor();
-  copy.graph(this.graph);
-  this.eachNode(function(u, value) { copy.addNode(u, value); });
-  this.eachEdge(function(e, u, v, value) { copy.addEdge(e, u, v, value); });
-  return copy;
-};
-
-BaseGraph.prototype.filterNodes = function(filter) {
-  var copy = this.copy();
-  this.nodes().forEach(function(u) {
-    if (!filter(u)) {
-      copy.delNode(u);
-    }
+/*
+ * Given a layered, directed graph with `rank` and `order` node attributes,
+ * this function returns an array of ordered ranks. Each rank contains an array
+ * of the ids of the nodes in that rank in the order specified by the `order`
+ * attribute.
+ */
+exports.ordering = function(g) {
+  var ordering = [];
+  g.eachNode(function(u, value) {
+    var rank = ordering[value.rank] || (ordering[value.rank] = []);
+    rank[value.order] = u;
   });
-  return copy;
-};
-
-BaseGraph.prototype._strictGetNode = function(u) {
-  var node = this._nodes[u];
-  if (node === undefined) {
-    throw new Error("Node '" + u + "' is not in graph:\n" + this.toString());
-  }
-  return node;
-};
-
-BaseGraph.prototype._strictGetEdge = function(e) {
-  var edge = this._edges[e];
-  if (edge === undefined) {
-    throw new Error("Edge '" + e + "' is not in graph:\n" + this.toString());
-  }
-  return edge;
-};
-
-function addEdgeToMap(map, v, e) {
-  (map[v] || (map[v] = new Set())).add(e);
-}
-
-function delEdgeFromMap(map, v, e) {
-  var vEntry = map[v];
-  vEntry.remove(e);
-  if (vEntry.size() === 0) {
-    delete map[v];
-  }
-}
-
-
-},{"./data/Set":28,"./filter":29}],12:[function(require,module,exports){
-var Digraph = require("./Digraph"),
-    compoundify = require("./compoundify");
-
-var CDigraph = compoundify(Digraph);
-
-module.exports = CDigraph;
-
-CDigraph.fromDigraph = function(src) {
-  var g = new CDigraph(),
-      graphValue = src.graph();
-
-  if (graphValue !== undefined) {
-    g.graph(graphValue);
-  }
-
-  src.eachNode(function(u, value) {
-    if (value === undefined) {
-      g.addNode(u);
-    } else {
-      g.addNode(u, value);
-    }
-  });
-  src.eachEdge(function(e, u, v, value) {
-    if (value === undefined) {
-      g.addEdge(null, u, v);
-    } else {
-      g.addEdge(null, u, v, value);
-    }
-  });
-  return g;
-};
-
-CDigraph.prototype.toString = function() {
-  return "CDigraph " + JSON.stringify(this, null, 2);
-};
-
-},{"./Digraph":14,"./compoundify":25}],13:[function(require,module,exports){
-var Graph = require("./Graph"),
-    compoundify = require("./compoundify");
-
-var CGraph = compoundify(Graph);
-
-module.exports = CGraph;
-
-CGraph.fromGraph = function(src) {
-  var g = new CGraph(),
-      graphValue = src.graph();
-
-  if (graphValue !== undefined) {
-    g.graph(graphValue);
-  }
-
-  src.eachNode(function(u, value) {
-    if (value === undefined) {
-      g.addNode(u);
-    } else {
-      g.addNode(u, value);
-    }
-  });
-  src.eachEdge(function(e, u, v, value) {
-    if (value === undefined) {
-      g.addEdge(null, u, v);
-    } else {
-      g.addEdge(null, u, v, value);
-    }
-  });
-  return g;
-};
-
-CGraph.prototype.toString = function() {
-  return "CGraph " + JSON.stringify(this, null, 2);
-};
-
-},{"./Graph":15,"./compoundify":25}],14:[function(require,module,exports){
-/*
- * This file is organized with in the following order:
- *
- * Exports
- * Graph constructors
- * Graph queries (e.g. nodes(), edges()
- * Graph mutators
- * Helper functions
- */
-
-var util = require("./util"),
-    BaseGraph = require("./BaseGraph"),
-    /* jshint -W079 */
-    Set = require("./data/Set");
-
-module.exports = Digraph;
-
-/*
- * Constructor to create a new directed multi-graph.
- */
-function Digraph() {
-  BaseGraph.call(this);
-
-  /*! Map of sourceId -> {targetId -> Set of edge ids} */
-  this._inEdges = {};
-
-  /*! Map of targetId -> {sourceId -> Set of edge ids} */
-  this._outEdges = {};
-}
-
-Digraph.prototype = new BaseGraph();
-Digraph.prototype.constructor = Digraph;
-
-/*
- * Always returns `true`.
- */
-Digraph.prototype.isDirected = function() {
-  return true;
+  return ordering;
 };
 
 /*
- * Returns all successors of the node with the id `u`. That is, all nodes
- * that have the node `u` as their source are returned.
- * 
- * If no node `u` exists in the graph this function throws an Error.
- *
- * @param {String} u a node id
+ * A filter that can be used with `filterNodes` to get a graph that only
+ * includes nodes that do not contain others nodes.
  */
-Digraph.prototype.successors = function(u) {
-  this._strictGetNode(u);
-  return Object.keys(this._outEdges[u])
-               .map(function(v) { return this._nodes[v].id; }, this);
-};
-
-/*
- * Returns all predecessors of the node with the id `u`. That is, all nodes
- * that have the node `u` as their target are returned.
- * 
- * If no node `u` exists in the graph this function throws an Error.
- *
- * @param {String} u a node id
- */
-Digraph.prototype.predecessors = function(u) {
-  this._strictGetNode(u);
-  return Object.keys(this._inEdges[u])
-               .map(function(v) { return this._nodes[v].id; }, this);
-};
-
-/*
- * Returns all nodes that are adjacent to the node with the id `u`. In other
- * words, this function returns the set of all successors and predecessors of
- * node `u`.
- *
- * @param {String} u a node id
- */
-Digraph.prototype.neighbors = function(u) {
-  return Set.unionAll([this.successors(u), this.predecessors(u)]).keys();
-};
-
-/*
- * Returns all nodes in the graph that have no in-edges.
- */
-Digraph.prototype.sources = function() {
-  var self = this;
-  return this._filterNodes(function(u) {
-    // This could have better space characteristics if we had an inDegree function.
-    return self.inEdges(u).length === 0;
-  });
-};
-
-/*
- * Returns all nodes in the graph that have no out-edges.
- */
-Digraph.prototype.sinks = function() {
-  var self = this;
-  return this._filterNodes(function(u) {
-    // This could have better space characteristics if we have an outDegree function.
-    return self.outEdges(u).length === 0;
-  });
-};
-
-/*
- * Returns the source node incident on the edge identified by the id `e`. If no
- * such edge exists in the graph this function throws an Error.
- *
- * @param {String} e an edge id
- */
-Digraph.prototype.source = function(e) {
-  return this._strictGetEdge(e).u;
-};
-
-/*
- * Returns the target node incident on the edge identified by the id `e`. If no
- * such edge exists in the graph this function throws an Error.
- *
- * @param {String} e an edge id
- */
-Digraph.prototype.target = function(e) {
-  return this._strictGetEdge(e).v;
-};
-
-/*
- * Returns an array of ids for all edges in the graph that have the node
- * `target` as their target. If the node `target` is not in the graph this
- * function raises an Error.
- *
- * Optionally a `source` node can also be specified. This causes the results
- * to be filtered such that only edges from `source` to `target` are included.
- * If the node `source` is specified but is not in the graph then this function
- * raises an Error.
- *
- * @param {String} target the target node id
- * @param {String} [source] an optional source node id
- */
-Digraph.prototype.inEdges = function(target, source) {
-  this._strictGetNode(target);
-  var results = Set.unionAll(util.values(this._inEdges[target])).keys();
-  if (arguments.length > 1) {
-    this._strictGetNode(source);
-    results = results.filter(function(e) { return this.source(e) === source; }, this);
-  }
-  return results;
-};
-
-/*
- * Returns an array of ids for all edges in the graph that have the node
- * `source` as their source. If the node `source` is not in the graph this
- * function raises an Error.
- *
- * Optionally a `target` node may also be specified. This causes the results
- * to be filtered such that only edges from `source` to `target` are included.
- * If the node `target` is specified but is not in the graph then this function
- * raises an Error.
- *
- * @param {String} source the source node id
- * @param {String} [target] an optional target node id
- */
-Digraph.prototype.outEdges = function(source, target) {
-  this._strictGetNode(source);
-  var results = Set.unionAll(util.values(this._outEdges[source])).keys();
-  if (arguments.length > 1) {
-    this._strictGetNode(target);
-    results = results.filter(function(e) { return this.target(e) === target; }, this);
-  }
-  return results;
-};
-
-/*
- * Returns an array of ids for all edges in the graph that have the `u` as
- * their source or their target. If the node `u` is not in the graph this
- * function raises an Error.
- *
- * Optionally a `v` node may also be specified. This causes the results to be
- * filtered such that only edges between `u` and `v` - in either direction -
- * are included. IF the node `v` is specified but not in the graph then this
- * function raises an Error.
- *
- * @param {String} u the node for which to find incident edges
- * @param {String} [v] option node that must be adjacent to `u`
- */
-Digraph.prototype.incidentEdges = function(u, v) {
-  if (arguments.length > 1) {
-    return Set.unionAll([this.outEdges(u, v), this.outEdges(v, u)]).keys();
-  } else {
-    return Set.unionAll([this.inEdges(u), this.outEdges(u)]).keys();
-  }
-};
-
-/*
- * Returns a string representation of this graph.
- */
-Digraph.prototype.toString = function() {
-  return "Digraph " + JSON.stringify(this, null, 2);
-};
-
-/*
- * Adds a new node with the id `u` to the graph and assigns it the value
- * `value`. If a node with the id is already a part of the graph this function
- * throws an Error.
- *
- * @param {String} u a node id
- * @param {Object} [value] an optional value to attach to the node
- */
-Digraph.prototype.addNode = function(u, value) {
-  u = BaseGraph.prototype.addNode.call(this, u, value);
-  this._inEdges[u] = {};
-  this._outEdges[u] = {};
-  return u;
-};
-
-/*
- * Removes a node from the graph that has the id `u`. Any edges incident on the
- * node are also removed. If the graph does not contain a node with the id this
- * function will throw an Error.
- *
- * @param {String} u a node id
- */
-Digraph.prototype.delNode = function(u) {
-  BaseGraph.prototype.delNode.call(this, u);
-  delete this._inEdges[u];
-  delete this._outEdges[u];
-};
-
-/*
- * Adds a new edge to the graph with the id `e` from a node with the id `source`
- * to a node with an id `target` and assigns it the value `value`. This graph
- * allows more than one edge from `source` to `target` as long as the id `e`
- * is unique in the set of edges. If `e` is `null` the graph will assign a
- * unique identifier to the edge.
- *
- * If `source` or `target` are not present in the graph this function will
- * throw an Error.
- *
- * @param {String} [e] an edge id
- * @param {String} source the source node id
- * @param {String} target the target node id
- * @param {Object} [value] an optional value to attach to the edge
- */
-Digraph.prototype.addEdge = function(e, source, target, value) {
-  return BaseGraph.prototype._addEdge.call(this, e, source, target, value,
-                                           this._inEdges, this._outEdges);
-};
-
-/*
- * Removes an edge in the graph with the id `e`. If no edge in the graph has
- * the id `e` this function will throw an Error.
- *
- * @param {String} e an edge id
- */
-Digraph.prototype.delEdge = function(e) {
-  BaseGraph.prototype._delEdge.call(this, e, this._inEdges, this._outEdges);
-};
-
-// Unlike BaseGraph.filterNodes, this helper just returns nodes that
-// satisfy a predicate.
-Digraph.prototype._filterNodes = function(pred) {
-  var filtered = [];
-  this.eachNode(function(u) {
-    if (pred(u)) {
-      filtered.push(u);
-    }
-  });
-  return filtered;
-};
-
-
-},{"./BaseGraph":11,"./data/Set":28,"./util":31}],15:[function(require,module,exports){
-/*
- * This file is organized with in the following order:
- *
- * Exports
- * Graph constructors
- * Graph queries (e.g. nodes(), edges()
- * Graph mutators
- * Helper functions
- */
-
-var util = require("./util"),
-    BaseGraph = require("./BaseGraph"),
-    /* jshint -W079 */
-    Set = require("./data/Set");
-
-module.exports = Graph;
-
-/*
- * Constructor to create a new undirected multi-graph.
- */
-function Graph() {
-  BaseGraph.call(this);
-
-  /*! Map of nodeId -> { otherNodeId -> Set of edge ids } */
-  this._incidentEdges = {};
-}
-
-Graph.prototype = new BaseGraph();
-Graph.prototype.constructor = Graph;
-
-/*
- * Always returns `false`.
- */
-Graph.prototype.isDirected = function() {
-  return false;
-};
-
-/*
- * Returns all nodes that are adjacent to the node with the id `u`.
- *
- * @param {String} u a node id
- */
-Graph.prototype.neighbors = function(u) {
-  this._strictGetNode(u);
-  return Object.keys(this._incidentEdges[u])
-               .map(function(v) { return this._nodes[v].id; }, this);
-};
-
-/*
- * Returns an array of ids for all edges in the graph that are incident on `u`.
- * If the node `u` is not in the graph this function raises an Error.
- *
- * Optionally a `v` node may also be specified. This causes the results to be
- * filtered such that only edges between `u` and `v` are included. If the node
- * `v` is specified but not in the graph then this function raises an Error.
- *
- * @param {String} u the node for which to find incident edges
- * @param {String} [v] option node that must be adjacent to `u`
- */
-Graph.prototype.incidentEdges = function(u, v) {
-  this._strictGetNode(u);
-  if (arguments.length > 1) {
-    this._strictGetNode(v);
-    return v in this._incidentEdges[u] ? this._incidentEdges[u][v].keys() : [];
-  } else {
-    return Set.unionAll(util.values(this._incidentEdges[u])).keys();
-  }
-};
-
-/*
- * Returns a string representation of this graph.
- */
-Graph.prototype.toString = function() {
-  return "Graph " + JSON.stringify(this, null, 2);
-};
-
-/*
- * Adds a new node with the id `u` to the graph and assigns it the value
- * `value`. If a node with the id is already a part of the graph this function
- * throws an Error.
- *
- * @param {String} u a node id
- * @param {Object} [value] an optional value to attach to the node
- */
-Graph.prototype.addNode = function(u, value) {
-  u = BaseGraph.prototype.addNode.call(this, u, value);
-  this._incidentEdges[u] = {};
-  return u;
-};
-
-/*
- * Removes a node from the graph that has the id `u`. Any edges incident on the
- * node are also removed. If the graph does not contain a node with the id this
- * function will throw an Error.
- *
- * @param {String} u a node id
- */
-Graph.prototype.delNode = function(u) {
-  BaseGraph.prototype.delNode.call(this, u);
-  delete this._incidentEdges[u];
-};
-
-/*
- * Adds a new edge to the graph with the id `e` between a node with the id `u`
- * and a node with an id `v` and assigns it the value `value`. This graph
- * allows more than one edge between `u` and `v` as long as the id `e`
- * is unique in the set of edges. If `e` is `null` the graph will assign a
- * unique identifier to the edge.
- *
- * If `u` or `v` are not present in the graph this function will throw an
- * Error.
- *
- * @param {String} [e] an edge id
- * @param {String} u the node id of one of the adjacent nodes
- * @param {String} v the node id of the other adjacent node
- * @param {Object} [value] an optional value to attach to the edge
- */
-Graph.prototype.addEdge = function(e, u, v, value) {
-  return BaseGraph.prototype._addEdge.call(this, e, u, v, value,
-                                           this._incidentEdges, this._incidentEdges);
-};
-
-/*
- * Removes an edge in the graph with the id `e`. If no edge in the graph has
- * the id `e` this function will throw an Error.
- *
- * @param {String} e an edge id
- */
-Graph.prototype.delEdge = function(e) {
-  BaseGraph.prototype._delEdge.call(this, e, this._incidentEdges, this._incidentEdges);
-};
-
-
-},{"./BaseGraph":11,"./data/Set":28,"./util":31}],16:[function(require,module,exports){
-var Set = require("../data/Set");
-
-module.exports = components;
-
-/**
- * Finds all [connected components][] in a graph and returns an array of these
- * components. Each component is itself an array that contains the ids of nodes
- * in the component.
- *
- * This function only works with undirected Graphs.
- *
- * [connected components]: http://en.wikipedia.org/wiki/Connected_component_(graph_theory)
- *
- * @param {Graph} g the graph to search for components
- */
-function components(g) {
-  var results = [];
-  var visited = new Set();
-
-  function dfs(v, component) {
-    if (!visited.has(v)) {
-      visited.add(v);
-      component.push(v);
-      g.neighbors(v).forEach(function(w) {
-        dfs(w, component);
-      });
-    }
-  }
-
-  g.nodes().forEach(function(v) {
-    var component = [];
-    dfs(v, component);
-    if (component.length > 0) {
-      results.push(component);
-    }
-  });
-
-  return results;
-}
-
-},{"../data/Set":28}],17:[function(require,module,exports){
-var PriorityQueue = require("../data/PriorityQueue"),
-    Digraph = require("../Digraph");
-
-module.exports = dijkstra;
-
-/**
- * This function is an implementation of [Dijkstra's algorithm][] which finds
- * the shortest path from **source** to all other nodes in **g**. This
- * function returns a map of `u -> { distance, predecessor }`. The distance
- * property holds the sum of the weights from **source** to `u` along the
- * shortest path or `Number.POSITIVE_INFINITY` if there is no path from
- * **source**. The predecessor property can be used to walk the individual
- * elements of the path from **source** to **u** in reverse order.
- *
- * This function takes an optional `weightFunc(e)` which returns the
- * weight of the edge `e`. If no weightFunc is supplied then each edge is
- * assumed to have a weight of 1. This function throws an Error if any of
- * the traversed edges have a negative edge weight.
- *
- * This function takes an optional `incidentFunc(u)` which returns the ids of
- * all edges incident to the node `u` for the purposes of shortest path
- * traversal. By default this function uses the `g.outEdges` for Digraphs and
- * `g.incidentEdges` for Graphs.
- *
- * This function takes `O((|E| + |V|) * log |V|)` time.
- *
- * [Dijkstra's algorithm]: http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
- *
- * @param {Graph} g the graph to search for shortest paths from **source**
- * @param {Object} source the source from which to start the search
- * @param {Function} [weightFunc] optional weight function
- * @param {Function} [incidentFunc] optional incident function
- */
-function dijkstra(g, source, weightFunc, incidentFunc) {
-  var results = {},
-      pq = new PriorityQueue();
-
-  weightFunc = weightFunc || function() { return 1; };
-  incidentFunc = incidentFunc || (g.isDirected()
-      ? function(u) { return g.outEdges(u); }
-      : function(u) { return g.incidentEdges(u); });
-
-  g.nodes().forEach(function(u) {
-    var distance = u === source ? 0 : Number.POSITIVE_INFINITY;
-    results[u] = { distance: distance };
-    pq.add(u, distance);
-  });
-
-  var u, uEntry;
-  while (pq.size() > 0) {
-    u = pq.removeMin();
-    uEntry = results[u];
-    if (uEntry.distance === Number.POSITIVE_INFINITY) {
-      break;
-    }
-
-    incidentFunc(u).forEach(function(e) {
-      var incidentNodes = g.incidentNodes(e),
-          v = incidentNodes[0] !== u ? incidentNodes[0] : incidentNodes[1],
-          vEntry = results[v],
-          weight = weightFunc(e),
-          distance = uEntry.distance + weight;
-
-      if (weight < 0) {
-        throw new Error("dijkstra does not allow negative edge weights. Bad edge: " + e + " Weight: " + weight);
-      }
-
-      if (distance < vEntry.distance) {
-        vEntry.distance = distance;
-        vEntry.predecessor = u;
-        pq.decrease(v, distance);
-      }
-    });
-  }
-
-  return results;
-}
-
-},{"../Digraph":14,"../data/PriorityQueue":27}],18:[function(require,module,exports){
-var dijkstra = require("./dijkstra");
-
-module.exports = dijkstraAll;
-
-/**
- * This function finds the shortest path from each node to every other
- * reachable node in the graph. It is similar to [alg.dijkstra][], but
- * instead of returning a single-source array, it returns a mapping of
- * of `source -> alg.dijksta(g, source, weightFunc, incidentFunc)`.
- *
- * This function takes an optional `weightFunc(e)` which returns the
- * weight of the edge `e`. If no weightFunc is supplied then each edge is
- * assumed to have a weight of 1. This function throws an Error if any of
- * the traversed edges have a negative edge weight.
- *
- * This function takes an optional `incidentFunc(u)` which returns the ids of
- * all edges incident to the node `u` for the purposes of shortest path
- * traversal. By default this function uses the `outEdges` function on the
- * supplied graph.
- *
- * This function takes `O(|V| * (|E| + |V|) * log |V|)` time.
- *
- * [alg.dijkstra]: dijkstra.js.html#dijkstra
- *
- * @param {Graph} g the graph to search for shortest paths from **source**
- * @param {Function} [weightFunc] optional weight function
- * @param {Function} [incidentFunc] optional incident function
- */
-function dijkstraAll(g, weightFunc, incidentFunc) {
-  var results = {};
-  g.nodes().forEach(function(u) {
-    results[u] = dijkstra(g, u, weightFunc, incidentFunc);
-  });
-  return results;
-}
-
-},{"./dijkstra":17}],19:[function(require,module,exports){
-var tarjan = require("./tarjan");
-
-module.exports = findCycles;
-
-/*
- * Given a Digraph **g** this function returns all nodes that are part of a
- * cycle. Since there may be more than one cycle in a graph this function
- * returns an array of these cycles, where each cycle is itself represented
- * by an array of ids for each node involved in that cycle.
- *
- * [alg.isAcyclic][] is more efficient if you only need to determine whether
- * a graph has a cycle or not.
- *
- * [alg.isAcyclic]: isAcyclic.js.html#isAcyclic
- *
- * @param {Digraph} g the graph to search for cycles.
- */
-function findCycles(g) {
-  return tarjan(g).filter(function(cmpt) { return cmpt.length > 1; });
-}
-
-},{"./tarjan":23}],20:[function(require,module,exports){
-var Digraph = require("../Digraph");
-
-module.exports = floydWarshall;
-
-/**
- * This function is an implementation of the [Floyd-Warshall algorithm][],
- * which finds the shortest path from each node to every other reachable node
- * in the graph. It is similar to [alg.dijkstraAll][], but it handles negative
- * edge weights and is more efficient for some types of graphs. This function
- * returns a map of `source -> { target -> { distance, predecessor }`. The
- * distance property holds the sum of the weights from `source` to `target`
- * along the shortest path of `Number.POSITIVE_INFINITY` if there is no path
- * from `source`. The predecessor property can be used to walk the individual
- * elements of the path from `source` to `target` in reverse order.
- *
- * This function takes an optional `weightFunc(e)` which returns the
- * weight of the edge `e`. If no weightFunc is supplied then each edge is
- * assumed to have a weight of 1.
- *
- * This function takes an optional `incidentFunc(u)` which returns the ids of
- * all edges incident to the node `u` for the purposes of shortest path
- * traversal. By default this function uses the `outEdges` function on the
- * supplied graph.
- *
- * This algorithm takes O(|V|^3) time.
- *
- * [Floyd-Warshall algorithm]: https://en.wikipedia.org/wiki/Floyd-Warshall_algorithm
- * [alg.dijkstraAll]: dijkstraAll.js.html#dijkstraAll
- *
- * @param {Graph} g the graph to search for shortest paths from **source**
- * @param {Function} [weightFunc] optional weight function
- * @param {Function} [incidentFunc] optional incident function
- */
-function floydWarshall(g, weightFunc, incidentFunc) {
-  var results = {},
-      nodes = g.nodes();
-
-  weightFunc = weightFunc || function() { return 1; };
-  incidentFunc = incidentFunc || (g.isDirected()
-      ? function(u) { return g.outEdges(u); }
-      : function(u) { return g.incidentEdges(u); });
-
-  nodes.forEach(function(u) {
-    results[u] = {};
-    results[u][u] = { distance: 0 };
-    nodes.forEach(function(v) {
-      if (u !== v) {
-        results[u][v] = { distance: Number.POSITIVE_INFINITY };
-      }
-    });
-    incidentFunc(u).forEach(function(e) {
-      var incidentNodes = g.incidentNodes(e),
-          v = incidentNodes[0] !== u ? incidentNodes[0] : incidentNodes[1],
-          d = weightFunc(e);
-      if (d < results[u][v].distance) {
-        results[u][v] = { distance: d, predecessor: u };
-      }
-    });
-  });
-
-  nodes.forEach(function(k) {
-    var rowK = results[k];
-    nodes.forEach(function(i) {
-      var rowI = results[i];
-      nodes.forEach(function(j) {
-        var ik = rowI[k];
-        var kj = rowK[j];
-        var ij = rowI[j];
-        var altDistance = ik.distance + kj.distance;
-        if (altDistance < ij.distance) {
-          ij.distance = altDistance;
-          ij.predecessor = kj.predecessor;
-        }
-      });
-    });
-  });
-
-  return results;
-}
-
-},{"../Digraph":14}],21:[function(require,module,exports){
-var topsort = require("./topsort");
-
-module.exports = isAcyclic;
-
-/*
- * Given a Digraph **g** this function returns `true` if the graph has no
- * cycles and returns `false` if it does. This algorithm returns as soon as it
- * detects the first cycle.
- *
- * Use [alg.findCycles][] if you need the actual list of cycles in a graph.
- *
- * [alg.findCycles]: findCycles.js.html#findCycles
- *
- * @param {Digraph} g the graph to test for cycles
- */
-function isAcyclic(g) {
-  try {
-    topsort(g);
-  } catch (e) {
-    if (e instanceof topsort.CycleException) return false;
-    throw e;
-  }
-  return true;
-}
-
-},{"./topsort":24}],22:[function(require,module,exports){
-var Graph = require("../Graph"),
-    PriorityQueue = require("../data/PriorityQueue");
-
-module.exports = prim;
-
-/**
- * [Prim's algorithm][] takes a connected undirected graph and generates a
- * [minimum spanning tree][]. This function returns the minimum spanning
- * tree as an undirected graph. This algorithm is derived from the description
- * in "Introduction to Algorithms", Third Edition, Cormen, et al., Pg 634.
- *
- * This function takes a `weightFunc(e)` which returns the weight of the edge
- * `e`. It throws an Error if the graph is not connected.
- *
- * This function takes `O(|E| log |V|)` time.
- *
- * [Prim's algorithm]: https://en.wikipedia.org/wiki/Prim's_algorithm
- * [minimum spanning tree]: https://en.wikipedia.org/wiki/Minimum_spanning_tree
- *
- * @param {Graph} g the graph used to generate the minimum spanning tree
- * @param {Function} weightFunc the weight function to use
- */
-function prim(g, weightFunc) {
-  var result = new Graph(),
-      parents = {},
-      pq = new PriorityQueue();
-
-  if (g.order() === 0) {
-    return result;
-  }
-
-  g.eachNode(function(u) {
-    pq.add(u, Number.POSITIVE_INFINITY);
-    result.addNode(u);
-  });
-
-  // Start from an arbitrary node
-  pq.decrease(g.nodes()[0], 0);
-
-  var init = false;
-  while (pq.size() > 0) {
-    var u = pq.removeMin();
-    if (u in parents) {
-      result.addEdge(null, u, parents[u]);
-    } else if (init) {
-      throw new Error("Input graph is not connected: " + g);
-    } else {
-      init = true;
-    }
-
-    g.incidentEdges(u).forEach(function(e) {
-      var incidentNodes = g.incidentNodes(e),
-          v = incidentNodes[0] !== u ? incidentNodes[0] : incidentNodes[1],
-          pri = pq.priority(v);
-      if (pri !== undefined) {
-        var edgeWeight = weightFunc(e);
-        if (edgeWeight < pri) {
-          parents[v] = u;
-          pq.decrease(v, edgeWeight);
-        }
-      }
-    });
-  }
-
-  return result;
-}
-
-},{"../Graph":15,"../data/PriorityQueue":27}],23:[function(require,module,exports){
-var Digraph = require("../Digraph");
-
-module.exports = tarjan;
-
-/**
- * This function is an implementation of [Tarjan's algorithm][] which finds
- * all [strongly connected components][] in the directed graph **g**. Each
- * strongly connected component is composed of nodes that can reach all other
- * nodes in the component via directed edges. A strongly connected component
- * can consist of a single node if that node cannot both reach and be reached
- * by any other specific node in the graph. Components of more than one node
- * are guaranteed to have at least one cycle.
- *
- * This function returns an array of components. Each component is itself an
- * array that contains the ids of all nodes in the component.
- *
- * [Tarjan's algorithm]: http://en.wikipedia.org/wiki/Tarjan's_strongly_connected_components_algorithm
- * [strongly connected components]: http://en.wikipedia.org/wiki/Strongly_connected_component
- *
- * @param {Digraph} g the graph to search for strongly connected components
- */
-function tarjan(g) {
-  if (!g.isDirected()) {
-    throw new Error("tarjan can only be applied to a directed graph. Bad input: " + g);
-  }
-
-  var index = 0,
-      stack = [],
-      visited = {}, // node id -> { onStack, lowlink, index }
-      results = [];
-
-  function dfs(u) {
-    var entry = visited[u] = {
-      onStack: true,
-      lowlink: index,
-      index: index++
-    };
-    stack.push(u);
-
-    g.successors(u).forEach(function(v) {
-      if (!(v in visited)) {
-        dfs(v);
-        entry.lowlink = Math.min(entry.lowlink, visited[v].lowlink);
-      } else if (visited[v].onStack) {
-        entry.lowlink = Math.min(entry.lowlink, visited[v].index);
-      }
-    });
-
-    if (entry.lowlink === entry.index) {
-      var cmpt = [],
-          v;
-      do {
-        v = stack.pop();
-        visited[v].onStack = false;
-        cmpt.push(v);
-      } while (u !== v);
-      results.push(cmpt);
-    }
-  }
-
-  g.nodes().forEach(function(u) {
-    if (!(u in visited)) {
-      dfs(u);
-    }
-  });
-
-  return results;
-}
-
-},{"../Digraph":14}],24:[function(require,module,exports){
-var Digraph = require("../Digraph");
-
-module.exports = topsort;
-topsort.CycleException = CycleException;
-
-/*
- * Given a graph **g**, this function returns an ordered list of nodes such
- * that for each edge `u -> v`, `u` appears before `v` in the list. If the
- * graph has a cycle it is impossible to generate such a list and
- * **CycleException** is thrown.
- *
- * See [topological sorting](https://en.wikipedia.org/wiki/Topological_sorting)
- * for more details about how this algorithm works.
- *
- * @param {Digraph} g the graph to sort
- */
-function topsort(g) {
-  if (!g.isDirected()) {
-    throw new Error("topsort can only be applied to a directed graph. Bad input: " + g);
-  }
-
-  var visited = {};
-  var stack = {};
-  var results = [];
-
-  function visit(node) {
-    if (node in stack) {
-      throw new CycleException();
-    }
-
-    if (!(node in visited)) {
-      stack[node] = true;
-      visited[node] = true;
-      g.predecessors(node).forEach(function(pred) {
-        visit(pred);
-      });
-      delete stack[node];
-      results.push(node);
-    }
-  }
-
-  var sinks = g.sinks();
-  if (g.order() !== 0 && sinks.length === 0) {
-    throw new CycleException();
-  }
-
-  g.sinks().forEach(function(sink) {
-    visit(sink);
-  });
-
-  return results;
-}
-
-function CycleException() {}
-
-CycleException.prototype.toString = function() {
-  return "Graph has at least one cycle";
-};
-
-},{"../Digraph":14}],25:[function(require,module,exports){
-// This file provides a helper function that mixes-in Dot behavior to an
-// existing graph prototype.
-
-var /* jshint -W079 */
-    Set = require("./data/Set");
-
-module.exports = compoundify;
-
-// Extends the given SuperConstructor with the ability for nodes to contain
-// other nodes. A special node id `null` is used to indicate the root graph.
-function compoundify(SuperConstructor) {
-  function Constructor() {
-    SuperConstructor.call(this);
-
-    // Map of object id -> parent id (or null for root graph)
-    this._parents = {};
-
-    // Map of id (or null) -> children set
-    this._children = { null: new Set() };
-  }
-
-  Constructor.prototype = new SuperConstructor();
-  Constructor.prototype.constructor = Constructor;
-
-  Constructor.prototype.parent = function(u, parent) {
-    this._strictGetNode(u);
-
-    if (arguments.length < 2) {
-      return this._parents[u];
-    }
-
-    if (u === parent) {
-      throw new Error("Cannot make " + u + " a parent of itself");
-    }
-    if (parent !== null) {
-      this._strictGetNode(parent);
-    }
-
-    this._children[this._parents[u]].remove(u);
-    this._parents[u] = parent;
-    this._children[parent].add(u);
+exports.filterNonSubgraphs = function(g) {
+  return function(u) {
+    return g.children(u).length === 0;
   };
-
-  Constructor.prototype.children = function(u) {
-    if (u !== null) {
-      this._strictGetNode(u);
-    }
-    return this._children[u].keys();
-  };
-
-  Constructor.prototype.addNode = function(u, value) {
-    u = SuperConstructor.prototype.addNode.call(this, u, value);
-    this._parents[u] = null;
-    this._children[u] = new Set();
-    this._children[null].add(u);
-    return u;
-  };
-
-  Constructor.prototype.delNode = function(u) {
-    // Promote all children to the parent of the subgraph
-    var parent = this.parent(u);
-    this._children[u].keys().forEach(function(child) {
-      this.parent(child, parent);
-    }, this);
-
-    this._children[parent].remove(u);
-    delete this._parents[u];
-    delete this._children[u];
-
-    return SuperConstructor.prototype.delNode.call(this, u);
-  };
-
-  Constructor.prototype.copy = function() {
-    var copy = SuperConstructor.prototype.copy.call(this);
-    this.nodes().forEach(function(u) {
-      copy.parent(u, this.parent(u));
-    }, this);
-    return copy;
-  };
-
-  return Constructor;
-}
-
-},{"./data/Set":28}],26:[function(require,module,exports){
-var Graph = require("../Graph"),
-    Digraph = require("../Digraph"),
-    CGraph = require("../CGraph"),
-    CDigraph = require("../CDigraph");
-
-exports.decode = function(nodes, edges, Ctor) {
-  Ctor = Ctor || Digraph;
-
-  if (typeOf(nodes) !== "Array") {
-    throw new Error("nodes is not an Array");
-  }
-
-  if (typeOf(edges) !== "Array") {
-    throw new Error("edges is not an Array");
-  }
-
-  if (typeof Ctor === "string") {
-    switch(Ctor) {
-      case "graph": Ctor = Graph; break;
-      case "digraph": Ctor = Digraph; break;
-      case "cgraph": Ctor = CGraph; break;
-      case "cdigraph": Ctor = CDigraph; break;
-      default: throw new Error("Unrecognized graph type: " + Ctor);
-    }
-  }
-
-  var graph = new Ctor();
-
-  nodes.forEach(function(u) {
-    graph.addNode(u.id, u.value);
-  });
-
-  // If the graph is compound, set up children...
-  if (graph.parent) {
-    nodes.forEach(function(u) {
-      if (u.children) {
-        u.children.forEach(function(v) {
-          graph.parent(v, u.id);
-        });
-      }
-    });
-  }
-
-  edges.forEach(function(e) {
-    graph.addEdge(e.id, e.u, e.v, e.value);
-  });
-
-  return graph;
 };
 
-exports.encode = function(graph) {
-  var nodes = [];
-  var edges = [];
-
-  graph.eachNode(function(u, value) {
-    var node = {id: u, value: value};
-    if (graph.children) {
-      var children = graph.children(u);
-      if (children.length) {
-        node.children = children;
-      }
+/*
+ * Returns a new function that wraps `func` with a timer. The wrapper logs the
+ * time it takes to execute the function.
+ *
+ * The timer will be enabled provided `log.level >= 1`.
+ */
+function time(name, func) {
+  return function() {
+    var start = new Date().getTime();
+    try {
+      return func.apply(null, arguments);
+    } finally {
+      log(1, name + ' time: ' + (new Date().getTime() - start) + 'ms');
     }
-    nodes.push(node);
-  });
-
-  graph.eachEdge(function(e, u, v, value) {
-    edges.push({id: e, u: u, v: v, value: value});
-  });
-
-  var type;
-  if (graph instanceof CDigraph) {
-    type = "cdigraph";
-  } else if (graph instanceof CGraph) {
-    type = "cgraph";
-  } else if (graph instanceof Digraph) {
-    type = "digraph";
-  } else if (graph instanceof Graph) {
-    type = "graph";
-  } else {
-    throw new Error("Couldn't determine type of graph: " + graph);
-  }
-
-  return { nodes: nodes, edges: edges, type: type };
-};
-
-function typeOf(obj) {
-  return Object.prototype.toString.call(obj).slice(8, -1);
+  };
 }
+time.enabled = false;
 
-},{"../CDigraph":12,"../CGraph":13,"../Digraph":14,"../Graph":15}],27:[function(require,module,exports){
+exports.time = time;
+
+/*
+ * A global logger with the specification `log(level, message, ...)` that
+ * will log a message to the console if `log.level >= level`.
+ */
+function log(level) {
+  if (log.level >= level) {
+    console.log.apply(console, Array.prototype.slice.call(arguments, 1));
+  }
+}
+log.level = 0;
+
+exports.log = log;
+
+},{}],18:[function(require,module,exports){
+module.exports = '0.4.0';
+
+},{}],19:[function(require,module,exports){
+exports.Set = require('./lib/Set');
+exports.PriorityQueue = require('./lib/PriorityQueue');
+exports.version = require('./lib/version');
+
+},{"./lib/PriorityQueue":20,"./lib/Set":21,"./lib/version":22}],20:[function(require,module,exports){
 module.exports = PriorityQueue;
 
 /**
@@ -2728,9 +2274,7 @@ PriorityQueue.prototype._swap = function(i, j) {
   keyIndices[arr[j].key] = j;
 };
 
-},{}],28:[function(require,module,exports){
-var util = require("../util");
-
+},{}],21:[function(require,module,exports){
 module.exports = Set;
 
 /**
@@ -2753,40 +2297,55 @@ function Set(initialKeys) {
   this._keys = {};
 
   if (initialKeys) {
-    initialKeys.forEach(function(key) { this.add(key); }, this);
+    for (var i = 0, il = initialKeys.length; i < il; ++i) {
+      this.add(initialKeys[i]);
+    }
   }
 }
 
 /**
- * Applies the [intersect](#intersect) function to all sets in the given array
- * and returns the result as a new Set.
- *
- * @param {Set[]} sets the sets to intersect
+ * Returns a new Set that represents the set intersection of the array of given
+ * sets.
  */
-Set.intersectAll = function(sets) {
+Set.intersect = function(sets) {
   if (sets.length === 0) {
     return new Set();
   }
 
-  var result = new Set(sets[0].keys());
-  sets.forEach(function(set) {
-    result = result.intersect(set);
-  });
+  var result = new Set(sets[0].keys ? sets[0].keys() : sets[0]);
+  for (var i = 1, il = sets.length; i < il; ++i) {
+    var resultKeys = result.keys(),
+        other = sets[i].keys ? sets[i] : new Set(sets[i]);
+    for (var j = 0, jl = resultKeys.length; j < jl; ++j) {
+      var key = resultKeys[j];
+      if (!other.has(key)) {
+        result.remove(key);
+      }
+    }
+  }
+
   return result;
 };
 
 /**
- * Applies the [union](#union) function to all sets in the given array and
- * returns the result as a new Set.
- *
- * @param {Set[]} sets the sets to union
+ * Returns a new Set that represents the set union of the array of given sets.
  */
-Set.unionAll = function(sets) {
-  var result = new Set();
-  sets.forEach(function(set) {
-    result = result.union(set);
-  });
-  return result;
+Set.union = function(sets) {
+  var totalElems = sets.reduce(function(lhs, rhs) {
+    return lhs + (rhs.size ? rhs.size() : rhs.length);
+  }, 0);
+  var arr = new Array(totalElems);
+
+  var k = 0;
+  for (var i = 0, il = sets.length; i < il; ++i) {
+    var cur = sets[i],
+        keys = cur.keys ? cur.keys() : cur;
+    for (var j = 0, jl = keys.length; j < jl; ++j) {
+      arr[k++] = keys[j];
+    }
+  }
+
+  return new Set(arr);
 };
 
 /**
@@ -2800,7 +2359,7 @@ Set.prototype.size = function() {
  * Returns the keys in this set. Takes `O(n)` time.
  */
 Set.prototype.keys = function() {
-  return util.values(this._keys);
+  return values(this._keys);
 };
 
 /**
@@ -2837,50 +2396,1452 @@ Set.prototype.remove = function(key) {
   return false;
 };
 
-/**
- * Returns a new Set that only contains elements in both this set and the
- * `other` set. They keys come from this set.
- *
- * If `other` is not a Set it is treated as an Array.
- *
- * @param {Set} other the other set with which to perform an intersection
+/*
+ * Returns an array of all values for properties of **o**.
  */
-Set.prototype.intersect = function(other) {
-  // If the other Set does not look like a Set...
-  if (!other.keys) {
-    other = new Set(other);
+function values(o) {
+  var ks = Object.keys(o),
+      len = ks.length,
+      result = new Array(len),
+      i;
+  for (i = 0; i < len; ++i) {
+    result[i] = o[ks[i]];
   }
-  var result = new Set();
-  this.keys().forEach(function(k) {
-    if (other.has(k)) {
-      result.add(k);
+  return result;
+}
+
+},{}],22:[function(require,module,exports){
+module.exports = '1.1.0';
+},{}],23:[function(require,module,exports){
+exports.Graph = require("./lib/Graph");
+exports.Digraph = require("./lib/Digraph");
+exports.CGraph = require("./lib/CGraph");
+exports.CDigraph = require("./lib/CDigraph");
+require("./lib/graph-converters");
+
+exports.alg = {
+  isAcyclic: require("./lib/alg/isAcyclic"),
+  components: require("./lib/alg/components"),
+  dijkstra: require("./lib/alg/dijkstra"),
+  dijkstraAll: require("./lib/alg/dijkstraAll"),
+  findCycles: require("./lib/alg/findCycles"),
+  floydWarshall: require("./lib/alg/floydWarshall"),
+  postorder: require("./lib/alg/postorder"),
+  preorder: require("./lib/alg/preorder"),
+  prim: require("./lib/alg/prim"),
+  tarjan: require("./lib/alg/tarjan"),
+  topsort: require("./lib/alg/topsort")
+};
+
+exports.converter = {
+  json: require("./lib/converter/json.js")
+};
+
+var filter = require("./lib/filter");
+exports.filter = {
+  all: filter.all,
+  nodesFromList: filter.nodesFromList
+};
+
+exports.version = require("./lib/version");
+
+},{"./lib/CDigraph":25,"./lib/CGraph":26,"./lib/Digraph":27,"./lib/Graph":28,"./lib/alg/components":29,"./lib/alg/dijkstra":30,"./lib/alg/dijkstraAll":31,"./lib/alg/findCycles":32,"./lib/alg/floydWarshall":33,"./lib/alg/isAcyclic":34,"./lib/alg/postorder":35,"./lib/alg/preorder":36,"./lib/alg/prim":37,"./lib/alg/tarjan":38,"./lib/alg/topsort":39,"./lib/converter/json.js":41,"./lib/filter":42,"./lib/graph-converters":43,"./lib/version":45}],24:[function(require,module,exports){
+var Set = require("cp-data").Set;
+
+module.exports = BaseGraph;
+
+function BaseGraph() {
+  // The value assigned to the graph itself.
+  this._value = undefined;
+
+  // Map of node id -> { id, value }
+  this._nodes = {};
+
+  // Map of edge id -> { id, u, v, value }
+  this._edges = {};
+
+  // Used to generate a unique id in the graph
+  this._nextId = 0;
+}
+
+// Number of nodes
+BaseGraph.prototype.order = function() {
+  return Object.keys(this._nodes).length;
+};
+
+// Number of edges
+BaseGraph.prototype.size = function() {
+  return Object.keys(this._edges).length;
+};
+
+// Accessor for graph level value
+BaseGraph.prototype.graph = function(value) {
+  if (arguments.length === 0) {
+    return this._value;
+  }
+  this._value = value;
+};
+
+BaseGraph.prototype.hasNode = function(u) {
+  return u in this._nodes;
+};
+
+BaseGraph.prototype.node = function(u, value) {
+  var node = this._strictGetNode(u);
+  if (arguments.length === 1) {
+    return node.value;
+  }
+  node.value = value;
+};
+
+BaseGraph.prototype.nodes = function() {
+  var nodes = [];
+  this.eachNode(function(id) { nodes.push(id); });
+  return nodes;
+};
+
+BaseGraph.prototype.eachNode = function(func) {
+  for (var k in this._nodes) {
+    var node = this._nodes[k];
+    func(node.id, node.value);
+  }
+};
+
+BaseGraph.prototype.hasEdge = function(e) {
+  return e in this._edges;
+};
+
+BaseGraph.prototype.edge = function(e, value) {
+  var edge = this._strictGetEdge(e);
+  if (arguments.length === 1) {
+    return edge.value;
+  }
+  edge.value = value;
+};
+
+BaseGraph.prototype.edges = function() {
+  var es = [];
+  this.eachEdge(function(id) { es.push(id); });
+  return es;
+};
+
+BaseGraph.prototype.eachEdge = function(func) {
+  for (var k in this._edges) {
+    var edge = this._edges[k];
+    func(edge.id, edge.u, edge.v, edge.value);
+  }
+};
+
+BaseGraph.prototype.incidentNodes = function(e) {
+  var edge = this._strictGetEdge(e);
+  return [edge.u, edge.v];
+};
+
+BaseGraph.prototype.addNode = function(u, value) {
+  if (u === undefined || u === null) {
+    do {
+      u = "_" + (++this._nextId);
+    } while (this.hasNode(u));
+  } else if (this.hasNode(u)) {
+    throw new Error("Graph already has node '" + u + "'");
+  }
+  this._nodes[u] = { id: u, value: value };
+  return u;
+};
+
+BaseGraph.prototype.delNode = function(u) {
+  this._strictGetNode(u);
+  this.incidentEdges(u).forEach(function(e) { this.delEdge(e); }, this);
+  delete this._nodes[u];
+};
+
+// inMap and outMap are opposite sides of an incidence map. For example, for
+// Graph these would both come from the _incidentEdges map, while for Digraph
+// they would come from _inEdges and _outEdges.
+BaseGraph.prototype._addEdge = function(e, u, v, value, inMap, outMap) {
+  this._strictGetNode(u);
+  this._strictGetNode(v);
+
+  if (e === undefined || e === null) {
+    do {
+      e = "_" + (++this._nextId);
+    } while (this.hasEdge(e));
+  }
+  else if (this.hasEdge(e)) {
+    throw new Error("Graph already has edge '" + e + "'");
+  }
+
+  this._edges[e] = { id: e, u: u, v: v, value: value };
+  addEdgeToMap(inMap[v], u, e);
+  addEdgeToMap(outMap[u], v, e);
+
+  return e;
+};
+
+// See note for _addEdge regarding inMap and outMap.
+BaseGraph.prototype._delEdge = function(e, inMap, outMap) {
+  var edge = this._strictGetEdge(e);
+  delEdgeFromMap(inMap[edge.v], edge.u, e);
+  delEdgeFromMap(outMap[edge.u], edge.v, e);
+  delete this._edges[e];
+};
+
+BaseGraph.prototype.copy = function() {
+  var copy = new this.constructor();
+  copy.graph(this.graph());
+  this.eachNode(function(u, value) { copy.addNode(u, value); });
+  this.eachEdge(function(e, u, v, value) { copy.addEdge(e, u, v, value); });
+  copy._nextId = this._nextId;
+  return copy;
+};
+
+BaseGraph.prototype.filterNodes = function(filter) {
+  var copy = new this.constructor();
+  copy.graph(this.graph());
+  this.eachNode(function(u, value) {
+    if (filter(u)) {
+      copy.addNode(u, value);
     }
   });
-  return result;
+  this.eachEdge(function(e, u, v, value) {
+    if (copy.hasNode(u) && copy.hasNode(v)) {
+      copy.addEdge(e, u, v, value);
+    }
+  });
+  return copy;
 };
+
+BaseGraph.prototype._strictGetNode = function(u) {
+  var node = this._nodes[u];
+  if (node === undefined) {
+    throw new Error("Node '" + u + "' is not in graph");
+  }
+  return node;
+};
+
+BaseGraph.prototype._strictGetEdge = function(e) {
+  var edge = this._edges[e];
+  if (edge === undefined) {
+    throw new Error("Edge '" + e + "' is not in graph");
+  }
+  return edge;
+};
+
+function addEdgeToMap(map, v, e) {
+  (map[v] || (map[v] = new Set())).add(e);
+}
+
+function delEdgeFromMap(map, v, e) {
+  var vEntry = map[v];
+  vEntry.remove(e);
+  if (vEntry.size() === 0) {
+    delete map[v];
+  }
+}
+
+
+},{"cp-data":19}],25:[function(require,module,exports){
+var Digraph = require("./Digraph"),
+    compoundify = require("./compoundify");
+
+var CDigraph = compoundify(Digraph);
+
+module.exports = CDigraph;
+
+CDigraph.fromDigraph = function(src) {
+  var g = new CDigraph(),
+      graphValue = src.graph();
+
+  if (graphValue !== undefined) {
+    g.graph(graphValue);
+  }
+
+  src.eachNode(function(u, value) {
+    if (value === undefined) {
+      g.addNode(u);
+    } else {
+      g.addNode(u, value);
+    }
+  });
+  src.eachEdge(function(e, u, v, value) {
+    if (value === undefined) {
+      g.addEdge(null, u, v);
+    } else {
+      g.addEdge(null, u, v, value);
+    }
+  });
+  return g;
+};
+
+CDigraph.prototype.toString = function() {
+  return "CDigraph " + JSON.stringify(this, null, 2);
+};
+
+},{"./Digraph":27,"./compoundify":40}],26:[function(require,module,exports){
+var Graph = require("./Graph"),
+    compoundify = require("./compoundify");
+
+var CGraph = compoundify(Graph);
+
+module.exports = CGraph;
+
+CGraph.fromGraph = function(src) {
+  var g = new CGraph(),
+      graphValue = src.graph();
+
+  if (graphValue !== undefined) {
+    g.graph(graphValue);
+  }
+
+  src.eachNode(function(u, value) {
+    if (value === undefined) {
+      g.addNode(u);
+    } else {
+      g.addNode(u, value);
+    }
+  });
+  src.eachEdge(function(e, u, v, value) {
+    if (value === undefined) {
+      g.addEdge(null, u, v);
+    } else {
+      g.addEdge(null, u, v, value);
+    }
+  });
+  return g;
+};
+
+CGraph.prototype.toString = function() {
+  return "CGraph " + JSON.stringify(this, null, 2);
+};
+
+},{"./Graph":28,"./compoundify":40}],27:[function(require,module,exports){
+/*
+ * This file is organized with in the following order:
+ *
+ * Exports
+ * Graph constructors
+ * Graph queries (e.g. nodes(), edges()
+ * Graph mutators
+ * Helper functions
+ */
+
+var util = require("./util"),
+    BaseGraph = require("./BaseGraph"),
+    Set = require("cp-data").Set;
+
+module.exports = Digraph;
+
+/*
+ * Constructor to create a new directed multi-graph.
+ */
+function Digraph() {
+  BaseGraph.call(this);
+
+  /*! Map of sourceId -> {targetId -> Set of edge ids} */
+  this._inEdges = {};
+
+  /*! Map of targetId -> {sourceId -> Set of edge ids} */
+  this._outEdges = {};
+}
+
+Digraph.prototype = new BaseGraph();
+Digraph.prototype.constructor = Digraph;
+
+/*
+ * Always returns `true`.
+ */
+Digraph.prototype.isDirected = function() {
+  return true;
+};
+
+/*
+ * Returns all successors of the node with the id `u`. That is, all nodes
+ * that have the node `u` as their source are returned.
+ * 
+ * If no node `u` exists in the graph this function throws an Error.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.successors = function(u) {
+  this._strictGetNode(u);
+  return Object.keys(this._outEdges[u])
+               .map(function(v) { return this._nodes[v].id; }, this);
+};
+
+/*
+ * Returns all predecessors of the node with the id `u`. That is, all nodes
+ * that have the node `u` as their target are returned.
+ * 
+ * If no node `u` exists in the graph this function throws an Error.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.predecessors = function(u) {
+  this._strictGetNode(u);
+  return Object.keys(this._inEdges[u])
+               .map(function(v) { return this._nodes[v].id; }, this);
+};
+
+/*
+ * Returns all nodes that are adjacent to the node with the id `u`. In other
+ * words, this function returns the set of all successors and predecessors of
+ * node `u`.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.neighbors = function(u) {
+  return Set.union([this.successors(u), this.predecessors(u)]).keys();
+};
+
+/*
+ * Returns all nodes in the graph that have no in-edges.
+ */
+Digraph.prototype.sources = function() {
+  var self = this;
+  return this._filterNodes(function(u) {
+    // This could have better space characteristics if we had an inDegree function.
+    return self.inEdges(u).length === 0;
+  });
+};
+
+/*
+ * Returns all nodes in the graph that have no out-edges.
+ */
+Digraph.prototype.sinks = function() {
+  var self = this;
+  return this._filterNodes(function(u) {
+    // This could have better space characteristics if we have an outDegree function.
+    return self.outEdges(u).length === 0;
+  });
+};
+
+/*
+ * Returns the source node incident on the edge identified by the id `e`. If no
+ * such edge exists in the graph this function throws an Error.
+ *
+ * @param {String} e an edge id
+ */
+Digraph.prototype.source = function(e) {
+  return this._strictGetEdge(e).u;
+};
+
+/*
+ * Returns the target node incident on the edge identified by the id `e`. If no
+ * such edge exists in the graph this function throws an Error.
+ *
+ * @param {String} e an edge id
+ */
+Digraph.prototype.target = function(e) {
+  return this._strictGetEdge(e).v;
+};
+
+/*
+ * Returns an array of ids for all edges in the graph that have the node
+ * `target` as their target. If the node `target` is not in the graph this
+ * function raises an Error.
+ *
+ * Optionally a `source` node can also be specified. This causes the results
+ * to be filtered such that only edges from `source` to `target` are included.
+ * If the node `source` is specified but is not in the graph then this function
+ * raises an Error.
+ *
+ * @param {String} target the target node id
+ * @param {String} [source] an optional source node id
+ */
+Digraph.prototype.inEdges = function(target, source) {
+  this._strictGetNode(target);
+  var results = Set.union(util.values(this._inEdges[target])).keys();
+  if (arguments.length > 1) {
+    this._strictGetNode(source);
+    results = results.filter(function(e) { return this.source(e) === source; }, this);
+  }
+  return results;
+};
+
+/*
+ * Returns an array of ids for all edges in the graph that have the node
+ * `source` as their source. If the node `source` is not in the graph this
+ * function raises an Error.
+ *
+ * Optionally a `target` node may also be specified. This causes the results
+ * to be filtered such that only edges from `source` to `target` are included.
+ * If the node `target` is specified but is not in the graph then this function
+ * raises an Error.
+ *
+ * @param {String} source the source node id
+ * @param {String} [target] an optional target node id
+ */
+Digraph.prototype.outEdges = function(source, target) {
+  this._strictGetNode(source);
+  var results = Set.union(util.values(this._outEdges[source])).keys();
+  if (arguments.length > 1) {
+    this._strictGetNode(target);
+    results = results.filter(function(e) { return this.target(e) === target; }, this);
+  }
+  return results;
+};
+
+/*
+ * Returns an array of ids for all edges in the graph that have the `u` as
+ * their source or their target. If the node `u` is not in the graph this
+ * function raises an Error.
+ *
+ * Optionally a `v` node may also be specified. This causes the results to be
+ * filtered such that only edges between `u` and `v` - in either direction -
+ * are included. IF the node `v` is specified but not in the graph then this
+ * function raises an Error.
+ *
+ * @param {String} u the node for which to find incident edges
+ * @param {String} [v] option node that must be adjacent to `u`
+ */
+Digraph.prototype.incidentEdges = function(u, v) {
+  if (arguments.length > 1) {
+    return Set.union([this.outEdges(u, v), this.outEdges(v, u)]).keys();
+  } else {
+    return Set.union([this.inEdges(u), this.outEdges(u)]).keys();
+  }
+};
+
+/*
+ * Returns a string representation of this graph.
+ */
+Digraph.prototype.toString = function() {
+  return "Digraph " + JSON.stringify(this, null, 2);
+};
+
+/*
+ * Adds a new node with the id `u` to the graph and assigns it the value
+ * `value`. If a node with the id is already a part of the graph this function
+ * throws an Error.
+ *
+ * @param {String} u a node id
+ * @param {Object} [value] an optional value to attach to the node
+ */
+Digraph.prototype.addNode = function(u, value) {
+  u = BaseGraph.prototype.addNode.call(this, u, value);
+  this._inEdges[u] = {};
+  this._outEdges[u] = {};
+  return u;
+};
+
+/*
+ * Removes a node from the graph that has the id `u`. Any edges incident on the
+ * node are also removed. If the graph does not contain a node with the id this
+ * function will throw an Error.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.delNode = function(u) {
+  BaseGraph.prototype.delNode.call(this, u);
+  delete this._inEdges[u];
+  delete this._outEdges[u];
+};
+
+/*
+ * Adds a new edge to the graph with the id `e` from a node with the id `source`
+ * to a node with an id `target` and assigns it the value `value`. This graph
+ * allows more than one edge from `source` to `target` as long as the id `e`
+ * is unique in the set of edges. If `e` is `null` the graph will assign a
+ * unique identifier to the edge.
+ *
+ * If `source` or `target` are not present in the graph this function will
+ * throw an Error.
+ *
+ * @param {String} [e] an edge id
+ * @param {String} source the source node id
+ * @param {String} target the target node id
+ * @param {Object} [value] an optional value to attach to the edge
+ */
+Digraph.prototype.addEdge = function(e, source, target, value) {
+  return BaseGraph.prototype._addEdge.call(this, e, source, target, value,
+                                           this._inEdges, this._outEdges);
+};
+
+/*
+ * Removes an edge in the graph with the id `e`. If no edge in the graph has
+ * the id `e` this function will throw an Error.
+ *
+ * @param {String} e an edge id
+ */
+Digraph.prototype.delEdge = function(e) {
+  BaseGraph.prototype._delEdge.call(this, e, this._inEdges, this._outEdges);
+};
+
+// Unlike BaseGraph.filterNodes, this helper just returns nodes that
+// satisfy a predicate.
+Digraph.prototype._filterNodes = function(pred) {
+  var filtered = [];
+  this.eachNode(function(u) {
+    if (pred(u)) {
+      filtered.push(u);
+    }
+  });
+  return filtered;
+};
+
+
+},{"./BaseGraph":24,"./util":44,"cp-data":19}],28:[function(require,module,exports){
+/*
+ * This file is organized with in the following order:
+ *
+ * Exports
+ * Graph constructors
+ * Graph queries (e.g. nodes(), edges()
+ * Graph mutators
+ * Helper functions
+ */
+
+var util = require("./util"),
+    BaseGraph = require("./BaseGraph"),
+    Set = require("cp-data").Set;
+
+module.exports = Graph;
+
+/*
+ * Constructor to create a new undirected multi-graph.
+ */
+function Graph() {
+  BaseGraph.call(this);
+
+  /*! Map of nodeId -> { otherNodeId -> Set of edge ids } */
+  this._incidentEdges = {};
+}
+
+Graph.prototype = new BaseGraph();
+Graph.prototype.constructor = Graph;
+
+/*
+ * Always returns `false`.
+ */
+Graph.prototype.isDirected = function() {
+  return false;
+};
+
+/*
+ * Returns all nodes that are adjacent to the node with the id `u`.
+ *
+ * @param {String} u a node id
+ */
+Graph.prototype.neighbors = function(u) {
+  this._strictGetNode(u);
+  return Object.keys(this._incidentEdges[u])
+               .map(function(v) { return this._nodes[v].id; }, this);
+};
+
+/*
+ * Returns an array of ids for all edges in the graph that are incident on `u`.
+ * If the node `u` is not in the graph this function raises an Error.
+ *
+ * Optionally a `v` node may also be specified. This causes the results to be
+ * filtered such that only edges between `u` and `v` are included. If the node
+ * `v` is specified but not in the graph then this function raises an Error.
+ *
+ * @param {String} u the node for which to find incident edges
+ * @param {String} [v] option node that must be adjacent to `u`
+ */
+Graph.prototype.incidentEdges = function(u, v) {
+  this._strictGetNode(u);
+  if (arguments.length > 1) {
+    this._strictGetNode(v);
+    return v in this._incidentEdges[u] ? this._incidentEdges[u][v].keys() : [];
+  } else {
+    return Set.union(util.values(this._incidentEdges[u])).keys();
+  }
+};
+
+/*
+ * Returns a string representation of this graph.
+ */
+Graph.prototype.toString = function() {
+  return "Graph " + JSON.stringify(this, null, 2);
+};
+
+/*
+ * Adds a new node with the id `u` to the graph and assigns it the value
+ * `value`. If a node with the id is already a part of the graph this function
+ * throws an Error.
+ *
+ * @param {String} u a node id
+ * @param {Object} [value] an optional value to attach to the node
+ */
+Graph.prototype.addNode = function(u, value) {
+  u = BaseGraph.prototype.addNode.call(this, u, value);
+  this._incidentEdges[u] = {};
+  return u;
+};
+
+/*
+ * Removes a node from the graph that has the id `u`. Any edges incident on the
+ * node are also removed. If the graph does not contain a node with the id this
+ * function will throw an Error.
+ *
+ * @param {String} u a node id
+ */
+Graph.prototype.delNode = function(u) {
+  BaseGraph.prototype.delNode.call(this, u);
+  delete this._incidentEdges[u];
+};
+
+/*
+ * Adds a new edge to the graph with the id `e` between a node with the id `u`
+ * and a node with an id `v` and assigns it the value `value`. This graph
+ * allows more than one edge between `u` and `v` as long as the id `e`
+ * is unique in the set of edges. If `e` is `null` the graph will assign a
+ * unique identifier to the edge.
+ *
+ * If `u` or `v` are not present in the graph this function will throw an
+ * Error.
+ *
+ * @param {String} [e] an edge id
+ * @param {String} u the node id of one of the adjacent nodes
+ * @param {String} v the node id of the other adjacent node
+ * @param {Object} [value] an optional value to attach to the edge
+ */
+Graph.prototype.addEdge = function(e, u, v, value) {
+  return BaseGraph.prototype._addEdge.call(this, e, u, v, value,
+                                           this._incidentEdges, this._incidentEdges);
+};
+
+/*
+ * Removes an edge in the graph with the id `e`. If no edge in the graph has
+ * the id `e` this function will throw an Error.
+ *
+ * @param {String} e an edge id
+ */
+Graph.prototype.delEdge = function(e) {
+  BaseGraph.prototype._delEdge.call(this, e, this._incidentEdges, this._incidentEdges);
+};
+
+
+},{"./BaseGraph":24,"./util":44,"cp-data":19}],29:[function(require,module,exports){
+var Set = require("cp-data").Set;
+
+module.exports = components;
 
 /**
- * Returns a new Set that contains all of the keys in `this` set and `other`
- * set. If a key is in `this` set, it is used in preference to the `other` set.
+ * Finds all [connected components][] in a graph and returns an array of these
+ * components. Each component is itself an array that contains the ids of nodes
+ * in the component.
  *
- * If `other` is not a Set it is treated as an Array.
+ * This function only works with undirected Graphs.
  *
- * @param {Set} other the other set with which to perform a union
+ * [connected components]: http://en.wikipedia.org/wiki/Connected_component_(graph_theory)
+ *
+ * @param {Graph} g the graph to search for components
  */
-Set.prototype.union = function(other) {
-  if (!(other instanceof Set)) {
-    other = new Set(other);
+function components(g) {
+  var results = [];
+  var visited = new Set();
+
+  function dfs(v, component) {
+    if (!visited.has(v)) {
+      visited.add(v);
+      component.push(v);
+      g.neighbors(v).forEach(function(w) {
+        dfs(w, component);
+      });
+    }
   }
-  var result = new Set(this.keys());
-  other.keys().forEach(function(k) {
-    result.add(k);
+
+  g.nodes().forEach(function(v) {
+    var component = [];
+    dfs(v, component);
+    if (component.length > 0) {
+      results.push(component);
+    }
   });
+
+  return results;
+}
+
+},{"cp-data":19}],30:[function(require,module,exports){
+var PriorityQueue = require("cp-data").PriorityQueue;
+
+module.exports = dijkstra;
+
+/**
+ * This function is an implementation of [Dijkstra's algorithm][] which finds
+ * the shortest path from **source** to all other nodes in **g**. This
+ * function returns a map of `u -> { distance, predecessor }`. The distance
+ * property holds the sum of the weights from **source** to `u` along the
+ * shortest path or `Number.POSITIVE_INFINITY` if there is no path from
+ * **source**. The predecessor property can be used to walk the individual
+ * elements of the path from **source** to **u** in reverse order.
+ *
+ * This function takes an optional `weightFunc(e)` which returns the
+ * weight of the edge `e`. If no weightFunc is supplied then each edge is
+ * assumed to have a weight of 1. This function throws an Error if any of
+ * the traversed edges have a negative edge weight.
+ *
+ * This function takes an optional `incidentFunc(u)` which returns the ids of
+ * all edges incident to the node `u` for the purposes of shortest path
+ * traversal. By default this function uses the `g.outEdges` for Digraphs and
+ * `g.incidentEdges` for Graphs.
+ *
+ * This function takes `O((|E| + |V|) * log |V|)` time.
+ *
+ * [Dijkstra's algorithm]: http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
+ *
+ * @param {Graph} g the graph to search for shortest paths from **source**
+ * @param {Object} source the source from which to start the search
+ * @param {Function} [weightFunc] optional weight function
+ * @param {Function} [incidentFunc] optional incident function
+ */
+function dijkstra(g, source, weightFunc, incidentFunc) {
+  var results = {},
+      pq = new PriorityQueue();
+
+  function updateNeighbors(e) {
+    var incidentNodes = g.incidentNodes(e),
+        v = incidentNodes[0] !== u ? incidentNodes[0] : incidentNodes[1],
+        vEntry = results[v],
+        weight = weightFunc(e),
+        distance = uEntry.distance + weight;
+
+    if (weight < 0) {
+      throw new Error("dijkstra does not allow negative edge weights. Bad edge: " + e + " Weight: " + weight);
+    }
+
+    if (distance < vEntry.distance) {
+      vEntry.distance = distance;
+      vEntry.predecessor = u;
+      pq.decrease(v, distance);
+    }
+  }
+
+  weightFunc = weightFunc || function() { return 1; };
+  incidentFunc = incidentFunc || (g.isDirected()
+      ? function(u) { return g.outEdges(u); }
+      : function(u) { return g.incidentEdges(u); });
+
+  g.nodes().forEach(function(u) {
+    var distance = u === source ? 0 : Number.POSITIVE_INFINITY;
+    results[u] = { distance: distance };
+    pq.add(u, distance);
+  });
+
+  var u, uEntry;
+  while (pq.size() > 0) {
+    u = pq.removeMin();
+    uEntry = results[u];
+    if (uEntry.distance === Number.POSITIVE_INFINITY) {
+      break;
+    }
+
+    incidentFunc(u).forEach(updateNeighbors);
+  }
+
+  return results;
+}
+
+},{"cp-data":19}],31:[function(require,module,exports){
+var dijkstra = require("./dijkstra");
+
+module.exports = dijkstraAll;
+
+/**
+ * This function finds the shortest path from each node to every other
+ * reachable node in the graph. It is similar to [alg.dijkstra][], but
+ * instead of returning a single-source array, it returns a mapping of
+ * of `source -> alg.dijksta(g, source, weightFunc, incidentFunc)`.
+ *
+ * This function takes an optional `weightFunc(e)` which returns the
+ * weight of the edge `e`. If no weightFunc is supplied then each edge is
+ * assumed to have a weight of 1. This function throws an Error if any of
+ * the traversed edges have a negative edge weight.
+ *
+ * This function takes an optional `incidentFunc(u)` which returns the ids of
+ * all edges incident to the node `u` for the purposes of shortest path
+ * traversal. By default this function uses the `outEdges` function on the
+ * supplied graph.
+ *
+ * This function takes `O(|V| * (|E| + |V|) * log |V|)` time.
+ *
+ * [alg.dijkstra]: dijkstra.js.html#dijkstra
+ *
+ * @param {Graph} g the graph to search for shortest paths from **source**
+ * @param {Function} [weightFunc] optional weight function
+ * @param {Function} [incidentFunc] optional incident function
+ */
+function dijkstraAll(g, weightFunc, incidentFunc) {
+  var results = {};
+  g.nodes().forEach(function(u) {
+    results[u] = dijkstra(g, u, weightFunc, incidentFunc);
+  });
+  return results;
+}
+
+},{"./dijkstra":30}],32:[function(require,module,exports){
+var tarjan = require("./tarjan");
+
+module.exports = findCycles;
+
+/*
+ * Given a Digraph **g** this function returns all nodes that are part of a
+ * cycle. Since there may be more than one cycle in a graph this function
+ * returns an array of these cycles, where each cycle is itself represented
+ * by an array of ids for each node involved in that cycle.
+ *
+ * [alg.isAcyclic][] is more efficient if you only need to determine whether
+ * a graph has a cycle or not.
+ *
+ * [alg.isAcyclic]: isAcyclic.js.html#isAcyclic
+ *
+ * @param {Digraph} g the graph to search for cycles.
+ */
+function findCycles(g) {
+  return tarjan(g).filter(function(cmpt) { return cmpt.length > 1; });
+}
+
+},{"./tarjan":38}],33:[function(require,module,exports){
+module.exports = floydWarshall;
+
+/**
+ * This function is an implementation of the [Floyd-Warshall algorithm][],
+ * which finds the shortest path from each node to every other reachable node
+ * in the graph. It is similar to [alg.dijkstraAll][], but it handles negative
+ * edge weights and is more efficient for some types of graphs. This function
+ * returns a map of `source -> { target -> { distance, predecessor }`. The
+ * distance property holds the sum of the weights from `source` to `target`
+ * along the shortest path of `Number.POSITIVE_INFINITY` if there is no path
+ * from `source`. The predecessor property can be used to walk the individual
+ * elements of the path from `source` to `target` in reverse order.
+ *
+ * This function takes an optional `weightFunc(e)` which returns the
+ * weight of the edge `e`. If no weightFunc is supplied then each edge is
+ * assumed to have a weight of 1.
+ *
+ * This function takes an optional `incidentFunc(u)` which returns the ids of
+ * all edges incident to the node `u` for the purposes of shortest path
+ * traversal. By default this function uses the `outEdges` function on the
+ * supplied graph.
+ *
+ * This algorithm takes O(|V|^3) time.
+ *
+ * [Floyd-Warshall algorithm]: https://en.wikipedia.org/wiki/Floyd-Warshall_algorithm
+ * [alg.dijkstraAll]: dijkstraAll.js.html#dijkstraAll
+ *
+ * @param {Graph} g the graph to search for shortest paths from **source**
+ * @param {Function} [weightFunc] optional weight function
+ * @param {Function} [incidentFunc] optional incident function
+ */
+function floydWarshall(g, weightFunc, incidentFunc) {
+  var results = {},
+      nodes = g.nodes();
+
+  weightFunc = weightFunc || function() { return 1; };
+  incidentFunc = incidentFunc || (g.isDirected()
+      ? function(u) { return g.outEdges(u); }
+      : function(u) { return g.incidentEdges(u); });
+
+  nodes.forEach(function(u) {
+    results[u] = {};
+    results[u][u] = { distance: 0 };
+    nodes.forEach(function(v) {
+      if (u !== v) {
+        results[u][v] = { distance: Number.POSITIVE_INFINITY };
+      }
+    });
+    incidentFunc(u).forEach(function(e) {
+      var incidentNodes = g.incidentNodes(e),
+          v = incidentNodes[0] !== u ? incidentNodes[0] : incidentNodes[1],
+          d = weightFunc(e);
+      if (d < results[u][v].distance) {
+        results[u][v] = { distance: d, predecessor: u };
+      }
+    });
+  });
+
+  nodes.forEach(function(k) {
+    var rowK = results[k];
+    nodes.forEach(function(i) {
+      var rowI = results[i];
+      nodes.forEach(function(j) {
+        var ik = rowI[k];
+        var kj = rowK[j];
+        var ij = rowI[j];
+        var altDistance = ik.distance + kj.distance;
+        if (altDistance < ij.distance) {
+          ij.distance = altDistance;
+          ij.predecessor = kj.predecessor;
+        }
+      });
+    });
+  });
+
+  return results;
+}
+
+},{}],34:[function(require,module,exports){
+var topsort = require("./topsort");
+
+module.exports = isAcyclic;
+
+/*
+ * Given a Digraph **g** this function returns `true` if the graph has no
+ * cycles and returns `false` if it does. This algorithm returns as soon as it
+ * detects the first cycle.
+ *
+ * Use [alg.findCycles][] if you need the actual list of cycles in a graph.
+ *
+ * [alg.findCycles]: findCycles.js.html#findCycles
+ *
+ * @param {Digraph} g the graph to test for cycles
+ */
+function isAcyclic(g) {
+  try {
+    topsort(g);
+  } catch (e) {
+    if (e instanceof topsort.CycleException) return false;
+    throw e;
+  }
+  return true;
+}
+
+},{"./topsort":39}],35:[function(require,module,exports){
+var Set = require("cp-data").Set;
+
+module.exports = postorder;
+
+// Postorder traversal of g, calling f for each visited node. Assumes the graph
+// is a tree.
+function postorder(g, root, f) {
+  var visited = new Set();
+  if (g.isDirected()) {
+    throw new Error("This function only works for undirected graphs");
+  }
+  function dfs(u, prev) {
+    if (visited.has(u)) {
+      throw new Error("The input graph is not a tree: " + g);
+    }
+    visited.add(u);
+    g.neighbors(u).forEach(function(v) {
+      if (v !== prev) dfs(v, u);
+    });
+    f(u);
+  }
+  dfs(root);
+}
+
+},{"cp-data":19}],36:[function(require,module,exports){
+var Set = require("cp-data").Set;
+
+module.exports = preorder;
+
+// Preorder traversal of g, calling f for each visited node. Assumes the graph
+// is a tree.
+function preorder(g, root, f) {
+  var visited = new Set();
+  if (g.isDirected()) {
+    throw new Error("This function only works for undirected graphs");
+  }
+  function dfs(u, prev) {
+    if (visited.has(u)) {
+      throw new Error("The input graph is not a tree: " + g);
+    }
+    visited.add(u);
+    f(u);
+    g.neighbors(u).forEach(function(v) {
+      if (v !== prev) dfs(v, u);
+    });
+  }
+  dfs(root);
+}
+
+},{"cp-data":19}],37:[function(require,module,exports){
+var Graph = require("../Graph"),
+    PriorityQueue = require("cp-data").PriorityQueue;
+
+module.exports = prim;
+
+/**
+ * [Prim's algorithm][] takes a connected undirected graph and generates a
+ * [minimum spanning tree][]. This function returns the minimum spanning
+ * tree as an undirected graph. This algorithm is derived from the description
+ * in "Introduction to Algorithms", Third Edition, Cormen, et al., Pg 634.
+ *
+ * This function takes a `weightFunc(e)` which returns the weight of the edge
+ * `e`. It throws an Error if the graph is not connected.
+ *
+ * This function takes `O(|E| log |V|)` time.
+ *
+ * [Prim's algorithm]: https://en.wikipedia.org/wiki/Prim's_algorithm
+ * [minimum spanning tree]: https://en.wikipedia.org/wiki/Minimum_spanning_tree
+ *
+ * @param {Graph} g the graph used to generate the minimum spanning tree
+ * @param {Function} weightFunc the weight function to use
+ */
+function prim(g, weightFunc) {
+  var result = new Graph(),
+      parents = {},
+      pq = new PriorityQueue(),
+      u;
+
+  function updateNeighbors(e) {
+    var incidentNodes = g.incidentNodes(e),
+        v = incidentNodes[0] !== u ? incidentNodes[0] : incidentNodes[1],
+        pri = pq.priority(v);
+    if (pri !== undefined) {
+      var edgeWeight = weightFunc(e);
+      if (edgeWeight < pri) {
+        parents[v] = u;
+        pq.decrease(v, edgeWeight);
+      }
+    }
+  }
+
+  if (g.order() === 0) {
+    return result;
+  }
+
+  g.eachNode(function(u) {
+    pq.add(u, Number.POSITIVE_INFINITY);
+    result.addNode(u);
+  });
+
+  // Start from an arbitrary node
+  pq.decrease(g.nodes()[0], 0);
+
+  var init = false;
+  while (pq.size() > 0) {
+    u = pq.removeMin();
+    if (u in parents) {
+      result.addEdge(null, u, parents[u]);
+    } else if (init) {
+      throw new Error("Input graph is not connected: " + g);
+    } else {
+      init = true;
+    }
+
+    g.incidentEdges(u).forEach(updateNeighbors);
+  }
+
   return result;
+}
+
+},{"../Graph":28,"cp-data":19}],38:[function(require,module,exports){
+module.exports = tarjan;
+
+/**
+ * This function is an implementation of [Tarjan's algorithm][] which finds
+ * all [strongly connected components][] in the directed graph **g**. Each
+ * strongly connected component is composed of nodes that can reach all other
+ * nodes in the component via directed edges. A strongly connected component
+ * can consist of a single node if that node cannot both reach and be reached
+ * by any other specific node in the graph. Components of more than one node
+ * are guaranteed to have at least one cycle.
+ *
+ * This function returns an array of components. Each component is itself an
+ * array that contains the ids of all nodes in the component.
+ *
+ * [Tarjan's algorithm]: http://en.wikipedia.org/wiki/Tarjan's_strongly_connected_components_algorithm
+ * [strongly connected components]: http://en.wikipedia.org/wiki/Strongly_connected_component
+ *
+ * @param {Digraph} g the graph to search for strongly connected components
+ */
+function tarjan(g) {
+  if (!g.isDirected()) {
+    throw new Error("tarjan can only be applied to a directed graph. Bad input: " + g);
+  }
+
+  var index = 0,
+      stack = [],
+      visited = {}, // node id -> { onStack, lowlink, index }
+      results = [];
+
+  function dfs(u) {
+    var entry = visited[u] = {
+      onStack: true,
+      lowlink: index,
+      index: index++
+    };
+    stack.push(u);
+
+    g.successors(u).forEach(function(v) {
+      if (!(v in visited)) {
+        dfs(v);
+        entry.lowlink = Math.min(entry.lowlink, visited[v].lowlink);
+      } else if (visited[v].onStack) {
+        entry.lowlink = Math.min(entry.lowlink, visited[v].index);
+      }
+    });
+
+    if (entry.lowlink === entry.index) {
+      var cmpt = [],
+          v;
+      do {
+        v = stack.pop();
+        visited[v].onStack = false;
+        cmpt.push(v);
+      } while (u !== v);
+      results.push(cmpt);
+    }
+  }
+
+  g.nodes().forEach(function(u) {
+    if (!(u in visited)) {
+      dfs(u);
+    }
+  });
+
+  return results;
+}
+
+},{}],39:[function(require,module,exports){
+module.exports = topsort;
+topsort.CycleException = CycleException;
+
+/*
+ * Given a graph **g**, this function returns an ordered list of nodes such
+ * that for each edge `u -> v`, `u` appears before `v` in the list. If the
+ * graph has a cycle it is impossible to generate such a list and
+ * **CycleException** is thrown.
+ *
+ * See [topological sorting](https://en.wikipedia.org/wiki/Topological_sorting)
+ * for more details about how this algorithm works.
+ *
+ * @param {Digraph} g the graph to sort
+ */
+function topsort(g) {
+  if (!g.isDirected()) {
+    throw new Error("topsort can only be applied to a directed graph. Bad input: " + g);
+  }
+
+  var visited = {};
+  var stack = {};
+  var results = [];
+
+  function visit(node) {
+    if (node in stack) {
+      throw new CycleException();
+    }
+
+    if (!(node in visited)) {
+      stack[node] = true;
+      visited[node] = true;
+      g.predecessors(node).forEach(function(pred) {
+        visit(pred);
+      });
+      delete stack[node];
+      results.push(node);
+    }
+  }
+
+  var sinks = g.sinks();
+  if (g.order() !== 0 && sinks.length === 0) {
+    throw new CycleException();
+  }
+
+  g.sinks().forEach(function(sink) {
+    visit(sink);
+  });
+
+  return results;
+}
+
+function CycleException() {}
+
+CycleException.prototype.toString = function() {
+  return "Graph has at least one cycle";
 };
 
-},{"../util":31}],29:[function(require,module,exports){
-/* jshint -W079 */
-var Set = require("./data/Set");
+},{}],40:[function(require,module,exports){
+// This file provides a helper function that mixes-in Dot behavior to an
+// existing graph prototype.
+
+var Set = require("cp-data").Set;
+
+module.exports = compoundify;
+
+// Extends the given SuperConstructor with the ability for nodes to contain
+// other nodes. A special node id `null` is used to indicate the root graph.
+function compoundify(SuperConstructor) {
+  function Constructor() {
+    SuperConstructor.call(this);
+
+    // Map of object id -> parent id (or null for root graph)
+    this._parents = {};
+
+    // Map of id (or null) -> children set
+    this._children = { null: new Set() };
+  }
+
+  Constructor.prototype = new SuperConstructor();
+  Constructor.prototype.constructor = Constructor;
+
+  Constructor.prototype.parent = function(u, parent) {
+    this._strictGetNode(u);
+
+    if (arguments.length < 2) {
+      return this._parents[u];
+    }
+
+    if (u === parent) {
+      throw new Error("Cannot make " + u + " a parent of itself");
+    }
+    if (parent !== null) {
+      this._strictGetNode(parent);
+    }
+
+    this._children[this._parents[u]].remove(u);
+    this._parents[u] = parent;
+    this._children[parent].add(u);
+  };
+
+  Constructor.prototype.children = function(u) {
+    if (u !== null) {
+      this._strictGetNode(u);
+    }
+    return this._children[u].keys();
+  };
+
+  Constructor.prototype.addNode = function(u, value) {
+    u = SuperConstructor.prototype.addNode.call(this, u, value);
+    this._parents[u] = null;
+    this._children[u] = new Set();
+    this._children[null].add(u);
+    return u;
+  };
+
+  Constructor.prototype.delNode = function(u) {
+    // Promote all children to the parent of the subgraph
+    var parent = this.parent(u);
+    this._children[u].keys().forEach(function(child) {
+      this.parent(child, parent);
+    }, this);
+
+    this._children[parent].remove(u);
+    delete this._parents[u];
+    delete this._children[u];
+
+    return SuperConstructor.prototype.delNode.call(this, u);
+  };
+
+  Constructor.prototype.copy = function() {
+    var copy = SuperConstructor.prototype.copy.call(this);
+    this.nodes().forEach(function(u) {
+      copy.parent(u, this.parent(u));
+    }, this);
+    return copy;
+  };
+
+  Constructor.prototype.filterNodes = function(filter) {
+    var self = this,
+        copy = SuperConstructor.prototype.filterNodes.call(this, filter);
+
+    var parents = {};
+    function findParent(u) {
+      var parent = self.parent(u);
+      if (parent === null || copy.hasNode(parent)) {
+        parents[u] = parent;
+        return parent;
+      } else if (parent in parents) {
+        return parents[parent];
+      } else {
+        return findParent(parent);
+      }
+    }
+
+    copy.eachNode(function(u) { copy.parent(u, findParent(u)); });
+
+    return copy;
+  };
+
+  return Constructor;
+}
+
+},{"cp-data":19}],41:[function(require,module,exports){
+var Graph = require("../Graph"),
+    Digraph = require("../Digraph"),
+    CGraph = require("../CGraph"),
+    CDigraph = require("../CDigraph");
+
+exports.decode = function(nodes, edges, Ctor) {
+  Ctor = Ctor || Digraph;
+
+  if (typeOf(nodes) !== "Array") {
+    throw new Error("nodes is not an Array");
+  }
+
+  if (typeOf(edges) !== "Array") {
+    throw new Error("edges is not an Array");
+  }
+
+  if (typeof Ctor === "string") {
+    switch(Ctor) {
+      case "graph": Ctor = Graph; break;
+      case "digraph": Ctor = Digraph; break;
+      case "cgraph": Ctor = CGraph; break;
+      case "cdigraph": Ctor = CDigraph; break;
+      default: throw new Error("Unrecognized graph type: " + Ctor);
+    }
+  }
+
+  var graph = new Ctor();
+
+  nodes.forEach(function(u) {
+    graph.addNode(u.id, u.value);
+  });
+
+  // If the graph is compound, set up children...
+  if (graph.parent) {
+    nodes.forEach(function(u) {
+      if (u.children) {
+        u.children.forEach(function(v) {
+          graph.parent(v, u.id);
+        });
+      }
+    });
+  }
+
+  edges.forEach(function(e) {
+    graph.addEdge(e.id, e.u, e.v, e.value);
+  });
+
+  return graph;
+};
+
+exports.encode = function(graph) {
+  var nodes = [];
+  var edges = [];
+
+  graph.eachNode(function(u, value) {
+    var node = {id: u, value: value};
+    if (graph.children) {
+      var children = graph.children(u);
+      if (children.length) {
+        node.children = children;
+      }
+    }
+    nodes.push(node);
+  });
+
+  graph.eachEdge(function(e, u, v, value) {
+    edges.push({id: e, u: u, v: v, value: value});
+  });
+
+  var type;
+  if (graph instanceof CDigraph) {
+    type = "cdigraph";
+  } else if (graph instanceof CGraph) {
+    type = "cgraph";
+  } else if (graph instanceof Digraph) {
+    type = "digraph";
+  } else if (graph instanceof Graph) {
+    type = "graph";
+  } else {
+    throw new Error("Couldn't determine type of graph: " + graph);
+  }
+
+  return { nodes: nodes, edges: edges, type: type };
+};
+
+function typeOf(obj) {
+  return Object.prototype.toString.call(obj).slice(8, -1);
+}
+
+},{"../CDigraph":25,"../CGraph":26,"../Digraph":27,"../Graph":28}],42:[function(require,module,exports){
+var Set = require("cp-data").Set;
 
 exports.all = function() {
   return function() { return true; };
@@ -2893,7 +3854,7 @@ exports.nodesFromList = function(nodes) {
   };
 };
 
-},{"./data/Set":28}],30:[function(require,module,exports){
+},{"cp-data":19}],43:[function(require,module,exports){
 var Graph = require("./Graph"),
     Digraph = require("./Digraph");
 
@@ -2932,15 +3893,21 @@ Digraph.prototype.asUndirected = function() {
   return g;
 };
 
-},{"./Digraph":14,"./Graph":15}],31:[function(require,module,exports){
+},{"./Digraph":27,"./Graph":28}],44:[function(require,module,exports){
 // Returns an array of all values for properties of **o**.
 exports.values = function(o) {
-  return Object.keys(o).map(function(k) { return o[k]; });
+  var ks = Object.keys(o),
+      len = ks.length,
+      result = new Array(len),
+      i;
+  for (i = 0; i < len; ++i) {
+    result[i] = o[ks[i]];
+  }
+  return result;
 };
 
-},{}],32:[function(require,module,exports){
-module.exports = '0.5.7';
-
+},{}],45:[function(require,module,exports){
+module.exports = '0.7.0';
 },{}]},{},[1])
 ;
 joint.layout.DirectedGraph = {
@@ -2975,6 +3942,8 @@ joint.layout.DirectedGraph = {
                 }
             });
         }
+
+        return { width: layoutGraph.graph().width, height: layoutGraph.graph().height };
     },
     
     _prepareData: function(graph) {
@@ -2982,29 +3951,26 @@ joint.layout.DirectedGraph = {
         var dagreGraph = new dagre.Digraph();
 
         // For each element.
-        graph.get('cells').each(function(cell) {
-
-            if (!(cell instanceof joint.dia.Element)) return;
+        _.each(graph.getElements(), function(cell) {
 
             if (dagreGraph.hasNode(cell.id)) return;
 
             dagreGraph.addNode(cell.id, {
                 width: cell.get('size').width,
-                height: cell.get('size').height
+                height: cell.get('size').height,
+                rank: cell.get('rank')
             });
         });
 
         // For each link.
-        graph.get('cells').each(function(cell) {
+        _.each(graph.getLinks(), function(cell) {
 
-            if (!(cell instanceof joint.dia.Link)) return;
-            
             if (dagreGraph.hasEdge(cell.id)) return;
 
             var sourceId = cell.get('source').id;
             var targetId = cell.get('target').id;
 
-            dagreGraph.addEdge(cell.id, sourceId, targetId);
+            dagreGraph.addEdge(cell.id, sourceId, targetId, { minLen: cell.get('minLen') || 1 });
         });
 
         return dagreGraph;
