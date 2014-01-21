@@ -5,6 +5,7 @@
 if (typeof exports === 'object') {
 
     var joint = {
+        util: require('./core').util,
         dia: {
             Cell: require('./joint.dia.cell').Cell,
             CellView: require('./joint.dia.cell').CellView
@@ -108,6 +109,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
     update: function(cell, renderingOnlyAttrs) {
 
+        var allAttrs = this.model.get('attrs');
+
         var rotatable = V(this.$('.rotatable')[0]);
         if (rotatable) {
 
@@ -117,9 +120,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         
         var relativelyPositioned = [];
 
-        var attrs = renderingOnlyAttrs || this.model.get('attrs');
-        
-        _.each(attrs, function(attrs, selector) {
+        // Special attributes are treated by JointJS, not by SVG.
+        var specialAttributes = ['style', 'text', 'html', 'ref-x', 'ref-y', 'ref-dx', 'ref-dy', 'ref', 'x-alignment', 'y-alignment', 'port'];
+
+        _.each(renderingOnlyAttrs || allAttrs, function(attrs, selector) {
 
             // Elements that should be updated.
             var $selected = this.findBySelector(selector);
@@ -128,15 +132,43 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             if ($selected.length === 0) return;
 
             // Special attributes are treated by JointJS, not by SVG.
-            var specialAttributes = ['style', 'text', 'ref-x', 'ref-y', 'ref-dx', 'ref-dy', 'ref', 'x-alignment', 'y-alignment'];
+            var specialAttributes = ['style', 'text', 'html', 'ref-x', 'ref-y', 'ref-dx', 'ref-dy', 'ref', 'x-alignment', 'y-alignment', 'port'];
 
+            // If the `filter` attribute is an object, it is in the special JointJS filter format and so
+            // it becomes a special attribute and is treated separately.
+            if (_.isObject(attrs.filter)) {
+
+                specialAttributes.push('filter');
+                this.applyFilter(selector, attrs.filter);
+            }
+
+            // If the `fill` or `stroke` attribute is an object, it is in the special JointJS gradient format and so
+            // it becomes a special attribute and is treated separately.
+            if (_.isObject(attrs.fill)) {
+
+                specialAttributes.push('fill');
+                this.applyGradient(selector, 'fill', attrs.fill);
+            }
+            if (_.isObject(attrs.stroke)) {
+
+                specialAttributes.push('stroke');
+                this.applyGradient(selector, 'stroke', attrs.stroke);
+            }
+            
             // Set regular attributes on the `$selected` subelement. Note that we cannot use the jQuery attr()
             // method as some of the attributes might be namespaced (e.g. xlink:href) which fails with jQuery attr().
             var finalAttributes = _.omit(attrs, specialAttributes);
+            
             $selected.each(function() {
                 
                 V(this).attr(finalAttributes);
             });
+
+            // `port` attribute contains the `id` of the port that the underlying magnet represents.
+            if (attrs.port) {
+
+                $selected.attr('port', _.isUndefined(attrs.port.id) ? attrs.port : attrs.port.id);
+            }
 
             // `style` attribute is special in the sense that it sets the CSS style of the subelement.
             if (attrs.style) {
@@ -154,6 +186,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 });
             }
 
+            if (!_.isUndefined(attrs.html)) {
+
+                $selected.each(function() {
+
+                    $(this).html(attrs.html + '');
+                });
+            }
+            
             // Special `ref-x` and `ref-y` attributes make it possible to set both absolute or
             // relative positioning of subelements.
             if (!_.isUndefined(attrs['ref-x']) ||
@@ -178,9 +218,19 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // a transformed coordinate system.
         var bbox = this.el.getBBox();        
 
+        renderingOnlyAttrs = renderingOnlyAttrs || {};
+
         _.each(relativelyPositioned, function($el) {
 
-            this.positionRelative($el, bbox, attrs);
+            // if there was a special attribute affecting the position amongst renderingOnlyAttributes
+            // we have to merge it with rest of the element's attributes as they are necessary
+            // to update the position relatively (i.e `ref`)
+            var renderingOnlyElAttrs = renderingOnlyAttrs[$el.selector];
+            var elAttrs = renderingOnlyElAttrs
+                ? _.merge({}, allAttrs[$el.selector], renderingOnlyElAttrs)
+                : allAttrs[$el.selector];
+
+            this.positionRelative($el, bbox, elAttrs);
             
         }, this);
 
@@ -190,10 +240,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
     },
 
-    positionRelative: function($el, bbox, attrs) {
+    positionRelative: function($el, bbox, elAttrs) {
 
-        var elAttrs = attrs[$el.selector];
-        
+        var ref = elAttrs['ref'];
         var refX = parseFloat(elAttrs['ref-x']);
         var refY = parseFloat(elAttrs['ref-y']);
         var refDx = parseFloat(elAttrs['ref-dx']);
@@ -206,7 +255,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var isScalable = _.contains(_.pluck(_.pluck($el.parents('g'), 'className'), 'baseVal'), 'scalable');
 
-        var ref = elAttrs['ref'];
         if (ref) {
 
             // Get the bounding box of the reference element relative to the root `<g>` element.
@@ -429,33 +477,84 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     
     pointerdown: function(evt, x, y) {
 
-        this._dx = x;
-        this._dy = y;
+        if (evt.target.getAttribute('magnet')) {
 
-        joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
+            if (this.paper.options.validateMagnet.call(this.paper, this, evt.target)) {
+
+                this.model.trigger('batch:start');
+
+                var link = this.paper.getDefaultLink(this, evt.target);
+                link.set({
+                    source: {
+                        id: this.model.id,
+                        selector: this.getSelector(evt.target),
+                        port: $(evt.target).attr('port')
+                    },
+                    target: { x: x, y: y }
+                });
+
+                this.paper.model.addCell(link);
+
+	        this._linkView = this.paper.findViewByModel(link);
+                this._linkView.startArrowheadMove('target');
+            }
+
+        } else {
+
+            this._dx = x;
+            this._dy = y;
+
+            joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
+        }
     },
 
     pointermove: function(evt, x, y) {
 
-	var grid = this.paper.options.gridSize;
-        
-        if (this.options.interactive !== false) {
+        if (this._linkView) {
 
-	    var position = this.model.get('position');
+            // let the linkview deal with this event
+            this._linkView.pointermove(evt, x, y);
 
-	    // Make sure the new element's position always snaps to the current grid after
-	    // translate as the previous one could be calculated with a different grid size.
-	    this.model.translate(
-		g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - this._dx, grid),
-		g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - this._dy, grid)
-	    );
+        } else {
+
+	    var grid = this.paper.options.gridSize;
+
+            if (this.options.interactive !== false) {
+
+	        var position = this.model.get('position');
+
+	        // Make sure the new element's position always snaps to the current grid after
+	        // translate as the previous one could be calculated with a different grid size.
+	        this.model.translate(
+		    g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - this._dx, grid),
+		    g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - this._dy, grid)
+	        );
+            }
+
+            this._dx = g.snapToGrid(x, grid);
+            this._dy = g.snapToGrid(y, grid);
+
+            joint.dia.CellView.prototype.pointermove.apply(this, arguments);
         }
-        
-        this._dx = g.snapToGrid(x, grid);
-        this._dy = g.snapToGrid(y, grid);
+    },
 
-        joint.dia.CellView.prototype.pointermove.apply(this, arguments);
+    pointerup: function(evt, x, y) {
+
+        if (this._linkView) {
+
+            // let the linkview deal with this event
+            this._linkView.pointerup(evt, x, y);
+
+            delete this._linkView;
+
+            this.model.trigger('batch:stop');
+
+        } else {
+
+            joint.dia.CellView.prototype.pointerup.apply(this, arguments);
+        }
     }
+
 });
 
 if (typeof exports === 'object') {

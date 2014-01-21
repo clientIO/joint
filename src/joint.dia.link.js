@@ -12,6 +12,7 @@ if (typeof exports === 'object') {
     };
     var Backbone = require('backbone');
     var _ = require('lodash');
+    var g = require('./geometry').g;
 }
 
 
@@ -20,60 +21,60 @@ if (typeof exports === 'object') {
 // --------------------------
 joint.dia.Link = joint.dia.Cell.extend({
 
+    // The default markup for links.
+    markup: [
+        '<path class="connection" stroke="black"/>',
+        '<path class="marker-source" fill="black" stroke="black" />',
+        '<path class="marker-target" fill="black" stroke="black" />',
+        '<path class="connection-wrap"/>',
+        '<g class="labels"/>',
+        '<g class="marker-vertices"/>',
+        '<g class="marker-arrowheads"/>',
+        '<g class="link-tools"/>'
+    ].join(''),
+
+    labelMarkup: [
+        '<g class="label">',
+        '<rect />',
+        '<text />',
+        '</g>'
+    ].join(''),
+
+    toolMarkup: [
+        '<g class="link-tool">',
+        '<g class="tool-remove" event="remove">',
+        '<circle r="11" />',
+        '<path transform="scale(.8) translate(-16, -16)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z"/>',
+        '<title>Remove link.</title>',
+        '</g>',
+        '<g class="tool-options" event="link:options">',
+        '<circle r="11" transform="translate(25)"/>',
+        '<path fill="white" transform="scale(.55) translate(29, -16)" d="M31.229,17.736c0.064-0.571,0.104-1.148,0.104-1.736s-0.04-1.166-0.104-1.737l-4.377-1.557c-0.218-0.716-0.504-1.401-0.851-2.05l1.993-4.192c-0.725-0.91-1.549-1.734-2.458-2.459l-4.193,1.994c-0.647-0.347-1.334-0.632-2.049-0.849l-1.558-4.378C17.165,0.708,16.588,0.667,16,0.667s-1.166,0.041-1.737,0.105L12.707,5.15c-0.716,0.217-1.401,0.502-2.05,0.849L6.464,4.005C5.554,4.73,4.73,5.554,4.005,6.464l1.994,4.192c-0.347,0.648-0.632,1.334-0.849,2.05l-4.378,1.557C0.708,14.834,0.667,15.412,0.667,16s0.041,1.165,0.105,1.736l4.378,1.558c0.217,0.715,0.502,1.401,0.849,2.049l-1.994,4.193c0.725,0.909,1.549,1.733,2.459,2.458l4.192-1.993c0.648,0.347,1.334,0.633,2.05,0.851l1.557,4.377c0.571,0.064,1.148,0.104,1.737,0.104c0.588,0,1.165-0.04,1.736-0.104l1.558-4.377c0.715-0.218,1.399-0.504,2.049-0.851l4.193,1.993c0.909-0.725,1.733-1.549,2.458-2.458l-1.993-4.193c0.347-0.647,0.633-1.334,0.851-2.049L31.229,17.736zM16,20.871c-2.69,0-4.872-2.182-4.872-4.871c0-2.69,2.182-4.872,4.872-4.872c2.689,0,4.871,2.182,4.871,4.872C20.871,18.689,18.689,20.871,16,20.871z"/>',
+        '<title>Link options.</title>',
+        '</g>',
+        '</g>'
+    ].join(''),
+
+    // The default markup for showing/removing vertices. These elements are the children of the .marker-vertices element (see `this.markup`).
+    // Only .marker-vertex and .marker-vertex-remove element have special meaning. The former is used for
+    // dragging vertices (changin their position). The latter is used for removing vertices.
+    vertexMarkup: [
+        '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
+        '<circle class="marker-vertex" idx="<%= idx %>" r="10" />',
+        '<path class="marker-vertex-remove-area" idx="<%= idx %>" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
+        '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
+        '<title>Remove vertex.</title>',
+        '</path>',
+        '</g>'
+    ].join(''),
+
+    arrowheadMarkup: [
+        '<g class="marker-arrowhead-group marker-arrowhead-group-<%= end %>">',
+        '<path class="marker-arrowhead" end="<%= end %>" d="M 26 0 L 0 13 L 26 26 z" />',
+        '</g>'
+    ].join(''),
+
     defaults: {
-
-        // The default markup for links.
-        markup: [
-            '<path class="connection" stroke="black"/>',
-            '<path class="marker-source" fill="black" stroke="black" />',
-            '<path class="marker-target" fill="black" stroke="black" />',
-            '<path class="connection-wrap"/>',
-            '<g class="labels" />',
-            '<g class="marker-vertices"/>',
-            '<g class="marker-arrowheads"/>',
-            '<g class="link-tools" />'
-        ].join(''),
-
-        labelMarkup: [
-            '<g class="label">',
-            '<rect />',
-            '<text />',
-            '</g>'
-        ].join(''),
-
-        toolMarkup: [
-            '<g class="link-tool">',
-            '<g class="tool-remove" event="remove">',
-            '<circle r="11" />',
-            '<path transform="scale(.8) translate(-16, -16)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z"/>',
-            '<title>Remove link.</title>',
-            '</g>',
-            '<g class="tool-options" event="link:options">',
-            '<circle r="11" transform="translate(25)"/>',
-            '<path fill="white" transform="scale(.55) translate(29, -16)" d="M31.229,17.736c0.064-0.571,0.104-1.148,0.104-1.736s-0.04-1.166-0.104-1.737l-4.377-1.557c-0.218-0.716-0.504-1.401-0.851-2.05l1.993-4.192c-0.725-0.91-1.549-1.734-2.458-2.459l-4.193,1.994c-0.647-0.347-1.334-0.632-2.049-0.849l-1.558-4.378C17.165,0.708,16.588,0.667,16,0.667s-1.166,0.041-1.737,0.105L12.707,5.15c-0.716,0.217-1.401,0.502-2.05,0.849L6.464,4.005C5.554,4.73,4.73,5.554,4.005,6.464l1.994,4.192c-0.347,0.648-0.632,1.334-0.849,2.05l-4.378,1.557C0.708,14.834,0.667,15.412,0.667,16s0.041,1.165,0.105,1.736l4.378,1.558c0.217,0.715,0.502,1.401,0.849,2.049l-1.994,4.193c0.725,0.909,1.549,1.733,2.459,2.458l4.192-1.993c0.648,0.347,1.334,0.633,2.05,0.851l1.557,4.377c0.571,0.064,1.148,0.104,1.737,0.104c0.588,0,1.165-0.04,1.736-0.104l1.558-4.377c0.715-0.218,1.399-0.504,2.049-0.851l4.193,1.993c0.909-0.725,1.733-1.549,2.458-2.458l-1.993-4.193c0.347-0.647,0.633-1.334,0.851-2.049L31.229,17.736zM16,20.871c-2.69,0-4.872-2.182-4.872-4.871c0-2.69,2.182-4.872,4.872-4.872c2.689,0,4.871,2.182,4.871,4.872C20.871,18.689,18.689,20.871,16,20.871z"/>',
-            '<title>Link options.</title>',
-            '</g>',
-            '</g>'
-        ].join(''),
-
-        // The default markup for showing/removing vertices. These elements are the children of the .marker-vertices element (see `this.markup`).
-        // Only .marker-vertex and .marker-vertex-remove element have special meaning. The former is used for
-        // dragging vertices (changin their position). The latter is used for removing vertices.
-        vertexMarkup: [
-            '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
-            '<circle class="marker-vertex" idx="<%= idx %>" r="10"/>',
-            '<path class="marker-vertex-remove-area" idx="<%= idx %>" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
-            '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
-            '<title>Remove vertex.</title>',
-            '</path>',
-            '</g>'
-        ].join(''),
-
-        arrowheadMarkup: [
-            '<g class="marker-arrowhead-group" transform="translate(<%= x %>, <%= y %>)">',
-            '<path class="marker-arrowhead" end="<%= end %>" d="M 26 0 L 0 13 L 26 26 z" />',
-            '</g>'
-        ].join(''),
 
         type: 'link'
     },
@@ -122,206 +123,94 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
 
-        _.bindAll(
-            this,
-            'update', 'updateEnds', 'render', 'renderVertexMarkers', 'renderLabels', 'renderTools',
-            'onSourceModelChange', 'onTargetModelChange'
-        );
-
-	this.listenTo(this.model, 'change:vertices change:smooth change:manhattan', this.update);
-	this.listenTo(this.model, 'change:source change:target', this.updateEnds);
-	this.listenTo(this.model, 'change:markup', this.render);
-	this.listenTo(this.model, 'change:vertices change:vertexMarkup', this.renderVertexMarkers);
-	this.listenTo(this.model, 'change:labels change:labelMarkup', function() {
-	    this.renderLabels(); this.updateLabelPositions();
-	});
-	this.listenTo(this.model, 'change:toolMarkup', function() {
-	    this.renderTools(); this.updateToolsPosition();
-	});
+        // create method shortcuts
+        this.watchSource = this._createWatcher('source');
+        this.watchTarget = this._createWatcher('target');
 
         // `_.labelCache` is a mapping of indexes of labels in the `this.get('labels')` array to
         // `<g class="label">` nodes wrapped by Vectorizer. This allows for quick access to the
         // nodes in `updateLabelPosition()` in order to update the label positions.
         this._labelCache = {};
 
-        // These are the bounding boxes for the source/target elements.
-        this._sourceBbox = undefined;
-        this._targetBbox = undefined;
+        // bind events
+        this.startListening();
     },
 
-    onSourceModelChange: function() {
+    startListening: function() {
 
-        var source = this.model.get('source');
-        
-        if (!this._isPoint(source)) {
-
-            var magnetEl = this.paper.$(this._makeSelector(source))[0];
-            var cellView = this.paper.findView(magnetEl);
-            this._sourceBbox = cellView.getStrokeBBox(source.selector ? magnetEl : undefined);
-            
-        } else {
-
-            this._sourceBbox = _.extend({ width: 1, height: 1 }, source);
-        }
-    },
-    onTargetModelChange: function() {
-
-        var target = this.model.get('target');
-        
-        if (!this._isPoint(target)) {
-
-            var magnetEl = this.paper.$(this._makeSelector(target))[0];
-            var cellView = this.paper.findView(magnetEl);
-            this._targetBbox = cellView.getStrokeBBox(target.selector ? magnetEl : undefined);
-            
-        } else {
-
-            this._targetBbox = _.extend({ width: 1, height: 1 }, target);
-        }
+	this.listenTo(this.model, 'change:markup', this.render);
+	this.listenTo(this.model, 'change:smooth change:manhattan', this.update);
+        this.listenTo(this.model, 'change:toolMarkup', function() {
+            this.renderTools().updateToolsPosition();
+        });
+	this.listenTo(this.model, 'change:labels change:labelMarkup', function() {
+            this.renderLabels().updateLabelPositions();
+        });
+        this.listenTo(this.model, 'change:vertices change:vertexMarkup', function() {
+            this.renderVertexMarkers().update();
+        });
+	this.listenTo(this.model, 'change:source', function(cell, source) {
+            this.watchSource(cell, source).update();
+        });
+	this.listenTo(this.model, 'change:target', function(cell, target) {
+            this.watchTarget(cell, target).update();
+        });
     },
 
-    // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
-    update: function() {
-
-        // Update attributes.
-        _.each(this.model.get('attrs'), function(attrs, selector) {
-
-            var $selected = this.findBySelector(selector);
-
-            $selected.attr(attrs);
-            
-        }, this);
-
-        var firstVertex = _.first(this.model.get('vertices'));
-        var lastVertex = _.last(this.model.get('vertices'));
-
-        // If manhattan routing is enabled, reference points for determining orientation of the arrowheads
-        // might be different than vertices defined on the model.
-        if (this.model.get('manhattan')) {
-            
-            var manhattanRoute = this.findManhattanRoute(this.model.get('vertices'));
-            firstVertex = _.first(manhattanRoute);
-            lastVertex = _.last(manhattanRoute);
-        }
-
-        var sourcePosition = this.getConnectionPoint('source', this.model.get('source'), firstVertex || this.model.get('target')).round();
-        var targetPosition = this.getConnectionPoint('target', this.model.get('target'), lastVertex || sourcePosition);
-
-        // Make the markers "point" to their sticky points being auto-oriented towards `targetPosition`/`sourcePosition`.
-        this._markerSource.translateAndAutoOrient(sourcePosition, firstVertex || targetPosition, this.paper.viewport);
-        this._markerTarget.translateAndAutoOrient(targetPosition, lastVertex || sourcePosition, this.paper.viewport);
-
-        var pathData = this.getPathData(this.model.get('vertices'));
-        this._connection.attr('d', pathData);
-        this._connectionWrap.attr('d', pathData);
-
-        this.renderArrowheadMarkers();
-        
-        this.updateLabelPositions();
-
-        this.updateToolsPosition();
-        
-        return this;
-    },
+    // Rendering
+    //----------
 
     render: function() {
+
+	this.$el.empty();
+
         // A special markup can be given in the `properties.markup` property. This might be handy
         // if e.g. arrowhead markers should be `<image>` elements or any other element than `<path>`s.
         // `.connection`, `.connection-wrap`, `.marker-source` and `.marker-target` selectors
         // of elements with special meaning though. Therefore, those classes should be preserved in any
         // special markup passed in `properties.markup`.
-        var markup = this.model.get('markup');
-        
-        var children = V(markup);
-        
-	$(this.el).empty();
-        V(this.el).append(children);
+        var children = V(this.model.get('markup') || this.model.markup);
 
-        // Cache some important elements for quicker access.
-        this._markerSource = V(this.$('.marker-source')[0]);
-        this._markerTarget = V(this.$('.marker-target')[0]);
-        this._connection = V(this.$('.connection')[0]);
-        this._connectionWrap = V(this.$('.connection-wrap')[0]);
+        // custom markup may contain only one children
+        if (!_.isArray(children)) children = [children];
 
+        // Cache all children elements for quicker access.
+        this._V = {} // vectorized markup;
+        _.each(children, function(child) {
+            var c = child.attr('class');
+            c && (this._V[$.camelCase(c)] = child);
+        }, this);
+
+        // Only the connection path is mandatory
+        if (!this._V.connection) throw new Error('link: no connection path in the markup');
+
+        // partial rendering
         this.renderLabels();
         this.renderTools();
-        
-        // Note that `updateEnds()` calls `update()` internally.
-        this.updateEnds();
-
         this.renderVertexMarkers();
+        this.renderArrowheadMarkers();
+
+        V(this.el).append(children);
+
+        // start watching the ends of the link for changes
+        this.watchSource(this.model, this.model.get('source'))
+            .watchTarget(this.model, this.model.get('target'))
+            .update();
 
         return this;
     },
 
-    updateEnds: function() {
-
-        this.onSourceModelChange();
-        this.onTargetModelChange();
-        
-        var cell;
-
-        // First, stop listening to `change` and `remove` events on previous `source` and `target` cells.
-        if (this._isModel(this.model.previous('source'))) {
-            
-            cell = this.paper.getModelById(this.model.previous('source').id);
-            this.stopListening(cell, 'change');
-        }
-        if (this._isModel(this.model.previous('target'))) {
-            
-            cell = this.paper.getModelById(this.model.previous('target').id);
-            this.stopListening(cell, 'change');
-        }
-
-        // Listen on changes in `source` and `target` cells and update the link if any change happens.
-        if (this._isModel(this.model.get('source'))) {
-
-            cell = this.paper.getModelById(this.model.get('source').id);
-            this.listenTo(cell, 'change', function() { this.onSourceModelChange(); this.update() });
-        }
-        if (this._isModel(this.model.get('target'))) {
-
-            cell = this.paper.getModelById(this.model.get('target').id);
-            this.listenTo(cell, 'change', function() { this.onTargetModelChange(); this.update() });
-        }
-
-        this.update();
-    },
-
-    updateLabelPositions: function() {
-
-        // This method assumes all the label nodes are stored in the `this._labelCache` hash table
-        // by their indexes in the `this.get('labels')` array. This is done in the `renderLabels()` method.
-
-        var labels = this.model.get('labels') || [];
-        if (!labels.length) return;
-        
-        var connectionElement = this._connection.node;
-        var connectionLength = connectionElement.getTotalLength();
-        
-        _.each(labels, function(label, idx) {
-
-            var position = label.position;
-            position = (position > connectionLength) ? connectionLength : position; // sanity check
-            position = (position < 0) ? connectionLength + position : position;
-            position = position > 1 ? position : connectionLength * position;
-
-            var labelCoordinates = connectionElement.getPointAtLength(position);
-
-            this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
-            
-        }, this);
-    },
-
     renderLabels: function() {
 
+        if (!this._V.labels) return this;
+
         this._labelCache = {};
-        var $labels = this.$('.labels').empty();
+        var $labels = $(this._V.labels.node).empty();
 
         var labels = this.model.get('labels') || [];
-        if (!labels.length) return;
+        if (!labels.length) return this;
         
-        var labelTemplate = _.template(this.model.get('labelMarkup'));
+        var labelTemplate = _.template(this.model.get('labelMarkup') || this.model.labelMarkup);
         // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
@@ -337,7 +226,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var $rect = $(labelNode).find('rect');
 
             // Text attributes with the default `text-anchor` set.
-            var textAttributes = _.extend({ 'text-anchor': 'middle' }, label.attrs.text);
+            var textAttributes = _.extend({ 'text-anchor': 'middle' }, joint.util.getByPath(label, 'attrs/text', '/'));
             
             $text.attr(_.omit(textAttributes, 'text'));
                 
@@ -361,7 +250,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 rx: 3,
                 ry: 3
                 
-            }, label.attrs.rect);
+            }, joint.util.getByPath(label, 'attrs/rect', '/'));
             
             $rect.attr(_.extend(rectAttributes, {
 
@@ -372,54 +261,45 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }));
             
         }, this);
+
+        return this;
     },
 
     renderTools: function() {
+
+        if (!this._V.linkTools) return this;
+
         // Tools are a group of clickable elements that manipulate the whole link.
         // A good example of this is the remove tool that removes the whole link.
         // Tools appear after hovering the link close to the `source` element/point of the link
         // but are offset a bit so that they don't cover the `marker-arrowhead`.
 
-        var $tools = this.$('.link-tools').empty();
-
-        var toolTemplate = _.template(this.model.get('toolMarkup'));
+        var $tools = $(this._V.linkTools.node).empty();
+        var toolTemplate = _.template(this.model.get('toolMarkup') || this.model.toolMarkup);
         var tool = V(toolTemplate());
+
         $tools.append(tool.node);
 
         // Cache the tool node so that the `updateToolsPosition()` can update the tool position quickly.
         this._toolCache = tool;
-    },
 
-    updateToolsPosition: function() {
-
-        // Move the tools a bit to the target position but don't cover the `sourceArrowhead` marker.
-        // Note that the offset is hardcoded here. The offset should be always
-        // more than the `this.$('.marker-arrowhead[end="source"]')[0].bbox().width` but looking
-        // this up all the time would be slow.
-        var scale = '';
-        var offset = 40;
-        // If the link is too short, make the tools half the size and the offset twice as low.
-        if (this.getConnectionLength() < this.options.shortLinkLength) {
-            scale = 'scale(.5)';
-            offset /= 2;
-        }
-        var toolPosition = this.getPointAtLength(offset);
-        
-        this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
+        return this;
     },
 
     renderVertexMarkers: function() {
 
-        var $markerVertices = this.$('.marker-vertices').empty();
+        if (!this._V.markerVertices) return this;
+
+        var $markerVertices = $(this._V.markerVertices.node).empty();
 
         // A special markup can be given in the `properties.vertexMarkup` property. This might be handy
         // if default styling (elements) are not desired. This makes it possible to use any
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
-        var markupTemplate = _.template(this.model.get('vertexMarkup'));
+        var markupTemplate = _.template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
         
         _.each(this.model.get('vertices'), function(vertex, idx) {
 
-            $markerVertices.append(V(markupTemplate({ x: vertex.x, y: vertex.y, 'idx': idx })).node);
+            $markerVertices.append(V(markupTemplate(_.extend({ idx: idx }, vertex))).node);
         });
         
         return this;
@@ -427,52 +307,229 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     renderArrowheadMarkers: function() {
 
-        var $markerArrowheads = this.$('.marker-arrowheads');
-
         // Custom markups might not have arrowhead markers. Therefore, jump of this function immediately if that's the case.
-        if ($markerArrowheads.length === 0 || $markerArrowheads.css('display') == 'none') return;
-        
+        if (!this._V.markerArrowheads) return this;
+
+        var $markerArrowheads = $(this._V.markerArrowheads.node);
+
         $markerArrowheads.empty();
 
         // A special markup can be given in the `properties.vertexMarkup` property. This might be handy
         // if default styling (elements) are not desired. This makes it possible to use any
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
-        var markupTemplate = _.template(this.model.get('arrowheadMarkup'));
+        var markupTemplate = _.template(this.model.get('arrowheadMarkup') || this.model.arrowheadMarkup);
 
-        var firstVertex = _.first(this.model.get('vertices'));
-        var lastVertex = _.last(this.model.get('vertices'));
+        this._sourceArrowhead = V(markupTemplate({ end: 'source' }));
+        this._targetArrowhead = V(markupTemplate({ end: 'target' }));
 
-        // If manhattan routing is enabled, reference points for determining orientation of the arrowheads
-        // might be different than vertices defined on the model.
-        if (this.model.get('manhattan')) {
-            
-            var manhattanRoute = this.findManhattanRoute(this.model.get('vertices'));
-            firstVertex = _.first(manhattanRoute);
-            lastVertex = _.last(manhattanRoute);
-        }
+        $markerArrowheads.append(this._sourceArrowhead.node, this._targetArrowhead.node);
 
-        var sourcePosition = this.getConnectionPoint('source', this.model.get('source'), firstVertex || this.model.get('target')).round();
-        var targetPosition = this.getConnectionPoint('target', this.model.get('target'), lastVertex || sourcePosition);
-        
-        var sourceArrowhead = V(markupTemplate({ x: sourcePosition.x, y: sourcePosition.y, 'end': 'source' })).node;
-        var targetArrowhead = V(markupTemplate({ x: targetPosition.x, y: targetPosition.y, 'end': 'target' })).node;
-
-        if (this.getConnectionLength() < this.options.shortLinkLength) {
-
-            V(sourceArrowhead).scale(.5);
-            V(targetArrowhead).scale(.5);
-        }
-        
-        $markerArrowheads.append(sourceArrowhead);
-        $markerArrowheads.append(targetArrowhead);
-
-        // Make the markers "point" to their sticky points being auto-oriented towards `targetPosition`/`sourcePosition`.
-        V(sourceArrowhead).translateAndAutoOrient(sourcePosition, firstVertex || targetPosition, this.paper.viewport);
-        V(targetArrowhead).translateAndAutoOrient(targetPosition, lastVertex || sourcePosition, this.paper.viewport);
-        
         return this;
     },
-    
+
+    // Updating
+    //---------
+
+    // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
+    update: function() {
+
+        // Update attributes.
+        _.each(this.model.get('attrs'), function(attrs, selector) {
+            
+            // If the `filter` attribute is an object, it is in the special JointJS filter format and so
+            // it becomes a special attribute and is treated separately.
+            if (_.isObject(attrs.filter)) {
+                
+                this.findBySelector(selector).attr(_.omit(attrs, 'filter'));
+                this.applyFilter(selector, attrs.filter);
+                
+            } else {
+                
+                this.findBySelector(selector).attr(attrs);
+            }
+        }, this);
+
+        var vertices = this.model.get('vertices');
+
+        if (this.model.get('manhattan')) {
+            // If manhattan routing is enabled, find new vertices so that the link is orthogonally routed.
+            vertices = this.findManhattanRoute(vertices);
+        }
+
+        this._firstVertex = _.first(vertices);
+        this._sourcePoint = this.getConnectionPoint(
+            'source',
+            this.model.get('source'),
+            this._firstVertex || this.model.get('target')).round();
+
+        this._lastVertex = _.last(vertices);
+        this._targetPoint = this.getConnectionPoint(
+            'target',
+            this.model.get('target'),
+            this._lastVertex || this._sourcePoint
+        );
+
+        // Make the markers "point" to their sticky points being auto-oriented towards
+        // `targetPosition`/`sourcePosition`. And do so only if there is a markup for them.
+        if (this._V.markerSource) {
+            this._V.markerSource.translateAndAutoOrient(
+                this._sourcePoint,
+                this._firstVertex || this._targetPoint,
+                this.paper.viewport
+            );
+        }
+
+        if (this._V.markerTarget) {
+            this._V.markerTarget.translateAndAutoOrient(
+                this._targetPoint,
+                this._lastVertex || this._sourcePoint,
+                this.paper.viewport
+            );
+        }
+
+        var pathData = this.getPathData(vertices);
+        // The markup needs to contain a `.connection`
+        this._V.connection.attr('d', pathData);
+        this._V.connectionWrap && this._V.connectionWrap.attr('d', pathData);
+
+        //partials updates
+        this.updateLabelPositions();
+        this.updateToolsPosition();
+        this.updateArrowheadMarkers();
+
+        return this;
+    },
+
+    updateLabelPositions: function() {
+
+        if (!this._V.labels) return this;
+
+        // This method assumes all the label nodes are stored in the `this._labelCache` hash table
+        // by their indexes in the `this.get('labels')` array. This is done in the `renderLabels()` method.
+
+        var labels = this.model.get('labels') || [];
+        if (!labels.length) return this;
+
+        var connectionElement = this._V.connection.node;
+        var connectionLength = connectionElement.getTotalLength();
+
+        _.each(labels, function(label, idx) {
+
+            var position = label.position;
+            position = (position > connectionLength) ? connectionLength : position; // sanity check
+            position = (position < 0) ? connectionLength + position : position;
+            position = position > 1 ? position : connectionLength * position;
+
+            var labelCoordinates = connectionElement.getPointAtLength(position);
+
+            this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
+
+        }, this);
+
+        return this;
+    },
+
+
+    updateToolsPosition: function() {
+
+        if (!this._V.linkTools) return this;
+
+        // Move the tools a bit to the target position but don't cover the `sourceArrowhead` marker.
+        // Note that the offset is hardcoded here. The offset should be always
+        // more than the `this.$('.marker-arrowhead[end="source"]')[0].bbox().width` but looking
+        // this up all the time would be slow.
+
+        var scale = '';
+        var offset = 40;
+
+        // If the link is too short, make the tools half the size and the offset twice as low.
+        if (this.getConnectionLength() < this.options.shortLinkLength) {
+            scale = 'scale(.5)';
+            offset /= 2;
+        }
+
+        var toolPosition = this.getPointAtLength(offset);
+        
+        this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
+
+        return this;
+    },
+
+
+    updateArrowheadMarkers: function() {
+
+        if (!this._V.markerArrowheads) return this;
+
+        // getting bbox of an element with `display="none"` in IE9 ends up with access violation
+        if ($.css(this._V.markerArrowheads.node, 'display') === 'none') return this;
+
+        var sx = this.getConnectionLength() < this.options.shortLinkLength ? .5 : 1
+        this._sourceArrowhead.scale(sx);
+        this._targetArrowhead.scale(sx);
+
+        // Make the markers "point" to their sticky points being auto-oriented towards `targetPosition`/`sourcePosition`.
+        this._sourceArrowhead.translateAndAutoOrient(
+            this._sourcePoint,
+            this._firstVertex || this._targetPoint,
+            this.paper.viewport
+        );
+
+        this._targetArrowhead.translateAndAutoOrient(
+            this._targetPoint,
+            this._lastVertex || this._sourcePoint,
+            this.paper.viewport
+        );
+
+        return this;
+    },
+
+    _createWatcher: function(endType) {
+
+        function watchEnd(link, end) {
+
+            end = end || {};
+
+            var previousEnd = link.previous(endType) || {};
+            if (this._isModel(previousEnd)) {
+                this.stopListening(this.paper.getModelById(previousEnd.id), 'change');
+            }
+
+            if (this._isModel(end)) {
+                this.listenTo(this.paper.getModelById(end.id), 'change', function() {
+                    this._cacheEndBbox(endType, end).update();
+                });
+            }
+
+            return this._cacheEndBbox(endType, end);
+        }
+
+        return watchEnd;
+    },
+
+    _cacheEndBbox: function(endType, end) {
+
+        var cacheBbox = '_' + endType + 'Bbox';
+
+        if (this._isModel(end)) {
+
+            var selector = this._makeSelector(end);
+            var view = this.paper.findViewByModel(end.id);
+            var magnetElement = this.paper.viewport.querySelector(selector);
+
+            this[cacheBbox] = view.getStrokeBBox(magnetElement);
+
+        } else {
+            // the link end is a point ~ rect 1x1
+            this[cacheBbox] = {
+                width: 1, height: 1,
+                x: end.x, y: end.y
+            };
+        }
+
+        return this;
+    },
+
+
     removeVertex: function(idx) {
 
         var vertices = _.clone(this.model.get('vertices'));
@@ -506,7 +563,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var originalVertices = vertices.slice();
 
         // A `<path>` element used to compute the length of the path during heuristics.
-        var path = this._connection.node.cloneNode(false);
+        var path = this._V.connection.node.cloneNode(false);
         
         // Length of the original path.        
         var originalPathLength = path.getTotalLength();
@@ -552,30 +609,28 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // Return the `d` attribute value of the `<path>` element representing the link between `source` and `target`.
     getPathData: function(vertices) {
 
-        // If manhattan routing is enabled, find new vertices so that the link is orthogonally routed.
-        if (this.model.get('manhattan')) {
-
-            vertices = this.findManhattanRoute(vertices);
-        }
-        
-        var firstVertex = _.first(vertices);
-        var lastVertex = _.last(vertices);
-
-        var sourcePoint = this.getConnectionPoint('source', this.model.get('source'), firstVertex || this.model.get('target')).round();
-        var targetPoint = this.getConnectionPoint('target', this.model.get('target'), lastVertex || sourcePoint);
+        var sourcePoint = g.point(this._sourcePoint);
+        var targetPoint = g.point(this._targetPoint);
 
         // Move the source point by the width of the marker taking into account its scale around x-axis.
         // Note that scale is the only transform that makes sense to be set in `.marker-source` attributes object
         // as all other transforms (translate/rotate) will be replaced by the `translateAndAutoOrient()` function.
-        var markerSourceBbox = this._markerSource.bbox(true);
-        var markerSourceScaleX = this._markerSource.scale().sx;
 
-        sourcePoint.move(firstVertex || targetPoint, -markerSourceBbox.width * markerSourceScaleX);
+        if (this._V.markerSource) {
+            this._markerSourceBbox = this._markerSourceBbox || this._V.markerSource.bbox(true);
+            sourcePoint.move(
+                this._firstVertex || targetPoint,
+                this._markerSourceBbox.width * -this._V.markerSource.scale().sx
+            );
+        }
 
-        var markerTargetBbox = this._markerTarget.bbox(true);
-        var markerTargetScaleX = this._markerTarget.scale().sx;
-
-        targetPoint.move(lastVertex || sourcePoint, -markerTargetBbox.width * markerTargetScaleX);
+        if (this._V.markerTarget) {
+            this._markerTargetBbox = this._markerTargetBbox || this._V.markerTarget.bbox(true);
+            targetPoint.move(
+                this._lastVertex || sourcePoint,
+                this._markerTargetBbox.width * -this._V.markerTarget.scale().sx
+            );
+        }
 
         var d;
         if (this.model.get('smooth')) {
@@ -616,60 +671,35 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var spot;
 
         if (this._isPoint(selectorOrPoint)) {
-            // If the source is a point, we don't need a reference point to find the sticky point of connection.
 
+            // If the source is a point, we don't need a reference point to find the sticky point of connection.
             spot = g.point(selectorOrPoint);
-            
+
         } else {
+
             // If the source is an element, we need to find a point on the element boundary that is closest
             // to the reference point (or reference element).
-
             // Get the bounding box of the spot relative to the paper viewport. This is necessary
             // in order to follow paper viewport transformations (scale/rotate).
-            var spotBbox;
-            // If there are cached bounding boxes of source/target elements, use them. Otherwise,
-            // find it.
-            if (end === 'source' && this._sourceBbox) {
-                
-                spotBbox = this._sourceBbox;
-                
-            } else if (end === 'target' && this._targetBbox) {
-
-                spotBbox = this._targetBbox;
-                
-            } else {
-                
-                spotBbox = V(this.paper.$(this._makeSelector(selectorOrPoint))[0]).bbox(false, this.paper.viewport);
-            }
+            // `_sourceBbox` and `_targetBbox` come both from `_cacheEndBbox` method, they exist
+            // since first render and are automatically updated
+            var spotBbox = end === 'source' ? this._sourceBbox : this._targetBbox;
             
             var reference;
             
             if (this._isPoint(referenceSelectorOrPoint)) {
-                // Reference was passed as a point, therefore, we're ready to find the sticky point of connection on the source element.
 
+                // Reference was passed as a point, therefore, we're ready to find the sticky point of connection on the source element.
                 reference = g.point(referenceSelectorOrPoint);
-                
+
             } else {
+
                 // Reference was passed as an element, therefore we need to find a point on the reference
                 // element boundary closest to the source element.
-
                 // Get the bounding box of the spot relative to the paper viewport. This is necessary
                 // in order to follow paper viewport transformations (scale/rotate).
-                var referenceBbox;
+                var referenceBbox = end === 'source' ? this._targetBbox : this._sourceBbox;
 
-                if (end === 'source' && this._targetBbox) {
-
-                    referenceBbox = this._targetBbox;
-                    
-                } else if (end === 'target' && this._sourceBbox) {
-
-                    referenceBbox = this._sourceBbox;
-                    
-                } else {
-                    
-                    referenceBbox = V(this.paper.$(this._makeSelector(referenceSelectorOrPoint))[0]).bbox(false, this.paper.viewport);
-                }
-                
                 reference = g.rect(referenceBbox).intersectionWithLineFromCenterToPoint(g.rect(spotBbox).center());
                 reference = reference || g.rect(referenceBbox).center();
             }
@@ -745,7 +775,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _makeSelector: function(end) {
 
-        return '[model-id="' + end.id + '"]' + (end.selector ? ' ' + end.selector : '');
+        var selector = '[model-id="' + end.id + '"]';
+        // `port` has a higher precendence over `selector`. This is because the selector to the magnet
+        // might change while the name of the port can stay the same.
+        if (end.port) {
+            selector += ' [port="' + end.port + '"]';
+        } else if (end.selector) {
+            selector += ' ' + end.selector;
+        }
+
+        return selector;
     },
 
     // Return points that one needs to draw a connection through in order to have a manhattan link routing from
@@ -871,17 +910,86 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     getConnectionLength: function() {
 
-        return this._connection.node.getTotalLength();
+        return this._V.connection.node.getTotalLength();
     },
 
     getPointAtLength: function(length) {
 
-        return this._connection.node.getPointAtLength(length);
+        return this._V.connection.node.getPointAtLength(length);
     },
-
 
     // Interaction. The controller part.
     // ---------------------------------
+
+    _beforeArrowheadMove: function() {
+
+        this.model.trigger('batch:start');
+
+        this._z = this.model.get('z');
+        this.model.set('z', Number.MAX_VALUE);
+
+        // Let the pointer propagate throught the link view elements so that
+        // the `evt.target` is another element under the pointer, not the link itself.
+        this.el.style.pointerEvents = 'none';
+    },
+
+    _afterArrowheadMove: function() {
+
+        if (this._z) {
+            this.model.set('z', this._z);
+            delete this._z;
+        }
+
+        // Put `pointer-events` back to its original value. See `startArrowheadMove()` for explanation.
+	// Value `auto` doesn't work in IE9. We force to use `visiblePainted` instead.
+	// See `https://developer.mozilla.org/en-US/docs/Web/CSS/pointer-events`.
+        this.el.style.pointerEvents = 'visiblePainted';
+
+        this.model.trigger('batch:stop');
+    },
+
+    _createValidateConnectionArgs: function(arrowhead) {
+        // It makes sure the arguments for validateConnection have the following form:
+        // (source view, source magnet, target view, target magnet and link view)
+        var args = [];
+
+        args[4] = arrowhead;
+        args[5] = this;
+
+        var oppositeArrowhead, i = 0, j = 0;
+
+        if (arrowhead === 'source') {
+            i = 2;
+            oppositeArrowhead = 'target';
+        } else {
+            j = 2;
+            oppositeArrowhead = 'source';
+        }
+
+        var end = this.model.get(oppositeArrowhead);
+
+        if (end.id) {
+            args[i] = this.paper.findViewByModel(end.id)
+            args[i+1] = end.selector && args[i].el.querySelector(end.selector);
+        }
+
+        function validateConnectionArgs(cellView, magnet) {
+            args[j] = cellView;
+            args[j+1] = cellView.el === magnet ? undefined : magnet;
+            return args;
+        }
+
+        return validateConnectionArgs;
+    },
+
+    startArrowheadMove: function(end) {
+        // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
+        // move without need to click on the actual arrowhead dom element.
+        this._action = 'arrowhead-move';
+        this._arrowhead = end;
+        this._beforeArrowheadMove();
+        this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
+    },
 
     pointerdown: function(evt, x, y) {
 
@@ -890,52 +998,46 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 	this._dx = x;
         this._dy = y;
 
-        if (this.options.interactive === false) {
+        if (this.options.interactive === false) return;
 
-            return;
-        }
-        
-        var targetClass = V(evt.target).attr('class');
-        var targetParentEvent = V($(evt.target).parent()[0]).attr('event');
+        var className = evt.target.getAttribute('class');
 
-        if (targetClass === 'marker-vertex') {
+        switch (className) {
 
-            this._vertexIdx = $(evt.target).attr('idx');
+        case 'marker-vertex':
             this._action = 'vertex-move';
+            this._vertexIdx = evt.target.getAttribute('idx');
+            break;
 
-        } else if (targetClass === 'marker-vertex-remove' ||
-                   targetClass === 'marker-vertex-remove-area') {
+        case 'marker-vertex-remove':
+        case 'marker-vertex-remove-area':
+            this.removeVertex(evt.target.getAttribute('idx'));
+            break;
 
-            this.removeVertex($(evt.target).attr('idx'));
+        case 'marker-arrowhead':
+            this.startArrowheadMove(evt.target.getAttribute('end'));
+            break;
 
-        } else if (targetClass === 'marker-arrowhead') {
+        default:
 
-            this._arrowheadEnd = $(evt.target).attr('end');
-            this._action = 'arrowhead-move';
-            this._originalZ = this.model.get('z');
-            this.model.set('z', Number.MAX_VALUE);
-            // Let the pointer propagate throught the link view elements so that
-            // the `evt.target` is another element under the pointer, not the link itself.
-            this.$el.css({ 'pointer-events': 'none' });
+            var targetParentEvent = evt.target.parentNode.getAttribute('event');
 
-        } else if (targetParentEvent) {
+            if (targetParentEvent) {
 
-            // `remove` event is built-in. Other custom events are triggered on the paper.
-            if (targetParentEvent === 'remove') {
-                
-                this.model.remove();
-                
+                // `remove` event is built-in. Other custom events are triggered on the paper.
+                if (targetParentEvent === 'remove') {
+                    this.model.remove();
+                } else {
+                    this.paper.trigger(targetParentEvent, evt, this, x, y);
+                }
+
             } else {
 
-                this.paper.trigger(targetParentEvent, evt, this, x, y);
+                // Store the index at which the new vertex has just been placed.
+                // We'll be update the very same vertex position in `pointermove()`.
+                this._vertexIdx = this.addVertex({ x: x, y: y });
+                this._action = 'vertex-move';
             }
-            
-        } else {
-
-            // Store the index at which the new vertex has just been placed.
-            // We'll be update the very same vertex position in `pointermove()`.
-            this._vertexIdx = this.addVertex({ x: x, y: y });
-            this._action = 'vertex-move';
         }
     },
 
@@ -943,15 +1045,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         joint.dia.CellView.prototype.pointermove.apply(this, arguments);
 
-        if (this.options.interactive === false) {
-
-            return;
-        }
-
         switch (this._action) {
 
           case 'vertex-move':
-            
+
             var vertices = _.clone(this.model.get('vertices'));
             vertices[this._vertexIdx] = { x: x, y: y };
             this.model.set('vertices', vertices);
@@ -959,42 +1056,43 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
           case 'arrowhead-move':
 
-            // Unhighlight the previous view under pointer if there was one.
-            if (this._viewUnderPointer) {
+            // Touchmove event's target is not reflecting the element under the coordinates as mousemove does.
+            // It holds the element when a touchstart triggered.
+            var target = (evt.type === 'mousemove')
+                ? evt.target
+                : document.elementFromPoint(evt.clientX, evt.clientY)
 
-                this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
-            }
-            
-            this._viewUnderPointer = this.paper.findView(evt.target);
-            if (this._viewUnderPointer && this._viewUnderPointer.model instanceof joint.dia.Link) {
+            if (this._targetEvent !== target) {
+                // Unhighlight the previous view under pointer if there was one.
+                this._magnetUnderPointer && this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
+                this._viewUnderPointer = this.paper.findView(target);
+                if (this._viewUnderPointer) {
+                    // If we found a view that is under the pointer, we need to find the closest
+                    // magnet based on the real target element of the event.
+                    this._magnetUnderPointer = this._viewUnderPointer.findMagnet(target);
 
-                // Do not allow linking links with links.
-                this._viewUnderPointer = null;
-            }
-
-            // If we found a view that is under the pointer, we need to find the closest
-            // magnet based on the real target element of the event.
-            if (this._viewUnderPointer) {
-                
-                this._magnetUnderPointer = this._viewUnderPointer.findMagnet(evt.target);
-                if (!this._magnetUnderPointer) {
-
-                    // If there was no magnet found, do not highlight anything and assume there
-                    // is no view under pointer we're interested in reconnecting to.
-                    // This can only happen if the overall element has the attribute `'.': { magnet: false }`.
-                    this._viewUnderPointer = null;
+                    if (this._magnetUnderPointer && this.paper.options.validateConnection.apply(
+                        this.paper, this._validateConnectionArgs(this._viewUnderPointer, this._magnetUnderPointer)
+                    )) {
+                        // If there was no magnet found, do not highlight anything and assume there
+                        // is no view under pointer we're interested in reconnecting to.
+                        // This can only happen if the overall element has the attribute `'.': { magnet: false }`.
+                        this._magnetUnderPointer && this._viewUnderPointer.highlight(this._magnetUnderPointer);
+                    } else {
+                        // This type of connection is not valid. Disregard this magnet.
+                        this._magnetUnderPointer = null;
+                    }
+                } else {
+                    // Make sure we'll delete previous magnet
+                    this._magnetUnderPointer = null;
                 }
             }
 
-            if (this._viewUnderPointer) {
-
-                this._viewUnderPointer.highlight(this._magnetUnderPointer);
-            }
-            
-            this.model.set(this._arrowheadEnd, { x: x, y: y });
+	    this._targetEvent = target;
+            this.model.set(this._arrowhead, { x: x, y: y });
             break;
         }
-        
+
         this._dx = x;
         this._dy = y;
     },
@@ -1005,28 +1103,25 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (this._action === 'arrowhead-move') {
 
-            // Put `pointer-events` back to its original value. See `pointerdown()` for explanation.
-	    // Value `auto` doesn't work in IE9. We force to use `visiblePainted` instead.
-	    // See `https://developer.mozilla.org/en-US/docs/Web/CSS/pointer-events`.
-            this.$el.css({ 'pointer-events': 'visiblePainted' });
-
-            this.model.set('z', this._originalZ);
-            delete this._originalZ;
-
-            if (this._viewUnderPointer) {
-
+            if (this._magnetUnderPointer) {
+                this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
                 // Find a unique `selector` of the element under pointer that is a magnet. If the
                 // `this._magnetUnderPointer` is the root element of the `this._viewUnderPointer` itself,
                 // the returned `selector` will be `undefined`. That means we can directly pass it to the
                 // `source`/`target` attribute of the link model below.
-                var selector = this._viewUnderPointer.getSelector(this._magnetUnderPointer);
-                    
-		this.model.set(this._arrowheadEnd, { id: this._viewUnderPointer.model.id, selector: selector });
-                
-                this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
-                delete this._viewUnderPointer;
-                delete this._magnetUnderPointer;
+		this.model.set(this._arrowhead, {
+                    id: this._viewUnderPointer.model.id,
+                    selector: this._viewUnderPointer.getSelector(this._magnetUnderPointer),
+                    port: $(this._magnetUnderPointer).attr('port')
+                });
             }
+
+            delete this._viewUnderPointer;
+            delete this._magnetUnderPointer;
+            delete this._staticView;
+            delete this._staticMagnet;
+
+            this._afterArrowheadMove();
         }
 
         delete this._action;

@@ -439,12 +439,109 @@ test('x-alignment, y-alignment', function() {
     );
 });
 
+test('gradient', function() {
+
+    var el = new joint.shapes.basic.Rect;
+    this.graph.addCell(el);
+
+    var elView = this.paper.findViewByModel(el);
+
+    var defs = this.paper.svg.querySelector('defs');
+    var defsChildrenCount = $(defs).children().length;
+    equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
+    
+    el.attr('rect/fill', {
+        type: 'linearGradient',
+        stops: [
+            { offset: '0%', color: 'red' },
+            { offset: '20%', color: 'blue' }
+        ]
+    });
+
+    // PhantomJS fails to lookup linearGradient with `querySelectorAll()` (also with jQuery).
+    // Therefore, we use the following trick to check whether the element is in DOM.
+    defsChildrenCount = $(defs).children().length;
+    equal(defsChildrenCount, 1, 'one element got created in <defs>.');
+
+    var linearGradient = $(defs).children()[0];
+    
+    equal(linearGradient.tagName.toLowerCase(), 'lineargradient', 'one <linearGradient> element got created in <defs>.');
+    equal('url(#' + linearGradient.id + ')', elView.$('rect').attr('fill'), 'fill attribute pointing to the newly created gradient with url()');
+
+    el.attr('rect/stroke', {
+        type: 'linearGradient',
+        stops: [
+            { offset: '0%', color: 'red' },
+            { offset: '20%', color: 'blue' }
+        ]
+    });
+
+    defsChildrenCount = $(defs).children().length;
+
+    equal(defsChildrenCount, 1, 'one element is in <defs>.');
+
+    linearGradient = $(defs).children()[0];
+
+    equal(linearGradient.tagName.toLowerCase(), 'lineargradient', 'still only one <linearGradient> element is in <defs>.');
+    equal('url(#' + linearGradient.id + ')', elView.$('rect').attr('stroke'), 'stroke attribute pointing to the correct gradient with url()');
+});
+
+test('filter', function() {
+
+    var el = new joint.shapes.basic.Rect;
+    var el2 = new joint.shapes.basic.Rect;
+    this.graph.addCells([el, el2]);
+
+    var elView = this.paper.findViewByModel(el);
+    var el2View = this.paper.findViewByModel(el2);
+
+    var defs = this.paper.svg.querySelector('defs');
+    
+    var defsChildrenCount = $(defs).children().length;
+    equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
+
+    el.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 } });
+
+    // PhantomJS fails to lookup linearGradient with `querySelectorAll()` (also with jQuery).
+    // Therefore, we use the following trick to check whether the element is in DOM.
+
+    defsChildrenCount = $(defs).children().length;
+    equal(defsChildrenCount, 1, 'one element got created in <defs>.');
+
+    var filter = $(defs).children()[0];
+    
+    equal(filter.tagName.toLowerCase(), 'filter', 'one <filter> element got created in <defs>.');
+    equal('url(#' + filter.id + ')', elView.$('rect').attr('filter'), 'filter attribute pointing to the newly created filter with url()');
+
+    el2.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 } });
+
+    defsChildrenCount = $(defs).children().length;
+    equal(defsChildrenCount, 1, 'one element still in <defs>.');
+
+    filter = $(defs).children()[0];
+
+    equal(filter.tagName.toLowerCase(), 'filter', 'still only one <filter> element is in <defs>.');
+    equal('url(#' + filter.id + ')', el2View.$('rect').attr('filter'), 'filter attribute pointing to the correct gradient with url()');
+
+    el.attr('rect/filter', { name: 'blur', args: { x: 5 } });
+
+    defsChildrenCount = $(defs).children().length;
+    equal(defsChildrenCount, 2, 'now two elements are in <defs>.');
+    var filter0 = $(defs).children()[0];
+    var filter1 = $(defs).children()[1];
+    deepEqual([filter0.tagName.toLowerCase(), filter1.tagName.toLowerCase()], ['filter', 'filter'], 'both elements in <defs> are <filter> elements.');
+    notEqual(filter0.id, filter1.id, 'both <filter> elements have different IDs');
+
+    equal('url(#' + filter0.id + ')', el2View.$('rect').attr('filter'), 'filter attribute pointing to the correct gradient with url()');
+    equal('url(#' + filter1.id + ')', elView.$('rect').attr('filter'), 'filter attribute pointing to the correct gradient with url()');
+});
+
 asyncTest('transition: sanity', 5, function() {
 
     var p0 = true, p1 = true, p2 = true;
 
     var el = new joint.shapes.basic.Rect({
-	property: 1,
+	property: 1
     });
 
     this.graph.addCell(el);
@@ -484,7 +581,7 @@ asyncTest('transition: sanity', 5, function() {
 asyncTest('transition: primitive value', function() {
 
     var el = new joint.shapes.basic.Rect({
-	timer: -1,
+	timer: -1
     });
 
     this.graph.addCell(el);

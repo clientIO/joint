@@ -50,6 +50,12 @@ var pb = new joint.shapes.basic.Path({
 });
 graph.addCell(pb);
 
+var tbl = new joint.shapes.basic.TextBlock({
+    position: { x: 400, y: 180 },
+    size: { width: 180, height: 100 },
+    content: "Lorem ipsum dolor sit amet,\n consectetur adipiscing elit. Nulla vel porttitor est."
+});
+graph.addCell(tbl);
 
 // An example of a custom element.
 // -------------------------------
@@ -116,5 +122,3 @@ var d = new MyElementWithPorts({
 });
 
 graph.addCell(d);
-
-

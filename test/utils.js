@@ -65,5 +65,17 @@ var simulate = {
 
         opt.type = 'mouseup';
         return this.mouseevent(opt);
+    },
+
+    mouseover: function(opt) {
+
+        opt.type = 'mouseover';
+        return this.mouseevent(opt);
+    },
+    
+    mouseout: function(opt) {
+
+        opt.type = 'mouseout';
+        return this.mouseevent(opt);
     }
 };
