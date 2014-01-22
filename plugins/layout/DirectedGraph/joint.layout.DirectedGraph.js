@@ -17,7 +17,10 @@ joint.layout.DirectedGraph = {
         
         layoutGraph.eachNode(function(u, value) {
             if (!value.dummy) {
-                graph.get('cells').get(u).set('position', { x: value.x, y: value.y });
+                graph.get('cells').get(u).set('position', {
+                    x: value.x - value.width/2,
+                    y: value.y - value.height/2
+                });
             }
         });
 

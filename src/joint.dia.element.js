@@ -477,10 +477,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     
     pointerdown: function(evt, x, y) {
 
-        if (evt.target.getAttribute('magnet')) {
-
-            if (this.paper.options.validateMagnet.call(this.paper, this, evt.target)) {
-
+        if ( // target is a valid magnet start linking
+            evt.target.getAttribute('magnet') &&
+            this.paper.options.validateMagnet.call(this.paper, this, evt.target)
+        ) {
                 this.model.trigger('batch:start');
 
                 var link = this.paper.getDefaultLink(this, evt.target);
@@ -497,7 +497,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
 	        this._linkView = this.paper.findViewByModel(link);
                 this._linkView.startArrowheadMove('target');
-            }
 
         } else {
 
