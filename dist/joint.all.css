@@ -1,4 +1,4 @@
-/*! JointJS v0.7.0 - JavaScript diagramming library  2013-11-20 
+/*! JointJS v0.8.0 - JavaScript diagramming library  2014-01-22 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -43,13 +43,11 @@ Important note: Presentation attributes have a lower precedence over CSS style r
 }
 */
 
-.magnet {
+[magnet=true]:not(.element) {
    cursor: crosshair;
 }
-
-.magnet:hover {
+[magnet=true]:not(.element):hover {
    opacity: .7;
-   fill: red;
 }
 
 /*
@@ -228,3 +226,14 @@ Do not allow adding new vertices: .connection-wrap { pointer-events: none; }
 
 */
 
+/* foreignObject in joint.shapes.basic.TextBlock */
+.TextBlock .fobj body {
+    background-color: transparent;
+    margin: 0px;
+}
+.TextBlock .fobj div {
+    text-align: center;
+    vertical-align: middle;
+    display: table-cell;
+    padding: 0px 5px 0px 5px;
+}

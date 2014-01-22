@@ -1,4 +1,4 @@
-/*! JointJS v0.8.0 - JavaScript diagramming library  2014-01-21 
+/*! JointJS v0.8.0 - JavaScript diagramming library  2014-01-22 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -3929,7 +3929,10 @@ joint.layout.DirectedGraph = {
         
         layoutGraph.eachNode(function(u, value) {
             if (!value.dummy) {
-                graph.get('cells').get(u).set('position', { x: value.x, y: value.y });
+                graph.get('cells').get(u).set('position', {
+                    x: value.x - value.width/2,
+                    y: value.y - value.height/2
+                });
             }
         });
 
