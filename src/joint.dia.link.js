@@ -89,12 +89,12 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         idx = idx || 0;
         
-        var labels = this.get('labels');
+        var labels = this.get('labels') || [];
         
         // Is it a getter?
         if (arguments.length === 0 || arguments.length === 1) {
             
-            return labels && labels[idx];
+            return labels[idx];
         }
 
         var newValue = _.merge({}, labels[idx], value);
