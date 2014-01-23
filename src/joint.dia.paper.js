@@ -218,14 +218,6 @@ joint.dia.Paper = Backbone.View.extend({
         V(this.viewport).rotate(deg, ox, oy);
     },
 
-    zoom: function(level) {
-
-	level = level || 1;
-
-        V(this.svg).attr('width', this.options.width * level);
-        V(this.svg).attr('height', this.options.height * level);
-    },
-
     // Find the first view climbing up the DOM tree starting at element `el`. Note that `el` can also
     // be a selector or a jQuery object.
     findView: function(el) {
