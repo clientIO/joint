@@ -185,12 +185,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (!this._V.connection) throw new Error('link: no connection path in the markup');
 
         // partial rendering
-        this.renderLabels();
         this.renderTools();
         this.renderVertexMarkers();
         this.renderArrowheadMarkers();
 
         V(this.el).append(children);
+
+        // rendering labels has to be run after the link is appended to DOM tree. (otherwise <Text> bbox
+        // returns zero values)
+        this.renderLabels();
 
         // start watching the ends of the link for changes
         this.watchSource(this.model, this.model.get('source'))
