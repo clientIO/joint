@@ -123,9 +123,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
 
-        // create method shortcuts
-        this.watchSource = this._createWatcher('source');
-        this.watchTarget = this._createWatcher('target');
+        // create methods in prototype, so they can be accessed from any instance and
+        // don't need to be create over and over
+        if (typeof this.constructor.prototype.watchSource !== 'function') {
+            this.constructor.prototype.watchSource = this._createWatcher('source');
+            this.constructor.prototype.watchTarget = this._createWatcher('target');
+        }
 
         // `_.labelCache` is a mapping of indexes of labels in the `this.get('labels')` array to
         // `<g class="label">` nodes wrapped by Vectorizer. This allows for quick access to the
@@ -486,6 +489,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return this;
     },
 
+    // Returns a function observing changes on an end of the link. If a change happens and new end is a new model,
+    // it stops listening on the previous one and starts listening to the new one.
     _createWatcher: function(endType) {
 
         function watchEnd(link, end) {
@@ -493,25 +498,34 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             end = end || {};
 
             var previousEnd = link.previous(endType) || {};
+
+            // Pick updateMethod this._sourceBboxUpdate or this._targetBboxUpdate.
+            var updateEndFunction = this['_' + endType + 'BBoxUpdate'];
+
             if (this._isModel(previousEnd)) {
-                this.stopListening(this.paper.getModelById(previousEnd.id), 'change');
+                this.stopListening(this.paper.getModelById(previousEnd.id), 'change', updateEndFunction);
             }
 
             if (this._isModel(end)) {
-                this.listenTo(this.paper.getModelById(end.id), 'change', function() {
-                    this._cacheEndBbox(endType, end).update();
-                });
+                // If the observed model changes, it caches a new bbox and do the link update.
+                this.listenTo(this.paper.getModelById(end.id), 'change', updateEndFunction);
             }
 
-            return this._cacheEndBbox(endType, end);
+            _.bind(updateEndFunction, this)({ cacheOnly: true });
+
+            return this;
         }
 
         return watchEnd;
     },
 
-    _cacheEndBbox: function(endType, end) {
+    // It's important to keep both methods (sourceBboxUpdate and targetBboxUpdate) as unique methods
+    // because of loop links. We have to be able to determine, which method we want to stop listen to.
+    // ListenTo(model, event, handler) as model and event will be identical.
+    _sourceBBoxUpdate: function(update) {
 
-        var cacheBbox = '_' + endType + 'Bbox';
+        update = update || {};
+        var end = this.model.get('source');
 
         if (this._isModel(end)) {
 
@@ -519,17 +533,41 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var view = this.paper.findViewByModel(end.id);
             var magnetElement = this.paper.viewport.querySelector(selector);
 
-            this[cacheBbox] = view.getStrokeBBox(magnetElement);
+            this._sourceBbox = view.getStrokeBBox(magnetElement);
 
         } else {
             // the link end is a point ~ rect 1x1
-            this[cacheBbox] = {
+            this._sourceBbox = {
                 width: 1, height: 1,
                 x: end.x, y: end.y
             };
         }
 
-        return this;
+        if (!update.cacheOnly) this.update();
+    },
+
+    _targetBBoxUpdate: function(update) {
+
+        update = update || {};
+        var end = this.model.get('target');
+
+        if (this._isModel(end)) {
+
+            var selector = this._makeSelector(end);
+            var view = this.paper.findViewByModel(end.id);
+            var magnetElement = this.paper.viewport.querySelector(selector);
+
+            this._targetBbox = view.getStrokeBBox(magnetElement);
+
+        } else {
+            // the link end is a point ~ rect 1x1
+            this._targetBbox = {
+                width: 1, height: 1,
+                x: end.x, y: end.y
+            };
+        }
+
+        if (!update.cacheOnly) this.update();
     },
 
 
@@ -684,8 +722,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             // to the reference point (or reference element).
             // Get the bounding box of the spot relative to the paper viewport. This is necessary
             // in order to follow paper viewport transformations (scale/rotate).
-            // `_sourceBbox` and `_targetBbox` come both from `_cacheEndBbox` method, they exist
-            // since first render and are automatically updated
+            // `_sourceBbox` (`_targetBbox`) comes from `_sourceBboxUpdate` (`_sourceBboxUpdate`)
+            // method, it exists since first render and are automatically updated
             var spotBbox = end === 'source' ? this._sourceBbox : this._targetBbox;
             
             var reference;
@@ -1059,40 +1097,114 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
           case 'arrowhead-move':
 
-            // Touchmove event's target is not reflecting the element under the coordinates as mousemove does.
-            // It holds the element when a touchstart triggered.
-            var target = (evt.type === 'mousemove')
-                ? evt.target
-                : document.elementFromPoint(evt.clientX, evt.clientY)
+            if (this.paper.options.snapLinks) {
 
-            if (this._targetEvent !== target) {
-                // Unhighlight the previous view under pointer if there was one.
-                this._magnetUnderPointer && this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
-                this._viewUnderPointer = this.paper.findView(target);
-                if (this._viewUnderPointer) {
-                    // If we found a view that is under the pointer, we need to find the closest
-                    // magnet based on the real target element of the event.
-                    this._magnetUnderPointer = this._viewUnderPointer.findMagnet(target);
+                // checking view in close area of the pointer
 
-                    if (this._magnetUnderPointer && this.paper.options.validateConnection.apply(
-                        this.paper, this._validateConnectionArgs(this._viewUnderPointer, this._magnetUnderPointer)
-                    )) {
-                        // If there was no magnet found, do not highlight anything and assume there
-                        // is no view under pointer we're interested in reconnecting to.
-                        // This can only happen if the overall element has the attribute `'.': { magnet: false }`.
-                        this._magnetUnderPointer && this._viewUnderPointer.highlight(this._magnetUnderPointer);
+                var r = this.paper.options.snapLinks.radius || 50;
+                var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
+
+                this._closestView && this._closestView.unhighlight(this._closestEnd.selector);
+                this._closestView = this._closestEnd = null;
+
+                var pointer = g.point(x,y);
+                var distance, minDistance = Number.MAX_VALUE;
+
+                _.each(viewsInArea, function(view) {
+
+                    // skip connecting to the element in case '.': { magnet: false } attribute present
+                    if (view.el.getAttribute('magnet') !== 'false') {
+
+                        // find distance from the center of the model to pointer coordinates
+                        distance = view.model.getBBox().center().distance(pointer);
+
+                        // the connection is looked up in a circle area by `distance < r`
+                        if (distance < r && distance < minDistance) {
+
+                            if (this.paper.options.validateConnection.apply(
+                                this.paper, this._validateConnectionArgs(view, null)
+                            )) {
+                                minDistance = distance;
+                                this._closestView = view;
+                                this._closestEnd = { id: view.model.id };
+                            }
+                        }
+                    }
+
+                    view.$('[magnet]').each(_.bind(function(index, magnet) {
+
+                        var bbox = magnet.getBoundingClientRect();
+
+                        distance = pointer.distance({
+                            x: bbox.left + bbox.width / 2,
+                            y: bbox.top + bbox.height / 2
+                        });
+
+                        if (distance < r && distance < minDistance) {
+
+                            if (this.paper.options.validateConnection.apply(
+                                this.paper, this._validateConnectionArgs(view, magnet)
+                            )) {
+                                minDistance = distance;
+                                this._closestView = view;
+                                this._closestEnd = {
+                                    id: view.model.id,
+                                    selector: view.getSelector(magnet),
+                                    port: magnet.getAttribute('port')
+                                }
+                            }
+                        }
+
+                    }, this));
+
+                }, this);
+
+                this._closestView && this._closestView.highlight(this._closestEnd.selector);
+
+                this.model.set(this._arrowhead, this._closestEnd || { x: x, y: y });
+
+            } else {
+
+                // checking views right under the pointer
+
+                // Touchmove event's target is not reflecting the element under the coordinates as mousemove does.
+                // It holds the element when a touchstart triggered.
+                var target = (evt.type === 'mousemove')
+                    ? evt.target
+                    : document.elementFromPoint(evt.clientX, evt.clientY)
+
+                if (this._targetEvent !== target) {
+                    // Unhighlight the previous view under pointer if there was one.
+                    this._magnetUnderPointer && this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
+                    this._viewUnderPointer = this.paper.findView(target);
+                    if (this._viewUnderPointer) {
+                        // If we found a view that is under the pointer, we need to find the closest
+                        // magnet based on the real target element of the event.
+                        this._magnetUnderPointer = this._viewUnderPointer.findMagnet(target);
+
+                        if (this._magnetUnderPointer && this.paper.options.validateConnection.apply(
+                            this.paper,
+                            this._validateConnectionArgs(this._viewUnderPointer, this._magnetUnderPointer)
+                        )) {
+                            // If there was no magnet found, do not highlight anything and assume there
+                            // is no view under pointer we're interested in reconnecting to.
+                            // This can only happen if the overall element has the attribute `'.': { magnet: false }`.
+                            this._magnetUnderPointer && this._viewUnderPointer.highlight(this._magnetUnderPointer);
+                        } else {
+                            // This type of connection is not valid. Disregard this magnet.
+                            this._magnetUnderPointer = null;
+                        }
                     } else {
-                        // This type of connection is not valid. Disregard this magnet.
+                        // Make sure we'll delete previous magnet
                         this._magnetUnderPointer = null;
                     }
-                } else {
-                    // Make sure we'll delete previous magnet
-                    this._magnetUnderPointer = null;
                 }
+
+	        this._targetEvent = target;
+
+                this.model.set(this._arrowhead, { x: x, y: y });
             }
 
-	    this._targetEvent = target;
-            this.model.set(this._arrowhead, { x: x, y: y });
             break;
         }
 
@@ -1106,23 +1218,31 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (this._action === 'arrowhead-move') {
 
-            if (this._magnetUnderPointer) {
-                this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
-                // Find a unique `selector` of the element under pointer that is a magnet. If the
-                // `this._magnetUnderPointer` is the root element of the `this._viewUnderPointer` itself,
-                // the returned `selector` will be `undefined`. That means we can directly pass it to the
-                // `source`/`target` attribute of the link model below.
-		this.model.set(this._arrowhead, {
-                    id: this._viewUnderPointer.model.id,
-                    selector: this._viewUnderPointer.getSelector(this._magnetUnderPointer),
-                    port: $(this._magnetUnderPointer).attr('port')
-                });
-            }
+            if (this.paper.options.snapLinks) {
 
-            delete this._viewUnderPointer;
-            delete this._magnetUnderPointer;
-            delete this._staticView;
-            delete this._staticMagnet;
+                this._closestView && this._closestView.unhighlight(this._closestEnd.selector);
+                this._closestView = this._closestEnd = null;
+
+            } else {
+
+                if (this._magnetUnderPointer) {
+                    this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
+                    // Find a unique `selector` of the element under pointer that is a magnet. If the
+                    // `this._magnetUnderPointer` is the root element of the `this._viewUnderPointer` itself,
+                    // the returned `selector` will be `undefined`. That means we can directly pass it to the
+                    // `source`/`target` attribute of the link model below.
+		    this.model.set(this._arrowhead, {
+                        id: this._viewUnderPointer.model.id,
+                        selector: this._viewUnderPointer.getSelector(this._magnetUnderPointer),
+                        port: $(this._magnetUnderPointer).attr('port')
+                    });
+                }
+
+                delete this._viewUnderPointer;
+                delete this._magnetUnderPointer;
+                delete this._staticView;
+                delete this._staticMagnet;
+            }
 
             this._afterArrowheadMove();
         }

@@ -12,6 +12,7 @@ joint.dia.Paper = Backbone.View.extend({
         perpendicularLinks: false,
         elementView: joint.dia.ElementView,
         linkView: joint.dia.LinkView,
+        snapLinks: false, // false, true, { radius: value }
 
         // Defines what link model is added to the graph after an user clicks on an active magnet.
         // Value could be the Backbone.model or a function returning the Backbone.model
