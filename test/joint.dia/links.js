@@ -541,3 +541,70 @@ test('magnets & ports', function() {
     // myrect.attr('text', { port: 'port3' });
     // equal(link.get('source').port, 'port3', 'changing port on an element automatically changes the same port on a link');
 });
+
+test('snap links', function() {
+
+    var link = new joint.dia.Link({
+        source: {x: 0, y: 0},
+        target: {x: 0, y: 0}
+    });
+
+    var myrect = new joint.shapes.basic.Rect({
+        position: { x: 100, y: 100 }
+    });
+
+    this.graph.addCells([myrect, link]);
+
+    var v = this.paper.findViewByModel(link);
+    var t = v.el.querySelector('.marker-arrowhead[end=target]');
+
+// link target was out of the radius and therefore was not snapped to the element
+
+    this.paper.options.snapLinks = { radius: 5 };
+
+    v.pointerdown({ target: t }, 0 ,0);
+    v.pointermove({ target: this.paper.el }, 90 , 90);
+    v.pointerup({ target: this.paper.el }, 90 , 90);
+
+    deepEqual(link.get('target'), {
+        x: 90, y: 90
+    }, 'link target was out of the radius and therefore was not snapped to the element');
+
+// link target was snapped to the element
+
+    this.paper.options.snapLinks = { radius: 50 };
+
+    v.pointerdown({ target: t }, 0 ,0);
+    v.pointermove({ target: this.paper.el }, 90 , 90);
+    v.pointerup({ target: this.paper.el }, 90 , 90);
+
+    ok(link.get('target').id === myrect.id, 'link target was snapped to the element');
+
+// link target was snapped to the port
+
+    // getBoundingClientRect returns negative values for top and left when paper not visible
+    this.paper.options.snapLinks = { radius: Number.MAX_VALUE };
+
+    myrect.attr('.', { magnet: false });
+    myrect.attr('text', { magnet: true, port: 'port' });
+
+    this.paper.options.validateConnection = function() { return true; }
+
+    v.pointerdown({ target: t }, 0 ,0);
+    v.pointermove({ target: this.paper.el }, 90 , 90);
+    v.pointerup({ target: this.paper.el }, 90 , 90);
+
+    ok(link.get('target').port === 'port', 'link target was snapped to the port');
+
+// the validation is taken into account when snapping to port
+
+    this.paper.options.validateConnection = function() { return false; }
+
+    v.pointerdown({ target: t }, 0 ,0);
+    v.pointermove({ target: this.paper.el }, 90 , 90);
+    v.pointerup({ target: this.paper.el }, 90 , 90);
+
+    deepEqual(link.get('target'), {
+        x: 90, y: 90
+    }, 'the validation is taken into account when snapping to port');
+})
