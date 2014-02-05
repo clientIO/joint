@@ -331,8 +331,8 @@
         // @return {bool} true if point p is insight me
         containsPoint: function(p) {
             p = point(p);
-	    if (p.x > this.x && p.x < this.x + this.width &&
-	        p.y > this.y && p.y < this.y + this.height) {
+	    if (p.x >= this.x && p.x <= this.x + this.width &&
+	        p.y >= this.y && p.y <= this.y + this.height) {
 	        return true;
 	    }
 	    return false;
