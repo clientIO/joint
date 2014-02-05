@@ -560,6 +560,38 @@
 		    _.invoke(animation.animators, 'register');
 		}
             }
+        },
+
+        hasClass: function(className) {
+
+            return new RegExp('(\\s|^)' + className + '(\\s|$)').test(this.node.getAttribute('class'));
+        },
+
+        addClass: function(className) {
+
+            if (!this.hasClass(className)) {
+                this.node.setAttribute('class', this.node.getAttribute('class') + ' ' + className);
+            }
+        },
+
+        removeClass: function(className) {
+
+            var removedClass = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
+
+            if (this.hasClass(className)) {
+                this.node.setAttribute('class', removedClass);
+            }
+        },
+
+        toggleClass: function(className, toAdd) {
+
+            var toRemove = typeof toAdd === 'undefined' ? this.hasClass(className) : !toAdd;
+
+            if (toRemove) {
+                this.removeClass(className);
+            } else {
+                this.addClass(className);
+            }
         }
     };
 

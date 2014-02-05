@@ -548,16 +548,14 @@ joint.dia.CellView = Backbone.View.extend({
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
-	var attrClass = V(el).attr('class') || '';
-
-	if (!/\bhighlighted\b/.exec(attrClass)) V(el).attr('class', attrClass.trim() + ' highlighted');
+        V(el).addClass('highlighted');
     },
 
     unhighlight: function(el) {
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
-	V(el).attr('class', (V(el).attr('class') || '').replace(/\bhighlighted\b/, '').trim());
+        V(el).removeClass('highlighted');
     },
 
     // Find the closest element that has the `magnet` attribute set to `true`. If there was not such
