@@ -120,9 +120,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         
         var relativelyPositioned = [];
 
-        // Special attributes are treated by JointJS, not by SVG.
-        var specialAttributes = ['style', 'text', 'html', 'ref-x', 'ref-y', 'ref-dx', 'ref-dy', 'ref', 'x-alignment', 'y-alignment', 'port'];
-
         _.each(renderingOnlyAttrs || allAttrs, function(attrs, selector) {
 
             // Elements that should be updated.
