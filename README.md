@@ -59,3 +59,7 @@ Contributors
 
 - [David Durman](http://github.com/DavidDurman)
 - [Roman Bruckner](http://github.com/kumilingus)
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/DavidDurman/joint/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
