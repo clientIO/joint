@@ -1133,11 +1133,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                     view.$('[magnet]').each(_.bind(function(index, magnet) {
 
-                        var bbox = magnet.getBoundingClientRect();
+                        var bbox = V(magnet).bbox(false, this.paper.viewport);
 
                         distance = pointer.distance({
-                            x: bbox.left + bbox.width / 2,
-                            y: bbox.top + bbox.height / 2
+                            x: bbox.x + bbox.width / 2,
+                            y: bbox.y + bbox.height / 2
                         });
 
                         if (distance < r && distance < minDistance) {

@@ -106,6 +106,19 @@ joint.dia.Paper = Backbone.View.extend({
 	}
     },
 
+    getContentBBox: function() {
+
+        var crect = this.viewport.getBoundingClientRect();
+
+        // Using Screen CTM was the only way to get the real viewport bounding box working in both
+        // Google Chrome and Firefox.
+        var ctm = this.viewport.getScreenCTM();
+
+        var bbox = g.rect(Math.abs(crect.left - ctm.e), Math.abs(crect.top - ctm.f), crect.width, crect.height);
+
+        return bbox;
+    },
+
     createViewForModel: function(cell) {
 
         var view;
@@ -259,8 +272,8 @@ joint.dia.Paper = Backbone.View.extend({
         var views = _.map(this.model.getElements(), this.findViewByModel);
 
 	return _.filter(views, function(view) {
-	    return g.rect(view.getBBox()).containsPoint(p);
-	});
+	    return g.rect(V(view.el).bbox(false, this.viewport)).containsPoint(p);
+	}, this);
     },
 
     // Find all views in given area
@@ -271,8 +284,8 @@ joint.dia.Paper = Backbone.View.extend({
         var views = _.map(this.model.getElements(), this.findViewByModel);
 
 	return _.filter(views, function(view) {
-	    return r.intersect(g.rect(view.getBBox()));
-	});
+	    return r.intersect(g.rect(V(view.el).bbox(false, this.viewport)));
+	}, this);
     },
 
     getModelById: function(id) {
