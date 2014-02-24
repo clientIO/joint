@@ -1,4 +1,4 @@
-/*! JointJS v0.8.0 - JavaScript diagramming library  2014-01-22 
+/*! JointJS v0.8.1 - JavaScript diagramming library  2014-02-24 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -6,17 +6,17 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 /*!
- * jQuery JavaScript Library v1.9.1
+ * jQuery JavaScript Library v2.0.3
  * http://jquery.com/
  *
  * Includes Sizzle.js
  * http://sizzlejs.com/
  *
- * Copyright 2005, 2012 jQuery Foundation, Inc. and other contributors
+ * Copyright 2005, 2013 jQuery Foundation, Inc. and other contributors
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2013-2-4
+ * Date: 2013-07-03T13:30Z
  */
 (function( window, undefined ) {
 
@@ -26,19 +26,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 // Support: Firefox 18+
 //"use strict";
 var
-	// The deferred used on DOM ready
-	readyList,
-
 	// A central reference to the root jQuery(document)
 	rootjQuery,
 
-	// Support: IE<9
-	// For `typeof node.method` instead of `node.method !== undefined`
+	// The deferred used on DOM ready
+	readyList,
+
+	// Support: IE9
+	// For `typeof xmlNode.method` instead of `xmlNode.method !== undefined`
 	core_strundefined = typeof undefined,
 
 	// Use the correct document accordingly with window argument (sandbox)
-	document = window.document,
 	location = window.location,
+	document = window.document,
+	docElem = document.documentElement,
 
 	// Map over jQuery in case of overwrite
 	_jQuery = window.jQuery,
@@ -52,7 +53,7 @@ var
 	// List of deleted data cache ids, so we can reuse them
 	core_deletedIds = [],
 
-	core_version = "1.9.1",
+	core_version = "2.0.3",
 
 	// Save a reference to some core methods
 	core_concat = core_deletedIds.concat,
@@ -75,22 +76,13 @@ var
 	// Used for splitting on whitespace
 	core_rnotwhite = /\S+/g,
 
-	// Make sure we trim BOM and NBSP (here's looking at you, Safari 5.0 and IE)
-	rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,
-
 	// A simple way to check for HTML strings
 	// Prioritize #id over <tag> to avoid XSS via location.hash (#9521)
 	// Strict HTML recognition (#11290: must start with <)
-	rquickExpr = /^(?:(<[\w\W]+>)[^>]*|#([\w-]*))$/,
+	rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/,
 
 	// Match a standalone tag
 	rsingleTag = /^<(\w+)\s*\/?>(?:<\/\1>|)$/,
-
-	// JSON RegExp
-	rvalidchars = /^[\],:{}\s]*$/,
-	rvalidbraces = /(?:^|:|,)(?:\s*\[)+/g,
-	rvalidescape = /\\(?:["\\\/bfnrt]|u[\da-fA-F]{4})/g,
-	rvalidtokens = /"[^"\\\r\n]*"|true|false|null|-?(?:\d+\.|)\d+(?:[eE][+-]?\d+|)/g,
 
 	// Matches dashed string for camelizing
 	rmsPrefix = /^-ms-/,
@@ -101,25 +93,11 @@ var
 		return letter.toUpperCase();
 	},
 
-	// The ready event handler
-	completed = function( event ) {
-
-		// readyState === "complete" is good enough for us to call the dom ready in oldIE
-		if ( document.addEventListener || event.type === "load" || document.readyState === "complete" ) {
-			detach();
-			jQuery.ready();
-		}
-	},
-	// Clean-up method for dom ready events
-	detach = function() {
-		if ( document.addEventListener ) {
-			document.removeEventListener( "DOMContentLoaded", completed, false );
-			window.removeEventListener( "load", completed, false );
-
-		} else {
-			document.detachEvent( "onreadystatechange", completed );
-			window.detachEvent( "onload", completed );
-		}
+	// The ready event handler and self cleanup method
+	completed = function() {
+		document.removeEventListener( "DOMContentLoaded", completed, false );
+		window.removeEventListener( "load", completed, false );
+		jQuery.ready();
 	};
 
 jQuery.fn = jQuery.prototype = {
@@ -182,13 +160,7 @@ jQuery.fn = jQuery.prototype = {
 					// Check parentNode to catch when Blackberry 4.6 returns
 					// nodes that are no longer in the document #6963
 					if ( elem && elem.parentNode ) {
-						// Handle the case where IE and Opera return items
-						// by name instead of ID
-						if ( elem.id !== match[2] ) {
-							return rootjQuery.find( selector );
-						}
-
-						// Otherwise, we inject the element directly into the jQuery object
+						// Inject the element directly into the jQuery object
 						this.length = 1;
 						this[0] = elem;
 					}
@@ -233,11 +205,6 @@ jQuery.fn = jQuery.prototype = {
 
 	// The default length of a jQuery object is 0
 	length: 0,
-
-	// The number of elements contained in the matched element set
-	size: function() {
-		return this.length;
-	},
 
 	toArray: function() {
 		return core_slice.call( this );
@@ -323,7 +290,7 @@ jQuery.fn = jQuery.prototype = {
 jQuery.fn.init.prototype = jQuery.fn;
 
 jQuery.extend = jQuery.fn.extend = function() {
-	var src, copyIsArray, copy, name, options, clone,
+	var options, name, src, copy, copyIsArray, clone,
 		target = arguments[0] || {},
 		i = 1,
 		length = arguments.length,
@@ -387,6 +354,9 @@ jQuery.extend = jQuery.fn.extend = function() {
 };
 
 jQuery.extend({
+	// Unique for each copy of jQuery on the page
+	expando: "jQuery" + ( core_version + Math.random() ).replace( /\D/g, "" ),
+
 	noConflict: function( deep ) {
 		if ( window.$ === jQuery ) {
 			window.$ = _$;
@@ -423,11 +393,6 @@ jQuery.extend({
 			return;
 		}
 
-		// Make sure body exists, at least, in case IE gets a little overzealous (ticket #5443).
-		if ( !document.body ) {
-			return setTimeout( jQuery.ready );
-		}
-
 		// Remember that the DOM is ready
 		jQuery.isReady = true;
 
@@ -452,12 +417,10 @@ jQuery.extend({
 		return jQuery.type(obj) === "function";
 	},
 
-	isArray: Array.isArray || function( obj ) {
-		return jQuery.type(obj) === "array";
-	},
+	isArray: Array.isArray,
 
 	isWindow: function( obj ) {
-		return obj != null && obj == obj.window;
+		return obj != null && obj === obj.window;
 	},
 
 	isNumeric: function( obj ) {
@@ -468,38 +431,37 @@ jQuery.extend({
 		if ( obj == null ) {
 			return String( obj );
 		}
+		// Support: Safari <= 5.1 (functionish RegExp)
 		return typeof obj === "object" || typeof obj === "function" ?
 			class2type[ core_toString.call(obj) ] || "object" :
 			typeof obj;
 	},
 
 	isPlainObject: function( obj ) {
-		// Must be an Object.
-		// Because of IE, we also have to check the presence of the constructor property.
-		// Make sure that DOM nodes and window objects don't pass through, as well
-		if ( !obj || jQuery.type(obj) !== "object" || obj.nodeType || jQuery.isWindow( obj ) ) {
+		// Not plain objects:
+		// - Any object or value whose internal [[Class]] property is not "[object Object]"
+		// - DOM nodes
+		// - window
+		if ( jQuery.type( obj ) !== "object" || obj.nodeType || jQuery.isWindow( obj ) ) {
 			return false;
 		}
 
+		// Support: Firefox <20
+		// The try/catch suppresses exceptions thrown when attempting to access
+		// the "constructor" property of certain host objects, ie. |window.location|
+		// https://bugzilla.mozilla.org/show_bug.cgi?id=814622
 		try {
-			// Not own constructor property must be Object
 			if ( obj.constructor &&
-				!core_hasOwn.call(obj, "constructor") &&
-				!core_hasOwn.call(obj.constructor.prototype, "isPrototypeOf") ) {
+					!core_hasOwn.call( obj.constructor.prototype, "isPrototypeOf" ) ) {
 				return false;
 			}
 		} catch ( e ) {
-			// IE8,9 Will throw exceptions on certain host objects #9897
 			return false;
 		}
 
-		// Own properties are enumerated firstly, so to speed up,
-		// if last one is own, then all properties are own.
-
-		var key;
-		for ( key in obj ) {}
-
-		return key === undefined || core_hasOwn.call( obj, key );
+		// If the function hasn't returned already, we're confident that
+		// |obj| is a plain object, created by {} or constructed with new Object
+		return true;
 	},
 
 	isEmptyObject: function( obj ) {
@@ -536,41 +498,15 @@ jQuery.extend({
 		}
 
 		parsed = jQuery.buildFragment( [ data ], context, scripts );
+
 		if ( scripts ) {
 			jQuery( scripts ).remove();
 		}
+
 		return jQuery.merge( [], parsed.childNodes );
 	},
 
-	parseJSON: function( data ) {
-		// Attempt to parse using the native JSON parser first
-		if ( window.JSON && window.JSON.parse ) {
-			return window.JSON.parse( data );
-		}
-
-		if ( data === null ) {
-			return data;
-		}
-
-		if ( typeof data === "string" ) {
-
-			// Make sure leading/trailing whitespace is removed (IE can't handle it)
-			data = jQuery.trim( data );
-
-			if ( data ) {
-				// Make sure the incoming data is actual JSON
-				// Logic borrowed from http://json.org/json2.js
-				if ( rvalidchars.test( data.replace( rvalidescape, "@" )
-					.replace( rvalidtokens, "]" )
-					.replace( rvalidbraces, "")) ) {
-
-					return ( new Function( "return " + data ) )();
-				}
-			}
-		}
-
-		jQuery.error( "Invalid JSON: " + data );
-	},
+	parseJSON: JSON.parse,
 
 	// Cross-browser xml parsing
 	parseXML: function( data ) {
@@ -578,19 +514,16 @@ jQuery.extend({
 		if ( !data || typeof data !== "string" ) {
 			return null;
 		}
+
+		// Support: IE9
 		try {
-			if ( window.DOMParser ) { // Standard
-				tmp = new DOMParser();
-				xml = tmp.parseFromString( data , "text/xml" );
-			} else { // IE
-				xml = new ActiveXObject( "Microsoft.XMLDOM" );
-				xml.async = "false";
-				xml.loadXML( data );
-			}
-		} catch( e ) {
+			tmp = new DOMParser();
+			xml = tmp.parseFromString( data , "text/xml" );
+		} catch ( e ) {
 			xml = undefined;
 		}
-		if ( !xml || !xml.documentElement || xml.getElementsByTagName( "parsererror" ).length ) {
+
+		if ( !xml || xml.getElementsByTagName( "parsererror" ).length ) {
 			jQuery.error( "Invalid XML: " + data );
 		}
 		return xml;
@@ -599,16 +532,25 @@ jQuery.extend({
 	noop: function() {},
 
 	// Evaluates a script in a global context
-	// Workarounds based on findings by Jim Driscoll
-	// http://weblogs.java.net/blog/driscoll/archive/2009/09/08/eval-javascript-global-context
-	globalEval: function( data ) {
-		if ( data && jQuery.trim( data ) ) {
-			// We use execScript on Internet Explorer
-			// We use an anonymous function so that context is window
-			// rather than jQuery in Firefox
-			( window.execScript || function( data ) {
-				window[ "eval" ].call( window, data );
-			} )( data );
+	globalEval: function( code ) {
+		var script,
+				indirect = eval;
+
+		code = jQuery.trim( code );
+
+		if ( code ) {
+			// If the code includes a valid, prologue position
+			// strict mode pragma, execute code by injecting a
+			// script tag into the document.
+			if ( code.indexOf("use strict") === 1 ) {
+				script = document.createElement("script");
+				script.text = code;
+				document.head.appendChild( script ).parentNode.removeChild( script );
+			} else {
+			// Otherwise, avoid the DOM node creation, insertion
+			// and removal by using an indirect global eval
+				indirect( code );
+			}
 		}
 	},
 
@@ -672,20 +614,9 @@ jQuery.extend({
 		return obj;
 	},
 
-	// Use native String.trim function wherever possible
-	trim: core_trim && !core_trim.call("\uFEFF\xA0") ?
-		function( text ) {
-			return text == null ?
-				"" :
-				core_trim.call( text );
-		} :
-
-		// Otherwise use our own trimming functionality
-		function( text ) {
-			return text == null ?
-				"" :
-				( text + "" ).replace( rtrim, "" );
-		},
+	trim: function( text ) {
+		return text == null ? "" : core_trim.call( text );
+	},
 
 	// results is for internal usage only
 	makeArray: function( arr, results ) {
@@ -706,25 +637,7 @@ jQuery.extend({
 	},
 
 	inArray: function( elem, arr, i ) {
-		var len;
-
-		if ( arr ) {
-			if ( core_indexOf ) {
-				return core_indexOf.call( arr, elem, i );
-			}
-
-			len = arr.length;
-			i = i ? i < 0 ? Math.max( 0, len + i ) : i : 0;
-
-			for ( ; i < len; i++ ) {
-				// Skip accessing in sparse arrays
-				if ( i in arr && arr[ i ] === elem ) {
-					return i;
-				}
-			}
-		}
-
-		return -1;
+		return arr == null ? -1 : core_indexOf.call( arr, elem, i );
 	},
 
 	merge: function( first, second ) {
@@ -805,7 +718,7 @@ jQuery.extend({
 	// Bind a function to a context, optionally partially applying any
 	// arguments.
 	proxy: function( fn, context ) {
-		var args, proxy, tmp;
+		var tmp, args, proxy;
 
 		if ( typeof context === "string" ) {
 			tmp = fn[ context ];
@@ -884,8 +797,29 @@ jQuery.extend({
 				length ? fn( elems[0], key ) : emptyGet;
 	},
 
-	now: function() {
-		return ( new Date() ).getTime();
+	now: Date.now,
+
+	// A method for quickly swapping in/out CSS properties to get correct calculations.
+	// Note: this method belongs to the css module but it's needed here for the support module.
+	// If support gets modularized, this method should be moved back to the css module.
+	swap: function( elem, options, callback, args ) {
+		var ret, name,
+			old = {};
+
+		// Remember the old values, and insert the new ones
+		for ( name in options ) {
+			old[ name ] = elem.style[ name ];
+			elem.style[ name ] = options[ name ];
+		}
+
+		ret = callback.apply( elem, args || [] );
+
+		// Revert the old values
+		for ( name in options ) {
+			elem.style[ name ] = old[ name ];
+		}
+
+		return ret;
 	}
 });
 
@@ -901,50 +835,13 @@ jQuery.ready.promise = function( obj ) {
 			// Handle it asynchronously to allow scripts the opportunity to delay ready
 			setTimeout( jQuery.ready );
 
-		// Standards-based browsers support DOMContentLoaded
-		} else if ( document.addEventListener ) {
+		} else {
+
 			// Use the handy event callback
 			document.addEventListener( "DOMContentLoaded", completed, false );
 
 			// A fallback to window.onload, that will always work
 			window.addEventListener( "load", completed, false );
-
-		// If IE event model is used
-		} else {
-			// Ensure firing before onload, maybe late but safe also for iframes
-			document.attachEvent( "onreadystatechange", completed );
-
-			// A fallback to window.onload, that will always work
-			window.attachEvent( "onload", completed );
-
-			// If IE and not a frame
-			// continually check to see if the document is ready
-			var top = false;
-
-			try {
-				top = window.frameElement == null && document.documentElement;
-			} catch(e) {}
-
-			if ( top && top.doScroll ) {
-				(function doScrollCheck() {
-					if ( !jQuery.isReady ) {
-
-						try {
-							// Use the trick by Diego Perini
-							// http://javascript.nwbox.com/IEContentLoaded/
-							top.doScroll("left");
-						} catch(e) {
-							return setTimeout( doScrollCheck, 50 );
-						}
-
-						// detach all dom ready events
-						detach();
-
-						// and execute any waiting functions
-						jQuery.ready();
-					}
-				})();
-			}
 		}
 	}
 	return readyList.promise( obj );
@@ -974,2768 +871,64 @@ function isArraylike( obj ) {
 
 // All jQuery objects should point back to these
 rootjQuery = jQuery(document);
-// String to Object options format cache
-var optionsCache = {};
-
-// Convert String-formatted options into Object-formatted ones and store in cache
-function createOptions( options ) {
-	var object = optionsCache[ options ] = {};
-	jQuery.each( options.match( core_rnotwhite ) || [], function( _, flag ) {
-		object[ flag ] = true;
-	});
-	return object;
-}
-
-/*
- * Create a callback list using the following parameters:
- *
- *	options: an optional list of space-separated options that will change how
- *			the callback list behaves or a more traditional option object
- *
- * By default a callback list will act like an event callback list and can be
- * "fired" multiple times.
- *
- * Possible options:
- *
- *	once:			will ensure the callback list can only be fired once (like a Deferred)
- *
- *	memory:			will keep track of previous values and will call any callback added
- *					after the list has been fired right away with the latest "memorized"
- *					values (like a Deferred)
- *
- *	unique:			will ensure a callback can only be added once (no duplicate in the list)
- *
- *	stopOnFalse:	interrupt callings when a callback returns false
- *
- */
-jQuery.Callbacks = function( options ) {
-
-	// Convert options from String-formatted to Object-formatted if needed
-	// (we check in cache first)
-	options = typeof options === "string" ?
-		( optionsCache[ options ] || createOptions( options ) ) :
-		jQuery.extend( {}, options );
-
-	var // Flag to know if list is currently firing
-		firing,
-		// Last fire value (for non-forgettable lists)
-		memory,
-		// Flag to know if list was already fired
-		fired,
-		// End of the loop when firing
-		firingLength,
-		// Index of currently firing callback (modified by remove if needed)
-		firingIndex,
-		// First callback to fire (used internally by add and fireWith)
-		firingStart,
-		// Actual callback list
-		list = [],
-		// Stack of fire calls for repeatable lists
-		stack = !options.once && [],
-		// Fire callbacks
-		fire = function( data ) {
-			memory = options.memory && data;
-			fired = true;
-			firingIndex = firingStart || 0;
-			firingStart = 0;
-			firingLength = list.length;
-			firing = true;
-			for ( ; list && firingIndex < firingLength; firingIndex++ ) {
-				if ( list[ firingIndex ].apply( data[ 0 ], data[ 1 ] ) === false && options.stopOnFalse ) {
-					memory = false; // To prevent further calls using add
-					break;
-				}
-			}
-			firing = false;
-			if ( list ) {
-				if ( stack ) {
-					if ( stack.length ) {
-						fire( stack.shift() );
-					}
-				} else if ( memory ) {
-					list = [];
-				} else {
-					self.disable();
-				}
-			}
-		},
-		// Actual Callbacks object
-		self = {
-			// Add a callback or a collection of callbacks to the list
-			add: function() {
-				if ( list ) {
-					// First, we save the current length
-					var start = list.length;
-					(function add( args ) {
-						jQuery.each( args, function( _, arg ) {
-							var type = jQuery.type( arg );
-							if ( type === "function" ) {
-								if ( !options.unique || !self.has( arg ) ) {
-									list.push( arg );
-								}
-							} else if ( arg && arg.length && type !== "string" ) {
-								// Inspect recursively
-								add( arg );
-							}
-						});
-					})( arguments );
-					// Do we need to add the callbacks to the
-					// current firing batch?
-					if ( firing ) {
-						firingLength = list.length;
-					// With memory, if we're not firing then
-					// we should call right away
-					} else if ( memory ) {
-						firingStart = start;
-						fire( memory );
-					}
-				}
-				return this;
-			},
-			// Remove a callback from the list
-			remove: function() {
-				if ( list ) {
-					jQuery.each( arguments, function( _, arg ) {
-						var index;
-						while( ( index = jQuery.inArray( arg, list, index ) ) > -1 ) {
-							list.splice( index, 1 );
-							// Handle firing indexes
-							if ( firing ) {
-								if ( index <= firingLength ) {
-									firingLength--;
-								}
-								if ( index <= firingIndex ) {
-									firingIndex--;
-								}
-							}
-						}
-					});
-				}
-				return this;
-			},
-			// Check if a given callback is in the list.
-			// If no argument is given, return whether or not list has callbacks attached.
-			has: function( fn ) {
-				return fn ? jQuery.inArray( fn, list ) > -1 : !!( list && list.length );
-			},
-			// Remove all callbacks from the list
-			empty: function() {
-				list = [];
-				return this;
-			},
-			// Have the list do nothing anymore
-			disable: function() {
-				list = stack = memory = undefined;
-				return this;
-			},
-			// Is it disabled?
-			disabled: function() {
-				return !list;
-			},
-			// Lock the list in its current state
-			lock: function() {
-				stack = undefined;
-				if ( !memory ) {
-					self.disable();
-				}
-				return this;
-			},
-			// Is it locked?
-			locked: function() {
-				return !stack;
-			},
-			// Call all callbacks with the given context and arguments
-			fireWith: function( context, args ) {
-				args = args || [];
-				args = [ context, args.slice ? args.slice() : args ];
-				if ( list && ( !fired || stack ) ) {
-					if ( firing ) {
-						stack.push( args );
-					} else {
-						fire( args );
-					}
-				}
-				return this;
-			},
-			// Call all the callbacks with the given arguments
-			fire: function() {
-				self.fireWith( this, arguments );
-				return this;
-			},
-			// To know if the callbacks have already been called at least once
-			fired: function() {
-				return !!fired;
-			}
-		};
-
-	return self;
-};
-jQuery.extend({
-
-	Deferred: function( func ) {
-		var tuples = [
-				// action, add listener, listener list, final state
-				[ "resolve", "done", jQuery.Callbacks("once memory"), "resolved" ],
-				[ "reject", "fail", jQuery.Callbacks("once memory"), "rejected" ],
-				[ "notify", "progress", jQuery.Callbacks("memory") ]
-			],
-			state = "pending",
-			promise = {
-				state: function() {
-					return state;
-				},
-				always: function() {
-					deferred.done( arguments ).fail( arguments );
-					return this;
-				},
-				then: function( /* fnDone, fnFail, fnProgress */ ) {
-					var fns = arguments;
-					return jQuery.Deferred(function( newDefer ) {
-						jQuery.each( tuples, function( i, tuple ) {
-							var action = tuple[ 0 ],
-								fn = jQuery.isFunction( fns[ i ] ) && fns[ i ];
-							// deferred[ done | fail | progress ] for forwarding actions to newDefer
-							deferred[ tuple[1] ](function() {
-								var returned = fn && fn.apply( this, arguments );
-								if ( returned && jQuery.isFunction( returned.promise ) ) {
-									returned.promise()
-										.done( newDefer.resolve )
-										.fail( newDefer.reject )
-										.progress( newDefer.notify );
-								} else {
-									newDefer[ action + "With" ]( this === promise ? newDefer.promise() : this, fn ? [ returned ] : arguments );
-								}
-							});
-						});
-						fns = null;
-					}).promise();
-				},
-				// Get a promise for this deferred
-				// If obj is provided, the promise aspect is added to the object
-				promise: function( obj ) {
-					return obj != null ? jQuery.extend( obj, promise ) : promise;
-				}
-			},
-			deferred = {};
-
-		// Keep pipe for back-compat
-		promise.pipe = promise.then;
-
-		// Add list-specific methods
-		jQuery.each( tuples, function( i, tuple ) {
-			var list = tuple[ 2 ],
-				stateString = tuple[ 3 ];
-
-			// promise[ done | fail | progress ] = list.add
-			promise[ tuple[1] ] = list.add;
-
-			// Handle state
-			if ( stateString ) {
-				list.add(function() {
-					// state = [ resolved | rejected ]
-					state = stateString;
-
-				// [ reject_list | resolve_list ].disable; progress_list.lock
-				}, tuples[ i ^ 1 ][ 2 ].disable, tuples[ 2 ][ 2 ].lock );
-			}
-
-			// deferred[ resolve | reject | notify ]
-			deferred[ tuple[0] ] = function() {
-				deferred[ tuple[0] + "With" ]( this === deferred ? promise : this, arguments );
-				return this;
-			};
-			deferred[ tuple[0] + "With" ] = list.fireWith;
-		});
-
-		// Make the deferred a promise
-		promise.promise( deferred );
-
-		// Call given func if any
-		if ( func ) {
-			func.call( deferred, deferred );
-		}
-
-		// All done!
-		return deferred;
-	},
-
-	// Deferred helper
-	when: function( subordinate /* , ..., subordinateN */ ) {
-		var i = 0,
-			resolveValues = core_slice.call( arguments ),
-			length = resolveValues.length,
-
-			// the count of uncompleted subordinates
-			remaining = length !== 1 || ( subordinate && jQuery.isFunction( subordinate.promise ) ) ? length : 0,
-
-			// the master Deferred. If resolveValues consist of only a single Deferred, just use that.
-			deferred = remaining === 1 ? subordinate : jQuery.Deferred(),
-
-			// Update function for both resolve and progress values
-			updateFunc = function( i, contexts, values ) {
-				return function( value ) {
-					contexts[ i ] = this;
-					values[ i ] = arguments.length > 1 ? core_slice.call( arguments ) : value;
-					if( values === progressValues ) {
-						deferred.notifyWith( contexts, values );
-					} else if ( !( --remaining ) ) {
-						deferred.resolveWith( contexts, values );
-					}
-				};
-			},
-
-			progressValues, progressContexts, resolveContexts;
-
-		// add listeners to Deferred subordinates; treat others as resolved
-		if ( length > 1 ) {
-			progressValues = new Array( length );
-			progressContexts = new Array( length );
-			resolveContexts = new Array( length );
-			for ( ; i < length; i++ ) {
-				if ( resolveValues[ i ] && jQuery.isFunction( resolveValues[ i ].promise ) ) {
-					resolveValues[ i ].promise()
-						.done( updateFunc( i, resolveContexts, resolveValues ) )
-						.fail( deferred.reject )
-						.progress( updateFunc( i, progressContexts, progressValues ) );
-				} else {
-					--remaining;
-				}
-			}
-		}
-
-		// if we're not waiting on anything, resolve the master
-		if ( !remaining ) {
-			deferred.resolveWith( resolveContexts, resolveValues );
-		}
-
-		return deferred.promise();
-	}
-});
-jQuery.support = (function() {
-
-	var support, all, a,
-		input, select, fragment,
-		opt, eventName, isSupported, i,
-		div = document.createElement("div");
-
-	// Setup
-	div.setAttribute( "className", "t" );
-	div.innerHTML = "  <link/><table></table><a href='/a'>a</a><input type='checkbox'/>";
-
-	// Support tests won't run in some limited or non-browser environments
-	all = div.getElementsByTagName("*");
-	a = div.getElementsByTagName("a")[ 0 ];
-	if ( !all || !a || !all.length ) {
-		return {};
-	}
-
-	// First batch of tests
-	select = document.createElement("select");
-	opt = select.appendChild( document.createElement("option") );
-	input = div.getElementsByTagName("input")[ 0 ];
-
-	a.style.cssText = "top:1px;float:left;opacity:.5";
-	support = {
-		// Test setAttribute on camelCase class. If it works, we need attrFixes when doing get/setAttribute (ie6/7)
-		getSetAttribute: div.className !== "t",
-
-		// IE strips leading whitespace when .innerHTML is used
-		leadingWhitespace: div.firstChild.nodeType === 3,
-
-		// Make sure that tbody elements aren't automatically inserted
-		// IE will insert them into empty tables
-		tbody: !div.getElementsByTagName("tbody").length,
-
-		// Make sure that link elements get serialized correctly by innerHTML
-		// This requires a wrapper element in IE
-		htmlSerialize: !!div.getElementsByTagName("link").length,
-
-		// Get the style information from getAttribute
-		// (IE uses .cssText instead)
-		style: /top/.test( a.getAttribute("style") ),
-
-		// Make sure that URLs aren't manipulated
-		// (IE normalizes it by default)
-		hrefNormalized: a.getAttribute("href") === "/a",
-
-		// Make sure that element opacity exists
-		// (IE uses filter instead)
-		// Use a regex to work around a WebKit issue. See #5145
-		opacity: /^0.5/.test( a.style.opacity ),
-
-		// Verify style float existence
-		// (IE uses styleFloat instead of cssFloat)
-		cssFloat: !!a.style.cssFloat,
-
-		// Check the default checkbox/radio value ("" on WebKit; "on" elsewhere)
-		checkOn: !!input.value,
-
-		// Make sure that a selected-by-default option has a working selected property.
-		// (WebKit defaults to false instead of true, IE too, if it's in an optgroup)
-		optSelected: opt.selected,
-
-		// Tests for enctype support on a form (#6743)
-		enctype: !!document.createElement("form").enctype,
-
-		// Makes sure cloning an html5 element does not cause problems
-		// Where outerHTML is undefined, this still works
-		html5Clone: document.createElement("nav").cloneNode( true ).outerHTML !== "<:nav></:nav>",
-
-		// jQuery.support.boxModel DEPRECATED in 1.8 since we don't support Quirks Mode
-		boxModel: document.compatMode === "CSS1Compat",
-
-		// Will be defined later
-		deleteExpando: true,
-		noCloneEvent: true,
-		inlineBlockNeedsLayout: false,
-		shrinkWrapBlocks: false,
-		reliableMarginRight: true,
-		boxSizingReliable: true,
-		pixelPosition: false
-	};
-
-	// Make sure checked status is properly cloned
-	input.checked = true;
-	support.noCloneChecked = input.cloneNode( true ).checked;
-
-	// Make sure that the options inside disabled selects aren't marked as disabled
-	// (WebKit marks them as disabled)
-	select.disabled = true;
-	support.optDisabled = !opt.disabled;
-
-	// Support: IE<9
-	try {
-		delete div.test;
-	} catch( e ) {
-		support.deleteExpando = false;
-	}
-
-	// Check if we can trust getAttribute("value")
-	input = document.createElement("input");
-	input.setAttribute( "value", "" );
-	support.input = input.getAttribute( "value" ) === "";
-
-	// Check if an input maintains its value after becoming a radio
-	input.value = "t";
-	input.setAttribute( "type", "radio" );
-	support.radioValue = input.value === "t";
-
-	// #11217 - WebKit loses check when the name is after the checked attribute
-	input.setAttribute( "checked", "t" );
-	input.setAttribute( "name", "t" );
-
-	fragment = document.createDocumentFragment();
-	fragment.appendChild( input );
-
-	// Check if a disconnected checkbox will retain its checked
-	// value of true after appended to the DOM (IE6/7)
-	support.appendChecked = input.checked;
-
-	// WebKit doesn't clone checked state correctly in fragments
-	support.checkClone = fragment.cloneNode( true ).cloneNode( true ).lastChild.checked;
-
-	// Support: IE<9
-	// Opera does not clone events (and typeof div.attachEvent === undefined).
-	// IE9-10 clones events bound via attachEvent, but they don't trigger with .click()
-	if ( div.attachEvent ) {
-		div.attachEvent( "onclick", function() {
-			support.noCloneEvent = false;
-		});
-
-		div.cloneNode( true ).click();
-	}
-
-	// Support: IE<9 (lack submit/change bubble), Firefox 17+ (lack focusin event)
-	// Beware of CSP restrictions (https://developer.mozilla.org/en/Security/CSP), test/csp.php
-	for ( i in { submit: true, change: true, focusin: true }) {
-		div.setAttribute( eventName = "on" + i, "t" );
-
-		support[ i + "Bubbles" ] = eventName in window || div.attributes[ eventName ].expando === false;
-	}
-
-	div.style.backgroundClip = "content-box";
-	div.cloneNode( true ).style.backgroundClip = "";
-	support.clearCloneStyle = div.style.backgroundClip === "content-box";
-
-	// Run tests that need a body at doc ready
-	jQuery(function() {
-		var container, marginDiv, tds,
-			divReset = "padding:0;margin:0;border:0;display:block;box-sizing:content-box;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;",
-			body = document.getElementsByTagName("body")[0];
-
-		if ( !body ) {
-			// Return for frameset docs that don't have a body
-			return;
-		}
-
-		container = document.createElement("div");
-		container.style.cssText = "border:0;width:0;height:0;position:absolute;top:0;left:-9999px;margin-top:1px";
-
-		body.appendChild( container ).appendChild( div );
-
-		// Support: IE8
-		// Check if table cells still have offsetWidth/Height when they are set
-		// to display:none and there are still other visible table cells in a
-		// table row; if so, offsetWidth/Height are not reliable for use when
-		// determining if an element has been hidden directly using
-		// display:none (it is still safe to use offsets if a parent element is
-		// hidden; don safety goggles and see bug #4512 for more information).
-		div.innerHTML = "<table><tr><td></td><td>t</td></tr></table>";
-		tds = div.getElementsByTagName("td");
-		tds[ 0 ].style.cssText = "padding:0;margin:0;border:0;display:none";
-		isSupported = ( tds[ 0 ].offsetHeight === 0 );
-
-		tds[ 0 ].style.display = "";
-		tds[ 1 ].style.display = "none";
-
-		// Support: IE8
-		// Check if empty table cells still have offsetWidth/Height
-		support.reliableHiddenOffsets = isSupported && ( tds[ 0 ].offsetHeight === 0 );
-
-		// Check box-sizing and margin behavior
-		div.innerHTML = "";
-		div.style.cssText = "box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;padding:1px;border:1px;display:block;width:4px;margin-top:1%;position:absolute;top:1%;";
-		support.boxSizing = ( div.offsetWidth === 4 );
-		support.doesNotIncludeMarginInBodyOffset = ( body.offsetTop !== 1 );
-
-		// Use window.getComputedStyle because jsdom on node.js will break without it.
-		if ( window.getComputedStyle ) {
-			support.pixelPosition = ( window.getComputedStyle( div, null ) || {} ).top !== "1%";
-			support.boxSizingReliable = ( window.getComputedStyle( div, null ) || { width: "4px" } ).width === "4px";
-
-			// Check if div with explicit width and no margin-right incorrectly
-			// gets computed margin-right based on width of container. (#3333)
-			// Fails in WebKit before Feb 2011 nightlies
-			// WebKit Bug 13343 - getComputedStyle returns wrong value for margin-right
-			marginDiv = div.appendChild( document.createElement("div") );
-			marginDiv.style.cssText = div.style.cssText = divReset;
-			marginDiv.style.marginRight = marginDiv.style.width = "0";
-			div.style.width = "1px";
-
-			support.reliableMarginRight =
-				!parseFloat( ( window.getComputedStyle( marginDiv, null ) || {} ).marginRight );
-		}
-
-		if ( typeof div.style.zoom !== core_strundefined ) {
-			// Support: IE<8
-			// Check if natively block-level elements act like inline-block
-			// elements when setting their display to 'inline' and giving
-			// them layout
-			div.innerHTML = "";
-			div.style.cssText = divReset + "width:1px;padding:1px;display:inline;zoom:1";
-			support.inlineBlockNeedsLayout = ( div.offsetWidth === 3 );
-
-			// Support: IE6
-			// Check if elements with layout shrink-wrap their children
-			div.style.display = "block";
-			div.innerHTML = "<div></div>";
-			div.firstChild.style.width = "5px";
-			support.shrinkWrapBlocks = ( div.offsetWidth !== 3 );
-
-			if ( support.inlineBlockNeedsLayout ) {
-				// Prevent IE 6 from affecting layout for positioned elements #11048
-				// Prevent IE from shrinking the body in IE 7 mode #12869
-				// Support: IE<8
-				body.style.zoom = 1;
-			}
-		}
-
-		body.removeChild( container );
-
-		// Null elements to avoid leaks in IE
-		container = div = tds = marginDiv = null;
-	});
-
-	// Null elements to avoid leaks in IE
-	all = select = fragment = opt = a = input = null;
-
-	return support;
-})();
-
-var rbrace = /(?:\{[\s\S]*\}|\[[\s\S]*\])$/,
-	rmultiDash = /([A-Z])/g;
-
-function internalData( elem, name, data, pvt /* Internal Use Only */ ){
-	if ( !jQuery.acceptData( elem ) ) {
-		return;
-	}
-
-	var thisCache, ret,
-		internalKey = jQuery.expando,
-		getByName = typeof name === "string",
-
-		// We have to handle DOM nodes and JS objects differently because IE6-7
-		// can't GC object references properly across the DOM-JS boundary
-		isNode = elem.nodeType,
-
-		// Only DOM nodes need the global jQuery cache; JS object data is
-		// attached directly to the object so GC can occur automatically
-		cache = isNode ? jQuery.cache : elem,
-
-		// Only defining an ID for JS objects if its cache already exists allows
-		// the code to shortcut on the same path as a DOM node with no cache
-		id = isNode ? elem[ internalKey ] : elem[ internalKey ] && internalKey;
-
-	// Avoid doing any more work than we need to when trying to get data on an
-	// object that has no data at all
-	if ( (!id || !cache[id] || (!pvt && !cache[id].data)) && getByName && data === undefined ) {
-		return;
-	}
-
-	if ( !id ) {
-		// Only DOM nodes need a new unique ID for each element since their data
-		// ends up in the global cache
-		if ( isNode ) {
-			elem[ internalKey ] = id = core_deletedIds.pop() || jQuery.guid++;
-		} else {
-			id = internalKey;
-		}
-	}
-
-	if ( !cache[ id ] ) {
-		cache[ id ] = {};
-
-		// Avoids exposing jQuery metadata on plain JS objects when the object
-		// is serialized using JSON.stringify
-		if ( !isNode ) {
-			cache[ id ].toJSON = jQuery.noop;
-		}
-	}
-
-	// An object can be passed to jQuery.data instead of a key/value pair; this gets
-	// shallow copied over onto the existing cache
-	if ( typeof name === "object" || typeof name === "function" ) {
-		if ( pvt ) {
-			cache[ id ] = jQuery.extend( cache[ id ], name );
-		} else {
-			cache[ id ].data = jQuery.extend( cache[ id ].data, name );
-		}
-	}
-
-	thisCache = cache[ id ];
-
-	// jQuery data() is stored in a separate object inside the object's internal data
-	// cache in order to avoid key collisions between internal data and user-defined
-	// data.
-	if ( !pvt ) {
-		if ( !thisCache.data ) {
-			thisCache.data = {};
-		}
-
-		thisCache = thisCache.data;
-	}
-
-	if ( data !== undefined ) {
-		thisCache[ jQuery.camelCase( name ) ] = data;
-	}
-
-	// Check for both converted-to-camel and non-converted data property names
-	// If a data property was specified
-	if ( getByName ) {
-
-		// First Try to find as-is property data
-		ret = thisCache[ name ];
-
-		// Test for null|undefined property data
-		if ( ret == null ) {
-
-			// Try to find the camelCased property
-			ret = thisCache[ jQuery.camelCase( name ) ];
-		}
-	} else {
-		ret = thisCache;
-	}
-
-	return ret;
-}
-
-function internalRemoveData( elem, name, pvt ) {
-	if ( !jQuery.acceptData( elem ) ) {
-		return;
-	}
-
-	var i, l, thisCache,
-		isNode = elem.nodeType,
-
-		// See jQuery.data for more information
-		cache = isNode ? jQuery.cache : elem,
-		id = isNode ? elem[ jQuery.expando ] : jQuery.expando;
-
-	// If there is already no cache entry for this object, there is no
-	// purpose in continuing
-	if ( !cache[ id ] ) {
-		return;
-	}
-
-	if ( name ) {
-
-		thisCache = pvt ? cache[ id ] : cache[ id ].data;
-
-		if ( thisCache ) {
-
-			// Support array or space separated string names for data keys
-			if ( !jQuery.isArray( name ) ) {
-
-				// try the string as a key before any manipulation
-				if ( name in thisCache ) {
-					name = [ name ];
-				} else {
-
-					// split the camel cased version by spaces unless a key with the spaces exists
-					name = jQuery.camelCase( name );
-					if ( name in thisCache ) {
-						name = [ name ];
-					} else {
-						name = name.split(" ");
-					}
-				}
-			} else {
-				// If "name" is an array of keys...
-				// When data is initially created, via ("key", "val") signature,
-				// keys will be converted to camelCase.
-				// Since there is no way to tell _how_ a key was added, remove
-				// both plain key and camelCase key. #12786
-				// This will only penalize the array argument path.
-				name = name.concat( jQuery.map( name, jQuery.camelCase ) );
-			}
-
-			for ( i = 0, l = name.length; i < l; i++ ) {
-				delete thisCache[ name[i] ];
-			}
-
-			// If there is no data left in the cache, we want to continue
-			// and let the cache object itself get destroyed
-			if ( !( pvt ? isEmptyDataObject : jQuery.isEmptyObject )( thisCache ) ) {
-				return;
-			}
-		}
-	}
-
-	// See jQuery.data for more information
-	if ( !pvt ) {
-		delete cache[ id ].data;
-
-		// Don't destroy the parent cache unless the internal data object
-		// had been the only thing left in it
-		if ( !isEmptyDataObject( cache[ id ] ) ) {
-			return;
-		}
-	}
-
-	// Destroy the cache
-	if ( isNode ) {
-		jQuery.cleanData( [ elem ], true );
-
-	// Use delete when supported for expandos or `cache` is not a window per isWindow (#10080)
-	} else if ( jQuery.support.deleteExpando || cache != cache.window ) {
-		delete cache[ id ];
-
-	// When all else fails, null
-	} else {
-		cache[ id ] = null;
-	}
-}
-
-jQuery.extend({
-	cache: {},
-
-	// Unique for each copy of jQuery on the page
-	// Non-digits removed to match rinlinejQuery
-	expando: "jQuery" + ( core_version + Math.random() ).replace( /\D/g, "" ),
-
-	// The following elements throw uncatchable exceptions if you
-	// attempt to add expando properties to them.
-	noData: {
-		"embed": true,
-		// Ban all objects except for Flash (which handle expandos)
-		"object": "clsid:D27CDB6E-AE6D-11cf-96B8-444553540000",
-		"applet": true
-	},
-
-	hasData: function( elem ) {
-		elem = elem.nodeType ? jQuery.cache[ elem[jQuery.expando] ] : elem[ jQuery.expando ];
-		return !!elem && !isEmptyDataObject( elem );
-	},
-
-	data: function( elem, name, data ) {
-		return internalData( elem, name, data );
-	},
-
-	removeData: function( elem, name ) {
-		return internalRemoveData( elem, name );
-	},
-
-	// For internal use only.
-	_data: function( elem, name, data ) {
-		return internalData( elem, name, data, true );
-	},
-
-	_removeData: function( elem, name ) {
-		return internalRemoveData( elem, name, true );
-	},
-
-	// A method for determining if a DOM node can handle the data expando
-	acceptData: function( elem ) {
-		// Do not set data on non-element because it will not be cleared (#8335).
-		if ( elem.nodeType && elem.nodeType !== 1 && elem.nodeType !== 9 ) {
-			return false;
-		}
-
-		var noData = elem.nodeName && jQuery.noData[ elem.nodeName.toLowerCase() ];
-
-		// nodes accept data unless otherwise specified; rejection can be conditional
-		return !noData || noData !== true && elem.getAttribute("classid") === noData;
-	}
-});
-
-jQuery.fn.extend({
-	data: function( key, value ) {
-		var attrs, name,
-			elem = this[0],
-			i = 0,
-			data = null;
-
-		// Gets all values
-		if ( key === undefined ) {
-			if ( this.length ) {
-				data = jQuery.data( elem );
-
-				if ( elem.nodeType === 1 && !jQuery._data( elem, "parsedAttrs" ) ) {
-					attrs = elem.attributes;
-					for ( ; i < attrs.length; i++ ) {
-						name = attrs[i].name;
-
-						if ( !name.indexOf( "data-" ) ) {
-							name = jQuery.camelCase( name.slice(5) );
-
-							dataAttr( elem, name, data[ name ] );
-						}
-					}
-					jQuery._data( elem, "parsedAttrs", true );
-				}
-			}
-
-			return data;
-		}
-
-		// Sets multiple values
-		if ( typeof key === "object" ) {
-			return this.each(function() {
-				jQuery.data( this, key );
-			});
-		}
-
-		return jQuery.access( this, function( value ) {
-
-			if ( value === undefined ) {
-				// Try to fetch any internally stored data first
-				return elem ? dataAttr( elem, key, jQuery.data( elem, key ) ) : null;
-			}
-
-			this.each(function() {
-				jQuery.data( this, key, value );
-			});
-		}, null, value, arguments.length > 1, null, true );
-	},
-
-	removeData: function( key ) {
-		return this.each(function() {
-			jQuery.removeData( this, key );
-		});
-	}
-});
-
-function dataAttr( elem, key, data ) {
-	// If nothing was found internally, try to fetch any
-	// data from the HTML5 data-* attribute
-	if ( data === undefined && elem.nodeType === 1 ) {
-
-		var name = "data-" + key.replace( rmultiDash, "-$1" ).toLowerCase();
-
-		data = elem.getAttribute( name );
-
-		if ( typeof data === "string" ) {
-			try {
-				data = data === "true" ? true :
-					data === "false" ? false :
-					data === "null" ? null :
-					// Only convert to a number if it doesn't change the string
-					+data + "" === data ? +data :
-					rbrace.test( data ) ? jQuery.parseJSON( data ) :
-						data;
-			} catch( e ) {}
-
-			// Make sure we set the data so it isn't changed later
-			jQuery.data( elem, key, data );
-
-		} else {
-			data = undefined;
-		}
-	}
-
-	return data;
-}
-
-// checks a cache object for emptiness
-function isEmptyDataObject( obj ) {
-	var name;
-	for ( name in obj ) {
-
-		// if the public data object is empty, the private is still empty
-		if ( name === "data" && jQuery.isEmptyObject( obj[name] ) ) {
-			continue;
-		}
-		if ( name !== "toJSON" ) {
-			return false;
-		}
-	}
-
-	return true;
-}
-jQuery.extend({
-	queue: function( elem, type, data ) {
-		var queue;
-
-		if ( elem ) {
-			type = ( type || "fx" ) + "queue";
-			queue = jQuery._data( elem, type );
-
-			// Speed up dequeue by getting out quickly if this is just a lookup
-			if ( data ) {
-				if ( !queue || jQuery.isArray(data) ) {
-					queue = jQuery._data( elem, type, jQuery.makeArray(data) );
-				} else {
-					queue.push( data );
-				}
-			}
-			return queue || [];
-		}
-	},
-
-	dequeue: function( elem, type ) {
-		type = type || "fx";
-
-		var queue = jQuery.queue( elem, type ),
-			startLength = queue.length,
-			fn = queue.shift(),
-			hooks = jQuery._queueHooks( elem, type ),
-			next = function() {
-				jQuery.dequeue( elem, type );
-			};
-
-		// If the fx queue is dequeued, always remove the progress sentinel
-		if ( fn === "inprogress" ) {
-			fn = queue.shift();
-			startLength--;
-		}
-
-		hooks.cur = fn;
-		if ( fn ) {
-
-			// Add a progress sentinel to prevent the fx queue from being
-			// automatically dequeued
-			if ( type === "fx" ) {
-				queue.unshift( "inprogress" );
-			}
-
-			// clear up the last queue stop function
-			delete hooks.stop;
-			fn.call( elem, next, hooks );
-		}
-
-		if ( !startLength && hooks ) {
-			hooks.empty.fire();
-		}
-	},
-
-	// not intended for public consumption - generates a queueHooks object, or returns the current one
-	_queueHooks: function( elem, type ) {
-		var key = type + "queueHooks";
-		return jQuery._data( elem, key ) || jQuery._data( elem, key, {
-			empty: jQuery.Callbacks("once memory").add(function() {
-				jQuery._removeData( elem, type + "queue" );
-				jQuery._removeData( elem, key );
-			})
-		});
-	}
-});
-
-jQuery.fn.extend({
-	queue: function( type, data ) {
-		var setter = 2;
-
-		if ( typeof type !== "string" ) {
-			data = type;
-			type = "fx";
-			setter--;
-		}
-
-		if ( arguments.length < setter ) {
-			return jQuery.queue( this[0], type );
-		}
-
-		return data === undefined ?
-			this :
-			this.each(function() {
-				var queue = jQuery.queue( this, type, data );
-
-				// ensure a hooks for this queue
-				jQuery._queueHooks( this, type );
-
-				if ( type === "fx" && queue[0] !== "inprogress" ) {
-					jQuery.dequeue( this, type );
-				}
-			});
-	},
-	dequeue: function( type ) {
-		return this.each(function() {
-			jQuery.dequeue( this, type );
-		});
-	},
-	// Based off of the plugin by Clint Helfers, with permission.
-	// http://blindsignals.com/index.php/2009/07/jquery-delay/
-	delay: function( time, type ) {
-		time = jQuery.fx ? jQuery.fx.speeds[ time ] || time : time;
-		type = type || "fx";
-
-		return this.queue( type, function( next, hooks ) {
-			var timeout = setTimeout( next, time );
-			hooks.stop = function() {
-				clearTimeout( timeout );
-			};
-		});
-	},
-	clearQueue: function( type ) {
-		return this.queue( type || "fx", [] );
-	},
-	// Get a promise resolved when queues of a certain type
-	// are emptied (fx is the type by default)
-	promise: function( type, obj ) {
-		var tmp,
-			count = 1,
-			defer = jQuery.Deferred(),
-			elements = this,
-			i = this.length,
-			resolve = function() {
-				if ( !( --count ) ) {
-					defer.resolveWith( elements, [ elements ] );
-				}
-			};
-
-		if ( typeof type !== "string" ) {
-			obj = type;
-			type = undefined;
-		}
-		type = type || "fx";
-
-		while( i-- ) {
-			tmp = jQuery._data( elements[ i ], type + "queueHooks" );
-			if ( tmp && tmp.empty ) {
-				count++;
-				tmp.empty.add( resolve );
-			}
-		}
-		resolve();
-		return defer.promise( obj );
-	}
-});
-var nodeHook, boolHook,
-	rclass = /[\t\r\n]/g,
-	rreturn = /\r/g,
-	rfocusable = /^(?:input|select|textarea|button|object)$/i,
-	rclickable = /^(?:a|area)$/i,
-	rboolean = /^(?:checked|selected|autofocus|autoplay|async|controls|defer|disabled|hidden|loop|multiple|open|readonly|required|scoped)$/i,
-	ruseDefault = /^(?:checked|selected)$/i,
-	getSetAttribute = jQuery.support.getSetAttribute,
-	getSetInput = jQuery.support.input;
-
-jQuery.fn.extend({
-	attr: function( name, value ) {
-		return jQuery.access( this, jQuery.attr, name, value, arguments.length > 1 );
-	},
-
-	removeAttr: function( name ) {
-		return this.each(function() {
-			jQuery.removeAttr( this, name );
-		});
-	},
-
-	prop: function( name, value ) {
-		return jQuery.access( this, jQuery.prop, name, value, arguments.length > 1 );
-	},
-
-	removeProp: function( name ) {
-		name = jQuery.propFix[ name ] || name;
-		return this.each(function() {
-			// try/catch handles cases where IE balks (such as removing a property on window)
-			try {
-				this[ name ] = undefined;
-				delete this[ name ];
-			} catch( e ) {}
-		});
-	},
-
-	addClass: function( value ) {
-		var classes, elem, cur, clazz, j,
-			i = 0,
-			len = this.length,
-			proceed = typeof value === "string" && value;
-
-		if ( jQuery.isFunction( value ) ) {
-			return this.each(function( j ) {
-				jQuery( this ).addClass( value.call( this, j, this.className ) );
-			});
-		}
-
-		if ( proceed ) {
-			// The disjunction here is for better compressibility (see removeClass)
-			classes = ( value || "" ).match( core_rnotwhite ) || [];
-
-			for ( ; i < len; i++ ) {
-				elem = this[ i ];
-				cur = elem.nodeType === 1 && ( elem.className ?
-					( " " + elem.className + " " ).replace( rclass, " " ) :
-					" "
-				);
-
-				if ( cur ) {
-					j = 0;
-					while ( (clazz = classes[j++]) ) {
-						if ( cur.indexOf( " " + clazz + " " ) < 0 ) {
-							cur += clazz + " ";
-						}
-					}
-					elem.className = jQuery.trim( cur );
-
-				}
-			}
-		}
-
-		return this;
-	},
-
-	removeClass: function( value ) {
-		var classes, elem, cur, clazz, j,
-			i = 0,
-			len = this.length,
-			proceed = arguments.length === 0 || typeof value === "string" && value;
-
-		if ( jQuery.isFunction( value ) ) {
-			return this.each(function( j ) {
-				jQuery( this ).removeClass( value.call( this, j, this.className ) );
-			});
-		}
-		if ( proceed ) {
-			classes = ( value || "" ).match( core_rnotwhite ) || [];
-
-			for ( ; i < len; i++ ) {
-				elem = this[ i ];
-				// This expression is here for better compressibility (see addClass)
-				cur = elem.nodeType === 1 && ( elem.className ?
-					( " " + elem.className + " " ).replace( rclass, " " ) :
-					""
-				);
-
-				if ( cur ) {
-					j = 0;
-					while ( (clazz = classes[j++]) ) {
-						// Remove *all* instances
-						while ( cur.indexOf( " " + clazz + " " ) >= 0 ) {
-							cur = cur.replace( " " + clazz + " ", " " );
-						}
-					}
-					elem.className = value ? jQuery.trim( cur ) : "";
-				}
-			}
-		}
-
-		return this;
-	},
-
-	toggleClass: function( value, stateVal ) {
-		var type = typeof value,
-			isBool = typeof stateVal === "boolean";
-
-		if ( jQuery.isFunction( value ) ) {
-			return this.each(function( i ) {
-				jQuery( this ).toggleClass( value.call(this, i, this.className, stateVal), stateVal );
-			});
-		}
-
-		return this.each(function() {
-			if ( type === "string" ) {
-				// toggle individual class names
-				var className,
-					i = 0,
-					self = jQuery( this ),
-					state = stateVal,
-					classNames = value.match( core_rnotwhite ) || [];
-
-				while ( (className = classNames[ i++ ]) ) {
-					// check each className given, space separated list
-					state = isBool ? state : !self.hasClass( className );
-					self[ state ? "addClass" : "removeClass" ]( className );
-				}
-
-			// Toggle whole class name
-			} else if ( type === core_strundefined || type === "boolean" ) {
-				if ( this.className ) {
-					// store className if set
-					jQuery._data( this, "__className__", this.className );
-				}
-
-				// If the element has a class name or if we're passed "false",
-				// then remove the whole classname (if there was one, the above saved it).
-				// Otherwise bring back whatever was previously saved (if anything),
-				// falling back to the empty string if nothing was stored.
-				this.className = this.className || value === false ? "" : jQuery._data( this, "__className__" ) || "";
-			}
-		});
-	},
-
-	hasClass: function( selector ) {
-		var className = " " + selector + " ",
-			i = 0,
-			l = this.length;
-		for ( ; i < l; i++ ) {
-			if ( this[i].nodeType === 1 && (" " + this[i].className + " ").replace(rclass, " ").indexOf( className ) >= 0 ) {
-				return true;
-			}
-		}
-
-		return false;
-	},
-
-	val: function( value ) {
-		var ret, hooks, isFunction,
-			elem = this[0];
-
-		if ( !arguments.length ) {
-			if ( elem ) {
-				hooks = jQuery.valHooks[ elem.type ] || jQuery.valHooks[ elem.nodeName.toLowerCase() ];
-
-				if ( hooks && "get" in hooks && (ret = hooks.get( elem, "value" )) !== undefined ) {
-					return ret;
-				}
-
-				ret = elem.value;
-
-				return typeof ret === "string" ?
-					// handle most common string cases
-					ret.replace(rreturn, "") :
-					// handle cases where value is null/undef or number
-					ret == null ? "" : ret;
-			}
-
-			return;
-		}
-
-		isFunction = jQuery.isFunction( value );
-
-		return this.each(function( i ) {
-			var val,
-				self = jQuery(this);
-
-			if ( this.nodeType !== 1 ) {
-				return;
-			}
-
-			if ( isFunction ) {
-				val = value.call( this, i, self.val() );
-			} else {
-				val = value;
-			}
-
-			// Treat null/undefined as ""; convert numbers to string
-			if ( val == null ) {
-				val = "";
-			} else if ( typeof val === "number" ) {
-				val += "";
-			} else if ( jQuery.isArray( val ) ) {
-				val = jQuery.map(val, function ( value ) {
-					return value == null ? "" : value + "";
-				});
-			}
-
-			hooks = jQuery.valHooks[ this.type ] || jQuery.valHooks[ this.nodeName.toLowerCase() ];
-
-			// If set returns undefined, fall back to normal setting
-			if ( !hooks || !("set" in hooks) || hooks.set( this, val, "value" ) === undefined ) {
-				this.value = val;
-			}
-		});
-	}
-});
-
-jQuery.extend({
-	valHooks: {
-		option: {
-			get: function( elem ) {
-				// attributes.value is undefined in Blackberry 4.7 but
-				// uses .value. See #6932
-				var val = elem.attributes.value;
-				return !val || val.specified ? elem.value : elem.text;
-			}
-		},
-		select: {
-			get: function( elem ) {
-				var value, option,
-					options = elem.options,
-					index = elem.selectedIndex,
-					one = elem.type === "select-one" || index < 0,
-					values = one ? null : [],
-					max = one ? index + 1 : options.length,
-					i = index < 0 ?
-						max :
-						one ? index : 0;
-
-				// Loop through all the selected options
-				for ( ; i < max; i++ ) {
-					option = options[ i ];
-
-					// oldIE doesn't update selected after form reset (#2551)
-					if ( ( option.selected || i === index ) &&
-							// Don't return options that are disabled or in a disabled optgroup
-							( jQuery.support.optDisabled ? !option.disabled : option.getAttribute("disabled") === null ) &&
-							( !option.parentNode.disabled || !jQuery.nodeName( option.parentNode, "optgroup" ) ) ) {
-
-						// Get the specific value for the option
-						value = jQuery( option ).val();
-
-						// We don't need an array for one selects
-						if ( one ) {
-							return value;
-						}
-
-						// Multi-Selects return an array
-						values.push( value );
-					}
-				}
-
-				return values;
-			},
-
-			set: function( elem, value ) {
-				var values = jQuery.makeArray( value );
-
-				jQuery(elem).find("option").each(function() {
-					this.selected = jQuery.inArray( jQuery(this).val(), values ) >= 0;
-				});
-
-				if ( !values.length ) {
-					elem.selectedIndex = -1;
-				}
-				return values;
-			}
-		}
-	},
-
-	attr: function( elem, name, value ) {
-		var hooks, notxml, ret,
-			nType = elem.nodeType;
-
-		// don't get/set attributes on text, comment and attribute nodes
-		if ( !elem || nType === 3 || nType === 8 || nType === 2 ) {
-			return;
-		}
-
-		// Fallback to prop when attributes are not supported
-		if ( typeof elem.getAttribute === core_strundefined ) {
-			return jQuery.prop( elem, name, value );
-		}
-
-		notxml = nType !== 1 || !jQuery.isXMLDoc( elem );
-
-		// All attributes are lowercase
-		// Grab necessary hook if one is defined
-		if ( notxml ) {
-			name = name.toLowerCase();
-			hooks = jQuery.attrHooks[ name ] || ( rboolean.test( name ) ? boolHook : nodeHook );
-		}
-
-		if ( value !== undefined ) {
-
-			if ( value === null ) {
-				jQuery.removeAttr( elem, name );
-
-			} else if ( hooks && notxml && "set" in hooks && (ret = hooks.set( elem, value, name )) !== undefined ) {
-				return ret;
-
-			} else {
-				elem.setAttribute( name, value + "" );
-				return value;
-			}
-
-		} else if ( hooks && notxml && "get" in hooks && (ret = hooks.get( elem, name )) !== null ) {
-			return ret;
-
-		} else {
-
-			// In IE9+, Flash objects don't have .getAttribute (#12945)
-			// Support: IE9+
-			if ( typeof elem.getAttribute !== core_strundefined ) {
-				ret =  elem.getAttribute( name );
-			}
-
-			// Non-existent attributes return null, we normalize to undefined
-			return ret == null ?
-				undefined :
-				ret;
-		}
-	},
-
-	removeAttr: function( elem, value ) {
-		var name, propName,
-			i = 0,
-			attrNames = value && value.match( core_rnotwhite );
-
-		if ( attrNames && elem.nodeType === 1 ) {
-			while ( (name = attrNames[i++]) ) {
-				propName = jQuery.propFix[ name ] || name;
-
-				// Boolean attributes get special treatment (#10870)
-				if ( rboolean.test( name ) ) {
-					// Set corresponding property to false for boolean attributes
-					// Also clear defaultChecked/defaultSelected (if appropriate) for IE<8
-					if ( !getSetAttribute && ruseDefault.test( name ) ) {
-						elem[ jQuery.camelCase( "default-" + name ) ] =
-							elem[ propName ] = false;
-					} else {
-						elem[ propName ] = false;
-					}
-
-				// See #9699 for explanation of this approach (setting first, then removal)
-				} else {
-					jQuery.attr( elem, name, "" );
-				}
-
-				elem.removeAttribute( getSetAttribute ? name : propName );
-			}
-		}
-	},
-
-	attrHooks: {
-		type: {
-			set: function( elem, value ) {
-				if ( !jQuery.support.radioValue && value === "radio" && jQuery.nodeName(elem, "input") ) {
-					// Setting the type on a radio button after the value resets the value in IE6-9
-					// Reset value to default in case type is set after value during creation
-					var val = elem.value;
-					elem.setAttribute( "type", value );
-					if ( val ) {
-						elem.value = val;
-					}
-					return value;
-				}
-			}
-		}
-	},
-
-	propFix: {
-		tabindex: "tabIndex",
-		readonly: "readOnly",
-		"for": "htmlFor",
-		"class": "className",
-		maxlength: "maxLength",
-		cellspacing: "cellSpacing",
-		cellpadding: "cellPadding",
-		rowspan: "rowSpan",
-		colspan: "colSpan",
-		usemap: "useMap",
-		frameborder: "frameBorder",
-		contenteditable: "contentEditable"
-	},
-
-	prop: function( elem, name, value ) {
-		var ret, hooks, notxml,
-			nType = elem.nodeType;
-
-		// don't get/set properties on text, comment and attribute nodes
-		if ( !elem || nType === 3 || nType === 8 || nType === 2 ) {
-			return;
-		}
-
-		notxml = nType !== 1 || !jQuery.isXMLDoc( elem );
-
-		if ( notxml ) {
-			// Fix name and attach hooks
-			name = jQuery.propFix[ name ] || name;
-			hooks = jQuery.propHooks[ name ];
-		}
-
-		if ( value !== undefined ) {
-			if ( hooks && "set" in hooks && (ret = hooks.set( elem, value, name )) !== undefined ) {
-				return ret;
-
-			} else {
-				return ( elem[ name ] = value );
-			}
-
-		} else {
-			if ( hooks && "get" in hooks && (ret = hooks.get( elem, name )) !== null ) {
-				return ret;
-
-			} else {
-				return elem[ name ];
-			}
-		}
-	},
-
-	propHooks: {
-		tabIndex: {
-			get: function( elem ) {
-				// elem.tabIndex doesn't always return the correct value when it hasn't been explicitly set
-				// http://fluidproject.org/blog/2008/01/09/getting-setting-and-removing-tabindex-values-with-javascript/
-				var attributeNode = elem.getAttributeNode("tabindex");
-
-				return attributeNode && attributeNode.specified ?
-					parseInt( attributeNode.value, 10 ) :
-					rfocusable.test( elem.nodeName ) || rclickable.test( elem.nodeName ) && elem.href ?
-						0 :
-						undefined;
-			}
-		}
-	}
-});
-
-// Hook for boolean attributes
-boolHook = {
-	get: function( elem, name ) {
-		var
-			// Use .prop to determine if this attribute is understood as boolean
-			prop = jQuery.prop( elem, name ),
-
-			// Fetch it accordingly
-			attr = typeof prop === "boolean" && elem.getAttribute( name ),
-			detail = typeof prop === "boolean" ?
-
-				getSetInput && getSetAttribute ?
-					attr != null :
-					// oldIE fabricates an empty string for missing boolean attributes
-					// and conflates checked/selected into attroperties
-					ruseDefault.test( name ) ?
-						elem[ jQuery.camelCase( "default-" + name ) ] :
-						!!attr :
-
-				// fetch an attribute node for properties not recognized as boolean
-				elem.getAttributeNode( name );
-
-		return detail && detail.value !== false ?
-			name.toLowerCase() :
-			undefined;
-	},
-	set: function( elem, value, name ) {
-		if ( value === false ) {
-			// Remove boolean attributes when set to false
-			jQuery.removeAttr( elem, name );
-		} else if ( getSetInput && getSetAttribute || !ruseDefault.test( name ) ) {
-			// IE<8 needs the *property* name
-			elem.setAttribute( !getSetAttribute && jQuery.propFix[ name ] || name, name );
-
-		// Use defaultChecked and defaultSelected for oldIE
-		} else {
-			elem[ jQuery.camelCase( "default-" + name ) ] = elem[ name ] = true;
-		}
-
-		return name;
-	}
-};
-
-// fix oldIE value attroperty
-if ( !getSetInput || !getSetAttribute ) {
-	jQuery.attrHooks.value = {
-		get: function( elem, name ) {
-			var ret = elem.getAttributeNode( name );
-			return jQuery.nodeName( elem, "input" ) ?
-
-				// Ignore the value *property* by using defaultValue
-				elem.defaultValue :
-
-				ret && ret.specified ? ret.value : undefined;
-		},
-		set: function( elem, value, name ) {
-			if ( jQuery.nodeName( elem, "input" ) ) {
-				// Does not return so that setAttribute is also used
-				elem.defaultValue = value;
-			} else {
-				// Use nodeHook if defined (#1954); otherwise setAttribute is fine
-				return nodeHook && nodeHook.set( elem, value, name );
-			}
-		}
-	};
-}
-
-// IE6/7 do not support getting/setting some attributes with get/setAttribute
-if ( !getSetAttribute ) {
-
-	// Use this for any attribute in IE6/7
-	// This fixes almost every IE6/7 issue
-	nodeHook = jQuery.valHooks.button = {
-		get: function( elem, name ) {
-			var ret = elem.getAttributeNode( name );
-			return ret && ( name === "id" || name === "name" || name === "coords" ? ret.value !== "" : ret.specified ) ?
-				ret.value :
-				undefined;
-		},
-		set: function( elem, value, name ) {
-			// Set the existing or create a new attribute node
-			var ret = elem.getAttributeNode( name );
-			if ( !ret ) {
-				elem.setAttributeNode(
-					(ret = elem.ownerDocument.createAttribute( name ))
-				);
-			}
-
-			ret.value = value += "";
-
-			// Break association with cloned elements by also using setAttribute (#9646)
-			return name === "value" || value === elem.getAttribute( name ) ?
-				value :
-				undefined;
-		}
-	};
-
-	// Set contenteditable to false on removals(#10429)
-	// Setting to empty string throws an error as an invalid value
-	jQuery.attrHooks.contenteditable = {
-		get: nodeHook.get,
-		set: function( elem, value, name ) {
-			nodeHook.set( elem, value === "" ? false : value, name );
-		}
-	};
-
-	// Set width and height to auto instead of 0 on empty string( Bug #8150 )
-	// This is for removals
-	jQuery.each([ "width", "height" ], function( i, name ) {
-		jQuery.attrHooks[ name ] = jQuery.extend( jQuery.attrHooks[ name ], {
-			set: function( elem, value ) {
-				if ( value === "" ) {
-					elem.setAttribute( name, "auto" );
-					return value;
-				}
-			}
-		});
-	});
-}
-
-
-// Some attributes require a special call on IE
-// http://msdn.microsoft.com/en-us/library/ms536429%28VS.85%29.aspx
-if ( !jQuery.support.hrefNormalized ) {
-	jQuery.each([ "href", "src", "width", "height" ], function( i, name ) {
-		jQuery.attrHooks[ name ] = jQuery.extend( jQuery.attrHooks[ name ], {
-			get: function( elem ) {
-				var ret = elem.getAttribute( name, 2 );
-				return ret == null ? undefined : ret;
-			}
-		});
-	});
-
-	// href/src property should get the full normalized URL (#10299/#12915)
-	jQuery.each([ "href", "src" ], function( i, name ) {
-		jQuery.propHooks[ name ] = {
-			get: function( elem ) {
-				return elem.getAttribute( name, 4 );
-			}
-		};
-	});
-}
-
-if ( !jQuery.support.style ) {
-	jQuery.attrHooks.style = {
-		get: function( elem ) {
-			// Return undefined in the case of empty string
-			// Note: IE uppercases css property names, but if we were to .toLowerCase()
-			// .cssText, that would destroy case senstitivity in URL's, like in "background"
-			return elem.style.cssText || undefined;
-		},
-		set: function( elem, value ) {
-			return ( elem.style.cssText = value + "" );
-		}
-	};
-}
-
-// Safari mis-reports the default selected property of an option
-// Accessing the parent's selectedIndex property fixes it
-if ( !jQuery.support.optSelected ) {
-	jQuery.propHooks.selected = jQuery.extend( jQuery.propHooks.selected, {
-		get: function( elem ) {
-			var parent = elem.parentNode;
-
-			if ( parent ) {
-				parent.selectedIndex;
-
-				// Make sure that it also works with optgroups, see #5701
-				if ( parent.parentNode ) {
-					parent.parentNode.selectedIndex;
-				}
-			}
-			return null;
-		}
-	});
-}
-
-// IE6/7 call enctype encoding
-if ( !jQuery.support.enctype ) {
-	jQuery.propFix.enctype = "encoding";
-}
-
-// Radios and checkboxes getter/setter
-if ( !jQuery.support.checkOn ) {
-	jQuery.each([ "radio", "checkbox" ], function() {
-		jQuery.valHooks[ this ] = {
-			get: function( elem ) {
-				// Handle the case where in Webkit "" is returned instead of "on" if a value isn't specified
-				return elem.getAttribute("value") === null ? "on" : elem.value;
-			}
-		};
-	});
-}
-jQuery.each([ "radio", "checkbox" ], function() {
-	jQuery.valHooks[ this ] = jQuery.extend( jQuery.valHooks[ this ], {
-		set: function( elem, value ) {
-			if ( jQuery.isArray( value ) ) {
-				return ( elem.checked = jQuery.inArray( jQuery(elem).val(), value ) >= 0 );
-			}
-		}
-	});
-});
-var rformElems = /^(?:input|select|textarea)$/i,
-	rkeyEvent = /^key/,
-	rmouseEvent = /^(?:mouse|contextmenu)|click/,
-	rfocusMorph = /^(?:focusinfocus|focusoutblur)$/,
-	rtypenamespace = /^([^.]*)(?:\.(.+)|)$/;
-
-function returnTrue() {
-	return true;
-}
-
-function returnFalse() {
-	return false;
-}
-
-/*
- * Helper functions for managing events -- not part of the public interface.
- * Props to Dean Edwards' addEvent library for many of the ideas.
- */
-jQuery.event = {
-
-	global: {},
-
-	add: function( elem, types, handler, data, selector ) {
-		var tmp, events, t, handleObjIn,
-			special, eventHandle, handleObj,
-			handlers, type, namespaces, origType,
-			elemData = jQuery._data( elem );
-
-		// Don't attach events to noData or text/comment nodes (but allow plain objects)
-		if ( !elemData ) {
-			return;
-		}
-
-		// Caller can pass in an object of custom data in lieu of the handler
-		if ( handler.handler ) {
-			handleObjIn = handler;
-			handler = handleObjIn.handler;
-			selector = handleObjIn.selector;
-		}
-
-		// Make sure that the handler has a unique ID, used to find/remove it later
-		if ( !handler.guid ) {
-			handler.guid = jQuery.guid++;
-		}
-
-		// Init the element's event structure and main handler, if this is the first
-		if ( !(events = elemData.events) ) {
-			events = elemData.events = {};
-		}
-		if ( !(eventHandle = elemData.handle) ) {
-			eventHandle = elemData.handle = function( e ) {
-				// Discard the second event of a jQuery.event.trigger() and
-				// when an event is called after a page has unloaded
-				return typeof jQuery !== core_strundefined && (!e || jQuery.event.triggered !== e.type) ?
-					jQuery.event.dispatch.apply( eventHandle.elem, arguments ) :
-					undefined;
-			};
-			// Add elem as a property of the handle fn to prevent a memory leak with IE non-native events
-			eventHandle.elem = elem;
-		}
-
-		// Handle multiple events separated by a space
-		// jQuery(...).bind("mouseover mouseout", fn);
-		types = ( types || "" ).match( core_rnotwhite ) || [""];
-		t = types.length;
-		while ( t-- ) {
-			tmp = rtypenamespace.exec( types[t] ) || [];
-			type = origType = tmp[1];
-			namespaces = ( tmp[2] || "" ).split( "." ).sort();
-
-			// If event changes its type, use the special event handlers for the changed type
-			special = jQuery.event.special[ type ] || {};
-
-			// If selector defined, determine special event api type, otherwise given type
-			type = ( selector ? special.delegateType : special.bindType ) || type;
-
-			// Update special based on newly reset type
-			special = jQuery.event.special[ type ] || {};
-
-			// handleObj is passed to all event handlers
-			handleObj = jQuery.extend({
-				type: type,
-				origType: origType,
-				data: data,
-				handler: handler,
-				guid: handler.guid,
-				selector: selector,
-				needsContext: selector && jQuery.expr.match.needsContext.test( selector ),
-				namespace: namespaces.join(".")
-			}, handleObjIn );
-
-			// Init the event handler queue if we're the first
-			if ( !(handlers = events[ type ]) ) {
-				handlers = events[ type ] = [];
-				handlers.delegateCount = 0;
-
-				// Only use addEventListener/attachEvent if the special events handler returns false
-				if ( !special.setup || special.setup.call( elem, data, namespaces, eventHandle ) === false ) {
-					// Bind the global event handler to the element
-					if ( elem.addEventListener ) {
-						elem.addEventListener( type, eventHandle, false );
-
-					} else if ( elem.attachEvent ) {
-						elem.attachEvent( "on" + type, eventHandle );
-					}
-				}
-			}
-
-			if ( special.add ) {
-				special.add.call( elem, handleObj );
-
-				if ( !handleObj.handler.guid ) {
-					handleObj.handler.guid = handler.guid;
-				}
-			}
-
-			// Add to the element's handler list, delegates in front
-			if ( selector ) {
-				handlers.splice( handlers.delegateCount++, 0, handleObj );
-			} else {
-				handlers.push( handleObj );
-			}
-
-			// Keep track of which events have ever been used, for event optimization
-			jQuery.event.global[ type ] = true;
-		}
-
-		// Nullify elem to prevent memory leaks in IE
-		elem = null;
-	},
-
-	// Detach an event or set of events from an element
-	remove: function( elem, types, handler, selector, mappedTypes ) {
-		var j, handleObj, tmp,
-			origCount, t, events,
-			special, handlers, type,
-			namespaces, origType,
-			elemData = jQuery.hasData( elem ) && jQuery._data( elem );
-
-		if ( !elemData || !(events = elemData.events) ) {
-			return;
-		}
-
-		// Once for each type.namespace in types; type may be omitted
-		types = ( types || "" ).match( core_rnotwhite ) || [""];
-		t = types.length;
-		while ( t-- ) {
-			tmp = rtypenamespace.exec( types[t] ) || [];
-			type = origType = tmp[1];
-			namespaces = ( tmp[2] || "" ).split( "." ).sort();
-
-			// Unbind all events (on this namespace, if provided) for the element
-			if ( !type ) {
-				for ( type in events ) {
-					jQuery.event.remove( elem, type + types[ t ], handler, selector, true );
-				}
-				continue;
-			}
-
-			special = jQuery.event.special[ type ] || {};
-			type = ( selector ? special.delegateType : special.bindType ) || type;
-			handlers = events[ type ] || [];
-			tmp = tmp[2] && new RegExp( "(^|\\.)" + namespaces.join("\\.(?:.*\\.|)") + "(\\.|$)" );
-
-			// Remove matching events
-			origCount = j = handlers.length;
-			while ( j-- ) {
-				handleObj = handlers[ j ];
-
-				if ( ( mappedTypes || origType === handleObj.origType ) &&
-					( !handler || handler.guid === handleObj.guid ) &&
-					( !tmp || tmp.test( handleObj.namespace ) ) &&
-					( !selector || selector === handleObj.selector || selector === "**" && handleObj.selector ) ) {
-					handlers.splice( j, 1 );
-
-					if ( handleObj.selector ) {
-						handlers.delegateCount--;
-					}
-					if ( special.remove ) {
-						special.remove.call( elem, handleObj );
-					}
-				}
-			}
-
-			// Remove generic event handler if we removed something and no more handlers exist
-			// (avoids potential for endless recursion during removal of special event handlers)
-			if ( origCount && !handlers.length ) {
-				if ( !special.teardown || special.teardown.call( elem, namespaces, elemData.handle ) === false ) {
-					jQuery.removeEvent( elem, type, elemData.handle );
-				}
-
-				delete events[ type ];
-			}
-		}
-
-		// Remove the expando if it's no longer used
-		if ( jQuery.isEmptyObject( events ) ) {
-			delete elemData.handle;
-
-			// removeData also checks for emptiness and clears the expando if empty
-			// so use it instead of delete
-			jQuery._removeData( elem, "events" );
-		}
-	},
-
-	trigger: function( event, data, elem, onlyHandlers ) {
-		var handle, ontype, cur,
-			bubbleType, special, tmp, i,
-			eventPath = [ elem || document ],
-			type = core_hasOwn.call( event, "type" ) ? event.type : event,
-			namespaces = core_hasOwn.call( event, "namespace" ) ? event.namespace.split(".") : [];
-
-		cur = tmp = elem = elem || document;
-
-		// Don't do events on text and comment nodes
-		if ( elem.nodeType === 3 || elem.nodeType === 8 ) {
-			return;
-		}
-
-		// focus/blur morphs to focusin/out; ensure we're not firing them right now
-		if ( rfocusMorph.test( type + jQuery.event.triggered ) ) {
-			return;
-		}
-
-		if ( type.indexOf(".") >= 0 ) {
-			// Namespaced trigger; create a regexp to match event type in handle()
-			namespaces = type.split(".");
-			type = namespaces.shift();
-			namespaces.sort();
-		}
-		ontype = type.indexOf(":") < 0 && "on" + type;
-
-		// Caller can pass in a jQuery.Event object, Object, or just an event type string
-		event = event[ jQuery.expando ] ?
-			event :
-			new jQuery.Event( type, typeof event === "object" && event );
-
-		event.isTrigger = true;
-		event.namespace = namespaces.join(".");
-		event.namespace_re = event.namespace ?
-			new RegExp( "(^|\\.)" + namespaces.join("\\.(?:.*\\.|)") + "(\\.|$)" ) :
-			null;
-
-		// Clean up the event in case it is being reused
-		event.result = undefined;
-		if ( !event.target ) {
-			event.target = elem;
-		}
-
-		// Clone any incoming data and prepend the event, creating the handler arg list
-		data = data == null ?
-			[ event ] :
-			jQuery.makeArray( data, [ event ] );
-
-		// Allow special events to draw outside the lines
-		special = jQuery.event.special[ type ] || {};
-		if ( !onlyHandlers && special.trigger && special.trigger.apply( elem, data ) === false ) {
-			return;
-		}
-
-		// Determine event propagation path in advance, per W3C events spec (#9951)
-		// Bubble up to document, then to window; watch for a global ownerDocument var (#9724)
-		if ( !onlyHandlers && !special.noBubble && !jQuery.isWindow( elem ) ) {
-
-			bubbleType = special.delegateType || type;
-			if ( !rfocusMorph.test( bubbleType + type ) ) {
-				cur = cur.parentNode;
-			}
-			for ( ; cur; cur = cur.parentNode ) {
-				eventPath.push( cur );
-				tmp = cur;
-			}
-
-			// Only add window if we got to document (e.g., not plain obj or detached DOM)
-			if ( tmp === (elem.ownerDocument || document) ) {
-				eventPath.push( tmp.defaultView || tmp.parentWindow || window );
-			}
-		}
-
-		// Fire handlers on the event path
-		i = 0;
-		while ( (cur = eventPath[i++]) && !event.isPropagationStopped() ) {
-
-			event.type = i > 1 ?
-				bubbleType :
-				special.bindType || type;
-
-			// jQuery handler
-			handle = ( jQuery._data( cur, "events" ) || {} )[ event.type ] && jQuery._data( cur, "handle" );
-			if ( handle ) {
-				handle.apply( cur, data );
-			}
-
-			// Native handler
-			handle = ontype && cur[ ontype ];
-			if ( handle && jQuery.acceptData( cur ) && handle.apply && handle.apply( cur, data ) === false ) {
-				event.preventDefault();
-			}
-		}
-		event.type = type;
-
-		// If nobody prevented the default action, do it now
-		if ( !onlyHandlers && !event.isDefaultPrevented() ) {
-
-			if ( (!special._default || special._default.apply( elem.ownerDocument, data ) === false) &&
-				!(type === "click" && jQuery.nodeName( elem, "a" )) && jQuery.acceptData( elem ) ) {
-
-				// Call a native DOM method on the target with the same name name as the event.
-				// Can't use an .isFunction() check here because IE6/7 fails that test.
-				// Don't do default actions on window, that's where global variables be (#6170)
-				if ( ontype && elem[ type ] && !jQuery.isWindow( elem ) ) {
-
-					// Don't re-trigger an onFOO event when we call its FOO() method
-					tmp = elem[ ontype ];
-
-					if ( tmp ) {
-						elem[ ontype ] = null;
-					}
-
-					// Prevent re-triggering of the same event, since we already bubbled it above
-					jQuery.event.triggered = type;
-					try {
-						elem[ type ]();
-					} catch ( e ) {
-						// IE<9 dies on focus/blur to hidden element (#1486,#12518)
-						// only reproducible on winXP IE8 native, not IE9 in IE8 mode
-					}
-					jQuery.event.triggered = undefined;
-
-					if ( tmp ) {
-						elem[ ontype ] = tmp;
-					}
-				}
-			}
-		}
-
-		return event.result;
-	},
-
-	dispatch: function( event ) {
-
-		// Make a writable jQuery.Event from the native event object
-		event = jQuery.event.fix( event );
-
-		var i, ret, handleObj, matched, j,
-			handlerQueue = [],
-			args = core_slice.call( arguments ),
-			handlers = ( jQuery._data( this, "events" ) || {} )[ event.type ] || [],
-			special = jQuery.event.special[ event.type ] || {};
-
-		// Use the fix-ed jQuery.Event rather than the (read-only) native event
-		args[0] = event;
-		event.delegateTarget = this;
-
-		// Call the preDispatch hook for the mapped type, and let it bail if desired
-		if ( special.preDispatch && special.preDispatch.call( this, event ) === false ) {
-			return;
-		}
-
-		// Determine handlers
-		handlerQueue = jQuery.event.handlers.call( this, event, handlers );
-
-		// Run delegates first; they may want to stop propagation beneath us
-		i = 0;
-		while ( (matched = handlerQueue[ i++ ]) && !event.isPropagationStopped() ) {
-			event.currentTarget = matched.elem;
-
-			j = 0;
-			while ( (handleObj = matched.handlers[ j++ ]) && !event.isImmediatePropagationStopped() ) {
-
-				// Triggered event must either 1) have no namespace, or
-				// 2) have namespace(s) a subset or equal to those in the bound event (both can have no namespace).
-				if ( !event.namespace_re || event.namespace_re.test( handleObj.namespace ) ) {
-
-					event.handleObj = handleObj;
-					event.data = handleObj.data;
-
-					ret = ( (jQuery.event.special[ handleObj.origType ] || {}).handle || handleObj.handler )
-							.apply( matched.elem, args );
-
-					if ( ret !== undefined ) {
-						if ( (event.result = ret) === false ) {
-							event.preventDefault();
-							event.stopPropagation();
-						}
-					}
-				}
-			}
-		}
-
-		// Call the postDispatch hook for the mapped type
-		if ( special.postDispatch ) {
-			special.postDispatch.call( this, event );
-		}
-
-		return event.result;
-	},
-
-	handlers: function( event, handlers ) {
-		var sel, handleObj, matches, i,
-			handlerQueue = [],
-			delegateCount = handlers.delegateCount,
-			cur = event.target;
-
-		// Find delegate handlers
-		// Black-hole SVG <use> instance trees (#13180)
-		// Avoid non-left-click bubbling in Firefox (#3861)
-		if ( delegateCount && cur.nodeType && (!event.button || event.type !== "click") ) {
-
-			for ( ; cur != this; cur = cur.parentNode || this ) {
-
-				// Don't check non-elements (#13208)
-				// Don't process clicks on disabled elements (#6911, #8165, #11382, #11764)
-				if ( cur.nodeType === 1 && (cur.disabled !== true || event.type !== "click") ) {
-					matches = [];
-					for ( i = 0; i < delegateCount; i++ ) {
-						handleObj = handlers[ i ];
-
-						// Don't conflict with Object.prototype properties (#13203)
-						sel = handleObj.selector + " ";
-
-						if ( matches[ sel ] === undefined ) {
-							matches[ sel ] = handleObj.needsContext ?
-								jQuery( sel, this ).index( cur ) >= 0 :
-								jQuery.find( sel, this, null, [ cur ] ).length;
-						}
-						if ( matches[ sel ] ) {
-							matches.push( handleObj );
-						}
-					}
-					if ( matches.length ) {
-						handlerQueue.push({ elem: cur, handlers: matches });
-					}
-				}
-			}
-		}
-
-		// Add the remaining (directly-bound) handlers
-		if ( delegateCount < handlers.length ) {
-			handlerQueue.push({ elem: this, handlers: handlers.slice( delegateCount ) });
-		}
-
-		return handlerQueue;
-	},
-
-	fix: function( event ) {
-		if ( event[ jQuery.expando ] ) {
-			return event;
-		}
-
-		// Create a writable copy of the event object and normalize some properties
-		var i, prop, copy,
-			type = event.type,
-			originalEvent = event,
-			fixHook = this.fixHooks[ type ];
-
-		if ( !fixHook ) {
-			this.fixHooks[ type ] = fixHook =
-				rmouseEvent.test( type ) ? this.mouseHooks :
-				rkeyEvent.test( type ) ? this.keyHooks :
-				{};
-		}
-		copy = fixHook.props ? this.props.concat( fixHook.props ) : this.props;
-
-		event = new jQuery.Event( originalEvent );
-
-		i = copy.length;
-		while ( i-- ) {
-			prop = copy[ i ];
-			event[ prop ] = originalEvent[ prop ];
-		}
-
-		// Support: IE<9
-		// Fix target property (#1925)
-		if ( !event.target ) {
-			event.target = originalEvent.srcElement || document;
-		}
-
-		// Support: Chrome 23+, Safari?
-		// Target should not be a text node (#504, #13143)
-		if ( event.target.nodeType === 3 ) {
-			event.target = event.target.parentNode;
-		}
-
-		// Support: IE<9
-		// For mouse/key events, metaKey==false if it's undefined (#3368, #11328)
-		event.metaKey = !!event.metaKey;
-
-		return fixHook.filter ? fixHook.filter( event, originalEvent ) : event;
-	},
-
-	// Includes some event props shared by KeyEvent and MouseEvent
-	props: "altKey bubbles cancelable ctrlKey currentTarget eventPhase metaKey relatedTarget shiftKey target timeStamp view which".split(" "),
-
-	fixHooks: {},
-
-	keyHooks: {
-		props: "char charCode key keyCode".split(" "),
-		filter: function( event, original ) {
-
-			// Add which for key events
-			if ( event.which == null ) {
-				event.which = original.charCode != null ? original.charCode : original.keyCode;
-			}
-
-			return event;
-		}
-	},
-
-	mouseHooks: {
-		props: "button buttons clientX clientY fromElement offsetX offsetY pageX pageY screenX screenY toElement".split(" "),
-		filter: function( event, original ) {
-			var body, eventDoc, doc,
-				button = original.button,
-				fromElement = original.fromElement;
-
-			// Calculate pageX/Y if missing and clientX/Y available
-			if ( event.pageX == null && original.clientX != null ) {
-				eventDoc = event.target.ownerDocument || document;
-				doc = eventDoc.documentElement;
-				body = eventDoc.body;
-
-				event.pageX = original.clientX + ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) - ( doc && doc.clientLeft || body && body.clientLeft || 0 );
-				event.pageY = original.clientY + ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) - ( doc && doc.clientTop  || body && body.clientTop  || 0 );
-			}
-
-			// Add relatedTarget, if necessary
-			if ( !event.relatedTarget && fromElement ) {
-				event.relatedTarget = fromElement === event.target ? original.toElement : fromElement;
-			}
-
-			// Add which for click: 1 === left; 2 === middle; 3 === right
-			// Note: button is not normalized, so don't use it
-			if ( !event.which && button !== undefined ) {
-				event.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
-			}
-
-			return event;
-		}
-	},
-
-	special: {
-		load: {
-			// Prevent triggered image.load events from bubbling to window.load
-			noBubble: true
-		},
-		click: {
-			// For checkbox, fire native event so checked state will be right
-			trigger: function() {
-				if ( jQuery.nodeName( this, "input" ) && this.type === "checkbox" && this.click ) {
-					this.click();
-					return false;
-				}
-			}
-		},
-		focus: {
-			// Fire native event if possible so blur/focus sequence is correct
-			trigger: function() {
-				if ( this !== document.activeElement && this.focus ) {
-					try {
-						this.focus();
-						return false;
-					} catch ( e ) {
-						// Support: IE<9
-						// If we error on focus to hidden element (#1486, #12518),
-						// let .trigger() run the handlers
-					}
-				}
-			},
-			delegateType: "focusin"
-		},
-		blur: {
-			trigger: function() {
-				if ( this === document.activeElement && this.blur ) {
-					this.blur();
-					return false;
-				}
-			},
-			delegateType: "focusout"
-		},
-
-		beforeunload: {
-			postDispatch: function( event ) {
-
-				// Even when returnValue equals to undefined Firefox will still show alert
-				if ( event.result !== undefined ) {
-					event.originalEvent.returnValue = event.result;
-				}
-			}
-		}
-	},
-
-	simulate: function( type, elem, event, bubble ) {
-		// Piggyback on a donor event to simulate a different one.
-		// Fake originalEvent to avoid donor's stopPropagation, but if the
-		// simulated event prevents default then we do the same on the donor.
-		var e = jQuery.extend(
-			new jQuery.Event(),
-			event,
-			{ type: type,
-				isSimulated: true,
-				originalEvent: {}
-			}
-		);
-		if ( bubble ) {
-			jQuery.event.trigger( e, null, elem );
-		} else {
-			jQuery.event.dispatch.call( elem, e );
-		}
-		if ( e.isDefaultPrevented() ) {
-			event.preventDefault();
-		}
-	}
-};
-
-jQuery.removeEvent = document.removeEventListener ?
-	function( elem, type, handle ) {
-		if ( elem.removeEventListener ) {
-			elem.removeEventListener( type, handle, false );
-		}
-	} :
-	function( elem, type, handle ) {
-		var name = "on" + type;
-
-		if ( elem.detachEvent ) {
-
-			// #8545, #7054, preventing memory leaks for custom events in IE6-8
-			// detachEvent needed property on element, by name of that event, to properly expose it to GC
-			if ( typeof elem[ name ] === core_strundefined ) {
-				elem[ name ] = null;
-			}
-
-			elem.detachEvent( name, handle );
-		}
-	};
-
-jQuery.Event = function( src, props ) {
-	// Allow instantiation without the 'new' keyword
-	if ( !(this instanceof jQuery.Event) ) {
-		return new jQuery.Event( src, props );
-	}
-
-	// Event object
-	if ( src && src.type ) {
-		this.originalEvent = src;
-		this.type = src.type;
-
-		// Events bubbling up the document may have been marked as prevented
-		// by a handler lower down the tree; reflect the correct value.
-		this.isDefaultPrevented = ( src.defaultPrevented || src.returnValue === false ||
-			src.getPreventDefault && src.getPreventDefault() ) ? returnTrue : returnFalse;
-
-	// Event type
-	} else {
-		this.type = src;
-	}
-
-	// Put explicitly provided properties onto the event object
-	if ( props ) {
-		jQuery.extend( this, props );
-	}
-
-	// Create a timestamp if incoming event doesn't have one
-	this.timeStamp = src && src.timeStamp || jQuery.now();
-
-	// Mark it as fixed
-	this[ jQuery.expando ] = true;
-};
-
-// jQuery.Event is based on DOM3 Events as specified by the ECMAScript Language Binding
-// http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
-jQuery.Event.prototype = {
-	isDefaultPrevented: returnFalse,
-	isPropagationStopped: returnFalse,
-	isImmediatePropagationStopped: returnFalse,
-
-	preventDefault: function() {
-		var e = this.originalEvent;
-
-		this.isDefaultPrevented = returnTrue;
-		if ( !e ) {
-			return;
-		}
-
-		// If preventDefault exists, run it on the original event
-		if ( e.preventDefault ) {
-			e.preventDefault();
-
-		// Support: IE
-		// Otherwise set the returnValue property of the original event to false
-		} else {
-			e.returnValue = false;
-		}
-	},
-	stopPropagation: function() {
-		var e = this.originalEvent;
-
-		this.isPropagationStopped = returnTrue;
-		if ( !e ) {
-			return;
-		}
-		// If stopPropagation exists, run it on the original event
-		if ( e.stopPropagation ) {
-			e.stopPropagation();
-		}
-
-		// Support: IE
-		// Set the cancelBubble property of the original event to true
-		e.cancelBubble = true;
-	},
-	stopImmediatePropagation: function() {
-		this.isImmediatePropagationStopped = returnTrue;
-		this.stopPropagation();
-	}
-};
-
-// Create mouseenter/leave events using mouseover/out and event-time checks
-jQuery.each({
-	mouseenter: "mouseover",
-	mouseleave: "mouseout"
-}, function( orig, fix ) {
-	jQuery.event.special[ orig ] = {
-		delegateType: fix,
-		bindType: fix,
-
-		handle: function( event ) {
-			var ret,
-				target = this,
-				related = event.relatedTarget,
-				handleObj = event.handleObj;
-
-			// For mousenter/leave call the handler if related is outside the target.
-			// NB: No relatedTarget if the mouse left/entered the browser window
-			if ( !related || (related !== target && !jQuery.contains( target, related )) ) {
-				event.type = handleObj.origType;
-				ret = handleObj.handler.apply( this, arguments );
-				event.type = fix;
-			}
-			return ret;
-		}
-	};
-});
-
-// IE submit delegation
-if ( !jQuery.support.submitBubbles ) {
-
-	jQuery.event.special.submit = {
-		setup: function() {
-			// Only need this for delegated form submit events
-			if ( jQuery.nodeName( this, "form" ) ) {
-				return false;
-			}
-
-			// Lazy-add a submit handler when a descendant form may potentially be submitted
-			jQuery.event.add( this, "click._submit keypress._submit", function( e ) {
-				// Node name check avoids a VML-related crash in IE (#9807)
-				var elem = e.target,
-					form = jQuery.nodeName( elem, "input" ) || jQuery.nodeName( elem, "button" ) ? elem.form : undefined;
-				if ( form && !jQuery._data( form, "submitBubbles" ) ) {
-					jQuery.event.add( form, "submit._submit", function( event ) {
-						event._submit_bubble = true;
-					});
-					jQuery._data( form, "submitBubbles", true );
-				}
-			});
-			// return undefined since we don't need an event listener
-		},
-
-		postDispatch: function( event ) {
-			// If form was submitted by the user, bubble the event up the tree
-			if ( event._submit_bubble ) {
-				delete event._submit_bubble;
-				if ( this.parentNode && !event.isTrigger ) {
-					jQuery.event.simulate( "submit", this.parentNode, event, true );
-				}
-			}
-		},
-
-		teardown: function() {
-			// Only need this for delegated form submit events
-			if ( jQuery.nodeName( this, "form" ) ) {
-				return false;
-			}
-
-			// Remove delegated handlers; cleanData eventually reaps submit handlers attached above
-			jQuery.event.remove( this, "._submit" );
-		}
-	};
-}
-
-// IE change delegation and checkbox/radio fix
-if ( !jQuery.support.changeBubbles ) {
-
-	jQuery.event.special.change = {
-
-		setup: function() {
-
-			if ( rformElems.test( this.nodeName ) ) {
-				// IE doesn't fire change on a check/radio until blur; trigger it on click
-				// after a propertychange. Eat the blur-change in special.change.handle.
-				// This still fires onchange a second time for check/radio after blur.
-				if ( this.type === "checkbox" || this.type === "radio" ) {
-					jQuery.event.add( this, "propertychange._change", function( event ) {
-						if ( event.originalEvent.propertyName === "checked" ) {
-							this._just_changed = true;
-						}
-					});
-					jQuery.event.add( this, "click._change", function( event ) {
-						if ( this._just_changed && !event.isTrigger ) {
-							this._just_changed = false;
-						}
-						// Allow triggered, simulated change events (#11500)
-						jQuery.event.simulate( "change", this, event, true );
-					});
-				}
-				return false;
-			}
-			// Delegated event; lazy-add a change handler on descendant inputs
-			jQuery.event.add( this, "beforeactivate._change", function( e ) {
-				var elem = e.target;
-
-				if ( rformElems.test( elem.nodeName ) && !jQuery._data( elem, "changeBubbles" ) ) {
-					jQuery.event.add( elem, "change._change", function( event ) {
-						if ( this.parentNode && !event.isSimulated && !event.isTrigger ) {
-							jQuery.event.simulate( "change", this.parentNode, event, true );
-						}
-					});
-					jQuery._data( elem, "changeBubbles", true );
-				}
-			});
-		},
-
-		handle: function( event ) {
-			var elem = event.target;
-
-			// Swallow native change events from checkbox/radio, we already triggered them above
-			if ( this !== elem || event.isSimulated || event.isTrigger || (elem.type !== "radio" && elem.type !== "checkbox") ) {
-				return event.handleObj.handler.apply( this, arguments );
-			}
-		},
-
-		teardown: function() {
-			jQuery.event.remove( this, "._change" );
-
-			return !rformElems.test( this.nodeName );
-		}
-	};
-}
-
-// Create "bubbling" focus and blur events
-if ( !jQuery.support.focusinBubbles ) {
-	jQuery.each({ focus: "focusin", blur: "focusout" }, function( orig, fix ) {
-
-		// Attach a single capturing handler while someone wants focusin/focusout
-		var attaches = 0,
-			handler = function( event ) {
-				jQuery.event.simulate( fix, event.target, jQuery.event.fix( event ), true );
-			};
-
-		jQuery.event.special[ fix ] = {
-			setup: function() {
-				if ( attaches++ === 0 ) {
-					document.addEventListener( orig, handler, true );
-				}
-			},
-			teardown: function() {
-				if ( --attaches === 0 ) {
-					document.removeEventListener( orig, handler, true );
-				}
-			}
-		};
-	});
-}
-
-jQuery.fn.extend({
-
-	on: function( types, selector, data, fn, /*INTERNAL*/ one ) {
-		var type, origFn;
-
-		// Types can be a map of types/handlers
-		if ( typeof types === "object" ) {
-			// ( types-Object, selector, data )
-			if ( typeof selector !== "string" ) {
-				// ( types-Object, data )
-				data = data || selector;
-				selector = undefined;
-			}
-			for ( type in types ) {
-				this.on( type, selector, data, types[ type ], one );
-			}
-			return this;
-		}
-
-		if ( data == null && fn == null ) {
-			// ( types, fn )
-			fn = selector;
-			data = selector = undefined;
-		} else if ( fn == null ) {
-			if ( typeof selector === "string" ) {
-				// ( types, selector, fn )
-				fn = data;
-				data = undefined;
-			} else {
-				// ( types, data, fn )
-				fn = data;
-				data = selector;
-				selector = undefined;
-			}
-		}
-		if ( fn === false ) {
-			fn = returnFalse;
-		} else if ( !fn ) {
-			return this;
-		}
-
-		if ( one === 1 ) {
-			origFn = fn;
-			fn = function( event ) {
-				// Can use an empty set, since event contains the info
-				jQuery().off( event );
-				return origFn.apply( this, arguments );
-			};
-			// Use same guid so caller can remove using origFn
-			fn.guid = origFn.guid || ( origFn.guid = jQuery.guid++ );
-		}
-		return this.each( function() {
-			jQuery.event.add( this, types, fn, data, selector );
-		});
-	},
-	one: function( types, selector, data, fn ) {
-		return this.on( types, selector, data, fn, 1 );
-	},
-	off: function( types, selector, fn ) {
-		var handleObj, type;
-		if ( types && types.preventDefault && types.handleObj ) {
-			// ( event )  dispatched jQuery.Event
-			handleObj = types.handleObj;
-			jQuery( types.delegateTarget ).off(
-				handleObj.namespace ? handleObj.origType + "." + handleObj.namespace : handleObj.origType,
-				handleObj.selector,
-				handleObj.handler
-			);
-			return this;
-		}
-		if ( typeof types === "object" ) {
-			// ( types-object [, selector] )
-			for ( type in types ) {
-				this.off( type, selector, types[ type ] );
-			}
-			return this;
-		}
-		if ( selector === false || typeof selector === "function" ) {
-			// ( types [, fn] )
-			fn = selector;
-			selector = undefined;
-		}
-		if ( fn === false ) {
-			fn = returnFalse;
-		}
-		return this.each(function() {
-			jQuery.event.remove( this, types, fn, selector );
-		});
-	},
-
-	bind: function( types, data, fn ) {
-		return this.on( types, null, data, fn );
-	},
-	unbind: function( types, fn ) {
-		return this.off( types, null, fn );
-	},
-
-	delegate: function( selector, types, data, fn ) {
-		return this.on( types, selector, data, fn );
-	},
-	undelegate: function( selector, types, fn ) {
-		// ( namespace ) or ( selector, types [, fn] )
-		return arguments.length === 1 ? this.off( selector, "**" ) : this.off( types, selector || "**", fn );
-	},
-
-	trigger: function( type, data ) {
-		return this.each(function() {
-			jQuery.event.trigger( type, data, this );
-		});
-	},
-	triggerHandler: function( type, data ) {
-		var elem = this[0];
-		if ( elem ) {
-			return jQuery.event.trigger( type, data, elem, true );
-		}
-	}
-});
 /*!
- * Sizzle CSS Selector Engine
- * Copyright 2012 jQuery Foundation and other contributors
- * Released under the MIT license
+ * Sizzle CSS Selector Engine v1.9.4-pre
  * http://sizzlejs.com/
+ *
+ * Copyright 2013 jQuery Foundation, Inc. and other contributors
+ * Released under the MIT license
+ * http://jquery.org/license
+ *
+ * Date: 2013-06-03
  */
 (function( window, undefined ) {
 
 var i,
+	support,
 	cachedruns,
 	Expr,
 	getText,
 	isXML,
 	compile,
-	hasDuplicate,
 	outermostContext,
+	sortInput,
 
 	// Local document vars
 	setDocument,
 	document,
 	docElem,
-	documentIsXML,
+	documentIsHTML,
 	rbuggyQSA,
 	rbuggyMatches,
 	matches,
 	contains,
-	sortOrder,
 
 	// Instance-specific data
 	expando = "sizzle" + -(new Date()),
 	preferredDoc = window.document,
-	support = {},
 	dirruns = 0,
 	done = 0,
 	classCache = createCache(),
 	tokenCache = createCache(),
 	compilerCache = createCache(),
+	hasDuplicate = false,
+	sortOrder = function( a, b ) {
+		if ( a === b ) {
+			hasDuplicate = true;
+			return 0;
+		}
+		return 0;
+	},
 
 	// General-purpose constants
 	strundefined = typeof undefined,
 	MAX_NEGATIVE = 1 << 31,
 
-	// Array methods
+	// Instance methods
+	hasOwn = ({}).hasOwnProperty,
 	arr = [],
 	pop = arr.pop,
+	push_native = arr.push,
 	push = arr.push,
 	slice = arr.slice,
 	// Use a stripped-down indexOf if we can't use a native one
@@ -3750,6 +943,7 @@ var i,
 		return -1;
 	},
 
+	booleans = "checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped",
 
 	// Regular expressions
 
@@ -3764,9 +958,8 @@ var i,
 	identifier = characterEncoding.replace( "w", "w#" ),
 
 	// Acceptable operators http://www.w3.org/TR/selectors/#attribute-selectors
-	operators = "([*^$|!~]?=)",
 	attributes = "\\[" + whitespace + "*(" + characterEncoding + ")" + whitespace +
-		"*(?:" + operators + whitespace + "*(?:(['\"])((?:\\\\.|[^\\\\])*?)\\3|(" + identifier + ")|)|)" + whitespace + "*\\]",
+		"*(?:([*^$|!~]?=)" + whitespace + "*(?:(['\"])((?:\\\\.|[^\\\\])*?)\\3|(" + identifier + ")|)|)" + whitespace + "*\\]",
 
 	// Prefer arguments quoted,
 	//   then not containing pseudos/brackets,
@@ -3780,29 +973,31 @@ var i,
 	rtrim = new RegExp( "^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g" ),
 
 	rcomma = new RegExp( "^" + whitespace + "*," + whitespace + "*" ),
-	rcombinators = new RegExp( "^" + whitespace + "*([\\x20\\t\\r\\n\\f>+~])" + whitespace + "*" ),
+	rcombinators = new RegExp( "^" + whitespace + "*([>+~]|" + whitespace + ")" + whitespace + "*" ),
+
+	rsibling = new RegExp( whitespace + "*[+~]" ),
+	rattributeQuotes = new RegExp( "=" + whitespace + "*([^\\]'\"]*)" + whitespace + "*\\]", "g" ),
+
 	rpseudo = new RegExp( pseudos ),
 	ridentifier = new RegExp( "^" + identifier + "$" ),
 
 	matchExpr = {
 		"ID": new RegExp( "^#(" + characterEncoding + ")" ),
 		"CLASS": new RegExp( "^\\.(" + characterEncoding + ")" ),
-		"NAME": new RegExp( "^\\[name=['\"]?(" + characterEncoding + ")['\"]?\\]" ),
 		"TAG": new RegExp( "^(" + characterEncoding.replace( "w", "w*" ) + ")" ),
 		"ATTR": new RegExp( "^" + attributes ),
 		"PSEUDO": new RegExp( "^" + pseudos ),
 		"CHILD": new RegExp( "^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\(" + whitespace +
 			"*(even|odd|(([+-]|)(\\d*)n|)" + whitespace + "*(?:([+-]|)" + whitespace +
 			"*(\\d+)|))" + whitespace + "*\\)|)", "i" ),
+		"bool": new RegExp( "^(?:" + booleans + ")$", "i" ),
 		// For use in libraries implementing .is()
 		// We use this for POS matching in `select`
 		"needsContext": new RegExp( "^" + whitespace + "*[>+~]|:(even|odd|eq|gt|lt|nth|first|last)(?:\\(" +
 			whitespace + "*((?:-\\d)?\\d*)" + whitespace + "*\\)|)(?=[^-]|$)", "i" )
 	},
 
-	rsibling = /[\x20\t\r\n\f]*[+~]/,
-
-	rnative = /^[^{]+\{\s*\[native code/,
+	rnative = /^[^{]+\{\s*\[native \w/,
 
 	// Easily-parseable/retrievable ID or TAG or CLASS selectors
 	rquickExpr = /^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/,
@@ -3811,14 +1006,15 @@ var i,
 	rheader = /^h\d$/i,
 
 	rescape = /'|\\/g,
-	rattributeQuotes = /\=[\x20\t\r\n\f]*([^'"\]]*)[\x20\t\r\n\f]*\]/g,
 
 	// CSS escapes http://www.w3.org/TR/CSS21/syndata.html#escaped-characters
-	runescape = /\\([\da-fA-F]{1,6}[\x20\t\r\n\f]?|.)/g,
-	funescape = function( _, escaped ) {
+	runescape = new RegExp( "\\\\([\\da-f]{1,6}" + whitespace + "?|(" + whitespace + ")|.)", "ig" ),
+	funescape = function( _, escaped, escapedWhitespace ) {
 		var high = "0x" + escaped - 0x10000;
 		// NaN means non-codepoint
-		return high !== high ?
+		// Support: Firefox
+		// Workaround erroneous numeric interpretation of +"0x"
+		return high !== high || escapedWhitespace ?
 			escaped :
 			// BMP codepoint
 			high < 0 ?
@@ -3827,72 +1023,33 @@ var i,
 				String.fromCharCode( high >> 10 | 0xD800, high & 0x3FF | 0xDC00 );
 	};
 
-// Use a stripped-down slice if we can't use a native one
+// Optimize for push.apply( _, NodeList )
 try {
-	slice.call( preferredDoc.documentElement.childNodes, 0 )[0].nodeType;
+	push.apply(
+		(arr = slice.call( preferredDoc.childNodes )),
+		preferredDoc.childNodes
+	);
+	// Support: Android<4.0
+	// Detect silently failing push.apply
+	arr[ preferredDoc.childNodes.length ].nodeType;
 } catch ( e ) {
-	slice = function( i ) {
-		var elem,
-			results = [];
-		while ( (elem = this[i++]) ) {
-			results.push( elem );
+	push = { apply: arr.length ?
+
+		// Leverage slice if possible
+		function( target, els ) {
+			push_native.apply( target, slice.call(els) );
+		} :
+
+		// Support: IE<9
+		// Otherwise append directly
+		function( target, els ) {
+			var j = target.length,
+				i = 0;
+			// Can't trust NodeList.length
+			while ( (target[j++] = els[i++]) ) {}
+			target.length = j - 1;
 		}
-		return results;
 	};
-}
-
-/**
- * For feature detection
- * @param {Function} fn The function to test for native support
- */
-function isNative( fn ) {
-	return rnative.test( fn + "" );
-}
-
-/**
- * Create key-value caches of limited size
- * @returns {Function(string, Object)} Returns the Object data after storing it on itself with
- *	property name the (space-suffixed) string and (if the cache is larger than Expr.cacheLength)
- *	deleting the oldest entry
- */
-function createCache() {
-	var cache,
-		keys = [];
-
-	return (cache = function( key, value ) {
-		// Use (key + " ") to avoid collision with native prototype properties (see Issue #157)
-		if ( keys.push( key += " " ) > Expr.cacheLength ) {
-			// Only keep the most recent entries
-			delete cache[ keys.shift() ];
-		}
-		return (cache[ key ] = value);
-	});
-}
-
-/**
- * Mark a function for special use by Sizzle
- * @param {Function} fn The function to mark
- */
-function markFunction( fn ) {
-	fn[ expando ] = true;
-	return fn;
-}
-
-/**
- * Support testing using an element
- * @param {Function} fn Passed the created div and expects a boolean result
- */
-function assert( fn ) {
-	var div = document.createElement("div");
-
-	try {
-		return fn( div );
-	} catch (e) {
-		return false;
-	} finally {
-		// release memory in IE
-		div = null;
-	}
 }
 
 function Sizzle( selector, context, results, seed ) {
@@ -3915,7 +1072,7 @@ function Sizzle( selector, context, results, seed ) {
 		return [];
 	}
 
-	if ( !documentIsXML && !seed ) {
+	if ( documentIsHTML && !seed ) {
 
 		// Shortcuts
 		if ( (match = rquickExpr.exec( selector )) ) {
@@ -3946,20 +1103,19 @@ function Sizzle( selector, context, results, seed ) {
 
 			// Speed-up: Sizzle("TAG")
 			} else if ( match[2] ) {
-				push.apply( results, slice.call(context.getElementsByTagName( selector ), 0) );
+				push.apply( results, context.getElementsByTagName( selector ) );
 				return results;
 
 			// Speed-up: Sizzle(".CLASS")
-			} else if ( (m = match[3]) && support.getByClassName && context.getElementsByClassName ) {
-				push.apply( results, slice.call(context.getElementsByClassName( m ), 0) );
+			} else if ( (m = match[3]) && support.getElementsByClassName && context.getElementsByClassName ) {
+				push.apply( results, context.getElementsByClassName( m ) );
 				return results;
 			}
 		}
 
 		// QSA path
-		if ( support.qsa && !rbuggyQSA.test(selector) ) {
-			old = true;
-			nid = expando;
+		if ( support.qsa && (!rbuggyQSA || !rbuggyQSA.test( selector )) ) {
+			nid = old = expando;
 			newContext = context;
 			newSelector = nodeType === 9 && selector;
 
@@ -3987,9 +1143,9 @@ function Sizzle( selector, context, results, seed ) {
 
 			if ( newSelector ) {
 				try {
-					push.apply( results, slice.call( newContext.querySelectorAll(
-						newSelector
-					), 0 ) );
+					push.apply( results,
+						newContext.querySelectorAll( newSelector )
+					);
 					return results;
 				} catch(qsaError) {
 				} finally {
@@ -4006,6 +1162,143 @@ function Sizzle( selector, context, results, seed ) {
 }
 
 /**
+ * Create key-value caches of limited size
+ * @returns {Function(string, Object)} Returns the Object data after storing it on itself with
+ *	property name the (space-suffixed) string and (if the cache is larger than Expr.cacheLength)
+ *	deleting the oldest entry
+ */
+function createCache() {
+	var keys = [];
+
+	function cache( key, value ) {
+		// Use (key + " ") to avoid collision with native prototype properties (see Issue #157)
+		if ( keys.push( key += " " ) > Expr.cacheLength ) {
+			// Only keep the most recent entries
+			delete cache[ keys.shift() ];
+		}
+		return (cache[ key ] = value);
+	}
+	return cache;
+}
+
+/**
+ * Mark a function for special use by Sizzle
+ * @param {Function} fn The function to mark
+ */
+function markFunction( fn ) {
+	fn[ expando ] = true;
+	return fn;
+}
+
+/**
+ * Support testing using an element
+ * @param {Function} fn Passed the created div and expects a boolean result
+ */
+function assert( fn ) {
+	var div = document.createElement("div");
+
+	try {
+		return !!fn( div );
+	} catch (e) {
+		return false;
+	} finally {
+		// Remove from its parent by default
+		if ( div.parentNode ) {
+			div.parentNode.removeChild( div );
+		}
+		// release memory in IE
+		div = null;
+	}
+}
+
+/**
+ * Adds the same handler for all of the specified attrs
+ * @param {String} attrs Pipe-separated list of attributes
+ * @param {Function} handler The method that will be applied
+ */
+function addHandle( attrs, handler ) {
+	var arr = attrs.split("|"),
+		i = attrs.length;
+
+	while ( i-- ) {
+		Expr.attrHandle[ arr[i] ] = handler;
+	}
+}
+
+/**
+ * Checks document order of two siblings
+ * @param {Element} a
+ * @param {Element} b
+ * @returns {Number} Returns less than 0 if a precedes b, greater than 0 if a follows b
+ */
+function siblingCheck( a, b ) {
+	var cur = b && a,
+		diff = cur && a.nodeType === 1 && b.nodeType === 1 &&
+			( ~b.sourceIndex || MAX_NEGATIVE ) -
+			( ~a.sourceIndex || MAX_NEGATIVE );
+
+	// Use IE sourceIndex if available on both nodes
+	if ( diff ) {
+		return diff;
+	}
+
+	// Check if b follows a
+	if ( cur ) {
+		while ( (cur = cur.nextSibling) ) {
+			if ( cur === b ) {
+				return -1;
+			}
+		}
+	}
+
+	return a ? 1 : -1;
+}
+
+/**
+ * Returns a function to use in pseudos for input types
+ * @param {String} type
+ */
+function createInputPseudo( type ) {
+	return function( elem ) {
+		var name = elem.nodeName.toLowerCase();
+		return name === "input" && elem.type === type;
+	};
+}
+
+/**
+ * Returns a function to use in pseudos for buttons
+ * @param {String} type
+ */
+function createButtonPseudo( type ) {
+	return function( elem ) {
+		var name = elem.nodeName.toLowerCase();
+		return (name === "input" || name === "button") && elem.type === type;
+	};
+}
+
+/**
+ * Returns a function to use in pseudos for positionals
+ * @param {Function} fn
+ */
+function createPositionalPseudo( fn ) {
+	return markFunction(function( argument ) {
+		argument = +argument;
+		return markFunction(function( seed, matches ) {
+			var j,
+				matchIndexes = fn( [], seed.length, argument ),
+				i = matchIndexes.length;
+
+			// Match elements found at the specified indexes
+			while ( i-- ) {
+				if ( seed[ (j = matchIndexes[i]) ] ) {
+					seed[j] = !(matches[j] = seed[j]);
+				}
+			}
+		});
+	});
+}
+
+/**
  * Detect xml
  * @param {Element|Object} elem An element or a document
  */
@@ -4016,13 +1309,17 @@ isXML = Sizzle.isXML = function( elem ) {
 	return documentElement ? documentElement.nodeName !== "HTML" : false;
 };
 
+// Expose support vars for convenience
+support = Sizzle.support = {};
+
 /**
  * Sets document-related variables once based on the current document
  * @param {Element|Object} [doc] An element or document object to use to set the document
  * @returns {Object} Returns the current document
  */
 setDocument = Sizzle.setDocument = function( node ) {
-	var doc = node ? node.ownerDocument || node : preferredDoc;
+	var doc = node ? node.ownerDocument || node : preferredDoc,
+		parent = doc.defaultView;
 
 	// If no document and documentElement is available, return
 	if ( doc === document || doc.nodeType !== 9 || !doc.documentElement ) {
@@ -4034,77 +1331,62 @@ setDocument = Sizzle.setDocument = function( node ) {
 	docElem = doc.documentElement;
 
 	// Support tests
-	documentIsXML = isXML( doc );
+	documentIsHTML = !isXML( doc );
+
+	// Support: IE>8
+	// If iframe document is assigned to "document" variable and if iframe has been reloaded,
+	// IE will throw "permission denied" error when accessing "document" variable, see jQuery #13936
+	// IE6-8 do not support the defaultView property so parent will be undefined
+	if ( parent && parent.attachEvent && parent !== parent.top ) {
+		parent.attachEvent( "onbeforeunload", function() {
+			setDocument();
+		});
+	}
+
+	/* Attributes
+	---------------------------------------------------------------------- */
+
+	// Support: IE<8
+	// Verify that getAttribute really returns attributes and not properties (excepting IE8 booleans)
+	support.attributes = assert(function( div ) {
+		div.className = "i";
+		return !div.getAttribute("className");
+	});
+
+	/* getElement(s)By*
+	---------------------------------------------------------------------- */
 
 	// Check if getElementsByTagName("*") returns only elements
-	support.tagNameNoComments = assert(function( div ) {
+	support.getElementsByTagName = assert(function( div ) {
 		div.appendChild( doc.createComment("") );
 		return !div.getElementsByTagName("*").length;
 	});
 
-	// Check if attributes should be retrieved by attribute nodes
-	support.attributes = assert(function( div ) {
-		div.innerHTML = "<select></select>";
-		var type = typeof div.lastChild.getAttribute("multiple");
-		// IE8 returns a string for some attributes even when not present
-		return type !== "boolean" && type !== "string";
-	});
-
 	// Check if getElementsByClassName can be trusted
-	support.getByClassName = assert(function( div ) {
-		// Opera can't find a second classname (in 9.6)
-		div.innerHTML = "<div class='hidden e'></div><div class='hidden'></div>";
-		if ( !div.getElementsByClassName || !div.getElementsByClassName("e").length ) {
-			return false;
-		}
+	support.getElementsByClassName = assert(function( div ) {
+		div.innerHTML = "<div class='a'></div><div class='a i'></div>";
 
-		// Safari 3.2 caches class attributes and doesn't catch changes
-		div.lastChild.className = "e";
-		return div.getElementsByClassName("e").length === 2;
+		// Support: Safari<4
+		// Catch class over-caching
+		div.firstChild.className = "i";
+		// Support: Opera<10
+		// Catch gEBCN failure to find non-leading classes
+		return div.getElementsByClassName("i").length === 2;
 	});
 
+	// Support: IE<10
 	// Check if getElementById returns elements by name
-	// Check if getElementsByName privileges form controls or returns elements by ID
-	support.getByName = assert(function( div ) {
-		// Inject content
-		div.id = expando + 0;
-		div.innerHTML = "<a name='" + expando + "'></a><div name='" + expando + "'></div>";
-		docElem.insertBefore( div, docElem.firstChild );
-
-		// Test
-		var pass = doc.getElementsByName &&
-			// buggy browsers will return fewer than the correct 2
-			doc.getElementsByName( expando ).length === 2 +
-			// buggy browsers will return more than the correct 0
-			doc.getElementsByName( expando + 0 ).length;
-		support.getIdNotName = !doc.getElementById( expando );
-
-		// Cleanup
-		docElem.removeChild( div );
-
-		return pass;
+	// The broken getElementById methods don't pick up programatically-set names,
+	// so use a roundabout getElementsByName test
+	support.getById = assert(function( div ) {
+		docElem.appendChild( div ).id = expando;
+		return !doc.getElementsByName || !doc.getElementsByName( expando ).length;
 	});
-
-	// IE6/7 return modified attributes
-	Expr.attrHandle = assert(function( div ) {
-		div.innerHTML = "<a href='#'></a>";
-		return div.firstChild && typeof div.firstChild.getAttribute !== strundefined &&
-			div.firstChild.getAttribute("href") === "#";
-	}) ?
-		{} :
-		{
-			"href": function( elem ) {
-				return elem.getAttribute( "href", 2 );
-			},
-			"type": function( elem ) {
-				return elem.getAttribute("type");
-			}
-		};
 
 	// ID find and filter
-	if ( support.getIdNotName ) {
+	if ( support.getById ) {
 		Expr.find["ID"] = function( id, context ) {
-			if ( typeof context.getElementById !== strundefined && !documentIsXML ) {
+			if ( typeof context.getElementById !== strundefined && documentIsHTML ) {
 				var m = context.getElementById( id );
 				// Check parentNode to catch when Blackberry 4.6 returns
 				// nodes that are no longer in the document #6963
@@ -4118,17 +1400,10 @@ setDocument = Sizzle.setDocument = function( node ) {
 			};
 		};
 	} else {
-		Expr.find["ID"] = function( id, context ) {
-			if ( typeof context.getElementById !== strundefined && !documentIsXML ) {
-				var m = context.getElementById( id );
+		// Support: IE6/7
+		// getElementById is not reliable as a find shortcut
+		delete Expr.find["ID"];
 
-				return m ?
-					m.id === id || typeof m.getAttributeNode !== strundefined && m.getAttributeNode("id").value === id ?
-						[m] :
-						undefined :
-					[];
-			}
-		};
 		Expr.filter["ID"] =  function( id ) {
 			var attrId = id.replace( runescape, funescape );
 			return function( elem ) {
@@ -4139,7 +1414,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 	}
 
 	// Tag
-	Expr.find["TAG"] = support.tagNameNoComments ?
+	Expr.find["TAG"] = support.getElementsByTagName ?
 		function( tag, context ) {
 			if ( typeof context.getElementsByTagName !== strundefined ) {
 				return context.getElementsByTagName( tag );
@@ -4164,44 +1439,43 @@ setDocument = Sizzle.setDocument = function( node ) {
 			return results;
 		};
 
-	// Name
-	Expr.find["NAME"] = support.getByName && function( tag, context ) {
-		if ( typeof context.getElementsByName !== strundefined ) {
-			return context.getElementsByName( name );
-		}
-	};
-
 	// Class
-	Expr.find["CLASS"] = support.getByClassName && function( className, context ) {
-		if ( typeof context.getElementsByClassName !== strundefined && !documentIsXML ) {
+	Expr.find["CLASS"] = support.getElementsByClassName && function( className, context ) {
+		if ( typeof context.getElementsByClassName !== strundefined && documentIsHTML ) {
 			return context.getElementsByClassName( className );
 		}
 	};
+
+	/* QSA/matchesSelector
+	---------------------------------------------------------------------- */
 
 	// QSA and matchesSelector support
 
 	// matchesSelector(:active) reports false when true (IE9/Opera 11.5)
 	rbuggyMatches = [];
 
-	// qSa(:focus) reports false when true (Chrome 21),
-	// no need to also add to buggyMatches since matches checks buggyQSA
-	// A support test would require too much code (would include document ready)
-	rbuggyQSA = [ ":focus" ];
+	// qSa(:focus) reports false when true (Chrome 21)
+	// We allow this because of a bug in IE8/9 that throws an error
+	// whenever `document.activeElement` is accessed on an iframe
+	// So, we allow :focus to pass through QSA all the time to avoid the IE error
+	// See http://bugs.jquery.com/ticket/13378
+	rbuggyQSA = [];
 
-	if ( (support.qsa = isNative(doc.querySelectorAll)) ) {
+	if ( (support.qsa = rnative.test( doc.querySelectorAll )) ) {
 		// Build QSA regex
 		// Regex strategy adopted from Diego Perini
 		assert(function( div ) {
 			// Select is set to empty string on purpose
-			// This is to test IE's treatment of not explictly
+			// This is to test IE's treatment of not explicitly
 			// setting a boolean content attribute,
 			// since its presence should be enough
 			// http://bugs.jquery.com/ticket/12359
 			div.innerHTML = "<select><option selected=''></option></select>";
 
-			// IE8 - Some boolean attributes are not treated correctly
+			// Support: IE8
+			// Boolean attributes and "value" are not treated correctly
 			if ( !div.querySelectorAll("[selected]").length ) {
-				rbuggyQSA.push( "\\[" + whitespace + "*(?:checked|disabled|ismap|multiple|readonly|selected|value)" );
+				rbuggyQSA.push( "\\[" + whitespace + "*(?:value|" + booleans + ")" );
 			}
 
 			// Webkit/Opera - :checked should return selected option elements
@@ -4214,11 +1488,17 @@ setDocument = Sizzle.setDocument = function( node ) {
 
 		assert(function( div ) {
 
-			// Opera 10-12/IE8 - ^= $= *= and empty values
+			// Support: Opera 10-12/IE8
+			// ^= $= *= and empty values
 			// Should not select anything
-			div.innerHTML = "<input type='hidden' i=''/>";
-			if ( div.querySelectorAll("[i^='']").length ) {
-				rbuggyQSA.push( "[*^$]=" + whitespace + "*(?:\"\"|'')" );
+			// Support: Windows 8 Native Apps
+			// The type attribute is restricted during .innerHTML assignment
+			var input = doc.createElement("input");
+			input.setAttribute( "type", "hidden" );
+			div.appendChild( input ).setAttribute( "t", "" );
+
+			if ( div.querySelectorAll("[t^='']").length ) {
+				rbuggyQSA.push( "[*^$]=" + whitespace + "*(?:''|\"\")" );
 			}
 
 			// FF 3.5 - :enabled/:disabled and hidden elements (hidden elements are still enabled)
@@ -4233,9 +1513,8 @@ setDocument = Sizzle.setDocument = function( node ) {
 		});
 	}
 
-	if ( (support.matchesSelector = isNative( (matches = docElem.matchesSelector ||
+	if ( (support.matchesSelector = rnative.test( (matches = docElem.webkitMatchesSelector ||
 		docElem.mozMatchesSelector ||
-		docElem.webkitMatchesSelector ||
 		docElem.oMatchesSelector ||
 		docElem.msMatchesSelector) )) ) {
 
@@ -4251,13 +1530,16 @@ setDocument = Sizzle.setDocument = function( node ) {
 		});
 	}
 
-	rbuggyQSA = new RegExp( rbuggyQSA.join("|") );
-	rbuggyMatches = new RegExp( rbuggyMatches.join("|") );
+	rbuggyQSA = rbuggyQSA.length && new RegExp( rbuggyQSA.join("|") );
+	rbuggyMatches = rbuggyMatches.length && new RegExp( rbuggyMatches.join("|") );
+
+	/* Contains
+	---------------------------------------------------------------------- */
 
 	// Element contains another
 	// Purposefully does not implement inclusive descendent
 	// As in, an element does not contain itself
-	contains = isNative(docElem.contains) || docElem.compareDocumentPosition ?
+	contains = rnative.test( docElem.contains ) || docElem.compareDocumentPosition ?
 		function( a, b ) {
 			var adown = a.nodeType === 9 ? a.documentElement : a,
 				bup = b && b.parentNode;
@@ -4278,29 +1560,44 @@ setDocument = Sizzle.setDocument = function( node ) {
 			return false;
 		};
 
+	/* Sorting
+	---------------------------------------------------------------------- */
+
 	// Document order sorting
 	sortOrder = docElem.compareDocumentPosition ?
 	function( a, b ) {
-		var compare;
 
+		// Flag for duplicate removal
 		if ( a === b ) {
 			hasDuplicate = true;
 			return 0;
 		}
 
-		if ( (compare = b.compareDocumentPosition && a.compareDocumentPosition && a.compareDocumentPosition( b )) ) {
-			if ( compare & 1 || a.parentNode && a.parentNode.nodeType === 11 ) {
-				if ( a === doc || contains( preferredDoc, a ) ) {
+		var compare = b.compareDocumentPosition && a.compareDocumentPosition && a.compareDocumentPosition( b );
+
+		if ( compare ) {
+			// Disconnected nodes
+			if ( compare & 1 ||
+				(!support.sortDetached && b.compareDocumentPosition( a ) === compare) ) {
+
+				// Choose the first element that is related to our preferred document
+				if ( a === doc || contains(preferredDoc, a) ) {
 					return -1;
 				}
-				if ( b === doc || contains( preferredDoc, b ) ) {
+				if ( b === doc || contains(preferredDoc, b) ) {
 					return 1;
 				}
-				return 0;
+
+				// Maintain original order
+				return sortInput ?
+					( indexOf.call( sortInput, a ) - indexOf.call( sortInput, b ) ) :
+					0;
 			}
+
 			return compare & 4 ? -1 : 1;
 		}
 
+		// Not directly comparable, sort on existence of method
 		return a.compareDocumentPosition ? -1 : 1;
 	} :
 	function( a, b ) {
@@ -4322,6 +1619,8 @@ setDocument = Sizzle.setDocument = function( node ) {
 				b === doc ? 1 :
 				aup ? -1 :
 				bup ? 1 :
+				sortInput ?
+				( indexOf.call( sortInput, a ) - indexOf.call( sortInput, b ) ) :
 				0;
 
 		// If the nodes are siblings, we can do a quick check
@@ -4354,13 +1653,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 			0;
 	};
 
-	// Always assume the presence of duplicates if sort doesn't
-	// pass them to our comparison function (as in Google Chrome).
-	hasDuplicate = false;
-	[0, 0].sort( sortOrder );
-	support.detectDuplicates = hasDuplicate;
-
-	return document;
+	return doc;
 };
 
 Sizzle.matches = function( expr, elements ) {
@@ -4376,8 +1669,10 @@ Sizzle.matchesSelector = function( elem, expr ) {
 	// Make sure that attribute selectors are quoted
 	expr = expr.replace( rattributeQuotes, "='$1']" );
 
-	// rbuggyQSA always contains :focus, so no need for an existence check
-	if ( support.matchesSelector && !documentIsXML && (!rbuggyMatches || !rbuggyMatches.test(expr)) && !rbuggyQSA.test(expr) ) {
+	if ( support.matchesSelector && documentIsHTML &&
+		( !rbuggyMatches || !rbuggyMatches.test( expr ) ) &&
+		( !rbuggyQSA     || !rbuggyQSA.test( expr ) ) ) {
+
 		try {
 			var ret = matches.call( elem, expr );
 
@@ -4403,45 +1698,48 @@ Sizzle.contains = function( context, elem ) {
 };
 
 Sizzle.attr = function( elem, name ) {
-	var val;
-
 	// Set document vars if needed
 	if ( ( elem.ownerDocument || elem ) !== document ) {
 		setDocument( elem );
 	}
 
-	if ( !documentIsXML ) {
-		name = name.toLowerCase();
-	}
-	if ( (val = Expr.attrHandle[ name ]) ) {
-		return val( elem );
-	}
-	if ( documentIsXML || support.attributes ) {
-		return elem.getAttribute( name );
-	}
-	return ( (val = elem.getAttributeNode( name )) || elem.getAttribute( name ) ) && elem[ name ] === true ?
-		name :
-		val && val.specified ? val.value : null;
+	var fn = Expr.attrHandle[ name.toLowerCase() ],
+		// Don't get fooled by Object.prototype properties (jQuery #13807)
+		val = fn && hasOwn.call( Expr.attrHandle, name.toLowerCase() ) ?
+			fn( elem, name, !documentIsHTML ) :
+			undefined;
+
+	return val === undefined ?
+		support.attributes || !documentIsHTML ?
+			elem.getAttribute( name ) :
+			(val = elem.getAttributeNode(name)) && val.specified ?
+				val.value :
+				null :
+		val;
 };
 
 Sizzle.error = function( msg ) {
 	throw new Error( "Syntax error, unrecognized expression: " + msg );
 };
 
-// Document sorting and removing duplicates
+/**
+ * Document sorting and removing duplicates
+ * @param {ArrayLike} results
+ */
 Sizzle.uniqueSort = function( results ) {
 	var elem,
 		duplicates = [],
-		i = 1,
-		j = 0;
+		j = 0,
+		i = 0;
 
 	// Unless we *know* we can detect duplicates, assume their presence
 	hasDuplicate = !support.detectDuplicates;
+	sortInput = !support.sortStable && results.slice( 0 );
 	results.sort( sortOrder );
 
 	if ( hasDuplicate ) {
-		for ( ; (elem = results[i]); i++ ) {
-			if ( elem === results[ i - 1 ] ) {
+		while ( (elem = results[i++]) ) {
+			if ( elem === results[ i ] ) {
 				j = duplicates.push( i );
 			}
 		}
@@ -4452,62 +1750,6 @@ Sizzle.uniqueSort = function( results ) {
 
 	return results;
 };
-
-function siblingCheck( a, b ) {
-	var cur = b && a,
-		diff = cur && ( ~b.sourceIndex || MAX_NEGATIVE ) - ( ~a.sourceIndex || MAX_NEGATIVE );
-
-	// Use IE sourceIndex if available on both nodes
-	if ( diff ) {
-		return diff;
-	}
-
-	// Check if b follows a
-	if ( cur ) {
-		while ( (cur = cur.nextSibling) ) {
-			if ( cur === b ) {
-				return -1;
-			}
-		}
-	}
-
-	return a ? 1 : -1;
-}
-
-// Returns a function to use in pseudos for input types
-function createInputPseudo( type ) {
-	return function( elem ) {
-		var name = elem.nodeName.toLowerCase();
-		return name === "input" && elem.type === type;
-	};
-}
-
-// Returns a function to use in pseudos for buttons
-function createButtonPseudo( type ) {
-	return function( elem ) {
-		var name = elem.nodeName.toLowerCase();
-		return (name === "input" || name === "button") && elem.type === type;
-	};
-}
-
-// Returns a function to use in pseudos for positionals
-function createPositionalPseudo( fn ) {
-	return markFunction(function( argument ) {
-		argument = +argument;
-		return markFunction(function( seed, matches ) {
-			var j,
-				matchIndexes = fn( [], seed.length, argument ),
-				i = matchIndexes.length;
-
-			// Match elements found at the specified indexes
-			while ( i-- ) {
-				if ( seed[ (j = matchIndexes[i]) ] ) {
-					seed[j] = !(matches[j] = seed[j]);
-				}
-			}
-		});
-	});
-}
 
 /**
  * Utility function for retrieving the text value of an array of DOM nodes
@@ -4552,6 +1794,8 @@ Expr = Sizzle.selectors = {
 	createPseudo: markFunction,
 
 	match: matchExpr,
+
+	attrHandle: {},
 
 	find: {},
 
@@ -4617,7 +1861,7 @@ Expr = Sizzle.selectors = {
 			}
 
 			// Accept quoted arguments as-is
-			if ( match[4] ) {
+			if ( match[3] && match[4] !== undefined ) {
 				match[2] = match[4];
 
 			// Strip excess characters from unquoted arguments
@@ -4639,15 +1883,13 @@ Expr = Sizzle.selectors = {
 
 	filter: {
 
-		"TAG": function( nodeName ) {
-			if ( nodeName === "*" ) {
-				return function() { return true; };
-			}
-
-			nodeName = nodeName.replace( runescape, funescape ).toLowerCase();
-			return function( elem ) {
-				return elem.nodeName && elem.nodeName.toLowerCase() === nodeName;
-			};
+		"TAG": function( nodeNameSelector ) {
+			var nodeName = nodeNameSelector.replace( runescape, funescape ).toLowerCase();
+			return nodeNameSelector === "*" ?
+				function() { return true; } :
+				function( elem ) {
+					return elem.nodeName && elem.nodeName.toLowerCase() === nodeName;
+				};
 		},
 
 		"CLASS": function( className ) {
@@ -4656,7 +1898,7 @@ Expr = Sizzle.selectors = {
 			return pattern ||
 				(pattern = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" )) &&
 				classCache( className, function( elem ) {
-					return pattern.test( elem.className || (typeof elem.getAttribute !== strundefined && elem.getAttribute("class")) || "" );
+					return pattern.test( typeof elem.className === "string" && elem.className || typeof elem.getAttribute !== strundefined && elem.getAttribute("class") || "" );
 				});
 		},
 
@@ -4861,7 +2103,7 @@ Expr = Sizzle.selectors = {
 		// The identifier C does not have to be a valid language name."
 		// http://www.w3.org/TR/selectors/#lang-pseudo
 		"lang": markFunction( function( lang ) {
-			// lang value must be a valid identifider
+			// lang value must be a valid identifier
 			if ( !ridentifier.test(lang || "") ) {
 				Sizzle.error( "unsupported lang: " + lang );
 			}
@@ -4869,9 +2111,9 @@ Expr = Sizzle.selectors = {
 			return function( elem ) {
 				var elemLang;
 				do {
-					if ( (elemLang = documentIsXML ?
-						elem.getAttribute("xml:lang") || elem.getAttribute("lang") :
-						elem.lang) ) {
+					if ( (elemLang = documentIsHTML ?
+						elem.lang :
+						elem.getAttribute("xml:lang") || elem.getAttribute("lang")) ) {
 
 						elemLang = elemLang.toLowerCase();
 						return elemLang === lang || elemLang.indexOf( lang + "-" ) === 0;
@@ -5010,6 +2252,8 @@ Expr = Sizzle.selectors = {
 	}
 };
 
+Expr.pseudos["nth"] = Expr.pseudos["eq"];
+
 // Add button/input type pseudos
 for ( i in { radio: true, checkbox: true, file: true, password: true, image: true } ) {
 	Expr.pseudos[ i ] = createInputPseudo( i );
@@ -5017,6 +2261,11 @@ for ( i in { radio: true, checkbox: true, file: true, password: true, image: tru
 for ( i in { submit: true, reset: true } ) {
 	Expr.pseudos[ i ] = createButtonPseudo( i );
 }
+
+// Easy API for creating new setFilters
+function setFilters() {}
+setFilters.prototype = Expr.filters = Expr.pseudos;
+Expr.setFilters = new setFilters();
 
 function tokenize( selector, parseOnly ) {
 	var matched, match, tokens, type,
@@ -5047,11 +2296,11 @@ function tokenize( selector, parseOnly ) {
 		// Combinators
 		if ( (match = rcombinators.exec( soFar )) ) {
 			matched = match.shift();
-			tokens.push( {
+			tokens.push({
 				value: matched,
 				// Cast descendant combinators to space
 				type: match[0].replace( rtrim, " " )
-			} );
+			});
 			soFar = soFar.slice( matched.length );
 		}
 
@@ -5060,11 +2309,11 @@ function tokenize( selector, parseOnly ) {
 			if ( (match = matchExpr[ type ].exec( soFar )) && (!preFilters[ type ] ||
 				(match = preFilters[ type ]( match ))) ) {
 				matched = match.shift();
-				tokens.push( {
+				tokens.push({
 					value: matched,
 					type: type,
 					matches: match
-				} );
+				});
 				soFar = soFar.slice( matched.length );
 			}
 		}
@@ -5311,7 +2560,10 @@ function matcherFromTokens( tokens ) {
 				}
 				return setMatcher(
 					i > 1 && elementMatcher( matchers ),
-					i > 1 && toSelector( tokens.slice( 0, i - 1 ) ).replace( rtrim, "$1" ),
+					i > 1 && toSelector(
+						// If the preceding token was a descendant combinator, insert an implicit any-element `*`
+						tokens.slice( 0, i - 1 ).concat({ value: tokens[ i - 2 ].type === " " ? "*" : "" })
+					).replace( rtrim, "$1" ),
 					matcher,
 					i < j && matcherFromTokens( tokens.slice( i, j ) ),
 					j < len && matcherFromTokens( (tokens = tokens.slice( j )) ),
@@ -5473,14 +2725,13 @@ function select( selector, context, results, seed ) {
 			// Take a shortcut and set the context if the root selector is an ID
 			tokens = match[0] = match[0].slice( 0 );
 			if ( tokens.length > 2 && (token = tokens[0]).type === "ID" &&
-					context.nodeType === 9 && !documentIsXML &&
+					support.getById && context.nodeType === 9 && documentIsHTML &&
 					Expr.relative[ tokens[1].type ] ) {
 
-				context = Expr.find["ID"]( token.matches[0].replace( runescape, funescape ), context )[0];
+				context = ( Expr.find["ID"]( token.matches[0].replace(runescape, funescape), context ) || [] )[0];
 				if ( !context ) {
 					return results;
 				}
-
 				selector = selector.slice( tokens.shift().value.length );
 			}
 
@@ -5504,7 +2755,7 @@ function select( selector, context, results, seed ) {
 						tokens.splice( i, 1 );
 						selector = seed.length && toSelector( tokens );
 						if ( !selector ) {
-							push.apply( results, slice.call( seed, 0 ) );
+							push.apply( results, seed );
 							return results;
 						}
 
@@ -5520,26 +2771,75 @@ function select( selector, context, results, seed ) {
 	compile( selector, match )(
 		seed,
 		context,
-		documentIsXML,
+		!documentIsHTML,
 		results,
 		rsibling.test( selector )
 	);
 	return results;
 }
 
-// Deprecated
-Expr.pseudos["nth"] = Expr.pseudos["eq"];
+// One-time assignments
 
-// Easy API for creating new setFilters
-function setFilters() {}
-Expr.filters = setFilters.prototype = Expr.pseudos;
-Expr.setFilters = new setFilters();
+// Sort stability
+support.sortStable = expando.split("").sort( sortOrder ).join("") === expando;
 
-// Initialize with the default document
+// Support: Chrome<14
+// Always assume duplicates if they aren't passed to the comparison function
+support.detectDuplicates = hasDuplicate;
+
+// Initialize against the default document
 setDocument();
 
-// Override sizzle attribute retrieval
-Sizzle.attr = jQuery.attr;
+// Support: Webkit<537.32 - Safari 6.0.3/Chrome 25 (fixed in Chrome 27)
+// Detached nodes confoundingly follow *each other*
+support.sortDetached = assert(function( div1 ) {
+	// Should return 1, but returns 4 (following)
+	return div1.compareDocumentPosition( document.createElement("div") ) & 1;
+});
+
+// Support: IE<8
+// Prevent attribute/property "interpolation"
+// http://msdn.microsoft.com/en-us/library/ms536429%28VS.85%29.aspx
+if ( !assert(function( div ) {
+	div.innerHTML = "<a href='#'></a>";
+	return div.firstChild.getAttribute("href") === "#" ;
+}) ) {
+	addHandle( "type|href|height|width", function( elem, name, isXML ) {
+		if ( !isXML ) {
+			return elem.getAttribute( name, name.toLowerCase() === "type" ? 1 : 2 );
+		}
+	});
+}
+
+// Support: IE<9
+// Use defaultValue in place of getAttribute("value")
+if ( !support.attributes || !assert(function( div ) {
+	div.innerHTML = "<input/>";
+	div.firstChild.setAttribute( "value", "" );
+	return div.firstChild.getAttribute( "value" ) === "";
+}) ) {
+	addHandle( "value", function( elem, name, isXML ) {
+		if ( !isXML && elem.nodeName.toLowerCase() === "input" ) {
+			return elem.defaultValue;
+		}
+	});
+}
+
+// Support: IE<9
+// Use getAttributeNode to fetch booleans when getAttribute lies
+if ( !assert(function( div ) {
+	return div.getAttribute("disabled") == null;
+}) ) {
+	addHandle( booleans, function( elem, name, isXML ) {
+		var val;
+		if ( !isXML ) {
+			return (val = elem.getAttributeNode( name )) && val.specified ?
+				val.value :
+				elem[ name ] === true ? name.toLowerCase() : null;
+		}
+	});
+}
+
 jQuery.find = Sizzle;
 jQuery.expr = Sizzle.selectors;
 jQuery.expr[":"] = jQuery.expr.pseudos;
@@ -5550,9 +2850,2291 @@ jQuery.contains = Sizzle.contains;
 
 
 })( window );
-var runtil = /Until$/,
+// String to Object options format cache
+var optionsCache = {};
+
+// Convert String-formatted options into Object-formatted ones and store in cache
+function createOptions( options ) {
+	var object = optionsCache[ options ] = {};
+	jQuery.each( options.match( core_rnotwhite ) || [], function( _, flag ) {
+		object[ flag ] = true;
+	});
+	return object;
+}
+
+/*
+ * Create a callback list using the following parameters:
+ *
+ *	options: an optional list of space-separated options that will change how
+ *			the callback list behaves or a more traditional option object
+ *
+ * By default a callback list will act like an event callback list and can be
+ * "fired" multiple times.
+ *
+ * Possible options:
+ *
+ *	once:			will ensure the callback list can only be fired once (like a Deferred)
+ *
+ *	memory:			will keep track of previous values and will call any callback added
+ *					after the list has been fired right away with the latest "memorized"
+ *					values (like a Deferred)
+ *
+ *	unique:			will ensure a callback can only be added once (no duplicate in the list)
+ *
+ *	stopOnFalse:	interrupt callings when a callback returns false
+ *
+ */
+jQuery.Callbacks = function( options ) {
+
+	// Convert options from String-formatted to Object-formatted if needed
+	// (we check in cache first)
+	options = typeof options === "string" ?
+		( optionsCache[ options ] || createOptions( options ) ) :
+		jQuery.extend( {}, options );
+
+	var // Last fire value (for non-forgettable lists)
+		memory,
+		// Flag to know if list was already fired
+		fired,
+		// Flag to know if list is currently firing
+		firing,
+		// First callback to fire (used internally by add and fireWith)
+		firingStart,
+		// End of the loop when firing
+		firingLength,
+		// Index of currently firing callback (modified by remove if needed)
+		firingIndex,
+		// Actual callback list
+		list = [],
+		// Stack of fire calls for repeatable lists
+		stack = !options.once && [],
+		// Fire callbacks
+		fire = function( data ) {
+			memory = options.memory && data;
+			fired = true;
+			firingIndex = firingStart || 0;
+			firingStart = 0;
+			firingLength = list.length;
+			firing = true;
+			for ( ; list && firingIndex < firingLength; firingIndex++ ) {
+				if ( list[ firingIndex ].apply( data[ 0 ], data[ 1 ] ) === false && options.stopOnFalse ) {
+					memory = false; // To prevent further calls using add
+					break;
+				}
+			}
+			firing = false;
+			if ( list ) {
+				if ( stack ) {
+					if ( stack.length ) {
+						fire( stack.shift() );
+					}
+				} else if ( memory ) {
+					list = [];
+				} else {
+					self.disable();
+				}
+			}
+		},
+		// Actual Callbacks object
+		self = {
+			// Add a callback or a collection of callbacks to the list
+			add: function() {
+				if ( list ) {
+					// First, we save the current length
+					var start = list.length;
+					(function add( args ) {
+						jQuery.each( args, function( _, arg ) {
+							var type = jQuery.type( arg );
+							if ( type === "function" ) {
+								if ( !options.unique || !self.has( arg ) ) {
+									list.push( arg );
+								}
+							} else if ( arg && arg.length && type !== "string" ) {
+								// Inspect recursively
+								add( arg );
+							}
+						});
+					})( arguments );
+					// Do we need to add the callbacks to the
+					// current firing batch?
+					if ( firing ) {
+						firingLength = list.length;
+					// With memory, if we're not firing then
+					// we should call right away
+					} else if ( memory ) {
+						firingStart = start;
+						fire( memory );
+					}
+				}
+				return this;
+			},
+			// Remove a callback from the list
+			remove: function() {
+				if ( list ) {
+					jQuery.each( arguments, function( _, arg ) {
+						var index;
+						while( ( index = jQuery.inArray( arg, list, index ) ) > -1 ) {
+							list.splice( index, 1 );
+							// Handle firing indexes
+							if ( firing ) {
+								if ( index <= firingLength ) {
+									firingLength--;
+								}
+								if ( index <= firingIndex ) {
+									firingIndex--;
+								}
+							}
+						}
+					});
+				}
+				return this;
+			},
+			// Check if a given callback is in the list.
+			// If no argument is given, return whether or not list has callbacks attached.
+			has: function( fn ) {
+				return fn ? jQuery.inArray( fn, list ) > -1 : !!( list && list.length );
+			},
+			// Remove all callbacks from the list
+			empty: function() {
+				list = [];
+				firingLength = 0;
+				return this;
+			},
+			// Have the list do nothing anymore
+			disable: function() {
+				list = stack = memory = undefined;
+				return this;
+			},
+			// Is it disabled?
+			disabled: function() {
+				return !list;
+			},
+			// Lock the list in its current state
+			lock: function() {
+				stack = undefined;
+				if ( !memory ) {
+					self.disable();
+				}
+				return this;
+			},
+			// Is it locked?
+			locked: function() {
+				return !stack;
+			},
+			// Call all callbacks with the given context and arguments
+			fireWith: function( context, args ) {
+				if ( list && ( !fired || stack ) ) {
+					args = args || [];
+					args = [ context, args.slice ? args.slice() : args ];
+					if ( firing ) {
+						stack.push( args );
+					} else {
+						fire( args );
+					}
+				}
+				return this;
+			},
+			// Call all the callbacks with the given arguments
+			fire: function() {
+				self.fireWith( this, arguments );
+				return this;
+			},
+			// To know if the callbacks have already been called at least once
+			fired: function() {
+				return !!fired;
+			}
+		};
+
+	return self;
+};
+jQuery.extend({
+
+	Deferred: function( func ) {
+		var tuples = [
+				// action, add listener, listener list, final state
+				[ "resolve", "done", jQuery.Callbacks("once memory"), "resolved" ],
+				[ "reject", "fail", jQuery.Callbacks("once memory"), "rejected" ],
+				[ "notify", "progress", jQuery.Callbacks("memory") ]
+			],
+			state = "pending",
+			promise = {
+				state: function() {
+					return state;
+				},
+				always: function() {
+					deferred.done( arguments ).fail( arguments );
+					return this;
+				},
+				then: function( /* fnDone, fnFail, fnProgress */ ) {
+					var fns = arguments;
+					return jQuery.Deferred(function( newDefer ) {
+						jQuery.each( tuples, function( i, tuple ) {
+							var action = tuple[ 0 ],
+								fn = jQuery.isFunction( fns[ i ] ) && fns[ i ];
+							// deferred[ done | fail | progress ] for forwarding actions to newDefer
+							deferred[ tuple[1] ](function() {
+								var returned = fn && fn.apply( this, arguments );
+								if ( returned && jQuery.isFunction( returned.promise ) ) {
+									returned.promise()
+										.done( newDefer.resolve )
+										.fail( newDefer.reject )
+										.progress( newDefer.notify );
+								} else {
+									newDefer[ action + "With" ]( this === promise ? newDefer.promise() : this, fn ? [ returned ] : arguments );
+								}
+							});
+						});
+						fns = null;
+					}).promise();
+				},
+				// Get a promise for this deferred
+				// If obj is provided, the promise aspect is added to the object
+				promise: function( obj ) {
+					return obj != null ? jQuery.extend( obj, promise ) : promise;
+				}
+			},
+			deferred = {};
+
+		// Keep pipe for back-compat
+		promise.pipe = promise.then;
+
+		// Add list-specific methods
+		jQuery.each( tuples, function( i, tuple ) {
+			var list = tuple[ 2 ],
+				stateString = tuple[ 3 ];
+
+			// promise[ done | fail | progress ] = list.add
+			promise[ tuple[1] ] = list.add;
+
+			// Handle state
+			if ( stateString ) {
+				list.add(function() {
+					// state = [ resolved | rejected ]
+					state = stateString;
+
+				// [ reject_list | resolve_list ].disable; progress_list.lock
+				}, tuples[ i ^ 1 ][ 2 ].disable, tuples[ 2 ][ 2 ].lock );
+			}
+
+			// deferred[ resolve | reject | notify ]
+			deferred[ tuple[0] ] = function() {
+				deferred[ tuple[0] + "With" ]( this === deferred ? promise : this, arguments );
+				return this;
+			};
+			deferred[ tuple[0] + "With" ] = list.fireWith;
+		});
+
+		// Make the deferred a promise
+		promise.promise( deferred );
+
+		// Call given func if any
+		if ( func ) {
+			func.call( deferred, deferred );
+		}
+
+		// All done!
+		return deferred;
+	},
+
+	// Deferred helper
+	when: function( subordinate /* , ..., subordinateN */ ) {
+		var i = 0,
+			resolveValues = core_slice.call( arguments ),
+			length = resolveValues.length,
+
+			// the count of uncompleted subordinates
+			remaining = length !== 1 || ( subordinate && jQuery.isFunction( subordinate.promise ) ) ? length : 0,
+
+			// the master Deferred. If resolveValues consist of only a single Deferred, just use that.
+			deferred = remaining === 1 ? subordinate : jQuery.Deferred(),
+
+			// Update function for both resolve and progress values
+			updateFunc = function( i, contexts, values ) {
+				return function( value ) {
+					contexts[ i ] = this;
+					values[ i ] = arguments.length > 1 ? core_slice.call( arguments ) : value;
+					if( values === progressValues ) {
+						deferred.notifyWith( contexts, values );
+					} else if ( !( --remaining ) ) {
+						deferred.resolveWith( contexts, values );
+					}
+				};
+			},
+
+			progressValues, progressContexts, resolveContexts;
+
+		// add listeners to Deferred subordinates; treat others as resolved
+		if ( length > 1 ) {
+			progressValues = new Array( length );
+			progressContexts = new Array( length );
+			resolveContexts = new Array( length );
+			for ( ; i < length; i++ ) {
+				if ( resolveValues[ i ] && jQuery.isFunction( resolveValues[ i ].promise ) ) {
+					resolveValues[ i ].promise()
+						.done( updateFunc( i, resolveContexts, resolveValues ) )
+						.fail( deferred.reject )
+						.progress( updateFunc( i, progressContexts, progressValues ) );
+				} else {
+					--remaining;
+				}
+			}
+		}
+
+		// if we're not waiting on anything, resolve the master
+		if ( !remaining ) {
+			deferred.resolveWith( resolveContexts, resolveValues );
+		}
+
+		return deferred.promise();
+	}
+});
+jQuery.support = (function( support ) {
+	var input = document.createElement("input"),
+		fragment = document.createDocumentFragment(),
+		div = document.createElement("div"),
+		select = document.createElement("select"),
+		opt = select.appendChild( document.createElement("option") );
+
+	// Finish early in limited environments
+	if ( !input.type ) {
+		return support;
+	}
+
+	input.type = "checkbox";
+
+	// Support: Safari 5.1, iOS 5.1, Android 4.x, Android 2.3
+	// Check the default checkbox/radio value ("" on old WebKit; "on" elsewhere)
+	support.checkOn = input.value !== "";
+
+	// Must access the parent to make an option select properly
+	// Support: IE9, IE10
+	support.optSelected = opt.selected;
+
+	// Will be defined later
+	support.reliableMarginRight = true;
+	support.boxSizingReliable = true;
+	support.pixelPosition = false;
+
+	// Make sure checked status is properly cloned
+	// Support: IE9, IE10
+	input.checked = true;
+	support.noCloneChecked = input.cloneNode( true ).checked;
+
+	// Make sure that the options inside disabled selects aren't marked as disabled
+	// (WebKit marks them as disabled)
+	select.disabled = true;
+	support.optDisabled = !opt.disabled;
+
+	// Check if an input maintains its value after becoming a radio
+	// Support: IE9, IE10
+	input = document.createElement("input");
+	input.value = "t";
+	input.type = "radio";
+	support.radioValue = input.value === "t";
+
+	// #11217 - WebKit loses check when the name is after the checked attribute
+	input.setAttribute( "checked", "t" );
+	input.setAttribute( "name", "t" );
+
+	fragment.appendChild( input );
+
+	// Support: Safari 5.1, Android 4.x, Android 2.3
+	// old WebKit doesn't clone checked state correctly in fragments
+	support.checkClone = fragment.cloneNode( true ).cloneNode( true ).lastChild.checked;
+
+	// Support: Firefox, Chrome, Safari
+	// Beware of CSP restrictions (https://developer.mozilla.org/en/Security/CSP)
+	support.focusinBubbles = "onfocusin" in window;
+
+	div.style.backgroundClip = "content-box";
+	div.cloneNode( true ).style.backgroundClip = "";
+	support.clearCloneStyle = div.style.backgroundClip === "content-box";
+
+	// Run tests that need a body at doc ready
+	jQuery(function() {
+		var container, marginDiv,
+			// Support: Firefox, Android 2.3 (Prefixed box-sizing versions).
+			divReset = "padding:0;margin:0;border:0;display:block;-webkit-box-sizing:content-box;-moz-box-sizing:content-box;box-sizing:content-box",
+			body = document.getElementsByTagName("body")[ 0 ];
+
+		if ( !body ) {
+			// Return for frameset docs that don't have a body
+			return;
+		}
+
+		container = document.createElement("div");
+		container.style.cssText = "border:0;width:0;height:0;position:absolute;top:0;left:-9999px;margin-top:1px";
+
+		// Check box-sizing and margin behavior.
+		body.appendChild( container ).appendChild( div );
+		div.innerHTML = "";
+		// Support: Firefox, Android 2.3 (Prefixed box-sizing versions).
+		div.style.cssText = "-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;padding:1px;border:1px;display:block;width:4px;margin-top:1%;position:absolute;top:1%";
+
+		// Workaround failing boxSizing test due to offsetWidth returning wrong value
+		// with some non-1 values of body zoom, ticket #13543
+		jQuery.swap( body, body.style.zoom != null ? { zoom: 1 } : {}, function() {
+			support.boxSizing = div.offsetWidth === 4;
+		});
+
+		// Use window.getComputedStyle because jsdom on node.js will break without it.
+		if ( window.getComputedStyle ) {
+			support.pixelPosition = ( window.getComputedStyle( div, null ) || {} ).top !== "1%";
+			support.boxSizingReliable = ( window.getComputedStyle( div, null ) || { width: "4px" } ).width === "4px";
+
+			// Support: Android 2.3
+			// Check if div with explicit width and no margin-right incorrectly
+			// gets computed margin-right based on width of container. (#3333)
+			// WebKit Bug 13343 - getComputedStyle returns wrong value for margin-right
+			marginDiv = div.appendChild( document.createElement("div") );
+			marginDiv.style.cssText = div.style.cssText = divReset;
+			marginDiv.style.marginRight = marginDiv.style.width = "0";
+			div.style.width = "1px";
+
+			support.reliableMarginRight =
+				!parseFloat( ( window.getComputedStyle( marginDiv, null ) || {} ).marginRight );
+		}
+
+		body.removeChild( container );
+	});
+
+	return support;
+})( {} );
+
+/*
+	Implementation Summary
+
+	1. Enforce API surface and semantic compatibility with 1.9.x branch
+	2. Improve the module's maintainability by reducing the storage
+		paths to a single mechanism.
+	3. Use the same single mechanism to support "private" and "user" data.
+	4. _Never_ expose "private" data to user code (TODO: Drop _data, _removeData)
+	5. Avoid exposing implementation details on user objects (eg. expando properties)
+	6. Provide a clear path for implementation upgrade to WeakMap in 2014
+*/
+var data_user, data_priv,
+	rbrace = /(?:\{[\s\S]*\}|\[[\s\S]*\])$/,
+	rmultiDash = /([A-Z])/g;
+
+function Data() {
+	// Support: Android < 4,
+	// Old WebKit does not have Object.preventExtensions/freeze method,
+	// return new empty object instead with no [[set]] accessor
+	Object.defineProperty( this.cache = {}, 0, {
+		get: function() {
+			return {};
+		}
+	});
+
+	this.expando = jQuery.expando + Math.random();
+}
+
+Data.uid = 1;
+
+Data.accepts = function( owner ) {
+	// Accepts only:
+	//  - Node
+	//    - Node.ELEMENT_NODE
+	//    - Node.DOCUMENT_NODE
+	//  - Object
+	//    - Any
+	return owner.nodeType ?
+		owner.nodeType === 1 || owner.nodeType === 9 : true;
+};
+
+Data.prototype = {
+	key: function( owner ) {
+		// We can accept data for non-element nodes in modern browsers,
+		// but we should not, see #8335.
+		// Always return the key for a frozen object.
+		if ( !Data.accepts( owner ) ) {
+			return 0;
+		}
+
+		var descriptor = {},
+			// Check if the owner object already has a cache key
+			unlock = owner[ this.expando ];
+
+		// If not, create one
+		if ( !unlock ) {
+			unlock = Data.uid++;
+
+			// Secure it in a non-enumerable, non-writable property
+			try {
+				descriptor[ this.expando ] = { value: unlock };
+				Object.defineProperties( owner, descriptor );
+
+			// Support: Android < 4
+			// Fallback to a less secure definition
+			} catch ( e ) {
+				descriptor[ this.expando ] = unlock;
+				jQuery.extend( owner, descriptor );
+			}
+		}
+
+		// Ensure the cache object
+		if ( !this.cache[ unlock ] ) {
+			this.cache[ unlock ] = {};
+		}
+
+		return unlock;
+	},
+	set: function( owner, data, value ) {
+		var prop,
+			// There may be an unlock assigned to this node,
+			// if there is no entry for this "owner", create one inline
+			// and set the unlock as though an owner entry had always existed
+			unlock = this.key( owner ),
+			cache = this.cache[ unlock ];
+
+		// Handle: [ owner, key, value ] args
+		if ( typeof data === "string" ) {
+			cache[ data ] = value;
+
+		// Handle: [ owner, { properties } ] args
+		} else {
+			// Fresh assignments by object are shallow copied
+			if ( jQuery.isEmptyObject( cache ) ) {
+				jQuery.extend( this.cache[ unlock ], data );
+			// Otherwise, copy the properties one-by-one to the cache object
+			} else {
+				for ( prop in data ) {
+					cache[ prop ] = data[ prop ];
+				}
+			}
+		}
+		return cache;
+	},
+	get: function( owner, key ) {
+		// Either a valid cache is found, or will be created.
+		// New caches will be created and the unlock returned,
+		// allowing direct access to the newly created
+		// empty data object. A valid owner object must be provided.
+		var cache = this.cache[ this.key( owner ) ];
+
+		return key === undefined ?
+			cache : cache[ key ];
+	},
+	access: function( owner, key, value ) {
+		var stored;
+		// In cases where either:
+		//
+		//   1. No key was specified
+		//   2. A string key was specified, but no value provided
+		//
+		// Take the "read" path and allow the get method to determine
+		// which value to return, respectively either:
+		//
+		//   1. The entire cache object
+		//   2. The data stored at the key
+		//
+		if ( key === undefined ||
+				((key && typeof key === "string") && value === undefined) ) {
+
+			stored = this.get( owner, key );
+
+			return stored !== undefined ?
+				stored : this.get( owner, jQuery.camelCase(key) );
+		}
+
+		// [*]When the key is not a string, or both a key and value
+		// are specified, set or extend (existing objects) with either:
+		//
+		//   1. An object of properties
+		//   2. A key and value
+		//
+		this.set( owner, key, value );
+
+		// Since the "set" path can have two possible entry points
+		// return the expected data based on which path was taken[*]
+		return value !== undefined ? value : key;
+	},
+	remove: function( owner, key ) {
+		var i, name, camel,
+			unlock = this.key( owner ),
+			cache = this.cache[ unlock ];
+
+		if ( key === undefined ) {
+			this.cache[ unlock ] = {};
+
+		} else {
+			// Support array or space separated string of keys
+			if ( jQuery.isArray( key ) ) {
+				// If "name" is an array of keys...
+				// When data is initially created, via ("key", "val") signature,
+				// keys will be converted to camelCase.
+				// Since there is no way to tell _how_ a key was added, remove
+				// both plain key and camelCase key. #12786
+				// This will only penalize the array argument path.
+				name = key.concat( key.map( jQuery.camelCase ) );
+			} else {
+				camel = jQuery.camelCase( key );
+				// Try the string as a key before any manipulation
+				if ( key in cache ) {
+					name = [ key, camel ];
+				} else {
+					// If a key with the spaces exists, use it.
+					// Otherwise, create an array by matching non-whitespace
+					name = camel;
+					name = name in cache ?
+						[ name ] : ( name.match( core_rnotwhite ) || [] );
+				}
+			}
+
+			i = name.length;
+			while ( i-- ) {
+				delete cache[ name[ i ] ];
+			}
+		}
+	},
+	hasData: function( owner ) {
+		return !jQuery.isEmptyObject(
+			this.cache[ owner[ this.expando ] ] || {}
+		);
+	},
+	discard: function( owner ) {
+		if ( owner[ this.expando ] ) {
+			delete this.cache[ owner[ this.expando ] ];
+		}
+	}
+};
+
+// These may be used throughout the jQuery core codebase
+data_user = new Data();
+data_priv = new Data();
+
+
+jQuery.extend({
+	acceptData: Data.accepts,
+
+	hasData: function( elem ) {
+		return data_user.hasData( elem ) || data_priv.hasData( elem );
+	},
+
+	data: function( elem, name, data ) {
+		return data_user.access( elem, name, data );
+	},
+
+	removeData: function( elem, name ) {
+		data_user.remove( elem, name );
+	},
+
+	// TODO: Now that all calls to _data and _removeData have been replaced
+	// with direct calls to data_priv methods, these can be deprecated.
+	_data: function( elem, name, data ) {
+		return data_priv.access( elem, name, data );
+	},
+
+	_removeData: function( elem, name ) {
+		data_priv.remove( elem, name );
+	}
+});
+
+jQuery.fn.extend({
+	data: function( key, value ) {
+		var attrs, name,
+			elem = this[ 0 ],
+			i = 0,
+			data = null;
+
+		// Gets all values
+		if ( key === undefined ) {
+			if ( this.length ) {
+				data = data_user.get( elem );
+
+				if ( elem.nodeType === 1 && !data_priv.get( elem, "hasDataAttrs" ) ) {
+					attrs = elem.attributes;
+					for ( ; i < attrs.length; i++ ) {
+						name = attrs[ i ].name;
+
+						if ( name.indexOf( "data-" ) === 0 ) {
+							name = jQuery.camelCase( name.slice(5) );
+							dataAttr( elem, name, data[ name ] );
+						}
+					}
+					data_priv.set( elem, "hasDataAttrs", true );
+				}
+			}
+
+			return data;
+		}
+
+		// Sets multiple values
+		if ( typeof key === "object" ) {
+			return this.each(function() {
+				data_user.set( this, key );
+			});
+		}
+
+		return jQuery.access( this, function( value ) {
+			var data,
+				camelKey = jQuery.camelCase( key );
+
+			// The calling jQuery object (element matches) is not empty
+			// (and therefore has an element appears at this[ 0 ]) and the
+			// `value` parameter was not undefined. An empty jQuery object
+			// will result in `undefined` for elem = this[ 0 ] which will
+			// throw an exception if an attempt to read a data cache is made.
+			if ( elem && value === undefined ) {
+				// Attempt to get data from the cache
+				// with the key as-is
+				data = data_user.get( elem, key );
+				if ( data !== undefined ) {
+					return data;
+				}
+
+				// Attempt to get data from the cache
+				// with the key camelized
+				data = data_user.get( elem, camelKey );
+				if ( data !== undefined ) {
+					return data;
+				}
+
+				// Attempt to "discover" the data in
+				// HTML5 custom data-* attrs
+				data = dataAttr( elem, camelKey, undefined );
+				if ( data !== undefined ) {
+					return data;
+				}
+
+				// We tried really hard, but the data doesn't exist.
+				return;
+			}
+
+			// Set the data...
+			this.each(function() {
+				// First, attempt to store a copy or reference of any
+				// data that might've been store with a camelCased key.
+				var data = data_user.get( this, camelKey );
+
+				// For HTML5 data-* attribute interop, we have to
+				// store property names with dashes in a camelCase form.
+				// This might not apply to all properties...*
+				data_user.set( this, camelKey, value );
+
+				// *... In the case of properties that might _actually_
+				// have dashes, we need to also store a copy of that
+				// unchanged property.
+				if ( key.indexOf("-") !== -1 && data !== undefined ) {
+					data_user.set( this, key, value );
+				}
+			});
+		}, null, value, arguments.length > 1, null, true );
+	},
+
+	removeData: function( key ) {
+		return this.each(function() {
+			data_user.remove( this, key );
+		});
+	}
+});
+
+function dataAttr( elem, key, data ) {
+	var name;
+
+	// If nothing was found internally, try to fetch any
+	// data from the HTML5 data-* attribute
+	if ( data === undefined && elem.nodeType === 1 ) {
+		name = "data-" + key.replace( rmultiDash, "-$1" ).toLowerCase();
+		data = elem.getAttribute( name );
+
+		if ( typeof data === "string" ) {
+			try {
+				data = data === "true" ? true :
+					data === "false" ? false :
+					data === "null" ? null :
+					// Only convert to a number if it doesn't change the string
+					+data + "" === data ? +data :
+					rbrace.test( data ) ? JSON.parse( data ) :
+					data;
+			} catch( e ) {}
+
+			// Make sure we set the data so it isn't changed later
+			data_user.set( elem, key, data );
+		} else {
+			data = undefined;
+		}
+	}
+	return data;
+}
+jQuery.extend({
+	queue: function( elem, type, data ) {
+		var queue;
+
+		if ( elem ) {
+			type = ( type || "fx" ) + "queue";
+			queue = data_priv.get( elem, type );
+
+			// Speed up dequeue by getting out quickly if this is just a lookup
+			if ( data ) {
+				if ( !queue || jQuery.isArray( data ) ) {
+					queue = data_priv.access( elem, type, jQuery.makeArray(data) );
+				} else {
+					queue.push( data );
+				}
+			}
+			return queue || [];
+		}
+	},
+
+	dequeue: function( elem, type ) {
+		type = type || "fx";
+
+		var queue = jQuery.queue( elem, type ),
+			startLength = queue.length,
+			fn = queue.shift(),
+			hooks = jQuery._queueHooks( elem, type ),
+			next = function() {
+				jQuery.dequeue( elem, type );
+			};
+
+		// If the fx queue is dequeued, always remove the progress sentinel
+		if ( fn === "inprogress" ) {
+			fn = queue.shift();
+			startLength--;
+		}
+
+		if ( fn ) {
+
+			// Add a progress sentinel to prevent the fx queue from being
+			// automatically dequeued
+			if ( type === "fx" ) {
+				queue.unshift( "inprogress" );
+			}
+
+			// clear up the last queue stop function
+			delete hooks.stop;
+			fn.call( elem, next, hooks );
+		}
+
+		if ( !startLength && hooks ) {
+			hooks.empty.fire();
+		}
+	},
+
+	// not intended for public consumption - generates a queueHooks object, or returns the current one
+	_queueHooks: function( elem, type ) {
+		var key = type + "queueHooks";
+		return data_priv.get( elem, key ) || data_priv.access( elem, key, {
+			empty: jQuery.Callbacks("once memory").add(function() {
+				data_priv.remove( elem, [ type + "queue", key ] );
+			})
+		});
+	}
+});
+
+jQuery.fn.extend({
+	queue: function( type, data ) {
+		var setter = 2;
+
+		if ( typeof type !== "string" ) {
+			data = type;
+			type = "fx";
+			setter--;
+		}
+
+		if ( arguments.length < setter ) {
+			return jQuery.queue( this[0], type );
+		}
+
+		return data === undefined ?
+			this :
+			this.each(function() {
+				var queue = jQuery.queue( this, type, data );
+
+				// ensure a hooks for this queue
+				jQuery._queueHooks( this, type );
+
+				if ( type === "fx" && queue[0] !== "inprogress" ) {
+					jQuery.dequeue( this, type );
+				}
+			});
+	},
+	dequeue: function( type ) {
+		return this.each(function() {
+			jQuery.dequeue( this, type );
+		});
+	},
+	// Based off of the plugin by Clint Helfers, with permission.
+	// http://blindsignals.com/index.php/2009/07/jquery-delay/
+	delay: function( time, type ) {
+		time = jQuery.fx ? jQuery.fx.speeds[ time ] || time : time;
+		type = type || "fx";
+
+		return this.queue( type, function( next, hooks ) {
+			var timeout = setTimeout( next, time );
+			hooks.stop = function() {
+				clearTimeout( timeout );
+			};
+		});
+	},
+	clearQueue: function( type ) {
+		return this.queue( type || "fx", [] );
+	},
+	// Get a promise resolved when queues of a certain type
+	// are emptied (fx is the type by default)
+	promise: function( type, obj ) {
+		var tmp,
+			count = 1,
+			defer = jQuery.Deferred(),
+			elements = this,
+			i = this.length,
+			resolve = function() {
+				if ( !( --count ) ) {
+					defer.resolveWith( elements, [ elements ] );
+				}
+			};
+
+		if ( typeof type !== "string" ) {
+			obj = type;
+			type = undefined;
+		}
+		type = type || "fx";
+
+		while( i-- ) {
+			tmp = data_priv.get( elements[ i ], type + "queueHooks" );
+			if ( tmp && tmp.empty ) {
+				count++;
+				tmp.empty.add( resolve );
+			}
+		}
+		resolve();
+		return defer.promise( obj );
+	}
+});
+var nodeHook, boolHook,
+	rclass = /[\t\r\n\f]/g,
+	rreturn = /\r/g,
+	rfocusable = /^(?:input|select|textarea|button)$/i;
+
+jQuery.fn.extend({
+	attr: function( name, value ) {
+		return jQuery.access( this, jQuery.attr, name, value, arguments.length > 1 );
+	},
+
+	removeAttr: function( name ) {
+		return this.each(function() {
+			jQuery.removeAttr( this, name );
+		});
+	},
+
+	prop: function( name, value ) {
+		return jQuery.access( this, jQuery.prop, name, value, arguments.length > 1 );
+	},
+
+	removeProp: function( name ) {
+		return this.each(function() {
+			delete this[ jQuery.propFix[ name ] || name ];
+		});
+	},
+
+	addClass: function( value ) {
+		var classes, elem, cur, clazz, j,
+			i = 0,
+			len = this.length,
+			proceed = typeof value === "string" && value;
+
+		if ( jQuery.isFunction( value ) ) {
+			return this.each(function( j ) {
+				jQuery( this ).addClass( value.call( this, j, this.className ) );
+			});
+		}
+
+		if ( proceed ) {
+			// The disjunction here is for better compressibility (see removeClass)
+			classes = ( value || "" ).match( core_rnotwhite ) || [];
+
+			for ( ; i < len; i++ ) {
+				elem = this[ i ];
+				cur = elem.nodeType === 1 && ( elem.className ?
+					( " " + elem.className + " " ).replace( rclass, " " ) :
+					" "
+				);
+
+				if ( cur ) {
+					j = 0;
+					while ( (clazz = classes[j++]) ) {
+						if ( cur.indexOf( " " + clazz + " " ) < 0 ) {
+							cur += clazz + " ";
+						}
+					}
+					elem.className = jQuery.trim( cur );
+
+				}
+			}
+		}
+
+		return this;
+	},
+
+	removeClass: function( value ) {
+		var classes, elem, cur, clazz, j,
+			i = 0,
+			len = this.length,
+			proceed = arguments.length === 0 || typeof value === "string" && value;
+
+		if ( jQuery.isFunction( value ) ) {
+			return this.each(function( j ) {
+				jQuery( this ).removeClass( value.call( this, j, this.className ) );
+			});
+		}
+		if ( proceed ) {
+			classes = ( value || "" ).match( core_rnotwhite ) || [];
+
+			for ( ; i < len; i++ ) {
+				elem = this[ i ];
+				// This expression is here for better compressibility (see addClass)
+				cur = elem.nodeType === 1 && ( elem.className ?
+					( " " + elem.className + " " ).replace( rclass, " " ) :
+					""
+				);
+
+				if ( cur ) {
+					j = 0;
+					while ( (clazz = classes[j++]) ) {
+						// Remove *all* instances
+						while ( cur.indexOf( " " + clazz + " " ) >= 0 ) {
+							cur = cur.replace( " " + clazz + " ", " " );
+						}
+					}
+					elem.className = value ? jQuery.trim( cur ) : "";
+				}
+			}
+		}
+
+		return this;
+	},
+
+	toggleClass: function( value, stateVal ) {
+		var type = typeof value;
+
+		if ( typeof stateVal === "boolean" && type === "string" ) {
+			return stateVal ? this.addClass( value ) : this.removeClass( value );
+		}
+
+		if ( jQuery.isFunction( value ) ) {
+			return this.each(function( i ) {
+				jQuery( this ).toggleClass( value.call(this, i, this.className, stateVal), stateVal );
+			});
+		}
+
+		return this.each(function() {
+			if ( type === "string" ) {
+				// toggle individual class names
+				var className,
+					i = 0,
+					self = jQuery( this ),
+					classNames = value.match( core_rnotwhite ) || [];
+
+				while ( (className = classNames[ i++ ]) ) {
+					// check each className given, space separated list
+					if ( self.hasClass( className ) ) {
+						self.removeClass( className );
+					} else {
+						self.addClass( className );
+					}
+				}
+
+			// Toggle whole class name
+			} else if ( type === core_strundefined || type === "boolean" ) {
+				if ( this.className ) {
+					// store className if set
+					data_priv.set( this, "__className__", this.className );
+				}
+
+				// If the element has a class name or if we're passed "false",
+				// then remove the whole classname (if there was one, the above saved it).
+				// Otherwise bring back whatever was previously saved (if anything),
+				// falling back to the empty string if nothing was stored.
+				this.className = this.className || value === false ? "" : data_priv.get( this, "__className__" ) || "";
+			}
+		});
+	},
+
+	hasClass: function( selector ) {
+		var className = " " + selector + " ",
+			i = 0,
+			l = this.length;
+		for ( ; i < l; i++ ) {
+			if ( this[i].nodeType === 1 && (" " + this[i].className + " ").replace(rclass, " ").indexOf( className ) >= 0 ) {
+				return true;
+			}
+		}
+
+		return false;
+	},
+
+	val: function( value ) {
+		var hooks, ret, isFunction,
+			elem = this[0];
+
+		if ( !arguments.length ) {
+			if ( elem ) {
+				hooks = jQuery.valHooks[ elem.type ] || jQuery.valHooks[ elem.nodeName.toLowerCase() ];
+
+				if ( hooks && "get" in hooks && (ret = hooks.get( elem, "value" )) !== undefined ) {
+					return ret;
+				}
+
+				ret = elem.value;
+
+				return typeof ret === "string" ?
+					// handle most common string cases
+					ret.replace(rreturn, "") :
+					// handle cases where value is null/undef or number
+					ret == null ? "" : ret;
+			}
+
+			return;
+		}
+
+		isFunction = jQuery.isFunction( value );
+
+		return this.each(function( i ) {
+			var val;
+
+			if ( this.nodeType !== 1 ) {
+				return;
+			}
+
+			if ( isFunction ) {
+				val = value.call( this, i, jQuery( this ).val() );
+			} else {
+				val = value;
+			}
+
+			// Treat null/undefined as ""; convert numbers to string
+			if ( val == null ) {
+				val = "";
+			} else if ( typeof val === "number" ) {
+				val += "";
+			} else if ( jQuery.isArray( val ) ) {
+				val = jQuery.map(val, function ( value ) {
+					return value == null ? "" : value + "";
+				});
+			}
+
+			hooks = jQuery.valHooks[ this.type ] || jQuery.valHooks[ this.nodeName.toLowerCase() ];
+
+			// If set returns undefined, fall back to normal setting
+			if ( !hooks || !("set" in hooks) || hooks.set( this, val, "value" ) === undefined ) {
+				this.value = val;
+			}
+		});
+	}
+});
+
+jQuery.extend({
+	valHooks: {
+		option: {
+			get: function( elem ) {
+				// attributes.value is undefined in Blackberry 4.7 but
+				// uses .value. See #6932
+				var val = elem.attributes.value;
+				return !val || val.specified ? elem.value : elem.text;
+			}
+		},
+		select: {
+			get: function( elem ) {
+				var value, option,
+					options = elem.options,
+					index = elem.selectedIndex,
+					one = elem.type === "select-one" || index < 0,
+					values = one ? null : [],
+					max = one ? index + 1 : options.length,
+					i = index < 0 ?
+						max :
+						one ? index : 0;
+
+				// Loop through all the selected options
+				for ( ; i < max; i++ ) {
+					option = options[ i ];
+
+					// IE6-9 doesn't update selected after form reset (#2551)
+					if ( ( option.selected || i === index ) &&
+							// Don't return options that are disabled or in a disabled optgroup
+							( jQuery.support.optDisabled ? !option.disabled : option.getAttribute("disabled") === null ) &&
+							( !option.parentNode.disabled || !jQuery.nodeName( option.parentNode, "optgroup" ) ) ) {
+
+						// Get the specific value for the option
+						value = jQuery( option ).val();
+
+						// We don't need an array for one selects
+						if ( one ) {
+							return value;
+						}
+
+						// Multi-Selects return an array
+						values.push( value );
+					}
+				}
+
+				return values;
+			},
+
+			set: function( elem, value ) {
+				var optionSet, option,
+					options = elem.options,
+					values = jQuery.makeArray( value ),
+					i = options.length;
+
+				while ( i-- ) {
+					option = options[ i ];
+					if ( (option.selected = jQuery.inArray( jQuery(option).val(), values ) >= 0) ) {
+						optionSet = true;
+					}
+				}
+
+				// force browsers to behave consistently when non-matching value is set
+				if ( !optionSet ) {
+					elem.selectedIndex = -1;
+				}
+				return values;
+			}
+		}
+	},
+
+	attr: function( elem, name, value ) {
+		var hooks, ret,
+			nType = elem.nodeType;
+
+		// don't get/set attributes on text, comment and attribute nodes
+		if ( !elem || nType === 3 || nType === 8 || nType === 2 ) {
+			return;
+		}
+
+		// Fallback to prop when attributes are not supported
+		if ( typeof elem.getAttribute === core_strundefined ) {
+			return jQuery.prop( elem, name, value );
+		}
+
+		// All attributes are lowercase
+		// Grab necessary hook if one is defined
+		if ( nType !== 1 || !jQuery.isXMLDoc( elem ) ) {
+			name = name.toLowerCase();
+			hooks = jQuery.attrHooks[ name ] ||
+				( jQuery.expr.match.bool.test( name ) ? boolHook : nodeHook );
+		}
+
+		if ( value !== undefined ) {
+
+			if ( value === null ) {
+				jQuery.removeAttr( elem, name );
+
+			} else if ( hooks && "set" in hooks && (ret = hooks.set( elem, value, name )) !== undefined ) {
+				return ret;
+
+			} else {
+				elem.setAttribute( name, value + "" );
+				return value;
+			}
+
+		} else if ( hooks && "get" in hooks && (ret = hooks.get( elem, name )) !== null ) {
+			return ret;
+
+		} else {
+			ret = jQuery.find.attr( elem, name );
+
+			// Non-existent attributes return null, we normalize to undefined
+			return ret == null ?
+				undefined :
+				ret;
+		}
+	},
+
+	removeAttr: function( elem, value ) {
+		var name, propName,
+			i = 0,
+			attrNames = value && value.match( core_rnotwhite );
+
+		if ( attrNames && elem.nodeType === 1 ) {
+			while ( (name = attrNames[i++]) ) {
+				propName = jQuery.propFix[ name ] || name;
+
+				// Boolean attributes get special treatment (#10870)
+				if ( jQuery.expr.match.bool.test( name ) ) {
+					// Set corresponding property to false
+					elem[ propName ] = false;
+				}
+
+				elem.removeAttribute( name );
+			}
+		}
+	},
+
+	attrHooks: {
+		type: {
+			set: function( elem, value ) {
+				if ( !jQuery.support.radioValue && value === "radio" && jQuery.nodeName(elem, "input") ) {
+					// Setting the type on a radio button after the value resets the value in IE6-9
+					// Reset value to default in case type is set after value during creation
+					var val = elem.value;
+					elem.setAttribute( "type", value );
+					if ( val ) {
+						elem.value = val;
+					}
+					return value;
+				}
+			}
+		}
+	},
+
+	propFix: {
+		"for": "htmlFor",
+		"class": "className"
+	},
+
+	prop: function( elem, name, value ) {
+		var ret, hooks, notxml,
+			nType = elem.nodeType;
+
+		// don't get/set properties on text, comment and attribute nodes
+		if ( !elem || nType === 3 || nType === 8 || nType === 2 ) {
+			return;
+		}
+
+		notxml = nType !== 1 || !jQuery.isXMLDoc( elem );
+
+		if ( notxml ) {
+			// Fix name and attach hooks
+			name = jQuery.propFix[ name ] || name;
+			hooks = jQuery.propHooks[ name ];
+		}
+
+		if ( value !== undefined ) {
+			return hooks && "set" in hooks && (ret = hooks.set( elem, value, name )) !== undefined ?
+				ret :
+				( elem[ name ] = value );
+
+		} else {
+			return hooks && "get" in hooks && (ret = hooks.get( elem, name )) !== null ?
+				ret :
+				elem[ name ];
+		}
+	},
+
+	propHooks: {
+		tabIndex: {
+			get: function( elem ) {
+				return elem.hasAttribute( "tabindex" ) || rfocusable.test( elem.nodeName ) || elem.href ?
+					elem.tabIndex :
+					-1;
+			}
+		}
+	}
+});
+
+// Hooks for boolean attributes
+boolHook = {
+	set: function( elem, value, name ) {
+		if ( value === false ) {
+			// Remove boolean attributes when set to false
+			jQuery.removeAttr( elem, name );
+		} else {
+			elem.setAttribute( name, name );
+		}
+		return name;
+	}
+};
+jQuery.each( jQuery.expr.match.bool.source.match( /\w+/g ), function( i, name ) {
+	var getter = jQuery.expr.attrHandle[ name ] || jQuery.find.attr;
+
+	jQuery.expr.attrHandle[ name ] = function( elem, name, isXML ) {
+		var fn = jQuery.expr.attrHandle[ name ],
+			ret = isXML ?
+				undefined :
+				/* jshint eqeqeq: false */
+				// Temporarily disable this handler to check existence
+				(jQuery.expr.attrHandle[ name ] = undefined) !=
+					getter( elem, name, isXML ) ?
+
+					name.toLowerCase() :
+					null;
+
+		// Restore handler
+		jQuery.expr.attrHandle[ name ] = fn;
+
+		return ret;
+	};
+});
+
+// Support: IE9+
+// Selectedness for an option in an optgroup can be inaccurate
+if ( !jQuery.support.optSelected ) {
+	jQuery.propHooks.selected = {
+		get: function( elem ) {
+			var parent = elem.parentNode;
+			if ( parent && parent.parentNode ) {
+				parent.parentNode.selectedIndex;
+			}
+			return null;
+		}
+	};
+}
+
+jQuery.each([
+	"tabIndex",
+	"readOnly",
+	"maxLength",
+	"cellSpacing",
+	"cellPadding",
+	"rowSpan",
+	"colSpan",
+	"useMap",
+	"frameBorder",
+	"contentEditable"
+], function() {
+	jQuery.propFix[ this.toLowerCase() ] = this;
+});
+
+// Radios and checkboxes getter/setter
+jQuery.each([ "radio", "checkbox" ], function() {
+	jQuery.valHooks[ this ] = {
+		set: function( elem, value ) {
+			if ( jQuery.isArray( value ) ) {
+				return ( elem.checked = jQuery.inArray( jQuery(elem).val(), value ) >= 0 );
+			}
+		}
+	};
+	if ( !jQuery.support.checkOn ) {
+		jQuery.valHooks[ this ].get = function( elem ) {
+			// Support: Webkit
+			// "" is returned instead of "on" if a value isn't specified
+			return elem.getAttribute("value") === null ? "on" : elem.value;
+		};
+	}
+});
+var rkeyEvent = /^key/,
+	rmouseEvent = /^(?:mouse|contextmenu)|click/,
+	rfocusMorph = /^(?:focusinfocus|focusoutblur)$/,
+	rtypenamespace = /^([^.]*)(?:\.(.+)|)$/;
+
+function returnTrue() {
+	return true;
+}
+
+function returnFalse() {
+	return false;
+}
+
+function safeActiveElement() {
+	try {
+		return document.activeElement;
+	} catch ( err ) { }
+}
+
+/*
+ * Helper functions for managing events -- not part of the public interface.
+ * Props to Dean Edwards' addEvent library for many of the ideas.
+ */
+jQuery.event = {
+
+	global: {},
+
+	add: function( elem, types, handler, data, selector ) {
+
+		var handleObjIn, eventHandle, tmp,
+			events, t, handleObj,
+			special, handlers, type, namespaces, origType,
+			elemData = data_priv.get( elem );
+
+		// Don't attach events to noData or text/comment nodes (but allow plain objects)
+		if ( !elemData ) {
+			return;
+		}
+
+		// Caller can pass in an object of custom data in lieu of the handler
+		if ( handler.handler ) {
+			handleObjIn = handler;
+			handler = handleObjIn.handler;
+			selector = handleObjIn.selector;
+		}
+
+		// Make sure that the handler has a unique ID, used to find/remove it later
+		if ( !handler.guid ) {
+			handler.guid = jQuery.guid++;
+		}
+
+		// Init the element's event structure and main handler, if this is the first
+		if ( !(events = elemData.events) ) {
+			events = elemData.events = {};
+		}
+		if ( !(eventHandle = elemData.handle) ) {
+			eventHandle = elemData.handle = function( e ) {
+				// Discard the second event of a jQuery.event.trigger() and
+				// when an event is called after a page has unloaded
+				return typeof jQuery !== core_strundefined && (!e || jQuery.event.triggered !== e.type) ?
+					jQuery.event.dispatch.apply( eventHandle.elem, arguments ) :
+					undefined;
+			};
+			// Add elem as a property of the handle fn to prevent a memory leak with IE non-native events
+			eventHandle.elem = elem;
+		}
+
+		// Handle multiple events separated by a space
+		types = ( types || "" ).match( core_rnotwhite ) || [""];
+		t = types.length;
+		while ( t-- ) {
+			tmp = rtypenamespace.exec( types[t] ) || [];
+			type = origType = tmp[1];
+			namespaces = ( tmp[2] || "" ).split( "." ).sort();
+
+			// There *must* be a type, no attaching namespace-only handlers
+			if ( !type ) {
+				continue;
+			}
+
+			// If event changes its type, use the special event handlers for the changed type
+			special = jQuery.event.special[ type ] || {};
+
+			// If selector defined, determine special event api type, otherwise given type
+			type = ( selector ? special.delegateType : special.bindType ) || type;
+
+			// Update special based on newly reset type
+			special = jQuery.event.special[ type ] || {};
+
+			// handleObj is passed to all event handlers
+			handleObj = jQuery.extend({
+				type: type,
+				origType: origType,
+				data: data,
+				handler: handler,
+				guid: handler.guid,
+				selector: selector,
+				needsContext: selector && jQuery.expr.match.needsContext.test( selector ),
+				namespace: namespaces.join(".")
+			}, handleObjIn );
+
+			// Init the event handler queue if we're the first
+			if ( !(handlers = events[ type ]) ) {
+				handlers = events[ type ] = [];
+				handlers.delegateCount = 0;
+
+				// Only use addEventListener if the special events handler returns false
+				if ( !special.setup || special.setup.call( elem, data, namespaces, eventHandle ) === false ) {
+					if ( elem.addEventListener ) {
+						elem.addEventListener( type, eventHandle, false );
+					}
+				}
+			}
+
+			if ( special.add ) {
+				special.add.call( elem, handleObj );
+
+				if ( !handleObj.handler.guid ) {
+					handleObj.handler.guid = handler.guid;
+				}
+			}
+
+			// Add to the element's handler list, delegates in front
+			if ( selector ) {
+				handlers.splice( handlers.delegateCount++, 0, handleObj );
+			} else {
+				handlers.push( handleObj );
+			}
+
+			// Keep track of which events have ever been used, for event optimization
+			jQuery.event.global[ type ] = true;
+		}
+
+		// Nullify elem to prevent memory leaks in IE
+		elem = null;
+	},
+
+	// Detach an event or set of events from an element
+	remove: function( elem, types, handler, selector, mappedTypes ) {
+
+		var j, origCount, tmp,
+			events, t, handleObj,
+			special, handlers, type, namespaces, origType,
+			elemData = data_priv.hasData( elem ) && data_priv.get( elem );
+
+		if ( !elemData || !(events = elemData.events) ) {
+			return;
+		}
+
+		// Once for each type.namespace in types; type may be omitted
+		types = ( types || "" ).match( core_rnotwhite ) || [""];
+		t = types.length;
+		while ( t-- ) {
+			tmp = rtypenamespace.exec( types[t] ) || [];
+			type = origType = tmp[1];
+			namespaces = ( tmp[2] || "" ).split( "." ).sort();
+
+			// Unbind all events (on this namespace, if provided) for the element
+			if ( !type ) {
+				for ( type in events ) {
+					jQuery.event.remove( elem, type + types[ t ], handler, selector, true );
+				}
+				continue;
+			}
+
+			special = jQuery.event.special[ type ] || {};
+			type = ( selector ? special.delegateType : special.bindType ) || type;
+			handlers = events[ type ] || [];
+			tmp = tmp[2] && new RegExp( "(^|\\.)" + namespaces.join("\\.(?:.*\\.|)") + "(\\.|$)" );
+
+			// Remove matching events
+			origCount = j = handlers.length;
+			while ( j-- ) {
+				handleObj = handlers[ j ];
+
+				if ( ( mappedTypes || origType === handleObj.origType ) &&
+					( !handler || handler.guid === handleObj.guid ) &&
+					( !tmp || tmp.test( handleObj.namespace ) ) &&
+					( !selector || selector === handleObj.selector || selector === "**" && handleObj.selector ) ) {
+					handlers.splice( j, 1 );
+
+					if ( handleObj.selector ) {
+						handlers.delegateCount--;
+					}
+					if ( special.remove ) {
+						special.remove.call( elem, handleObj );
+					}
+				}
+			}
+
+			// Remove generic event handler if we removed something and no more handlers exist
+			// (avoids potential for endless recursion during removal of special event handlers)
+			if ( origCount && !handlers.length ) {
+				if ( !special.teardown || special.teardown.call( elem, namespaces, elemData.handle ) === false ) {
+					jQuery.removeEvent( elem, type, elemData.handle );
+				}
+
+				delete events[ type ];
+			}
+		}
+
+		// Remove the expando if it's no longer used
+		if ( jQuery.isEmptyObject( events ) ) {
+			delete elemData.handle;
+			data_priv.remove( elem, "events" );
+		}
+	},
+
+	trigger: function( event, data, elem, onlyHandlers ) {
+
+		var i, cur, tmp, bubbleType, ontype, handle, special,
+			eventPath = [ elem || document ],
+			type = core_hasOwn.call( event, "type" ) ? event.type : event,
+			namespaces = core_hasOwn.call( event, "namespace" ) ? event.namespace.split(".") : [];
+
+		cur = tmp = elem = elem || document;
+
+		// Don't do events on text and comment nodes
+		if ( elem.nodeType === 3 || elem.nodeType === 8 ) {
+			return;
+		}
+
+		// focus/blur morphs to focusin/out; ensure we're not firing them right now
+		if ( rfocusMorph.test( type + jQuery.event.triggered ) ) {
+			return;
+		}
+
+		if ( type.indexOf(".") >= 0 ) {
+			// Namespaced trigger; create a regexp to match event type in handle()
+			namespaces = type.split(".");
+			type = namespaces.shift();
+			namespaces.sort();
+		}
+		ontype = type.indexOf(":") < 0 && "on" + type;
+
+		// Caller can pass in a jQuery.Event object, Object, or just an event type string
+		event = event[ jQuery.expando ] ?
+			event :
+			new jQuery.Event( type, typeof event === "object" && event );
+
+		// Trigger bitmask: & 1 for native handlers; & 2 for jQuery (always true)
+		event.isTrigger = onlyHandlers ? 2 : 3;
+		event.namespace = namespaces.join(".");
+		event.namespace_re = event.namespace ?
+			new RegExp( "(^|\\.)" + namespaces.join("\\.(?:.*\\.|)") + "(\\.|$)" ) :
+			null;
+
+		// Clean up the event in case it is being reused
+		event.result = undefined;
+		if ( !event.target ) {
+			event.target = elem;
+		}
+
+		// Clone any incoming data and prepend the event, creating the handler arg list
+		data = data == null ?
+			[ event ] :
+			jQuery.makeArray( data, [ event ] );
+
+		// Allow special events to draw outside the lines
+		special = jQuery.event.special[ type ] || {};
+		if ( !onlyHandlers && special.trigger && special.trigger.apply( elem, data ) === false ) {
+			return;
+		}
+
+		// Determine event propagation path in advance, per W3C events spec (#9951)
+		// Bubble up to document, then to window; watch for a global ownerDocument var (#9724)
+		if ( !onlyHandlers && !special.noBubble && !jQuery.isWindow( elem ) ) {
+
+			bubbleType = special.delegateType || type;
+			if ( !rfocusMorph.test( bubbleType + type ) ) {
+				cur = cur.parentNode;
+			}
+			for ( ; cur; cur = cur.parentNode ) {
+				eventPath.push( cur );
+				tmp = cur;
+			}
+
+			// Only add window if we got to document (e.g., not plain obj or detached DOM)
+			if ( tmp === (elem.ownerDocument || document) ) {
+				eventPath.push( tmp.defaultView || tmp.parentWindow || window );
+			}
+		}
+
+		// Fire handlers on the event path
+		i = 0;
+		while ( (cur = eventPath[i++]) && !event.isPropagationStopped() ) {
+
+			event.type = i > 1 ?
+				bubbleType :
+				special.bindType || type;
+
+			// jQuery handler
+			handle = ( data_priv.get( cur, "events" ) || {} )[ event.type ] && data_priv.get( cur, "handle" );
+			if ( handle ) {
+				handle.apply( cur, data );
+			}
+
+			// Native handler
+			handle = ontype && cur[ ontype ];
+			if ( handle && jQuery.acceptData( cur ) && handle.apply && handle.apply( cur, data ) === false ) {
+				event.preventDefault();
+			}
+		}
+		event.type = type;
+
+		// If nobody prevented the default action, do it now
+		if ( !onlyHandlers && !event.isDefaultPrevented() ) {
+
+			if ( (!special._default || special._default.apply( eventPath.pop(), data ) === false) &&
+				jQuery.acceptData( elem ) ) {
+
+				// Call a native DOM method on the target with the same name name as the event.
+				// Don't do default actions on window, that's where global variables be (#6170)
+				if ( ontype && jQuery.isFunction( elem[ type ] ) && !jQuery.isWindow( elem ) ) {
+
+					// Don't re-trigger an onFOO event when we call its FOO() method
+					tmp = elem[ ontype ];
+
+					if ( tmp ) {
+						elem[ ontype ] = null;
+					}
+
+					// Prevent re-triggering of the same event, since we already bubbled it above
+					jQuery.event.triggered = type;
+					elem[ type ]();
+					jQuery.event.triggered = undefined;
+
+					if ( tmp ) {
+						elem[ ontype ] = tmp;
+					}
+				}
+			}
+		}
+
+		return event.result;
+	},
+
+	dispatch: function( event ) {
+
+		// Make a writable jQuery.Event from the native event object
+		event = jQuery.event.fix( event );
+
+		var i, j, ret, matched, handleObj,
+			handlerQueue = [],
+			args = core_slice.call( arguments ),
+			handlers = ( data_priv.get( this, "events" ) || {} )[ event.type ] || [],
+			special = jQuery.event.special[ event.type ] || {};
+
+		// Use the fix-ed jQuery.Event rather than the (read-only) native event
+		args[0] = event;
+		event.delegateTarget = this;
+
+		// Call the preDispatch hook for the mapped type, and let it bail if desired
+		if ( special.preDispatch && special.preDispatch.call( this, event ) === false ) {
+			return;
+		}
+
+		// Determine handlers
+		handlerQueue = jQuery.event.handlers.call( this, event, handlers );
+
+		// Run delegates first; they may want to stop propagation beneath us
+		i = 0;
+		while ( (matched = handlerQueue[ i++ ]) && !event.isPropagationStopped() ) {
+			event.currentTarget = matched.elem;
+
+			j = 0;
+			while ( (handleObj = matched.handlers[ j++ ]) && !event.isImmediatePropagationStopped() ) {
+
+				// Triggered event must either 1) have no namespace, or
+				// 2) have namespace(s) a subset or equal to those in the bound event (both can have no namespace).
+				if ( !event.namespace_re || event.namespace_re.test( handleObj.namespace ) ) {
+
+					event.handleObj = handleObj;
+					event.data = handleObj.data;
+
+					ret = ( (jQuery.event.special[ handleObj.origType ] || {}).handle || handleObj.handler )
+							.apply( matched.elem, args );
+
+					if ( ret !== undefined ) {
+						if ( (event.result = ret) === false ) {
+							event.preventDefault();
+							event.stopPropagation();
+						}
+					}
+				}
+			}
+		}
+
+		// Call the postDispatch hook for the mapped type
+		if ( special.postDispatch ) {
+			special.postDispatch.call( this, event );
+		}
+
+		return event.result;
+	},
+
+	handlers: function( event, handlers ) {
+		var i, matches, sel, handleObj,
+			handlerQueue = [],
+			delegateCount = handlers.delegateCount,
+			cur = event.target;
+
+		// Find delegate handlers
+		// Black-hole SVG <use> instance trees (#13180)
+		// Avoid non-left-click bubbling in Firefox (#3861)
+		if ( delegateCount && cur.nodeType && (!event.button || event.type !== "click") ) {
+
+			for ( ; cur !== this; cur = cur.parentNode || this ) {
+
+				// Don't process clicks on disabled elements (#6911, #8165, #11382, #11764)
+				if ( cur.disabled !== true || event.type !== "click" ) {
+					matches = [];
+					for ( i = 0; i < delegateCount; i++ ) {
+						handleObj = handlers[ i ];
+
+						// Don't conflict with Object.prototype properties (#13203)
+						sel = handleObj.selector + " ";
+
+						if ( matches[ sel ] === undefined ) {
+							matches[ sel ] = handleObj.needsContext ?
+								jQuery( sel, this ).index( cur ) >= 0 :
+								jQuery.find( sel, this, null, [ cur ] ).length;
+						}
+						if ( matches[ sel ] ) {
+							matches.push( handleObj );
+						}
+					}
+					if ( matches.length ) {
+						handlerQueue.push({ elem: cur, handlers: matches });
+					}
+				}
+			}
+		}
+
+		// Add the remaining (directly-bound) handlers
+		if ( delegateCount < handlers.length ) {
+			handlerQueue.push({ elem: this, handlers: handlers.slice( delegateCount ) });
+		}
+
+		return handlerQueue;
+	},
+
+	// Includes some event props shared by KeyEvent and MouseEvent
+	props: "altKey bubbles cancelable ctrlKey currentTarget eventPhase metaKey relatedTarget shiftKey target timeStamp view which".split(" "),
+
+	fixHooks: {},
+
+	keyHooks: {
+		props: "char charCode key keyCode".split(" "),
+		filter: function( event, original ) {
+
+			// Add which for key events
+			if ( event.which == null ) {
+				event.which = original.charCode != null ? original.charCode : original.keyCode;
+			}
+
+			return event;
+		}
+	},
+
+	mouseHooks: {
+		props: "button buttons clientX clientY offsetX offsetY pageX pageY screenX screenY toElement".split(" "),
+		filter: function( event, original ) {
+			var eventDoc, doc, body,
+				button = original.button;
+
+			// Calculate pageX/Y if missing and clientX/Y available
+			if ( event.pageX == null && original.clientX != null ) {
+				eventDoc = event.target.ownerDocument || document;
+				doc = eventDoc.documentElement;
+				body = eventDoc.body;
+
+				event.pageX = original.clientX + ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) - ( doc && doc.clientLeft || body && body.clientLeft || 0 );
+				event.pageY = original.clientY + ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) - ( doc && doc.clientTop  || body && body.clientTop  || 0 );
+			}
+
+			// Add which for click: 1 === left; 2 === middle; 3 === right
+			// Note: button is not normalized, so don't use it
+			if ( !event.which && button !== undefined ) {
+				event.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
+			}
+
+			return event;
+		}
+	},
+
+	fix: function( event ) {
+		if ( event[ jQuery.expando ] ) {
+			return event;
+		}
+
+		// Create a writable copy of the event object and normalize some properties
+		var i, prop, copy,
+			type = event.type,
+			originalEvent = event,
+			fixHook = this.fixHooks[ type ];
+
+		if ( !fixHook ) {
+			this.fixHooks[ type ] = fixHook =
+				rmouseEvent.test( type ) ? this.mouseHooks :
+				rkeyEvent.test( type ) ? this.keyHooks :
+				{};
+		}
+		copy = fixHook.props ? this.props.concat( fixHook.props ) : this.props;
+
+		event = new jQuery.Event( originalEvent );
+
+		i = copy.length;
+		while ( i-- ) {
+			prop = copy[ i ];
+			event[ prop ] = originalEvent[ prop ];
+		}
+
+		// Support: Cordova 2.5 (WebKit) (#13255)
+		// All events should have a target; Cordova deviceready doesn't
+		if ( !event.target ) {
+			event.target = document;
+		}
+
+		// Support: Safari 6.0+, Chrome < 28
+		// Target should not be a text node (#504, #13143)
+		if ( event.target.nodeType === 3 ) {
+			event.target = event.target.parentNode;
+		}
+
+		return fixHook.filter? fixHook.filter( event, originalEvent ) : event;
+	},
+
+	special: {
+		load: {
+			// Prevent triggered image.load events from bubbling to window.load
+			noBubble: true
+		},
+		focus: {
+			// Fire native event if possible so blur/focus sequence is correct
+			trigger: function() {
+				if ( this !== safeActiveElement() && this.focus ) {
+					this.focus();
+					return false;
+				}
+			},
+			delegateType: "focusin"
+		},
+		blur: {
+			trigger: function() {
+				if ( this === safeActiveElement() && this.blur ) {
+					this.blur();
+					return false;
+				}
+			},
+			delegateType: "focusout"
+		},
+		click: {
+			// For checkbox, fire native event so checked state will be right
+			trigger: function() {
+				if ( this.type === "checkbox" && this.click && jQuery.nodeName( this, "input" ) ) {
+					this.click();
+					return false;
+				}
+			},
+
+			// For cross-browser consistency, don't fire native .click() on links
+			_default: function( event ) {
+				return jQuery.nodeName( event.target, "a" );
+			}
+		},
+
+		beforeunload: {
+			postDispatch: function( event ) {
+
+				// Support: Firefox 20+
+				// Firefox doesn't alert if the returnValue field is not set.
+				if ( event.result !== undefined ) {
+					event.originalEvent.returnValue = event.result;
+				}
+			}
+		}
+	},
+
+	simulate: function( type, elem, event, bubble ) {
+		// Piggyback on a donor event to simulate a different one.
+		// Fake originalEvent to avoid donor's stopPropagation, but if the
+		// simulated event prevents default then we do the same on the donor.
+		var e = jQuery.extend(
+			new jQuery.Event(),
+			event,
+			{
+				type: type,
+				isSimulated: true,
+				originalEvent: {}
+			}
+		);
+		if ( bubble ) {
+			jQuery.event.trigger( e, null, elem );
+		} else {
+			jQuery.event.dispatch.call( elem, e );
+		}
+		if ( e.isDefaultPrevented() ) {
+			event.preventDefault();
+		}
+	}
+};
+
+jQuery.removeEvent = function( elem, type, handle ) {
+	if ( elem.removeEventListener ) {
+		elem.removeEventListener( type, handle, false );
+	}
+};
+
+jQuery.Event = function( src, props ) {
+	// Allow instantiation without the 'new' keyword
+	if ( !(this instanceof jQuery.Event) ) {
+		return new jQuery.Event( src, props );
+	}
+
+	// Event object
+	if ( src && src.type ) {
+		this.originalEvent = src;
+		this.type = src.type;
+
+		// Events bubbling up the document may have been marked as prevented
+		// by a handler lower down the tree; reflect the correct value.
+		this.isDefaultPrevented = ( src.defaultPrevented ||
+			src.getPreventDefault && src.getPreventDefault() ) ? returnTrue : returnFalse;
+
+	// Event type
+	} else {
+		this.type = src;
+	}
+
+	// Put explicitly provided properties onto the event object
+	if ( props ) {
+		jQuery.extend( this, props );
+	}
+
+	// Create a timestamp if incoming event doesn't have one
+	this.timeStamp = src && src.timeStamp || jQuery.now();
+
+	// Mark it as fixed
+	this[ jQuery.expando ] = true;
+};
+
+// jQuery.Event is based on DOM3 Events as specified by the ECMAScript Language Binding
+// http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
+jQuery.Event.prototype = {
+	isDefaultPrevented: returnFalse,
+	isPropagationStopped: returnFalse,
+	isImmediatePropagationStopped: returnFalse,
+
+	preventDefault: function() {
+		var e = this.originalEvent;
+
+		this.isDefaultPrevented = returnTrue;
+
+		if ( e && e.preventDefault ) {
+			e.preventDefault();
+		}
+	},
+	stopPropagation: function() {
+		var e = this.originalEvent;
+
+		this.isPropagationStopped = returnTrue;
+
+		if ( e && e.stopPropagation ) {
+			e.stopPropagation();
+		}
+	},
+	stopImmediatePropagation: function() {
+		this.isImmediatePropagationStopped = returnTrue;
+		this.stopPropagation();
+	}
+};
+
+// Create mouseenter/leave events using mouseover/out and event-time checks
+// Support: Chrome 15+
+jQuery.each({
+	mouseenter: "mouseover",
+	mouseleave: "mouseout"
+}, function( orig, fix ) {
+	jQuery.event.special[ orig ] = {
+		delegateType: fix,
+		bindType: fix,
+
+		handle: function( event ) {
+			var ret,
+				target = this,
+				related = event.relatedTarget,
+				handleObj = event.handleObj;
+
+			// For mousenter/leave call the handler if related is outside the target.
+			// NB: No relatedTarget if the mouse left/entered the browser window
+			if ( !related || (related !== target && !jQuery.contains( target, related )) ) {
+				event.type = handleObj.origType;
+				ret = handleObj.handler.apply( this, arguments );
+				event.type = fix;
+			}
+			return ret;
+		}
+	};
+});
+
+// Create "bubbling" focus and blur events
+// Support: Firefox, Chrome, Safari
+if ( !jQuery.support.focusinBubbles ) {
+	jQuery.each({ focus: "focusin", blur: "focusout" }, function( orig, fix ) {
+
+		// Attach a single capturing handler while someone wants focusin/focusout
+		var attaches = 0,
+			handler = function( event ) {
+				jQuery.event.simulate( fix, event.target, jQuery.event.fix( event ), true );
+			};
+
+		jQuery.event.special[ fix ] = {
+			setup: function() {
+				if ( attaches++ === 0 ) {
+					document.addEventListener( orig, handler, true );
+				}
+			},
+			teardown: function() {
+				if ( --attaches === 0 ) {
+					document.removeEventListener( orig, handler, true );
+				}
+			}
+		};
+	});
+}
+
+jQuery.fn.extend({
+
+	on: function( types, selector, data, fn, /*INTERNAL*/ one ) {
+		var origFn, type;
+
+		// Types can be a map of types/handlers
+		if ( typeof types === "object" ) {
+			// ( types-Object, selector, data )
+			if ( typeof selector !== "string" ) {
+				// ( types-Object, data )
+				data = data || selector;
+				selector = undefined;
+			}
+			for ( type in types ) {
+				this.on( type, selector, data, types[ type ], one );
+			}
+			return this;
+		}
+
+		if ( data == null && fn == null ) {
+			// ( types, fn )
+			fn = selector;
+			data = selector = undefined;
+		} else if ( fn == null ) {
+			if ( typeof selector === "string" ) {
+				// ( types, selector, fn )
+				fn = data;
+				data = undefined;
+			} else {
+				// ( types, data, fn )
+				fn = data;
+				data = selector;
+				selector = undefined;
+			}
+		}
+		if ( fn === false ) {
+			fn = returnFalse;
+		} else if ( !fn ) {
+			return this;
+		}
+
+		if ( one === 1 ) {
+			origFn = fn;
+			fn = function( event ) {
+				// Can use an empty set, since event contains the info
+				jQuery().off( event );
+				return origFn.apply( this, arguments );
+			};
+			// Use same guid so caller can remove using origFn
+			fn.guid = origFn.guid || ( origFn.guid = jQuery.guid++ );
+		}
+		return this.each( function() {
+			jQuery.event.add( this, types, fn, data, selector );
+		});
+	},
+	one: function( types, selector, data, fn ) {
+		return this.on( types, selector, data, fn, 1 );
+	},
+	off: function( types, selector, fn ) {
+		var handleObj, type;
+		if ( types && types.preventDefault && types.handleObj ) {
+			// ( event )  dispatched jQuery.Event
+			handleObj = types.handleObj;
+			jQuery( types.delegateTarget ).off(
+				handleObj.namespace ? handleObj.origType + "." + handleObj.namespace : handleObj.origType,
+				handleObj.selector,
+				handleObj.handler
+			);
+			return this;
+		}
+		if ( typeof types === "object" ) {
+			// ( types-object [, selector] )
+			for ( type in types ) {
+				this.off( type, selector, types[ type ] );
+			}
+			return this;
+		}
+		if ( selector === false || typeof selector === "function" ) {
+			// ( types [, fn] )
+			fn = selector;
+			selector = undefined;
+		}
+		if ( fn === false ) {
+			fn = returnFalse;
+		}
+		return this.each(function() {
+			jQuery.event.remove( this, types, fn, selector );
+		});
+	},
+
+	trigger: function( type, data ) {
+		return this.each(function() {
+			jQuery.event.trigger( type, data, this );
+		});
+	},
+	triggerHandler: function( type, data ) {
+		var elem = this[0];
+		if ( elem ) {
+			return jQuery.event.trigger( type, data, elem, true );
+		}
+	}
+});
+var isSimple = /^.[^:#\[\.,]*$/,
 	rparentsprev = /^(?:parents|prev(?:Until|All))/,
-	isSimple = /^.[^:#\[\.,]*$/,
 	rneedsContext = jQuery.expr.match.needsContext,
 	// methods guaranteed to produce a unique set when starting from a unique set
 	guaranteedUnique = {
@@ -5564,11 +5146,12 @@ var runtil = /Until$/,
 
 jQuery.fn.extend({
 	find: function( selector ) {
-		var i, ret, self,
-			len = this.length;
+		var i,
+			ret = [],
+			self = this,
+			len = self.length;
 
 		if ( typeof selector !== "string" ) {
-			self = this;
 			return this.pushStack( jQuery( selector ).filter(function() {
 				for ( i = 0; i < len; i++ ) {
 					if ( jQuery.contains( self[ i ], this ) ) {
@@ -5578,24 +5161,23 @@ jQuery.fn.extend({
 			}) );
 		}
 
-		ret = [];
 		for ( i = 0; i < len; i++ ) {
-			jQuery.find( selector, this[ i ], ret );
+			jQuery.find( selector, self[ i ], ret );
 		}
 
 		// Needed because $( selector, context ) becomes $( context ).find( selector )
 		ret = this.pushStack( len > 1 ? jQuery.unique( ret ) : ret );
-		ret.selector = ( this.selector ? this.selector + " " : "" ) + selector;
+		ret.selector = this.selector ? this.selector + " " + selector : selector;
 		return ret;
 	},
 
 	has: function( target ) {
-		var i,
-			targets = jQuery( target, this ),
-			len = targets.length;
+		var targets = jQuery( target, this ),
+			l = targets.length;
 
 		return this.filter(function() {
-			for ( i = 0; i < len; i++ ) {
+			var i = 0;
+			for ( ; i < l; i++ ) {
 				if ( jQuery.contains( this, targets[i] ) ) {
 					return true;
 				}
@@ -5604,46 +5186,52 @@ jQuery.fn.extend({
 	},
 
 	not: function( selector ) {
-		return this.pushStack( winnow(this, selector, false) );
+		return this.pushStack( winnow(this, selector || [], true) );
 	},
 
 	filter: function( selector ) {
-		return this.pushStack( winnow(this, selector, true) );
+		return this.pushStack( winnow(this, selector || [], false) );
 	},
 
 	is: function( selector ) {
-		return !!selector && (
-			typeof selector === "string" ?
-				// If this is a positional/relative selector, check membership in the returned set
-				// so $("p:first").is("p:last") won't return true for a doc with two "p".
-				rneedsContext.test( selector ) ?
-					jQuery( selector, this.context ).index( this[0] ) >= 0 :
-					jQuery.filter( selector, this ).length > 0 :
-				this.filter( selector ).length > 0 );
+		return !!winnow(
+			this,
+
+			// If this is a positional/relative selector, check membership in the returned set
+			// so $("p:first").is("p:last") won't return true for a doc with two "p".
+			typeof selector === "string" && rneedsContext.test( selector ) ?
+				jQuery( selector ) :
+				selector || [],
+			false
+		).length;
 	},
 
 	closest: function( selectors, context ) {
 		var cur,
 			i = 0,
 			l = this.length,
-			ret = [],
-			pos = rneedsContext.test( selectors ) || typeof selectors !== "string" ?
+			matched = [],
+			pos = ( rneedsContext.test( selectors ) || typeof selectors !== "string" ) ?
 				jQuery( selectors, context || this.context ) :
 				0;
 
 		for ( ; i < l; i++ ) {
-			cur = this[i];
+			for ( cur = this[i]; cur && cur !== context; cur = cur.parentNode ) {
+				// Always skip document fragments
+				if ( cur.nodeType < 11 && (pos ?
+					pos.index(cur) > -1 :
 
-			while ( cur && cur.ownerDocument && cur !== context && cur.nodeType !== 11 ) {
-				if ( pos ? pos.index(cur) > -1 : jQuery.find.matchesSelector(cur, selectors) ) {
-					ret.push( cur );
+					// Don't pass non-elements to Sizzle
+					cur.nodeType === 1 &&
+						jQuery.find.matchesSelector(cur, selectors)) ) {
+
+					cur = matched.push( cur );
 					break;
 				}
-				cur = cur.parentNode;
 			}
 		}
 
-		return this.pushStack( ret.length > 1 ? jQuery.unique( ret ) : ret );
+		return this.pushStack( matched.length > 1 ? jQuery.unique( matched ) : matched );
 	},
 
 	// Determine the position of an element within
@@ -5652,18 +5240,20 @@ jQuery.fn.extend({
 
 		// No argument, return index in parent
 		if ( !elem ) {
-			return ( this[0] && this[0].parentNode ) ? this.first().prevAll().length : -1;
+			return ( this[ 0 ] && this[ 0 ].parentNode ) ? this.first().prevAll().length : -1;
 		}
 
 		// index in selector
 		if ( typeof elem === "string" ) {
-			return jQuery.inArray( this[0], jQuery( elem ) );
+			return core_indexOf.call( jQuery( elem ), this[ 0 ] );
 		}
 
 		// Locate the position of the desired element
-		return jQuery.inArray(
+		return core_indexOf.call( this,
+
 			// If it receives a jQuery object, the first element is used
-			elem.jquery ? elem[0] : elem, this );
+			elem.jquery ? elem[ 0 ] : elem
+		);
 	},
 
 	add: function( selector, context ) {
@@ -5682,12 +5272,8 @@ jQuery.fn.extend({
 	}
 });
 
-jQuery.fn.andSelf = jQuery.fn.addBack;
-
 function sibling( cur, dir ) {
-	do {
-		cur = cur[ dir ];
-	} while ( cur && cur.nodeType !== 1 );
+	while ( (cur = cur[dir]) && cur.nodeType !== 1 ) {}
 
 	return cur;
 }
@@ -5728,125 +5314,110 @@ jQuery.each({
 		return jQuery.sibling( elem.firstChild );
 	},
 	contents: function( elem ) {
-		return jQuery.nodeName( elem, "iframe" ) ?
-			elem.contentDocument || elem.contentWindow.document :
-			jQuery.merge( [], elem.childNodes );
+		return elem.contentDocument || jQuery.merge( [], elem.childNodes );
 	}
 }, function( name, fn ) {
 	jQuery.fn[ name ] = function( until, selector ) {
-		var ret = jQuery.map( this, fn, until );
+		var matched = jQuery.map( this, fn, until );
 
-		if ( !runtil.test( name ) ) {
+		if ( name.slice( -5 ) !== "Until" ) {
 			selector = until;
 		}
 
 		if ( selector && typeof selector === "string" ) {
-			ret = jQuery.filter( selector, ret );
+			matched = jQuery.filter( selector, matched );
 		}
 
-		ret = this.length > 1 && !guaranteedUnique[ name ] ? jQuery.unique( ret ) : ret;
+		if ( this.length > 1 ) {
+			// Remove duplicates
+			if ( !guaranteedUnique[ name ] ) {
+				jQuery.unique( matched );
+			}
 
-		if ( this.length > 1 && rparentsprev.test( name ) ) {
-			ret = ret.reverse();
+			// Reverse order for parents* and prev-derivatives
+			if ( rparentsprev.test( name ) ) {
+				matched.reverse();
+			}
 		}
 
-		return this.pushStack( ret );
+		return this.pushStack( matched );
 	};
 });
 
 jQuery.extend({
 	filter: function( expr, elems, not ) {
+		var elem = elems[ 0 ];
+
 		if ( not ) {
 			expr = ":not(" + expr + ")";
 		}
 
-		return elems.length === 1 ?
-			jQuery.find.matchesSelector(elems[0], expr) ? [ elems[0] ] : [] :
-			jQuery.find.matches(expr, elems);
+		return elems.length === 1 && elem.nodeType === 1 ?
+			jQuery.find.matchesSelector( elem, expr ) ? [ elem ] : [] :
+			jQuery.find.matches( expr, jQuery.grep( elems, function( elem ) {
+				return elem.nodeType === 1;
+			}));
 	},
 
 	dir: function( elem, dir, until ) {
 		var matched = [],
-			cur = elem[ dir ];
+			truncate = until !== undefined;
 
-		while ( cur && cur.nodeType !== 9 && (until === undefined || cur.nodeType !== 1 || !jQuery( cur ).is( until )) ) {
-			if ( cur.nodeType === 1 ) {
-				matched.push( cur );
+		while ( (elem = elem[ dir ]) && elem.nodeType !== 9 ) {
+			if ( elem.nodeType === 1 ) {
+				if ( truncate && jQuery( elem ).is( until ) ) {
+					break;
+				}
+				matched.push( elem );
 			}
-			cur = cur[dir];
 		}
 		return matched;
 	},
 
 	sibling: function( n, elem ) {
-		var r = [];
+		var matched = [];
 
 		for ( ; n; n = n.nextSibling ) {
 			if ( n.nodeType === 1 && n !== elem ) {
-				r.push( n );
+				matched.push( n );
 			}
 		}
 
-		return r;
+		return matched;
 	}
 });
 
 // Implement the identical functionality for filter and not
-function winnow( elements, qualifier, keep ) {
-
-	// Can't pass null or undefined to indexOf in Firefox 4
-	// Set to 0 to skip string check
-	qualifier = qualifier || 0;
-
+function winnow( elements, qualifier, not ) {
 	if ( jQuery.isFunction( qualifier ) ) {
-		return jQuery.grep(elements, function( elem, i ) {
-			var retVal = !!qualifier.call( elem, i, elem );
-			return retVal === keep;
+		return jQuery.grep( elements, function( elem, i ) {
+			/* jshint -W018 */
+			return !!qualifier.call( elem, i, elem ) !== not;
 		});
 
-	} else if ( qualifier.nodeType ) {
-		return jQuery.grep(elements, function( elem ) {
-			return ( elem === qualifier ) === keep;
-		});
-
-	} else if ( typeof qualifier === "string" ) {
-		var filtered = jQuery.grep(elements, function( elem ) {
-			return elem.nodeType === 1;
-		});
-
-		if ( isSimple.test( qualifier ) ) {
-			return jQuery.filter(qualifier, filtered, !keep);
-		} else {
-			qualifier = jQuery.filter( qualifier, filtered );
-		}
 	}
 
-	return jQuery.grep(elements, function( elem ) {
-		return ( jQuery.inArray( elem, qualifier ) >= 0 ) === keep;
+	if ( qualifier.nodeType ) {
+		return jQuery.grep( elements, function( elem ) {
+			return ( elem === qualifier ) !== not;
+		});
+
+	}
+
+	if ( typeof qualifier === "string" ) {
+		if ( isSimple.test( qualifier ) ) {
+			return jQuery.filter( qualifier, elements, not );
+		}
+
+		qualifier = jQuery.filter( qualifier, elements );
+	}
+
+	return jQuery.grep( elements, function( elem ) {
+		return ( core_indexOf.call( qualifier, elem ) >= 0 ) !== not;
 	});
 }
-function createSafeFragment( document ) {
-	var list = nodeNames.split( "|" ),
-		safeFrag = document.createDocumentFragment();
-
-	if ( safeFrag.createElement ) {
-		while ( list.length ) {
-			safeFrag.createElement(
-				list.pop()
-			);
-		}
-	}
-	return safeFrag;
-}
-
-var nodeNames = "abbr|article|aside|audio|bdi|canvas|data|datalist|details|figcaption|figure|footer|" +
-		"header|hgroup|mark|meter|nav|output|progress|section|summary|time|video",
-	rinlinejQuery = / jQuery\d+="(?:null|\d+)"/g,
-	rnoshimcache = new RegExp("<(?:" + nodeNames + ")[\\s/>]", "i"),
-	rleadingWhitespace = /^\s+/,
-	rxhtmlTag = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([\w:]+)[^>]*)\/>/gi,
+var rxhtmlTag = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([\w:]+)[^>]*)\/>/gi,
 	rtagName = /<([\w:]+)/,
-	rtbody = /<tbody/i,
 	rhtml = /<|&#?\w+;/,
 	rnoInnerhtml = /<(?:script|style|link)/i,
 	manipulation_rcheckableType = /^(?:checkbox|radio)$/i,
@@ -5858,23 +5429,21 @@ var nodeNames = "abbr|article|aside|audio|bdi|canvas|data|datalist|details|figca
 
 	// We have to close these tags to support XHTML (#13200)
 	wrapMap = {
+
+		// Support: IE 9
 		option: [ 1, "<select multiple='multiple'>", "</select>" ],
-		legend: [ 1, "<fieldset>", "</fieldset>" ],
-		area: [ 1, "<map>", "</map>" ],
-		param: [ 1, "<object>", "</object>" ],
+
 		thead: [ 1, "<table>", "</table>" ],
+		col: [ 2, "<table><colgroup>", "</colgroup></table>" ],
 		tr: [ 2, "<table><tbody>", "</tbody></table>" ],
-		col: [ 2, "<table><tbody></tbody><colgroup>", "</colgroup></table>" ],
 		td: [ 3, "<table><tbody><tr>", "</tr></tbody></table>" ],
 
-		// IE6-8 can't serialize link, script, style, or any html5 (NoScope) tags,
-		// unless wrapped in a div with non-breaking characters in front of it.
-		_default: jQuery.support.htmlSerialize ? [ 0, "", "" ] : [ 1, "X<div>", "</div>"  ]
-	},
-	safeFragment = createSafeFragment( document ),
-	fragmentDiv = safeFragment.appendChild( document.createElement("div") );
+		_default: [ 0, "", "" ]
+	};
 
+// Support: IE 9
 wrapMap.optgroup = wrapMap.option;
+
 wrapMap.tbody = wrapMap.tfoot = wrapMap.colgroup = wrapMap.caption = wrapMap.thead;
 wrapMap.th = wrapMap.td;
 
@@ -5883,30 +5452,571 @@ jQuery.fn.extend({
 		return jQuery.access( this, function( value ) {
 			return value === undefined ?
 				jQuery.text( this ) :
-				this.empty().append( ( this[0] && this[0].ownerDocument || document ).createTextNode( value ) );
+				this.empty().append( ( this[ 0 ] && this[ 0 ].ownerDocument || document ).createTextNode( value ) );
 		}, null, value, arguments.length );
 	},
 
-	wrapAll: function( html ) {
-		if ( jQuery.isFunction( html ) ) {
-			return this.each(function(i) {
-				jQuery(this).wrapAll( html.call(this, i) );
+	append: function() {
+		return this.domManip( arguments, function( elem ) {
+			if ( this.nodeType === 1 || this.nodeType === 11 || this.nodeType === 9 ) {
+				var target = manipulationTarget( this, elem );
+				target.appendChild( elem );
+			}
+		});
+	},
+
+	prepend: function() {
+		return this.domManip( arguments, function( elem ) {
+			if ( this.nodeType === 1 || this.nodeType === 11 || this.nodeType === 9 ) {
+				var target = manipulationTarget( this, elem );
+				target.insertBefore( elem, target.firstChild );
+			}
+		});
+	},
+
+	before: function() {
+		return this.domManip( arguments, function( elem ) {
+			if ( this.parentNode ) {
+				this.parentNode.insertBefore( elem, this );
+			}
+		});
+	},
+
+	after: function() {
+		return this.domManip( arguments, function( elem ) {
+			if ( this.parentNode ) {
+				this.parentNode.insertBefore( elem, this.nextSibling );
+			}
+		});
+	},
+
+	// keepData is for internal use only--do not document
+	remove: function( selector, keepData ) {
+		var elem,
+			elems = selector ? jQuery.filter( selector, this ) : this,
+			i = 0;
+
+		for ( ; (elem = elems[i]) != null; i++ ) {
+			if ( !keepData && elem.nodeType === 1 ) {
+				jQuery.cleanData( getAll( elem ) );
+			}
+
+			if ( elem.parentNode ) {
+				if ( keepData && jQuery.contains( elem.ownerDocument, elem ) ) {
+					setGlobalEval( getAll( elem, "script" ) );
+				}
+				elem.parentNode.removeChild( elem );
+			}
+		}
+
+		return this;
+	},
+
+	empty: function() {
+		var elem,
+			i = 0;
+
+		for ( ; (elem = this[i]) != null; i++ ) {
+			if ( elem.nodeType === 1 ) {
+
+				// Prevent memory leaks
+				jQuery.cleanData( getAll( elem, false ) );
+
+				// Remove any remaining nodes
+				elem.textContent = "";
+			}
+		}
+
+		return this;
+	},
+
+	clone: function( dataAndEvents, deepDataAndEvents ) {
+		dataAndEvents = dataAndEvents == null ? false : dataAndEvents;
+		deepDataAndEvents = deepDataAndEvents == null ? dataAndEvents : deepDataAndEvents;
+
+		return this.map( function () {
+			return jQuery.clone( this, dataAndEvents, deepDataAndEvents );
+		});
+	},
+
+	html: function( value ) {
+		return jQuery.access( this, function( value ) {
+			var elem = this[ 0 ] || {},
+				i = 0,
+				l = this.length;
+
+			if ( value === undefined && elem.nodeType === 1 ) {
+				return elem.innerHTML;
+			}
+
+			// See if we can take a shortcut and just use innerHTML
+			if ( typeof value === "string" && !rnoInnerhtml.test( value ) &&
+				!wrapMap[ ( rtagName.exec( value ) || [ "", "" ] )[ 1 ].toLowerCase() ] ) {
+
+				value = value.replace( rxhtmlTag, "<$1></$2>" );
+
+				try {
+					for ( ; i < l; i++ ) {
+						elem = this[ i ] || {};
+
+						// Remove element nodes and prevent memory leaks
+						if ( elem.nodeType === 1 ) {
+							jQuery.cleanData( getAll( elem, false ) );
+							elem.innerHTML = value;
+						}
+					}
+
+					elem = 0;
+
+				// If using innerHTML throws an exception, use the fallback method
+				} catch( e ) {}
+			}
+
+			if ( elem ) {
+				this.empty().append( value );
+			}
+		}, null, value, arguments.length );
+	},
+
+	replaceWith: function() {
+		var
+			// Snapshot the DOM in case .domManip sweeps something relevant into its fragment
+			args = jQuery.map( this, function( elem ) {
+				return [ elem.nextSibling, elem.parentNode ];
+			}),
+			i = 0;
+
+		// Make the changes, replacing each context element with the new content
+		this.domManip( arguments, function( elem ) {
+			var next = args[ i++ ],
+				parent = args[ i++ ];
+
+			if ( parent ) {
+				// Don't use the snapshot next if it has moved (#13810)
+				if ( next && next.parentNode !== parent ) {
+					next = this.nextSibling;
+				}
+				jQuery( this ).remove();
+				parent.insertBefore( elem, next );
+			}
+		// Allow new content to include elements from the context set
+		}, true );
+
+		// Force removal if there was no new content (e.g., from empty arguments)
+		return i ? this : this.remove();
+	},
+
+	detach: function( selector ) {
+		return this.remove( selector, true );
+	},
+
+	domManip: function( args, callback, allowIntersection ) {
+
+		// Flatten any nested arrays
+		args = core_concat.apply( [], args );
+
+		var fragment, first, scripts, hasScripts, node, doc,
+			i = 0,
+			l = this.length,
+			set = this,
+			iNoClone = l - 1,
+			value = args[ 0 ],
+			isFunction = jQuery.isFunction( value );
+
+		// We can't cloneNode fragments that contain checked, in WebKit
+		if ( isFunction || !( l <= 1 || typeof value !== "string" || jQuery.support.checkClone || !rchecked.test( value ) ) ) {
+			return this.each(function( index ) {
+				var self = set.eq( index );
+				if ( isFunction ) {
+					args[ 0 ] = value.call( this, index, self.html() );
+				}
+				self.domManip( args, callback, allowIntersection );
 			});
 		}
 
-		if ( this[0] ) {
-			// The elements to wrap the target around
-			var wrap = jQuery( html, this[0].ownerDocument ).eq(0).clone(true);
+		if ( l ) {
+			fragment = jQuery.buildFragment( args, this[ 0 ].ownerDocument, false, !allowIntersection && this );
+			first = fragment.firstChild;
 
-			if ( this[0].parentNode ) {
-				wrap.insertBefore( this[0] );
+			if ( fragment.childNodes.length === 1 ) {
+				fragment = first;
+			}
+
+			if ( first ) {
+				scripts = jQuery.map( getAll( fragment, "script" ), disableScript );
+				hasScripts = scripts.length;
+
+				// Use the original fragment for the last item instead of the first because it can end up
+				// being emptied incorrectly in certain situations (#8070).
+				for ( ; i < l; i++ ) {
+					node = fragment;
+
+					if ( i !== iNoClone ) {
+						node = jQuery.clone( node, true, true );
+
+						// Keep references to cloned scripts for later restoration
+						if ( hasScripts ) {
+							// Support: QtWebKit
+							// jQuery.merge because core_push.apply(_, arraylike) throws
+							jQuery.merge( scripts, getAll( node, "script" ) );
+						}
+					}
+
+					callback.call( this[ i ], node, i );
+				}
+
+				if ( hasScripts ) {
+					doc = scripts[ scripts.length - 1 ].ownerDocument;
+
+					// Reenable scripts
+					jQuery.map( scripts, restoreScript );
+
+					// Evaluate executable scripts on first document insertion
+					for ( i = 0; i < hasScripts; i++ ) {
+						node = scripts[ i ];
+						if ( rscriptType.test( node.type || "" ) &&
+							!data_priv.access( node, "globalEval" ) && jQuery.contains( doc, node ) ) {
+
+							if ( node.src ) {
+								// Hope ajax is available...
+								jQuery._evalUrl( node.src );
+							} else {
+								jQuery.globalEval( node.textContent.replace( rcleanScript, "" ) );
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return this;
+	}
+});
+
+jQuery.each({
+	appendTo: "append",
+	prependTo: "prepend",
+	insertBefore: "before",
+	insertAfter: "after",
+	replaceAll: "replaceWith"
+}, function( name, original ) {
+	jQuery.fn[ name ] = function( selector ) {
+		var elems,
+			ret = [],
+			insert = jQuery( selector ),
+			last = insert.length - 1,
+			i = 0;
+
+		for ( ; i <= last; i++ ) {
+			elems = i === last ? this : this.clone( true );
+			jQuery( insert[ i ] )[ original ]( elems );
+
+			// Support: QtWebKit
+			// .get() because core_push.apply(_, arraylike) throws
+			core_push.apply( ret, elems.get() );
+		}
+
+		return this.pushStack( ret );
+	};
+});
+
+jQuery.extend({
+	clone: function( elem, dataAndEvents, deepDataAndEvents ) {
+		var i, l, srcElements, destElements,
+			clone = elem.cloneNode( true ),
+			inPage = jQuery.contains( elem.ownerDocument, elem );
+
+		// Support: IE >= 9
+		// Fix Cloning issues
+		if ( !jQuery.support.noCloneChecked && ( elem.nodeType === 1 || elem.nodeType === 11 ) && !jQuery.isXMLDoc( elem ) ) {
+
+			// We eschew Sizzle here for performance reasons: http://jsperf.com/getall-vs-sizzle/2
+			destElements = getAll( clone );
+			srcElements = getAll( elem );
+
+			for ( i = 0, l = srcElements.length; i < l; i++ ) {
+				fixInput( srcElements[ i ], destElements[ i ] );
+			}
+		}
+
+		// Copy the events from the original to the clone
+		if ( dataAndEvents ) {
+			if ( deepDataAndEvents ) {
+				srcElements = srcElements || getAll( elem );
+				destElements = destElements || getAll( clone );
+
+				for ( i = 0, l = srcElements.length; i < l; i++ ) {
+					cloneCopyEvent( srcElements[ i ], destElements[ i ] );
+				}
+			} else {
+				cloneCopyEvent( elem, clone );
+			}
+		}
+
+		// Preserve script evaluation history
+		destElements = getAll( clone, "script" );
+		if ( destElements.length > 0 ) {
+			setGlobalEval( destElements, !inPage && getAll( elem, "script" ) );
+		}
+
+		// Return the cloned set
+		return clone;
+	},
+
+	buildFragment: function( elems, context, scripts, selection ) {
+		var elem, tmp, tag, wrap, contains, j,
+			i = 0,
+			l = elems.length,
+			fragment = context.createDocumentFragment(),
+			nodes = [];
+
+		for ( ; i < l; i++ ) {
+			elem = elems[ i ];
+
+			if ( elem || elem === 0 ) {
+
+				// Add nodes directly
+				if ( jQuery.type( elem ) === "object" ) {
+					// Support: QtWebKit
+					// jQuery.merge because core_push.apply(_, arraylike) throws
+					jQuery.merge( nodes, elem.nodeType ? [ elem ] : elem );
+
+				// Convert non-html into a text node
+				} else if ( !rhtml.test( elem ) ) {
+					nodes.push( context.createTextNode( elem ) );
+
+				// Convert html into DOM nodes
+				} else {
+					tmp = tmp || fragment.appendChild( context.createElement("div") );
+
+					// Deserialize a standard representation
+					tag = ( rtagName.exec( elem ) || ["", ""] )[ 1 ].toLowerCase();
+					wrap = wrapMap[ tag ] || wrapMap._default;
+					tmp.innerHTML = wrap[ 1 ] + elem.replace( rxhtmlTag, "<$1></$2>" ) + wrap[ 2 ];
+
+					// Descend through wrappers to the right content
+					j = wrap[ 0 ];
+					while ( j-- ) {
+						tmp = tmp.lastChild;
+					}
+
+					// Support: QtWebKit
+					// jQuery.merge because core_push.apply(_, arraylike) throws
+					jQuery.merge( nodes, tmp.childNodes );
+
+					// Remember the top-level container
+					tmp = fragment.firstChild;
+
+					// Fixes #12346
+					// Support: Webkit, IE
+					tmp.textContent = "";
+				}
+			}
+		}
+
+		// Remove wrapper from fragment
+		fragment.textContent = "";
+
+		i = 0;
+		while ( (elem = nodes[ i++ ]) ) {
+
+			// #4087 - If origin and destination elements are the same, and this is
+			// that element, do not do anything
+			if ( selection && jQuery.inArray( elem, selection ) !== -1 ) {
+				continue;
+			}
+
+			contains = jQuery.contains( elem.ownerDocument, elem );
+
+			// Append to fragment
+			tmp = getAll( fragment.appendChild( elem ), "script" );
+
+			// Preserve script evaluation history
+			if ( contains ) {
+				setGlobalEval( tmp );
+			}
+
+			// Capture executables
+			if ( scripts ) {
+				j = 0;
+				while ( (elem = tmp[ j++ ]) ) {
+					if ( rscriptType.test( elem.type || "" ) ) {
+						scripts.push( elem );
+					}
+				}
+			}
+		}
+
+		return fragment;
+	},
+
+	cleanData: function( elems ) {
+		var data, elem, events, type, key, j,
+			special = jQuery.event.special,
+			i = 0;
+
+		for ( ; (elem = elems[ i ]) !== undefined; i++ ) {
+			if ( Data.accepts( elem ) ) {
+				key = elem[ data_priv.expando ];
+
+				if ( key && (data = data_priv.cache[ key ]) ) {
+					events = Object.keys( data.events || {} );
+					if ( events.length ) {
+						for ( j = 0; (type = events[j]) !== undefined; j++ ) {
+							if ( special[ type ] ) {
+								jQuery.event.remove( elem, type );
+
+							// This is a shortcut to avoid jQuery.event.remove's overhead
+							} else {
+								jQuery.removeEvent( elem, type, data.handle );
+							}
+						}
+					}
+					if ( data_priv.cache[ key ] ) {
+						// Discard any remaining `private` data
+						delete data_priv.cache[ key ];
+					}
+				}
+			}
+			// Discard any remaining `user` data
+			delete data_user.cache[ elem[ data_user.expando ] ];
+		}
+	},
+
+	_evalUrl: function( url ) {
+		return jQuery.ajax({
+			url: url,
+			type: "GET",
+			dataType: "script",
+			async: false,
+			global: false,
+			"throws": true
+		});
+	}
+});
+
+// Support: 1.x compatibility
+// Manipulating tables requires a tbody
+function manipulationTarget( elem, content ) {
+	return jQuery.nodeName( elem, "table" ) &&
+		jQuery.nodeName( content.nodeType === 1 ? content : content.firstChild, "tr" ) ?
+
+		elem.getElementsByTagName("tbody")[0] ||
+			elem.appendChild( elem.ownerDocument.createElement("tbody") ) :
+		elem;
+}
+
+// Replace/restore the type attribute of script elements for safe DOM manipulation
+function disableScript( elem ) {
+	elem.type = (elem.getAttribute("type") !== null) + "/" + elem.type;
+	return elem;
+}
+function restoreScript( elem ) {
+	var match = rscriptTypeMasked.exec( elem.type );
+
+	if ( match ) {
+		elem.type = match[ 1 ];
+	} else {
+		elem.removeAttribute("type");
+	}
+
+	return elem;
+}
+
+// Mark scripts as having already been evaluated
+function setGlobalEval( elems, refElements ) {
+	var l = elems.length,
+		i = 0;
+
+	for ( ; i < l; i++ ) {
+		data_priv.set(
+			elems[ i ], "globalEval", !refElements || data_priv.get( refElements[ i ], "globalEval" )
+		);
+	}
+}
+
+function cloneCopyEvent( src, dest ) {
+	var i, l, type, pdataOld, pdataCur, udataOld, udataCur, events;
+
+	if ( dest.nodeType !== 1 ) {
+		return;
+	}
+
+	// 1. Copy private data: events, handlers, etc.
+	if ( data_priv.hasData( src ) ) {
+		pdataOld = data_priv.access( src );
+		pdataCur = data_priv.set( dest, pdataOld );
+		events = pdataOld.events;
+
+		if ( events ) {
+			delete pdataCur.handle;
+			pdataCur.events = {};
+
+			for ( type in events ) {
+				for ( i = 0, l = events[ type ].length; i < l; i++ ) {
+					jQuery.event.add( dest, type, events[ type ][ i ] );
+				}
+			}
+		}
+	}
+
+	// 2. Copy user data
+	if ( data_user.hasData( src ) ) {
+		udataOld = data_user.access( src );
+		udataCur = jQuery.extend( {}, udataOld );
+
+		data_user.set( dest, udataCur );
+	}
+}
+
+
+function getAll( context, tag ) {
+	var ret = context.getElementsByTagName ? context.getElementsByTagName( tag || "*" ) :
+			context.querySelectorAll ? context.querySelectorAll( tag || "*" ) :
+			[];
+
+	return tag === undefined || tag && jQuery.nodeName( context, tag ) ?
+		jQuery.merge( [ context ], ret ) :
+		ret;
+}
+
+// Support: IE >= 9
+function fixInput( src, dest ) {
+	var nodeName = dest.nodeName.toLowerCase();
+
+	// Fails to persist the checked state of a cloned checkbox or radio button.
+	if ( nodeName === "input" && manipulation_rcheckableType.test( src.type ) ) {
+		dest.checked = src.checked;
+
+	// Fails to return the selected option to the default selected state when cloning options
+	} else if ( nodeName === "input" || nodeName === "textarea" ) {
+		dest.defaultValue = src.defaultValue;
+	}
+}
+jQuery.fn.extend({
+	wrapAll: function( html ) {
+		var wrap;
+
+		if ( jQuery.isFunction( html ) ) {
+			return this.each(function( i ) {
+				jQuery( this ).wrapAll( html.call(this, i) );
+			});
+		}
+
+		if ( this[ 0 ] ) {
+
+			// The elements to wrap the target around
+			wrap = jQuery( html, this[ 0 ].ownerDocument ).eq( 0 ).clone( true );
+
+			if ( this[ 0 ].parentNode ) {
+				wrap.insertBefore( this[ 0 ] );
 			}
 
 			wrap.map(function() {
 				var elem = this;
 
-				while ( elem.firstChild && elem.firstChild.nodeType === 1 ) {
-					elem = elem.firstChild;
+				while ( elem.firstElementChild ) {
+					elem = elem.firstElementChild;
 				}
 
 				return elem;
@@ -5918,8 +6028,8 @@ jQuery.fn.extend({
 
 	wrapInner: function( html ) {
 		if ( jQuery.isFunction( html ) ) {
-			return this.each(function(i) {
-				jQuery(this).wrapInner( html.call(this, i) );
+			return this.each(function( i ) {
+				jQuery( this ).wrapInner( html.call(this, i) );
 			});
 		}
 
@@ -5939,7 +6049,7 @@ jQuery.fn.extend({
 	wrap: function( html ) {
 		var isFunction = jQuery.isFunction( html );
 
-		return this.each(function(i) {
+		return this.each(function( i ) {
 			jQuery( this ).wrapAll( isFunction ? html.call(this, i) : html );
 		});
 	},
@@ -5950,681 +6060,9 @@ jQuery.fn.extend({
 				jQuery( this ).replaceWith( this.childNodes );
 			}
 		}).end();
-	},
-
-	append: function() {
-		return this.domManip(arguments, true, function( elem ) {
-			if ( this.nodeType === 1 || this.nodeType === 11 || this.nodeType === 9 ) {
-				this.appendChild( elem );
-			}
-		});
-	},
-
-	prepend: function() {
-		return this.domManip(arguments, true, function( elem ) {
-			if ( this.nodeType === 1 || this.nodeType === 11 || this.nodeType === 9 ) {
-				this.insertBefore( elem, this.firstChild );
-			}
-		});
-	},
-
-	before: function() {
-		return this.domManip( arguments, false, function( elem ) {
-			if ( this.parentNode ) {
-				this.parentNode.insertBefore( elem, this );
-			}
-		});
-	},
-
-	after: function() {
-		return this.domManip( arguments, false, function( elem ) {
-			if ( this.parentNode ) {
-				this.parentNode.insertBefore( elem, this.nextSibling );
-			}
-		});
-	},
-
-	// keepData is for internal use only--do not document
-	remove: function( selector, keepData ) {
-		var elem,
-			i = 0;
-
-		for ( ; (elem = this[i]) != null; i++ ) {
-			if ( !selector || jQuery.filter( selector, [ elem ] ).length > 0 ) {
-				if ( !keepData && elem.nodeType === 1 ) {
-					jQuery.cleanData( getAll( elem ) );
-				}
-
-				if ( elem.parentNode ) {
-					if ( keepData && jQuery.contains( elem.ownerDocument, elem ) ) {
-						setGlobalEval( getAll( elem, "script" ) );
-					}
-					elem.parentNode.removeChild( elem );
-				}
-			}
-		}
-
-		return this;
-	},
-
-	empty: function() {
-		var elem,
-			i = 0;
-
-		for ( ; (elem = this[i]) != null; i++ ) {
-			// Remove element nodes and prevent memory leaks
-			if ( elem.nodeType === 1 ) {
-				jQuery.cleanData( getAll( elem, false ) );
-			}
-
-			// Remove any remaining nodes
-			while ( elem.firstChild ) {
-				elem.removeChild( elem.firstChild );
-			}
-
-			// If this is a select, ensure that it displays empty (#12336)
-			// Support: IE<9
-			if ( elem.options && jQuery.nodeName( elem, "select" ) ) {
-				elem.options.length = 0;
-			}
-		}
-
-		return this;
-	},
-
-	clone: function( dataAndEvents, deepDataAndEvents ) {
-		dataAndEvents = dataAndEvents == null ? false : dataAndEvents;
-		deepDataAndEvents = deepDataAndEvents == null ? dataAndEvents : deepDataAndEvents;
-
-		return this.map( function () {
-			return jQuery.clone( this, dataAndEvents, deepDataAndEvents );
-		});
-	},
-
-	html: function( value ) {
-		return jQuery.access( this, function( value ) {
-			var elem = this[0] || {},
-				i = 0,
-				l = this.length;
-
-			if ( value === undefined ) {
-				return elem.nodeType === 1 ?
-					elem.innerHTML.replace( rinlinejQuery, "" ) :
-					undefined;
-			}
-
-			// See if we can take a shortcut and just use innerHTML
-			if ( typeof value === "string" && !rnoInnerhtml.test( value ) &&
-				( jQuery.support.htmlSerialize || !rnoshimcache.test( value )  ) &&
-				( jQuery.support.leadingWhitespace || !rleadingWhitespace.test( value ) ) &&
-				!wrapMap[ ( rtagName.exec( value ) || ["", ""] )[1].toLowerCase() ] ) {
-
-				value = value.replace( rxhtmlTag, "<$1></$2>" );
-
-				try {
-					for (; i < l; i++ ) {
-						// Remove element nodes and prevent memory leaks
-						elem = this[i] || {};
-						if ( elem.nodeType === 1 ) {
-							jQuery.cleanData( getAll( elem, false ) );
-							elem.innerHTML = value;
-						}
-					}
-
-					elem = 0;
-
-				// If using innerHTML throws an exception, use the fallback method
-				} catch(e) {}
-			}
-
-			if ( elem ) {
-				this.empty().append( value );
-			}
-		}, null, value, arguments.length );
-	},
-
-	replaceWith: function( value ) {
-		var isFunc = jQuery.isFunction( value );
-
-		// Make sure that the elements are removed from the DOM before they are inserted
-		// this can help fix replacing a parent with child elements
-		if ( !isFunc && typeof value !== "string" ) {
-			value = jQuery( value ).not( this ).detach();
-		}
-
-		return this.domManip( [ value ], true, function( elem ) {
-			var next = this.nextSibling,
-				parent = this.parentNode;
-
-			if ( parent ) {
-				jQuery( this ).remove();
-				parent.insertBefore( elem, next );
-			}
-		});
-	},
-
-	detach: function( selector ) {
-		return this.remove( selector, true );
-	},
-
-	domManip: function( args, table, callback ) {
-
-		// Flatten any nested arrays
-		args = core_concat.apply( [], args );
-
-		var first, node, hasScripts,
-			scripts, doc, fragment,
-			i = 0,
-			l = this.length,
-			set = this,
-			iNoClone = l - 1,
-			value = args[0],
-			isFunction = jQuery.isFunction( value );
-
-		// We can't cloneNode fragments that contain checked, in WebKit
-		if ( isFunction || !( l <= 1 || typeof value !== "string" || jQuery.support.checkClone || !rchecked.test( value ) ) ) {
-			return this.each(function( index ) {
-				var self = set.eq( index );
-				if ( isFunction ) {
-					args[0] = value.call( this, index, table ? self.html() : undefined );
-				}
-				self.domManip( args, table, callback );
-			});
-		}
-
-		if ( l ) {
-			fragment = jQuery.buildFragment( args, this[ 0 ].ownerDocument, false, this );
-			first = fragment.firstChild;
-
-			if ( fragment.childNodes.length === 1 ) {
-				fragment = first;
-			}
-
-			if ( first ) {
-				table = table && jQuery.nodeName( first, "tr" );
-				scripts = jQuery.map( getAll( fragment, "script" ), disableScript );
-				hasScripts = scripts.length;
-
-				// Use the original fragment for the last item instead of the first because it can end up
-				// being emptied incorrectly in certain situations (#8070).
-				for ( ; i < l; i++ ) {
-					node = fragment;
-
-					if ( i !== iNoClone ) {
-						node = jQuery.clone( node, true, true );
-
-						// Keep references to cloned scripts for later restoration
-						if ( hasScripts ) {
-							jQuery.merge( scripts, getAll( node, "script" ) );
-						}
-					}
-
-					callback.call(
-						table && jQuery.nodeName( this[i], "table" ) ?
-							findOrAppend( this[i], "tbody" ) :
-							this[i],
-						node,
-						i
-					);
-				}
-
-				if ( hasScripts ) {
-					doc = scripts[ scripts.length - 1 ].ownerDocument;
-
-					// Reenable scripts
-					jQuery.map( scripts, restoreScript );
-
-					// Evaluate executable scripts on first document insertion
-					for ( i = 0; i < hasScripts; i++ ) {
-						node = scripts[ i ];
-						if ( rscriptType.test( node.type || "" ) &&
-							!jQuery._data( node, "globalEval" ) && jQuery.contains( doc, node ) ) {
-
-							if ( node.src ) {
-								// Hope ajax is available...
-								jQuery.ajax({
-									url: node.src,
-									type: "GET",
-									dataType: "script",
-									async: false,
-									global: false,
-									"throws": true
-								});
-							} else {
-								jQuery.globalEval( ( node.text || node.textContent || node.innerHTML || "" ).replace( rcleanScript, "" ) );
-							}
-						}
-					}
-				}
-
-				// Fix #11809: Avoid leaking memory
-				fragment = first = null;
-			}
-		}
-
-		return this;
 	}
 });
-
-function findOrAppend( elem, tag ) {
-	return elem.getElementsByTagName( tag )[0] || elem.appendChild( elem.ownerDocument.createElement( tag ) );
-}
-
-// Replace/restore the type attribute of script elements for safe DOM manipulation
-function disableScript( elem ) {
-	var attr = elem.getAttributeNode("type");
-	elem.type = ( attr && attr.specified ) + "/" + elem.type;
-	return elem;
-}
-function restoreScript( elem ) {
-	var match = rscriptTypeMasked.exec( elem.type );
-	if ( match ) {
-		elem.type = match[1];
-	} else {
-		elem.removeAttribute("type");
-	}
-	return elem;
-}
-
-// Mark scripts as having already been evaluated
-function setGlobalEval( elems, refElements ) {
-	var elem,
-		i = 0;
-	for ( ; (elem = elems[i]) != null; i++ ) {
-		jQuery._data( elem, "globalEval", !refElements || jQuery._data( refElements[i], "globalEval" ) );
-	}
-}
-
-function cloneCopyEvent( src, dest ) {
-
-	if ( dest.nodeType !== 1 || !jQuery.hasData( src ) ) {
-		return;
-	}
-
-	var type, i, l,
-		oldData = jQuery._data( src ),
-		curData = jQuery._data( dest, oldData ),
-		events = oldData.events;
-
-	if ( events ) {
-		delete curData.handle;
-		curData.events = {};
-
-		for ( type in events ) {
-			for ( i = 0, l = events[ type ].length; i < l; i++ ) {
-				jQuery.event.add( dest, type, events[ type ][ i ] );
-			}
-		}
-	}
-
-	// make the cloned public data object a copy from the original
-	if ( curData.data ) {
-		curData.data = jQuery.extend( {}, curData.data );
-	}
-}
-
-function fixCloneNodeIssues( src, dest ) {
-	var nodeName, e, data;
-
-	// We do not need to do anything for non-Elements
-	if ( dest.nodeType !== 1 ) {
-		return;
-	}
-
-	nodeName = dest.nodeName.toLowerCase();
-
-	// IE6-8 copies events bound via attachEvent when using cloneNode.
-	if ( !jQuery.support.noCloneEvent && dest[ jQuery.expando ] ) {
-		data = jQuery._data( dest );
-
-		for ( e in data.events ) {
-			jQuery.removeEvent( dest, e, data.handle );
-		}
-
-		// Event data gets referenced instead of copied if the expando gets copied too
-		dest.removeAttribute( jQuery.expando );
-	}
-
-	// IE blanks contents when cloning scripts, and tries to evaluate newly-set text
-	if ( nodeName === "script" && dest.text !== src.text ) {
-		disableScript( dest ).text = src.text;
-		restoreScript( dest );
-
-	// IE6-10 improperly clones children of object elements using classid.
-	// IE10 throws NoModificationAllowedError if parent is null, #12132.
-	} else if ( nodeName === "object" ) {
-		if ( dest.parentNode ) {
-			dest.outerHTML = src.outerHTML;
-		}
-
-		// This path appears unavoidable for IE9. When cloning an object
-		// element in IE9, the outerHTML strategy above is not sufficient.
-		// If the src has innerHTML and the destination does not,
-		// copy the src.innerHTML into the dest.innerHTML. #10324
-		if ( jQuery.support.html5Clone && ( src.innerHTML && !jQuery.trim(dest.innerHTML) ) ) {
-			dest.innerHTML = src.innerHTML;
-		}
-
-	} else if ( nodeName === "input" && manipulation_rcheckableType.test( src.type ) ) {
-		// IE6-8 fails to persist the checked state of a cloned checkbox
-		// or radio button. Worse, IE6-7 fail to give the cloned element
-		// a checked appearance if the defaultChecked value isn't also set
-
-		dest.defaultChecked = dest.checked = src.checked;
-
-		// IE6-7 get confused and end up setting the value of a cloned
-		// checkbox/radio button to an empty string instead of "on"
-		if ( dest.value !== src.value ) {
-			dest.value = src.value;
-		}
-
-	// IE6-8 fails to return the selected option to the default selected
-	// state when cloning options
-	} else if ( nodeName === "option" ) {
-		dest.defaultSelected = dest.selected = src.defaultSelected;
-
-	// IE6-8 fails to set the defaultValue to the correct value when
-	// cloning other types of input fields
-	} else if ( nodeName === "input" || nodeName === "textarea" ) {
-		dest.defaultValue = src.defaultValue;
-	}
-}
-
-jQuery.each({
-	appendTo: "append",
-	prependTo: "prepend",
-	insertBefore: "before",
-	insertAfter: "after",
-	replaceAll: "replaceWith"
-}, function( name, original ) {
-	jQuery.fn[ name ] = function( selector ) {
-		var elems,
-			i = 0,
-			ret = [],
-			insert = jQuery( selector ),
-			last = insert.length - 1;
-
-		for ( ; i <= last; i++ ) {
-			elems = i === last ? this : this.clone(true);
-			jQuery( insert[i] )[ original ]( elems );
-
-			// Modern browsers can apply jQuery collections as arrays, but oldIE needs a .get()
-			core_push.apply( ret, elems.get() );
-		}
-
-		return this.pushStack( ret );
-	};
-});
-
-function getAll( context, tag ) {
-	var elems, elem,
-		i = 0,
-		found = typeof context.getElementsByTagName !== core_strundefined ? context.getElementsByTagName( tag || "*" ) :
-			typeof context.querySelectorAll !== core_strundefined ? context.querySelectorAll( tag || "*" ) :
-			undefined;
-
-	if ( !found ) {
-		for ( found = [], elems = context.childNodes || context; (elem = elems[i]) != null; i++ ) {
-			if ( !tag || jQuery.nodeName( elem, tag ) ) {
-				found.push( elem );
-			} else {
-				jQuery.merge( found, getAll( elem, tag ) );
-			}
-		}
-	}
-
-	return tag === undefined || tag && jQuery.nodeName( context, tag ) ?
-		jQuery.merge( [ context ], found ) :
-		found;
-}
-
-// Used in buildFragment, fixes the defaultChecked property
-function fixDefaultChecked( elem ) {
-	if ( manipulation_rcheckableType.test( elem.type ) ) {
-		elem.defaultChecked = elem.checked;
-	}
-}
-
-jQuery.extend({
-	clone: function( elem, dataAndEvents, deepDataAndEvents ) {
-		var destElements, node, clone, i, srcElements,
-			inPage = jQuery.contains( elem.ownerDocument, elem );
-
-		if ( jQuery.support.html5Clone || jQuery.isXMLDoc(elem) || !rnoshimcache.test( "<" + elem.nodeName + ">" ) ) {
-			clone = elem.cloneNode( true );
-
-		// IE<=8 does not properly clone detached, unknown element nodes
-		} else {
-			fragmentDiv.innerHTML = elem.outerHTML;
-			fragmentDiv.removeChild( clone = fragmentDiv.firstChild );
-		}
-
-		if ( (!jQuery.support.noCloneEvent || !jQuery.support.noCloneChecked) &&
-				(elem.nodeType === 1 || elem.nodeType === 11) && !jQuery.isXMLDoc(elem) ) {
-
-			// We eschew Sizzle here for performance reasons: http://jsperf.com/getall-vs-sizzle/2
-			destElements = getAll( clone );
-			srcElements = getAll( elem );
-
-			// Fix all IE cloning issues
-			for ( i = 0; (node = srcElements[i]) != null; ++i ) {
-				// Ensure that the destination node is not null; Fixes #9587
-				if ( destElements[i] ) {
-					fixCloneNodeIssues( node, destElements[i] );
-				}
-			}
-		}
-
-		// Copy the events from the original to the clone
-		if ( dataAndEvents ) {
-			if ( deepDataAndEvents ) {
-				srcElements = srcElements || getAll( elem );
-				destElements = destElements || getAll( clone );
-
-				for ( i = 0; (node = srcElements[i]) != null; i++ ) {
-					cloneCopyEvent( node, destElements[i] );
-				}
-			} else {
-				cloneCopyEvent( elem, clone );
-			}
-		}
-
-		// Preserve script evaluation history
-		destElements = getAll( clone, "script" );
-		if ( destElements.length > 0 ) {
-			setGlobalEval( destElements, !inPage && getAll( elem, "script" ) );
-		}
-
-		destElements = srcElements = node = null;
-
-		// Return the cloned set
-		return clone;
-	},
-
-	buildFragment: function( elems, context, scripts, selection ) {
-		var j, elem, contains,
-			tmp, tag, tbody, wrap,
-			l = elems.length,
-
-			// Ensure a safe fragment
-			safe = createSafeFragment( context ),
-
-			nodes = [],
-			i = 0;
-
-		for ( ; i < l; i++ ) {
-			elem = elems[ i ];
-
-			if ( elem || elem === 0 ) {
-
-				// Add nodes directly
-				if ( jQuery.type( elem ) === "object" ) {
-					jQuery.merge( nodes, elem.nodeType ? [ elem ] : elem );
-
-				// Convert non-html into a text node
-				} else if ( !rhtml.test( elem ) ) {
-					nodes.push( context.createTextNode( elem ) );
-
-				// Convert html into DOM nodes
-				} else {
-					tmp = tmp || safe.appendChild( context.createElement("div") );
-
-					// Deserialize a standard representation
-					tag = ( rtagName.exec( elem ) || ["", ""] )[1].toLowerCase();
-					wrap = wrapMap[ tag ] || wrapMap._default;
-
-					tmp.innerHTML = wrap[1] + elem.replace( rxhtmlTag, "<$1></$2>" ) + wrap[2];
-
-					// Descend through wrappers to the right content
-					j = wrap[0];
-					while ( j-- ) {
-						tmp = tmp.lastChild;
-					}
-
-					// Manually add leading whitespace removed by IE
-					if ( !jQuery.support.leadingWhitespace && rleadingWhitespace.test( elem ) ) {
-						nodes.push( context.createTextNode( rleadingWhitespace.exec( elem )[0] ) );
-					}
-
-					// Remove IE's autoinserted <tbody> from table fragments
-					if ( !jQuery.support.tbody ) {
-
-						// String was a <table>, *may* have spurious <tbody>
-						elem = tag === "table" && !rtbody.test( elem ) ?
-							tmp.firstChild :
-
-							// String was a bare <thead> or <tfoot>
-							wrap[1] === "<table>" && !rtbody.test( elem ) ?
-								tmp :
-								0;
-
-						j = elem && elem.childNodes.length;
-						while ( j-- ) {
-							if ( jQuery.nodeName( (tbody = elem.childNodes[j]), "tbody" ) && !tbody.childNodes.length ) {
-								elem.removeChild( tbody );
-							}
-						}
-					}
-
-					jQuery.merge( nodes, tmp.childNodes );
-
-					// Fix #12392 for WebKit and IE > 9
-					tmp.textContent = "";
-
-					// Fix #12392 for oldIE
-					while ( tmp.firstChild ) {
-						tmp.removeChild( tmp.firstChild );
-					}
-
-					// Remember the top-level container for proper cleanup
-					tmp = safe.lastChild;
-				}
-			}
-		}
-
-		// Fix #11356: Clear elements from fragment
-		if ( tmp ) {
-			safe.removeChild( tmp );
-		}
-
-		// Reset defaultChecked for any radios and checkboxes
-		// about to be appended to the DOM in IE 6/7 (#8060)
-		if ( !jQuery.support.appendChecked ) {
-			jQuery.grep( getAll( nodes, "input" ), fixDefaultChecked );
-		}
-
-		i = 0;
-		while ( (elem = nodes[ i++ ]) ) {
-
-			// #4087 - If origin and destination elements are the same, and this is
-			// that element, do not do anything
-			if ( selection && jQuery.inArray( elem, selection ) !== -1 ) {
-				continue;
-			}
-
-			contains = jQuery.contains( elem.ownerDocument, elem );
-
-			// Append to fragment
-			tmp = getAll( safe.appendChild( elem ), "script" );
-
-			// Preserve script evaluation history
-			if ( contains ) {
-				setGlobalEval( tmp );
-			}
-
-			// Capture executables
-			if ( scripts ) {
-				j = 0;
-				while ( (elem = tmp[ j++ ]) ) {
-					if ( rscriptType.test( elem.type || "" ) ) {
-						scripts.push( elem );
-					}
-				}
-			}
-		}
-
-		tmp = null;
-
-		return safe;
-	},
-
-	cleanData: function( elems, /* internal */ acceptData ) {
-		var elem, type, id, data,
-			i = 0,
-			internalKey = jQuery.expando,
-			cache = jQuery.cache,
-			deleteExpando = jQuery.support.deleteExpando,
-			special = jQuery.event.special;
-
-		for ( ; (elem = elems[i]) != null; i++ ) {
-
-			if ( acceptData || jQuery.acceptData( elem ) ) {
-
-				id = elem[ internalKey ];
-				data = id && cache[ id ];
-
-				if ( data ) {
-					if ( data.events ) {
-						for ( type in data.events ) {
-							if ( special[ type ] ) {
-								jQuery.event.remove( elem, type );
-
-							// This is a shortcut to avoid jQuery.event.remove's overhead
-							} else {
-								jQuery.removeEvent( elem, type, data.handle );
-							}
-						}
-					}
-
-					// Remove cache only if it was not already removed by jQuery.event.remove
-					if ( cache[ id ] ) {
-
-						delete cache[ id ];
-
-						// IE does not allow us to delete expando properties from nodes,
-						// nor does it have a removeAttribute function on Document nodes;
-						// we must handle all of these cases
-						if ( deleteExpando ) {
-							delete elem[ internalKey ];
-
-						} else if ( typeof elem.removeAttribute !== core_strundefined ) {
-							elem.removeAttribute( internalKey );
-
-						} else {
-							elem[ internalKey ] = null;
-						}
-
-						core_deletedIds.push( id );
-					}
-				}
-			}
-		}
-	}
-});
-var iframe, getStyles, curCSS,
-	ralpha = /alpha\([^)]*\)/i,
-	ropacity = /opacity\s*=\s*([^)]*)/,
-	rposition = /^(top|right|bottom|left)$/,
+var curCSS, iframe,
 	// swappable if display is none or starts with table except "table", "table-cell", or "table-caption"
 	// see here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
 	rdisplayswap = /^(none|table(?!-c[ea]).+)/,
@@ -6673,6 +6111,12 @@ function isHidden( elem, el ) {
 	return jQuery.css( elem, "display" ) === "none" || !jQuery.contains( elem.ownerDocument, elem );
 }
 
+// NOTE: we've included the "window" in window.getComputedStyle
+// because jsdom on node.js will break without it.
+function getStyles( elem ) {
+	return window.getComputedStyle( elem, null );
+}
+
 function showHide( elements, show ) {
 	var display, elem, hidden,
 		values = [],
@@ -6685,7 +6129,7 @@ function showHide( elements, show ) {
 			continue;
 		}
 
-		values[ index ] = jQuery._data( elem, "olddisplay" );
+		values[ index ] = data_priv.get( elem, "olddisplay" );
 		display = elem.style.display;
 		if ( show ) {
 			// Reset the inline display of this element to learn if it is
@@ -6698,7 +6142,7 @@ function showHide( elements, show ) {
 			// in a stylesheet to whatever the default browser style is
 			// for such an element
 			if ( elem.style.display === "" && isHidden( elem ) ) {
-				values[ index ] = jQuery._data( elem, "olddisplay", css_defaultDisplay(elem.nodeName) );
+				values[ index ] = data_priv.access( elem, "olddisplay", css_defaultDisplay(elem.nodeName) );
 			}
 		} else {
 
@@ -6706,7 +6150,7 @@ function showHide( elements, show ) {
 				hidden = isHidden( elem );
 
 				if ( display && display !== "none" || !hidden ) {
-					jQuery._data( elem, "olddisplay", hidden ? display : jQuery.css( elem, "display" ) );
+					data_priv.set( elem, "olddisplay", hidden ? display : jQuery.css(elem, "display") );
 				}
 			}
 		}
@@ -6730,7 +6174,7 @@ function showHide( elements, show ) {
 jQuery.fn.extend({
 	css: function( name, value ) {
 		return jQuery.access( this, function( elem, name, value ) {
-			var len, styles,
+			var styles, len,
 				map = {},
 				i = 0;
 
@@ -6757,10 +6201,12 @@ jQuery.fn.extend({
 		return showHide( this );
 	},
 	toggle: function( state ) {
-		var bool = typeof state === "boolean";
+		if ( typeof state === "boolean" ) {
+			return state ? this.show() : this.hide();
+		}
 
 		return this.each(function() {
-			if ( bool ? state : isHidden( this ) ) {
+			if ( isHidden( this ) ) {
 				jQuery( this ).show();
 			} else {
 				jQuery( this ).hide();
@@ -6784,13 +6230,14 @@ jQuery.extend({
 		}
 	},
 
-	// Exclude the following css properties to add px
+	// Don't automatically add "px" to these possibly-unitless properties
 	cssNumber: {
 		"columnCount": true,
 		"fillOpacity": true,
 		"fontWeight": true,
 		"lineHeight": true,
 		"opacity": true,
+		"order": true,
 		"orphans": true,
 		"widows": true,
 		"zIndex": true,
@@ -6801,7 +6248,7 @@ jQuery.extend({
 	// setting or getting the value
 	cssProps: {
 		// normalize float css property
-		"float": jQuery.support.cssFloat ? "cssFloat" : "styleFloat"
+		"float": "cssFloat"
 	},
 
 	// Get and set the style property on a DOM Node
@@ -6843,7 +6290,7 @@ jQuery.extend({
 				value += "px";
 			}
 
-			// Fixes #8908, it can be done more correctly by specifing setters in cssHooks,
+			// Fixes #8908, it can be done more correctly by specifying setters in cssHooks,
 			// but it would mean to define eight (for every problematic property) identical functions
 			if ( !jQuery.support.clearCloneStyle && value === "" && name.indexOf("background") === 0 ) {
 				style[ name ] = "inherit";
@@ -6851,12 +6298,7 @@ jQuery.extend({
 
 			// If a hook was provided, use that value, otherwise just set the specified value
 			if ( !hooks || !("set" in hooks) || (value = hooks.set( elem, value, extra )) !== undefined ) {
-
-				// Wrapped to prevent IE from throwing errors when 'invalid' values are provided
-				// Fixes bug #5509
-				try {
-					style[ name ] = value;
-				} catch(e) {}
+				style[ name ] = value;
 			}
 
 		} else {
@@ -6871,7 +6313,7 @@ jQuery.extend({
 	},
 
 	css: function( elem, name, extra, styles ) {
-		var num, val, hooks,
+		var val, num, hooks,
 			origName = jQuery.camelCase( name );
 
 		// Make sure that we're working with the right name
@@ -6902,123 +6344,49 @@ jQuery.extend({
 			return extra === true || jQuery.isNumeric( num ) ? num || 0 : val;
 		}
 		return val;
-	},
-
-	// A method for quickly swapping in/out CSS properties to get correct calculations
-	swap: function( elem, options, callback, args ) {
-		var ret, name,
-			old = {};
-
-		// Remember the old values, and insert the new ones
-		for ( name in options ) {
-			old[ name ] = elem.style[ name ];
-			elem.style[ name ] = options[ name ];
-		}
-
-		ret = callback.apply( elem, args || [] );
-
-		// Revert the old values
-		for ( name in options ) {
-			elem.style[ name ] = old[ name ];
-		}
-
-		return ret;
 	}
 });
 
-// NOTE: we've included the "window" in window.getComputedStyle
-// because jsdom on node.js will break without it.
-if ( window.getComputedStyle ) {
-	getStyles = function( elem ) {
-		return window.getComputedStyle( elem, null );
-	};
+curCSS = function( elem, name, _computed ) {
+	var width, minWidth, maxWidth,
+		computed = _computed || getStyles( elem ),
 
-	curCSS = function( elem, name, _computed ) {
-		var width, minWidth, maxWidth,
-			computed = _computed || getStyles( elem ),
+		// Support: IE9
+		// getPropertyValue is only needed for .css('filter') in IE9, see #12537
+		ret = computed ? computed.getPropertyValue( name ) || computed[ name ] : undefined,
+		style = elem.style;
 
-			// getPropertyValue is only needed for .css('filter') in IE9, see #12537
-			ret = computed ? computed.getPropertyValue( name ) || computed[ name ] : undefined,
-			style = elem.style;
+	if ( computed ) {
 
-		if ( computed ) {
-
-			if ( ret === "" && !jQuery.contains( elem.ownerDocument, elem ) ) {
-				ret = jQuery.style( elem, name );
-			}
-
-			// A tribute to the "awesome hack by Dean Edwards"
-			// Chrome < 17 and Safari 5.0 uses "computed value" instead of "used value" for margin-right
-			// Safari 5.1.7 (at least) returns percentage for a larger set of values, but width seems to be reliably pixels
-			// this is against the CSSOM draft spec: http://dev.w3.org/csswg/cssom/#resolved-values
-			if ( rnumnonpx.test( ret ) && rmargin.test( name ) ) {
-
-				// Remember the original values
-				width = style.width;
-				minWidth = style.minWidth;
-				maxWidth = style.maxWidth;
-
-				// Put in the new values to get a computed value out
-				style.minWidth = style.maxWidth = style.width = ret;
-				ret = computed.width;
-
-				// Revert the changed values
-				style.width = width;
-				style.minWidth = minWidth;
-				style.maxWidth = maxWidth;
-			}
+		if ( ret === "" && !jQuery.contains( elem.ownerDocument, elem ) ) {
+			ret = jQuery.style( elem, name );
 		}
 
-		return ret;
-	};
-} else if ( document.documentElement.currentStyle ) {
-	getStyles = function( elem ) {
-		return elem.currentStyle;
-	};
-
-	curCSS = function( elem, name, _computed ) {
-		var left, rs, rsLeft,
-			computed = _computed || getStyles( elem ),
-			ret = computed ? computed[ name ] : undefined,
-			style = elem.style;
-
-		// Avoid setting ret to empty string here
-		// so we don't default to auto
-		if ( ret == null && style && style[ name ] ) {
-			ret = style[ name ];
-		}
-
-		// From the awesome hack by Dean Edwards
-		// http://erik.eae.net/archives/2007/07/27/18.54.15/#comment-102291
-
-		// If we're not dealing with a regular pixel number
-		// but a number that has a weird ending, we need to convert it to pixels
-		// but not position css attributes, as those are proportional to the parent element instead
-		// and we can't measure the parent instead because it might trigger a "stacking dolls" problem
-		if ( rnumnonpx.test( ret ) && !rposition.test( name ) ) {
+		// Support: Safari 5.1
+		// A tribute to the "awesome hack by Dean Edwards"
+		// Safari 5.1.7 (at least) returns percentage for a larger set of values, but width seems to be reliably pixels
+		// this is against the CSSOM draft spec: http://dev.w3.org/csswg/cssom/#resolved-values
+		if ( rnumnonpx.test( ret ) && rmargin.test( name ) ) {
 
 			// Remember the original values
-			left = style.left;
-			rs = elem.runtimeStyle;
-			rsLeft = rs && rs.left;
+			width = style.width;
+			minWidth = style.minWidth;
+			maxWidth = style.maxWidth;
 
 			// Put in the new values to get a computed value out
-			if ( rsLeft ) {
-				rs.left = elem.currentStyle.left;
-			}
-			style.left = name === "fontSize" ? "1em" : ret;
-			ret = style.pixelLeft + "px";
+			style.minWidth = style.maxWidth = style.width = ret;
+			ret = computed.width;
 
 			// Revert the changed values
-			style.left = left;
-			if ( rsLeft ) {
-				rs.left = rsLeft;
-			}
+			style.width = width;
+			style.minWidth = minWidth;
+			style.maxWidth = maxWidth;
 		}
+	}
 
-		return ret === "" ? "auto" : ret;
-	};
-}
+	return ret;
+};
+
 
 function setPositiveNumber( elem, value, subtract ) {
 	var matches = rnumsplit.exec( value );
@@ -7179,57 +6547,15 @@ jQuery.each([ "height", "width" ], function( i, name ) {
 	};
 });
 
-if ( !jQuery.support.opacity ) {
-	jQuery.cssHooks.opacity = {
-		get: function( elem, computed ) {
-			// IE uses filters for opacity
-			return ropacity.test( (computed && elem.currentStyle ? elem.currentStyle.filter : elem.style.filter) || "" ) ?
-				( 0.01 * parseFloat( RegExp.$1 ) ) + "" :
-				computed ? "1" : "";
-		},
-
-		set: function( elem, value ) {
-			var style = elem.style,
-				currentStyle = elem.currentStyle,
-				opacity = jQuery.isNumeric( value ) ? "alpha(opacity=" + value * 100 + ")" : "",
-				filter = currentStyle && currentStyle.filter || style.filter || "";
-
-			// IE has trouble with opacity if it does not have layout
-			// Force it by setting the zoom level
-			style.zoom = 1;
-
-			// if setting opacity to 1, and no other filters exist - attempt to remove filter attribute #6652
-			// if value === "", then remove inline opacity #12685
-			if ( ( value >= 1 || value === "" ) &&
-					jQuery.trim( filter.replace( ralpha, "" ) ) === "" &&
-					style.removeAttribute ) {
-
-				// Setting style.filter to null, "" & " " still leave "filter:" in the cssText
-				// if "filter:" is present at all, clearType is disabled, we want to avoid this
-				// style.removeAttribute is IE Only, but so apparently is this code path...
-				style.removeAttribute( "filter" );
-
-				// if there is no filter style applied in a css rule or unset inline opacity, we are done
-				if ( value === "" || currentStyle && !currentStyle.filter ) {
-					return;
-				}
-			}
-
-			// otherwise, set new filter values
-			style.filter = ralpha.test( filter ) ?
-				filter.replace( ralpha, opacity ) :
-				filter + " " + opacity;
-		}
-	};
-}
-
 // These hooks cannot be added until DOM ready because the support test
 // for it is not run until after DOM ready
 jQuery(function() {
+	// Support: Android 2.3
 	if ( !jQuery.support.reliableMarginRight ) {
 		jQuery.cssHooks.marginRight = {
 			get: function( elem, computed ) {
 				if ( computed ) {
+					// Support: Android 2.3
 					// WebKit Bug 13343 - getComputedStyle returns wrong value for margin-right
 					// Work around by temporarily setting element display to inline-block
 					return jQuery.swap( elem, { "display": "inline-block" },
@@ -7264,8 +6590,7 @@ if ( jQuery.expr && jQuery.expr.filters ) {
 	jQuery.expr.filters.hidden = function( elem ) {
 		// Support: Opera <= 12.12
 		// Opera reports offsetWidths and offsetHeights less than zero on some elements
-		return elem.offsetWidth <= 0 && elem.offsetHeight <= 0 ||
-			(!jQuery.support.reliableHiddenOffsets && ((elem.style && elem.style.display) || jQuery.css( elem, "display" )) === "none");
+		return elem.offsetWidth <= 0 && elem.offsetHeight <= 0;
 	};
 
 	jQuery.expr.filters.visible = function( elem ) {
@@ -7411,19 +6736,37 @@ jQuery.each( ("blur focus focusin focusout load resize scroll unload click dblcl
 	};
 });
 
-jQuery.fn.hover = function( fnOver, fnOut ) {
-	return this.mouseenter( fnOver ).mouseleave( fnOut || fnOver );
-};
+jQuery.fn.extend({
+	hover: function( fnOver, fnOut ) {
+		return this.mouseenter( fnOver ).mouseleave( fnOut || fnOver );
+	},
+
+	bind: function( types, data, fn ) {
+		return this.on( types, null, data, fn );
+	},
+	unbind: function( types, fn ) {
+		return this.off( types, null, fn );
+	},
+
+	delegate: function( selector, types, data, fn ) {
+		return this.on( types, selector, data, fn );
+	},
+	undelegate: function( selector, types, fn ) {
+		// ( namespace ) or ( selector, types [, fn] )
+		return arguments.length === 1 ? this.off( selector, "**" ) : this.off( types, selector || "**", fn );
+	}
+});
 var
 	// Document location
 	ajaxLocParts,
 	ajaxLocation,
+
 	ajax_nonce = jQuery.now(),
 
 	ajax_rquery = /\?/,
 	rhash = /#.*$/,
 	rts = /([?&])_=[^&]*/,
-	rheaders = /^(.*?):[ \t]*([^\r\n]*)\r?$/mg, // IE leaves an \r character at EOL
+	rheaders = /^(.*?):[ \t]*([^\r\n]*)$/mg,
 	// #7653, #8125, #8152: local protocol detection
 	rlocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/,
 	rnoContent = /^(?:GET|HEAD)$/,
@@ -7530,7 +6873,7 @@ function inspectPrefiltersOrTransports( structure, options, originalOptions, jqX
 // that takes "flat" options (not to be deep extended)
 // Fixes #9887
 function ajaxExtend( target, src ) {
-	var deep, key,
+	var key, deep,
 		flatOptions = jQuery.ajaxSettings.flatOptions || {};
 
 	for ( key in src ) {
@@ -7550,12 +6893,12 @@ jQuery.fn.load = function( url, params, callback ) {
 		return _load.apply( this, arguments );
 	}
 
-	var selector, response, type,
+	var selector, type, response,
 		self = this,
 		off = url.indexOf(" ");
 
 	if ( off >= 0 ) {
-		selector = url.slice( off, url.length );
+		selector = url.slice( off );
 		url = url.slice( 0, off );
 	}
 
@@ -7609,25 +6952,6 @@ jQuery.each( [ "ajaxStart", "ajaxStop", "ajaxComplete", "ajaxError", "ajaxSucces
 	};
 });
 
-jQuery.each( [ "get", "post" ], function( i, method ) {
-	jQuery[ method ] = function( url, data, callback, type ) {
-		// shift arguments if data argument was omitted
-		if ( jQuery.isFunction( data ) ) {
-			type = type || callback;
-			callback = data;
-			data = undefined;
-		}
-
-		return jQuery.ajax({
-			url: url,
-			type: method,
-			dataType: type,
-			data: data,
-			success: callback
-		});
-	};
-});
-
 jQuery.extend({
 
 	// Counter for holding the number of active queries
@@ -7673,7 +6997,8 @@ jQuery.extend({
 
 		responseFields: {
 			xml: "responseXML",
-			text: "responseText"
+			text: "responseText",
+			json: "responseJSON"
 		},
 
 		// Data converters
@@ -7681,7 +7006,7 @@ jQuery.extend({
 		converters: {
 
 			// Convert anything to text
-			"* text": window.String,
+			"* text": String,
 
 			// Text to html (true = no transformation)
 			"text html": true,
@@ -7731,23 +7056,20 @@ jQuery.extend({
 		// Force options to be an object
 		options = options || {};
 
-		var // Cross-domain detection vars
-			parts,
-			// Loop variable
-			i,
+		var transport,
 			// URL without anti-cache param
 			cacheURL,
-			// Response headers as string
+			// Response headers
 			responseHeadersString,
+			responseHeaders,
 			// timeout handle
 			timeoutTimer,
-
+			// Cross-domain detection vars
+			parts,
 			// To know if global events are to be dispatched
 			fireGlobals,
-
-			transport,
-			// Response headers
-			responseHeaders,
+			// Loop variable
+			i,
 			// Create the final options object
 			s = jQuery.ajaxSetup( {}, options ),
 			// Callbacks context
@@ -7844,10 +7166,11 @@ jQuery.extend({
 		jqXHR.error = jqXHR.fail;
 
 		// Remove hash character (#7531: and string promotion)
-		// Add protocol if not provided (#5866: IE7 issue with protocol-less urls)
+		// Add protocol if not provided (prefilters might expect it)
 		// Handle falsy url in the settings object (#10093: consistency with old signature)
 		// We also use the url parameter if available
-		s.url = ( ( url || s.url || ajaxLocation ) + "" ).replace( rhash, "" ).replace( rprotocol, ajaxLocParts[ 1 ] + "//" );
+		s.url = ( ( url || s.url || ajaxLocation ) + "" ).replace( rhash, "" )
+			.replace( rprotocol, ajaxLocParts[ 1 ] + "//" );
 
 		// Alias method option to type as per ticket #12004
 		s.type = options.method || options.type || s.method || s.type;
@@ -7860,8 +7183,8 @@ jQuery.extend({
 			parts = rurl.exec( s.url.toLowerCase() );
 			s.crossDomain = !!( parts &&
 				( parts[ 1 ] !== ajaxLocParts[ 1 ] || parts[ 2 ] !== ajaxLocParts[ 2 ] ||
-					( parts[ 3 ] || ( parts[ 1 ] === "http:" ? 80 : 443 ) ) !=
-						( ajaxLocParts[ 3 ] || ( ajaxLocParts[ 1 ] === "http:" ? 80 : 443 ) ) )
+					( parts[ 3 ] || ( parts[ 1 ] === "http:" ? "80" : "443" ) ) !==
+						( ajaxLocParts[ 3 ] || ( ajaxLocParts[ 1 ] === "http:" ? "80" : "443" ) ) )
 			);
 		}
 
@@ -8022,13 +7345,19 @@ jQuery.extend({
 			// Set readyState
 			jqXHR.readyState = status > 0 ? 4 : 0;
 
+			// Determine if successful
+			isSuccess = status >= 200 && status < 300 || status === 304;
+
 			// Get response data
 			if ( responses ) {
 				response = ajaxHandleResponses( s, jqXHR, responses );
 			}
 
+			// Convert no matter what (that way responseXXX fields are always set)
+			response = ajaxConvert( s, response, jqXHR, isSuccess );
+
 			// If successful, handle type chaining
-			if ( status >= 200 && status < 300 || status === 304 ) {
+			if ( isSuccess ) {
 
 				// Set the If-Modified-Since and/or If-None-Match header, if in ifModified mode.
 				if ( s.ifModified ) {
@@ -8043,21 +7372,18 @@ jQuery.extend({
 				}
 
 				// if no content
-				if ( status === 204 ) {
-					isSuccess = true;
+				if ( status === 204 || s.type === "HEAD" ) {
 					statusText = "nocontent";
 
 				// if not modified
 				} else if ( status === 304 ) {
-					isSuccess = true;
 					statusText = "notmodified";
 
 				// If we have data, let's convert it
 				} else {
-					isSuccess = ajaxConvert( s, response );
-					statusText = isSuccess.state;
-					success = isSuccess.data;
-					error = isSuccess.error;
+					statusText = response.state;
+					success = response.data;
+					error = response.error;
 					isSuccess = !error;
 				}
 			} else {
@@ -8107,32 +7433,43 @@ jQuery.extend({
 		return jqXHR;
 	},
 
-	getScript: function( url, callback ) {
-		return jQuery.get( url, undefined, callback, "script" );
-	},
-
 	getJSON: function( url, data, callback ) {
 		return jQuery.get( url, data, callback, "json" );
+	},
+
+	getScript: function( url, callback ) {
+		return jQuery.get( url, undefined, callback, "script" );
 	}
 });
 
+jQuery.each( [ "get", "post" ], function( i, method ) {
+	jQuery[ method ] = function( url, data, callback, type ) {
+		// shift arguments if data argument was omitted
+		if ( jQuery.isFunction( data ) ) {
+			type = type || callback;
+			callback = data;
+			data = undefined;
+		}
+
+		return jQuery.ajax({
+			url: url,
+			type: method,
+			dataType: type,
+			data: data,
+			success: callback
+		});
+	};
+});
+
 /* Handles responses to an ajax request:
- * - sets all responseXXX fields accordingly
  * - finds the right dataType (mediates between content-type and expected dataType)
  * - returns the corresponding response
  */
 function ajaxHandleResponses( s, jqXHR, responses ) {
-	var firstDataType, ct, finalDataType, type,
-		contents = s.contents,
-		dataTypes = s.dataTypes,
-		responseFields = s.responseFields;
 
-	// Fill responseXXX fields
-	for ( type in responseFields ) {
-		if ( type in responses ) {
-			jqXHR[ responseFields[type] ] = responses[ type ];
-		}
-	}
+	var ct, type, finalDataType, firstDataType,
+		contents = s.contents,
+		dataTypes = s.dataTypes;
 
 	// Remove auto dataType and get content-type in the process
 	while( dataTypes[ 0 ] === "*" ) {
@@ -8181,19 +7518,14 @@ function ajaxHandleResponses( s, jqXHR, responses ) {
 	}
 }
 
-// Chain conversions given the request and the original response
-function ajaxConvert( s, response ) {
-	var conv2, current, conv, tmp,
+/* Chain conversions given the request and the original response
+ * Also sets the responseXXX fields on the jqXHR instance
+ */
+function ajaxConvert( s, response, jqXHR, isSuccess ) {
+	var conv2, current, conv, tmp, prev,
 		converters = {},
-		i = 0,
 		// Work with a copy of dataTypes in case we need to modify it for conversion
-		dataTypes = s.dataTypes.slice(),
-		prev = dataTypes[ 0 ];
-
-	// Apply the dataFilter if provided
-	if ( s.dataFilter ) {
-		response = s.dataFilter( response, s.dataType );
-	}
+		dataTypes = s.dataTypes.slice();
 
 	// Create converters map with lowercased keys
 	if ( dataTypes[ 1 ] ) {
@@ -8202,14 +7534,32 @@ function ajaxConvert( s, response ) {
 		}
 	}
 
-	// Convert to each sequential dataType, tolerating list modification
-	for ( ; (current = dataTypes[++i]); ) {
+	current = dataTypes.shift();
+
+	// Convert to each sequential dataType
+	while ( current ) {
+
+		if ( s.responseFields[ current ] ) {
+			jqXHR[ s.responseFields[ current ] ] = response;
+		}
+
+		// Apply the dataFilter if provided
+		if ( !prev && isSuccess && s.dataFilter ) {
+			response = s.dataFilter( response, s.dataType );
+		}
+
+		prev = current;
+		current = dataTypes.shift();
+
+		if ( current ) {
 
 		// There's only work to do if current dataType is non-auto
-		if ( current !== "*" ) {
+			if ( current === "*" ) {
+
+				current = prev;
 
 			// Convert response if prev dataType is non-auto and differs from current
-			if ( prev !== "*" && prev !== current ) {
+			} else if ( prev !== "*" && prev !== current ) {
 
 				// Seek a direct converter
 				conv = converters[ prev + " " + current ] || converters[ "* " + current ];
@@ -8219,7 +7569,7 @@ function ajaxConvert( s, response ) {
 					for ( conv2 in converters ) {
 
 						// If conv2 outputs current
-						tmp = conv2.split(" ");
+						tmp = conv2.split( " " );
 						if ( tmp[ 1 ] === current ) {
 
 							// If prev can be converted to accepted input
@@ -8233,9 +7583,8 @@ function ajaxConvert( s, response ) {
 								// Otherwise, insert the intermediate dataType
 								} else if ( converters[ conv2 ] !== true ) {
 									current = tmp[ 0 ];
-									dataTypes.splice( i--, 0, current );
+									dataTypes.unshift( tmp[ 1 ] );
 								}
-
 								break;
 							}
 						}
@@ -8246,7 +7595,7 @@ function ajaxConvert( s, response ) {
 				if ( conv !== true ) {
 
 					// Unless errors are allowed to bubble, catch and return them
-					if ( conv && s["throws"] ) {
+					if ( conv && s[ "throws" ] ) {
 						response = conv( response );
 					} else {
 						try {
@@ -8257,9 +7606,6 @@ function ajaxConvert( s, response ) {
 					}
 				}
 			}
-
-			// Update prev for next iteration
-			prev = current;
 		}
 	}
 
@@ -8281,71 +7627,42 @@ jQuery.ajaxSetup({
 	}
 });
 
-// Handle cache's special case and global
+// Handle cache's special case and crossDomain
 jQuery.ajaxPrefilter( "script", function( s ) {
 	if ( s.cache === undefined ) {
 		s.cache = false;
 	}
 	if ( s.crossDomain ) {
 		s.type = "GET";
-		s.global = false;
 	}
 });
 
 // Bind script tag hack transport
-jQuery.ajaxTransport( "script", function(s) {
-
+jQuery.ajaxTransport( "script", function( s ) {
 	// This transport only deals with cross domain requests
 	if ( s.crossDomain ) {
-
-		var script,
-			head = document.head || jQuery("head")[0] || document.documentElement;
-
+		var script, callback;
 		return {
-
-			send: function( _, callback ) {
-
-				script = document.createElement("script");
-
-				script.async = true;
-
-				if ( s.scriptCharset ) {
-					script.charset = s.scriptCharset;
-				}
-
-				script.src = s.url;
-
-				// Attach handlers for all browsers
-				script.onload = script.onreadystatechange = function( _, isAbort ) {
-
-					if ( isAbort || !script.readyState || /loaded|complete/.test( script.readyState ) ) {
-
-						// Handle memory leak in IE
-						script.onload = script.onreadystatechange = null;
-
-						// Remove the script
-						if ( script.parentNode ) {
-							script.parentNode.removeChild( script );
-						}
-
-						// Dereference the script
-						script = null;
-
-						// Callback if not abort
-						if ( !isAbort ) {
-							callback( 200, "success" );
+			send: function( _, complete ) {
+				script = jQuery("<script>").prop({
+					async: true,
+					charset: s.scriptCharset,
+					src: s.url
+				}).on(
+					"load error",
+					callback = function( evt ) {
+						script.remove();
+						callback = null;
+						if ( evt ) {
+							complete( evt.type === "error" ? 404 : 200, evt.type );
 						}
 					}
-				};
-
-				// Circumvent IE6 bugs with base elements (#2709 and #4378) by prepending
-				// Use native DOM manipulation to avoid our domManip AJAX trickery
-				head.insertBefore( script, head.firstChild );
+				);
+				document.head.appendChild( script[ 0 ] );
 			},
-
 			abort: function() {
-				if ( script ) {
-					script.onload( undefined, true );
+				if ( callback ) {
+					callback();
 				}
 			}
 		};
@@ -8431,213 +7748,117 @@ jQuery.ajaxPrefilter( "json jsonp", function( s, originalSettings, jqXHR ) {
 		return "script";
 	}
 });
-var xhrCallbacks, xhrSupported,
+jQuery.ajaxSettings.xhr = function() {
+	try {
+		return new XMLHttpRequest();
+	} catch( e ) {}
+};
+
+var xhrSupported = jQuery.ajaxSettings.xhr(),
+	xhrSuccessStatus = {
+		// file protocol always yields status code 0, assume 200
+		0: 200,
+		// Support: IE9
+		// #1450: sometimes IE returns 1223 when it should be 204
+		1223: 204
+	},
+	// Support: IE9
+	// We need to keep track of outbound xhr and abort them manually
+	// because IE is not smart enough to do it all by itself
 	xhrId = 0,
-	// #5280: Internet Explorer will keep connections alive if we don't abort on unload
-	xhrOnUnloadAbort = window.ActiveXObject && function() {
-		// Abort all pending requests
-		var key;
-		for ( key in xhrCallbacks ) {
-			xhrCallbacks[ key ]( undefined, true );
+	xhrCallbacks = {};
+
+if ( window.ActiveXObject ) {
+	jQuery( window ).on( "unload", function() {
+		for( var key in xhrCallbacks ) {
+			xhrCallbacks[ key ]();
 		}
-	};
-
-// Functions to create xhrs
-function createStandardXHR() {
-	try {
-		return new window.XMLHttpRequest();
-	} catch( e ) {}
-}
-
-function createActiveXHR() {
-	try {
-		return new window.ActiveXObject("Microsoft.XMLHTTP");
-	} catch( e ) {}
-}
-
-// Create the request object
-// (This is still attached to ajaxSettings for backward compatibility)
-jQuery.ajaxSettings.xhr = window.ActiveXObject ?
-	/* Microsoft failed to properly
-	 * implement the XMLHttpRequest in IE7 (can't request local files),
-	 * so we use the ActiveXObject when it is available
-	 * Additionally XMLHttpRequest can be disabled in IE7/IE8 so
-	 * we need a fallback.
-	 */
-	function() {
-		return !this.isLocal && createStandardXHR() || createActiveXHR();
-	} :
-	// For all other browsers, use the standard XMLHttpRequest object
-	createStandardXHR;
-
-// Determine support properties
-xhrSupported = jQuery.ajaxSettings.xhr();
-jQuery.support.cors = !!xhrSupported && ( "withCredentials" in xhrSupported );
-xhrSupported = jQuery.support.ajax = !!xhrSupported;
-
-// Create transport if the browser can provide an xhr
-if ( xhrSupported ) {
-
-	jQuery.ajaxTransport(function( s ) {
-		// Cross domain only allowed if supported through XMLHttpRequest
-		if ( !s.crossDomain || jQuery.support.cors ) {
-
-			var callback;
-
-			return {
-				send: function( headers, complete ) {
-
-					// Get a new xhr
-					var handle, i,
-						xhr = s.xhr();
-
-					// Open the socket
-					// Passing null username, generates a login popup on Opera (#2865)
-					if ( s.username ) {
-						xhr.open( s.type, s.url, s.async, s.username, s.password );
-					} else {
-						xhr.open( s.type, s.url, s.async );
-					}
-
-					// Apply custom fields if provided
-					if ( s.xhrFields ) {
-						for ( i in s.xhrFields ) {
-							xhr[ i ] = s.xhrFields[ i ];
-						}
-					}
-
-					// Override mime type if needed
-					if ( s.mimeType && xhr.overrideMimeType ) {
-						xhr.overrideMimeType( s.mimeType );
-					}
-
-					// X-Requested-With header
-					// For cross-domain requests, seeing as conditions for a preflight are
-					// akin to a jigsaw puzzle, we simply never set it to be sure.
-					// (it can always be set on a per-request basis or even using ajaxSetup)
-					// For same-domain requests, won't change header if already provided.
-					if ( !s.crossDomain && !headers["X-Requested-With"] ) {
-						headers["X-Requested-With"] = "XMLHttpRequest";
-					}
-
-					// Need an extra try/catch for cross domain requests in Firefox 3
-					try {
-						for ( i in headers ) {
-							xhr.setRequestHeader( i, headers[ i ] );
-						}
-					} catch( err ) {}
-
-					// Do send the request
-					// This may raise an exception which is actually
-					// handled in jQuery.ajax (so no try/catch here)
-					xhr.send( ( s.hasContent && s.data ) || null );
-
-					// Listener
-					callback = function( _, isAbort ) {
-						var status, responseHeaders, statusText, responses;
-
-						// Firefox throws exceptions when accessing properties
-						// of an xhr when a network error occurred
-						// http://helpful.knobs-dials.com/index.php/Component_returned_failure_code:_0x80040111_(NS_ERROR_NOT_AVAILABLE)
-						try {
-
-							// Was never called and is aborted or complete
-							if ( callback && ( isAbort || xhr.readyState === 4 ) ) {
-
-								// Only called once
-								callback = undefined;
-
-								// Do not keep as active anymore
-								if ( handle ) {
-									xhr.onreadystatechange = jQuery.noop;
-									if ( xhrOnUnloadAbort ) {
-										delete xhrCallbacks[ handle ];
-									}
-								}
-
-								// If it's an abort
-								if ( isAbort ) {
-									// Abort it manually if needed
-									if ( xhr.readyState !== 4 ) {
-										xhr.abort();
-									}
-								} else {
-									responses = {};
-									status = xhr.status;
-									responseHeaders = xhr.getAllResponseHeaders();
-
-									// When requesting binary data, IE6-9 will throw an exception
-									// on any attempt to access responseText (#11426)
-									if ( typeof xhr.responseText === "string" ) {
-										responses.text = xhr.responseText;
-									}
-
-									// Firefox throws an exception when accessing
-									// statusText for faulty cross-domain requests
-									try {
-										statusText = xhr.statusText;
-									} catch( e ) {
-										// We normalize with Webkit giving an empty statusText
-										statusText = "";
-									}
-
-									// Filter status for non standard behaviors
-
-									// If the request is local and we have data: assume a success
-									// (success with no data won't get notified, that's the best we
-									// can do given current implementations)
-									if ( !status && s.isLocal && !s.crossDomain ) {
-										status = responses.text ? 200 : 404;
-									// IE - #1450: sometimes returns 1223 when it should be 204
-									} else if ( status === 1223 ) {
-										status = 204;
-									}
-								}
-							}
-						} catch( firefoxAccessException ) {
-							if ( !isAbort ) {
-								complete( -1, firefoxAccessException );
-							}
-						}
-
-						// Call complete if needed
-						if ( responses ) {
-							complete( status, statusText, responses, responseHeaders );
-						}
-					};
-
-					if ( !s.async ) {
-						// if we're in sync mode we fire the callback
-						callback();
-					} else if ( xhr.readyState === 4 ) {
-						// (IE6 & IE7) if it's in cache and has been
-						// retrieved directly we need to fire the callback
-						setTimeout( callback );
-					} else {
-						handle = ++xhrId;
-						if ( xhrOnUnloadAbort ) {
-							// Create the active xhrs callbacks list if needed
-							// and attach the unload handler
-							if ( !xhrCallbacks ) {
-								xhrCallbacks = {};
-								jQuery( window ).unload( xhrOnUnloadAbort );
-							}
-							// Add to list of active xhrs callbacks
-							xhrCallbacks[ handle ] = callback;
-						}
-						xhr.onreadystatechange = callback;
-					}
-				},
-
-				abort: function() {
-					if ( callback ) {
-						callback( undefined, true );
-					}
-				}
-			};
-		}
+		xhrCallbacks = undefined;
 	});
 }
+
+jQuery.support.cors = !!xhrSupported && ( "withCredentials" in xhrSupported );
+jQuery.support.ajax = xhrSupported = !!xhrSupported;
+
+jQuery.ajaxTransport(function( options ) {
+	var callback;
+	// Cross domain only allowed if supported through XMLHttpRequest
+	if ( jQuery.support.cors || xhrSupported && !options.crossDomain ) {
+		return {
+			send: function( headers, complete ) {
+				var i, id,
+					xhr = options.xhr();
+				xhr.open( options.type, options.url, options.async, options.username, options.password );
+				// Apply custom fields if provided
+				if ( options.xhrFields ) {
+					for ( i in options.xhrFields ) {
+						xhr[ i ] = options.xhrFields[ i ];
+					}
+				}
+				// Override mime type if needed
+				if ( options.mimeType && xhr.overrideMimeType ) {
+					xhr.overrideMimeType( options.mimeType );
+				}
+				// X-Requested-With header
+				// For cross-domain requests, seeing as conditions for a preflight are
+				// akin to a jigsaw puzzle, we simply never set it to be sure.
+				// (it can always be set on a per-request basis or even using ajaxSetup)
+				// For same-domain requests, won't change header if already provided.
+				if ( !options.crossDomain && !headers["X-Requested-With"] ) {
+					headers["X-Requested-With"] = "XMLHttpRequest";
+				}
+				// Set headers
+				for ( i in headers ) {
+					xhr.setRequestHeader( i, headers[ i ] );
+				}
+				// Callback
+				callback = function( type ) {
+					return function() {
+						if ( callback ) {
+							delete xhrCallbacks[ id ];
+							callback = xhr.onload = xhr.onerror = null;
+							if ( type === "abort" ) {
+								xhr.abort();
+							} else if ( type === "error" ) {
+								complete(
+									// file protocol always yields status 0, assume 404
+									xhr.status || 404,
+									xhr.statusText
+								);
+							} else {
+								complete(
+									xhrSuccessStatus[ xhr.status ] || xhr.status,
+									xhr.statusText,
+									// Support: IE9
+									// #11426: When requesting binary data, IE9 will throw an exception
+									// on any attempt to access responseText
+									typeof xhr.responseText === "string" ? {
+										text: xhr.responseText
+									} : undefined,
+									xhr.getAllResponseHeaders()
+								);
+							}
+						}
+					};
+				};
+				// Listen to events
+				xhr.onload = callback();
+				xhr.onerror = callback("error");
+				// Create the abort callback
+				callback = xhrCallbacks[( id = xhrId++ )] = callback("abort");
+				// Do send the request
+				// This may raise an exception which is actually
+				// handled in jQuery.ajax (so no try/catch here)
+				xhr.send( options.hasContent && options.data || null );
+			},
+			abort: function() {
+				if ( callback ) {
+					callback();
+				}
+			}
+		};
+	}
+});
 var fxNow, timerId,
 	rfxtypes = /^(?:toggle|show|hide)$/,
 	rfxnum = new RegExp( "^(?:([+-])=|)(" + core_pnum + ")([a-z%]*)$", "i" ),
@@ -8645,44 +7866,51 @@ var fxNow, timerId,
 	animationPrefilters = [ defaultPrefilter ],
 	tweeners = {
 		"*": [function( prop, value ) {
-			var end, unit,
-				tween = this.createTween( prop, value ),
-				parts = rfxnum.exec( value ),
+			var tween = this.createTween( prop, value ),
 				target = tween.cur(),
-				start = +target || 0,
+				parts = rfxnum.exec( value ),
+				unit = parts && parts[ 3 ] || ( jQuery.cssNumber[ prop ] ? "" : "px" ),
+
+				// Starting value computation is required for potential unit mismatches
+				start = ( jQuery.cssNumber[ prop ] || unit !== "px" && +target ) &&
+					rfxnum.exec( jQuery.css( tween.elem, prop ) ),
 				scale = 1,
 				maxIterations = 20;
 
-			if ( parts ) {
-				end = +parts[2];
-				unit = parts[3] || ( jQuery.cssNumber[ prop ] ? "" : "px" );
+			if ( start && start[ 3 ] !== unit ) {
+				// Trust units reported by jQuery.css
+				unit = unit || start[ 3 ];
 
-				// We need to compute starting value
-				if ( unit !== "px" && start ) {
-					// Iteratively approximate from a nonzero starting point
-					// Prefer the current property, because this process will be trivial if it uses the same units
-					// Fallback to end or a simple constant
-					start = jQuery.css( tween.elem, prop, true ) || end || 1;
+				// Make sure we update the tween properties later on
+				parts = parts || [];
 
-					do {
-						// If previous iteration zeroed out, double until we get *something*
-						// Use a string for doubling factor so we don't accidentally see scale as unchanged below
-						scale = scale || ".5";
+				// Iteratively approximate from a nonzero starting point
+				start = +target || 1;
 
-						// Adjust and apply
-						start = start / scale;
-						jQuery.style( tween.elem, prop, start + unit );
+				do {
+					// If previous iteration zeroed out, double until we get *something*
+					// Use a string for doubling factor so we don't accidentally see scale as unchanged below
+					scale = scale || ".5";
 
-					// Update scale, tolerating zero or NaN from tween.cur()
-					// And breaking the loop if scale is unchanged or perfect, or if we've just had enough
-					} while ( scale !== (scale = tween.cur() / target) && scale !== 1 && --maxIterations );
-				}
+					// Adjust and apply
+					start = start / scale;
+					jQuery.style( tween.elem, prop, start + unit );
 
-				tween.unit = unit;
-				tween.start = start;
-				// If a +=/-= token was provided, we're doing a relative animation
-				tween.end = parts[1] ? start + ( parts[1] + 1 ) * end : end;
+				// Update scale, tolerating zero or NaN from tween.cur()
+				// And breaking the loop if scale is unchanged or perfect, or if we've just had enough
+				} while ( scale !== (scale = tween.cur() / target) && scale !== 1 && --maxIterations );
 			}
+
+			// Update tween properties
+			if ( parts ) {
+				start = tween.start = +start || +target || 0;
+				tween.unit = unit;
+				// If a +=/-= token was provided, we're doing a relative animation
+				tween.end = parts[ 1 ] ?
+					start + ( parts[ 1 ] + 1 ) * parts[ 2 ] :
+					+parts[ 2 ];
+			}
+
 			return tween;
 		}]
 	};
@@ -8695,19 +7923,18 @@ function createFxNow() {
 	return ( fxNow = jQuery.now() );
 }
 
-function createTweens( animation, props ) {
-	jQuery.each( props, function( prop, value ) {
-		var collection = ( tweeners[ prop ] || [] ).concat( tweeners[ "*" ] ),
-			index = 0,
-			length = collection.length;
-		for ( ; index < length; index++ ) {
-			if ( collection[ index ].call( animation, prop, value ) ) {
+function createTween( value, prop, animation ) {
+	var tween,
+		collection = ( tweeners[ prop ] || [] ).concat( tweeners[ "*" ] ),
+		index = 0,
+		length = collection.length;
+	for ( ; index < length; index++ ) {
+		if ( (tween = collection[ index ].call( animation, prop, value )) ) {
 
-				// we're done with this property
-				return;
-			}
+			// we're done with this property
+			return tween;
 		}
-	});
+	}
 }
 
 function Animation( elem, properties, options ) {
@@ -8793,7 +8020,7 @@ function Animation( elem, properties, options ) {
 		}
 	}
 
-	createTweens( animation, props );
+	jQuery.map( props, createTween, animation );
 
 	if ( jQuery.isFunction( animation.opts.start ) ) {
 		animation.opts.start.call( elem, animation );
@@ -8815,7 +8042,7 @@ function Animation( elem, properties, options ) {
 }
 
 function propFilter( props, specialEasing ) {
-	var value, name, index, easing, hooks;
+	var index, name, easing, value, hooks;
 
 	// camelCase, specialEasing and expand cssHook pass
 	for ( index in props ) {
@@ -8882,15 +8109,13 @@ jQuery.Animation = jQuery.extend( Animation, {
 });
 
 function defaultPrefilter( elem, props, opts ) {
-	/*jshint validthis:true */
-	var prop, index, length,
-		value, dataShow, toggle,
-		tween, hooks, oldfire,
+	/* jshint validthis: true */
+	var prop, value, toggle, tween, hooks, oldfire,
 		anim = this,
-		style = elem.style,
 		orig = {},
-		handled = [],
-		hidden = elem.nodeType && isHidden( elem );
+		style = elem.style,
+		hidden = elem.nodeType && isHidden( elem ),
+		dataShow = data_priv.get( elem, "fxshow" );
 
 	// handle queue: false promises
 	if ( !opts.queue ) {
@@ -8921,7 +8146,7 @@ function defaultPrefilter( elem, props, opts ) {
 	// height/width overflow pass
 	if ( elem.nodeType === 1 && ( "height" in props || "width" in props ) ) {
 		// Make sure that nothing sneaks out
-		// Record all 3 overflow attributes because IE does not
+		// Record all 3 overflow attributes because IE9-10 do not
 		// change the overflow attribute when overflowX and
 		// overflowY are set to the same value
 		opts.overflow = [ style.overflow, style.overflowX, style.overflowY ];
@@ -8931,47 +8156,46 @@ function defaultPrefilter( elem, props, opts ) {
 		if ( jQuery.css( elem, "display" ) === "inline" &&
 				jQuery.css( elem, "float" ) === "none" ) {
 
-			// inline-level elements accept inline-block;
-			// block-level elements need to be inline with layout
-			if ( !jQuery.support.inlineBlockNeedsLayout || css_defaultDisplay( elem.nodeName ) === "inline" ) {
-				style.display = "inline-block";
-
-			} else {
-				style.zoom = 1;
-			}
+			style.display = "inline-block";
 		}
 	}
 
 	if ( opts.overflow ) {
 		style.overflow = "hidden";
-		if ( !jQuery.support.shrinkWrapBlocks ) {
-			anim.always(function() {
-				style.overflow = opts.overflow[ 0 ];
-				style.overflowX = opts.overflow[ 1 ];
-				style.overflowY = opts.overflow[ 2 ];
-			});
-		}
+		anim.always(function() {
+			style.overflow = opts.overflow[ 0 ];
+			style.overflowX = opts.overflow[ 1 ];
+			style.overflowY = opts.overflow[ 2 ];
+		});
 	}
 
 
 	// show/hide pass
-	for ( index in props ) {
-		value = props[ index ];
+	for ( prop in props ) {
+		value = props[ prop ];
 		if ( rfxtypes.exec( value ) ) {
-			delete props[ index ];
+			delete props[ prop ];
 			toggle = toggle || value === "toggle";
 			if ( value === ( hidden ? "hide" : "show" ) ) {
-				continue;
+
+				// If there is dataShow left over from a stopped hide or show and we are going to proceed with show, we should pretend to be hidden
+				if ( value === "show" && dataShow && dataShow[ prop ] !== undefined ) {
+					hidden = true;
+				} else {
+					continue;
+				}
 			}
-			handled.push( index );
+			orig[ prop ] = dataShow && dataShow[ prop ] || jQuery.style( elem, prop );
 		}
 	}
 
-	length = handled.length;
-	if ( length ) {
-		dataShow = jQuery._data( elem, "fxshow" ) || jQuery._data( elem, "fxshow", {} );
-		if ( "hidden" in dataShow ) {
-			hidden = dataShow.hidden;
+	if ( !jQuery.isEmptyObject( orig ) ) {
+		if ( dataShow ) {
+			if ( "hidden" in dataShow ) {
+				hidden = dataShow.hidden;
+			}
+		} else {
+			dataShow = data_priv.access( elem, "fxshow", {} );
 		}
 
 		// store state if its toggle - enables .stop().toggle() to "reverse"
@@ -8987,15 +8211,14 @@ function defaultPrefilter( elem, props, opts ) {
 		}
 		anim.done(function() {
 			var prop;
-			jQuery._removeData( elem, "fxshow" );
+
+			data_priv.remove( elem, "fxshow" );
 			for ( prop in orig ) {
 				jQuery.style( elem, prop, orig[ prop ] );
 			}
 		});
-		for ( index = 0 ; index < length ; index++ ) {
-			prop = handled[ index ];
-			tween = anim.createTween( prop, hidden ? dataShow[ prop ] : 0 );
-			orig[ prop ] = dataShow[ prop ] || jQuery.style( elem, prop );
+		for ( prop in orig ) {
+			tween = createTween( hidden ? dataShow[ prop ] : 0, prop, anim );
 
 			if ( !( prop in dataShow ) ) {
 				dataShow[ prop ] = tween.start;
@@ -9091,8 +8314,8 @@ Tween.propHooks = {
 	}
 };
 
-// Remove in 2.0 - this supports IE8's panic based approach
-// to setting things on disconnected nodes
+// Support: IE9
+// Panic based approach to setting things on disconnected nodes
 
 Tween.propHooks.scrollTop = Tween.propHooks.scrollLeft = {
 	set: function( tween ) {
@@ -9126,11 +8349,9 @@ jQuery.fn.extend({
 			doAnimation = function() {
 				// Operate on a copy of prop so per-property easing won't be lost
 				var anim = Animation( this, jQuery.extend( {}, prop ), optall );
-				doAnimation.finish = function() {
-					anim.stop( true );
-				};
+
 				// Empty animations, or finishing resolves immediately
-				if ( empty || jQuery._data( this, "finish" ) ) {
+				if ( empty || data_priv.get( this, "finish" ) ) {
 					anim.stop( true );
 				}
 			};
@@ -9160,7 +8381,7 @@ jQuery.fn.extend({
 			var dequeue = true,
 				index = type != null && type + "queueHooks",
 				timers = jQuery.timers,
-				data = jQuery._data( this );
+				data = data_priv.get( this );
 
 			if ( index ) {
 				if ( data[ index ] && data[ index ].stop ) {
@@ -9196,7 +8417,7 @@ jQuery.fn.extend({
 		}
 		return this.each(function() {
 			var index,
-				data = jQuery._data( this ),
+				data = data_priv.get( this ),
 				queue = data[ type + "queue" ],
 				hooks = data[ type + "queueHooks" ],
 				timers = jQuery.timers,
@@ -9208,8 +8429,8 @@ jQuery.fn.extend({
 			// empty the queue first
 			jQuery.queue( this, type, [] );
 
-			if ( hooks && hooks.cur && hooks.cur.finish ) {
-				hooks.cur.finish.call( this );
+			if ( hooks && hooks.stop ) {
+				hooks.stop.call( this, true );
 			}
 
 			// look for any active animations, and finish them
@@ -9378,8 +8599,8 @@ jQuery.fn.offset = function( options ) {
 	}
 
 	var docElem, win,
-		box = { top: 0, left: 0 },
 		elem = this[ 0 ],
+		box = { top: 0, left: 0 },
 		doc = elem && elem.ownerDocument;
 
 	if ( !doc ) {
@@ -9400,33 +8621,35 @@ jQuery.fn.offset = function( options ) {
 	}
 	win = getWindow( doc );
 	return {
-		top: box.top  + ( win.pageYOffset || docElem.scrollTop )  - ( docElem.clientTop  || 0 ),
-		left: box.left + ( win.pageXOffset || docElem.scrollLeft ) - ( docElem.clientLeft || 0 )
+		top: box.top + win.pageYOffset - docElem.clientTop,
+		left: box.left + win.pageXOffset - docElem.clientLeft
 	};
 };
 
 jQuery.offset = {
 
 	setOffset: function( elem, options, i ) {
-		var position = jQuery.css( elem, "position" );
+		var curPosition, curLeft, curCSSTop, curTop, curOffset, curCSSLeft, calculatePosition,
+			position = jQuery.css( elem, "position" ),
+			curElem = jQuery( elem ),
+			props = {};
 
-		// set position first, in-case top/left are set even on static elem
+		// Set position first, in-case top/left are set even on static elem
 		if ( position === "static" ) {
 			elem.style.position = "relative";
 		}
 
-		var curElem = jQuery( elem ),
-			curOffset = curElem.offset(),
-			curCSSTop = jQuery.css( elem, "top" ),
-			curCSSLeft = jQuery.css( elem, "left" ),
-			calculatePosition = ( position === "absolute" || position === "fixed" ) && jQuery.inArray("auto", [curCSSTop, curCSSLeft]) > -1,
-			props = {}, curPosition = {}, curTop, curLeft;
+		curOffset = curElem.offset();
+		curCSSTop = jQuery.css( elem, "top" );
+		curCSSLeft = jQuery.css( elem, "left" );
+		calculatePosition = ( position === "absolute" || position === "fixed" ) && ( curCSSTop + curCSSLeft ).indexOf("auto") > -1;
 
-		// need to be able to calculate position if either top or left is auto and position is either absolute or fixed
+		// Need to be able to calculate position if either top or left is auto and position is either absolute or fixed
 		if ( calculatePosition ) {
 			curPosition = curElem.position();
 			curTop = curPosition.top;
 			curLeft = curPosition.left;
+
 		} else {
 			curTop = parseFloat( curCSSTop ) || 0;
 			curLeft = parseFloat( curCSSLeft ) || 0;
@@ -9445,6 +8668,7 @@ jQuery.offset = {
 
 		if ( "using" in options ) {
 			options.using.call( elem, props );
+
 		} else {
 			curElem.css( props );
 		}
@@ -9460,13 +8684,14 @@ jQuery.fn.extend({
 		}
 
 		var offsetParent, offset,
-			parentOffset = { top: 0, left: 0 },
-			elem = this[ 0 ];
+			elem = this[ 0 ],
+			parentOffset = { top: 0, left: 0 };
 
-		// fixed elements are offset from window (parentOffset = {top:0, left: 0}, because it is it's only offset parent
+		// Fixed elements are offset from window (parentOffset = {top:0, left: 0}, because it is it's only offset parent
 		if ( jQuery.css( elem, "position" ) === "fixed" ) {
-			// we assume that getBoundingClientRect is available when computed position is fixed
+			// We assume that getBoundingClientRect is available when computed position is fixed
 			offset = elem.getBoundingClientRect();
+
 		} else {
 			// Get *real* offsetParent
 			offsetParent = this.offsetParent();
@@ -9478,26 +8703,26 @@ jQuery.fn.extend({
 			}
 
 			// Add offsetParent borders
-			parentOffset.top  += jQuery.css( offsetParent[ 0 ], "borderTopWidth", true );
+			parentOffset.top += jQuery.css( offsetParent[ 0 ], "borderTopWidth", true );
 			parentOffset.left += jQuery.css( offsetParent[ 0 ], "borderLeftWidth", true );
 		}
 
 		// Subtract parent offsets and element margins
-		// note: when an element has margin: auto the offsetLeft and marginLeft
-		// are the same in Safari causing offset.left to incorrectly be 0
 		return {
-			top:  offset.top  - parentOffset.top - jQuery.css( elem, "marginTop", true ),
-			left: offset.left - parentOffset.left - jQuery.css( elem, "marginLeft", true)
+			top: offset.top - parentOffset.top - jQuery.css( elem, "marginTop", true ),
+			left: offset.left - parentOffset.left - jQuery.css( elem, "marginLeft", true )
 		};
 	},
 
 	offsetParent: function() {
 		return this.map(function() {
-			var offsetParent = this.offsetParent || document.documentElement;
+			var offsetParent = this.offsetParent || docElem;
+
 			while ( offsetParent && ( !jQuery.nodeName( offsetParent, "html" ) && jQuery.css( offsetParent, "position") === "static" ) ) {
 				offsetParent = offsetParent.offsetParent;
 			}
-			return offsetParent || document.documentElement;
+
+			return offsetParent || docElem;
 		});
 	}
 });
@@ -9505,22 +8730,20 @@ jQuery.fn.extend({
 
 // Create scrollLeft and scrollTop methods
 jQuery.each( {scrollLeft: "pageXOffset", scrollTop: "pageYOffset"}, function( method, prop ) {
-	var top = /Y/.test( prop );
+	var top = "pageYOffset" === prop;
 
 	jQuery.fn[ method ] = function( val ) {
 		return jQuery.access( this, function( elem, method, val ) {
 			var win = getWindow( elem );
 
 			if ( val === undefined ) {
-				return win ? (prop in win) ? win[ prop ] :
-					win.document.documentElement[ method ] :
-					elem[ method ];
+				return win ? win[ prop ] : elem[ method ];
 			}
 
 			if ( win ) {
 				win.scrollTo(
-					!top ? val : jQuery( win ).scrollLeft(),
-					top ? val : jQuery( win ).scrollTop()
+					!top ? val : window.pageXOffset,
+					top ? val : window.pageYOffset
 				);
 
 			} else {
@@ -9531,11 +8754,7 @@ jQuery.each( {scrollLeft: "pageXOffset", scrollTop: "pageYOffset"}, function( me
 });
 
 function getWindow( elem ) {
-	return jQuery.isWindow( elem ) ?
-		elem :
-		elem.nodeType === 9 ?
-			elem.defaultView || elem.parentWindow :
-			false;
+	return jQuery.isWindow( elem ) ? elem : elem.nodeType === 9 && elem.defaultView;
 }
 // Create innerHeight, innerWidth, height, width, outerHeight and outerWidth methods
 jQuery.each( { Height: "height", Width: "width" }, function( name, type ) {
@@ -9559,8 +8778,8 @@ jQuery.each( { Height: "height", Width: "width" }, function( name, type ) {
 				if ( elem.nodeType === 9 ) {
 					doc = elem.documentElement;
 
-					// Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height], whichever is greatest
-					// unfortunately, this causes bug #3838 in IE6/8 only, but there is currently no good, small way to fix it.
+					// Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
+					// whichever is greatest
 					return Math.max(
 						elem.body[ "scroll" + name ], doc[ "scroll" + name ],
 						elem.body[ "offset" + name ], doc[ "offset" + name ],
@@ -9581,24 +8800,37 @@ jQuery.each( { Height: "height", Width: "width" }, function( name, type ) {
 // Limit scope pollution from any deprecated API
 // (function() {
 
-// })();
-// Expose jQuery to the global object
-window.jQuery = window.$ = jQuery;
+// The number of elements contained in the matched element set
+jQuery.fn.size = function() {
+	return this.length;
+};
 
-// Expose jQuery as an AMD module, but only for AMD loaders that
-// understand the issues with loading multiple versions of jQuery
-// in a page that all might call define(). The loader will indicate
-// they have special allowances for multiple jQuery versions by
-// specifying define.amd.jQuery = true. Register as a named module,
-// since jQuery can be concatenated with other files that may use define,
-// but not use a proper concatenation script that understands anonymous
-// AMD modules. A named AMD is safest and most robust way to register.
-// Lowercase jquery is used because AMD module names are derived from
-// file names, and jQuery is normally delivered in a lowercase file name.
-// Do this after creating the global so that if an AMD module wants to call
-// noConflict to hide this version of jQuery, it will work.
-if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
-	define( "jquery", [], function () { return jQuery; } );
+jQuery.fn.andSelf = jQuery.fn.addBack;
+
+// })();
+if ( typeof module === "object" && module && typeof module.exports === "object" ) {
+	// Expose jQuery as module.exports in loaders that implement the Node
+	// module pattern (including browserify). Do not create the global, since
+	// the user will be storing it themselves locally, and globals are frowned
+	// upon in the Node module world.
+	module.exports = jQuery;
+} else {
+	// Register as a named AMD module, since jQuery can be concatenated with other
+	// files that may use define, but not via a proper concatenation script that
+	// understands anonymous AMD modules. A named AMD is safest and most robust
+	// way to register. Lowercase jquery is used because AMD module names are
+	// derived from file names, and jQuery is normally delivered in a lowercase
+	// file name. Do this after creating the global so that if an AMD module wants
+	// to call noConflict to hide this version of jQuery, it will work.
+	if ( typeof define === "function" && define.amd ) {
+		define( "jquery", [], function () { return jQuery; } );
+	}
+}
+
+// If there is a window object, that at least has a document property,
+// define jQuery and $ identifiers
+if ( typeof window === "object" && typeof window.document === "object" ) {
+	window.jQuery = window.$ = jQuery;
 }
 
 })( window );
@@ -18670,6 +17902,38 @@ if (typeof exports === 'object') {
 		    _.invoke(animation.animators, 'register');
 		}
             }
+        },
+
+        hasClass: function(className) {
+
+            return new RegExp('(\\s|^)' + className + '(\\s|$)').test(this.node.getAttribute('class'));
+        },
+
+        addClass: function(className) {
+
+            if (!this.hasClass(className)) {
+                this.node.setAttribute('class', this.node.getAttribute('class') + ' ' + className);
+            }
+        },
+
+        removeClass: function(className) {
+
+            var removedClass = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
+
+            if (this.hasClass(className)) {
+                this.node.setAttribute('class', removedClass);
+            }
+        },
+
+        toggleClass: function(className, toAdd) {
+
+            var toRemove = typeof toAdd === 'undefined' ? this.hasClass(className) : !toAdd;
+
+            if (toRemove) {
+                this.removeClass(className);
+            } else {
+                this.addClass(className);
+            }
         }
     };
 
@@ -19035,8 +18299,8 @@ if (typeof exports === 'object') {
         // @return {bool} true if point p is insight me
         containsPoint: function(p) {
             p = point(p);
-	    if (p.x > this.x && p.x < this.x + this.width &&
-	        p.y > this.y && p.y < this.y + this.height) {
+	    if (p.x >= this.x && p.x <= this.x + this.width &&
+	        p.y >= this.y && p.y <= this.y + this.height) {
 	        return true;
 	    }
 	    return false;
@@ -20106,16 +19370,14 @@ joint.dia.CellView = Backbone.View.extend({
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
-	var attrClass = V(el).attr('class') || '';
-
-	if (!/\bhighlighted\b/.exec(attrClass)) V(el).attr('class', attrClass.trim() + ' highlighted');
+        V(el).addClass('highlighted');
     },
 
     unhighlight: function(el) {
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
-	V(el).attr('class', (V(el).attr('class') || '').replace(/\bhighlighted\b/, '').trim());
+        V(el).removeClass('highlighted');
     },
 
     // Find the closest element that has the `magnet` attribute set to `true`. If there was not such
@@ -20403,9 +19665,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
         
         var relativelyPositioned = [];
-
-        // Special attributes are treated by JointJS, not by SVG.
-        var specialAttributes = ['style', 'text', 'html', 'ref-x', 'ref-y', 'ref-dx', 'ref-dy', 'ref', 'x-alignment', 'y-alignment', 'port'];
 
         _.each(renderingOnlyAttrs || allAttrs, function(attrs, selector) {
 
@@ -20937,12 +20196,12 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         idx = idx || 0;
         
-        var labels = this.get('labels');
+        var labels = this.get('labels') || [];
         
         // Is it a getter?
         if (arguments.length === 0 || arguments.length === 1) {
             
-            return labels && labels[idx];
+            return labels[idx];
         }
 
         var newValue = _.merge({}, labels[idx], value);
@@ -20971,9 +20230,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
 
-        // create method shortcuts
-        this.watchSource = this._createWatcher('source');
-        this.watchTarget = this._createWatcher('target');
+        // create methods in prototype, so they can be accessed from any instance and
+        // don't need to be create over and over
+        if (typeof this.constructor.prototype.watchSource !== 'function') {
+            this.constructor.prototype.watchSource = this._createWatcher('source');
+            this.constructor.prototype.watchTarget = this._createWatcher('target');
+        }
 
         // `_.labelCache` is a mapping of indexes of labels in the `this.get('labels')` array to
         // `<g class="label">` nodes wrapped by Vectorizer. This allows for quick access to the
@@ -21033,12 +20295,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (!this._V.connection) throw new Error('link: no connection path in the markup');
 
         // partial rendering
-        this.renderLabels();
         this.renderTools();
         this.renderVertexMarkers();
         this.renderArrowheadMarkers();
 
         V(this.el).append(children);
+
+        // rendering labels has to be run after the link is appended to DOM tree. (otherwise <Text> bbox
+        // returns zero values)
+        this.renderLabels();
 
         // start watching the ends of the link for changes
         this.watchSource(this.model, this.model.get('source'))
@@ -21331,6 +20596,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return this;
     },
 
+    // Returns a function observing changes on an end of the link. If a change happens and new end is a new model,
+    // it stops listening on the previous one and starts listening to the new one.
     _createWatcher: function(endType) {
 
         function watchEnd(link, end) {
@@ -21338,25 +20605,34 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             end = end || {};
 
             var previousEnd = link.previous(endType) || {};
+
+            // Pick updateMethod this._sourceBboxUpdate or this._targetBboxUpdate.
+            var updateEndFunction = this['_' + endType + 'BBoxUpdate'];
+
             if (this._isModel(previousEnd)) {
-                this.stopListening(this.paper.getModelById(previousEnd.id), 'change');
+                this.stopListening(this.paper.getModelById(previousEnd.id), 'change', updateEndFunction);
             }
 
             if (this._isModel(end)) {
-                this.listenTo(this.paper.getModelById(end.id), 'change', function() {
-                    this._cacheEndBbox(endType, end).update();
-                });
+                // If the observed model changes, it caches a new bbox and do the link update.
+                this.listenTo(this.paper.getModelById(end.id), 'change', updateEndFunction);
             }
 
-            return this._cacheEndBbox(endType, end);
+            _.bind(updateEndFunction, this)({ cacheOnly: true });
+
+            return this;
         }
 
         return watchEnd;
     },
 
-    _cacheEndBbox: function(endType, end) {
+    // It's important to keep both methods (sourceBboxUpdate and targetBboxUpdate) as unique methods
+    // because of loop links. We have to be able to determine, which method we want to stop listen to.
+    // ListenTo(model, event, handler) as model and event will be identical.
+    _sourceBBoxUpdate: function(update) {
 
-        var cacheBbox = '_' + endType + 'Bbox';
+        update = update || {};
+        var end = this.model.get('source');
 
         if (this._isModel(end)) {
 
@@ -21364,17 +20640,41 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var view = this.paper.findViewByModel(end.id);
             var magnetElement = this.paper.viewport.querySelector(selector);
 
-            this[cacheBbox] = view.getStrokeBBox(magnetElement);
+            this._sourceBbox = view.getStrokeBBox(magnetElement);
 
         } else {
             // the link end is a point ~ rect 1x1
-            this[cacheBbox] = {
+            this._sourceBbox = {
                 width: 1, height: 1,
                 x: end.x, y: end.y
             };
         }
 
-        return this;
+        if (!update.cacheOnly) this.update();
+    },
+
+    _targetBBoxUpdate: function(update) {
+
+        update = update || {};
+        var end = this.model.get('target');
+
+        if (this._isModel(end)) {
+
+            var selector = this._makeSelector(end);
+            var view = this.paper.findViewByModel(end.id);
+            var magnetElement = this.paper.viewport.querySelector(selector);
+
+            this._targetBbox = view.getStrokeBBox(magnetElement);
+
+        } else {
+            // the link end is a point ~ rect 1x1
+            this._targetBbox = {
+                width: 1, height: 1,
+                x: end.x, y: end.y
+            };
+        }
+
+        if (!update.cacheOnly) this.update();
     },
 
 
@@ -21529,8 +20829,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             // to the reference point (or reference element).
             // Get the bounding box of the spot relative to the paper viewport. This is necessary
             // in order to follow paper viewport transformations (scale/rotate).
-            // `_sourceBbox` and `_targetBbox` come both from `_cacheEndBbox` method, they exist
-            // since first render and are automatically updated
+            // `_sourceBbox` (`_targetBbox`) comes from `_sourceBboxUpdate` (`_sourceBboxUpdate`)
+            // method, it exists since first render and are automatically updated
             var spotBbox = end === 'source' ? this._sourceBbox : this._targetBbox;
             
             var reference;
@@ -21904,40 +21204,114 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
           case 'arrowhead-move':
 
-            // Touchmove event's target is not reflecting the element under the coordinates as mousemove does.
-            // It holds the element when a touchstart triggered.
-            var target = (evt.type === 'mousemove')
-                ? evt.target
-                : document.elementFromPoint(evt.clientX, evt.clientY)
+            if (this.paper.options.snapLinks) {
 
-            if (this._targetEvent !== target) {
-                // Unhighlight the previous view under pointer if there was one.
-                this._magnetUnderPointer && this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
-                this._viewUnderPointer = this.paper.findView(target);
-                if (this._viewUnderPointer) {
-                    // If we found a view that is under the pointer, we need to find the closest
-                    // magnet based on the real target element of the event.
-                    this._magnetUnderPointer = this._viewUnderPointer.findMagnet(target);
+                // checking view in close area of the pointer
 
-                    if (this._magnetUnderPointer && this.paper.options.validateConnection.apply(
-                        this.paper, this._validateConnectionArgs(this._viewUnderPointer, this._magnetUnderPointer)
-                    )) {
-                        // If there was no magnet found, do not highlight anything and assume there
-                        // is no view under pointer we're interested in reconnecting to.
-                        // This can only happen if the overall element has the attribute `'.': { magnet: false }`.
-                        this._magnetUnderPointer && this._viewUnderPointer.highlight(this._magnetUnderPointer);
+                var r = this.paper.options.snapLinks.radius || 50;
+                var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
+
+                this._closestView && this._closestView.unhighlight(this._closestEnd.selector);
+                this._closestView = this._closestEnd = null;
+
+                var pointer = g.point(x,y);
+                var distance, minDistance = Number.MAX_VALUE;
+
+                _.each(viewsInArea, function(view) {
+
+                    // skip connecting to the element in case '.': { magnet: false } attribute present
+                    if (view.el.getAttribute('magnet') !== 'false') {
+
+                        // find distance from the center of the model to pointer coordinates
+                        distance = view.model.getBBox().center().distance(pointer);
+
+                        // the connection is looked up in a circle area by `distance < r`
+                        if (distance < r && distance < minDistance) {
+
+                            if (this.paper.options.validateConnection.apply(
+                                this.paper, this._validateConnectionArgs(view, null)
+                            )) {
+                                minDistance = distance;
+                                this._closestView = view;
+                                this._closestEnd = { id: view.model.id };
+                            }
+                        }
+                    }
+
+                    view.$('[magnet]').each(_.bind(function(index, magnet) {
+
+                        var bbox = V(magnet).bbox(false, this.paper.viewport);
+
+                        distance = pointer.distance({
+                            x: bbox.x + bbox.width / 2,
+                            y: bbox.y + bbox.height / 2
+                        });
+
+                        if (distance < r && distance < minDistance) {
+
+                            if (this.paper.options.validateConnection.apply(
+                                this.paper, this._validateConnectionArgs(view, magnet)
+                            )) {
+                                minDistance = distance;
+                                this._closestView = view;
+                                this._closestEnd = {
+                                    id: view.model.id,
+                                    selector: view.getSelector(magnet),
+                                    port: magnet.getAttribute('port')
+                                }
+                            }
+                        }
+
+                    }, this));
+
+                }, this);
+
+                this._closestView && this._closestView.highlight(this._closestEnd.selector);
+
+                this.model.set(this._arrowhead, this._closestEnd || { x: x, y: y });
+
+            } else {
+
+                // checking views right under the pointer
+
+                // Touchmove event's target is not reflecting the element under the coordinates as mousemove does.
+                // It holds the element when a touchstart triggered.
+                var target = (evt.type === 'mousemove')
+                    ? evt.target
+                    : document.elementFromPoint(evt.clientX, evt.clientY)
+
+                if (this._targetEvent !== target) {
+                    // Unhighlight the previous view under pointer if there was one.
+                    this._magnetUnderPointer && this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
+                    this._viewUnderPointer = this.paper.findView(target);
+                    if (this._viewUnderPointer) {
+                        // If we found a view that is under the pointer, we need to find the closest
+                        // magnet based on the real target element of the event.
+                        this._magnetUnderPointer = this._viewUnderPointer.findMagnet(target);
+
+                        if (this._magnetUnderPointer && this.paper.options.validateConnection.apply(
+                            this.paper,
+                            this._validateConnectionArgs(this._viewUnderPointer, this._magnetUnderPointer)
+                        )) {
+                            // If there was no magnet found, do not highlight anything and assume there
+                            // is no view under pointer we're interested in reconnecting to.
+                            // This can only happen if the overall element has the attribute `'.': { magnet: false }`.
+                            this._magnetUnderPointer && this._viewUnderPointer.highlight(this._magnetUnderPointer);
+                        } else {
+                            // This type of connection is not valid. Disregard this magnet.
+                            this._magnetUnderPointer = null;
+                        }
                     } else {
-                        // This type of connection is not valid. Disregard this magnet.
+                        // Make sure we'll delete previous magnet
                         this._magnetUnderPointer = null;
                     }
-                } else {
-                    // Make sure we'll delete previous magnet
-                    this._magnetUnderPointer = null;
                 }
+
+	        this._targetEvent = target;
+
+                this.model.set(this._arrowhead, { x: x, y: y });
             }
 
-	    this._targetEvent = target;
-            this.model.set(this._arrowhead, { x: x, y: y });
             break;
         }
 
@@ -21951,23 +21325,31 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (this._action === 'arrowhead-move') {
 
-            if (this._magnetUnderPointer) {
-                this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
-                // Find a unique `selector` of the element under pointer that is a magnet. If the
-                // `this._magnetUnderPointer` is the root element of the `this._viewUnderPointer` itself,
-                // the returned `selector` will be `undefined`. That means we can directly pass it to the
-                // `source`/`target` attribute of the link model below.
-		this.model.set(this._arrowhead, {
-                    id: this._viewUnderPointer.model.id,
-                    selector: this._viewUnderPointer.getSelector(this._magnetUnderPointer),
-                    port: $(this._magnetUnderPointer).attr('port')
-                });
-            }
+            if (this.paper.options.snapLinks) {
 
-            delete this._viewUnderPointer;
-            delete this._magnetUnderPointer;
-            delete this._staticView;
-            delete this._staticMagnet;
+                this._closestView && this._closestView.unhighlight(this._closestEnd.selector);
+                this._closestView = this._closestEnd = null;
+
+            } else {
+
+                if (this._magnetUnderPointer) {
+                    this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
+                    // Find a unique `selector` of the element under pointer that is a magnet. If the
+                    // `this._magnetUnderPointer` is the root element of the `this._viewUnderPointer` itself,
+                    // the returned `selector` will be `undefined`. That means we can directly pass it to the
+                    // `source`/`target` attribute of the link model below.
+		    this.model.set(this._arrowhead, {
+                        id: this._viewUnderPointer.model.id,
+                        selector: this._viewUnderPointer.getSelector(this._magnetUnderPointer),
+                        port: $(this._magnetUnderPointer).attr('port')
+                    });
+                }
+
+                delete this._viewUnderPointer;
+                delete this._magnetUnderPointer;
+                delete this._staticView;
+                delete this._staticMagnet;
+            }
 
             this._afterArrowheadMove();
         }
@@ -21996,6 +21378,7 @@ joint.dia.Paper = Backbone.View.extend({
         perpendicularLinks: false,
         elementView: joint.dia.ElementView,
         linkView: joint.dia.LinkView,
+        snapLinks: false, // false, true, { radius: value }
 
         // Defines what link model is added to the graph after an user clicks on an active magnet.
         // Value could be the Backbone.model or a function returning the Backbone.model
@@ -22087,6 +21470,19 @@ joint.dia.Paper = Backbone.View.extend({
 	if (calcWidth != this.options.width || calcHeight != this.options.height) {
 	    this.setDimensions(calcWidth || this.options.width , calcHeight || this.options.height);
 	}
+    },
+
+    getContentBBox: function() {
+
+        var crect = this.viewport.getBoundingClientRect();
+
+        // Using Screen CTM was the only way to get the real viewport bounding box working in both
+        // Google Chrome and Firefox.
+        var ctm = this.viewport.getScreenCTM();
+
+        var bbox = g.rect(Math.abs(crect.left - ctm.e), Math.abs(crect.top - ctm.f), crect.width, crect.height);
+
+        return bbox;
     },
 
     createViewForModel: function(cell) {
@@ -22202,14 +21598,6 @@ joint.dia.Paper = Backbone.View.extend({
         V(this.viewport).rotate(deg, ox, oy);
     },
 
-    zoom: function(level) {
-
-	level = level || 1;
-
-        V(this.svg).attr('width', this.options.width * level);
-        V(this.svg).attr('height', this.options.height * level);
-    },
-
     // Find the first view climbing up the DOM tree starting at element `el`. Note that `el` can also
     // be a selector or a jQuery object.
     findView: function(el) {
@@ -22250,8 +21638,8 @@ joint.dia.Paper = Backbone.View.extend({
         var views = _.map(this.model.getElements(), this.findViewByModel);
 
 	return _.filter(views, function(view) {
-	    return g.rect(view.getBBox()).containsPoint(p);
-	});
+	    return g.rect(V(view.el).bbox(false, this.viewport)).containsPoint(p);
+	}, this);
     },
 
     // Find all views in given area
@@ -22262,8 +21650,8 @@ joint.dia.Paper = Backbone.View.extend({
         var views = _.map(this.model.getElements(), this.findViewByModel);
 
 	return _.filter(views, function(view) {
-	    return r.intersect(g.rect(view.getBBox()));
-	});
+	    return r.intersect(g.rect(V(view.el).bbox(false, this.viewport)));
+	}, this);
     },
 
     getModelById: function(id) {
@@ -22680,6 +22068,144 @@ if (typeof exports === 'object') {
 
     module.exports = joint.shapes.basic;
 }
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+
+if (typeof exports === 'object') {
+
+    var joint = {
+        util: require('../src/core').util,
+        shapes: {
+            basic: require('./joint.shapes.basic')
+        }
+    };
+}
+
+
+joint.shapes.apple = {};
+
+
+joint.shapes.apple.iPhone = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g><linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="113.2705" y1="9.4688" x2="138.583" y2="9.4688"><stop  offset="0" style="stop-color:#1E1E1F"/>	<stop  offset="0.0125" style="stop-color:#3D3C3E"/>			<stop  offset="0.0362" style="stop-color:#606163"/>			<stop  offset="0.0484" style="stop-color:#717375"/>			<stop  offset="0.0783" style="stop-color:#4E4E50"/>			<stop  offset="0.086" style="stop-color:#434344"/>			<stop  offset="0.9409" style="stop-color:#4F4F51"/>			<stop  offset="0.9416" style="stop-color:#555557"/>			<stop  offset="0.9471" style="stop-color:#737578"/>			<stop  offset="0.9525" style="stop-color:#8A8C8E"/>			<stop  offset="0.9578" style="stop-color:#9A9C9E"/>			<stop  offset="0.9629" style="stop-color:#A4A6A8"/>			<stop  offset="0.9677" style="stop-color:#A7A9AC"/>			<stop  offset="0.9782" style="stop-color:#7C7E80"/>			<stop  offset="0.9881" style="stop-color:#57585A"/>			<stop  offset="0.9957" style="stop-color:#39393A"/>			<stop  offset="1" style="stop-color:#222223"/>		</linearGradient>		<path fill="url(#SVGID_1_)" d="M138.583,11c0,0.55-0.45,1-1,1h-23.313c-0.55,0-1-0.45-1-1V7.938c0-0.55,0.45-1,1-1h23.313			c0.55,0,1,0.45,1,1V11z"/>		<radialGradient id="SVGID_2_" cx="125.125" cy="7.375" r="13.4123" gradientUnits="userSpaceOnUse">			<stop  offset="0" style="stop-color:#A7A9AC"/>			<stop  offset="0.1162" style="stop-color:#A4A6A8"/>			<stop  offset="0.2397" style="stop-color:#9A9C9E"/>			<stop  offset="0.3668" style="stop-color:#8A8C8E"/>			<stop  offset="0.4963" style="stop-color:#737578"/>			<stop  offset="0.6264" style="stop-color:#555557"/>			<stop  offset="0.6452" style="stop-color:#4F4F51"/>			<stop  offset="0.774" style="stop-color:#4D4E50"/>			<stop  offset="0.8204" style="stop-color:#474749"/>			<stop  offset="0.8533" style="stop-color:#383839"/>			<stop  offset="0.871" style="stop-color:#222223"/>			<stop  offset="0.926" style="stop-color:#39393A"/>			<stop  offset="0.9516" style="stop-color:#434344"/>			<stop  offset="0.9616" style="stop-color:#4E4E50"/>			<stop  offset="1" style="stop-color:#717375"/>		</radialGradient>		<path fill="url(#SVGID_2_)" d="M113.383,7.5h25.088c-0.164-0.329-0.497-0.563-0.888-0.563h-23.313			C113.879,6.938,113.547,7.171,113.383,7.5z"/>	</g>	<g>		<linearGradient id="SVGID_3_" gradientUnits="userSpaceOnUse" x1="9.4585" y1="54.25" x2="9.4585" y2="69.1271">			<stop  offset="0" style="stop-color:#222223"/>			<stop  offset="0.0101" style="stop-color:#39393A"/>			<stop  offset="0.0278" style="stop-color:#57585A"/>			<stop  offset="0.0509" style="stop-color:#7C7E80"/>			<stop  offset="0.0753" style="stop-color:#A7A9AC"/>			<stop  offset="0.1159" style="stop-color:#A4A6A8"/>			<stop  offset="0.1592" style="stop-color:#9A9C9E"/>			<stop  offset="0.2037" style="stop-color:#8A8C8E"/>			<stop  offset="0.249" style="stop-color:#737578"/>			<stop  offset="0.2945" style="stop-color:#555557"/>			<stop  offset="0.3011" style="stop-color:#4F4F51"/>			<stop  offset="0.9086" style="stop-color:#434344"/>			<stop  offset="0.9175" style="stop-color:#4E4E50"/>			<stop  offset="0.9516" style="stop-color:#717375"/>			<stop  offset="0.9638" style="stop-color:#606163"/>			<stop  offset="0.9875" style="stop-color:#3D3C3E"/>			<stop  offset="1" style="stop-color:#1E1E1F"/>		</linearGradient>		<path fill="url(#SVGID_3_)" d="M12.333,67.958c0,0.55-0.45,1-1,1h-3.75c-0.55,0-1-0.45-1-1V55.25c0-0.55,0.45-1,1-1h3.75			c0.55,0,1,0.45,1,1V67.958z"/>		<radialGradient id="SVGID_4_" cx="6.9375" cy="61.8125" r="7.5065" gradientUnits="userSpaceOnUse">			<stop  offset="0" style="stop-color:#A7A9AC"/>			<stop  offset="0.1142" style="stop-color:#A4A6A8"/>			<stop  offset="0.2357" style="stop-color:#9A9C9E"/>			<stop  offset="0.3607" style="stop-color:#8A8C8E"/>			<stop  offset="0.488" style="stop-color:#737578"/>			<stop  offset="0.616" style="stop-color:#555557"/>			<stop  offset="0.6344" style="stop-color:#4F4F51"/>			<stop  offset="0.828" style="stop-color:#222223"/>			<stop  offset="0.883" style="stop-color:#39393A"/>			<stop  offset="0.9086" style="stop-color:#434344"/>			<stop  offset="0.9274" style="stop-color:#4E4E50"/>			<stop  offset="1" style="stop-color:#717375"/>		</radialGradient>		<path fill="url(#SVGID_4_)" d="M7.25,54.318c-0.385,0.139-0.667,0.5-0.667,0.932v12.708c0,0.432,0.281,0.793,0.667,0.932V54.318z"			/>	</g>	<g>		<linearGradient id="SVGID_5_" gradientUnits="userSpaceOnUse" x1="9.1406" y1="85.5005" x2="9.1406" y2="96.8367">			<stop  offset="0" style="stop-color:#222223"/>			<stop  offset="0.0743" style="stop-color:#272728"/>			<stop  offset="0.101" style="stop-color:#353536"/>			<stop  offset="0.1201" style="stop-color:#464647"/>			<stop  offset="0.1355" style="stop-color:#555658"/>			<stop  offset="0.1487" style="stop-color:#68696B"/>			<stop  offset="0.1604" style="stop-color:#7C7E81"/>			<stop  offset="0.1708" style="stop-color:#949699"/>			<stop  offset="0.1774" style="stop-color:#A7A9AC"/>			<stop  offset="0.1881" style="stop-color:#A4A6A8"/>			<stop  offset="0.1994" style="stop-color:#9A9C9E"/>			<stop  offset="0.211" style="stop-color:#8A8C8E"/>			<stop  offset="0.2229" style="stop-color:#737578"/>			<stop  offset="0.2348" style="stop-color:#555557"/>			<stop  offset="0.2366" style="stop-color:#4F4F51"/>			<stop  offset="0.9086" style="stop-color:#434344"/>			<stop  offset="0.9175" style="stop-color:#4E4E50"/>			<stop  offset="0.9516" style="stop-color:#717375"/>			<stop  offset="0.9638" style="stop-color:#606163"/>			<stop  offset="0.9875" style="stop-color:#3D3C3E"/>			<stop  offset="1" style="stop-color:#1E1E1F"/>		</linearGradient>		<path fill="url(#SVGID_5_)" d="M11.531,95.844c0,0.55-0.45,1-1,1H7.75c-0.55,0-1-0.45-1-1v-9.406c0-0.55,0.45-1,1-1h2.781			c0.55,0,1,0.45,1,1V95.844z"/>		<radialGradient id="SVGID_6_" cx="7.2085" cy="91.2915" r="5.6679" gradientUnits="userSpaceOnUse">			<stop  offset="0" style="stop-color:#A7A9AC"/>			<stop  offset="0.1162" style="stop-color:#A4A6A8"/>			<stop  offset="0.2397" style="stop-color:#9A9C9E"/>			<stop  offset="0.3668" style="stop-color:#8A8C8E"/>			<stop  offset="0.4963" style="stop-color:#737578"/>			<stop  offset="0.6264" style="stop-color:#555557"/>			<stop  offset="0.6452" style="stop-color:#4F4F51"/>			<stop  offset="0.8139" style="stop-color:#4D4E50"/>			<stop  offset="0.8746" style="stop-color:#474749"/>			<stop  offset="0.9178" style="stop-color:#383839"/>			<stop  offset="0.9409" style="stop-color:#222223"/>			<stop  offset="0.9812" style="stop-color:#39393A"/>			<stop  offset="1" style="stop-color:#434344"/>		</radialGradient>		<path fill="url(#SVGID_6_)" d="M7.25,85.592c-0.293,0.175-0.5,0.481-0.5,0.846v9.406c0,0.364,0.207,0.67,0.5,0.846V85.592z"/>	</g>	<g>		<linearGradient id="SVGID_7_" gradientUnits="userSpaceOnUse" x1="9.1406" y1="112.9585" x2="9.1406" y2="124.2947">			<stop  offset="0" style="stop-color:#222223"/>			<stop  offset="0.0743" style="stop-color:#272728"/>			<stop  offset="0.101" style="stop-color:#353536"/>			<stop  offset="0.1201" style="stop-color:#464647"/>			<stop  offset="0.1355" style="stop-color:#555658"/>			<stop  offset="0.1487" style="stop-color:#68696B"/>			<stop  offset="0.1604" style="stop-color:#7C7E81"/>			<stop  offset="0.1708" style="stop-color:#949699"/>			<stop  offset="0.1774" style="stop-color:#A7A9AC"/>			<stop  offset="0.1881" style="stop-color:#A4A6A8"/>			<stop  offset="0.1994" style="stop-color:#9A9C9E"/>			<stop  offset="0.211" style="stop-color:#8A8C8E"/>			<stop  offset="0.2229" style="stop-color:#737578"/>			<stop  offset="0.2348" style="stop-color:#555557"/>			<stop  offset="0.2366" style="stop-color:#4F4F51"/>			<stop  offset="0.9086" style="stop-color:#434344"/>			<stop  offset="0.9175" style="stop-color:#4E4E50"/>			<stop  offset="0.9516" style="stop-color:#717375"/>			<stop  offset="0.9638" style="stop-color:#606163"/>			<stop  offset="0.9875" style="stop-color:#3D3C3E"/>			<stop  offset="1" style="stop-color:#1E1E1F"/>		</linearGradient>		<path fill="url(#SVGID_7_)" d="M11.531,123.302c0,0.55-0.45,1-1,1H7.75c-0.55,0-1-0.45-1-1v-9.406c0-0.55,0.45-1,1-1h2.781			c0.55,0,1,0.45,1,1V123.302z"/>		<radialGradient id="SVGID_8_" cx="7.2085" cy="118.7495" r="5.6679" gradientUnits="userSpaceOnUse">			<stop  offset="0" style="stop-color:#A7A9AC"/>			<stop  offset="0.1162" style="stop-color:#A4A6A8"/>			<stop  offset="0.2397" style="stop-color:#9A9C9E"/>			<stop  offset="0.3668" style="stop-color:#8A8C8E"/>			<stop  offset="0.4963" style="stop-color:#737578"/>			<stop  offset="0.6264" style="stop-color:#555557"/>			<stop  offset="0.6452" style="stop-color:#4F4F51"/>			<stop  offset="0.8139" style="stop-color:#4D4E50"/>			<stop  offset="0.8746" style="stop-color:#474749"/>			<stop  offset="0.9178" style="stop-color:#383839"/>			<stop  offset="0.9409" style="stop-color:#222223"/>			<stop  offset="0.9812" style="stop-color:#39393A"/>			<stop  offset="1" style="stop-color:#434344"/>		</radialGradient>		<path fill="url(#SVGID_8_)" d="M7.25,113.05c-0.293,0.175-0.5,0.481-0.5,0.846v9.406c0,0.364,0.207,0.67,0.5,0.846V113.05z"/>	</g>	<linearGradient id="SVGID_9_" gradientUnits="userSpaceOnUse" x1="86.6211" y1="8.5" x2="86.6211" y2="339.3335">		<stop  offset="0" style="stop-color:#000000"/>		<stop  offset="0.0246" style="stop-color:#414042"/>		<stop  offset="0.0493" style="stop-color:#BDBFC1"/>		<stop  offset="0.0726" style="stop-color:#2E2D2F"/>		<stop  offset="0.8916" style="stop-color:#1E1E1F"/>		<stop  offset="0.901" style="stop-color:#2B2B2C"/>		<stop  offset="0.9127" style="stop-color:#454446"/>		<stop  offset="0.9257" style="stop-color:#5C5C5F"/>		<stop  offset="0.9395" style="stop-color:#787A7C"/>		<stop  offset="0.954" style="stop-color:#9A9C9E"/>		<stop  offset="0.9589" style="stop-color:#A7A9AC"/>		<stop  offset="0.9605" style="stop-color:#939698"/>		<stop  offset="0.9629" style="stop-color:#7C7E80"/>		<stop  offset="0.9656" style="stop-color:#67686B"/>		<stop  offset="0.9686" style="stop-color:#555557"/>		<stop  offset="0.9722" style="stop-color:#454547"/>		<stop  offset="0.9766" style="stop-color:#343435"/>		<stop  offset="0.9828" style="stop-color:#262526"/>		<stop  offset="1" style="stop-color:#212122"/>	</linearGradient>	<path fill="url(#SVGID_9_)" d="M164.867,315.333c0,13.2-10.8,24-24,24H32.375c-13.2,0-24-10.8-24-24V32.5c0-13.2,10.8-24,24-24		h108.492c13.2,0,24,10.8,24,24V315.333z"/>	<path fill="#4F5560" d="M32.375,337.333c-12.131,0-22-9.869-22-22V32.5c0-12.131,9.869-22,22-22h108.492c12.131,0,22,9.869,22,22		v282.833c0,12.131-9.869,22-22,22H32.375z"/>	<path fill="#292B2D" d="M32.375,336.833c-11.855,0-21.5-9.645-21.5-21.5V32.5c0-11.855,9.645-21.5,21.5-21.5h108.492		c11.855,0,21.5,9.645,21.5,21.5v282.833c0,11.855-9.645,21.5-21.5,21.5H32.375z"/>	<path d="M32.375,335.333c-11.028,0-20-8.972-20-20V32.5c0-11.028,8.972-20,20-20h108.492c11.028,0,20,8.972,20,20v282.833		c0,11.028-8.972,20-20,20H32.375z"/>	<g>		<radialGradient id="SVGID_10_" cx="86.583" cy="45.5" r="14.0448" gradientUnits="userSpaceOnUse">			<stop  offset="0" style="stop-color:#4F4F51"/>			<stop  offset="0.2693" style="stop-color:#515153"/>			<stop  offset="0.3663" style="stop-color:#57575A"/>			<stop  offset="0.4355" style="stop-color:#616264"/>			<stop  offset="0.4914" style="stop-color:#6E7072"/>			<stop  offset="0.5393" style="stop-color:#7F8183"/>			<stop  offset="0.5809" style="stop-color:#939597"/>			<stop  offset="0.6129" style="stop-color:#A7A9AC"/>			<stop  offset="0.6871" style="stop-color:#8E9092"/>			<stop  offset="0.8343" style="stop-color:#606163"/>			<stop  offset="0.9428" style="stop-color:#3D3C3E"/>			<stop  offset="1" style="stop-color:#1E1E1F"/>		</radialGradient>		<path fill="url(#SVGID_10_)" d="M101.292,37.417c0,1.818-1.474,3.292-3.292,3.292H75.167c-1.818,0-3.292-1.474-3.292-3.292l0,0			c0-1.818,1.474-3.292,3.292-3.292H98C99.818,34.125,101.292,35.599,101.292,37.417L101.292,37.417z"/>		<g>			<path fill="#0F0F10" d="M99.458,37.208c0,0.897-0.728,1.625-1.625,1.625H75.208c-0.897,0-1.625-0.728-1.625-1.625l0,0				c0-0.897,0.728-1.625,1.625-1.625h22.625C98.731,35.583,99.458,36.311,99.458,37.208L99.458,37.208z"/>			<g>				<linearGradient id="SVGID_11_" gradientUnits="userSpaceOnUse" x1="73.6143" y1="37.2085" x2="99.4448" y2="37.2085">					<stop  offset="0" style="stop-color:#4F4F51"/>					<stop  offset="0.2693" style="stop-color:#515153"/>					<stop  offset="0.3663" style="stop-color:#57575A"/>					<stop  offset="0.4355" style="stop-color:#616264"/>					<stop  offset="0.4914" style="stop-color:#6E7072"/>					<stop  offset="0.5393" style="stop-color:#7F8183"/>					<stop  offset="0.5809" style="stop-color:#939597"/>					<stop  offset="0.6129" style="stop-color:#A7A9AC"/>					<stop  offset="0.6871" style="stop-color:#8E9092"/>					<stop  offset="0.8343" style="stop-color:#606163"/>					<stop  offset="0.9428" style="stop-color:#3D3C3E"/>					<stop  offset="1" style="stop-color:#1E1E1F"/>				</linearGradient>				<path fill="url(#SVGID_11_)" d="M98.787,37.729l0.43-0.43l0.211,0.211c0.008-0.041,0.008-0.085,0.013-0.127l-0.154-0.154					l0.158-0.158c-0.004-0.042-0.006-0.086-0.013-0.127l-0.215,0.215l-0.43-0.43l0.407-0.407c-0.019-0.028-0.04-0.053-0.06-0.081					l-0.417,0.417l-0.43-0.43l0.399-0.399c-0.029-0.018-0.061-0.033-0.091-0.049l-0.378,0.378l-0.43-0.43l0.136-0.136					c-0.03-0.002-0.059-0.009-0.089-0.009h-0.042l-0.075,0.075l-0.075-0.075H97.5l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146					h-0.141l-0.075,0.075l-0.075-0.075H96.5l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H95.5					l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H94.5l0.146,0.146l-0.43,0.43l-0.43-0.43					l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H93.5l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075					l-0.075-0.075H92.5l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H91.5l0.146,0.146					l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H90.5l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146					h-0.141l-0.075,0.075l-0.075-0.075H89.5l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H88.5					l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H87.5l0.146,0.146l-0.43,0.43l-0.43-0.43					l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H86.5l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075					l-0.075-0.075H85.5l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H84.5l0.146,0.146					l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H83.5l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146					h-0.141l-0.075,0.075l-0.075-0.075H82.5l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H81.5					l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H80.5l0.146,0.146l-0.43,0.43l-0.43-0.43					l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H79.5l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075					l-0.075-0.075H78.5l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H77.5l0.146,0.146					l-0.43,0.43l-0.43-0.43l0.146-0.146h-0.141l-0.075,0.075l-0.075-0.075H76.5l0.146,0.146l-0.43,0.43l-0.43-0.43l0.146-0.146					h-0.141l-0.075,0.075l-0.075-0.075H75.5l0.146,0.146l-0.43,0.43l-0.43-0.43l0.115-0.115c-0.099,0.019-0.194,0.048-0.286,0.084					l0.03,0.03l-0.43,0.43l-0.125-0.125c-0.024,0.023-0.046,0.047-0.069,0.072l0.124,0.124l-0.43,0.43l-0.023-0.023					c-0.033,0.086-0.061,0.174-0.079,0.266l0.102-0.102l0.43,0.43l-0.43,0.43l-0.089-0.089c0.019,0.084,0.044,0.166,0.076,0.244					l0.014-0.014l0.43,0.43l-0.105,0.105c0.023,0.024,0.048,0.045,0.073,0.068l0.103-0.103l0.428,0.428					c0.066,0.024,0.134,0.047,0.204,0.063l-0.061-0.061l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141					l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43					l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034					l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141l-0.104-0.104l0.43-0.43					l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034					l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141l-0.104-0.104l0.43-0.43					l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034					l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141l-0.104-0.104l0.43-0.43					l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034					l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141l-0.104-0.104l0.43-0.43					l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034					l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141l-0.104-0.104l0.43-0.43					l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034					l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141l-0.104-0.104l0.43-0.43					l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034					l0.034,0.034h0.141l-0.104-0.104l0.43-0.43l0.43,0.43l-0.104,0.104h0.141l0.034-0.034l0.034,0.034h0.083					c0.018,0,0.035-0.005,0.052-0.005l-0.099-0.099l0.43-0.43l0.351,0.351c0.031-0.016,0.062-0.032,0.091-0.049l-0.372-0.372					l0.43-0.43l0.398,0.398c0.02-0.027,0.044-0.05,0.063-0.077L98.787,37.729z M98.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43					L98.646,36.729z M98.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L98.146,37.229z M97.716,35.799l0.43,0.43l-0.43,0.43					l-0.43-0.43L97.716,35.799z M97.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L97.646,36.729z M97.146,37.229l-0.43,0.43					l-0.43-0.43l0.43-0.43L97.146,37.229z M96.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L96.716,35.799z M96.646,36.729					l-0.43,0.43l-0.43-0.43l0.43-0.43L96.646,36.729z M96.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L96.146,37.229z					 M95.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L95.716,35.799z M95.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L95.646,36.729					z M95.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L95.146,37.229z M94.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43					L94.716,35.799z M94.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L94.646,36.729z M94.146,37.229l-0.43,0.43l-0.43-0.43					l0.43-0.43L94.146,37.229z M93.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L93.716,35.799z M93.646,36.729l-0.43,0.43					l-0.43-0.43l0.43-0.43L93.646,36.729z M93.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L93.146,37.229z M92.716,35.799l0.43,0.43					l-0.43,0.43l-0.43-0.43L92.716,35.799z M92.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L92.646,36.729z M92.146,37.229					l-0.43,0.43l-0.43-0.43l0.43-0.43L92.146,37.229z M91.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L91.716,35.799z					 M91.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L91.646,36.729z M91.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L91.146,37.229					z M90.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L90.716,35.799z M90.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43					L90.646,36.729z M90.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L90.146,37.229z M89.716,35.799l0.43,0.43l-0.43,0.43					l-0.43-0.43L89.716,35.799z M89.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L89.646,36.729z M89.146,37.229l-0.43,0.43					l-0.43-0.43l0.43-0.43L89.146,37.229z M88.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L88.716,35.799z M88.646,36.729					l-0.43,0.43l-0.43-0.43l0.43-0.43L88.646,36.729z M88.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L88.146,37.229z					 M87.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L87.716,35.799z M87.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L87.646,36.729					z M87.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L87.146,37.229z M86.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43					L86.716,35.799z M86.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L86.646,36.729z M86.146,37.229l-0.43,0.43l-0.43-0.43					l0.43-0.43L86.146,37.229z M85.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L85.716,35.799z M85.646,36.729l-0.43,0.43					l-0.43-0.43l0.43-0.43L85.646,36.729z M85.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L85.146,37.229z M84.716,35.799l0.43,0.43					l-0.43,0.43l-0.43-0.43L84.716,35.799z M84.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L84.646,36.729z M84.146,37.229					l-0.43,0.43l-0.43-0.43l0.43-0.43L84.146,37.229z M83.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L83.716,35.799z					 M83.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L83.646,36.729z M83.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L83.146,37.229					z M82.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L82.716,35.799z M82.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43					L82.646,36.729z M82.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L82.146,37.229z M81.716,35.799l0.43,0.43l-0.43,0.43					l-0.43-0.43L81.716,35.799z M81.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L81.646,36.729z M81.146,37.229l-0.43,0.43					l-0.43-0.43l0.43-0.43L81.146,37.229z M80.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L80.716,35.799z M80.646,36.729					l-0.43,0.43l-0.43-0.43l0.43-0.43L80.646,36.729z M80.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L80.146,37.229z					 M79.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L79.716,35.799z M79.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L79.646,36.729					z M79.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L79.146,37.229z M78.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43					L78.716,35.799z M78.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L78.646,36.729z M78.146,37.229l-0.43,0.43l-0.43-0.43					l0.43-0.43L78.146,37.229z M77.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L77.716,35.799z M77.646,36.729l-0.43,0.43					l-0.43-0.43l0.43-0.43L77.646,36.729z M77.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L77.146,37.229z M76.716,35.799l0.43,0.43					l-0.43,0.43l-0.43-0.43L76.716,35.799z M76.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L76.646,36.729z M76.146,37.229					l-0.43,0.43l-0.43-0.43l0.43-0.43L76.146,37.229z M75.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L75.716,35.799z					 M75.646,36.729l-0.43,0.43l-0.43-0.43l0.43-0.43L75.646,36.729z M75.146,37.229l-0.43,0.43l-0.43-0.43l0.43-0.43L75.146,37.229					z M74.716,35.799l0.43,0.43l-0.43,0.43l-0.43-0.43L74.716,35.799z M73.787,36.729l0.43-0.43l0.43,0.43l-0.43,0.43L73.787,36.729					z M73.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L73.787,37.729z M74.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L74.716,38.659z					 M74.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L74.787,37.729z M75.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L75.716,38.659z					 M75.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L75.787,37.729z M76.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L76.716,38.659z					 M76.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L76.787,37.729z M77.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L77.716,38.659z					 M77.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L77.787,37.729z M78.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L78.716,38.659z					 M78.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L78.787,37.729z M79.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L79.716,38.659z					 M79.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L79.787,37.729z M80.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L80.716,38.659z					 M80.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L80.787,37.729z M81.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L81.716,38.659z					 M81.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L81.787,37.729z M82.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L82.716,38.659z					 M82.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L82.787,37.729z M83.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L83.716,38.659z					 M83.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L83.787,37.729z M84.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L84.716,38.659z					 M84.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L84.787,37.729z M85.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L85.716,38.659z					 M85.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L85.787,37.729z M86.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L86.716,38.659z					 M86.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L86.787,37.729z M87.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L87.716,38.659z					 M87.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L87.787,37.729z M88.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L88.716,38.659z					 M88.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L88.787,37.729z M89.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L89.716,38.659z					 M89.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L89.787,37.729z M90.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L90.716,38.659z					 M90.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L90.787,37.729z M91.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L91.716,38.659z					 M91.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L91.787,37.729z M92.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L92.716,38.659z					 M92.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L92.787,37.729z M93.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L93.716,38.659z					 M93.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L93.787,37.729z M94.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L94.716,38.659z					 M94.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L94.787,37.729z M95.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L95.716,38.659z					 M95.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L95.787,37.729z M96.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L96.716,38.659z					 M96.787,37.729l0.43-0.43l0.43,0.43l-0.43,0.43L96.787,37.729z M97.716,38.659l-0.43-0.43l0.43-0.43l0.43,0.43L97.716,38.659z					 M98.216,38.159l-0.43-0.43l0.43-0.43l0.43,0.43L98.216,38.159z M98.287,37.229l0.43-0.43l0.43,0.43l-0.43,0.43L98.287,37.229z"					/>				<linearGradient id="SVGID_12_" gradientUnits="userSpaceOnUse" x1="98.9478" y1="36.0625" x2="99.0112" y2="36.0625">					<stop  offset="0" style="stop-color:#4F4F51"/>					<stop  offset="0.2693" style="stop-color:#515153"/>					<stop  offset="0.3663" style="stop-color:#57575A"/>					<stop  offset="0.4355" style="stop-color:#616264"/>					<stop  offset="0.4914" style="stop-color:#6E7072"/>					<stop  offset="0.5393" style="stop-color:#7F8183"/>					<stop  offset="0.5809" style="stop-color:#939597"/>					<stop  offset="0.6129" style="stop-color:#A7A9AC"/>					<stop  offset="0.6871" style="stop-color:#8E9092"/>					<stop  offset="0.8343" style="stop-color:#606163"/>					<stop  offset="0.9428" style="stop-color:#3D3C3E"/>					<stop  offset="1" style="stop-color:#1E1E1F"/>				</linearGradient>				<path fill="url(#SVGID_12_)" d="M98.948,36.031l0.063,0.063C98.991,36.072,98.97,36.051,98.948,36.031z"/>			</g>		</g>	</g>	<g>		<linearGradient id="SVGID_13_" gradientUnits="userSpaceOnUse" x1="83.3931" y1="22.0723" x2="90.0806" y2="27.9473">			<stop  offset="0" style="stop-color:#222223"/>			<stop  offset="0.4812" style="stop-color:#272728"/>			<stop  offset="0.6546" style="stop-color:#353536"/>			<stop  offset="0.7781" style="stop-color:#464647"/>			<stop  offset="0.878" style="stop-color:#555658"/>			<stop  offset="0.9626" style="stop-color:#67696B"/>			<stop  offset="1" style="stop-color:#717375"/>		</linearGradient>		<circle fill="url(#SVGID_13_)" cx="86.583" cy="24.875" r="2.958"/>		<radialGradient id="SVGID_14_" cx="87.146" cy="24.9795" r="2.0836" gradientUnits="userSpaceOnUse">			<stop  offset="0" style="stop-color:#00062F"/>			<stop  offset="0.2232" style="stop-color:#000830"/>			<stop  offset="0.4278" style="stop-color:#000F34"/>			<stop  offset="0.6249" style="stop-color:#00173B"/>			<stop  offset="0.8164" style="stop-color:#012143"/>			<stop  offset="1" style="stop-color:#212D4E"/>		</radialGradient>		<circle fill="url(#SVGID_14_)" cx="86.583" cy="24.875" r="1.302"/>		<radialGradient id="SVGID_15_" cx="86.082" cy="25.3687" r="0.4952" gradientUnits="userSpaceOnUse">			<stop  offset="0" style="stop-color:#39BCED"/>			<stop  offset="0.3637" style="stop-color:#0076A4"/>			<stop  offset="1" style="stop-color:#00062F"/>		</radialGradient>		<circle fill="url(#SVGID_15_)" cx="85.948" cy="25.344" r="0.31"/>		<radialGradient id="SVGID_16_" cx="87.6875" cy="24.3125" r="0.8706" gradientUnits="userSpaceOnUse">			<stop  offset="0" style="stop-color:#39BCED"/>			<stop  offset="0.3637" style="stop-color:#0076A4"/>			<stop  offset="1" style="stop-color:#00062F"/>		</radialGradient>		<circle fill="url(#SVGID_16_)" cx="87.333" cy="24.417" r="0.31"/>		<radialGradient id="SVGID_17_" cx="86.3643" cy="24.3511" r="0.7308" gradientUnits="userSpaceOnUse">			<stop  offset="0" style="stop-color:#24132E"/>			<stop  offset="0.3463" style="stop-color:#261732"/>			<stop  offset="0.6634" style="stop-color:#2E213B"/>			<stop  offset="0.9683" style="stop-color:#3A2F4A"/>			<stop  offset="1" style="stop-color:#3B304C"/>		</radialGradient>		<circle fill="url(#SVGID_17_)" cx="86.167" cy="24.314" r="0.457"/>	</g>	<path fill="#0B0B0C" d="M154.667,292.329c0,1.1-0.9,2-2,2h-132.5c-1.1,0-2-0.9-2-2V56c0-1.1,0.9-2,2-2h132.5c1.1,0,2,0.9,2,2		V292.329z"/>	<rect x="20" y="56.167" fill="#FFFFFF" width="133" height="236.708"/>	<linearGradient id="SVGID_18_" gradientUnits="userSpaceOnUse" x1="117.8623" y1="12.5" x2="117.8623" y2="260.8267">		<stop  offset="0" style="stop-color:#FFFFFF;stop-opacity:0.5"/>		<stop  offset="0.1235" style="stop-color:#FFFFFF;stop-opacity:0.4382"/>		<stop  offset="1" style="stop-color:#FFFFFF;stop-opacity:0"/>	</linearGradient>	<path fill="url(#SVGID_18_)" d="M160.867,32.5c0-11.028-8.972-20-20-20h-66.01l7.462,21.625H98c1.818,0,3.292,1.474,3.292,3.292		c0,1.818-1.474,3.292-3.292,3.292H84.592l76.275,221.031V32.5z M86.583,27.833c-1.634,0-2.958-1.325-2.958-2.958		s1.325-2.958,2.958-2.958s2.958,1.325,2.958,2.958S88.217,27.833,86.583,27.833z"/>	<circle cx="85.708" cy="315.125" r="14.708"/>	<radialGradient id="SVGID_19_" cx="85.6255" cy="300.4375" r="18.8754" gradientUnits="userSpaceOnUse">		<stop  offset="0" style="stop-color:#FFFFFF;stop-opacity:0.5"/>		<stop  offset="0.1235" style="stop-color:#FFFFFF;stop-opacity:0.4382"/>		<stop  offset="1" style="stop-color:#FFFFFF;stop-opacity:0"/>	</radialGradient>	<path fill="url(#SVGID_19_)" d="M85.708,300.729c8.071,0,14.616,6.501,14.701,14.552c0-0.053,0.008-0.104,0.008-0.156		c0-8.124-6.585-14.708-14.708-14.708S71,307.001,71,315.125c0,0.053,0.007,0.104,0.008,0.156		C71.093,307.23,77.638,300.729,85.708,300.729z"/>	<radialGradient id="SVGID_20_" cx="81.7925" cy="309.8335" r="13.3159" gradientUnits="userSpaceOnUse">		<stop  offset="0" style="stop-color:#ABADB0"/>		<stop  offset="0.1017" style="stop-color:#9FA1A3"/>		<stop  offset="0.2907" style="stop-color:#8D8F91"/>		<stop  offset="0.493" style="stop-color:#808285"/>		<stop  offset="0.7161" style="stop-color:#797B7D"/>		<stop  offset="1" style="stop-color:#77787B"/>	</radialGradient>	<path fill="url(#SVGID_20_)" d="M88.329,320.583h-5.281c-1.654,0-3-1.346-3-3v-5.208c0-1.654,1.346-3,3-3h5.281		c1.654,0,3,1.346,3,3v5.208C91.329,319.238,89.983,320.583,88.329,320.583z M83.048,310.375c-1.103,0-2,0.897-2,2v5.208		c0,1.103,0.897,2,2,2h5.281c1.103,0,2-0.897,2-2v-5.208c0-1.103-0.897-2-2-2H83.048z"/>	<linearGradient id="SVGID_21_" gradientUnits="userSpaceOnUse" x1="85.7085" y1="333.6665" x2="85.7085" y2="298.3193">		<stop  offset="0" style="stop-color:#FFFFFF;stop-opacity:0.5"/>		<stop  offset="0.1235" style="stop-color:#FFFFFF;stop-opacity:0.4382"/>		<stop  offset="1" style="stop-color:#FFFFFF;stop-opacity:0"/>	</linearGradient>	<path fill="url(#SVGID_21_)" d="M85.708,316.375c-5.415,0-10.456-0.358-14.694-0.972c0.149,7.994,6.665,14.43,14.694,14.43		s14.545-6.437,14.694-14.43C96.165,316.017,91.124,316.375,85.708,316.375z"/></g></g>',
+    
+    defaults: joint.util.deepSupplement({
+    
+        type: 'apple.iPhone',
+        size: { width: 159, height: 334 },
+        attrs: { '.': { fill: 'black' } }
+        
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+
+joint.shapes.apple.SliderBasic = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g transform="translate(-57, -65)"><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="218.243" y1="65.395" x2="218.243" y2="87.255"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="192.258" y1="65.255" x2="192.258" y2="87.115"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="166.273" y1="65.255" x2="166.273" y2="87.115"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="140.288" y1="65.255" x2="140.288" y2="87.115"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="114.303" y1="65.255" x2="114.303" y2="87.115"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="88.318" y1="65.255" x2="88.318" y2="87.115"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="244.228" y1="65.255" x2="244.228" y2="87.115"/><g>	<defs>		<path id="SVGID_69_" d="M61.701,74.255h209c2.485,0,4.5,2.015,4.5,4.5s-2.015,4.5-4.5,4.5h-209c-2.485,0-4.5-2.015-4.5-4.5l0,0			C57.201,76.27,59.216,74.255,61.701,74.255z"/>	</defs>	<clipPath id="SVGID_70_">		<use xlink:href="#SVGID_69_"  overflow="visible"/>	</clipPath>	<g clip-path="url(#SVGID_70_)">		<defs>			<rect id="SVGID_71_" x="56.701" y="73.755" width="219" height="10"/>		</defs>		<clipPath id="SVGID_72_">			<use xlink:href="#SVGID_71_"  overflow="visible"/>		</clipPath>		<g clip-path="url(#SVGID_72_)">							<image overflow="visible" width="218" height="9" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAAALCAYAAAAUYeMWAAAACXBIWXMAAAsSAAALEgHS3X78AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAFhJREFUeNrs1bEJwDAMRUHHuPICarVJRtRKHi1ZIoLAXaP+w0NjAG2uqrrfe0wBnzsrM80ATVZEWAG6gvPhoDG4vbcVoCu4OacVoInaQHAgOEBw8B+PAAMAffsEs901NekAAAAASUVORK5CYII=" transform="matrix(1.0046 0 0 1.1111 56.7012 73.7549)">			</image>		</g>	</g></g><path fill="none" stroke="#808080" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M61.701,74.255h209	c2.485,0,4.5,2.015,4.5,4.5s-2.015,4.5-4.5,4.5h-209c-2.485,0-4.5-2.015-4.5-4.5l0,0C57.201,76.27,59.216,74.255,61.701,74.255z"/><g>	<defs>		<polygon id="SVGID_73_" points="161.192,87.255 171.229,87.255 171.229,74.655 166.21,69.255 161.145,74.71 		"/>	</defs>	<clipPath id="SVGID_74_">		<use xlink:href="#SVGID_73_"  overflow="visible"/>	</clipPath>	<g clip-path="url(#SVGID_74_)">		<defs>			<rect id="SVGID_75_" x="160.645" y="68.755" width="11.084" height="19"/>		</defs>		<clipPath id="SVGID_76_">			<use xlink:href="#SVGID_75_"  overflow="visible"/>		</clipPath>		<g clip-path="url(#SVGID_76_)">							<image overflow="visible" width="11" height="18" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAUCAYAAAC58NwRAAAACXBIWXMAAArrAAAK6wGCiw1aAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAEFJREFUeNpiYiARMNbX19sD6QNEqj/ARKoNoxoGhwYWNjY20jTw8vLSWAMPD89gcxIXFxeN/QC04QMJOe4CQIABAF9uBygmhRWOAAAAAElFTkSuQmCC" transform="matrix(1.0076 0 0 1.0556 160.645 68.7549)">			</image>		</g>	</g></g><polygon fill="none" stroke="#404040" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="	161.192,87.255 171.229,87.255 171.229,74.655 166.21,69.255 161.145,74.71 "/></g></g></g>',
+    
+    defaults: joint.util.deepSupplement({
+    
+        type: 'apple.SliderBasic',
+        size: { width: 220, height: 23 },
+        attrs: { '.': { fill: 'black' } }
+        
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+
+joint.shapes.apple.SliderTwoThumbs = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g transform="translate(-57, -152)"><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="218.243" y1="151.406" x2="218.243" y2="173.266"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="192.258" y1="151.265" x2="192.258" y2="173.125"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="166.273" y1="151.265" x2="166.273" y2="173.125"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="140.288" y1="151.265" x2="140.288" y2="173.125"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="114.303" y1="151.265" x2="114.303" y2="173.125"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="88.318" y1="151.265" x2="88.318" y2="173.125"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="244.228" y1="151.265" x2="244.228" y2="173.125"/><g>	<defs>		<path id="SVGID_41_" d="M61.701,160.265h209c2.485,0,4.5,2.015,4.5,4.5s-2.015,4.5-4.5,4.5h-209c-2.485,0-4.5-2.015-4.5-4.5l0,0			C57.201,162.279,59.216,160.265,61.701,160.265z"/>	</defs>	<clipPath id="SVGID_42_">		<use xlink:href="#SVGID_41_"  overflow="visible"/>	</clipPath>	<g clip-path="url(#SVGID_42_)">		<defs>			<rect id="SVGID_43_" x="56.701" y="159.765" width="219" height="10"/>		</defs>		<clipPath id="SVGID_44_">			<use xlink:href="#SVGID_43_"  overflow="visible"/>		</clipPath>		<g clip-path="url(#SVGID_44_)">							<image overflow="visible" width="218" height="9" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAAALCAYAAAAUYeMWAAAACXBIWXMAAAsSAAALEgHS3X78AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAFRJREFUeNrs1TENwDAMRFE3ymQCWcMkEE0p0Eqgaz29B+Gkr3uq6kTEDeBvd+69zQBN5lrLCtAVnIeDxuAy0wrQFdwYwwrQRG0gOBAcIDgA+PAKMACnfQSzOV3JCQAAAABJRU5ErkJggg==" transform="matrix(1.0046 0 0 1.1111 56.7012 159.7646)">			</image>		</g>	</g></g><path fill="none" stroke="#808080" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M61.701,160.265h209	c2.485,0,4.5,2.015,4.5,4.5s-2.015,4.5-4.5,4.5h-209c-2.485,0-4.5-2.015-4.5-4.5l0,0C57.201,162.279,59.216,160.265,61.701,160.265z	"/><rect x="109.909" y="160.265" opacity="0.75" fill="#001590" width="112.534" height="9"/><g>	<defs>		<polygon id="SVGID_45_" points="109.197,173.265 119.234,173.265 119.234,160.665 114.215,155.265 109.15,160.72 		"/>	</defs>	<clipPath id="SVGID_46_">		<use xlink:href="#SVGID_45_"  overflow="visible"/>	</clipPath>	<g clip-path="url(#SVGID_46_)">		<defs>			<rect id="SVGID_47_" x="108.65" y="154.765" width="11.084" height="19"/>		</defs>		<clipPath id="SVGID_48_">			<use xlink:href="#SVGID_47_"  overflow="visible"/>		</clipPath>		<g clip-path="url(#SVGID_48_)">							<image overflow="visible" width="11" height="18" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAUCAYAAAC58NwRAAAACXBIWXMAAArrAAAK6wGCiw1aAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAENJREFUeNpirK+vt2dgYDjAQBw4wMRAIhjVMDg0sLCxsZGmgZeXl8YaeHh4BpuTuLi4aOwHoA0fSMhxF0iNaAaAAAMAteoHJs4TNVIAAAAASUVORK5CYII=" transform="matrix(1.0076 0 0 1.0556 108.6499 154.7646)">			</image>		</g>	</g></g><polygon fill="none" stroke="#404040" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="	109.197,173.265 119.234,173.265 119.234,160.665 114.215,155.265 109.15,160.72 "/><g>	<defs>		<polygon id="SVGID_49_" points="213.442,173.265 223.479,173.265 223.479,160.665 218.46,155.265 213.395,160.72 		"/>	</defs>	<clipPath id="SVGID_50_">		<use xlink:href="#SVGID_49_"  overflow="visible"/>	</clipPath>	<g clip-path="url(#SVGID_50_)">		<defs>			<rect id="SVGID_51_" x="212.895" y="154.765" width="11.084" height="19"/>		</defs>		<clipPath id="SVGID_52_">			<use xlink:href="#SVGID_51_"  overflow="visible"/>		</clipPath>		<g transform="matrix(1 0 0 1 -1.525879e-05 0)" clip-path="url(#SVGID_52_)">							<image overflow="visible" width="11" height="18" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAUCAYAAAC58NwRAAAACXBIWXMAAArrAAAK6wGCiw1aAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAD1JREFUeNpiZACC+vr6/wxEAiYGEsGohsGhgQVEsLGxkaaBl5eXxhp4eHgGm5O4uLho7AegDQcYaAUAAgwAbkUEphXSUQ8AAAAASUVORK5CYII=" transform="matrix(1.0076 0 0 1.0556 212.895 154.7646)">			</image>		</g>	</g></g><polygon fill="none" stroke="#404040" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="	213.442,173.265 223.479,173.265 223.479,160.665 218.46,155.265 213.395,160.72 "/></g></g></g>',
+    
+    defaults: joint.util.deepSupplement({
+    
+        type: 'apple.SliderTwoThumbs',
+        size: { width: 220, height: 23 },
+        attrs: { '.': { fill: 'black' } }
+        
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+
+joint.shapes.apple.SliderThreeThumbs = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g transform="translate(-57, -237)"><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="218.243" y1="237.416" x2="218.243" y2="259.276"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="192.258" y1="237.276" x2="192.258" y2="259.135"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="166.273" y1="237.276" x2="166.273" y2="259.135"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="140.288" y1="237.276" x2="140.288" y2="259.135"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="114.303" y1="237.276" x2="114.303" y2="259.135"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="88.318" y1="237.276" x2="88.318" y2="259.135"/><line fill="none" stroke="#808080" stroke-linejoin="round" stroke-miterlimit="10" x1="244.228" y1="237.276" x2="244.228" y2="259.135"/><g>	<defs>		<path id="SVGID_53_" d="M61.701,246.276h209c2.485,0,4.5,2.015,4.5,4.5s-2.015,4.5-4.5,4.5h-209c-2.485,0-4.5-2.015-4.5-4.5l0,0			C57.201,248.291,59.216,246.276,61.701,246.276z"/>	</defs>	<clipPath id="SVGID_54_">		<use xlink:href="#SVGID_53_"  overflow="visible"/>	</clipPath>	<g clip-path="url(#SVGID_54_)">		<defs>			<rect id="SVGID_55_" x="56.701" y="245.776" width="219" height="10"/>		</defs>		<clipPath id="SVGID_56_">			<use xlink:href="#SVGID_55_"  overflow="visible"/>		</clipPath>		<g transform="matrix(1 0 0 1 0 -1.525879e-05)" clip-path="url(#SVGID_56_)">							<image overflow="visible" width="218" height="9" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAAALCAYAAAAUYeMWAAAACXBIWXMAAAsSAAALEgHS3X78AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAFRJREFUeNrs1TENwDAMRFE3ymQCWcMkEE0p0Eqgaz29B+Gkr3uq6kTEDeBvd+69zQBN5lrLCtAVnIeDxuAy0wrQFdwYwwrQRG0gOBAcIDgA+PAKMACnfQSzOV3JCQAAAABJRU5ErkJggg==" transform="matrix(1.0046 0 0 1.1111 56.7012 245.7759)">			</image>		</g>	</g></g><path fill="none" stroke="#808080" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M61.701,246.276h209	c2.485,0,4.5,2.015,4.5,4.5s-2.015,4.5-4.5,4.5h-209c-2.485,0-4.5-2.015-4.5-4.5l0,0C57.201,248.291,59.216,246.276,61.701,246.276z	"/><rect x="114.303" y="246.276" opacity="0.75" fill="#001590" width="52.97" height="9"/><g>	<defs>		<polygon id="SVGID_57_" points="109.197,259.276 119.234,259.276 119.234,246.676 114.215,241.276 109.15,246.731 		"/>	</defs>	<clipPath id="SVGID_58_">		<use xlink:href="#SVGID_57_"  overflow="visible"/>	</clipPath>	<g clip-path="url(#SVGID_58_)">		<defs>			<rect id="SVGID_59_" x="108.65" y="240.776" width="11.084" height="19"/>		</defs>		<clipPath id="SVGID_60_">			<use xlink:href="#SVGID_59_"  overflow="visible"/>		</clipPath>		<g clip-path="url(#SVGID_60_)">							<image overflow="visible" width="11" height="18" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAUCAYAAAC58NwRAAAACXBIWXMAAArrAAAK6wGCiw1aAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAENJREFUeNpirK+vt2dgYDjAQBw4wMRAIhjVMDg0sLCxsZGmgZeXl8YaeHh4BpuTuLi4aOwHoA0fSMhxF0iNaAaAAAMAteoHJs4TNVIAAAAASUVORK5CYII=" transform="matrix(1.0076 0 0 1.0556 108.6499 240.7759)">			</image>		</g>	</g></g><polygon fill="none" stroke="#404040" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="	109.197,259.276 119.234,259.276 119.234,246.676 114.215,241.276 109.15,246.731 "/><rect x="166.273" y="246.276" opacity="0.75" fill="#428D0C" width="52.97" height="9"/><g>	<defs>		<polygon id="SVGID_61_" points="213.442,259.276 223.479,259.276 223.479,246.676 218.46,241.276 213.395,246.731 		"/>	</defs>	<clipPath id="SVGID_62_">		<use xlink:href="#SVGID_61_"  overflow="visible"/>	</clipPath>	<g clip-path="url(#SVGID_62_)">		<defs>			<rect id="SVGID_63_" x="212.895" y="240.776" width="11.084" height="19"/>		</defs>		<clipPath id="SVGID_64_">			<use xlink:href="#SVGID_63_"  overflow="visible"/>		</clipPath>		<g transform="matrix(1 0 0 1 -1.525879e-05 0)" clip-path="url(#SVGID_64_)">							<image overflow="visible" width="11" height="18" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAUCAYAAAC58NwRAAAACXBIWXMAAArrAAAK6wGCiw1aAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAD1JREFUeNpiZACC+vr6/wxEAiYGEsGohsGhgQVEsLGxkaaBl5eXxhp4eHgGm5O4uLho7AegDQcYaAUAAgwAbkUEphXSUQ8AAAAASUVORK5CYII=" transform="matrix(1.0076 0 0 1.0556 212.895 240.7759)">			</image>		</g>	</g></g><polygon fill="none" stroke="#404040" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="	213.442,259.276 223.479,259.276 223.479,246.676 218.46,241.276 213.395,246.731 "/><g>	<defs>		<polygon id="SVGID_65_" points="161.32,259.276 171.357,259.276 171.357,246.676 166.338,241.276 161.273,246.731 		"/>	</defs>	<clipPath id="SVGID_66_">		<use xlink:href="#SVGID_65_"  overflow="visible"/>	</clipPath>	<g clip-path="url(#SVGID_66_)">		<defs>			<rect id="SVGID_67_" x="160.773" y="240.776" width="11.084" height="19"/>		</defs>		<clipPath id="SVGID_68_">			<use xlink:href="#SVGID_67_"  overflow="visible"/>		</clipPath>		<g clip-path="url(#SVGID_68_)">							<image overflow="visible" width="11" height="18" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAUCAYAAAC58NwRAAAACXBIWXMAAArrAAAK6wGCiw1aAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAENJREFUeNpirK+vt2dgYDjAQBw4wMRAIhjVMDg0sLCxsZGmgZeXl8YaeHh4BpuTuLi4aOwHoA0fSMhxF0iNaAaAAAMAteoHJs4TNVIAAAAASUVORK5CYII=" transform="matrix(1.0076 0 0 1.0556 160.7729 240.7759)">			</image>		</g>	</g></g><polygon fill="none" stroke="#404040" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="	161.32,259.276 171.357,259.276 171.357,246.676 166.338,241.276 161.273,246.731 "/></g></g></g>',
+    defaults: joint.util.deepSupplement({
+    
+        type: 'apple.SliderThreeThumbs',
+        size: { width: 220, height: 23 },
+        attrs: { '.': { fill: 'black' } }
+        
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.apple.BasicSwitch = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g transform="translate(-49, -382)"><g>	<defs>		<path id="SVGID_9_" d="M51.5,381.476h124c1.657,0,3,1.344,3,3v25.228c0,1.657-1.343,3-3,3h-124c-1.657,0-3-1.343-3-3l0,0v-25.228			C48.5,382.819,49.843,381.476,51.5,381.476z"/>	</defs>	<clipPath id="SVGID_10_">		<use xlink:href="#SVGID_9_"  overflow="visible"/>	</clipPath>	<g clip-path="url(#SVGID_10_)">		<defs>			<rect id="SVGID_11_" x="48" y="380.976" width="131" height="32.228"/>		</defs>		<clipPath id="SVGID_12_">			<use xlink:href="#SVGID_11_"  overflow="visible"/>		</clipPath>		<g clip-path="url(#SVGID_12_)">							<image overflow="visible" width="130" height="32" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAAhCAYAAAD+vMi+AAAACXBIWXMAAArrAAAK6wGCiw1aAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAIxJREFUeNrs1dkJwzAARMEI0n9L6UkgrAs5/nYLO6+EZWBLrfX3UXTlQXCbIbtvKcUKEEAQfwetNXeQjuC6LgjSEfTeIUhHMMaAIB3BnBOCdARrLQjSEey9IUhHcM6BIB3B/WQGCCCAAAIIIIAAAkEgCASBIBAEgkAQCAJBIAgEgSAQBIJAEEh69xdgAC4NdqMdiik9AAAAAElFTkSuQmCC" transform="matrix(1.0077 0 0 1.0071 48 380.9756)">			</image>		</g>	</g></g><path fill="none" stroke="#666666" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M51.5,381.476h124	c1.657,0,3,1.344,3,3v25.228c0,1.657-1.343,3-3,3h-124c-1.657,0-3-1.343-3-3l0,0v-25.228C48.5,382.819,49.843,381.476,51.5,381.476z	"/><text transform="matrix(1 0 0 1 130.5786 402.6162)" font-family="\'ArialMT\'" font-size="16">OFF</text><text transform="matrix(1 0 0 1 68.7368 402.6162)" font-family="\'ArialMT\'" font-size="16">ON</text><g>	<defs>		<path id="SVGID_13_" d="M51.5,381.476h59c1.657,0,3,1.344,3,3v25.228c0,1.657-1.343,3-3,3h-59c-1.657,0-3-1.343-3-3l0,0v-25.228			C48.5,382.819,49.843,381.476,51.5,381.476z"/>	</defs>	<g>		<defs>			<rect id="SVGID_15_" x="48" y="380.976" width="66" height="32.228"/>		</defs>				<g transform="matrix(1 0 0 1 3.814697e-06 3.051758e-05)" clip-path="url(#SVGID_16_)">							<image overflow="visible" width="65" height="32" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEEAAAAhCAYAAACGA8YfAAAACXBIWXMAAArrAAAK6wGCiw1aAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAGNJREFUeNrs08ENwCAMBEEM9N9SesJvcKTUkB9zJazm5lrraZcvMrNujzB7700EEUT4IowxRIgIEapKhL23COccEUgggQQSRHAHEkgggQQSRHAHEkgggQQSRHAHEkiwP/YKMABgY1JV1GnN0gAAAABJRU5ErkJggg==" transform="matrix(1.0154 0 0 1.0071 48 380.9756)">			</image>		</g>	</g></g><path fill="none" stroke="#666666" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M51.5,381.476h59	c1.657,0,3,1.344,3,3v25.228c0,1.657-1.343,3-3,3h-59c-1.657,0-3-1.343-3-3l0,0v-25.228C48.5,382.819,49.843,381.476,51.5,381.476z"	/></g></g></g>',
+    defaults: joint.util.deepSupplement({
+    
+        type: 'apple.BasicSwitch',
+        size: { width: 131, height: 34 },
+        attrs: { '.': { fill: 'black' } }
+        
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.apple.BasicSwitchOff = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g transform="translate(-197, -382)"><g>	<defs>		<path id="SVGID_33_" d="M199.5,381.815h124c1.657,0,3,1.344,3,3v25.228c0,1.657-1.343,3-3,3h-124c-1.657,0-3-1.343-3-3l0,0			v-25.228C196.5,383.159,197.843,381.815,199.5,381.815z"/>	</defs>	<clipPath id="SVGID_34_">		<use xlink:href="#SVGID_33_"  overflow="visible"/>	</clipPath>	<g clip-path="url(#SVGID_34_)">		<defs>			<rect id="SVGID_35_" x="196" y="381.315" width="131" height="32.228"/>		</defs>		<clipPath id="SVGID_36_">			<use xlink:href="#SVGID_35_"  overflow="visible"/>		</clipPath>		<g clip-path="url(#SVGID_36_)">							<image overflow="visible" width="130" height="32" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAAhCAYAAAD+vMi+AAAACXBIWXMAAArrAAAK6wGCiw1aAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAHpJREFUeNrs19ENgDAIQMFK4d9u5DaOoaNr/HYD7pIuQF4g3c59XYPWMiJuY2geQVaZQvcISgQiEAHOATYBIuA7BykCm8AmEIEI8Dtg5JxhCs0pABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACfuT7DmPo7RFgAFb0AsJ6d2DDAAAAAElFTkSuQmCC" transform="matrix(1.0077 0 0 1.0071 196 381.3154)">			</image>		</g>	</g></g><path fill="none" stroke="#666666" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M199.5,381.815h124	c1.657,0,3,1.344,3,3v25.228c0,1.657-1.343,3-3,3h-124c-1.657,0-3-1.343-3-3l0,0v-25.228	C196.5,383.159,197.843,381.815,199.5,381.815z"/><text transform="matrix(1 0 0 1 278.5786 402.9561)" fill="#FFFFFF" font-family="\'ArialMT\'" font-size="16">OFF</text><g>	<defs>		<path id="SVGID_37_" d="M199.5,381.815h59c1.657,0,3,1.344,3,3v25.228c0,1.657-1.343,3-3,3h-59c-1.657,0-3-1.343-3-3l0,0v-25.228			C196.5,383.159,197.843,381.815,199.5,381.815z"/>	</defs>	<clipPath id="SVGID_38_">		<use xlink:href="#SVGID_37_"  overflow="visible"/>	</clipPath>	<g clip-path="url(#SVGID_38_)">		<defs>			<rect id="SVGID_39_" x="196" y="381.315" width="66" height="32.228"/>		</defs>		<clipPath id="SVGID_40_">			<use xlink:href="#SVGID_39_"  overflow="visible"/>		</clipPath>		<g transform="matrix(1 0 0 1 0 0)" clip-path="url(#SVGID_40_)">							<image overflow="visible" width="65" height="32" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEEAAAAhCAYAAACGA8YfAAAACXBIWXMAAArrAAAK6wGCiw1aAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAGxJREFUeNrs1LsNwCAMQEGCGCybZWdosfOp0kXpOUte4PTs1ns/yuKzjTHO1RFarbVAgAABAoR3CDwlRASEzISgBCUoQQkQnIMSlKCED4Q5JwQlQPAYlaAEJShBCRCcgxKU8Afh3n11hEuAAQCj8E9X6+TctAAAAABJRU5ErkJggg==" transform="matrix(1.0154 0 0 1.0071 196 381.3154)">			</image>		</g>	</g></g><path fill="none" stroke="#666666" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M199.5,381.815h59	c1.657,0,3,1.344,3,3v25.228c0,1.657-1.343,3-3,3h-59c-1.657,0-3-1.343-3-3l0,0v-25.228	C196.5,383.159,197.843,381.815,199.5,381.815z"/></g></g></g>',
+    defaults: joint.util.deepSupplement({
+    
+        type: 'apple.BasicSwitchOff',
+        size: { width: 131, height: 34 },
+        attrs: { '.': { fill: 'black' } }
+        
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.apple.BasicKnob = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g transform="translate(-176, -457)"><line fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="229.168" y1="508.109" x2="194.146" y2="489.378"/><line fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="229.168" y1="508.109" x2="195.668" y2="529.247"/><line fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="229.168" y1="508.109" x2="229.168" y2="469.26"/><line fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="229.168" y1="508.109" x2="263.676" y2="489.449"/><line fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="229.168" y1="508.109" x2="263.393" y2="527.609"/><path fill="#FFFFFF" d="M253.563,483.715c13.473,13.473,13.473,35.317,0,48.79c-13.473,13.474-35.317,13.474-48.79,0	c-13.473-13.473-13.473-35.317,0-48.79C218.246,470.241,240.09,470.241,253.563,483.715"/><path fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M253.563,483.715	c13.473,13.473,13.473,35.316,0,48.79s-35.317,13.474-48.79,0s-13.473-35.317,0-48.79	C218.246,470.241,240.09,470.241,253.563,483.715"/><text transform="matrix(1 0 0 1 193.2808 565.5498)" font-family="\'Arial-BoldMT\'" font-size="13">Knob Label</text><text transform="matrix(1 0 0 1 183.3311 538.1094)" font-family="\'Helvetica\'" font-size="12">0</text><text transform="matrix(1 0 0 1 265.1685 538.1094)" font-family="\'Helvetica\'" font-size="12">100</text><text transform="matrix(1 0 0 1 221.9941 465.7598)" font-family="\'Helvetica\'" font-size="12">50</text><text transform="matrix(1 0 0 1 268.502 486.46)" font-family="\'Helvetica\'" font-size="12">75</text><text transform="matrix(1 0 0 1 174.9722 486.46)" font-family="\'Helvetica\'" font-size="12">25</text><g>	<defs>		<path id="SVGID_1_" d="M252.856,484.422c13.083,13.082,13.083,34.293,0,47.376s-34.293,13.083-47.376,0s-13.083-34.294,0-47.376			C218.562,471.339,239.773,471.339,252.856,484.422"/>	</defs>	<clipPath id="SVGID_2_">		<use xlink:href="#SVGID_1_"  overflow="visible"/>	</clipPath>	<g clip-path="url(#SVGID_2_)">		<defs>			<rect id="SVGID_3_" x="195.168" y="474.109" width="68" height="68"/>		</defs>		<clipPath id="SVGID_4_">			<use xlink:href="#SVGID_3_"  overflow="visible"/>		</clipPath>		<g clip-path="url(#SVGID_4_)">							<image overflow="visible" width="67" height="67" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEQAAABECAYAAAA4E5OyAAAACXBIWXMAAArrAAAK6wGCiw1aAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABW5JREFUeNrsnGtynEAMhLMY/89RcgPnSLlJrpb7+BWLirYabbekwWsbHFM1BYXZYeZzS/PScLq7u/t9c3Pz4/b29puneZ5X1yq9/G5JeD1N0/kc0+l0oskOOz8/Py/Xdo7p6enpIj0+Pp7Pnh4eHlbXKt3f3y8Jr1/e82s2GC8V+qkqXAFBGFugOAwHMQLE8vMz5u9ndrC84R3f56iIqBI8d4EoKFjYESBW6QiFqcOS5e/n7j/Dry2/EgjCiGAQiDIbPzuMrUAQCsLws5sKA6JMFctQAulAUUBGzGYESKYQBIFA/D3Ze1dAsKIZlMx0XmM2FZCuudh7TCWWt50rRUR1+PvmWMlKJZk/QaUws7kGkGgu2Kps8RvxXQsQKzADMAIla3EcCvMjHSAOxSGgOlwZDEimDnzPSiFMHUwtmT/B5lmZjipsF0g0mdiyuLl0+jsKxoUPqSB0TafqqMW+ggJS+Y+ojMx3sPcwBz4rJ5mpZdR0lB/Jjsp/ZH0O1axW0KnJKLVULVDHl8QCqt6kF9ihRSgZkKyfkfVWKZCtUDJ/wkyjc0RwrirL01sXBFJ1uioYEgiD0+2nRKVsAZEB8gEgKqLyGwoE808lkMzhZlBc6tcAoZRj77B3dv1GNhRYAWHN5BYT8ueVVN8CTGd8Uo2csd5nIB2VVCbkJvIeMCIYfDfrgSoTielsMplCGLColo+CgVDMbKxM1eDQnsEWiyokglBwmAl9NIwIxYchWW8X64ZgpA9RMFjaA4xoPj6Uz7r+sZ52bwHiVBmMCtSeYEQo/t9X5Y9QVgqJQ/WOUrJ5y71BYcpAKNjhm9m8RQXHZbnnw51sBYFMc05tGJ72aCpZy6Pqweo9YzeYjUwjoGqUukcoatQd79kxs8mb7IdHUAcDouqE6QIITvGpDI52ZHVh8zMTzl6xiRY17Xc0s2H1oPfSP5KMjnhk9YlpojeTCeGjAums4EkgCtCRgXTT1H3wrSZ8dgnk6wDT6hL8DJXt1PFLIVEhWUQNpqMfnTosM/r/kwI6//QvhUSFdIEcGUwWzBdTC4jPOB1ZHbjUMAyErVcc2Ww6dbsAwh5iPz7ioRalWL0ntc6Z3fsMMNS9KXswxnQdGQirC6v3pNY5WQa+mHMUKCrQl0GhQLIfetTOkVobFqCH9WD1nRQMlZEFqBzBdEZh+N9mD0nKHsKQR0+2oLzngaGHXWGq4Cwrd8o0LAObnVYq2fPUYtw3w8qv4MwYzacqrmbjMVhlb6aSbR7KTGkFxAGgMiIUNee6BygOA3dKZTDiPamQCKEKm95DNEAXRqaUBYiHNaolTbUTKk694UL4R8LAvXQKjEpLfEilkM48pGVkrY6DeU8oXua4oTBuMmRwpA9hK3ednQVsJMkimN+ySx53WlZQSoXYxTJ1NmgialrOoaBfuSYY7I6jX4hmwqBUYCiQkeUIBsNDk5Ze3z8o11gbZvtlmKNUKumY0AWQkXWZLDLYzxjO1AnB7uTPOlhsk/IWKBRIp9BVDGiM/mPbVasdVa6KbL+MAsKgsB3dqcmMrOlWseNuLtmOKpU/QlFzNKxHXfkTpRy8fwZiF0oVnT21GP7oqmDmMgqku+euazoVLAkEFaNgMFNBZWS7MrcAwV2ZbN/diOmo6wWIk3kNjKgMb10q/9EFkvkRZjoZFGYyK4X4RfQjWCi1yIOFRGWw4NjO1yE6QKrPZETzyUwkgqEmEx1ndHBYOGxRspblNUC6e/8VkBEoFybTWf7L+hzZNvesSe8CYZPGXQdbmQ41mWyVXPmNrGWpzGUESPf7IRmQCsoCxD4zY19WYesU0VS6yX5jlYwz9Kqv4wod/cJMtgg1WuZ/6c9fAQYAqTN3QtlMiuQAAAAASUVORK5CYII=" transform="matrix(1.0149 0 0 1.0149 195.168 474.1094)">			</image>		</g>	</g></g><path fill="none" stroke="#404040" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M252.856,484.422	c13.083,13.082,13.083,34.293,0,47.376s-34.293,13.083-47.376,0s-13.083-34.294,0-47.376	C218.562,471.339,239.773,471.339,252.856,484.422"/><path fill="#404040" d="M198.868,491.953L198.868,491.953c0.519-0.976,1.729-1.346,2.705-0.827l0,0l27.947,14.859	c0.975,0.519,1.346,1.73,0.827,2.705c-0.519,0.976-1.73,1.346-2.705,0.827l0,0l-27.947-14.859	C198.72,494.14,198.349,492.929,198.868,491.953z"/></g></g></g>',
+    defaults: joint.util.deepSupplement({
+    
+        type: 'apple.BasicKnob',
+        size: { width: 113, height: 115 },
+        attrs: { '.': { fill: 'black' } }
+        
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.apple.PrettyKnob = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g transform="translate(-405, -460)"><path fill="#B50000" d="M415.413,509.558c-0.678-16.408,9.629-31.888,26.042-37.062c19.631-6.189,40.563,4.707,46.753,24.339	c4.395,13.935,0.179,28.525-9.659,38.033l7.715,7.715c12.617-12.293,18.006-31.081,12.348-49.028	c-8.002-25.377-35.06-39.463-60.437-31.461c-21.067,6.643-34.353,26.419-33.68,47.465H415.413z"/><path fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="	M415.413,509.558c-0.678-16.408,9.629-31.888,26.042-37.062c19.631-6.189,40.563,4.707,46.753,24.339	c4.395,13.935,0.179,28.525-9.659,38.033l7.715,7.715c12.617-12.293,18.006-31.081,12.348-49.028	c-8.002-25.377-35.06-39.463-60.437-31.461c-21.067,6.643-34.353,26.419-33.68,47.465H415.413z"/><path fill="#001590" d="M479.642,467.791L479.642,467.791L479.642,467.791c-11.744-7.887-26.835-10.553-41.375-5.969	c-21.108,6.656-34.405,26.497-33.675,47.589h-0.121c0.138,4.306,0.859,8.664,2.219,12.974c2.375,7.532,6.429,14.069,11.618,19.33	l0.121-0.122c0.014,0.014,0.026,0.026,0.039,0.04l5.861-5.861c-0.011-0.015-0.021-0.03-0.032-0.046l1.726-1.726	c-3.987-4.06-7.103-9.097-8.931-14.896c-0.219-0.693-0.416-1.389-0.593-2.085c-0.13-0.718-0.242-1.435-0.338-2.15	c0-0.001,0-0.003,0-0.004c-1.731-8.871-0.128-17.778,4.053-25.267c0-0.001,0.001-0.002,0.001-0.003	c5.314-10.917,15.133-19.603,28.035-23.329C458.867,463.2,469.862,463.984,479.642,467.791L479.642,467.791z"/><path fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="	M479.642,467.791L479.642,467.791L479.642,467.791c-11.744-7.887-26.835-10.553-41.375-5.969	c-21.108,6.656-34.405,26.497-33.675,47.589h-0.121c0.138,4.306,0.859,8.664,2.219,12.974c2.375,7.532,6.429,14.069,11.618,19.33	l0.121-0.122c0.014,0.014,0.026,0.026,0.039,0.04l5.861-5.861c-0.011-0.016-0.021-0.03-0.032-0.046l1.726-1.726	c-3.987-4.06-7.103-9.097-8.931-14.896c-0.219-0.693-0.416-1.389-0.593-2.085c-0.13-0.718-0.242-1.435-0.338-2.15	c0-0.001,0-0.003,0-0.004c-1.731-8.871-0.128-17.778,4.053-25.267c0-0.001,0.001-0.002,0.001-0.003	c5.314-10.917,15.133-19.603,28.035-23.329C458.867,463.2,469.862,463.984,479.642,467.791L479.642,467.791z"/><text transform="matrix(1 0 0 1 416.1289 565.5498)" font-family="\'Arial-BoldMT\'" font-size="13">Knob Label</text><g>	<defs>		<path id="SVGID_5_" d="M476.35,484.422c13.083,13.082,13.083,34.293,0,47.376c-13.082,13.083-34.293,13.083-47.376,0			c-13.082-13.083-13.082-34.294,0-47.376C442.057,471.339,463.268,471.339,476.35,484.422"/>	</defs>	<clipPath id="SVGID_6_">		<use xlink:href="#SVGID_5_"  overflow="visible"/>	</clipPath>	<g clip-path="url(#SVGID_6_)">		<defs>			<rect id="SVGID_7_" x="418.662" y="474.109" width="68" height="68"/>		</defs>		<clipPath id="SVGID_8_">			<use xlink:href="#SVGID_7_"  overflow="visible"/>		</clipPath>		<g clip-path="url(#SVGID_8_)">							<image overflow="visible" width="67" height="67" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEQAAABECAYAAAA4E5OyAAAACXBIWXMAAArrAAAK6wGCiw1aAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABYBJREFUeNrsnF1y2zAMhGtFyXNv0iMkR+zRcpS+56+mp/CswF0AVJ1YSsIZjhRFlshPC5AiCR3u7+9/HQ6H37e3tz8sz/O82Ff55ubmlHG/5Wmazlufj/fqcktt+/b2dtpvW5ZfX1+7/PLyct62/Pz8vNhX+enp6ZRx//ibx/lY8J/Hgj5gJVmFIyiXAmIwGBQFo12zbdV1WcLr4t8tzU0F7aJMIWxbAaKgtEIyKBmQVnkPxSsDs0EaeSBWBgokguHBIBDbIgzbGoy1QBAKwmDmwoBE9+yAtB0FJIPCgIyaTRVIphAEgUDsPrZv96NAWiXaiQggcq6Ro11rNhGQEXNp92oqaddv28hfMR/TmQxWeq0/MaUws7kEEGYu2LJkimSm0jnVf1IJzaUCRbU4BkX5kQyIQTEIXh2mDAYkUwfCOJuM+RBmInd3dyV/wpprD6Xy1BQQbzKsZTFzifwU3sc3vSeFGBD/9BEAg1Jtiit+RAGp+A+vDOY70Ed4VeDfnVP1mZnNGtOJ/EiUIv+R9TlUB411yOw+nUKUA2U5ghL5EvbEVG+y/c4XvNIJG+2tLpyqB7IWivIn1QKyJhD3W4FNadi6IJA1XXeELYEwOApM5E9aITMlrAHkfVLkNyIQ3iRLQJhqMtOxJvYSICIwBr1iKuplsQNihfdN5YgJMRjvnewe1qkcgeFbLqtzO34GkikkMyH0Fx+Z7H6m9BET8XlhMpFC2JiIV8Y1YHgo1ipl4ymtvNiUU4V4EAqOh4Gv99dMCKUy2oZ1MzAdENbtzkzoo3zGqPlkJoLKWCgEX74YDHYc/7cVGAyKV4Mvv4fSKQTBZGazRRgIxV5HKsrADt+M7Tgb/lNwrNO15aSUoIY5T+dnMJjUtuBER5ysyr6+TSFTpBAGaA8wMPmyq7rZsZkN3mQ/3AsQVImqE8n9wE0EZQ++Q6lEwVjUG98B2IsSG3jZU1J1UwNKExuqj36wxxQC8KAUEAZor0CUUtigUhnInhVifkTN7X45IH4aIgXyncDXVMl9BnCV+n0rxCsEZ7CiVD1vy0kt1cI8VU/8KulbIV4hlZP8DPlnBDEEBCd19pqwDsNA/LDbZ/AllbotgLCT1GTOHmEoEP7YxOY4o2N7g1Ktlx2bohP9mq49A1F18fWe1Dwnu4Bt9+JLzCx8+RkUCkStEPZ5TyrBemQP+jQvY5VjMCIoNtiydVPBNazswfp6zjbJm0HAJY+YtwyEhYUoGFQhDEIboVb/synQLcLwK5xZ+T2chUKiH6qFt7jdIowoq/p2QAwAKsNDoQMrG4CCfgOjpSIY/thskvGm4SFky6avDWUERqSUGcMp1LRmFg3lR7evZSYtMxgMjDIj6UMiRaiVfrbE6iMdLfqMCIZSja/z2WSUIiqqwLdFW8703s0ydhV8tCWLuqwo5WwyakarulyaDR9gNMQlB7LxHt4veGUwKBkYCmRtyKcV1BafsHiZS721IohMJSMm1DnVtTD8kke/2O1/oxVU8BADoqAoGAhlxoXzUXBPtEqYrQH1CmHxMnZt3EYxd+zVQgGpQglNRkUh+cJGTxD7NJFCfMioH91X11bBhxV/4vc9tIVTVfFpLCxLOVG1LjSKuRsFEr18Vkwnc7gdEGYiCgYzlRNlEeHNmvIqkCgqM/sAQqSOTiFtR6li5KmhMtBcsrjdESDslV29m0RQIkhnIFmnS0344BOrfCViDZBqZLdqiiNV4PHOh2Qw2PA9tihRy1KNtK5+LiNrcVTfJHOyC5NR87lZixK1LNnXIUaARF+H8H6k4k+Yg5VAql94YZ2wtR9CiICMfD8kApL5kfl4o8fj/R9GJoSxgK2CbVv5Poc616KqRz654014pMwqlub495+/AgwAVuwpce+1jgEAAAAASUVORK5CYII=" transform="matrix(1.0149 0 0 1.0149 418.6621 474.1094)">			</image>		</g>	</g></g><path fill="none" stroke="#404040" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M476.35,484.422	c13.083,13.082,13.083,34.293,0,47.376c-13.082,13.083-34.293,13.083-47.376,0c-13.082-13.083-13.082-34.294,0-47.376	C442.057,471.339,463.268,471.339,476.35,484.422"/><path fill="#404040" d="M422.115,491.867L422.115,491.867c0.52-0.976,1.73-1.346,2.705-0.827l0,0l27.947,14.859	c0.975,0.519,1.346,1.729,0.827,2.705l0,0c-0.519,0.976-1.73,1.346-2.705,0.827l0,0l-27.947-14.86	C421.968,494.054,421.598,492.842,422.115,491.867z"/></g></g></g>',
+    defaults: joint.util.deepSupplement({
+    
+        type: 'apple.PrettyKnob',
+        size: { width: 102, height: 115 },
+        attrs: { '.': { fill: 'black' } }
+        
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.apple.SimpleiPhoneKeyboard = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g transform="translate(-403, -783)"><image width="1339" height="906" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABT4AAAOMCAYAAABkfKzlAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAHShJREFUeNrs3SGuhEUQRtGB9L5YCBbLarBY9gErK8Z0NQJNws05z3Se/OVN5ZvPBwAAAAAAAAAAAAAAAAAAAP5TP9zHb7//8ZPPAQAAAAD8n/z6y89//dv/zz/ef/pMAAAAAMD/zA//9s8XPscXAgAAAAAafvQJAAAAAIAa4RMAAAAAyBE+AQAAAIAc4RMAAAAAyBE+AQAAAIAc4RMAAAAAyBE+AQAAAIAc4RMAAAAAyDn3MTO+BgAAAACQ4OITAAAAAMgRPgEAAACAHOETAAAAAMgRPgEAAACAHOETAAAAAMgRPgEAAACAHOETAAAAAMgRPgEAAACAHOETAAAAAMgRPgEAAACAHOETAAAAAMg59zEzvgYAAAAAkODiEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgJxzHzPjawAAAAAACS4+AQAAAIAc4RMAAAAAyBE+AQAAAIAc4RMAAAAAyBE+AQAAAIAc4RMAAAAAyBE+AQAAAICccx8zPgYAAAAA0ODiEwAAAADIET4BAAAAgBzhEwAAAADIOe9p5BMAAAAAaHDxCQAAAADkCJ8AAAAAQI7wCQAAAADkCJ8AAAAAQI7wCQAAAADkCJ8AAAAAQI7wCQAAAADkCJ8AAAAAQM65jxkfAwAAAABocPEJAAAAAOQInwAAAABAjvAJAAAAAOSc9zTyCQAAAAA0uPgEAAAAAHKETwAAAAAgR/gEAAAAAHKETwAAAAAgR/gEAAAAAHKETwAAAAAgR/gEAAAAAHLOfcz4GAAAAABAg4tPAAAAACBH+AQAAAAAcoRPAAAAACDnvKeRTwAAAACgwcUnAAAAAJAjfAIAAAAAOcInAAAAAJAjfAIAAAAAOfvjRn7aCAAAAACocPEJAAAAAOQInwAAAABAjvAJAAAAAOTsxqeRTwAAAACgwsUnAAAAAJAjfAIAAAAAOcInAAAAAJDzNj6NfAIAAAAAES4+AQAAAIAc4RMAAAAAyBE+AQAAAICc3fgcE58AAAAAQISLTwAAAAAgR/gEAAAAAHKETwAAAAAgR/gEAAAAAHKETwAAAAAgR/gEAAAAAHKETwAAAAAg57zn+BoAAAAAQIKLTwAAAAAgR/gEAAAAAHKETwAAAAAgR/gEAAAAAHL2x43GbxsBAAAAABEuPgEAAACAHOETAAAAAMgRPgEAAACAHOETAAAAAMgRPgEAAACAHOETAAAAAMgRPgEAAACAnHMf8/0DAAAAAChw8QkAAAAA5AifAAAAAECO8AkAAAAA5OzGp4lPAAAAAKDCxScAAAAAkCN8AgAAAAA5wicAAAAAkCN8AgAAAAA5wicAAAAAkCN8AgAAAAA5wicAAAAAkCN8AgAAAAA55z7m+wcAAAAAUODiEwAAAADIET4BAAAAgBzhEwAAAADI2Y1PE58AAAAAQIWLTwAAAAAgR/gEAAAAAHKETwAAAAAgR/gEAAAAAHKETwAAAAAgR/gEAAAAAHKETwAAAAAg59zHzPgaAAAAAECCi08AAAAAIEf4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIEf4BAAAAAByzn3MjK8BAAAAACS4+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBH+AQAAAAAcs59zPcPAAAAAKDAxScAAAAAkCN8AgAAAAA5wicAAAAAkLMbnyY+AQAAAIAKF58AAAAAQI7wCQAAAADkCJ8AAAAAQI7wCQAAAADkCJ8AAAAAQI7wCQAAAADkCJ8AAAAAQI7wCQAAAADknPuY7x8AAAAAQIGLTwAAAAAgR/gEAAAAAHKETwAAAAAgZzc+TXwCAAAAABUuPgEAAACAHOETAAAAAMgRPgEAAACAHOETAAAAAMgRPgEAAACAHOETAAAAAMgRPgEAAACAnHMfM+NrAAAAAAAJLj4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIOfcxvgUAAAAAEOHiEwAAAADIET4BAAAAgBzhEwAAAADI2Y3Pz1j5BAAAAAAaXHwCAAAAADnCJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADnnPsa3AAAAAAAiXHwCAAAAADnCJwAAAACQI3wCAAAAADm78fkZK58AAAAAQIOLTwAAAAAgR/gEAAAAAHKETwAAAAAgR/gEAAAAAHKETwAAAAAgR/gEAAAAAHKETwAAAAAgR/gEAAAAAHLOfcz4GAAAAABAg4tPAAAAACBH+AQAAAAAcoRPAAAAACDnvKeRTwAAAACgwcUnAAAAAJAjfAIAAAAAOcInAAAAAJCzG58WPgEAAACAChefAAAAAECO8AkAAAAA5AifAAAAAEDObnwa+QQAAAAAKlx8AgAAAAA5wicAAAAAkCN8AgAAAAA5b+PTyCcAAAAAEOHiEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgJz9cSM/bQQAAAAAVLj4BAAAAAByhE8AAAAAIEf4BAAAAAByduPTyCcAAAAAUOHiEwAAAADIET4BAAAAgBzhEwAAAADIeRufRj4BAAAAgAgXnwAAAABAjvAJAAAAAOQInwAAAABAzm58WvgEAAAAACpcfAIAAAAAOcInAAAAAJAjfAIAAAAAObvxaeQTAAAAAKhw8QkAAAAA5AifAAAAAECO8AkAAAAA5AifAAAAAEDO+3Ejv24EAAAAAES4+AQAAAAAcoRPAAAAACBH+AQAAAAAcnbjc0x8AgAAAAARLj4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgJxzH/P9AwAAAAAocPEJAAAAAOQInwAAAABAjvAJAAAAAOTsxqeJTwAAAACgwsUnAAAAAJAjfAIAAAAAOcInAAAAAJAjfAIAAAAAOcInAAAAAJAjfAIAAAAAOcInAAAAAJAjfAIAAAAAOec+5vsHAAAAAFDg4hMAAAAAyBE+AQAAAIAc4RMAAAAAyNmNTxOfAAAAAECFi08AAAAAIEf4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIOfcx3z/AAAAAAAKXHwCAAAAADnCJwAAAACQI3wCAAAAADm78WniEwAAAACocPEJAAAAAOQInwAAAABAjvAJAAAAAOQInwAAAABAzv640fh1IwAAAAAgwsUnAAAAAJAjfAIAAAAAOcInAAAAAJCzG58mPgEAAACAChefAAAAAECO8AkAAAAA5AifAAAAAECO8AkAAAAA5AifAAAAAECO8AkAAAAA5AifAAAAAEDOuY/5/gEAAAAAFLj4BAAAAAByhE8AAAAAIEf4BAAAAAByduPTxCcAAAAAUOHiEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgJxzH/P9AwAAAAAocPEJAAAAAOQInwAAAABAjvAJAAAAAOTsxqeJTwAAAACgwsUnAAAAAJAjfAIAAAAAOcInAAAAAJAjfAIAAAAAOcInAAAAAJAjfAIAAAAAOcInAAAAAJBz7mO+fwAAAAAABS4+AQAAAIAc4RMAAAAAyBE+AQAAAICc3fg08QkAAAAAVLj4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIGd/3MhvGwEAAAAAFS4+AQAAAIAc4RMAAAAAyBE+AQAAAICc3fj8jJVPAAAAAKDBxScAAAAAkCN8AgAAAAA5wicAAAAAkCN8AgAAAAA5wicAAAAAkCN8AgAAAAA5wicAAAAAkHPuY3wLAAAAACDCxScAAAAAkCN8AgAAAAA5wicAAAAAkLMbn5+x8gkAAAAANLj4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIOfcx/gWAAAAAECEi08AAAAAIEf4BAAAAAByhE8AAAAAIGc3Pj9j5RMAAAAAaHDxCQAAAADkCJ8AAAAAQI7wCQAAAADk7ManhU8AAAAAoMLFJwAAAACQI3wCAAAAADnCJwAAAACQsxufRj4BAAAAgAoXnwAAAABAjvAJAAAAAOQInwAAAABAztv4NPIJAAAAAES4+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBnf9zITxsBAAAAABUuPgEAAACAHOETAAAAAMgRPgEAAACAnN34NPIJAAAAAFS4+AQAAAAAcoRPAAAAACBH+AQAAAAAct7Gp5FPAAAAACDCxScAAAAAkCN8AgAAAAA5wicAAAAAkLMbnxY+AQAAAIAKF58AAAAAQI7wCQAAAADkCJ8AAAAAQM5ufBr5BAAAAAAqXHwCAAAAADnCJwAAAACQI3wCAAAAADnCJwAAAACQsz9uNH7dCAAAAACIcPEJAAAAAOQInwAAAABAjvAJAAAAAOQInwAAAABAjvAJAAAAAOQInwAAAABAjvAJAAAAAOScfY2PAQAAAAA0uPgEAAAAAHKETwAAAAAgR/gEAAAAAHJ243OMfAIAAAAAES4+AQAAAIAc4RMAAAAAyBE+AQAAAICc3fg08QkAAAAAVLj4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIOfcx3z/AAAAAAAKXHwCAAAAADnCJwAAAACQI3wCAAAAADm78WniEwAAAACocPEJAAAAAOQInwAAAABAjvAJAAAAAOS8jU8jnwAAAABAhItPAAAAACBH+AQAAAAAcoRPAAAAACBnNz4tfAIAAAAAFS4+AQAAAIAc4RMAAAAAyBE+AQAAAICc3fg08gkAAAAAVLj4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIGd/3Gj8uhEAAAAAEOHiEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIOfsaHwMAAAAAaHDxCQAAAADkCJ8AAAAAQI7wCQAAAADk7MbnGPkEAAAAACJcfAIAAAAAOcInAAAAAJAjfAIAAAAAObvxaeITAAAAAKhw8QkAAAAA5AifAAAAAECO8AkAAAAA5AifAAAAAECO8AkAAAAA5AifAAAAAECO8AkAAAAA5AifAAAAAEDOuY/5/gEAAAAAFLj4BAAAAAByhE8AAAAAIEf4BAAAAAByduPTxCcAAAAAUOHiEwAAAADIET4BAAAAgBzhEwAAAADI2Y1PE58AAAAAQIWLTwAAAAAgR/gEAAAAAHKETwAAAAAg57ynlU8AAAAAoMHFJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADnvx438thEAAAAAEOHiEwAAAADIET4BAAAAgBzhEwAAAADI2Y1PE58AAAAAQIWLTwAAAAAgR/gEAAAAAHKETwAAAAAg57ynlU8AAAAAoMHFJwAAAACQI3wCAAAAADnCJwAAAACQ8zY+TXwCAAAAABEuPgEAAACAHOETAAAAAMgRPgEAAACAnN34NPEJAAAAAFS4+AQAAAAAcoRPAAAAACBH+AQAAAAAcnbj8zNWPgEAAACABhefAAAAAECO8AkAAAAA5AifAAAAAECO8AkAAAAA5OyPG/lpIwAAAACgwsUnAAAAAJAjfAIAAAAAOcInAAAAAJAjfAIAAAAAOcInAAAAAJAjfAIAAAAAOcInAAAAAJBz9jXjawAAAAAACS4+AQAAAIAc4RMAAAAAyBE+AQAAAICc3fi08AkAAAAAVLj4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIEf4BAAAAAByhE8AAAAAIOfsa8bXAAAAAAASXHwCAAAAADnCJwAAAACQI3wCAAAAADm78WnhEwAAAACocPEJAAAAAOQInwAAAABAjvAJAAAAAOTsxqeRTwAAAACgwsUnAAAAAJAjfAIAAAAAOcInAAAAAJDzNj6NfAIAAAAAES4+AQAAAIAc4RMAAAAAyBE+AQAAAICc3fi08AkAAAAAVLj4BAAAAAByhE8AAAAAIEf4BAAAAAByduPTyCcAAAAAUOHiEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgJz9caPx60YAAAAAQISLTwAAAAAgR/gEAAAAAHKETwAAAAAgR/gEAAAAAHKETwAAAAAgR/gEAAAAAHKETwAAAAAg5+xrfAwAAAAAoMHFJwAAAACQI3wCAAAAADnCJwAAAACQsxufY+QTAAAAAIhw8QkAAAAA5AifAAAAAECO8AkAAAAA5AifAAAAAECO8AkAAAAA5AifAAAAAECO8AkAAAAA5AifAAAAAEDO2df4GAAAAABAg4tPAAAAACBH+AQAAAAAcoRPAAAAACBnNz7HyCcAAAAAEOHiEwAAAADIET4BAAAAgBzhEwAAAADI2Y1PE58AAAAAQIWLTwAAAAAgR/gEAAAAAHKETwAAAAAgZzc+x8gnAAAAABDh4hMAAAAAyBE+AQAAAIAc4RMAAAAAyBE+AQAAAIAc4RMAAAAAyBE+AQAAAIAc4RMAAAAAyBE+AQAAAICcs6/xMQAAAACABhefAAAAAECO8AkAAAAA5AifAAAAAEDObnyOkU8AAAAAIMLFJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADnCJwAAAACQc/Y1PgYAAAAA0ODiEwAAAADIET4BAAAAgBzhEwAAAADI2Y3PMfIJAAAAAES4+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACDn3MeMjwEAAAAANLj4BAAAAAByhE8AAAAAIEf4BAAAAAByznsa+QQAAAAAGlx8AgAAAAA5wicAAAAAkCN8AgAAAAA5b+PTxCcAAAAAEOHiEwAAAADIET4BAAAAgBzhEwAAAADI2Y1PE58AAAAAQIWLTwAAAAAgR/gEAAAAAHKETwAAAAAg57ynlU8AAAAAoMHFJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADnvx438thEAAAAAEOHiEwAAAADIET4BAAAAgBzhEwAAAADI2Y1PE58AAAAAQIWLTwAAAAAgR/gEAAAAAHKETwAAAAAg57ynlU8AAAAAoMHFJwAAAACQI3wCAAAAADnCJwAAAACQ8zY+TXwCAAAAABEuPgEAAACAHOETAAAAAMgRPgEAAACAnN34NPEJAAAAAFS4+AQAAAAAcoRPAAAAACBH+AQAAAAAcs57WvkEAAAAABpcfAIAAAAAOcInAAAAAJAjfAIAAAAAOcInAAAAAJCzP240ftsIAAAAAIhw8QkAAAAA5AifAAAAAECO8AkAAAAA5AifAAAAAECO8AkAAAAA5AifAAAAAECO8AkAAAAA5Jx9zfgaAAAAAECCi08AAAAAIEf4BAAAAAByhE8AAAAAIGc3Pi18AgAAAAAVLj4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIOfua8TUAAAAAgAQXnwAAAABAjvAJAAAAAOQInwAAAABAzm58WvgEAAAAACpcfAIAAAAAOcInAAAAAJAjfAIAAAAAOcInAAAAAJAjfAIAAAAAOcInAAAAAJAjfAIAAAAAOec+ZsbXAAAAAAASXHwCAAAAADnCJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADnCJwAAAACQc/Y1PgYAAAAA0ODiEwAAAADIET4BAAAAgBzhEwAAAADI2Y3PMfIJAAAAAES4+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBH+AQAAAAAcs6+xscAAAAAABpcfAIAAAAAOcInAAAAAJAjfAIAAAAAObvxOUY+AQAAAIAIF58AAAAAQI7wCQAAAADkCJ8AAAAAQI7wCQAAAADkCJ8AAAAAQI7wCQAAAADkCJ8AAAAAQI7wCQAAAADknPuYGV8DAAAAAEhw8QkAAAAA5AifAAAAAECO8AkAAAAA5AifAAAAAECO8AkAAAAA5Aif/M3eHRtHEMMAEEsYv2v6zt0ZHUlyDTtAxFjhDo8HAAAAADnCJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADnCJwAAAACQM2fYXa8BAAAAACTY+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBn7rQeAwAAAABosPEJAAAAAOQInwAAAABAjvAJAAAAAOTcG5/ryCcAAAAAEGHjEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADIET4BAAAAgBzhEwAAAADImTutxwAAAAAAGmx8AgAAAAA5wicAAAAAkCN8AgAAAAA598bnOvIJAAAAAETY+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBnzrDrMQAAAACABhufAAAAAECO8AkAAAAA5AifAAAAAEDOvNGRTwAAAACgwcYnAAAAAJAjfAIAAAAAOcInAAAAAJAjfAIAAAAAOcInAAAAAJAjfAIAAAAAOcInAAAAAJAzZ9j1GAAAAABAg41PAAAAACBH+AQAAAAAcoRPAAAAACBn3ujIJwAAAADQYOMTAAAAAMgRPgEAAACAHOETAAAAAMgRPgEAAACAnPdzI/82AgAAAAAibHwCAAAAADnCJwAAAACQI3wCAAAAADn3xqcTnwAAAABAhY1PAAAAACBH+AQAAAAAcoRPAAAAACBn3ujKJwAAAADQYOMTAAAAAMgRPgEAAACAHOETAAAAAMi5Nz7XiU8AAAAAIMLGJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADnzxvUaAAAAAECCjU8AAAAAIEf4BAAAAAByhE8AAAAAIOfe+FwnPgEAAACACBufAAAAAECO8AkAAAAA5AifAAAAAECO8AkAAAAA5AifAAAAAECO8AkAAAAA5AifAAAAAEDOvHG9BgAAAACQYOMTAAAAAMgRPgEAAACAHOETAAAAAMi5Nz7XiU8AAAAAIMLGJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADnCJwAAAACQI3wCAAAAADlzht31GgAAAABAgo1PAAAAACBH+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBH+AQAAAAAcoRPAAAAACBnzrC7XgMAAAAASLDxCQAAAADkCJ8AAAAAQI7wCQAAAADkCJ8AAAAAQI7wCQAAAADkCJ8AAAAAQI7wCQAAAADkCJ8AAAAAQI7wCQAAAADkCJ8AAAAAQI7wCQAAAADkCJ8AAAAAQM6cYXe9BgAAAACQYOMTAAAAAMgRPgEAAACAHOETAAAAAMgRPgEAAACAHOETAAAAAMgRPgEAAACAnPk3/3oOAAAAAKDghs+fz+frOQAAAACAAp+6AwAAAAA5wicAAAAAkPMnwAC7lPRWpwCH0AAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 402 781.3906)"></image><line fill="none" stroke="#A1A8B2" stroke-linejoin="round" stroke-miterlimit="10" x1="402.5" y1="782.891" x2="722.5" y2="782.891"/><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAH0AAAC8CAYAAABVNKE0AAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAkhJREFUeNrs2M1KAlEYgGFNpSwia9NSKoPu/166ADeRgZgtKiO1RbuPE6PT/OE8z+7YqHDe8XxDnQ4AAAAN1S3oPcOw7hXwPW21Det1WL//9wv6Od5zlHjtNKyPRS8s+iqsPzKuzxWQAyd6C+U53i8Tr92E9UXGjOdvcYYvM/7+usOI2Dt6nMdXiWtuw/q6gJurrb7DehbW87B+2+HGcbyb6ZjpCXE+TxLXnLmZSvshxr19COtF4jMWRUe/T1yzEb226I/7RhfHXYXotPZB7s7N06gfZvzHyzjxnmnR0buiV6qX8dA8drwjOvmO9/4OxzvVift/Ukb0geiNjj50vCM6+Y53N8aB/XBFb2F0Qd0liI7oiI7oiI7oiI7oiI7oiI7oiI7oiI7ooiM6oiM6oiM6oiM6oiM6oiM6oiM6oiM6oouO6IiO6IiO6IiO6IiO6IiO6IiO6IiO6IguOqIjOqIjOqIjOqIjOqIjOqIjOqIjOqIjuuiIjuiIjuiIjuiIjuiIjuiIjuiIjuiIjuiILjqiIzqiIzqiIzqiIzqiIzqiIzqiIzqiI7roiI7oiI7oiI7oiI7oiI7oiI7oiI7oiI7ooiM6oiM6oiM6Ddff4Zp1WPdsW6Nsyoi+Ef2wojvezXTM9F+fYT2wbbXahvWqiujn9r1RvhzviE6+4/05rEeJa8z5+mb4rIzo8UMnotcqRn9xvCM6opNzpqdmyMhWVvYgF3s81RXdiVGeTdHRxTLTMdPTponX5rayspm+tCUAAAAAAAA1+xFgAJ+ZOJBKCowpAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 404 792.8408)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACnCAYAAAAmGbPiAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAjVJREFUeNrs3VFOwkAUheG2zDYEdKNtN6riOkoqJNUgBBhIkZnJ97+Z8HT/nJ57scamQvY0RkAiEiDEfGi73bZG9XgWi0U/u8QDeZ0RP57dvO+SGa4IJO9/6X5k3iKyITBNmbdUWENg/iIbAvMXWR9JHM0tya21jlpshmFox5HDFNm7CSH0V5O4+yCDKR/0IdQ3badIM42SWHAafztRH+aLxymJIBHzdKVOlESQCBJx1IlmIYkgESSSCMc+JBEkgsSyOrHSiZIIEkGiTnQnSiJIBIn404mGIYkgESSSiFIWG++7SSJIBIk6cTr2daIkgkSQqBN1oiSCRJAIEotabHz/LYkgESTqRMe+JIJEkIjKi1KSCBJBItyJkggSQSJILHmxMQxJBIkgUSc69iURJIJE6ERJBIkgESQWuNj4syhJBIkgUSc69iURJIJEVF6UkkSQCBLhTpREkAgSQWLBi41fCksiSASJOtGxL4kgESTCv1SQRJAIEuFOlESQCBJBosUGkggSQWLxnegbcEkEiSBRJ053omFIIkgEiSSimMXGZiOJIBEk6kTXviSCRJAId6IkgkSQiJNONAtJBIkgkUQ49iGJiKUjMXPWy5c+RmJnVHlSH/7wsflSjClKqusuNonSmOGj9ETi62rZE5nPQnN2sSEyLYGTj/hOPOrHdnc7kvnEHowReFHinvfPTSuVz3l8vq1XfbTwax+YRFp8EpQXLfGCUMzIPfJQEL52IxEkYha+BRgAqXy4KsMvigMAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 406 793.3408)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M409.5,793.841h19	c1.657,0,3,1.343,3,3v32c0,1.657-1.343,3-3,3h-19c-1.657,0-3-1.343-3-3l0,0v-32C406.5,795.184,407.843,793.841,409.5,793.841z"/><text transform="matrix(1 0 0 1 409.9438 819.3408)" font-family="\'Arial-BoldMT\'" font-size="22">Q</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC8CAYAAABfRM0jAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA1tJREFUeNrs2clu01AUgOG0SQfaMkoIMYgNGxasWPAavDPiFRDDhl3FIBC0pXOd3ota6erItR2TtKX9PulKOHESKf5jn5rBAAAAAP6am8J7zNe852LYHs7gc6+Dcc32UbFdpbV30RHUHeC8vdYQRV04dIsgH/T9Yvsgrc2G/UUgAhGIYIYRlK9ZSOt2eH45rQctUQwd384RVMX2YVpbxfZOWusNz3eKo08E5QG8kdbj8PxqWs+K7XwWuBc+c+T4dlKFQTCfBX4W2/ks8KnY3k3ra0tIrZM915AImPhyEGeAm2k9D/vE038+9a+EzxRf/5lgu+HysJHWu/AeZ80JvSPIM8CTYvtuWq9azjAGwdnNCPG7/Z7Wm/Ca3ZPHzxwS/SIRASKgx0wQZ4A88D3t8L5im82gGOX7Bh/CY3lYfN/0HpNG8Cit1+HgLjk2FxpF082k02HxbcNw6ReKCBi4h3/Vfsj5eK6G57fa5kAR/P+D/VxLBMthHzeLMBNgJrgWl4fhpD/0Uc8P6nufgfOPoPU/71wOEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAi7YqMM+c2f8m8tnnFYVHqumEcG8CK52BC4HiIBul4Nx+PdhiGihZY5gtqf/0lFaf8JjOzX7/VMEVYhg6DhcKnUR7LaE43KACOhxOdhP61uxvXyy4jww8tWeywxQnRyTU/lS8CXs8zv8mTjuE8GgIYK1tO7XnF1EcD7ywd1riWC7Zrh3OUAEiIBBzRA3iaUwA9xK60XYJ987WPHVznQOKGe0H8X2Zlofw/4HaW00zQR97uyVZ487ab2sGTbXpvA51P91UEaQ7wauF9tbaX2uec3Y5QAzAdOdCeJr8o2ihzVhLfpqZ3pJKK/3m2FG+NWwPwAAAAAAALQ7FmAAVJiM3F+A5QkAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 435.8799 792.8408)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHUAAACnCAYAAAAv8hOYAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAmVJREFUeNrs22FO4kAYgGFGuIa0ehHiSeQoPYq9CSdR8BwQHBNI+CGV4oydNs+TGJLdJZvM68fXdtfZDIABhL5vOBwOVXxZO7rstvP5vM0a9SJmLer/RI1fb/fEDT2CNmIOFrfpEzYIOr2wQdDphQ2CTi9sV9RVfNk4x+JsYtSXrj+w+OkX9/t9dTweTWiZ6tjndbFYtL0mNb7JlBY+rTHq1Wl9cD7jnVZRJxa16wL2x50a96ljGzGTKiqiMgg71aQiKqKSc6c6F5OKqIiKqHj4YFIRFVHJuVNndqpJRVRExX0qJlVURKWonepgTCqiIiqicuV/E7pSMqmIiqgk2amePphUREVU7FRMqqiIiqjkvFDyPN+kIiqikmanevhgUhEVUUm0U92omlRERVTcp2JSRUVURCXvhZKDMamIiqik2amWqklFVETFTsWkioqoiErGCyU/9mZSERVRSbNTPXwwqYiKqKTaqQ7GpCIqouI+FZMqKqIiKjkvlPwjuUlFVEQlzU718MGkIiqikmSnuk01qYiKqLhPxaSKiqiIigslTKqoiMoYdqon+iYVURGVRPepDsakIiqiIioe6JtUREVUMu5UTx9MKqIiKu5TMamiIipF7VTnYlIRFVERFQ8fTCql2MavN1EnFrVePrZ9o3Z+J1C2cO03Pnafq/iycUTlTWkIoblnUk3rSD96O6M+VctdfGmEHc8F0q8fvxcfw9Up7tqZDh60icPW/jnqOWy8dxV24D16S9Cbo3573+5M7HAft9vnumpvfVPo8zecwp6j1gKXFfOuqB2BSRz1npgAQFpfAgwAPjHAwpYtoJEAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 437.8799 793.3408)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M441.38,793.841h19	c1.657,0,3,1.343,3,3v32c0,1.657-1.343,3-3,3h-19c-1.657,0-3-1.343-3-3l0,0v-32C438.38,795.184,439.723,793.841,441.38,793.841z"/><text transform="matrix(1 0 0 1 439.9976 820.3408)" font-family="\'Arial-BoldMT\'" font-size="22">W</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC8CAYAAABfRM0jAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA3JJREFUeNrs2Ttv01AYgGE7l5YC4lIhEAxIDGwMDPwJ/jcDv4AFJlhAakG9QS9pzAk40tGHG8dt0kTleaQzuHU6xG98vrhFAQAAAH+UC3h9/BvDtHrZcb/hnNJbP5cqHJ+Hn52mNZ5x/rVE0HSBb6c1yI43QhSlCOY2Dsfxoh+mNZpxvghEIAIRLCmCeAHv1TNA7nFam9nx3XBOXwRzizPAQbjoX9M6mfH7ucIoL/HJzz/VT9PaCue8SOtOdrwdohiEv8HFzkIEu/XdYOpTWkchiuOWkP7hYiACum8HD+pBb+plvefnHoVz4qDYMxN0mglyR2HP/1FvGVMf0toPr4lzQnXVCJ7XF3XqdR1G4dvASgbF+N6+S2snvOZbGB7HtgPMBIiABoOO508eBD3MjifPA4YNYZkBljfIl2F/z2eE7Ybrsd8wGFZdB8P8nLfF3wdEeQQD12ZlRuGCTobC03DO+7S+Z8cncTi0HSAC5ruVVy3HrPZDnF+PyTOcjXDOsO3D3nU/F8B638m3Gq5R/IddaTvATMDVtwPWW79hOygXHYF/Bq1/BEXXCGwHiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARsEIDb8GNUi0rgtJ7aztABPzvM0EvbAe2hvU2bpgLqkVE0AsRCOGGRWA7QAS0bwfx9j+53ZyHW03la+Xa+JXWKPxsVF+3C7eHrhFUbX+QlUdwEn52Fq6Z7QARcImZ4DzcSvbDazYaQup7W5emarnV76Z1GM45bpjjOkdQhAjyGWG7DiHeXQyG1xPBabhGO2ntdY3AdoAIEAGX2LufpHUrO36V1v1wzqa4liZ+398JzwU+pnXQMMedzZoJukYQh7439XCY2/INYWnioP45rZ/Z8Zfi7wOj+JrKdoCZgMXOBPH8Z/XtPzf0nODanhPshf1+cjxqmSMAAAAAAABgtt8CDABOXpI2xiKR0gAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 467.77 792.8408)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHUAAACnCAYAAAAv8hOYAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAmZJREFUeNrs22FO4kAYgGFGuIaAnoSbwFF6FDwJ8SJKPQcExwQSfkCldcZOm+dJDMnukk3m9eNru+tkAkAPQts3HI/HdXxZOrrsttPptM4a9SrmRtT/iRq/9l3ihhZBKzF7i1u1CRsEHV/YIOj4wgZBxxe2KeouvqycY3FWMep70x+Y3frFw+GwPp1OJrRMm9hnP5vN6laTGt9kSguf1hj17rQ+OZ/BTutC1JFFbbqAvblT4z51bANmUkVFVHphp5pUREVUcu5U52JSERVRERUPH0wqoiIqOXfqxE41qYiKqLhPxaSKiqgUtVMdjElFVERFVO78b0JXSiYVURGVJDvV0weTiqiIip2KSRUVURGVnBdKnuebVERFVNLsVA8fTCqiIiqJdqobVZOKqIiK+1RMqqiIiqjkvVByMCYVURGVNDvVUjWpiIqo2KmYVFERFVHJeKHkx95MKqIiKml2qocPJhVREZVUO9XBmFRERVTcp2JSRUVURCXnhZJ/JDepiIqopNmpHj6YVERFVJLsVLepJhVRERX3qZhUUREVUXGhhEkVFVEZwk71RN+kIiqikug+1cGYVERFVETFA32TiqiISsad6umDSUVURMV9KiZVVESlqJ3qXEwqoiIqouLhg0mlFNv4tRd1ZFGX8+e6bdTG7wTKFu79xmf9tYsvK0dU3pSGEKouk2paB/rR2xj1ZTF/iy+VsMO5QPr14/fqY3h9jrt0pr0HreKw1X+Oegkb712F7XmPPhL04ag/Pva1ie3v43b7ulzUj74ptPkbzmEvUTcClxWzU9SGwCSO2iUmAJDWtwADAFDrwcMwBuSYAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 469.77 793.3408)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M473.27,793.841h19	c1.657,0,3,1.343,3,3v32c0,1.657-1.343,3-3,3h-19c-1.657,0-3-1.343-3-3l0,0v-32C470.27,795.184,471.613,793.841,473.27,793.841z"/><text transform="matrix(1 0 0 1 474.9331 819.3408)" font-family="\'Arial-BoldMT\'" font-size="22">E</text><image width="130" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIUAAAC8CAYAAABWr21ZAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA55JREFUeNrs2dtqE1EUgOEce/QASluvBO8E8f3fwhcQEbwoUhQtaZu0SSbugQS2i2kOnSSN9ftgg7udROj8ZK9pGw0AAAB4FM2ar29VvF837NsLXkO1ScV+nO2LtO4WvGbrUVTd8HJ/GALYr7iG5aKYzIlglNZ1uL4QhShEIYrdjCK/oZ20nofvlwGczLmmOf3aOueapxxFPkMM07rK9oO0LkIkvYr3KDYZRRwiywDehGuO0nqX7ffSeh0+OfZEsZRieqNnbtP6me3LT4mvIZLvC97jQU8PIArqHR/l0fEq2x+Ho2J2pJyGGeRowXDq+Lh/pijCzHCT7e/CcVLOE5/De5RzyOWc4bV2FOXNfZvtX6T1oWIQfebTaGORxHlhmO1/pfUpXNNP63zO8Or4wEyBKFiXzgozx14YIstB86AiMoPj9h4S4v05Cdf0wjA6XmamWDWKs/CkcejePNqT4iR80u9XRNFt/P1nhnIwHTg+MFOw+Zli4ke008dJKxwV8Q+Uw3CPi3VHIZDdi6Id9jGKQbjH42Xe2PGBKKh/fPDvHieN6b4557FWFP9BFJ11ROH4QBSIAlEgCkSBKBAFokAUiAJRIApEgSgQBYgCUSAKRIEoEAWiQBSIAlEgCkSBKBAFogBRIApEgSgQBaJAFIgCUSAKRIEoEAWiQBQgCkSBKBAFokAUiAJRIApEgSgQBaJAFIgCRIEoEAWiQBSIAlEgCkSBKBAFokAUiAJRgCgQBaJAFIgCUSAKRIEoEAWiQBSIAlEgCkThR4AoEAWiQBSIAlEgCkSBKBAFokAUiAJRIAoQBaJAFIgCUSAKRIEoEAWiQBSIAlEgCkQBomCOjh/BkzHZVhTNe/7NEw7F8YEoqHd8lMdFO9u3HSc7bxz2RThCJuuIohOiaIlip+eHcUUkK0fh+EAU1H8kbYeA4kfRZMFjLNt73ByldR2+1p9+/b6Zo/ag2VryOVgUjxPGeF1ROD4QBfWOj/Kj6S7bD9K6zPaHab2sODqEtp0Zogj3pzw6LsI1vbRu1zlTxP+0H6IYhfNq9snTdf+2NkPk9+emIop+uKZwfGCmQBRsSHOF7++ndZbtn6f1vmJGOfZj3dg8kc8U5QD5I9tfpfUlvGaY1u857/GgKOK1+WBaPnl8DNd0K55IWF8URXja+BaGyvOKh4WR4wMzBdufKeZFdJDWafh+ezp7sLkjZKb8/UP8vVFvwZEDAAAAAAAA/BFgAHjLpDIAa63DAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 499.6602 792.8408)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHUAAACnCAYAAAAv8hOYAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAm1JREFUeNrs221OwkAYRWFGug1pdSPElchSuhS6E1ai4DogOCaQEKVAcUo/8pyENCHlzxxu7zujTCYAgA4ITW7e7XZ5vCwsW+usp9Np1arUE5kFqY+RGl/Le+WGG4WWZHYmt2wqNhA6PrGB0PGJDYSOT2yd1Hm8rKxj71hFqW/Xbsp+v7HdbvP9fi+h/aSIft6zLKsaJTV+SEp7ntYo9WJan6zRMNNK6sikXhtg/3Rq7FPLNnAklVSQik7QqZIKUkEq2upUayKpIBWkglTUDEoOHyQVpIJUJOnUiU6VVJAKUmGfCkklFaSiV51qUSQVpIJUkIrzg5L/J5RUkApSkaZTnT5IKkgFqdCpkFRSQSpIRZuDkvN8SQWpIBVpOtXhg6SCVJCKRJ1qoyqpIBWkwj4VkkoqSAWpaHdQsiiSClJBKtJ0qlKVVJAKUqFTIamkglSQihYHJT97k1SQClKRplMdPkgqSAWpSNWpFkVSQSpIhX0qJJVUkApS0eag5I/kkgpSQSrSdKrDB0kFqSAVSTrVNlVSQSpIhX0qJJVUkApSYVCCpJIKUjGETnWiL6kgFaQi0T7VokgqSAWpIBU1g5JJSVJBKkhFik51+iCpIBWkwj4VkkoqSEWvOtWaSCpIBakgFTWDksMHScXDWcfXktSRSS1mz1VTqVe/Ceg34dybn5uvebysLE//UhpCKO9JqrQO+NFbK/Uln23ipSR2WAPSxcfvyWM4P8hdWNPOhZYxbNW/pR7Fxr0rsR336K1Cb5L6w8d6I7HdPW7Xr0VeNflguPXGg9ij1ILg/slsLPWCYCSWeq9MAACQlm8BBgA7isDCBYhDNQAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 501.6602 793.3408)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M505.16,793.841h19	c1.657,0,3,1.343,3,3v32c0,1.657-1.343,3-3,3h-19c-1.657,0-3-1.343-3-3l0,0v-32C502.16,795.184,503.503,793.841,505.16,793.841z"/><text transform="matrix(1 0 0 1 506.2163 819.3408)" font-family="\'Arial-BoldMT\'" font-size="22">R</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC8CAYAAABfRM0jAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA5pJREFUeNrs2mtP02AYgOGuHXKYQ4Mf1JgYP/j/fxPxkwkxio7jTramS5rHd+tG3QZyXUkTO7pBeG/6PgOzDAAAAP7odXxufH5RHvmK817Hz/mczMP5NDw2DufTfURQJJ5/WD++7LwQwdpm4fw+PHYTFn6cCEcEIhCBCLYQQdzPB+XRD9ec1Qu/8Ko8DhrnL8KMkIliqUlY1Kv6sYVv5XHXOL+sQ1j1Gkn9Db6oPCzgICx45X15nDTO35bHUeP8KNwZDIrL3YcF/B4WuVq768b5XeI1putEkPteIwI2uhUPw/7+sd4Smt6F2//LsOX0zQRri7fy2zAIxpngPGwPlYtwzbTrTDAIC1zt/6ctg6E9v9u7ryz8QGVhyJ6GdwujcM2vcM0sNSPYDhABImCNmaC5n5+EQXBYH/H1zAC7mxma3+vTMLgvHmv+oKd+obQygl4igmH4BKfWYq8R5GE9jhMRNNdwlIrAdoAIWL0dzBPn8xUfZ/eat/qjxExQbeGTth/6tsFwviICHk8Aiwji+hyHCArbAWYCHvZ7Ap7OdlAktoNinR/0fsdPzOOKIHWnz9vWz3aACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABe9T3LfhvzLcVQW/Jv7EdIAKezUxQhC2gqA/bw+OcAWZLHpu1zQ1tEeTh2r4InnQEtgNEwANmgjzMAHkimnnL20p2tx3clsc0PHZTHwvTh8wE/RWDYeoLEcD+Qrgrj3EigtswI9gOEAEbbgfjcPu4DtFUt5mD8JwXtoSdzQCTsD4/w61/8dioy0wwCU+6Dgtc7UGHiddzd9lfBFeJCK7aIrBgiAAR0DLExY+d1YPfwufyGIZr3oRr+Hfi3wZ+hN8LnCdmgot6dmvOBPNNIojiH5Q+lccgXPOhPE6s11bEBfwaFvhLPbxn4R2cPyBhJqDjTJC6tnn968T+X80IB76tW/s9QXM7GIX3/ZfZ3387mGQd/gMqAAAAAAAAz9RvAQYAMlmb+fFth+AAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 531.5498 792.8408)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACnCAYAAAAmGbPiAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAmRJREFUeNrs221qwkAUhWGnZhvVtCtxJ7qULMWuRLqRNuk6FDsFBaONJpA2mfC8IIHgr/tycub6MZsBAHogdHnz4XBYx0tubH/Odj6fV71KvJC3IfF/JMZX2VZmaCmwIG8wmcUjkYHA9EUGAtMXGQhMX2STxF28rMxtdKyixPfrm9n1jf1+vz4ejxI4TjbRT5llWXU3ifFNUjjyNEaJtTQ+mUmSaVySmLjE6wPnTSfGPjSmxJBEEkEiekEnSiJIBIlo6kQzkUSQCBJJhGUfkggSScS0OnGmEyURJIJEnWhPlESQCBJ1ojVREkEiSASJkzzY+L2bJIJEkKgTT8u+TpREkAgSdaJOlESQCBJJxKQONj7/lkSQCBJ1omVfEkEiSNSJ9TVRJ0oiSASJOtGeKIkgESSSiIkdbAxFEkEiSNSJln1JBIkgUSfqREkEiSCRRCOY4MHG36IkESSCRJ1o2ZdEkAgSdWK9Ew1FEkEiSNSJ9kRJBIkgkURM62DjS2FJBIkgUSda9iURJIJEnVhfFCGJIBEk6kR7oiSCRJBIIhxsIIkgkURMsBN9Ai6JIBEk6sTTnmgokggSQSKJmMzBxslGEkEiSNSJtn1JBIkgUSfaEyURJIJEnXjTiWYiiSARJJIIyz4kEW3ZxldJYuIS88Vz9UjijWmMm/Dbzc/qaxcvK+MZXwpDCEWbJEpjQo/SRokvy8VbvBREjvtAc/dxevFYXZ9k5mY4uMAihqvqLPEsMu6ORA7cg00CW0n84aOsJHK4x+f2NV9WnU+nd0SeJW4IHV5eZ4l3hKJniW3lAQCAOt8CDADCdsHDuOi3XAAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 533.5498 793.3408)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M537.05,793.841h19	c1.657,0,3,1.343,3,3v32c0,1.657-1.343,3-3,3h-19c-1.657,0-3-1.343-3-3l0,0v-32C534.05,795.184,535.393,793.841,537.05,793.841z"/><text transform="matrix(1 0 0 1 539.3306 819.3408)" font-family="\'Arial-BoldMT\'" font-size="22">T</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC8CAYAAABfRM0jAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA31JREFUeNrs2ltrE0EYgOFskp7SVFQU9EYsCv7/P+Ol3igqgkhP2kMSdyTi+DG7WXNoq30eGOikmyrZ153Zrb0eAAAA/FSt8L5B4bXt8Fp/TX/eXTObj3w+CfPLluOvJYJ+4YSnKPbDzx6KYOkIptk8fX2RzVMQ38L3JyIQgQhEsPkI0nFb2TwF8DAcs1OPxyGUvQV7BH6f9Di/yuZp/T/J5uf1+JzN07FHC/YVK0cwCCd0VI9n4Zj02vNsnq4CB4Wfw+II4r/8dNK/ZPPTerzN5t/r8anwMzpdHfzLRAS0Lwf5pXu3Hk/Cpf8wHB/3Cf35+0S33J5gEjaCZ9k8bQo/tCwPv/YRx6tEEB/8jOvxKpunu4AXCzaPlT3AxiKJe4S0KXwdjkn7hI+WA+wJEAEdDVtez+/x09f3w0ax9DRQVNd33sbhmcB4wflofHg0bLkzyCO4FyLYCpvALncbrO8ublCI4KCwmey33HFYDhABHZaD+MufvTAfNKwvloObWyJKD5ymLd/vtCcYZfNRiMDJvl0BNJ2PqeUAewJW2xPEQPq98n8s5T+OoOoQAbd7n2A5QASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACPhXDBten9Vjks3T11fZvGoIqPKR3pjZJiKYZvNpiKJyFbEcIALuwp4gXfpPQiwn4X1De4K7HcFOPQ58fLdKVZhXXTaOlgNEQPNykG4JT8Ol5Ws2H9XjQeHys+0j3dgzgFmYX2bz8/nIXXZ9dtC2JzgNr+URXIW/RDJwrjYeQn5+zkMEF4UILAeIABGw7L1lUyDpucCjbD6ux8tw/FZhs8j69gOTsAf4ks3TM5w34T0X4ZilIohB5Dv//XochmN26/HU+dqIae/P3+Ke1eNdmL9fEI7lABGwhuWgCs8BSuv/cL5XYDN7gml4BnAU5seF98x8dAAAAAAAAPy1HwIMALyAlN4nL8sxAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 563.4399 792.8408)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACnCAYAAAAmGbPiAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAmFJREFUeNrs22FOwkAURWFGug1tdSPElchSuhS6E1aixXVAcEwgoVKhTartNN9Jmkbl1zu5vfMAFwsAwACEri88HA55vK2N7M+pl8tlNajEC3kFif8jMV6bPjJDB4EleaPJLLuIDASmLzIQmL7IQGD6ItskruJta26TYxslvrb9Ibv8Yb/f58fjUQKnSRH9vGVZVt1MYnyRFE48jVHiVRofzCW9NJKYuMS2A2ejE2MfGlOCSCKJIBGDoBMlESSCRLR1onlIIkgEiSTCsg9JBIkkYl6duNCJkggSQaJOtCdKIkgEiTrRmiiJIBEkgsRZHmx8300SQSJI1ImnZV8nSiJIBIk6USdKIkgEiSRiVgcb739LIkgEiTrRsi+JIBEk6sTmmqgTJREkgkSdaE+URJAIEknEzA42BiKJIBEk6kTLviSCRJCoE3WiJIJEkAgSZ3iw8W9RkggSQaJOtOxLIkgEiTqx2YkGIokgESTqRHuiJIJEkEgi5nWw8aGwJIJEkKgTLfuSCBJBok5sLoqQRJAIEnWiPVESQSJIJBEONpBEkAgSZ9iJ3gGXRJAIEnXiaU80EEkEiSCRRMzmYONkI4kgESTqRNu+JIJEkKgT7YmSCBJBIq460TwkESSCRBJh2Yckoit1vDYkJi6xeHqs7klsNY1pE37+4mP3uYq3rdFML4UhhLJLEqUxsUdpq8Tn/GkXbyWR0z/Q/Po4vXis5ieZazMcXWAZw1X1lngWGXdHIkfuwVsC70r85r3eSeR4j8/6pcir3qfTGyLPEgtCpyGvl8QbQjGwxD7yAABAky8BBgCDd8DC3qZgzwAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 565.4399 793.3408)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M568.94,793.841h19	c1.657,0,3,1.343,3,3v32c0,1.657-1.343,3-3,3h-19c-1.657,0-3-1.343-3-3l0,0v-32C565.94,795.184,567.283,793.841,568.94,793.841z"/><text transform="matrix(1 0 0 1 570.603 819.3408)" font-family="\'Arial-BoldMT\'" font-size="22">Y</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC8CAYAAABfRM0jAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA1FJREFUeNrs2mtPGkEUgGFwqddWo2nt7Vv///9qa0yM1nqH7Wwzm0xPl4uyGCPPk8yHUcCEfWUO6GAAAAAAfw2XuF+87yiv8jYbPf28dVOH/SSv1kNa43D7+rkjaC5uFb62ldZ2sa9CFCJ4XAR1uOgPxf42rbtiPw6RiEAEIhDBiiKI5/tuWnvhNgd5lVFszZkRWGwGuMkXvnWe1kWxv0rruuMx6j4jiL/VR3mVjtP6WOz3QigbIlg4gnEY/C7T+l3sT/JqneU16zFmvqyz5kTA1OMgfg4QZ4CvaX0J94kv/10zgcFwseOgDjPBXRgE40zwM6/BjCNkqtEjBsHDYv85rW9zJtrKK82Tfxnj81+Fd15bYQgfhEjamWChCFwkRIAImDETNGfQZrHfT+tDGAKHC5xrrGZuiNftXVrvw9eulo1gFCb7JoLjYv92yquIC/88g+No8O/H9vsd7zBOHQeYCVh+JtgI39vOR0Br01P3oo6Irr/LDPuOYCcPH+Xg6Px/OTPCUv/F5ThABEw/DrrOnMpbwfWKYDgnAhwHiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQgacAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIiAvoymfL3OqzVJa1zshwJ6/REM5kRQeeocB4iAdTgOmpf++2J/ldZ5sd/NKxp6Sl9PBJOOCC7CK8iOABwHiIB1mAnuin1zFJyEeHY7HuuNp3Ql6o7rMyn2N/nILt33EUH5g3+FzwaaAA47ZgIRPE8IzfV5KPa3y0TgOEAEiIAZ7+2H4Xs7YRD8lFfpIC/6NwkzwXVerZMwuDfO8npyBFEVBsNmKDwKtznOi/7FdwMXeVhvfU/rR0c4E8cBZgKWmwm6blcGsz34/28He3mxms8I6vC5wG2xv8xr1n0AAAAAAABgMX8EGAB+IIRW7MMv5wAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 595.3301 792.8408)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACnCAYAAAAmGbPiAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAk9JREFUeNrs22FugkAURWFH2UbVdiOwNJcGG2lr16GxkEAiKRVMaGEm30lMoyX+mJPLfU/bzQYAMANh6oXX6zWvfxSO7M8pd7tdNavEO3kFif8jsXtMlRkmCDyRt5jM0xSRgcD4RQYC4xcZCIxf5HbgNQPM+njoJLt/crlc8tvtRuBKRdZ+yizLqrEkSmGEadw6m+jSmJOYYBp7nVj3oWOKEEkkESRiFnSiJIJEkIihTnQekggSQSKJsOxDEkEiiUirEzc6URJBIkjUifZESQSJIFEnWhMlESSCRJCY5GDj790kESSCRJ3YLvs6URJBIkjUiTpREkEiSCQRSQ02Pv+WRJAIEnWiZV8SQSJI1In9NVEnSiJIBIk60Z4oiSARJJKIxAYbByKJIBEk6kTLviSCRJCoE3WiJIJEkAgSExxs/FuUJIJEkKgTLfuSCBJBok7sd6IDkUSQCBJ1oj1REkEiSCQRaQ02vhSWRJAIEnWiZV8SQSJI1In9RRGSCBJBok60J0oiSASJJMJgA0kEiSAxwU70CbgkgkSQqBPbPdGBSCJIBIkkIpnBxmQjiSARJOpE274kgkSQqBPtiZIIEkEifnSi85BEkAgSSYRlH5KIqZTtg8SYJR73L9WYxEHTiKgTG8sf569GYuFo1pfCEEI5tROlMaJb6aDE18O+ufBE5PoHmo7w2y/q22reynRrXV7gqQ3XcxI7kfXuSOSyPfhQ4KjEhvfPs0Qud/ss346HauziMOUdW5GdxILQdch7SuIDoZhZ4jPyAABAn28BBgCuKLmp4PSA3wAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 597.3301 793.3408)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M600.83,793.841h19	c1.657,0,3,1.343,3,3v32c0,1.657-1.343,3-3,3h-19c-1.657,0-3-1.343-3-3l0,0v-32C597.83,795.184,599.173,793.841,600.83,793.841z"/><text transform="matrix(1 0 0 1 601.8862 819.3408)" font-family="\'Arial-BoldMT\'" font-size="22">U</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC8CAYAAABfRM0jAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAqNJREFUeNrs2c9qE1EYh+GkDdiF4B9SClUQXOk1eBfesBcguHYnQm2h0GKtC61pRnD544RzmplJG/M8uy9kEph5O+dkOpkAAADAP9M1j9srvHYQ8/5A37WLupgXMf+OeXkfEcwKrz2N+ZEIBovgV8xXlUhEIAIRiGCkCHIPMC+851XMTyp7BFZbVC7615gvCp+x7PMX3RLB88J7Xsd8tOZ3MZncxHwe83XM3/tEsOd8IwJW7gmmlU3fu8Ixh5U9geDa3VZu/6cxfyp8xnnfCPKCvYz5feGYP5VfBwwXRe4ZPhSO+Ww5wJ4AEXAHq36754Od45i7hmMYbwNfuz532hPMGl9/0eOzGP6OPWuIwHKACBhgT5BxPG58vsDD2CNsJAJ3kP8oAhcTEdD+s84zABF4BrBlewTLASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRMA2mTW+7zbmfadu9yJYisBygAjYxeUgb/8/Y37m1N2rrnK9BomgE8FWR2E5QAQMtBwsYj6N+bBwzIHTubHb/U3MP8aIIB8OncX8RgQPKoJrywH2BIiAkTaG+fDhKuYTp26jco92GfOXPh8+XTOW0sbwrWs1mkVlo/6xIRzLASJggOUgY5kX3jN3OkdT+4fet8IxndMGAAAAAADAWv4KMADMdEiMhpMITAAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 627.2197 792.8408)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACnCAYAAAAmGbPiAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAApxJREFUeNrs3dtuUkEUgOFuOZ99AdvqiwIvqm19ATmfgzShCQSU2QndDDvff2eDN/NlsWb0og8PkqQrlIR+cLPZdB3X51coFPpp/04xBV7PEX9+u/NOjZkEAMK7Tb1QyATg/UMmAO8fMgF4/5DnELfOLMpbaxJ0O12v193tlmGMvdsUi8X+xUncfZBgxO0Qz07jF0dzX9NoEnM6jUc/WK1WECOvVCpBhCiIygBxuVxCjLxyuQwRoiAqA8QFxOirQIQoiIKoMMT5YgEx8qqVCkSIgqgsEOdziLEjVqsQIQqiMkCczWYQI69Wq0GEKIjKAHE6hRh79TpEiIIoiApCnEynECOvUa9DhCiIygBxPJlAjLxmowERoiAqA8TReAwx8lrNJkSIgiiICkIcQYwesQURoiAqC8ThcAQx8trtFkSIgqgMEAfDIcTI67TbECEKojJA/DMYQIy8r53OCaLfUJODIEIURF2lo9+f6FcnmkRBFEQ78WMnWoomURAF0U60E02iIAoiROXqYrO72jgRkyiIgmgneuybREEURDvxYCc6EJMoiIJoJ3onmkRBFESIytfFxn8Km0RBFEQ70WPfJAqiINqJxw9FmURBFEQ70TvRJAqiIEKUi41MoiAKYg53on8BN4mCKIh24v6d6EBMoiAKIkTl5mLjZmMSBVEQ7USvfZMoiIJoJ3onmkRBFESd7ETnYRIFURAhymNfJlGh9c79MDn8w8vbb6MYcc+P35KQSew5qvvrRPbX65tpjBEqSXq7SeyH7kTTGOdXaT/4YvP96bEP8j4uNP/8Oj34Wu3CjANwP1jpET8gd29HkDfcg5cALyK+9/Pl1UTe6Ovzx/NTPwg75EN7SBefyPBSIf4HVFcsLZ4kSTrurwADANVIb5t4EpviAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 629.2197 793.3408)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M632.72,793.841h19	c1.657,0,3,1.343,3,3v32c0,1.657-1.343,3-3,3h-19c-1.657,0-3-1.343-3-3l0,0v-32C629.72,795.184,631.063,793.841,632.72,793.841z"/><text transform="matrix(1 0 0 1 638.6636 819.3408)" font-family="\'Arial-BoldMT\'" font-size="22">I</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC8CAYAAABfRM0jAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA0hJREFUeNrs2l1PE0EUgOF+IJQCAl4YTUCv/f8/R2+FeINI+RAsrbNmNhlOSinutkB4nuRcTLuEhH3TGdp2OgAAAPBPt6WfW0vzJjzfa+l3vTbTsJ7kqY3z3Hf9SiKYdYMHaTaLdT+HIYLmEcSb/jtPGclUBCIQgQhWE0F53TDc8Mpemv1ivZHDmBcOs8WbGm/6aZqfxfoqPF+HNG0zgngDq5v9LlzzIU9tO0+tJ4KF3YaD4Hmai2J9nKeM4vSBw+RcbgwiYLHtYJD3+Nphmk/hmq3w8j/rTOBg+H9ngus0N8V6lKd2lKd0madRBOXjO2neFusveeYdRPp5aCeKyZz/Hr6m+RYeO8ljO0AEiIBFrS34vsBBsd5d4GccAts9vPfmnL92w/2pjB9zJlgkgurdwM/FenjPK4pXleVF0H0ggvUZB0PbASKg4Zkgqr4sshnWvjDy9FtErd+5+4We+rHGB8NuuOlD+/+zDKC+h9MmEbiZiIDFzgTeA3h5W0TrEfQ6Pgx6Se8jPDoK2wEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkTAE1tb4Jppmkmx7ubheZjmiY8tNYKeCGwHiIDXcCaIe8xNmotivZFm4E/3pGeAUrVVj2c81uqZ4E+ay/DqIYLnE8Jt0whsB4iA+88E5cvJWZrjYv0+nwtK/Tws/wwwzltA7TzNKFxz1caZoPzFoxDBepq9cP26CFZ6BrgJEZw0icB2gAgQAZ37PwMoH99MMyzWB2kOw/VbeVjOeaA8E1x27r5v8yNP6TTNr6YRxGvK6z7mKVUHxX33aykmIYKzPLXvaY4e+I/CdoAIaGE7iNdtp9kJzw86Pk9YxXsEles85fYw8mcCAAAAAACgNX8FGAA6I4e7c+kFqQAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 659.1099 792.8408)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACnCAYAAAAmGbPiAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAkRJREFUeNrs3W1Og0AUhWGmZRu21Y3A0lgabESt62hTIQFjWy00qcJMnjdp/Aj+mTeHc2/FmGUAgAcQplx0PB6L9kPpuP6cer1eNw+V+E1eSeL/SBxe98gMIwIr8maTWU0VGQiMX2QgMH6RgcD4Ra4uvjbALI9RJ/nwyeFwKE6nE4ELFdn6qfM8b8aSKIWRpnHlfKJKY0Fiomn86sS2Dx1TpEgiiSARD0EnSiJIBIm47ERnIYkgESSSCMs+JBEkgsS0OjHTiZIIEkGiTrQnSiJIBIk460SHIYkgESSSiFQGG8+7SSJIBIk6sV/2daIkgkSQqBN1oiSCRJAIEpMabLz/LYkgESTqRMu+JIJEkIjMg1KSCBJBIuyJkggSQSJITHmwcRiSCBJBok607EsiSASJ0ImSCBJBIkhMcLDxZ1GSCBJBok607EsiSASJyDwoJYkgESTCniiJIBEkgsSEBxu/FJZEkAgSdaJlXxJBIkiEf6kgiSARJMKeKIkgESSCRIMNJBEkgsTkO9E74JIIEkGiTuz3RIchiSARJJKIZAYbk40kgkSQqBNt+5IIEkEi7ImSCBJBIq460VlIIkgEiSTCsg9JxFTq/kVizBJ3m6dmTOKvphFJJ3aW3/YfncTSsSwvhSGEemonSmNkt9Iric/bTXdhRWQcA81A+Omb7W216GW6tc4vsOrDdZ/EQWS7OxI5bw+OCrwpseP1fS+R890+65fdtpnyA2Hsgl7kILEkdDnyJku8IRQPlnivPAAAcM6nAAMAjwm5qQMHfnMAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 661.1099 793.3408)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M664.61,793.841h19	c1.657,0,3,1.343,3,3v32c0,1.657-1.343,3-3,3h-19c-1.657,0-3-1.343-3-3l0,0v-32C661.61,795.184,662.953,793.841,664.61,793.841z"/><text transform="matrix(1 0 0 1 665.0537 819.3408)" font-family="\'Arial-BoldMT\'" font-size="22">O</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC8CAYAAABfRM0jAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAzxJREFUeNrs2slu01AUgGFn6BAoLUViEF2wYQlvwhPzHkjAHqkgUjEUdUobrsFBV0eW0xinCfT7pLtwmrQo/uN7klAUAAAA8EtvSb9jM61+djyouV/P038t03B8GW47S+tq1RH0a37PTlrDhihE0D6C83DSv6U1abi/CEQgAhEsMYL8cbtpbYSfP0lrlB3fDVH0RXBtV+HEHldzwcyHtE7CzydzQvrrCHrhcQfhhJeep3UvO96vrgZNgyL14iB4lNZFdvw2re/Z8WFapzUhNV7KueVEQKtLchz6XqS1F+4TL/93wmN6toOFZoLcjzATjKthceZNNSwWc+aEP4Yt/lHlkLedHT9L62HNPlaEGcBVp5ur9SjMCLvhBfWp5gV20hSBE4MIEAEtZ4Kn1eCX71Hz4jIEdvvCjR/+5MePq7kt96X4/UVTZ+8OXlUhzGxVg19h+l+Ldw9fa4bA12l9tB1gJqDbmWBQ+DJoncTnfqvmvPZFcPsimC4Sge0AEdBuO+iLZ+23h4X+U++w5R8RwX90dXcyEQEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAlZs2PJx03Dc81SujatlReAk/zumNS/Sqe0AMwHdbAf55eQ8rbPseNN2sfLLfxHOz+Uic0KbwfAiRDB0RVkrZQSTRSJw8hAB7baDz2EfOkhrFO4zENiNzgD5beO0Tmu28E4jGIeZYD+tDVeYlbkIg+BRWsc1odgOEAEioEmbD3nKGWAzO36Z1l64z07R/sspFhsMj8Lg975mJhg3zQVdfNJXRnA/3PYghEJ34gc/h+HdwLuaCGwHiIAlzATRo7S2w23lh0cDT++NzATlpX9y3f0fAAAAAAAA5vopwACik3OsJG5AYgAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 690.9902 792.8408)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHUAAACnCAYAAAAv8hOYAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAmRJREFUeNrs211OwkAYRmEGug2hujFYCkuBjWnrOiA4JHBnKVOn9MfnJAZvwOQ7vLzfjLpYAAAGIHR50vl83saH0vh657BarerUJxUdZe5IfQllnHmVKjckCt2TOUxir7N/VmwgdH5iA6HzExsInZ/YZcsLWIjGR6uTxu33dDptL5cLoSMVG/1URVHUqUmV0ommdWk+k07rhtR/ktbGTo19amwTRVJJBakYBJ0qqSAVpKLvTjUbSQWpIBWkWpQaFiWXD5IKUkEqsnTqQqdKKkgFqXBOlVSQClIxqk41HEkFqSAVpFqUfl+U/D2hpIJUkIo8ner2QVJBKkiFTpVUkApSQSr6XJTc50sqSAWpyNOpLh8kFaSCVGTqVAdVSQWpIBXOqZIKUkEqSEW/i5LhSCpIBanI06lKVVJBKkiFTpVUkApSQSp6XJT825ukglSQijyd6vJBUkEqSEWuTjUcSQWpIBXOqZIKUkEqSEWfi5JfkksqSAWpyNOpLh8kFaSCVGTpVMdUSQWpIBXOqZIKUkEqSIVFCZJKKkjFFDrVjb6kglSQikznVMORVJAKUkGqRalhUbIpSSpIBanI0aluHyQVpIJUOKdKKkgFqRhVp5qNpIJUkApSLUoNi5LLB0nFyznEr4rUmUkt1291qtTGdwIm2qnxXXD8qr9312+NaXwpDSFUXTtVWif20dsq9X2zPsaHPbHTWJDuhGdeJX4Mb29yfRQPL3Qfw1b/WepdbDy7Ejtsj7YKTZJ65bOqJXa4j9vDR7mpn3lCSP0JN7F3qbbjEcnsLPWBYGSWmioTAADk5UeAAQDxlLvjTLGDiAAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 692.9902 793.3408)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M696.49,793.841h19	c1.657,0,3,1.343,3,3v32c0,1.657-1.343,3-3,3h-19c-1.657,0-3-1.343-3-3l0,0v-32C693.49,795.184,694.833,793.841,696.49,793.841z"/><text transform="matrix(1 0 0 1 698.1533 819.3408)" font-family="\'Arial-BoldMT\'" font-size="22">P</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAo1JREFUeNrs2T9Lw0AYwOHUqlj/1sFdVHAV3Pz2Ln4HF3HTQUXQFkFrxPUlcPFMrqE8z3ZSK1x+5t60VQUAUFWjnt53HNYLWz3cve0rgvWw/nLthru3IhCBCETQTQTHDT/bF0GxCN7D+u6/b5gTzk5GBCPXsrU6rDe6/gNr9hgRkHVbPgvri4bXHNjaYtcszgTXDb/z0PVMsJs4/3/tueMs7W4+cRxgJkAEZMiZCc7DerujgZM8W4nr8+uu6wj2W7yHCMoZJ4ZyxwEioKeZYNOtf9CmJSIYi2BQRol/UscBIqDQccCwHxl7icAMsGJ3d8cBIkAEZM4EDNufZzZ3AkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACFiidVuwcr5EQO04wExAmZlgFtYTcS3VIqzfS0SwsO+rNRj6j0UE5B0Ht2F92fCaz8TfGdn61r4Tx3GduD69RPDWx7Mq2Z8D1BnXx3GACBABVQcD2kFYXzW85iisD8N6bOuzn/tfwvoxrG8a3mPe9WA4azGIHLp2vflM7P/ccYCZgDIzQfydacNrThLHg/jaix8WPYX1fVi/loigajHknSZCEUF+BM+JCP78BZ+LgQjo74ucSeJR1BdI7dWJR8QPWwQAAEBHfgQYACHVOdBamyhEAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 419.9399 848.0312)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHUAAACnCAYAAAAv8hOYAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAArRJREFUeNrs2c1SGkEUgFE7gAIqYvZRkxcJPnn0RYyafVRQ5EfKkCqtymaMTEbnNjnfxsUUZVUfL909bmxIkqQqSmU+tFgsvlm6t6/RaBy/OeofmANL/i6dlMFNK4LCrAl3FdgEdP1gE9D1g01A1w/2b6iP1jDkqTiVQn14eDClgae12Wwel0E1pYFboiao/9G0Ql3DaS1Enc/nUIPXarWgQoUKVRmgzmYzqMHb3NyEChUqVGWAOoUavi2oUKFCFVTVgzqZTqEGr721BRUqVKjKAXUygRodtd2GChUqVGWAen9/DzV4nU4HKlSoUJUB6ngMNXrdLlSoUKEKqmpBvRuPoQZvu9uFChUqVGWAent3BzV4O9vbUKFChaoMUEe3t1CDt7uzAxUqVKiCqlpQR1DDo+5ChQoVqnJAHQ5HUIPX6+1ChQoVqjJAvRkOoQZvr9eDChUqVGWAen1zAzV4/b09qFChQhVU1YF6dQ01evt9qFChQlUOqD+vrqEG7+N+HypUqFAVB7VZ9IHHR6a59sESQBVUQVUlNYsfOSiZVEEVVFWxp3r5YFIFVVBV1Z5qcUyqoAqq3FNNqqAKqqDqLQ9K/kluUgVVUFXNnurlg0kVVEFVJXuqa6pJFVRBlXuqSRVUQRVUOSjJpEIVVOWwp3qjb1IFVVBV0T3V4phUQRVUQXVQKjgoOSmZVEEVVFWxp3r7YFIFVVDlnmpSBVVQFWpPtTYmVVAFVVAdlAoOSl4+mFS9e4OiB6nowfnlD6MauKODT6nMpA4sXZ6llx5+v7g0rRHRUhosJ/W0LOrX5Y8Tyxirz4cHqfRBafnhU1/D+RyQXjWpJjYe6NOg/TvqM+zy7gq2xn30NaArof7u7PzCxNb0dfvl6PD01X8Aq/6GJ9jnAAfCLI36ArAqrAymJKnWfgkwAP4KlhIQUMQOAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 421.9399 848.5312)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M425.44,849.031h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C422.44,850.374,423.783,849.031,425.44,849.031z"/><text transform="matrix(1 0 0 1 426.4961 875.5312)" font-family="\'Arial-BoldMT\'" font-size="22">A</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA21JREFUeNrs2stu00AUgGFPk5JCgbJAZcECHgDe/3EQlAULEJTeopbG2NJYmp6GJM6lGPR90pFwaEIU/8lMXKoKAKCq0o4ec684njVTe6mH+9ruIoK9OU905vwN97UVgQhEIIL+EaRwn6M8pUfNTIrjWgQ7i2Cap3PazM9wn3oXEZRP4mWe0kGe8knUS55Ucn7Xev0v83S+5akWvP5zy8LHCz5e+okf/8d5SpOwJ/BRv7vzdZWn87mZk/Az582cLXrQcc8n0W76nhXH7Z+frxCBEHZjP5+TzvewH+s2j2nRnsxygAgQAWus1e+aeV8cP8kTw9pzHeBB3FZ3L8R9zVP6kKdz75dOfTeGk7Ax3P/DYzjpD/dJXr7h2k3h0zmb+RTOTW05wJ6Aza4TxGvXIhqWdn82CrcdLluex2v8Q8n6P9iN/ai6e6Guuy0tOl/eyYiA9ZYDhv2mTn3f6OtsDJP9wKD3CL33bJYDRIAIsDH8768b2BNgOUAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEDN14yd+nEErykg3abZ5428YRJBH8M+o88TbLASJgw+Vg3ppzvSSkZNn4a6bNnIfbrpqZLVoeVokgLVhjaq/74DaGN303hpYDRMBqa3f5M2+aeVscv2rmeIXQRl7qrXzlm4X1PV7H+Zin9CXPRnuC8k7tpvAiHFd9v5eyURSz8AZbdH7+dI4sB4gAEbDOxrD0OE/ndZ7SYZ7OQbhPEl+v7/3lHuAyT3l8VRyfNPMpPMbNsn1B3yuG1+FJnVf3r1C13wQmYUdbbxAed6MoLwa1AZwVx+2mcBruM7McYE/A9vcE8T5xj9A6auaFPcFWxKX0IuwJTvN0pnOWg51EENf/0QoRHIhgKxHEjeCPEEH8ecsBIuCBloN5jzEOXz33qvn/8YTl6iXXDX7lAQAAgG34LcAAThiFZaUBuroAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 451.8301 848.0312)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHUAAACnCAYAAAAv8hOYAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAlNJREFUeNrs221uolAUgGGvso0K7cZkKSxFN9ZC16GxmGDSH5aCvTd89HkSM5kP0+S+PR5gZjYbACCGMPYNl8vl0P5QOrrkjrvd7pQ06reYRfcirbp7jY4bRgStxJwsbjUmbBB0fWGDoOsLGwRdX9htz++5IJqfQU2yR794Pp8P1+vVbcs8lW2fOsuy09hJNaULntatM1rstB5E/UfT+nCntvvUsS2YSRUVUZmEnWpSERVRSblTnYtJRVRERVQ8fDCpiIqopNypGzvVpCIqouI+FZMqKqIyq53qYEwqoiIqovLDvyZ0pWRSERVRibJTPX0wqYiKqNipmFRRERVRSXmh5Hm+SUVURCXOTvXwwaQiKqISaae6UTWpiIqouE/FpIqKqIhK2gslB2NSERVRibNTLVWTiqiIip2KSRUVURGVhBdK/tubSUVURCXOTvXwwaQiKqISa6c6GJOKqIiK+1RMqqiIiqikvFDyl+QmFVERlTg71cMHk4qoiEqUneo21aQiKqLiPhWTKiqiIioulDCpoiIqS9ipnuibVERFVCLdpzoYk4qoiIqoeKBvUhEVUUm4Uz19MKmIiqi4T8WkioqozGqnOheTiqiIiqh4+GBSmYtj9xJ1Repi/9KMjdr7ncACd+rtu+Cj+awdzzw/ekMIx2d3qmld4Edvb9TXfH97YyXsci6Q7sJvf6D9GM67uKUznTxo1Q3b36Lew7b3rsJOu0cHBR0c9ea9bkzsdB+39VuRN0PfFMZ8hS5s0f20FHheMZ+K2hOYyFe4z8QEYFJfAgwANBa4SYx5uR8AAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 453.8301 848.5312)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M457.33,849.031h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C454.33,850.374,455.673,849.031,457.33,849.031z"/><text transform="matrix(1 0 0 1 458.9932 874.5312)" font-family="\'Arial-BoldMT\'" font-size="22">S</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAslJREFUeNrs2cFqE1EUgOFJE1okrbUUpAu7KC5EcOP7v4K+gmCpYsFSUKy1zTTuD0fu5M5Mktrv2504CZL5nTkZmwYAoGkmI3zmTpgffM3b/d2OEcE0zK1zt93frQhEIAIRrB5B/EucJsfs2wnWFsFVmC+T97RDRzAL85vkmMMwLwvzxLmtXgy/hflz8p7Fqh+KsvCcoOxtmN8lxxy43K/tfMUd4EPynsvSjjZb8S8RT/DzDse42oznd5j3av6hO0GIABFQsROchXk+wLJJvaMwv06O+Rrmtm8E857vZ1i7Yd6vudq7HSACXM7/N8fJa1MRPC0eFmEnwE5A8pNxlAg8CHp8V3Y7AXYCRIDF8Omp2tlcCRABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABImCDZoU/3w3zxFe21e6S15Z9I5iK4FFZ1rzJ7QARUL4dxEjaDpcft4zNuUpea/tGMBninsNGF0O3A0TAADvBbZjPwzzvEJafmfVKO9gizJ+Sz7jvG8FDmG867Aj2hvU9B4jn51fN+XA7QASIgIol7WWY3yfHnIT5cMU9hH//7r8O85cwf0w+42ffxbApLB7ZIrKwKI62CN4VTvCt2wF2AtazE8RojpNjTsN8FOapr72z+KDne5jjw7sfNc8J+j69e5a89irML0RQbVGI4KJwvNsBImCknaBLRHuFn6H+A6n+J2LcEf74OQ4AAMCA/gowAG5iS3PXBWOqAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 483.7202 848.0312)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHUAAACnCAYAAAAv8hOYAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAj9JREFUeNrs21FS4kAUQFEasg0B3YiwcshGVFxHUhiqwOIDA4ndphPP+ZmqKf3p6+MlPc5sBgDEELp+Q13XO8eW3mKx2CaPehVz48j/xL5v3NAhqJgDxe0aNgg6vbBB0OmFDYJOL2xb1KMzzPKp+O7KLG79ZVVVu+NR0xyd2hRFse08qc03KpqxJmrrtM4d0Tin1aT+s2m9uVPt03Hz8SsqojLMvrVTTSqiIioJd6pzMamIiqiIissHk4qoiErKnTqzU00qoiIq3lMxqaIiKlntVAdjUhEVURGVH36b0JOSSUVURCXKTnX7YFIRFVGxUzGpoiIqopLyQcl9vklFVEQlzk51+WBSERVRibRTvaiaVERFVLynYlJFRVREJe2DkoMxqYiKqMTZqZaqSUVURMVOxaSKiqiISsIHJf/tzaQiKqISZ6e6fDCpiIqoxNqpDsakIiqi4j0VkyoqoiIqKR+U/CO5SUVURCXOTnX5YFIRFVGJslO9pppUREVUvKdiUkVFVETFgxImVVREZQw71Y2+SUVURCXSe6qDMamIiqiIigt9k4qoiErCner2waQiKqLiPRWTKiqiktVOdS4mFVERFVFx+WBSycVG1IlZL5/KPlE3jm5iO/X0k/B++HQ6GQoh3B24ed/PbfL86G2N+rxalsKO6wHpe5rvfUHzMfza/LF3nsMHPQ/a76NewjbvrsIOuEcfDfpw1JO3j4OJHejj9mW9Kjv9EHT54nPYC4Ezi9kraktgIuobE4BBfQkwAPXMqyUUCwl7AAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 485.7202 848.5312)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M489.22,849.031h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C486.22,850.374,487.563,849.031,489.22,849.031z"/><text transform="matrix(1 0 0 1 490.2764 874.5312)" font-family="\'Arial-BoldMT\'" font-size="22">D</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA49JREFUeNrs2mtPE0EUgOFtl0sBiVEjmuhX/f8/ysQLapSbXFtn4zQZj8tuCy0WeJ7kJG7ZAum+dKatVQUAUFWDJX/PiYd49R/bwRJ+yfiLCmHFH1sRiEAEIpgvgubcYXG8m6e0maeyL1h6BCd5rjtujPMsLIImgLo4fpantJXnOpM72pw+ho3hYZqj4vgg31a6ytN7YXnkRMBcT8XP07wojvfylEZ5rlvHWN5y8CnN53D+UVgixm1L8tocv8BGmp2wMXzasjEcdWwmWWwQwxDFKJxzGs5pfUXhAiECRMCcm7Z3ad73vE8wbAnLxnA5LvNMfUvzPZzzIc/UWZrz22wM19Nsh03gumvx39ThD24rbNyn16jue+a3HCAC5lsOWG1bLX/UX6s/7+9MXYjg4e8RNlv2cXXfJt1ygAiwHNx3g3At65brO+xbDkTwMAK47rb4Ka49AfYEiAAbQ3sEzwSIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABGwitZ6vrZeHG+kqQW0MiZ5psZ5Spfhtsm8EQxbLvrAY7/SUYxbbrMcIAJuuScYtCwHk441qbwfd+9XmqNwW3N8Xhxf3SQCzxT3R3OBL26yMXSREQHd63cdlos3ad4Wx3tpXrbcp+74GQN7hpmNe17iXeSn+6mPeUpf0ux33Kd3TzAJG4nmG5wWx+ctr0vjPsIFX+z7ADGS8vqcpTkJ55yHc+wJsCdABNxkYxi/vp1mpzh+leZ1OH83z9RmnjK62sM+k8uwnp+GPdnPND+K4/28Eaw67jP3B0jxThdh49H8+zic33zquBW+/8T1XMhm8LL6+92/5vEv3yE8Dhd8es16H3/LASJgvtfx8T2A7Txde4JRWB6GwpvZVdgTnITl+CBP+T7BWctyMllkBNFGntKTPGUEIxHcOIJxRwSHYU8Qo7EcIAKWtCfo2yNU1b8fILU9/fs8YfaXh/E/kl51PP17KQ4AAMBt/RZgAKj3lVGAo8mXAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 515.6099 848.0312)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHUAAACnCAYAAAAv8hOYAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAlhJREFUeNrs22FOo0AYgOFOyzVs0YvJUTiKvZiC52hT22SaGJUW6oxAfZ7EbNbVP7x+fAO7u1gAACmEIV+83++fj79ULlt2L6vVaps16qeYZfwgryZ+3BQ39Axaizla3Hpo2CDo/YUNgt5f2CDo/YVddnzegWh6ejf5Nqm73c6UTnxai6LYDp1UUzrzaV26TrNTxbupqP9pWouvnzgcDi7bzJlUURGVUdipJhVREZVcO9U1MamIiqiISsdBycsHk4qoiEqSnbqwU00qoiIqnlMxqaIiKpPaqS6KSUVUREVUfj4o+feEJhVREZU0O9XbB5OKqIiKnYpJFRVREZWcByXv800qoiIqaXaqlw8mFVERlUQ71YOqSUVURMVzKiZVVERFVPIelFwUk4qoiEqanWqpmlRERVTsVEyqqIiKqGQ8KPlvbyYVURGVNDvVyweTiqiISqqd6qKYVERFVDynYlJFRVREJedByV+Sm1RERVTS7FQvH0wqoiIqSXaqx1STiqiIiudUTKqoiIqoOChhUkVFVOawU73RN6mIiqgkek51UUwqoiIqotJxUHJSMqmIiqik2KnePphUREVUPKdiUkVFVCa1U10Tk4qoiIqodByUvHwwqfy5l/gh6h1pyvVDOzTq1Z8EZrZTTz8Fb+1749JM89YbQrg6cMtb79tM89bbGfVxsz59Yy3svA5IZ+HSHx5vw5sYt3JNRw9ax2H7XdRz2OOzq7Dj7tHeQXtFPXltWhM73u22eSo37ZBvDH2/MIYt428rgacXc3DUC4FJfMK9NSYAo/oQYACEw7K19m0TsAAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 517.6099 848.5312)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M521.11,849.031h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C518.11,850.374,519.453,849.031,521.11,849.031z"/><text transform="matrix(1 0 0 1 523.3906 874.5312)" font-family="\'Arial-BoldMT\'" font-size="22">F</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAArVJREFUeNrs2j1P21AUgOGEhvAxoIZKdGiHzmz8/x/BxEwXBipUJEQLNMFmP7rKPXFiJ9Dn2U5iM9hvfG/SjkYAAKPRuOdzW5f4Y0ewlzimcYl7u1etCEQgAhFsJ4L9MJ8VjpmJYLAI7sP8q3DOIvOHJ2t88o8Kx5xUIhi7lxvz3OHJ3PmRzgcnAlZ6PH8P80XhmDOXdDC3Yb4sHHOz6T3BYWX9L71mD9CfpzAfdP1GYTlABIiAFfcEn8M8c/m2KnM/fmb2BJMVvjlMKzPDytyP1MbccoAIWL4ctJn1hK3JPOqbdSPg/UdgOUAE9PA7AbutTb7mSYAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAnbOZMl7h2E+CHNbOGfskg6mHSKCT5WZ3dL5A2g5QARYDv63D3mzagR7nhrvag8w7rpPcGMRAcuXg6cw34X5sXDOceVxJLq818r78fo/dP0tYVkEcRPxL8wL92mrFpu6Hz6ZiAARUPkeGd/7Eubzwjk/wnwS5qlLnvZS2fhdh/mq8Dfu190Yxp3lc5j/FM6Zd9mdkrr+88r1f7EcYE9AP3uCKP4D0qxwzLcwn4Z53yVPi7/L/A7zTWL9bzYdQXRceO1rZTM5cW/T5pUIbsP813KAPQHD7AkyAU0rewD/ETUvrueLyp6hcckAAABY05sAAwB6gkR5eibgPQAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 547.5 848.0312)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACnCAYAAAAmGbPiAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAApRJREFUeNrs2WtOk0EUgGHG3u9uQEA3Ylm5dCMKuAF7vwdLUpJStJma+nX65Xn/kDT8mienZwauriRJ0kvhmF9er9ffHNn/r1Ao3J0ccQev64gz6f4YzBAJCO9MmDGQAeDlQwaAlw8ZAF4+5N8Qn51ZkrfWEIW4Wq1MYcLTWCwW72IQTWHCbRADxBxOI8QcTOM7xOVyCTHxSqUSRIiCqAwQF4sFxMQrl8sQIQqiMkCcQ0y+CkSIgiiIikOczecQE69aqUCEKIjKAnE2g5g6YrUKEaIgKgPE6XQKMfFqtRpEiIKoDBAnE4ipV69DhCiIgqgoxPFkAjHxGvU6RIiCqAwQR+MxxMRrNhoQIQqiMkAcjkYQE6/VbEKEKIiCqCjEIcTkEVsQIQqiskAcDIYQE6/dbkGEKIjKALE/GEBMvE67DRGiICoDxF/9PsTE+9jpvHH74EguP4gQBVEnqbj/wbNrjUkUREG0E7c70VI0iYIoiHainWgSBVEQISpXF5vN1capmERBFEQ70WPfJAqiINqJOzvRoZhEQRREO9E70SQKoiBCVL4uNv4pbBIFURDtRI99kyiIgmgnvn0oyiQKoiDaid6JJlEQBRGiXGxkEgURonK4E/0F3CQKoiDaidt3okMxiYIoiBCVm4uNm41JFERBtBO99k2iIAqineidaBIFURDtxHc70ZmYREEURIjy2JdJVGzd/Q/C/gcPTz+NYsLdXn8KMZPYdVSXVfjThz8en0xjilghdDeT2IvdiaYxza/SXvTF5vPNdQ9k+heag1+nO1+rXzc/7p3f+QG3g3U84ivk5u0I8ox78BBgFOJL3x8eTeSZvj6/3N70/ul2egDyNaAJ4B2NeABUJ+wYPEnSSfstwABdRGh6P8BxaAAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 549.5 848.5312)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M553,849.031h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C550,850.374,551.343,849.031,553,849.031z"/><text transform="matrix(1 0 0 1 553.4438 874.5312)" font-family="\'Arial-BoldMT\'" font-size="22">G</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA3FJREFUeNrs2ltPGkEYgOEFFDz3kKb2ov//pzWtadN6qIAKdEiGZPiy4HLSRp4nmYtVlgv2hflcrCoAgKpqbfm5yueb5MWeRdAujsci2Nm1mohABCIQwetE0A4X+DStk/CYk/AzEewugse8Zq7TugmPH+e1tQg6ec1c5FU6S+vcYLiWyYrXZpjWQ3H8K6/SKK9G73D2nAhY+JETh7zz8FF/mdaXcM5pXrsYOlm+HXzLq/Q7r2cdNIzgMK2jcMEvGkQghN1FMCyOb2oG9TvbAWYCRMAKFs0E0xmgVxx/Sutrcfwxrfc1z2UGeLnr1g7XI95r6Kd1telgWN4c6oWh7zitbs05Ini5T/Dyte7WDIaHtgPMBGw+E3TCx/1Z3nfK7YHX1Qpv5s66b/BVbhb1QiT8HwFsPI/ZDhABzbeDgzAj+HNwTyJoLYmiEoHtABEgAvZiJnhuRsAnASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACROAlQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACtuFgwc/HaY2K48e0HkI8nZrzWl7StxNBNMlhuNi2A0TAXm0HT2kNiuPrtL4Xxxd5xaBsE28ogjgDTAfDYYgE2wEiYC9mgn5x/DNvEeXve+GcXvjZJJzTEl1j8bWbhN+Pqvn7OH/SugqPudv2TDC9UXQfjkfhnLFrt/Mwytc6zmyDmjey7QARIAKaajX8XTcMfZ/TugyP/5DXokGxUzX/rmLfjcKeP6zm79PcpHVbHP+o5m/mTf0Nc9zKg2EcREbV/LeI/Zrp8yit03DRu67nVgbBUR7+Zgb5Ii+74I+2A8wEbGcmiI9rLdnvp95V818qnaR1HLaHjpe8kXgfoB/uA9zmuWDmvmY7iDecNo4gqrug53nNHOcQyk8dEawXwaAmgnIme1hlBrAdIAK2tx3UnRvvA7RDZK3KP52s8+dh3fbwVM1/d9N4/wcAAIAl/gkwAEXShaApLtUXAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 579.3799 848.0312)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACnCAYAAAAmGbPiAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAktJREFUeNrs22FqwkAURWFHs41q2o01S8lSdGNt0nUo1sAISlMTIZLM8B0IxTb0xxxu7nvarlYAAKAjjL3xdDp9Xr5Ujuzl7DebzWFSiTfyynjhtTTxGi0zjBBYkzebzHqMyEBg+iIDgemLDASmL3Ld8z0DzPJ46OQuicfjUQoXnsaiKA5DSZTCBNO4djZJUcWnJYm5pbG4fXE+nx1TgkgiiSARk6ATJREkgkT0daLzkESQCBJJhGUfkggSSURenbjSiZIIEkGiTrQnSiJIBIk60ZooiSARJILELAcbf+8miSARJOrEuOzrREkEiSBRJ+pESQSJIJFEZDXYeP9bEkEiSNSJln1JBIkgUSfer4k6URJBIkjUifZESQSJIJFEZDbYOBBJBIkgUSda9iURJIJEnagTJREkgkSQmOFg49+iJBEkgkSdaNmXRJAIEnXifSc6EEkEiSBRJ9oTJREkgkQSkddg40NhSQSJIFEnWvYlESSCRJ14vyhCEkEiSNSJ9kRJBIkgkUQYbCCJIBEkZtiJ3gGXRJAIEnVi3BMdiCSCRJBIIrIZbEw2kggSQaJOtO1LIkgEiTrRniiJIBEk4k8nOg9JBIkgkURY9iGJGMs+XiQmTFNu39ohib2mkVAndpa/25/GsSzzURpC2I/tRGlM6FHaK/F9t+1urIlc/kBzJfz3g8tjdRdlVs5wdoF1DNdzEq8iL7sjkfP24EOBgxI7vppWIud7fDYf5a4dujmM+Y1RZBlfVoQuQ95TEh8IxcQT6DPyAACT8ivAAEADsrWS9BChAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 581.3799 848.5312)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M584.88,849.031h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C581.88,850.374,583.223,849.031,584.88,849.031z"/><text transform="matrix(1 0 0 1 585.936 874.5312)" font-family="\'Arial-BoldMT\'" font-size="22">H</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2BJREFUeNrs2s1OE1EYgOEZ+mNFASUalu505f3fgNfgwsSV0RANMSoQsLTjIRmSk89DHdoZIfA8yVm0mSLpvMz5OrWqAACqqu7xZ22Fn7fw9g52npq7GsGoEEHj/PV2nvL3dikCEYhABLcTQdzvn6c1DcfspjUJv6gI+pu3cvMQwpe0zsIxi74jiH/lB2nNwjH7IYylc9dZ849zE68E5+H9/ZjWSSGCZp3CcJnB58/rLz/xUv86rZ3wmmdhJqi9vYOdp7gdvE/rZzjmc2FOKBp3jGAaZoCn7SCY2wmh1EIYTIzgSWEQHNkOMBMgAnoYDCchkLdp7WWPX6W1XZgv6jXvQ3Az8R7AYTsn5N6ldbTpYJhH8LgdBq88qv6+Y8j//eOtw/kZGwwxE7C+8Yo48kAubwS9CDMDd2eWmxSe29o0grjnTNo5wBXkbkawtck5cTIRAddvB6XjfDn0ACOo+9pzuJU5wXaACBABQwyGhkFXAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIjAW4AIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEDGHc8bhlWosQT+3te1gRNO3CdoAIeFDbQZwBvqc1yh7vpzUNr6nNCfcrgjgDzNM6D5FgO0AE3Pvt4CLMBJ/SOsoezwqvmYaomkJwZobuH8njjNas2I4P0zoNz533MRPkTsM/PC/8Iu4jDBvFqgjOChEsbAeYCRABN9B1ULscBPObRW/S2gnHHISBcTvMHGPRdbYIM8BxO6xfubx59zt7/CGtX+Fn/Ghnt7UHw2geBo2TQkB74STPDIu9DYIXIYLTMP0ft8tgiJmAgWeCeOx2YSuJM8FuWpOw9bhZ1H0mqFbMBF/DdlDa/5dDRBCvIPG1L0MEeyGCkQg2iiB/7luI4Kza4Es92wEioN/Lc/wCaVSIzHbQ/SPiqvsG8bsb/78DAACAPvwRYABBp3p+FufGXwAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 611.27 848.0312)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACnCAYAAAAmGbPiAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAl9JREFUeNrs2+FNwlAYhWGuMAALCOgCMBIjsImMwEhlARUngP8QvCQlgYi0TUrovXnepGlQ4o/vzem5H2qvBwAAToS6bzwcDh/xNjOyh7Po9/vrViVeyDtdQzN+OEW8tk1khhoC5+Q9Tea8jshAYPoiA4HpiwwEpi/y5cbXHGC6x10nV0nc7/dS2PE0DgaDdVUSpTDBNL6YTVIs49NySmKGaRxcvjgej8aUIJJIIkhEK+hESQSJIBG3OtE8JBEkgkQSYdmHJIJEEpFXJ/Z0oiSCRJCoE+2JkggSQaJOtCZKIkgEiSAxy4ONv3eTRJAIEnViuezrREkEiSBRJ+pESQSJIJFEZHWw8fm3JIJEkKgTLfuSCBJBok68XhN1oiSCRJCoE+2JkggSQSKJyOxgYyCSCBJBok607EsiSASJOlEnSiJIBIkgMcODjX+LkkSQCBJ1omVfEkEiSNSJ151oIJIIEkGiTrQnSiJIBIkkIq+DjV8KSyJIBIk60bIviSARJOrE60URkggSQaJOtCdKIkgEiSTCwQaSCBJBYoad6BNwSQSJIFEnlnuigUgiSASJJCKbg42TjSSCRJCoE237kggSQaJOtCdKIkgEifjTieYhiSARJJIIyz4kEXVZxKsgMW2Kyeh1VyXxpmkk1InR8vpr87M1lm4+SkMIRd1OlMaEHqU3Jb6NR+t4mxPZ/QPNmfDfN+JjdRpvq3jNzPDpAlcxXLvGEs8i4+5I5HN78K7ASoknPr83Evm8x2fxPhnvqt4c6vzEUuSwfLkktBvyGkm8IxQtn0CbyAMAtMqvAAMAPIOytQ4WjroAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 613.27 848.5312)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M616.77,849.031h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C613.77,850.374,615.113,849.031,616.77,849.031z"/><text transform="matrix(1 0 0 1 619.6523 874.5312)" font-family="\'Arial-BoldMT\'" font-size="22">J</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA3FJREFUeNrs2ctrE1EYhvFMk1609qob0ZU7QRD8/5cuXXUluBNBCoqlF3ufeA6kcPyYtjPNNE3198AHOclkEuY8Od+bM4MBAADAYFD1eK5h8XicqnZ5H8e1rXo8T/yil+bucVxbEpCABCRoL0F53HKqF+H1Uap1EsxEgpwHzovxcapv4T3jSfUqwULx+EmqV+H1xVRbguGdGLeYl5skOEj1peGcra//gjkACdCqHSylel6M11K9bWgHGy7nTOYpL/UXxXgv1U44/iTV97YnH7X40NyPVorx0xACr86zZpWZCXUI3fnxqnYAmQAkwD0Fw/J/6WaqD2Gf4HWDTIt33INA932FOoTA3XDMj1QfpwmGVZjAGPqWGybcpD/cj7cplB9pB5AJ0I02+wR5s2g75AXyzE87GE5y2iC07F4lWAgnrfT/uQrz8S5j5xXeLxokwPXtIC43I38FH3XLmFoCK8b8T/hUP0yTCxKABOgQDIVBKwFIABKABCABSAASgAQgAUgAEoAEIAFIABKABCABSAASgAQgAUgAEoAEIAFIABKABCABSAASgAQgAUgAEoAEIAFIABK4BCABSAASgAQgAUgAEoAEIAFIABKABCABSAASgAQgAUgAEoAEIAFIABKABCABSAASgAQgAUgAEoAEIAFIABKABCABSAASgAQgAUgAEoAEIAFIABKABCABSAASgAQgAUgAEoAEIAFIABKABCABSAASgAQgAUgAEoAEIAFIABKABCABSAASgAQgAUgAEoAEIAFIABKABLgPRi2OGae6KMZVqqFLNzeMJxWf612CsWutHYAE+B8zQV08Pkv1sxgvptoi1INmgAcJhmchGEI7AAnwT1G1eP5ZqjfFeDPV+xbnqgjXCzmfXd7w+u9UX8Nzv1J96jMT5I2iw2K81DKwyA6zCYN5fo7Cc8faAWQCkAA9BcOSfLNopRhvpHoXjsk5YTtkjdXwOSOXu3X/LzfrzlMdhPFeMd5P9TmcI75n6mCYv9BpCB3xA7Ika+bvXoJgPfj7Lu5pCOqHDfNRaweQCdB/JojHDUO/v2oHL4txvsm03pAt0D0TXITlPreD3dD/9zvsK9xZgttWkCjBiAS9SlBuBp0ECeqJCNoBSIAZZII2Mi3dsi/gXkL3v4dX48uw/J9NkwEAAAAAALiGPwIMAFB2eafHWKYbAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 643.1602 848.0312)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACnCAYAAAAmGbPiAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAlRJREFUeNrs3dFNAkEURuEd2HdtQEAbkJIoASqREigJGlCxAnyH4JCAUVB2SZYsM/lOslkx+HJP/rn34hqLAgAA7Ah13rTZbJ7jbapcV2fe7XYnjUr8Ie8+XkM1vjqrnchLZYYKgTPyWpM5qysyEJi+yEBg+iIDgemL7By9NsDcHpVOvpO4Xq+l8MbTWJblpCqJUphoGjvqkwzDeFq+kJhpGsvDF9vtVpkSRRJJBIloBD1REkEiSMRxT1QLSQSJIJFEWPYhiSARJObVEws9URJBIkjUE+2JkggSQSJ+9UTFkESQCBJJRC6DjefdJBEkgkQ9cb/s64mSCBJBop6oJ0oiSASJIDGrwcbn35IIEkGinmjZl0SQCBJReFBKEkEiSIQ9URJBIkgEiTkPNoohiSARJOqJln1JBIkgEXqiJIJEkAgSMxxs/FmUJIJEkKgnWvYlESSCRBQelJJEkAgSYU+URJAIEkFixoONXwpLIkgEiXqiZV8SQSJIhH+pIIkgESTCniiJIBEkgkSDDSQRJILE7HuiT8AlESSCRD1xvycqhiSCRJBIIrIZbEw2kggSQaKeaNuXRJAIEmFPlESQCBJx0hPVQhJBIkgkEZZ9SCLqMo/XmMS0WQ16D4sqif+aRiI9MVr+fFt+zJXkNo/SEMK4bk+UxsSO0hOJj/3eZ7zNiExjoDkQ/vpmPFbv4m0Ur6kati5wFMO1uFjiQWTcHYlstw9WCjwrccfr+1Ii2zs+V0+D/qLOD4SqN+xFDvcvh4TejrzaEs8IRcMT6KXyAACN8iXAAAigsrXgJM0BAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 645.1602 848.5312)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M648.66,849.031h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C645.66,850.374,647.003,849.031,648.66,849.031z"/><text transform="matrix(1 0 0 1 649.7163 874.5312)" font-family="\'Arial-BoldMT\'" font-size="22">K</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA0VJREFUeNrs2k9PGkEYwGGQP0UQTZO2SXvo1VO/QD9/796a9NSDh7aHJkbQKCJ0SDhs3kyyq8yipM+TzGEJomF+Mi9opwMA0Ol0Cz3OUXisR09tMa0/t6Ui6GV+0LX9O4znVgQiEIEInhfBh7RG4baTtPoi2EsED2mtKteXad3uO4LPaY3DbWdpDWoi6NrPRtaZCI4q14sQwY+0ZjWPUTt54u0HPieo9z7MAOdpTcN9puE4oL09WoaX+4u0rsJ9/qR13/Qb9BvcZxRmgM2Gn2YGw0H4wc0A7YgRTLZzQpwjHAeIABFQejD8mta7yvXmw6I34T6DzGOZCdqxCte/0roLt31L62/JwXAc3g0MM+8EDIIv94s72e7JU/fVcYAI2PE4GHjpf1WOMzNar3QEvY4Pgl7zTLDZw53+WOc4QAQ0Pw563v8f1C9yt3QENv6wZgTHASKgpQgcBQZDIXglQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEngJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkRAa/qegoO3Smsdblt7Jfi/rHd9ABEgAprNBPO0rirX48zXdbeL/cwAVcvMbevSEWy+yUPJM4jiM8FOe+I4QAQ0O8fP05pWrr+kdVZzTsUZwczw/Ld8jzUv9z/Tugm3XYQ5bueZ4DYzI9T94Da83TO/G/ZnlgnHcYAIEAGlB8NRWr2awfBtWsPK9UmYN3rmhMbiILj5sK76Oc1m4FtUrr+ndR0eY/6UuaDJYHgfNnCeeQUZh/us7GUxyzCM32z3pLofc4MhZgLanwmiSeYY+ZjWceX6NK1B+D5mgmbiUXodjoPfad1VrmdhZthLBLmv+xQimIqgWASzmgiWHX9AwkzAi8wEOcPwWULucwHHQTN1f0BahCPD/3cAAABQyj8BBgBbt3OjM6MR3gAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 675.0498 848.0312)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACnCAYAAAAmGbPiAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAlNJREFUeNrs3dFNAkEURuEdoAAaENAGoCRKoBMpgZJ2G1CxAniH4JCAUVB2SZbATL6TbFYMvtyTf+69uMaiAAAAe0KTN22329d4myjXzZl1u92qVYk/5O2vvhrfnDJeq2tlhhqBU/LuJnPaVGQgMH2RgcD0RQYC0xfZOXltgHk8ap18J3Gz2Ujhg6ex1+tVdUmUwkTT2FGfZJjH03JMYqZp7B2/2O12ypQokkgiSEQr6ImSCBJBIk57olpIIkgEiSTCsg9JBIkgMa+eWOiJkggSQaKeaE+URJAIEvGrJyqGJIJEkEgichlsPO8miSARJOqJh2VfT5REkAgS9UQ9URJBIkgEiVkNNj7/lkSQCBL1RMu+JIJEkIjCg1KSCBJBIuyJkggSQSJIzHmwUQxJBIkgUU+07EsiSASJ0BMlESSCRJCY4WDjz6IkESSCRD3Rsi+JIBEkovCglCSCRJAIe6IkgkSQCBIzHmz8UlgSQSJI1BMt+5IIEkEi/EsFSQSJIBH2REkEiSARJBpsIIkgESRm3xN9Ai6JIBEk6omHPVExJBEkgkQSkc1gY7KRRJAIEvVE274kgkSQCHuiJIJEkIiznqgWkggSQSKJsOxDEtGUWbxKEtOmHA2e1nUS/zWNRHpitFy9Lz9XSvKYR2kIoWzaE6UxsaP0TOLzcFDF25TINAaaI+Gvb8ZjdRxvi3hN1PDuAhcxXOurJR5Fxt2RyPv2wVqBFyXueftYSuT9js/yZTRcN/mBUPeGg8j+4eWc0MeR11jiBaFoeQK9Vh4AoFW+BBgAAaCytY9EY1cAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 677.0498 848.5312)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M680.55,849.031h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C677.55,850.374,678.893,849.031,680.55,849.031z"/><text transform="matrix(1 0 0 1 682.8306 874.5312)" font-family="\'Arial-BoldMT\'" font-size="22">L</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAmdJREFUeNrs2s9KG1EUwOGZJMVisdB2qxv1BfT9H0I3XRdsV6VuEir+y/QE7sDtcQxjdWgW3wdnceMkwvhj5pqkaQAAAACgaF/5nMOYo/Tzz2V6s5i5Uz2J7zE/qvXPMrWuzLNmziMiQAS8fE9wHHNSrT+l+//Gokz9O1qnehJ3MffV+luZ2q+Y6217BFcCRIAIEAFjN4b1MWcx59V6rwy7YRmzSo99LdN7jFm7EuB2gAhIFiOO6VI070S0s/Zj3g881m7bB/ojIgJEwMg9QX7PYOv9hf9q3jz9As/clQC3A0SACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiIBdtxjx80Vat07bznqMWQ885kqACBABr90TbO4vD9X6Pua2Wu+NeA2ms057gGXMKh2zTMd0rgS4HSACBrz0f/4vZXonMacDrzlLa+8tTPM+wOY8z6v1Rcxles7vmBtXAtwOEAEi4K03hrMUzkHMx3TMYcxRtd6P+bBlM8P4jeCyTO+qTG/VPH2zqHMlwO0AETDBnmDo+fk18hdRWrG9mfyB0UPz9wd8nQhEIAIRiEAE/xgBAAAAFH8EGAC/lEdR3PpEmQAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 451.8301 901.2412)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHUAAACrCAYAAABYMNPjAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAgFJREFUeNrs21FO4zAUQNG4yTZoCxttvNFCWUeiAFI+i0grW9jOOT8jjWA+fOf1JWam6wAAuCs8+g3zPF++fxkdXXZj3/cxa1Qx64kbBG0vbBC0vbBB0PbCBkHbC3twRjt5pZmmyZQWPq3DMESTuiOiVjqp66epqHsx3PvNZVmcjI9fREVU7FST6ghERVTK2anOxaQiKqIiKi4fTCqiIio5d2pnp5pUREVUvKdiUkVFVIraqQ7GpCIqoiIqv/xrQk9KJhVREZUkO9Xtg0lFVETFTsWkioqoiErOByX3+SYVURGVNDvV5YNJRVREJdFO9aJqUhEVUfGeikkVFVERlbwPSg7GpCIqopJmp1qqJhVRERU7FZMqKqIiKhkflPy3N5OKqIhKmp3q8sGkIiqikmqnOhiTiqiIivdUTKqoiIqo5HxQ8kNyk4qoiEqanerywaQiKqKSZKd6TTWpiIqoeE/FpIqKqIiKByVMqqiISg071Y2+SUVURCXRe6qDMamIiqiIigt9k4qoiErGner2waQiKqLiPRWTKiqiUtROdS4mFVERFVFx+WBSKcV4Pr5EUfc+qevfgtHxNLRT7dWyP3pfT8f41E5dv9G0Vij89QXvt8+LuPVM6aaowtYVdHPUH9ePm7D/GPTtfIpbvzg88icLW3bMp6IKXHZMAACABnwJMAA7TZiO6tpYHgAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 453.8301 901.7412)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M457.33,902.241h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C454.33,903.584,455.673,902.241,457.33,902.241z"/><text transform="matrix(1 0 0 1 459.6108 927.7412)" font-family="\'Arial-BoldMT\'" font-size="22">Z</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAhBJREFUeNrs2TFOAkEUgOHFRTd2UlFZcAETOxKv4B28nTewpbLxDsbGWGCP0aBgQ/Xyklk2LGGT7+seDBbLn5kJVhUAAAAA7Iz2XF+HeZ6smYW58Zh78xzm12TNX+mPnHmOiAARsP+d4D7M18maRmhHswrzIlnzVroj+IIQASJABLS5GMZIHsI88QhPynvy2lOYv+wEOA4QAYlx4f2NaAZlmrxW2wlwHCACDnAnYFgu7AQ4DhABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAKGaFx4/0o0g/JjJ8BxgAjo6U4Qz5jfMG+Tz4w81qOJ38dHizV2AkSACKgOcH7fhPkuWXPpsfZmXbjTPSaf+Szd4+wEiAARIAK6XAzjRWSWrLkN8zTM5x57a/HHuvhj0EuYl8nf2NgJcBwgAnq4E0R18lrTYg3dxH8GfYd5KwIRiEAEIhBBxwgAAABg51+AAQDQ9yhLZMHLagAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 483.7202 901.2412)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHUAAACrCAYAAABYMNPjAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAjVJREFUeNrs2klOw0AQQFE3mSduQBjufyamI5DEmRXEPlEG2Uq1eX8ZkU0/SmU3FIUkSZKOlq79wn6/Pzi2+mu1Wql2VJj54CagzYNNQJsHm4A2DzYBbR4s1P+CutvtgAau3W4nqFCh5g4L9b+gbrdbqMHrdDpQoUKFqgxQN5sN1OB1u12oUKFCVQaoa6jh60GFChWqoOo+qKv1Gmrw+r0eVKhQoSoH1NUKanTUfh8qVKhQlQHqcrmEGrzBYAAVKlSoygC1LKFGbziEChUqVEHVXVAXZQk1eKPhECpUqFCVAep8sYAavPFoBBUqVKjKAHU2n0MN3mQ8hgoVKlRB1V1QZ1DDo06gQoUKVTmg/vzMoAbv8XFyEvXB8TQvqFCVQ+1jHx4KK9WkCqqgqpKderBTTaqgCqqg6sSDkoMxqYIqqKpmp1qqJlVQBVV2qkwqVEEVVNX4oFT4b0KTKqiCqkp2qssHkyqogqqqdqqDMamCKqjyniqTClVQBVV1Pij5I7lJFVRBVTU71eWDSRVUQVUlO9VrqkkVVEGV91SZVKiCKqjyoCSTClVQlcNOdaNvUgVVUFXRe6qDMamCKqiCKhf6JlVQBVU17lS3DyZVUAVV3lNlUqEKqkLtVOdiUgVVUAVVLh9MqkL0Mn1KUE3q+d8EZbhT7dW4vT5P002TeumXFbOzcB9f30Y2oym9CBVsXqAXo/71/vkF9k69vTxftQqv+mGwsTFvQgUcG1OSJEmSGtCvAAMAlzU3e4vsPCIAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 485.7202 901.7412)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M489.22,902.241h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C486.22,903.584,487.563,902.241,489.22,902.241z"/><text transform="matrix(1 0 0 1 490.8833 927.7412)" font-family="\'Arial-BoldMT\'" font-size="22">X</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAoJJREFUeNrs2cFKG1EUgOGMCdpWAq2Fau267/8+bkrtom6UtoIBEzO9A2fgeEmMk1YN+H1wFtcMUZKfuZdxNAIAAACA0Ay4di+m97nMaXXNhzJHaT2J2fZ3st6PmN5VTHZXZvmYL5ZXTgSIgGH789eY3vuYbByT398Z4Gnclpmn9fcy59U1l9U5YeUZwZ0AESACREBnsuHQmA91+2UO0/ptmTc+whf97uqHd9Pqmm9lFml9U2bmToDtABEw8EzQxuQ1u6M7r+UHc9PqzNbpHhQdpPWtOwG2A0TAFmcCdv9MsOm7rJ8lNO4E2A4QASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACdtHkgdfexfSmZfbTeuzje1Fttb4rs6x+tqh+1roTYDtABGxxJljGnpL3l/mGPaiJ4XnOBHmP/x2TXZaZpfXcnQDbASJgjWbA68dlTtL6tMyX6vruOcKBj/VJrDqDZWcx2a/qnNCuelbgToAIEAEi4DEHwzqY/E+jozIfq2s+xfQOY9a9x9C/4TVZjO4/rPsT0/tZ5iKtr2Oy5WjNP43cCRABIuA/7sd7KyIaV3t+I7SttRv29/rM0IpABCIQgQhE8A8RAAAAQPgrwAD8WlVHhJY8owAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 515.6099 901.2412)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHUAAACrCAYAAABYMNPjAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAglJREFUeNrs21FO4zAUQNGYZBu0hY022SilrCNRAClfqIEG2WA75/yMNAM/vvP6nDDTNAAA3BS2fPE0TeePX3rHllzftu2QNKqYZcUNgtYXNghaX9ggaH1hg6D1hX1wTjt4pBnH0ZRmPq1d1w0mdWdELXBSl09TUfek+/ob8zw7FR+/iIqo2KmYVFERlXx2qjMxqYiKqIjKykXJyweTiqiISpSd2tipJhVRERXPqZhUURGVrHaqQzGpiIqoiMrti5J/T2hSERVRibNTvX0wqYiKqNipmFRRERVRSXlR8j7fpCIqohJnp3r5YFIRFVGJtFM9qJpUREVUPKdiUkVFVEQl7UXJoZhUREVU4uxUS9WkIiqiYqdiUkVFVEQl4UXJf3szqYiKqMTZqV4+mFRERVRi7VSHYlIRFVHxnIpJFRVREZWUFyU/JDepiIqoxNmpXj6YVERFVKLsVI+pJhVRERXPqZhUUREVUXFRwqSKiqiUsFO90TepiIqoRHpOdSgmFVERFVFZuSi5KZlUREVUYuxUbx9MKqIiKp5TMamiIipZ7VRnYlIRFVERlZWLkpcPJpU/158Oj4Ooe5/U5W9B72gq2qn2at4fvU/Hw/Crnbp8o2ktVPjuDy/Xt7O4ZU3pj1GFLS/oXVE/vbxehf3HoM+n47DlG8K9Xyhs/jE3RxU4/5gAAAAVeBdgAJfHmI6s55D4AAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 517.6099 901.7412)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M521.11,902.241h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C518.11,903.584,519.453,902.241,521.11,902.241z"/><text transform="matrix(1 0 0 1 522.166 927.7412)" font-family="\'Arial-BoldMT\'" font-size="22">C</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAh5JREFUeNrs2TFLQlEcxmFvmhZB5FhTe9TQ1vcfmlqiPkAQQUsQLZaaLU0vB+9RvGnwPNsf7204/TjnoL0eAAAAAPxqVnh2GPNl4ZmLmPct8cYsYn6M+a7wzqzmD+9ZW0SACFjtTnAd803FvaGxxJ35iPm28MyDnQDHASJABNQaLPmsH/NhzCPLt1VHMR8Xnskv66Z2AhwHiIA17gTzlpntyi/iFoVnpnYCHAeIgA3cCdrOIHb/TmAnQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBAB/8JgyWfjmE8s105ZxNzYCXAcIAI6uhPkmfMd87zwTt+S/pmm4n95EPPEToDjABGwxp3gPebnmM8K74wtaWfyTvYW82vhnYmdAMcBIkAE1FrlR4e8RJ4XnrmK+TTmkSWv9hnzS8z3MT8V/sbMToDjABHQwZ0glX4sGrbcI6iXP+DlD3ZfLZ+LQAQiEIEIRAAAAABr+BFgAJkkLmYXTfHOAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 547.5 901.2412)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACrCAYAAABR23OZAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAi5JREFUeNrs2llOAkEUQFFK5skdCOj+16TiEpjHYEz8QVSaBNrX7bnf/VUnL68KrVQkSZJKUrrk4/1+f3Bkt69araarI8KLjZkAFh8yASw+ZAJYfMgEsPiQEMuIuNvtAAauVqsliBAVERJiGRG32y3E4NXrdYgQBVE5IG42G4jBazQaECEKonJAXEMMXxMiREEURGVDXK3XEIPXajYhQhRE5YG4WkGMjthqQYQoiMoBcblcQgxeu92GCFEQlQPiYgExep0ORIiCKIjKhDhfLCAGr9vpQIQoiMoBcTafQwxer9uFCFEQlQPidDaDGLx+rwcRoiAKojIhTiGGR+xDhCiIygNxMplCDN79fR8iREHU9RFrXz84VBgWrTtHAFEQdY1Od+LBTjSJgiiIEFWai41DMYmCKIh2ose+SRREQbQT7USTKIiCCNERlPBiU/HfbiZREAXRTvTYN4mCKIh24tFOdCgmURAF0U70TjSJgiiIEFWui40/CptEQRREO9Fj3yQKoiDaiccPRZlEQRREO9E70SQKoiBClIuNTKIgQlQJd6JfwE2iIAqinfj5TnQoJlEQBRGiSnOxcbMxiYIoiHai175JFERBtBO9E02iIAqinXiyE52JSRREQYQoj32ZRGVqNHhIEP/DJH4nrYLtRHsxbo/DQcq8E3/6WDH7Fetl/GYkg0/hWUSQ8QEzIX70/DoG+Uc9jYZnjTLvPpDx8C5GBBoPT5IkSZJu0LsAAwCCiUN40LFXBwAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 549.5 901.7412)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M553,902.241h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C550,903.584,551.343,902.241,553,902.241z"/><text transform="matrix(1 0 0 1 554.6631 927.7412)" font-family="\'Arial-BoldMT\'" font-size="22">V</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAkFJREFUeNrs2c1Kw1AQgFFTo4L4A4qCLkRc+P4P5EbRRQV1JShq6xUncBlSG0uLCOfALFLTLtKPZKhrawAAAAAQmoHnrcd0DmNqJzGdUXoPi5um4+eYzlVMbRIz18j1RQSIgNk7wSgFcpB2gPOYvDe06bMbl3gl3sq8V8fjMvfpnJsYdwJEgAgQAYO0M17fKrNdHZ+VuaiOd8pszFkmWe33Vv8Qt99zzoM7AR4HiIAl7ARt7AX1M+c4xeOfQ38n/xDX93007gR4HCAClrATNCmQr/M2XS53AkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEIFLgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkTAqrQzXn8pM62Or8u8V8dHMTmodZfUnQARIAL+pWbg3/ZiOpcxeb9of/H5LO41pnNb5i6dMy5z706AxwEiQAQsYzHM59XB7MTUTmM6u2mZ7Fsc+TZNxx8xneeYWUvfY5mnns+YuBPgcYAIWPJOMOS9+Znf9ETmx6PFTNLekHeGydDnvwhEIAIRiEAEAAAA8LNPAQYALdo9Bf0aKPgAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 579.3799 901.2412)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACrCAYAAABR23OZAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAgFJREFUeNrs21FKw0AYReGMyTZsqxttZqNqXUdCVBjQINZYWpz5+c5LEfs0h5s7t9WuAwAACELa+sZ5no/vL6Mjuzlj3/f5qhLJq19mIrB9kYnA9kUmAtsXmQhsX+Sdswk2MaZpksLK0zgMQ5bEgJDYWBLL05LEaAxff1iWxYl4nIJEkKgTdaIkgkSQqBM/O9F5SCJIBIkkwtiHJIJEEhGrEzudKIkgESTqRDtREkEiSNSJZqIkgkSQCBJDXmz8vZskgkSQqBPL2NeJkggSQaJO1ImSCBJBIokIdbHx+bckgkSQqBONfUkEiSBRJ65nok6URJAIEnWinSiJIBEkkohgFxsHIokgESTqRGNfEkEiSNSJOlESQSJIBIkBLzb+LUoSQSJI1InGviSCRJCoE9ed6EAkESSCRJ1oJ0oiSASJJCLWxcaXwpIIEkGiTjT2JREkgkSduB6KkESQCBJ1op0oiSARJJIIFxtIIkgEiQE70SfgkggSQaJOLDvRgUgiSASJJCLMxcbNRhJBIkjUida+JIJEkKgT7URJBIkgEd860XlIIkgEiSTC2IckYivjYXefSYyexGJ5dCwNd6JerPtR+rDf5U2dWN4ojQ2RfvrF8+n1SGb9KTwrkcg2BP4q8YOnlxOR/yjw8bDPFz9Oiaxf3p8kElqnPAAAAAC4AW8CDADyOZiOZy6XPQAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 581.3799 901.7412)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M584.88,902.241h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C581.88,903.584,583.223,902.241,584.88,902.241z"/><text transform="matrix(1 0 0 1 585.936 927.7412)" font-family="\'Arial-BoldMT\'" font-size="22">B</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAm1JREFUeNrs2T1LY0EUgOFcjVEE2fXbwt7Cdhvr/df7B7a2dmGxsNBCUfzAjySesCPMHkK8kERBngdOMe5ki+vLnSF2OgAAAABQNC33Laa9+zGrac9BzFr6zIJHPBODtL6OeanWv2Mu055+2//cLwkRIAIm3AkW0r/txaxU6x8xG+kzvTFRNR7xXDyme8LfmPu057jcHbwJEAEiQARMdTFc7vz7sufNUcxmtd4ue/gcw7QeXQCf089+xZx7E+A4QAS01J0QR30nWI/ZafE5Pucu1x3zs8abAMcBImAGd4Jx+3oelzcBIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIwCNABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAuah6xF8GUNvAhwHiIApLE6IY3TGDMosxdzEXJRZKfeJQTVNGT7eU/l9NdWcxNx6E+A4QAS01PYMX4/pVeufMbtpT3/MfcMdYT4eyj3szXHMddpzGnPvTYDjABEgAmZ9Mcx7v6eL4shhzLdqvRWzXK27omvtpfP/H4SuYp6r9Z+Yu2p9Vi6L+aI+9CbAcYAImMOd4D2jO0L9BylfFs1O/iLuKZ33fRGIQAQiEIEIpowAAAAAilcBBgCFbUEon8xzmwAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 611.27 901.2412)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACrCAYAAABR23OZAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAgtJREFUeNrs221Kw0AUheGMyTZsqxsxrrzNRtS6joQ4hYKGokaxOHN53j+hNL/uy8mZ24+mAQAACEJae+M0Tft86Y3s6vRt2w5/KpG88mUmAusXmQisX2QisH6RicD6Rd6YTbAVYxxHKSw8jV3XDZIYEBLr4pCflg8kBqT7+GKeZxPxOAWJIFEn6kRJBIkgUSe+d6J5SCJIBIkkwrIPSQSJJCJWJzY6URJBIkjUifZESQSJIFEnWhMlESSCRJAY8mDj926SCBJBok48L/s6URJBIkjUiTpREkEiSCQRoQ42Pv+WRJAIEnWiZV8SQSJI1InLNVEnSiJIBIk60Z4oiSARJJKIYAcbA5FEkAgSdaJlXxJBIkjUiTpREkEiSASJAQ82/hYliSARJOpEy74kgkSQqBOXnWggkggSQaJOtCdKIkgEiSQi1sHGl8KSCBJBok607EsiSASJOnG5KEISQSJI1In2REkEiSCRRDjYQBJBIkgM2Ik+AZdEkAgSdeJ5TzQQSQSJIJFEhDnYONlIIkgEiTrRti+JIBEk6kR7oiSCRJCIi040D0kEiSCRRFj2IYlYS7/b3A4kRk9itvyYLwdjqbgT9WLZj9K77WZY1Yn5RmmsjPTZG8/H1/3JvhGVncIvJRJZh8BvJZ54ejkS+Y8C73fb4dePUyLLl/cjiYSWKQ8AAAAArsCbAAMA7zmYjobmNRIAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 613.27 901.7412)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M616.77,902.241h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C613.77,903.584,615.113,902.241,616.77,902.241z"/><text transform="matrix(1 0 0 1 617.8262 927.7412)" font-family="\'Arial-BoldMT\'" font-size="22">N</text><image width="125" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAC3CAYAAAA1gz3gAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAmtJREFUeNrs2c0uA1EYgOFWfzS6EEEkluICJC7A0i27BfYWNrZskCJ+itY3yUiOk6FTKq3keZIv6Yy2i/FmzjEaDQAAAAAoNWu+byl53Y/ZyX5enNvNvrft8s7EuJwPw5jr5Lh4fVLxmdqWXGNEgAj4ek+Qnu/FbCfHazH7FTH1frjfYDpvMc/J8X3MefaeQcypOwGWA0SACPjtxjB/0LMZc5Acd2PWXbq5yR8EvZabw9RFzJE7AZYDRMAU2jX2Cp2YjQn7COa3j6t6UNd1J8BygAiY0Z4gD6XjUi30HqE5Yd/gToAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAkSACBABIkAEiAARIAJEgAgQASJABIgAESACRIAIEAEiQASIABEgAhZa2yX498bl5OfcCRABImAarYpzzXI+1ppi39CPuSnnIWYlZpTMWFBzNUp+b8XcxZy5E2A5QARMoVnjPZ2Y1eR4K+aw4u/St+x7Wy7vnzwHyK/1Vcxx9pnHmAt3AiwHiAARMOuNYf6+fKPYKI/3kuNuzHr2ef+sqmeUbfyGMYPk+Lbx+UHQU8xlxWZy5E6A5QAR8Ad7gjoxLWff62HRbOTre/H65afrvwhEIAIRiEAEAAAA8L13AQYAsCVONcFeYfQAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 643.1602 901.2412)"></image><image width="110" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACrCAYAAABR23OZAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAgBJREFUeNrs3V1O6zAQgNGYZBu0hY20XjlhI0BZR6LgSkWo4s8PVMSjc15AV33yp+nEUHS7DgAgiFTzonme9+XL6Liubuz7Pv9pRPHaiJkEbD9kErD9kEnA9kMmAdsPeeN8Al0xpmkyhSufxmEYskkMSsR2HMq75YOIQQ3v3yzL4jS8nSIiItqJdqJJRERE5GMnOguTiIiIKCIu+5hERETEWDuxsxNNIiIiop3onmgSERERudiJDsMkIiIiikiUBxufdzOJiIiIduL5sm8nmkREREQ70U40iYiIiIgY6sHGz79NIiIiop3osm8SERER6XxQyiQiIiLinmgSERERETHyg43DMImIiIh2osu+SURERMRONImIiIiIGPDBxp9FmUREREQ70WXfJCIiItL5oJRJRERExD3RJCIiIiJi4AcbvxQ2iYiIiHaiy75JRERExH+pYBIRERFxTzSJiIiIiOjBBpOIiIgYfif6CbhJREREtBPP90SHYRIRERFFJMyDjScbk4iIiGgnuu2bRERERNwTTSIiIiKfdqKzMImIiIgi4rKPSaTWuNvcZhGjT2Kp/Fi+HBxJwzvRXlz3W+nddpOrdmJ5oWlsUPrqH5+Pr/tTfcez/in8NqKQ7QT8MeLJ08tRyH8MeL/b5poXpt9eIOR641VHFHS98QAAAK7gTYABAFHCmI5PeqjQAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 645.1602 901.7412)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M648.66,902.241h19	c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3h-19c-1.657,0-3-1.344-3-3l0,0v-32C645.66,903.584,647.003,902.241,648.66,902.241z"/><text transform="matrix(1 0 0 1 648.4971 927.7412)" font-family="\'Arial-BoldMT\'" font-size="22">M</text><image width="171" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAK8AAAC3CAYAAABkFw6DAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAihJREFUeNrs2jFOAkEYhmFhiQmJlYUHsLUx0QvYeAWu6A2srLyAldfQyoQExP7LJCzjFLPs83Q/WSw2L5N/keUFTNTSLUC8IF4QL+IF8YJ4QbxM2qriPY+F1+4a/F2m7RDzNuaXmPdOXqwNIF7oaOd9GLHzrmNeuLWzlzvtc8yvTl6sDSBeEC/8/4Ht/sjDmQc0SoaYb528IF7ECx3vvFf2Wxq4dPKCeBEvdLzzDm4TDTR/VnLyYm0A8YJ4ES+IF8QL4kW8IF4QL+IF8YJ4QbyIF8QL4kW8IF4QL4gX8YJ4QbyIF8QL4gXxIl4QL4gX8YJ4QbwgXsQL4gXxIl4QL4gXxIt4QbwgXsQL4gXxgngRL4gXxAviRbwgXhAv4gXxgnhBvIgXxAviRbwgXhAviBfxgnhBvIgXxAviBfEiXhAviBfxgnhBvCBexAviBfEiXhAviBfEi3hBvCBexAviBfGCeBEviBfEi3hBvCBeEC/iBfGCeEG8iBfEC+JFvCBeEC+IF/GCeEG8iBfEC+IF8SJeEC+IF/GCeEG8IF7Ox2rENbuK90D6dfKCeBEvdLzzfsd87UNADwel6PBpAPFCw533LeZN4Zp9zINbO3vZxLuTF8SLeEG8cJpFxTU3hWuejlzjxzzn/0D2FfNHzJ8x75y8WBtAvNDRzjvmPeuY/ZNifvLH5tvWO66TF2sDiBcq1Xz/eii89uNW4uQF8SJeEC+IF8TLtP0JMAD40RktzDio0AAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 404 901.2412)"></image><image width="152" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJoAAACrCAYAAACe2YUfAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAmVJREFUeNrs3b1KM0EUgOGMeIWipWghxk6vwL8LEG3EiIViqXiJM5LCILjJLsmwHp3nqT4+UoWX45ldd51MAACAJqUhH3p6/Si+Kr472t9J1UITGLWCW/qhx5d3kTHI8cFuWis0kVE7tiQyxogtiYwxYtvy1TCGRX2z5zfTjCqmh3vJRONXCA2h8Td1rWHbX//I2YqGiYbQQGgEsdjRSsm+DUw0hAZCI9iOlovraJhoCA2EhtBo8jBQ3FTHRENoIDTi7WhuqmOiITQQGuF2NA+nYKIhNBAa8Xa04hcfMdEQGggNodHmYcBTUJhoCA2ERrwdrWS/+IiJhtBAaETb0VxHw0RDaCA0hEajhwFvE8JEQ2ggNALuaN4mhImG0EBohNvR3FTHRENoIDTi7WjudWKiITQQGkKj0cOAC7aYaAgNhEa8Hc3bhDDREBoIjYA7mutomGgIDYSG0GjzMOCmOiYaQgOhEW9Hc1MdEw2hgdCIt6O5joaJhtBAaMTb0bxNCBMNoYHQEBqNHgZcsMVEQ2ggNOLtaP6MIiYaQgOhEXBHc1MdEw2hgdAIt6O514mJhtBAaAiNRg8D3iaEiYbQQGjE29FcsMVEQ2ggNOLtaP6MIiYaQgOhITQaPQxkT0FhoiE0EBrhdjRvE8JEQ2ggNALuaK6jYaIhNBAa4XY0D6dgoiE0EBpCo9HDgJvq1HJ/c5lMNPzopIHQusYdVN/R5jygwqYebq86B9aP/zw5u1AbVSPr3NFWfRjWtTQqk41a02xlaHPT03Ox0Wt2d937U7D3A2Jjk8AGhyY61o0LAAAA4B/5FGAAkkGga9muMrIAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 406 901.7412)"></image><path fill="none" stroke="#67707C" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M409.5,902.241	h29.294c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3H409.5c-1.657,0-3-1.344-3-3l0,0v-32	C406.5,903.584,407.843,902.241,409.5,902.241z"/><polygon fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="	428.668,928.807 428.668,923.181 433.194,923.181 424.142,913.681 415.09,923.181 419.616,923.181 419.616,928.807 "/><image width="171" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAK8AAAC3CAYAAABkFw6DAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAkZJREFUeNrs2r9Kw1AYxmH7R6ngIoKLk6Pg4CpegnfsDQgOunXSydW1wdIaxfUlcFppbNo8z/ZhinD4cfhSHR7Ajho6AsQL4gXxIl4QL4gXxMtOG6/5/Cjm24ZnLmM+csy99xbzY8xzNy/WBhAvdGjnvY/5ouGZScwDx9x7VzFXMb/EvHDzYm0A8YJ4ofzClnGfxXzsCFlBdnId89QLG9YGEC9sceetxU4LTmL+0x+yxIi1AcQLG9p5obPduXmxNoB4QbyIF8QL4gXxIl4QL4gX8YJ4QbwgXsQL4gXxIl4QL4gXxIt4QbwgXsQL4gXxgngRL4gXxIt4QbwgXhAv4gXxgngRL4gXxAviRbwgXhAv4gXxgnhBvIgXxAviBfEiXhAviBfxgnhBvCBexAviBfEiXhAviBfEi3hBvCBexAviBfGCeBEviBfEi3hBvCBeEC/iBfGCeBEviBfEC+JFvCBeEC/iBfGCeEG8iBfEC+JFvCBeEC+IF/GCeEG8IF7EC+IF8SJeEC+IF8SLeEG8IF7EC+IF8YJ4ES+IF8SLeEG8IF4QL/tjXPj5qdhpwdLNi7UBxAsd2nkXhV3lu+EzA8dKqGOer9CRmxdrA4gX/mvnncX8HPNdw2cmjrX3loXOHmKu3LxYG0C8IF5Y/4UtvzyexvzZ8JmbmM9jPnTse/+C9hHzU8zvMdduXqwNIF7Y4s6b8h91XhueyX1m5Jh756vwblRv4pe4ebE2gHihpZ23tNv8qhwrbl4QL+IF8YJ4ES/snh8BBgAJmCYSUU3augAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 680.7002 901.2412)"></image><image width="152" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ4AAACrCAYAAACXMiVlAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAmNJREFUeNrs3c8uxFAUwOG54gmFpbAQY8cT+PcAwkaMWBBL4hF7ZXYWHe20pykn37cUNpNfjnOrrcUCAAAgQNn2B17ev6qPjZ9ODvfKZOEJjsgAe33j89un6Ojl9Gi/hIQnOqaIr4iOOeIromOO+HZ8PMyhtcjV64dpR4jl8UEx8fgzhIfwyGfT2rbb9sWmseJh4iE8EB7/WOuOV2vjk8HEQ3ggPJLteE11HQ8TD+GB8BAeBBwuqpsEMPEQHgiPfDuemwQw8RAeCI90O56HfTDxEB4Ij3w7XnUjKCYewgPhITyIOFx4ygwTD+GB8Mi349XGjaCYeAgPhEe2Hc91PEw8hAfCQ3gQcrjwtihMPIQHwiPhjudtUZh4CA+ER7odz00CmHgID4RHvh3P32ox8RAeCA/hQcjhwgVkTDyEB8Ij347nbVGYeAgPhEfCHc91PEw8hAfCQ3gQcbhwkwAmHsID4ZFvx3OTACYewgPhkW/Hcx0PEw/hgfDIt+N5WxQmHsID4SE8CDlcuICMiYfwQHjk2/H821BMPIQHwiPhjucmAUw8hAfCI92O52+1mHgID4SH8CDkcOFtUZh4CA+ER74dzwVkTDyEB8Ij347n34Zi4iE8EB7Cg5DDReMpM0w8hAfCI92O521RmHgID4RHwh3PdTxMPIQHwiPdjudhH0w8hAfCQ3gQcrhwkwBRHu+ui4mHX7UIr/d4hEl3vDUP/DDW0/3NxgH262Q7u7hSH+HRde54XT8MQ/UKy+Qjctr1Dm9teX4pPjqtHm57NbXVr1LxMTa4QeGJkDGxAQAAADDYtwADAL8coGsPRcRLAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 682.7002 901.7412)"></image><path fill="none" stroke="#67707C" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M686.2,902.241	h29.294c1.657,0,3,1.343,3,3v32c0,1.656-1.343,3-3,3H686.2c-1.657,0-3-1.344-3-3l0,0v-32	C683.2,903.584,684.543,902.241,686.2,902.241z"/><path fill="#FFFFFF" d="M704.85,919.241L704.85,919.241l3-3l2,2l-3,3l3,3l-2,2l-3-3l-3,3l-2-2l3-3l-3-3l2-2L704.85,919.241z	 M698.85,929.241h6h6c1.105,0,2-0.896,2-2v-12c0-1.104-0.896-2-2-2h-6h-6h-2l-8,8l8,8H698.85z"/><image width="659" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAApcAAAC8CAYAAAAtmIVNAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABG1JREFUeNrs3cFqE1EUgOGmSaxU0grixqUrce3elS/io/ks4taNgo8giLRSbUJNMuL2cPTOhDvtbfJ9uzO9k8DM5qd3khwdAQAAAAAAAAAAAAAAAAAAAAAAB2wywvnTMB9Xfk8AAP6vK8yb5JxtC3E5S46dhflhITYBABg3Lm/CfJWcsxKXAACIS/cbAEBcZusfJWuehnkR5qn7DQAwqm0hHL8l51wWXmOUuJyH+Xmy5mWYn4X5xP0GABjVuhCOn5NzvoT51y5vbIsaAIBqxCUAANXMBq6PH855nKyJ296+1xIA4HZNCs13npxzGubrMHe7vHHJizC/7hGXM/cXAOBOrXv02fswfwzz7z5vZFscAIBqxCUAAOISAID2DH0e8qxHnPoADwBAW/r02aJG000G/v1tmM/dKwCAvRB/xeddmH/2eRHb4gAAVCMuAQCopvTMZVeYAQDYD1U+N+MLzgEA+GteIzZtiwMAUI24BABAXAIA0J6hz1z6gnQAgP103MyLAACAuAQAQFwCACAuAQAQlwAAIC4BABCXAACISwAAxKVLAACAuAQAQFwCACAuAQBAXAIAIC4BABCXAACISwAAEJcAAIhLAADEJQAAiEsAAMQlAADiEgAAcQkAAOISAABxCQCAuAQAAHEJAIC4BABAXAIAIC4BAEBcAgAgLgEAEJcAACAuAQAQlwAAiEsAAMQlAACISwAAxCUAAOISAADEJQAA4hIAAHEJAIC4BAAAcQkAgLgEAEBcAgCAuAQAQFwCACAuAQAQlwAAIC4BABCXAACISwAAEJcAAIhLAADEJQAA4hIAAMQlAADiEgAAcQkAgLgEAABxCQCAuAQAQFwCAIC4BABAXAIAIC4BABCXAAAgLgEAEJcAAIhLAAAQlwAAiEsAAMQlAADiEgAAxCUAAOISAABxCQAA4hIAAHEJAIC4BABAXAIAgLgEAEBcAgAgLgEAQFwCACAuAQAQlwAAiEsAABCXAACISwAAxCUAAIhLAADEJQAA4hIAAHEJAADiEgAAcQkAgLgEAABxCQCAuAQAQFwCACAuAQBAXAIAIC4BABCXAAAgLgEAEJcAAIhLAADEJQAAiEsAAMQlAADiEgAAcQkAAOISAABxCQCAuAQAAHEJAIC4BABAXAIAIC4BAEBcAgAgLgEAEJcAACAuAQAQlwAA3Cezwt8nLhEAwEHobiMu52ITAIC+bIsDACAuAQBoz9BnLrvCnJ0DAED77uSZy851BwDgX2yLAwAgLgEAaE9pW3wT5mWYF8k5U5cVAKBp2+TYTZh3ehyyFJerMH8N8xNxCQBw76yTYxc9ArTItjgAANWISwAAxCUAAO0pPXMZH+T8EeZlcs7WZQUAaNoqOfY9zJtdXnjor+k8CPObZM2p+wUA0JT4D8OrZM2HHmuKbIsDAFCNuAQAoJqh2+LxGc1XyZoTlxUAoGnXybFPYV66TAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAfgjwADAHPtQ2STNb+dAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 483.7202 954.8906)"></image><image width="641" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAoYAAACnCAYAAACM5Z3DAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABCNJREFUeNrs3NFqE1EQgOHd4LMoiO+Q9KpCfVwL9srNM1iL+jJrs7Sgw5wkGxSyO9930UJpCj1XP8Oc03UAAAAAAAAA8Jd+7gcen35tHRsAwHX78P7t/r+F4R9BODhqAICrt5sbiGeF4ePTz60gBABYciC+OxmIJ8NQFAIArCMQT8VhLwoBAMThwUYUAgCUcbTtNpd+EACA5XkZ/qXeZD/89v3HdhxHJwcAsD5D11gn3Bz5AAAAK3QYAs4JQwAA1msQhgAANKU7hvYLAQDqMTEEAEAYAgAgDAEACBo7hg4GAKAaE0MAAIQhAADCEACAwDuGAABMTAwBABCGAAAIQwAAhCEAAJn88knn8gkAQDUmhgAACEMAAIQhAABB44FrBwMAUI2JIQAAwhAAAGEIAECQ7hhaMgQAqMfEEAAAYQgAgDAEACBovGNoxxAAoBoTQwAAhCEAAMIQAABhCABApnH5xMEAAFRjYggAgDAEAEAYAgAQ5DuGnSVDAIBqTAwBABCGAAAIQwAAgsY7hnYMAQCqMTEEAEAYAgAgDAEAEIYAAGQal08cDABANSaGAAAIQwAAhCEAAIEHrgEAmJgYAgAgDAEAEIYAAAR2DAEAmJgYAgAgDAEAEIYAAATpjmFnxRAAoBwTQwAAhCEAAMIQAABhCABAJn/g2u0TAIByTAwBABCGAAAIQwAAgnzHcLRjCABQjYkhAADCEAAAYQgAQGDHEADgn+gX/x+YGAIAIAwBABCGAAAIQwAAMo3LJw4GAGCe5QeUiSEAAMIQAABhCABA4IFrAAAmJoYAAAhDAACEIQAAQb5j2NkxBACoxsQQAABhCACAMAQAIEh3DK0YAgDUY2IIAIAwBABAGAIAIAwBAMjkD1yPbp8AAFRjYggAgDAEAEAYAgAQ2DEEAGBiYggAgDAEAEAYAgAQNHYMHQwAQDUmhgAACEMAAIQhAACBdwwBAJiYGAIAIAwBABCGAAAIQwAAMvnlk87lEwCAakwMAQAQhgAACEMAAILGA9cOBgCgGhNDAACEIQAAwhAAgKCxY2jJEACgGhNDAACEIQAAwhAAAGEIAEAmvXzihWsAgHpMDAEAEIYAAAhDAACCxgPXDgYAoBoTQwAAhCEAAMIQAIAg3zHsLBkCAFRjYggAgDAEAEAYAgAQNN4xtGMIAFCNiSEAAMIQAABhCACAMAQAINO4fOJgAACqMTEEAEAYAgBwOgwHRwMAsFpp6/Wt375/2Ns0BABYobvbbdqAm7klCQDAojUbrz/2qfuH/dfnbzvnBwCwjii8u93eXBSG4hAAoEYUnhWGr3E4jqM4BABYoL7vT0bh2WF48PnLYHIIALAsw+HLp4+7m3N+uZ/zl1/i8JVIBABYQRBeFIZHIhEAgCsxNwgBAAAAAAAAAAAAjvktwAAZuaGrp9w61AAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 485.7202 955.3906)"></image><path fill="none" stroke="#CCCCCC" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M489.22,955.891	h146.55c1.657,0,3,1.344,3,3v32c0,1.657-1.343,3-3,3H489.22c-1.657,0-3-1.343-3-3l0,0v-32	C486.22,957.234,487.563,955.891,489.22,955.891z"/><text transform="matrix(1 0 0 1 539.3115 981.3906)" fill="#5C6671" font-family="\'Arial-BoldMT\'" font-size="16">space</text><image width="325" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUUAAAC8CAYAAADvnrw4AAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA1NJREFUeNrs3MFqE1EYhmFTq40garUVFbwEFy4E7/82VASLdNFFpbYRNWncufg40HM8mc6MPM/uLyddTOAl/2TI3h0A/tpzCQBEEUAUAUQRQBQBRBGg2/5A/ydju3CpgR3Yxnwd83qMKJY+XT6OeSmKwAAygj9iPrc+A+yQKAJ0rs/Lwt+exPxQfIEBbGK+iHkV888hopj3A18VzryN+eUO4guQfsd8EnPec/xifQboIIoAjWvtQcxPC2fu3bByA+zC4oY+HcV8WrGCN0fxOOb3hTO5x9/13gG38EHuecz5fcZJ4X+cWZ8BKokigCgC1O3nJYcVZ3yxAowh25M/GPGo8Jqz3ii+qwigh7OBKXywy1/JeVN4zSfrM0AlUQRoXHuFE5iLvL13f4goPojZg9nAVGWfjq3PAB1EEaBxffYMIjBXzf2qiaJ7iMBcNX/RYn0GEEUAUQQQRQBRBBBFAFEEEEUAUQQQRQBRBBBFAFEEEEUAUQQQRQBRBBBFAFEEEEUAUQQQRQBRBBBFAEQRQBQBRBFAFAFEEUAUAUQRQBQBRBFAFAFEEUAUAUQRQBQBRBFAFAFEEUAUAUQRQBQBRBFAFAFEEQBRBBBFAFEEEEUAUQQQRQBRBBBFAFEEEEUAUQQQRQBRBBBFAFEEEEUAUQQQRQBRBBBFAFEEEEUAUQQQRQBEEUAUAUQRQBQBRBFAFAFEEUAUAUQRQBQBRBFAFAFEEUAUAUQRQBQBRBFAFAFEEUAUAUQRQBQBRBEAUQQQRQBRBBBFAFEEEEUAUQQQRQBRBBBFAFEEEEUAUQQQRQBRBBBFAFEEEEUAUQQQRQBRBBBFAFEEEEUARBFAFAFEEUAUAUQRQBQBRBFAFAFEEeAW7Vec2ca8cNmAmbgeIoqbf3gNwBSsrc8AHUQRoHEVXlufgZn6NUQUr2Jeus7ATHyzPgN0EEWAxvX5MuZDcQUmIp+jzkcIvw8Rxc8xvyicOfDeABOwivmj9RmggygCiCJAWc09xbxReVU4s3UpgRFkey5iXg0RxbxR+bpw5pn3BhhB/grOh5i/Wp8BOogiQOP6nDv7eeHMxqUERpB9unRJAKzPAKIIIIoAogggigCiCCCKAKIIIIoAogggigCiCPCf+SPAAOsQNtuyBAkNAAAAAElFTkSuQmCC" transform="matrix(0.24 0 0 0.24 404 954.8906)"></image><image width="308" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAATQAAACnCAYAAACfBKDGAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA1tJREFUeNrs3LtuE0EUgOGdKO/l+BGADugJooMK0YJogAoUUnOpuDwCzpMN2sgGK4w3K6Ej7xx9XxUpUYopfs05E2cYAAAAIESZ80Ov312sHBVwLM+fPr7676DthWzjSIEjOpsTtoNBe/X2w6oMRciAxahDvQ7bi2dPrmYHbYyZWxmw5BtbK2onYgZ0qNmoEzEDerTt1eQNTcyAbm5pN6N2uvvi5Zv3q1qrIwJ6Gz1L64bmdgZ0Z7yMHRo5AXq8pQkakMufHZr9GZAoaA4D6JuRExA0gAWPnGZOIEnQxs+xAxg5AQQNIGDktEMDEgXNYQBGTgBBAxA0gAaPAoAbGoCgAQgawDQ7NCBh0Hw4HTByAggaQNDIaYcGZAmaFRpg5AQQNICgkdMODcgTNGcBGDkBBA1A0ABaPAoA+YLmVQAwcgIIGkDQyGmHBqQJmiUaYOQEEDSAoJHTDg1IFDSHARg5AQQNQNAAGjwKAG5oAIIGIGgA0+zQgIRB8+F0wMgJIGgAQSOnHRqQJWhWaICRE0DQAIJGTjs0IE/QnAVg5AQQNABBA2jxKADkC5pXAcDICSBoAEEjpx0akCdolmiAkRNA0ACCRk47NMANDUDQAAQNQNCA1DwKAPmC5u9qASMngKABBI2cdmhAnqBZogFGTgBBAwgaOe3QgCxBs0IDjJwAggYQNHLaoQF5guYsACMngKABCBpAi0cBIF/QvAoARk4AQQMIGjnt0IA8QbNEA4ycAIIGEDRy2qEBbmgAggYgaAAtdmhAxqA5DMDICSBoAIIG0OBRAMgXNP/hETByAggaQNDIaYcGpAmaFRpg5AQQNICgkdMODcgTNGcBGDkBBA1A0ABaPAoA+YLmVQAwcgIIGkDQyGmHBuQJmiUaYOQEEDSAoJHTDg1wQwMQNABBA2ixQwMyBs1hAEZOAEEDEDSABo8CQL6g+Q+PgJET4Lg2raBtnAvQm2+fLta7r8v+N+49PDd3At0opWz2g3a6/81ar29pZ44J6MH3z39jdnPkHH58+bg2egKd+KdVpfVTdx+c/3JTA5Ycs+0F7Pag7aJWaxU1YFHGvVkrZpNBG925/8hNDVjUiPnz6+X6YOxu+w3bqO2IG7C4kM0O2kTcAMLNCRkAAAAAMM9vAQYAr8jhAbs+OQYAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 406 955.3906)"></image><path fill="none" stroke="#67707C" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M409.5,955.891	h66.835c1.657,0,3,1.344,3,3v32c0,1.657-1.343,3-3,3H409.5c-1.657,0-3-1.343-3-3l0,0v-32	C406.5,957.234,407.843,955.891,409.5,955.891z"/><text transform="matrix(1 0 0 1 421.9604 981.3906)" fill="#FFFFFF" font-family="\'Arial-BoldMT\'" font-size="16">.?123</text><image width="325" height="180" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUkAAAC8CAYAAAD1oly2AAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABEpJREFUeNrs3E1vElEUgOEBpkS0flVddOPOnWv//98wutHETXVhU8CWQnFuAsn1OFA6DALxeZKb9JaRGkjecIbJdAsAVup6CQBEEkAkAUQSQCQBRBLg4JUtPU+nWr2w79QcA7CNec3v7sLjs0OIZLfmeZ6Gx/siCewgkvMQyEm2v63W8J6oGrcB2iKSAC2P2ymsj8Lv0mj9Itun85ODMGobt4E2xu38HGQ6/zjO9pPFyL1qHN9ZJPNPnCmQ5+Hx02q9C9F8HSLZ8/4CW7or/vxi5qZa37P9VbU+Zfvr8PgytBufqzRuA4gkwO7G7TQqn4Rx+ywcMwjHlIVzkED74vcb8XLDx9V6le1H1bqsGdk3Pk+5SSRT/F5m+3Su8UPNjB8/oToHCewikmVozZtwzNvs53Q+chgeT+cxfxi3AVogkgAiCdBMuWbuz495lu2frDi+s+LfA+xS7M18Tb+SdPH5xuckyxV/MP/SJd244n2279d8Au0U7d1RCOAh03A3BDK/2Pw09Cu5qNYX4zZASxUG4AHjdl1I84s1Two31AUOV7zYvGzQvXsPzj9hpkCe3fNHAQ4lkL3Qr/jFzdC4DdASkQRoMG6vi6nzj4BIhkD2vVTAEaq74feDJmjjNoBIAogkgEgCiCSASAKIJIBIAogkgEgCIJIAIgkgkgAiCSCSACIJIJIAIgkgkgAiCYBIAogkgEgCiCSASAKIJIBIAogkgEgCIJIAIgkgkgAiCSCSACIJIJIAIgkgkgAiCYBIAogkgEgCiCSASAKIJIBIAogkgEgCIJIAIgkgkgAiCSCSACIJIJIAIgkgkgAiCYBIAogkgEgCiCSASAKIJIBIAogkgEgCIJIAIgkgkgAiCSCSACIJIJIAIgkgkgAiCYBIAogkgEgCiCSASAKIJIBIAogkgEgCIJIAIgkgkgAiCSCSACIJIJIAIgkgkgAiCYBIAogkgEgCiCSASAKIJIBIAogkgEgCiCQAIgkgkgAiCSCSACIJIJIAIgkgkgAiCYBIAogkgEgCiCSASAKIJIBIAogkgEgCiCQAIgkgkgAtKjc4Zl6tu2zfWSyAQzdfrJ1HchYiWXrtgSMK5bq9cRugKZEEaDBuz8PPk2zfM24DRzRaz8LvZm1EMndbrZ/Zvl+tR94L4AhCmYL4Kzw+MW4DtEQkARqM2/nH1Wm1htl+sGKm73k5gT2O1sv9NIzW43DM9baRjCc6R9X6nO2fV+usJpAD7xew51BOF81aSh/wvobjr4zbAC0RSQCRBGhmky9u0s0t8uuMTmpm+vQ8bnoB7EN+A550XXf+RfOoplfjNiKZS98Efcv2l8XfF5On/bn3CvjH4l3KUq8usn0K5EfjNsCOiCTAluP28iPt0rRmxr8pXEwO7Ec+bk9Cn8bbPnnZ4D8x2nbGBzBuA4gkgEgCiCQAIgkgkgAiCSCSACIJIJIAIgkgkgD/j98CDAC6mXZeaSNi1wAAAABJRU5ErkJggg==" transform="matrix(0.24 0 0 0.24 643.1602 954.8906)"></image><image width="308" height="164" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAATkAAACnCAYAAABq+it2AAAACXBIWXMAAC4jAAAuIwF4pT92AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA75JREFUeNrs3DtuU0EUgGHfJH1SsgUanIKCliXQUrlDiAZDhWhBNASlAAW6SDwqHi3sgILCAQnYAl12MFxHTmRFsnMT0Pjcme+TLBwwzRS/5pybZDAAAACAcJouH3rybG+z/WPbcQErcvjg3u2D/x65ubhNX7vOGViRSfu6e5HYLYzc450X08CNmkEjbkCY2KVBOordw/t3OsWuWRY4tzcg8M1u1CV0awIH9FDnFdqawAE9tdU2a3jem5wHDECfbnP7Z4Vu4/jNo6fPN1NKvk0E6OPYer3LTc4tDujl2Npe0oZdx1WAvt7mRA6oz8lOLqXkNICSI+cwgPIYVwGRAyhgXDWvAgVHrs2c0wCMqwAiBxBtXLWTAwqPnMMAjKsAIgcgcgAZePAAuMkBiByAyAHkZScHVBI5P6APGFcBRA4g4LhqJweUHDkrOcC4CiByAAHHVTs5oOzIOQvAuAogcgAiB5CDBw9AHZHz5AEwrgKIHEDAcdVODig6cpZygHEVQOQAAo6rdnJA4ZFzGIBxFUDkAEQOIAMPHgA3OQCRAxA5gLzs5IBKIucH9AHjKoDIAQQcV+3kgJIjZyUHGFcBRA4g4LhqJweUHTlnARhXAUQOQOQAcvDgAagjcp48AMZVAJEDCDiu2skBZUfOUg4wrgKIHEDAcdVODnCTAxA5AJEDEDmAf+TBA1BH5HwvMGBcBRA5gIDjqp0cUHbkLOUA4yqAyAEEHFft5ICSI2clBxhXAUQOIOC4aicHlB05ZwEYVwFEDkDkAHLw4AGoI3KePADGVQCRAwg4rtrJAWVHzlIOMK4CiBxAwHHVTg5wkwMQOQCRA8jBTg6oJXIOAzCuAogcgMgBZODBA1BH5PzWTMC4CiByAAHHVTs5oOjIWckBxlUAkQMIOK7ayQFlR85ZAMZVAJEDEDmAHDx4AOqInCcPgHEVQOQAAo6rdnJA2ZGzlAOMqwAiBxBwXLWTA9zkAEQOQOQAcrCTA2qJnMMAjKsAIgcgcgAZePAA1BE5vzUTMK4CxHPYviZdIrf0gwBBTd6/3hsv+sf14zc/v3/7c/nK1d/t25EzA/pyi2ua5nPbry+LPrAx/0VKJ7e5bWcH9OEW9+HN4lvc6XF18PHty4PZTc7YCoS/xXVp1frpv/j142hs/dq+vda+LjlHIGjg9tuL2fjckZsPXUpJ6IBwgWuaplPgpppl/3jj5q3htJYDOzogzng6+fTu1bjrf2rO+sAsdLuzL7cED+hD3DpHbknwAHK4UNwAAAAAgNX4K8AAii4AGvlInzoAAAAASUVORK5CYII=" transform="matrix(0.24 0 0 0.24 645.1602 955.3906)"></image><path fill="none" stroke="#67707C" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M648.66,955.891	h66.834c1.657,0,3,1.344,3,3v32c0,1.657-1.343,3-3,3H648.66c-1.657,0-3-1.343-3-3l0,0v-32	C645.66,957.234,647.003,955.891,648.66,955.891z"/><text transform="matrix(1 0 0 1 658.4639 981.3906)" fill="#FFFFFF" font-family="\'Arial-BoldMT\'" font-size="16">return</text></g></g></g>',
+    defaults: joint.util.deepSupplement({
+    
+        type: 'apple.SimpleiPhoneKeyboard',
+        size: { width: 322, height: 218 },
+        attrs: { '.': { fill: 'black' } }
+        
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.shapes.apple;
+}
+
 if (typeof exports === 'object') {
 
     var joint = {
@@ -23811,6 +23337,4883 @@ if (typeof exports === 'object') {
     module.exports = joint.shapes.uml;
 }
 
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+
+if (typeof exports === 'object') {
+
+    var joint = {
+        util: require('../src/core').util,
+        shapes: {
+            basic: require('./joint.shapes.basic')
+        },
+        dia: {
+            Link: require('../src/joint.dia.link').Link
+        }
+    };
+}
+
+joint.shapes.logic = {};
+
+joint.shapes.logic.Gate = joint.shapes.basic.Generic.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Gate',
+        size: { width: 80, height: 40 },
+        attrs: {
+            '.': { magnet: false },
+            '.body': { width: 100, height: 50 },
+            circle: { r: 7, stroke: 'black', fill: 'transparent', 'stroke-width': 2 }
+        }
+
+    }, joint.shapes.basic.Generic.prototype.defaults),
+
+    operation: function() { return true; }
+});
+
+joint.shapes.logic.IO = joint.shapes.logic.Gate.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><path class="wire"/><circle/><text/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.IO',
+        size: { width: 60, height: 30 },
+        attrs: {
+            '.body': { fill: 'white', stroke: 'black', 'stroke-width': 2 },
+            '.wire': { ref: '.body', 'ref-y': .5, stroke: 'black'},
+            text: {
+                fill: 'black',
+                ref: '.body', 'ref-x': .5, 'ref-y': .5, 'y-alignment': 'middle',
+                'text-anchor': 'middle',
+                'font-weight': 'bold',
+                'font-variant': 'small-caps', 
+                'text-transform': 'capitalize',
+                'font-size': '14px'
+            }
+        }
+
+    }, joint.shapes.logic.Gate.prototype.defaults)
+
+});
+
+joint.shapes.logic.Input = joint.shapes.logic.IO.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Input',
+        attrs: {
+            '.wire': { 'ref-dx': 0, d: 'M 0 0 L 23 0' },
+            circle: { ref: '.body', 'ref-dx': 30, 'ref-y': 0.5, magnet: true, 'class': 'output', port: 'out' },
+            text: { text: 'input' }
+        }
+
+    }, joint.shapes.logic.IO.prototype.defaults)
+});
+
+joint.shapes.logic.Output = joint.shapes.logic.IO.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Output',
+        attrs: {
+            '.wire': { 'ref-x': 0, d: 'M 0 0 L -23 0' },
+            circle: { ref: '.body', 'ref-x': -30, 'ref-y': 0.5, magnet: 'passive', 'class': 'input', port: 'in' },
+            text: { text: 'output' }
+        }
+
+    }, joint.shapes.logic.IO.prototype.defaults)
+
+});
+
+
+joint.shapes.logic.Gate11 = joint.shapes.logic.Gate.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input"/><circle class="output"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Gate11',
+        attrs: {
+            '.input': { ref: '.body', 'ref-x': -2, 'ref-y': 0.5, magnet: 'passive', port: 'in' },
+            '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
+        }
+
+    }, joint.shapes.logic.Gate.prototype.defaults)
+});
+
+joint.shapes.logic.Gate21 = joint.shapes.logic.Gate.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input input1"/><circle  class="input input2"/><circle class="output"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Gate21',
+        attrs: {
+            '.input1': { ref: '.body', 'ref-x': -2, 'ref-y': 0.3, magnet: 'passive', port: 'in1' },
+            '.input2': { ref: '.body', 'ref-x': -2, 'ref-y': 0.7, magnet: 'passive', port: 'in2' },
+            '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
+        }
+
+    }, joint.shapes.logic.Gate.prototype.defaults),
+
+});
+
+joint.shapes.logic.Repeater = joint.shapes.logic.Gate11.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Repeater',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PVCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjgiCiAgICAgaW5rc2NhcGU6Y3g9Ijg0LjY4NTM1MiIKICAgICBpbmtzY2FwZTpjeT0iMTUuMjg4NjI4IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzIuMTU2OTEsMjUgTCA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAyOS4wNDM0NzgsMjUgTCA1LjA0MzQ3ODEsMjUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgZD0iTSAyOC45Njg3NSwyLjU5Mzc1IEwgMjguOTY4NzUsNSBMIDI4Ljk2ODc1LDQ1IEwgMjguOTY4NzUsNDcuNDA2MjUgTCAzMS4xMjUsNDYuMzQzNzUgTCA3Mi4xNTYyNSwyNi4zNDM3NSBMIDcyLjE1NjI1LDIzLjY1NjI1IEwgMzEuMTI1LDMuNjU2MjUgTCAyOC45Njg3NSwyLjU5Mzc1IHogTSAzMS45Njg3NSw3LjQwNjI1IEwgNjguMDkzNzUsMjUgTCAzMS45Njg3NSw0Mi41OTM3NSBMIDMxLjk2ODc1LDcuNDA2MjUgeiIKICAgICAgIGlkPSJwYXRoMjYzOCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2NjY2NjYyIgLz4KICA8L2c+Cjwvc3ZnPgo=' }}
+
+    }, joint.shapes.logic.Gate11.prototype.defaults),
+
+    operation: function(input) {
+        return input;
+    }
+
+});
+
+joint.shapes.logic.Not = joint.shapes.logic.Gate11.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Not',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PVCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjgiCiAgICAgaW5rc2NhcGU6Y3g9Ijg0LjY4NTM1MiIKICAgICBpbmtzY2FwZTpjeT0iMTUuMjg4NjI4IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzkuMTU2OTEsMjUgTCA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAyOS4wNDM0NzgsMjUgTCA1LjA0MzQ3ODEsMjUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgZD0iTSAyOC45Njg3NSwyLjU5Mzc1IEwgMjguOTY4NzUsNSBMIDI4Ljk2ODc1LDQ1IEwgMjguOTY4NzUsNDcuNDA2MjUgTCAzMS4xMjUsNDYuMzQzNzUgTCA3Mi4xNTYyNSwyNi4zNDM3NSBMIDcyLjE1NjI1LDIzLjY1NjI1IEwgMzEuMTI1LDMuNjU2MjUgTCAyOC45Njg3NSwyLjU5Mzc1IHogTSAzMS45Njg3NSw3LjQwNjI1IEwgNjguMDkzNzUsMjUgTCAzMS45Njg3NSw0Mi41OTM3NSBMIDMxLjk2ODc1LDcuNDA2MjUgeiIKICAgICAgIGlkPSJwYXRoMjYzOCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2NjY2NjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDI2NzEiCiAgICAgICBzb2RpcG9kaTpjeD0iNzYiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA4MCwyNSBBIDQsNCAwIDEgMSA3MiwyNSBBIDQsNCAwIDEgMSA4MCwyNSB6IgogICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEsMCkiIC8+CiAgPC9nPgo8L3N2Zz4K' }}
+
+    }, joint.shapes.logic.Gate11.prototype.defaults),
+
+    operation: function(input) {
+        return !input;
+    }
+
+});
+
+joint.shapes.logic.Or = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Or',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik9SIEFOU0kuc3ZnIgogICBpbmtzY2FwZTpvdXRwdXRfZXh0ZW5zaW9uPSJvcmcuaW5rc2NhcGUub3V0cHV0LnN2Zy5pbmtzY2FwZSI+CiAgPGRlZnMKICAgICBpZD0iZGVmczQiPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjUwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjI1IDogMTAgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjcxNCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iMSA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMC41IDogMC4zMzMzMzMzMyA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyODA2IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyODE5IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjM3Mi4wNDcyNCA6IDM1MC43ODczOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI3NDQuMDk0NDggOiA1MjYuMTgxMDkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzc3IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49Ijc1IDogNDAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iMTUwIDogNjAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDYwIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTMyNzUiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNTAgOiAzMy4zMzMzMzMgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iMTAwIDogNTAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDUwIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTU1MzMiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzIgOiAyMS4zMzMzMzMgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNjQgOiAzMiA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMzIgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjU1NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDE2LjY2NjY2NyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDI1IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAyNSA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogIDwvZGVmcz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6em9vbT0iNCIKICAgICBpbmtzY2FwZTpjeD0iMTEzLjAwMDM5IgogICAgIGlua3NjYXBlOmN5PSIxMi44OTM3MzEiCiAgICAgaW5rc2NhcGU6ZG9jdW1lbnQtdW5pdHM9InB4IgogICAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9ImcyNTYwIgogICAgIHNob3dncmlkPSJmYWxzZSIKICAgICBpbmtzY2FwZTpncmlkLWJib3g9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1wb2ludHM9InRydWUiCiAgICAgZ3JpZHRvbGVyYW5jZT0iMTAwMDAiCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxMzk5IgogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9Ijg3NCIKICAgICBpbmtzY2FwZTp3aW5kb3cteD0iMzciCiAgICAgaW5rc2NhcGU6d2luZG93LXk9Ii00IgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Im0gNzAsMjUgYyAyMCwwIDI1LDAgMjUsMCIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMSwxNSA1LDE1IgogICAgICAgaWQ9InBhdGgzMDYxIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzIsMzUgNSwzNSIKICAgICAgIGlkPSJwYXRoMzk0NCIgLz4KICAgIDxnCiAgICAgICBpZD0iZzI1NjAiCiAgICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI2LjUsLTM5LjUpIj4KICAgICAgPHBhdGgKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjQwNjI1LDQ0LjUgTCAtMC40MDYyNSw0Ni45Mzc1IEMgLTAuNDA2MjUsNDYuOTM3NSA1LjI1LDUzLjkzNzU0OSA1LjI1LDY0LjUgQyA1LjI1LDc1LjA2MjQ1MSAtMC40MDYyNSw4Mi4wNjI1IC0wLjQwNjI1LDgyLjA2MjUgTCAtMi40MDYyNSw4NC41IEwgMC43NSw4NC41IEwgMTQuNzUsODQuNSBDIDE3LjE1ODA3Niw4NC41MDAwMDEgMjIuNDM5Njk5LDg0LjUyNDUxNCAyOC4zNzUsODIuMDkzNzUgQyAzNC4zMTAzMDEsNzkuNjYyOTg2IDQwLjkxMTUzNiw3NC43NTA0ODQgNDYuMDYyNSw2NS4yMTg3NSBMIDQ0Ljc1LDY0LjUgTCA0Ni4wNjI1LDYzLjc4MTI1IEMgMzUuNzU5Mzg3LDQ0LjcxNTU5IDE5LjUwNjU3NCw0NC41IDE0Ljc1LDQ0LjUgTCAwLjc1LDQ0LjUgTCAtMi40MDYyNSw0NC41IHogTSAzLjQ2ODc1LDQ3LjUgTCAxNC43NSw0Ny41IEMgMTkuNDM0MTczLDQ3LjUgMzMuMDM2ODUsNDcuMzY5NzkzIDQyLjcxODc1LDY0LjUgQyAzNy45NTE5NjQsNzIuOTI5MDc1IDMyLjE5NzQ2OSw3Ny4xODM5MSAyNyw3OS4zMTI1IEMgMjEuNjM5MzM5LDgxLjUwNzkyNCAxNy4xNTgwNzUsODEuNTAwMDAxIDE0Ljc1LDgxLjUgTCAzLjUsODEuNSBDIDUuMzczNTg4NCw3OC4zOTE1NjYgOC4yNSw3Mi40NTA2NSA4LjI1LDY0LjUgQyA4LjI1LDU2LjUyNjY0NiA1LjM0MTQ2ODYsNTAuNTk5ODE1IDMuNDY4NzUsNDcuNSB6IgogICAgICAgICBpZD0icGF0aDQ5NzMiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NzY2NjY3NjY2NjY2NjY2NzY2NzYyIgLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPgo=' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return input1 || input2;
+    }
+
+});
+
+joint.shapes.logic.And = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.And',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IkFORCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgPC9kZWZzPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0iYmFzZSIKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTp6b29tPSI4IgogICAgIGlua3NjYXBlOmN4PSI1Ni42OTgzNDgiCiAgICAgaW5rc2NhcGU6Y3k9IjI1LjMyNjg5OSIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJtIDcwLDI1IGMgMjAsMCAyNSwwIDI1LDAiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEsMTUgNSwxNSIKICAgICAgIGlkPSJwYXRoMzA2MSIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjk5OTk5OTg4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMyLDM1IDUsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZvbnQtc2l6ZTptZWRpdW07Zm9udC1zdHlsZTpub3JtYWw7Zm9udC12YXJpYW50Om5vcm1hbDtmb250LXdlaWdodDpub3JtYWw7Zm9udC1zdHJldGNoOm5vcm1hbDt0ZXh0LWluZGVudDowO3RleHQtYWxpZ246c3RhcnQ7dGV4dC1kZWNvcmF0aW9uOm5vbmU7bGluZS1oZWlnaHQ6bm9ybWFsO2xldHRlci1zcGFjaW5nOm5vcm1hbDt3b3JkLXNwYWNpbmc6bm9ybWFsO3RleHQtdHJhbnNmb3JtOm5vbmU7ZGlyZWN0aW9uOmx0cjtibG9jay1wcm9ncmVzc2lvbjp0Yjt3cml0aW5nLW1vZGU6bHItdGI7dGV4dC1hbmNob3I6c3RhcnQ7ZmlsbDojMDAwMDAwO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTpub25lO3N0cm9rZS13aWR0aDozO21hcmtlcjpub25lO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGU7Zm9udC1mYW1pbHk6Qml0c3RyZWFtIFZlcmEgU2FuczstaW5rc2NhcGUtZm9udC1zcGVjaWZpY2F0aW9uOkJpdHN0cmVhbSBWZXJhIFNhbnMiCiAgICAgICBkPSJNIDMwLDUgTCAzMCw2LjQyODU3MTQgTCAzMCw0My41NzE0MjkgTCAzMCw0NSBMIDMxLjQyODU3MSw0NSBMIDUwLjQ3NjE5LDQ1IEMgNjEuNzQ0MDk4LDQ1IDcwLjQ3NjE5LDM1Ljk5OTk1NSA3MC40NzYxOSwyNSBDIDcwLjQ3NjE5LDE0LjAwMDA0NSA2MS43NDQwOTksNS4wMDAwMDAyIDUwLjQ3NjE5LDUgQyA1MC40NzYxOSw1IDUwLjQ3NjE5LDUgMzEuNDI4NTcxLDUgTCAzMCw1IHogTSAzMi44NTcxNDMsNy44NTcxNDI5IEMgNDAuODM0MjY0LDcuODU3MTQyOSA0NS45MTgzNjgsNy44NTcxNDI5IDQ4LjA5NTIzOCw3Ljg1NzE0MjkgQyA0OS4yODU3MTQsNy44NTcxNDI5IDQ5Ljg4MDk1Miw3Ljg1NzE0MjkgNTAuMTc4NTcxLDcuODU3MTQyOSBDIDUwLjMyNzM4MSw3Ljg1NzE0MjkgNTAuNDA5MjI3LDcuODU3MTQyOSA1MC40NDY0MjksNy44NTcxNDI5IEMgNTAuNDY1MDI5LDcuODU3MTQyOSA1MC40NzE1NDMsNy44NTcxNDI5IDUwLjQ3NjE5LDcuODU3MTQyOSBDIDYwLjIzNjg1Myw3Ljg1NzE0MyA2Ny4xNDI4NTcsMTUuNDk3MDk4IDY3LjE0Mjg1NywyNSBDIDY3LjE0Mjg1NywzNC41MDI5MDIgNTkuNzYwNjYyLDQyLjE0Mjg1NyA1MCw0Mi4xNDI4NTcgTCAzMi44NTcxNDMsNDIuMTQyODU3IEwgMzIuODU3MTQzLDcuODU3MTQyOSB6IgogICAgICAgaWQ9InBhdGgyODg0IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2NjY2NzY2NjY3Nzc3NzY2NjIiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return input1 && input2;
+    }
+
+});
+
+joint.shapes.logic.Nor = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Nor',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PUiBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjEiCiAgICAgaW5rc2NhcGU6Y3g9Ijc4LjY3NzY0NCIKICAgICBpbmtzY2FwZTpjeT0iMjIuMTAyMzQ0IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjM3IgogICAgIGlua3NjYXBlOndpbmRvdy15PSItNCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDc5LDI1IEMgOTksMjUgOTUsMjUgOTUsMjUiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEsMTUgNSwxNSIKICAgICAgIGlkPSJwYXRoMzA2MSIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjk5OTk5OTg4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMyLDM1IDUsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8ZwogICAgICAgaWQ9ImcyNTYwIgogICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNi41LC0zOS41KSI+CiAgICAgIDxwYXRoCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi40MDYyNSw0NC41IEwgLTAuNDA2MjUsNDYuOTM3NSBDIC0wLjQwNjI1LDQ2LjkzNzUgNS4yNSw1My45Mzc1NDkgNS4yNSw2NC41IEMgNS4yNSw3NS4wNjI0NTEgLTAuNDA2MjUsODIuMDYyNSAtMC40MDYyNSw4Mi4wNjI1IEwgLTIuNDA2MjUsODQuNSBMIDAuNzUsODQuNSBMIDE0Ljc1LDg0LjUgQyAxNy4xNTgwNzYsODQuNTAwMDAxIDIyLjQzOTY5OSw4NC41MjQ1MTQgMjguMzc1LDgyLjA5Mzc1IEMgMzQuMzEwMzAxLDc5LjY2Mjk4NiA0MC45MTE1MzYsNzQuNzUwNDg0IDQ2LjA2MjUsNjUuMjE4NzUgTCA0NC43NSw2NC41IEwgNDYuMDYyNSw2My43ODEyNSBDIDM1Ljc1OTM4Nyw0NC43MTU1OSAxOS41MDY1NzQsNDQuNSAxNC43NSw0NC41IEwgMC43NSw0NC41IEwgLTIuNDA2MjUsNDQuNSB6IE0gMy40Njg3NSw0Ny41IEwgMTQuNzUsNDcuNSBDIDE5LjQzNDE3Myw0Ny41IDMzLjAzNjg1LDQ3LjM2OTc5MyA0Mi43MTg3NSw2NC41IEMgMzcuOTUxOTY0LDcyLjkyOTA3NSAzMi4xOTc0NjksNzcuMTgzOTEgMjcsNzkuMzEyNSBDIDIxLjYzOTMzOSw4MS41MDc5MjQgMTcuMTU4MDc1LDgxLjUwMDAwMSAxNC43NSw4MS41IEwgMy41LDgxLjUgQyA1LjM3MzU4ODQsNzguMzkxNTY2IDguMjUsNzIuNDUwNjUgOC4yNSw2NC41IEMgOC4yNSw1Ni41MjY2NDYgNS4zNDE0Njg2LDUwLjU5OTgxNSAzLjQ2ODc1LDQ3LjUgeiIKICAgICAgICAgaWQ9InBhdGg0OTczIgogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjc2NjY2NzY2NjY2NjY2Njc2Njc2MiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIHNvZGlwb2RpOnR5cGU9ImFyYyIKICAgICAgICAgc3R5bGU9ImZpbGw6bm9uZTtmaWxsLW9wYWNpdHk6MTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgICBpZD0icGF0aDI2MDQiCiAgICAgICAgIHNvZGlwb2RpOmN4PSI3NSIKICAgICAgICAgc29kaXBvZGk6Y3k9IjI1IgogICAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgICAgc29kaXBvZGk6cnk9IjQiCiAgICAgICAgIGQ9Ik0gNzksMjUgQSA0LDQgMCAxIDEgNzEsMjUgQSA0LDQgMCAxIDEgNzksMjUgeiIKICAgICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTI2LjUsMzkuNSkiIC8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return !(input1 || input2);
+    }
+
+});
+
+joint.shapes.logic.Nand = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Nand',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5BTkQgQU5TSS5zdmciCiAgIGlua3NjYXBlOm91dHB1dF9leHRlbnNpb249Im9yZy5pbmtzY2FwZS5vdXRwdXQuc3ZnLmlua3NjYXBlIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCI+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxMCA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzE0IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIwLjUgOiAwLjMzMzMzMzMzIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MDYiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MTkiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9Ijc0NC4wOTQ0OCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3NzciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNzUgOiA0MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxNTAgOiA2MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNjAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMzI3NSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI1MCA6IDMzLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxMDAgOiA1MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlNTUzMyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzMiA6IDIxLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI2NCA6IDMyIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAzMiA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogIDwvZGVmcz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6em9vbT0iMTYiCiAgICAgaW5rc2NhcGU6Y3g9Ijc4LjI4MzMwNyIKICAgICBpbmtzY2FwZTpjeT0iMTYuNDQyODQzIgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzksMjUgQyA5MS44LDI1IDk1LDI1IDk1LDI1IgogICAgICAgaWQ9InBhdGgzMDU5IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMxLDE1IDUsMTUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk4ODtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMiwzNSA1LDM1IgogICAgICAgaWQ9InBhdGgzOTQ0IiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmb250LXNpemU6bWVkaXVtO2ZvbnQtc3R5bGU6bm9ybWFsO2ZvbnQtdmFyaWFudDpub3JtYWw7Zm9udC13ZWlnaHQ6bm9ybWFsO2ZvbnQtc3RyZXRjaDpub3JtYWw7dGV4dC1pbmRlbnQ6MDt0ZXh0LWFsaWduOnN0YXJ0O3RleHQtZGVjb3JhdGlvbjpub25lO2xpbmUtaGVpZ2h0Om5vcm1hbDtsZXR0ZXItc3BhY2luZzpub3JtYWw7d29yZC1zcGFjaW5nOm5vcm1hbDt0ZXh0LXRyYW5zZm9ybTpub25lO2RpcmVjdGlvbjpsdHI7YmxvY2stcHJvZ3Jlc3Npb246dGI7d3JpdGluZy1tb2RlOmxyLXRiO3RleHQtYW5jaG9yOnN0YXJ0O2ZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MzttYXJrZXI6bm9uZTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlO2ZvbnQtZmFtaWx5OkJpdHN0cmVhbSBWZXJhIFNhbnM7LWlua3NjYXBlLWZvbnQtc3BlY2lmaWNhdGlvbjpCaXRzdHJlYW0gVmVyYSBTYW5zIgogICAgICAgZD0iTSAzMCw1IEwgMzAsNi40Mjg1NzE0IEwgMzAsNDMuNTcxNDI5IEwgMzAsNDUgTCAzMS40Mjg1NzEsNDUgTCA1MC40NzYxOSw0NSBDIDYxLjc0NDA5OCw0NSA3MC40NzYxOSwzNS45OTk5NTUgNzAuNDc2MTksMjUgQyA3MC40NzYxOSwxNC4wMDAwNDUgNjEuNzQ0MDk5LDUuMDAwMDAwMiA1MC40NzYxOSw1IEMgNTAuNDc2MTksNSA1MC40NzYxOSw1IDMxLjQyODU3MSw1IEwgMzAsNSB6IE0gMzIuODU3MTQzLDcuODU3MTQyOSBDIDQwLjgzNDI2NCw3Ljg1NzE0MjkgNDUuOTE4MzY4LDcuODU3MTQyOSA0OC4wOTUyMzgsNy44NTcxNDI5IEMgNDkuMjg1NzE0LDcuODU3MTQyOSA0OS44ODA5NTIsNy44NTcxNDI5IDUwLjE3ODU3MSw3Ljg1NzE0MjkgQyA1MC4zMjczODEsNy44NTcxNDI5IDUwLjQwOTIyNyw3Ljg1NzE0MjkgNTAuNDQ2NDI5LDcuODU3MTQyOSBDIDUwLjQ2NTAyOSw3Ljg1NzE0MjkgNTAuNDcxNTQzLDcuODU3MTQyOSA1MC40NzYxOSw3Ljg1NzE0MjkgQyA2MC4yMzY4NTMsNy44NTcxNDMgNjcuMTQyODU3LDE1LjQ5NzA5OCA2Ny4xNDI4NTcsMjUgQyA2Ny4xNDI4NTcsMzQuNTAyOTAyIDU5Ljc2MDY2Miw0Mi4xNDI4NTcgNTAsNDIuMTQyODU3IEwgMzIuODU3MTQzLDQyLjE0Mjg1NyBMIDMyLjg1NzE0Myw3Ljg1NzE0MjkgeiIKICAgICAgIGlkPSJwYXRoMjg4NCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2Njc2NjY2Nzc3Nzc2NjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDQwMDgiCiAgICAgICBzb2RpcG9kaTpjeD0iNzUiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA3OSwyNSBBIDQsNCAwIDEgMSA3MSwyNSBBIDQsNCAwIDEgMSA3OSwyNSB6IiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return !(input1 && input2);
+    }
+
+});
+
+joint.shapes.logic.Xor = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Xor',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IlhPUiBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjUuNjU2ODU0MiIKICAgICBpbmtzY2FwZTpjeD0iMjUuOTM4MTE2IgogICAgIGlua3NjYXBlOmN5PSIxNy4yMzAwNSIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJtIDcwLDI1IGMgMjAsMCAyNSwwIDI1LDAiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzAuMzg1NzE3LDE1IEwgNC45OTk5OTk4LDE1IgogICAgICAgaWQ9InBhdGgzMDYxIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5NzY7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEuMzYyMDkxLDM1IEwgNC45OTk5OTk4LDM1IgogICAgICAgaWQ9InBhdGgzOTQ0IiAvPgogICAgPGcKICAgICAgIGlkPSJnMjU2MCIKICAgICAgIGlua3NjYXBlOmxhYmVsPSJMYXllciAxIgogICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjYuNSwtMzkuNSkiPgogICAgICA8cGF0aAogICAgICAgICBpZD0icGF0aDM1MTYiCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi4yNSw4MS41MDAwMDUgQyAtMy44NDczNzQsODQuMTQ0NDA1IC00LjUsODQuNTAwMDA1IC00LjUsODQuNTAwMDA1IEwgLTguMTU2MjUsODQuNTAwMDA1IEwgLTYuMTU2MjUsODIuMDYyNTA1IEMgLTYuMTU2MjUsODIuMDYyNTA1IC0wLjUsNzUuMDYyNDUxIC0wLjUsNjQuNSBDIC0wLjUsNTMuOTM3NTQ5IC02LjE1NjI1LDQ2LjkzNzUgLTYuMTU2MjUsNDYuOTM3NSBMIC04LjE1NjI1LDQ0LjUgTCAtNC41LDQ0LjUgQyAtMy43MTg3NSw0NS40Mzc1IC0zLjA3ODEyNSw0Ni4xNTYyNSAtMi4yODEyNSw0Ny41IEMgLTAuNDA4NTMxLDUwLjU5OTgxNSAyLjUsNTYuNTI2NjQ2IDIuNSw2NC41IEMgMi41LDcyLjQ1MDY1IC0wLjM5NjY5Nyw3OC4zNzk0MjUgLTIuMjUsODEuNTAwMDA1IHoiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY3NjY2Njc2MiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi40MDYyNSw0NC41IEwgLTAuNDA2MjUsNDYuOTM3NSBDIC0wLjQwNjI1LDQ2LjkzNzUgNS4yNSw1My45Mzc1NDkgNS4yNSw2NC41IEMgNS4yNSw3NS4wNjI0NTEgLTAuNDA2MjUsODIuMDYyNSAtMC40MDYyNSw4Mi4wNjI1IEwgLTIuNDA2MjUsODQuNSBMIDAuNzUsODQuNSBMIDE0Ljc1LDg0LjUgQyAxNy4xNTgwNzYsODQuNTAwMDAxIDIyLjQzOTY5OSw4NC41MjQ1MTQgMjguMzc1LDgyLjA5Mzc1IEMgMzQuMzEwMzAxLDc5LjY2Mjk4NiA0MC45MTE1MzYsNzQuNzUwNDg0IDQ2LjA2MjUsNjUuMjE4NzUgTCA0NC43NSw2NC41IEwgNDYuMDYyNSw2My43ODEyNSBDIDM1Ljc1OTM4Nyw0NC43MTU1OSAxOS41MDY1NzQsNDQuNSAxNC43NSw0NC41IEwgMC43NSw0NC41IEwgLTIuNDA2MjUsNDQuNSB6IE0gMy40Njg3NSw0Ny41IEwgMTQuNzUsNDcuNSBDIDE5LjQzNDE3Myw0Ny41IDMzLjAzNjg1LDQ3LjM2OTc5MyA0Mi43MTg3NSw2NC41IEMgMzcuOTUxOTY0LDcyLjkyOTA3NSAzMi4xOTc0NjksNzcuMTgzOTEgMjcsNzkuMzEyNSBDIDIxLjYzOTMzOSw4MS41MDc5MjQgMTcuMTU4MDc1LDgxLjUwMDAwMSAxNC43NSw4MS41IEwgMy41LDgxLjUgQyA1LjM3MzU4ODQsNzguMzkxNTY2IDguMjUsNzIuNDUwNjUgOC4yNSw2NC41IEMgOC4yNSw1Ni41MjY2NDYgNS4zNDE0Njg2LDUwLjU5OTgxNSAzLjQ2ODc1LDQ3LjUgeiIKICAgICAgICAgaWQ9InBhdGg0OTczIgogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjc2NjY2NzY2NjY2NjY2Njc2Njc2MiIC8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return (!input1 || input2) && (input1 || !input2);
+    }
+
+});
+
+joint.shapes.logic.Xnor = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Xnor',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IlhOT1IgQU5TSS5zdmciCiAgIGlua3NjYXBlOm91dHB1dF9leHRlbnNpb249Im9yZy5pbmtzY2FwZS5vdXRwdXQuc3ZnLmlua3NjYXBlIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCI+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxMCA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzE0IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIwLjUgOiAwLjMzMzMzMzMzIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MDYiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MTkiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9Ijc0NC4wOTQ0OCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3NzciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNzUgOiA0MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxNTAgOiA2MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNjAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMzI3NSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI1MCA6IDMzLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxMDAgOiA1MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlNTUzMyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzMiA6IDIxLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI2NCA6IDMyIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAzMiA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNTU3IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjI1IDogMTYuNjY2NjY3IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjUwIDogMjUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDI1IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgPC9kZWZzPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0iYmFzZSIKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTp6b29tPSI0IgogICAgIGlua3NjYXBlOmN4PSI5NS43MjM2NiIKICAgICBpbmtzY2FwZTpjeT0iLTI2Ljc3NTAyMyIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyLjAwMDAwMDI0O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDc4LjMzMzMzMiwyNSBDIDkxLjY2NjY2NiwyNSA5NSwyNSA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk4ODtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMC4zODU3MTcsMTUgTCA0Ljk5OTk5OTgsMTUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk3NjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMS4zNjIwOTEsMzUgTCA0Ljk5OTk5OTgsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8ZwogICAgICAgaWQ9ImcyNTYwIgogICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNi41LC0zOS41KSI+CiAgICAgIDxwYXRoCiAgICAgICAgIGlkPSJwYXRoMzUxNiIKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjI1LDgxLjUwMDAwNSBDIC0zLjg0NzM3NCw4NC4xNDQ0MDUgLTQuNSw4NC41MDAwMDUgLTQuNSw4NC41MDAwMDUgTCAtOC4xNTYyNSw4NC41MDAwMDUgTCAtNi4xNTYyNSw4Mi4wNjI1MDUgQyAtNi4xNTYyNSw4Mi4wNjI1MDUgLTAuNSw3NS4wNjI0NTEgLTAuNSw2NC41IEMgLTAuNSw1My45Mzc1NDkgLTYuMTU2MjUsNDYuOTM3NSAtNi4xNTYyNSw0Ni45Mzc1IEwgLTguMTU2MjUsNDQuNSBMIC00LjUsNDQuNSBDIC0zLjcxODc1LDQ1LjQzNzUgLTMuMDc4MTI1LDQ2LjE1NjI1IC0yLjI4MTI1LDQ3LjUgQyAtMC40MDg1MzEsNTAuNTk5ODE1IDIuNSw1Ni41MjY2NDYgMi41LDY0LjUgQyAyLjUsNzIuNDUwNjUgLTAuMzk2Njk3LDc4LjM3OTQyNSAtMi4yNSw4MS41MDAwMDUgeiIKICAgICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2Njc2NjY2NzYyIgLz4KICAgICAgPHBhdGgKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjQwNjI1LDQ0LjUgTCAtMC40MDYyNSw0Ni45Mzc1IEMgLTAuNDA2MjUsNDYuOTM3NSA1LjI1LDUzLjkzNzU0OSA1LjI1LDY0LjUgQyA1LjI1LDc1LjA2MjQ1MSAtMC40MDYyNSw4Mi4wNjI1IC0wLjQwNjI1LDgyLjA2MjUgTCAtMi40MDYyNSw4NC41IEwgMC43NSw4NC41IEwgMTQuNzUsODQuNSBDIDE3LjE1ODA3Niw4NC41MDAwMDEgMjIuNDM5Njk5LDg0LjUyNDUxNCAyOC4zNzUsODIuMDkzNzUgQyAzNC4zMTAzMDEsNzkuNjYyOTg2IDQwLjkxMTUzNiw3NC43NTA0ODQgNDYuMDYyNSw2NS4yMTg3NSBMIDQ0Ljc1LDY0LjUgTCA0Ni4wNjI1LDYzLjc4MTI1IEMgMzUuNzU5Mzg3LDQ0LjcxNTU5IDE5LjUwNjU3NCw0NC41IDE0Ljc1LDQ0LjUgTCAwLjc1LDQ0LjUgTCAtMi40MDYyNSw0NC41IHogTSAzLjQ2ODc1LDQ3LjUgTCAxNC43NSw0Ny41IEMgMTkuNDM0MTczLDQ3LjUgMzMuMDM2ODUsNDcuMzY5NzkzIDQyLjcxODc1LDY0LjUgQyAzNy45NTE5NjQsNzIuOTI5MDc1IDMyLjE5NzQ2OSw3Ny4xODM5MSAyNyw3OS4zMTI1IEMgMjEuNjM5MzM5LDgxLjUwNzkyNCAxNy4xNTgwNzUsODEuNTAwMDAxIDE0Ljc1LDgxLjUgTCAzLjUsODEuNSBDIDUuMzczNTg4NCw3OC4zOTE1NjYgOC4yNSw3Mi40NTA2NSA4LjI1LDY0LjUgQyA4LjI1LDU2LjUyNjY0NiA1LjM0MTQ2ODYsNTAuNTk5ODE1IDMuNDY4NzUsNDcuNSB6IgogICAgICAgICBpZD0icGF0aDQ5NzMiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NzY2NjY3NjY2NjY2NjY2NzY2NzYyIgLz4KICAgIDwvZz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDM1NTEiCiAgICAgICBzb2RpcG9kaTpjeD0iNzUiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA3OSwyNSBBIDQsNCAwIDEgMSA3MSwyNSBBIDQsNCAwIDEgMSA3OSwyNSB6IiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return (!input1 || !input2) && (input1 || input2);
+    }
+
+});
+
+joint.shapes.logic.Wire = joint.dia.Link.extend({
+
+    arrowheadMarkup: [
+        '<g class="marker-arrowhead-group marker-arrowhead-group-<%= end %>">',
+        '<circle class="marker-arrowhead" end="<%= end %>" r="7"/>',
+        '</g>'
+    ].join(''),
+
+    vertexMarkup: [
+        '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
+        '<circle class="marker-vertex" idx="<%= idx %>" r="10" />',
+        '<g class="marker-vertex-remove-group">',
+        '<path class="marker-vertex-remove-area" idx="<%= idx %>" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
+        '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
+        '<title>Remove vertex.</title>',
+        '</path>',
+        '</g>',
+        '</g>'
+    ].join(''),
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Wire',
+
+        attrs: {
+            '.connection': { 'stroke-width': 2 },
+            '.marker-vertex': { r: 7 }
+        },
+
+        manhattan: true
+
+    }, joint.dia.Link.prototype.defaults)
+
+});
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.shapes.logic;
+}
+
+// Command manager implements undo/redo functionality.
+
+joint.dia.CommandManager = Backbone.Model.extend({
+
+    defaults: {
+	cmdBeforeAdd: null,
+	cmdNameRegex: /^(?:add|remove|change:\w+)$/
+    },
+
+    // length of prefix 'change:' in the event name
+    PREFIX_LENGTH: 7,
+
+    initialize: function(options) {
+
+        _.bindAll(this, 'initBatchCommand', 'storeBatchCommand');
+
+        this.graph = options.graph;
+
+        this.reset();
+        this.listen();
+    },
+
+    listen: function() {
+
+        this.listenTo(this.graph, 'all', this.addCommand, this);
+
+	this.listenTo(this.graph, 'batch:start', this.initBatchCommand, this);
+	this.listenTo(this.graph, 'batch:stop', this.storeBatchCommand, this);
+    },
+
+    createCommand: function(options) {
+	
+	var cmd = {
+	    action: undefined,
+	    data: { id: undefined, type: undefined, previous: {}, next: {}},
+	    batch: options && options.batch
+	}
+	
+	return cmd;
+    },
+
+    addCommand: function(cmdName, cell, graph, options) {
+
+	if (!this.get('cmdNameRegex').test(cmdName)) {
+	    return;
+	}
+
+	if (typeof this.get('cmdBeforeAdd') == 'function' && !this.get('cmdBeforeAdd').apply(this, arguments)) {
+	    return;
+	}
+
+	var push = _.bind(function(cmd) {
+	    
+	    this.redoStack = [];
+
+	    if (!cmd.batch) {
+		this.undoStack.push(cmd);
+		this.trigger('add', cmd);
+	    } else {
+                this.lastCmdIndex = Math.max(this.lastCmdIndex, 0);
+		// Commands possible thrown away. Someone might be interested.
+		this.trigger('batch', cmd);
+	    }
+	    
+	}, this);
+	
+	var command = undefined;
+
+	if (this.batchCommand) {
+            // set command as the one used last.
+            // in most cases we are working with same object, doing same action
+            // etc. translate an object piece by piece
+	    command = this.batchCommand[Math.max(this.lastCmdIndex,0)];
+
+            // Check if we are start working with new object or performing different action with it.
+            // Note, that command is uninitialized when lastCmdIndex equals -1. (see 'initBatchCommand()') 
+            // in that case we are done, command we were looking for is already set
+	    if (this.lastCmdIndex >= 0 && (command.data.id !== cell.id || command.action !== cmdName)) {
+
+                // trying to find command first, which was performing same action with the object
+                // as we are doing now with cell
+                command = _.find(this.batchCommand, function(cmd, index) {
+                    this.lastCmdIndex = index;
+                    return cmd.data.id === cell.id && cmd.action === cmdName;
+                }, this);
+
+		if (!command) {
+                    // command with such an id and action was not found. Let's create new one
+		    this.lastCmdIndex = this.batchCommand.push(this.createCommand({ batch:  true })) - 1;
+		    command = _.last(this.batchCommand);
+                }
+	    }
+	    
+	} else {
+	    
+            // single command
+	    command = this.createCommand();
+	    command.batch = false;
+	    
+	}
+
+        if (cmdName === 'add' || cmdName === 'remove') {
+
+            command.action = cmdName;
+            command.data.id = cell.id;
+	    command.data.type = cell.attributes.type;
+            command.data.attributes = _.merge({}, cell.toJSON());
+	    command.options = options || {};
+	    
+	    return push(command);
+	}
+
+        // `changedAttribute` holds the attribute name corresponding
+	// to the change event triggered on the model.
+        var changedAttribute = cmdName.substr(this.PREFIX_LENGTH);
+	
+	if (!command.batch || !command.action) {
+	    // Do this only once. Set previous box and action (also serves as a flag so that
+	    // we don't repeat this branche).
+	    command.action = cmdName;
+	    command.data.id = cell.id;
+	    command.data.type = cell.attributes.type;
+	    command.data.previous[changedAttribute] = _.clone(cell.previous(changedAttribute));
+	    command.options = options || {};
+	}
+
+	command.data.next[changedAttribute] = _.clone(cell.get(changedAttribute));
+
+	return push(command);
+    },
+
+    // Batch commands are those that merge certain commands applied in a row (1) and those that 
+    // hold multiple commands where one action consists of more than one command (2)
+    // (1) This is useful for e.g. when the user is dragging an object in the paper which would
+    // normally lead to 1px translation commands. Applying undo() on such commands separately is
+    // most likely undesirable.
+    // (2) e.g When you are removing an element, you don't want all links connected to that element, which
+    // are also being removed to be part of different command
+
+    initBatchCommand: function() {
+
+	if (!this.batchCommand) {
+
+            this.batchCommand = [this.createCommand({ batch:  true})];
+            this.lastCmdIndex = -1;
+
+	    // batch level counts how many times has been initBatchCommand executed.
+	    // It is useful when we doing an operation recursively.
+	    this.batchLevel = 0;
+
+	} else {
+
+	    // batch command is already active
+	    this.batchLevel++;
+	}
+    },
+
+    storeBatchCommand: function() {
+
+	// In order to store batch command it is necesary to run storeBatchCommand as many times as 
+	// initBatchCommand was executed
+        if (this.batchCommand && this.batchLevel <= 0) {
+
+	    // checking if there is any valid command in batch
+	    // for example: calling `initBatchCommand` immediately followed by `storeBatchCommand`
+	    if (this.lastCmdIndex >= 0) {
+
+		this.redoStack = [];
+
+		this.undoStack.push(this.batchCommand);
+		this.trigger('add', this.batchCommand);
+	    }
+
+            delete this.batchCommand;
+            delete this.lastCmdIndex;
+	    delete this.batchLevel;
+
+        } else if (this.batchCommand && this.batchLevel > 0) {
+
+	    // low down batch command level, but not store it yet
+	    this.batchLevel--;
+	}
+    },
+
+    revertCommand: function(command) {
+	
+        this.stopListening();
+
+	var batchCommand;
+
+	if (_.isArray(command)) {
+	    batchCommand = command;
+	} else {
+	    batchCommand = [command];
+	}
+	
+	for (var i = batchCommand.length - 1; i >= 0; i--)  {
+
+            var cmd = batchCommand[i], cell = this.graph.getCell(cmd.data.id);
+        
+            switch (cmd.action) {
+		
+            case 'add':
+		cell.remove();
+		break;
+
+            case 'remove':
+		this.graph.addCell(cmd.data.attributes);
+		break;
+
+            default:
+                var attribute = cmd.action.substr(this.PREFIX_LENGTH);
+                cell.set(attribute, cmd.data.previous[attribute]);
+                break;
+            }
+
+	}
+
+        this.listen();
+    },
+
+    applyCommand: function(command) {
+
+        this.stopListening();
+
+	var batchCommand;
+
+	if (_.isArray(command)) {
+	    batchCommand = command;
+	} else {
+	    batchCommand = [command];
+	}
+	
+	for (var i = 0; i < batchCommand.length; i++)  {
+
+            var cmd = batchCommand[i], cell = this.graph.getCell(cmd.data.id);
+        
+            switch (cmd.action) {
+            
+            case 'add':
+		this.graph.addCell(cmd.data.attributes);
+		break;
+
+            case 'remove':
+		cell.remove();
+		break;
+
+            default:
+                var attribute = cmd.action.substr(this.PREFIX_LENGTH);
+                cell.set(attribute, cmd.data.next[attribute]);
+                break;
+
+	    }
+	    
+	}
+	    
+        this.listen();
+    },
+
+    undo: function() {
+
+        var command = this.undoStack.pop();
+
+        if (command) {
+
+            this.revertCommand(command);
+            this.redoStack.push(command);
+        }
+    },
+
+
+    redo: function() {
+
+        var command = this.redoStack.pop();
+
+        if (command) {
+
+            this.applyCommand(command);
+            this.undoStack.push(command);
+        }
+    },
+
+    cancel: function() {
+
+	if (this.hasUndo()) {
+
+	    this.revertCommand(this.undoStack.pop());
+	    this.redoStack = [];
+	}
+    },
+
+    reset: function() {
+
+        this.undoStack = [];
+        this.redoStack = [];
+    },
+
+    hasUndo: function() {
+
+        return this.undoStack.length > 0;
+    },
+
+    hasRedo: function() {
+
+        return this.redoStack.length > 0;
+    }
+});
+
+joint.dia.Validator = Backbone.Model.extend({
+
+    initialize: function(options) {
+
+	this._map = {};
+	this._commandManager = options.commandManager;
+
+	this.listenTo(this._commandManager, 'add', this._onCommand);
+    },
+
+    defaults: {
+
+	// To cancel (= undo + delete from redo stack) a command if is not valid.
+	cancelInvalid: true
+    },
+
+    // iterates throught each command, stops on first invalid command.
+    _onCommand: function(command) {
+
+	return _.isArray(command)
+
+	    ? _.find(command, function(singleCmd) { return !this._validateCommand(singleCmd); }, this)
+
+	    : this._validateCommand(command);
+    },
+
+    // check whether the command is not against any rule
+    _validateCommand: function(command) {
+
+	// Backbone.model set() and Backbone.collection add() allow to pass an option parameter.
+	// That is also kept within the command. It skips validation if requested.
+	if (command.options && command.options.validation === false) return true;
+
+	var handoverErr;
+
+	_.each(this._map[command.action], function(route) {
+
+	    var i = 0;
+
+	    function callbacks(err) {
+
+		var fn = route[i++];
+
+		try {
+		    if (fn) {
+			fn(err, command, callbacks);
+		    } else {
+			handoverErr = err;
+			return;
+		    }
+		} catch (err) {
+		    callbacks(err);
+		}
+	    };
+
+	    callbacks(handoverErr);
+	});
+
+	if (handoverErr) {
+
+	    if (this.get('cancelInvalid')) this._commandManager.cancel();
+	    this.trigger('invalid', handoverErr);
+	    return false;
+	}
+
+	//command is valid
+	return true;
+    },
+
+
+    validate: function(actions) {
+	
+	var callbacks = _.rest(arguments);
+
+	_.each(callbacks, function(callback) {
+	    if (_.isFunction(callback)) return;
+	    throw new Error(actions + ' requires callback functions.');
+	});
+
+	_.each(actions.split(' '), function(action) {
+	    (this._map[action] = this._map[action] || []).push(callbacks);
+	}, this);
+
+	return this;
+    }
+
+});
+
+
+(function() {
+
+    var _resize = joint.dia.Element.prototype.resize;
+
+    joint.dia.Element.prototype.resize = resize;
+
+    function resize(width, height, opt) {
+
+	if (_.isUndefined(opt)) {
+
+	    return _resize.call(this, width, height);
+
+	}
+
+	// Default options gives as the same behaviour as the original resize method.
+	opt.direction = opt.direction || 'bottom-right';
+
+	// Get the angle and clamp its value between 0 and 360 degrees.
+	var angle = g.normalizeAngle(this.get('angle') || 0);
+
+	var quadrant = { 'top-right': 0, 'top-left': 1, 'bottom-left': 2, 'bottom-right': 3 }[opt.direction];
+
+	if (opt.absolute) {
+
+	    // We are taking the element's rotation into account
+	    quadrant += Math.floor((angle + 45) / 90);
+	    quadrant %= 4;
+	}
+
+	// This is a rectangle in size of the unrotated element.
+	var bbox = this.getBBox();
+
+	// Pick the corner point on the element, which meant to stay on its place before and
+	// after the rotation.
+	var indentFixedPoint = bbox[['bottomLeft', 'corner', 'topRight', 'origin'][quadrant]]();
+
+	// Find  an image of the previous indent point. This is the position, where is the
+	// point actually located on the screen.
+	var imageFixedPoint = g.point(indentFixedPoint).rotate(bbox.center(), -angle);
+
+	// Every point on the element rotates around a circle with the centre of rotation
+	// in the middle of the element while the whole element is being rotated. That means
+	// that the distance from a point in the corner of the element (supposed its always rect) to
+	// the center of the element doesn't change during the rotation and therefore it equals
+	// to a distance on unrotated element.
+	// We can find the distance as DISTANCE = (ELEMENTWIDTH/2)^2 + (ELEMENTHEIGHT/2)^2)^0.5.
+	var radius = Math.sqrt(width*width + height*height) / 2;
+
+	// Now we are looking for an angle between x-axis and the line starting at image of fixed point
+	// and ending at the center of the element. We call this angle `alpha`.
+
+	// The image of a fixed point is located in n-th quadrant. For each quadrant passed
+	// going anti-clockwise we have to add 90 degrees. Note that the first quadrant has index 0.
+	//
+	// 3 | 2
+	// --c-- Quadrant positions around the element's center `c`
+	// 0 | 1
+	//
+	var alpha = quadrant * Math.PI/2;
+
+	// Add an angle between the beginning of the current quadrant (line parallel with x-axis or y-axis
+	// going through the center of the element) and line crossing the indent of the fixed point and the center
+	// of the element. This is the angle we need but on the unrotated element.
+	alpha += Math.atan(quadrant % 2 == 0 ? height/width : width/height);
+
+	// Lastly we have to deduct the original angle the element was rotated by and that's it.
+	alpha -= g.toRad(angle);
+
+	// With this angle and distance we can easily calculate the centre of the unrotated element.
+	// Note that fromPolar constructor accepts an angle in radians.
+	var center = g.point.fromPolar(radius, alpha, imageFixedPoint);
+
+	// The top left corner on the unrotated element has to be half a width on the left
+	// and half a height to the top from the center. This will be the origin of rectangle
+	// we were looking for.
+	var origin = g.point(center).offset( width / -2, height / -2);
+
+	// Finally resize the element and adjust the position.
+	this.resize(width, height).position(origin.x, origin.y);
+    };
+
+})()
+// PaperScroller
+// =============
+
+
+// `PaperScroller` wraps the paper root element and implements panning and centering of the paper.
+
+// Example usage:
+
+//      var paperScroller = new joint.ui.PaperScroller;
+//      var paper = new joint.dia.Paper({ el: paperScroller.el });
+//      paperScroller.options.paper = paper;
+//      $appElement.append(paperScroller.render().el);
+
+//      paperScroller.center();
+//      paper.on('blank:pointerdown', paperScroller.startPanning);
+
+
+
+joint.ui.PaperScroller = Backbone.View.extend({
+
+    className: 'paper-scroller',
+
+    events: {
+
+        'mousemove': 'pan',
+        'touchmove': 'pan',
+        'mouseout': 'stopPanning'
+    },
+
+    initialize: function() {
+
+        _.bindAll(this, 'startPanning', 'stopPanning');
+
+        $(document.body).on('mouseup touchend', this.stopPanning);
+    },
+
+    render: function() {
+
+	this.listenTo(this.options.paper, 'scale resize', this.onScale);
+
+	// automatically resize the paper
+	if (this.options.autoResizePaper) {
+
+	    // keep the original paper size
+	    this._ow = this.options.paper.options.width;
+	    this._oh = this.options.paper.options.height;
+
+	    this.listenTo(this.options.paper.model, 'all', function() {
+		this.options.paper.fitToContent(this._ow, this._oh);
+	    });
+	}
+
+	return this;
+    },
+
+    onScale: function(ox, oy) {
+
+	var ctm = this.options.paper.viewport.getCTM(), sx = ctm.a, sy = ctm.d;
+
+	// Cancel the viewport translation as it will be shifted by scrolling instead.
+	V(this.options.paper.viewport).attr('transform','');
+	// Keep applied scale.
+	V(this.options.paper.viewport).scale(sx, sy);
+	// TODO: Keep applied rotation.
+
+	V(this.options.paper.svg).attr({
+	    'width': this.options.paper.options.width * sx,
+	    'height': this.options.paper.options.height * sy
+	});
+
+	// Move scroller to scale origin.
+	if (ox && oy) this.center(ox, oy);
+    },
+
+    center: function(ox, oy) {
+
+	if (_.isUndefined(ox) || _.isUndefined(oy)) {
+
+	    ox = this.options.paper.options.width / 2;
+	    oy = this.options.paper.options.height / 2;
+	}
+
+	var ctm = this.options.paper.viewport.getCTM()
+	  , sx = ctm.a
+	  , sy = ctm.d
+	  , cx = this.el.clientWidth / sx / 2
+	  , cy = this.el.clientHeight / sy / 2;
+
+	this.el.scrollLeft = (ox - cx) * sx;
+	this.el.scrollTop = (oy - cy) * sy;
+    },
+
+    centerContent: function() {
+
+	var vbox = V(this.options.paper.viewport).bbox(true, this.options.paper.svg);
+	this.center(vbox.x + vbox.width / 2, vbox.y + vbox.height / 2);
+    },
+
+    startPanning: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        this._panning = true;
+
+        this._clientX = evt.clientX;
+        this._clientY = evt.clientY;
+    },
+
+    pan: function(evt) {
+
+        if (!this._panning) return;
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var dx = evt.clientX - this._clientX;
+        var dy = evt.clientY - this._clientY;
+
+        this.el.scrollTop -= dy;
+        this.el.scrollLeft -= dx;
+
+        this._clientX = evt.clientX;
+        this._clientY = evt.clientY;
+    },
+
+    stopPanning: function() {
+
+        delete this._panning;
+    }
+});
+
+// SelectionView
+// =============
+
+// `SelectionView` implements selecting group of elements and moving the selected elements in one go.
+// Typically, the selection will be bound to the `Shift` key
+// and selecting/deselecting individual elements to the `Ctrl` key.
+
+// Example usage:
+
+// var graph = new joint.dia.Graph;
+// var paper = new joint.dia.Paper({ model: graph });
+// var selection = new Backbone.Collection;
+// var selectionView = new joint.ui.SelectionView({ paper: paper, graph: graph, model: selection });
+
+// // Bulk selecting group of elements by creating a rectangular selection area.
+// paper.on('blank:pointerdown', selectionView.startSelecting);
+
+// // Selecting individual elements with click and the `Ctrl`/`Command` key.
+// paper.on('cell:pointerup', function(cellView, evt) {
+//      if ((evt.ctrlKey || evt.metaKey) && !(cellView.model instanceof joint.dia.Link)) {
+//              selectionView.createSelectionBox(cellView);
+//              selection.add(cellView.model);
+//      }
+// });
+
+// // Deselecting previously selected elements with click and the `Ctrl`/`Command` key.
+// selectionView.on('selection-box:pointerdown', function(evt) {
+//      if (evt.ctrlKey || evt.metaKey) {
+//              var cell = selection.get($(evt.target).data('model'));
+//              selectionView.destroySelectionBox(paper.findViewByModel(cell));
+//              selection.reset(selection.without(cell));
+//      }
+// });
+
+joint.ui.SelectionView = Backbone.View.extend({
+
+    options: {
+
+        paper: undefined,
+        graph: undefined
+    },
+
+    className: 'selection',
+
+    events: {
+
+        'mousedown .selection-box': 'startTranslatingSelection',
+        'touchstart .selection-box': 'startTranslatingSelection'
+    },
+    
+    initialize: function() {
+
+        _.bindAll(this, 'startSelecting', 'stopSelecting', 'adjustSelection');
+
+        $(document.body).on('mouseup touchend', this.stopSelecting);
+        $(document.body).on('mousemove touchmove', this.adjustSelection);
+
+        this.options.paper.$el.append(this.$el);
+    },
+
+    startTranslatingSelection: function(evt) {
+
+        evt.stopPropagation();
+
+        evt = joint.util.normalizeEvent(evt);
+
+        this._action = 'translating';
+
+	this.options.graph.trigger('batch:start');
+        
+        var snappedClientCoords = this.options.paper.snapToGrid(g.point(evt.clientX, evt.clientY));
+        this._snappedClientX = snappedClientCoords.x;
+        this._snappedClientY = snappedClientCoords.y;
+
+        this.trigger('selection-box:pointerdown', evt);
+    },
+
+    startSelecting: function(evt, x, y) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        this.$el.removeClass('selected');
+        this.$el.empty();
+        this.model.reset([]);
+        
+        this._action = 'selecting';
+
+        this._clientX = evt.clientX;
+        this._clientY = evt.clientY;
+        
+        // Normalize `evt.offsetX`/`evt.offsetY` for browsers that don't support it (Firefox).
+        var paperElement = evt.target.parentElement || evt.target.parentNode;
+        var paperOffset = $(paperElement).offset();
+        var paperScrollLeft = paperElement.scrollLeft;
+        var paperScrollTop = paperElement.scrollTop;
+
+        this._offsetX = evt.offsetX === undefined ? evt.clientX - paperOffset.left + window.pageXOffset + paperScrollLeft : evt.offsetX;
+        this._offsetY = evt.offsetY === undefined ? evt.clientY - paperOffset.top + window.pageYOffset + paperScrollTop : evt.offsetY;
+
+        this.$el.css({
+
+            width: 1,
+            height: 1,
+            left: this._offsetX,
+            top: this._offsetY
+            
+        }).show();
+    },
+
+    adjustSelection: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var dx;
+        var dy;
+        
+        switch (this._action) {
+
+          case 'selecting':
+
+            dx = evt.clientX - this._clientX;
+            dy = evt.clientY - this._clientY;
+
+            var width = this.$el.width();
+            var height = this.$el.height();
+            var left = parseInt(this.$el.css('left'), 10);
+            var top = parseInt(this.$el.css('top'), 10);
+
+            this.$el.css({
+
+                left: dx < 0 ? this._offsetX + dx : left,
+                top: dy < 0 ? this._offsetY + dy : top,
+                width: Math.abs(dx),
+                height: Math.abs(dy)
+            });
+            break;
+
+          case 'translating':
+
+            var snappedClientCoords = this.options.paper.snapToGrid(g.point(evt.clientX, evt.clientY));
+            var snappedClientX = snappedClientCoords.x;
+            var snappedClientY = snappedClientCoords.y;
+            
+            dx = snappedClientX - this._snappedClientX;
+            dy = snappedClientY - this._snappedClientY;
+
+            // This hash of flags makes sure we're not adjusting vertices of one link twice.
+            // This could happen as one link can be an inbound link of one element in the selection
+            // and outbound link of another at the same time.
+            var processedLinks = {};
+            
+            this.model.each(function(element) {
+
+                // TODO: snap to grid.
+                
+                // Translate the element itself.
+                element.translate(dx, dy);
+
+                // Translate link vertices as well.
+                var connectedLinks = this.options.graph.getConnectedLinks(element);
+
+                _.each(connectedLinks, function(link) {
+
+                    if (processedLinks[link.id]) return;
+
+                    var vertices = link.get('vertices');
+                    if (vertices && vertices.length) {
+
+                        var newVertices = [];
+                        _.each(vertices, function(vertex) {
+
+                            newVertices.push({ x: vertex.x + dx, y: vertex.y + dy });
+                        });
+
+                        link.set('vertices', newVertices);
+                    }
+                    
+                    processedLinks[link.id] = true;
+                });
+                
+            }, this);
+
+            if (dx || dy) {
+
+		var paperScale = V(this.options.paper.viewport).scale();
+		dx *= paperScale.sx;
+		dy *= paperScale.sy;
+
+		// Translate also each of the `selection-box`.
+		this.$('.selection-box').each(function() {
+
+                    var left = parseFloat($(this).css('left'), 10);
+                    var top = parseFloat($(this).css('top'), 10);
+                    $(this).css({ left: left + dx, top: top + dy });
+		});
+
+		this._snappedClientX = snappedClientX;
+		this._snappedClientY = snappedClientY;
+	    }
+
+            break;
+        }
+    },
+
+    stopSelecting: function() {
+
+        switch (this._action) {
+
+          case 'selecting':
+            
+            var offset = this.$el.offset();
+            var width = this.$el.width();
+            var height = this.$el.height();
+
+            // Convert offset coordinates to the local point of the <svg> root element.
+            var localPoint = V(this.options.paper.svg).toLocalPoint(offset.left, offset.top);
+
+            // Take page scroll into consideration.
+            localPoint.x -= window.pageXOffset;
+            localPoint.y -= window.pageYOffset;
+
+            var elementViews = this.options.paper.findViewsInArea(g.rect(localPoint.x, localPoint.y, width, height));
+
+            if (elementViews.length) {
+
+                // Create a `selection-box` `<div>` for each element covering its bounding box area.
+                _.each(elementViews, this.createSelectionBox, this);
+
+                // The root element of the selection switches `position` to `static` when `selected`. This
+                // is neccessary in order for the `selection-box` coordinates to be relative to the
+                // `paper` element, not the `selection` `<div>`.
+                this.$el.addClass('selected');
+                
+            } else {
+
+                // Hide the selection box if there was no element found in the area covered by the
+                // selection box.
+                this.$el.hide();
+            }
+            
+            this.model.reset(_.pluck(elementViews, 'model'));
+            break;
+
+          case 'translating':
+
+	    this.options.graph.trigger('batch:stop');
+            // Everything else is done during the translation.
+            break;
+
+          case 'cherry-picking':
+            // noop;  All is done in the `createSelectionBox()` function.
+            // This is here to avoid removing selection boxes as a reaction on mouseup event and
+            // propagating to the `default` branch in this switch.
+            break;
+            
+        default:
+            // Hide selection if the user clicked somehwere else in the document.
+            this.$el.hide().empty();
+            this.model.reset([]);
+            break;
+        }
+
+        delete this._action;
+    },
+
+    cancelSelection: function() {
+
+        this.$('.selection-box').remove();
+        this.$el.hide().removeClass('selected');
+        this.model.reset([]);
+    },
+
+    destroySelectionBox: function(elementView) {
+
+        this.$('[data-model="' + elementView.model.get('id') + '"]').remove();
+        if (this.$('.selection-box').length === 0) {
+
+            this.$el.hide().removeClass('selected');
+        }
+    },
+
+    createSelectionBox: function(elementView) {
+        
+        var viewBbox = elementView.getBBox();
+
+        var $selectionBox = $('<div/>', { 'class': 'selection-box', 'data-model': elementView.model.get('id') });
+        $selectionBox.css({ left: viewBbox.x, top: viewBbox.y, width: viewBbox.width, height: viewBbox.height });
+        this.$el.append($selectionBox);
+
+        this.$el.addClass('selected').show();
+
+        this._action = 'cherry-picking';
+    }
+});
+
+// Implements Clipboard for copy-pasting elements.
+// Note that the clipboard is also able to copy elements and their assocaited links from one graph
+// and paste them to another.
+
+// Usage:
+
+//       var selection = new Backbone.Collection;
+//       var graph = new joint.dia.Graph;
+//       // ... now something that adds elements to the selection ...
+//       var clipboard = new joint.ui.Clipboard;
+//       KeyboardJS.on('ctrl + c', function() { clipboard.copyElements(selection, graph); });
+//       KeyboardJS.on('ctrl + v', function() { clipboard.pasteCells(graph); });
+
+
+joint.ui.Clipboard = Backbone.Collection.extend({
+
+    // `selection` is a Backbone collection containing elements that should be copied to the clipboard.
+    // Note that with these elements, also all the associated links are copied. That's why we
+    // also need the `graph` parameter, to find these links.
+    // This function returns the elements and links from the original graph that were copied. This is useful
+    // for implements the Cut operation where the original cells should be removed from the graph.
+    // if `opt.translate` object with `dx` and `dy` properties is passed, the copied elements will
+    // be translated by the specified amount. This is useful for e.g. the 'cut' operation where
+    // we'd like to have the pasted elements moved by an offset to see they were pasted to the paper.
+    // if `opt.useLocalStorage` is `true`, the copied elements will be saved to the localStorage
+    // (if present) making it possible to copy-paste elements between browser tabs or sessions.
+    copyElements: function(selection, graph, opt) {
+
+        opt = opt || {};
+        
+        // The method:
+        // 1. Find all links that have BOTH source and target in `this.selection`.
+        // 2. Clone these links.
+        // 3. Clone elements and map their original id to their new id and put them to the clipboard.
+        // 4. Reset the target/source id of the cloned links to point to the appropriate cloned elements.
+        // 5. Put the modified links to the clipboard too.
+        
+        var links = [];
+        var elements = [];
+        var elementsIdMap = {};
+        
+        selection.each(function(element) {
+
+            var connectedLinks = graph.getConnectedLinks(element);
+            
+            // filter only those having both source/target in the selection.
+            links = links.concat(_.filter(connectedLinks, function(link) {
+
+                if (selection.get(link.get('source').id) && selection.get(link.get('target').id)) {
+                    return true;
+                }
+                return false;
+                
+            }));
+
+            var clonedElement = element.clone();
+            if (opt.translate) {
+                clonedElement.translate(opt.translate.dx || 20, opt.translate.dy || 20);
+            }
+            elements.push(clonedElement);
+            elementsIdMap[element.get('id')] = clonedElement.get('id');
+            
+        });
+
+        // Store the original links so that we can return them from the function together with the
+        // original elements.
+        var originalLinks = _.unique(links);
+
+        links = _.map(originalLinks, function(link) {
+
+            var clonedLink = link.clone();
+            var source = clonedLink.get('source');
+            var target = clonedLink.get('target');
+            
+            source.id = elementsIdMap[source.id];
+            target.id = elementsIdMap[target.id];
+
+            clonedLink.set({
+                source: _.clone(source),
+                target: _.clone(target)
+            });
+
+            // Translate vertices as well if necessary.
+            if (opt.translate) {
+
+                _.each(clonedLink.get('vertices'), function(vertex) {
+
+                    vertex.x += opt.translate.dx || 20;
+                    vertex.y += opt.translate.dy || 20;
+                });
+            }
+
+            return clonedLink;
+        });
+        
+        this.reset(elements.concat(links));
+
+        if (opt.useLocalStorage && window.localStorage) {
+
+            localStorage.setItem('joint.ui.Clipboard.cells', JSON.stringify(this.toJSON()));
+        }
+
+        return (selection.models || []).concat(originalLinks);
+    },
+
+    // `opt.link` is attributes that will be set all links before they are added to the `graph`.
+    // This is useful for e.g. setting `z: -1` for links in order to always put them to the bottom of the paper.
+    pasteCells: function(graph, opt) {
+
+        opt = opt || {};
+
+        if (opt.useLocalStorage && this.length === 0 && window.localStorage) {
+
+            this.reset(JSON.parse(localStorage.getItem('joint.ui.Clipboard.cells')));
+        }
+
+	graph.trigger('batch:start');
+
+        this.each(function(cell) {
+
+            cell.unset('z');
+            if ((cell instanceof joint.dia.Link) && opt.link) {
+
+                cell.set(opt.link);
+            }
+            
+            graph.addCell(cell.toJSON());
+        });
+
+	graph.trigger('batch:stop');
+    },
+
+    clear: function() {
+
+        this.reset([]);
+
+        if (window.localStorage) {
+
+            localStorage.removeItem('joint.ui.Clipboard.cells');
+        }
+    }
+});
+
+/*
+
+Copyright (C) 2011 by Yehuda Katz
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+*/
+
+// lib/handlebars/browser-prefix.js
+var Handlebars = {};
+
+(function(Handlebars, undefined) {
+;
+// lib/handlebars/base.js
+
+Handlebars.VERSION = "1.0.0";
+Handlebars.COMPILER_REVISION = 4;
+
+Handlebars.REVISION_CHANGES = {
+  1: '<= 1.0.rc.2', // 1.0.rc.2 is actually rev2 but doesn't report it
+  2: '== 1.0.0-rc.3',
+  3: '== 1.0.0-rc.4',
+  4: '>= 1.0.0'
+};
+
+Handlebars.helpers  = {};
+Handlebars.partials = {};
+
+var toString = Object.prototype.toString,
+    functionType = '[object Function]',
+    objectType = '[object Object]';
+
+Handlebars.registerHelper = function(name, fn, inverse) {
+  if (toString.call(name) === objectType) {
+    if (inverse || fn) { throw new Handlebars.Exception('Arg not supported with multiple helpers'); }
+    Handlebars.Utils.extend(this.helpers, name);
+  } else {
+    if (inverse) { fn.not = inverse; }
+    this.helpers[name] = fn;
+  }
+};
+
+Handlebars.registerPartial = function(name, str) {
+  if (toString.call(name) === objectType) {
+    Handlebars.Utils.extend(this.partials,  name);
+  } else {
+    this.partials[name] = str;
+  }
+};
+
+Handlebars.registerHelper('helperMissing', function(arg) {
+  if(arguments.length === 2) {
+    return undefined;
+  } else {
+    throw new Error("Missing helper: '" + arg + "'");
+  }
+});
+
+Handlebars.registerHelper('blockHelperMissing', function(context, options) {
+  var inverse = options.inverse || function() {}, fn = options.fn;
+
+  var type = toString.call(context);
+
+  if(type === functionType) { context = context.call(this); }
+
+  if(context === true) {
+    return fn(this);
+  } else if(context === false || context == null) {
+    return inverse(this);
+  } else if(type === "[object Array]") {
+    if(context.length > 0) {
+      return Handlebars.helpers.each(context, options);
+    } else {
+      return inverse(this);
+    }
+  } else {
+    return fn(context);
+  }
+});
+
+Handlebars.K = function() {};
+
+Handlebars.createFrame = Object.create || function(object) {
+  Handlebars.K.prototype = object;
+  var obj = new Handlebars.K();
+  Handlebars.K.prototype = null;
+  return obj;
+};
+
+Handlebars.logger = {
+  DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3, level: 3,
+
+  methodMap: {0: 'debug', 1: 'info', 2: 'warn', 3: 'error'},
+
+  // can be overridden in the host environment
+  log: function(level, obj) {
+    if (Handlebars.logger.level <= level) {
+      var method = Handlebars.logger.methodMap[level];
+      if (typeof console !== 'undefined' && console[method]) {
+        console[method].call(console, obj);
+      }
+    }
+  }
+};
+
+Handlebars.log = function(level, obj) { Handlebars.logger.log(level, obj); };
+
+Handlebars.registerHelper('each', function(context, options) {
+  var fn = options.fn, inverse = options.inverse;
+  var i = 0, ret = "", data;
+
+  var type = toString.call(context);
+  if(type === functionType) { context = context.call(this); }
+
+  if (options.data) {
+    data = Handlebars.createFrame(options.data);
+  }
+
+  if(context && typeof context === 'object') {
+    if(context instanceof Array){
+      for(var j = context.length; i<j; i++) {
+        if (data) { data.index = i; }
+        ret = ret + fn(context[i], { data: data });
+      }
+    } else {
+      for(var key in context) {
+        if(context.hasOwnProperty(key)) {
+          if(data) { data.key = key; }
+          ret = ret + fn(context[key], {data: data});
+          i++;
+        }
+      }
+    }
+  }
+
+  if(i === 0){
+    ret = inverse(this);
+  }
+
+  return ret;
+});
+
+Handlebars.registerHelper('if', function(conditional, options) {
+  var type = toString.call(conditional);
+  if(type === functionType) { conditional = conditional.call(this); }
+
+  if(!conditional || Handlebars.Utils.isEmpty(conditional)) {
+    return options.inverse(this);
+  } else {
+    return options.fn(this);
+  }
+});
+
+Handlebars.registerHelper('unless', function(conditional, options) {
+  return Handlebars.helpers['if'].call(this, conditional, {fn: options.inverse, inverse: options.fn});
+});
+
+Handlebars.registerHelper('with', function(context, options) {
+  var type = toString.call(context);
+  if(type === functionType) { context = context.call(this); }
+
+  if (!Handlebars.Utils.isEmpty(context)) return options.fn(context);
+});
+
+Handlebars.registerHelper('log', function(context, options) {
+  var level = options.data && options.data.level != null ? parseInt(options.data.level, 10) : 1;
+  Handlebars.log(level, context);
+});
+;
+// lib/handlebars/utils.js
+
+var errorProps = ['description', 'fileName', 'lineNumber', 'message', 'name', 'number', 'stack'];
+
+Handlebars.Exception = function(message) {
+  var tmp = Error.prototype.constructor.apply(this, arguments);
+
+  // Unfortunately errors are not enumerable in Chrome (at least), so `for prop in tmp` doesn't work.
+  for (var idx = 0; idx < errorProps.length; idx++) {
+    this[errorProps[idx]] = tmp[errorProps[idx]];
+  }
+};
+Handlebars.Exception.prototype = new Error();
+
+// Build out our basic SafeString type
+Handlebars.SafeString = function(string) {
+  this.string = string;
+};
+Handlebars.SafeString.prototype.toString = function() {
+  return this.string.toString();
+};
+
+var escape = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#x27;",
+  "`": "&#x60;"
+};
+
+var badChars = /[&<>"'`]/g;
+var possible = /[&<>"'`]/;
+
+var escapeChar = function(chr) {
+  return escape[chr] || "&amp;";
+};
+
+Handlebars.Utils = {
+  extend: function(obj, value) {
+    for(var key in value) {
+      if(value.hasOwnProperty(key)) {
+        obj[key] = value[key];
+      }
+    }
+  },
+
+  escapeExpression: function(string) {
+    // don't escape SafeStrings, since they're already safe
+    if (string instanceof Handlebars.SafeString) {
+      return string.toString();
+    } else if (string == null || string === false) {
+      return "";
+    }
+
+    // Force a string conversion as this will be done by the append regardless and
+    // the regex test will do this transparently behind the scenes, causing issues if
+    // an object's to string has escaped characters in it.
+    string = string.toString();
+
+    if(!possible.test(string)) { return string; }
+    return string.replace(badChars, escapeChar);
+  },
+
+  isEmpty: function(value) {
+    if (!value && value !== 0) {
+      return true;
+    } else if(toString.call(value) === "[object Array]" && value.length === 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+};
+;
+// lib/handlebars/runtime.js
+
+Handlebars.VM = {
+  template: function(templateSpec) {
+    // Just add water
+    var container = {
+      escapeExpression: Handlebars.Utils.escapeExpression,
+      invokePartial: Handlebars.VM.invokePartial,
+      programs: [],
+      program: function(i, fn, data) {
+        var programWrapper = this.programs[i];
+        if(data) {
+          programWrapper = Handlebars.VM.program(i, fn, data);
+        } else if (!programWrapper) {
+          programWrapper = this.programs[i] = Handlebars.VM.program(i, fn);
+        }
+        return programWrapper;
+      },
+      merge: function(param, common) {
+        var ret = param || common;
+
+        if (param && common) {
+          ret = {};
+          Handlebars.Utils.extend(ret, common);
+          Handlebars.Utils.extend(ret, param);
+        }
+        return ret;
+      },
+      programWithDepth: Handlebars.VM.programWithDepth,
+      noop: Handlebars.VM.noop,
+      compilerInfo: null
+    };
+
+    return function(context, options) {
+      options = options || {};
+      var result = templateSpec.call(container, Handlebars, context, options.helpers, options.partials, options.data);
+
+      var compilerInfo = container.compilerInfo || [],
+          compilerRevision = compilerInfo[0] || 1,
+          currentRevision = Handlebars.COMPILER_REVISION;
+
+      if (compilerRevision !== currentRevision) {
+        if (compilerRevision < currentRevision) {
+          var runtimeVersions = Handlebars.REVISION_CHANGES[currentRevision],
+              compilerVersions = Handlebars.REVISION_CHANGES[compilerRevision];
+          throw "Template was precompiled with an older version of Handlebars than the current runtime. "+
+                "Please update your precompiler to a newer version ("+runtimeVersions+") or downgrade your runtime to an older version ("+compilerVersions+").";
+        } else {
+          // Use the embedded version info since the runtime doesn't know about this revision yet
+          throw "Template was precompiled with a newer version of Handlebars than the current runtime. "+
+                "Please update your runtime to a newer version ("+compilerInfo[1]+").";
+        }
+      }
+
+      return result;
+    };
+  },
+
+  programWithDepth: function(i, fn, data /*, $depth */) {
+    var args = Array.prototype.slice.call(arguments, 3);
+
+    var program = function(context, options) {
+      options = options || {};
+
+      return fn.apply(this, [context, options.data || data].concat(args));
+    };
+    program.program = i;
+    program.depth = args.length;
+    return program;
+  },
+  program: function(i, fn, data) {
+    var program = function(context, options) {
+      options = options || {};
+
+      return fn(context, options.data || data);
+    };
+    program.program = i;
+    program.depth = 0;
+    return program;
+  },
+  noop: function() { return ""; },
+  invokePartial: function(partial, name, context, helpers, partials, data) {
+    var options = { helpers: helpers, partials: partials, data: data };
+
+    if(partial === undefined) {
+      throw new Handlebars.Exception("The partial " + name + " could not be found");
+    } else if(partial instanceof Function) {
+      return partial(context, options);
+    } else if (!Handlebars.compile) {
+      throw new Handlebars.Exception("The partial " + name + " could not be compiled when running in runtime-only mode");
+    } else {
+      partials[name] = Handlebars.compile(partial, {data: data !== undefined});
+      return partials[name](context, options);
+    }
+  }
+};
+
+Handlebars.template = Handlebars.VM.template;
+;
+// lib/handlebars/browser-suffix.js
+})(Handlebars);
+;
+
+this["joint"] = this["joint"] || {};
+this["joint"]["templates"] = this["joint"]["templates"] || {};
+
+this["joint"]["templates"]["halo.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<div class=\"resize\" draggable=\"false\"/>\n<div class=\"remove\" draggable=\"false\"/>\n<div class=\"clone\" draggable=\"false\"/>\n<div class=\"link\" draggable=\"false\"/>\n<div class=\"fork\" draggable=\"false\"/>\n<div class=\"unlink\" draggable=\"false\"/>\n<div class=\"rotate\" draggable=\"false\"/>\n<label class=\"box\"></label>\n";
+  });
+joint.ui.Halo = Backbone.View.extend({
+
+    className: 'halo',
+
+    template: 'halo',
+
+    events: {
+
+        'mousedown .clone': 'startCloning',
+        'touchstart .clone': 'startCloning',
+        'mousedown .fork': 'startForking',
+        'touchstart .fork': 'startForking',
+        'mousedown .link': 'startLinking',
+        'touchstart .link': 'startLinking',
+        'mousedown .unlink': 'unlinkElement',
+        'mousedown .remove': 'removeElement',
+        'touchstart .remove': 'removeElement',
+        'mousedown .resize': 'startResizing',
+        'touchstart .resize': 'startResizing',
+        'mousedown .rotate': 'startRotating',
+        'touchstart .rotate': 'startRotating'
+    },
+
+    options: {
+	tinyTreshold: 40,
+	smallTreshold: 80,
+	loopLinkPreferredSide: 'top',
+	loopLinkWidth: 40,
+        // deprecated (better use joint.dia.Paper.options.linkModel)
+	linkAttributes: {},
+	smoothLinks: undefined
+    },
+
+    initialize: function() {
+
+        _.bindAll(this, 'pointermove', 'pointerup', 'render', 'update', 'remove');
+
+        // inform an existing halo that a new halo is being created
+        this.options.paper.trigger('halo:create');
+
+	// Update halo when the graph changed.
+        this.listenTo(this.options.graph, 'reset', this.remove);
+        this.listenTo(this.options.graph, 'all', this.update);
+        // Hide Halo when the user clicks anywhere in the paper or a new halo is created.
+        this.listenTo(this.options.paper, 'blank:pointerdown halo:create', this.remove);
+        this.listenTo(this.options.paper, 'scale', this.update);
+
+        $(document.body).on('mousemove touchmove', this.pointermove);
+        $(document).on('mouseup touchend', this.pointerup);
+
+        this.options.paper.$el.append(this.$el);
+    },
+
+    render: function() {
+
+        this.options.cellView.model.on('remove', this.remove);
+
+        this.$el.html(joint.templates['halo.html'](this.template));
+
+	this.renderMagnets();
+
+        this.update();
+
+        this.$el.addClass('animate');
+        
+        // Add the `data-type` attribute with the `type` of the cell to the root element.
+        // This makes it possible to style the halo (including hiding/showing actions) based
+        // on the type of the cell.
+        this.$el.attr('data-type', this.options.cellView.model.get('type'));
+
+	this.toggleFork();
+
+        return this;
+    },
+
+    update: function() {
+
+        if (this.options.cellView.model instanceof joint.dia.Link) return;
+        
+        var bbox = this.options.cellView.getBBox();
+
+        var position = this.options.cellView.model.get('position');
+        var angle = this.options.cellView.model.get('angle');
+        var size = this.options.cellView.model.get('size');
+        
+        this.$('.box').text('x: ' + Math.floor(position.x) + ', y: ' + Math.floor(position.y) + ', width: ' + size.width + ', height: ' + size.height + ', angle: ' + Math.floor((angle || 0)));
+
+	this.$el.toggleClass('tiny', bbox.width < this.options.tinyTreshold && bbox.height < this.options.tinyTreshold);
+	this.$el.toggleClass('small', !this.$el.hasClass('tiny') && (bbox.width < this.options.smallTreshold && bbox.height < this.options.smallTreshold));
+
+	this.$el.css({
+
+            width: bbox.width,
+            height: bbox.height,
+            left: bbox.x,
+            top: bbox.y
+
+        }).show();
+
+	this.updateMagnets();
+
+	this.toggleUnlink();
+    },
+
+    startCloning: function(evt) {
+
+        evt.preventDefault();
+        evt.stopPropagation();
+        evt = joint.util.normalizeEvent(evt);
+
+	this.options.graph.trigger('batch:start');
+        
+        this._action = 'clone';
+
+        this._clone = this.options.cellView.model.clone();
+        this._clone.unset('z');
+        this.options.graph.addCell(this._clone);
+
+        this._clientX = evt.clientX;
+        this._clientY = evt.clientY;
+    },
+
+    startLinking: function(evt) {
+
+        evt.preventDefault();
+        evt.stopPropagation();
+        evt = joint.util.normalizeEvent(evt);
+
+	this.options.graph.trigger('batch:start');
+
+        this._action = 'link';
+
+        var cellView = this.options.cellView;
+        var selector = $.data(evt.target, 'selector');
+        var link = this.options.paper.getDefaultLink(cellView, selector && cellView.el.querySelector(selector));
+
+	link.set('source', { id: cellView.model.id, selector: selector });
+        link.set('target', { x: 0, y: 0 });
+
+	link.attr(this.options.linkAttributes);
+        if (_.isBoolean(this.options.smoothLinks)) {
+            link.set('smooth', this.options.smoothLinks);
+        }
+
+	// add link to graph but don't validate
+        this.options.graph.addCell(link, { validation: false });
+
+        link.set('target', this.options.paper.snapToGrid({ x: evt.clientX, y: evt.clientY }));
+
+        this._linkView = this.options.paper.findViewByModel(link);
+        this._linkView.startArrowheadMove('target');
+
+        this._clientX = evt.clientX;
+        this._clientY = evt.clientY;
+    },
+
+    startForking: function(evt) {
+
+        evt.preventDefault();
+        evt.stopPropagation();
+        evt = joint.util.normalizeEvent(evt);
+
+	this.options.graph.trigger('batch:start');
+        
+        this._action = 'fork';
+
+        this._clone = this.options.cellView.model.clone();
+        this._clone.unset('z');
+        this.options.graph.addCell(this._clone);
+
+        var link = this.options.paper.getDefaultLink(this.options.cellView);
+
+	link.set('source', { id: this.options.cellView.model.id });
+        link.set('target', { id: this._clone.id });
+
+	link.attr(this.options.linkAttributes);
+        if (_.isBoolean(this.options.smoothLinks)) {
+            link.set('smooth', this.options.smoothLinks);
+        }
+
+        this.options.graph.addCell(link);
+
+        this._clientX = evt.clientX;
+        this._clientY = evt.clientY;
+    },
+
+    startResizing: function(evt) {
+
+        evt.preventDefault();
+        evt.stopPropagation();
+        evt = joint.util.normalizeEvent(evt);
+
+	this.options.graph.trigger('batch:start');
+        
+        this._action = 'resize';
+
+        // determine whether to flip x,y mouse coordinates while resizing or not
+        this._flip = [1,0,0,1,1,0,0,1][
+            Math.floor(g.normalizeAngle(this.options.cellView.model.get('angle')) / 45)
+        ];
+
+        this._clientX = evt.clientX;
+        this._clientY = evt.clientY;
+    },
+
+    startRotating: function(evt) {
+
+        evt.preventDefault();
+        evt.stopPropagation();
+        evt = joint.util.normalizeEvent(evt);
+
+	this.options.graph.trigger('batch:start');
+        
+        this._action = 'rotate';
+
+        var bbox = this.options.cellView.getBBox();
+        
+        this._center = g.rect(bbox).center();
+
+	//mousemove event in firefox has undefined offsetX and offsetY
+	if(typeof evt.offsetX === "undefined" || typeof evt.offsetY === "undefined") {
+	    var targetOffset = $(evt.target).offset();
+	    evt.offsetX = evt.pageX - targetOffset.left;
+	    evt.offsetY = evt.pageY - targetOffset.top;
+	}
+
+        this._rotationStart = g.point(evt.offsetX + evt.target.parentNode.offsetLeft, evt.offsetY + evt.target.parentNode.offsetTop + evt.target.parentNode.offsetHeight);
+
+        var angle = this.options.cellView.model.get('angle');
+
+        this._rotationStartAngle = angle || 0;
+
+        this._clientX = evt.clientX;
+        this._clientY = evt.clientY;
+    },
+    
+    pointermove: function(evt) {
+
+        if (!this._action) return;
+
+        evt.preventDefault();
+        evt.stopPropagation();
+        evt = joint.util.normalizeEvent(evt);
+
+        var clientCoords = this.options.paper.snapToGrid({ x: evt.clientX, y: evt.clientY });
+        var oldClientCoords = this.options.paper.snapToGrid({ x: this._clientX, y: this._clientY });
+        
+        var dx = clientCoords.x - oldClientCoords.x;
+        var dy = clientCoords.y - oldClientCoords.y;
+        
+        switch (this._action) {
+
+          case 'resize':
+
+            var size = this.options.cellView.model.get('size');
+
+            var width = Math.max(size.width + ((this._flip ? dx : dy)), 1);
+            var height = Math.max(size.height + ((this._flip ? dy : dx)), 1);
+
+            this.options.cellView.model.resize(width, height, { absolute: true });
+
+            this._clientX = evt.clientX;
+            this._clientY = evt.clientY;
+            break;
+            
+          case 'rotate':
+
+            dx = evt.clientX - this._clientX;
+            dy = evt.clientY - this._clientY;
+            
+            var p = g.point(this._rotationStart).offset(dx, dy);
+            var a = p.distance(this._center);
+            var b = this._center.distance(this._rotationStart);
+            var c = this._rotationStart.distance(p);
+            var sign = (this._center.x - this._rotationStart.x) * (p.y - this._rotationStart.y) - (this._center.y - this._rotationStart.y) * (p.x - this._rotationStart.x);
+
+            var _angle = Math.acos((a*a + b*b - c*c) / (2*a*b));
+
+            // Quadrant correction.
+            if (sign <= 0) {
+                _angle = -_angle;
+            }
+            
+            var angleDiff = -g.toDeg(_angle);
+
+            angleDiff = g.snapToGrid(angleDiff, 15);
+            
+            this.options.cellView.model.rotate(angleDiff + this._rotationStartAngle, true);
+            break;
+            
+          case 'clone':
+          case 'fork':
+            
+            this._clone.translate(dx, dy);
+
+            this._clientX = evt.clientX;
+            this._clientY = evt.clientY;
+            break;
+
+          case 'link':
+
+            this._linkView.pointermove(evt, clientCoords.x, clientCoords.y);
+            break;
+        }
+    },
+
+    pointerup: function(evt) {
+
+        if (!this._action) return;
+
+        evt.preventDefault();
+        
+        switch (this._action) {
+
+          case 'link':
+
+            this._linkView.pointerup(evt);
+
+            var sourceId = this._linkView.model.get('source').id;
+            var targetId = this._linkView.model.get('target').id;
+
+	    if (sourceId && targetId && (sourceId === targetId)) {
+		this.makeLoopLink(this._linkView.model);
+	    }
+
+            break;
+	}
+
+	delete this._linkView;
+        delete this._action;
+
+	this.options.graph.trigger('batch:stop');
+    },
+
+    remove: function(evt) {
+
+	Backbone.View.prototype.remove.apply(this, arguments);
+
+        $(document.body).off('mousemove touchmove', this.pointermove);
+        $(document).off('mouseup touchend', this.pointerup);
+    },
+
+    removeElement: function(evt) {
+
+        evt.stopPropagation();
+        this.options.cellView.model.remove();
+    },
+
+    unlinkElement: function(evt) {
+
+        evt.stopPropagation();
+        this.options.graph.removeLinks(this.options.cellView.model);
+    },
+
+    toggleUnlink: function() {
+
+	if (this.options.graph.getConnectedLinks(this.options.cellView.model).length > 0) {
+	    this.$('.unlink').show()
+	} else {
+	    this.$('.unlink').hide()
+	}
+    },
+
+    toggleFork: function() {
+
+        // temporary create a clone model and its view
+        var clone = this.options.cellView.model.clone();
+        var cloneView = this.options.paper.createViewForModel(clone);
+
+        // if a connection after forking would not be valid, hide the fork icon
+        if (!this.options.paper.options.validateConnection(this.options.cellView,null,cloneView,null,'target')) {
+	    this.$('.fork').hide();
+        }
+
+        cloneView.remove();
+        clone = null;
+    },
+
+    makeLoopLink: function(link) {
+
+	var linkWidth = this.options.loopLinkWidth;
+	var paperOpt = this.options.paper.options;
+	var paperRect = g.rect({x: 0, y: 0, width: paperOpt.width, height: paperOpt.height});
+	var bbox = V(this.options.cellView.el).bbox(false, this.options.paper.viewport);
+	var p1, p2;
+
+	var sides = _.uniq([this.options.loopLinkPreferredSide, 'top', 'bottom', 'left', 'right']);
+	var sideFound = _.find(sides, function(side) {
+
+	    var centre, dx = 0, dy = 0;
+
+	    switch (side) {
+
+	    case 'top':
+		centre = g.point(bbox.x + bbox.width / 2, bbox.y - linkWidth);
+		dx = linkWidth / 2;
+		break;
+
+	    case 'bottom':
+		centre = g.point(bbox.x + bbox.width / 2, bbox.y + bbox.height + linkWidth);
+		dx = linkWidth / 2;
+		break;
+
+	    case 'left':
+		centre = g.point(bbox.x - linkWidth, bbox.y + bbox.height / 2);
+		dy = linkWidth / 2;
+		break;
+
+	    case 'right':
+		centre = g.point(bbox.x + bbox.width + linkWidth, bbox.y + bbox.height / 2);
+		dy = linkWidth / 2;
+		break;
+	    };
+
+	    p1 = g.point(centre).offset(-dx, -dy);
+	    p2 = g.point(centre).offset(dx, dy);
+
+	    return paperRect.containsPoint(p1) && paperRect.containsPoint(p2);
+	}, this);
+
+	if (sideFound) link.set('vertices', [p1,p2]);
+    },
+
+    // Magnet functions
+
+    renderMagnets: function() {
+
+	this._magnets = [];
+
+	var $link = this.$('.link');
+	var magnetElements = this.options.cellView.$('[magnet="true"]');
+
+	if (this.options.magnetFilter) {
+
+	    if (_.isFunction(this.options.magnetFilter)) {
+
+		// We want function to be called with a magnet element as the first parameter. Not an index
+		// as jQuery.filter would do it.
+		magnetElements = _.filter(magnetElements, this.options.magnetFilter);
+
+	    } else {
+
+		// Every other case runs jQuery.filter method
+		magnetElements = magnetElements.filter(this.options.magnetFilter);
+	    }
+	}
+
+	if ($link.length && magnetElements.length) {
+
+	    var linkWidth = $link.width();
+	    var linkHeight = $link.height();
+
+	    _.each(magnetElements, function(magnetElement) {
+
+		var magnetClientRect = magnetElement.getBoundingClientRect();
+
+		var $haloElement = $link.clone()
+		    .addClass('halo-magnet')
+		    .css({
+			width: Math.min(magnetClientRect.width, linkWidth),
+			height: Math.min(magnetClientRect.height, linkHeight),
+			'background-size': 'contain'
+		    })
+		    .data('selector', this.options.cellView.getSelector(magnetElement))
+		    .appendTo(this.$el);
+
+		this._magnets.push({ $halo: $haloElement, el: magnetElement });
+
+	    }, this);
+	}
+
+	// disable linking & forking from the element itself if is it not a magnet
+	if (this.options.cellView.$el.attr('magnet') == 'false') {
+	    $link.hide();
+	    this.$('.fork').hide();
+	}
+    },
+
+    updateMagnets: function() {
+
+	if (this._magnets.length) {
+
+	    var hClientRect = this.el.getBoundingClientRect();
+
+	    // adjust position of each halo magnet
+	    _.each(this._magnets, function(magnet) {
+
+		var mClientRect = magnet.el.getBoundingClientRect();
+
+		magnet.$halo.css({
+		    left: mClientRect.left - hClientRect.left + (mClientRect.width - magnet.$halo.width())/2,
+		    top: mClientRect.top - hClientRect.top + (mClientRect.height - magnet.$halo.height())/2
+		});
+
+	    }, this);
+	}
+    }
+
+});
+
+/*
+
+Copyright (C) 2011 by Yehuda Katz
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+*/
+
+// lib/handlebars/browser-prefix.js
+var Handlebars = {};
+
+(function(Handlebars, undefined) {
+;
+// lib/handlebars/base.js
+
+Handlebars.VERSION = "1.0.0";
+Handlebars.COMPILER_REVISION = 4;
+
+Handlebars.REVISION_CHANGES = {
+  1: '<= 1.0.rc.2', // 1.0.rc.2 is actually rev2 but doesn't report it
+  2: '== 1.0.0-rc.3',
+  3: '== 1.0.0-rc.4',
+  4: '>= 1.0.0'
+};
+
+Handlebars.helpers  = {};
+Handlebars.partials = {};
+
+var toString = Object.prototype.toString,
+    functionType = '[object Function]',
+    objectType = '[object Object]';
+
+Handlebars.registerHelper = function(name, fn, inverse) {
+  if (toString.call(name) === objectType) {
+    if (inverse || fn) { throw new Handlebars.Exception('Arg not supported with multiple helpers'); }
+    Handlebars.Utils.extend(this.helpers, name);
+  } else {
+    if (inverse) { fn.not = inverse; }
+    this.helpers[name] = fn;
+  }
+};
+
+Handlebars.registerPartial = function(name, str) {
+  if (toString.call(name) === objectType) {
+    Handlebars.Utils.extend(this.partials,  name);
+  } else {
+    this.partials[name] = str;
+  }
+};
+
+Handlebars.registerHelper('helperMissing', function(arg) {
+  if(arguments.length === 2) {
+    return undefined;
+  } else {
+    throw new Error("Missing helper: '" + arg + "'");
+  }
+});
+
+Handlebars.registerHelper('blockHelperMissing', function(context, options) {
+  var inverse = options.inverse || function() {}, fn = options.fn;
+
+  var type = toString.call(context);
+
+  if(type === functionType) { context = context.call(this); }
+
+  if(context === true) {
+    return fn(this);
+  } else if(context === false || context == null) {
+    return inverse(this);
+  } else if(type === "[object Array]") {
+    if(context.length > 0) {
+      return Handlebars.helpers.each(context, options);
+    } else {
+      return inverse(this);
+    }
+  } else {
+    return fn(context);
+  }
+});
+
+Handlebars.K = function() {};
+
+Handlebars.createFrame = Object.create || function(object) {
+  Handlebars.K.prototype = object;
+  var obj = new Handlebars.K();
+  Handlebars.K.prototype = null;
+  return obj;
+};
+
+Handlebars.logger = {
+  DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3, level: 3,
+
+  methodMap: {0: 'debug', 1: 'info', 2: 'warn', 3: 'error'},
+
+  // can be overridden in the host environment
+  log: function(level, obj) {
+    if (Handlebars.logger.level <= level) {
+      var method = Handlebars.logger.methodMap[level];
+      if (typeof console !== 'undefined' && console[method]) {
+        console[method].call(console, obj);
+      }
+    }
+  }
+};
+
+Handlebars.log = function(level, obj) { Handlebars.logger.log(level, obj); };
+
+Handlebars.registerHelper('each', function(context, options) {
+  var fn = options.fn, inverse = options.inverse;
+  var i = 0, ret = "", data;
+
+  var type = toString.call(context);
+  if(type === functionType) { context = context.call(this); }
+
+  if (options.data) {
+    data = Handlebars.createFrame(options.data);
+  }
+
+  if(context && typeof context === 'object') {
+    if(context instanceof Array){
+      for(var j = context.length; i<j; i++) {
+        if (data) { data.index = i; }
+        ret = ret + fn(context[i], { data: data });
+      }
+    } else {
+      for(var key in context) {
+        if(context.hasOwnProperty(key)) {
+          if(data) { data.key = key; }
+          ret = ret + fn(context[key], {data: data});
+          i++;
+        }
+      }
+    }
+  }
+
+  if(i === 0){
+    ret = inverse(this);
+  }
+
+  return ret;
+});
+
+Handlebars.registerHelper('if', function(conditional, options) {
+  var type = toString.call(conditional);
+  if(type === functionType) { conditional = conditional.call(this); }
+
+  if(!conditional || Handlebars.Utils.isEmpty(conditional)) {
+    return options.inverse(this);
+  } else {
+    return options.fn(this);
+  }
+});
+
+Handlebars.registerHelper('unless', function(conditional, options) {
+  return Handlebars.helpers['if'].call(this, conditional, {fn: options.inverse, inverse: options.fn});
+});
+
+Handlebars.registerHelper('with', function(context, options) {
+  var type = toString.call(context);
+  if(type === functionType) { context = context.call(this); }
+
+  if (!Handlebars.Utils.isEmpty(context)) return options.fn(context);
+});
+
+Handlebars.registerHelper('log', function(context, options) {
+  var level = options.data && options.data.level != null ? parseInt(options.data.level, 10) : 1;
+  Handlebars.log(level, context);
+});
+;
+// lib/handlebars/utils.js
+
+var errorProps = ['description', 'fileName', 'lineNumber', 'message', 'name', 'number', 'stack'];
+
+Handlebars.Exception = function(message) {
+  var tmp = Error.prototype.constructor.apply(this, arguments);
+
+  // Unfortunately errors are not enumerable in Chrome (at least), so `for prop in tmp` doesn't work.
+  for (var idx = 0; idx < errorProps.length; idx++) {
+    this[errorProps[idx]] = tmp[errorProps[idx]];
+  }
+};
+Handlebars.Exception.prototype = new Error();
+
+// Build out our basic SafeString type
+Handlebars.SafeString = function(string) {
+  this.string = string;
+};
+Handlebars.SafeString.prototype.toString = function() {
+  return this.string.toString();
+};
+
+var escape = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#x27;",
+  "`": "&#x60;"
+};
+
+var badChars = /[&<>"'`]/g;
+var possible = /[&<>"'`]/;
+
+var escapeChar = function(chr) {
+  return escape[chr] || "&amp;";
+};
+
+Handlebars.Utils = {
+  extend: function(obj, value) {
+    for(var key in value) {
+      if(value.hasOwnProperty(key)) {
+        obj[key] = value[key];
+      }
+    }
+  },
+
+  escapeExpression: function(string) {
+    // don't escape SafeStrings, since they're already safe
+    if (string instanceof Handlebars.SafeString) {
+      return string.toString();
+    } else if (string == null || string === false) {
+      return "";
+    }
+
+    // Force a string conversion as this will be done by the append regardless and
+    // the regex test will do this transparently behind the scenes, causing issues if
+    // an object's to string has escaped characters in it.
+    string = string.toString();
+
+    if(!possible.test(string)) { return string; }
+    return string.replace(badChars, escapeChar);
+  },
+
+  isEmpty: function(value) {
+    if (!value && value !== 0) {
+      return true;
+    } else if(toString.call(value) === "[object Array]" && value.length === 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+};
+;
+// lib/handlebars/runtime.js
+
+Handlebars.VM = {
+  template: function(templateSpec) {
+    // Just add water
+    var container = {
+      escapeExpression: Handlebars.Utils.escapeExpression,
+      invokePartial: Handlebars.VM.invokePartial,
+      programs: [],
+      program: function(i, fn, data) {
+        var programWrapper = this.programs[i];
+        if(data) {
+          programWrapper = Handlebars.VM.program(i, fn, data);
+        } else if (!programWrapper) {
+          programWrapper = this.programs[i] = Handlebars.VM.program(i, fn);
+        }
+        return programWrapper;
+      },
+      merge: function(param, common) {
+        var ret = param || common;
+
+        if (param && common) {
+          ret = {};
+          Handlebars.Utils.extend(ret, common);
+          Handlebars.Utils.extend(ret, param);
+        }
+        return ret;
+      },
+      programWithDepth: Handlebars.VM.programWithDepth,
+      noop: Handlebars.VM.noop,
+      compilerInfo: null
+    };
+
+    return function(context, options) {
+      options = options || {};
+      var result = templateSpec.call(container, Handlebars, context, options.helpers, options.partials, options.data);
+
+      var compilerInfo = container.compilerInfo || [],
+          compilerRevision = compilerInfo[0] || 1,
+          currentRevision = Handlebars.COMPILER_REVISION;
+
+      if (compilerRevision !== currentRevision) {
+        if (compilerRevision < currentRevision) {
+          var runtimeVersions = Handlebars.REVISION_CHANGES[currentRevision],
+              compilerVersions = Handlebars.REVISION_CHANGES[compilerRevision];
+          throw "Template was precompiled with an older version of Handlebars than the current runtime. "+
+                "Please update your precompiler to a newer version ("+runtimeVersions+") or downgrade your runtime to an older version ("+compilerVersions+").";
+        } else {
+          // Use the embedded version info since the runtime doesn't know about this revision yet
+          throw "Template was precompiled with a newer version of Handlebars than the current runtime. "+
+                "Please update your runtime to a newer version ("+compilerInfo[1]+").";
+        }
+      }
+
+      return result;
+    };
+  },
+
+  programWithDepth: function(i, fn, data /*, $depth */) {
+    var args = Array.prototype.slice.call(arguments, 3);
+
+    var program = function(context, options) {
+      options = options || {};
+
+      return fn.apply(this, [context, options.data || data].concat(args));
+    };
+    program.program = i;
+    program.depth = args.length;
+    return program;
+  },
+  program: function(i, fn, data) {
+    var program = function(context, options) {
+      options = options || {};
+
+      return fn(context, options.data || data);
+    };
+    program.program = i;
+    program.depth = 0;
+    return program;
+  },
+  noop: function() { return ""; },
+  invokePartial: function(partial, name, context, helpers, partials, data) {
+    var options = { helpers: helpers, partials: partials, data: data };
+
+    if(partial === undefined) {
+      throw new Handlebars.Exception("The partial " + name + " could not be found");
+    } else if(partial instanceof Function) {
+      return partial(context, options);
+    } else if (!Handlebars.compile) {
+      throw new Handlebars.Exception("The partial " + name + " could not be compiled when running in runtime-only mode");
+    } else {
+      partials[name] = Handlebars.compile(partial, {data: data !== undefined});
+      return partials[name](context, options);
+    }
+  }
+};
+
+Handlebars.template = Handlebars.VM.template;
+;
+// lib/handlebars/browser-suffix.js
+})(Handlebars);
+;
+
+this["joint"] = this["joint"] || {};
+this["joint"]["templates"] = this["joint"]["templates"] || {};
+this["joint"]["templates"]["stencil"] = this["joint"]["templates"]["stencil"] || {};
+
+this["joint"]["templates"]["stencil"]["elements.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<div class=\"elements\"></div>\n";
+  });
+
+this["joint"]["templates"]["stencil"]["group.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<div class=\"group\">\n    <h3 class=\"group-label\">";
+  if (stack1 = helpers.label) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.label; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "</h3>\n</div>\n";
+  return buffer;
+  });
+
+this["joint"]["templates"]["stencil"]["stencil.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<div class=\"stencil-paper-drag\"></div>\n";
+  });
+// JointJS Stencil ui plugin.
+// --------------------------
+
+// USAGE:
+// var graph = new joint.dia.Graph;
+// var paper = new joint.dia.Paper({
+//    el: $('#paper'),
+//    width: 500,
+//    height: 300,
+//    gridSize: 20,
+//    perpendicularLinks: true,
+//    model: graph
+// });
+// 
+// var stencil = new joint.ui.Stencil({ graph: graph, paper: paper });
+// $('#stencil-holder').append(stencil.render().el);
+
+
+joint.ui.Stencil = Backbone.View.extend({
+
+    className: 'stencil',
+
+    events: {
+        
+        'click .group-label': 'onGroupLabelClick',
+        'touchstart .group-label': 'onGroupLabelClick'
+    },
+
+    options: {
+        width: 200,
+        height: 800
+    },
+
+    initialize: function() {
+
+        this.graphs = {};
+        this.papers = {};
+
+        $(document.body).on('mousemove touchmove', _.bind(this.onDrag, this));
+        $(document.body).on('mouseup touchend', _.bind(this.onDragEnd, this));
+    },
+    
+    render: function() {
+
+        this.$el.html(joint.templates.stencil['stencil.html'](this.template));
+
+        var paperOptions = {
+            width: this.options.width,
+            height: this.options.height,
+            interactive: false
+        };
+
+        if (this.options.groups) {
+            // Render as many papers as there are groups and put them inside the `'group.html'` template.
+            
+            var sortedGroups = _.sortBy(_.pairs(this.options.groups), function(pair) { return pair[1].index });
+            _.each(sortedGroups, function(groupArray) {
+
+                var name = groupArray[0];
+                var group = groupArray[1];
+                
+                var $group = $(joint.templates.stencil['group.html']({ label: group.label || name }));
+                $group.attr('data-name', name);
+                if (group.closed) $group.addClass('closed');
+                $group.append($(joint.templates.stencil['elements.html']()));
+                this.$el.append($group);
+                
+                var graph = new joint.dia.Graph;
+                this.graphs[name] = graph;
+                var paper = new joint.dia.Paper(_.extend({}, paperOptions, {
+                    el: $group.find('.elements'),
+                    model: graph,
+                    width: group.width || paperOptions.width,
+                    height: group.height || paperOptions.height
+                }));
+                this.papers[name] = paper;
+                
+            }, this);
+            
+        } else {
+            // Groups are not used. Render just one paper for the whole stencil.
+
+            this.$el.append($(joint.templates.stencil['elements.html']()));
+            var graph = new joint.dia.Graph;
+            // `this.graphs` object contains only one graph in this case that we store under the key `'__default__'`.
+            this.graphs['__default__'] = graph;
+            var paper = new joint.dia.Paper(_.extend(paperOptions, {
+                el: this.$('.elements'),
+                model: graph
+            }));
+            this.papers['__default__'] = paper;
+        }
+
+        // Create graph and paper objects for the, temporary, dragging phase.
+        // Elements travel the following way when the user drags an element from the stencil and drops
+        // it into the main, associated, paper: `[One of the Stencil graphs] -> [_graphDrag] -> [this.options.graph]`.
+        this._graphDrag = new joint.dia.Graph;
+        this._paperDrag = new joint.dia.Paper({
+
+            el: this.$('.stencil-paper-drag'),
+            width: 1,
+            height: 1,
+            model: this._graphDrag
+        });
+
+        // `cell:pointerdown` on any of the Stencil papers triggers element dragging.
+        _.each(this.papers, function(paper) { paper.on('cell:pointerdown', this.onDragStart, this); }, this);
+
+        return this;
+    },
+
+    // @public Populate stencil with `cells`. If `group` is passed, only the graph in the named group
+    // will be populated.
+    load: function(cells, group) {
+
+        var graph = this.graphs[group || '__default__'];
+        if (graph) {
+            graph.resetCells(cells);
+            // If height is not defined in neither the global `options.height` or local
+            // `height` for this specific group, fit the paper to the content automatically.
+            var paperHeight = this.options.height;
+            if (group && this.options.groups[group]) {
+                paperHeight = this.options.groups[group].height;
+            }
+            if (!paperHeight) {
+                this.papers[group || '__default__'].fitToContent(1, 1, this.options.paperPadding || 10);
+            }
+        } else {
+            throw new Error('Stencil: group ' + group + ' does not exist.');
+        }
+    },
+
+    getGraph: function(group) {
+        
+        return this.graphs[group || '__default__'];
+    },
+
+    getPaper: function(group) {
+        
+        return this.papers[group || '__default__'];
+    },
+    
+    onDragStart: function(cellView, evt) {
+        
+        this.$el.addClass('dragging');
+        this._paperDrag.$el.addClass('dragging');
+        // Move the .stencil-paper-drag element to the document body so that even though
+        // the stencil is set to overflow: hidden or auto, the .stencil-paper-drag will
+        // be visible.
+        $(document.body).append(this._paperDrag.$el);
+        
+        this._clone = cellView.model.clone();
+        this._cloneBbox = cellView.getBBox();
+
+        // Leave some padding so that e.g. the cell shadow or thick border is visible.
+        // This workaround can be removed once browsers start supporting getStrokeBBox() (http://www.w3.org/TR/SVG2/types.html#__svg__SVGGraphicsElement__getStrokeBBox).
+        var padding = 5;
+
+        // Compute the difference between the real (view) bounding box and the model bounding box position.
+        // This makes sure that elements that are outside the model bounding box get accounted for too.
+        var shift = g.point(this._cloneBbox.x - this._clone.get('position').x, this._cloneBbox.y - this._clone.get('position').y);
+
+        this._clone.set('position', { x: -shift.x + padding, y: -shift.y + padding });
+        this._graphDrag.addCell(this._clone);
+        this._paperDrag.setDimensions(this._cloneBbox.width + 2*padding, this._cloneBbox.height + 2*padding);
+
+        // Safari uses `document.body.scrollTop` only while Firefox uses `document.documentElement.scrollTop` only.
+        // Google Chrome is the winner here as it uses both.
+        var scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
+
+        // Offset the paper so that the mouse cursor points to the center of the stencil element.
+        this._paperDrag.$el.offset({
+            left: evt.clientX - this._cloneBbox.width/2,
+            top: evt.clientY + scrollTop - this._cloneBbox.height/2
+        });
+    },
+
+    onDrag: function(evt) {
+        
+        evt = joint.util.normalizeEvent(evt);
+        
+        if (this._clone) {
+
+            var scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
+
+            // Offset the paper so that the mouse cursor points to the center of the stencil element.
+            this._paperDrag.$el.offset({
+                left: evt.clientX - this._cloneBbox.width/2,
+                top: evt.clientY + scrollTop - this._cloneBbox.height/2
+            });
+        }
+    },
+
+    onDragEnd: function(evt) {
+        
+        evt = joint.util.normalizeEvent(evt);
+
+        if (this._clone && this._cloneBbox) {
+
+            this.drop(evt, this._clone.clone(), this._cloneBbox);
+
+            // Move the .stencil-paper-drag from the document body back to the stencil element.
+            this.$el.append(this._paperDrag.$el);
+            
+            this.$el.removeClass('dragging');
+            this._paperDrag.$el.removeClass('dragging');
+            
+            this._clone.remove();
+            this._clone = undefined;
+        }
+    },
+
+    drop: function(evt, cell, cellViewBBox) {
+
+        var paper = this.options.paper;
+        var graph = this.options.graph;
+        
+        var paperPosition = paper.$el.offset();
+        var scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
+        var scrollLeft = document.body.scrollLeft || document.documentElement.scrollLeft;
+        
+        var paperArea = g.rect(
+            paperPosition.left + parseInt(paper.$el.css("border-left-width"),10) - scrollLeft,
+            paperPosition.top + parseInt(paper.$el.css("border-top-width"),10) - scrollTop,
+            paper.$el.innerWidth(),
+            paper.$el.innerHeight()
+        );
+
+	var p = paper.svg.createSVGPoint();
+        p.x = evt.clientX;
+        p.y = evt.clientY;
+
+        // Check if the cell is dropped inside the paper.
+        if (paperArea.containsPoint(p)) {
+
+            // This is a hack for Firefox! If there wasn't a fake (non-visible) rectangle covering the
+            // whole SVG area, `$(paper.svg).offset()` used below won't work.
+            var fakeRect = V('rect', { width: paper.options.width, height: paper.options.height, x: 0, y: 0, opacity: 0 });
+            V(paper.svg).prepend(fakeRect);
+            
+            var paperOffset = $(paper.svg).offset();
+
+            // Clean up the fake rectangle once we have the offset of the SVG document.
+            fakeRect.remove();
+
+	    p.x += scrollLeft - paperOffset.left;
+	    p.y += scrollTop - paperOffset.top;
+
+	    // Transform point into the viewport coordinate system.
+	    var pointTransformed = p.matrixTransform(paper.viewport.getCTM().inverse());
+
+	    var cellBBox = cell.getBBox();
+	    pointTransformed.x += cellBBox.x - cellViewBBox.width / 2;
+	    pointTransformed.y += cellBBox.y - cellViewBBox.height / 2;
+
+            cell.set('position', {
+		x: g.snapToGrid(pointTransformed.x, paper.options.gridSize),
+		y: g.snapToGrid(pointTransformed.y, paper.options.gridSize)
+	    });
+
+            // `z` level will be set automatically in the `this.graph.addCell()` method.
+            // We don't want the cell to have the same `z` level as it had in the temporary paper.
+            cell.unset('z');
+
+            graph.addCell(cell);
+        }
+    },
+
+    onGroupLabelClick: function(evt) {
+
+        // Prevent default action for iPad not to handle this event twice.
+        evt.preventDefault();
+        
+        var $group = $(evt.target).closest('.group');
+        this.toggleGroup($group.data('name'));
+    },
+
+    toggleGroup: function(name) {
+
+        this.$('.group[data-name="' + name + '"]').toggleClass('closed');
+    },
+
+    closeGroup: function(name) {
+        
+        this.$('.group[data-name="' + name + '"]').addClass('closed');
+    },
+
+    openGroup: function(name) {
+        
+        this.$('.group[data-name="' + name + '"]').removeClass('closed');
+    },
+
+    closeGroups: function() {
+
+        this.$('.group').addClass('closed');
+    },
+
+    openGroups: function() {
+
+        this.$('.group').removeClass('closed');
+    }
+});
+
+/*
+
+Copyright (C) 2011 by Yehuda Katz
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+*/
+
+// lib/handlebars/browser-prefix.js
+var Handlebars = {};
+
+(function(Handlebars, undefined) {
+;
+// lib/handlebars/base.js
+
+Handlebars.VERSION = "1.0.0";
+Handlebars.COMPILER_REVISION = 4;
+
+Handlebars.REVISION_CHANGES = {
+  1: '<= 1.0.rc.2', // 1.0.rc.2 is actually rev2 but doesn't report it
+  2: '== 1.0.0-rc.3',
+  3: '== 1.0.0-rc.4',
+  4: '>= 1.0.0'
+};
+
+Handlebars.helpers  = {};
+Handlebars.partials = {};
+
+var toString = Object.prototype.toString,
+    functionType = '[object Function]',
+    objectType = '[object Object]';
+
+Handlebars.registerHelper = function(name, fn, inverse) {
+  if (toString.call(name) === objectType) {
+    if (inverse || fn) { throw new Handlebars.Exception('Arg not supported with multiple helpers'); }
+    Handlebars.Utils.extend(this.helpers, name);
+  } else {
+    if (inverse) { fn.not = inverse; }
+    this.helpers[name] = fn;
+  }
+};
+
+Handlebars.registerPartial = function(name, str) {
+  if (toString.call(name) === objectType) {
+    Handlebars.Utils.extend(this.partials,  name);
+  } else {
+    this.partials[name] = str;
+  }
+};
+
+Handlebars.registerHelper('helperMissing', function(arg) {
+  if(arguments.length === 2) {
+    return undefined;
+  } else {
+    throw new Error("Missing helper: '" + arg + "'");
+  }
+});
+
+Handlebars.registerHelper('blockHelperMissing', function(context, options) {
+  var inverse = options.inverse || function() {}, fn = options.fn;
+
+  var type = toString.call(context);
+
+  if(type === functionType) { context = context.call(this); }
+
+  if(context === true) {
+    return fn(this);
+  } else if(context === false || context == null) {
+    return inverse(this);
+  } else if(type === "[object Array]") {
+    if(context.length > 0) {
+      return Handlebars.helpers.each(context, options);
+    } else {
+      return inverse(this);
+    }
+  } else {
+    return fn(context);
+  }
+});
+
+Handlebars.K = function() {};
+
+Handlebars.createFrame = Object.create || function(object) {
+  Handlebars.K.prototype = object;
+  var obj = new Handlebars.K();
+  Handlebars.K.prototype = null;
+  return obj;
+};
+
+Handlebars.logger = {
+  DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3, level: 3,
+
+  methodMap: {0: 'debug', 1: 'info', 2: 'warn', 3: 'error'},
+
+  // can be overridden in the host environment
+  log: function(level, obj) {
+    if (Handlebars.logger.level <= level) {
+      var method = Handlebars.logger.methodMap[level];
+      if (typeof console !== 'undefined' && console[method]) {
+        console[method].call(console, obj);
+      }
+    }
+  }
+};
+
+Handlebars.log = function(level, obj) { Handlebars.logger.log(level, obj); };
+
+Handlebars.registerHelper('each', function(context, options) {
+  var fn = options.fn, inverse = options.inverse;
+  var i = 0, ret = "", data;
+
+  var type = toString.call(context);
+  if(type === functionType) { context = context.call(this); }
+
+  if (options.data) {
+    data = Handlebars.createFrame(options.data);
+  }
+
+  if(context && typeof context === 'object') {
+    if(context instanceof Array){
+      for(var j = context.length; i<j; i++) {
+        if (data) { data.index = i; }
+        ret = ret + fn(context[i], { data: data });
+      }
+    } else {
+      for(var key in context) {
+        if(context.hasOwnProperty(key)) {
+          if(data) { data.key = key; }
+          ret = ret + fn(context[key], {data: data});
+          i++;
+        }
+      }
+    }
+  }
+
+  if(i === 0){
+    ret = inverse(this);
+  }
+
+  return ret;
+});
+
+Handlebars.registerHelper('if', function(conditional, options) {
+  var type = toString.call(conditional);
+  if(type === functionType) { conditional = conditional.call(this); }
+
+  if(!conditional || Handlebars.Utils.isEmpty(conditional)) {
+    return options.inverse(this);
+  } else {
+    return options.fn(this);
+  }
+});
+
+Handlebars.registerHelper('unless', function(conditional, options) {
+  return Handlebars.helpers['if'].call(this, conditional, {fn: options.inverse, inverse: options.fn});
+});
+
+Handlebars.registerHelper('with', function(context, options) {
+  var type = toString.call(context);
+  if(type === functionType) { context = context.call(this); }
+
+  if (!Handlebars.Utils.isEmpty(context)) return options.fn(context);
+});
+
+Handlebars.registerHelper('log', function(context, options) {
+  var level = options.data && options.data.level != null ? parseInt(options.data.level, 10) : 1;
+  Handlebars.log(level, context);
+});
+;
+// lib/handlebars/utils.js
+
+var errorProps = ['description', 'fileName', 'lineNumber', 'message', 'name', 'number', 'stack'];
+
+Handlebars.Exception = function(message) {
+  var tmp = Error.prototype.constructor.apply(this, arguments);
+
+  // Unfortunately errors are not enumerable in Chrome (at least), so `for prop in tmp` doesn't work.
+  for (var idx = 0; idx < errorProps.length; idx++) {
+    this[errorProps[idx]] = tmp[errorProps[idx]];
+  }
+};
+Handlebars.Exception.prototype = new Error();
+
+// Build out our basic SafeString type
+Handlebars.SafeString = function(string) {
+  this.string = string;
+};
+Handlebars.SafeString.prototype.toString = function() {
+  return this.string.toString();
+};
+
+var escape = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#x27;",
+  "`": "&#x60;"
+};
+
+var badChars = /[&<>"'`]/g;
+var possible = /[&<>"'`]/;
+
+var escapeChar = function(chr) {
+  return escape[chr] || "&amp;";
+};
+
+Handlebars.Utils = {
+  extend: function(obj, value) {
+    for(var key in value) {
+      if(value.hasOwnProperty(key)) {
+        obj[key] = value[key];
+      }
+    }
+  },
+
+  escapeExpression: function(string) {
+    // don't escape SafeStrings, since they're already safe
+    if (string instanceof Handlebars.SafeString) {
+      return string.toString();
+    } else if (string == null || string === false) {
+      return "";
+    }
+
+    // Force a string conversion as this will be done by the append regardless and
+    // the regex test will do this transparently behind the scenes, causing issues if
+    // an object's to string has escaped characters in it.
+    string = string.toString();
+
+    if(!possible.test(string)) { return string; }
+    return string.replace(badChars, escapeChar);
+  },
+
+  isEmpty: function(value) {
+    if (!value && value !== 0) {
+      return true;
+    } else if(toString.call(value) === "[object Array]" && value.length === 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+};
+;
+// lib/handlebars/runtime.js
+
+Handlebars.VM = {
+  template: function(templateSpec) {
+    // Just add water
+    var container = {
+      escapeExpression: Handlebars.Utils.escapeExpression,
+      invokePartial: Handlebars.VM.invokePartial,
+      programs: [],
+      program: function(i, fn, data) {
+        var programWrapper = this.programs[i];
+        if(data) {
+          programWrapper = Handlebars.VM.program(i, fn, data);
+        } else if (!programWrapper) {
+          programWrapper = this.programs[i] = Handlebars.VM.program(i, fn);
+        }
+        return programWrapper;
+      },
+      merge: function(param, common) {
+        var ret = param || common;
+
+        if (param && common) {
+          ret = {};
+          Handlebars.Utils.extend(ret, common);
+          Handlebars.Utils.extend(ret, param);
+        }
+        return ret;
+      },
+      programWithDepth: Handlebars.VM.programWithDepth,
+      noop: Handlebars.VM.noop,
+      compilerInfo: null
+    };
+
+    return function(context, options) {
+      options = options || {};
+      var result = templateSpec.call(container, Handlebars, context, options.helpers, options.partials, options.data);
+
+      var compilerInfo = container.compilerInfo || [],
+          compilerRevision = compilerInfo[0] || 1,
+          currentRevision = Handlebars.COMPILER_REVISION;
+
+      if (compilerRevision !== currentRevision) {
+        if (compilerRevision < currentRevision) {
+          var runtimeVersions = Handlebars.REVISION_CHANGES[currentRevision],
+              compilerVersions = Handlebars.REVISION_CHANGES[compilerRevision];
+          throw "Template was precompiled with an older version of Handlebars than the current runtime. "+
+                "Please update your precompiler to a newer version ("+runtimeVersions+") or downgrade your runtime to an older version ("+compilerVersions+").";
+        } else {
+          // Use the embedded version info since the runtime doesn't know about this revision yet
+          throw "Template was precompiled with a newer version of Handlebars than the current runtime. "+
+                "Please update your runtime to a newer version ("+compilerInfo[1]+").";
+        }
+      }
+
+      return result;
+    };
+  },
+
+  programWithDepth: function(i, fn, data /*, $depth */) {
+    var args = Array.prototype.slice.call(arguments, 3);
+
+    var program = function(context, options) {
+      options = options || {};
+
+      return fn.apply(this, [context, options.data || data].concat(args));
+    };
+    program.program = i;
+    program.depth = args.length;
+    return program;
+  },
+  program: function(i, fn, data) {
+    var program = function(context, options) {
+      options = options || {};
+
+      return fn(context, options.data || data);
+    };
+    program.program = i;
+    program.depth = 0;
+    return program;
+  },
+  noop: function() { return ""; },
+  invokePartial: function(partial, name, context, helpers, partials, data) {
+    var options = { helpers: helpers, partials: partials, data: data };
+
+    if(partial === undefined) {
+      throw new Handlebars.Exception("The partial " + name + " could not be found");
+    } else if(partial instanceof Function) {
+      return partial(context, options);
+    } else if (!Handlebars.compile) {
+      throw new Handlebars.Exception("The partial " + name + " could not be compiled when running in runtime-only mode");
+    } else {
+      partials[name] = Handlebars.compile(partial, {data: data !== undefined});
+      return partials[name](context, options);
+    }
+  }
+};
+
+Handlebars.template = Handlebars.VM.template;
+;
+// lib/handlebars/browser-suffix.js
+})(Handlebars);
+;
+
+this["joint"] = this["joint"] || {};
+this["joint"]["templates"] = this["joint"]["templates"] || {};
+this["joint"]["templates"]["inspector"] = this["joint"]["templates"]["inspector"] || {};
+
+this["joint"]["templates"]["inspector"]["color.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<label>";
+  if (stack1 = helpers.label) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.label; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + ":</label>\n<input type=\"color\" class=\"color\" data-type=\"";
+  if (stack1 = helpers.type) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.type; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" data-attribute=\"";
+  if (stack1 = helpers.attribute) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.attribute; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" value=\"";
+  if (stack1 = helpers.value) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.value; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" />\n";
+  return buffer;
+  });
+
+this["joint"]["templates"]["inspector"]["group.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<div class=\"group\">\n    <h3 class=\"group-label\">";
+  if (stack1 = helpers.label) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.label; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "</h3>\n</div>\n";
+  return buffer;
+  });
+
+this["joint"]["templates"]["inspector"]["list-item.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<div class=\"list-item\" data-index=\"";
+  if (stack1 = helpers.index) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.index; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\">\n    <button class=\"btn-list-del\">-</button>\n</div>\n";
+  return buffer;
+  });
+
+this["joint"]["templates"]["inspector"]["list.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<label>";
+  if (stack1 = helpers.label) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.label; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + ":</label>\n<div class=\"list\" data-type=\"";
+  if (stack1 = helpers.type) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.type; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" data-attribute=\"";
+  if (stack1 = helpers.attribute) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.attribute; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\">\n    <button class=\"btn-list-add\">+</button>\n    <div class=\"list-items\">\n    </div>\n</div>\n";
+  return buffer;
+  });
+
+this["joint"]["templates"]["inspector"]["number.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<label>";
+  if (stack1 = helpers.label) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.label; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + ":</label>\n<input type=\"number\" class=\"number\" data-type=\"";
+  if (stack1 = helpers.type) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.type; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" data-attribute=\"";
+  if (stack1 = helpers.attribute) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.attribute; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" value=\"";
+  if (stack1 = helpers.value) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.value; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\"/>\n";
+  return buffer;
+  });
+
+this["joint"]["templates"]["inspector"]["object-property.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<div class=\"object-property\" data-property=\"";
+  if (stack1 = helpers.property) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.property; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\">\n</div>\n";
+  return buffer;
+  });
+
+this["joint"]["templates"]["inspector"]["object.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<label>";
+  if (stack1 = helpers.label) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.label; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + ":</label>\n<div class=\"object\" data-type=\"";
+  if (stack1 = helpers.type) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.type; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" data-attribute=\"";
+  if (stack1 = helpers.attribute) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.attribute; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\">\n    <div class=\"object-properties\"></div>\n</div>\n";
+  return buffer;
+  });
+
+this["joint"]["templates"]["inspector"]["range.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, stack2, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<form onchange=\"$(this).find('output').text(range.value)\">\n    <label>";
+  if (stack1 = helpers.label) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.label; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + ": (<output>";
+  if (stack1 = helpers.value) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.value; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "</output>"
+    + escapeExpression(((stack1 = ((stack1 = depth0.options),stack1 == null || stack1 === false ? stack1 : stack1.unit)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + ")</label>\n    <input type=\"range\" class=\"range\" name=\"range\" data-type=\"";
+  if (stack2 = helpers.type) { stack2 = stack2.call(depth0, {hash:{},data:data}); }
+  else { stack2 = depth0.type; stack2 = typeof stack2 === functionType ? stack2.apply(depth0) : stack2; }
+  buffer += escapeExpression(stack2)
+    + "\" data-attribute=\"";
+  if (stack2 = helpers.attribute) { stack2 = stack2.call(depth0, {hash:{},data:data}); }
+  else { stack2 = depth0.attribute; stack2 = typeof stack2 === functionType ? stack2.apply(depth0) : stack2; }
+  buffer += escapeExpression(stack2)
+    + "\" min=\""
+    + escapeExpression(((stack1 = ((stack1 = depth0.options),stack1 == null || stack1 === false ? stack1 : stack1.min)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\" max=\""
+    + escapeExpression(((stack1 = ((stack1 = depth0.options),stack1 == null || stack1 === false ? stack1 : stack1.max)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\" step=\""
+    + escapeExpression(((stack1 = ((stack1 = depth0.options),stack1 == null || stack1 === false ? stack1 : stack1.step)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\" value=\"";
+  if (stack2 = helpers.value) { stack2 = stack2.call(depth0, {hash:{},data:data}); }
+  else { stack2 = depth0.value; stack2 = typeof stack2 === functionType ? stack2.apply(depth0) : stack2; }
+  buffer += escapeExpression(stack2)
+    + "\"/>\n</form>\n";
+  return buffer;
+  });
+
+this["joint"]["templates"]["inspector"]["select.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, stack2, functionType="function", escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;
+
+function program1(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += " multiple size=\""
+    + escapeExpression(((stack1 = ((stack1 = ((stack1 = depth0.options),stack1 == null || stack1 === false ? stack1 : stack1.options)),stack1 == null || stack1 === false ? stack1 : stack1.length)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\" ";
+  return buffer;
+  }
+
+function program3(depth0,data,depth1) {
+  
+  var buffer = "", stack1, stack2, options;
+  buffer += "\n    <option val=\""
+    + escapeExpression((typeof depth0 === functionType ? depth0.apply(depth0) : depth0))
+    + "\" ";
+  options = {hash:{},inverse:self.noop,fn:self.program(4, program4, data),data:data};
+  stack2 = ((stack1 = helpers['is-or-contains'] || depth0['is-or-contains']),stack1 ? stack1.call(depth0, depth0, depth1.value, options) : helperMissing.call(depth0, "is-or-contains", depth0, depth1.value, options));
+  if(stack2 || stack2 === 0) { buffer += stack2; }
+  buffer += ">"
+    + escapeExpression((typeof depth0 === functionType ? depth0.apply(depth0) : depth0))
+    + "</option>\n    ";
+  return buffer;
+  }
+function program4(depth0,data) {
+  
+  
+  return " selected ";
+  }
+
+  buffer += "<label>";
+  if (stack1 = helpers.label) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.label; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + ":</label>\n<select class=\"select\" data-type=\"";
+  if (stack1 = helpers.type) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.type; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" data-attribute=\"";
+  if (stack1 = helpers.attribute) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.attribute; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" value=\"";
+  if (stack1 = helpers.value) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.value; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" ";
+  stack2 = helpers['if'].call(depth0, ((stack1 = depth0.options),stack1 == null || stack1 === false ? stack1 : stack1.multiple), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack2 || stack2 === 0) { buffer += stack2; }
+  buffer += ">\n    ";
+  stack2 = helpers.each.call(depth0, ((stack1 = depth0.options),stack1 == null || stack1 === false ? stack1 : stack1.options), {hash:{},inverse:self.noop,fn:self.programWithDepth(3, program3, data, depth0),data:data});
+  if(stack2 || stack2 === 0) { buffer += stack2; }
+  buffer += "\n</select>\n";
+  return buffer;
+  });
+
+this["joint"]["templates"]["inspector"]["text.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<label>";
+  if (stack1 = helpers.label) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.label; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + ":</label>\n<input type=\"text\" class=\"text\" data-type=\"";
+  if (stack1 = helpers.type) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.type; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" data-attribute=\"";
+  if (stack1 = helpers.attribute) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.attribute; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" value=\"";
+  if (stack1 = helpers.value) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.value; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" />\n";
+  return buffer;
+  });
+
+this["joint"]["templates"]["inspector"]["textarea.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<label>";
+  if (stack1 = helpers.label) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.label; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + ":</label>\n<textarea class=\"textarea\" data-type=\"";
+  if (stack1 = helpers.type) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.type; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" data-attribute=\"";
+  if (stack1 = helpers.attribute) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.attribute; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\">";
+  if (stack1 = helpers.value) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.value; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "</textarea>\n";
+  return buffer;
+  });
+
+this["joint"]["templates"]["inspector"]["toggle.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  
+  return " checked ";
+  }
+
+  buffer += "<label>";
+  if (stack1 = helpers.label) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.label; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + ":</label>\n<div class=\"toggle\">\n    <input type=\"checkbox\" data-type=\"";
+  if (stack1 = helpers.type) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.type; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" data-attribute=\"";
+  if (stack1 = helpers.attribute) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.attribute; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" ";
+  stack1 = helpers['if'].call(depth0, depth0.value, {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += " />\n    <span><i></i></span>\n</div>\n";
+  return buffer;
+  });
+Handlebars.registerHelper('is', function(value, test, options) {
+    if (value == test) {
+        return options.fn(this);
+    }
+    return options.inverse(this);
+});
+
+Handlebars.registerHelper('is-or-contains', function(value, test, options) {
+    if (_.isArray(test) ? _.contains(test, value): value == test) {
+        return options.fn(this);
+    }
+    return options.inverse(this);
+});
+
+Handlebars.registerPartial('list-item', joint.templates.inspector['list-item.html']);
+
+// Inspector plugin.
+// -----------------
+
+// This plugin creates a two-way data-binding between the cell model and a generated
+// HTML form with input fields of a type declaratively specified in an options object passed
+// into the element inspector.
+
+/*
+USAGE:
+
+var inspector = new joint.ui.Inspector({
+    cellView: cellView,
+    inputs: {
+            attrs: {
+                text: {
+                    'font-size': { type: 'number', min: 5, max: 80, group: 'text', index: 2 },
+                    'text': { type: 'textarea', group: 'text', index: 1 }
+                }
+            },
+            position: {
+                x: { type: 'number', group: 'geometry', index: 1 },
+                y: { type: 'number', group: 'geometry', index: 2 }
+            },
+            size: {
+                width: { type: 'number', min: 1, max: 500, group: 'geometry', index: 3 },
+                height: { type: 'number', min: 1, max: 500, group: 'geometry', index: 4 }
+            },
+            mydata: {
+                foo: { type: 'textarea', group: 'data' }
+            }
+   },
+   groups: {
+           text: { label: 'Text', index: 1 },
+           geometry: { label: 'Geometry', index: 2 },
+           data: { label: 'data', index: 3 }
+   }
+});
+
+$('.inspector-container').append(inspector.render().el);
+*/
+
+joint.ui.Inspector = Backbone.View.extend({
+
+    className: 'inspector',
+
+    events: {
+        'mousedown': 'startBatchCommand',
+        'change': 'onChangeInput',
+        'click .group-label': 'toggleGroup',
+        'click .btn-list-add': 'addListItem',
+        'click .btn-list-del': 'deleteListItem'
+    },
+
+    initialize: function() {
+
+        this.options.groups = this.options.groups || {};
+
+        _.bindAll(this, 'stopBatchCommand');
+
+        // Start a batch command on `mousedown` over the inspector and stop it when the mouse is
+        // released anywhere in the document. This prevents setting attributes in tiny steps
+        // when e.g. a value is being adjusted through a slider. This gives other parts
+        // of the application a chance to treat the serveral little changes as one change.
+        // Consider e.g. the CommandManager plugin.
+        $(document).on('mouseup', this.stopBatchCommand);
+        
+
+        // Flatten the `inputs` object until the level where the options object is.
+        // This produces an object with this structure: { <path>: <options> }, e.g. { 'attrs/rect/fill': { type: 'color' } }
+
+        this.flatAttributes = joint.util.flattenObject(this.options.inputs, '/', function(obj) {
+            // Stop flattening when we reach an object that contains the `type` property. We assume
+            // that this is our options object. @TODO This is not very robust as there could
+            // possibly be another object with a property `type`. Instead, we should stop
+            // just before the nested leaf object.
+            return obj.type;
+        });
+
+        // Add the attributes path the options object as we're converting the flat object to an array
+        // and so we would loose the keys otherwise.
+        var attributesArray = _.map(this.flatAttributes, function(options, path) {
+            
+            options.path = path;
+            return options;
+        });
+
+        // Sort the flat attributes object by two criteria: group first, then index inside that group.
+        this.groupedFlatAttributes = _.sortBy(attributesArray, function(options, path) {
+
+            var groupOptions = this.options.groups[options.group];
+            return groupOptions ? 'a' + groupOptions.index + 'b' + options.index : Number.MAX_VALUE;
+                
+        }, this);
+
+        // Listen on events on the cell.
+        this.listenTo(this.options.cellView.model, 'all', this.onCellChange, this);
+    },
+
+    onCellChange: function(eventName, cell, change, opt) {
+
+        opt = opt || {};
+
+        // Do not react on changes that happened inside this inspector. This would
+        // cause a re-render of the same inspector triggered by an input change in this inspector.
+        if (opt['inspector_' + this.cid]) return;
+
+        // Note that special care is taken for all the transformation attribute changes
+        // (`position`, `size` and `angle`). See below for details.
+        
+        switch (eventName) {
+
+          case 'remove':
+            // Make sure the element inspector gets removed when the cell is removed from the graph.
+            // Otherwise, a zombie cell could possibly be updated.
+            this.remove()
+            break;
+          case 'change:position':
+            // Make a special case for `position` as this one is performance critical.
+            // There is no need to rerender the whole inspector but only update the position input.
+            this.updateInputPosition();
+            break;
+          case 'change:size':
+            // Make a special case also for the `size` attribute for the same reasons as for `position`.
+            this.updateInputSize();
+            break;
+          case 'change:angle':
+            // Make a special case also for the `angle` attribute for the same reasons as for `position`.
+            this.updateInputAngle();
+            break;
+          case 'change:source':
+          case 'change:target':
+            // Make a special case also for the 'source' and 'target' of a link for the same reasons
+            // as for 'position'. We don't expect source or target to be configurable.
+            // That's why we do nothing here.
+        default:
+            // Re-render only on specific attributes changes. These are all events that starts with `'change:'`.
+            // Otherwise, the re-render would be called unnecessarily (consider generic `'change'` event, `'bach:start'`, ...).
+            var changeAttributeEvent = 'change:';
+            if (eventName.slice(0, changeAttributeEvent.length) === changeAttributeEvent) {
+                
+                this.render();
+            }
+            break;
+        }
+    },
+
+    render: function() {
+
+        // Cache all the inputs so that we have a quick access to them based on the attribute path.
+        this._byPath = {};
+        
+        this.$el.empty();
+
+        var lastGroup;
+        var $groups = [];
+        var $group;
+        
+        _.each(this.groupedFlatAttributes, function(options) {
+
+            if (lastGroup !== options.group) {
+                // A new group should be created.
+
+                var groupOptions = this.options.groups[options.group];
+                var groupLabel = groupOptions ? groupOptions.label || options.group : options.group;
+                
+                $group = $(joint.templates.inspector['group.html']({ label: groupLabel }));
+                $groups.push($group);
+            }
+            
+            this.renderTemplate($group, options, options.path);
+
+            lastGroup = options.group;
+            
+        }, this);
+
+        this.$el.append($groups);
+
+        this.trigger('render');
+        
+        return this;
+    },
+
+    // Get the value of the attribute at `path` based on the `options.defaultValue`,
+    // and `options.valueRegExp` if present.
+    getCellAttributeValue: function(path, options) {
+
+        var cell = this.options.cellView.model;
+
+        var value = joint.util.getByPath(cell.attributes, path, '/');
+        if (_.isUndefined(value) && !_.isUndefined(options.defaultValue)) {
+            value = options.defaultValue;
+        }
+
+        if (options.valueRegExp) {
+
+            if (_.isUndefined(value)) {
+                
+                throw new Error('Inspector: defaultValue must be present when valueRegExp is used.');
+            }
+            
+            var valueMatch = value.match(new RegExp(options.valueRegExp));
+            value = valueMatch && valueMatch[2];
+        }
+
+        return value;
+    },
+    
+    renderTemplate: function($el, options, path) {
+
+        $el = $el || this.$el;
+
+        var value = this.getCellAttributeValue(path, options);
+        
+        var inputHtml = joint.templates.inspector[options.type + '.html']({
+            options: options,
+            type: options.type,
+            label: options.label || path,
+            attribute: path,
+            value: value
+        });
+        var $input = $(inputHtml);
+
+        // `options.attrs` allows for setting arbitrary attributes on the generated HTML.
+        // This object is of the form: `<selector> : { <attributeName> : <attributeValue>, ... }`
+        _.each(options.attrs, function(attrs, selector) {
+            $input.find(selector).addBack().filter(selector).attr(attrs);
+        });
+
+        if (options.type === 'list') {
+            
+            _.each(value, function(itemValue, idx) {
+
+                var $listItem = $(joint.templates.inspector['list-item.html']({
+                    index: idx
+                }));
+
+                this.renderTemplate($listItem, options.item, path + '/' + idx);
+
+                $input.find('.list-items').append($listItem);
+                
+            }, this);
+            
+        } else if (options.type === 'object') {
+
+            options.flatAttributes = joint.util.flattenObject(options.properties, '/', function(obj) {
+                // Stop flattening when we reach an object that contains the `type` property. We assume
+                // that this is our options object. @TODO This is not very robust as there could
+                // possibly be another object with a property `type`. Instead, we should stop
+                // just before the nested leaf object.
+                return obj.type;
+            });
+
+            var attributesArray = _.map(options.flatAttributes, function(options, path) {
+                options.path = path;
+                return options;
+            });
+            // Sort the attributes by `index` and assign the `path` to the `options` object
+            // so that we can acess it later.
+            attributesArray = _.sortBy(attributesArray, function(options) {
+
+                return options.index;
+            });
+            
+            _.each(attributesArray, function(propertyOptions) {
+
+                var $objectProperty = $(joint.templates.inspector['object-property.html']({
+                    property: propertyOptions.path
+                }));
+
+                this.renderTemplate($objectProperty, propertyOptions, path + '/' + propertyOptions.path);
+
+                $input.find('.object-properties').append($objectProperty);
+                
+            }, this);
+        }
+
+        this._byPath[path] = $input;
+
+        $el.append($input);
+    },
+
+    toggleGroup: function(evt) {
+
+        $(evt.target).closest('.group').toggleClass('closed');
+    },
+
+    updateInputPosition: function() {
+
+        var $inputX = this._byPath['position/x'];
+        var $inputY = this._byPath['position/y'];
+
+        var position = this.options.cellView.model.get('position');
+        
+        if ($inputX) { $inputX.val(position.x); }
+        if ($inputY) { $inputY.val(position.y); }
+    },
+    updateInputSize: function() {
+
+        var $inputWidth = this._byPath['size/width'];
+        var $inputHeight = this._byPath['size/height'];
+
+        var size = this.options.cellView.model.get('size');
+        
+        if ($inputWidth) { $inputWidth.val(size.width); }
+        if ($inputHeight) { $inputHeight.val(size.height); }
+    },
+    updateInputAngle: function() {
+
+        var $inputAngle = this._byPath['angle'];
+
+        var angle = this.options.cellView.model.get('angle');
+        
+        if ($inputAngle) { $inputAngle.val(angle); }
+    },
+
+    onChangeInput: function(evt) {
+
+        this.updateCell(evt.target);
+    },
+
+    updateCell: function(input) {
+
+        var cell = this.options.cellView.model;
+
+        var $input = $(input);
+        var $attribute = $input.closest('[data-attribute]');
+        var path = $attribute.data('attribute');
+        var type = $attribute.data('type');
+
+        var value = this.parse(type, $input.val(), $input[0]);
+        var options = this.flatAttributes[path];
+        var kind = 'primitive'; // or 'array' or 'object'
+
+        if (!options) {
+            // This can happen for list and object types.
+            var $parentAttribute = $input.parents('[data-attribute]').first();
+            var parentPath = $parentAttribute.data('attribute');
+            options = this.flatAttributes[parentPath];
+
+            if (!options) {
+                // This can happen for an object type inside a list.
+                var $parentParentAttribute = $input.parents('[data-attribute]').last();
+                var parentParentPath = $parentParentAttribute.data('attribute');
+                var listItemOptions = this.flatAttributes[parentParentPath].item;
+                var nestedPropertyPath = $input.closest('.object-property').attr('data-property');
+                options = listItemOptions.flatAttributes[nestedPropertyPath];
+                // We're inside a list, therefore, we need to treat the whole thing as an `array` kind.
+                kind = 'array';
+            }
+            
+            // assert(options)
+            if (options.type === 'list') {
+                kind = 'array';
+                options = options.item;
+            }
+        }
+        
+        if (options.valueRegExp) {
+            var oldValue = joint.util.getByPath(cell.attributes, path, '/') || options.defaultValue;
+            value = oldValue.replace(new RegExp(options.valueRegExp), '$1' + value + '$3');
+        }
+
+        var pathArray = path.split('/');
+        var property = pathArray[0];
+        var currentValue = cell.get(property);
+        // Make sure the inspector does not rerender itself after the `set()` call below. It is
+        // not necessary as the input already contains the right value.
+        var opt = {};
+        opt['inspector_' + this.cid] = true;
+        
+        if (pathArray.length > 1) {
+            // Nested object.
+
+            var newValue = joint.util.setByPath({}, path, value, '/');
+            // The `extend()` makes sure that even if the `currentValue` is an array, it is converted
+            // to object. This makes it easy to merge arrays.
+            var currentObjectValue = _.extend({}, currentValue || {});
+            newValue = _.merge({}, currentObjectValue, newValue[property]);
+            // If we're dealing with an array (`type === 'list'`), we need to convert the
+            // object back to an array.
+            newValue = (kind === 'array' ? _.toArray(newValue) : newValue);
+            // Finally, set the property on the cell.
+            cell.set(property, newValue, opt);
+                
+        } else {
+            // Primitive object.
+
+            cell.set(property, value, opt);
+        }
+    },
+
+    // Parse the input `value` based on the input `type`.
+    // Override this method if you need your own specific parsing.
+    parse: function(type, value, targetElement) {
+        
+        switch (type) {
+          case 'number':
+            value = parseFloat(value);
+            break;
+          case 'toggle':
+            value = targetElement.checked;
+            break;
+          default:
+            value = value;
+            break;
+        }
+        return value;
+    },
+
+    startBatchCommand: function() {
+
+        this.options.cellView.model.trigger('batch:start');
+    },
+    
+    stopBatchCommand: function() {
+
+        this.options.cellView.model.trigger('batch:stop');
+    },
+
+    addListItem: function(evt) {
+
+        var $target = $(evt.target);
+        var $attribute = $target.closest('[data-attribute]');
+        var path = $attribute.data('attribute');
+        var options = this.flatAttributes[path];
+
+        var currValue = joint.util.getByPath(this.options.cellView.model.attributes, path, '/');
+        var index = currValue ? currValue.length : 0;
+
+        var $listItem = $(joint.templates.inspector['list-item.html']({ index: index }));
+        
+        this.renderTemplate($listItem, options.item, path + '/' + index);
+
+        $target.parent().find('.list-items').append($listItem);
+        $listItem.find('input').focus();
+
+        _.each($listItem.find('input'), this.updateCell, this);
+
+        this.trigger('render');
+    },
+    
+    deleteListItem: function(evt) {
+
+        var $listItem = $(evt.target).closest('.list-item');
+        var $input = $listItem.find('input');
+        var $attribute = $input.closest('[data-attribute]');
+        var path = $attribute.attr('data-attribute');
+
+        var cell = this.options.cellView.model;
+
+        // Remove the list item by index that can be retrieved from the `data-attribute`.
+        // Index is the last part of the `pathArray`, the first part is the top level property name.
+        var pathArray = path.split('/');
+        var property = pathArray[0];
+        
+        var currentValue = _.cloneDeep(cell.get(property));
+        var index = parseInt($listItem.attr('data-index'), 10);
+
+        currentValue.splice(index, 1);
+        cell.set(property, currentValue);
+    },
+
+    remove: function() {
+
+        $(document).off('mouseup', this.stopBatchCommand);
+        return Backbone.View.prototype.remove.apply(this, arguments);
+    }
+});
+
+/*
+
+Copyright (C) 2011 by Yehuda Katz
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+*/
+
+// lib/handlebars/browser-prefix.js
+var Handlebars = {};
+
+(function(Handlebars, undefined) {
+;
+// lib/handlebars/base.js
+
+Handlebars.VERSION = "1.0.0";
+Handlebars.COMPILER_REVISION = 4;
+
+Handlebars.REVISION_CHANGES = {
+  1: '<= 1.0.rc.2', // 1.0.rc.2 is actually rev2 but doesn't report it
+  2: '== 1.0.0-rc.3',
+  3: '== 1.0.0-rc.4',
+  4: '>= 1.0.0'
+};
+
+Handlebars.helpers  = {};
+Handlebars.partials = {};
+
+var toString = Object.prototype.toString,
+    functionType = '[object Function]',
+    objectType = '[object Object]';
+
+Handlebars.registerHelper = function(name, fn, inverse) {
+  if (toString.call(name) === objectType) {
+    if (inverse || fn) { throw new Handlebars.Exception('Arg not supported with multiple helpers'); }
+    Handlebars.Utils.extend(this.helpers, name);
+  } else {
+    if (inverse) { fn.not = inverse; }
+    this.helpers[name] = fn;
+  }
+};
+
+Handlebars.registerPartial = function(name, str) {
+  if (toString.call(name) === objectType) {
+    Handlebars.Utils.extend(this.partials,  name);
+  } else {
+    this.partials[name] = str;
+  }
+};
+
+Handlebars.registerHelper('helperMissing', function(arg) {
+  if(arguments.length === 2) {
+    return undefined;
+  } else {
+    throw new Error("Missing helper: '" + arg + "'");
+  }
+});
+
+Handlebars.registerHelper('blockHelperMissing', function(context, options) {
+  var inverse = options.inverse || function() {}, fn = options.fn;
+
+  var type = toString.call(context);
+
+  if(type === functionType) { context = context.call(this); }
+
+  if(context === true) {
+    return fn(this);
+  } else if(context === false || context == null) {
+    return inverse(this);
+  } else if(type === "[object Array]") {
+    if(context.length > 0) {
+      return Handlebars.helpers.each(context, options);
+    } else {
+      return inverse(this);
+    }
+  } else {
+    return fn(context);
+  }
+});
+
+Handlebars.K = function() {};
+
+Handlebars.createFrame = Object.create || function(object) {
+  Handlebars.K.prototype = object;
+  var obj = new Handlebars.K();
+  Handlebars.K.prototype = null;
+  return obj;
+};
+
+Handlebars.logger = {
+  DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3, level: 3,
+
+  methodMap: {0: 'debug', 1: 'info', 2: 'warn', 3: 'error'},
+
+  // can be overridden in the host environment
+  log: function(level, obj) {
+    if (Handlebars.logger.level <= level) {
+      var method = Handlebars.logger.methodMap[level];
+      if (typeof console !== 'undefined' && console[method]) {
+        console[method].call(console, obj);
+      }
+    }
+  }
+};
+
+Handlebars.log = function(level, obj) { Handlebars.logger.log(level, obj); };
+
+Handlebars.registerHelper('each', function(context, options) {
+  var fn = options.fn, inverse = options.inverse;
+  var i = 0, ret = "", data;
+
+  var type = toString.call(context);
+  if(type === functionType) { context = context.call(this); }
+
+  if (options.data) {
+    data = Handlebars.createFrame(options.data);
+  }
+
+  if(context && typeof context === 'object') {
+    if(context instanceof Array){
+      for(var j = context.length; i<j; i++) {
+        if (data) { data.index = i; }
+        ret = ret + fn(context[i], { data: data });
+      }
+    } else {
+      for(var key in context) {
+        if(context.hasOwnProperty(key)) {
+          if(data) { data.key = key; }
+          ret = ret + fn(context[key], {data: data});
+          i++;
+        }
+      }
+    }
+  }
+
+  if(i === 0){
+    ret = inverse(this);
+  }
+
+  return ret;
+});
+
+Handlebars.registerHelper('if', function(conditional, options) {
+  var type = toString.call(conditional);
+  if(type === functionType) { conditional = conditional.call(this); }
+
+  if(!conditional || Handlebars.Utils.isEmpty(conditional)) {
+    return options.inverse(this);
+  } else {
+    return options.fn(this);
+  }
+});
+
+Handlebars.registerHelper('unless', function(conditional, options) {
+  return Handlebars.helpers['if'].call(this, conditional, {fn: options.inverse, inverse: options.fn});
+});
+
+Handlebars.registerHelper('with', function(context, options) {
+  var type = toString.call(context);
+  if(type === functionType) { context = context.call(this); }
+
+  if (!Handlebars.Utils.isEmpty(context)) return options.fn(context);
+});
+
+Handlebars.registerHelper('log', function(context, options) {
+  var level = options.data && options.data.level != null ? parseInt(options.data.level, 10) : 1;
+  Handlebars.log(level, context);
+});
+;
+// lib/handlebars/utils.js
+
+var errorProps = ['description', 'fileName', 'lineNumber', 'message', 'name', 'number', 'stack'];
+
+Handlebars.Exception = function(message) {
+  var tmp = Error.prototype.constructor.apply(this, arguments);
+
+  // Unfortunately errors are not enumerable in Chrome (at least), so `for prop in tmp` doesn't work.
+  for (var idx = 0; idx < errorProps.length; idx++) {
+    this[errorProps[idx]] = tmp[errorProps[idx]];
+  }
+};
+Handlebars.Exception.prototype = new Error();
+
+// Build out our basic SafeString type
+Handlebars.SafeString = function(string) {
+  this.string = string;
+};
+Handlebars.SafeString.prototype.toString = function() {
+  return this.string.toString();
+};
+
+var escape = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#x27;",
+  "`": "&#x60;"
+};
+
+var badChars = /[&<>"'`]/g;
+var possible = /[&<>"'`]/;
+
+var escapeChar = function(chr) {
+  return escape[chr] || "&amp;";
+};
+
+Handlebars.Utils = {
+  extend: function(obj, value) {
+    for(var key in value) {
+      if(value.hasOwnProperty(key)) {
+        obj[key] = value[key];
+      }
+    }
+  },
+
+  escapeExpression: function(string) {
+    // don't escape SafeStrings, since they're already safe
+    if (string instanceof Handlebars.SafeString) {
+      return string.toString();
+    } else if (string == null || string === false) {
+      return "";
+    }
+
+    // Force a string conversion as this will be done by the append regardless and
+    // the regex test will do this transparently behind the scenes, causing issues if
+    // an object's to string has escaped characters in it.
+    string = string.toString();
+
+    if(!possible.test(string)) { return string; }
+    return string.replace(badChars, escapeChar);
+  },
+
+  isEmpty: function(value) {
+    if (!value && value !== 0) {
+      return true;
+    } else if(toString.call(value) === "[object Array]" && value.length === 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+};
+;
+// lib/handlebars/runtime.js
+
+Handlebars.VM = {
+  template: function(templateSpec) {
+    // Just add water
+    var container = {
+      escapeExpression: Handlebars.Utils.escapeExpression,
+      invokePartial: Handlebars.VM.invokePartial,
+      programs: [],
+      program: function(i, fn, data) {
+        var programWrapper = this.programs[i];
+        if(data) {
+          programWrapper = Handlebars.VM.program(i, fn, data);
+        } else if (!programWrapper) {
+          programWrapper = this.programs[i] = Handlebars.VM.program(i, fn);
+        }
+        return programWrapper;
+      },
+      merge: function(param, common) {
+        var ret = param || common;
+
+        if (param && common) {
+          ret = {};
+          Handlebars.Utils.extend(ret, common);
+          Handlebars.Utils.extend(ret, param);
+        }
+        return ret;
+      },
+      programWithDepth: Handlebars.VM.programWithDepth,
+      noop: Handlebars.VM.noop,
+      compilerInfo: null
+    };
+
+    return function(context, options) {
+      options = options || {};
+      var result = templateSpec.call(container, Handlebars, context, options.helpers, options.partials, options.data);
+
+      var compilerInfo = container.compilerInfo || [],
+          compilerRevision = compilerInfo[0] || 1,
+          currentRevision = Handlebars.COMPILER_REVISION;
+
+      if (compilerRevision !== currentRevision) {
+        if (compilerRevision < currentRevision) {
+          var runtimeVersions = Handlebars.REVISION_CHANGES[currentRevision],
+              compilerVersions = Handlebars.REVISION_CHANGES[compilerRevision];
+          throw "Template was precompiled with an older version of Handlebars than the current runtime. "+
+                "Please update your precompiler to a newer version ("+runtimeVersions+") or downgrade your runtime to an older version ("+compilerVersions+").";
+        } else {
+          // Use the embedded version info since the runtime doesn't know about this revision yet
+          throw "Template was precompiled with a newer version of Handlebars than the current runtime. "+
+                "Please update your runtime to a newer version ("+compilerInfo[1]+").";
+        }
+      }
+
+      return result;
+    };
+  },
+
+  programWithDepth: function(i, fn, data /*, $depth */) {
+    var args = Array.prototype.slice.call(arguments, 3);
+
+    var program = function(context, options) {
+      options = options || {};
+
+      return fn.apply(this, [context, options.data || data].concat(args));
+    };
+    program.program = i;
+    program.depth = args.length;
+    return program;
+  },
+  program: function(i, fn, data) {
+    var program = function(context, options) {
+      options = options || {};
+
+      return fn(context, options.data || data);
+    };
+    program.program = i;
+    program.depth = 0;
+    return program;
+  },
+  noop: function() { return ""; },
+  invokePartial: function(partial, name, context, helpers, partials, data) {
+    var options = { helpers: helpers, partials: partials, data: data };
+
+    if(partial === undefined) {
+      throw new Handlebars.Exception("The partial " + name + " could not be found");
+    } else if(partial instanceof Function) {
+      return partial(context, options);
+    } else if (!Handlebars.compile) {
+      throw new Handlebars.Exception("The partial " + name + " could not be compiled when running in runtime-only mode");
+    } else {
+      partials[name] = Handlebars.compile(partial, {data: data !== undefined});
+      return partials[name](context, options);
+    }
+  }
+};
+
+Handlebars.template = Handlebars.VM.template;
+;
+// lib/handlebars/browser-suffix.js
+})(Handlebars);
+;
+
+this["joint"] = this["joint"] || {};
+this["joint"]["templates"] = this["joint"]["templates"] || {};
+
+this["joint"]["templates"]["freetransform.html"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<div class=\"resize\" data-position=\"top-left\" draggable=\"false\"/>\n<div class=\"resize\" data-position=\"top\" draggable=\"false\"/>\n<div class=\"resize\" data-position=\"top-right\" draggable=\"false\"/>\n<div class=\"resize\" data-position=\"right\" draggable=\"false\"/>\n<div class=\"resize\" data-position=\"bottom-right\" draggable=\"false\"/>\n<div class=\"resize\" data-position=\"bottom\" draggable=\"false\"/>\n<div class=\"resize\" data-position=\"bottom-left\" draggable=\"false\"/>\n<div class=\"resize\" data-position=\"left\" draggable=\"false\"/>\n<div class=\"rotate\" draggable=\"false\"/>\n\n";
+  });
+joint.ui.FreeTransform = Backbone.View.extend({
+
+    className: 'free-transform',
+
+    template: 'freetransform',
+
+    events: {
+	'mousedown .resize': 'startResizing',
+        'mousedown .rotate': 'startRotating',
+        'touchstart .resize': 'startResizing',
+        'touchstart .rotate': 'startRotating'
+    },
+
+    options: {
+	
+	directions: ['nw','n','ne','e','se','s','sw','w']
+    },
+
+    initialize: function() {
+
+        _.bindAll(this, 'update', 'remove', 'pointerup', 'pointermove');
+
+        // inform an existing halo that a new halo is being created
+        this.options.paper.trigger('freetransform:create');
+
+	// Register mouse events.
+        $(document.body).on('mousemove touchmove', this.pointermove);
+        $(document).on('mouseup touchend', this.pointerup);
+
+	// Update halo when the graph is changed.
+        this.listenTo(this.options.graph, 'all', this.update);
+
+	// Remove halo when the model is removed.
+        this.listenTo(this.options.cell, 'remove', this.remove);
+
+        // Hide Halo when the user clicks anywhere in the paper or a new halo is created.
+        this.listenTo(this.options.paper, 'blank:pointerdown freetransform:create', this.remove);
+        this.listenTo(this.options.paper, 'scale', this.update);
+
+        this.options.paper.$el.append(this.el);
+    },
+
+    render: function() {
+
+	this.$el.html(joint.templates['freetransform.html'](this.template));
+
+	// We have to use `attr` as jQuery `data` doesn't update DOM
+	this.$el.attr('data-type', this.options.cell.get('type'));
+
+	this.update();
+    },
+
+    update: function() {
+
+	var viewportCTM = this.options.paper.viewport.getCTM();
+
+	var bbox = this.options.cell.getBBox();
+
+	// Calculate the free transform size and position in viewport coordinate system.
+	// TODO: take a viewport rotation in account.
+	bbox.x *= viewportCTM.a;
+	bbox.x += viewportCTM.e;
+	bbox.y *= viewportCTM.d;
+	bbox.y += viewportCTM.f;
+	bbox.width *= viewportCTM.a;
+	bbox.height *= viewportCTM.d;
+
+	var angle = g.normalizeAngle(this.options.cell.get('angle') || 0);
+
+	var transformVal =  'rotate(' + angle + 'deg)';
+
+	this.$el.css({
+            'width': bbox.width + 4,
+	    'height': bbox.height + 4,
+	    'left': bbox.x - 3,
+	    'top': bbox.y - 3,
+	    'transform': transformVal,
+	    '-webkit-transform': transformVal, // chrome + safari
+ 	    '-ms-transform': transformVal // IE 9
+        });
+
+	// Update the directions on the halo divs while the element being rotated. The directions are represented
+	// by cardinal points (N,S,E,W). For example the div originally pointed to north needs to be changed
+	// to point to south if the element was rotated by 180 degrees.
+	var shift = Math.floor(angle * (this.options.directions.length / 360));
+
+	if (shift != this._previousDirectionsShift) {
+
+	    // Create the current directions array based on the calculated shift.
+	    var directions = _.rest(this.options.directions, shift).concat(_.first(this.options.directions, shift));
+
+	    // Apply the array on the halo divs.
+	    this.$('.resize').removeClass('nw n ne e se s sw w').each(function(index, el) {
+		$(el).addClass(directions[index]);
+	    });
+
+	    this._previousDirectionsShift = shift;
+	}
+    },
+
+    startResizing: function(evt) {
+
+        evt.stopPropagation();
+
+	this.options.graph.trigger('batch:start');
+
+	// Target's data attribute can contain one of 8 positions. Each position defines the way how to
+	// resize an element. Whether to change the size on x-axis, on y-axis or on both.
+
+	var direction = $(evt.target).data('position');
+
+	var rx = 0, ry = 0;
+
+	_.each(direction.split('-'), function(singleDirection) {
+
+	    rx = { 'left': -1, 'right': 1 }[singleDirection] || rx;
+	    ry = { 'top': -1, 'bottom': 1 }[singleDirection] || ry;
+	});
+
+	// The direction has to be one of the 4 directions the element's resize method would accept (TL,BR,BL,TR).
+	direction = {
+	    'top': 'top-left',
+	    'bottom': 'bottom-right',
+	    'left' : 'bottom-left',
+	    'right': 'top-right'
+	}[direction] || direction;
+
+	// The selector holds a function name to pick a corner point on a rectangle.
+	// See object `rect` in `src/geometry.js`.
+	var selector = {
+	    'top-right' : 'bottomLeft',
+	    'top-left': 'corner',
+	    'bottom-left': 'topRight',
+	    'bottom-right': 'origin'
+	}[direction];
+
+	// Expose the initial setup, so `pointermove` method can access it.
+	this._initial = {
+	    angle: g.normalizeAngle(this.options.cell.get('angle') || 0),
+	    resizeX: rx, // to resize, not to resize or flip coordinates on x-axis (1,0,-1)
+	    resizeY: ry, // to resize, not to resize or flip coordinates on y-axis (1,0,-1)
+	    selector: selector,
+	    direction: direction
+	};
+
+	this._action = 'resize';
+
+	this.startOp(evt.target);
+    },
+
+    startRotating: function(evt) {
+
+        evt.stopPropagation();
+
+	this.options.graph.trigger('batch:start');
+        
+	var center = this.options.cell.getBBox().center();
+
+	var clientCoords = this.options.paper.snapToGrid({ x: evt.clientX, y: evt.clientY }); 
+
+	// Expose the initial setup, so `pointermove` method can acess it.
+	this._initial = {
+	    // the centre of the element is the centre of the rotation
+	    centerRotation: center,
+	    // an angle of the element before the rotating starts
+	    modelAngle: g.normalizeAngle(this.options.cell.get('angle') || 0),
+	    // an angle between the line starting at mouse coordinates, ending at the center of rotation
+	    // and y-axis 
+	    startAngle: g.point(clientCoords).theta(center)
+	};
+
+        this._action = 'rotate';
+
+	this.startOp(evt.target);
+    },
+
+    pointermove: function(evt) {
+
+	if (!this._action) return;
+
+        evt = joint.util.normalizeEvent(evt);
+
+	var clientCoords = this.options.paper.snapToGrid({ x: evt.clientX, y: evt.clientY });
+	var gridSize = this.options.paper.options.gridSize;
+
+	var model = this.options.cell, i = this._initial;
+
+	switch (this._action) {
+
+	case 'resize':
+
+	    var currentRect = model.getBBox();
+
+	    // The requested element's size has to be find on the unrotated element. Therefore we
+	    // are rotating a mouse coordinates back (coimageCoords) by an angle the element is rotated by and
+	    // with the center of rotation equals to the center of the unrotated element.
+	    var coimageCoords= g.point(clientCoords).rotate(currentRect.center(), i.angle);
+
+	    // The requested size is the difference between the fixed point and coimaged coordinates.
+	    var requestedSize = coimageCoords.difference(currentRect[i.selector]());
+
+	    // Calculate the new dimensions. `resizeX`/`resizeY` can hold a zero value if the resizing
+	    // on x-axis/y-axis is not allowed.
+	    var width = i.resizeX ? requestedSize.x * i.resizeX : currentRect.width;
+	    var height = i.resizeY ? requestedSize.y * i.resizeY : currentRect.height;
+
+	    // Constraint the dimensions.
+	    width = width < gridSize ? gridSize : g.snapToGrid(width, gridSize);
+	    height = height < gridSize ? gridSize : g.snapToGrid(height, gridSize);
+
+	    // Resize the element only if the dimensions are changed.
+	    if (currentRect.width != width || currentRect.height != height) {
+
+		model.resize(width, height, { direction: i.direction });
+	    }
+
+	    break;
+
+        case 'rotate':
+
+	    // Calculate an angle between the line starting at mouse coordinates, ending at the centre
+	    // of rotation and y-axis and deduct the angle from the start of rotation.
+	    var theta = i.startAngle - g.point(clientCoords).theta(i.centerRotation);
+
+            model.rotate(g.snapToGrid(i.modelAngle + theta, 15), true);
+
+            break;
+	}
+    },
+
+    pointerup: function(evt) {
+
+	if (!this._action) return;
+
+	this.stopOp();
+
+	this.options.graph.trigger('batch:stop');
+
+	delete this._action;
+	delete this._initial;
+    },
+
+    remove: function(evt) {
+
+	Backbone.View.prototype.remove.apply(this, arguments);
+
+        $('body').off('mousemove touchmove', this.pointermove);
+        $(document).off('mouseup touchend', this.pointerup);
+    },
+
+    startOp: function(el) {
+
+	if (el) {
+	    // Add a class to the element we are operating with
+	    $(el).addClass('in-operation');
+	    this._elementOp = el;
+	}
+
+	this.$el.addClass('in-operation');
+    },
+
+    stopOp: function() {
+
+	if (this._elementOp) {
+	    // Remove a class from the element we were operating with
+	    $(this._elementOp).removeClass('in-operation');
+	    delete this._elementOp;
+	}
+
+	this.$el.removeClass('in-operation');
+    }
+});
+joint.ui.Tooltip = Backbone.View.extend({
+
+    className: 'tooltip',
+
+    options: {
+        // `left` allows you to set a selector (or DOM element) that
+        // will be used as the left edge of the tooltip. This is useful when configuring a tooltip
+        // that should be shown "after" some other element. Other sides are analogous.
+        left: undefined,
+        right: undefined,
+        top: undefined,
+        bottom: undefined,
+        padding: 10
+    },
+
+    initialize: function() {
+
+        _.bindAll(this, 'render', 'hide', 'position');
+
+        this.$target = $(this.options.target);
+        
+        this.$target.on('mouseover', this.render);
+        this.$target.on('mouseout', this.hide);
+        this.$target.on('mousedown', this.hide);
+
+        this.$el.addClass(this.options.direction);
+    },
+
+    remove: function() {
+
+        this.$target.off('mouseover', this.render);
+        this.$target.off('mouseout', this.hide);
+        this.$target.off('mousedown', this.hide);
+        
+        Backbone.View.prototype.remove.apply(this, arguments);
+    },
+
+    hide: function() {
+
+        Backbone.View.prototype.remove.apply(this, arguments);
+    },
+    
+    render: function() {
+
+        this.$el.html(this.options.content);
+        // Hide the element first so that we don't get a jumping effect during the image loading.
+        this.$el.hide();
+        $(document.body).append(this.$el);
+
+        // If there is an image in the `content`, wait till it's loaded as only after that
+        // we know the dimension of the tooltip.
+        var $images = this.$('img');
+        if ($images.length) {
+
+            $images.on('load', this.position);
+            
+        } else {
+
+            this.position();
+        }
+    },
+
+    getElementBBox: function(el) {
+
+        var $el = $(el);
+        var offset = $el.offset();
+        var bbox;
+
+        // Compensate for the document scroll.
+        // Safari uses `document.body.scrollTop` only while Firefox uses `document.documentElement.scrollTop` only.
+        // Google Chrome is the winner here as it uses both.
+        var scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
+        var scrollLeft = document.body.scrollLeft || document.documentElement.scrollLeft;
+        
+        offset.top -= (scrollTop || 0);
+        offset.left -= (scrollLeft || 0);
+        
+        if (el.ownerSVGElement) {
+
+            // Use Vectorizer to get the dimensions of the element if it is an SVG element.
+            bbox = V(el).bbox();
+            // The `bbox()` returns coordinates relative to the SVG viewport, therefore, use the
+            // ones returned from the `offset()` method that are relative to the document.
+            bbox.x = offset.left;
+            bbox.y = offset.top;
+            
+        } else {
+            
+            bbox = { x: offset.left, y: offset.top, width: $el.outerWidth(), height: $el.outerHeight() };
+        }
+
+        return bbox;
+    },
+
+    position: function() {
+
+        var offset = this.$target.offset();
+        var target = this.$target[0];
+        var bbox = this.getElementBBox(this.$target[0]);
+        
+        var padding = this.options.padding;
+
+        // Show the tooltip. Do this before we ask for its dimension, otherwise they won't be defined yet.
+        this.$el.show();
+        
+        var height = this.$el.outerHeight();
+        var width = this.$el.outerWidth();
+        
+        // If `options.left` selector or DOM element is defined, we use its right coordinate
+        // as a left coordinate for the tooltip. This is useful when you want to tooltip to
+        // appear "after" a certain element.
+        if (this.options.left) {
+
+            var $left = $(this.options.left);
+            var leftBbox = this.getElementBBox($left[0]);
+            this.$el.css({
+                left: leftBbox.x + leftBbox.width + padding,
+                top: bbox.y + bbox.height/2 - height/2
+            });
+            
+        } else if (this.options.right) {
+
+            var $right = $(this.options.right);
+            var rightBbox = this.getElementBBox($right[0]);
+            this.$el.css({
+                left: rightBbox.x - width - padding,
+                top: bbox.y + bbox.height/2 - height/2
+            });
+
+        } else if (this.options.top) {
+
+            var $top = $(this.options.top);
+            var topBbox = this.getElementBBox($top[0]);
+            this.$el.css({
+                top: topBbox.y + topBbox.height + padding,
+                left: bbox.x + bbox.width/2 - width/2
+            });
+
+        } else if (this.options.bottom) {
+
+            var $bottom = $(this.options.bottom);
+            var bottomBbox = this.getElementBBox($bottom[0]);
+            this.$el.css({
+                top: bottomBbox.y - height - padding,
+                left: bbox.x + bbox.width/2 - width/2
+            });
+            
+        } else {
+
+            this.$el.css({
+                left: bbox.x + bbox.width + padding,
+                top: bbox.y + bbox.height/2 - height/2
+            });
+        }
+    }
+});
 ;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};/**
  * @license
@@ -27785,3 +32188,5133 @@ joint.layout.DirectedGraph = {
         return dagreGraph;
     }
 };
+
+// Force Directed layout implementation.
+// =====================================
+
+// Resources:
+//      Efficient and High Quality Force-Directed Graph Drawing, Yifan Hu
+//      Simple Algorithms for Network Visualization: A Tutorial, Michael J. McGufﬁn
+//      Graph Drawing by Force-directed Placement, Thomas M. J. Fruchterman and Edward M. Reingold
+//      D3.js, http://d3js.org
+
+joint.layout.ForceDirected = Backbone.Model.extend({
+
+    defaults: {
+
+        linkDistance: 10,
+        linkStrength: 1,
+        charge: 10
+    },
+
+    initialize: function(opt) {
+
+        this.elements = this.get('graph').getElements();
+        this.links = this.get('graph').getLinks();
+        this.cells = this.get('graph').get('cells');
+        this.width = this.get('width');
+        this.height = this.get('height');
+        this.gravityCenter = this.get('gravityCenter');
+        
+        this.t = 1;
+        this.energy = Infinity;
+        this.progress = 0;
+    },
+
+    start: function() {
+        
+        var w = this.get('width');
+        var h = this.get('height');
+
+        var elementsJSON = [];
+        var linksJSON = [];
+        
+        // Random layout.
+        _.each(this.elements, function(el) {
+            el.set('position', { x: Math.random() * w, y: Math.random() * h });
+
+            // Cache important values for much quick access.
+            el.charge = el.get('charge') || this.get('charge');
+            el.weight = el.get('weight') || 1;
+            var pos = el.get('position');
+            el.x = pos.x;
+            el.y = pos.y;
+            
+            // Previous position.
+            el.px = el.x;
+            el.py = el.y;
+
+            el.fx = 0;
+            el.fy = 0;
+
+        }, this);
+
+        _.each(this.links, function(link) {
+
+            // Cache important values for quick access.
+            link.strength = link.get('strength') || this.get('linkStrength');
+            link.distance = link.get('distance') || this.get('linkDistance');
+            
+            link.source = this.cells.get(link.get('source').id);
+            link.target = this.cells.get(link.get('target').id);
+
+        }, this);
+    },
+
+    step: function() {
+
+        if ((this.t * .99) < 0.005) return this.notifyEnd();
+        
+        var w = this.width;
+        var h = this.height;
+        
+        var gravity = .1;
+        var gravityCenter = this.gravityCenter;
+        
+        var energyBefore = this.energy;
+        this.energy = 0;
+        
+        // Global positions update. Sum of all the position updates to elements.
+        var xBefore = 0
+        var yBefore = 0;
+        var xAfter = 0;
+        var yAfter = 0;
+
+        var i, j;
+        var nElements = this.elements.length;
+        var nLinks = this.links.length;
+
+        // Calculate repulsive forces.
+        for (i = 0; i < nElements - 1; i++) {
+
+            var v = this.elements[i];
+            xBefore += v.x;
+            yBefore += v.y;
+            
+            for (j = i + 1; j < nElements; j++) {
+
+                var u = this.elements[j];
+
+                var dx = u.x - v.x;
+                var dy = u.y - v.y;
+                var distanceSquared = dx*dx + dy*dy;
+                var distance = Math.sqrt(distanceSquared);
+
+                var fr = this.t * v.charge / distanceSquared;
+                var fx = fr * dx;
+                var fy = fr * dy;
+
+                v.fx -= fx;
+                v.fy -= fy;
+                u.fx += fx;
+                u.fy += fy;
+
+                this.energy += fx*fx + fy*fy;
+            }
+        }
+
+        // Add the last element positions as it couldn't be done in the loops above.
+        xBefore += this.elements[nElements - 1].x;
+        yBefore += this.elements[nElements - 1].y;
+        
+        // Calculate attractive forces.
+        for (i = 0; i < nLinks; i++) {
+
+            var link = this.links[i];
+
+            var v = link.source;
+            var u = link.target;
+
+            var dx = u.x - v.x;
+            var dy = u.y - v.y;
+            var distanceSquared = dx*dx + dy*dy;
+            var distance = Math.sqrt(distanceSquared);
+
+            var fa = this.t * link.strength * (distance - link.distance) / distance;
+            var fx = fa * dx;
+            var fy = fa * dy;
+
+            var k = v.weight / (v.weight + u.weight);
+
+            // Gauss-seidel. Changing positions directly so that other iterations work with the new positions.
+            v.x += fx * (1 - k);
+            v.y += fy * (1 - k);
+            u.x -= fx * k;
+            u.y -= fy * k;
+
+            this.energy += fx*fx + fy*fy;
+        }
+
+        
+        // Set positions on elements.
+        for (i = 0; i < nElements; i++) {
+
+            var el = this.elements[i];
+            var pos = { x: el.x, y: el.y };
+            
+            // Gravity force.
+            if (gravityCenter) {
+
+                pos.x += (gravityCenter.x - pos.x) * this.t * gravity;
+                pos.y += (gravityCenter.y - pos.y) * this.t * gravity;
+            }
+        
+            pos.x += el.fx;
+            pos.y += el.fy;
+
+            // Make sure positions don't go out of the paper area.
+            pos.x = Math.max(0, Math.min(w, pos.x));
+            pos.y = Math.max(0, Math.min(h, pos.y));
+
+            // Position Verlet integration. 
+            var friction = .9;
+            pos.x += (el.px - pos.x) * friction;
+            pos.y += (el.py - pos.y) * friction;
+            
+            el.px = pos.x;
+            el.py = pos.y;
+            
+            el.fx = el.fy = 0;
+            el.x = pos.x;
+            el.y = pos.y;
+
+            xAfter += el.x;
+            yAfter += el.y;
+
+            this.notify(el, i, pos);
+        }
+
+        this.t = this.cool(this.t, this.energy, energyBefore);
+
+        // If the global distance hasn't change much, the layout converged and therefore trigger the `end` event.
+        var gdx = xBefore - xAfter;
+        var gdy = yBefore - yAfter;
+        var gd = Math.sqrt(gdx*gdx + gdy*gdy);
+        if (gd < 1) {
+            this.notifyEnd();
+        }
+    },
+
+    cool: function(t, energy, energyBefore) {
+
+        // Adaptive cooling scheme (as per Yifan Hu). The temperature can also increase depending on the progress made.
+        if (energy < energyBefore) {
+
+            this.progress += 1;
+            if (this.progress >= 5) {
+
+                this.progress = 0;
+                return t / .99;    // Warm up.
+            }
+        } else {
+
+            this.progress = 0;
+            return t * .99;      // Cool down.
+        }
+        return t;       // Keep the same temperature.
+    },
+
+    notify: function(el, i, pos) {
+
+        el.set('position', pos);
+    },
+
+    notifyEnd: function() {
+
+        this.trigger('end');
+    }
+});
+
+joint.layout = joint.layout || {};
+
+joint.layout.GridLayout = {
+
+    layout: function(graph, opt) {
+
+	opt = opt || {};
+
+	var elements = graph.getElements();
+
+	// number of columns
+	var columns = opt.columns || 1;
+
+	// shift the element horizontally by a given amount
+	var dx = opt.dx || 0;
+
+	// shift the element vertically by a given amount
+	var dy = opt.dy || 0;
+
+	// width of a column
+	var columnWidth = opt.columnWidth || this._maxDim(elements, 'width') + dx;
+
+	// height of a row
+	var rowHeight = opt.rowHeight ||  this._maxDim(elements, 'height') + dy;
+
+	// position the elements in the centre of a grid cell
+	var centralize = _.isUndefined(opt.centralize) || opt.centralize !== false;
+
+	// resize the elements to fit a grid cell & preserves ratio
+	var resizeToFit = !!opt.resizeToFit;
+
+	// iterate the elements and position them accordingly
+	_.each(elements, function(element, index) {
+
+	    var cx = 0, cy = 0, elementSize = element.get('size');
+
+	    if (resizeToFit) {
+
+		var elementWidth = columnWidth - 2*dx;
+		var elementHeight = rowHeight - 2*dy;
+
+		var calcElHeight = elementSize.height * (elementSize.width ? elementWidth/elementSize.width : 1);
+		var calcElWidth = elementSize.width * (elementSize.height ? elementHeight/elementSize.height : 1);
+
+		if (calcElHeight > rowHeight) {
+
+		    elementWidth = calcElWidth;
+		} else {
+		    elementHeight = calcElHeight;
+		}
+
+		elementSize = { width: elementWidth, height: elementHeight };
+
+
+		element.set('size', elementSize);
+	    }
+
+	    if (centralize) {
+		cx = (columnWidth - elementSize.width) / 2;
+		cy = (rowHeight - elementSize.height) / 2;
+	    }
+
+	    element.set('position', {
+		x: (index % columns) * columnWidth + dx + cx,
+		y: Math.floor(index / columns) * rowHeight + dy + cy
+	    });
+	});
+    },
+
+    // find maximal dimension (width/height) in an array of the elements
+    _maxDim: function(elements, dimension) {
+
+	return _.reduce(elements, function(max, el) { return Math.max(el.get('size')[dimension], max); }, 0);
+    }
+};
+joint.format.gexf = {};
+
+joint.format.gexf.toCellsArray = function(xmlString, makeElement, makeLink) {
+
+    // Parse the `xmlString` into a DOM tree.
+    var parser = new DOMParser();
+    var dom = parser.parseFromString(xmlString, 'text/xml');
+    if (dom.documentElement.nodeName == "parsererror") {
+        throw new Error('Error while parsing GEXF file.');
+    }
+
+    // Get all nodes and edges.
+    var nodes = dom.documentElement.querySelectorAll('node');
+    var edges = dom.documentElement.querySelectorAll('edge');
+
+    // Return value.
+    var cells = [];
+
+    _.each(nodes, function(node) {
+
+        var size = parseFloat(node.querySelector('size').getAttribute('value'));
+        
+        var element = makeElement({
+            id: node.getAttribute('id'),
+            width: size,
+            height: size,
+            label: node.getAttribute('label')
+        });
+        
+        cells.push(element);
+    });
+
+    _.each(edges, function(edge) {
+
+        var link = makeLink({ source: edge.getAttribute('source'), target: edge.getAttribute('target') });
+        cells.unshift(link);
+    });
+
+    return cells;
+};
+
+joint.dia.Paper.prototype.toSVG = function(opt) {
+
+    opt = opt || {};
+
+    // `viewportBbox` contains the real bounding box of the elements in the diagram, 'whitespace trimmed'.
+    // Unfortunately, Firefox returns `x = 0` and `y = 0` even though there is a whitespace between
+    // the left edge of the SVG and the leftmost element.
+    // var viewportBbox = this.viewport.getBBox();
+
+    var viewportTransform = V(this.viewport).attr('transform');
+    V(this.viewport).attr('transform', '');
+
+    var viewportBbox = this.getContentBBox();
+
+    // We'll be modifying `style` and `transform` attribute of elements/nodes. Therefore,
+    // we're making a deep clone of the whole SVG document.
+    var svgClone = this.svg.cloneNode(true);
+
+    V(this.viewport).attr('transform', viewportTransform || '');
+
+    // We're removing css styles from the svg container. (i.e backround-image)
+    svgClone.removeAttribute('style');
+
+    // When all elements are shifted towards the origin (0,0), make the SVG dimensions as small
+    // as the viewport. Note that those are set in the `viewBox` attribute rather then in the
+    // `width`/`height` attributes. This allows for fitting the svg element inside containers.
+    if (opt.preserveDimensions) {
+
+        V(svgClone).attr({
+            width: viewportBbox.width,
+            height: viewportBbox.height
+        });
+
+    } else {
+
+        V(svgClone).attr({ width: '100%', height: '100%' });
+    }
+
+    // Set SVG viewBox starting at top-leftmost element's position (viewportBbox.x|y).
+    // We're doing this because we want to trim the `whitespace` areas of the SVG making its size
+    // as small as necessary.
+    V(svgClone).attr('viewBox', viewportBbox.x + ' ' + viewportBbox.y + ' ' + viewportBbox.width + ' ' + viewportBbox.height);
+
+    // Now the fun part. The code below has one purpuse and i.e. store all the CSS declarations
+    // from external stylesheets to the `style` attribute of the SVG document nodes.
+    // This is achieved in three steps.
+    
+    // 1. Disabling all the stylesheets in the page and therefore collecting only default style values.
+    //    This, together with the step 2, makes it possible to discard default CSS property values
+    //    and store only those that differ.
+    // 2. Enabling back all the stylesheets in the page and collecting styles that differ from the default values.
+    // 3. Applying the difference between default values and the ones set by custom stylesheets
+    //    onto the `style` attribute of each of the nodes in SVG.
+
+    // Note that all of this would be much more simplified if `window.getMatchedCSSRules()` worked
+    // in all the supported browsers. Pity is that it doesn't even work in WebKit that 
+    // has it (https://bugzilla.mozilla.org/show_bug.cgi?id=438278).
+    // Pollyfil for Firefox can be https://gist.github.com/ydaniv/3033012;
+
+
+    var styleSheetsCount = document.styleSheets.length;
+    var styleSheetsCopy = [];
+
+    // 1. 
+    for (var i = styleSheetsCount - 1; i >= 0; i--) {
+
+	// There is a bug (bugSS) in Chrome 14 and Safari. When you set stylesheet.disable = true it will
+	// also remove it from document.styleSheets. So we need to store all stylesheets before
+	// we disable them. Later on we put them back to document.styleSheets if needed.
+	// See the bug `https://code.google.com/p/chromium/issues/detail?id=88310`.
+	styleSheetsCopy[i] = document.styleSheets[i];
+
+	document.styleSheets[i].disabled = true;
+    }
+    
+    var defaultComputedStyles = {};
+    $(this.svg).find('*').each(function(idx) {
+
+        var computedStyle = window.getComputedStyle(this, null);
+        // We're making a deep copy of the `computedStyle` so that it's not affected
+        // by that next step when all the stylesheets are re-enabled again.
+        var defaultComputedStyle = {};
+        _.each(computedStyle, function(property) { defaultComputedStyle[property] = computedStyle.getPropertyValue(property); });
+        
+        defaultComputedStyles[idx] = defaultComputedStyle;
+    });
+
+
+    // bugSS: Check whether the stylesheets have been removed from document.styleSheets
+    if (styleSheetsCount != document.styleSheets.length) {
+	// bugSS: Copy all stylesheets back
+	_.each(styleSheetsCopy, function(copy, i) { document.styleSheets[i] = copy; });
+    }
+
+    // 2.
+
+    // bugSS: Note that if stylesheet bug happen the document.styleSheets.length is still 0.
+    for (var i = 0; i < styleSheetsCount; i++) {
+	document.styleSheets[i].disabled = false;
+    }
+    // bugSS: Now is document.styleSheets.length = number of stylesheets again.
+
+    var customStyles = {};
+    $(this.svg).find('*').each(function(idx) {
+
+        var computedStyle = window.getComputedStyle(this, null);
+        var defaultComputedStyle = defaultComputedStyles[idx];
+        var customStyle = {};
+
+        _.each(computedStyle, function(property) {
+
+            // Store only those that differ from the default styles applied by the browser.
+                // TODO: Problem will arise with browser specific properties (browser prefixed ones).
+            if (computedStyle.getPropertyValue(property) !== defaultComputedStyle[property]) {
+
+                customStyle[property] = computedStyle.getPropertyValue(property);
+            }
+        });
+        
+        customStyles[idx] = customStyle;
+    });
+
+    // 3.
+    $(svgClone).find('*').each(function(idx) {
+
+        $(this).css(customStyles[idx]);
+    });
+
+    // We're removing the link's "onhover" elements as we don't want them to be present in the final SVG
+    $(svgClone).find('.connection-wrap, .marker-vertices, .link-tools, .marker-arrowheads').remove();
+
+    // Now, when our `svgClone` is ready, serialize it to a string and return it.
+    var svgString;
+    try {
+        
+        var serializer = new XMLSerializer();
+        svgString = serializer.serializeToString(svgClone);
+        
+    } catch (err) {
+
+        console.error('Error serializing paper to SVG:', err);
+    }
+
+    var isChrome = !!window.chrome && !window.opera;
+    var isIE = navigator.appName == 'Microsoft Internet Explorer';
+    var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+
+    if (isChrome) {
+        // Chrome has a problem with namespaces on images. It does not prefix it
+        // with xmlns namespace and so they are not displayed. Therefore, use this trick
+        // to add the xmlns namespace before every xlink manually.
+        svgString = svgString.replace('xlink="', 'xmlns:xlink="');
+    }
+
+    if (isIE) {
+	// IE for some reason adds to SVG an extra `xmnls` attribute.
+	// As it is not allowed to have namespace redefined the second occurence needs to be removed.
+	var xmlns = 'xmlns="' + this.svg.namespaceURI + '"';
+	var matches = svgString.match(new RegExp(xmlns,'g'));
+	if (matches && matches.length >= 2) svgString = svgString.replace(new RegExp(xmlns), '');
+    }
+
+    if (isSafari) {
+
+	// Safari requires that all image references need to be namespaced. See similar Chrome case.
+        svgString = svgString.replace('xlink="', 'xmlns:xlink="');
+        svgString = svgString.replace(/href="/g, 'xlink:href="');
+    }
+
+    return svgString;
+};
+
+
+// Just a little helper for quick-opening the paper as data-uri SVG in a new browser window.
+joint.dia.Paper.prototype.openAsSVG = function() {
+
+    var svg = this.toSVG();
+    
+    var windowFeatures = 'menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes';
+    var windowName = _.uniqueId('svg_output');
+
+    var dataImageUri = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+
+    var imageWindow = window.open('', windowName, windowFeatures);
+
+    imageWindow.document.write('<img src="' + dataImageUri + '" style="max-height:100%" />');
+};
+
+/*
+ * canvg.js - Javascript SVG parser and renderer on Canvas
+ * MIT Licensed 
+ * Gabe Lerner (gabelerner@gmail.com)
+ * http://code.google.com/p/canvg/
+ *
+ * Requires: rgbcolor.js - http://www.phpied.com/rgb-color-parser-in-javascript/
+ */
+(function(){
+	// canvg(target, s)
+	// empty parameters: replace all 'svg' elements on page with 'canvas' elements
+	// target: canvas element or the id of a canvas element
+	// s: svg string, url to svg file, or xml document
+	// opts: optional hash of options
+	//		 ignoreMouse: true => ignore mouse events
+	//		 ignoreAnimation: true => ignore animations
+	//		 ignoreDimensions: true => does not try to resize canvas
+	//		 ignoreClear: true => does not clear canvas
+	//		 offsetX: int => draws at a x offset
+	//		 offsetY: int => draws at a y offset
+	//		 scaleWidth: int => scales horizontally to width
+	//		 scaleHeight: int => scales vertically to height
+	//		 renderCallback: function => will call the function after the first render is completed
+	//		 forceRedraw: function => will call the function on every frame, if it returns true, will redraw
+	this.canvg = function (target, s, opts) {
+		// no parameters
+		if (target == null && s == null && opts == null) {
+			var svgTags = document.getElementsByTagName('svg');
+			for (var i=0; i<svgTags.length; i++) {
+				var svgTag = svgTags[i];
+				var c = document.createElement('canvas');
+				c.width = svgTag.clientWidth;
+				c.height = svgTag.clientHeight;
+				svgTag.parentNode.insertBefore(c, svgTag);
+				svgTag.parentNode.removeChild(svgTag);
+				var div = document.createElement('div');
+				div.appendChild(svgTag);
+				canvg(c, div.innerHTML);
+			}
+			return;
+		}	
+		opts = opts || {};
+	
+		if (typeof target == 'string') {
+			target = document.getElementById(target);
+		}
+		
+		// store class on canvas
+		if (target.svg != null) target.svg.stop();
+		var svg = build();
+		// on i.e. 8 for flash canvas, we can't assign the property so check for it
+		if (!(target.childNodes.length == 1 && target.childNodes[0].nodeName == 'OBJECT')) target.svg = svg;
+		svg.opts = opts;
+		
+		var ctx = target.getContext('2d');
+		if (typeof(s.documentElement) != 'undefined') {
+			// load from xml doc
+			svg.loadXmlDoc(ctx, s);
+		}
+		else if (s.substr(0,1) == '<') {
+			// load from xml string
+			svg.loadXml(ctx, s);
+		}
+		else {
+			// load from url
+			svg.load(ctx, s);
+		}
+	}
+
+	function build() {
+		var svg = { };
+		
+		svg.FRAMERATE = 30;
+		svg.MAX_VIRTUAL_PIXELS = 30000;
+		
+		// globals
+		svg.init = function(ctx) {
+			var uniqueId = 0;
+			svg.UniqueId = function () { uniqueId++; return 'canvg' + uniqueId;	};
+			svg.Definitions = {};
+			svg.Styles = {};
+			svg.Animations = [];
+			svg.Images = [];
+			svg.ctx = ctx;
+			svg.ViewPort = new (function () {
+				this.viewPorts = [];
+				this.Clear = function() { this.viewPorts = []; }
+				this.SetCurrent = function(width, height) { this.viewPorts.push({ width: width, height: height }); }
+				this.RemoveCurrent = function() { this.viewPorts.pop(); }
+				this.Current = function() { return this.viewPorts[this.viewPorts.length - 1]; }
+				this.width = function() { return this.Current().width; }
+				this.height = function() { return this.Current().height; }
+				this.ComputeSize = function(d) {
+					if (d != null && typeof(d) == 'number') return d;
+					if (d == 'x') return this.width();
+					if (d == 'y') return this.height();
+					return Math.sqrt(Math.pow(this.width(), 2) + Math.pow(this.height(), 2)) / Math.sqrt(2);			
+				}
+			});
+		}
+		svg.init();
+		
+		// images loaded
+		svg.ImagesLoaded = function() { 
+			for (var i=0; i<svg.Images.length; i++) {
+				if (!svg.Images[i].loaded) return false;
+			}
+			return true;
+		}
+
+		// trim
+		svg.trim = function(s) { return s.replace(/^\s+|\s+$/g, ''); }
+		
+		// compress spaces
+		svg.compressSpaces = function(s) { return s.replace(/[\s\r\t\n]+/gm,' '); }
+		
+		// ajax
+		svg.ajax = function(url) {
+			var AJAX;
+			if(window.XMLHttpRequest){AJAX=new XMLHttpRequest();}
+			else{AJAX=new ActiveXObject('Microsoft.XMLHTTP');}
+			if(AJAX){
+			   AJAX.open('GET',url,false);
+			   AJAX.send(null);
+			   return AJAX.responseText;
+			}
+			return null;
+		} 
+		
+		// parse xml
+		svg.parseXml = function(xml) {
+			if (window.DOMParser)
+			{
+				var parser = new DOMParser();
+				return parser.parseFromString(xml, 'text/xml');
+			}
+			else 
+			{
+				xml = xml.replace(/<!DOCTYPE svg[^>]*>/, '');
+				var xmlDoc = new ActiveXObject('Microsoft.XMLDOM');
+				xmlDoc.async = 'false';
+				xmlDoc.loadXML(xml); 
+				return xmlDoc;
+			}		
+		}
+		
+		svg.Property = function(name, value) {
+			this.name = name;
+			this.value = value;
+		}	
+			svg.Property.prototype.getValue = function() {
+				return this.value;
+			}
+		
+			svg.Property.prototype.hasValue = function() {
+				return (this.value != null && this.value !== '');
+			}
+							
+			// return the numerical value of the property
+			svg.Property.prototype.numValue = function() {
+				if (!this.hasValue()) return 0;
+				
+				var n = parseFloat(this.value);
+				if ((this.value + '').match(/%$/)) {
+					n = n / 100.0;
+				}
+				return n;
+			}
+			
+			svg.Property.prototype.valueOrDefault = function(def) {
+				if (this.hasValue()) return this.value;
+				return def;
+			}
+			
+			svg.Property.prototype.numValueOrDefault = function(def) {
+				if (this.hasValue()) return this.numValue();
+				return def;
+			}
+			
+			// color extensions
+				// augment the current color value with the opacity
+				svg.Property.prototype.addOpacity = function(opacity) {
+					var newValue = this.value;
+					if (opacity != null && opacity != '' && typeof(this.value)=='string') { // can only add opacity to colors, not patterns
+						var color = new RGBColor(this.value);
+						if (color.ok) {
+							newValue = 'rgba(' + color.r + ', ' + color.g + ', ' + color.b + ', ' + opacity + ')';
+						}
+					}
+					return new svg.Property(this.name, newValue);
+				}
+			
+			// definition extensions
+				// get the definition from the definitions table
+				svg.Property.prototype.getDefinition = function() {
+					var name = this.value.match(/#([^\)'"]+)/);
+					if (name) { name = name[1]; }
+					if (!name) { name = this.value; }
+					return svg.Definitions[name];
+				}
+				
+				svg.Property.prototype.isUrlDefinition = function() {
+					return this.value.indexOf('url(') == 0
+				}
+				
+				svg.Property.prototype.getFillStyleDefinition = function(e, opacityProp) {
+					var def = this.getDefinition();
+					
+					// gradient
+					if (def != null && def.createGradient) {
+						return def.createGradient(svg.ctx, e, opacityProp);
+					}
+					
+					// pattern
+					if (def != null && def.createPattern) {
+						if (def.getHrefAttribute().hasValue()) {
+							var pt = def.attribute('patternTransform');
+							def = def.getHrefAttribute().getDefinition();
+							if (pt.hasValue()) { def.attribute('patternTransform', true).value = pt.value; }
+						}
+						return def.createPattern(svg.ctx, e);
+					}
+					
+					return null;
+				}
+			
+			// length extensions
+				svg.Property.prototype.getDPI = function(viewPort) {
+					return 96.0; // TODO: compute?
+				}
+				
+				svg.Property.prototype.getEM = function(viewPort) {
+					var em = 12;
+					
+					var fontSize = new svg.Property('fontSize', svg.Font.Parse(svg.ctx.font).fontSize);
+					if (fontSize.hasValue()) em = fontSize.toPixels(viewPort);
+					
+					return em;
+				}
+				
+				svg.Property.prototype.getUnits = function() {
+					var s = this.value+'';
+					return s.replace(/[0-9\.\-]/g,'');
+				}
+			
+				// get the length as pixels
+				svg.Property.prototype.toPixels = function(viewPort, processPercent) {
+					if (!this.hasValue()) return 0;
+					var s = this.value+'';
+					if (s.match(/em$/)) return this.numValue() * this.getEM(viewPort);
+					if (s.match(/ex$/)) return this.numValue() * this.getEM(viewPort) / 2.0;
+					if (s.match(/px$/)) return this.numValue();
+					if (s.match(/pt$/)) return this.numValue() * this.getDPI(viewPort) * (1.0 / 72.0);
+					if (s.match(/pc$/)) return this.numValue() * 15;
+					if (s.match(/cm$/)) return this.numValue() * this.getDPI(viewPort) / 2.54;
+					if (s.match(/mm$/)) return this.numValue() * this.getDPI(viewPort) / 25.4;
+					if (s.match(/in$/)) return this.numValue() * this.getDPI(viewPort);
+					if (s.match(/%$/)) return this.numValue() * svg.ViewPort.ComputeSize(viewPort);
+					var n = this.numValue();
+					if (processPercent && n < 1.0) return n * svg.ViewPort.ComputeSize(viewPort);
+					return n;
+				}
+
+			// time extensions
+				// get the time as milliseconds
+				svg.Property.prototype.toMilliseconds = function() {
+					if (!this.hasValue()) return 0;
+					var s = this.value+'';
+					if (s.match(/s$/)) return this.numValue() * 1000;
+					if (s.match(/ms$/)) return this.numValue();
+					return this.numValue();
+				}
+			
+			// angle extensions
+				// get the angle as radians
+				svg.Property.prototype.toRadians = function() {
+					if (!this.hasValue()) return 0;
+					var s = this.value+'';
+					if (s.match(/deg$/)) return this.numValue() * (Math.PI / 180.0);
+					if (s.match(/grad$/)) return this.numValue() * (Math.PI / 200.0);
+					if (s.match(/rad$/)) return this.numValue();
+					return this.numValue() * (Math.PI / 180.0);
+				}
+		
+		// fonts
+		svg.Font = new (function() {
+			this.Styles = 'normal|italic|oblique|inherit';
+			this.Variants = 'normal|small-caps|inherit';
+			this.Weights = 'normal|bold|bolder|lighter|100|200|300|400|500|600|700|800|900|inherit';
+			
+			this.CreateFont = function(fontStyle, fontVariant, fontWeight, fontSize, fontFamily, inherit) { 
+				var f = inherit != null ? this.Parse(inherit) : this.CreateFont('', '', '', '', '', svg.ctx.font);
+				return { 
+					fontFamily: fontFamily || f.fontFamily, 
+					fontSize: fontSize || f.fontSize, 
+					fontStyle: fontStyle || f.fontStyle, 
+					fontWeight: fontWeight || f.fontWeight, 
+					fontVariant: fontVariant || f.fontVariant,
+					toString: function () { return [this.fontStyle, this.fontVariant, this.fontWeight, this.fontSize, this.fontFamily].join(' ') } 
+				} 
+			}
+			
+			var that = this;
+			this.Parse = function(s) {
+				var f = {};
+				var d = svg.trim(svg.compressSpaces(s || '')).split(' ');
+				var set = { fontSize: false, fontStyle: false, fontWeight: false, fontVariant: false }
+				var ff = '';
+				for (var i=0; i<d.length; i++) {
+					if (!set.fontStyle && that.Styles.indexOf(d[i]) != -1) { if (d[i] != 'inherit') f.fontStyle = d[i]; set.fontStyle = true; }
+					else if (!set.fontVariant && that.Variants.indexOf(d[i]) != -1) { if (d[i] != 'inherit') f.fontVariant = d[i]; set.fontStyle = set.fontVariant = true;	}
+					else if (!set.fontWeight && that.Weights.indexOf(d[i]) != -1) {	if (d[i] != 'inherit') f.fontWeight = d[i]; set.fontStyle = set.fontVariant = set.fontWeight = true; }
+					else if (!set.fontSize) { if (d[i] != 'inherit') f.fontSize = d[i].split('/')[0]; set.fontStyle = set.fontVariant = set.fontWeight = set.fontSize = true; }
+					else { if (d[i] != 'inherit') ff += d[i]; }
+				} if (ff != '') f.fontFamily = ff;
+				return f;
+			}
+		});
+		
+		// points and paths
+		svg.ToNumberArray = function(s) {
+			var a = svg.trim(svg.compressSpaces((s || '').replace(/,/g, ' '))).split(' ');
+			for (var i=0; i<a.length; i++) {
+				a[i] = parseFloat(a[i]);
+			}
+			return a;
+		}		
+		svg.Point = function(x, y) {
+			this.x = x;
+			this.y = y;
+		}	
+			svg.Point.prototype.angleTo = function(p) {
+				return Math.atan2(p.y - this.y, p.x - this.x);
+			}
+			
+			svg.Point.prototype.applyTransform = function(v) {
+				var xp = this.x * v[0] + this.y * v[2] + v[4];
+				var yp = this.x * v[1] + this.y * v[3] + v[5];
+				this.x = xp;
+				this.y = yp;
+			}
+
+		svg.CreatePoint = function(s) {
+			var a = svg.ToNumberArray(s);
+			return new svg.Point(a[0], a[1]);
+		}
+		svg.CreatePath = function(s) {
+			var a = svg.ToNumberArray(s);
+			var path = [];
+			for (var i=0; i<a.length; i+=2) {
+				path.push(new svg.Point(a[i], a[i+1]));
+			}
+			return path;
+		}
+		
+		// bounding box
+		svg.BoundingBox = function(x1, y1, x2, y2) { // pass in initial points if you want
+			this.x1 = Number.NaN;
+			this.y1 = Number.NaN;
+			this.x2 = Number.NaN;
+			this.y2 = Number.NaN;
+			
+			this.x = function() { return this.x1; }
+			this.y = function() { return this.y1; }
+			this.width = function() { return this.x2 - this.x1; }
+			this.height = function() { return this.y2 - this.y1; }
+			
+			this.addPoint = function(x, y) {	
+				if (x != null) {
+					if (isNaN(this.x1) || isNaN(this.x2)) {
+						this.x1 = x;
+						this.x2 = x;
+					}
+					if (x < this.x1) this.x1 = x;
+					if (x > this.x2) this.x2 = x;
+				}
+			
+				if (y != null) {
+					if (isNaN(this.y1) || isNaN(this.y2)) {
+						this.y1 = y;
+						this.y2 = y;
+					}
+					if (y < this.y1) this.y1 = y;
+					if (y > this.y2) this.y2 = y;
+				}
+			}			
+			this.addX = function(x) { this.addPoint(x, null); }
+			this.addY = function(y) { this.addPoint(null, y); }
+			
+			this.addBoundingBox = function(bb) {
+				this.addPoint(bb.x1, bb.y1);
+				this.addPoint(bb.x2, bb.y2);
+			}
+			
+			this.addQuadraticCurve = function(p0x, p0y, p1x, p1y, p2x, p2y) {
+				var cp1x = p0x + 2/3 * (p1x - p0x); // CP1 = QP0 + 2/3 *(QP1-QP0)
+				var cp1y = p0y + 2/3 * (p1y - p0y); // CP1 = QP0 + 2/3 *(QP1-QP0)
+				var cp2x = cp1x + 1/3 * (p2x - p0x); // CP2 = CP1 + 1/3 *(QP2-QP0)
+				var cp2y = cp1y + 1/3 * (p2y - p0y); // CP2 = CP1 + 1/3 *(QP2-QP0)
+				this.addBezierCurve(p0x, p0y, cp1x, cp2x, cp1y,	cp2y, p2x, p2y);
+			}
+			
+			this.addBezierCurve = function(p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y) {
+				// from http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
+				var p0 = [p0x, p0y], p1 = [p1x, p1y], p2 = [p2x, p2y], p3 = [p3x, p3y];
+				this.addPoint(p0[0], p0[1]);
+				this.addPoint(p3[0], p3[1]);
+				
+				for (i=0; i<=1; i++) {
+					var f = function(t) { 
+						return Math.pow(1-t, 3) * p0[i]
+						+ 3 * Math.pow(1-t, 2) * t * p1[i]
+						+ 3 * (1-t) * Math.pow(t, 2) * p2[i]
+						+ Math.pow(t, 3) * p3[i];
+					}
+					
+					var b = 6 * p0[i] - 12 * p1[i] + 6 * p2[i];
+					var a = -3 * p0[i] + 9 * p1[i] - 9 * p2[i] + 3 * p3[i];
+					var c = 3 * p1[i] - 3 * p0[i];
+					
+					if (a == 0) {
+						if (b == 0) continue;
+						var t = -c / b;
+						if (0 < t && t < 1) {
+							if (i == 0) this.addX(f(t));
+							if (i == 1) this.addY(f(t));
+						}
+						continue;
+					}
+					
+					var b2ac = Math.pow(b, 2) - 4 * c * a;
+					if (b2ac < 0) continue;
+					var t1 = (-b + Math.sqrt(b2ac)) / (2 * a);
+					if (0 < t1 && t1 < 1) {
+						if (i == 0) this.addX(f(t1));
+						if (i == 1) this.addY(f(t1));
+					}
+					var t2 = (-b - Math.sqrt(b2ac)) / (2 * a);
+					if (0 < t2 && t2 < 1) {
+						if (i == 0) this.addX(f(t2));
+						if (i == 1) this.addY(f(t2));
+					}
+				}
+			}
+			
+			this.isPointInBox = function(x, y) {
+				return (this.x1 <= x && x <= this.x2 && this.y1 <= y && y <= this.y2);
+			}
+			
+			this.addPoint(x1, y1);
+			this.addPoint(x2, y2);
+		}
+		
+		// transforms
+		svg.Transform = function(v) {	
+			var that = this;
+			this.Type = {}
+		
+			// translate
+			this.Type.translate = function(s) {
+				this.p = svg.CreatePoint(s);			
+				this.apply = function(ctx) {
+					ctx.translate(this.p.x || 0.0, this.p.y || 0.0);
+				}
+				this.unapply = function(ctx) {
+					ctx.translate(-1.0 * this.p.x || 0.0, -1.0 * this.p.y || 0.0);
+				}
+				this.applyToPoint = function(p) {
+					p.applyTransform([1, 0, 0, 1, this.p.x || 0.0, this.p.y || 0.0]);
+				}
+			}
+			
+			// rotate
+			this.Type.rotate = function(s) {
+				var a = svg.ToNumberArray(s);
+				this.angle = new svg.Property('angle', a[0]);
+				this.cx = a[1] || 0;
+				this.cy = a[2] || 0;
+				this.apply = function(ctx) {
+					ctx.translate(this.cx, this.cy);
+					ctx.rotate(this.angle.toRadians());
+					ctx.translate(-this.cx, -this.cy);
+				}
+				this.unapply = function(ctx) {
+					ctx.translate(this.cx, this.cy);
+					ctx.rotate(-1.0 * this.angle.toRadians());
+					ctx.translate(-this.cx, -this.cy);
+				}
+				this.applyToPoint = function(p) {
+					var a = this.angle.toRadians();
+					p.applyTransform([1, 0, 0, 1, this.p.x || 0.0, this.p.y || 0.0]);
+					p.applyTransform([Math.cos(a), Math.sin(a), -Math.sin(a), Math.cos(a), 0, 0]);
+					p.applyTransform([1, 0, 0, 1, -this.p.x || 0.0, -this.p.y || 0.0]);
+				}			
+			}
+			
+			this.Type.scale = function(s) {
+				this.p = svg.CreatePoint(s);
+				this.apply = function(ctx) {
+					ctx.scale(this.p.x || 1.0, this.p.y || this.p.x || 1.0);
+				}
+				this.unapply = function(ctx) {
+					ctx.scale(1.0 / this.p.x || 1.0, 1.0 / this.p.y || this.p.x || 1.0);
+				}
+				this.applyToPoint = function(p) {
+					p.applyTransform([this.p.x || 0.0, 0, 0, this.p.y || 0.0, 0, 0]);
+				}				
+			}
+			
+			this.Type.matrix = function(s) {
+				this.m = svg.ToNumberArray(s);
+				this.apply = function(ctx) {
+					ctx.transform(this.m[0], this.m[1], this.m[2], this.m[3], this.m[4], this.m[5]);
+				}
+				this.applyToPoint = function(p) {
+					p.applyTransform(this.m);
+				}					
+			}
+			
+			this.Type.SkewBase = function(s) {
+				this.base = that.Type.matrix;
+				this.base(s);
+				this.angle = new svg.Property('angle', s);
+			}
+			this.Type.SkewBase.prototype = new this.Type.matrix;
+			
+			this.Type.skewX = function(s) {
+				this.base = that.Type.SkewBase;
+				this.base(s);
+				this.m = [1, 0, Math.tan(this.angle.toRadians()), 1, 0, 0];
+			}
+			this.Type.skewX.prototype = new this.Type.SkewBase;
+			
+			this.Type.skewY = function(s) {
+				this.base = that.Type.SkewBase;
+				this.base(s);
+				this.m = [1, Math.tan(this.angle.toRadians()), 0, 1, 0, 0];
+			}
+			this.Type.skewY.prototype = new this.Type.SkewBase;
+		
+			this.transforms = [];
+			
+			this.apply = function(ctx) {
+				for (var i=0; i<this.transforms.length; i++) {
+					this.transforms[i].apply(ctx);
+				}
+			}
+			
+			this.unapply = function(ctx) {
+				for (var i=this.transforms.length-1; i>=0; i--) {
+					this.transforms[i].unapply(ctx);
+				}
+			}
+			
+			this.applyToPoint = function(p) {
+				for (var i=0; i<this.transforms.length; i++) {
+					this.transforms[i].applyToPoint(p);
+				}
+			}
+			
+			var data = svg.trim(svg.compressSpaces(v)).replace(/\)(\s?,\s?)/g,') ').split(/\s(?=[a-z])/);
+			for (var i=0; i<data.length; i++) {
+				var type = svg.trim(data[i].split('(')[0]);
+				var s = data[i].split('(')[1].replace(')','');
+				var transform = new this.Type[type](s);
+				transform.type = type;
+				this.transforms.push(transform);
+			}
+		}
+		
+		// aspect ratio
+		svg.AspectRatio = function(ctx, aspectRatio, width, desiredWidth, height, desiredHeight, minX, minY, refX, refY) {
+			// aspect ratio - http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
+			aspectRatio = svg.compressSpaces(aspectRatio);
+			aspectRatio = aspectRatio.replace(/^defer\s/,''); // ignore defer
+			var align = aspectRatio.split(' ')[0] || 'xMidYMid';
+			var meetOrSlice = aspectRatio.split(' ')[1] || 'meet';					
+	
+			// calculate scale
+			var scaleX = width / desiredWidth;
+			var scaleY = height / desiredHeight;
+			var scaleMin = Math.min(scaleX, scaleY);
+			var scaleMax = Math.max(scaleX, scaleY);
+			if (meetOrSlice == 'meet') { desiredWidth *= scaleMin; desiredHeight *= scaleMin; }
+			if (meetOrSlice == 'slice') { desiredWidth *= scaleMax; desiredHeight *= scaleMax; }	
+			
+			refX = new svg.Property('refX', refX);
+			refY = new svg.Property('refY', refY);
+			if (refX.hasValue() && refY.hasValue()) {				
+				ctx.translate(-scaleMin * refX.toPixels('x'), -scaleMin * refY.toPixels('y'));
+			} 
+			else {					
+				// align
+				if (align.match(/^xMid/) && ((meetOrSlice == 'meet' && scaleMin == scaleY) || (meetOrSlice == 'slice' && scaleMax == scaleY))) ctx.translate(width / 2.0 - desiredWidth / 2.0, 0); 
+				if (align.match(/YMid$/) && ((meetOrSlice == 'meet' && scaleMin == scaleX) || (meetOrSlice == 'slice' && scaleMax == scaleX))) ctx.translate(0, height / 2.0 - desiredHeight / 2.0); 
+				if (align.match(/^xMax/) && ((meetOrSlice == 'meet' && scaleMin == scaleY) || (meetOrSlice == 'slice' && scaleMax == scaleY))) ctx.translate(width - desiredWidth, 0); 
+				if (align.match(/YMax$/) && ((meetOrSlice == 'meet' && scaleMin == scaleX) || (meetOrSlice == 'slice' && scaleMax == scaleX))) ctx.translate(0, height - desiredHeight); 
+			}
+			
+			// scale
+			if (align == 'none') ctx.scale(scaleX, scaleY);
+			else if (meetOrSlice == 'meet') ctx.scale(scaleMin, scaleMin); 
+			else if (meetOrSlice == 'slice') ctx.scale(scaleMax, scaleMax); 	
+			
+			// translate
+			ctx.translate(minX == null ? 0 : -minX, minY == null ? 0 : -minY);			
+		}
+		
+		// elements
+		svg.Element = {}
+		
+		svg.EmptyProperty = new svg.Property('EMPTY', '');
+		
+		svg.Element.ElementBase = function(node) {	
+			this.attributes = {};
+			this.styles = {};
+			this.children = [];
+			
+			// get or create attribute
+			this.attribute = function(name, createIfNotExists) {
+				var a = this.attributes[name];
+				if (a != null) return a;
+							
+				if (createIfNotExists == true) { a = new svg.Property(name, ''); this.attributes[name] = a; }
+				return a || svg.EmptyProperty;
+			}
+			
+			this.getHrefAttribute = function() {
+				for (var a in this.attributes) { 
+					if (a.match(/:href$/)) { 
+						return this.attributes[a]; 
+					} 
+				}
+				return svg.EmptyProperty;
+			}
+			
+			// get or create style, crawls up node tree
+			this.style = function(name, createIfNotExists) {
+				var s = this.styles[name];
+				if (s != null) return s;
+				
+				var a = this.attribute(name);
+				if (a != null && a.hasValue()) {
+					this.styles[name] = a; // move up to me to cache
+					return a;
+				}
+				
+				var p = this.parent;
+				if (p != null) {
+					var ps = p.style(name);
+					if (ps != null && ps.hasValue()) {
+						return ps;
+					}
+				}
+					
+				if (createIfNotExists == true) { s = new svg.Property(name, ''); this.styles[name] = s; }
+				return s || svg.EmptyProperty;
+			}
+			
+			// base render
+			this.render = function(ctx) {
+				// don't render display=none
+				if (this.style('display').value == 'none') return;
+				
+				// don't render visibility=hidden
+				if (this.attribute('visibility').value == 'hidden') return;
+			
+				ctx.save();
+				if (this.attribute('mask').hasValue()) { // mask
+					var mask = this.attribute('mask').getDefinition();
+					if (mask != null) mask.apply(ctx, this);
+				}
+				else if (this.style('filter').hasValue()) { // filter
+					var filter = this.style('filter').getDefinition();
+					if (filter != null) filter.apply(ctx, this);
+				}
+				else {	
+					this.setContext(ctx);
+					this.renderChildren(ctx);	
+					this.clearContext(ctx);							
+				}
+				ctx.restore();
+			}
+			
+			// base set context
+			this.setContext = function(ctx) {
+				// OVERRIDE ME!
+			}
+			
+			// base clear context
+			this.clearContext = function(ctx) {
+				// OVERRIDE ME!
+			}			
+			
+			// base render children
+			this.renderChildren = function(ctx) {
+				for (var i=0; i<this.children.length; i++) {
+					this.children[i].render(ctx);
+				}
+			}
+			
+			this.addChild = function(childNode, create) {
+				var child = childNode;
+				if (create) child = svg.CreateElement(childNode);
+				child.parent = this;
+				this.children.push(child);			
+			}
+				
+			if (node != null && node.nodeType == 1) { //ELEMENT_NODE
+				// add children
+				for (var i=0; i<node.childNodes.length; i++) {
+					var childNode = node.childNodes[i];
+					if (childNode.nodeType == 1) this.addChild(childNode, true); //ELEMENT_NODE
+					if (this.captureTextNodes && childNode.nodeType == 3) {
+						var text = childNode.nodeValue || childNode.text || '';
+						if (svg.trim(svg.compressSpaces(text)) != '') {
+							this.addChild(new svg.Element.tspan(childNode), false); // TEXT_NODE
+						}
+					}
+				}
+				
+				// add attributes
+				for (var i=0; i<node.attributes.length; i++) {
+					var attribute = node.attributes[i];
+					this.attributes[attribute.nodeName] = new svg.Property(attribute.nodeName, attribute.nodeValue);
+				}
+										
+				// add tag styles
+				var styles = svg.Styles[node.nodeName];
+				if (styles != null) {
+					for (var name in styles) {
+						this.styles[name] = styles[name];
+					}
+				}					
+				
+				// add class styles
+				if (this.attribute('class').hasValue()) {
+					var classes = svg.compressSpaces(this.attribute('class').value).split(' ');
+					for (var j=0; j<classes.length; j++) {
+						styles = svg.Styles['.'+classes[j]];
+						if (styles != null) {
+							for (var name in styles) {
+								this.styles[name] = styles[name];
+							}
+						}
+						styles = svg.Styles[node.nodeName+'.'+classes[j]];
+						if (styles != null) {
+							for (var name in styles) {
+								this.styles[name] = styles[name];
+							}
+						}
+					}
+				}
+				
+				// add id styles
+				if (this.attribute('id').hasValue()) {
+					var styles = svg.Styles['#' + this.attribute('id').value];
+					if (styles != null) {
+						for (var name in styles) {
+							this.styles[name] = styles[name];
+						}
+					}
+				}
+				
+				// add inline styles
+				if (this.attribute('style').hasValue()) {
+					var styles = this.attribute('style').value.split(';');
+					for (var i=0; i<styles.length; i++) {
+						if (svg.trim(styles[i]) != '') {
+							var style = styles[i].split(':');
+							var name = svg.trim(style[0]);
+							var value = svg.trim(style[1]);
+							this.styles[name] = new svg.Property(name, value);
+						}
+					}
+				}	
+
+				// add id
+				if (this.attribute('id').hasValue()) {
+					if (svg.Definitions[this.attribute('id').value] == null) {
+						svg.Definitions[this.attribute('id').value] = this;
+					}
+				}
+			}
+		}
+		
+		svg.Element.RenderedElementBase = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);
+			
+			this.setContext = function(ctx) {
+				// fill
+				if (this.style('fill').isUrlDefinition()) {
+					var fs = this.style('fill').getFillStyleDefinition(this, this.style('fill-opacity'));
+					if (fs != null) ctx.fillStyle = fs;
+				}
+				else if (this.style('fill').hasValue()) {
+					var fillStyle = this.style('fill');
+					if (fillStyle.value == 'currentColor') fillStyle.value = this.style('color').value;
+					ctx.fillStyle = (fillStyle.value == 'none' ? 'rgba(0,0,0,0)' : fillStyle.value);
+				}
+				if (this.style('fill-opacity').hasValue()) {
+					var fillStyle = new svg.Property('fill', ctx.fillStyle);
+					fillStyle = fillStyle.addOpacity(this.style('fill-opacity').value);
+					ctx.fillStyle = fillStyle.value;
+				}
+									
+				// stroke
+				if (this.style('stroke').isUrlDefinition()) {
+					var fs = this.style('stroke').getFillStyleDefinition(this, this.style('stroke-opacity'));
+					if (fs != null) ctx.strokeStyle = fs;
+				}
+				else if (this.style('stroke').hasValue()) {
+					var strokeStyle = this.style('stroke');
+					if (strokeStyle.value == 'currentColor') strokeStyle.value = this.style('color').value;
+					ctx.strokeStyle = (strokeStyle.value == 'none' ? 'rgba(0,0,0,0)' : strokeStyle.value);
+				}
+				if (this.style('stroke-opacity').hasValue()) {
+					var strokeStyle = new svg.Property('stroke', ctx.strokeStyle);
+					strokeStyle = strokeStyle.addOpacity(this.style('stroke-opacity').value);
+					ctx.strokeStyle = strokeStyle.value;
+				}
+				if (this.style('stroke-width').hasValue()) {
+					var newLineWidth = this.style('stroke-width').toPixels();
+					ctx.lineWidth = newLineWidth == 0 ? 0.001 : newLineWidth; // browsers don't respect 0
+			    }
+				if (this.style('stroke-linecap').hasValue()) ctx.lineCap = this.style('stroke-linecap').value;
+				if (this.style('stroke-linejoin').hasValue()) ctx.lineJoin = this.style('stroke-linejoin').value;
+				if (this.style('stroke-miterlimit').hasValue()) ctx.miterLimit = this.style('stroke-miterlimit').value;
+				if (this.style('stroke-dasharray').hasValue()) {
+					var gaps = svg.ToNumberArray(this.style('stroke-dasharray').value);
+					if (typeof(ctx.setLineDash) != 'undefined') { ctx.setLineDash(gaps); }
+					else if (typeof(ctx.webkitLineDash) != 'undefined') { ctx.webkitLineDash = gaps; }
+					else if (typeof(ctx.mozDash ) != 'undefined') { ctx.mozDash  = gaps; }
+					
+					var offset = this.style('stroke-dashoffset').numValueOrDefault(1);
+					if (typeof(ctx.lineDashOffset) != 'undefined') { ctx.lineDashOffset = offset; }
+					else if (typeof(ctx.webkitLineDashOffset) != 'undefined') { ctx.webkitLineDashOffset = offset; }
+					else if (typeof(ctx.mozDashOffset) != 'undefined') { ctx.mozDashOffset = offset; }
+				}
+
+				// font
+				if (typeof(ctx.font) != 'undefined') {
+					ctx.font = svg.Font.CreateFont( 
+						this.style('font-style').value, 
+						this.style('font-variant').value, 
+						this.style('font-weight').value, 
+						this.style('font-size').hasValue() ? this.style('font-size').toPixels() + 'px' : '', 
+						this.style('font-family').value).toString();
+				}
+				
+				// transform
+				if (this.attribute('transform').hasValue()) { 
+					var transform = new svg.Transform(this.attribute('transform').value);
+					transform.apply(ctx);
+				}
+				
+				// clip
+				if (this.style('clip-path').hasValue()) {
+					var clip = this.style('clip-path').getDefinition();
+					if (clip != null) clip.apply(ctx);
+				}
+				
+				// opacity
+				if (this.style('opacity').hasValue()) {
+					ctx.globalAlpha = this.style('opacity').numValue();
+				}
+			}		
+		}
+		svg.Element.RenderedElementBase.prototype = new svg.Element.ElementBase;
+		
+		svg.Element.PathElementBase = function(node) {
+			this.base = svg.Element.RenderedElementBase;
+			this.base(node);
+			
+			this.path = function(ctx) {
+				if (ctx != null) ctx.beginPath();
+				return new svg.BoundingBox();
+			}
+			
+			this.renderChildren = function(ctx) {
+				this.path(ctx);
+				svg.Mouse.checkPath(this, ctx);
+				if (ctx.fillStyle != '') {
+					if (this.attribute('fill-rule').hasValue()) { ctx.fill(this.attribute('fill-rule').value); }
+					else { ctx.fill(); }
+				}
+				if (ctx.strokeStyle != '') ctx.stroke();
+				
+				var markers = this.getMarkers();
+				if (markers != null) {
+					if (this.style('marker-start').isUrlDefinition()) {
+						var marker = this.style('marker-start').getDefinition();
+						marker.render(ctx, markers[0][0], markers[0][1]);
+					}
+					if (this.style('marker-mid').isUrlDefinition()) {
+						var marker = this.style('marker-mid').getDefinition();
+						for (var i=1;i<markers.length-1;i++) {
+							marker.render(ctx, markers[i][0], markers[i][1]);
+						}
+					}
+					if (this.style('marker-end').isUrlDefinition()) {
+						var marker = this.style('marker-end').getDefinition();
+						marker.render(ctx, markers[markers.length-1][0], markers[markers.length-1][1]);
+					}
+				}					
+			}
+			
+			this.getBoundingBox = function() {
+				return this.path();
+			}
+			
+			this.getMarkers = function() {
+				return null;
+			}
+		}
+		svg.Element.PathElementBase.prototype = new svg.Element.RenderedElementBase;
+		
+		// svg element
+		svg.Element.svg = function(node) {
+			this.base = svg.Element.RenderedElementBase;
+			this.base(node);
+			
+			this.baseClearContext = this.clearContext;
+			this.clearContext = function(ctx) {
+				this.baseClearContext(ctx);
+				svg.ViewPort.RemoveCurrent();
+			}
+			
+			this.baseSetContext = this.setContext;
+			this.setContext = function(ctx) {
+				// initial values
+				ctx.strokeStyle = 'rgba(0,0,0,0)';
+				ctx.lineCap = 'butt';
+				ctx.lineJoin = 'miter';
+				ctx.miterLimit = 4;			
+			
+				this.baseSetContext(ctx);
+				
+				// create new view port
+				if (!this.attribute('x').hasValue()) this.attribute('x', true).value = 0;
+				if (!this.attribute('y').hasValue()) this.attribute('y', true).value = 0;
+				ctx.translate(this.attribute('x').toPixels('x'), this.attribute('y').toPixels('y'));
+				
+				var width = svg.ViewPort.width();
+				var height = svg.ViewPort.height();
+				
+				if (!this.attribute('width').hasValue()) this.attribute('width', true).value = '100%';
+				if (!this.attribute('height').hasValue()) this.attribute('height', true).value = '100%';
+				if (typeof(this.root) == 'undefined') {
+					width = this.attribute('width').toPixels('x');
+					height = this.attribute('height').toPixels('y');
+					
+					var x = 0;
+					var y = 0;
+					if (this.attribute('refX').hasValue() && this.attribute('refY').hasValue()) {
+						x = -this.attribute('refX').toPixels('x');
+						y = -this.attribute('refY').toPixels('y');
+					}
+					
+					ctx.beginPath();
+					ctx.moveTo(x, y);
+					ctx.lineTo(width, y);
+					ctx.lineTo(width, height);
+					ctx.lineTo(x, height);
+					ctx.closePath();
+					ctx.clip();
+				}
+				svg.ViewPort.SetCurrent(width, height);	
+						
+				// viewbox
+				if (this.attribute('viewBox').hasValue()) {				
+					var viewBox = svg.ToNumberArray(this.attribute('viewBox').value);
+					var minX = viewBox[0];
+					var minY = viewBox[1];
+					width = viewBox[2];
+					height = viewBox[3];
+					
+					svg.AspectRatio(ctx,
+									this.attribute('preserveAspectRatio').value, 
+									svg.ViewPort.width(), 
+									width,
+									svg.ViewPort.height(),
+									height,
+									minX,
+									minY,
+									this.attribute('refX').value,
+									this.attribute('refY').value);
+										
+					svg.ViewPort.RemoveCurrent();	
+					svg.ViewPort.SetCurrent(viewBox[2], viewBox[3]);						
+				}				
+			}
+		}
+		svg.Element.svg.prototype = new svg.Element.RenderedElementBase;
+
+		// rect element
+		svg.Element.rect = function(node) {
+			this.base = svg.Element.PathElementBase;
+			this.base(node);
+			
+			this.path = function(ctx) {
+				var x = this.attribute('x').toPixels('x');
+				var y = this.attribute('y').toPixels('y');
+				var width = this.attribute('width').toPixels('x');
+				var height = this.attribute('height').toPixels('y');
+				var rx = this.attribute('rx').toPixels('x');
+				var ry = this.attribute('ry').toPixels('y');
+				if (this.attribute('rx').hasValue() && !this.attribute('ry').hasValue()) ry = rx;
+				if (this.attribute('ry').hasValue() && !this.attribute('rx').hasValue()) rx = ry;
+				rx = Math.min(rx, width / 2.0);
+				ry = Math.min(ry, height / 2.0);
+				if (ctx != null) {
+					ctx.beginPath();
+					ctx.moveTo(x + rx, y);
+					ctx.lineTo(x + width - rx, y);
+					ctx.quadraticCurveTo(x + width, y, x + width, y + ry)
+					ctx.lineTo(x + width, y + height - ry);
+					ctx.quadraticCurveTo(x + width, y + height, x + width - rx, y + height)
+					ctx.lineTo(x + rx, y + height);
+					ctx.quadraticCurveTo(x, y + height, x, y + height - ry)
+					ctx.lineTo(x, y + ry);
+					ctx.quadraticCurveTo(x, y, x + rx, y)
+					ctx.closePath();
+				}
+				
+				return new svg.BoundingBox(x, y, x + width, y + height);
+			}
+		}
+		svg.Element.rect.prototype = new svg.Element.PathElementBase;
+		
+		// circle element
+		svg.Element.circle = function(node) {
+			this.base = svg.Element.PathElementBase;
+			this.base(node);
+			
+			this.path = function(ctx) {
+				var cx = this.attribute('cx').toPixels('x');
+				var cy = this.attribute('cy').toPixels('y');
+				var r = this.attribute('r').toPixels();
+			
+				if (ctx != null) {
+					ctx.beginPath();
+					ctx.arc(cx, cy, r, 0, Math.PI * 2, true); 
+					ctx.closePath();
+				}
+				
+				return new svg.BoundingBox(cx - r, cy - r, cx + r, cy + r);
+			}
+		}
+		svg.Element.circle.prototype = new svg.Element.PathElementBase;	
+
+		// ellipse element
+		svg.Element.ellipse = function(node) {
+			this.base = svg.Element.PathElementBase;
+			this.base(node);
+			
+			this.path = function(ctx) {
+				var KAPPA = 4 * ((Math.sqrt(2) - 1) / 3);
+				var rx = this.attribute('rx').toPixels('x');
+				var ry = this.attribute('ry').toPixels('y');
+				var cx = this.attribute('cx').toPixels('x');
+				var cy = this.attribute('cy').toPixels('y');
+				
+				if (ctx != null) {
+					ctx.beginPath();
+					ctx.moveTo(cx, cy - ry);
+					ctx.bezierCurveTo(cx + (KAPPA * rx), cy - ry,  cx + rx, cy - (KAPPA * ry), cx + rx, cy);
+					ctx.bezierCurveTo(cx + rx, cy + (KAPPA * ry), cx + (KAPPA * rx), cy + ry, cx, cy + ry);
+					ctx.bezierCurveTo(cx - (KAPPA * rx), cy + ry, cx - rx, cy + (KAPPA * ry), cx - rx, cy);
+					ctx.bezierCurveTo(cx - rx, cy - (KAPPA * ry), cx - (KAPPA * rx), cy - ry, cx, cy - ry);
+					ctx.closePath();
+				}
+				
+				return new svg.BoundingBox(cx - rx, cy - ry, cx + rx, cy + ry);
+			}
+		}
+		svg.Element.ellipse.prototype = new svg.Element.PathElementBase;			
+		
+		// line element
+		svg.Element.line = function(node) {
+			this.base = svg.Element.PathElementBase;
+			this.base(node);
+			
+			this.getPoints = function() {
+				return [
+					new svg.Point(this.attribute('x1').toPixels('x'), this.attribute('y1').toPixels('y')),
+					new svg.Point(this.attribute('x2').toPixels('x'), this.attribute('y2').toPixels('y'))];
+			}
+								
+			this.path = function(ctx) {
+				var points = this.getPoints();
+				
+				if (ctx != null) {
+					ctx.beginPath();
+					ctx.moveTo(points[0].x, points[0].y);
+					ctx.lineTo(points[1].x, points[1].y);
+				}
+				
+				return new svg.BoundingBox(points[0].x, points[0].y, points[1].x, points[1].y);
+			}
+			
+			this.getMarkers = function() {
+				var points = this.getPoints();	
+				var a = points[0].angleTo(points[1]);
+				return [[points[0], a], [points[1], a]];
+			}
+		}
+		svg.Element.line.prototype = new svg.Element.PathElementBase;		
+				
+		// polyline element
+		svg.Element.polyline = function(node) {
+			this.base = svg.Element.PathElementBase;
+			this.base(node);
+			
+			this.points = svg.CreatePath(this.attribute('points').value);
+			this.path = function(ctx) {
+				var bb = new svg.BoundingBox(this.points[0].x, this.points[0].y);
+				if (ctx != null) {
+					ctx.beginPath();
+					ctx.moveTo(this.points[0].x, this.points[0].y);
+				}
+				for (var i=1; i<this.points.length; i++) {
+					bb.addPoint(this.points[i].x, this.points[i].y);
+					if (ctx != null) ctx.lineTo(this.points[i].x, this.points[i].y);
+				}
+				return bb;
+			}
+			
+			this.getMarkers = function() {
+				var markers = [];
+				for (var i=0; i<this.points.length - 1; i++) {
+					markers.push([this.points[i], this.points[i].angleTo(this.points[i+1])]);
+				}
+				markers.push([this.points[this.points.length-1], markers[markers.length-1][1]]);
+				return markers;
+			}			
+		}
+		svg.Element.polyline.prototype = new svg.Element.PathElementBase;				
+				
+		// polygon element
+		svg.Element.polygon = function(node) {
+			this.base = svg.Element.polyline;
+			this.base(node);
+			
+			this.basePath = this.path;
+			this.path = function(ctx) {
+				var bb = this.basePath(ctx);
+				if (ctx != null) {
+					ctx.lineTo(this.points[0].x, this.points[0].y);
+					ctx.closePath();
+				}
+				return bb;
+			}
+		}
+		svg.Element.polygon.prototype = new svg.Element.polyline;
+
+		// path element
+		svg.Element.path = function(node) {
+			this.base = svg.Element.PathElementBase;
+			this.base(node);
+					
+			var d = this.attribute('d').value;
+			// TODO: convert to real lexer based on http://www.w3.org/TR/SVG11/paths.html#PathDataBNF
+			d = d.replace(/,/gm,' '); // get rid of all commas
+			d = d.replace(/([MmZzLlHhVvCcSsQqTtAa])([MmZzLlHhVvCcSsQqTtAa])/gm,'$1 $2'); // separate commands from commands
+			d = d.replace(/([MmZzLlHhVvCcSsQqTtAa])([MmZzLlHhVvCcSsQqTtAa])/gm,'$1 $2'); // separate commands from commands
+			d = d.replace(/([MmZzLlHhVvCcSsQqTtAa])([^\s])/gm,'$1 $2'); // separate commands from points
+			d = d.replace(/([^\s])([MmZzLlHhVvCcSsQqTtAa])/gm,'$1 $2'); // separate commands from points
+			d = d.replace(/([0-9])([+\-])/gm,'$1 $2'); // separate digits when no comma
+			d = d.replace(/(\.[0-9]*)(\.)/gm,'$1 $2'); // separate digits when no comma
+			d = d.replace(/([Aa](\s+[0-9]+){3})\s+([01])\s*([01])/gm,'$1 $3 $4 '); // shorthand elliptical arc path syntax
+			d = svg.compressSpaces(d); // compress multiple spaces
+			d = svg.trim(d);
+			this.PathParser = new (function(d) {
+				this.tokens = d.split(' ');
+				
+				this.reset = function() {
+					this.i = -1;
+					this.command = '';
+					this.previousCommand = '';
+					this.start = new svg.Point(0, 0);
+					this.control = new svg.Point(0, 0);
+					this.current = new svg.Point(0, 0);
+					this.points = [];
+					this.angles = [];
+				}
+								
+				this.isEnd = function() {
+					return this.i >= this.tokens.length - 1;
+				}
+				
+				this.isCommandOrEnd = function() {
+					if (this.isEnd()) return true;
+					return this.tokens[this.i + 1].match(/^[A-Za-z]$/) != null;
+				}
+				
+				this.isRelativeCommand = function() {
+					switch(this.command)
+					{
+						case 'm':
+						case 'l':
+						case 'h':
+						case 'v':
+						case 'c':
+						case 's':
+						case 'q':
+						case 't':
+						case 'a':
+						case 'z':
+							return true;
+							break;
+					}
+					return false;
+				}
+							
+				this.getToken = function() {
+					this.i++;
+					return this.tokens[this.i];
+				}
+				
+				this.getScalar = function() {
+					return parseFloat(this.getToken());
+				}
+				
+				this.nextCommand = function() {
+					this.previousCommand = this.command;
+					this.command = this.getToken();
+				}				
+				
+				this.getPoint = function() {
+					var p = new svg.Point(this.getScalar(), this.getScalar());
+					return this.makeAbsolute(p);
+				}
+				
+				this.getAsControlPoint = function() {
+					var p = this.getPoint();
+					this.control = p;
+					return p;
+				}
+				
+				this.getAsCurrentPoint = function() {
+					var p = this.getPoint();
+					this.current = p;
+					return p;	
+				}
+				
+				this.getReflectedControlPoint = function() {
+					if (this.previousCommand.toLowerCase() != 'c' && 
+					    this.previousCommand.toLowerCase() != 's' &&
+						this.previousCommand.toLowerCase() != 'q' && 
+						this.previousCommand.toLowerCase() != 't' ){
+						return this.current;
+					}
+					
+					// reflect point
+					var p = new svg.Point(2 * this.current.x - this.control.x, 2 * this.current.y - this.control.y);					
+					return p;
+				}
+				
+				this.makeAbsolute = function(p) {
+					if (this.isRelativeCommand()) {
+						p.x += this.current.x;
+						p.y += this.current.y;
+					}
+					return p;
+				}
+				
+				this.addMarker = function(p, from, priorTo) {
+					// if the last angle isn't filled in because we didn't have this point yet ...
+					if (priorTo != null && this.angles.length > 0 && this.angles[this.angles.length-1] == null) {
+						this.angles[this.angles.length-1] = this.points[this.points.length-1].angleTo(priorTo);
+					}
+					this.addMarkerAngle(p, from == null ? null : from.angleTo(p));
+				}
+				
+				this.addMarkerAngle = function(p, a) {
+					this.points.push(p);
+					this.angles.push(a);
+				}				
+				
+				this.getMarkerPoints = function() { return this.points; }
+				this.getMarkerAngles = function() {
+					for (var i=0; i<this.angles.length; i++) {
+						if (this.angles[i] == null) {
+							for (var j=i+1; j<this.angles.length; j++) {
+								if (this.angles[j] != null) {
+									this.angles[i] = this.angles[j];
+									break;
+								}
+							}
+						}
+					}
+					return this.angles;
+				}
+			})(d);
+
+			this.path = function(ctx) {
+				var pp = this.PathParser;
+				pp.reset();
+
+				var bb = new svg.BoundingBox();
+				if (ctx != null) ctx.beginPath();
+				while (!pp.isEnd()) {
+					pp.nextCommand();
+					switch (pp.command) {
+					case 'M':
+					case 'm':
+						var p = pp.getAsCurrentPoint();
+						pp.addMarker(p);
+						bb.addPoint(p.x, p.y);
+						if (ctx != null) ctx.moveTo(p.x, p.y);
+						pp.start = pp.current;
+						while (!pp.isCommandOrEnd()) {
+							var p = pp.getAsCurrentPoint();
+							pp.addMarker(p, pp.start);
+							bb.addPoint(p.x, p.y);
+							if (ctx != null) ctx.lineTo(p.x, p.y);
+						}
+						break;
+					case 'L':
+					case 'l':
+						while (!pp.isCommandOrEnd()) {
+							var c = pp.current;
+							var p = pp.getAsCurrentPoint();
+							pp.addMarker(p, c);
+							bb.addPoint(p.x, p.y);
+							if (ctx != null) ctx.lineTo(p.x, p.y);
+						}
+						break;
+					case 'H':
+					case 'h':
+						while (!pp.isCommandOrEnd()) {
+							var newP = new svg.Point((pp.isRelativeCommand() ? pp.current.x : 0) + pp.getScalar(), pp.current.y);
+							pp.addMarker(newP, pp.current);
+							pp.current = newP;
+							bb.addPoint(pp.current.x, pp.current.y);
+							if (ctx != null) ctx.lineTo(pp.current.x, pp.current.y);
+						}
+						break;
+					case 'V':
+					case 'v':
+						while (!pp.isCommandOrEnd()) {
+							var newP = new svg.Point(pp.current.x, (pp.isRelativeCommand() ? pp.current.y : 0) + pp.getScalar());
+							pp.addMarker(newP, pp.current);
+							pp.current = newP;
+							bb.addPoint(pp.current.x, pp.current.y);
+							if (ctx != null) ctx.lineTo(pp.current.x, pp.current.y);
+						}
+						break;
+					case 'C':
+					case 'c':
+						while (!pp.isCommandOrEnd()) {
+							var curr = pp.current;
+							var p1 = pp.getPoint();
+							var cntrl = pp.getAsControlPoint();
+							var cp = pp.getAsCurrentPoint();
+							pp.addMarker(cp, cntrl, p1);
+							bb.addBezierCurve(curr.x, curr.y, p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y);
+							if (ctx != null) ctx.bezierCurveTo(p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y);
+						}
+						break;
+					case 'S':
+					case 's':
+						while (!pp.isCommandOrEnd()) {
+							var curr = pp.current;
+							var p1 = pp.getReflectedControlPoint();
+							var cntrl = pp.getAsControlPoint();
+							var cp = pp.getAsCurrentPoint();
+							pp.addMarker(cp, cntrl, p1);
+							bb.addBezierCurve(curr.x, curr.y, p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y);
+							if (ctx != null) ctx.bezierCurveTo(p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y);
+						}
+						break;
+					case 'Q':
+					case 'q':
+						while (!pp.isCommandOrEnd()) {
+							var curr = pp.current;
+							var cntrl = pp.getAsControlPoint();
+							var cp = pp.getAsCurrentPoint();
+							pp.addMarker(cp, cntrl, cntrl);
+							bb.addQuadraticCurve(curr.x, curr.y, cntrl.x, cntrl.y, cp.x, cp.y);
+							if (ctx != null) ctx.quadraticCurveTo(cntrl.x, cntrl.y, cp.x, cp.y);
+						}
+						break;
+					case 'T':
+					case 't':
+						while (!pp.isCommandOrEnd()) {
+							var curr = pp.current;
+							var cntrl = pp.getReflectedControlPoint();
+							pp.control = cntrl;
+							var cp = pp.getAsCurrentPoint();
+							pp.addMarker(cp, cntrl, cntrl);
+							bb.addQuadraticCurve(curr.x, curr.y, cntrl.x, cntrl.y, cp.x, cp.y);
+							if (ctx != null) ctx.quadraticCurveTo(cntrl.x, cntrl.y, cp.x, cp.y);
+						}
+						break;
+					case 'A':
+					case 'a':
+						while (!pp.isCommandOrEnd()) {
+						    var curr = pp.current;
+							var rx = pp.getScalar();
+							var ry = pp.getScalar();
+							var xAxisRotation = pp.getScalar() * (Math.PI / 180.0);
+							var largeArcFlag = pp.getScalar();
+							var sweepFlag = pp.getScalar();
+							var cp = pp.getAsCurrentPoint();
+
+							// Conversion from endpoint to center parameterization
+							// http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
+							// x1', y1'
+							var currp = new svg.Point(
+								Math.cos(xAxisRotation) * (curr.x - cp.x) / 2.0 + Math.sin(xAxisRotation) * (curr.y - cp.y) / 2.0,
+								-Math.sin(xAxisRotation) * (curr.x - cp.x) / 2.0 + Math.cos(xAxisRotation) * (curr.y - cp.y) / 2.0
+							);
+							// adjust radii
+							var l = Math.pow(currp.x,2)/Math.pow(rx,2)+Math.pow(currp.y,2)/Math.pow(ry,2);
+							if (l > 1) {
+								rx *= Math.sqrt(l);
+								ry *= Math.sqrt(l);
+							}
+							// cx', cy'
+							var s = (largeArcFlag == sweepFlag ? -1 : 1) * Math.sqrt(
+								((Math.pow(rx,2)*Math.pow(ry,2))-(Math.pow(rx,2)*Math.pow(currp.y,2))-(Math.pow(ry,2)*Math.pow(currp.x,2))) /
+								(Math.pow(rx,2)*Math.pow(currp.y,2)+Math.pow(ry,2)*Math.pow(currp.x,2))
+							);
+							if (isNaN(s)) s = 0;
+							var cpp = new svg.Point(s * rx * currp.y / ry, s * -ry * currp.x / rx);
+							// cx, cy
+							var centp = new svg.Point(
+								(curr.x + cp.x) / 2.0 + Math.cos(xAxisRotation) * cpp.x - Math.sin(xAxisRotation) * cpp.y,
+								(curr.y + cp.y) / 2.0 + Math.sin(xAxisRotation) * cpp.x + Math.cos(xAxisRotation) * cpp.y
+							);
+							// vector magnitude
+							var m = function(v) { return Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2)); }
+							// ratio between two vectors
+							var r = function(u, v) { return (u[0]*v[0]+u[1]*v[1]) / (m(u)*m(v)) }
+							// angle between two vectors
+							var a = function(u, v) { return (u[0]*v[1] < u[1]*v[0] ? -1 : 1) * Math.acos(r(u,v)); }
+							// initial angle
+							var a1 = a([1,0], [(currp.x-cpp.x)/rx,(currp.y-cpp.y)/ry]);
+							// angle delta
+							var u = [(currp.x-cpp.x)/rx,(currp.y-cpp.y)/ry];
+							var v = [(-currp.x-cpp.x)/rx,(-currp.y-cpp.y)/ry];
+							var ad = a(u, v);
+							if (r(u,v) <= -1) ad = Math.PI;
+							if (r(u,v) >= 1) ad = 0;
+
+							// for markers
+							var dir = 1 - sweepFlag ? 1.0 : -1.0;
+							var ah = a1 + dir * (ad / 2.0);
+							var halfWay = new svg.Point(
+								centp.x + rx * Math.cos(ah),
+								centp.y + ry * Math.sin(ah)
+							);
+							pp.addMarkerAngle(halfWay, ah - dir * Math.PI / 2);
+							pp.addMarkerAngle(cp, ah - dir * Math.PI);
+
+							bb.addPoint(cp.x, cp.y); // TODO: this is too naive, make it better
+							if (ctx != null) {
+								var r = rx > ry ? rx : ry;
+								var sx = rx > ry ? 1 : rx / ry;
+								var sy = rx > ry ? ry / rx : 1;
+
+								ctx.translate(centp.x, centp.y);
+								ctx.rotate(xAxisRotation);
+								ctx.scale(sx, sy);
+								ctx.arc(0, 0, r, a1, a1 + ad, 1 - sweepFlag);
+								ctx.scale(1/sx, 1/sy);
+								ctx.rotate(-xAxisRotation);
+								ctx.translate(-centp.x, -centp.y);
+							}
+						}
+						break;
+					case 'Z':
+					case 'z':
+						if (ctx != null) ctx.closePath();
+						pp.current = pp.start;
+					}
+				}
+
+				return bb;
+			}
+
+			this.getMarkers = function() {
+				var points = this.PathParser.getMarkerPoints();
+				var angles = this.PathParser.getMarkerAngles();
+				
+				var markers = [];
+				for (var i=0; i<points.length; i++) {
+					markers.push([points[i], angles[i]]);
+				}
+				return markers;
+			}
+		}
+		svg.Element.path.prototype = new svg.Element.PathElementBase;
+		
+		// pattern element
+		svg.Element.pattern = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);
+			
+			this.createPattern = function(ctx, element) {
+				var width = this.attribute('width').toPixels('x', true);
+				var height = this.attribute('height').toPixels('y', true);
+			
+				// render me using a temporary svg element
+				var tempSvg = new svg.Element.svg();
+				tempSvg.attributes['viewBox'] = new svg.Property('viewBox', this.attribute('viewBox').value);
+				tempSvg.attributes['width'] = new svg.Property('width', width + 'px');
+				tempSvg.attributes['height'] = new svg.Property('height', height + 'px');
+				tempSvg.attributes['transform'] = new svg.Property('transform', this.attribute('patternTransform').value);
+				tempSvg.children = this.children;
+				
+				var c = document.createElement('canvas');
+				c.width = width;
+				c.height = height;
+				var cctx = c.getContext('2d');
+				if (this.attribute('x').hasValue() && this.attribute('y').hasValue()) {
+					cctx.translate(this.attribute('x').toPixels('x', true), this.attribute('y').toPixels('y', true));
+				}
+				// render 3x3 grid so when we transform there's no white space on edges
+				for (var x=-1; x<=1; x++) {
+					for (var y=-1; y<=1; y++) {
+						cctx.save();
+						cctx.translate(x * c.width, y * c.height);
+						tempSvg.render(cctx);
+						cctx.restore();
+					}
+				}
+				var pattern = ctx.createPattern(c, 'repeat');
+				return pattern;
+			}
+		}
+		svg.Element.pattern.prototype = new svg.Element.ElementBase;
+		
+		// marker element
+		svg.Element.marker = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);
+			
+			this.baseRender = this.render;
+			this.render = function(ctx, point, angle) {
+				ctx.translate(point.x, point.y);
+				if (this.attribute('orient').valueOrDefault('auto') == 'auto') ctx.rotate(angle);
+				if (this.attribute('markerUnits').valueOrDefault('strokeWidth') == 'strokeWidth') ctx.scale(ctx.lineWidth, ctx.lineWidth);
+				ctx.save();
+							
+				// render me using a temporary svg element
+				var tempSvg = new svg.Element.svg();
+				tempSvg.attributes['viewBox'] = new svg.Property('viewBox', this.attribute('viewBox').value);
+				tempSvg.attributes['refX'] = new svg.Property('refX', this.attribute('refX').value);
+				tempSvg.attributes['refY'] = new svg.Property('refY', this.attribute('refY').value);
+				tempSvg.attributes['width'] = new svg.Property('width', this.attribute('markerWidth').value);
+				tempSvg.attributes['height'] = new svg.Property('height', this.attribute('markerHeight').value);
+				tempSvg.attributes['fill'] = new svg.Property('fill', this.attribute('fill').valueOrDefault('black'));
+				tempSvg.attributes['stroke'] = new svg.Property('stroke', this.attribute('stroke').valueOrDefault('none'));
+				tempSvg.children = this.children;
+				tempSvg.render(ctx);
+				
+				ctx.restore();
+				if (this.attribute('markerUnits').valueOrDefault('strokeWidth') == 'strokeWidth') ctx.scale(1/ctx.lineWidth, 1/ctx.lineWidth);
+				if (this.attribute('orient').valueOrDefault('auto') == 'auto') ctx.rotate(-angle);
+				ctx.translate(-point.x, -point.y);
+			}
+		}
+		svg.Element.marker.prototype = new svg.Element.ElementBase;
+		
+		// definitions element
+		svg.Element.defs = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);	
+			
+			this.render = function(ctx) {
+				// NOOP
+			}
+		}
+		svg.Element.defs.prototype = new svg.Element.ElementBase;
+		
+		// base for gradients
+		svg.Element.GradientBase = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);
+			
+			this.gradientUnits = this.attribute('gradientUnits').valueOrDefault('objectBoundingBox');
+			
+			this.stops = [];			
+			for (var i=0; i<this.children.length; i++) {
+				var child = this.children[i];
+				if (child.type == 'stop') this.stops.push(child);
+			}	
+			
+			this.getGradient = function() {
+				// OVERRIDE ME!
+			}			
+
+			this.createGradient = function(ctx, element, parentOpacityProp) {
+				var stopsContainer = this;
+				if (this.getHrefAttribute().hasValue()) {
+					stopsContainer = this.getHrefAttribute().getDefinition();
+				}
+				
+				var addParentOpacity = function (color) {
+					if (parentOpacityProp.hasValue()) {
+						var p = new svg.Property('color', color);
+						return p.addOpacity(parentOpacityProp.value).value;
+					}
+					return color;
+				};
+			
+				var g = this.getGradient(ctx, element);
+				if (g == null) return addParentOpacity(stopsContainer.stops[stopsContainer.stops.length - 1].color);
+				for (var i=0; i<stopsContainer.stops.length; i++) {
+					g.addColorStop(stopsContainer.stops[i].offset, addParentOpacity(stopsContainer.stops[i].color));
+				}
+				
+				if (this.attribute('gradientTransform').hasValue()) {
+					// render as transformed pattern on temporary canvas
+					var rootView = svg.ViewPort.viewPorts[0];
+					
+					var rect = new svg.Element.rect();
+					rect.attributes['x'] = new svg.Property('x', -svg.MAX_VIRTUAL_PIXELS/3.0);
+					rect.attributes['y'] = new svg.Property('y', -svg.MAX_VIRTUAL_PIXELS/3.0);
+					rect.attributes['width'] = new svg.Property('width', svg.MAX_VIRTUAL_PIXELS);
+					rect.attributes['height'] = new svg.Property('height', svg.MAX_VIRTUAL_PIXELS);
+					
+					var group = new svg.Element.g();
+					group.attributes['transform'] = new svg.Property('transform', this.attribute('gradientTransform').value);
+					group.children = [ rect ];
+					
+					var tempSvg = new svg.Element.svg();
+					tempSvg.attributes['x'] = new svg.Property('x', 0);
+					tempSvg.attributes['y'] = new svg.Property('y', 0);
+					tempSvg.attributes['width'] = new svg.Property('width', rootView.width);
+					tempSvg.attributes['height'] = new svg.Property('height', rootView.height);
+					tempSvg.children = [ group ];
+					
+					var c = document.createElement('canvas');
+					c.width = rootView.width;
+					c.height = rootView.height;
+					var tempCtx = c.getContext('2d');
+					tempCtx.fillStyle = g;
+					tempSvg.render(tempCtx);		
+					return tempCtx.createPattern(c, 'no-repeat');
+				}
+				
+				return g;				
+			}
+		}
+		svg.Element.GradientBase.prototype = new svg.Element.ElementBase;
+		
+		// linear gradient element
+		svg.Element.linearGradient = function(node) {
+			this.base = svg.Element.GradientBase;
+			this.base(node);
+			
+			this.getGradient = function(ctx, element) {
+				var bb = element.getBoundingBox();
+				
+				if (!this.attribute('x1').hasValue()
+				 && !this.attribute('y1').hasValue()
+				 && !this.attribute('x2').hasValue()
+				 && !this.attribute('y2').hasValue()) {
+					this.attribute('x1', true).value = 0;
+					this.attribute('y1', true).value = 0;
+					this.attribute('x2', true).value = 1;
+					this.attribute('y2', true).value = 0;
+				 }
+				
+				var x1 = (this.gradientUnits == 'objectBoundingBox' 
+					? bb.x() + bb.width() * this.attribute('x1').numValue() 
+					: this.attribute('x1').toPixels('x'));
+				var y1 = (this.gradientUnits == 'objectBoundingBox' 
+					? bb.y() + bb.height() * this.attribute('y1').numValue()
+					: this.attribute('y1').toPixels('y'));
+				var x2 = (this.gradientUnits == 'objectBoundingBox' 
+					? bb.x() + bb.width() * this.attribute('x2').numValue()
+					: this.attribute('x2').toPixels('x'));
+				var y2 = (this.gradientUnits == 'objectBoundingBox' 
+					? bb.y() + bb.height() * this.attribute('y2').numValue()
+					: this.attribute('y2').toPixels('y'));
+
+				if (x1 == x2 && y1 == y2) return null;
+				return ctx.createLinearGradient(x1, y1, x2, y2);
+			}
+		}
+		svg.Element.linearGradient.prototype = new svg.Element.GradientBase;
+		
+		// radial gradient element
+		svg.Element.radialGradient = function(node) {
+			this.base = svg.Element.GradientBase;
+			this.base(node);
+			
+			this.getGradient = function(ctx, element) {
+				var bb = element.getBoundingBox();
+				
+				if (!this.attribute('cx').hasValue()) this.attribute('cx', true).value = '50%';
+				if (!this.attribute('cy').hasValue()) this.attribute('cy', true).value = '50%';
+				if (!this.attribute('r').hasValue()) this.attribute('r', true).value = '50%';
+				
+				var cx = (this.gradientUnits == 'objectBoundingBox' 
+					? bb.x() + bb.width() * this.attribute('cx').numValue() 
+					: this.attribute('cx').toPixels('x'));
+				var cy = (this.gradientUnits == 'objectBoundingBox' 
+					? bb.y() + bb.height() * this.attribute('cy').numValue() 
+					: this.attribute('cy').toPixels('y'));
+				
+				var fx = cx;
+				var fy = cy;
+				if (this.attribute('fx').hasValue()) {
+					fx = (this.gradientUnits == 'objectBoundingBox' 
+					? bb.x() + bb.width() * this.attribute('fx').numValue() 
+					: this.attribute('fx').toPixels('x'));
+				}
+				if (this.attribute('fy').hasValue()) {
+					fy = (this.gradientUnits == 'objectBoundingBox' 
+					? bb.y() + bb.height() * this.attribute('fy').numValue() 
+					: this.attribute('fy').toPixels('y'));
+				}
+				
+				var r = (this.gradientUnits == 'objectBoundingBox' 
+					? (bb.width() + bb.height()) / 2.0 * this.attribute('r').numValue()
+					: this.attribute('r').toPixels());
+				
+				return ctx.createRadialGradient(fx, fy, 0, cx, cy, r);
+			}
+		}
+		svg.Element.radialGradient.prototype = new svg.Element.GradientBase;
+		
+		// gradient stop element
+		svg.Element.stop = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);
+			
+			this.offset = this.attribute('offset').numValue();
+			if (this.offset < 0) this.offset = 0;
+			if (this.offset > 1) this.offset = 1;
+			
+			var stopColor = this.style('stop-color');
+			if (this.style('stop-opacity').hasValue()) stopColor = stopColor.addOpacity(this.style('stop-opacity').value);
+			this.color = stopColor.value;
+		}
+		svg.Element.stop.prototype = new svg.Element.ElementBase;
+		
+		// animation base element
+		svg.Element.AnimateBase = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);
+			
+			svg.Animations.push(this);
+			
+			this.duration = 0.0;
+			this.begin = this.attribute('begin').toMilliseconds();
+			this.maxDuration = this.begin + this.attribute('dur').toMilliseconds();
+			
+			this.getProperty = function() {
+				var attributeType = this.attribute('attributeType').value;
+				var attributeName = this.attribute('attributeName').value;
+				
+				if (attributeType == 'CSS') {
+					return this.parent.style(attributeName, true);
+				}
+				return this.parent.attribute(attributeName, true);			
+			};
+			
+			this.initialValue = null;
+			this.initialUnits = '';
+			this.removed = false;			
+
+			this.calcValue = function() {
+				// OVERRIDE ME!
+				return '';
+			}
+					
+			this.update = function(delta) {	
+				// set initial value
+				if (this.initialValue == null) {
+					this.initialValue = this.getProperty().value;
+					this.initialUnits = this.getProperty().getUnits();
+				}
+			
+				// if we're past the end time
+				if (this.duration > this.maxDuration) {
+					// loop for indefinitely repeating animations
+					if (this.attribute('repeatCount').value == 'indefinite'
+					 || this.attribute('repeatDur').value == 'indefinite') {
+						this.duration = 0.0
+					}
+					else if (this.attribute('fill').valueOrDefault('remove') == 'remove' && !this.removed) {
+						this.removed = true;
+						this.getProperty().value = this.initialValue;
+						return true;
+					}
+					else {
+						return false; // no updates made
+					}
+				}			
+				this.duration = this.duration + delta;
+			
+				// if we're past the begin time
+				var updated = false;
+				if (this.begin < this.duration) {
+					var newValue = this.calcValue(); // tween
+					
+					if (this.attribute('type').hasValue()) {
+						// for transform, etc.
+						var type = this.attribute('type').value;
+						newValue = type + '(' + newValue + ')';
+					}
+					
+					this.getProperty().value = newValue;
+					updated = true;
+				}
+				
+				return updated;
+			}
+			
+			this.from = this.attribute('from');
+			this.to = this.attribute('to');
+			this.values = this.attribute('values');
+			if (this.values.hasValue()) this.values.value = this.values.value.split(';');
+			
+			// fraction of duration we've covered
+			this.progress = function() {
+				var ret = { progress: (this.duration - this.begin) / (this.maxDuration - this.begin) };
+				if (this.values.hasValue()) {
+					var p = ret.progress * (this.values.value.length - 1);
+					var lb = Math.floor(p), ub = Math.ceil(p);
+					ret.from = new svg.Property('from', parseFloat(this.values.value[lb]));
+					ret.to = new svg.Property('to', parseFloat(this.values.value[ub]));
+					ret.progress = (p - lb) / (ub - lb);
+				}
+				else {
+					ret.from = this.from;
+					ret.to = this.to;
+				}
+				return ret;
+			}			
+		}
+		svg.Element.AnimateBase.prototype = new svg.Element.ElementBase;
+		
+		// animate element
+		svg.Element.animate = function(node) {
+			this.base = svg.Element.AnimateBase;
+			this.base(node);
+			
+			this.calcValue = function() {
+				var p = this.progress();
+				
+				// tween value linearly
+				var newValue = p.from.numValue() + (p.to.numValue() - p.from.numValue()) * p.progress; 
+				return newValue + this.initialUnits;
+			};
+		}
+		svg.Element.animate.prototype = new svg.Element.AnimateBase;
+			
+		// animate color element
+		svg.Element.animateColor = function(node) {
+			this.base = svg.Element.AnimateBase;
+			this.base(node);
+
+			this.calcValue = function() {
+				var p = this.progress();
+				var from = new RGBColor(p.from.value);
+				var to = new RGBColor(p.to.value);
+				
+				if (from.ok && to.ok) {
+					// tween color linearly
+					var r = from.r + (to.r - from.r) * p.progress;
+					var g = from.g + (to.g - from.g) * p.progress;
+					var b = from.b + (to.b - from.b) * p.progress;
+					return 'rgb('+parseInt(r,10)+','+parseInt(g,10)+','+parseInt(b,10)+')';
+				}
+				return this.attribute('from').value;
+			};
+		}
+		svg.Element.animateColor.prototype = new svg.Element.AnimateBase;
+		
+		// animate transform element
+		svg.Element.animateTransform = function(node) {
+			this.base = svg.Element.AnimateBase;
+			this.base(node);
+			
+			this.calcValue = function() {
+				var p = this.progress();
+				
+				// tween value linearly
+				var from = svg.ToNumberArray(p.from.value);
+				var to = svg.ToNumberArray(p.to.value);
+				var newValue = '';
+				for (var i=0; i<from.length; i++) {
+					newValue += from[i] + (to[i] - from[i]) * p.progress + ' ';
+				}
+				return newValue;
+			};
+		}
+		svg.Element.animateTransform.prototype = new svg.Element.animate;
+		
+		// font element
+		svg.Element.font = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);
+
+			this.horizAdvX = this.attribute('horiz-adv-x').numValue();			
+			
+			this.isRTL = false;
+			this.isArabic = false;
+			this.fontFace = null;
+			this.missingGlyph = null;
+			this.glyphs = [];			
+			for (var i=0; i<this.children.length; i++) {
+				var child = this.children[i];
+				if (child.type == 'font-face') {
+					this.fontFace = child;
+					if (child.style('font-family').hasValue()) {
+						svg.Definitions[child.style('font-family').value] = this;
+					}
+				}
+				else if (child.type == 'missing-glyph') this.missingGlyph = child;
+				else if (child.type == 'glyph') {
+					if (child.arabicForm != '') {
+						this.isRTL = true;
+						this.isArabic = true;
+						if (typeof(this.glyphs[child.unicode]) == 'undefined') this.glyphs[child.unicode] = [];
+						this.glyphs[child.unicode][child.arabicForm] = child;
+					}
+					else {
+						this.glyphs[child.unicode] = child;
+					}
+				}
+			}	
+		}
+		svg.Element.font.prototype = new svg.Element.ElementBase;
+		
+		// font-face element
+		svg.Element.fontface = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);	
+			
+			this.ascent = this.attribute('ascent').value;
+			this.descent = this.attribute('descent').value;
+			this.unitsPerEm = this.attribute('units-per-em').numValue();				
+		}
+		svg.Element.fontface.prototype = new svg.Element.ElementBase;
+		
+		// missing-glyph element
+		svg.Element.missingglyph = function(node) {
+			this.base = svg.Element.path;
+			this.base(node);	
+			
+			this.horizAdvX = 0;
+		}
+		svg.Element.missingglyph.prototype = new svg.Element.path;
+		
+		// glyph element
+		svg.Element.glyph = function(node) {
+			this.base = svg.Element.path;
+			this.base(node);	
+			
+			this.horizAdvX = this.attribute('horiz-adv-x').numValue();
+			this.unicode = this.attribute('unicode').value;
+			this.arabicForm = this.attribute('arabic-form').value;
+		}
+		svg.Element.glyph.prototype = new svg.Element.path;
+		
+		// text element
+		svg.Element.text = function(node) {
+			this.captureTextNodes = true;
+			this.base = svg.Element.RenderedElementBase;
+			this.base(node);
+			
+			this.baseSetContext = this.setContext;
+			this.setContext = function(ctx) {
+				this.baseSetContext(ctx);
+				if (this.style('dominant-baseline').hasValue()) ctx.textBaseline = this.style('dominant-baseline').value;
+				if (this.style('alignment-baseline').hasValue()) ctx.textBaseline = this.style('alignment-baseline').value;
+			}
+			
+			this.getBoundingBox = function () {
+				// TODO: implement
+				return new svg.BoundingBox(this.attribute('x').toPixels('x'), this.attribute('y').toPixels('y'), 0, 0);
+			}
+			
+			this.renderChildren = function(ctx) {
+				this.x = this.attribute('x').toPixels('x');
+				this.y = this.attribute('y').toPixels('y');
+				this.x += this.getAnchorDelta(ctx, this, 0);
+				for (var i=0; i<this.children.length; i++) {
+					this.renderChild(ctx, this, i);
+				}
+			}
+			
+			this.getAnchorDelta = function (ctx, parent, startI) {
+				var textAnchor = this.style('text-anchor').valueOrDefault('start');
+				if (textAnchor != 'start') {
+					var width = 0;
+					for (var i=startI; i<parent.children.length; i++) {
+						var child = parent.children[i];
+						if (i > startI && child.attribute('x').hasValue()) break; // new group
+						width += child.measureTextRecursive(ctx);
+					}
+					return -1 * (textAnchor == 'end' ? width : width / 2.0);
+				}
+				return 0;
+			}
+			
+			this.renderChild = function(ctx, parent, i) {
+				var child = parent.children[i];
+				if (child.attribute('x').hasValue()) {
+					child.x = child.attribute('x').toPixels('x') + this.getAnchorDelta(ctx, parent, i);
+				}
+				else {
+					if (this.attribute('dx').hasValue()) this.x += this.attribute('dx').toPixels('x');
+					if (child.attribute('dx').hasValue()) this.x += child.attribute('dx').toPixels('x');
+					child.x = this.x;
+				}
+				this.x = child.x + child.measureText(ctx);
+				
+				if (child.attribute('y').hasValue()) {
+					child.y = child.attribute('y').toPixels('y');
+				}
+				else {
+					if (this.attribute('dy').hasValue()) this.y += this.attribute('dy').toPixels('y');
+					if (child.attribute('dy').hasValue()) this.y += child.attribute('dy').toPixels('y');
+					child.y = this.y;
+				}
+				this.y = child.y;
+				
+				child.render(ctx);
+				
+				for (var i=0; i<child.children.length; i++) {
+					this.renderChild(ctx, child, i);
+				}
+			}
+		}
+		svg.Element.text.prototype = new svg.Element.RenderedElementBase;
+		
+		// text base
+		svg.Element.TextElementBase = function(node) {
+			this.base = svg.Element.RenderedElementBase;
+			this.base(node);
+			
+			this.getGlyph = function(font, text, i) {
+				var c = text[i];
+				var glyph = null;
+				if (font.isArabic) {
+					var arabicForm = 'isolated';
+					if ((i==0 || text[i-1]==' ') && i<text.length-2 && text[i+1]!=' ') arabicForm = 'terminal'; 
+					if (i>0 && text[i-1]!=' ' && i<text.length-2 && text[i+1]!=' ') arabicForm = 'medial';
+					if (i>0 && text[i-1]!=' ' && (i == text.length-1 || text[i+1]==' ')) arabicForm = 'initial';
+					if (typeof(font.glyphs[c]) != 'undefined') {
+						glyph = font.glyphs[c][arabicForm];
+						if (glyph == null && font.glyphs[c].type == 'glyph') glyph = font.glyphs[c];
+					}
+				}
+				else {
+					glyph = font.glyphs[c];
+				}
+				if (glyph == null) glyph = font.missingGlyph;
+				return glyph;
+			}
+			
+			this.renderChildren = function(ctx) {
+				var customFont = this.parent.style('font-family').getDefinition();
+				if (customFont != null) {
+					var fontSize = this.parent.style('font-size').numValueOrDefault(svg.Font.Parse(svg.ctx.font).fontSize);
+					var fontStyle = this.parent.style('font-style').valueOrDefault(svg.Font.Parse(svg.ctx.font).fontStyle);
+					var text = this.getText();
+					if (customFont.isRTL) text = text.split("").reverse().join("");
+					
+					var dx = svg.ToNumberArray(this.parent.attribute('dx').value);
+					for (var i=0; i<text.length; i++) {
+						var glyph = this.getGlyph(customFont, text, i);
+						var scale = fontSize / customFont.fontFace.unitsPerEm;
+						ctx.translate(this.x, this.y);
+						ctx.scale(scale, -scale);
+						var lw = ctx.lineWidth;
+						ctx.lineWidth = ctx.lineWidth * customFont.fontFace.unitsPerEm / fontSize;
+						if (fontStyle == 'italic') ctx.transform(1, 0, .4, 1, 0, 0);
+						glyph.render(ctx);
+						if (fontStyle == 'italic') ctx.transform(1, 0, -.4, 1, 0, 0);
+						ctx.lineWidth = lw;
+						ctx.scale(1/scale, -1/scale);
+						ctx.translate(-this.x, -this.y);	
+						
+						this.x += fontSize * (glyph.horizAdvX || customFont.horizAdvX) / customFont.fontFace.unitsPerEm;
+						if (typeof(dx[i]) != 'undefined' && !isNaN(dx[i])) {
+							this.x += dx[i];
+						}
+					}
+					return;
+				}
+			
+				if (ctx.fillStyle != '') ctx.fillText(svg.compressSpaces(this.getText()), this.x, this.y);
+				if (ctx.strokeStyle != '') ctx.strokeText(svg.compressSpaces(this.getText()), this.x, this.y);
+			}
+			
+			this.getText = function() {
+				// OVERRIDE ME
+			}
+			
+			this.measureTextRecursive = function(ctx) {
+				var width = this.measureText(ctx);
+				for (var i=0; i<this.children.length; i++) {
+					width += this.children[i].measureTextRecursive(ctx);
+				}
+				return width;
+			}
+			
+			this.measureText = function(ctx) {
+				var customFont = this.parent.style('font-family').getDefinition();
+				if (customFont != null) {
+					var fontSize = this.parent.style('font-size').numValueOrDefault(svg.Font.Parse(svg.ctx.font).fontSize);
+					var measure = 0;
+					var text = this.getText();
+					if (customFont.isRTL) text = text.split("").reverse().join("");
+					var dx = svg.ToNumberArray(this.parent.attribute('dx').value);
+					for (var i=0; i<text.length; i++) {
+						var glyph = this.getGlyph(customFont, text, i);
+						measure += (glyph.horizAdvX || customFont.horizAdvX) * fontSize / customFont.fontFace.unitsPerEm;
+						if (typeof(dx[i]) != 'undefined' && !isNaN(dx[i])) {
+							measure += dx[i];
+						}
+					}
+					return measure;
+				}
+			
+				var textToMeasure = svg.compressSpaces(this.getText());
+				if (!ctx.measureText) return textToMeasure.length * 10;
+				
+				ctx.save();
+				this.setContext(ctx);
+				var width = ctx.measureText(textToMeasure).width;
+				ctx.restore();
+				return width;
+			}
+		}
+		svg.Element.TextElementBase.prototype = new svg.Element.RenderedElementBase;
+		
+		// tspan 
+		svg.Element.tspan = function(node) {
+			this.captureTextNodes = true;
+			this.base = svg.Element.TextElementBase;
+			this.base(node);
+			
+			this.text = node.nodeValue || node.text || '';
+			this.getText = function() {
+				return this.text;
+			}
+		}
+		svg.Element.tspan.prototype = new svg.Element.TextElementBase;
+		
+		// tref
+		svg.Element.tref = function(node) {
+			this.base = svg.Element.TextElementBase;
+			this.base(node);
+			
+			this.getText = function() {
+				var element = this.getHrefAttribute().getDefinition();
+				if (element != null) return element.children[0].getText();
+			}
+		}
+		svg.Element.tref.prototype = new svg.Element.TextElementBase;		
+		
+		// a element
+		svg.Element.a = function(node) {
+			this.base = svg.Element.TextElementBase;
+			this.base(node);
+			
+			this.hasText = true;
+			for (var i=0; i<node.childNodes.length; i++) {
+				if (node.childNodes[i].nodeType != 3) this.hasText = false;
+			}
+			
+			// this might contain text
+			this.text = this.hasText ? node.childNodes[0].nodeValue : '';
+			this.getText = function() {
+				return this.text;
+			}		
+
+			this.baseRenderChildren = this.renderChildren;
+			this.renderChildren = function(ctx) {
+				if (this.hasText) {
+					// render as text element
+					this.baseRenderChildren(ctx);
+					var fontSize = new svg.Property('fontSize', svg.Font.Parse(svg.ctx.font).fontSize);
+					svg.Mouse.checkBoundingBox(this, new svg.BoundingBox(this.x, this.y - fontSize.toPixels('y'), this.x + this.measureText(ctx), this.y));					
+				}
+				else {
+					// render as temporary group
+					var g = new svg.Element.g();
+					g.children = this.children;
+					g.parent = this;
+					g.render(ctx);
+				}
+			}
+			
+			this.onclick = function() {
+				window.open(this.getHrefAttribute().value);
+			}
+			
+			this.onmousemove = function() {
+				svg.ctx.canvas.style.cursor = 'pointer';
+			}
+		}
+		svg.Element.a.prototype = new svg.Element.TextElementBase;		
+		
+		// image element
+		svg.Element.image = function(node) {
+			this.base = svg.Element.RenderedElementBase;
+			this.base(node);
+			
+			var href = this.getHrefAttribute().value;
+			var isSvg = href.match(/\.svg$/)
+			
+			svg.Images.push(this);
+			this.loaded = false;
+			if (!isSvg) {
+				this.img = document.createElement('img');
+				var self = this;
+				this.img.onload = function() { self.loaded = true; }
+				this.img.onerror = function() { if (typeof(console) != 'undefined') { console.log('ERROR: image "' + href + '" not found'); self.loaded = true; } }
+				this.img.src = href;
+			}
+			else {
+				this.img = svg.ajax(href);
+				this.loaded = true;
+			}
+			
+			this.renderChildren = function(ctx) {
+				var x = this.attribute('x').toPixels('x');
+				var y = this.attribute('y').toPixels('y');
+				
+				var width = this.attribute('width').toPixels('x');
+				var height = this.attribute('height').toPixels('y');			
+				if (width == 0 || height == 0) return;
+			
+				ctx.save();
+				if (isSvg) {
+					ctx.drawSvg(this.img, x, y, width, height);
+				}
+				else {
+					ctx.translate(x, y);
+					svg.AspectRatio(ctx,
+									this.attribute('preserveAspectRatio').value,
+									width,
+									this.img.width,
+									height,
+									this.img.height,
+									0,
+									0);	
+					ctx.drawImage(this.img, 0, 0);		
+				}
+				ctx.restore();
+			}
+			
+			this.getBoundingBox = function() {
+				var x = this.attribute('x').toPixels('x');
+				var y = this.attribute('y').toPixels('y');
+				var width = this.attribute('width').toPixels('x');
+				var height = this.attribute('height').toPixels('y');
+				return new svg.BoundingBox(x, y, x + width, y + height);
+			}
+		}
+		svg.Element.image.prototype = new svg.Element.RenderedElementBase;
+		
+		// group element
+		svg.Element.g = function(node) {
+			this.base = svg.Element.RenderedElementBase;
+			this.base(node);
+			
+			this.getBoundingBox = function() {
+				var bb = new svg.BoundingBox();
+				for (var i=0; i<this.children.length; i++) {
+					bb.addBoundingBox(this.children[i].getBoundingBox());
+				}
+				return bb;
+			};
+		}
+		svg.Element.g.prototype = new svg.Element.RenderedElementBase;
+
+		// symbol element
+		svg.Element.symbol = function(node) {
+			this.base = svg.Element.RenderedElementBase;
+			this.base(node);
+			
+			this.baseSetContext = this.setContext;
+			this.setContext = function(ctx) {		
+				this.baseSetContext(ctx);
+				
+				// viewbox
+				if (this.attribute('viewBox').hasValue()) {				
+					var viewBox = svg.ToNumberArray(this.attribute('viewBox').value);
+					var minX = viewBox[0];
+					var minY = viewBox[1];
+					width = viewBox[2];
+					height = viewBox[3];
+					
+					svg.AspectRatio(ctx,
+									this.attribute('preserveAspectRatio').value, 
+									this.attribute('width').toPixels('x'),
+									width,
+									this.attribute('height').toPixels('y'),
+									height,
+									minX,
+									minY);
+
+					svg.ViewPort.SetCurrent(viewBox[2], viewBox[3]);						
+				}
+			}			
+		}
+		svg.Element.symbol.prototype = new svg.Element.RenderedElementBase;		
+			
+		// style element
+		svg.Element.style = function(node) { 
+			this.base = svg.Element.ElementBase;
+			this.base(node);
+			
+			// text, or spaces then CDATA
+			var css = ''
+			for (var i=0; i<node.childNodes.length; i++) {
+			  css += node.childNodes[i].nodeValue;
+			}
+			css = css.replace(/(\/\*([^*]|[\r\n]|(\*+([^*\/]|[\r\n])))*\*+\/)|(^[\s]*\/\/.*)/gm, ''); // remove comments
+			css = svg.compressSpaces(css); // replace whitespace
+			var cssDefs = css.split('}');
+			for (var i=0; i<cssDefs.length; i++) {
+				if (svg.trim(cssDefs[i]) != '') {
+					var cssDef = cssDefs[i].split('{');
+					var cssClasses = cssDef[0].split(',');
+					var cssProps = cssDef[1].split(';');
+					for (var j=0; j<cssClasses.length; j++) {
+						var cssClass = svg.trim(cssClasses[j]);
+						if (cssClass != '') {
+							var props = {};
+							for (var k=0; k<cssProps.length; k++) {
+								var prop = cssProps[k].indexOf(':');
+								var name = cssProps[k].substr(0, prop);
+								var value = cssProps[k].substr(prop + 1, cssProps[k].length - prop);
+								if (name != null && value != null) {
+									props[svg.trim(name)] = new svg.Property(svg.trim(name), svg.trim(value));
+								}
+							}
+							svg.Styles[cssClass] = props;
+							if (cssClass == '@font-face') {
+								var fontFamily = props['font-family'].value.replace(/"/g,'');
+								var srcs = props['src'].value.split(',');
+								for (var s=0; s<srcs.length; s++) {
+									if (srcs[s].indexOf('format("svg")') > 0) {
+										var urlStart = srcs[s].indexOf('url');
+										var urlEnd = srcs[s].indexOf(')', urlStart);
+										var url = srcs[s].substr(urlStart + 5, urlEnd - urlStart - 6);
+										var doc = svg.parseXml(svg.ajax(url));
+										var fonts = doc.getElementsByTagName('font');
+										for (var f=0; f<fonts.length; f++) {
+											var font = svg.CreateElement(fonts[f]);
+											svg.Definitions[fontFamily] = font;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		svg.Element.style.prototype = new svg.Element.ElementBase;
+		
+		// use element 
+		svg.Element.use = function(node) {
+			this.base = svg.Element.RenderedElementBase;
+			this.base(node);
+			
+			this.baseSetContext = this.setContext;
+			this.setContext = function(ctx) {
+				this.baseSetContext(ctx);
+				if (this.attribute('x').hasValue()) ctx.translate(this.attribute('x').toPixels('x'), 0);
+				if (this.attribute('y').hasValue()) ctx.translate(0, this.attribute('y').toPixels('y'));
+			}
+			
+			this.getDefinition = function() {
+				var element = this.getHrefAttribute().getDefinition();
+				if (this.attribute('width').hasValue()) element.attribute('width', true).value = this.attribute('width').value;
+				if (this.attribute('height').hasValue()) element.attribute('height', true).value = this.attribute('height').value;
+				return element;
+			}
+			
+			this.path = function(ctx) {
+				var element = this.getDefinition();
+				if (element != null) element.path(ctx);
+			}
+			
+			this.getBoundingBox = function() {
+				var element = this.getDefinition();
+				if (element != null) return element.getBoundingBox();
+			}
+			
+			this.renderChildren = function(ctx) {
+				var element = this.getDefinition();
+				if (element != null) {
+					// temporarily detach from parent and render
+					var oldParent = element.parent;
+					element.parent = null;
+					element.render(ctx);
+					element.parent = oldParent;
+				}
+			}
+		}
+		svg.Element.use.prototype = new svg.Element.RenderedElementBase;
+		
+		// mask element
+		svg.Element.mask = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);
+						
+			this.apply = function(ctx, element) {
+				// render as temp svg	
+				var x = this.attribute('x').toPixels('x');
+				var y = this.attribute('y').toPixels('y');
+				var width = this.attribute('width').toPixels('x');
+				var height = this.attribute('height').toPixels('y');
+				
+				if (width == 0 && height == 0) {
+					var bb = new svg.BoundingBox();
+					for (var i=0; i<this.children.length; i++) {
+						bb.addBoundingBox(this.children[i].getBoundingBox());
+					}
+					var x = Math.floor(bb.x1);
+					var y = Math.floor(bb.y1);
+					var width = Math.floor(bb.width());
+					var	height = Math.floor(bb.height());
+				}
+				
+				// temporarily remove mask to avoid recursion
+				var mask = element.attribute('mask').value;
+				element.attribute('mask').value = '';
+				
+					var cMask = document.createElement('canvas');
+					cMask.width = x + width;
+					cMask.height = y + height;
+					var maskCtx = cMask.getContext('2d');
+					this.renderChildren(maskCtx);
+				
+					var c = document.createElement('canvas');
+					c.width = x + width;
+					c.height = y + height;
+					var tempCtx = c.getContext('2d');
+					element.render(tempCtx);
+					tempCtx.globalCompositeOperation = 'destination-in';
+					tempCtx.fillStyle = maskCtx.createPattern(cMask, 'no-repeat');
+					tempCtx.fillRect(0, 0, x + width, y + height);
+					
+					ctx.fillStyle = tempCtx.createPattern(c, 'no-repeat');
+					ctx.fillRect(0, 0, x + width, y + height);
+					
+				// reassign mask
+				element.attribute('mask').value = mask;	
+			}
+			
+			this.render = function(ctx) {
+				// NO RENDER
+			}
+		}
+		svg.Element.mask.prototype = new svg.Element.ElementBase;
+		
+		// clip element
+		svg.Element.clipPath = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);
+			
+			this.apply = function(ctx) {
+				for (var i=0; i<this.children.length; i++) {
+					var child = this.children[i];
+					if (typeof(child.path) != 'undefined') {
+						var transform = null;
+						if (child.attribute('transform').hasValue()) { 
+							transform = new svg.Transform(child.attribute('transform').value);
+							transform.apply(ctx);
+						}
+						child.path(ctx);
+						ctx.clip();
+						if (transform) { transform.unapply(ctx); }
+					}
+				}
+			}
+			
+			this.render = function(ctx) {
+				// NO RENDER
+			}
+		}
+		svg.Element.clipPath.prototype = new svg.Element.ElementBase;
+
+		// filters
+		svg.Element.filter = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);
+						
+			this.apply = function(ctx, element) {
+				// render as temp svg	
+				var bb = element.getBoundingBox();
+				var x = Math.floor(bb.x1);
+				var y = Math.floor(bb.y1);
+				var width = Math.floor(bb.width());
+				var	height = Math.floor(bb.height());
+
+				// temporarily remove filter to avoid recursion
+				var filter = element.style('filter').value;
+				element.style('filter').value = '';
+				
+				var px = 0, py = 0;
+				for (var i=0; i<this.children.length; i++) {
+					var efd = this.children[i].extraFilterDistance || 0;
+					px = Math.max(px, efd);
+					py = Math.max(py, efd);
+				}
+				
+				var c = document.createElement('canvas');
+				c.width = width + 2*px;
+				c.height = height + 2*py;
+				var tempCtx = c.getContext('2d');
+				tempCtx.translate(-x + px, -y + py);
+				element.render(tempCtx);
+			
+				// apply filters
+				for (var i=0; i<this.children.length; i++) {
+					this.children[i].apply(tempCtx, 0, 0, width + 2*px, height + 2*py);
+				}
+				
+				// render on me
+				ctx.drawImage(c, 0, 0, width + 2*px, height + 2*py, x - px, y - py, width + 2*px, height + 2*py);
+				
+				// reassign filter
+				element.style('filter', true).value = filter;	
+			}
+			
+			this.render = function(ctx) {
+				// NO RENDER
+			}		
+		}
+		svg.Element.filter.prototype = new svg.Element.ElementBase;
+		
+		svg.Element.feMorphology = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);
+			
+			this.apply = function(ctx, x, y, width, height) {
+				// TODO: implement
+			}
+		}
+		svg.Element.feMorphology.prototype = new svg.Element.ElementBase;
+		
+		svg.Element.feColorMatrix = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);
+			
+			function imGet(img, x, y, width, height, rgba) {
+				return img[y*width*4 + x*4 + rgba];
+			}
+			
+			function imSet(img, x, y, width, height, rgba, val) {
+				img[y*width*4 + x*4 + rgba] = val;
+			}
+			
+			this.apply = function(ctx, x, y, width, height) {
+				// only supporting grayscale for now per Issue 195, need to extend to all matrix
+				// assuming x==0 && y==0 for now
+				var srcData = ctx.getImageData(0, 0, width, height);
+				for (var y = 0; y < height; y++) {
+					for (var x = 0; x < width; x++) {
+						var r = imGet(srcData.data, x, y, width, height, 0);
+						var g = imGet(srcData.data, x, y, width, height, 1);
+						var b = imGet(srcData.data, x, y, width, height, 2);
+						var gray = (r + g + b) / 3;
+						imSet(srcData.data, x, y, width, height, 0, gray);
+						imSet(srcData.data, x, y, width, height, 1, gray);
+						imSet(srcData.data, x, y, width, height, 2, gray);
+					}
+				}
+				ctx.clearRect(0, 0, width, height);
+				ctx.putImageData(srcData, 0, 0);
+			}
+		}
+		svg.Element.feColorMatrix.prototype = new svg.Element.ElementBase;
+		
+		svg.Element.feGaussianBlur = function(node) {
+			this.base = svg.Element.ElementBase;
+			this.base(node);
+
+			this.blurRadius = Math.floor(this.attribute('stdDeviation').numValue());
+			this.extraFilterDistance = this.blurRadius;
+			
+			this.apply = function(ctx, x, y, width, height) {
+				if (typeof(stackBlurCanvasRGBA) == 'undefined') {
+					if (typeof(console) != 'undefined') { console.log('ERROR: StackBlur.js must be included for blur to work'); }
+					return;
+				}
+				
+				// StackBlur requires canvas be on document
+				ctx.canvas.id = svg.UniqueId();
+				ctx.canvas.style.display = 'none';
+				document.body.appendChild(ctx.canvas);
+				stackBlurCanvasRGBA(ctx.canvas.id, x, y, width, height, this.blurRadius);
+				document.body.removeChild(ctx.canvas);
+			}
+		}
+		svg.Element.feGaussianBlur.prototype = new svg.Element.ElementBase;
+		
+		// title element, do nothing
+		svg.Element.title = function(node) {
+		}
+		svg.Element.title.prototype = new svg.Element.ElementBase;
+
+		// desc element, do nothing
+		svg.Element.desc = function(node) {
+		}
+		svg.Element.desc.prototype = new svg.Element.ElementBase;		
+		
+		svg.Element.MISSING = function(node) {
+			if (typeof(console) != 'undefined') { console.log('ERROR: Element \'' + node.nodeName + '\' not yet implemented.'); }
+		}
+		svg.Element.MISSING.prototype = new svg.Element.ElementBase;
+		
+		// element factory
+		svg.CreateElement = function(node) {	
+			var className = node.nodeName.replace(/^[^:]+:/,''); // remove namespace
+			className = className.replace(/\-/g,''); // remove dashes
+			var e = null;
+			if (typeof(svg.Element[className]) != 'undefined') {
+				e = new svg.Element[className](node);
+			}
+			else {
+				e = new svg.Element.MISSING(node);
+			}
+
+			e.type = node.nodeName;
+			return e;
+		}
+				
+		// load from url
+		svg.load = function(ctx, url) {
+			svg.loadXml(ctx, svg.ajax(url));
+		}
+		
+		// load from xml
+		svg.loadXml = function(ctx, xml) {
+			svg.loadXmlDoc(ctx, svg.parseXml(xml));
+		}
+		
+		svg.loadXmlDoc = function(ctx, dom) {
+			svg.init(ctx);
+			
+			var mapXY = function(p) {
+				var e = ctx.canvas;
+				while (e) {
+					p.x -= e.offsetLeft;
+					p.y -= e.offsetTop;
+					e = e.offsetParent;
+				}
+				if (window.scrollX) p.x += window.scrollX;
+				if (window.scrollY) p.y += window.scrollY;
+				return p;
+			}
+			
+			// bind mouse
+			if (svg.opts['ignoreMouse'] != true) {
+				ctx.canvas.onclick = function(e) {
+					var p = mapXY(new svg.Point(e != null ? e.clientX : event.clientX, e != null ? e.clientY : event.clientY));
+					svg.Mouse.onclick(p.x, p.y);
+				};
+				ctx.canvas.onmousemove = function(e) {
+					var p = mapXY(new svg.Point(e != null ? e.clientX : event.clientX, e != null ? e.clientY : event.clientY));
+					svg.Mouse.onmousemove(p.x, p.y);
+				};
+			}
+		
+			var e = svg.CreateElement(dom.documentElement);
+			e.root = true;
+					
+			// render loop
+			var isFirstRender = true;
+			var draw = function() {
+				svg.ViewPort.Clear();
+				if (ctx.canvas.parentNode) svg.ViewPort.SetCurrent(ctx.canvas.parentNode.clientWidth, ctx.canvas.parentNode.clientHeight);
+			
+				if (svg.opts['ignoreDimensions'] != true) {
+					// set canvas size
+					if (e.style('width').hasValue()) {
+						ctx.canvas.width = e.style('width').toPixels('x');
+						ctx.canvas.style.width = ctx.canvas.width + 'px';
+					}
+					if (e.style('height').hasValue()) {
+						ctx.canvas.height = e.style('height').toPixels('y');
+						ctx.canvas.style.height = ctx.canvas.height + 'px';
+					}
+				}
+				var cWidth = ctx.canvas.clientWidth || ctx.canvas.width;
+				var cHeight = ctx.canvas.clientHeight || ctx.canvas.height;
+				if (svg.opts['ignoreDimensions'] == true && e.style('width').hasValue() && e.style('height').hasValue()) {
+					cWidth = e.style('width').toPixels('x');
+					cHeight = e.style('height').toPixels('y');
+				}
+				svg.ViewPort.SetCurrent(cWidth, cHeight);		
+				
+				if (svg.opts['offsetX'] != null) e.attribute('x', true).value = svg.opts['offsetX'];
+				if (svg.opts['offsetY'] != null) e.attribute('y', true).value = svg.opts['offsetY'];
+				if (svg.opts['scaleWidth'] != null && svg.opts['scaleHeight'] != null) {
+					var xRatio = 1, yRatio = 1, viewBox = svg.ToNumberArray(e.attribute('viewBox').value);
+					if (e.attribute('width').hasValue()) xRatio = e.attribute('width').toPixels('x') / svg.opts['scaleWidth'];
+					else if (!isNaN(viewBox[2])) xRatio = viewBox[2] / svg.opts['scaleWidth'];
+					if (e.attribute('height').hasValue()) yRatio = e.attribute('height').toPixels('y') / svg.opts['scaleHeight'];
+					else if (!isNaN(viewBox[3])) yRatio = viewBox[3] / svg.opts['scaleHeight'];
+					
+					e.attribute('width', true).value = svg.opts['scaleWidth'];
+					e.attribute('height', true).value = svg.opts['scaleHeight'];			
+					e.attribute('viewBox', true).value = '0 0 ' + (cWidth * xRatio) + ' ' + (cHeight * yRatio);
+					e.attribute('preserveAspectRatio', true).value = 'none';
+				}
+			
+				// clear and render
+				if (svg.opts['ignoreClear'] != true) {
+					ctx.clearRect(0, 0, cWidth, cHeight);
+				}
+				e.render(ctx);
+				if (isFirstRender) {
+					isFirstRender = false;
+					if (typeof(svg.opts['renderCallback']) == 'function') svg.opts['renderCallback'](dom);
+				}			
+			}
+			
+			var waitingForImages = true;
+			if (svg.ImagesLoaded()) {
+				waitingForImages = false;
+				draw();
+			}
+			svg.intervalID = setInterval(function() { 
+				var needUpdate = false;
+				
+				if (waitingForImages && svg.ImagesLoaded()) {
+					waitingForImages = false;
+					needUpdate = true;
+				}
+			
+				// need update from mouse events?
+				if (svg.opts['ignoreMouse'] != true) {
+					needUpdate = needUpdate | svg.Mouse.hasEvents();
+				}
+			
+				// need update from animations?
+				if (svg.opts['ignoreAnimation'] != true) {
+					for (var i=0; i<svg.Animations.length; i++) {
+						needUpdate = needUpdate | svg.Animations[i].update(1000 / svg.FRAMERATE);
+					}
+				}
+				
+				// need update from redraw?
+				if (typeof(svg.opts['forceRedraw']) == 'function') {
+					if (svg.opts['forceRedraw']() == true) needUpdate = true;
+				}
+				
+				// render if needed
+				if (needUpdate) {
+					draw();				
+					svg.Mouse.runEvents(); // run and clear our events
+				}
+			}, 1000 / svg.FRAMERATE);
+		}
+		
+		svg.stop = function() {
+			if (svg.intervalID) {
+				clearInterval(svg.intervalID);
+			}
+		}
+		
+		svg.Mouse = new (function() {
+			this.events = [];
+			this.hasEvents = function() { return this.events.length != 0; }
+		
+			this.onclick = function(x, y) {
+				this.events.push({ type: 'onclick', x: x, y: y, 
+					run: function(e) { if (e.onclick) e.onclick(); }
+				});
+			}
+			
+			this.onmousemove = function(x, y) {
+				this.events.push({ type: 'onmousemove', x: x, y: y,
+					run: function(e) { if (e.onmousemove) e.onmousemove(); }
+				});
+			}			
+			
+			this.eventElements = [];
+			
+			this.checkPath = function(element, ctx) {
+				for (var i=0; i<this.events.length; i++) {
+					var e = this.events[i];
+					if (ctx.isPointInPath && ctx.isPointInPath(e.x, e.y)) this.eventElements[i] = element;
+				}
+			}
+			
+			this.checkBoundingBox = function(element, bb) {
+				for (var i=0; i<this.events.length; i++) {
+					var e = this.events[i];
+					if (bb.isPointInBox(e.x, e.y)) this.eventElements[i] = element;
+				}			
+			}
+			
+			this.runEvents = function() {
+				svg.ctx.canvas.style.cursor = '';
+				
+				for (var i=0; i<this.events.length; i++) {
+					var e = this.events[i];
+					var element = this.eventElements[i];
+					while (element) {
+						e.run(element);
+						element = element.parent;
+					}
+				}		
+			
+				// done running, clear
+				this.events = []; 
+				this.eventElements = [];
+			}
+		});
+		
+		return svg;
+	}
+})();
+
+if (typeof(CanvasRenderingContext2D) != 'undefined') {
+	CanvasRenderingContext2D.prototype.drawSvg = function(s, dx, dy, dw, dh) {
+		canvg(this.canvas, s, { 
+			ignoreMouse: true, 
+			ignoreAnimation: true, 
+			ignoreDimensions: true, 
+			ignoreClear: true, 
+			offsetX: dx, 
+			offsetY: dy, 
+			scaleWidth: dw, 
+			scaleHeight: dh
+		});
+	}
+}
+/**
+ * A class to parse color values
+ * @author Stoyan Stefanov <sstoo@gmail.com>
+ * @link   http://www.phpied.com/rgb-color-parser-in-javascript/
+ * @license Use it if you like it
+ */
+function RGBColor(color_string)
+{
+    this.ok = false;
+
+    // strip any leading #
+    if (color_string.charAt(0) == '#') { // remove # if any
+        color_string = color_string.substr(1,6);
+    }
+
+    color_string = color_string.replace(/ /g,'');
+    color_string = color_string.toLowerCase();
+
+    // before getting into regexps, try simple matches
+    // and overwrite the input
+    var simple_colors = {
+        aliceblue: 'f0f8ff',
+        antiquewhite: 'faebd7',
+        aqua: '00ffff',
+        aquamarine: '7fffd4',
+        azure: 'f0ffff',
+        beige: 'f5f5dc',
+        bisque: 'ffe4c4',
+        black: '000000',
+        blanchedalmond: 'ffebcd',
+        blue: '0000ff',
+        blueviolet: '8a2be2',
+        brown: 'a52a2a',
+        burlywood: 'deb887',
+        cadetblue: '5f9ea0',
+        chartreuse: '7fff00',
+        chocolate: 'd2691e',
+        coral: 'ff7f50',
+        cornflowerblue: '6495ed',
+        cornsilk: 'fff8dc',
+        crimson: 'dc143c',
+        cyan: '00ffff',
+        darkblue: '00008b',
+        darkcyan: '008b8b',
+        darkgoldenrod: 'b8860b',
+        darkgray: 'a9a9a9',
+        darkgreen: '006400',
+        darkkhaki: 'bdb76b',
+        darkmagenta: '8b008b',
+        darkolivegreen: '556b2f',
+        darkorange: 'ff8c00',
+        darkorchid: '9932cc',
+        darkred: '8b0000',
+        darksalmon: 'e9967a',
+        darkseagreen: '8fbc8f',
+        darkslateblue: '483d8b',
+        darkslategray: '2f4f4f',
+        darkturquoise: '00ced1',
+        darkviolet: '9400d3',
+        deeppink: 'ff1493',
+        deepskyblue: '00bfff',
+        dimgray: '696969',
+        dodgerblue: '1e90ff',
+        feldspar: 'd19275',
+        firebrick: 'b22222',
+        floralwhite: 'fffaf0',
+        forestgreen: '228b22',
+        fuchsia: 'ff00ff',
+        gainsboro: 'dcdcdc',
+        ghostwhite: 'f8f8ff',
+        gold: 'ffd700',
+        goldenrod: 'daa520',
+        gray: '808080',
+        green: '008000',
+        greenyellow: 'adff2f',
+        honeydew: 'f0fff0',
+        hotpink: 'ff69b4',
+        indianred : 'cd5c5c',
+        indigo : '4b0082',
+        ivory: 'fffff0',
+        khaki: 'f0e68c',
+        lavender: 'e6e6fa',
+        lavenderblush: 'fff0f5',
+        lawngreen: '7cfc00',
+        lemonchiffon: 'fffacd',
+        lightblue: 'add8e6',
+        lightcoral: 'f08080',
+        lightcyan: 'e0ffff',
+        lightgoldenrodyellow: 'fafad2',
+        lightgrey: 'd3d3d3',
+        lightgreen: '90ee90',
+        lightpink: 'ffb6c1',
+        lightsalmon: 'ffa07a',
+        lightseagreen: '20b2aa',
+        lightskyblue: '87cefa',
+        lightslateblue: '8470ff',
+        lightslategray: '778899',
+        lightsteelblue: 'b0c4de',
+        lightyellow: 'ffffe0',
+        lime: '00ff00',
+        limegreen: '32cd32',
+        linen: 'faf0e6',
+        magenta: 'ff00ff',
+        maroon: '800000',
+        mediumaquamarine: '66cdaa',
+        mediumblue: '0000cd',
+        mediumorchid: 'ba55d3',
+        mediumpurple: '9370d8',
+        mediumseagreen: '3cb371',
+        mediumslateblue: '7b68ee',
+        mediumspringgreen: '00fa9a',
+        mediumturquoise: '48d1cc',
+        mediumvioletred: 'c71585',
+        midnightblue: '191970',
+        mintcream: 'f5fffa',
+        mistyrose: 'ffe4e1',
+        moccasin: 'ffe4b5',
+        navajowhite: 'ffdead',
+        navy: '000080',
+        oldlace: 'fdf5e6',
+        olive: '808000',
+        olivedrab: '6b8e23',
+        orange: 'ffa500',
+        orangered: 'ff4500',
+        orchid: 'da70d6',
+        palegoldenrod: 'eee8aa',
+        palegreen: '98fb98',
+        paleturquoise: 'afeeee',
+        palevioletred: 'd87093',
+        papayawhip: 'ffefd5',
+        peachpuff: 'ffdab9',
+        peru: 'cd853f',
+        pink: 'ffc0cb',
+        plum: 'dda0dd',
+        powderblue: 'b0e0e6',
+        purple: '800080',
+        red: 'ff0000',
+        rosybrown: 'bc8f8f',
+        royalblue: '4169e1',
+        saddlebrown: '8b4513',
+        salmon: 'fa8072',
+        sandybrown: 'f4a460',
+        seagreen: '2e8b57',
+        seashell: 'fff5ee',
+        sienna: 'a0522d',
+        silver: 'c0c0c0',
+        skyblue: '87ceeb',
+        slateblue: '6a5acd',
+        slategray: '708090',
+        snow: 'fffafa',
+        springgreen: '00ff7f',
+        steelblue: '4682b4',
+        tan: 'd2b48c',
+        teal: '008080',
+        thistle: 'd8bfd8',
+        tomato: 'ff6347',
+        turquoise: '40e0d0',
+        violet: 'ee82ee',
+        violetred: 'd02090',
+        wheat: 'f5deb3',
+        white: 'ffffff',
+        whitesmoke: 'f5f5f5',
+        yellow: 'ffff00',
+        yellowgreen: '9acd32'
+    };
+    for (var key in simple_colors) {
+        if (color_string == key) {
+            color_string = simple_colors[key];
+        }
+    }
+    // emd of simple type-in colors
+
+    // array of color definition objects
+    var color_defs = [
+        {
+            re: /^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/,
+            example: ['rgb(123, 234, 45)', 'rgb(255,234,245)'],
+            process: function (bits){
+                return [
+                    parseInt(bits[1]),
+                    parseInt(bits[2]),
+                    parseInt(bits[3])
+                ];
+            }
+        },
+        {
+            re: /^(\w{2})(\w{2})(\w{2})$/,
+            example: ['#00ff00', '336699'],
+            process: function (bits){
+                return [
+                    parseInt(bits[1], 16),
+                    parseInt(bits[2], 16),
+                    parseInt(bits[3], 16)
+                ];
+            }
+        },
+        {
+            re: /^(\w{1})(\w{1})(\w{1})$/,
+            example: ['#fb0', 'f0f'],
+            process: function (bits){
+                return [
+                    parseInt(bits[1] + bits[1], 16),
+                    parseInt(bits[2] + bits[2], 16),
+                    parseInt(bits[3] + bits[3], 16)
+                ];
+            }
+        }
+    ];
+
+    // search through the definitions to find a match
+    for (var i = 0; i < color_defs.length; i++) {
+        var re = color_defs[i].re;
+        var processor = color_defs[i].process;
+        var bits = re.exec(color_string);
+        if (bits) {
+            channels = processor(bits);
+            this.r = channels[0];
+            this.g = channels[1];
+            this.b = channels[2];
+            this.ok = true;
+        }
+
+    }
+
+    // validate/cleanup values
+    this.r = (this.r < 0 || isNaN(this.r)) ? 0 : ((this.r > 255) ? 255 : this.r);
+    this.g = (this.g < 0 || isNaN(this.g)) ? 0 : ((this.g > 255) ? 255 : this.g);
+    this.b = (this.b < 0 || isNaN(this.b)) ? 0 : ((this.b > 255) ? 255 : this.b);
+
+    // some getters
+    this.toRGB = function () {
+        return 'rgb(' + this.r + ', ' + this.g + ', ' + this.b + ')';
+    }
+    this.toHex = function () {
+        var r = this.r.toString(16);
+        var g = this.g.toString(16);
+        var b = this.b.toString(16);
+        if (r.length == 1) r = '0' + r;
+        if (g.length == 1) g = '0' + g;
+        if (b.length == 1) b = '0' + b;
+        return '#' + r + g + b;
+    }
+
+    // help
+    this.getHelpXML = function () {
+
+        var examples = new Array();
+        // add regexps
+        for (var i = 0; i < color_defs.length; i++) {
+            var example = color_defs[i].example;
+            for (var j = 0; j < example.length; j++) {
+                examples[examples.length] = example[j];
+            }
+        }
+        // add type-in colors
+        for (var sc in simple_colors) {
+            examples[examples.length] = sc;
+        }
+
+        var xml = document.createElement('ul');
+        xml.setAttribute('id', 'rgbcolor-examples');
+        for (var i = 0; i < examples.length; i++) {
+            try {
+                var list_item = document.createElement('li');
+                var list_color = new RGBColor(examples[i]);
+                var example_div = document.createElement('div');
+                example_div.style.cssText =
+                        'margin: 3px; '
+                        + 'border: 1px solid black; '
+                        + 'background:' + list_color.toHex() + '; '
+                        + 'color:' + list_color.toHex()
+                ;
+                example_div.appendChild(document.createTextNode('test'));
+                var list_item_value = document.createTextNode(
+                    ' ' + examples[i] + ' -> ' + list_color.toRGB() + ' -> ' + list_color.toHex()
+                );
+                list_item.appendChild(example_div);
+                list_item.appendChild(list_item_value);
+                xml.appendChild(list_item);
+
+            } catch(e){}
+        }
+        return xml;
+
+    }
+
+}
+
+
+/*
+
+StackBlur - a fast almost Gaussian Blur For Canvas
+
+Version: 	0.5
+Author:		Mario Klingemann
+Contact: 	mario@quasimondo.com
+Website:	http://www.quasimondo.com/StackBlurForCanvas
+Twitter:	@quasimondo
+
+In case you find this class useful - especially in commercial projects -
+I am not totally unhappy for a small donation to my PayPal account
+mario@quasimondo.de
+
+Or support me on flattr: 
+https://flattr.com/thing/72791/StackBlur-a-fast-almost-Gaussian-Blur-Effect-for-CanvasJavascript
+
+Copyright (c) 2010 Mario Klingemann
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+var mul_table = [
+        512,512,456,512,328,456,335,512,405,328,271,456,388,335,292,512,
+        454,405,364,328,298,271,496,456,420,388,360,335,312,292,273,512,
+        482,454,428,405,383,364,345,328,312,298,284,271,259,496,475,456,
+        437,420,404,388,374,360,347,335,323,312,302,292,282,273,265,512,
+        497,482,468,454,441,428,417,405,394,383,373,364,354,345,337,328,
+        320,312,305,298,291,284,278,271,265,259,507,496,485,475,465,456,
+        446,437,428,420,412,404,396,388,381,374,367,360,354,347,341,335,
+        329,323,318,312,307,302,297,292,287,282,278,273,269,265,261,512,
+        505,497,489,482,475,468,461,454,447,441,435,428,422,417,411,405,
+        399,394,389,383,378,373,368,364,359,354,350,345,341,337,332,328,
+        324,320,316,312,309,305,301,298,294,291,287,284,281,278,274,271,
+        268,265,262,259,257,507,501,496,491,485,480,475,470,465,460,456,
+        451,446,442,437,433,428,424,420,416,412,408,404,400,396,392,388,
+        385,381,377,374,370,367,363,360,357,354,350,347,344,341,338,335,
+        332,329,326,323,320,318,315,312,310,307,304,302,299,297,294,292,
+        289,287,285,282,280,278,275,273,271,269,267,265,263,261,259];
+        
+   
+var shg_table = [
+	     9, 11, 12, 13, 13, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 17, 
+		17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 19, 
+		19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20,
+		20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 21,
+		21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21,
+		21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 22, 
+		22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+		22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 23, 
+		23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23,
+		23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23,
+		23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 
+		23, 23, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 
+		24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
+		24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
+		24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
+		24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24 ];
+
+function stackBlurImage( imageID, canvasID, radius, blurAlphaChannel )
+{
+			
+ 	var img = document.getElementById( imageID );
+	var w = img.naturalWidth;
+    var h = img.naturalHeight;
+       
+	var canvas = document.getElementById( canvasID );
+      
+    canvas.style.width  = w + "px";
+    canvas.style.height = h + "px";
+    canvas.width = w;
+    canvas.height = h;
+    
+    var context = canvas.getContext("2d");
+    context.clearRect( 0, 0, w, h );
+    context.drawImage( img, 0, 0 );
+
+	if ( isNaN(radius) || radius < 1 ) return;
+	
+	if ( blurAlphaChannel )
+		stackBlurCanvasRGBA( canvasID, 0, 0, w, h, radius );
+	else 
+		stackBlurCanvasRGB( canvasID, 0, 0, w, h, radius );
+}
+
+
+function stackBlurCanvasRGBA( id, top_x, top_y, width, height, radius )
+{
+	if ( isNaN(radius) || radius < 1 ) return;
+	radius |= 0;
+	
+	var canvas  = document.getElementById( id );
+	var context = canvas.getContext("2d");
+	var imageData;
+	
+	try {
+	  try {
+		imageData = context.getImageData( top_x, top_y, width, height );
+	  } catch(e) {
+	  
+		// NOTE: this part is supposedly only needed if you want to work with local files
+		// so it might be okay to remove the whole try/catch block and just use
+		// imageData = context.getImageData( top_x, top_y, width, height );
+		try {
+			netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
+			imageData = context.getImageData( top_x, top_y, width, height );
+		} catch(e) {
+			alert("Cannot access local image");
+			throw new Error("unable to access local image data: " + e);
+			return;
+		}
+	  }
+	} catch(e) {
+	  alert("Cannot access image");
+	  throw new Error("unable to access image data: " + e);
+	}
+			
+	var pixels = imageData.data;
+			
+	var x, y, i, p, yp, yi, yw, r_sum, g_sum, b_sum, a_sum, 
+	r_out_sum, g_out_sum, b_out_sum, a_out_sum,
+	r_in_sum, g_in_sum, b_in_sum, a_in_sum, 
+	pr, pg, pb, pa, rbs;
+			
+	var div = radius + radius + 1;
+	var w4 = width << 2;
+	var widthMinus1  = width - 1;
+	var heightMinus1 = height - 1;
+	var radiusPlus1  = radius + 1;
+	var sumFactor = radiusPlus1 * ( radiusPlus1 + 1 ) / 2;
+	
+	var stackStart = new BlurStack();
+	var stack = stackStart;
+	for ( i = 1; i < div; i++ )
+	{
+		stack = stack.next = new BlurStack();
+		if ( i == radiusPlus1 ) var stackEnd = stack;
+	}
+	stack.next = stackStart;
+	var stackIn = null;
+	var stackOut = null;
+	
+	yw = yi = 0;
+	
+	var mul_sum = mul_table[radius];
+	var shg_sum = shg_table[radius];
+	
+	for ( y = 0; y < height; y++ )
+	{
+		r_in_sum = g_in_sum = b_in_sum = a_in_sum = r_sum = g_sum = b_sum = a_sum = 0;
+		
+		r_out_sum = radiusPlus1 * ( pr = pixels[yi] );
+		g_out_sum = radiusPlus1 * ( pg = pixels[yi+1] );
+		b_out_sum = radiusPlus1 * ( pb = pixels[yi+2] );
+		a_out_sum = radiusPlus1 * ( pa = pixels[yi+3] );
+		
+		r_sum += sumFactor * pr;
+		g_sum += sumFactor * pg;
+		b_sum += sumFactor * pb;
+		a_sum += sumFactor * pa;
+		
+		stack = stackStart;
+		
+		for( i = 0; i < radiusPlus1; i++ )
+		{
+			stack.r = pr;
+			stack.g = pg;
+			stack.b = pb;
+			stack.a = pa;
+			stack = stack.next;
+		}
+		
+		for( i = 1; i < radiusPlus1; i++ )
+		{
+			p = yi + (( widthMinus1 < i ? widthMinus1 : i ) << 2 );
+			r_sum += ( stack.r = ( pr = pixels[p])) * ( rbs = radiusPlus1 - i );
+			g_sum += ( stack.g = ( pg = pixels[p+1])) * rbs;
+			b_sum += ( stack.b = ( pb = pixels[p+2])) * rbs;
+			a_sum += ( stack.a = ( pa = pixels[p+3])) * rbs;
+			
+			r_in_sum += pr;
+			g_in_sum += pg;
+			b_in_sum += pb;
+			a_in_sum += pa;
+			
+			stack = stack.next;
+		}
+		
+		
+		stackIn = stackStart;
+		stackOut = stackEnd;
+		for ( x = 0; x < width; x++ )
+		{
+			pixels[yi+3] = pa = (a_sum * mul_sum) >> shg_sum;
+			if ( pa != 0 )
+			{
+				pa = 255 / pa;
+				pixels[yi]   = ((r_sum * mul_sum) >> shg_sum) * pa;
+				pixels[yi+1] = ((g_sum * mul_sum) >> shg_sum) * pa;
+				pixels[yi+2] = ((b_sum * mul_sum) >> shg_sum) * pa;
+			} else {
+				pixels[yi] = pixels[yi+1] = pixels[yi+2] = 0;
+			}
+			
+			r_sum -= r_out_sum;
+			g_sum -= g_out_sum;
+			b_sum -= b_out_sum;
+			a_sum -= a_out_sum;
+			
+			r_out_sum -= stackIn.r;
+			g_out_sum -= stackIn.g;
+			b_out_sum -= stackIn.b;
+			a_out_sum -= stackIn.a;
+			
+			p =  ( yw + ( ( p = x + radius + 1 ) < widthMinus1 ? p : widthMinus1 ) ) << 2;
+			
+			r_in_sum += ( stackIn.r = pixels[p]);
+			g_in_sum += ( stackIn.g = pixels[p+1]);
+			b_in_sum += ( stackIn.b = pixels[p+2]);
+			a_in_sum += ( stackIn.a = pixels[p+3]);
+			
+			r_sum += r_in_sum;
+			g_sum += g_in_sum;
+			b_sum += b_in_sum;
+			a_sum += a_in_sum;
+			
+			stackIn = stackIn.next;
+			
+			r_out_sum += ( pr = stackOut.r );
+			g_out_sum += ( pg = stackOut.g );
+			b_out_sum += ( pb = stackOut.b );
+			a_out_sum += ( pa = stackOut.a );
+			
+			r_in_sum -= pr;
+			g_in_sum -= pg;
+			b_in_sum -= pb;
+			a_in_sum -= pa;
+			
+			stackOut = stackOut.next;
+
+			yi += 4;
+		}
+		yw += width;
+	}
+
+	
+	for ( x = 0; x < width; x++ )
+	{
+		g_in_sum = b_in_sum = a_in_sum = r_in_sum = g_sum = b_sum = a_sum = r_sum = 0;
+		
+		yi = x << 2;
+		r_out_sum = radiusPlus1 * ( pr = pixels[yi]);
+		g_out_sum = radiusPlus1 * ( pg = pixels[yi+1]);
+		b_out_sum = radiusPlus1 * ( pb = pixels[yi+2]);
+		a_out_sum = radiusPlus1 * ( pa = pixels[yi+3]);
+		
+		r_sum += sumFactor * pr;
+		g_sum += sumFactor * pg;
+		b_sum += sumFactor * pb;
+		a_sum += sumFactor * pa;
+		
+		stack = stackStart;
+		
+		for( i = 0; i < radiusPlus1; i++ )
+		{
+			stack.r = pr;
+			stack.g = pg;
+			stack.b = pb;
+			stack.a = pa;
+			stack = stack.next;
+		}
+		
+		yp = width;
+		
+		for( i = 1; i <= radius; i++ )
+		{
+			yi = ( yp + x ) << 2;
+			
+			r_sum += ( stack.r = ( pr = pixels[yi])) * ( rbs = radiusPlus1 - i );
+			g_sum += ( stack.g = ( pg = pixels[yi+1])) * rbs;
+			b_sum += ( stack.b = ( pb = pixels[yi+2])) * rbs;
+			a_sum += ( stack.a = ( pa = pixels[yi+3])) * rbs;
+		   
+			r_in_sum += pr;
+			g_in_sum += pg;
+			b_in_sum += pb;
+			a_in_sum += pa;
+			
+			stack = stack.next;
+		
+			if( i < heightMinus1 )
+			{
+				yp += width;
+			}
+		}
+		
+		yi = x;
+		stackIn = stackStart;
+		stackOut = stackEnd;
+		for ( y = 0; y < height; y++ )
+		{
+			p = yi << 2;
+			pixels[p+3] = pa = (a_sum * mul_sum) >> shg_sum;
+			if ( pa > 0 )
+			{
+				pa = 255 / pa;
+				pixels[p]   = ((r_sum * mul_sum) >> shg_sum ) * pa;
+				pixels[p+1] = ((g_sum * mul_sum) >> shg_sum ) * pa;
+				pixels[p+2] = ((b_sum * mul_sum) >> shg_sum ) * pa;
+			} else {
+				pixels[p] = pixels[p+1] = pixels[p+2] = 0;
+			}
+			
+			r_sum -= r_out_sum;
+			g_sum -= g_out_sum;
+			b_sum -= b_out_sum;
+			a_sum -= a_out_sum;
+		   
+			r_out_sum -= stackIn.r;
+			g_out_sum -= stackIn.g;
+			b_out_sum -= stackIn.b;
+			a_out_sum -= stackIn.a;
+			
+			p = ( x + (( ( p = y + radiusPlus1) < heightMinus1 ? p : heightMinus1 ) * width )) << 2;
+			
+			r_sum += ( r_in_sum += ( stackIn.r = pixels[p]));
+			g_sum += ( g_in_sum += ( stackIn.g = pixels[p+1]));
+			b_sum += ( b_in_sum += ( stackIn.b = pixels[p+2]));
+			a_sum += ( a_in_sum += ( stackIn.a = pixels[p+3]));
+		   
+			stackIn = stackIn.next;
+			
+			r_out_sum += ( pr = stackOut.r );
+			g_out_sum += ( pg = stackOut.g );
+			b_out_sum += ( pb = stackOut.b );
+			a_out_sum += ( pa = stackOut.a );
+			
+			r_in_sum -= pr;
+			g_in_sum -= pg;
+			b_in_sum -= pb;
+			a_in_sum -= pa;
+			
+			stackOut = stackOut.next;
+			
+			yi += width;
+		}
+	}
+	
+	context.putImageData( imageData, top_x, top_y );
+	
+}
+
+
+function stackBlurCanvasRGB( id, top_x, top_y, width, height, radius )
+{
+	if ( isNaN(radius) || radius < 1 ) return;
+	radius |= 0;
+	
+	var canvas  = document.getElementById( id );
+	var context = canvas.getContext("2d");
+	var imageData;
+	
+	try {
+	  try {
+		imageData = context.getImageData( top_x, top_y, width, height );
+	  } catch(e) {
+	  
+		// NOTE: this part is supposedly only needed if you want to work with local files
+		// so it might be okay to remove the whole try/catch block and just use
+		// imageData = context.getImageData( top_x, top_y, width, height );
+		try {
+			netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
+			imageData = context.getImageData( top_x, top_y, width, height );
+		} catch(e) {
+			alert("Cannot access local image");
+			throw new Error("unable to access local image data: " + e);
+			return;
+		}
+	  }
+	} catch(e) {
+	  alert("Cannot access image");
+	  throw new Error("unable to access image data: " + e);
+	}
+			
+	var pixels = imageData.data;
+			
+	var x, y, i, p, yp, yi, yw, r_sum, g_sum, b_sum,
+	r_out_sum, g_out_sum, b_out_sum,
+	r_in_sum, g_in_sum, b_in_sum,
+	pr, pg, pb, rbs;
+			
+	var div = radius + radius + 1;
+	var w4 = width << 2;
+	var widthMinus1  = width - 1;
+	var heightMinus1 = height - 1;
+	var radiusPlus1  = radius + 1;
+	var sumFactor = radiusPlus1 * ( radiusPlus1 + 1 ) / 2;
+	
+	var stackStart = new BlurStack();
+	var stack = stackStart;
+	for ( i = 1; i < div; i++ )
+	{
+		stack = stack.next = new BlurStack();
+		if ( i == radiusPlus1 ) var stackEnd = stack;
+	}
+	stack.next = stackStart;
+	var stackIn = null;
+	var stackOut = null;
+	
+	yw = yi = 0;
+	
+	var mul_sum = mul_table[radius];
+	var shg_sum = shg_table[radius];
+	
+	for ( y = 0; y < height; y++ )
+	{
+		r_in_sum = g_in_sum = b_in_sum = r_sum = g_sum = b_sum = 0;
+		
+		r_out_sum = radiusPlus1 * ( pr = pixels[yi] );
+		g_out_sum = radiusPlus1 * ( pg = pixels[yi+1] );
+		b_out_sum = radiusPlus1 * ( pb = pixels[yi+2] );
+		
+		r_sum += sumFactor * pr;
+		g_sum += sumFactor * pg;
+		b_sum += sumFactor * pb;
+		
+		stack = stackStart;
+		
+		for( i = 0; i < radiusPlus1; i++ )
+		{
+			stack.r = pr;
+			stack.g = pg;
+			stack.b = pb;
+			stack = stack.next;
+		}
+		
+		for( i = 1; i < radiusPlus1; i++ )
+		{
+			p = yi + (( widthMinus1 < i ? widthMinus1 : i ) << 2 );
+			r_sum += ( stack.r = ( pr = pixels[p])) * ( rbs = radiusPlus1 - i );
+			g_sum += ( stack.g = ( pg = pixels[p+1])) * rbs;
+			b_sum += ( stack.b = ( pb = pixels[p+2])) * rbs;
+			
+			r_in_sum += pr;
+			g_in_sum += pg;
+			b_in_sum += pb;
+			
+			stack = stack.next;
+		}
+		
+		
+		stackIn = stackStart;
+		stackOut = stackEnd;
+		for ( x = 0; x < width; x++ )
+		{
+			pixels[yi]   = (r_sum * mul_sum) >> shg_sum;
+			pixels[yi+1] = (g_sum * mul_sum) >> shg_sum;
+			pixels[yi+2] = (b_sum * mul_sum) >> shg_sum;
+			
+			r_sum -= r_out_sum;
+			g_sum -= g_out_sum;
+			b_sum -= b_out_sum;
+			
+			r_out_sum -= stackIn.r;
+			g_out_sum -= stackIn.g;
+			b_out_sum -= stackIn.b;
+			
+			p =  ( yw + ( ( p = x + radius + 1 ) < widthMinus1 ? p : widthMinus1 ) ) << 2;
+			
+			r_in_sum += ( stackIn.r = pixels[p]);
+			g_in_sum += ( stackIn.g = pixels[p+1]);
+			b_in_sum += ( stackIn.b = pixels[p+2]);
+			
+			r_sum += r_in_sum;
+			g_sum += g_in_sum;
+			b_sum += b_in_sum;
+			
+			stackIn = stackIn.next;
+			
+			r_out_sum += ( pr = stackOut.r );
+			g_out_sum += ( pg = stackOut.g );
+			b_out_sum += ( pb = stackOut.b );
+			
+			r_in_sum -= pr;
+			g_in_sum -= pg;
+			b_in_sum -= pb;
+			
+			stackOut = stackOut.next;
+
+			yi += 4;
+		}
+		yw += width;
+	}
+
+	
+	for ( x = 0; x < width; x++ )
+	{
+		g_in_sum = b_in_sum = r_in_sum = g_sum = b_sum = r_sum = 0;
+		
+		yi = x << 2;
+		r_out_sum = radiusPlus1 * ( pr = pixels[yi]);
+		g_out_sum = radiusPlus1 * ( pg = pixels[yi+1]);
+		b_out_sum = radiusPlus1 * ( pb = pixels[yi+2]);
+		
+		r_sum += sumFactor * pr;
+		g_sum += sumFactor * pg;
+		b_sum += sumFactor * pb;
+		
+		stack = stackStart;
+		
+		for( i = 0; i < radiusPlus1; i++ )
+		{
+			stack.r = pr;
+			stack.g = pg;
+			stack.b = pb;
+			stack = stack.next;
+		}
+		
+		yp = width;
+		
+		for( i = 1; i <= radius; i++ )
+		{
+			yi = ( yp + x ) << 2;
+			
+			r_sum += ( stack.r = ( pr = pixels[yi])) * ( rbs = radiusPlus1 - i );
+			g_sum += ( stack.g = ( pg = pixels[yi+1])) * rbs;
+			b_sum += ( stack.b = ( pb = pixels[yi+2])) * rbs;
+			
+			r_in_sum += pr;
+			g_in_sum += pg;
+			b_in_sum += pb;
+			
+			stack = stack.next;
+		
+			if( i < heightMinus1 )
+			{
+				yp += width;
+			}
+		}
+		
+		yi = x;
+		stackIn = stackStart;
+		stackOut = stackEnd;
+		for ( y = 0; y < height; y++ )
+		{
+			p = yi << 2;
+			pixels[p]   = (r_sum * mul_sum) >> shg_sum;
+			pixels[p+1] = (g_sum * mul_sum) >> shg_sum;
+			pixels[p+2] = (b_sum * mul_sum) >> shg_sum;
+			
+			r_sum -= r_out_sum;
+			g_sum -= g_out_sum;
+			b_sum -= b_out_sum;
+			
+			r_out_sum -= stackIn.r;
+			g_out_sum -= stackIn.g;
+			b_out_sum -= stackIn.b;
+			
+			p = ( x + (( ( p = y + radiusPlus1) < heightMinus1 ? p : heightMinus1 ) * width )) << 2;
+			
+			r_sum += ( r_in_sum += ( stackIn.r = pixels[p]));
+			g_sum += ( g_in_sum += ( stackIn.g = pixels[p+1]));
+			b_sum += ( b_in_sum += ( stackIn.b = pixels[p+2]));
+			
+			stackIn = stackIn.next;
+			
+			r_out_sum += ( pr = stackOut.r );
+			g_out_sum += ( pg = stackOut.g );
+			b_out_sum += ( pb = stackOut.b );
+			
+			r_in_sum -= pr;
+			g_in_sum -= pg;
+			b_in_sum -= pb;
+			
+			stackOut = stackOut.next;
+			
+			yi += width;
+		}
+	}
+	
+	context.putImageData( imageData, top_x, top_y );
+	
+}
+
+function BlurStack()
+{
+	this.r = 0;
+	this.g = 0;
+	this.b = 0;
+	this.a = 0;
+	this.next = null;
+}
+// requires: joint.format.svg.js plugin
+// support 3rd party library: canvg - canvg.js, rgbcolor.js, StackBlur.js
+
+joint.dia.Paper.prototype.toDataURL = function(callback, options) {
+
+    // check whether the svg export plugin was loaded.
+    if (typeof this.toSVG !== 'function') throw new Error('The joint.format.svg.js plugin must be loaded.');
+
+    // options: type, width, height, quality (works only with type set to 'image/jpeg' or 'image/webp'),
+    // backgroundColor
+    options = options || {};
+
+    var imageWidth, imageHeight, contentHeight, contentWidth, padding = options.padding || 0;
+
+    if (!options.width || !options.height) {
+
+	// The raster size wasn't defined. We get the size of the bounding client rect of the viewport instead.
+	var clientRect = this.viewport.getBoundingClientRect();
+
+	// the dimensions of the image content (without padding)
+	contentWidth = clientRect.width || 1;
+	contentHeight = clientRect.height || 1;
+
+	// the dimensions of the output image
+	imageWidth = contentWidth + 2*padding;
+	imageHeight = contentHeight + 2*padding;
+
+    } else {
+
+	imageWidth = options.width;
+	imageHeight = options.height;
+
+	// The padding value has to be smaller than half a width and half a height.
+	padding = Math.min(padding, imageWidth/2 - 1, imageHeight/2 - 1);
+
+	contentWidth = imageWidth - 2*padding;
+	contentHeight = imageHeight - 2*padding;
+    }
+
+    var img = new Image();
+
+    // Drawing an image into the canvas has to be done after the image was completely loaded.
+    img.onload = function() {
+
+	var dataURL, context, canvas;
+
+	// Helper to create a new canvas.
+	function createCanvas() {
+
+	    canvas = document.createElement('canvas');
+	    canvas.width = imageWidth;
+	    canvas.height = imageHeight;
+
+	    // Draw rectangle of a certain color covering the whole canvas area.
+	    // A JPEG image has black background by default and it might not be desirable.
+	    context = canvas.getContext('2d');
+	    context.fillStyle = options.backgroundColor || 'white';
+	    context.fillRect(0, 0, imageWidth, imageHeight);
+	};
+
+	createCanvas();
+
+	// Draw the image to the canvas with native `drawImage` method.
+	context.drawImage(img, padding, padding, contentWidth, contentHeight);
+
+	// Drawing SVG images can taint our canvas in some browsers. That means we won't be able
+	// to read canvas back as it would fail with `Error: SecurityError: DOM Exception 18`.
+	// See `http://getcontext.net/read/chrome-securityerror-dom-exception-18`.
+	try {
+
+	    // Try to read the content of our canvas.
+	    dataURL = canvas.toDataURL(options.type, options.quality);
+
+	} catch (e) {
+
+	    // The security error was thrown. We have to parse and render the SVG image with
+	    // `canvg` library (https://code.google.com/p/canvg/).
+
+	    if (typeof canvg === 'undefined') {
+
+		// The library is not present.
+		console.error('Canvas tainted. Canvg library required.');
+		return;
+	    }
+
+	    // The canvas was tainted. We need to render a new one. Clearing only the content won't help.
+	    createCanvas();
+
+	    // Draw the SVG with canvg library.
+	    canvg(canvas, svg, {
+
+		ignoreDimensions: true,
+		ignoreClear: true,
+		offsetX: padding,
+		offsetY: padding,
+
+		renderCallback: function() {
+
+		    // Read content of our canvas once again.
+		    dataURL = canvas.toDataURL(options.type, options.quality);
+
+		    // Return dataURL in the given callback.
+		    callback(dataURL);
+		}
+	    });
+
+	    return;
+	}
+
+	// Return dataURL in the given callback.
+	callback(dataURL);
+    };
+
+    var svg = this.toSVG();
+
+    // A canvas doesn't like width and height to be defined as percentage for some reason. We need to replace it
+    // with desired width and height instead.
+    svg = svg.replace('width="100%"','width="' + contentWidth + '"').replace('height="100%"','height="' + contentHeight + '"');
+
+    // An image starts loading when we assign its source.
+    img.src = 'data:image/svg+xml;base64,' + btoa(svg);
+}
+
+joint.dia.Paper.prototype.toPNG = function(callback, options) {
+
+    // options: width, height, backgroundColor
+    options = options || {};
+    options.type = 'image/png';
+    this.toDataURL(callback, options);
+}
+
+joint.dia.Paper.prototype.toJPEG = function(callback, options) {
+
+    // options: width, height, backgroundColor, quality
+    options = options || {};
+    options.type = 'image/jpeg';
+    this.toDataURL(callback, options);
+}
+(function() {
+
+    var printEvents = 'onbeforeprint' in window;
+
+    function beforePrint(opt, data) {
+
+        var svg = V(this.svg);
+
+        var bbox = this.getContentBBox().moveAndExpand({
+            x: -opt.padding,
+            y: -opt.padding,
+            width: 2 * opt.padding,
+            height: 2 * opt.padding
+        });
+
+        // store original svg attributes
+        data.attrs = {
+            width: svg.attr('width'),
+            height: svg.attr('height'),
+            viewBox: svg.attr('viewBox')
+        }
+
+        // stretch the content to the size of the container
+        svg.attr({
+            width: '100%',
+            height: '100%',
+            viewBox: [bbox.x, bbox.y, bbox.width, bbox.height].join(' ')
+        });
+
+        // append the paper straight to the body
+        this.$el.addClass('printarea').addClass(opt.size);
+
+        if (opt.detachBody) {
+
+            // store reference to the paper parent
+            data.$parent = this.$el.parent();
+
+            // detach everything from body and store it
+            data.$content = $(document.body).children().detach();
+
+            this.$el.appendTo(document.body);
+        }
+    }
+
+    function afterPrint(opt, data) {
+
+        var svg = V(this.svg);
+
+        // Note that IE 9 in order to delete attribute requires setting null,
+        // calling `svg.node.removeAttribute('viewBox')` does not work there for some reason,
+        // (not even the `removeAttributeNS()` version).
+        // On the other hand Firefox doesn't like setting null for viewBox and throws a warning.
+        // But that's something we have to put up with.
+        svg.attr(data.attrs);
+
+        this.$el.removeClass('printarea').removeClass(opt.size)
+
+        if (opt.detachBody) {
+
+            // append the paper to its original parent
+            this.$el.appendTo(data.$parent);
+
+            // append the original body
+            data.$content.appendTo(document.body);
+        }
+    }
+
+    joint.dia.Paper.prototype.print = function(opt) {
+
+        opt = opt || {};
+
+        _.defaults(opt, {
+            size: 'a4', // allows adding custom sizes through css
+            padding: 20,
+            detachBody: true // can be disabled if detaching body is not found desired.
+            /*
+              In that case a custom css is required to position the paper to cover the entire screen
+              and to hide all elements, whose presence are not desirable in the output print page. i.e:
+
+              @media print {
+
+                .printarea {
+                  position: absolute;
+                  left: 0px;
+                  top: 0px;
+                }
+
+                .stencil, .inspector, .toolbar {
+                  display: none;
+                }
+              }
+
+            */
+        });
+
+        // data handovered between beforePrint and afterPrint
+        var data = {};
+
+        // create local versions of before/after methods
+        var localBeforePrint = _.bind(beforePrint, this, opt, data);
+        var localAfterPrint = _.bind(afterPrint, this, opt, data);
+
+        // before print
+
+        if (printEvents) {
+
+            // Firefox and IE
+
+            $(window).one('beforeprint', localBeforePrint);
+            $(window).one('afterprint', localAfterPrint);
+
+        } else {
+
+            // Chrome, Opera, Safari
+
+            localBeforePrint();
+        }
+
+        // print
+
+        window.print();
+
+        // after print
+
+        if (!printEvents) {
+
+            // Chrome, Opera, Safari
+
+            var onceAfterPrint = _.once(localAfterPrint);
+
+            // although mouseover works pretty reliably
+            $(document).one('mouseover', onceAfterPrint);
+
+            // to make sure an app won't get stuck without its original body, we'll adding delayed version
+            _.delay(onceAfterPrint, 1000);
+        }
+    };
+
+})();
+// Channel - Graph synchronization plugin.
+// =======================================
+
+// The synchronization protocol is inspired by the paper
+// High-Latency, Low-Bandwidth Windowing in the Jupiter Collaboration System; 1995, Nichols, Curtis.
+
+// Baisc usage
+// -----------
+
+// Server:
+// var channel = new joint.com.Channel({ graph: graph, port: 1234 });
+
+// Client:
+// var channel = new joint.com.Channel({ graph: graph, url: 'ws://localhost:1234' });
+
+// ChannelHub (a.k.a. rooms).
+// --------------------------
+
+// Client:
+// var channel1 = new joint.com.Channel({ graph: graph1, url: 'ws://localhost:1234', query: { room: 'A' } });
+// Another client:
+// var channel2 = new joint.com.Channel({ graph: graph2, url: 'ws://localhost:1234', query: { room: 'A' } });
+// Yet another client:
+// var channel3 = new joint.com.Channel({ graph: graph3, url: 'ws://localhost:1234', query: { room: 'B' } });
+
+// Server (one channel/graph per room):
+// var channels = {};
+// var channelHub = new joint.com.ChannelHub({ port: 4141 });
+// channelHub.route(function(req) {
+//    var query = JSON.parse(req.query.query);
+//    if (channels[query.room]) return channels[query.room];
+//    return channels[req.query.room] = new joint.com.Channel({ graph: new joint.dia.Graph });
+//});
+
+// Notifications (non-reliable but faster communication).
+// ------------------------------------------------------
+
+// channelClient1.on('telepointer', function(data) {  renderPointer(data.x, data.y, data.color) });
+// channelClient2.notify('telepointer', { x: 50, y: 50, color: 'red' });
+
+    
+if (typeof exports === 'object') {
+
+    var joint = {
+        com: {},
+        util: require('../../../src/core').util
+    };
+    var WebSocketServer = require('ws').Server;
+    var WebSocket = require('ws');
+    var _ = require('lodash');
+    var url = require('url');
+    var Backbone = require('backbone');
+}
+
+joint.com = joint.com || {};
+
+// Channel
+// =======
+
+joint.com.Channel = function(opt) {
+    
+    this.options = opt;
+
+    if (!this.options || !this.options.graph) throw new Error('Channel: missing a graph.');
+    
+    // Servers do not have a `url` options but rather a `port` they listen on.
+    this._isClient = !!this.options.url;
+    
+    // A list of sockets for all the clients connected to this channel.
+    this._clients = [];
+
+    // A list of operations waiting to be sent. This queue gets populated
+    // when the channel gets paused.
+    this.messageQueue = [];
+    
+    // This site ID.
+    this.id = this.options.id || joint.util.uuid();
+    
+    // State vector. Number of operations generated and processed for each connected channel including
+    // the channel itself. This state vector is sent witch each operation.
+    this.state = {};
+    this.state[this.id] = 0;
+    
+    // Connected channels and the channel itself. Includes the `outgoing` queue and the current site socket.
+    // This is also useful for recognizing if a site got re-connected or if it is a completely new site.
+    this.sites = {};
+    this.sites[this.id] = { socket: undefined, outgoing: [] };
+
+    this.initialize();
+};
+
+_.extend(joint.com.Channel.prototype, Backbone.Events);
+
+// Establish a connection between client and server and listen on graph changes.
+joint.com.Channel.prototype.initialize = function() {
+
+    this.options.graph.on('all', this.onGraphChange.bind(this));
+
+    if (this._isClient) {
+
+        this.connectClient();
+        
+    } else if (this.options.port) {
+        
+        this.server = new WebSocketServer({ port: this.options.port });
+        this.server.on('connection', this.onConnection.bind(this));
+    }
+};
+
+// Connect client to the server defined in the `options.url`.
+joint.com.Channel.prototype.connectClient = function() {
+
+    var url = this.options.url + '/?channelId=' + this.id + '&state=' + JSON.stringify(this.state) + (this.options.query ? '&query=' + JSON.stringify(this.options.query) : '' );
+
+    if (this.options.debugLevel > 0) this.log('connectClient', url);
+    
+    // Send current `state` together with this `channelId` to the server.
+    var socket = new WebSocket(url);
+    socket.onopen = this.onConnection.bind(this, socket);
+    socket.onclose = this.onClose.bind(this, socket);
+};
+
+// Close all sockets. This effectively shuts down the channel.
+joint.com.Channel.prototype.close = function() {
+
+    if (this._reconnectTimeout) clearTimeout(this._reconnectTimeout);
+    
+    // Mark the channel as closed. This will prevent future reconnection (see `onClose()`).
+    // Note that the `onClose()` is called after we close the client socket in the following lines.
+    this._closed = true;
+    
+    _.each(this.sites, function(site) {
+
+        if (site.socket) site.socket.close();
+    });
+
+    if (this.server) this.server.close();
+};
+
+// Handle a client connection to the server.
+joint.com.Channel.prototype.onConnection = function(socket) {
+
+    // Store the socket to the internal list of clients. This is useful for cleaning up sockets
+    // from clients that have re-connected.
+    this._clients.push(socket);
+
+    if (this._isClient) {
+        
+        this.sites[this.id].socket = socket;
+        socket.onmessage = function(evt) { this.onMessage(socket, evt.data); }.bind(this);
+
+    } else {
+
+        // The required query fields from clients are `channelId` and `state` object JSON stringified.
+        var upgradeReqUrl = url.parse(socket.upgradeReq.url, true);
+        var channelId = upgradeReqUrl.query.channelId;
+        
+        if (this.sites[channelId]) {
+            // Re-connected site.
+            // @TODO: send the site ops from the message queue that the client has not yet seen.
+            this.sites[channelId].socket = socket;
+            
+        } else {
+
+            if (this.debugLevel > 1) this.log('new_site', channelId);
+            
+            // New site.
+            this.sites[channelId] = { socket: socket, outgoing: [] };
+            this.state[channelId] = 0;
+
+            // Send the new site the whole graph.
+            var op = {
+                channelId: this.id,
+                state: JSON.parse(JSON.stringify(this.state)),
+                action: 'graph',
+                graph: this.options.graph.toJSON()
+            };
+            
+            this.messageQueue.push({ type: 'op', data: op, source: this.id, target: [channelId] });
+            this.send();
+        }
+        
+        socket.on('message', this.onMessage.bind(this, socket));
+        socket.on('close', this.onClose.bind(this, socket));
+    }
+};
+
+// Handle a client disconnection.
+joint.com.Channel.prototype.onClose = function(socket) {
+
+    var index = this._clients.indexOf(socket);
+    if (index !== -1) {
+        this._clients.splice(index, 1);
+    }
+
+    // If the connection got closed, try to reconnect every 10s or every `options.reconnectInterval` milliseconds.
+    if (this._isClient && !this._closed) {
+
+        if (this._reconnectTimeout) clearTimeout(this._reconnectTimeout);
+        
+        this._reconnectTimeout = setTimeout(this.connectClient.bind(this), this.options.reconnectInterval || 10000);
+    }
+
+    this.trigger('close', socket);
+};
+
+// Remote update.
+joint.com.Channel.prototype.onMessage = function(socket, message) {
+
+    this.trigger('message:received', message);
+    
+    if (this.options.debugLevel > 1) this.log('message', message);
+
+    try {
+        message = JSON.parse(message);
+    } catch (err) {
+        // This should never happen.
+        return console.error('Channel: message parsing failed.', err);
+    }
+
+    if (message.type == 'notification') {
+        // Notification. If a notification is received, the event it carries is triggered on the channel.
+        // If a server receives a notification, it broadcasts it to all the clients except the one
+        // that sent the notification.
+
+        this.trigger(message.data.event, message.data.data);
+        return this.sendNotification(message);
+    }
+
+    var op = message.data;
+
+    // Receive the op at every site.
+    // Note that in case of a client, there is only one site.
+    // In case of the server, there is the server's site itself and sites for all the clients.
+
+    if (this._isClient) {
+
+        // Transform the operation in the client's state. Note that clients do not store
+        // the state of the server (or even other clients) but only their own state.
+        var mySite = this.sites[this.id];
+        op = this.receive(mySite, this.id, op);
+        
+    } else {
+
+        // Send and transform the operation in the state of the sending client.
+        var otherSite = this.sites[op.channelId];
+        op = this.receive(otherSite, op.channelId, op);
+
+        // Now send the transformed operation to my own state.
+        var mySite = this.sites[this.id];
+        op = this.receive(mySite, this.id, op);
+    }
+
+    // Update the version tuple. Note that if the operation action was the whole graph, then we
+    // need to update the state of the server (that the client keeps track of) to the state
+    // that was sent with the graph operation as there might have been much more than one operation
+    // applied on the server before the graph was sent.
+    if (op.action === 'graph') {
+        
+        this.state[op.channelId] = op.state[op.channelId];
+        
+    } else {
+        
+        this.state[op.channelId] = (this.state[op.channelId] || 0) + 1;
+    }
+
+    if (this.options.debugLevel > 1) this.log('new state', this.state);
+
+    // Execute the operation. Note that we have to execute after we have update the state as
+    // executing one operation can lead to generating other operations (see e.g. `disconnectLinks` in `joint.dia.graph`).
+    this.execute(op);    
+
+    // Update the `outgoing` queue in all the sites except my own and the one the operation
+    // came from as these two cases we handled already (see above). The reason we do this here
+    // is that we don't want the operation to be transformed again.
+    _.each(this.sites, function(site, channelId) {
+
+        if (channelId !== this.id && channelId !== op.channelId) {
+            
+            this.receive(site, channelId, op);
+        }
+    }, this);
+
+    if (!this._isClient) {
+
+        // Broadcast the transformed operation to all the other sites.
+        message.op = op;
+        this.messageQueue.push(message);
+        this.broadcast(message);
+    }
+
+    this.trigger('message:processed', message);
+};
+
+// Receive an `op` at `site` with id `channelId`. Transform the `op` and Update the outgoing queue
+// accordingly. Return the transformed `op`.
+joint.com.Channel.prototype.receive = function(site, channelId, op) {
+
+    if (this.options.debugLevel > 1) this.log('receive', channelId, op);
+    if (this.options.debugLevel > 1) this.log('outgoing', site.outgoing);
+    
+    // Discard acknowledged.
+    site.outgoing = _.filter(site.outgoing, function(oldOp) {
+
+        return oldOp.state[oldOp.channelId] >= (op.state[oldOp.channelId] || 0);
+    });
+
+    if (this.options.debugLevel > 1) this.log('outgoing.length', site.outgoing.length);
+
+    // Transform and store intermediate results to `outgoing` for next transformations.
+    for (var i = 0; i < site.outgoing.length; i++) {
+        var oldOp = site.outgoing[i];
+        var transformResult = this.transform(op, oldOp);
+        op = transformResult[0];
+        site.outgoing[i] = transformResult[1];
+    }
+
+    return op;
+};
+
+// Transform operations `o1` and `o2`. Operation `o1` is the incoming operation. `o2` is taken from the outgoing queue.
+// The first item of the returned array is the operation that will be applied, the second is an operation
+// that will replace `o2` in outgoing (and will be used in future transformations).
+joint.com.Channel.prototype.transform = function(o1, o2) {
+
+    if (this.options.debugLevel > 1) this.log('transform', o1, o2);
+
+    // Note that the other way round is not neccessary to cover as if the incoming op is remove
+    // and the the previous operation was change:target to the removed element, then the remove
+    // automatically disconnects the link (see `disconnectLinks: true` in `execute()`).
+    if (o1.action === 'change:target' && o2.action === 'remove') {
+
+        if (o1.cell.target.id === o2.cell.id) {
+
+            o1.cell.target = { x: 0, y: 0 };
+        }
+    }
+
+    if (o1.action === 'change:source' && o2.action === 'remove') {
+
+        if (o1.cell.source.id === o2.cell.id) {
+
+            o1.cell.source = { x: 0, y: 0 };
+        }
+    }
+
+    return [o1, o2];
+};
+
+joint.com.Channel.prototype.execute = function(op) {
+
+    var cell;
+
+    switch (op.action) {
+
+      case 'add':
+        this.options.graph.addCell(op.cell, { remote: true });
+        break;
+
+      case 'remove':
+        cell = this.options.graph.getCell(op.cell.id);
+        // Do not remove associated links (`disconnectLinks: true`) as these removals arrive as separate operations.
+        if (cell) cell.remove({ remote: true, disconnectLinks: true });
+        break;
+
+      case 'graph':
+        // Complete graph replacement.
+        this.options.graph.fromJSON(op.graph);
+        break;
+
+    default:
+        var attribute = op.action.substr('change:'.length);
+        cell = this.options.graph.getCell(op.cell.id);
+        if (cell) cell.set(attribute, op.cell[attribute], { remote: true });
+        break;
+    }
+};
+
+// Broadcast `message` to all the sites except the one that send the message (source site).
+joint.com.Channel.prototype.broadcast = function(message) {
+
+    if (this._isClient) {
+        message.target = _.keys(this.sites);
+    } else {
+        message.target = _.keys(_.omit(this.sites, this.id, message.source));
+    }
+
+    this.send();
+};
+
+// Send all operations from the `messageQueue` to their intended recipients.
+joint.com.Channel.prototype.send = function() {
+
+    if (this._paused) return;
+
+    // Go through the messages one by one and check if they can be sent. If yes, send the message
+    // and remove it from the `messageQueue`. If not, keep the message in the `messageQueue` and break up
+    // from the function.
+    for (var i = 0; i < this.messageQueue.length; i++) {
+        var m = this.messageQueue[i];
+        if (this.checkMessage(m)) {
+            this.sendMessage(m);
+            this.messageQueue.shift();
+        } else {
+            break;
+        }
+    }
+};
+
+// Check if a message can be sent to all the targets.
+joint.com.Channel.prototype.checkMessage = function(m) {
+
+    // Return `true` if all the targets sockets are ready.
+    return !_.some(m.target, function(target) {
+
+        var recievingSite = this.sites[target];
+        if (!recievingSite) return true;
+        if (!recievingSite.socket) return true;
+        // readyState constants: See https://developer.mozilla.org/en-US/docs/Web/API/WebSocket#Ready_state_constants.
+        // 1 === OPEN (The connection is open and ready to communicate.)
+        if (recievingSite.socket.readyState !== 1) return true;
+        return false;
+        
+    }, this);
+};
+
+// Send one message to its targets.
+joint.com.Channel.prototype.sendMessage = function(m) {
+
+    if (this.debugLevel > 1) this.log('sendMessage', m);
+    
+    m.target.forEach(function(target) {
+
+        var recievingSite = this.sites[target];
+        // @assert recievingSite.socket
+
+        if (this.debugLevel > 1) this.log('sendMessage', target, m);
+
+        recievingSite.socket.send(JSON.stringify(m));
+        
+    }, this);
+};
+
+joint.com.Channel.prototype.log = function(keyword, args) {
+
+    var text = 'Channel [' + this.id + '] ' + keyword.toUpperCase() + ': ';
+    
+    console.log.apply(console, [text].concat(_.rest(_.toArray(arguments))));
+};
+
+// Pause the channel. All messages that are supposed to be sent from now one will end up in the
+// `messageQueue` until the channel is unpaused.
+joint.com.Channel.prototype.pause = function() {
+    
+    this._paused = true;
+};
+
+// Unpause the channel causing all the messages from `messageQueue` to be send immediately.
+joint.com.Channel.prototype.unpause = function() {
+
+    this._paused = false;
+    this.send();
+};
+
+// Notify everyone about the `event` carrying `data`.
+joint.com.Channel.prototype.notify = function(event, data) {
+
+    var message = {
+        type: 'notification',
+        source: this.id,
+        data: { event: event, data: data }
+    };
+    this.sendNotification(message);
+};
+
+// Send notification is like broadcast with send combined except that the message does not go
+// to the `messageQueue`. Notifications are not like ops, OT is not involved. They are useful though for
+// things like telepointers and other messages which don't require such a safety as ops.
+joint.com.Channel.prototype.sendNotification = function(message) {
+
+    if (this._isClient) {
+        message.target = _.keys(this.sites);
+    } else {
+        message.target = _.keys(_.omit(this.sites, this.id, message.source));
+    }
+
+    this.sendMessage(message);
+};
+
+// Local update.
+// Broadcast the operation, store it to the `outgoing` queue and increment this site state.
+joint.com.Channel.prototype.onGraphChange = function(eventName, cell, graph, options) {
+
+    // If this change is a result of executing an operation sent by others, do not broadcast.
+    if (options && options.remote) return;
+
+    // We're only interested in `add`, `remove` and `change:` events.
+    var isInteresting = eventName === 'add' || eventName === 'remove' || eventName.substr(0, 'change:'.length) === 'change:';
+    if (!isInteresting) return;
+
+    // Generate operation.
+    var op = {
+        channelId: this.id,
+        state: JSON.parse(JSON.stringify(this.state)),
+        action: eventName,
+        cell: cell.toJSON()
+    };
+
+    // Broadcast message with the operation.
+    var message = { type: 'op', data: op, source: this.id };
+
+    if (this.options.debugLevel > 1) this.log('generate', message);
+    
+    this.messageQueue.push(message);
+    this.broadcast(message);
+
+    // Store the `op` for later transformations.
+    this.sites[this.id].outgoing.push(op);
+
+    // Move down the state space.
+    this.state[this.id]++;
+};
+
+// ChannelHub
+// ==========
+
+joint.com.ChannelHub = function(opt) {
+
+    this.options = opt;
+
+    if (!this.options.port) throw new Error('ChannelHub: missing a port.');
+
+    this.initialize();
+};
+
+_.extend(joint.com.ChannelHub.prototype, Backbone.Events);
+
+joint.com.ChannelHub.prototype.initialize = function() {
+    
+    this.server = new WebSocketServer({ port: this.options.port });
+    this.server.on('connection', this.onConnection.bind(this));
+};
+
+joint.com.ChannelHub.prototype.onConnection = function(socket) {
+
+    // The required query fields from clients are `channelId` and `state` object JSON stringified.
+    var upgradeReqUrl = url.parse(socket.upgradeReq.url, true);
+    var req = { query: upgradeReqUrl.query };
+
+    if (!this.router) throw new Error('ChannelHub: missing a router.');
+    
+    var channel = this.router(req);
+    channel.onConnection(socket);
+};
+
+joint.com.ChannelHub.prototype.route = function(router) {
+    this.router = router;
+};
+
+// Shut down the server.
+joint.com.ChannelHub.prototype.close = function() {
+
+    this.server.close();
+};
+
+
+if (typeof exports === 'object') {
+
+    module.exports.Channel = joint.com.Channel;
+    module.exports.ChannelHub = joint.com.ChannelHub;
+}
