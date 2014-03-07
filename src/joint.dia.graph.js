@@ -112,11 +112,10 @@ joint.dia.Graph = Backbone.Model.extend({
             throw new Error('Graph JSON must contain cells array.');
         }
 
-        var attrs = json;
+        var attrs = _.omit(json,'cells');
 
         // Cells are the only attribute that is being set differently, using `cells.add()`.
         var cells = json.cells;
-        delete attrs.cells;
         
         this.set(attrs);
         
