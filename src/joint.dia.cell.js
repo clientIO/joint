@@ -681,6 +681,11 @@ joint.dia.CellView = Backbone.View.extend({
     // These functions are supposed to be overriden by the views that inherit from `joint.dia.Cell`,
     // i.e. `joint.dia.Element` and `joint.dia.Link`.
 
+    pointerclick: function(evt, x, y) {
+
+        this.notify('cell:pointerclick', evt, x, y);
+    },
+
     pointerdblclick: function(evt, x, y) {
 
         this.notify('cell:pointerdblclick', evt, x, y);
@@ -688,10 +693,10 @@ joint.dia.CellView = Backbone.View.extend({
     
     pointerdown: function(evt, x, y) {
 
-	if (this.model.collection) {
-	    this.model.trigger('batch:start');
-	    this._collection = this.model.collection;
-	}
+        if (this.model.collection) {
+            this.model.trigger('batch:start');
+            this._collection = this.model.collection;
+        }
 
         this.notify('cell:pointerdown', evt, x, y);
     },
@@ -705,12 +710,12 @@ joint.dia.CellView = Backbone.View.extend({
 
         this.notify('cell:pointerup', evt, x, y);
 
-	if (this._collection) {
-	    // we don't want to trigger event on model as model doesn't
-	    // need to be member of collection anymore (remove)
-	    this._collection.trigger('batch:stop');
-	    delete this._collection;
-	}
+        if (this._collection) {
+            // we don't want to trigger event on model as model doesn't
+            // need to be member of collection anymore (remove)
+            this._collection.trigger('batch:stop');
+            delete this._collection;
+        }
 
     }
 });
