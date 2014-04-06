@@ -314,7 +314,7 @@ joint.dia.Paper = Backbone.View.extend({
 
         return _.isFunction(this.options.defaultLink)
         // default link is a function producing link model
-            ? this.options.defultLink.call(this, cellView, magnet)
+            ? this.options.defaultLink.call(this, cellView, magnet)
         // default link is the Backbone model
             : this.options.defaultLink.clone();
     },
