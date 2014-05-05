@@ -415,7 +415,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
         var scalableBbox = scalable.bbox(true);
         
-        scalable.attr('transform', 'scale(' + (size.width / scalableBbox.width) + ',' + (size.height / scalableBbox.height) + ')');
+        scalable.attr('transform', 'scale(' + (size.width / scalableBbox.width || 1) + ',' + (size.height / scalableBbox.height || 1) + ')');
 
         // Now the interesting part. The goal is to be able to store the object geometry via just `x`, `y`, `angle`, `width` and `height`
         // Order of transformations is significant but we want to reconstruct the object always in the order:
