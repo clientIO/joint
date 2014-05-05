@@ -1,4 +1,4 @@
-/*! JointJS v0.8.1 - JavaScript diagramming library  2014-03-14 
+/*! JointJS v0.8.1 - JavaScript diagramming library  2014-03-17 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -20271,6 +20271,11 @@ joint.dia.CellView = Backbone.View.extend({
     // These functions are supposed to be overriden by the views that inherit from `joint.dia.Cell`,
     // i.e. `joint.dia.Element` and `joint.dia.Link`.
 
+    pointerclick: function(evt, x, y) {
+
+        this.notify('cell:pointerclick', evt, x, y);
+    },
+
     pointerdblclick: function(evt, x, y) {
 
         this.notify('cell:pointerdblclick', evt, x, y);
@@ -20278,10 +20283,10 @@ joint.dia.CellView = Backbone.View.extend({
     
     pointerdown: function(evt, x, y) {
 
-	if (this.model.collection) {
-	    this.model.trigger('batch:start');
-	    this._collection = this.model.collection;
-	}
+        if (this.model.collection) {
+            this.model.trigger('batch:start');
+            this._collection = this.model.collection;
+        }
 
         this.notify('cell:pointerdown', evt, x, y);
     },
@@ -20295,12 +20300,12 @@ joint.dia.CellView = Backbone.View.extend({
 
         this.notify('cell:pointerup', evt, x, y);
 
-	if (this._collection) {
-	    // we don't want to trigger event on model as model doesn't
-	    // need to be member of collection anymore (remove)
-	    this._collection.trigger('batch:stop');
-	    delete this._collection;
-	}
+        if (this._collection) {
+            // we don't want to trigger event on model as model doesn't
+            // need to be member of collection anymore (remove)
+            this._collection.trigger('batch:stop');
+            delete this._collection;
+        }
 
     }
 });
@@ -22171,7 +22176,8 @@ joint.dia.Paper = Backbone.View.extend({
         'dblclick': 'mousedblclick',
         'touchstart': 'pointerdown',
         'mousemove': 'pointermove',
-        'touchmove': 'pointermove'
+        'touchmove': 'pointermove',
+        'click': 'mouseclick'
     },
 
     initialize: function() {
@@ -22192,12 +22198,16 @@ joint.dia.Paper = Backbone.View.extend({
 
         this.setDimensions();
 
-	this.listenTo(this.model, 'add', this.addCell);
-	this.listenTo(this.model, 'reset', this.resetCells);
-	this.listenTo(this.model, 'sort', this.sortCells);
+        this.listenTo(this.model, 'add', this.addCell);
+        this.listenTo(this.model, 'reset', this.resetCells);
+        this.listenTo(this.model, 'sort', this.sortCells);
 
-	$(document).on('mouseup touchend', this.pointerup);
+        $(document).on('mouseup touchend', this.pointerup);
+
+        // Hold the value when mouse has been moved: when mouse moved, no click event will be triggered
+        this._mousemoved =  false;
     },
+
 
     remove: function() {
 
@@ -22451,6 +22461,28 @@ joint.dia.Paper = Backbone.View.extend({
     // Interaction.
     // ------------
 
+    mouseclick: function(evt) {
+
+        // Trigger Event when mouse not moved
+        if (!this._mousemoved) {
+            evt.preventDefault();
+            evt = joint.util.normalizeEvent(evt);
+
+            var view = this.findView(evt.target);
+            var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+            if (view) {
+
+                view.pointerclick(evt, localPoint.x, localPoint.y);
+            } else {
+
+                this.trigger('blank:pointerclick', evt, localPoint.x, localPoint.y);
+            }
+        }
+
+        this._mousemoved = false;
+    },
+
     mousedblclick: function(evt) {
         
         evt.preventDefault();
@@ -22495,7 +22527,10 @@ joint.dia.Paper = Backbone.View.extend({
         evt.preventDefault();
         evt = joint.util.normalizeEvent(evt);
 
+
         if (this.sourceView) {
+            // Mouse moved the view
+            this._mousemoved = true;
 
             var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
