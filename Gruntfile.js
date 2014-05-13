@@ -7,13 +7,19 @@ module.exports = function(grunt) {
         
         libs: {
             jquery: ['lib/jquery.js'],
-            backbone: ['lib/lodash.js', 'lib/backbone.js'],
-            helpers: ['lib/jquery.sortElements.js']
+            backbone: ['lib/lodash.js', 'lib/backbone.js']
+        },
+
+        helpers: {
+            vectorizer: ['src/vectorizer.js'],
+            geometry: ['src/geometry.js']
         },
         
         core: [
-            'src/core.js', 'src/vectorizer.js', 'src/geometry.js', 'src/joint.dia.graph.js', 'src/joint.dia.cell.js', 'src/joint.dia.element.js', 'src/joint.dia.link.js', 'src/joint.dia.paper.js',
-            'plugins/joint.shapes.basic.js'
+            'src/core.js', 'src/joint.dia.graph.js', 'src/joint.dia.cell.js', 'src/joint.dia.element.js', 'src/joint.dia.link.js', 'src/joint.dia.paper.js',
+            'plugins/joint.shapes.basic.js',
+            'plugins/routers/joint.routers.orthogonal.js', 'plugins/routers/joint.routers.manhattan.js', 'plugins/routers/joint.routers.metro.js',
+            'plugins/connectors/joint.connectors.normal.js', 'plugins/connectors/joint.connectors.rounded.js', 'plugins/connectors/joint.connectors.smooth.js'            
         ],
 
         plugins: {
@@ -76,7 +82,11 @@ module.exports = function(grunt) {
             dist: {
                 files: {
                     'dist/joint.js': [].concat(
-                        js.libs.jquery, js.libs.backbone, js.libs.helpers,
+                        js.libs.jquery, js.libs.backbone,
+                        js.helpers.vectorizer, js.helpers.geometry,
+                        js.core
+                    ),
+                    'dist/joint.clean.js': [].concat(
                         js.core
                     ),
                     'dist/joint.css': [].concat(
@@ -87,7 +97,11 @@ module.exports = function(grunt) {
             allinone: {
                 files: {
                     'dist/joint.all.js': [].concat(
-                        js.libs.jquery, js.libs.backbone, js.libs.helpers,
+                        js.libs.jquery, js.libs.backbone,
+                        js.helpers.vectorizer, js.helpers.geometry,
+                        js.core, allJSPlugins()
+                    ),
+                    'dist/joint.all.clean.js': [].concat(
                         js.core, allJSPlugins()
                     ),
                     'dist/joint.all.css': [].concat(
@@ -98,7 +112,8 @@ module.exports = function(grunt) {
             nojquery: {
                 files: {
                     'dist/joint.nojquery.js': [].concat(
-                        js.libs.backbone, js.libs.helpers,
+                        js.libs.backbone,
+                        js.helpers.vectorizer, js.helpers.geometry,
                         js.core
                     ),
                     'dist/joint.nojquery.css': [].concat(
@@ -109,7 +124,8 @@ module.exports = function(grunt) {
             nobackbone: {
                 files: {
                     'dist/joint.nobackbone.js': [].concat(
-                        js.libs.jquery, js.libs.helpers,
+                        js.libs.jquery,
+                        js.helpers.vectorizer, js.helpers.geometry,
                         js.core
                     ),
                     'dist/joint.nojquery.css': [].concat(
@@ -120,7 +136,7 @@ module.exports = function(grunt) {
             nojquerynobackbone: {
                 files: {
                     'dist/joint.nojquerynobackbone.js': [].concat(
-                        js.libs.helpers,
+                        js.helpers.vectorizer, js.helpers.geometry,
                         js.core
                     ),
                     'dist/joint.nojquerynobackbone.css': [].concat(
@@ -138,7 +154,11 @@ module.exports = function(grunt) {
             dist: {
                 files: {
                     'dist/joint.min.js': [].concat(
-                        js.libs.jquery, js.libs.backbone, js.libs.helpers,
+                        js.libs.jquery, js.libs.backbone,
+                        js.helpers.vectorizer, js.helpers.geometry,
+                        js.core
+                    ),
+                    'dist/joint.clean.min.js': [].concat(
                         js.core
                     )
                 }
@@ -146,7 +166,11 @@ module.exports = function(grunt) {
             allinone: {
                 files: {
                     'dist/joint.all.min.js': [].concat(
-                        js.libs.jquery, js.libs.backbone, js.libs.helpers,
+                        js.libs.jquery, js.libs.backbone,
+                        js.helpers.vectorizer, js.helpers.geometry,
+                        js.core, allJSPlugins()
+                    ),
+                    'dist/joint.all.clean.min.js': [].concat(
                         js.core, allJSPlugins()
                     )
                 }
@@ -154,7 +178,8 @@ module.exports = function(grunt) {
             nojquery: {
                 files: {
                     'dist/joint.nojquery.min.js': [].concat(
-                        js.libs.backbone, js.libs.helpers,
+                        js.libs.backbone,
+                        js.helpers.vectorizer, js.helpers.geometry,
                         js.core
                     )
                 }
@@ -162,7 +187,8 @@ module.exports = function(grunt) {
             nobackbone: {
                 files: {
                     'dist/joint.nobackbone.min.js': [].concat(
-                        js.libs.jquery, js.libs.helpers,
+                        js.libs.jquery,
+                        js.helpers.vectorizer, js.helpers.geometry,
                         js.core
                     )
                 }
@@ -170,7 +196,7 @@ module.exports = function(grunt) {
             nojquerynobackbone: {
                 files: {
                     'dist/joint.nojquerynobackbone.min.js': [].concat(
-                        js.libs.helpers,
+                        js.helpers.vectorizer, js.helpers.geometry,                        
                         js.core
                     )
                 }

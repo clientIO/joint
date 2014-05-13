@@ -129,7 +129,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             if ($selected.length === 0) return;
 
             // Special attributes are treated by JointJS, not by SVG.
-            var specialAttributes = ['style', 'text', 'html', 'ref-x', 'ref-y', 'ref-dx', 'ref-dy', 'ref', 'x-alignment', 'y-alignment', 'port'];
+            var specialAttributes = ['style', 'text', 'html', 'ref-x', 'ref-y', 'ref-dx', 'ref-dy', 'ref-width', 'ref-height', 'ref', 'x-alignment', 'y-alignment', 'port'];
 
             // If the `filter` attribute is an object, it is in the special JointJS filter format and so
             // it becomes a special attribute and is treated separately.
@@ -151,7 +151,20 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 specialAttributes.push('stroke');
                 this.applyGradient(selector, 'stroke', attrs.stroke);
             }
-            
+
+            // Make special case for `text` attribute. So that we can set text content of the `<text>` element
+            // via the `attrs` object as well.
+            // Note that it's important to set text before applying the rest of the final attributes.
+            // Vectorizer `text()` method sets on the element its own attributes and it has to be possible
+            // to rewrite them, if needed. (i.e display: 'none')
+            if (!_.isUndefined(attrs.text)) {
+
+                $selected.each(function() {
+
+                    V(this).text(attrs.text + '');
+                });
+            }
+
             // Set regular attributes on the `$selected` subelement. Note that we cannot use the jQuery attr()
             // method as some of the attributes might be namespaced (e.g. xlink:href) which fails with jQuery attr().
             var finalAttributes = _.omit(attrs, specialAttributes);
@@ -173,16 +186,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 $selected.css(attrs.style);
             }
             
-            // Make special case for `text` attribute. So that we can set text content of the `<text>` element
-            // via the `attrs` object as well.
-            if (!_.isUndefined(attrs.text)) {
-
-                $selected.each(function() {
-
-                    V(this).text(attrs.text + '');
-                });
-            }
-
             if (!_.isUndefined(attrs.html)) {
 
                 $selected.each(function() {
@@ -198,10 +201,17 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 !_.isUndefined(attrs['ref-dx']) ||
                 !_.isUndefined(attrs['ref-dy']) ||
 		!_.isUndefined(attrs['x-alignment']) ||
-		!_.isUndefined(attrs['y-alignment'])
+		!_.isUndefined(attrs['y-alignment']) ||
+                !_.isUndefined(attrs['ref-width']) ||
+                !_.isUndefined(attrs['ref-height'])
                ) {
 
-                relativelyPositioned.push($selected);
+                   _.each($selected, function(el, index, list) {
+                       var $el = $(el);
+                       // copy original list selector to the element
+                       $el.selector = list.selector;
+                       relativelyPositioned.push($el);
+                   });
             }
             
         }, this);
@@ -246,6 +256,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var refDy = parseFloat(elAttrs['ref-dy']);
         var yAlignment = elAttrs['y-alignment'];
         var xAlignment = elAttrs['x-alignment'];
+        var refWidth = parseFloat(elAttrs['ref-width']);
+        var refHeight = parseFloat(elAttrs['ref-height']);
 
         // `ref` is the selector of the reference element. If no `ref` is passed, reference
         // element is the root element.
@@ -274,6 +286,35 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // The final translation of the subelement.
         var tx = 0;
         var ty = 0;
+
+        // 'ref-width'/'ref-height' defines the width/height of the subelement relatively to
+        // the reference element size
+        // val in 0..1         ref-width = 0.75 sets the width to 75% of the ref. el. width
+        // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
+
+        if (isDefined(refWidth)) {
+
+            if (refWidth >= 0 && refWidth <= 1) {
+
+                vel.attr('width', refWidth * bbox.width);
+
+            } else {
+
+                vel.attr('width', Math.max(refWidth + bbox.width, 0));
+            }
+        }
+
+        if (isDefined(refHeight)) {
+
+            if (refHeight >= 0 && refHeight <= 1) {
+
+                vel.attr('height', refHeight * bbox.height);
+
+            } else {
+
+                vel.attr('height', Math.max(refHeight + bbox.height, 0));
+            }
+        }
 
         // `ref-dx` and `ref-dy` define the offset of the subelement relative to the right and/or bottom
         // coordinate of the reference element.
@@ -350,7 +391,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             
         } else if (isDefined(yAlignment)) {
 
-            ty += (yAlignment > 0 && yAlignment < 1) ?  velbbox.height * yAlignment : yAlignment;
+            ty += (yAlignment > -1 && yAlignment < 1) ?  velbbox.height * yAlignment : yAlignment;
         }
 
         // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
@@ -360,7 +401,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             
         } else if (isDefined(xAlignment)) {
 
-            tx += (xAlignment > 0 && xAlignment < 1) ?  velbbox.width * xAlignment : xAlignment;
+            tx += (xAlignment > -1 && xAlignment < 1) ?  velbbox.width * xAlignment : xAlignment;
         }
 
         vel.translate(tx, ty);
@@ -368,8 +409,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
     // default markup is not desirable.
-    render: function() {
-
+    renderMarkup: function() {
+        
         var markup = this.model.markup || this.model.get('markup');
         
         if (markup) {
@@ -381,6 +422,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             throw new Error('properties.markup is missing while the default render() implementation is used.');
         }
+    },
+
+    render: function() {
+
+        this.$el.empty();
+
+        this.renderMarkup();
 
         this.update();
 

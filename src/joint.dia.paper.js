@@ -35,10 +35,10 @@ joint.dia.Paper = Backbone.View.extend({
 
         'mousedown': 'pointerdown',
         'dblclick': 'mousedblclick',
+        'click': 'mouseclick',
         'touchstart': 'pointerdown',
         'mousemove': 'pointermove',
-        'touchmove': 'pointermove',
-        'click': 'mouseclick'
+        'touchmove': 'pointermove'
     },
 
     initialize: function() {
@@ -59,16 +59,15 @@ joint.dia.Paper = Backbone.View.extend({
 
         this.setDimensions();
 
-        this.listenTo(this.model, 'add', this.addCell);
-        this.listenTo(this.model, 'reset', this.resetCells);
-        this.listenTo(this.model, 'sort', this.sortCells);
+	this.listenTo(this.model, 'add', this.addCell);
+	this.listenTo(this.model, 'reset', this.resetCells);
+	this.listenTo(this.model, 'sort', this.sortCells);
 
-        $(document).on('mouseup touchend', this.pointerup);
+	$(document).on('mouseup touchend', this.pointerup);
 
-        // Hold the value when mouse has been moved: when mouse moved, no click event will be triggered
-        this._mousemoved =  false;
+        // Hold the value when mouse has been moved: when mouse moved, no click event will be triggered.
+        this._mousemoved = false;
     },
-
 
     remove: function() {
 
@@ -187,14 +186,52 @@ joint.dia.Paper = Backbone.View.extend({
         var $cells = $(this.viewport).children('[model-id]');
         var cells = this.model.get('cells');
 
-        // Using the jquery.sortElements plugin by Padolsey.
-        // See http://james.padolsey.com/javascript/sorting-elements-with-jquery/.
-        $cells.sortElements(function(a, b) {
+        this.sortElements($cells, function(a, b) {
 
             var cellA = cells.get($(a).attr('model-id'));
             var cellB = cells.get($(b).attr('model-id'));
             
             return (cellA.get('z') || 0) > (cellB.get('z') || 0) ? 1 : -1;
+        });
+    },
+
+    // Highly inspired by the jquery.sortElements plugin by Padolsey.
+    // See http://james.padolsey.com/javascript/sorting-elements-with-jquery/.
+    sortElements: function(elements, comparator) {
+
+        var $elements = $(elements);
+        
+        var placements = $elements.map(function() {
+
+            var sortElement = this;
+            var parentNode = sortElement.parentNode;
+
+            // Since the element itself will change position, we have
+            // to have some way of storing it's original position in
+            // the DOM. The easiest way is to have a 'flag' node:
+            var nextSibling = parentNode.insertBefore(
+                document.createTextNode(''),
+                sortElement.nextSibling
+            );
+
+            return function() {
+                
+                if (parentNode === this) {
+                    throw new Error(
+                        "You can't sort elements if any one is a descendant of another."
+                    );
+                }
+                
+                // Insert before flag:
+                parentNode.insertBefore(this, nextSibling);
+                // Remove flag:
+                parentNode.removeChild(nextSibling);
+                
+            };
+        });
+
+        return Array.prototype.sort.call($elements, comparator).each(function(i) {
+            placements[i].call(this);
         });
     },
 
@@ -322,28 +359,6 @@ joint.dia.Paper = Backbone.View.extend({
     // Interaction.
     // ------------
 
-    mouseclick: function(evt) {
-
-        // Trigger Event when mouse not moved
-        if (!this._mousemoved) {
-            evt.preventDefault();
-            evt = joint.util.normalizeEvent(evt);
-
-            var view = this.findView(evt.target);
-            var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-
-            if (view) {
-
-                view.pointerclick(evt, localPoint.x, localPoint.y);
-            } else {
-
-                this.trigger('blank:pointerclick', evt, localPoint.x, localPoint.y);
-            }
-        }
-
-        this._mousemoved = false;
-    },
-
     mousedblclick: function(evt) {
         
         evt.preventDefault();
@@ -360,6 +375,30 @@ joint.dia.Paper = Backbone.View.extend({
             
             this.trigger('blank:pointerdblclick', evt, localPoint.x, localPoint.y);
         }
+    },
+
+    mouseclick: function(evt) {
+
+        // Trigger event when mouse not moved.
+        if (!this._mousemoved) {
+            
+            evt.preventDefault();
+            evt = joint.util.normalizeEvent(evt);
+
+            var view = this.findView(evt.target);
+            var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+            if (view) {
+
+                view.pointerclick(evt, localPoint.x, localPoint.y);
+                
+            } else {
+
+                this.trigger('blank:pointerclick', evt, localPoint.x, localPoint.y);
+            }
+        }
+
+        this._mousemoved = false;
     },
 
     pointerdown: function(evt) {
@@ -388,9 +427,9 @@ joint.dia.Paper = Backbone.View.extend({
         evt.preventDefault();
         evt = joint.util.normalizeEvent(evt);
 
-
         if (this.sourceView) {
-            // Mouse moved the view
+
+            // Mouse moved.
             this._mousemoved = true;
 
             var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });

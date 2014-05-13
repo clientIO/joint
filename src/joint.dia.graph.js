@@ -13,7 +13,7 @@ if (typeof exports === 'object') {
     };
     var Backbone = require('backbone');
     var _ = require('lodash');
-    var g = require('./geometry').g;
+    var g = require('./geometry');
 }
 
 
@@ -125,23 +125,31 @@ joint.dia.Graph = Backbone.Model.extend({
 
     clear: function() {
 
+        this.trigger('batch:start');
         this.get('cells').remove(this.get('cells').models);
+        this.trigger('batch:stop');
     },
 
     _prepareCell: function(cell) {
 
         if (cell instanceof Backbone.Model && _.isUndefined(cell.get('z'))) {
 
-            cell.set('z', this.get('cells').length, { silent: true });
+            cell.set('z', this.maxZIndex() + 1, { silent: true });
             
         } else if (_.isUndefined(cell.z)) {
 
-            cell.z = this.get('cells').length;
+            cell.z = this.maxZIndex() + 1;
         }
 
         return cell;
     },
-    
+
+    maxZIndex: function() {
+
+        var lastCell = this.get('cells').last();
+        return lastCell ? (lastCell.get('z') || 0) : 0;
+    },
+
     addCell: function(cell, options) {
 
         if (_.isArray(cell)) {

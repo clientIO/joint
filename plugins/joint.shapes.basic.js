@@ -1,3 +1,4 @@
+
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
@@ -8,7 +9,8 @@ if (typeof exports === 'object') {
         util: require('../src/core').util,
         shapes: {},
         dia: {
-            Element: require('../src/joint.dia.element').Element
+            Element: require('../src/joint.dia.element').Element,
+            ElementView: require('../src/joint.dia.element').ElementView
         }
     };
     var _ = require('lodash');
@@ -226,17 +228,18 @@ joint.shapes.basic.PortsViewInterface = {
     }
 };
 
-joint.shapes.basic.TextBlock = joint.shapes.basic.Rect.extend({
+joint.shapes.basic.TextBlock = joint.shapes.basic.Generic.extend({
 
     markup: ['<g class="rotatable"><g class="scalable"><rect/></g><switch>',
 
              // if foreignObject supported
+
              '<foreignObject requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" class="fobj">',
              '<body xmlns="http://www.w3.org/1999/xhtml"><div/></body>',
              '</foreignObject>',
 
              // else foreignObject is not supported (fallback for IE)
-             '<svg overflow="hidden"><text/></svg>',
+             '<text class="content"/>',
 
              '</switch></g>'].join(''),
 
@@ -244,11 +247,32 @@ joint.shapes.basic.TextBlock = joint.shapes.basic.Rect.extend({
 
         type: 'basic.TextBlock',
 
-        // see joint.css for the element styles
+        // see joint.css for more element styles
+        attrs: {
+            rect: {
+                fill: '#ffffff',
+                stroke: '#000000',
+                width: 80,
+                height: 100
+            },
+            text: {
+                fill: '#000000',
+                'font-size': 14,
+                'font-family': 'Arial, helvetica, sans-serif'
+            },
+            '.content': {
+                text: '',
+                ref: 'rect',
+                'ref-x': .5,
+                'ref-y': .5,
+                'y-alignment': 'middle',
+                'x-alignment': 'middle'
+            }
+        },
 
         content: ''
 
-    }, joint.shapes.basic.Rect.prototype.defaults),
+    }, joint.shapes.basic.Generic.prototype.defaults),
 
     initialize: function() {
 
@@ -259,14 +283,6 @@ joint.shapes.basic.TextBlock = joint.shapes.basic.Rect.extend({
             this.setDivContent(this, this.get('content'));
             this.listenTo(this, 'change:size', this.setForeignObjectSize);
             this.listenTo(this, 'change:content', this.setDivContent);
-
-        } else {
-
-            // no foreignObject
-            this.setSvgSize(this, this.get('size'));
-            this.setTextContent(this, this.get('content'));
-            this.listenTo(this, 'change:size', this.setSvgSize);
-            this.listenTo(this, 'change:content', this.setTextContent);
 
         }
 
@@ -283,28 +299,79 @@ joint.shapes.basic.TextBlock = joint.shapes.basic.Rect.extend({
         });
     },
 
-    setSvgSize: function(cell, size) {
-
-        // Trim a text overflowing the element.
-        cell.attr({ svg: _.clone(size) });
-    },
-
     setDivContent: function(cell, content) {
 
         // Append the content to div as html.
         cell.attr({ div : {
             html: content
         }});
-    },
-
-    setTextContent: function(cell, content) {
-
-        // This could be overriden in order to break the text lines to fit to a content of the element.
-        cell.attr({ text: {
-            text: content
-        }});
     }
 
+});
+
+// TextBlockView implements the fallback for IE when no foreignObject exists and
+// the text needs to be manually broken.
+joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
+
+    initialize: function() {
+
+        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+
+        if (typeof SVGForeignObjectElement === 'undefined') {
+
+            this.noSVGForeignObjectElement = true;
+
+            this.listenTo(this.model, 'change:content', function(cell) {
+                // avoiding pass of extra paramters
+                this.updateContent(cell);
+            });
+        }
+    },
+
+    update: function(cell, renderingOnlyAttrs) {
+
+        if (this.noSVGForeignObjectElement) {
+
+            var model = this.model;
+
+            // Update everything but the content first.
+            var noTextAttrs = _.omit(renderingOnlyAttrs || model.get('attrs'), '.content');
+            joint.dia.ElementView.prototype.update.call(this, model, noTextAttrs);
+
+            if (!renderingOnlyAttrs || _.has(renderingOnlyAttrs, '.content')) {
+                // Update the content itself.
+                this.updateContent(model, renderingOnlyAttrs);
+            }
+
+        } else {
+
+            joint.dia.ElementView.prototype.update.call(this, model, renderingOnlyAttrs);
+        }
+    },
+
+    updateContent: function(cell, renderingOnlyAttrs) {
+
+        // Create copy of the text attributes
+        var textAttrs = _.merge({}, (renderingOnlyAttrs || cell.get('attrs'))['.content']);
+
+        delete textAttrs.text;
+
+        // Break the content to fit the element size taking into account the attributes
+        // set on the model.
+        var text = joint.util.breakText(cell.get('content'), cell.get('size'), textAttrs, {
+            // measuring sandbox svg document
+            svgDocument: this.paper.svg
+        });
+
+        // Create a new attrs with same structure as the model attrs { text: { *textAttributes* }}
+        var attrs = joint.util.setByPath({}, '.content', textAttrs,'/');
+
+        // Replace text attribute with the one we just processed.
+        attrs['.content'].text = text;
+
+        // Update the view using renderingOnlyAttributes parameter.
+        joint.dia.ElementView.prototype.update.call(this, cell, attrs);
+    }
 });
 
 if (typeof exports === 'object') {

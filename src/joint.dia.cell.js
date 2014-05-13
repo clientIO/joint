@@ -112,7 +112,7 @@ joint.dia.Cell = Backbone.Model.extend({
         var ports = {};
         _.each(this.get('attrs'), function(attrs, selector) {
 
-            if (attrs.port) {
+            if (attrs && attrs.port) {
 
                 // `port` can either be directly an `id` or an object containing an `id` (and potentially other data).
                 if (!_.isUndefined(attrs.port.id)) {
@@ -329,7 +329,7 @@ joint.dia.Cell = Backbone.Model.extend({
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
 
-            if (value) {
+            if (typeof value != 'undefined') {
 
                 var attr = {};
                 joint.util.setByPath(attr, attrs, value, delim);
@@ -341,7 +341,20 @@ joint.dia.Cell = Backbone.Model.extend({
             }
         }
         
-        return this.set('attrs', _.merge({}, currentAttrs, attrs), value);
+        return this.set('attrs', _.merge({}, currentAttrs, attrs), value, opt);
+    },
+
+    // A convenient way to unset nested attributes
+    removeAttr: function(path, opt) {
+
+        if (_.isArray(path)) {
+            _.each(path, function(p) { this.removeAttr(p, opt); }, this);
+            return this;
+        }
+        
+        var attrs = joint.util.unsetByPath(_.merge({}, this.get('attrs')), path, '/');
+
+        return this.set('attrs', attrs, _.extend({ dirty: true }, opt));
     },
 
     transition: function(path, value, opt, delim) {
@@ -456,7 +469,19 @@ joint.dia.CellView = Backbone.View.extend({
         this.$el.data('view', this);
 
 	this.listenTo(this.model, 'remove', this.remove);
-	this.listenTo(this.model, 'change:attrs', this.update);
+	this.listenTo(this.model, 'change:attrs', this.onChangeAttrs);
+    },
+
+    onChangeAttrs: function(cell, attrs, opt) {
+
+        if (opt.dirty) {
+
+            // dirty flag could be set when a model attribute was removed and it needs to be cleared
+            // also from the DOM element. See cell.removeAttr().
+            return this.render();
+        }
+
+        return this.update();
     },
 
     _configure: function(options) {
@@ -608,6 +633,7 @@ joint.dia.CellView = Backbone.View.extend({
             }
             var filterElement = V(filterSVGString);
             filterElement.attr('filterUnits', 'userSpaceOnUse');
+            if (filter.attrs) filterElement.attr(filter.attrs);
             filterElement.node.id = filterId;
             V(this.paper.svg).defs().append(filterElement);
         }
@@ -681,22 +707,22 @@ joint.dia.CellView = Backbone.View.extend({
     // These functions are supposed to be overriden by the views that inherit from `joint.dia.Cell`,
     // i.e. `joint.dia.Element` and `joint.dia.Link`.
 
-    pointerclick: function(evt, x, y) {
-
-        this.notify('cell:pointerclick', evt, x, y);
-    },
-
     pointerdblclick: function(evt, x, y) {
 
         this.notify('cell:pointerdblclick', evt, x, y);
     },
+
+    pointerclick: function(evt, x, y) {
+
+        this.notify('cell:pointerclick', evt, x, y);
+    },
     
     pointerdown: function(evt, x, y) {
 
-        if (this.model.collection) {
-            this.model.trigger('batch:start');
-            this._collection = this.model.collection;
-        }
+	if (this.model.collection) {
+	    this.model.trigger('batch:start');
+	    this._collection = this.model.collection;
+	}
 
         this.notify('cell:pointerdown', evt, x, y);
     },
@@ -710,12 +736,12 @@ joint.dia.CellView = Backbone.View.extend({
 
         this.notify('cell:pointerup', evt, x, y);
 
-        if (this._collection) {
-            // we don't want to trigger event on model as model doesn't
-            // need to be member of collection anymore (remove)
-            this._collection.trigger('batch:stop');
-            delete this._collection;
-        }
+	if (this._collection) {
+	    // we don't want to trigger event on model as model doesn't
+	    // need to be member of collection anymore (remove)
+	    this._collection.trigger('batch:stop');
+	    delete this._collection;
+	}
 
     }
 });

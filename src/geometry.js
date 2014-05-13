@@ -8,6 +8,12 @@
         // AMD. Register as an anonymous module.
         define([], factory);
         
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory();
+        
     } else {
         // Browser globals.
         root.g = factory();
@@ -52,7 +58,7 @@
             return new point(x, y);
         var xy;
         if (y === undefined && Object(x) !== x) {
-            xy = x.split(_.indexOf(x, "@") === -1 ? " " : "@");
+            xy = x.split(x.indexOf('@') === -1 ? ' ' : '@');
             this.x = parseInt(xy[0], 10);
             this.y = parseInt(xy[1], 10);
         } else if (Object(x) === x) {
@@ -135,6 +141,10 @@
         difference: function(p) {
             return point(this.x - p.x, this.y - p.y);
         },
+        // Return the bearing between me and point `p`.
+        bearing: function(p) {
+            return line(this, p).bearing();
+        },        
         // Converts rectangular to polar coordinates.
         // An origin can be specified, otherwise it's 0@0.
         toPolar: function(o) {
@@ -169,6 +179,11 @@
         },
         equals: function(p) {
             return this.x === p.x && this.y === p.y;
+        },
+        snapToGrid: function(gx, gy) {
+            this.x = snapToGrid(this.x, gx)
+            this.y = snapToGrid(this.y, gy || gx)
+            return this;
         }
     };
     // Alternative constructor, from polar coordinates.
@@ -198,7 +213,7 @@
     function line(p1, p2) {
         if (!(this instanceof line))
             return new line(p1, p2);
-            this.start = point(p1);
+        this.start = point(p1);
         this.end = point(p2);
     }
     
@@ -251,6 +266,29 @@
 	    }
 	    return point(this.start.x + (alpha * pt1Dir.x / det),
 		         this.start.y + (alpha * pt1Dir.y / det));
+        },
+        
+        // @return the bearing (cardinal direction) of the line. For example N, W, or SE.
+        // @returns {String} One of the following bearings : NE, E, SE, S, SW, W, NW, N.
+        bearing: function() {
+            
+            var lat1 = toRad(this.start.y);
+            var lat2 = toRad(this.end.y);
+            var lon1 = this.start.x;
+            var lon2 = this.end.x;
+            var dLon = toRad(lon2 - lon1);
+            var y = sin(dLon) * cos(lat2);
+            var x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
+            var brng = toDeg(atan2(y, x));
+
+            var bearings = ['NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
+
+            var index = brng - 22.5;
+            if (index < 0)
+                index += 360;
+            index = parseInt(index / 45);
+
+            return bearings[index];
         }
     };
 
@@ -337,6 +375,49 @@
 	    }
 	    return false;
         },
+        // Algorithm ported from java.awt.Rectangle from OpenJDK.
+        // @return {bool} true if rectangle `r` is inside me.
+        containsRect: function(r) {
+            var nr = rect(r).normalize();
+            var W = nr.width;
+            var H = nr.height;
+            var X = nr.x;
+            var Y = nr.y;
+            var w = this.width;
+            var h = this.height;
+            if ((w | h | W | H) < 0) {
+                // At least one of the dimensions is negative...
+                return false;
+            }
+            // Note: if any dimension is zero, tests below must return false...
+            var x = this.x;
+            var y = this.y;
+            if (X < x || Y < y) {
+                return false;
+            }
+            w += x;
+            W += X;
+            if (W <= X) {
+                // X+W overflowed or W was zero, return false if...
+                // either original w or W was zero or
+                // x+w did not overflow or
+                // the overflowed x+w is smaller than the overflowed X+W
+                if (w >= x || W > w) return false;
+            } else {
+                // X+W did not overflow and W was not zero, return false if...
+                // original w was zero or
+                // x+w did not overflow and x+w is smaller than X+W
+                if (w >= x && W > w) return false;
+            }
+            h += y;
+            H += Y;
+            if (H <= Y) {
+                if (h >= y || H > h) return false;
+            } else {
+                if (h >= y && H > h) return false;
+            }
+            return true;
+        },        
         // @return {point} a point on my boundary nearest to p
         // @see Squeak Smalltalk, Rectangle>>pointNearestTo:
         pointNearestToPoint: function(p) {
@@ -395,7 +476,30 @@
             this.width = decimals ? this.width.toFixed(decimals) : round(this.width);
             this.height = decimals ? this.height.toFixed(decimals) : round(this.height);
             return this;
-        }
+        },
+        // Normalize the rectangle; i.e., make it so that it has a non-negative width and height.
+        // If width < 0 the function swaps the left and right corners,
+        // and it swaps the top and bottom corners if height < 0
+        // like in http://qt-project.org/doc/qt-4.8/qrectf.html#normalized
+        normalize: function() {
+            var newx = this.x;
+            var newy = this.y;
+            var newwidth = this.width;
+            var newheight = this.height;
+            if (this.width < 0) {
+                newx = this.x + this.width;
+                newwidth = -this.width;
+            }
+            if (this.height < 0) {
+                newy = this.y + this.height;
+                newheight = -this.height;
+            }
+            this.x = newx;
+            this.y = newy;
+            this.width = newwidth;
+            this.height = newheight;
+            return this;
+        }        
     };
 
     // Ellipse.
@@ -546,6 +650,18 @@
         }
     };
 
+    // Scale.
+    var scale = {
+
+        // Return the `value` from the `domain` interval scaled to the `range` interval.
+        linear: function(domain, range, value) {
+
+            var domainSpan = domain[1] - domain[0];
+            var rangeSpan = range[1] - range[0];
+            return (((value - domain[0]) / domainSpan) * rangeSpan + range[0]) || 0;
+        }
+    };
+
     return {
 
         toDeg: toDeg,
@@ -556,6 +672,7 @@
         line: line,
         rect: rect,
         ellipse: ellipse,
-        bezier: bezier
+        bezier: bezier,
+        scale: scale
     }
 }));

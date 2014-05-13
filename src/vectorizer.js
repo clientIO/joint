@@ -3,20 +3,20 @@
 
 // A tiny library for making your live easier when dealing with SVG.
 
-// Copyright © 2012 - 2013 client IO
+// Copyright © 2012 - 2014 client IO (http://client.io)
 
 (function(root, factory) {
 
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
-        define(['lodash'], factory);
+        define([], factory);
         
     } else {
         // Browser globals.
-        root.Vectorizer = root.V = factory(root._);
+        root.Vectorizer = root.V = factory();
     }
 
-}(this, function(_) {
+}(this, function() {
 
     // Well, if SVG is not supported, this library is useless.
     var SVGsupported = !!(window.SVGAngle || document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1'));
@@ -28,6 +28,13 @@
     };
     // SVG version.
     var SVGversion = '1.1';
+
+    // A function returning a unique identifier for this client session with every call.
+    var idCounter = 0;
+    function uniqueId() {
+        var id = ++idCounter + '';
+        return 'v-' + id;
+    }
 
     // Create SVG element.
     // -------------------
@@ -62,10 +69,14 @@
             // the first argument contain more then one root element.
             if (svgDoc.childNodes.length > 1) {
 
-                return _.map(svgDoc.childNodes, function(childNode) {
+                // Map child nodes to `VElement`s.
+                var ret = [];
+                for (var i = 0, len = svgDoc.childNodes.length; i < len; i++) {
 
-                    return new VElement(document.importNode(childNode, true));
-                });
+                    var childNode = svgDoc.childNodes[i];
+                    ret.push(new VElement(document.importNode(childNode, true)));
+                }
+                return ret;
             }
             
             return new VElement(document.importNode(svgDoc.firstChild, true));
@@ -186,7 +197,7 @@
     function VElement(el) {
         this.node = el;
         if (!this.node.id) {
-            this.node.id = _.uniqueId('v_');
+            this.node.id = uniqueId();
         }
     }
 
@@ -352,6 +363,11 @@
 	    // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
 	    // See also `http://apike.ca/prog_svg_text_style.html`.
 	    this.attr('y', '0.8em');
+
+            // An empty text gets rendered into the DOM in webkit-based browsers.
+            // In order to unify this behaviour across all browsers
+            // we rather hide the text element when it's empty.
+            this.attr('display', content ? null : 'none');
             
             if (lines.length === 1) {
                 this.node.textContent = content;
@@ -378,12 +394,12 @@
             }
             
             if (typeof name === 'object') {
-                
-                _.each(name, function(value, name) {
 
-                    setAttribute(this.node, name, value);
-                    
-                }, this);
+                for (var attrName in name) {
+                    if (name.hasOwnProperty(attrName)) {
+                        setAttribute(this.node, attrName, name[attrName]);
+                    }
+                }
                 
             } else {
 
@@ -403,16 +419,15 @@
 
             var els = el;
             
-            if (!_.isArray(el)) {
+            if (Object.prototype.toString.call(el) !== '[object Array]') {
                 
                 els = [el];
             }
 
-            _.each(els, function(el) {
-
+            for (var i = 0, len = els.length; i < len; i++) {
+                el = els[i];
                 this.node.appendChild(el instanceof VElement ? el.node : el);
-                
-            }, this);
+            }
             
             return this;
         },
@@ -436,10 +451,27 @@
         clone: function() {
             var clone = V(this.node.cloneNode(true));
             // Note that clone inherits also ID. Therefore, we need to change it here.
-            clone.node.id = _.uniqueId('v-');
+            clone.node.id = uniqueId();
             return clone;
         },
 
+        findOne: function(selector) {
+
+            var found = this.node.querySelector(selector);
+            return found ? V(found) : undefined;
+        },
+
+        find: function(selector) {
+
+            var nodes = this.node.querySelectorAll(selector);
+
+            // Map DOM elements to `VElement`s.
+            for (var i = 0, len = nodes.length; i < len; i++) {
+                nodes[i] = V(nodes[i]);
+            }
+            return nodes;
+        },
+        
         // Convert global point into the coordinate space of this element.
         toLocalPoint: function(x, y) {
 
@@ -546,18 +578,19 @@
 
 		    // Register the animation. (See `https://answers.launchpad.net/smil/+question/203333`)
 		    var animation = animateMotion.node;
-		    animation.animators = new Array();
+		    animation.animators = [];
 
 		    var animationID = animation.getAttribute('id');
 		    if (animationID) id2anim[animationID] = animation;
 
-		    _.each(getTargets(animation), function(target, index) {
-			var animator = new Animator(animation, target, index);
+                    var targets = getTargets(animation);
+                    for (var i = 0, len = targets.length; i < len; i++) {
+                        var target = targets[i];
+			var animator = new Animator(animation, target, i);
 			animators.push(animator);
-			animation.animators[index] = animator;
-		    });
-
-		    _.invoke(animation.animators, 'register');
+			animation.animators[i] = animator;
+                        animator.register();
+                    }
 		}
             }
         },
@@ -572,6 +605,8 @@
             if (!this.hasClass(className)) {
                 this.node.setAttribute('class', this.node.getAttribute('class') + ' ' + className);
             }
+
+            return this;
         },
 
         removeClass: function(className) {
@@ -581,6 +616,8 @@
             if (this.hasClass(className)) {
                 this.node.setAttribute('class', removedClass);
             }
+
+            return this;
         },
 
         toggleClass: function(className, toAdd) {
@@ -592,18 +629,51 @@
             } else {
                 this.addClass(className);
             }
+
+            return this;
         }
     };
+
+    // Convert a rectangle to SVG path commands. `r` is an object of the form:
+    // `{ x: [number], y: [number], width: [number], height: [number], top-ry: [number], top-ry: [number], bottom-rx: [number], bottom-ry: [number] }`,
+    // where `x, y, width, height` are the usual rectangle attributes and [top-/bottom-]rx/ry allows for
+    // specifying radius of the rectangle for all its sides (as opposed to the built-in SVG rectangle
+    // that has only `rx` and `ry` attributes).
+    function rectToPath(r) {
+
+        var topRx = r.rx || r['top-rx'] || 0;
+        var bottomRx = r.rx || r['bottom-rx'] || 0;
+        var topRy = r.ry || r['top-ry'] || 0;
+        var bottomRy = r.ry || r['bottom-ry'] || 0;
+
+        return [
+            'M', r.x, r.y + topRy,
+            'v', r.height - topRy - bottomRy,
+            'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, bottomRy,
+            'h', r.width - 2 * bottomRx,
+            'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, -bottomRy,
+            'v', -(r.height - bottomRy - topRy),
+            'a', topRx, topRy, 0, 0, 0, -topRx, -topRy,
+            'h', -(r.width - 2 * topRx),
+            'a', topRx, topRy, 0, 0, 0, -topRx, topRy
+        ].join(' ');
+    }
 
     var V = createElement;
 
     V.decomposeMatrix = decomposeMatrix;
+    V.rectToPath = rectToPath;
 
     var svgDocument = V('svg').node;
     
     V.createSVGMatrix = function(m) {
+
+        var svgMatrix = svgDocument.createSVGMatrix();
+        for (var component in m) {
+            svgMatrix[component] = m[component];
+        }
         
-        return _.extend(svgDocument.createSVGMatrix(), m);
+        return svgMatrix;
     };
 
     V.createSVGTransform = function() {

@@ -12,7 +12,7 @@ if (typeof exports === 'object') {
     };
     var Backbone = require('backbone');
     var _ = require('lodash');
-    var g = require('./geometry').g;
+    var g = require('./geometry');
 }
 
 
@@ -112,7 +112,9 @@ joint.dia.Link = joint.dia.Cell.extend({
 
 joint.dia.LinkView = joint.dia.CellView.extend({
 
-    className: 'link',
+    className: function() {
+        return _.unique(this.model.get('type').split('.').concat('link')).join(' ');
+    },
 
     options: {
 
@@ -135,6 +137,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // nodes in `updateLabelPosition()` in order to update the label positions.
         this._labelCache = {};
 
+        // keeps markers bboxes and positions again for quicker access
+        this._markerCache = {};
+
         // bind events
         this.startListening();
     },
@@ -142,7 +147,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     startListening: function() {
 
 	this.listenTo(this.model, 'change:markup', this.render);
-	this.listenTo(this.model, 'change:smooth change:manhattan', this.update);
+	this.listenTo(this.model, 'change:smooth change:manhattan change:router change:connector', this.update);
         this.listenTo(this.model, 'change:toolMarkup', function() {
             this.renderTools().updateToolsPosition();
         });
@@ -178,7 +183,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (!_.isArray(children)) children = [children];
 
         // Cache all children elements for quicker access.
-        this._V = {} // vectorized markup;
+        this._V = {}; // vectorized markup;
         _.each(children, function(child) {
             var c = child.attr('class');
             c && (this._V[$.camelCase(c)] = child);
@@ -231,8 +236,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var $text = $(labelNode).find('text');
             var $rect = $(labelNode).find('rect');
 
-            // Text attributes with the default `text-anchor` set.
-            var textAttributes = _.extend({ 'text-anchor': 'middle' }, joint.util.getByPath(label, 'attrs/text', '/'));
+            // Text attributes with the default `text-anchor` and font-size set.
+            var textAttributes = _.extend({ 'text-anchor': 'middle', 'font-size': 14 }, joint.util.getByPath(label, 'attrs/text', '/'));
             
             $text.attr(_.omit(textAttributes, 'text'));
                 
@@ -285,7 +290,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var tool = V(toolTemplate());
 
         $tools.append(tool.node);
-
+        
         // Cache the tool node so that the `updateToolsPosition()` can update the tool position quickly.
         this._toolCache = tool;
 
@@ -325,10 +330,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
         var markupTemplate = _.template(this.model.get('arrowheadMarkup') || this.model.arrowheadMarkup);
 
-        this._sourceArrowhead = V(markupTemplate({ end: 'source' }));
-        this._targetArrowhead = V(markupTemplate({ end: 'target' }));
+        this._V.sourceArrowhead = V(markupTemplate({ end: 'source' }));
+        this._V.targetArrowhead = V(markupTemplate({ end: 'target' }));
 
-        $markerArrowheads.append(this._sourceArrowhead.node, this._targetArrowhead.node);
+        $markerArrowheads.append(this._V.sourceArrowhead.node, this._V.targetArrowhead.node);
 
         return this;
     },
@@ -355,55 +360,81 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
         }, this);
 
-        var vertices = this.model.get('vertices');
+        // Path finding
+        var vertices = this.route = this.findRoute(this.model.get('vertices') || []);
 
-        if (this.model.get('manhattan')) {
-            // If manhattan routing is enabled, find new vertices so that the link is orthogonally routed.
-            vertices = this.findManhattanRoute(vertices);
-        }
-
-        this._firstVertex = _.first(vertices);
-        this._sourcePoint = this.getConnectionPoint(
-            'source',
-            this.model.get('source'),
-            this._firstVertex || this.model.get('target')).round();
-
-        this._lastVertex = _.last(vertices);
-        this._targetPoint = this.getConnectionPoint(
-            'target',
-            this.model.get('target'),
-            this._lastVertex || this._sourcePoint
-        );
-
-        // Make the markers "point" to their sticky points being auto-oriented towards
-        // `targetPosition`/`sourcePosition`. And do so only if there is a markup for them.
-        if (this._V.markerSource) {
-            this._V.markerSource.translateAndAutoOrient(
-                this._sourcePoint,
-                this._firstVertex || this._targetPoint,
-                this.paper.viewport
-            );
-        }
-
-        if (this._V.markerTarget) {
-            this._V.markerTarget.translateAndAutoOrient(
-                this._targetPoint,
-                this._lastVertex || this._sourcePoint,
-                this.paper.viewport
-            );
-        }
+        // finds all the connection points taking new vertices into account
+        this._findConnectionPoints(vertices);
 
         var pathData = this.getPathData(vertices);
+
         // The markup needs to contain a `.connection`
         this._V.connection.attr('d', pathData);
         this._V.connectionWrap && this._V.connectionWrap.attr('d', pathData);
+
+        this._translateAndAutoOrientArrows(this._V.markerSource, this._V.markerTarget);
 
         //partials updates
         this.updateLabelPositions();
         this.updateToolsPosition();
         this.updateArrowheadMarkers();
 
+        delete this.options.perpendicular;
+
         return this;
+    },
+
+    _findConnectionPoints: function(vertices) {
+
+        // cache source and target points
+        var sourcePoint, targetPoint, sourceMarkerPoint, targetMarkerPoint;
+
+        var firstVertex = _.first(vertices);
+
+        sourcePoint = this.getConnectionPoint(
+            'source', this.model.get('source'), firstVertex || this.model.get('target')
+        ).round();
+
+        var lastVertex = _.last(vertices);
+
+        targetPoint = this.getConnectionPoint(
+            'target', this.model.get('target'), lastVertex || sourcePoint
+        ).round();
+
+        // Move the source point by the width of the marker taking into account
+        // its scale around x-axis. Note that scale is the only transform that
+        // makes sense to be set in `.marker-source` attributes object
+        // as all other transforms (translate/rotate) will be replaced
+        // by the `translateAndAutoOrient()` function.
+        var cache = this._markerCache;
+
+        if (this._V.markerSource) {
+
+            cache.sourceBBox = cache.sourceBBox || this._V.markerSource.bbox(true);
+
+            sourceMarkerPoint = g.point(sourcePoint).move(
+                firstVertex || targetPoint,
+                cache.sourceBBox.width * this._V.markerSource.scale().sx * -1
+            ).round();
+        }
+
+        if (this._V.markerTarget) {
+
+            cache.targetBBox = cache.targetBBox || this._V.markerTarget.bbox(true);
+
+            targetMarkerPoint = g.point(targetPoint).move(
+                lastVertex || sourcePoint,
+                cache.targetBBox.width * this._V.markerTarget.scale().sx * -1
+            ).round();
+        }
+
+        // if there was no markup for the marker, use the connection point.
+        cache.sourcePoint = sourceMarkerPoint || sourcePoint;
+        cache.targetPoint = targetMarkerPoint || targetPoint;
+
+        // make connection points public
+        this.sourcePoint = sourcePoint;
+        this.targetPoint = targetPoint;
     },
 
     updateLabelPositions: function() {
@@ -469,22 +500,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // getting bbox of an element with `display="none"` in IE9 ends up with access violation
         if ($.css(this._V.markerArrowheads.node, 'display') === 'none') return this;
 
-        var sx = this.getConnectionLength() < this.options.shortLinkLength ? .5 : 1
-        this._sourceArrowhead.scale(sx);
-        this._targetArrowhead.scale(sx);
+        var sx = this.getConnectionLength() < this.options.shortLinkLength ? .5 : 1;
+        this._V.sourceArrowhead.scale(sx);
+        this._V.targetArrowhead.scale(sx);
 
-        // Make the markers "point" to their sticky points being auto-oriented towards `targetPosition`/`sourcePosition`.
-        this._sourceArrowhead.translateAndAutoOrient(
-            this._sourcePoint,
-            this._firstVertex || this._targetPoint,
-            this.paper.viewport
-        );
-
-        this._targetArrowhead.translateAndAutoOrient(
-            this._targetPoint,
-            this._lastVertex || this._sourcePoint,
-            this.paper.viewport
-        );
+        this._translateAndAutoOrientArrows(this._V.sourceArrowhead, this._V.targetArrowhead);
 
         return this;
     },
@@ -524,6 +544,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // ListenTo(model, event, handler) as model and event will be identical.
     _sourceBBoxUpdate: function(update) {
 
+        // keep track which end had been changed very last
+        this.lastEndChange = 'source';
+
         update = update || {};
         var end = this.model.get('source');
 
@@ -533,20 +556,20 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var view = this.paper.findViewByModel(end.id);
             var magnetElement = this.paper.viewport.querySelector(selector);
 
-            this._sourceBbox = view.getStrokeBBox(magnetElement);
+            this.sourceBBox = view.getStrokeBBox(magnetElement);
 
         } else {
             // the link end is a point ~ rect 1x1
-            this._sourceBbox = {
-                width: 1, height: 1,
-                x: end.x, y: end.y
-            };
+            this.sourceBBox = g.rect(end.x, end.y, 1, 1);
         }
 
         if (!update.cacheOnly) this.update();
     },
 
     _targetBBoxUpdate: function(update) {
+
+        // keep track which end had been changed very last
+        this.lastEndChange = 'target';
 
         update = update || {};
         var end = this.model.get('target');
@@ -557,19 +580,36 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var view = this.paper.findViewByModel(end.id);
             var magnetElement = this.paper.viewport.querySelector(selector);
 
-            this._targetBbox = view.getStrokeBBox(magnetElement);
+            this.targetBBox = view.getStrokeBBox(magnetElement);
 
         } else {
             // the link end is a point ~ rect 1x1
-            this._targetBbox = {
-                width: 1, height: 1,
-                x: end.x, y: end.y
-            };
+            this.targetBBox = g.rect(end.x, end.y, 1, 1);
         }
 
         if (!update.cacheOnly) this.update();
     },
 
+    _translateAndAutoOrientArrows: function(sourceArrow, targetArrow) {
+
+        // Make the markers "point" to their sticky points being auto-oriented towards
+        // `targetPosition`/`sourcePosition`. And do so only if there is a markup for them.
+        if (sourceArrow) {
+            sourceArrow.translateAndAutoOrient(
+                this.sourcePoint,
+                _.first(this.route) || this.targetPoint,
+                this.paper.viewport
+            );
+        }
+
+        if (targetArrow) {
+            targetArrow.translateAndAutoOrient(
+                this.targetPoint,
+                _.last(this.route) || this.sourcePoint,
+                this.paper.viewport
+            );
+        }
+    },
 
     removeVertex: function(idx) {
 
@@ -622,7 +662,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         while (idx--) {
 
             vertices.splice(idx, 0, vertex);
-            V(path).attr('d', this.getPathData(vertices));
+            V(path).attr('d', this.getPathData(this.findRoute(vertices)));
 
             pathLength = path.getTotalLength();
 
@@ -647,60 +687,61 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return Math.max(idx, 0);
     },
 
-    // Return the `d` attribute value of the `<path>` element representing the link between `source` and `target`.
+
+    findRoute: function(oldVertices) {
+
+        var router = this.model.get('router');
+
+        if (!router) {
+
+            if (this.model.get('manhattan')) {
+                // backwards compability
+                router = { name: 'orthogonal' };
+            } else {
+
+                return oldVertices;
+            }
+        }
+
+        var fn = joint.routers[router.name];
+
+        if (!_.isFunction(fn)) {
+
+            throw 'unknown router: ' + router.name;
+        }
+
+        var newVertices = fn.call(this, oldVertices || [], router.args || {}, this);
+
+        return newVertices;
+    },
+
+    // Return the `d` attribute value of the `<path>` element representing the link
+    // between `source` and `target`.
     getPathData: function(vertices) {
 
-        var sourcePoint = g.point(this._sourcePoint);
-        var targetPoint = g.point(this._targetPoint);
+        var connector = this.model.get('connector');
 
-        // Move the source point by the width of the marker taking into account its scale around x-axis.
-        // Note that scale is the only transform that makes sense to be set in `.marker-source` attributes object
-        // as all other transforms (translate/rotate) will be replaced by the `translateAndAutoOrient()` function.
+        if (!connector) {
 
-        if (this._V.markerSource) {
-            this._markerSourceBbox = this._markerSourceBbox || this._V.markerSource.bbox(true);
-            sourcePoint.move(
-                this._firstVertex || targetPoint,
-                this._markerSourceBbox.width * -this._V.markerSource.scale().sx
-            );
+            // backwards compability
+            connector = this.model.get('smooth') ? { name: 'smooth' } : { name: 'normal' };
         }
 
-        if (this._V.markerTarget) {
-            this._markerTargetBbox = this._markerTargetBbox || this._V.markerTarget.bbox(true);
-            targetPoint.move(
-                this._lastVertex || sourcePoint,
-                this._markerTargetBbox.width * -this._V.markerTarget.scale().sx
-            );
+        if (!_.isFunction(joint.connectors[connector.name])) {
+
+            throw 'unknown connector: ' + connector.name;
         }
 
-        var d;
-        if (this.model.get('smooth')) {
+        var pathData = joint.connectors[connector.name].call(
+            this,
+            this._markerCache.sourcePoint, // Note that the value is translated by the size
+            this._markerCache.targetPoint, // of the marker. (We'r not using this.sourcePoint)
+            vertices || (this.model.get('vertices') || {}),
+            connector.args || {}, // options
+            this
+        );
 
-            if (vertices && vertices.length) {
-                d = g.bezier.curveThroughPoints([sourcePoint].concat(vertices || []).concat([targetPoint]));
-            } else {
-                // if we have no vertices use a default cubic bezier curve, cubic bezier requires two control points.
-                // the two control points are both defined with X as mid way between the source and target points.
-                // sourceControlPoint Y is equal to sourcePoint Y and targetControlPointY being equal to targetPointY.
-                // handle situation were sourcePointX is greater or less then targetPointX.
-                var controlPointX = (sourcePoint.x < targetPoint.x) 
-                    ? targetPoint.x - ((targetPoint.x - sourcePoint.x) / 2)
-                    : sourcePoint.x - ((sourcePoint.x - targetPoint.x) / 2);
-                    d = ['M', sourcePoint.x, sourcePoint.y, 'C', controlPointX, sourcePoint.y, controlPointX, targetPoint.y, targetPoint.x, targetPoint.y];
-            }
-            
-        } else {
-            
-            // Construct the `d` attribute of the `<path>` element.
-            d = ['M', sourcePoint.x, sourcePoint.y];
-            _.each(vertices, function(vertex) {
-
-                d.push(vertex.x, vertex.y);
-            });
-            d.push(targetPoint.x, targetPoint.y);
-        }
-
-        return d.join(' ');
+        return pathData;
     },
 
     // Find a point that is the start of the connection.
@@ -724,7 +765,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             // in order to follow paper viewport transformations (scale/rotate).
             // `_sourceBbox` (`_targetBbox`) comes from `_sourceBboxUpdate` (`_sourceBboxUpdate`)
             // method, it exists since first render and are automatically updated
-            var spotBbox = end === 'source' ? this._sourceBbox : this._targetBbox;
+            var spotBbox = end === 'source' ? this.sourceBBox : this.targetBBox;
             
             var reference;
             
@@ -739,7 +780,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // element boundary closest to the source element.
                 // Get the bounding box of the spot relative to the paper viewport. This is necessary
                 // in order to follow paper viewport transformations (scale/rotate).
-                var referenceBbox = end === 'source' ? this._targetBbox : this._sourceBbox;
+                var referenceBbox = end === 'source' ? this.targetBBox : this.sourceBBox;
 
                 reference = g.rect(referenceBbox).intersectionWithLineFromCenterToPoint(g.rect(spotBbox).center());
                 reference = reference || g.rect(referenceBbox).center();
@@ -748,7 +789,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             // If `perpendicularLinks` flag is set on the paper and there are vertices
             // on the link, then try to find a connection point that makes the link perpendicular
             // even though the link won't point to the center of the targeted object.
-            if (this.paper.options.perpendicularLinks) {
+            if (this.paper.options.perpendicularLinks || this.options.perpendicular) {
 
                 var horizontalLineRect = g.rect(0, reference.y, this.paper.options.width, 1);
                 var verticalLineRect = g.rect(reference.x, 0, 1, this.paper.options.height);
@@ -828,124 +869,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return selector;
     },
 
-    // Return points that one needs to draw a connection through in order to have a manhattan link routing from
-    // source to target going through `vertices`.
-    findManhattanRoute: function(vertices) {
-
-        vertices = (vertices || []).slice();
-        var manhattanVertices = [];
-
-        // Return the direction that one would have to take traveling from `p1` to `p2`.
-        // This function assumes the line between `p1` and `p2` is orthogonal.
-        function direction(p1, p2) {
-            
-            if (p1.y < p2.y && p1.x === p2.x) {
-                return 'down';
-            } else if (p1.y > p2.y && p1.x === p2.x) {
-                return 'up';
-            } else if (p1.x < p2.x && p1.y === p2.y) {
-                return 'right';
-            }
-            return 'left';
-        }
-        
-        function bestDirection(p1, p2, preferredDirection) {
-
-            var directions;
-
-            // This branching determines possible directions that one can take to travel
-            // from `p1` to `p2`.
-            if (p1.x < p2.x) {
-                
-                if (p1.y > p2.y) { directions = ['up', 'right']; }
-                else if (p1.y < p2.y) { directions = ['down', 'right']; }
-                else { directions = ['right']; }
-                
-            } else if (p1.x > p2.x) {
-                
-                if (p1.y > p2.y) { directions = ['up', 'left']; }
-                else if (p1.y < p2.y) { directions = ['down', 'left']; }
-                else { directions = ['left']; }
-                
-            } else {
-                
-                if (p1.y > p2.y) { directions = ['up']; }
-                else { directions = ['down']; }
-            }
-            
-            if (_.contains(directions, preferredDirection)) {
-                return preferredDirection;
-            }
-            
-            var direction = _.first(directions);
-
-            // Should the direction be the exact opposite of the preferred direction,
-            // try another one if such direction exists.
-            switch (preferredDirection) {
-              case 'down': if (direction === 'up') return _.last(directions); break;
-              case 'up': if (direction === 'down') return _.last(directions); break;
-              case 'left': if (direction === 'right') return _.last(directions); break;
-              case 'right': if (direction === 'left') return _.last(directions); break;
-            }
-            return direction;
-        }
-        
-        // Find a vertex in between the vertices `p1` and `p2` so that the route between those vertices
-        // is orthogonal. Prefer going the direction determined by `preferredDirection`.
-        function findMiddleVertex(p1, p2, preferredDirection) {
-            
-            var direction = bestDirection(p1, p2, preferredDirection);
-            if (direction === 'down' || direction === 'up') {
-                return { x: p1.x, y: p2.y, d: direction };
-            }
-            return { x: p2.x, y: p1.y, d: direction };
-        }
-
-        var sourceCenter = g.rect(this._sourceBbox).center();
-        var targetCenter = g.rect(this._targetBbox).center();
-
-        vertices.unshift(sourceCenter);
-        vertices.push(targetCenter);
-
-        var manhattanVertex;
-        var lastManhattanVertex;
-        var vertex;
-        var nextVertex;
-
-        // For all the pairs of link model vertices...
-        for (var i = 0; i < vertices.length - 1; i++) {
-
-            vertex = vertices[i];
-            nextVertex = vertices[i + 1];
-            lastManhattanVertex = _.last(manhattanVertices);
-            
-            if (i > 0) {
-                // Push all the link vertices to the manhattan route.
-                manhattanVertex = vertex;
-                // Determine a direction between the last vertex and the new one.
-                // Therefore, each vertex contains the `d` property describing the direction that one
-                // would have to take to travel to that vertex.
-                manhattanVertex.d = lastManhattanVertex ? direction(lastManhattanVertex, vertex) : 'top';
-                manhattanVertices.push(manhattanVertex);
-                lastManhattanVertex = manhattanVertex;
-            }
-
-            // Make sure that we don't create a vertex that would go the opposite direction then that of the
-            // previous one. Othwerwise, a 'spike' segment would be created which is not desirable.
-            // Find a dummy vertex to keep the link orthogonal. Preferably, take the same direction
-            // as the previous one.
-            var d = lastManhattanVertex && lastManhattanVertex.d;
-            manhattanVertex = findMiddleVertex(vertex, nextVertex, d);
-
-            // Do not add a new vertex that is the same as one of the vertices already added.
-            if (!g.point(manhattanVertex).equals(g.point(vertex)) && !g.point(manhattanVertex).equals(g.point(nextVertex))) {
-
-                manhattanVertices.push(manhattanVertex);
-            }
-        }
-        return manhattanVertices;
-    },
-
     // Public API
     // ----------
 
@@ -1010,7 +933,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var end = this.model.get(oppositeArrowhead);
 
         if (end.id) {
-            args[i] = this.paper.findViewByModel(end.id)
+            args[i] = this.paper.findViewByModel(end.id);
             args[i+1] = end.selector && args[i].el.querySelector(end.selector);
         }
 
@@ -1151,7 +1074,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                                     id: view.model.id,
                                     selector: view.getSelector(magnet),
                                     port: magnet.getAttribute('port')
-                                }
+                                };
                             }
                         }
 
@@ -1171,7 +1094,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // It holds the element when a touchstart triggered.
                 var target = (evt.type === 'mousemove')
                     ? evt.target
-                    : document.elementFromPoint(evt.clientX, evt.clientY)
+                    : document.elementFromPoint(evt.clientX, evt.clientY);
 
                 if (this._targetEvent !== target) {
                     // Unhighlight the previous view under pointer if there was one.

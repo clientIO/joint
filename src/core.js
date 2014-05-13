@@ -26,6 +26,12 @@ var joint = {
     // `joint.format` namespace.
     format: {},
 
+    // `joint.connectors` namespace.
+    connectors: {},
+
+    // `joint.routers` namespace.
+    routers: {},
+
     util: {
 
         // Return a simple hash code from a string. See http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/.
@@ -77,6 +83,32 @@ var joint = {
             } else {
                 obj[path] = value;
             }
+            return obj;
+        },
+
+        unsetByPath: function(obj, path, delim) {
+
+            delim = delim || '.';
+
+            // index of the last delimiter
+            var i = path.lastIndexOf(delim);
+
+            if (i > -1) {
+
+                // unsetting a nested attribute
+                var parent = joint.util.getByPath(obj, path.substr(0, i), delim);
+
+                if (parent) {
+
+                    delete parent[path.slice(i + 1)];
+                }
+
+            } else {
+
+                // unsetting a primitive attribute
+                delete obj[path];
+            }
+
             return obj;
         },
 
@@ -266,6 +298,148 @@ var joint = {
 	    return client ? _.bind(caf, window) : caf;
 	})(),
 
+        breakText: function(text, size, styles, opt) {
+
+            opt = opt || {};
+
+            var width = size.width;
+            var height = size.height;
+
+            var svgDocument = opt.svgDocument || V('svg').node;
+            var textElement = V('<text><tspan></tspan></text>').attr(styles || {}).node;
+            var textSpan = textElement.firstChild;
+            var textNode = document.createTextNode('');
+
+            textSpan.appendChild(textNode);
+
+            svgDocument.appendChild(textElement);
+
+            if (!opt.svgDocument) {
+
+                document.body.appendChild(svgDocument);
+            }
+
+            var words = text.split(' ');
+            var full = [];
+            var lines = [];
+            var p;
+
+            for (var i = 0, l = 0, len = words.length; i < len; i++) {
+
+                var word = words[i];
+
+                textNode.data = lines[l] ? lines[l] + ' ' + word : word;
+
+                if (textSpan.getComputedTextLength() <= width) {
+
+                    // the current line fits
+                    lines[l] = textNode.data;
+
+                    if (p) {
+                        // We were partitioning. Put rest of the word onto next line
+                        full[l++] = true;
+
+                        // cancel partitioning
+                        p = 0;
+                    }
+
+                } else {
+
+                    if (!lines[l] || p) {
+
+                        var partition = !!p;
+
+                        p = word.length - 1;
+
+                        if (partition || !p) {
+
+                            // word has only one character.
+                            if (!p) {
+
+                                if (!lines[l]) {
+
+                                    // we won't fit this text within our rect
+                                    lines = [];
+
+                                    break;
+                                }
+
+                                // partitioning didn't help on the non-empty line
+                                // try again, but this time start with a new line
+
+                                // cancel partitions created
+                                words.splice(i,2, word + words[i+1]);
+
+                                // adjust word length
+                                len--;
+
+                                full[l++] = true;
+                                i--;
+
+                                continue;
+                            }
+
+                            // move last letter to the beginning of the next word
+                            words[i] = word.substring(0,p);
+                            words[i+1] = word.substring(p) + words[i+1];
+
+                        } else {
+
+                            // We initiate partitioning
+                            // split the long word into two words
+                            words.splice(i, 1, word.substring(0,p), word.substring(p));
+
+                            // adjust words length
+                            len++;
+
+                            if (l && !full[l-1]) {
+                                // if the previous line is not full, try to fit max part of
+                                // the current word there
+                                l--;
+                            }
+                        }
+
+                        i--;
+
+                        continue;
+                    }
+
+                    l++;
+                    i--;
+                }
+
+                // if size.height is defined we have to check whether the height of the entire
+                // text exceeds the rect height
+                if (typeof height !== 'undefined') {
+
+                    // get line height as text height / 0.8 (as text height is approx. 0.8em
+                    // and line height is 1em. See vectorizer.text())
+                    var lh = lh || textElement.getBBox().height * 1.25;
+
+                    if (lh * lines.length > height) {
+
+                        // remove overflowing lines
+                        lines.splice(Math.floor(height / lh));
+
+                        break;
+                    }
+                }
+            }
+
+            if (opt.svgDocument) {
+
+                // svg document was provided, remove the text element only
+                svgDocument.removeChild(textElement);
+
+            } else {
+
+                // clean svg document
+                document.body.removeChild(svgDocument);
+            }
+
+            return lines.join('\n');
+        },
+
 	timing: {
 
 	    linear: function(t) {
@@ -365,7 +539,10 @@ var joint = {
 		var ba = ca & 0xff0000, bd = (cb & 0xff0000) - ba;
 
 		return function(t) {
-		    return '#' + (1 << 24 |(ra + rd * t)|(ga + gd * t)|(ba + bd * t)).toString(16).slice(1);
+                    var r = (ra + rd * t) & 0x000000ff;
+                    var g = (ga + gd * t) & 0x0000ff00;
+                    var b = (ba + bd * t) & 0x00ff0000;
+		    return '#' + (1 << 24 | r | g | b ).toString(16).slice(1);
 		};
 	    },
 
@@ -401,11 +578,17 @@ var joint = {
             // `dy` ... vertical shift
             // `blur` ... blur
             // `color` ... color
+            // `opacity` ... opacity
             dropShadow: function(args) {
-                
-                return _.template('<filter><feGaussianBlur in="SourceAlpha" stdDeviation="${blur}"/><feOffset dx="${dx}" dy="${dy}" result="offsetblur"/><feFlood flood-color="${color}"/><feComposite in2="offsetblur" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>', {
+
+                var tpl = 'SVGFEDropShadowElement' in window
+                    ? '<filter><feDropShadow stdDeviation="${blur}" dx="${dx}" dy="${dy}" flood-color="${color}" flood-opacity="${opacity}"/></filter>'
+                    : '<filter><feGaussianBlur in="SourceAlpha" stdDeviation="${blur}"/><feOffset dx="${dx}" dy="${dy}" result="offsetblur"/><feFlood flood-color="${color}"/><feComposite in2="offsetblur" operator="in"/><feComponentTransfer><feFuncA type="linear" slope="${opacity}"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+
+                return _.template(tpl, {
                     dx: args.dx || 0,
                     dy: args.dy || 0,
+                    opacity: _.isFinite(args.opacity) ? args.opacity : 1,
                     color: args.color || 'black',
                     blur: _.isFinite(args.blur) ? args.blur : 4
                 });
@@ -492,6 +675,189 @@ var joint = {
                     amount: amount,
                     amount2: .5 - amount / 2
                 });
+            }
+        },
+
+        format: {
+
+            // Formatting numbers via the Python Format Specification Mini-language.
+            // See http://docs.python.org/release/3.1.3/library/string.html#format-specification-mini-language.
+            // Heavilly inspired by the D3.js library implementation.
+            number: function(specifier, value, locale) {
+
+                locale = locale || {
+
+                    currency: ['$', ''],
+                    decimal: '.',
+                    thousands: ',',
+                    grouping: [3]
+                };
+                
+                // See Python format specification mini-language: http://docs.python.org/release/3.1.3/library/string.html#format-specification-mini-language.
+                // [[fill]align][sign][symbol][0][width][,][.precision][type]
+                var re = /(?:([^{])?([<>=^]))?([+\- ])?([$#])?(0)?(\d+)?(,)?(\.-?\d+)?([a-z%])?/i;
+
+                var match = re.exec(specifier);
+                var fill = match[1] || ' ';
+                var align = match[2] || '>';
+                var sign = match[3] || '';
+                var symbol = match[4] || '';
+                var zfill = match[5];
+                var width = +match[6];
+                var comma = match[7];
+                var precision = match[8];
+                var type = match[9];
+                var scale = 1;
+                var prefix = '';
+                var suffix = '';
+                var integer = false;
+
+                if (precision) precision = +precision.substring(1);
+                
+                if (zfill || fill === '0' && align === '=') {
+                    zfill = fill = '0';
+                    align = '=';
+                    if (comma) width -= Math.floor((width - 1) / 4);
+                }
+
+                switch (type) {
+                  case 'n': comma = true; type = 'g'; break;
+                  case '%': scale = 100; suffix = '%'; type = 'f'; break;
+                  case 'p': scale = 100; suffix = '%'; type = 'r'; break;
+                  case 'b':
+                  case 'o':
+                  case 'x':
+                  case 'X': if (symbol === '#') prefix = '0' + type.toLowerCase();
+                  case 'c':
+                  case 'd': integer = true; precision = 0; break;
+                  case 's': scale = -1; type = 'r'; break;
+                }
+
+                if (symbol === '$') {
+                    prefix = locale.currency[0];
+                    suffix = locale.currency[1];
+                }
+
+                // If no precision is specified for `'r'`, fallback to general notation.
+                if (type == 'r' && !precision) type = 'g';
+
+                // Ensure that the requested precision is in the supported range.
+                if (precision != null) {
+                    if (type == 'g') precision = Math.max(1, Math.min(21, precision));
+                    else if (type == 'e' || type == 'f') precision = Math.max(0, Math.min(20, precision));
+                }
+
+                var zcomma = zfill && comma;
+
+                // Return the empty string for floats formatted as ints.
+                if (integer && (value % 1)) return '';
+
+                // Convert negative to positive, and record the sign prefix.
+                var negative = value < 0 || value === 0 && 1 / value < 0 ? (value = -value, '-') : sign;
+
+                var fullSuffix = suffix;
+                
+                // Apply the scale, computing it from the value's exponent for si format.
+                // Preserve the existing suffix, if any, such as the currency symbol.
+                if (scale < 0) {
+                    var unit = this.prefix(value, precision);
+                    value = unit.scale(value);
+                    fullSuffix = unit.symbol + suffix;
+                } else {
+                    value *= scale;
+                }
+
+                // Convert to the desired precision.
+                value = this.convert(type, value, precision);
+
+                // Break the value into the integer part (before) and decimal part (after).
+                var i = value.lastIndexOf('.');
+                var before = i < 0 ? value : value.substring(0, i);
+                var after = i < 0 ? '' : locale.decimal + value.substring(i + 1);
+
+                function formatGroup(value) {
+                    
+                    var i = value.length;
+                    var t = [];
+                    var j = 0;
+                    var g = locale.grouping[0];
+                    while (i > 0 && g > 0) {
+                        t.push(value.substring(i -= g, i + g));
+                        g = locale.grouping[j = (j + 1) % locale.grouping.length];
+                    }
+                    return t.reverse().join(locale.thousands);
+                }
+                
+                // If the fill character is not `'0'`, grouping is applied before padding.
+                if (!zfill && comma && locale.grouping) {
+
+                    before = formatGroup(before);
+                }
+
+                var length = prefix.length + before.length + after.length + (zcomma ? 0 : negative.length);
+                var padding = length < width ? new Array(length = width - length + 1).join(fill) : '';
+
+                // If the fill character is `'0'`, grouping is applied after padding.
+                if (zcomma) before = formatGroup(padding + before);
+
+                // Apply prefix.
+                negative += prefix;
+
+                // Rejoin integer and decimal parts.
+                value = before + after;
+
+                return (align === '<' ? negative + value + padding
+                        : align === '>' ? padding + negative + value
+                        : align === '^' ? padding.substring(0, length >>= 1) + negative + value + padding.substring(length)
+                        : negative + (zcomma ? value : padding + value)) + fullSuffix;
+            },
+
+            convert: function(type, value, precision) {
+
+                switch (type) {
+                  case 'b': return value.toString(2);
+                  case 'c': return String.fromCharCode(value);
+                  case 'o': return value.toString(8);
+                  case 'x': return value.toString(16);
+                  case 'X': return value.toString(16).toUpperCase();
+                  case 'g': return value.toPrecision(precision);
+                  case 'e': return value.toExponential(precision);
+                  case 'f': return value.toFixed(precision);
+                  case 'r': return (value = this.round(value, this.precision(value, precision))).toFixed(Math.max(0, Math.min(20, this.precision(value * (1 + 1e-15), precision))));
+                default: return value + '';
+                }
+            },
+
+            round: function(value, precision) {
+
+                return precision
+                    ? Math.round(value * (precision = Math.pow(10, precision))) / precision
+                    : Math.round(value);
+            },
+
+            precision: function(value, precision) {
+                
+                return precision - (value ? Math.ceil(Math.log(value) / Math.LN10) : 1);
+            },
+
+            prefix: function(value, precision) {
+
+                var prefixes = _.map(['y','z','a','f','p','n','µ','m','','k','M','G','T','P','E','Z','Y'], function(d, i) {
+                    var k = Math.pow(10, abs(8 - i) * 3);
+                    return {
+                        scale: i > 8 ? function(d) { return d / k; } : function(d) { return d * k; },
+                        symbol: d
+                    };
+                });
+                
+                var i = 0;
+                if (value) {
+                    if (value < 0) value *= -1;
+                    if (precision) value = d3.round(value, this.precision(value, precision));
+                    i = 1 + Math.floor(1e-12 + Math.log(value) / Math.LN10);
+                    i = Math.max(-24, Math.min(24, Math.floor((i <= 0 ? i + 1 : i - 1) / 3) * 3));
+                }
+                return prefixes[8 + i / 3];
             }
         }
     }
