@@ -220,11 +220,12 @@
             transformAttr = transformAttr.replace(/translate\([^\)]*\)/g, '').trim();
 
             var newTx = transform.translate.tx + tx,
-                newTy = transform.translate.ty + ty;
+                newTy = transform.translate.ty + ty,
+                newTranslate = 'translate(' + newTx + ',' + newTy + ')';
 
             // Note that `translate()` is always the first transformation. This is
             // usually the desired case.
-            this.attr('transform', 'translate(' + newTx + ',' + newTy + ') ' + transformAttr);
+            this.attr('transform', (newTranslate + ' ' + transformAttr).trim());
             return this;
         },
 
@@ -240,9 +241,10 @@
             transformAttr = transformAttr.replace(/rotate\([^\)]*\)/g, '').trim();
 
             var newAngle = transform.rotate.angle + angle % 360,
-                newOrigin = (cx !== undefined && cy !== undefined) ? ',' + cx + ',' + cy : '';
+                newOrigin = (cx !== undefined && cy !== undefined) ? ',' + cx + ',' + cy : '',
+                newRotate = 'rotate(' + newAngle + newOrigin + ')';
             
-            this.attr('transform', transformAttr + ' rotate(' + newAngle + newOrigin + ')');
+            this.attr('transform', (transformAttr + ' ' + newRotate).trim());
             return this;
         },
 
@@ -260,7 +262,9 @@
             
             transformAttr = transformAttr.replace(/scale\([^\)]*\)/g, '').trim();
 
-            this.attr('transform', transformAttr + ' scale(' + sx + ',' + sy + ')');
+            var newScale = 'scale(' + sx + ',' + sy + ')';
+
+            this.attr('transform', (transformAttr + ' ' + newScale).trim());
             return this;
         },
 
