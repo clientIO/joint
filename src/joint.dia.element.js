@@ -276,7 +276,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // relative to the root bounding box following the `ref-x` and `ref-y` attributes.
         if (vel.attr('transform')) {
 
-            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '') || '');
+            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '').trim() || '');
         }
 
         function isDefined(x) {
