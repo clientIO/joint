@@ -461,6 +461,23 @@ joint.dia.CellView = Backbone.View.extend({
         return { 'model-id': this.model.id }
     },
 
+    constructor: function(options) {
+
+	this._configure(options);
+	Backbone.View.apply(this, arguments);
+    },
+
+    _configure: function(options) {
+
+	if (this.options) options = _.extend({}, _.result(this, 'options'), options);
+	this.options = options;
+        // Make sure a global unique id is assigned to this view. Store this id also to the properties object.
+        // The global unique id makes sure that the same view can be rendered on e.g. different machines and
+        // still be associated to the same object among all those clients. This is necessary for real-time
+        // collaboration mechanism.
+        this.options.id = this.options.id || joint.util.guid(this);
+    },
+
     initialize: function() {
 
         _.bindAll(this, 'remove', 'update');
@@ -482,17 +499,6 @@ joint.dia.CellView = Backbone.View.extend({
         }
 
         return this.update();
-    },
-
-    _configure: function(options) {
-
-        // Make sure a global unique id is assigned to this view. Store this id also to the properties object.
-        // The global unique id makes sure that the same view can be rendered on e.g. different machines and
-        // still be associated to the same object among all those clients. This is necessary for real-time
-        // collaboration mechanism.
-        options.id = options.id || joint.util.guid(this);
-        
-        Backbone.View.prototype._configure.apply(this, arguments);
     },
 
     // Override the Backbone `_ensureElement()` method in order to create a `<g>` node that wraps

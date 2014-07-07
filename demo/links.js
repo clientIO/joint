@@ -28,7 +28,6 @@ graph.addCell(r1);
 
 
 function title(x, y, text) {
-
     var el = new joint.shapes.basic.Text({
         position: { x: x, y: y },
         size: { width: text.length * 4, height: text.split('\n').length * 15 },
@@ -293,7 +292,7 @@ V(paper.svg).append(c);
 // Manhattan routing.
 // ------------------
 
-title(250, 850, 'Manhattan routing');
+title(250, 850, 'Manhattan and Metro routing');
 
 var r15 = r13.clone();
 graph.addCell(r15);
@@ -301,12 +300,20 @@ r15.translate(0, 100);
 
 var r16 = r15.clone();
 graph.addCell(r16);
-r16.translate(300, 80);
+r16.translate(200, 0);
 
 var link8 = new joint.dia.Link({
     source: { id: r15.id },
     target: { id: r16.id },
-    manhattan: true
+    vertices: [{x: 700, y: 900}],
+    router: { name: 'metro' }
 });
 
-graph.addCell(link8);
+var link9 = new joint.dia.Link({
+    source: { id: r15.id },
+    target: { id: r16.id },
+    router: { name: 'manhattan' },
+    connector: { name: 'rounded' }
+});
+
+graph.addCell([link8, link9]);

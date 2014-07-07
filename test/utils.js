@@ -29,6 +29,22 @@ function checkBbox(paper, el, x, y, w, h, msg) {
     deepEqual(bboxObject, { x: x, y: y, width: w, height: h }, msg);
 }
 
+function approximately(result, expected, tolerance, message) {
+
+    ok(result > (expected - tolerance) && result < expected + tolerance, message);
+}
+
+var asserts = {
+
+    roundedEqualAttrs: function(el, attrs) {
+
+        _.each(attrs, function(value, attr) {
+
+            equal(Math.round(V(el).attr(attr)), value, attr + ' is correct (' + value + ')');
+        });
+    }
+};
+
 // Simulate user events.
 // ---------------------
 
@@ -40,7 +56,7 @@ var simulate = {
         evt.initMouseEvent(
             opt.type, /*canBubble*/ true, /*cancelable*/ true, /*view*/ window, /*click count*/1,
             opt.screenX || 0, opt.screenY || 0, opt.clientX || 0, opt.clientY || 0,
-            /*ctrlKey*/ false, /*altKey*/ false, /*shiftKey*/ false, /*metaKey*/ false, opt.button || 0, /*relatedTarget*/ null
+            /*ctrlKey*/ !!opt.ctrlKey, /*altKey*/ !!opt.altKey, /*shiftKey*/ !!opt.shiftKey, /*metaKey*/ !!opt.metaKey, opt.button || 0, /*relatedTarget*/ null
         );
 
         if (opt.el) {
@@ -48,7 +64,7 @@ var simulate = {
         }
         return evt;
     },
-    
+
     mousedown: function(opt) {
 
         opt.type = 'mousedown';
@@ -77,5 +93,11 @@ var simulate = {
 
         opt.type = 'mouseout';
         return this.mouseevent(opt);
+    },
+
+    click: function(opt) {
+
+        this.mousedown(opt);
+        return this.mouseup(opt);
     }
 };

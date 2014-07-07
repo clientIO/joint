@@ -17,19 +17,25 @@ joint.layout.DirectedGraph = {
         
         layoutGraph.eachNode(function(u, value) {
             if (!value.dummy) {
-                graph.get('cells').get(u).set('position', {
-                    x: value.x - value.width/2,
-                    y: value.y - value.height/2
-                });
+
+		var cell = graph.getCell(u);
+		opt.setPosition 
+		    ? opt.setPosition(cell, value)
+		    : graph.get('cells').get(u).set('position', {
+			x: value.x - value.width/2,
+			y: value.y - value.height/2
+                    });
             }
         });
 
         if (opt.setLinkVertices) {
 
             layoutGraph.eachEdge(function(e, u, v, value) {
-                var link = graph.get('cells').get(e);
+                var link = graph.getCell(e);
                 if (link) {
-                    graph.get('cells').get(e).set('vertices', value.points);
+		    opt.setVertices
+			? opt.setVertices(link, value.points)
+			: link.set('vertices', value.points);
                 }
             });
         }

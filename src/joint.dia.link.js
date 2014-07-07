@@ -558,7 +558,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             this.sourceBBox = view.getStrokeBBox(magnetElement);
 
-        } else {
+        } else if (end) {
             // the link end is a point ~ rect 1x1
             this.sourceBBox = g.rect(end.x, end.y, 1, 1);
         }
@@ -582,7 +582,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             this.targetBBox = view.getStrokeBBox(magnetElement);
 
-        } else {
+        } else if (end) {
             // the link end is a point ~ rect 1x1
             this.targetBBox = g.rect(end.x, end.y, 1, 1);
         }
@@ -752,6 +752,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var spot;
 
+        // If the `selectorOrPoint` (or `referenceSelectorOrPoint`) is `undefined`, the `source`/`target` of the link model is `undefined`.
+        // We want to allow this however so that one can create links such as `var link = new joint.dia.Link` and
+        // set the `source`/`target` later.
+        selectorOrPoint = selectorOrPoint || { x: 0, y: 0 };
+        referenceSelectorOrPoint = referenceSelectorOrPoint || { x: 0, y: 0 };
+
         if (this._isPoint(selectorOrPoint)) {
 
             // If the source is a point, we don't need a reference point to find the sticky point of connection.
@@ -895,6 +901,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Let the pointer propagate throught the link view elements so that
         // the `evt.target` is another element under the pointer, not the link itself.
         this.el.style.pointerEvents = 'none';
+
+        if (this.paper.options.markAvailable) {
+            this._markAvailableMagnets();
+        }
     },
 
     _afterArrowheadMove: function() {
@@ -908,6 +918,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 	// Value `auto` doesn't work in IE9. We force to use `visiblePainted` instead.
 	// See `https://developer.mozilla.org/en-US/docs/Web/CSS/pointer-events`.
         this.el.style.pointerEvents = 'visiblePainted';
+
+        if (this.paper.options.markAvailable) {
+            this._unmarkAvailableMagnets();
+        }
 
         this.model.trigger('batch:stop');
     },
@@ -946,13 +960,49 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return validateConnectionArgs;
     },
 
+    _markAvailableMagnets: function() {
+
+        var elements = this.paper.model.getElements();
+        var validate = this.paper.options.validateConnection;
+
+        _.chain(elements).map(this.paper.findViewByModel, this.paper).each(function(view) {
+
+            var isElementAvailable = view.el.getAttribute('magnet') !== 'false' &&
+                validate.apply(this.paper, this._validateConnectionArgs(view, null));
+
+            var availableMagnets = _.filter(view.el.querySelectorAll('[magnet]'), function(magnet) {
+                return validate.apply(this.paper, this._validateConnectionArgs(view, magnet));
+            }, this);
+
+            if (isElementAvailable) {
+                V(view.el).addClass('available-magnet');
+            }
+
+            _.each(availableMagnets, function(magnet) {
+                V(magnet).addClass('available-magnet');
+            });
+
+            if (isElementAvailable || availableMagnets.length) {
+                V(view.el).addClass('available-cell');
+            }
+
+        }, this);
+    },
+
+    _unmarkAvailableMagnets: function() {
+
+        _.each(this.paper.el.querySelectorAll('.available-cell, .available-magnet'), function(magnet) {
+            V(magnet).removeClass('available-magnet').removeClass('available-cell');
+        });
+    },
+
     startArrowheadMove: function(end) {
         // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
         // move without need to click on the actual arrowhead dom element.
         this._action = 'arrowhead-move';
         this._arrowhead = end;
-        this._beforeArrowheadMove();
         this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
+        this._beforeArrowheadMove();
     },
 
     pointerdown: function(evt, x, y) {

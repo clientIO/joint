@@ -4,15 +4,23 @@
 
 joint.dia.Paper = Backbone.View.extend({
 
+    className: 'paper',
+
     options: {
 
         width: 800,
         height: 600,
+        origin: { x: 0, y: 0 }, // x,y coordinates in top-left corner
         gridSize: 50,
         perpendicularLinks: false,
         elementView: joint.dia.ElementView,
         linkView: joint.dia.LinkView,
         snapLinks: false, // false, true, { radius: value }
+
+        // Marks all available magnets with 'available-magnet' class name and all available cells with
+        // 'available-cell' class name. Marks them when dragging a link is started and unmark
+        // when the dragging is stopped.
+        markAvailable: false,
 
         // Defines what link model is added to the graph after an user clicks on an active magnet.
         // Value could be the Backbone.model or a function returning the Backbone.model
@@ -41,9 +49,21 @@ joint.dia.Paper = Backbone.View.extend({
         'touchmove': 'pointermove'
     },
 
+    constructor: function(options) {
+
+	this._configure(options);
+	Backbone.View.apply(this, arguments);
+    },
+
+    _configure: function(options) {
+
+	if (this.options) options = _.extend({}, _.result(this, 'options'), options);
+	this.options = options;
+    },
+
     initialize: function() {
 
-        _.bindAll(this, 'addCell', 'sortCells', 'resetCells', 'pointerup');
+        _.bindAll(this, 'addCell', 'sortCells', 'resetCells', 'pointerup', 'asyncRenderCells');
 
         this.svg = V('svg').node;
         this.viewport = V('g').node;
@@ -76,37 +96,61 @@ joint.dia.Paper = Backbone.View.extend({
 	Backbone.View.prototype.remove.call(this);
     },
 
-    setDimensions: function(width, height) {
+    setDimensions: function(width, height, origin) {
 
-        if (width) this.options.width = width;
-        if (height) this.options.height = height;
-        
-        V(this.svg).attr('width', this.options.width);
-        V(this.svg).attr('height', this.options.height);
+        width = this.options.width = width || this.options.width;
+        height = this.options.height = height || this.options.height;
+        origin = this.options.origin = origin || this.options.origin;
 
-	this.trigger('resize');
+        V(this.svg).attr({ width: width, height: height });
+        V(this.viewport).translate(-origin.x, -origin.y, { absolute: true });
+
+        this.trigger('resize', width, height, origin);
     },
+
 
     // Expand/shrink the paper to fit the content. Snap the width/height to the grid
     // defined in `gridWidth`, `gridHeight`. `padding` adds to the resulting width/height of the paper.
-    fitToContent: function(gridWidth, gridHeight, padding) {
+    // When options { fitNegative: true } it also translates the viewport in order to make all
+    // the content visible.
+    fitToContent: function(gridWidth, gridHeight, padding, opt) {
 
 	gridWidth = gridWidth || 1;
 	gridHeight = gridHeight || 1;
         padding = padding || 0;
+        opt = opt || {};
 
 	// Calculate the paper size to accomodate all the graph's elements.
 	var bbox = V(this.viewport).bbox(true, this.svg);
 
-	var calcWidth = Math.ceil((bbox.width + bbox.x) / gridWidth) * gridWidth;
-	var calcHeight = Math.ceil((bbox.height + bbox.y) / gridHeight) * gridHeight;
+	var calcWidth = Math.max(Math.ceil((bbox.width + bbox.x) / gridWidth), 1) * gridWidth;
+	var calcHeight = Math.max(Math.ceil((bbox.height + bbox.y) / gridHeight), 1) * gridHeight;
+
+        var tx = 0;
+        var ty = 0;
+
+        if (opt.fitNegative) {
+
+            if (bbox.x < 0) {
+                tx = -Math.ceil(-bbox.x / gridWidth) * gridWidth;
+                calcWidth -= tx;
+            }
+
+            if (bbox.y < 0) {
+                ty = -Math.ceil(-bbox.y / gridHeight) * gridHeight;
+                calcHeight -= ty;
+            }
+        }
 
         calcWidth += padding;
         calcHeight += padding;
-        
-	// Change the dimensions only if there is a size discrepency
-	if (calcWidth != this.options.width || calcHeight != this.options.height) {
-	    this.setDimensions(calcWidth || this.options.width , calcHeight || this.options.height);
+
+        var dimensionChange = calcWidth != this.options.width || calcHeight != this.options.height;
+        var originChange = opt.fitNegative && (tx != this.options.origin.x || ty != this.options.origin.y);
+
+	// Change the dimensions only if there is a size discrepency or origin change
+	if (dimensionChange || originChange) {
+	    this.setDimensions(calcWidth, calcHeight, { x: tx, y: ty });
 	}
     },
 
@@ -118,7 +162,7 @@ joint.dia.Paper = Backbone.View.extend({
         // Google Chrome and Firefox.
         var ctm = this.viewport.getScreenCTM();
 
-        var bbox = g.rect(Math.abs(crect.left - ctm.e), Math.abs(crect.top - ctm.f), crect.width, crect.height);
+        var bbox = g.rect(crect.left - ctm.e, crect.top - ctm.f, crect.width, crect.height);
 
         return bbox;
     },
@@ -171,11 +215,45 @@ joint.dia.Paper = Backbone.View.extend({
         // They wouldn't find their sources/targets in the DOM otherwise.
         cells.sort(function(a, b) { return a instanceof joint.dia.Link ? 1 : -1; });
         
-        _.each(cells, this.addCell, this);
+	if (this._frameId) {
+	    joint.util.cancelFrame(this._frameId);
+	}
+	if (this.options.async) {
+
+	    this.asyncRenderCells(cells);
+
+	} else {
+
+            _.each(cells, this.addCell, this);
+	}
 
         // Sort the cells in the DOM manually as we might have changed the order they
         // were added to the DOM (see above).
         this.sortCells();
+    },
+
+    asyncRenderCells: function(cells) {
+
+        var done = false;
+
+        _.each(_.range(this.options.async && this.options.async.batchSize || 50), function() {
+
+            var cell = cells.shift();
+	    done = !cell;
+            if (!done) this.addCell(cell);
+
+        }, this);
+
+        if (done) {
+
+	    this.trigger('render:done');
+
+	} else {
+
+            this._frameId = joint.util.nextFrame(_.bind(function() {
+		this.asyncRenderCells(cells);
+	    }, this));
+        }
     },
 
     sortCells: function() {

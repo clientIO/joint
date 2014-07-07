@@ -104,6 +104,20 @@ joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
+joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
+
+    defaults: joint.util.deepSupplement({
+    
+        type: 'basic.Rhombus',
+        attrs: {
+            'path': { d: 'M 30 0 L 60 30 30 60 0 30 z' },
+            'text': { 'ref-y': .5 }
+        }
+        
+    }, joint.shapes.basic.Path.prototype.defaults)
+});
+
+
 // PortsModelInterface is a common interface for shapes that have ports. This interface makes it easy
 // to create new shapes with ports functionality. It is assumed that the new shapes have
 // `inPorts` and `outPorts` array properties. Only these properties should be used to set ports.

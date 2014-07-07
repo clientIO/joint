@@ -206,7 +206,9 @@
 
     VElement.prototype = {
         
-        translate: function(tx, ty) {
+        translate: function(tx, ty, opt) {
+
+            opt = opt || {};
             ty = ty || 0;
             
             var transformAttr = this.attr('transform') || '',
@@ -219,8 +221,8 @@
             
             transformAttr = transformAttr.replace(/translate\([^\)]*\)/g, '').trim();
 
-            var newTx = transform.translate.tx + tx,
-                newTy = transform.translate.ty + ty,
+            var newTx = opt.absolute ? tx : transform.translate.tx + tx,
+                newTy = opt.absolute ? ty : transform.translate.ty + ty,
                 newTranslate = 'translate(' + newTx + ',' + newTy + ')';
 
             // Note that `translate()` is always the first transformation. This is
@@ -229,7 +231,10 @@
             return this;
         },
 
-        rotate: function(angle, cx, cy) {
+        rotate: function(angle, cx, cy, opt) {
+
+            opt = opt || {};
+
             var transformAttr = this.attr('transform') || '',
                 transform = parseTransformString(transformAttr);
 
@@ -240,10 +245,12 @@
             
             transformAttr = transformAttr.replace(/rotate\([^\)]*\)/g, '').trim();
 
-            var newAngle = transform.rotate.angle + angle % 360,
+            angle %= 360;
+
+            var newAngle = opt.absolute ? angle: transform.rotate.angle + angle,
                 newOrigin = (cx !== undefined && cy !== undefined) ? ',' + cx + ',' + cy : '',
                 newRotate = 'rotate(' + newAngle + newOrigin + ')';
-            
+
             this.attr('transform', (transformAttr + ' ' + newRotate).trim());
             return this;
         },
@@ -356,9 +363,12 @@
             };
         },
 
-        text: function(content) {
-            var lines = content.split('\n'), i = 0,
-                tspan;
+        text: function(content, opt) {
+
+	    opt = opt || {};
+            var lines = content.split('\n');
+	    var i = 0;
+            var tspan;
 
             // `alignment-baseline` does not work in Firefox.
 	    // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
@@ -372,7 +382,10 @@
             // In order to unify this behaviour across all browsers
             // we rather hide the text element when it's empty.
             this.attr('display', content ? null : 'none');
-            
+
+	    // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
+	    this.node.setAttributeNS("http://www.w3.org/XML/1998/namespace", "xml:space","preserve");
+
             if (lines.length === 1) {
                 this.node.textContent = content;
                 return this;
@@ -383,8 +396,11 @@
             for (; i < lines.length; i++) {
 
                 // Shift all the <tspan> but first by one line (`1em`)
-                tspan = V('tspan', { dy: (i == 0 ? '0em' : '1em'), x: this.attr('x') || 0});
-                tspan.node.textContent = lines[i];
+                tspan = V('tspan', { dy: (i == 0 ? '0em' : opt.lineHeight || '1em'), x: this.attr('x') || 0});
+		// Make sure the textContent is never empty. If it is, add an additional 
+		// space (an invisible character) so that following lines are correctly
+		// relatively positioned. `dy=1em` won't work with empty lines otherwise.
+                tspan.node.textContent = lines[i] || ' ';
                 
                 this.append(tspan);
             }
@@ -607,7 +623,8 @@
         addClass: function(className) {
 
             if (!this.hasClass(className)) {
-                this.node.setAttribute('class', this.node.getAttribute('class') + ' ' + className);
+                var prevClasses = this.node.getAttribute('class') || '';
+                this.node.setAttribute('class', (prevClasses + ' ' + className).trim());
             }
 
             return this;
@@ -615,10 +632,9 @@
 
         removeClass: function(className) {
 
-            var removedClass = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
-
             if (this.hasClass(className)) {
-                this.node.setAttribute('class', removedClass);
+                var newClasses = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
+                this.node.setAttribute('class', newClasses);
             }
 
             return this;

@@ -44,6 +44,40 @@ test('construction', function() {
     
 });
 
+asyncTest('async', function() {
+
+    var r1 = new joint.shapes.basic.Rect({
+        position: { x: 20, y: 30 },
+        size: { width: 120, height: 80 },
+        attrs: { text: { text: 'my rectangle' } }
+    });
+    var r2 = r1.clone();
+    var r3 = r1.clone();
+
+    this.paper.options.async = { batchSize: 1 };
+    this.paper.on('render:done', function() {
+	
+	var textEls = this.paper.svg.getElementsByTagName('text');
+	var rectEls = this.paper.svg.getElementsByTagName('rect');
+
+	equal(textEls.length, 3, 'there is exactly 3 <text> elements in the paper');
+	equal(rectEls.length, 3, 'there is exactly 3 <rect> elements in the paper');
+
+	equal(textEls[0].textContent, 'my rectangle', 'text element has a proper content');
+
+	start();
+
+    }, this);
+
+    this.graph.resetCells([r1, r2, r3]);
+
+    var textEls = this.paper.svg.getElementsByTagName('text');
+    var rectEls = this.paper.svg.getElementsByTagName('rect');
+
+    equal(textEls.length, 1, 'there is exactly batchSize <text> elements in the paper initially');
+    equal(rectEls.length, 1, 'there is exactly batchSize <rect> elements in the paper initially');
+});
+
 test('getBBox()', function() {
 
     var myrect = new joint.shapes.basic.Rect({
@@ -60,6 +94,27 @@ test('getBBox()', function() {
     equal(bbox.width, 120, 'bbox.width is correct');
     equal(bbox.height, 80, 'bbox.height is correct');
     
+});
+
+test('z index', function() {
+
+    var r1 = new joint.shapes.basic.Rect;
+    var r2 = new joint.shapes.basic.Rect;
+    var r3 = new joint.shapes.basic.Rect;
+
+    this.graph.addCell(r1);
+    this.graph.addCell(r2);
+    this.graph.addCell(r3);
+
+    ok(r1.get('z') < r2.get('z'), 'z index of the first added cell is lower than that of the second one');
+    ok(r2.get('z') < r3.get('z'), 'z index of the second added cell is lower than that of the third one');
+
+    // Test removing/adding new cells to cover https://github.com/clientIO/JointJS_plus/issues/21.
+    r1.remove();
+    var r4 = new joint.shapes.basic.Rect;
+    this.graph.addCell(r4);
+    ok(r2.get('z') < r3.get('z'), 'z index of the second added cell is lower than that of the third one');
+    ok(r3.get('z') < r4.get('z'), 'z index of the third added cell is lower than that of the fourth, newly added, one');
 });
 
 test('translate()', function() {
@@ -195,6 +250,47 @@ test('attr()', function() {
     
     equal(elView.$('.big').attr('opacity'), .5, '.5 opacity was correctly set by attr()');
     
+});
+
+test('removeAttr()', function() {
+
+    var el = new joint.shapes.basic.Generic({
+        position: { x: 20, y: 30 },
+        markup: '<rect class="big"/><rect class="small"/>',
+        attrs: {
+            '.big': { width: 100, height: 50, fill: 'gray', stroke: 'pink' },
+            '.small': { width: 10, height: 10, fill: 'red' }
+        }
+    });
+
+    this.graph.addCell(el);
+
+    var elView = this.paper.findViewByModel(el);
+
+    equal(elView.$('.big').attr('stroke'), 'pink', 'A stroke is set on the element');
+
+    el.removeAttr('.big/stroke');
+
+    equal(elView.$('.big').attr('stroke'), undefined, 'The stroke was correctly unset from the element by removeAttr()');
+
+    var link = new joint.dia.Link({
+        source: { x: 100, y: 100 },
+        target: { x: 200, y: 200 },
+        attrs: {
+            '.connection': { width: 100, height: 50, fill: 'gray', 'stroke-width': 2 }
+        }
+    });
+
+    this.graph.addCell(link);
+
+    var linkView = this.paper.findViewByModel(link);
+
+    equal(linkView.$('.connection').attr('stroke-width'), '2', 'A stroke is set on the link');
+
+    link.removeAttr('.connection/stroke-width');
+
+    equal(linkView.$('.connection').attr('stroke-width'), undefined, 'The stroke was correctly unset from the link by removeAttr()');
+
 });
 
 
@@ -414,6 +510,61 @@ test('ref-dx, ref-dy, ref', function() {
         { x: smallRectBbox.x + smallRectBbox.width + 10, y: smallRectBbox.y + smallRectBbox.height + 10, width: 5, height: 5 },
         'ref-dx: 10, ref-dy: 10 with ref set to .small should offset the element by 10px in x axis and 10px in y axis with respect to the right-bottom coordinate of the .small element'
     );
+});
+
+ test('ref-width, ref-height', function() {
+
+    var el = new joint.shapes.basic.Generic({
+        markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
+        attrs: {
+            '.big': { width: 100, height: 50, fill: 'gray' },
+            '.small': { 'ref-width': .5, 'ref-height': .4, ref: '.big', fill: 'red' },
+            '.smaller': { 'ref-width': 10, 'ref-height': -10, ref: '.small', fill: 'black' }
+        }
+    });
+
+    this.graph.addCell(el);
+
+    var elView = this.paper.findViewByModel(el);
+
+    var smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
+
+    // Range [0, 1]
+
+    deepEqual(
+        { width: smallRectBbox.width, height: smallRectBbox.height },
+        { width: 50, height: 20 },
+        'ref-width: .5, ref-height: .4 attributes should set the element size to 50x20.'
+    );
+
+    var smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
+
+    // Range [-x, 0] && [1, x]
+
+    deepEqual(
+        { width: smallerRectBbox.width, height: smallerRectBbox.height },
+        { width: 60, height: 10 },
+        'ref-width: 10, ref-height: -10 attributes referenced to the previous element should set the element size to 60x10.'
+    );
+
+    // Margin value 1
+
+    el.attr({ '.small': { 'ref-width': 1, 'ref-height': 1 } });
+
+    smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
+
+    deepEqual(
+        { width: smallRectBbox.width, height: smallRectBbox.height },
+        { width: 100, height: 50 },
+        'ref-width: 1, ref-height: 1 attributes element should set the exact referenced element size 100x50.'
+    );
+
+    el.attr({ '.small': { 'ref-width': 0 } });
+
+    smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
+
+     ok(smallRectBbox.width === 0, 'ref-width: 0 attribute element should set its width to 0.');
+
 });
 
 test('x-alignment, y-alignment', function() {

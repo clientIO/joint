@@ -161,7 +161,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 $selected.each(function() {
 
-                    V(this).text(attrs.text + '');
+                    V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight });
                 });
             }
 
@@ -462,8 +462,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             return;
         }
         var scalableBbox = scalable.bbox(true);
-        
-        scalable.attr('transform', 'scale(' + (size.width / scalableBbox.width) + ',' + (size.height / scalableBbox.height) + ')');
+        // Make sure `scalableBbox.width` and `scalableBbox.height` are not zero which can happen if the element does not have any content. By making
+        // the width/height 1, we prevent HTML errors of the type `scale(Infinity, Infinity)`.
+        scalable.attr('transform', 'scale(' + (size.width / (scalableBbox.width || 1)) + ',' + (size.height / (scalableBbox.height || 1)) + ')');
 
         // Now the interesting part. The goal is to be able to store the object geometry via just `x`, `y`, `angle`, `width` and `height`
         // Order of transformations is significant but we want to reconstruct the object always in the order:

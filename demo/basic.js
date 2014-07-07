@@ -50,6 +50,13 @@ var pb = new joint.shapes.basic.Path({
 });
 graph.addCell(pb);
 
+var rh = new joint.shapes.basic.Rhombus({
+    position: { x: 50, y: 250 },
+    size: { width: 70, height: 70 },
+    attrs: { text: { text: 'basic.Rhombus', 'font-size': 8 } }
+});
+graph.addCell(rh);
+
 var tbl = new joint.shapes.basic.TextBlock({
     position: { x: 400, y: 180 },
     size: { width: 180, height: 100 },
@@ -122,3 +129,40 @@ var d = new MyElementWithPorts({
 });
 
 graph.addCell(d);
+
+
+// An example showing auto-resize of the joint.shapes.basic.Rect element based on the size of the text in it:
+
+rb.on('change:attrs', function(element) {
+
+    var text = rb.attr('text/text');
+    var fontSize = parseInt(rb.attr('text/font-size'), 10);
+
+    var svgDocument = V('svg').node;
+    var textElement = V('<text><tspan></tspan></text>').node;
+    var textSpan = textElement.firstChild;
+    var textNode = document.createTextNode('');
+
+    textSpan.appendChild(textNode);
+    svgDocument.appendChild(textElement);
+    document.body.appendChild(svgDocument);
+
+    var lines = text.split('\n');
+    var width = 0;
+
+    // Find the longest line width.
+    _.each(lines, function(line) {
+
+        textNode.data = line;
+        var lineWidth = textSpan.getComputedTextLength();
+
+        width = Math.max(width, lineWidth);
+    });
+
+    var height = lines.length * (fontSize * 1.2);
+
+    V(svgDocument).remove();
+    
+    element.resize(width + 10, height);
+});
+

@@ -73,6 +73,19 @@ test('construction', function() {
         this.graph.addCell(l3);
     }, 'Markup with no connection throws an exception.');
 
+    // It should be possible to create empty links and set source/target later.
+    var lEmpty = new joint.dia.Link;
+    ok(true, 'creating a link with no source/target does not throw an exception');
+    var rEmpty = new joint.shapes.basic.Rect;
+    var r2Empty = new joint.shapes.basic.Rect;
+
+    this.graph.addCells([lEmpty, rEmpty, r2Empty]);
+
+    lEmpty.set('source', { id: rEmpty.id });
+    lEmpty.set('target', { id: r2Empty.id });
+
+    equal(lEmpty.get('source').id, rEmpty.id, 'source was set correctly on a blank link');
+    equal(lEmpty.get('target').id, r2Empty.id, 'target was set correctly on a blank link');
 });
 
 test('interaction', function() {
@@ -131,6 +144,72 @@ test('interaction', function() {
 
     v0.pointerup();
     equal(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 300 100 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400,400');
+
+});
+
+test('defaultLink', function() {
+
+    expect(9);
+
+    this.paper.options.defaultLink = new joint.dia.Link();
+
+    var link = this.paper.getDefaultLink();
+
+    ok(link instanceof joint.dia.Link, 'sanity: defaultLink is cloned');
+
+    this.paper.options.defaultLink = function(v, m) {
+
+        return new joint.dia.Link();
+    };
+
+    link = this.paper.getDefaultLink();
+
+    ok(link instanceof joint.dia.Link, 'sanity: defaultLink is a function');
+
+
+    var myLink = joint.dia.Link.extend({
+        isMyLink: true
+    });
+
+    var model = new joint.shapes.basic.Rect({
+        position: { x: 100, y: 100 },
+        size: { width: 100, height: 100 },
+        attrs: { rect: { magnet: true, port: 'myPort' }}
+    });
+
+    this.graph.addCell(model);
+
+    var view = this.paper.findViewByModel(model);
+    var rect = view.$('rect')[0];
+
+    this.graph.on('add', function(cell) {
+
+        ok(cell.isMyLink, 'We click the port and a default link was created.');
+
+        // check source of the link
+        var source = cell.get('source');
+        ok(source.id  === model.id && source.port === 'myPort', 'It starts in the port we clicked.');
+
+        // check target of the link
+        var target = cell.get('target');
+        ok(typeof target.id === 'undefined', 'It ends in the paper.');
+
+    });
+
+    this.paper.options.defaultLink = new myLink();
+
+    simulate.mousedown({ el: rect });
+
+    this.graph.getLinks()[0].remove();
+
+    this.paper.options.defaultLink = function(cellView, magnet) {
+
+        ok(cellView === view && magnet === rect, 'We set defaultLink to a function. It was executed with correct parameters.');
+
+        return new myLink();
+    };
+
+    simulate.mousedown({ el: rect });
 
 });
 
@@ -453,65 +532,6 @@ test('labels', function() {
     ok(label1Bbox.x > label2Bbox.x, 'second label is positioned before the first one after changing the first one position');    
 });
 
-test('manhattan routing', function() {
-
-    // One vertex.
-    
-    var r1 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 } });
-    var r2 = new joint.shapes.basic.Rect({ position: { x: 125, y: 60 }, size: { width: 50, height: 30 } });
-
-    var l1 = new joint.dia.Link({
-        source: { id: r1.id },
-        target: { id: r2.id },
-        manhattan: true,
-        vertices: [{ x: 150, y: 200 }]
-    });
-
-    this.graph.addCells([r1, r2, l1]);
-
-    var l1View = this.paper.findViewByModel(l1);
-    var l1PathData = l1View.$('.connection').attr('d');
-    
-    equal(l1PathData, 'M 225 90 225 200 150 200 150 90', 'link with one vertex was correctly routed');
-
-    // No vertex.
-
-    var r3 = new joint.shapes.basic.Rect({ position: { x: 40, y: 40 }, size: { width: 50, height: 30 } });
-    var r4 = new joint.shapes.basic.Rect({ position: { x: 220, y: 120 }, size: { width: 50, height: 30 } });
-
-    var l2 = new joint.dia.Link({
-        source: { id: r3.id },
-        target: { id: r4.id },
-        manhattan: true
-    });
-
-    this.graph.addCells([r3, r4, l2]);
-
-    var l2View = this.paper.findViewByModel(l2);
-    var l2PathData = l2View.$('.connection').attr('d');
-
-    equal(l2PathData, 'M 65 70 65 135 220 135', 'link with no vertex was correctly routed');
-
-    // Check for spikes.
-
-    var r5 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 } });
-    var r6 = new joint.shapes.basic.Rect({ position: { x: 350, y: 40 }, size: { width: 50, height: 30 } });
-
-    var l3 = new joint.dia.Link({
-        source: { id: r5.id },
-        target: { id: r6.id },
-        manhattan: true,
-        vertices: [{ x: 150, y: 200 }]
-    });
-
-    this.graph.addCells([r5, r6, l3]);
-
-    var l3View = this.paper.findViewByModel(l3);
-    var l3PathData = l3View.$('.connection').attr('d');
-
-    equal(l3PathData, 'M 225 90 225 200 150 200 150 55 350 55', 'no spike (a return path segment) was created');
-});
-
 test('magnets & ports', function() {
 
     var myrect = new joint.shapes.basic.Rect;
@@ -608,3 +628,49 @@ test('snap links', function() {
         x: 90, y: 90
     }, 'the validation is taken into account when snapping to port');
 })
+
+test('mark available', function(){
+
+    var link = new joint.dia.Link({
+        source: {x: 0, y: 0},
+        target: {x: 0, y: 0}
+    });
+
+    var myrect1 = new joint.shapes.basic.Rect({
+        position: { x: 100, y: 100 }
+    });
+
+    var myrect2 = new joint.shapes.basic.Rect({
+        position: { x: 200, y: 200 },
+        attrs: {
+            '.': { magnet: false },
+            rect: { magnet: true },
+            text: { magnet: true }
+        }
+    });
+
+    this.graph.addCells([myrect1, myrect2, link]);
+
+    var v = this.paper.findViewByModel(link);
+    var t = v.el.querySelector('.marker-arrowhead[end=target]');
+
+    this.paper.options.markAvailable = true;
+
+    v.pointerdown({ target: t }, 0 ,0);
+
+    var availableMagnets = this.paper.el.querySelectorAll('.available-magnet');
+    var availableCells = this.paper.el.querySelectorAll('.available-cell');
+
+    equal(availableMagnets.length, 3,
+          '3 magnets got marked when dragging an arrowhead started.');
+    equal(availableCells.length, 2,
+          '2 cells got marked when dragging an arrowhead started.');
+
+    v.pointerup({ target: this.paper.el }, 90 , 90);
+
+    var availableMagnets = this.paper.el.querySelectorAll('.available-magnet');
+    var availableCells = this.paper.el.querySelectorAll('.available-cell');
+
+    equal(availableMagnets.length + availableCells.length, 0,
+          'When dragging an arrowhed stopped all magnets and cells were unmarked.');
+});

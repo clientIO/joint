@@ -289,6 +289,13 @@
             index = parseInt(index / 45);
 
             return bearings[index];
+        },
+
+        // @return {point} my point at 't' <0,1>
+        pointAt: function(t) {
+            var x = (1 - t) * this.start.x + t * this.end.x;
+            var y = (1 - t) * this.start.y + t * this.end.y;
+            return point(x, y);
         }
     };
 
@@ -499,7 +506,17 @@
             this.width = newwidth;
             this.height = newheight;
             return this;
-        }        
+        },
+        // Find my bounding box when I'm rotated with the center of rotation in the center of me.
+        // @return r {rectangle} representing a bounding box
+        bbox: function(angle) {
+            var theta = toRad(angle || 0);
+            var st = abs(sin(theta));
+            var ct = abs(cos(theta));
+            var w = this.width * ct + this.height * st;
+            var h = this.width * st + this.height * ct;
+            return rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
+        }
     };
 
     // Ellipse.
@@ -647,6 +664,51 @@
 	        x[n - i - 1] -= tmp[n - i] * x[n - i]; 
             }
             return x;
+        },
+
+        // Solves an inversion problem -- Given the (x, y) coordinates of a point which lies on
+        // a parametric curve x = x(t)/w(t), y = y(t)/w(t), ﬁnd the parameter value t
+        // which corresponds to that point.
+        // @param control points (start, control start, control end, end)
+        // @return a function accepts a point and returns t.
+        getInversionSolver: function(p0, p1, p2, p3) {
+            var pts = arguments;
+            function l(i,j) {
+                // calculates a determinant 3x3
+                // [p.x  p.y  1]
+                // [pi.x pi.y 1]
+                // [pj.x pj.y 1]
+                var pi = pts[i], pj = pts[j];
+                return function(p) {
+                    var w = (i % 3 ? 3 : 1) * (j % 3 ? 3 : 1);
+                    var lij = p.x * (pi.y - pj.y) + p.y * (pj.x - pi.x) + pi.x * pj.y - pi.y * pj.x;
+                    return w * lij;
+                };
+            }
+            return function solveInversion(p) {
+                var ct = 3 * l(2,3)(p1);
+                var c1 = l(1,3)(p0) / ct;
+                var c2 = -l(2,3)(p0) / ct;
+                var la = c1 * l(3,1)(p) + c2 * (l(3,0)(p) + l(2,1)(p)) + l(2,0)(p);
+                var lb = c1 * l(3,0)(p) + c2 * l(2,0)(p) + l(1,0)(p);
+                return lb / (lb - la);
+            };
+        },
+
+        // Divide a Bezier curve into two at point defined by value 't' <0,1>.
+        // Using deCasteljau algorithm. http://math.stackexchange.com/a/317867
+        // @param control points (start, control start, control end, end)
+        // @return a function accepts t and returns 2 curves each defined by 4 control points.
+        getCurveDivider: function(p0,p1,p2,p3) {
+            return function divideCurve(t) {
+                var l = line(p0,p1).pointAt(t);
+                var m = line(p1,p2).pointAt(t);
+                var n = line(p2,p3).pointAt(t);
+                var p = line(l,m).pointAt(t);
+                var q = line(m,n).pointAt(t);
+                var r = line(p,q).pointAt(t);
+                return [{ p0: p0, p1: l, p2: p, p3: r }, { p0: r, p1: q, p2: n, p3: p3 }];
+            }
         }
     };
 
