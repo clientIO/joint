@@ -179,54 +179,32 @@ Vertex markers are `<circle>` elements that appear at connection vertex position
    opacity: 1;
 }
 
-/*
-
 /* Cell highlighting - e.g a cell underneath the dragged link get highlighted.
    See joint.dia.cell.js highlight(); */
+.highlighted {
+    opacity: 0.7;
+}
 
-/* For some reason, CSS `outline` property does not work on `<text>` elements. */
+/* For some reason, CSS `outline` property
+   does not work on `<text>` elements. */
 text.highlighted {
     fill: #FF0000;
 }
 
-.highlighted {
-    outline: 2px solid #FF0000; /* `outline` doesn't work in Firefox, Opera and IE9+. The only engine supporting outlines on SVG elements is Webkit.  */
-    opacity: 0.7 \9; /* It targets only IE9. */
+/* `outline` doesn't work in Firefox, Opera and IE9+.
+   The only engine supporting outlines on SVG elements is Webkit. */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    .highlighted {
+        outline: 2px solid #FF0000;
+        opacity: initial;
+    }
 }
 
 /*
-use '@-moz-document url-prefix()' to target all versions if Firefox and nothing else.
-See `https://developer.mozilla.org/en-US/docs/Web/CSS/@document`.
-*/
-@-moz-document url-prefix() {
-
-    .highlighted { opacity: 0.7; } /* only for FF */
-
-    /* Foreign object are placed over the SVG elements in FF. So we wouldn't be able to catch
-       events on the element which meant to be rendered over that foreign object. */
-    .element .fobj, .element .fobj body, .element .fobj div { pointer-events: none; }
-}
-
-/*
-`-o-prefocus` is a pseudo-class that allows styles to be targeted for Opera only.
-See `http://www.opera.com/docs/specs/presto2.12/css/o-vendor/`.
-*/
-doesnotexist:-o-prefocus, .highlighted {
-    opacity: 0.7;
-}
-
-/* IE 10+ */
-@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
-    .highlighted { opacity: 0.7; }
-}
-
-/*
-
 Example of custom changes (in pure CSS only!):
 
 Do not show marker vertices at all:  .marker-vertices { display: none; }
 Do not allow adding new vertices: .connection-wrap { pointer-events: none; }
-
 */
 
 /* foreignObject inside the elements (i.e joint.shapes.basic.TextBlock) */
