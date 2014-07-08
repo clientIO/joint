@@ -105,28 +105,21 @@ joint.dia.Graph = Backbone.Model.extend({
         return json;
     },
 
-    fromJSON: function(json) {
+    fromJSON: function(json, opt) {
 
         if (!json.cells) {
 
             throw new Error('Graph JSON must contain cells array.');
         }
 
-        var attrs = json;
-
-        // Cells are the only attribute that is being set differently, using `cells.add()`.
-        var cells = json.cells;
-        delete attrs.cells;
-        
-        this.set(attrs);
-        
-        this.resetCells(cells);
+        this.set(_.omit(json, 'cells'), opt);
+        this.resetCells(json.cells, opt);
     },
 
-    clear: function() {
+    clear: function(opt) {
 
         this.trigger('batch:start');
-        this.get('cells').remove(this.get('cells').models);
+        this.get('cells').remove(this.get('cells').models, opt);
         this.trigger('batch:stop');
     },
 
@@ -172,9 +165,9 @@ joint.dia.Graph = Backbone.Model.extend({
     // When adding a lot of cells, it is much more efficient to
     // reset the entire cells collection in one go.
     // Useful for bulk operations and optimizations.
-    resetCells: function(cells) {
+    resetCells: function(cells, opt) {
         
-        this.get('cells').reset(_.map(cells, this._prepareCell, this));
+        this.get('cells').reset(_.map(cells, this._prepareCell, this), opt);
 
         return this;
     },
