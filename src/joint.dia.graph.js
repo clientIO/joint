@@ -275,13 +275,30 @@ joint.dia.Graph = Backbone.Model.extend({
 	});
     },
 
-
     // Find all views in given area
     findModelsInArea: function(r) {
 
 	return _.filter(this.getElements(), function(el) {
 	    return el.getBBox().intersect(r);
 	});
+    },
+
+    // Return the bounding box of all `elements`.
+    getBBox: function(elements) {
+
+	var origin = { x: Infinity, y: Infinity };
+	var corner = { x: 0, y: 0 };
+	
+	_.each(elements, function(cell) {
+	    
+	    var bbox = cell.getBBox();
+	    origin.x = Math.min(origin.x, bbox.x);
+	    origin.y = Math.min(origin.y, bbox.y);
+	    corner.x = Math.max(corner.x, bbox.x + bbox.width);
+	    corner.y = Math.max(corner.y, bbox.y + bbox.height);
+	});
+
+	return g.rect(origin.x, origin.y, corner.x - origin.x, corner.y - origin.y);
     }
 
 });

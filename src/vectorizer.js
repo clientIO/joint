@@ -121,19 +121,22 @@
         var translate,
             rotate,
             scale;
-        
+
         if (transform) {
+
+            var separator = /[ ,]+/;
+
             var translateMatch = transform.match(/translate\((.*)\)/);
             if (translateMatch) {
-                translate = translateMatch[1].split(',');
+                translate = translateMatch[1].split(separator);
             }
             var rotateMatch = transform.match(/rotate\((.*)\)/);
             if (rotateMatch) {
-                rotate = rotateMatch[1].split(',');
+                rotate = rotateMatch[1].split(separator);
             }
             var scaleMatch = transform.match(/scale\((.*)\)/);
             if (scaleMatch) {
-                scale = scaleMatch[1].split(',');
+                scale = scaleMatch[1].split(separator);
             }
         }
 

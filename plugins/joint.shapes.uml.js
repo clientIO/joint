@@ -59,12 +59,10 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
 
     initialize: function() {
 
-        _.bindAll(this, 'updateRectangles');
-
         this.on('change:name change:attributes change:methods', function() {
             this.updateRectangles();
 	    this.trigger('uml-update');
-        });
+        }, this);
 
         this.updateRectangles();
 
@@ -108,10 +106,10 @@ joint.shapes.uml.ClassView = joint.dia.ElementView.extend({
 
         joint.dia.ElementView.prototype.initialize.apply(this, arguments);
 
-	this.model.on('uml-update', _.bind(function() {
-	    this.update();
-	    this.resize();
-	}, this));
+	this.listenTo(this.model, 'uml-update', function() {
+            this.update();
+            this.resize();
+        });
     }
 });
 
@@ -193,9 +191,11 @@ joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
     markup: [
         '<g class="rotatable">',
           '<g class="scalable">',
-            '<rect/>',
+            '<rect class="uml-state-body"/>',
           '</g>',
-          '<path/><text class="uml-state-name"/><text class="uml-state-events"/>',
+          '<path class="uml-state-separator"/>',
+          '<text class="uml-state-name"/>',
+          '<text class="uml-state-events"/>',
         '</g>'
     ].join(''),
 
@@ -204,15 +204,20 @@ joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
         type: 'uml.State',
 
         attrs: {
-            rect: { 'width': 200, 'height': 200, 'fill': '#ecf0f1', 'stroke': '#bdc3c7', 'stroke-width': 3, 'rx': 10, 'ry': 10 },
-            path: { 'd': 'M 0 20 L 200 20', 'stroke': '#bdc3c7', 'stroke-width': 2 },
+            '.uml-state-body': {
+                'width': 200, 'height': 200, 'rx': 10, 'ry': 10,
+                'fill': '#ecf0f1', 'stroke': '#bdc3c7', 'stroke-width': 3
+            },
+            '.uml-state-separator': {
+                'stroke': '#bdc3c7', 'stroke-width': 2
+            },
             '.uml-state-name': {
-                'ref': 'rect', 'ref-x': .5, 'ref-y': 5, 'text-anchor': 'middle',
-                'font-family': 'Courier New', 'font-size': 14, fill: '#000000'
+                'ref': '.uml-state-body', 'ref-x': .5, 'ref-y': 5, 'text-anchor': 'middle',
+                'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
             },
             '.uml-state-events': {
-                'ref': 'path', 'ref-x': 5, 'ref-y': 5,
-                'font-family': 'Courier New', 'font-size': 14, fill: '#000000'
+                'ref': '.uml-state-separator', 'ref-x': 5, 'ref-y': 5,
+                'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
             }
         },
 
@@ -223,13 +228,11 @@ joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
 
     initialize: function() {
 
-        _.bindAll(this, 'updateEvents', 'updatePath');
-
         this.on({
-            'change:name': function() { this.updateName(); this.trigger('change:attrs'); },
-            'change:events': function() { this.updateEvents(); this.trigger('change:attrs'); },
+            'change:name': this.updateName,
+            'change:events': this.updateEvents,
             'change:size': this.updatePath
-        });
+        }, this);
 
         this.updateName();
         this.updateEvents();
@@ -239,15 +242,23 @@ joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
     },
 
     updateName: function() {
-        this.get('attrs')['.uml-state-name'].text = this.get('name');
+
+        this.attr('.uml-state-name/text', this.get('name'));
     },
 
     updateEvents: function() {
-        this.get('attrs')['.uml-state-events'].text = this.get('events').join('\n');
+
+        this.attr('.uml-state-events/text', this.get('events').join('\n'));
     },
 
     updatePath: function() {
-        this.get('attrs')['path'].d = 'M 0 20 L ' + this.get('size').width + ' 20';
+
+        var d = 'M 0 20 L ' + this.get('size').width + ' 20';
+
+        // We are using `silent: true` here because updatePath() is meant to be called
+        // on resize and there's no need to to update the element twice (`change:size`
+        // triggers also an update).
+        this.attr('.uml-state-separator/d', d, { silent: true });
     }
 
 });

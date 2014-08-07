@@ -317,3 +317,42 @@ var link9 = new joint.dia.Link({
 });
 
 graph.addCell([link8, link9]);
+
+
+
+// Manhattan routing.
+// ------------------
+
+title(250, 1000, 'Markers');
+
+var r17 = r15.clone();
+graph.addCell(r17);
+r17.translate(0, 200);
+
+var r18 = r17.clone();
+graph.addCell(r18);
+r18.translate(200, 0);
+
+var link10 = new joint.dia.Link({
+    source: { id: r17.id },
+    target: { id: r18.id },
+    vertices: [{x: 400, y: 1000}, {x: 600, y: 1000}],
+    attrs: {
+	'.connection': {
+	    'marker-mid': 'url(#circle-marker)'
+	}
+    }
+});
+var link11 = link10.clone();
+link11.set('vertices', [{x: 400, y: 1100}, {x: 600, y: 1100}]);
+link11.attr('.connection/marker-mid', 'url(#diamond-marker)');
+graph.addCell(link11);
+
+var circleMarker = V('<marker id="circle-marker" markerUnits="userSpaceOnUse" viewBox = "0 0 12 12" refX = "6" refY = "6" markerWidth = "15" markerHeight = "15" stroke = "none" stroke-width = "0" fill = "red" orient = "auto"> <circle r = "5" cx="6" cy="6" fill="blue"/> </marker>');
+V(paper.viewport).defs().append(circleMarker);
+var diamondMarker = V('<marker id="diamond-marker" viewBox = "0 0 5 20" refX = "0" refY = "6" markerWidth = "30" markerHeight = "30" stroke = "none" stroke-width = "0" fill = "red" > <rect x="0" y="0" width = "10" height="10" transform="rotate(45)"  /> </marker>');
+V(paper.viewport).defs().append(diamondMarker);
+
+graph.addCell([link10]);
+
+

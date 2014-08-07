@@ -174,6 +174,8 @@ joint.dia.Cell = Backbone.Model.extend({
 	if (collection) {
 	    collection.trigger('batch:stop');
 	}
+
+	return this;
     },
 
     toFront: function() {
@@ -182,6 +184,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
             this.set('z', (this.collection.last().get('z') || 0) + 1);
         }
+
+	return this;
     },
     
     toBack: function() {
@@ -190,6 +194,8 @@ joint.dia.Cell = Backbone.Model.extend({
             
             this.set('z', (this.collection.first().get('z') || 0) - 1);
         }
+
+	return this;
     },
 
     embed: function(cell) {
@@ -207,6 +213,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
 	    this.trigger('batch:stop');
 	}
+
+	return this;
     },
 
     unembed: function(cell) {
@@ -219,6 +227,8 @@ joint.dia.Cell = Backbone.Model.extend({
         this.set('embeds', _.without(this.get('embeds'), cellId));
 
 	this.trigger('batch:stop');
+
+	return this;
     },
 
     getEmbeddedCells: function() {
@@ -253,7 +263,10 @@ joint.dia.Cell = Backbone.Model.extend({
         // The rest of the `clone()` method deals with embeds. If `deep` option is set to `true`,
         // the return value is an array of all the embedded clones created.
 
-        var embeds = this.getEmbeddedCells();
+        var embeds = _.sortBy(this.getEmbeddedCells(), function(cell) {
+            // Sort embeds that links come before elements.
+            return cell instanceof joint.dia.Element;
+        });
 
         var clones = [clone];
 
@@ -271,13 +284,29 @@ joint.dia.Cell = Backbone.Model.extend({
 
             _.each(embedClones, function(embedClone) {
 
-                clones.push(embedClone);
-
-                // Skip links. Inbound/outbound links are not relevant for them.
                 if (embedClone instanceof joint.dia.Link) {
 
+                    if (embedClone.get('source').id == this.id) {
+
+                        var source = _.clone(embedClone.get('source'));
+                        source.id = clone.id;
+                        embedClone.set('source', source);
+                    }
+
+                    if (embedClone.get('target').id == this.id) {
+
+                        var target = _.clone(embedClone.get('target'));
+                        target.id = clone.id;
+                        embedClone.set('target', target);
+                    }
+
+                    linkCloneMapping[embed.id] = embedClone;
+
+                    // Skip links. Inbound/outbound links are not relevant for them.
                     return;
                 }
+
+                clones.push(embedClone);
 
                 // Collect all inbound links, clone them (if not done already) and set their target to the `embedClone.id`.
                 var inboundLinks = this.collection.getConnectedLinks(embed, { inbound: true });
@@ -444,6 +473,16 @@ joint.dia.Cell = Backbone.Model.extend({
 	    this.trigger('transition:end', this, key);
 
 	}, this);
+
+	return this;
+    },
+
+    // A shorcut making it easy to create constructs like the following:
+    // `var el = (new joint.shapes.basic.Rect).addTo(graph)`.
+    addTo: function(graph) {
+
+	graph.addCell(this);
+	return this;
     }
 });
 

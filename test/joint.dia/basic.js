@@ -176,24 +176,12 @@ test('rotate()', function() {
     myrect.rotate(-90);
     checkBbox(this.paper, myrect, 20, 30, 120, 80, 'rotate(-90) should rotate the object back to its original angle');
 
-    /*
-    // Rotation around a point is not supported yet.
-    myrect.rotate(90, 0, 0);
-    checkBbox(this.paper, myrect, -60, 30, 80, 120, 'rotate(90, 0, 0) should rotate the object around the viewport origin');
-    */
-
-    /*
-    // This is exactly the same as a series of transforms: translate(centerX, centerY), rotate(deg), translate(-centerX, -centerY)
-    myrect.rotate(90, 0, 0);
-    var bbox = this.paper.findViewByModel(myrect).getBBox();
-    myrect.rotate(-90, 0, 0);
-
-    myrect.translate(-20, -30);
-    myrect.rotate(90);
-    myrect.translate(20, 30);
-
-    checkBbox(this.paper, myrect, bbox.x, bbox.y, bbox.width, bbox.height, 'rotate(90, 0, 0)');
-    */
+    // Rotation around an origin.
+    myrect.rotate(180, false, { x: 140, y: 70 });
+    checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) should rotate the object around the middle of its right edge');
+    
+    myrect.rotate(180, true, { x: 140, y: 70 });    
+    checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) with absolute flag should not rotate the object as it is already rotated');
 });
 
 

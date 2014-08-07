@@ -72,9 +72,30 @@ joint.dia.Element = joint.dia.Cell.extend({
 	return this;
     },
 
-    rotate: function(angle, absolute) {
+    // Rotate element by `angle` degrees, optionally around `origin` point.
+    // If `origin` is not provided, it is considered to be the center of the element.
+    // If `absolute` is `true`, the `angle` is considered is abslute, i.e. it is not
+    // the difference from the previous angle.
+    rotate: function(angle, absolute, origin) {
+	
+	if (origin) {
 
-        return this.set('angle', absolute ? angle : ((this.get('angle') || 0) + angle) % 360);
+	    var center = this.getBBox().center();
+	    var size = this.get('size');
+	    var position = this.get('position');
+	    center.rotate(origin, (this.get('angle') || 0) - angle);
+	    var dx = center.x - size.width/2 - position.x;
+	    var dy = center.y - size.height/2 - position.y;
+	    this.trigger('batch:start');
+	    this.translate(dx, dy);
+	    this.rotate(angle, absolute);
+	    this.trigger('batch:stop');
+            
+	} else {
+
+	    this.set('angle', absolute ? angle : ((this.get('angle') || 0) + angle) % 360);
+	}
+	return this;
     },
 
     getBBox: function() {

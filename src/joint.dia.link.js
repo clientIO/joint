@@ -103,6 +103,30 @@ joint.dia.Link = joint.dia.Cell.extend({
         newLabels[idx] = newValue;
         
         return this.set({ labels: newLabels });
+    },
+
+    translate: function(tx, ty, opt) {
+
+        var attrs = {};
+        var source = this.get('source');
+        var target = this.get('target');
+        var vertices = this.get('vertices');
+
+        if (!source.id) {
+            attrs.source = { x: source.x + tx, y: source.y + ty };
+        }
+
+        if (!target.id) {
+            attrs.target = { x: target.x + tx, y: target.y + ty };
+        }
+
+        if (vertices && vertices.length) {
+            attrs.vertices = _.map(vertices, function(vertex) {
+                return { x: vertex.x + tx, y: vertex.y + ty };
+            });
+        }
+
+        return this.set(attrs, opt);
     }
 });
 
@@ -557,6 +581,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var magnetElement = this.paper.viewport.querySelector(selector);
 
             this.sourceBBox = view.getStrokeBBox(magnetElement);
+	    this.sourceView = view;
+	    this.sourceMagnet = magnetElement;
 
         } else if (end) {
             // the link end is a point ~ rect 1x1
@@ -581,6 +607,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var magnetElement = this.paper.viewport.querySelector(selector);
 
             this.targetBBox = view.getStrokeBBox(magnetElement);
+	    this.targetView = view;
+	    this.targetMagnet = magnetElement;
 
         } else if (end) {
             // the link end is a point ~ rect 1x1
@@ -687,6 +715,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return Math.max(idx, 0);
     },
 
+    // Send a token (an SVG element, usually a circle) along the connection path.
+    // Example: `paper.findViewByModel(link).sendToken(V('circle', { r: 7, fill: 'green' }).node)`
+    // `duration` is optional and is a time in milliseconds that the token travels from the source to the target of the link. Default is `1000`.
+    // `callback` is optional and is a function to be called once the token reaches the target.
+    sendToken: function(token, duration, callback) {
+
+	duration = duration || 1000;
+
+	V(this.paper.viewport).append(token);
+	V(token).animateAlongPath({ dur: duration + 'ms', repeatCount: 1 }, this._V.connection.node);
+	_.delay(function() { V(token).remove(); callback && callback(); }, duration);
+    },
 
     findRoute: function(oldVertices) {
 
@@ -841,9 +881,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     spot = spot || g.rect(spotBbox).center();
                 }
                 
-            } else {
-            
-                spot = g.rect(spotBbox).intersectionWithLineFromCenterToPoint(reference);
+            } else if (this.paper.options.linkConnectionPoint) {
+
+		var view = end === 'target' ? this.targetView : this.sourceView;
+		var magnet = end === 'target' ? this.targetMagnet : this.sourceMagnet;
+
+		spot = this.paper.options.linkConnectionPoint(this, view, magnet, reference);
+
+	    } else {
+
+            	spot = g.rect(spotBbox).intersectionWithLineFromCenterToPoint(reference);
                 spot = spot || g.rect(spotBbox).center();
             }
         }

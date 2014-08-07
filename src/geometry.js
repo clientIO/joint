@@ -184,6 +184,11 @@
             this.x = snapToGrid(this.x, gx)
             this.y = snapToGrid(this.y, gy || gx)
             return this;
+        },
+        // Returns a point that is the reflection of me with
+        // the center of inversion in ref point.
+        reflection: function(ref) {
+            return point(ref).move(this, this.distance(ref));
         }
     };
     // Alternative constructor, from polar coordinates.

@@ -71,3 +71,17 @@ test('graph.fromJSON(), graph.toJSON()', function() {
     ok(linkView.el.previousSibling === circleView.el, 'link view is after circle element in the DOM');
 });
 
+test('graph.getBBox()', function() {
+
+    var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 } });
+    var r2 = new joint.shapes.basic.Rect({ position: { x: 100, y: 200 }, size: { width: 20, height: 20 } });
+    var r3 = new joint.shapes.basic.Rect({ position: { x: 20, y: 10 }, size: { width: 20, height: 20 } });
+
+    this.graph.resetCells([r1, r2, r3]);
+
+    var bbox = this.graph.getBBox([r1, r2, r3]);
+    equal(bbox.x, 20, 'bbox.x correct');
+    equal(bbox.y, 10, 'bbox.y correct');
+    equal(bbox.width, 100, 'bbox.width correct');
+    equal(bbox.height, 210, 'bbox.height correct');
+});

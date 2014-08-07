@@ -77,6 +77,7 @@ joint.dia.Paper = Backbone.View.extend({
 
         this.$el.append(this.svg);
 
+        this.setOrigin();
         this.setDimensions();
 
 	this.listenTo(this.model, 'add', this.addCell);
@@ -96,29 +97,46 @@ joint.dia.Paper = Backbone.View.extend({
 	Backbone.View.prototype.remove.call(this);
     },
 
-    setDimensions: function(width, height, origin) {
+    setDimensions: function(width, height) {
 
         width = this.options.width = width || this.options.width;
         height = this.options.height = height || this.options.height;
-        origin = this.options.origin = origin || this.options.origin;
 
         V(this.svg).attr({ width: width, height: height });
-        V(this.viewport).translate(-origin.x, -origin.y, { absolute: true });
 
-        this.trigger('resize', width, height, origin);
+        this.trigger('resize', width, height);
     },
 
+    setOrigin: function(ox, oy) {
+
+        this.options.origin.x = ox || 0;
+        this.options.origin.y = oy || 0;
+
+        V(this.viewport).translate(ox, oy, { absolute: true });
+
+        this.trigger('translate', ox, oy);
+    },
 
     // Expand/shrink the paper to fit the content. Snap the width/height to the grid
     // defined in `gridWidth`, `gridHeight`. `padding` adds to the resulting width/height of the paper.
     // When options { fitNegative: true } it also translates the viewport in order to make all
     // the content visible.
-    fitToContent: function(gridWidth, gridHeight, padding, opt) {
+    fitToContent: function(gridWidth, gridHeight, padding, opt) { // alternatively function(opt)
 
-	gridWidth = gridWidth || 1;
-	gridHeight = gridHeight || 1;
-        padding = padding || 0;
-        opt = opt || {};
+        if (_.isObject(gridWidth)) {
+            // first parameter is an option object
+            opt = gridWidth;
+	    gridWidth = opt.gridWidth || 1;
+	    gridHeight = opt.gridHeight || 1;
+            padding = opt.padding || 0;
+
+        } else {
+
+            opt = opt || {};
+	    gridWidth = gridWidth || 1;
+	    gridHeight = gridHeight || 1;
+            padding = padding || 0;
+        }
 
 	// Calculate the paper size to accomodate all the graph's elements.
 	var bbox = V(this.viewport).bbox(true, this.svg);
@@ -132,13 +150,13 @@ joint.dia.Paper = Backbone.View.extend({
         if (opt.fitNegative) {
 
             if (bbox.x < 0) {
-                tx = -Math.ceil(-bbox.x / gridWidth) * gridWidth;
-                calcWidth -= tx;
+                tx = Math.ceil(-bbox.x / gridWidth) * gridWidth;
+                calcWidth += tx;
             }
 
             if (bbox.y < 0) {
-                ty = -Math.ceil(-bbox.y / gridHeight) * gridHeight;
-                calcHeight -= ty;
+                ty = Math.ceil(-bbox.y / gridHeight) * gridHeight;
+                calcHeight += ty;
             }
         }
 
@@ -148,10 +166,87 @@ joint.dia.Paper = Backbone.View.extend({
         var dimensionChange = calcWidth != this.options.width || calcHeight != this.options.height;
         var originChange = opt.fitNegative && (tx != this.options.origin.x || ty != this.options.origin.y);
 
-	// Change the dimensions only if there is a size discrepency or origin change
-	if (dimensionChange || originChange) {
-	    this.setDimensions(calcWidth, calcHeight, { x: tx, y: ty });
+	// Change the dimensions only if there is a size discrepency or an origin change
+        if (originChange) {
+            this.setOrigin(tx, ty);
+        }
+	if (dimensionChange) {
+	    this.setDimensions(calcWidth, calcHeight);
 	}
+    },
+
+    scaleContentToFit: function(opt) {
+
+        var contentBBox = this.getContentBBox();
+
+        if (!contentBBox.width || !contentBBox.height) return;
+
+        opt = opt || {};
+
+        _.defaults(opt, {
+            padding: 0,
+            preserveAspectRatio: true,
+            scaleGrid: null,
+            minScale: 0,
+            maxScale: Number.MAX_VALUE
+            //minScaleX
+            //minScaleY
+            //maxScaleX
+            //maxScaleY
+            //fittingBBox
+        });
+
+        var padding = opt.padding;
+
+        var minScaleX = opt.minScaleX || opt.minScale;
+        var maxScaleX = opt.maxScaleX || opt.maxScale;
+        var minScaleY = opt.minScaleY || opt.minScale;
+        var maxScaleY = opt.maxScaleY || opt.maxScale;
+
+        var fittingBBox = opt.fittingBBox || ({
+            x: 0,
+            y: 0,
+            width: this.options.width,
+            height: this.options.height
+        });
+
+        fittingBBox = g.rect(fittingBBox).moveAndExpand({
+            x: padding,
+            y: padding,
+            width: -2 * padding,
+            height: -2 * padding
+        });
+
+        var currentScale = V(this.viewport).scale();
+
+        var newSx = fittingBBox.width / contentBBox.width * currentScale.sx;
+        var newSy = fittingBBox.height / contentBBox.height * currentScale.sy;
+
+        if (opt.preserveAspectRatio) {
+            newSx = newSy = Math.min(newSx, newSy);
+        }
+
+        // snap scale to a grid
+        if (opt.scaleGrid) {
+
+            var gridSize = opt.scaleGrid;
+
+            newSx = gridSize * Math.floor(newSx / gridSize);
+            newSy = gridSize * Math.floor(newSy / gridSize);
+        }
+
+        // scale min/max boundaries
+        newSx = Math.min(maxScaleX, Math.max(minScaleX, newSx));
+        newSy = Math.min(maxScaleY, Math.max(minScaleY, newSy));
+
+        this.scale(newSx, newSy);
+
+        var contentTranslation = this.getContentBBox();
+
+        var newOx = fittingBBox.x - contentTranslation.x;
+        var newOy = fittingBBox.y - contentTranslation.y;
+
+        this.setOrigin(newOx, newOy);
     },
 
     getContentBBox: function() {
@@ -160,9 +255,17 @@ joint.dia.Paper = Backbone.View.extend({
 
         // Using Screen CTM was the only way to get the real viewport bounding box working in both
         // Google Chrome and Firefox.
-        var ctm = this.viewport.getScreenCTM();
+        var screenCTM = this.viewport.getScreenCTM();
 
-        var bbox = g.rect(crect.left - ctm.e, crect.top - ctm.f, crect.width, crect.height);
+        // for non-default origin we need to take the viewport translation into account
+        var viewportCTM = this.viewport.getCTM();
+
+        var bbox = g.rect({
+            x: crect.left - screenCTM.e + viewportCTM.e,
+            y: crect.top - screenCTM.f + viewportCTM.f,
+            width: crect.width,
+            height: crect.height
+        });
 
         return bbox;
     },
@@ -315,7 +418,9 @@ joint.dia.Paper = Backbone.View.extend({
 
     scale: function(sx, sy, ox, oy) {
 
-        if (!ox) {
+        sy = sy || sx;
+
+        if (_.isUndefined(ox)) {
 
             ox = 0;
             oy = 0;
@@ -324,15 +429,24 @@ joint.dia.Paper = Backbone.View.extend({
         // Remove previous transform so that the new scale is not affected by previous scales, especially
         // the old translate() does not affect the new translate if an origin is specified.
         V(this.viewport).attr('transform', '');
-        
+
+        var oldTx = this.options.origin.x;
+        var oldTy = this.options.origin.y;
+
         // TODO: V.scale() doesn't support setting scale origin. #Fix        
-        if (ox || oy) {
-            V(this.viewport).translate(-ox * (sx - 1), -oy * (sy - 1));
+        if (ox || oy || oldTx || oldTy) {
+
+            var newTx = oldTx - ox * (sx - 1);
+            var newTy = oldTy - oy * (sy - 1);
+
+            if (newTx != oldTx || newTy != oldTy) {
+                this.setOrigin(newTx, newTy);
+            }
         }
-        
+
         V(this.viewport).scale(sx, sy);
 
-	this.trigger('scale', ox, oy);
+	this.trigger('scale', sx, sy, ox, oy);
 
         return this;
     },
