@@ -1,4 +1,4 @@
-/*! JointJS v0.9.0 - JavaScript diagramming library  2014-05-14 
+/*! JointJS v0.9.1 - JavaScript diagramming library  2014-08-07 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -15196,21 +15196,37 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
   }
 }.call(this));
 
-//     Backbone.js 1.0.0
+//     Backbone.js 1.1.2
 
-//     (c) 2010-2013 Jeremy Ashkenas, DocumentCloud Inc.
+//     (c) 2010-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
 //     Backbone may be freely distributed under the MIT license.
 //     For all details and documentation:
 //     http://backbonejs.org
 
-(function(){
+(function(root, factory) {
+
+  // Set up Backbone appropriately for the environment. Start with AMD.
+  if (typeof define === 'function' && define.amd) {
+    define(['underscore', 'jquery', 'exports'], function(_, $, exports) {
+      // Export global even in AMD case in case this script is loaded with
+      // others that may still expect a global Backbone.
+      root.Backbone = factory(root, exports, _, $);
+    });
+
+  // Next for Node.js or CommonJS. jQuery may not be needed as a module.
+  } else if (typeof exports !== 'undefined') {
+    var _ = require('underscore');
+    factory(root, exports, _);
+
+  // Finally, as a browser global.
+  } else {
+    root.Backbone = factory(root, {}, root._, (root.jQuery || root.Zepto || root.ender || root.$));
+  }
+
+}(this, function(root, Backbone, _, $) {
 
   // Initial Setup
   // -------------
-
-  // Save a reference to the global object (`window` in the browser, `exports`
-  // on the server).
-  var root = this;
 
   // Save the previous value of the `Backbone` variable, so that it can be
   // restored later on, if `noConflict` is used.
@@ -15222,25 +15238,12 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
   var slice = array.slice;
   var splice = array.splice;
 
-  // The top-level namespace. All public Backbone classes and modules will
-  // be attached to this. Exported for both the browser and the server.
-  var Backbone;
-  if (typeof exports !== 'undefined') {
-    Backbone = exports;
-  } else {
-    Backbone = root.Backbone = {};
-  }
-
   // Current version of the library. Keep in sync with `package.json`.
-  Backbone.VERSION = '1.0.0';
-
-  // Require Underscore, if we're on the server, and it's not already present.
-  var _ = root._;
-  if (!_ && (typeof require !== 'undefined')) _ = require('underscore');
+  Backbone.VERSION = '1.1.2';
 
   // For Backbone's purposes, jQuery, Zepto, Ender, or My Library (kidding) owns
   // the `$` variable.
-  Backbone.$ = root.jQuery || root.Zepto || root.ender || root.$;
+  Backbone.$ = $;
 
   // Runs Backbone.js in *noConflict* mode, returning the `Backbone` variable
   // to its previous owner. Returns a reference to this Backbone object.
@@ -15250,7 +15253,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
   };
 
   // Turn on `emulateHTTP` to support legacy HTTP servers. Setting this option
-  // will fake `"PUT"` and `"DELETE"` requests via the `_method` parameter and
+  // will fake `"PATCH"`, `"PUT"` and `"DELETE"` requests via the `_method` parameter and
   // set a `X-Http-Method-Override` header.
   Backbone.emulateHTTP = false;
 
@@ -15306,10 +15309,9 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
       var retain, ev, events, names, i, l, j, k;
       if (!this._events || !eventsApi(this, 'off', name, [callback, context])) return this;
       if (!name && !callback && !context) {
-        this._events = {};
+        this._events = void 0;
         return this;
       }
-
       names = name ? [name] : _.keys(this._events);
       for (i = 0, l = names.length; i < l; i++) {
         name = names[i];
@@ -15349,14 +15351,15 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     // Tell this object to stop listening to either specific events ... or
     // to every object it's currently listening to.
     stopListening: function(obj, name, callback) {
-      var listeners = this._listeners;
-      if (!listeners) return this;
-      var deleteListener = !name && !callback;
-      if (typeof name === 'object') callback = this;
-      if (obj) (listeners = {})[obj._listenerId] = obj;
-      for (var id in listeners) {
-        listeners[id].off(name, callback, this);
-        if (deleteListener) delete this._listeners[id];
+      var listeningTo = this._listeningTo;
+      if (!listeningTo) return this;
+      var remove = !name && !callback;
+      if (!callback && typeof name === 'object') callback = this;
+      if (obj) (listeningTo = {})[obj._listenId] = obj;
+      for (var id in listeningTo) {
+        obj = listeningTo[id];
+        obj.off(name, callback, this);
+        if (remove || _.isEmpty(obj._events)) delete this._listeningTo[id];
       }
       return this;
     }
@@ -15402,7 +15405,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
       case 1: while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1); return;
       case 2: while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1, a2); return;
       case 3: while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1, a2, a3); return;
-      default: while (++i < l) (ev = events[i]).callback.apply(ev.ctx, args);
+      default: while (++i < l) (ev = events[i]).callback.apply(ev.ctx, args); return;
     }
   };
 
@@ -15413,10 +15416,10 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
   // listening to.
   _.each(listenMethods, function(implementation, method) {
     Events[method] = function(obj, name, callback) {
-      var listeners = this._listeners || (this._listeners = {});
-      var id = obj._listenerId || (obj._listenerId = _.uniqueId('l'));
-      listeners[id] = obj;
-      if (typeof name === 'object') callback = this;
+      var listeningTo = this._listeningTo || (this._listeningTo = {});
+      var id = obj._listenId || (obj._listenId = _.uniqueId('l'));
+      listeningTo[id] = obj;
+      if (!callback && typeof name === 'object') callback = this;
       obj[implementation](name, callback, this);
       return this;
     };
@@ -15441,23 +15444,17 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
   // Create a new model with the specified attributes. A client id (`cid`)
   // is automatically generated and assigned for you.
   var Model = Backbone.Model = function(attributes, options) {
-    var defaults;
     var attrs = attributes || {};
     options || (options = {});
     this.cid = _.uniqueId('c');
     this.attributes = {};
-    _.extend(this, _.pick(options, modelOptions));
+    if (options.collection) this.collection = options.collection;
     if (options.parse) attrs = this.parse(attrs, options) || {};
-    if (defaults = _.result(this, 'defaults')) {
-      attrs = _.defaults({}, attrs, defaults);
-    }
+    attrs = _.defaults({}, attrs, _.result(this, 'defaults'));
     this.set(attrs, options);
     this.changed = {};
     this.initialize.apply(this, arguments);
   };
-
-  // A list of options to be attached directly to the model, if provided.
-  var modelOptions = ['url', 'urlRoot', 'collection'];
 
   // Attach all inheritable methods to the Model prototype.
   _.extend(Model.prototype, Events, {
@@ -15553,7 +15550,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
 
       // Trigger all relevant attribute changes.
       if (!silent) {
-        if (changes.length) this._pending = true;
+        if (changes.length) this._pending = options;
         for (var i = 0, l = changes.length; i < l; i++) {
           this.trigger('change:' + changes[i], this, current[changes[i]], options);
         }
@@ -15564,6 +15561,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
       if (changing) return this;
       if (!silent) {
         while (this._pending) {
+          options = this._pending;
           this._pending = false;
           this.trigger('change', this, options);
         }
@@ -15654,13 +15652,16 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
         (attrs = {})[key] = val;
       }
 
-      // If we're not waiting and attributes exist, save acts as `set(attr).save(null, opts)`.
-      if (attrs && (!options || !options.wait) && !this.set(attrs, options)) return false;
-
       options = _.extend({validate: true}, options);
 
-      // Do not persist invalid models.
-      if (!this._validate(attrs, options)) return false;
+      // If we're not waiting and attributes exist, save acts as
+      // `set(attr).save(null, opts)` with validation. Otherwise, check if
+      // the model will be valid when the attributes, if any, are set.
+      if (attrs && !options.wait) {
+        if (!this.set(attrs, options)) return false;
+      } else {
+        if (!this._validate(attrs, options)) return false;
+      }
 
       // Set temporary attributes if `{wait: true}`.
       if (attrs && options.wait) {
@@ -15728,9 +15729,12 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     // using Backbone's restful methods, override this to change the endpoint
     // that will be called.
     url: function() {
-      var base = _.result(this, 'urlRoot') || _.result(this.collection, 'url') || urlError();
+      var base =
+        _.result(this, 'urlRoot') ||
+        _.result(this.collection, 'url') ||
+        urlError();
       if (this.isNew()) return base;
-      return base + (base.charAt(base.length - 1) === '/' ? '' : '/') + encodeURIComponent(this.id);
+      return base.replace(/([^\/])$/, '$1/') + encodeURIComponent(this.id);
     },
 
     // **parse** converts a response into the hash of attributes to be `set` on
@@ -15746,7 +15750,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
 
     // A model is new if it has never been saved to the server, and lacks an id.
     isNew: function() {
-      return this.id == null;
+      return !this.has(this.idAttribute);
     },
 
     // Check if the model is currently in a valid state.
@@ -15761,7 +15765,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
       attrs = _.extend({}, this.attributes, attrs);
       var error = this.validationError = this.validate(attrs, options) || null;
       if (!error) return true;
-      this.trigger('invalid', this, error, _.extend(options || {}, {validationError: error}));
+      this.trigger('invalid', this, error, _.extend(options, {validationError: error}));
       return false;
     }
 
@@ -15794,7 +15798,6 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
   // its models in sort order, as they're added and removed.
   var Collection = Backbone.Collection = function(models, options) {
     options || (options = {});
-    if (options.url) this.url = options.url;
     if (options.model) this.model = options.model;
     if (options.comparator !== void 0) this.comparator = options.comparator;
     this._reset();
@@ -15804,7 +15807,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
 
   // Default options for `Collection#set`.
   var setOptions = {add: true, remove: true, merge: true};
-  var addOptions = {add: true, merge: false, remove: false};
+  var addOptions = {add: true, remove: false};
 
   // Define the Collection's inheritable methods.
   _.extend(Collection.prototype, Events, {
@@ -15830,16 +15833,17 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
 
     // Add a model, or list of models to the set.
     add: function(models, options) {
-      return this.set(models, _.defaults(options || {}, addOptions));
+      return this.set(models, _.extend({merge: false}, options, addOptions));
     },
 
     // Remove a model, or a list of models from the set.
     remove: function(models, options) {
-      models = _.isArray(models) ? models.slice() : [models];
+      var singular = !_.isArray(models);
+      models = singular ? [models] : _.clone(models);
       options || (options = {});
       var i, l, index, model;
       for (i = 0, l = models.length; i < l; i++) {
-        model = this.get(models[i]);
+        model = models[i] = this.get(models[i]);
         if (!model) continue;
         delete this._byId[model.id];
         delete this._byId[model.cid];
@@ -15850,9 +15854,9 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
           options.index = index;
           model.trigger('remove', model, this, options);
         }
-        this._removeReference(model);
+        this._removeReference(model, options);
       }
-      return this;
+      return singular ? models[0] : models;
     },
 
     // Update a collection by `set`-ing a new list of models, adding new ones,
@@ -15860,43 +15864,57 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     // already exist in the collection, as necessary. Similar to **Model#set**,
     // the core operation for updating the data contained by the collection.
     set: function(models, options) {
-      options = _.defaults(options || {}, setOptions);
+      options = _.defaults({}, options, setOptions);
       if (options.parse) models = this.parse(models, options);
-      if (!_.isArray(models)) models = models ? [models] : [];
-      var i, l, model, attrs, existing, sort;
+      var singular = !_.isArray(models);
+      models = singular ? (models ? [models] : []) : _.clone(models);
+      var i, l, id, model, attrs, existing, sort;
       var at = options.at;
+      var targetModel = this.model;
       var sortable = this.comparator && (at == null) && options.sort !== false;
       var sortAttr = _.isString(this.comparator) ? this.comparator : null;
       var toAdd = [], toRemove = [], modelMap = {};
+      var add = options.add, merge = options.merge, remove = options.remove;
+      var order = !sortable && add && remove ? [] : false;
 
       // Turn bare objects into model references, and prevent invalid models
       // from being added.
       for (i = 0, l = models.length; i < l; i++) {
-        if (!(model = this._prepareModel(models[i], options))) continue;
+        attrs = models[i] || {};
+        if (attrs instanceof Model) {
+          id = model = attrs;
+        } else {
+          id = attrs[targetModel.prototype.idAttribute || 'id'];
+        }
 
         // If a duplicate is found, prevent it from being added and
         // optionally merge it into the existing model.
-        if (existing = this.get(model)) {
-          if (options.remove) modelMap[existing.cid] = true;
-          if (options.merge) {
-            existing.set(model.attributes, options);
+        if (existing = this.get(id)) {
+          if (remove) modelMap[existing.cid] = true;
+          if (merge) {
+            attrs = attrs === model ? model.attributes : attrs;
+            if (options.parse) attrs = existing.parse(attrs, options);
+            existing.set(attrs, options);
             if (sortable && !sort && existing.hasChanged(sortAttr)) sort = true;
           }
+          models[i] = existing;
 
-        // This is a new model, push it to the `toAdd` list.
-        } else if (options.add) {
+        // If this is a new, valid model, push it to the `toAdd` list.
+        } else if (add) {
+          model = models[i] = this._prepareModel(attrs, options);
+          if (!model) continue;
           toAdd.push(model);
-
-          // Listen to added models' events, and index models for lookup by
-          // `id` and by `cid`.
-          model.on('all', this._onModelEvent, this);
-          this._byId[model.cid] = model;
-          if (model.id != null) this._byId[model.id] = model;
+          this._addReference(model, options);
         }
+
+        // Do not add multiple models with the same `id`.
+        model = existing || model;
+        if (order && (model.isNew() || !modelMap[model.id])) order.push(model);
+        modelMap[model.id] = true;
       }
 
       // Remove nonexistent models if appropriate.
-      if (options.remove) {
+      if (remove) {
         for (i = 0, l = this.length; i < l; ++i) {
           if (!modelMap[(model = this.models[i]).cid]) toRemove.push(model);
         }
@@ -15904,29 +15922,35 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
       }
 
       // See if sorting is needed, update `length` and splice in new models.
-      if (toAdd.length) {
+      if (toAdd.length || (order && order.length)) {
         if (sortable) sort = true;
         this.length += toAdd.length;
         if (at != null) {
-          splice.apply(this.models, [at, 0].concat(toAdd));
+          for (i = 0, l = toAdd.length; i < l; i++) {
+            this.models.splice(at + i, 0, toAdd[i]);
+          }
         } else {
-          push.apply(this.models, toAdd);
+          if (order) this.models.length = 0;
+          var orderedModels = order || toAdd;
+          for (i = 0, l = orderedModels.length; i < l; i++) {
+            this.models.push(orderedModels[i]);
+          }
         }
       }
 
       // Silently sort the collection if appropriate.
       if (sort) this.sort({silent: true});
 
-      if (options.silent) return this;
-
-      // Trigger `add` events.
-      for (i = 0, l = toAdd.length; i < l; i++) {
-        (model = toAdd[i]).trigger('add', model, this, options);
+      // Unless silenced, it's time to fire all appropriate add/sort events.
+      if (!options.silent) {
+        for (i = 0, l = toAdd.length; i < l; i++) {
+          (model = toAdd[i]).trigger('add', model, this, options);
+        }
+        if (sort || (order && order.length)) this.trigger('sort', this, options);
       }
 
-      // Trigger `sort` if the collection was sorted.
-      if (sort) this.trigger('sort', this, options);
-      return this;
+      // Return the added (or merged) model (or models).
+      return singular ? models[0] : models;
     },
 
     // When you have more items than you want to add or remove individually,
@@ -15936,20 +15960,18 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     reset: function(models, options) {
       options || (options = {});
       for (var i = 0, l = this.models.length; i < l; i++) {
-        this._removeReference(this.models[i]);
+        this._removeReference(this.models[i], options);
       }
       options.previousModels = this.models;
       this._reset();
-      this.add(models, _.extend({silent: true}, options));
+      models = this.add(models, _.extend({silent: true}, options));
       if (!options.silent) this.trigger('reset', this, options);
-      return this;
+      return models;
     },
 
     // Add a model to the end of the collection.
     push: function(model, options) {
-      model = this._prepareModel(model, options);
-      this.add(model, _.extend({at: this.length}, options));
-      return model;
+      return this.add(model, _.extend({at: this.length}, options));
     },
 
     // Remove a model from the end of the collection.
@@ -15961,9 +15983,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
 
     // Add a model to the beginning of the collection.
     unshift: function(model, options) {
-      model = this._prepareModel(model, options);
-      this.add(model, _.extend({at: 0}, options));
-      return model;
+      return this.add(model, _.extend({at: 0}, options));
     },
 
     // Remove a model from the beginning of the collection.
@@ -15974,14 +15994,14 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     },
 
     // Slice out a sub-array of models from the collection.
-    slice: function(begin, end) {
-      return this.models.slice(begin, end);
+    slice: function() {
+      return slice.apply(this.models, arguments);
     },
 
     // Get a model from the set by id.
     get: function(obj) {
       if (obj == null) return void 0;
-      return this._byId[obj.id != null ? obj.id : obj.cid || obj];
+      return this._byId[obj] || this._byId[obj.id] || this._byId[obj.cid];
     },
 
     // Get the model at the given index.
@@ -16025,16 +16045,6 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
       return this;
     },
 
-    // Figure out the smallest index at which a model should be inserted so as
-    // to maintain order.
-    sortedIndex: function(model, value, context) {
-      value || (value = this.comparator);
-      var iterator = _.isFunction(value) ? value : function(model) {
-        return model.get(value);
-      };
-      return _.sortedIndex(this.models, model, iterator, context);
-    },
-
     // Pluck an attribute from each model in the collection.
     pluck: function(attr) {
       return _.invoke(this.models, 'get', attr);
@@ -16067,7 +16077,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
       if (!options.wait) this.add(model, options);
       var collection = this;
       var success = options.success;
-      options.success = function(resp) {
+      options.success = function(model, resp) {
         if (options.wait) collection.add(model, options);
         if (success) success(model, resp, options);
       };
@@ -16097,22 +16107,25 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     // Prepare a hash of attributes (or other model) to be added to this
     // collection.
     _prepareModel: function(attrs, options) {
-      if (attrs instanceof Model) {
-        if (!attrs.collection) attrs.collection = this;
-        return attrs;
-      }
-      options || (options = {});
+      if (attrs instanceof Model) return attrs;
+      options = options ? _.clone(options) : {};
       options.collection = this;
       var model = new this.model(attrs, options);
-      if (!model._validate(attrs, options)) {
-        this.trigger('invalid', this, attrs, options);
-        return false;
-      }
-      return model;
+      if (!model.validationError) return model;
+      this.trigger('invalid', this, model.validationError, options);
+      return false;
+    },
+
+    // Internal method to create a model's ties to a collection.
+    _addReference: function(model, options) {
+      this._byId[model.cid] = model;
+      if (model.id != null) this._byId[model.id] = model;
+      if (!model.collection) model.collection = this;
+      model.on('all', this._onModelEvent, this);
     },
 
     // Internal method to sever a model's ties to a collection.
-    _removeReference: function(model) {
+    _removeReference: function(model, options) {
       if (this === model.collection) delete model.collection;
       model.off('all', this._onModelEvent, this);
     },
@@ -16140,8 +16153,8 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     'inject', 'reduceRight', 'foldr', 'find', 'detect', 'filter', 'select',
     'reject', 'every', 'all', 'some', 'any', 'include', 'contains', 'invoke',
     'max', 'min', 'toArray', 'size', 'first', 'head', 'take', 'initial', 'rest',
-    'tail', 'drop', 'last', 'without', 'indexOf', 'shuffle', 'lastIndexOf',
-    'isEmpty', 'chain'];
+    'tail', 'drop', 'last', 'without', 'difference', 'indexOf', 'shuffle',
+    'lastIndexOf', 'isEmpty', 'chain', 'sample'];
 
   // Mix in each Underscore method as a proxy to `Collection#models`.
   _.each(methods, function(method) {
@@ -16153,7 +16166,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
   });
 
   // Underscore methods that take a property name as an argument.
-  var attributeMethods = ['groupBy', 'countBy', 'sortBy'];
+  var attributeMethods = ['groupBy', 'countBy', 'sortBy', 'indexBy'];
 
   // Use attributes instead of properties.
   _.each(attributeMethods, function(method) {
@@ -16180,7 +16193,8 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
   // if an existing element is not provided...
   var View = Backbone.View = function(options) {
     this.cid = _.uniqueId('view');
-    this._configure(options || {});
+    options || (options = {});
+    _.extend(this, _.pick(options, viewOptions));
     this._ensureElement();
     this.initialize.apply(this, arguments);
     this.delegateEvents();
@@ -16199,7 +16213,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     tagName: 'div',
 
     // jQuery delegate for element lookup, scoped to DOM elements within the
-    // current view. This should be prefered to global lookups where possible.
+    // current view. This should be preferred to global lookups where possible.
     $: function(selector) {
       return this.$el.find(selector);
     },
@@ -16239,7 +16253,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     //
     //     {
     //       'mousedown .title':  'edit',
-    //       'click .button':     'save'
+    //       'click .button':     'save',
     //       'click .open':       function(e) { ... }
     //     }
     //
@@ -16275,16 +16289,6 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     undelegateEvents: function() {
       this.$el.off('.delegateEvents' + this.cid);
       return this;
-    },
-
-    // Performs the initial configuration of a View with a set of options.
-    // Keys with special meaning *(e.g. model, collection, id, className)* are
-    // attached directly to the view.  See `viewOptions` for an exhaustive
-    // list.
-    _configure: function(options) {
-      if (this.options) options = _.extend({}, _.result(this, 'options'), options);
-      _.extend(this, _.pick(options, viewOptions));
-      this.options = options;
     },
 
     // Ensure that the View has a DOM element to render into.
@@ -16372,8 +16376,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     // If we're sending a `PATCH` request, and we're in an old Internet Explorer
     // that still has ActiveX enabled by default, override jQuery to use that
     // for XHR instead. Remove this line when jQuery supports `PATCH` on IE8.
-    if (params.type === 'PATCH' && window.ActiveXObject &&
-          !(window.external && window.external.msActiveXFilteringEnabled)) {
+    if (params.type === 'PATCH' && noXhrPatch) {
       params.xhr = function() {
         return new ActiveXObject("Microsoft.XMLHTTP");
       };
@@ -16384,6 +16387,10 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     model.trigger('request', model, xhr, options);
     return xhr;
   };
+
+  var noXhrPatch =
+    typeof window !== 'undefined' && !!window.ActiveXObject &&
+      !(window.XMLHttpRequest && (new XMLHttpRequest).dispatchEvent);
 
   // Map from CRUD to HTTP for our default `Backbone.sync` implementation.
   var methodMap = {
@@ -16442,12 +16449,18 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
       var router = this;
       Backbone.history.route(route, function(fragment) {
         var args = router._extractParameters(route, fragment);
-        callback && callback.apply(router, args);
+        router.execute(callback, args);
         router.trigger.apply(router, ['route:' + name].concat(args));
         router.trigger('route', name, args);
         Backbone.history.trigger('route', router, name, args);
       });
       return this;
+    },
+
+    // Execute a route handler with the provided parameters.  This is an
+    // excellent place to do pre-route setup or post-route cleanup.
+    execute: function(callback, args) {
+      if (callback) callback.apply(this, args);
     },
 
     // Simple proxy to `Backbone.history` to save a fragment into the history.
@@ -16473,11 +16486,11 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     _routeToRegExp: function(route) {
       route = route.replace(escapeRegExp, '\\$&')
                    .replace(optionalParam, '(?:$1)?')
-                   .replace(namedParam, function(match, optional){
-                     return optional ? match : '([^\/]+)';
+                   .replace(namedParam, function(match, optional) {
+                     return optional ? match : '([^/?]+)';
                    })
-                   .replace(splatParam, '(.*?)');
-      return new RegExp('^' + route + '$');
+                   .replace(splatParam, '([^?]*?)');
+      return new RegExp('^' + route + '(?:\\?([\\s\\S]*))?$');
     },
 
     // Given a route, and a URL fragment that it matches, return the array of
@@ -16485,7 +16498,9 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     // treated as `null` to normalize cross-browser behavior.
     _extractParameters: function(route, fragment) {
       var params = route.exec(fragment).slice(1);
-      return _.map(params, function(param) {
+      return _.map(params, function(param, i) {
+        // Don't decode the search params.
+        if (i === params.length - 1) return param || null;
         return param ? decodeURIComponent(param) : null;
       });
     }
@@ -16523,6 +16538,9 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
   // Cached regex for removing a trailing slash.
   var trailingSlash = /\/$/;
 
+  // Cached regex for stripping urls of hash.
+  var pathStripper = /#.*$/;
+
   // Has the history handling already been started?
   History.started = false;
 
@@ -16532,6 +16550,11 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     // The default interval to poll for hash changes, if necessary, is
     // twenty times a second.
     interval: 50,
+
+    // Are we at the app root?
+    atRoot: function() {
+      return this.location.pathname.replace(/[^\/]$/, '$&/') === this.root;
+    },
 
     // Gets the true hash value. Cannot use location.hash directly due to bug
     // in Firefox where location.hash will always be decoded.
@@ -16545,9 +16568,9 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     getFragment: function(fragment, forcePushState) {
       if (fragment == null) {
         if (this._hasPushState || !this._wantsHashChange || forcePushState) {
-          fragment = this.location.pathname;
+          fragment = decodeURI(this.location.pathname + this.location.search);
           var root = this.root.replace(trailingSlash, '');
-          if (!fragment.indexOf(root)) fragment = fragment.substr(root.length);
+          if (!fragment.indexOf(root)) fragment = fragment.slice(root.length);
         } else {
           fragment = this.getHash();
         }
@@ -16563,7 +16586,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
 
       // Figure out the initial configuration. Do we need an iframe?
       // Is pushState desired ... is it available?
-      this.options          = _.extend({}, {root: '/'}, this.options, options);
+      this.options          = _.extend({root: '/'}, this.options, options);
       this.root             = this.options.root;
       this._wantsHashChange = this.options.hashChange !== false;
       this._wantsPushState  = !!this.options.pushState;
@@ -16576,7 +16599,8 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
       this.root = ('/' + this.root + '/').replace(rootStripper, '/');
 
       if (oldIE && this._wantsHashChange) {
-        this.iframe = Backbone.$('<iframe src="javascript:0" tabindex="-1" />').hide().appendTo('body')[0].contentWindow;
+        var frame = Backbone.$('<iframe src="javascript:0" tabindex="-1">');
+        this.iframe = frame.hide().appendTo('body')[0].contentWindow;
         this.navigate(fragment);
       }
 
@@ -16594,21 +16618,26 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
       // opened by a non-pushState browser.
       this.fragment = fragment;
       var loc = this.location;
-      var atRoot = loc.pathname.replace(/[^\/]$/, '$&/') === this.root;
 
-      // If we've started off with a route from a `pushState`-enabled browser,
-      // but we're currently in a browser that doesn't support it...
-      if (this._wantsHashChange && this._wantsPushState && !this._hasPushState && !atRoot) {
-        this.fragment = this.getFragment(null, true);
-        this.location.replace(this.root + this.location.search + '#' + this.fragment);
-        // Return immediately as browser will do redirect to new url
-        return true;
+      // Transition from hashChange to pushState or vice versa if both are
+      // requested.
+      if (this._wantsHashChange && this._wantsPushState) {
 
-      // Or if we've started out with a hash-based route, but we're currently
-      // in a browser where it could be `pushState`-based instead...
-      } else if (this._wantsPushState && this._hasPushState && atRoot && loc.hash) {
-        this.fragment = this.getHash().replace(routeStripper, '');
-        this.history.replaceState({}, document.title, this.root + this.fragment + loc.search);
+        // If we've started off with a route from a `pushState`-enabled
+        // browser, but we're currently in a browser that doesn't support it...
+        if (!this._hasPushState && !this.atRoot()) {
+          this.fragment = this.getFragment(null, true);
+          this.location.replace(this.root + '#' + this.fragment);
+          // Return immediately as browser will do redirect to new url
+          return true;
+
+        // Or if we've started out with a hash-based route, but we're currently
+        // in a browser where it could be `pushState`-based instead...
+        } else if (this._hasPushState && this.atRoot() && loc.hash) {
+          this.fragment = this.getHash().replace(routeStripper, '');
+          this.history.replaceState({}, document.title, this.root + this.fragment);
+        }
+
       }
 
       if (!this.options.silent) return this.loadUrl();
@@ -16618,7 +16647,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     // but possibly useful for unit testing Routers.
     stop: function() {
       Backbone.$(window).off('popstate', this.checkUrl).off('hashchange', this.checkUrl);
-      clearInterval(this._checkUrlInterval);
+      if (this._checkUrlInterval) clearInterval(this._checkUrlInterval);
       History.started = false;
     },
 
@@ -16637,21 +16666,20 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
       }
       if (current === this.fragment) return false;
       if (this.iframe) this.navigate(current);
-      this.loadUrl() || this.loadUrl(this.getHash());
+      this.loadUrl();
     },
 
     // Attempt to load the current URL fragment. If a route succeeds with a
     // match, returns `true`. If no defined routes matches the fragment,
     // returns `false`.
-    loadUrl: function(fragmentOverride) {
-      var fragment = this.fragment = this.getFragment(fragmentOverride);
-      var matched = _.any(this.handlers, function(handler) {
+    loadUrl: function(fragment) {
+      fragment = this.fragment = this.getFragment(fragment);
+      return _.any(this.handlers, function(handler) {
         if (handler.route.test(fragment)) {
           handler.callback(fragment);
           return true;
         }
       });
-      return matched;
     },
 
     // Save a fragment into the hash history, or replace the URL state if the
@@ -16663,11 +16691,18 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     // you wish to modify the current URL without adding an entry to the history.
     navigate: function(fragment, options) {
       if (!History.started) return false;
-      if (!options || options === true) options = {trigger: options};
-      fragment = this.getFragment(fragment || '');
+      if (!options || options === true) options = {trigger: !!options};
+
+      var url = this.root + (fragment = this.getFragment(fragment || ''));
+
+      // Strip the hash for matching.
+      fragment = fragment.replace(pathStripper, '');
+
       if (this.fragment === fragment) return;
       this.fragment = fragment;
-      var url = this.root + fragment;
+
+      // Don't include a trailing slash on the root.
+      if (fragment === '' && url !== '/') url = url.slice(0, -1);
 
       // If pushState is available, we use it to set the fragment as a real URL.
       if (this._hasPushState) {
@@ -16690,7 +16725,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
       } else {
         return this.location.assign(url);
       }
-      if (options.trigger) this.loadUrl(fragment);
+      if (options.trigger) return this.loadUrl(fragment);
     },
 
     // Update the hash location, either replacing the current entry, or adding
@@ -16758,7 +16793,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
   };
 
   // Wrap an optional error callback with a fallback error event.
-  var wrapError = function (model, options) {
+  var wrapError = function(model, options) {
     var error = options.error;
     options.error = function(resp) {
       if (error) error(model, resp, options);
@@ -16766,7 +16801,9 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     };
   };
 
-}).call(this);
+  return Backbone;
+
+}));
 
 // Vectorizer.
 // -----------
@@ -16891,19 +16928,22 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
         var translate,
             rotate,
             scale;
-        
+
         if (transform) {
+
+            var separator = /[ ,]+/;
+
             var translateMatch = transform.match(/translate\((.*)\)/);
             if (translateMatch) {
-                translate = translateMatch[1].split(',');
+                translate = translateMatch[1].split(separator);
             }
             var rotateMatch = transform.match(/rotate\((.*)\)/);
             if (rotateMatch) {
-                rotate = rotateMatch[1].split(',');
+                rotate = rotateMatch[1].split(separator);
             }
             var scaleMatch = transform.match(/scale\((.*)\)/);
             if (scaleMatch) {
-                scale = scaleMatch[1].split(',');
+                scale = scaleMatch[1].split(separator);
             }
         }
 
@@ -16976,7 +17016,9 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
 
     VElement.prototype = {
         
-        translate: function(tx, ty) {
+        translate: function(tx, ty, opt) {
+
+            opt = opt || {};
             ty = ty || 0;
             
             var transformAttr = this.attr('transform') || '',
@@ -16989,16 +17031,20 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
             
             transformAttr = transformAttr.replace(/translate\([^\)]*\)/g, '').trim();
 
-            var newTx = transform.translate.tx + tx,
-                newTy = transform.translate.ty + ty;
+            var newTx = opt.absolute ? tx : transform.translate.tx + tx,
+                newTy = opt.absolute ? ty : transform.translate.ty + ty,
+                newTranslate = 'translate(' + newTx + ',' + newTy + ')';
 
             // Note that `translate()` is always the first transformation. This is
             // usually the desired case.
-            this.attr('transform', 'translate(' + newTx + ',' + newTy + ') ' + transformAttr);
+            this.attr('transform', (newTranslate + ' ' + transformAttr).trim());
             return this;
         },
 
-        rotate: function(angle, cx, cy) {
+        rotate: function(angle, cx, cy, opt) {
+
+            opt = opt || {};
+
             var transformAttr = this.attr('transform') || '',
                 transform = parseTransformString(transformAttr);
 
@@ -17009,10 +17055,13 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
             
             transformAttr = transformAttr.replace(/rotate\([^\)]*\)/g, '').trim();
 
-            var newAngle = transform.rotate.angle + angle % 360,
-                newOrigin = (cx !== undefined && cy !== undefined) ? ',' + cx + ',' + cy : '';
-            
-            this.attr('transform', transformAttr + ' rotate(' + newAngle + newOrigin + ')');
+            angle %= 360;
+
+            var newAngle = opt.absolute ? angle: transform.rotate.angle + angle,
+                newOrigin = (cx !== undefined && cy !== undefined) ? ',' + cx + ',' + cy : '',
+                newRotate = 'rotate(' + newAngle + newOrigin + ')';
+
+            this.attr('transform', (transformAttr + ' ' + newRotate).trim());
             return this;
         },
 
@@ -17030,7 +17079,9 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
             
             transformAttr = transformAttr.replace(/scale\([^\)]*\)/g, '').trim();
 
-            this.attr('transform', transformAttr + ' scale(' + sx + ',' + sy + ')');
+            var newScale = 'scale(' + sx + ',' + sy + ')';
+
+            this.attr('transform', (transformAttr + ' ' + newScale).trim());
             return this;
         },
 
@@ -17122,9 +17173,12 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
             };
         },
 
-        text: function(content) {
-            var lines = content.split('\n'), i = 0,
-                tspan;
+        text: function(content, opt) {
+
+	    opt = opt || {};
+            var lines = content.split('\n');
+	    var i = 0;
+            var tspan;
 
             // `alignment-baseline` does not work in Firefox.
 	    // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
@@ -17138,7 +17192,10 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
             // In order to unify this behaviour across all browsers
             // we rather hide the text element when it's empty.
             this.attr('display', content ? null : 'none');
-            
+
+	    // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
+	    this.node.setAttributeNS("http://www.w3.org/XML/1998/namespace", "xml:space","preserve");
+
             if (lines.length === 1) {
                 this.node.textContent = content;
                 return this;
@@ -17149,8 +17206,11 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
             for (; i < lines.length; i++) {
 
                 // Shift all the <tspan> but first by one line (`1em`)
-                tspan = V('tspan', { dy: (i == 0 ? '0em' : '1em'), x: this.attr('x') || 0});
-                tspan.node.textContent = lines[i];
+                tspan = V('tspan', { dy: (i == 0 ? '0em' : opt.lineHeight || '1em'), x: this.attr('x') || 0});
+		// Make sure the textContent is never empty. If it is, add an additional 
+		// space (an invisible character) so that following lines are correctly
+		// relatively positioned. `dy=1em` won't work with empty lines otherwise.
+                tspan.node.textContent = lines[i] || ' ';
                 
                 this.append(tspan);
             }
@@ -17373,7 +17433,8 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
         addClass: function(className) {
 
             if (!this.hasClass(className)) {
-                this.node.setAttribute('class', this.node.getAttribute('class') + ' ' + className);
+                var prevClasses = this.node.getAttribute('class') || '';
+                this.node.setAttribute('class', (prevClasses + ' ' + className).trim());
             }
 
             return this;
@@ -17381,10 +17442,9 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
 
         removeClass: function(className) {
 
-            var removedClass = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
-
             if (this.hasClass(className)) {
-                this.node.setAttribute('class', removedClass);
+                var newClasses = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
+                this.node.setAttribute('class', newClasses);
             }
 
             return this;
@@ -17650,6 +17710,11 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
             this.x = snapToGrid(this.x, gx)
             this.y = snapToGrid(this.y, gy || gx)
             return this;
+        },
+        // Returns a point that is the reflection of me with
+        // the center of inversion in ref point.
+        reflection: function(ref) {
+            return point(ref).move(this, this.distance(ref));
         }
     };
     // Alternative constructor, from polar coordinates.
@@ -17755,6 +17820,13 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
             index = parseInt(index / 45);
 
             return bearings[index];
+        },
+
+        // @return {point} my point at 't' <0,1>
+        pointAt: function(t) {
+            var x = (1 - t) * this.start.x + t * this.end.x;
+            var y = (1 - t) * this.start.y + t * this.end.y;
+            return point(x, y);
         }
     };
 
@@ -17965,7 +18037,17 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
             this.width = newwidth;
             this.height = newheight;
             return this;
-        }        
+        },
+        // Find my bounding box when I'm rotated with the center of rotation in the center of me.
+        // @return r {rectangle} representing a bounding box
+        bbox: function(angle) {
+            var theta = toRad(angle || 0);
+            var st = abs(sin(theta));
+            var ct = abs(cos(theta));
+            var w = this.width * ct + this.height * st;
+            var h = this.width * st + this.height * ct;
+            return rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
+        }
     };
 
     // Ellipse.
@@ -18113,6 +18195,51 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
 	        x[n - i - 1] -= tmp[n - i] * x[n - i]; 
             }
             return x;
+        },
+
+        // Solves an inversion problem -- Given the (x, y) coordinates of a point which lies on
+        // a parametric curve x = x(t)/w(t), y = y(t)/w(t), ﬁnd the parameter value t
+        // which corresponds to that point.
+        // @param control points (start, control start, control end, end)
+        // @return a function accepts a point and returns t.
+        getInversionSolver: function(p0, p1, p2, p3) {
+            var pts = arguments;
+            function l(i,j) {
+                // calculates a determinant 3x3
+                // [p.x  p.y  1]
+                // [pi.x pi.y 1]
+                // [pj.x pj.y 1]
+                var pi = pts[i], pj = pts[j];
+                return function(p) {
+                    var w = (i % 3 ? 3 : 1) * (j % 3 ? 3 : 1);
+                    var lij = p.x * (pi.y - pj.y) + p.y * (pj.x - pi.x) + pi.x * pj.y - pi.y * pj.x;
+                    return w * lij;
+                };
+            }
+            return function solveInversion(p) {
+                var ct = 3 * l(2,3)(p1);
+                var c1 = l(1,3)(p0) / ct;
+                var c2 = -l(2,3)(p0) / ct;
+                var la = c1 * l(3,1)(p) + c2 * (l(3,0)(p) + l(2,1)(p)) + l(2,0)(p);
+                var lb = c1 * l(3,0)(p) + c2 * l(2,0)(p) + l(1,0)(p);
+                return lb / (lb - la);
+            };
+        },
+
+        // Divide a Bezier curve into two at point defined by value 't' <0,1>.
+        // Using deCasteljau algorithm. http://math.stackexchange.com/a/317867
+        // @param control points (start, control start, control end, end)
+        // @return a function accepts t and returns 2 curves each defined by 4 control points.
+        getCurveDivider: function(p0,p1,p2,p3) {
+            return function divideCurve(t) {
+                var l = line(p0,p1).pointAt(t);
+                var m = line(p1,p2).pointAt(t);
+                var n = line(p2,p3).pointAt(t);
+                var p = line(l,m).pointAt(t);
+                var q = line(m,n).pointAt(t);
+                var r = line(p,q).pointAt(t);
+                return [{ p0: p0, p1: l, p2: p, p3: r }, { p0: r, p1: q, p2: n, p3: p3 }];
+            }
         }
     };
 
@@ -19120,28 +19247,21 @@ joint.dia.Graph = Backbone.Model.extend({
         return json;
     },
 
-    fromJSON: function(json) {
+    fromJSON: function(json, opt) {
 
         if (!json.cells) {
 
             throw new Error('Graph JSON must contain cells array.');
         }
 
-        var attrs = json;
-
-        // Cells are the only attribute that is being set differently, using `cells.add()`.
-        var cells = json.cells;
-        delete attrs.cells;
-        
-        this.set(attrs);
-        
-        this.resetCells(cells);
+        this.set(_.omit(json, 'cells'), opt);
+        this.resetCells(json.cells, opt);
     },
 
-    clear: function() {
+    clear: function(opt) {
 
         this.trigger('batch:start');
-        this.get('cells').remove(this.get('cells').models);
+        this.get('cells').remove(this.get('cells').models, opt);
         this.trigger('batch:stop');
     },
 
@@ -19187,9 +19307,9 @@ joint.dia.Graph = Backbone.Model.extend({
     // When adding a lot of cells, it is much more efficient to
     // reset the entire cells collection in one go.
     // Useful for bulk operations and optimizations.
-    resetCells: function(cells) {
+    resetCells: function(cells, opt) {
         
-        this.get('cells').reset(_.map(cells, this._prepareCell, this));
+        this.get('cells').reset(_.map(cells, this._prepareCell, this), opt);
 
         return this;
     },
@@ -19297,13 +19417,30 @@ joint.dia.Graph = Backbone.Model.extend({
 	});
     },
 
-
     // Find all views in given area
     findModelsInArea: function(r) {
 
 	return _.filter(this.getElements(), function(el) {
 	    return el.getBBox().intersect(r);
 	});
+    },
+
+    // Return the bounding box of all `elements`.
+    getBBox: function(elements) {
+
+	var origin = { x: Infinity, y: Infinity };
+	var corner = { x: 0, y: 0 };
+	
+	_.each(elements, function(cell) {
+	    
+	    var bbox = cell.getBBox();
+	    origin.x = Math.min(origin.x, bbox.x);
+	    origin.y = Math.min(origin.y, bbox.y);
+	    corner.x = Math.max(corner.x, bbox.x + bbox.width);
+	    corner.y = Math.max(corner.y, bbox.y + bbox.height);
+	});
+
+	return g.rect(origin.x, origin.y, corner.x - origin.x, corner.y - origin.y);
     }
 
 });
@@ -19313,6 +19450,7 @@ if (typeof exports === 'object') {
 
     module.exports.Graph = joint.dia.Graph;
 }
+
 //      JointJS.
 //      (c) 2011-2013 client IO
 
@@ -19489,6 +19627,8 @@ joint.dia.Cell = Backbone.Model.extend({
 	if (collection) {
 	    collection.trigger('batch:stop');
 	}
+
+	return this;
     },
 
     toFront: function() {
@@ -19497,6 +19637,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
             this.set('z', (this.collection.last().get('z') || 0) + 1);
         }
+
+	return this;
     },
     
     toBack: function() {
@@ -19505,6 +19647,8 @@ joint.dia.Cell = Backbone.Model.extend({
             
             this.set('z', (this.collection.first().get('z') || 0) - 1);
         }
+
+	return this;
     },
 
     embed: function(cell) {
@@ -19522,6 +19666,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
 	    this.trigger('batch:stop');
 	}
+
+	return this;
     },
 
     unembed: function(cell) {
@@ -19534,6 +19680,8 @@ joint.dia.Cell = Backbone.Model.extend({
         this.set('embeds', _.without(this.get('embeds'), cellId));
 
 	this.trigger('batch:stop');
+
+	return this;
     },
 
     getEmbeddedCells: function() {
@@ -19568,7 +19716,10 @@ joint.dia.Cell = Backbone.Model.extend({
         // The rest of the `clone()` method deals with embeds. If `deep` option is set to `true`,
         // the return value is an array of all the embedded clones created.
 
-        var embeds = this.getEmbeddedCells();
+        var embeds = _.sortBy(this.getEmbeddedCells(), function(cell) {
+            // Sort embeds that links come before elements.
+            return cell instanceof joint.dia.Element;
+        });
 
         var clones = [clone];
 
@@ -19586,13 +19737,29 @@ joint.dia.Cell = Backbone.Model.extend({
 
             _.each(embedClones, function(embedClone) {
 
-                clones.push(embedClone);
-
-                // Skip links. Inbound/outbound links are not relevant for them.
                 if (embedClone instanceof joint.dia.Link) {
 
+                    if (embedClone.get('source').id == this.id) {
+
+                        var source = _.clone(embedClone.get('source'));
+                        source.id = clone.id;
+                        embedClone.set('source', source);
+                    }
+
+                    if (embedClone.get('target').id == this.id) {
+
+                        var target = _.clone(embedClone.get('target'));
+                        target.id = clone.id;
+                        embedClone.set('target', target);
+                    }
+
+                    linkCloneMapping[embed.id] = embedClone;
+
+                    // Skip links. Inbound/outbound links are not relevant for them.
                     return;
                 }
+
+                clones.push(embedClone);
 
                 // Collect all inbound links, clone them (if not done already) and set their target to the `embedClone.id`.
                 var inboundLinks = this.collection.getConnectedLinks(embed, { inbound: true });
@@ -19759,6 +19926,16 @@ joint.dia.Cell = Backbone.Model.extend({
 	    this.trigger('transition:end', this, key);
 
 	}, this);
+
+	return this;
+    },
+
+    // A shorcut making it easy to create constructs like the following:
+    // `var el = (new joint.shapes.basic.Rect).addTo(graph)`.
+    addTo: function(graph) {
+
+	graph.addCell(this);
+	return this;
     }
 });
 
@@ -19774,6 +19951,23 @@ joint.dia.CellView = Backbone.View.extend({
     attributes: function() {
 
         return { 'model-id': this.model.id }
+    },
+
+    constructor: function(options) {
+
+	this._configure(options);
+	Backbone.View.apply(this, arguments);
+    },
+
+    _configure: function(options) {
+
+	if (this.options) options = _.extend({}, _.result(this, 'options'), options);
+	this.options = options;
+        // Make sure a global unique id is assigned to this view. Store this id also to the properties object.
+        // The global unique id makes sure that the same view can be rendered on e.g. different machines and
+        // still be associated to the same object among all those clients. This is necessary for real-time
+        // collaboration mechanism.
+        this.options.id = this.options.id || joint.util.guid(this);
     },
 
     initialize: function() {
@@ -19797,17 +19991,6 @@ joint.dia.CellView = Backbone.View.extend({
         }
 
         return this.update();
-    },
-
-    _configure: function(options) {
-
-        // Make sure a global unique id is assigned to this view. Store this id also to the properties object.
-        // The global unique id makes sure that the same view can be rendered on e.g. different machines and
-        // still be associated to the same object among all those clients. This is necessary for real-time
-        // collaboration mechanism.
-        options.id = options.id || joint.util.guid(this);
-        
-        Backbone.View.prototype._configure.apply(this, arguments);
     },
 
     // Override the Backbone `_ensureElement()` method in order to create a `<g>` node that wraps
@@ -20142,9 +20325,30 @@ joint.dia.Element = joint.dia.Cell.extend({
 	return this;
     },
 
-    rotate: function(angle, absolute) {
+    // Rotate element by `angle` degrees, optionally around `origin` point.
+    // If `origin` is not provided, it is considered to be the center of the element.
+    // If `absolute` is `true`, the `angle` is considered is abslute, i.e. it is not
+    // the difference from the previous angle.
+    rotate: function(angle, absolute, origin) {
+	
+	if (origin) {
 
-        return this.set('angle', absolute ? angle : ((this.get('angle') || 0) + angle) % 360);
+	    var center = this.getBBox().center();
+	    var size = this.get('size');
+	    var position = this.get('position');
+	    center.rotate(origin, (this.get('angle') || 0) - angle);
+	    var dx = center.x - size.width/2 - position.x;
+	    var dy = center.y - size.height/2 - position.y;
+	    this.trigger('batch:start');
+	    this.translate(dx, dy);
+	    this.rotate(angle, absolute);
+	    this.trigger('batch:stop');
+            
+	} else {
+
+	    this.set('angle', absolute ? angle : ((this.get('angle') || 0) + angle) % 360);
+	}
+	return this;
     },
 
     getBBox: function() {
@@ -20231,7 +20435,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 $selected.each(function() {
 
-                    V(this).text(attrs.text + '');
+                    V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight });
                 });
             }
 
@@ -20346,7 +20550,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // relative to the root bounding box following the `ref-x` and `ref-y` attributes.
         if (vel.attr('transform')) {
 
-            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '') || '');
+            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '').trim() || '');
         }
 
         function isDefined(x) {
@@ -20532,8 +20736,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             return;
         }
         var scalableBbox = scalable.bbox(true);
-        
-        scalable.attr('transform', 'scale(' + (size.width / scalableBbox.width) + ',' + (size.height / scalableBbox.height) + ')');
+        // Make sure `scalableBbox.width` and `scalableBbox.height` are not zero which can happen if the element does not have any content. By making
+        // the width/height 1, we prevent HTML errors of the type `scale(Infinity, Infinity)`.
+        scalable.attr('transform', 'scale(' + (size.width / (scalableBbox.width || 1)) + ',' + (size.height / (scalableBbox.height || 1)) + ')');
 
         // Now the interesting part. The goal is to be able to store the object geometry via just `x`, `y`, `angle`, `width` and `height`
         // Order of transformations is significant but we want to reconstruct the object always in the order:
@@ -20782,6 +20987,30 @@ joint.dia.Link = joint.dia.Cell.extend({
         newLabels[idx] = newValue;
         
         return this.set({ labels: newLabels });
+    },
+
+    translate: function(tx, ty, opt) {
+
+        var attrs = {};
+        var source = this.get('source');
+        var target = this.get('target');
+        var vertices = this.get('vertices');
+
+        if (!source.id) {
+            attrs.source = { x: source.x + tx, y: source.y + ty };
+        }
+
+        if (!target.id) {
+            attrs.target = { x: target.x + tx, y: target.y + ty };
+        }
+
+        if (vertices && vertices.length) {
+            attrs.vertices = _.map(vertices, function(vertex) {
+                return { x: vertex.x + tx, y: vertex.y + ty };
+            });
+        }
+
+        return this.set(attrs, opt);
     }
 });
 
@@ -21236,8 +21465,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var magnetElement = this.paper.viewport.querySelector(selector);
 
             this.sourceBBox = view.getStrokeBBox(magnetElement);
+	    this.sourceView = view;
+	    this.sourceMagnet = magnetElement;
 
-        } else {
+        } else if (end) {
             // the link end is a point ~ rect 1x1
             this.sourceBBox = g.rect(end.x, end.y, 1, 1);
         }
@@ -21260,8 +21491,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var magnetElement = this.paper.viewport.querySelector(selector);
 
             this.targetBBox = view.getStrokeBBox(magnetElement);
+	    this.targetView = view;
+	    this.targetMagnet = magnetElement;
 
-        } else {
+        } else if (end) {
             // the link end is a point ~ rect 1x1
             this.targetBBox = g.rect(end.x, end.y, 1, 1);
         }
@@ -21366,6 +21599,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return Math.max(idx, 0);
     },
 
+    // Send a token (an SVG element, usually a circle) along the connection path.
+    // Example: `paper.findViewByModel(link).sendToken(V('circle', { r: 7, fill: 'green' }).node)`
+    // `duration` is optional and is a time in milliseconds that the token travels from the source to the target of the link. Default is `1000`.
+    // `callback` is optional and is a function to be called once the token reaches the target.
+    sendToken: function(token, duration, callback) {
+
+	duration = duration || 1000;
+
+	V(this.paper.viewport).append(token);
+	V(token).animateAlongPath({ dur: duration + 'ms', repeatCount: 1 }, this._V.connection.node);
+	_.delay(function() { V(token).remove(); callback && callback(); }, duration);
+    },
 
     findRoute: function(oldVertices) {
 
@@ -21430,6 +21675,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     getConnectionPoint: function(end, selectorOrPoint, referenceSelectorOrPoint) {
 
         var spot;
+
+        // If the `selectorOrPoint` (or `referenceSelectorOrPoint`) is `undefined`, the `source`/`target` of the link model is `undefined`.
+        // We want to allow this however so that one can create links such as `var link = new joint.dia.Link` and
+        // set the `source`/`target` later.
+        selectorOrPoint = selectorOrPoint || { x: 0, y: 0 };
+        referenceSelectorOrPoint = referenceSelectorOrPoint || { x: 0, y: 0 };
 
         if (this._isPoint(selectorOrPoint)) {
 
@@ -21514,9 +21765,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     spot = spot || g.rect(spotBbox).center();
                 }
                 
-            } else {
-            
-                spot = g.rect(spotBbox).intersectionWithLineFromCenterToPoint(reference);
+            } else if (this.paper.options.linkConnectionPoint) {
+
+		var view = end === 'target' ? this.targetView : this.sourceView;
+		var magnet = end === 'target' ? this.targetMagnet : this.sourceMagnet;
+
+		spot = this.paper.options.linkConnectionPoint(this, view, magnet, reference);
+
+	    } else {
+
+            	spot = g.rect(spotBbox).intersectionWithLineFromCenterToPoint(reference);
                 spot = spot || g.rect(spotBbox).center();
             }
         }
@@ -21574,6 +21832,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Let the pointer propagate throught the link view elements so that
         // the `evt.target` is another element under the pointer, not the link itself.
         this.el.style.pointerEvents = 'none';
+
+        if (this.paper.options.markAvailable) {
+            this._markAvailableMagnets();
+        }
     },
 
     _afterArrowheadMove: function() {
@@ -21587,6 +21849,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 	// Value `auto` doesn't work in IE9. We force to use `visiblePainted` instead.
 	// See `https://developer.mozilla.org/en-US/docs/Web/CSS/pointer-events`.
         this.el.style.pointerEvents = 'visiblePainted';
+
+        if (this.paper.options.markAvailable) {
+            this._unmarkAvailableMagnets();
+        }
 
         this.model.trigger('batch:stop');
     },
@@ -21625,13 +21891,49 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return validateConnectionArgs;
     },
 
+    _markAvailableMagnets: function() {
+
+        var elements = this.paper.model.getElements();
+        var validate = this.paper.options.validateConnection;
+
+        _.chain(elements).map(this.paper.findViewByModel, this.paper).each(function(view) {
+
+            var isElementAvailable = view.el.getAttribute('magnet') !== 'false' &&
+                validate.apply(this.paper, this._validateConnectionArgs(view, null));
+
+            var availableMagnets = _.filter(view.el.querySelectorAll('[magnet]'), function(magnet) {
+                return validate.apply(this.paper, this._validateConnectionArgs(view, magnet));
+            }, this);
+
+            if (isElementAvailable) {
+                V(view.el).addClass('available-magnet');
+            }
+
+            _.each(availableMagnets, function(magnet) {
+                V(magnet).addClass('available-magnet');
+            });
+
+            if (isElementAvailable || availableMagnets.length) {
+                V(view.el).addClass('available-cell');
+            }
+
+        }, this);
+    },
+
+    _unmarkAvailableMagnets: function() {
+
+        _.each(this.paper.el.querySelectorAll('.available-cell, .available-magnet'), function(magnet) {
+            V(magnet).removeClass('available-magnet').removeClass('available-cell');
+        });
+    },
+
     startArrowheadMove: function(end) {
         // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
         // move without need to click on the actual arrowhead dom element.
         this._action = 'arrowhead-move';
         this._arrowhead = end;
-        this._beforeArrowheadMove();
         this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
+        this._beforeArrowheadMove();
     },
 
     pointerdown: function(evt, x, y) {
@@ -21866,15 +22168,23 @@ if (typeof exports === 'object') {
 
 joint.dia.Paper = Backbone.View.extend({
 
+    className: 'paper',
+
     options: {
 
         width: 800,
         height: 600,
+        origin: { x: 0, y: 0 }, // x,y coordinates in top-left corner
         gridSize: 50,
         perpendicularLinks: false,
         elementView: joint.dia.ElementView,
         linkView: joint.dia.LinkView,
         snapLinks: false, // false, true, { radius: value }
+
+        // Marks all available magnets with 'available-magnet' class name and all available cells with
+        // 'available-cell' class name. Marks them when dragging a link is started and unmark
+        // when the dragging is stopped.
+        markAvailable: false,
 
         // Defines what link model is added to the graph after an user clicks on an active magnet.
         // Value could be the Backbone.model or a function returning the Backbone.model
@@ -21903,9 +22213,21 @@ joint.dia.Paper = Backbone.View.extend({
         'touchmove': 'pointermove'
     },
 
+    constructor: function(options) {
+
+	this._configure(options);
+	Backbone.View.apply(this, arguments);
+    },
+
+    _configure: function(options) {
+
+	if (this.options) options = _.extend({}, _.result(this, 'options'), options);
+	this.options = options;
+    },
+
     initialize: function() {
 
-        _.bindAll(this, 'addCell', 'sortCells', 'resetCells', 'pointerup');
+        _.bindAll(this, 'addCell', 'sortCells', 'resetCells', 'pointerup', 'asyncRenderCells');
 
         this.svg = V('svg').node;
         this.viewport = V('g').node;
@@ -21919,6 +22241,7 @@ joint.dia.Paper = Backbone.View.extend({
 
         this.$el.append(this.svg);
 
+        this.setOrigin();
         this.setDimensions();
 
 	this.listenTo(this.model, 'add', this.addCell);
@@ -21940,36 +22263,154 @@ joint.dia.Paper = Backbone.View.extend({
 
     setDimensions: function(width, height) {
 
-        if (width) this.options.width = width;
-        if (height) this.options.height = height;
-        
-        V(this.svg).attr('width', this.options.width);
-        V(this.svg).attr('height', this.options.height);
+        width = this.options.width = width || this.options.width;
+        height = this.options.height = height || this.options.height;
 
-	this.trigger('resize');
+        V(this.svg).attr({ width: width, height: height });
+
+        this.trigger('resize', width, height);
+    },
+
+    setOrigin: function(ox, oy) {
+
+        this.options.origin.x = ox || 0;
+        this.options.origin.y = oy || 0;
+
+        V(this.viewport).translate(ox, oy, { absolute: true });
+
+        this.trigger('translate', ox, oy);
     },
 
     // Expand/shrink the paper to fit the content. Snap the width/height to the grid
     // defined in `gridWidth`, `gridHeight`. `padding` adds to the resulting width/height of the paper.
-    fitToContent: function(gridWidth, gridHeight, padding) {
+    // When options { fitNegative: true } it also translates the viewport in order to make all
+    // the content visible.
+    fitToContent: function(gridWidth, gridHeight, padding, opt) { // alternatively function(opt)
 
-	gridWidth = gridWidth || 1;
-	gridHeight = gridHeight || 1;
-        padding = padding || 0;
+        if (_.isObject(gridWidth)) {
+            // first parameter is an option object
+            opt = gridWidth;
+	    gridWidth = opt.gridWidth || 1;
+	    gridHeight = opt.gridHeight || 1;
+            padding = opt.padding || 0;
+
+        } else {
+
+            opt = opt || {};
+	    gridWidth = gridWidth || 1;
+	    gridHeight = gridHeight || 1;
+            padding = padding || 0;
+        }
 
 	// Calculate the paper size to accomodate all the graph's elements.
 	var bbox = V(this.viewport).bbox(true, this.svg);
 
-	var calcWidth = Math.ceil((bbox.width + bbox.x) / gridWidth) * gridWidth;
-	var calcHeight = Math.ceil((bbox.height + bbox.y) / gridHeight) * gridHeight;
+	var calcWidth = Math.max(Math.ceil((bbox.width + bbox.x) / gridWidth), 1) * gridWidth;
+	var calcHeight = Math.max(Math.ceil((bbox.height + bbox.y) / gridHeight), 1) * gridHeight;
+
+        var tx = 0;
+        var ty = 0;
+
+        if (opt.fitNegative) {
+
+            if (bbox.x < 0) {
+                tx = Math.ceil(-bbox.x / gridWidth) * gridWidth;
+                calcWidth += tx;
+            }
+
+            if (bbox.y < 0) {
+                ty = Math.ceil(-bbox.y / gridHeight) * gridHeight;
+                calcHeight += ty;
+            }
+        }
 
         calcWidth += padding;
         calcHeight += padding;
-        
-	// Change the dimensions only if there is a size discrepency
-	if (calcWidth != this.options.width || calcHeight != this.options.height) {
-	    this.setDimensions(calcWidth || this.options.width , calcHeight || this.options.height);
+
+        var dimensionChange = calcWidth != this.options.width || calcHeight != this.options.height;
+        var originChange = opt.fitNegative && (tx != this.options.origin.x || ty != this.options.origin.y);
+
+	// Change the dimensions only if there is a size discrepency or an origin change
+        if (originChange) {
+            this.setOrigin(tx, ty);
+        }
+	if (dimensionChange) {
+	    this.setDimensions(calcWidth, calcHeight);
 	}
+    },
+
+    scaleContentToFit: function(opt) {
+
+        var contentBBox = this.getContentBBox();
+
+        if (!contentBBox.width || !contentBBox.height) return;
+
+        opt = opt || {};
+
+        _.defaults(opt, {
+            padding: 0,
+            preserveAspectRatio: true,
+            scaleGrid: null,
+            minScale: 0,
+            maxScale: Number.MAX_VALUE
+            //minScaleX
+            //minScaleY
+            //maxScaleX
+            //maxScaleY
+            //fittingBBox
+        });
+
+        var padding = opt.padding;
+
+        var minScaleX = opt.minScaleX || opt.minScale;
+        var maxScaleX = opt.maxScaleX || opt.maxScale;
+        var minScaleY = opt.minScaleY || opt.minScale;
+        var maxScaleY = opt.maxScaleY || opt.maxScale;
+
+        var fittingBBox = opt.fittingBBox || ({
+            x: 0,
+            y: 0,
+            width: this.options.width,
+            height: this.options.height
+        });
+
+        fittingBBox = g.rect(fittingBBox).moveAndExpand({
+            x: padding,
+            y: padding,
+            width: -2 * padding,
+            height: -2 * padding
+        });
+
+        var currentScale = V(this.viewport).scale();
+
+        var newSx = fittingBBox.width / contentBBox.width * currentScale.sx;
+        var newSy = fittingBBox.height / contentBBox.height * currentScale.sy;
+
+        if (opt.preserveAspectRatio) {
+            newSx = newSy = Math.min(newSx, newSy);
+        }
+
+        // snap scale to a grid
+        if (opt.scaleGrid) {
+
+            var gridSize = opt.scaleGrid;
+
+            newSx = gridSize * Math.floor(newSx / gridSize);
+            newSy = gridSize * Math.floor(newSy / gridSize);
+        }
+
+        // scale min/max boundaries
+        newSx = Math.min(maxScaleX, Math.max(minScaleX, newSx));
+        newSy = Math.min(maxScaleY, Math.max(minScaleY, newSy));
+
+        this.scale(newSx, newSy);
+
+        var contentTranslation = this.getContentBBox();
+
+        var newOx = fittingBBox.x - contentTranslation.x;
+        var newOy = fittingBBox.y - contentTranslation.y;
+
+        this.setOrigin(newOx, newOy);
     },
 
     getContentBBox: function() {
@@ -21978,9 +22419,17 @@ joint.dia.Paper = Backbone.View.extend({
 
         // Using Screen CTM was the only way to get the real viewport bounding box working in both
         // Google Chrome and Firefox.
-        var ctm = this.viewport.getScreenCTM();
+        var screenCTM = this.viewport.getScreenCTM();
 
-        var bbox = g.rect(Math.abs(crect.left - ctm.e), Math.abs(crect.top - ctm.f), crect.width, crect.height);
+        // for non-default origin we need to take the viewport translation into account
+        var viewportCTM = this.viewport.getCTM();
+
+        var bbox = g.rect({
+            x: crect.left - screenCTM.e + viewportCTM.e,
+            y: crect.top - screenCTM.f + viewportCTM.f,
+            width: crect.width,
+            height: crect.height
+        });
 
         return bbox;
     },
@@ -22033,11 +22482,45 @@ joint.dia.Paper = Backbone.View.extend({
         // They wouldn't find their sources/targets in the DOM otherwise.
         cells.sort(function(a, b) { return a instanceof joint.dia.Link ? 1 : -1; });
         
-        _.each(cells, this.addCell, this);
+	if (this._frameId) {
+	    joint.util.cancelFrame(this._frameId);
+	}
+	if (this.options.async) {
+
+	    this.asyncRenderCells(cells);
+
+	} else {
+
+            _.each(cells, this.addCell, this);
+	}
 
         // Sort the cells in the DOM manually as we might have changed the order they
         // were added to the DOM (see above).
         this.sortCells();
+    },
+
+    asyncRenderCells: function(cells) {
+
+        var done = false;
+
+        _.each(_.range(this.options.async && this.options.async.batchSize || 50), function() {
+
+            var cell = cells.shift();
+	    done = !cell;
+            if (!done) this.addCell(cell);
+
+        }, this);
+
+        if (done) {
+
+	    this.trigger('render:done');
+
+	} else {
+
+            this._frameId = joint.util.nextFrame(_.bind(function() {
+		this.asyncRenderCells(cells);
+	    }, this));
+        }
     },
 
     sortCells: function() {
@@ -22099,7 +22582,9 @@ joint.dia.Paper = Backbone.View.extend({
 
     scale: function(sx, sy, ox, oy) {
 
-        if (!ox) {
+        sy = sy || sx;
+
+        if (_.isUndefined(ox)) {
 
             ox = 0;
             oy = 0;
@@ -22108,15 +22593,24 @@ joint.dia.Paper = Backbone.View.extend({
         // Remove previous transform so that the new scale is not affected by previous scales, especially
         // the old translate() does not affect the new translate if an origin is specified.
         V(this.viewport).attr('transform', '');
-        
+
+        var oldTx = this.options.origin.x;
+        var oldTy = this.options.origin.y;
+
         // TODO: V.scale() doesn't support setting scale origin. #Fix        
-        if (ox || oy) {
-            V(this.viewport).translate(-ox * (sx - 1), -oy * (sy - 1));
+        if (ox || oy || oldTx || oldTy) {
+
+            var newTx = oldTx - ox * (sx - 1);
+            var newTy = oldTy - oy * (sy - 1);
+
+            if (newTx != oldTx || newTy != oldTy) {
+                this.setOrigin(newTx, newTy);
+            }
         }
-        
+
         V(this.viewport).scale(sx, sy);
 
-	this.trigger('scale', ox, oy);
+	this.trigger('scale', sx, sy, ox, oy);
 
         return this;
     },
@@ -22425,6 +22919,20 @@ joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
+
+joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
+
+    defaults: joint.util.deepSupplement({
+    
+        type: 'basic.Rhombus',
+        attrs: {
+            'path': { d: 'M 30 0 L 60 30 30 60 0 30 z' },
+            'text': { 'ref-y': .5 }
+        }
+        
+    }, joint.shapes.basic.Path.prototype.defaults)
+});
+
 
 // PortsModelInterface is a common interface for shapes that have ports. This interface makes it easy
 // to create new shapes with ports functionality. It is assumed that the new shapes have

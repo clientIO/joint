@@ -1,4 +1,4 @@
-/*! JointJS v0.9.0 - JavaScript diagramming library  2014-05-14 
+/*! JointJS v0.9.1 - JavaScript diagramming library  2014-08-07 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -24,8 +24,8 @@ joint.shapes.devs = {};
 
 joint.shapes.devs.Model = joint.shapes.basic.Generic.extend(_.extend({}, joint.shapes.basic.PortsModelInterface, {
 
-    markup: '<g class="rotatable"><g class="scalable"><rect/></g><text class="label"/><g class="inPorts"/><g class="outPorts"/></g>',
-    portMarkup: '<g class="port<%= id %>"><circle/><text/></g>',
+    markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><text class="label"/><g class="inPorts"/><g class="outPorts"/></g>',
+    portMarkup: '<g class="port port<%= id %>"><circle class="port-body"/><text class="port-label"/></g>',
 
     defaults: joint.util.deepSupplement({
 
@@ -37,11 +37,11 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend(_.extend({}, joint.s
 
         attrs: {
             '.': { magnet: false },
-            rect: {
+            '.body': {
                 width: 150, height: 250,
                 stroke: 'black'
             },
-            circle: {
+            '.port-body': {
                 r: 10,
                 magnet: true,
                 stroke: 'black'
@@ -51,8 +51,8 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend(_.extend({}, joint.s
                 'pointer-events': 'none'
             },
             '.label': { text: 'Model', 'ref-x': .3, 'ref-y': .2 },
-            '.inPorts text': { x:-15, dy: 4, 'text-anchor': 'end' },
-            '.outPorts text':{ x: 15, dy: 4 }
+            '.inPorts .port-label': { x:-15, dy: 4, 'text-anchor': 'end' },
+            '.outPorts .port-label':{ x: 15, dy: 4 }
         }
 
     }, joint.shapes.basic.Generic.prototype.defaults),
@@ -60,16 +60,16 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend(_.extend({}, joint.s
     getPortAttrs: function(portName, index, total, selector, type) {
 
         var attrs = {};
-        
+
         var portClass = 'port' + index;
         var portSelector = selector + '>.' + portClass;
-        var portTextSelector = portSelector + '>text';
-        var portCircleSelector = portSelector + '>circle';
+        var portLabelSelector = portSelector + '>.port-label';
+        var portBodySelector = portSelector + '>.port-body';
 
-        attrs[portTextSelector] = { text: portName };
-        attrs[portCircleSelector] = { port: { id: portName || _.uniqueId(type) , type: type } };
-        attrs[portSelector] = { ref: 'rect', 'ref-y': (index + 0.5) * (1 / total) };
-        
+        attrs[portLabelSelector] = { text: portName };
+        attrs[portBodySelector] = { port: { id: portName || _.uniqueId(type) , type: type } };
+        attrs[portSelector] = { ref: '.body', 'ref-y': (index + 0.5) * (1 / total) };
+
         if (selector === '.outPorts') { attrs[portSelector]['ref-dx'] = 0; }
 
         return attrs;
@@ -84,10 +84,10 @@ joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
         type: 'devs.Atomic',
         size: { width: 80, height: 80 },
         attrs: {
-            rect: { fill: 'salmon' },
+            '.body': { fill: 'salmon' },
             '.label': { text: 'Atomic' },
-            '.inPorts circle': { fill: 'PaleGreen' },
-            '.outPorts circle': { fill: 'Tomato' }
+            '.inPorts .port-body': { fill: 'PaleGreen' },
+            '.outPorts .port-body': { fill: 'Tomato' }
         }
 
     }, joint.shapes.devs.Model.prototype.defaults)
@@ -101,10 +101,10 @@ joint.shapes.devs.Coupled = joint.shapes.devs.Model.extend({
         type: 'devs.Coupled',
         size: { width: 200, height: 300 },
         attrs: {
-            rect: { fill: 'seaGreen' },
+            '.body': { fill: 'seaGreen' },
             '.label': { text: 'Coupled' },
-            '.inPorts circle': { fill: 'PaleGreen' },
-            '.outPorts circle': { fill: 'Tomato' }
+            '.inPorts .port-body': { fill: 'PaleGreen' },
+            '.outPorts .port-body': { fill: 'Tomato' }
         }
 
     }, joint.shapes.devs.Model.prototype.defaults)

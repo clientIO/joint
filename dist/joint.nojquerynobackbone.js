@@ -1,4 +1,4 @@
-/*! JointJS v0.9.0 - JavaScript diagramming library  2014-05-14 
+/*! JointJS v0.9.1 - JavaScript diagramming library  2014-08-07 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -128,19 +128,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         var translate,
             rotate,
             scale;
-        
+
         if (transform) {
+
+            var separator = /[ ,]+/;
+
             var translateMatch = transform.match(/translate\((.*)\)/);
             if (translateMatch) {
-                translate = translateMatch[1].split(',');
+                translate = translateMatch[1].split(separator);
             }
             var rotateMatch = transform.match(/rotate\((.*)\)/);
             if (rotateMatch) {
-                rotate = rotateMatch[1].split(',');
+                rotate = rotateMatch[1].split(separator);
             }
             var scaleMatch = transform.match(/scale\((.*)\)/);
             if (scaleMatch) {
-                scale = scaleMatch[1].split(',');
+                scale = scaleMatch[1].split(separator);
             }
         }
 
@@ -213,7 +216,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     VElement.prototype = {
         
-        translate: function(tx, ty) {
+        translate: function(tx, ty, opt) {
+
+            opt = opt || {};
             ty = ty || 0;
             
             var transformAttr = this.attr('transform') || '',
@@ -226,16 +231,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             
             transformAttr = transformAttr.replace(/translate\([^\)]*\)/g, '').trim();
 
-            var newTx = transform.translate.tx + tx,
-                newTy = transform.translate.ty + ty;
+            var newTx = opt.absolute ? tx : transform.translate.tx + tx,
+                newTy = opt.absolute ? ty : transform.translate.ty + ty,
+                newTranslate = 'translate(' + newTx + ',' + newTy + ')';
 
             // Note that `translate()` is always the first transformation. This is
             // usually the desired case.
-            this.attr('transform', 'translate(' + newTx + ',' + newTy + ') ' + transformAttr);
+            this.attr('transform', (newTranslate + ' ' + transformAttr).trim());
             return this;
         },
 
-        rotate: function(angle, cx, cy) {
+        rotate: function(angle, cx, cy, opt) {
+
+            opt = opt || {};
+
             var transformAttr = this.attr('transform') || '',
                 transform = parseTransformString(transformAttr);
 
@@ -246,10 +255,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             
             transformAttr = transformAttr.replace(/rotate\([^\)]*\)/g, '').trim();
 
-            var newAngle = transform.rotate.angle + angle % 360,
-                newOrigin = (cx !== undefined && cy !== undefined) ? ',' + cx + ',' + cy : '';
-            
-            this.attr('transform', transformAttr + ' rotate(' + newAngle + newOrigin + ')');
+            angle %= 360;
+
+            var newAngle = opt.absolute ? angle: transform.rotate.angle + angle,
+                newOrigin = (cx !== undefined && cy !== undefined) ? ',' + cx + ',' + cy : '',
+                newRotate = 'rotate(' + newAngle + newOrigin + ')';
+
+            this.attr('transform', (transformAttr + ' ' + newRotate).trim());
             return this;
         },
 
@@ -267,7 +279,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             
             transformAttr = transformAttr.replace(/scale\([^\)]*\)/g, '').trim();
 
-            this.attr('transform', transformAttr + ' scale(' + sx + ',' + sy + ')');
+            var newScale = 'scale(' + sx + ',' + sy + ')';
+
+            this.attr('transform', (transformAttr + ' ' + newScale).trim());
             return this;
         },
 
@@ -359,9 +373,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             };
         },
 
-        text: function(content) {
-            var lines = content.split('\n'), i = 0,
-                tspan;
+        text: function(content, opt) {
+
+	    opt = opt || {};
+            var lines = content.split('\n');
+	    var i = 0;
+            var tspan;
 
             // `alignment-baseline` does not work in Firefox.
 	    // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
@@ -375,7 +392,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             // In order to unify this behaviour across all browsers
             // we rather hide the text element when it's empty.
             this.attr('display', content ? null : 'none');
-            
+
+	    // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
+	    this.node.setAttributeNS("http://www.w3.org/XML/1998/namespace", "xml:space","preserve");
+
             if (lines.length === 1) {
                 this.node.textContent = content;
                 return this;
@@ -386,8 +406,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             for (; i < lines.length; i++) {
 
                 // Shift all the <tspan> but first by one line (`1em`)
-                tspan = V('tspan', { dy: (i == 0 ? '0em' : '1em'), x: this.attr('x') || 0});
-                tspan.node.textContent = lines[i];
+                tspan = V('tspan', { dy: (i == 0 ? '0em' : opt.lineHeight || '1em'), x: this.attr('x') || 0});
+		// Make sure the textContent is never empty. If it is, add an additional 
+		// space (an invisible character) so that following lines are correctly
+		// relatively positioned. `dy=1em` won't work with empty lines otherwise.
+                tspan.node.textContent = lines[i] || ' ';
                 
                 this.append(tspan);
             }
@@ -610,7 +633,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         addClass: function(className) {
 
             if (!this.hasClass(className)) {
-                this.node.setAttribute('class', this.node.getAttribute('class') + ' ' + className);
+                var prevClasses = this.node.getAttribute('class') || '';
+                this.node.setAttribute('class', (prevClasses + ' ' + className).trim());
             }
 
             return this;
@@ -618,10 +642,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         removeClass: function(className) {
 
-            var removedClass = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
-
             if (this.hasClass(className)) {
-                this.node.setAttribute('class', removedClass);
+                var newClasses = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
+                this.node.setAttribute('class', newClasses);
             }
 
             return this;
@@ -887,6 +910,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             this.x = snapToGrid(this.x, gx)
             this.y = snapToGrid(this.y, gy || gx)
             return this;
+        },
+        // Returns a point that is the reflection of me with
+        // the center of inversion in ref point.
+        reflection: function(ref) {
+            return point(ref).move(this, this.distance(ref));
         }
     };
     // Alternative constructor, from polar coordinates.
@@ -992,6 +1020,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             index = parseInt(index / 45);
 
             return bearings[index];
+        },
+
+        // @return {point} my point at 't' <0,1>
+        pointAt: function(t) {
+            var x = (1 - t) * this.start.x + t * this.end.x;
+            var y = (1 - t) * this.start.y + t * this.end.y;
+            return point(x, y);
         }
     };
 
@@ -1202,7 +1237,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             this.width = newwidth;
             this.height = newheight;
             return this;
-        }        
+        },
+        // Find my bounding box when I'm rotated with the center of rotation in the center of me.
+        // @return r {rectangle} representing a bounding box
+        bbox: function(angle) {
+            var theta = toRad(angle || 0);
+            var st = abs(sin(theta));
+            var ct = abs(cos(theta));
+            var w = this.width * ct + this.height * st;
+            var h = this.width * st + this.height * ct;
+            return rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
+        }
     };
 
     // Ellipse.
@@ -1350,6 +1395,51 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        x[n - i - 1] -= tmp[n - i] * x[n - i]; 
             }
             return x;
+        },
+
+        // Solves an inversion problem -- Given the (x, y) coordinates of a point which lies on
+        // a parametric curve x = x(t)/w(t), y = y(t)/w(t), ﬁnd the parameter value t
+        // which corresponds to that point.
+        // @param control points (start, control start, control end, end)
+        // @return a function accepts a point and returns t.
+        getInversionSolver: function(p0, p1, p2, p3) {
+            var pts = arguments;
+            function l(i,j) {
+                // calculates a determinant 3x3
+                // [p.x  p.y  1]
+                // [pi.x pi.y 1]
+                // [pj.x pj.y 1]
+                var pi = pts[i], pj = pts[j];
+                return function(p) {
+                    var w = (i % 3 ? 3 : 1) * (j % 3 ? 3 : 1);
+                    var lij = p.x * (pi.y - pj.y) + p.y * (pj.x - pi.x) + pi.x * pj.y - pi.y * pj.x;
+                    return w * lij;
+                };
+            }
+            return function solveInversion(p) {
+                var ct = 3 * l(2,3)(p1);
+                var c1 = l(1,3)(p0) / ct;
+                var c2 = -l(2,3)(p0) / ct;
+                var la = c1 * l(3,1)(p) + c2 * (l(3,0)(p) + l(2,1)(p)) + l(2,0)(p);
+                var lb = c1 * l(3,0)(p) + c2 * l(2,0)(p) + l(1,0)(p);
+                return lb / (lb - la);
+            };
+        },
+
+        // Divide a Bezier curve into two at point defined by value 't' <0,1>.
+        // Using deCasteljau algorithm. http://math.stackexchange.com/a/317867
+        // @param control points (start, control start, control end, end)
+        // @return a function accepts t and returns 2 curves each defined by 4 control points.
+        getCurveDivider: function(p0,p1,p2,p3) {
+            return function divideCurve(t) {
+                var l = line(p0,p1).pointAt(t);
+                var m = line(p1,p2).pointAt(t);
+                var n = line(p2,p3).pointAt(t);
+                var p = line(l,m).pointAt(t);
+                var q = line(m,n).pointAt(t);
+                var r = line(p,q).pointAt(t);
+                return [{ p0: p0, p1: l, p2: p, p3: r }, { p0: r, p1: q, p2: n, p3: p3 }];
+            }
         }
     };
 
@@ -2357,28 +2447,21 @@ joint.dia.Graph = Backbone.Model.extend({
         return json;
     },
 
-    fromJSON: function(json) {
+    fromJSON: function(json, opt) {
 
         if (!json.cells) {
 
             throw new Error('Graph JSON must contain cells array.');
         }
 
-        var attrs = json;
-
-        // Cells are the only attribute that is being set differently, using `cells.add()`.
-        var cells = json.cells;
-        delete attrs.cells;
-        
-        this.set(attrs);
-        
-        this.resetCells(cells);
+        this.set(_.omit(json, 'cells'), opt);
+        this.resetCells(json.cells, opt);
     },
 
-    clear: function() {
+    clear: function(opt) {
 
         this.trigger('batch:start');
-        this.get('cells').remove(this.get('cells').models);
+        this.get('cells').remove(this.get('cells').models, opt);
         this.trigger('batch:stop');
     },
 
@@ -2424,9 +2507,9 @@ joint.dia.Graph = Backbone.Model.extend({
     // When adding a lot of cells, it is much more efficient to
     // reset the entire cells collection in one go.
     // Useful for bulk operations and optimizations.
-    resetCells: function(cells) {
+    resetCells: function(cells, opt) {
         
-        this.get('cells').reset(_.map(cells, this._prepareCell, this));
+        this.get('cells').reset(_.map(cells, this._prepareCell, this), opt);
 
         return this;
     },
@@ -2534,13 +2617,30 @@ joint.dia.Graph = Backbone.Model.extend({
 	});
     },
 
-
     // Find all views in given area
     findModelsInArea: function(r) {
 
 	return _.filter(this.getElements(), function(el) {
 	    return el.getBBox().intersect(r);
 	});
+    },
+
+    // Return the bounding box of all `elements`.
+    getBBox: function(elements) {
+
+	var origin = { x: Infinity, y: Infinity };
+	var corner = { x: 0, y: 0 };
+	
+	_.each(elements, function(cell) {
+	    
+	    var bbox = cell.getBBox();
+	    origin.x = Math.min(origin.x, bbox.x);
+	    origin.y = Math.min(origin.y, bbox.y);
+	    corner.x = Math.max(corner.x, bbox.x + bbox.width);
+	    corner.y = Math.max(corner.y, bbox.y + bbox.height);
+	});
+
+	return g.rect(origin.x, origin.y, corner.x - origin.x, corner.y - origin.y);
     }
 
 });
@@ -2550,6 +2650,7 @@ if (typeof exports === 'object') {
 
     module.exports.Graph = joint.dia.Graph;
 }
+
 //      JointJS.
 //      (c) 2011-2013 client IO
 
@@ -2726,6 +2827,8 @@ joint.dia.Cell = Backbone.Model.extend({
 	if (collection) {
 	    collection.trigger('batch:stop');
 	}
+
+	return this;
     },
 
     toFront: function() {
@@ -2734,6 +2837,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
             this.set('z', (this.collection.last().get('z') || 0) + 1);
         }
+
+	return this;
     },
     
     toBack: function() {
@@ -2742,6 +2847,8 @@ joint.dia.Cell = Backbone.Model.extend({
             
             this.set('z', (this.collection.first().get('z') || 0) - 1);
         }
+
+	return this;
     },
 
     embed: function(cell) {
@@ -2759,6 +2866,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
 	    this.trigger('batch:stop');
 	}
+
+	return this;
     },
 
     unembed: function(cell) {
@@ -2771,6 +2880,8 @@ joint.dia.Cell = Backbone.Model.extend({
         this.set('embeds', _.without(this.get('embeds'), cellId));
 
 	this.trigger('batch:stop');
+
+	return this;
     },
 
     getEmbeddedCells: function() {
@@ -2805,7 +2916,10 @@ joint.dia.Cell = Backbone.Model.extend({
         // The rest of the `clone()` method deals with embeds. If `deep` option is set to `true`,
         // the return value is an array of all the embedded clones created.
 
-        var embeds = this.getEmbeddedCells();
+        var embeds = _.sortBy(this.getEmbeddedCells(), function(cell) {
+            // Sort embeds that links come before elements.
+            return cell instanceof joint.dia.Element;
+        });
 
         var clones = [clone];
 
@@ -2823,13 +2937,29 @@ joint.dia.Cell = Backbone.Model.extend({
 
             _.each(embedClones, function(embedClone) {
 
-                clones.push(embedClone);
-
-                // Skip links. Inbound/outbound links are not relevant for them.
                 if (embedClone instanceof joint.dia.Link) {
 
+                    if (embedClone.get('source').id == this.id) {
+
+                        var source = _.clone(embedClone.get('source'));
+                        source.id = clone.id;
+                        embedClone.set('source', source);
+                    }
+
+                    if (embedClone.get('target').id == this.id) {
+
+                        var target = _.clone(embedClone.get('target'));
+                        target.id = clone.id;
+                        embedClone.set('target', target);
+                    }
+
+                    linkCloneMapping[embed.id] = embedClone;
+
+                    // Skip links. Inbound/outbound links are not relevant for them.
                     return;
                 }
+
+                clones.push(embedClone);
 
                 // Collect all inbound links, clone them (if not done already) and set their target to the `embedClone.id`.
                 var inboundLinks = this.collection.getConnectedLinks(embed, { inbound: true });
@@ -2996,6 +3126,16 @@ joint.dia.Cell = Backbone.Model.extend({
 	    this.trigger('transition:end', this, key);
 
 	}, this);
+
+	return this;
+    },
+
+    // A shorcut making it easy to create constructs like the following:
+    // `var el = (new joint.shapes.basic.Rect).addTo(graph)`.
+    addTo: function(graph) {
+
+	graph.addCell(this);
+	return this;
     }
 });
 
@@ -3011,6 +3151,23 @@ joint.dia.CellView = Backbone.View.extend({
     attributes: function() {
 
         return { 'model-id': this.model.id }
+    },
+
+    constructor: function(options) {
+
+	this._configure(options);
+	Backbone.View.apply(this, arguments);
+    },
+
+    _configure: function(options) {
+
+	if (this.options) options = _.extend({}, _.result(this, 'options'), options);
+	this.options = options;
+        // Make sure a global unique id is assigned to this view. Store this id also to the properties object.
+        // The global unique id makes sure that the same view can be rendered on e.g. different machines and
+        // still be associated to the same object among all those clients. This is necessary for real-time
+        // collaboration mechanism.
+        this.options.id = this.options.id || joint.util.guid(this);
     },
 
     initialize: function() {
@@ -3034,17 +3191,6 @@ joint.dia.CellView = Backbone.View.extend({
         }
 
         return this.update();
-    },
-
-    _configure: function(options) {
-
-        // Make sure a global unique id is assigned to this view. Store this id also to the properties object.
-        // The global unique id makes sure that the same view can be rendered on e.g. different machines and
-        // still be associated to the same object among all those clients. This is necessary for real-time
-        // collaboration mechanism.
-        options.id = options.id || joint.util.guid(this);
-        
-        Backbone.View.prototype._configure.apply(this, arguments);
     },
 
     // Override the Backbone `_ensureElement()` method in order to create a `<g>` node that wraps
@@ -3379,9 +3525,30 @@ joint.dia.Element = joint.dia.Cell.extend({
 	return this;
     },
 
-    rotate: function(angle, absolute) {
+    // Rotate element by `angle` degrees, optionally around `origin` point.
+    // If `origin` is not provided, it is considered to be the center of the element.
+    // If `absolute` is `true`, the `angle` is considered is abslute, i.e. it is not
+    // the difference from the previous angle.
+    rotate: function(angle, absolute, origin) {
+	
+	if (origin) {
 
-        return this.set('angle', absolute ? angle : ((this.get('angle') || 0) + angle) % 360);
+	    var center = this.getBBox().center();
+	    var size = this.get('size');
+	    var position = this.get('position');
+	    center.rotate(origin, (this.get('angle') || 0) - angle);
+	    var dx = center.x - size.width/2 - position.x;
+	    var dy = center.y - size.height/2 - position.y;
+	    this.trigger('batch:start');
+	    this.translate(dx, dy);
+	    this.rotate(angle, absolute);
+	    this.trigger('batch:stop');
+            
+	} else {
+
+	    this.set('angle', absolute ? angle : ((this.get('angle') || 0) + angle) % 360);
+	}
+	return this;
     },
 
     getBBox: function() {
@@ -3468,7 +3635,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 $selected.each(function() {
 
-                    V(this).text(attrs.text + '');
+                    V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight });
                 });
             }
 
@@ -3583,7 +3750,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // relative to the root bounding box following the `ref-x` and `ref-y` attributes.
         if (vel.attr('transform')) {
 
-            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '') || '');
+            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '').trim() || '');
         }
 
         function isDefined(x) {
@@ -3769,8 +3936,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             return;
         }
         var scalableBbox = scalable.bbox(true);
-        
-        scalable.attr('transform', 'scale(' + (size.width / scalableBbox.width) + ',' + (size.height / scalableBbox.height) + ')');
+        // Make sure `scalableBbox.width` and `scalableBbox.height` are not zero which can happen if the element does not have any content. By making
+        // the width/height 1, we prevent HTML errors of the type `scale(Infinity, Infinity)`.
+        scalable.attr('transform', 'scale(' + (size.width / (scalableBbox.width || 1)) + ',' + (size.height / (scalableBbox.height || 1)) + ')');
 
         // Now the interesting part. The goal is to be able to store the object geometry via just `x`, `y`, `angle`, `width` and `height`
         // Order of transformations is significant but we want to reconstruct the object always in the order:
@@ -4019,6 +4187,30 @@ joint.dia.Link = joint.dia.Cell.extend({
         newLabels[idx] = newValue;
         
         return this.set({ labels: newLabels });
+    },
+
+    translate: function(tx, ty, opt) {
+
+        var attrs = {};
+        var source = this.get('source');
+        var target = this.get('target');
+        var vertices = this.get('vertices');
+
+        if (!source.id) {
+            attrs.source = { x: source.x + tx, y: source.y + ty };
+        }
+
+        if (!target.id) {
+            attrs.target = { x: target.x + tx, y: target.y + ty };
+        }
+
+        if (vertices && vertices.length) {
+            attrs.vertices = _.map(vertices, function(vertex) {
+                return { x: vertex.x + tx, y: vertex.y + ty };
+            });
+        }
+
+        return this.set(attrs, opt);
     }
 });
 
@@ -4473,8 +4665,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var magnetElement = this.paper.viewport.querySelector(selector);
 
             this.sourceBBox = view.getStrokeBBox(magnetElement);
+	    this.sourceView = view;
+	    this.sourceMagnet = magnetElement;
 
-        } else {
+        } else if (end) {
             // the link end is a point ~ rect 1x1
             this.sourceBBox = g.rect(end.x, end.y, 1, 1);
         }
@@ -4497,8 +4691,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var magnetElement = this.paper.viewport.querySelector(selector);
 
             this.targetBBox = view.getStrokeBBox(magnetElement);
+	    this.targetView = view;
+	    this.targetMagnet = magnetElement;
 
-        } else {
+        } else if (end) {
             // the link end is a point ~ rect 1x1
             this.targetBBox = g.rect(end.x, end.y, 1, 1);
         }
@@ -4603,6 +4799,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return Math.max(idx, 0);
     },
 
+    // Send a token (an SVG element, usually a circle) along the connection path.
+    // Example: `paper.findViewByModel(link).sendToken(V('circle', { r: 7, fill: 'green' }).node)`
+    // `duration` is optional and is a time in milliseconds that the token travels from the source to the target of the link. Default is `1000`.
+    // `callback` is optional and is a function to be called once the token reaches the target.
+    sendToken: function(token, duration, callback) {
+
+	duration = duration || 1000;
+
+	V(this.paper.viewport).append(token);
+	V(token).animateAlongPath({ dur: duration + 'ms', repeatCount: 1 }, this._V.connection.node);
+	_.delay(function() { V(token).remove(); callback && callback(); }, duration);
+    },
 
     findRoute: function(oldVertices) {
 
@@ -4667,6 +4875,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     getConnectionPoint: function(end, selectorOrPoint, referenceSelectorOrPoint) {
 
         var spot;
+
+        // If the `selectorOrPoint` (or `referenceSelectorOrPoint`) is `undefined`, the `source`/`target` of the link model is `undefined`.
+        // We want to allow this however so that one can create links such as `var link = new joint.dia.Link` and
+        // set the `source`/`target` later.
+        selectorOrPoint = selectorOrPoint || { x: 0, y: 0 };
+        referenceSelectorOrPoint = referenceSelectorOrPoint || { x: 0, y: 0 };
 
         if (this._isPoint(selectorOrPoint)) {
 
@@ -4751,9 +4965,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     spot = spot || g.rect(spotBbox).center();
                 }
                 
-            } else {
-            
-                spot = g.rect(spotBbox).intersectionWithLineFromCenterToPoint(reference);
+            } else if (this.paper.options.linkConnectionPoint) {
+
+		var view = end === 'target' ? this.targetView : this.sourceView;
+		var magnet = end === 'target' ? this.targetMagnet : this.sourceMagnet;
+
+		spot = this.paper.options.linkConnectionPoint(this, view, magnet, reference);
+
+	    } else {
+
+            	spot = g.rect(spotBbox).intersectionWithLineFromCenterToPoint(reference);
                 spot = spot || g.rect(spotBbox).center();
             }
         }
@@ -4811,6 +5032,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Let the pointer propagate throught the link view elements so that
         // the `evt.target` is another element under the pointer, not the link itself.
         this.el.style.pointerEvents = 'none';
+
+        if (this.paper.options.markAvailable) {
+            this._markAvailableMagnets();
+        }
     },
 
     _afterArrowheadMove: function() {
@@ -4824,6 +5049,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 	// Value `auto` doesn't work in IE9. We force to use `visiblePainted` instead.
 	// See `https://developer.mozilla.org/en-US/docs/Web/CSS/pointer-events`.
         this.el.style.pointerEvents = 'visiblePainted';
+
+        if (this.paper.options.markAvailable) {
+            this._unmarkAvailableMagnets();
+        }
 
         this.model.trigger('batch:stop');
     },
@@ -4862,13 +5091,49 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return validateConnectionArgs;
     },
 
+    _markAvailableMagnets: function() {
+
+        var elements = this.paper.model.getElements();
+        var validate = this.paper.options.validateConnection;
+
+        _.chain(elements).map(this.paper.findViewByModel, this.paper).each(function(view) {
+
+            var isElementAvailable = view.el.getAttribute('magnet') !== 'false' &&
+                validate.apply(this.paper, this._validateConnectionArgs(view, null));
+
+            var availableMagnets = _.filter(view.el.querySelectorAll('[magnet]'), function(magnet) {
+                return validate.apply(this.paper, this._validateConnectionArgs(view, magnet));
+            }, this);
+
+            if (isElementAvailable) {
+                V(view.el).addClass('available-magnet');
+            }
+
+            _.each(availableMagnets, function(magnet) {
+                V(magnet).addClass('available-magnet');
+            });
+
+            if (isElementAvailable || availableMagnets.length) {
+                V(view.el).addClass('available-cell');
+            }
+
+        }, this);
+    },
+
+    _unmarkAvailableMagnets: function() {
+
+        _.each(this.paper.el.querySelectorAll('.available-cell, .available-magnet'), function(magnet) {
+            V(magnet).removeClass('available-magnet').removeClass('available-cell');
+        });
+    },
+
     startArrowheadMove: function(end) {
         // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
         // move without need to click on the actual arrowhead dom element.
         this._action = 'arrowhead-move';
         this._arrowhead = end;
-        this._beforeArrowheadMove();
         this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
+        this._beforeArrowheadMove();
     },
 
     pointerdown: function(evt, x, y) {
@@ -5103,15 +5368,23 @@ if (typeof exports === 'object') {
 
 joint.dia.Paper = Backbone.View.extend({
 
+    className: 'paper',
+
     options: {
 
         width: 800,
         height: 600,
+        origin: { x: 0, y: 0 }, // x,y coordinates in top-left corner
         gridSize: 50,
         perpendicularLinks: false,
         elementView: joint.dia.ElementView,
         linkView: joint.dia.LinkView,
         snapLinks: false, // false, true, { radius: value }
+
+        // Marks all available magnets with 'available-magnet' class name and all available cells with
+        // 'available-cell' class name. Marks them when dragging a link is started and unmark
+        // when the dragging is stopped.
+        markAvailable: false,
 
         // Defines what link model is added to the graph after an user clicks on an active magnet.
         // Value could be the Backbone.model or a function returning the Backbone.model
@@ -5140,9 +5413,21 @@ joint.dia.Paper = Backbone.View.extend({
         'touchmove': 'pointermove'
     },
 
+    constructor: function(options) {
+
+	this._configure(options);
+	Backbone.View.apply(this, arguments);
+    },
+
+    _configure: function(options) {
+
+	if (this.options) options = _.extend({}, _.result(this, 'options'), options);
+	this.options = options;
+    },
+
     initialize: function() {
 
-        _.bindAll(this, 'addCell', 'sortCells', 'resetCells', 'pointerup');
+        _.bindAll(this, 'addCell', 'sortCells', 'resetCells', 'pointerup', 'asyncRenderCells');
 
         this.svg = V('svg').node;
         this.viewport = V('g').node;
@@ -5156,6 +5441,7 @@ joint.dia.Paper = Backbone.View.extend({
 
         this.$el.append(this.svg);
 
+        this.setOrigin();
         this.setDimensions();
 
 	this.listenTo(this.model, 'add', this.addCell);
@@ -5177,36 +5463,154 @@ joint.dia.Paper = Backbone.View.extend({
 
     setDimensions: function(width, height) {
 
-        if (width) this.options.width = width;
-        if (height) this.options.height = height;
-        
-        V(this.svg).attr('width', this.options.width);
-        V(this.svg).attr('height', this.options.height);
+        width = this.options.width = width || this.options.width;
+        height = this.options.height = height || this.options.height;
 
-	this.trigger('resize');
+        V(this.svg).attr({ width: width, height: height });
+
+        this.trigger('resize', width, height);
+    },
+
+    setOrigin: function(ox, oy) {
+
+        this.options.origin.x = ox || 0;
+        this.options.origin.y = oy || 0;
+
+        V(this.viewport).translate(ox, oy, { absolute: true });
+
+        this.trigger('translate', ox, oy);
     },
 
     // Expand/shrink the paper to fit the content. Snap the width/height to the grid
     // defined in `gridWidth`, `gridHeight`. `padding` adds to the resulting width/height of the paper.
-    fitToContent: function(gridWidth, gridHeight, padding) {
+    // When options { fitNegative: true } it also translates the viewport in order to make all
+    // the content visible.
+    fitToContent: function(gridWidth, gridHeight, padding, opt) { // alternatively function(opt)
 
-	gridWidth = gridWidth || 1;
-	gridHeight = gridHeight || 1;
-        padding = padding || 0;
+        if (_.isObject(gridWidth)) {
+            // first parameter is an option object
+            opt = gridWidth;
+	    gridWidth = opt.gridWidth || 1;
+	    gridHeight = opt.gridHeight || 1;
+            padding = opt.padding || 0;
+
+        } else {
+
+            opt = opt || {};
+	    gridWidth = gridWidth || 1;
+	    gridHeight = gridHeight || 1;
+            padding = padding || 0;
+        }
 
 	// Calculate the paper size to accomodate all the graph's elements.
 	var bbox = V(this.viewport).bbox(true, this.svg);
 
-	var calcWidth = Math.ceil((bbox.width + bbox.x) / gridWidth) * gridWidth;
-	var calcHeight = Math.ceil((bbox.height + bbox.y) / gridHeight) * gridHeight;
+	var calcWidth = Math.max(Math.ceil((bbox.width + bbox.x) / gridWidth), 1) * gridWidth;
+	var calcHeight = Math.max(Math.ceil((bbox.height + bbox.y) / gridHeight), 1) * gridHeight;
+
+        var tx = 0;
+        var ty = 0;
+
+        if (opt.fitNegative) {
+
+            if (bbox.x < 0) {
+                tx = Math.ceil(-bbox.x / gridWidth) * gridWidth;
+                calcWidth += tx;
+            }
+
+            if (bbox.y < 0) {
+                ty = Math.ceil(-bbox.y / gridHeight) * gridHeight;
+                calcHeight += ty;
+            }
+        }
 
         calcWidth += padding;
         calcHeight += padding;
-        
-	// Change the dimensions only if there is a size discrepency
-	if (calcWidth != this.options.width || calcHeight != this.options.height) {
-	    this.setDimensions(calcWidth || this.options.width , calcHeight || this.options.height);
+
+        var dimensionChange = calcWidth != this.options.width || calcHeight != this.options.height;
+        var originChange = opt.fitNegative && (tx != this.options.origin.x || ty != this.options.origin.y);
+
+	// Change the dimensions only if there is a size discrepency or an origin change
+        if (originChange) {
+            this.setOrigin(tx, ty);
+        }
+	if (dimensionChange) {
+	    this.setDimensions(calcWidth, calcHeight);
 	}
+    },
+
+    scaleContentToFit: function(opt) {
+
+        var contentBBox = this.getContentBBox();
+
+        if (!contentBBox.width || !contentBBox.height) return;
+
+        opt = opt || {};
+
+        _.defaults(opt, {
+            padding: 0,
+            preserveAspectRatio: true,
+            scaleGrid: null,
+            minScale: 0,
+            maxScale: Number.MAX_VALUE
+            //minScaleX
+            //minScaleY
+            //maxScaleX
+            //maxScaleY
+            //fittingBBox
+        });
+
+        var padding = opt.padding;
+
+        var minScaleX = opt.minScaleX || opt.minScale;
+        var maxScaleX = opt.maxScaleX || opt.maxScale;
+        var minScaleY = opt.minScaleY || opt.minScale;
+        var maxScaleY = opt.maxScaleY || opt.maxScale;
+
+        var fittingBBox = opt.fittingBBox || ({
+            x: 0,
+            y: 0,
+            width: this.options.width,
+            height: this.options.height
+        });
+
+        fittingBBox = g.rect(fittingBBox).moveAndExpand({
+            x: padding,
+            y: padding,
+            width: -2 * padding,
+            height: -2 * padding
+        });
+
+        var currentScale = V(this.viewport).scale();
+
+        var newSx = fittingBBox.width / contentBBox.width * currentScale.sx;
+        var newSy = fittingBBox.height / contentBBox.height * currentScale.sy;
+
+        if (opt.preserveAspectRatio) {
+            newSx = newSy = Math.min(newSx, newSy);
+        }
+
+        // snap scale to a grid
+        if (opt.scaleGrid) {
+
+            var gridSize = opt.scaleGrid;
+
+            newSx = gridSize * Math.floor(newSx / gridSize);
+            newSy = gridSize * Math.floor(newSy / gridSize);
+        }
+
+        // scale min/max boundaries
+        newSx = Math.min(maxScaleX, Math.max(minScaleX, newSx));
+        newSy = Math.min(maxScaleY, Math.max(minScaleY, newSy));
+
+        this.scale(newSx, newSy);
+
+        var contentTranslation = this.getContentBBox();
+
+        var newOx = fittingBBox.x - contentTranslation.x;
+        var newOy = fittingBBox.y - contentTranslation.y;
+
+        this.setOrigin(newOx, newOy);
     },
 
     getContentBBox: function() {
@@ -5215,9 +5619,17 @@ joint.dia.Paper = Backbone.View.extend({
 
         // Using Screen CTM was the only way to get the real viewport bounding box working in both
         // Google Chrome and Firefox.
-        var ctm = this.viewport.getScreenCTM();
+        var screenCTM = this.viewport.getScreenCTM();
 
-        var bbox = g.rect(Math.abs(crect.left - ctm.e), Math.abs(crect.top - ctm.f), crect.width, crect.height);
+        // for non-default origin we need to take the viewport translation into account
+        var viewportCTM = this.viewport.getCTM();
+
+        var bbox = g.rect({
+            x: crect.left - screenCTM.e + viewportCTM.e,
+            y: crect.top - screenCTM.f + viewportCTM.f,
+            width: crect.width,
+            height: crect.height
+        });
 
         return bbox;
     },
@@ -5270,11 +5682,45 @@ joint.dia.Paper = Backbone.View.extend({
         // They wouldn't find their sources/targets in the DOM otherwise.
         cells.sort(function(a, b) { return a instanceof joint.dia.Link ? 1 : -1; });
         
-        _.each(cells, this.addCell, this);
+	if (this._frameId) {
+	    joint.util.cancelFrame(this._frameId);
+	}
+	if (this.options.async) {
+
+	    this.asyncRenderCells(cells);
+
+	} else {
+
+            _.each(cells, this.addCell, this);
+	}
 
         // Sort the cells in the DOM manually as we might have changed the order they
         // were added to the DOM (see above).
         this.sortCells();
+    },
+
+    asyncRenderCells: function(cells) {
+
+        var done = false;
+
+        _.each(_.range(this.options.async && this.options.async.batchSize || 50), function() {
+
+            var cell = cells.shift();
+	    done = !cell;
+            if (!done) this.addCell(cell);
+
+        }, this);
+
+        if (done) {
+
+	    this.trigger('render:done');
+
+	} else {
+
+            this._frameId = joint.util.nextFrame(_.bind(function() {
+		this.asyncRenderCells(cells);
+	    }, this));
+        }
     },
 
     sortCells: function() {
@@ -5336,7 +5782,9 @@ joint.dia.Paper = Backbone.View.extend({
 
     scale: function(sx, sy, ox, oy) {
 
-        if (!ox) {
+        sy = sy || sx;
+
+        if (_.isUndefined(ox)) {
 
             ox = 0;
             oy = 0;
@@ -5345,15 +5793,24 @@ joint.dia.Paper = Backbone.View.extend({
         // Remove previous transform so that the new scale is not affected by previous scales, especially
         // the old translate() does not affect the new translate if an origin is specified.
         V(this.viewport).attr('transform', '');
-        
+
+        var oldTx = this.options.origin.x;
+        var oldTy = this.options.origin.y;
+
         // TODO: V.scale() doesn't support setting scale origin. #Fix        
-        if (ox || oy) {
-            V(this.viewport).translate(-ox * (sx - 1), -oy * (sy - 1));
+        if (ox || oy || oldTx || oldTy) {
+
+            var newTx = oldTx - ox * (sx - 1);
+            var newTy = oldTy - oy * (sy - 1);
+
+            if (newTx != oldTx || newTy != oldTy) {
+                this.setOrigin(newTx, newTy);
+            }
         }
-        
+
         V(this.viewport).scale(sx, sy);
 
-	this.trigger('scale', ox, oy);
+	this.trigger('scale', sx, sy, ox, oy);
 
         return this;
     },
@@ -5662,6 +6119,20 @@ joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
+
+joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
+
+    defaults: joint.util.deepSupplement({
+    
+        type: 'basic.Rhombus',
+        attrs: {
+            'path': { d: 'M 30 0 L 60 30 30 60 0 30 z' },
+            'text': { 'ref-y': .5 }
+        }
+        
+    }, joint.shapes.basic.Path.prototype.defaults)
+});
+
 
 // PortsModelInterface is a common interface for shapes that have ports. This interface makes it easy
 // to create new shapes with ports functionality. It is assumed that the new shapes have
