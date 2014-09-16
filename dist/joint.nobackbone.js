@@ -1,4 +1,4 @@
-/*! JointJS v0.9.1 - JavaScript diagramming library  2014-08-07 
+/*! JointJS v0.9.2 - JavaScript diagramming library  2014-09-16 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -8873,6 +8873,16 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
         return 'v-' + id;
     }
 
+    // Create an SVG document element.
+    // If `content` is passed, it will be used as the SVG content of the `<svg>` root element.
+    function createSvgDocument(content) {
+
+        var svg = '<svg xmlns="' + ns.xmlns + '" xmlns:xlink="' + ns.xlink + '" version="' + SVGversion + '">' + (content || '') + '</svg>';
+        var parser = new DOMParser();
+        parser.async = false;
+	return parser.parseFromString(svg, 'text/xml').documentElement;
+    }
+
     // Create SVG element.
     // -------------------
 
@@ -8889,18 +8899,13 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
         // If `el` is a `'svg'` or `'SVG'` string, create a new SVG canvas.
         if (el.toLowerCase() === 'svg') {
             
-            attrs.xmlns = ns.xmlns;
-            attrs['xmlns:xlink'] = ns.xlink;
-            attrs.version = SVGversion;
+	    return new VElement(createSvgDocument());
             
         } else if (el[0] === '<') {
             // Create element from an SVG string.
             // Allows constructs of type: `document.appendChild(Vectorizer('<rect></rect>').node)`.
             
-            var svg = '<svg xmlns="' + ns.xmlns + '" xmlns:xlink="' + ns.xlink + '" version="' + SVGversion + '">' + el + '</svg>';
-            var parser = new DOMParser();
-            parser.async = false;
-            var svgDoc = parser.parseFromString(svg, 'text/xml').documentElement;
+            var svgDoc = createSvgDocument(el);
 
             // Note that `createElement()` might also return an array should the SVG string passed as
             // the first argument contain more then one root element.
@@ -8947,6 +8952,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
             // have a `xlink:href` attribute to set the source of the image.
             var combinedKey = name.split(':');
             el.setAttributeNS(ns[combinedKey[0]], combinedKey[1], value);
+
         } else if (name === 'id') {
             el.id = value;
         } else {
@@ -9594,7 +9600,11 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     var PI = math.PI;
     var random = math.random;
     var toDeg = function(rad) { return (180*rad / PI) % 360; };
-    var toRad = function(deg) { return (deg % 360) * PI / 180; };
+    var toRad = function(deg, over360) {
+        over360 = over360 || false;
+        deg = over360 ? deg : (deg % 360);
+        return deg * PI / 180;
+    };
     var snapToGrid = function(val, gridSize) { return gridSize * Math.round(val/gridSize); };
     var normalizeAngle = function(angle) { return (angle % 360) + (angle < 0 ? 360 : 0); };
 
@@ -10313,6 +10323,8 @@ if (typeof exports === 'object') {
 
 var joint = {
 
+    version: '[%= pkg.version %]',
+
     // `joint.dia` namespace.
     dia: {},
 
@@ -10742,6 +10754,70 @@ var joint = {
             return lines.join('\n');
         },
 
+	imageToDataUri: function(url, callback) {
+
+	    if (url.substr(0, 'data:'.length) === 'data:') {
+		// No need to convert to data uri if it is already in data uri.
+
+		// This not only convenient but desired. For example, 
+		// IE throws a security error if data:image/svg+xml is used to render
+		// an image to the canvas and an attempt is made to read out data uri.
+		// Now if our image is already in data uri, there is no need to render it to the canvas
+		// and so we can bypass this error.
+
+		// Keep the async nature of the function.
+		return setTimeout(function() { callback(null, url) }, 0);
+	    }
+
+	    var canvas = document.createElement('canvas');
+            var img = document.createElement('img');
+
+	    img.onload = function() {
+
+		var ctx = canvas.getContext('2d');
+
+		canvas.width = img.width;
+		canvas.height = img.height;
+
+		ctx.drawImage(img, 0, 0);
+		
+		try {
+
+		    // Guess the type of the image from the url suffix.
+		    var suffix = (url.split('.').pop()) || 'png';
+		    // A little correction for JPEGs. There is no image/jpg mime type but image/jpeg.
+		    var type = 'image/' + (suffix === 'jpg') ? 'jpeg' : suffix;
+		    var dataUri = canvas.toDataURL(type);
+
+		} catch (e) {
+
+		    if (/\.svg$/.test(url)) {
+			// IE throws a security error if we try to render an SVG into the canvas.
+			// Luckily for us, we don't need canvas at all to convert
+			// SVG to data uri. We can just use AJAX to load the SVG string
+			// and construct the data uri ourselves.
+			var xhr = window.XMLHttpRequest ? new XMLHttpRequest : new ActiveXObject('Microsoft.XMLHTTP');
+			xhr.open('GET', url, false);
+			xhr.send(null);
+			var svg = xhr.responseText;
+
+			return callback(null, 'data:image/svg+xml,' + encodeURIComponent(svg));
+		    }
+
+		    console.error(img.src, 'fails to convert', e);
+		}
+
+		callback(null, dataUri);
+	    };
+
+	    img.ononerror = function() {
+
+		callback(new Error('Failed to load image.'));
+	    };
+
+	    img.src = url;
+	},
+
 	timing: {
 
 	    linear: function(t) {
@@ -11114,7 +11190,43 @@ var joint = {
                         : negative + (zcomma ? value : padding + value)) + fullSuffix;
             },
 
-            convert: function(type, value, precision) {
+            // Formatting string via the Python Format string.
+            // See https://docs.python.org/2/library/string.html#format-string-syntax)
+            string: function (formatString, value) {
+                var fieldDelimiterIndex;
+                var fieldDelimiter = '{';
+                var endPlaceholder = false;
+                var formattedStringArray = [];
+
+                while ((fieldDelimiterIndex = formatString.indexOf(fieldDelimiter)) !== -1) {
+
+                    var pieceFormatedString, formatSpec, fieldName;
+
+                    pieceFormatedString = formatString.slice(0, fieldDelimiterIndex);
+
+                    if (endPlaceholder) {
+                        formatSpec = pieceFormatedString.split(":");
+                        fieldName = formatSpec.shift().split(".");
+                        pieceFormatedString = value;
+
+                        for (var i = 0; i < fieldName.length; i++)
+                            pieceFormatedString = pieceFormatedString[fieldName[i]];
+
+                        if (formatSpec.length)
+                            pieceFormatedString = this.number(formatSpec, pieceFormatedString);
+                    }
+
+                    formattedStringArray.push(pieceFormatedString);
+
+                    formatString = formatString.slice(fieldDelimiterIndex + 1);
+                    fieldDelimiter = (endPlaceholder = !endPlaceholder) ? '}' : '{'
+                }
+                formattedStringArray.push(formatString);
+
+                return formattedStringArray.join('')
+            },
+
+            convert: function (type, value, precision) {
 
                 switch (type) {
                   case 'b': return value.toString(2);
@@ -11329,7 +11441,13 @@ joint.dia.Graph = Backbone.Model.extend({
 
     addCells: function(cells, options) {
 
-        _.each(cells, function(cell) { this.addCell(cell, options); }, this);
+        options = options || {};
+        options.position = cells.length;
+
+        _.each(cells, function(cell) {
+            options.position--;
+            this.addCell(cell, options);
+        }, this);
 
         return this;
     },
@@ -11771,16 +11889,12 @@ joint.dia.Cell = Backbone.Model.extend({
 
                     if (embedClone.get('source').id == this.id) {
 
-                        var source = _.clone(embedClone.get('source'));
-                        source.id = clone.id;
-                        embedClone.set('source', source);
+                        embedClone.prop('source', { id: clone.id });
                     }
 
                     if (embedClone.get('target').id == this.id) {
 
-                        var target = _.clone(embedClone.get('target'));
-                        target.id = clone.id;
-                        embedClone.set('target', target);
+                        embedClone.prop('target', { id: clone.id });
                     }
 
                     linkCloneMapping[embed.id] = embedClone;
@@ -11801,9 +11915,7 @@ joint.dia.Cell = Backbone.Model.extend({
                     // Make sure we don't clone a link more then once.
                     linkCloneMapping[link.id] = linkClone;
 
-                    var target = _.clone(linkClone.get('target'));
-                    target.id = embedClone.id;
-                    linkClone.set('target', target);
+                    linkClone.prop('target', { id: embedClone.id });
                 });
 
                 // Collect all inbound links, clone them (if not done already) and set their source to the `embedClone.id`.
@@ -11816,9 +11928,7 @@ joint.dia.Cell = Backbone.Model.extend({
                     // Make sure we don't clone a link more then once.
                     linkCloneMapping[link.id] = linkClone;
 
-                    var source = _.clone(linkClone.get('source'));
-                    source.id = embedClone.id;
-                    linkClone.set('source', source);
+                    linkClone.prop('source', { id: embedClone.id });
                 });
 
             }, this);
@@ -11829,6 +11939,63 @@ joint.dia.Cell = Backbone.Model.extend({
         clones = clones.concat(_.values(linkCloneMapping));
 
         return clones;
+    },
+
+    // A convenient way to set nested properties.
+    // This method merges the properties you'd like to set with the ones
+    // stored in the cell and makes sure change events are properly triggered.
+    // You can either set a nested property with one object
+    // or use a property path. 
+    // The most simple use case is:
+    // `cell.prop('name/first', 'John')` or
+    // `cell.prop({ name: { first: 'John' } })`.
+    // Nested arrays are supported too:
+    // `cell.prop('series/0/data/0/degree', 50)` or
+    // `cell.prop({ series: [ { data: [ { degree: 50 } ] } ] })`.
+    prop: function(props, value, opt) {
+
+        var delim = '/';
+
+        if (_.isString(props)) {
+            // Get/set an attribute by a special path syntax that delimits
+            // nested objects by the colon character.
+
+            if (typeof value !== 'undefined') {
+
+		var path = props;
+		var pathArray = path.split('/');
+		var property = pathArray[0];
+
+	        if (pathArray.length == 1) {
+                    // Property is not nested. We can simply use `set()`.
+                    return this.set(property, value, opt);
+                }
+
+		var update = {};
+		// Initialize the nested object. Subobjects are either arrays or objects.
+		// An empty array is created if the sub-key is an integer. Otherwise, an empty object is created.
+		// Note that this imposes a limitation on object keys one can use with Inspector.
+		// Pure integer keys will cause issues and are therefore not allowed.
+		var initializer = update;
+		var prevProperty = property;
+		_.each(_.rest(pathArray), function(key) {
+                    initializer = initializer[prevProperty] = (_.isFinite(Number(key)) ? [] : {});
+                    prevProperty = key;
+		});
+		// Fill update with the `value` on `path`.
+		update = joint.util.setByPath(update, path, value, '/');
+		// Merge update with the model attributes.
+		var attributes = _.merge({}, this.attributes, update);
+		// Finally, set the property to the updated attributes.
+		return this.set(property, attributes[property], opt);
+
+            } else {
+
+                return joint.util.getByPath(this.attributes, props, delim);
+            }
+        }
+
+        return this.set(_.merge({}, this.attributes, props), value);
     },
 
     // A convenient way to set nested attributes.
@@ -11882,9 +12049,6 @@ joint.dia.Cell = Backbone.Model.extend({
 
 	opt = _.extend(defaults, opt);
 
-	var pathArray = path.split(delim);
-        var property = pathArray[0];
-	var isPropertyNested = pathArray.length > 1;
 	var firstFrameTime = 0;
 	var interpolatingFunction;
 
@@ -11905,14 +12069,9 @@ joint.dia.Cell = Backbone.Model.extend({
 
 	    propertyValue = interpolatingFunction(opt.timingFunction(progress));
 
-	    if (isPropertyNested) {
-		var nestedPropertyValue = joint.util.setByPath({}, path, propertyValue, delim)[property];
-		propertyValue = _.merge({}, this.get(property), nestedPropertyValue);
-	    }
-
 	    opt.transitionId = id;
 
-	    this.set(property, propertyValue, opt);
+	    this.prop(path, propertyValue, opt);
 
 	    if (!id) this.trigger('transition:end', this, path);
 
@@ -11966,6 +12125,14 @@ joint.dia.Cell = Backbone.Model.extend({
 
 	graph.addCell(this);
 	return this;
+    },
+
+    // A shortcut for an equivalent call: `paper.findViewByModel(cell)`
+    // making it easy to create constructs like the following:
+    // `cell.findView(paper).highlight()`
+    findView: function(paper) {
+
+        return paper.findViewByModel(this);
     }
 });
 
@@ -12160,7 +12327,12 @@ joint.dia.CellView = Backbone.View.extend({
                 throw new Error('Non-existing filter ' + filter.name);
             }
             var filterElement = V(filterSVGString);
-            filterElement.attr('filterUnits', 'userSpaceOnUse');
+	    // Set the filter area to be 3x the bounding box of the cell
+	    // and center the filter around the cell.
+	    filterElement.attr({
+		filterUnits: 'objectBoundingBox',
+		x: -1, y: -1, width: 3, height: 3
+	    });
             if (filter.attrs) filterElement.attr(filter.attrs);
             filterElement.node.id = filterId;
             V(this.paper.svg).defs().append(filterElement);
@@ -12868,7 +13040,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
 	    var grid = this.paper.options.gridSize;
 
-            if (this.options.interactive !== false) {
+	    var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointermove') : this.options.interactive;
+
+            if (interactive !== false) {
 
 	        var position = this.model.get('position');
 
@@ -13621,12 +13795,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
         }
 
+	if (idx === -1) {
+	    // If no suitable index was found for such a vertex, make the vertex the first one.
+	    idx = 0;
+	    vertices.splice(idx, 0, vertex);
+	}
+
         this.model.set('vertices', vertices);
 
-        // In manhattan routing, if there are no vertices, the path length changes significantly
-        // with the first vertex added. Shall we check vertices.length === 0? at beginning of addVertex()
-        // in order to avoid the temporary path construction and other operations?
-        return Math.max(idx, 0);
+        return idx;
     },
 
     // Send a token (an SVG element, usually a circle) along the connection path.
@@ -13973,24 +14150,37 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 	this._dx = x;
         this._dy = y;
 
-        if (this.options.interactive === false) return;
+	var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointerdown') : this.options.interactive;
+
+        if (interactive === false) return;
+
+	function can(feature) {
+	    if (!_.isObject(interactive) || interactive[feature] !== false) return true;
+	    return false;
+	}
 
         var className = evt.target.getAttribute('class');
 
         switch (className) {
 
         case 'marker-vertex':
-            this._action = 'vertex-move';
-            this._vertexIdx = evt.target.getAttribute('idx');
+	    if (can('vertexMove')) {
+		this._action = 'vertex-move';
+		this._vertexIdx = evt.target.getAttribute('idx');
+	    }
             break;
 
         case 'marker-vertex-remove':
         case 'marker-vertex-remove-area':
-            this.removeVertex(evt.target.getAttribute('idx'));
+	    if (can('vertexRemove')) {
+		this.removeVertex(evt.target.getAttribute('idx'));
+	    }
             break;
 
         case 'marker-arrowhead':
-            this.startArrowheadMove(evt.target.getAttribute('end'));
+	    if (can('arrowheadMove')) {
+		this.startArrowheadMove(evt.target.getAttribute('end'));
+	    }
             break;
 
         default:
@@ -14008,12 +14198,17 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             } else {
 
-                // Store the index at which the new vertex has just been placed.
-                // We'll be update the very same vertex position in `pointermove()`.
-                this._vertexIdx = this.addVertex({ x: x, y: y });
-                this._action = 'vertex-move';
+		if (can('vertexAdd')) {
+
+                    // Store the index at which the new vertex has just been placed.
+                    // We'll be update the very same vertex position in `pointermove()`.
+                    this._vertexIdx = this.addVertex({ x: x, y: y });
+                    this._action = 'vertex-move';
+		}
             }
         }
+
+        this.paper.trigger('link:pointerdown', evt, this, x, y);
     },
 
     pointermove: function(evt, x, y) {
@@ -14274,7 +14469,7 @@ joint.dia.Paper = Backbone.View.extend({
         this.setOrigin();
         this.setDimensions();
 
-	this.listenTo(this.model, 'add', this.addCell);
+	this.listenTo(this.model, 'add', this.onAddCell);
 	this.listenTo(this.model, 'reset', this.resetCells);
 	this.listenTo(this.model, 'sort', this.sortCells);
 
@@ -14335,30 +14530,36 @@ joint.dia.Paper = Backbone.View.extend({
 	// Calculate the paper size to accomodate all the graph's elements.
 	var bbox = V(this.viewport).bbox(true, this.svg);
 
+        var currentScale = V(this.viewport).scale();
+
+        bbox.x *= currentScale.sx;
+        bbox.y *= currentScale.sy;
+        bbox.width *= currentScale.sx;
+        bbox.height *= currentScale.sy;
+
 	var calcWidth = Math.max(Math.ceil((bbox.width + bbox.x) / gridWidth), 1) * gridWidth;
 	var calcHeight = Math.max(Math.ceil((bbox.height + bbox.y) / gridHeight), 1) * gridHeight;
 
         var tx = 0;
         var ty = 0;
 
-        if (opt.fitNegative) {
+        if ((opt.allowNewOrigin == 'negative' && bbox.x < 0) || (opt.allowNewOrigin == 'positive' && bbox.x >= 0) || opt.allowNewOrigin == 'any') {
+            tx = Math.ceil(-bbox.x / gridWidth) * gridWidth;
+            tx += padding;
+            calcWidth += tx;
+        }
 
-            if (bbox.x < 0) {
-                tx = Math.ceil(-bbox.x / gridWidth) * gridWidth;
-                calcWidth += tx;
-            }
-
-            if (bbox.y < 0) {
-                ty = Math.ceil(-bbox.y / gridHeight) * gridHeight;
-                calcHeight += ty;
-            }
+        if ((opt.allowNewOrigin == 'negative' && bbox.y < 0) || (opt.allowNewOrigin == 'positive' && bbox.y >= 0) || opt.allowNewOrigin == 'any') {
+            ty = Math.ceil(-bbox.y / gridHeight) * gridHeight;
+            ty += padding;
+            calcHeight += ty;
         }
 
         calcWidth += padding;
         calcHeight += padding;
 
         var dimensionChange = calcWidth != this.options.width || calcHeight != this.options.height;
-        var originChange = opt.fitNegative && (tx != this.options.origin.x || ty != this.options.origin.y);
+        var originChange = tx != this.options.origin.x || ty != this.options.origin.y;
 
 	// Change the dimensions only if there is a size discrepency or an origin change
         if (originChange) {
@@ -14398,8 +14599,8 @@ joint.dia.Paper = Backbone.View.extend({
         var maxScaleY = opt.maxScaleY || opt.maxScale;
 
         var fittingBBox = opt.fittingBBox || ({
-            x: 0,
-            y: 0,
+            x: this.options.origin.x,
+            y: this.options.origin.y,
             width: this.options.width,
             height: this.options.height
         });
@@ -14488,7 +14689,28 @@ joint.dia.Paper = Backbone.View.extend({
 
         return view;
     },
-    
+
+    onAddCell: function(cell, graph, options) {
+
+        if (this.options.async && options.async !== false && _.isNumber(options.position)) {
+
+            this._asyncCells = this._asyncCells || [];
+            this._asyncCells.push(cell);
+
+            if (options.position == 0) {
+
+                if (this._frameId) throw 'another asynchronous rendering in progress';
+
+                this.asyncRenderCells(this._asyncCells);
+                delete this._asyncCells;
+            }
+
+        } else {
+
+            this.addCell(cell);
+        }
+    },
+
     addCell: function(cell) {
 
         var view = this.createViewForModel(cell);
@@ -14513,36 +14735,45 @@ joint.dia.Paper = Backbone.View.extend({
         cells.sort(function(a, b) { return a instanceof joint.dia.Link ? 1 : -1; });
         
 	if (this._frameId) {
+
 	    joint.util.cancelFrame(this._frameId);
+            delete this._frameId;
 	}
+
 	if (this.options.async) {
 
 	    this.asyncRenderCells(cells);
+            // Sort the cells once all elements rendered (see asyncRenderCells()).
 
 	} else {
 
             _.each(cells, this.addCell, this);
-	}
 
-        // Sort the cells in the DOM manually as we might have changed the order they
-        // were added to the DOM (see above).
-        this.sortCells();
+            // Sort the cells in the DOM manually as we might have changed the order they
+            // were added to the DOM (see above).
+            this.sortCells();
+	}
     },
 
     asyncRenderCells: function(cells) {
 
         var done = false;
 
-        _.each(_.range(this.options.async && this.options.async.batchSize || 50), function() {
+        if (this._frameId) {
 
-            var cell = cells.shift();
-	    done = !cell;
-            if (!done) this.addCell(cell);
+            _.each(_.range(this.options.async && this.options.async.batchSize || 50), function() {
 
-        }, this);
+                var cell = cells.shift();
+	        done = !cell;
+                if (!done) this.addCell(cell);
+
+            }, this);
+        }
 
         if (done) {
 
+            delete this._frameId;
+            this.sortCells();
 	    this.trigger('render:done');
 
 	} else {
@@ -14632,10 +14863,7 @@ joint.dia.Paper = Backbone.View.extend({
 
             var newTx = oldTx - ox * (sx - 1);
             var newTy = oldTy - oy * (sy - 1);
-
-            if (newTx != oldTx || newTy != oldTy) {
-                this.setOrigin(newTx, newTy);
-            }
+            this.setOrigin(newTx, newTy);
         }
 
         V(this.viewport).scale(sx, sy);
@@ -14768,7 +14996,6 @@ joint.dia.Paper = Backbone.View.extend({
         // Trigger event when mouse not moved.
         if (!this._mousemoved) {
             
-            evt.preventDefault();
             evt = joint.util.normalizeEvent(evt);
 
             var view = this.findView(evt.target);
@@ -14789,7 +15016,6 @@ joint.dia.Paper = Backbone.View.extend({
 
     pointerdown: function(evt) {
 
-        evt.preventDefault();
         evt = joint.util.normalizeEvent(evt);
         
         var view = this.findView(evt.target);
