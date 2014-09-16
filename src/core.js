@@ -11,6 +11,8 @@ if (typeof exports === 'object') {
 
 var joint = {
 
+    version: '[%= pkg.version %]',
+
     // `joint.dia` namespace.
     dia: {},
 
@@ -440,6 +442,70 @@ var joint = {
             return lines.join('\n');
         },
 
+	imageToDataUri: function(url, callback) {
+
+	    if (url.substr(0, 'data:'.length) === 'data:') {
+		// No need to convert to data uri if it is already in data uri.
+
+		// This not only convenient but desired. For example, 
+		// IE throws a security error if data:image/svg+xml is used to render
+		// an image to the canvas and an attempt is made to read out data uri.
+		// Now if our image is already in data uri, there is no need to render it to the canvas
+		// and so we can bypass this error.
+
+		// Keep the async nature of the function.
+		return setTimeout(function() { callback(null, url) }, 0);
+	    }
+
+	    var canvas = document.createElement('canvas');
+            var img = document.createElement('img');
+
+	    img.onload = function() {
+
+		var ctx = canvas.getContext('2d');
+
+		canvas.width = img.width;
+		canvas.height = img.height;
+
+		ctx.drawImage(img, 0, 0);
+		
+		try {
+
+		    // Guess the type of the image from the url suffix.
+		    var suffix = (url.split('.').pop()) || 'png';
+		    // A little correction for JPEGs. There is no image/jpg mime type but image/jpeg.
+		    var type = 'image/' + (suffix === 'jpg') ? 'jpeg' : suffix;
+		    var dataUri = canvas.toDataURL(type);
+
+		} catch (e) {
+
+		    if (/\.svg$/.test(url)) {
+			// IE throws a security error if we try to render an SVG into the canvas.
+			// Luckily for us, we don't need canvas at all to convert
+			// SVG to data uri. We can just use AJAX to load the SVG string
+			// and construct the data uri ourselves.
+			var xhr = window.XMLHttpRequest ? new XMLHttpRequest : new ActiveXObject('Microsoft.XMLHTTP');
+			xhr.open('GET', url, false);
+			xhr.send(null);
+			var svg = xhr.responseText;
+
+			return callback(null, 'data:image/svg+xml,' + encodeURIComponent(svg));
+		    }
+
+		    console.error(img.src, 'fails to convert', e);
+		}
+
+		callback(null, dataUri);
+	    };
+
+	    img.ononerror = function() {
+
+		callback(new Error('Failed to load image.'));
+	    };
+
+	    img.src = url;
+	},
+
 	timing: {
 
 	    linear: function(t) {
@@ -812,7 +878,43 @@ var joint = {
                         : negative + (zcomma ? value : padding + value)) + fullSuffix;
             },
 
-            convert: function(type, value, precision) {
+            // Formatting string via the Python Format string.
+            // See https://docs.python.org/2/library/string.html#format-string-syntax)
+            string: function (formatString, value) {
+                var fieldDelimiterIndex;
+                var fieldDelimiter = '{';
+                var endPlaceholder = false;
+                var formattedStringArray = [];
+
+                while ((fieldDelimiterIndex = formatString.indexOf(fieldDelimiter)) !== -1) {
+
+                    var pieceFormatedString, formatSpec, fieldName;
+
+                    pieceFormatedString = formatString.slice(0, fieldDelimiterIndex);
+
+                    if (endPlaceholder) {
+                        formatSpec = pieceFormatedString.split(":");
+                        fieldName = formatSpec.shift().split(".");
+                        pieceFormatedString = value;
+
+                        for (var i = 0; i < fieldName.length; i++)
+                            pieceFormatedString = pieceFormatedString[fieldName[i]];
+
+                        if (formatSpec.length)
+                            pieceFormatedString = this.number(formatSpec, pieceFormatedString);
+                    }
+
+                    formattedStringArray.push(pieceFormatedString);
+
+                    formatString = formatString.slice(fieldDelimiterIndex + 1);
+                    fieldDelimiter = (endPlaceholder = !endPlaceholder) ? '}' : '{'
+                }
+                formattedStringArray.push(formatString);
+
+                return formattedStringArray.join('')
+            },
+
+            convert: function (type, value, precision) {
 
                 switch (type) {
                   case 'b': return value.toString(2);

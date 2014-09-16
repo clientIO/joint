@@ -36,6 +36,16 @@
         return 'v-' + id;
     }
 
+    // Create an SVG document element.
+    // If `content` is passed, it will be used as the SVG content of the `<svg>` root element.
+    function createSvgDocument(content) {
+
+        var svg = '<svg xmlns="' + ns.xmlns + '" xmlns:xlink="' + ns.xlink + '" version="' + SVGversion + '">' + (content || '') + '</svg>';
+        var parser = new DOMParser();
+        parser.async = false;
+	return parser.parseFromString(svg, 'text/xml').documentElement;
+    }
+
     // Create SVG element.
     // -------------------
 
@@ -52,18 +62,13 @@
         // If `el` is a `'svg'` or `'SVG'` string, create a new SVG canvas.
         if (el.toLowerCase() === 'svg') {
             
-            attrs.xmlns = ns.xmlns;
-            attrs['xmlns:xlink'] = ns.xlink;
-            attrs.version = SVGversion;
+	    return new VElement(createSvgDocument());
             
         } else if (el[0] === '<') {
             // Create element from an SVG string.
             // Allows constructs of type: `document.appendChild(Vectorizer('<rect></rect>').node)`.
             
-            var svg = '<svg xmlns="' + ns.xmlns + '" xmlns:xlink="' + ns.xlink + '" version="' + SVGversion + '">' + el + '</svg>';
-            var parser = new DOMParser();
-            parser.async = false;
-            var svgDoc = parser.parseFromString(svg, 'text/xml').documentElement;
+            var svgDoc = createSvgDocument(el);
 
             // Note that `createElement()` might also return an array should the SVG string passed as
             // the first argument contain more then one root element.
@@ -110,6 +115,7 @@
             // have a `xlink:href` attribute to set the source of the image.
             var combinedKey = name.split(':');
             el.setAttributeNS(ns[combinedKey[0]], combinedKey[1], value);
+
         } else if (name === 'id') {
             el.id = value;
         } else {

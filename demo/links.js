@@ -7,7 +7,29 @@ var paper = new joint.dia.Paper({
     height: 1200,
     gridSize: 10,
     perpendicularLinks: false,
-    model: graph
+    model: graph,
+    linkView: joint.dia.LinkView.extend({
+	pointerdblclick: function(evt, x, y) {
+	    if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
+		this.addVertex({ x: x, y: y });
+	    }
+	}
+    }),
+    interactive: function(cellView) {
+	if (cellView.model.get('vertexOnDblClick')) {
+	    return {
+		//arrowheadMove: false
+		// vertexMove: false,
+		vertexAdd: false,
+		//    vertexRemove: false,
+	    };
+	}
+	return true;
+    }
+});
+
+paper.on('link:pointerdown', function(evt, linkView, x, y) {
+    console.log('link:pointerdown');
 });
 
 $('#perpendicularLinks').on('change', function() {
@@ -49,7 +71,7 @@ graph.addCell(r2);
 r2.translate(300);
 
 var link1 = new joint.dia.Link({
-
+    vertexOnDblClick: true,
     source: { id: r1.id },
     target: { id: r2.id }
 });
@@ -192,7 +214,7 @@ var link5 = new joint.dia.Link({
     
     vertexMarkup: [
         '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
-        '<image class="marker-vertex" idx="<%= idx %>" xlink:href="http://figurepool.com/images/logo.png" width="25" height="25" transform="translate(-12.5, -12.5)"/>',
+        '<image class="marker-vertex" idx="<%= idx %>" xlink:href="http://jointjs.com/images/logo.png" width="25" height="25" transform="translate(-12.5, -12.5)"/>',
         '<rect class="marker-vertex-remove-area" idx="<%= idx %>" fill="red" width="19.5" height="19" transform="translate(11, -26)" rx="3" ry="3" />',
         '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
         '<title>Remove vertex.</title>',

@@ -585,7 +585,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
 	    var grid = this.paper.options.gridSize;
 
-            if (this.options.interactive !== false) {
+	    var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointermove') : this.options.interactive;
+
+            if (interactive !== false) {
 
 	        var position = this.model.get('position');
 

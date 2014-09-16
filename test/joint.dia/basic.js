@@ -44,7 +44,7 @@ test('construction', function() {
     
 });
 
-asyncTest('async', function() {
+asyncTest('async: resetCells', function() {
 
     var r1 = new joint.shapes.basic.Rect({
         position: { x: 20, y: 30 },
@@ -70,12 +70,38 @@ asyncTest('async', function() {
     }, this);
 
     this.graph.resetCells([r1, r2, r3]);
+});
 
-    var textEls = this.paper.svg.getElementsByTagName('text');
-    var rectEls = this.paper.svg.getElementsByTagName('rect');
+asyncTest('async: addCells', function() {
 
-    equal(textEls.length, 1, 'there is exactly batchSize <text> elements in the paper initially');
-    equal(rectEls.length, 1, 'there is exactly batchSize <rect> elements in the paper initially');
+    var r1 = new joint.shapes.basic.Rect({
+        position: { x: 20, y: 30 },
+        size: { width: 120, height: 80 },
+        attrs: { text: { text: 'my rectangle' } }
+    });
+    var r2 = r1.clone();
+    var r3 = r1.clone();
+    var r4 = r1.clone();
+    var r5 = r1.clone();
+
+    this.graph.addCells([r1, r2]);
+
+    this.paper.options.async = { batchSize: 1 };
+    this.paper.on('render:done', function() {
+
+	var textEls = this.paper.svg.getElementsByTagName('text');
+	var rectEls = this.paper.svg.getElementsByTagName('rect');
+
+	equal(textEls.length, 5, 'there is exactly 5 <text> elements in the paper');
+	equal(rectEls.length, 5, 'there is exactly 5 <rect> elements in the paper');
+
+	equal(textEls[0].textContent, 'my rectangle', 'text element has a proper content');
+
+	start();
+
+    }, this);
+
+    this.graph.addCells([r3, r4, r5]);
 });
 
 test('getBBox()', function() {
@@ -279,6 +305,63 @@ test('removeAttr()', function() {
 
     equal(linkView.$('.connection').attr('stroke-width'), undefined, 'The stroke was correctly unset from the link by removeAttr()');
 
+});
+
+
+test('prop()', function() {
+
+    var el = new joint.shapes.basic.Rect({
+	flat: 5,
+	object: { nested: { value: 'foo' }, nested2: { value: 'bar' } },
+	array: [[5], [{ value: ['bar'] }]]
+    });
+
+    equal(el.prop('flat'), 5, 'flat value returned in getter');
+    equal(el.prop('object/nested/value'), 'foo', 'nested object value returned in getter');
+    deepEqual(el.prop('array/0'), [5], 'nested array returned in getter');
+    equal(el.prop('array/0/0'), 5, 'value in nested array returned in getter');
+    deepEqual(el.prop('array/1/0/value'), ['bar'], 'object in nested array returned in getter');
+    equal(el.prop('array/1/0/value/0'), 'bar', 'value in nested object in nested array returned in getter');
+
+    el.prop('array/1/0/value/0', 'baz');
+    equal(el.prop('array/1/0/value/0'), 'baz', 'value in nested object in nested array set correctly');
+    ok(_.isArray(el.prop('array/1/0/value')), 'type of the nested array was preserved');
+    ok(_.isObject(el.prop('array/1/0')), 'type of the nested object was preserved');
+    ok(_.isArray(el.prop('array/1')), 'type of the nested array was preserved');
+    ok(_.isArray(el.prop('array')), 'type of the top level array was preserved');
+
+    el.prop('array/1/0/value', { s: 'baz' });
+    deepEqual(el.prop('array/1/0/value'), { s: 'baz' }, 'value in nested object in nested array set correctly');
+    ok(_.isObject(el.prop('array/1/0/value')), 'type of the object was changed');
+
+    el.prop('array/2', 10);
+    ok(_.isArray(el.prop('array')), 'type of the top level array was preserved after adding new item');
+    equal(el.prop('array/2'), '10', 'value of the newly added array item is correct');
+
+    el.prop({ array: [['foo']] });
+    ok(_.isArray(el.prop('array')), 'type of the top level array was preserved after changing an item');
+    equal(el.prop('array/0/0'), 'foo', 'value of the newly added array item is correct');    
+    ok(_.isArray(el.prop('array/0')), 'type of the nested array is correct');
+
+    var called = false;
+    el.once('change:array', function(cell, changed, opt) {
+	ok(opt.flag, 'options object was correctly passed in path syntax of prop');
+	called = true;
+    });
+    el.prop('array/0', 'something', { flag: true });
+    ok(called, 'on change callback with options passed was called');
+
+    called = false;
+    el.once('change:array', function(cell, changed, opt) {
+	ok(opt.flag, 'options object was correctly passed in object syntax of prop');
+	called = true;
+    });
+    el.prop({ array: ['something else'] }, { flag: true });
+    ok(called, 'on change callback with options passed was called');
+
+    el.prop('object/nested', 'baz');
+    deepEqual(el.prop('object/nested2'), { value: 'bar' }, 'value in untouched nested object was preserved');    
+    equal(el.prop('object/nested'), 'baz', 'value in nested object was changed');
 });
 
 

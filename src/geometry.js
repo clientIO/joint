@@ -38,7 +38,11 @@
     var PI = math.PI;
     var random = math.random;
     var toDeg = function(rad) { return (180*rad / PI) % 360; };
-    var toRad = function(deg) { return (deg % 360) * PI / 180; };
+    var toRad = function(deg, over360) {
+        over360 = over360 || false;
+        deg = over360 ? deg : (deg % 360);
+        return deg * PI / 180;
+    };
     var snapToGrid = function(val, gridSize) { return gridSize * Math.round(val/gridSize); };
     var normalizeAngle = function(angle) { return (angle % 360) + (angle < 0 ? 360 : 0); };
 

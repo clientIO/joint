@@ -80,7 +80,7 @@ joint.dia.Paper = Backbone.View.extend({
         this.setOrigin();
         this.setDimensions();
 
-	this.listenTo(this.model, 'add', this.addCell);
+	this.listenTo(this.model, 'add', this.onAddCell);
 	this.listenTo(this.model, 'reset', this.resetCells);
 	this.listenTo(this.model, 'sort', this.sortCells);
 
@@ -141,30 +141,36 @@ joint.dia.Paper = Backbone.View.extend({
 	// Calculate the paper size to accomodate all the graph's elements.
 	var bbox = V(this.viewport).bbox(true, this.svg);
 
+        var currentScale = V(this.viewport).scale();
+
+        bbox.x *= currentScale.sx;
+        bbox.y *= currentScale.sy;
+        bbox.width *= currentScale.sx;
+        bbox.height *= currentScale.sy;
+
 	var calcWidth = Math.max(Math.ceil((bbox.width + bbox.x) / gridWidth), 1) * gridWidth;
 	var calcHeight = Math.max(Math.ceil((bbox.height + bbox.y) / gridHeight), 1) * gridHeight;
 
         var tx = 0;
         var ty = 0;
 
-        if (opt.fitNegative) {
+        if ((opt.allowNewOrigin == 'negative' && bbox.x < 0) || (opt.allowNewOrigin == 'positive' && bbox.x >= 0) || opt.allowNewOrigin == 'any') {
+            tx = Math.ceil(-bbox.x / gridWidth) * gridWidth;
+            tx += padding;
+            calcWidth += tx;
+        }
 
-            if (bbox.x < 0) {
-                tx = Math.ceil(-bbox.x / gridWidth) * gridWidth;
-                calcWidth += tx;
-            }
-
-            if (bbox.y < 0) {
-                ty = Math.ceil(-bbox.y / gridHeight) * gridHeight;
-                calcHeight += ty;
-            }
+        if ((opt.allowNewOrigin == 'negative' && bbox.y < 0) || (opt.allowNewOrigin == 'positive' && bbox.y >= 0) || opt.allowNewOrigin == 'any') {
+            ty = Math.ceil(-bbox.y / gridHeight) * gridHeight;
+            ty += padding;
+            calcHeight += ty;
         }
 
         calcWidth += padding;
         calcHeight += padding;
 
         var dimensionChange = calcWidth != this.options.width || calcHeight != this.options.height;
-        var originChange = opt.fitNegative && (tx != this.options.origin.x || ty != this.options.origin.y);
+        var originChange = tx != this.options.origin.x || ty != this.options.origin.y;
 
 	// Change the dimensions only if there is a size discrepency or an origin change
         if (originChange) {
@@ -204,8 +210,8 @@ joint.dia.Paper = Backbone.View.extend({
         var maxScaleY = opt.maxScaleY || opt.maxScale;
 
         var fittingBBox = opt.fittingBBox || ({
-            x: 0,
-            y: 0,
+            x: this.options.origin.x,
+            y: this.options.origin.y,
             width: this.options.width,
             height: this.options.height
         });
@@ -294,7 +300,28 @@ joint.dia.Paper = Backbone.View.extend({
 
         return view;
     },
-    
+
+    onAddCell: function(cell, graph, options) {
+
+        if (this.options.async && options.async !== false && _.isNumber(options.position)) {
+
+            this._asyncCells = this._asyncCells || [];
+            this._asyncCells.push(cell);
+
+            if (options.position == 0) {
+
+                if (this._frameId) throw 'another asynchronous rendering in progress';
+
+                this.asyncRenderCells(this._asyncCells);
+                delete this._asyncCells;
+            }
+
+        } else {
+
+            this.addCell(cell);
+        }
+    },
+
     addCell: function(cell) {
 
         var view = this.createViewForModel(cell);
@@ -319,36 +346,45 @@ joint.dia.Paper = Backbone.View.extend({
         cells.sort(function(a, b) { return a instanceof joint.dia.Link ? 1 : -1; });
         
 	if (this._frameId) {
+
 	    joint.util.cancelFrame(this._frameId);
+            delete this._frameId;
 	}
+
 	if (this.options.async) {
 
 	    this.asyncRenderCells(cells);
+            // Sort the cells once all elements rendered (see asyncRenderCells()).
 
 	} else {
 
             _.each(cells, this.addCell, this);
-	}
 
-        // Sort the cells in the DOM manually as we might have changed the order they
-        // were added to the DOM (see above).
-        this.sortCells();
+            // Sort the cells in the DOM manually as we might have changed the order they
+            // were added to the DOM (see above).
+            this.sortCells();
+	}
     },
 
     asyncRenderCells: function(cells) {
 
         var done = false;
 
-        _.each(_.range(this.options.async && this.options.async.batchSize || 50), function() {
+        if (this._frameId) {
 
-            var cell = cells.shift();
-	    done = !cell;
-            if (!done) this.addCell(cell);
+            _.each(_.range(this.options.async && this.options.async.batchSize || 50), function() {
 
-        }, this);
+                var cell = cells.shift();
+	        done = !cell;
+                if (!done) this.addCell(cell);
+
+            }, this);
+        }
 
         if (done) {
 
+            delete this._frameId;
+            this.sortCells();
 	    this.trigger('render:done');
 
 	} else {
@@ -438,10 +474,7 @@ joint.dia.Paper = Backbone.View.extend({
 
             var newTx = oldTx - ox * (sx - 1);
             var newTy = oldTy - oy * (sy - 1);
-
-            if (newTx != oldTx || newTy != oldTy) {
-                this.setOrigin(newTx, newTy);
-            }
+            this.setOrigin(newTx, newTy);
         }
 
         V(this.viewport).scale(sx, sy);
@@ -574,7 +607,6 @@ joint.dia.Paper = Backbone.View.extend({
         // Trigger event when mouse not moved.
         if (!this._mousemoved) {
             
-            evt.preventDefault();
             evt = joint.util.normalizeEvent(evt);
 
             var view = this.findView(evt.target);
@@ -595,7 +627,6 @@ joint.dia.Paper = Backbone.View.extend({
 
     pointerdown: function(evt) {
 
-        evt.preventDefault();
         evt = joint.util.normalizeEvent(evt);
         
         var view = this.findView(evt.target);

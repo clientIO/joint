@@ -707,12 +707,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
         }
 
+	if (idx === -1) {
+	    // If no suitable index was found for such a vertex, make the vertex the first one.
+	    idx = 0;
+	    vertices.splice(idx, 0, vertex);
+	}
+
         this.model.set('vertices', vertices);
 
-        // In manhattan routing, if there are no vertices, the path length changes significantly
-        // with the first vertex added. Shall we check vertices.length === 0? at beginning of addVertex()
-        // in order to avoid the temporary path construction and other operations?
-        return Math.max(idx, 0);
+        return idx;
     },
 
     // Send a token (an SVG element, usually a circle) along the connection path.
@@ -1059,24 +1062,37 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 	this._dx = x;
         this._dy = y;
 
-        if (this.options.interactive === false) return;
+	var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointerdown') : this.options.interactive;
+
+        if (interactive === false) return;
+
+	function can(feature) {
+	    if (!_.isObject(interactive) || interactive[feature] !== false) return true;
+	    return false;
+	}
 
         var className = evt.target.getAttribute('class');
 
         switch (className) {
 
         case 'marker-vertex':
-            this._action = 'vertex-move';
-            this._vertexIdx = evt.target.getAttribute('idx');
+	    if (can('vertexMove')) {
+		this._action = 'vertex-move';
+		this._vertexIdx = evt.target.getAttribute('idx');
+	    }
             break;
 
         case 'marker-vertex-remove':
         case 'marker-vertex-remove-area':
-            this.removeVertex(evt.target.getAttribute('idx'));
+	    if (can('vertexRemove')) {
+		this.removeVertex(evt.target.getAttribute('idx'));
+	    }
             break;
 
         case 'marker-arrowhead':
-            this.startArrowheadMove(evt.target.getAttribute('end'));
+	    if (can('arrowheadMove')) {
+		this.startArrowheadMove(evt.target.getAttribute('end'));
+	    }
             break;
 
         default:
@@ -1094,12 +1110,17 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             } else {
 
-                // Store the index at which the new vertex has just been placed.
-                // We'll be update the very same vertex position in `pointermove()`.
-                this._vertexIdx = this.addVertex({ x: x, y: y });
-                this._action = 'vertex-move';
+		if (can('vertexAdd')) {
+
+                    // Store the index at which the new vertex has just been placed.
+                    // We'll be update the very same vertex position in `pointermove()`.
+                    this._vertexIdx = this.addVertex({ x: x, y: y });
+                    this._action = 'vertex-move';
+		}
             }
         }
+
+        this.paper.trigger('link:pointerdown', evt, this, x, y);
     },
 
     pointermove: function(evt, x, y) {

@@ -288,16 +288,12 @@ joint.dia.Cell = Backbone.Model.extend({
 
                     if (embedClone.get('source').id == this.id) {
 
-                        var source = _.clone(embedClone.get('source'));
-                        source.id = clone.id;
-                        embedClone.set('source', source);
+                        embedClone.prop('source', { id: clone.id });
                     }
 
                     if (embedClone.get('target').id == this.id) {
 
-                        var target = _.clone(embedClone.get('target'));
-                        target.id = clone.id;
-                        embedClone.set('target', target);
+                        embedClone.prop('target', { id: clone.id });
                     }
 
                     linkCloneMapping[embed.id] = embedClone;
@@ -318,9 +314,7 @@ joint.dia.Cell = Backbone.Model.extend({
                     // Make sure we don't clone a link more then once.
                     linkCloneMapping[link.id] = linkClone;
 
-                    var target = _.clone(linkClone.get('target'));
-                    target.id = embedClone.id;
-                    linkClone.set('target', target);
+                    linkClone.prop('target', { id: embedClone.id });
                 });
 
                 // Collect all inbound links, clone them (if not done already) and set their source to the `embedClone.id`.
@@ -333,9 +327,7 @@ joint.dia.Cell = Backbone.Model.extend({
                     // Make sure we don't clone a link more then once.
                     linkCloneMapping[link.id] = linkClone;
 
-                    var source = _.clone(linkClone.get('source'));
-                    source.id = embedClone.id;
-                    linkClone.set('source', source);
+                    linkClone.prop('source', { id: embedClone.id });
                 });
 
             }, this);
@@ -346,6 +338,63 @@ joint.dia.Cell = Backbone.Model.extend({
         clones = clones.concat(_.values(linkCloneMapping));
 
         return clones;
+    },
+
+    // A convenient way to set nested properties.
+    // This method merges the properties you'd like to set with the ones
+    // stored in the cell and makes sure change events are properly triggered.
+    // You can either set a nested property with one object
+    // or use a property path. 
+    // The most simple use case is:
+    // `cell.prop('name/first', 'John')` or
+    // `cell.prop({ name: { first: 'John' } })`.
+    // Nested arrays are supported too:
+    // `cell.prop('series/0/data/0/degree', 50)` or
+    // `cell.prop({ series: [ { data: [ { degree: 50 } ] } ] })`.
+    prop: function(props, value, opt) {
+
+        var delim = '/';
+
+        if (_.isString(props)) {
+            // Get/set an attribute by a special path syntax that delimits
+            // nested objects by the colon character.
+
+            if (typeof value !== 'undefined') {
+
+		var path = props;
+		var pathArray = path.split('/');
+		var property = pathArray[0];
+
+	        if (pathArray.length == 1) {
+                    // Property is not nested. We can simply use `set()`.
+                    return this.set(property, value, opt);
+                }
+
+		var update = {};
+		// Initialize the nested object. Subobjects are either arrays or objects.
+		// An empty array is created if the sub-key is an integer. Otherwise, an empty object is created.
+		// Note that this imposes a limitation on object keys one can use with Inspector.
+		// Pure integer keys will cause issues and are therefore not allowed.
+		var initializer = update;
+		var prevProperty = property;
+		_.each(_.rest(pathArray), function(key) {
+                    initializer = initializer[prevProperty] = (_.isFinite(Number(key)) ? [] : {});
+                    prevProperty = key;
+		});
+		// Fill update with the `value` on `path`.
+		update = joint.util.setByPath(update, path, value, '/');
+		// Merge update with the model attributes.
+		var attributes = _.merge({}, this.attributes, update);
+		// Finally, set the property to the updated attributes.
+		return this.set(property, attributes[property], opt);
+
+            } else {
+
+                return joint.util.getByPath(this.attributes, props, delim);
+            }
+        }
+
+        return this.set(_.merge({}, this.attributes, props), value);
     },
 
     // A convenient way to set nested attributes.
@@ -399,9 +448,6 @@ joint.dia.Cell = Backbone.Model.extend({
 
 	opt = _.extend(defaults, opt);
 
-	var pathArray = path.split(delim);
-        var property = pathArray[0];
-	var isPropertyNested = pathArray.length > 1;
 	var firstFrameTime = 0;
 	var interpolatingFunction;
 
@@ -422,14 +468,9 @@ joint.dia.Cell = Backbone.Model.extend({
 
 	    propertyValue = interpolatingFunction(opt.timingFunction(progress));
 
-	    if (isPropertyNested) {
-		var nestedPropertyValue = joint.util.setByPath({}, path, propertyValue, delim)[property];
-		propertyValue = _.merge({}, this.get(property), nestedPropertyValue);
-	    }
-
 	    opt.transitionId = id;
 
-	    this.set(property, propertyValue, opt);
+	    this.prop(path, propertyValue, opt);
 
 	    if (!id) this.trigger('transition:end', this, path);
 
@@ -483,6 +524,14 @@ joint.dia.Cell = Backbone.Model.extend({
 
 	graph.addCell(this);
 	return this;
+    },
+
+    // A shortcut for an equivalent call: `paper.findViewByModel(cell)`
+    // making it easy to create constructs like the following:
+    // `cell.findView(paper).highlight()`
+    findView: function(paper) {
+
+        return paper.findViewByModel(this);
     }
 });
 
@@ -677,7 +726,12 @@ joint.dia.CellView = Backbone.View.extend({
                 throw new Error('Non-existing filter ' + filter.name);
             }
             var filterElement = V(filterSVGString);
-            filterElement.attr('filterUnits', 'userSpaceOnUse');
+	    // Set the filter area to be 3x the bounding box of the cell
+	    // and center the filter around the cell.
+	    filterElement.attr({
+		filterUnits: 'objectBoundingBox',
+		x: -1, y: -1, width: 3, height: 3
+	    });
             if (filter.attrs) filterElement.attr(filter.attrs);
             filterElement.node.id = filterId;
             V(this.paper.svg).defs().append(filterElement);
