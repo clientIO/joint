@@ -474,18 +474,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var connectionElement = this._V.connection.node;
         var connectionLength = connectionElement.getTotalLength();
 
-        _.each(labels, function(label, idx) {
+        // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
+        // In that case we won't update labels at all.
+        if (!_.isNaN(connectionLength)) {
 
-            var position = label.position;
-            position = (position > connectionLength) ? connectionLength : position; // sanity check
-            position = (position < 0) ? connectionLength + position : position;
-            position = position > 1 ? position : connectionLength * position;
+            _.each(labels, function(label, idx) {
 
-            var labelCoordinates = connectionElement.getPointAtLength(position);
+                var position = label.position;
+                position = (position > connectionLength) ? connectionLength : position; // sanity check
+                position = (position < 0) ? connectionLength + position : position;
+                position = position > 1 ? position : connectionLength * position;
 
-            this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
+                var labelCoordinates = connectionElement.getPointAtLength(position);
 
-        }, this);
+                this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
+
+            }, this);
+        }
 
         return this;
     },
