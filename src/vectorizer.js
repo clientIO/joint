@@ -298,11 +298,11 @@
 
                 box = this.node.getBBox();
 
-		// Opera returns infinite values in some cases.
-		// Note that Infinity | 0 produces 0 as opposed to Infinity || 0.
-		// We also have to create new object as the standard says that you can't
-		// modify the attributes of a bbox.
-		box = { x: box.x | 0, y: box.y | 0, width: box.width | 0, height: box.height | 0};
+                // Opera returns infinite values in some cases.
+                // Note that Infinity | 0 produces 0 as opposed to Infinity || 0.
+                // We also have to create new object as the standard says that you can't
+                // modify the attributes of a bbox.
+                box = { x: box.x | 0, y: box.y | 0, width: box.width | 0, height: box.height | 0};
 
             } catch (e) {
 
@@ -321,48 +321,28 @@
             }
 
             var matrix = this.node.getTransformToElement(target || this.node.ownerSVGElement);
-            var corners = [];
             var point = this.node.ownerSVGElement.createSVGPoint();
 
-
             point.x = box.x;
             point.y = box.y;
-            corners.push(point.matrixTransform(matrix));
-            
+            var corner1 = point.matrixTransform(matrix)
+
             point.x = box.x + box.width;
             point.y = box.y;
-            corners.push(point.matrixTransform(matrix));
-            
+            var corner2 = point.matrixTransform(matrix)
+
             point.x = box.x + box.width;
             point.y = box.y + box.height;
-            corners.push(point.matrixTransform(matrix));
-            
+            var corner3 = point.matrixTransform(matrix)
+
             point.x = box.x;
             point.y = box.y + box.height;
-            corners.push(point.matrixTransform(matrix));
+            var corner4 = point.matrixTransform(matrix)
 
-            var minX = corners[0].x;
-            var maxX = minX;
-            var minY = corners[0].y;
-            var maxY = minY;
-            
-            for (var i = 1, len = corners.length; i < len; i++) {
-                
-                var x = corners[i].x;
-                var y = corners[i].y;
-
-                if (x < minX) {
-                    minX = x;
-                } else if (x > maxX) {
-                    maxX = x;
-                }
-                
-                if (y < minY) {
-                    minY = y;
-                } else if (y > maxY) {
-                    maxY = y;
-                }
-            }
+            var minX = Math.min(corner1.x,corner2.x,corner3.x,corner4.x);
+            var maxX = Math.max(corner1.x,corner2.x,corner3.x,corner4.x);
+            var minY = Math.min(corner1.y,corner2.y,corner3.y,corner4.y);
+            var maxY = Math.max(corner1.y,corner2.y,corner3.y,corner4.y);
 
             return {
                 x: minX,
