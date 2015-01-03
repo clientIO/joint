@@ -955,7 +955,7 @@ var joint = {
                 var i = 0;
                 if (value) {
                     if (value < 0) value *= -1;
-                    if (precision) value = d3.round(value, this.precision(value, precision));
+                    if (precision) value = this.round(value, this.precision(value, precision));
                     i = 1 + Math.floor(1e-12 + Math.log(value) / Math.LN10);
                     i = Math.max(-24, Math.min(24, Math.floor((i <= 0 ? i + 1 : i - 1) / 3) * 3));
                 }
