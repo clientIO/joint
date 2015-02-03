@@ -42,7 +42,7 @@ joint.shapes.org.Member = joint.dia.Element.extend({
             },
 
             '.name': {
-                'font-weight': 'bold',
+                'font-weight': '800',
                 ref: '.card', 'ref-x': 0.9, 'ref-y': 0.6,
                 'font-family': 'Courier New', 'font-size': 14,
 		'text-anchor': 'end'

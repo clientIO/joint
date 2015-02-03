@@ -1,4 +1,4 @@
-/*! JointJS v0.9.1 - JavaScript diagramming library  2014-08-07 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-02-03 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -24,6 +24,17 @@ Important note: Presentation attributes have a lower precedence over CSS style r
    -moz-user-select: none;
    user-select: none;
 }
+
+/*
+1. IE can't handle paths without the `d` attribute for bounding box calculation
+2. IE can't even handle 'd' attribute as a css selector (e.g path[d]) so the following rule will
+   break the links rendering.
+
+path:not([d]) {
+    display: none;
+}
+
+*/
 
 /* .magnet is an element that can be either source or a target of a link */
 /*

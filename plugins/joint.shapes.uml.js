@@ -286,7 +286,7 @@ joint.shapes.uml.EndState = joint.shapes.basic.Generic.extend({
             'circle.outer': {
                 transform: 'translate(10, 10)',
                 r: 10,
-                fill: 'white',
+                fill: '#ffffff',
                 stroke: '#2c3e50'
             },
 

@@ -1,4 +1,4 @@
-/*! JointJS v0.9.2 - JavaScript diagramming library  2014-09-16 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-02-03 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -293,7 +293,7 @@ joint.shapes.uml.EndState = joint.shapes.basic.Generic.extend({
             'circle.outer': {
                 transform: 'translate(10, 10)',
                 r: 10,
-                fill: 'white',
+                fill: '#ffffff',
                 stroke: '#2c3e50'
             },
 

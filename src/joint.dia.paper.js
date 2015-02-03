@@ -27,6 +27,8 @@ joint.dia.Paper = Backbone.View.extend({
         // defaultLink: function(elementView, magnet) { return condition ? new customLink1() : new customLink2() }
         defaultLink: new joint.dia.Link,
 
+        /* CONNECTING */
+
         // Check whether to add a new link to the graph when user clicks on an a magnet.
         validateMagnet: function(cellView, magnet) {
             return magnet.getAttribute('magnet') !== 'passive';
@@ -36,7 +38,28 @@ joint.dia.Paper = Backbone.View.extend({
         // being changed.
         validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
             return (end === 'target' ? cellViewT : cellViewS) instanceof joint.dia.ElementView;
-        }
+        },
+
+        /* EMBEDDING */
+
+        // Enables embedding. Reparents the dragged element with elements under it and makes sure that
+        // all links and elements are visible taken the level of embedding into account.
+        embeddingMode: false,
+
+        // Check whether to allow or disallow the element embedding while an element being translated.
+        validateEmbedding: function(childView, parentView) {
+            // by default all elements can be in relation child-parent
+            return true;
+        },
+
+        // Determines the way how a cell finds a suitable parent when it's dragged over the paper.
+        // The cell with the highest z-index (visually on the top) will be choosen.
+        findParentBy: 'bbox', // 'bbox'|'center'|'origin'|'corner'|'topRight'|'bottomLeft'
+
+        // If enabled only the element on the very front is taken into account for the embedding.
+        // If disabled the elements under the dragged view are tested one by one
+        // (from front to back) until a valid parent found.
+        frontParentOnly: true
     },
 
     events: {
@@ -46,7 +69,11 @@ joint.dia.Paper = Backbone.View.extend({
         'click': 'mouseclick',
         'touchstart': 'pointerdown',
         'mousemove': 'pointermove',
-        'touchmove': 'pointermove'
+        'touchmove': 'pointermove',
+        'mouseover .element': 'cellMouseover',
+        'mouseover .link': 'cellMouseover',
+        'mouseout .element': 'cellMouseout',
+        'mouseout .link': 'cellMouseout'
     },
 
     constructor: function(options) {
@@ -66,14 +93,11 @@ joint.dia.Paper = Backbone.View.extend({
         _.bindAll(this, 'addCell', 'sortCells', 'resetCells', 'pointerup', 'asyncRenderCells');
 
         this.svg = V('svg').node;
-        this.viewport = V('g').node;
+        this.viewport = V('g').addClass('viewport').node;
+        this.defs = V('defs').node;
 
         // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
-        V(this.svg).append(V('defs').node);
-
-        V(this.viewport).attr({ 'class': 'viewport' });
-        
-        V(this.svg).append(this.viewport);
+        V(this.svg).append([this.viewport, this.defs]);
 
         this.$el.append(this.svg);
 
@@ -88,9 +112,15 @@ joint.dia.Paper = Backbone.View.extend({
 
         // Hold the value when mouse has been moved: when mouse moved, no click event will be triggered.
         this._mousemoved = false;
+
+        // default cell highlighting
+        this.on({ 'cell:highlight': this.onCellHighlight, 'cell:unhighlight': this.onCellUnhighlight });
     },
 
     remove: function() {
+
+        //clean up all DOM elements/views to prevent memory leaks
+        this.removeCells();
 
 	$(document).off('mouseup touchend', this.pointerup);
 
@@ -168,6 +198,10 @@ joint.dia.Paper = Backbone.View.extend({
 
         calcWidth += padding;
         calcHeight += padding;
+
+        // Make sure the resulting width and height are greater than minimum.
+        calcWidth = Math.max(calcWidth, opt.minWidth || 0);
+        calcHeight = Math.max(calcHeight, opt.minHeight || 0);
 
         var dimensionChange = calcWidth != this.options.width || calcHeight != this.options.height;
         var originChange = tx != this.options.origin.x || ty != this.options.origin.y;
@@ -335,15 +369,27 @@ joint.dia.Paper = Backbone.View.extend({
         $(view.el).find('image').on('dragstart', function() { return false; });
     },
 
+    beforeRenderCells: function(cells) {
+
+        // Make sure links are always added AFTER elements.
+        // They wouldn't find their sources/targets in the DOM otherwise.
+        cells.sort(function(a, b) { return a instanceof joint.dia.Link ? 1 : -1; });
+
+        return cells;
+    },
+
+    afterRenderCells: function() {
+
+        this.sortCells();
+    },
+
     resetCells: function(cellsCollection) {
 
         $(this.viewport).empty();
 
         var cells = cellsCollection.models.slice();
 
-        // Make sure links are always added AFTER elements.
-        // They wouldn't find their sources/targets in the DOM otherwise.
-        cells.sort(function(a, b) { return a instanceof joint.dia.Link ? 1 : -1; });
+        cells = this.beforeRenderCells(cells);
         
 	if (this._frameId) {
 
@@ -366,7 +412,17 @@ joint.dia.Paper = Backbone.View.extend({
 	}
     },
 
-    asyncRenderCells: function(cells) {
+    removeCells: function() {
+
+        this.model.get('cells').each(function(cell) {
+            var view = this.findViewByModel(cell);
+            view && view.remove();
+        }, this);
+    },
+
+    asyncBatchAdded: _.identity,
+
+    asyncRenderCells: function(cells, opt) {
 
         var done = false;
 
@@ -379,18 +435,20 @@ joint.dia.Paper = Backbone.View.extend({
                 if (!done) this.addCell(cell);
 
             }, this);
+
+            this.asyncBatchAdded();
         }
 
         if (done) {
 
             delete this._frameId;
-            this.sortCells();
-	    this.trigger('render:done');
+            this.afterRenderCells();
+	    this.trigger('render:done', opt);
 
 	} else {
 
             this._frameId = joint.util.nextFrame(_.bind(function() {
-		this.asyncRenderCells(cells);
+		this.asyncRenderCells(cells, opt);
 	    }, this));
         }
     },
@@ -539,7 +597,7 @@ joint.dia.Paper = Backbone.View.extend({
         var views = _.map(this.model.getElements(), this.findViewByModel);
 
 	return _.filter(views, function(view) {
-	    return g.rect(V(view.el).bbox(false, this.viewport)).containsPoint(p);
+	    return view && g.rect(V(view.el).bbox(false, this.viewport)).containsPoint(p);
 	}, this);
     },
 
@@ -551,7 +609,7 @@ joint.dia.Paper = Backbone.View.extend({
         var views = _.map(this.model.getElements(), this.findViewByModel);
 
 	return _.filter(views, function(view) {
-	    return r.intersect(g.rect(V(view.el).bbox(false, this.viewport)));
+	    return view && r.intersect(g.rect(V(view.el).bbox(false, this.viewport)));
 	}, this);
     },
 
@@ -579,6 +637,17 @@ joint.dia.Paper = Backbone.View.extend({
             ? this.options.defaultLink.call(this, cellView, magnet)
         // default link is the Backbone model
             : this.options.defaultLink.clone();
+    },
+
+    // Cell highlighting
+    // -----------------
+
+    onCellHighlight: function(cellView, el) {
+        V(el).addClass('highlighted');
+    },
+
+    onCellUnhighlight: function(cellView, el) {
+        V(el).removeClass('highlighted');
     },
 
     // Interaction.
@@ -677,6 +746,26 @@ joint.dia.Paper = Backbone.View.extend({
         } else {
 
             this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
+        }
+    },
+    
+    cellMouseover: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+        var view = this.findView(evt.target);
+        if (view) {
+
+            view.mouseover(evt);
+        }
+    },
+
+    cellMouseout: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+        var view = this.findView(evt.target);
+        if (view) {
+
+            view.mouseout(evt);
         }
     }
 });

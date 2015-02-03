@@ -1,4 +1,4 @@
-/*! JointJS v0.8.1 - JavaScript diagramming library  2014-02-24 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-02-03 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -278,7 +278,8 @@ joint.shapes.logic.Wire = joint.dia.Link.extend({
             '.marker-vertex': { r: 7 }
         },
 
-        manhattan: true
+        router: { name: 'orthogonal' },
+        connector: { name: 'rounded', args: { radius: 10 }},
 
     }, joint.dia.Link.prototype.defaults)
 

@@ -48,6 +48,12 @@ test('construction', function() {
         target: { id: r2.id },
         markup: '<path class="connection"/>'
     });
+
+    ok(_.isUndefined(l1.get('source').x) && _.isUndefined(l1.get('source').y),
+       'Source connected to an element has no x or y.');
+    ok(_.isUndefined(l1.get('target').x) && _.isUndefined(l1.get('target').y),
+       'Target connected to an element has no x or y.');
+
     this.graph.addCell(l1);
     var v1 = this.paper.findViewByModel(l1);
 

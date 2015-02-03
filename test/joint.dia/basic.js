@@ -114,12 +114,30 @@ test('getBBox()', function() {
 
     this.graph.addCell(myrect);
 
-    var bbox = this.paper.findViewByModel(myrect).getBBox();
+    var view = this.paper.findViewByModel(myrect);
+    var bbox = view.getBBox();
+
     equal(bbox.x, 20, 'bbox.x is correct');
     equal(bbox.y, 30, 'bbox.y is correct');
     equal(bbox.width, 120, 'bbox.width is correct');
     equal(bbox.height, 80, 'bbox.height is correct');
-    
+
+    myrect.attr('text', { ref: 'rect', 'ref-y': 100 });
+
+    bbox = view.getBBox({ useModelGeometry: false });
+
+    ok(bbox.height > 80, 'Translating text outside the rect: bbox.width grew.');
+    equal(bbox.x, 20, 'bbox.x is correct');
+    equal(bbox.y, 30, 'bbox.y is correct');
+    equal(bbox.width, 120, 'bbox.width is correct');
+
+    bbox = view.getBBox({ useModelGeometry: true });
+
+    equal(bbox.x, 20, 'Using model geometry: bbox.x is correct');
+    equal(bbox.y, 30, 'bbox.y is correct');
+    equal(bbox.width, 120, 'bbox.width is correct');
+    equal(bbox.height, 80, 'bbox.height is correct');
+
 });
 
 test('z index', function() {
@@ -141,6 +159,51 @@ test('z index', function() {
     this.graph.addCell(r4);
     ok(r2.get('z') < r3.get('z'), 'z index of the second added cell is lower than that of the third one');
     ok(r3.get('z') < r4.get('z'), 'z index of the third added cell is lower than that of the fourth, newly added, one');
+});
+
+test('position()', function() {
+
+    var r1 = new joint.shapes.basic.Rect({
+        position: { x: 100, y: 100 },
+        size: { width: 120, height: 80 },
+        attrs: { text: { text: 'my rectangle' }}
+    });
+
+    this.graph.addCell(r1);
+
+    var pos = r1.position();
+    checkBbox(this.paper, r1, pos.x, pos.y, 120, 80, 'getter "position()" returns the elements position.');
+
+    r1.position(200,200);
+    checkBbox(this.paper, r1, 200, 200, 120, 80, 'setter "position(a,b)" should move element to the given position.');
+     
+    // parentRelative option
+
+    var r2 = new joint.shapes.basic.Rect({
+        position: { x: 10, y: 10 },
+        size: { width: 30, height: 30 }
+    });
+
+    throws(function() {
+        r2.position(100,100, { parentRelative: true });
+    }, 'getter throws an error if "parentRelative" option passed and the element is not part of any collection.');
+
+    throws(function() {
+        r2.position({ parentRelative: true });
+    }, 'getter throws an error if "parentRelative" option passed and the element is not part of any collection.');
+
+    this.graph.addCell(r2);
+
+    deepEqual(r2.position({ parentRelative: true }), r2.position(), 'getter with "parentRelative" option works in same way as getter without this option for an unembed element.');    
+
+    r1.embed(r2);
+
+    r2.position(10,10, { parentRelative: true });
+    checkBbox(this.paper, r2, 210, 210, 30, 30, 'setter "position(a,b)" with "parentRelative" option should move element to the position relative to its parent.');
+
+    pos = r2.position({ parentRelative: true });
+    deepEqual(pos.toString(), "10@10", 'getter with "parentRelative" option returns position relative to the element parent.');
+    
 });
 
 test('translate()', function() {
@@ -313,7 +376,8 @@ test('prop()', function() {
     var el = new joint.shapes.basic.Rect({
 	flat: 5,
 	object: { nested: { value: 'foo' }, nested2: { value: 'bar' } },
-	array: [[5], [{ value: ['bar'] }]]
+	array: [[5], [{ value: ['bar'] }]],
+        a: { b: { c: 1 }}
     });
 
     equal(el.prop('flat'), 5, 'flat value returned in getter');
@@ -362,6 +426,9 @@ test('prop()', function() {
     el.prop('object/nested', 'baz');
     deepEqual(el.prop('object/nested2'), { value: 'bar' }, 'value in untouched nested object was preserved');    
     equal(el.prop('object/nested'), 'baz', 'value in nested object was changed');
+
+    el.prop('a/b', { d: 2 }, { rewrite: true });
+    deepEqual(el.prop('a/b'), { d: 2 }, 'rewrite mode doesn\'t merge values');
 });
 
 
@@ -386,6 +453,46 @@ test('toBack(), toFront()', function() {
 
     notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved back before r2 element in the DOM after toBack()');
 });
+
+test('toBack(), toFront() with { deep: true } option', function() {
+
+    var a1 = new joint.shapes.basic.Rect;
+    var a2 = new joint.shapes.basic.Rect;
+    var a3 = new joint.shapes.basic.Rect;
+    var a4 = new joint.shapes.basic.Rect;
+
+    a1.embed(a2).embed(a3.embed(a4));
+
+    var b1 = new joint.shapes.basic.Rect;
+    var b2 = new joint.shapes.basic.Rect;
+
+    this.graph.addCells([b1, a1, a2, a3, a4, b2]);
+
+    var a1View = this.paper.findViewByModel(a1);
+    var a2View = this.paper.findViewByModel(a2);
+    var a3View = this.paper.findViewByModel(a3);
+    var a4View = this.paper.findViewByModel(a4);
+    var b1View = this.paper.findViewByModel(b1);
+    var b2View = this.paper.findViewByModel(b2);
+    
+    equal(b2View.$el.nextAll('.basic.Rect').length, 0, 'element b2 after a1 element in the DOM');
+    equal(b1View.$el.prevAll('.basic.Rect').length, 0, 'element b1 before a1 element in the DOM');
+
+    a1.toFront({ deep: true });
+
+    equal(_.unique(a1View.$el.prevAll('.basic.Rect').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1,b2 element in the DOM after toFront()');
+    ok(a4View.$el.prev('.basic.Rect')[0] == a3View.el || a4View.$el.prev('.basic.Rect')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
+    ok(a2View.$el.prev('.basic.Rect')[0] == a1View.el || a3View.$el.prev('.basic.Rect')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
+
+    a1.toBack({ deep: true });
+
+    equal(a1View.$el.prevAll('.basic.Rect').length, 0, 'a1 element moved back before a2,a3,a4,b1,b2 elements in the DOM after toBack()');
+    ok(a4View.$el.prev('.basic.Rect')[0] == a3View.el || a4View.$el.prev('.basic.Rect')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
+    ok(a2View.$el.prev('.basic.Rect')[0] == a1View.el || a3View.$el.prev('.basic.Rect')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
+
+});
+
+
 
 test('clone()', function() {
 
@@ -461,6 +568,24 @@ test('embed(), unembed()', function() {
     r1.embed(r2);
     r2.remove();
     deepEqual(r1.get('embeds'), [], 'embedded element got removed from the embeds array of its parent when the embedded element remove() was called.');
+});
+
+test('isEmbeddedIn()', function() {
+
+    var r1 = new joint.shapes.basic.Rect;
+    var r2 = r1.clone();
+    var r3 = r1.clone();
+
+    r1.embed(r2);
+    r2.embed(r3);
+
+    this.graph.addCells([r1,r2,r3]);
+
+    ok(!r1.isEmbeddedIn(r1), 'We have 3 elements. r3 is embedded in r2, r2 is embedded in r1. | r1 is not child of r1. ');
+    ok(r2.isEmbeddedIn(r1), 'r2 is descendent of r1');
+    ok(r3.isEmbeddedIn(r1), 'r3 is descendent of r1');
+    ok(r3.isEmbeddedIn(r1, { deep: false }), 'r3 is not direct child of r1 (option { deep: false })');
+    ok(!r1.isEmbeddedIn(r3), 'r1 is not descendent of r3');
 });
 
 test('findMagnet()', function() {
@@ -871,4 +996,28 @@ asyncTest('transition: nested value', function() {
 
     }, 300);
 
+});
+
+test('graph.getCommonAncestor()', function() {
+
+    var r1 = new joint.shapes.basic.Rect;
+    var r2 = new joint.shapes.basic.Rect;
+    var r3 = new joint.shapes.basic.Rect;
+    var r4 = new joint.shapes.basic.Rect;
+    var r5 = new joint.shapes.basic.Rect;
+    var r6 = new joint.shapes.basic.Rect;
+    var r7 = new joint.shapes.basic.Rect;
+
+    r1.embed(r2.embed(r4).embed(r5)).embed(r3.embed(r6));
+
+    this.graph.addCells([r1,r2,r3,r4,r5,r6,r7]);
+
+    ok(!this.graph.getCommonAncestor(), 'r1 embeds r2 and r3. r2 embeds r4 and r5. r3 embeds r6. r1 and r7 have no parents. Calling getCommonAncestor() returns no common ancestor.');
+    equal((this.graph.getCommonAncestor(r2) || {}).id, r2.id, 'Common ancestor for r2 is r2.');
+    equal((this.graph.getCommonAncestor(r2,r3) || {}).id, r1.id, 'Common ancestor for r2 and r3 is r1.');
+    equal((this.graph.getCommonAncestor(r2,r3,r4) || {}).id, r1.id, 'Common ancestor for r2,r3 and r4 is r1');
+    ok(!this.graph.getCommonAncestor(r2,r3,r7), 'There is no common ancestor for r2,r3 and r5');
+    equal((this.graph.getCommonAncestor(r2,r3,r1) || {}).id, r1.id, 'Common ancestor for r2,r3 and r1 is r1');
+    equal((this.graph.getCommonAncestor(r5,r4) || {}).id, r2.id, 'Common ancestor for r5 and r4 is r2');
+    equal((this.graph.getCommonAncestor(r5,r6) || {}).id, r1.id, 'Common ancestor for r5 and r6 is r1');
 });

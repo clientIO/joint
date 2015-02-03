@@ -47,6 +47,16 @@ joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
+joint.shapes.basic.TextView = joint.dia.ElementView.extend({
+
+    initialize: function() {
+        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+        // The element view is not automatically rescaled to fit the model size
+        // when the attribute 'attrs' is changed.
+        this.listenTo(this.model, 'change:attrs', this.resize);
+    }
+});
+
 joint.shapes.basic.Text = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><text/></g></g>',

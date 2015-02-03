@@ -13,7 +13,12 @@ var paper = new joint.dia.Paper({
 	    if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
 		this.addVertex({ x: x, y: y });
 	    }
-	}
+	},
+        options: _.extend({}, joint.dia.LinkView.prototype.options, {
+            doubleLinkTools: true,
+            linkToolsOffset: 40,
+            doubleLinkToolsOffset: 60
+        })
     }),
     interactive: function(cellView) {
 	if (cellView.model.get('vertexOnDblClick')) {

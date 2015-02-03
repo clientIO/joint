@@ -31,6 +31,7 @@ module.exports = function(grunt) {
             'shapes.pn': ['plugins/joint.shapes.pn.js'],
             'shapes.devs': ['plugins/joint.shapes.devs.js'],
             'shapes.uml': ['plugins/joint.shapes.uml.js'],
+            'shapes.logic': ['plugins/joint.shapes.logic.js'],
 
             'layout.DirectedGraph': ['plugins/layout/DirectedGraph/lib/dagre.js', 'plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js']
         }

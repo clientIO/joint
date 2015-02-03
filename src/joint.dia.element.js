@@ -27,11 +27,44 @@ joint.dia.Element = joint.dia.Cell.extend({
         angle: 0
     },
 
-    position: function(x, y) {
+    position: function(x, y, opt) {
 
-        this.set('position', { x: x, y: y });
+        var isSetter = _.isNumber(y);
+
+        opt = (isSetter ? opt : x) || {};
+
+        // option `parentRelative` for setting the position relative to the element's parent.
+        if (opt.parentRelative) {
+
+            // Getting the parent's position requires the collection.
+            // Cell.get('parent') helds cell id only.
+            if (!this.collection) throw new Error("Element must be part of a collection.");
+
+            var parent = this.collection.get(this.get('parent'));
+            var parentPosition = parent && !parent.isLink()
+                ? parent.get('position')
+                : { x: 0, y: 0 };
+        }
+
+        if (isSetter) {
+
+            if (opt.parentRelative) {
+                x += parentPosition.x;
+                y += parentPosition.y;
+            }
+
+            return this.set('position', { x: x, y: y }, opt);
+
+        } else { // Getter returns a geometry point.
+
+            var elementPosition = g.point(this.get('position'));
+
+            return opt.parentRelative
+                ? elementPosition.difference(parentPosition)
+                : elementPosition;
+        }
     },
-    
+
     translate: function(tx, ty, opt) {
 
         ty = ty || 0;
@@ -41,10 +74,17 @@ joint.dia.Element = joint.dia.Cell.extend({
             return this;
         }
 
+        opt = opt || {};
+        // Pass the initiator of the translation.
+        opt.translateBy = opt.translateBy || this.id;
+        // To find out by how much an element was translated in event 'change:position' handlers.
+        opt.tx = tx;
+        opt.ty = ty;
+
         var position = this.get('position') || { x: 0, y: 0 };
 	var translatedPosition = { x: position.x + tx || 0, y: position.y + ty || 0 };
 
-	if (opt && opt.transition) {
+	if (opt.transition) {
 
 	    if (!_.isObject(opt.transition)) opt.transition = {};
 
@@ -182,8 +222,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 $selected.each(function() {
 
-                    V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight });
+                    V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight, textPath: attrs.textPath });
                 });
+                specialAttributes.push('lineHeight','textPath');
             }
 
             // Set regular attributes on the `$selected` subelement. Note that we cannot use the jQuery attr()
@@ -538,32 +579,141 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         rotatable.attr('transform', 'rotate(' + angle + ',' + ox + ',' + oy + ')');
     },
 
+    getBBox: function(opt) {
+
+        if (opt && opt.useModelGeometry) {
+            var noTransformationBBox = this.model.getBBox().bbox(this.model.get('angle'));
+            var transformationMatrix = this.paper.viewport.getCTM();
+            return V.transformRect(noTransformationBBox, transformationMatrix);
+        }
+
+        return joint.dia.CellView.prototype.getBBox.apply(this, arguments);
+    },
+
+    // Embedding mode methods
+    // ----------------------
+
+    findParentsByKey: function(key) {
+
+        var bbox = this.model.getBBox();
+
+        return key == 'bbox'
+            ? this.paper.model.findModelsInArea(bbox)
+            : this.paper.model.findModelsFromPoint(bbox[key]());
+    },
+
+    prepareEmbedding: function() {
+
+        // Bring the model to the front with all his embeds.
+        this.model.toFront({ deep: true, ui: true });
+
+        // Move to front also all the inbound and outbound links that are connected
+        // to any of the element descendant. If we bring to front only embedded elements,
+        // links connected to them would stay in the background.
+        _.invoke(this.paper.model.getConnectedLinks(this.model, { deep: true }), 'toFront', { ui: true });
+
+        // Before we start looking for suitable parent we remove the current one.
+        var parentId = this.model.get('parent');
+	parentId && this.paper.model.getCell(parentId).unembed(this.model, { ui: true });
+    },
+
+    processEmbedding: function(opt) {
+
+        opt = opt || this.paper.options;
+
+        var candidates = this.findParentsByKey(opt.findParentBy);
+
+        // don't account element itself or any of its descendents
+        candidates = _.reject(candidates, function(el) {
+            return this.model.id == el.id || el.isEmbeddedIn(this.model);
+        }, this);
+
+        if (opt.frontParentOnly) {
+            // pick the element with the highest `z` index
+            candidates = candidates.slice(-1);
+        }
+
+        var newCandidateView = null;
+        var prevCandidateView = this._candidateEmbedView;
+
+        // iterate over all candidates starting from the last one (has the highest z-index).
+        for (var i = candidates.length - 1; i >= 0; i--) {
+
+            var candidate = candidates[i];
+
+            if (prevCandidateView && prevCandidateView.model.id == candidate.id) {
+
+                // candidate remains the same
+                newCandidateView = prevCandidateView;
+                break;
+
+            } else {
+
+                var view = candidate.findView(this.paper);
+                if (opt.validateEmbedding.call(this.paper, this, view)) {
+
+                    // flip to the new candidate
+                    newCandidateView = view;
+                    break;
+                }
+            }
+        }
+
+        if (newCandidateView && newCandidateView != prevCandidateView) {
+            // A new candidate view found. Highlight the new one.
+            prevCandidateView && prevCandidateView.unhighlight(null, { embedding: true });
+            this._candidateEmbedView = newCandidateView.highlight(null, { embedding: true });
+        }
+
+        if (!newCandidateView && prevCandidateView) {
+            // No candidate view found. Unhighlight the previous candidate.
+            prevCandidateView.unhighlight(null, { embedding: true });
+            delete this._candidateEmbedView;
+        }
+    },
+
+    finalizeEmbedding: function() {
+
+        var candidateView = this._candidateEmbedView;
+
+        if (candidateView) {
+
+            // We finished embedding. Candidate view is chosen to become the parent of the model.
+            candidateView.model.embed(this.model, { ui: true });
+            candidateView.unhighlight(null, { embedding: true });
+
+            delete this._candidateEmbedView;
+        }
+
+        _.invoke(this.paper.model.getConnectedLinks(this.model, { deep: true }), 'reparent', { ui: true });
+    },
+
     // Interaction. The controller part.
     // ---------------------------------
 
-    
     pointerdown: function(evt, x, y) {
+
+        this.model.trigger('batch:start');
 
         if ( // target is a valid magnet start linking
             evt.target.getAttribute('magnet') &&
             this.paper.options.validateMagnet.call(this.paper, this, evt.target)
         ) {
-                this.model.trigger('batch:start');
 
-                var link = this.paper.getDefaultLink(this, evt.target);
-                link.set({
-                    source: {
-                        id: this.model.id,
-                        selector: this.getSelector(evt.target),
-                        port: $(evt.target).attr('port')
-                    },
-                    target: { x: x, y: y }
-                });
+            var link = this.paper.getDefaultLink(this, evt.target);
+            link.set({
+                source: {
+                    id: this.model.id,
+                    selector: this.getSelector(evt.target),
+                    port: $(evt.target).attr('port')
+                },
+                target: { x: x, y: y }
+            });
 
-                this.paper.model.addCell(link);
+            this.paper.model.addCell(link);
 
-	        this._linkView = this.paper.findViewByModel(link);
-                this._linkView.startArrowheadMove('target');
+	    this._linkView = this.paper.findViewByModel(link);
+            this._linkView.startArrowheadMove('target');
 
         } else {
 
@@ -597,6 +747,19 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 		    g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - this._dx, grid),
 		    g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - this._dy, grid)
 	        );
+
+                if (this.paper.options.embeddingMode) {
+
+                    if (!this._inProcessOfEmbedding) {
+                        // Prepare the element for embedding only if the pointer moves.
+                        // We don't want to do unnecessary action with the element
+                        // if an user only clicks/dblclicks on it.
+                        this.prepareEmbedding();
+                        this._inProcessOfEmbedding = true;
+                    }
+
+                    this.processEmbedding();
+                }
             }
 
             this._dx = g.snapToGrid(x, grid);
@@ -615,12 +778,17 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             delete this._linkView;
 
-            this.model.trigger('batch:stop');
-
         } else {
+
+            if (this._inProcessOfEmbedding) {
+                this.finalizeEmbedding();
+                this._inProcessOfEmbedding = false;
+            }
 
             joint.dia.CellView.prototype.pointerup.apply(this, arguments);
         }
+
+        this.model.trigger('batch:stop');
     }
 
 });

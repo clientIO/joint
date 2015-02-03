@@ -178,29 +178,55 @@ joint.dia.Cell = Backbone.Model.extend({
 	return this;
     },
 
-    toFront: function() {
+    toFront: function(opt) {
 
         if (this.collection) {
 
-            this.set('z', (this.collection.last().get('z') || 0) + 1);
+            opt = opt || {};
+
+            var z = (this.collection.last().get('z') || 0) + 1;
+
+            this.trigger('batch:start').set('z', z, opt);
+
+            if (opt.deep) {
+
+                var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
+                _.each(cells, function(cell) { cell.set('z', ++z, opt); });
+
+            }
+
+            this.trigger('batch:stop');
         }
 
 	return this;
     },
-    
-    toBack: function() {
+
+    toBack: function(opt) {
 
         if (this.collection) {
+
+            opt = opt || {};
             
-            this.set('z', (this.collection.first().get('z') || 0) - 1);
+            var z = (this.collection.first().get('z') || 0) - 1;
+
+            this.trigger('batch:start');
+
+            if (opt.deep) {
+
+                var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
+                _.eachRight(cells, function(cell) { cell.set('z', z--, opt); });
+
+            }
+
+            this.set('z', z, opt).trigger('batch:stop');
         }
 
 	return this;
     },
 
-    embed: function(cell) {
+    embed: function(cell, opt) {
 
-	if (this.get('parent') == cell.id) {
+	if (this == cell || this.isEmbeddedIn(cell)) {
 
 	    throw new Error('Recursive embedding not allowed.');
 
@@ -208,8 +234,13 @@ joint.dia.Cell = Backbone.Model.extend({
 
 	    this.trigger('batch:start');
 
-	    cell.set('parent', this.id);
-	    this.set('embeds', _.uniq((this.get('embeds') || []).concat([cell.id])));
+            var embeds = _.clone(this.get('embeds') || []);
+
+            // We keep all element ids after links ids.
+            embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
+
+	    cell.set('parent', this.id, opt);
+	    this.set('embeds', _.uniq(embeds), opt);
 
 	    this.trigger('batch:stop');
 	}
@@ -217,21 +248,21 @@ joint.dia.Cell = Backbone.Model.extend({
 	return this;
     },
 
-    unembed: function(cell) {
+    unembed: function(cell, opt) {
 
 	this.trigger('batch:start');
 
-        var cellId = cell.id;
-        cell.unset('parent');
-
-        this.set('embeds', _.without(this.get('embeds'), cellId));
+        cell.unset('parent', opt);
+        this.set('embeds', _.without(this.get('embeds'), cell.id), opt);
 
 	this.trigger('batch:stop');
 
 	return this;
     },
 
-    getEmbeddedCells: function() {
+    getEmbeddedCells: function(opt) {
+
+        opt = opt || {};
 
         // Cell models can only be retrieved when this element is part of a collection.
         // There is no way this element knows about other cells otherwise.
@@ -239,13 +270,68 @@ joint.dia.Cell = Backbone.Model.extend({
         // adding it to a graph does not translate its embeds.
         if (this.collection) {
 
-            return _.map(this.get('embeds') || [], function(cellId) {
+            var cells;
 
-                return this.collection.get(cellId);
-                
-            }, this);
+            if (opt.deep) {
+
+                if (opt.breadthFirst) {
+
+                    // breadthFirst algorithm
+                    cells = [];
+                    var queue = this.getEmbeddedCells();
+
+                    while (queue.length > 0) {
+
+                        var parent = queue.shift();
+                        cells.push(parent);
+                        queue.push.apply(queue, parent.getEmbeddedCells());
+                    }
+
+                } else {
+
+                    // depthFirst algorithm
+                    cells = this.getEmbeddedCells();
+                    _.each(cells, function(cell) {
+                        cells.push.apply(cells, cell.getEmbeddedCells(opt));
+                    });
+                }
+
+            } else {
+
+                cells = _.map(this.get('embeds'), this.collection.get, this.collection);
+            }
+
+            return cells;
         }
         return [];
+    },
+
+    isEmbeddedIn: function(cell, opt) {
+
+        var cellId = _.isString(cell) ? cell : cell.id;
+
+        opt = _.defaults({ deep: true }, opt);
+
+        var parentId = this.get('parent');
+
+        // See getEmbeddedCells().
+        if (this.collection && opt.deep) {
+
+            while (parentId) {
+                if (parentId == cellId) {
+                    return true;
+                }
+                parentId = this.collection.get(parentId).get('parent');
+            }
+
+            return false;
+
+        } else {
+
+            // When this cell is not part of a collection check
+            // at least whether it's a direct child of given cell.
+            return parentId == cellId;
+        }
     },
 
     clone: function(opt) {
@@ -365,6 +451,10 @@ joint.dia.Cell = Backbone.Model.extend({
 		var pathArray = path.split('/');
 		var property = pathArray[0];
 
+                opt = opt || {};
+                opt.propertyPath = path;
+                opt.propertyValue = value;
+
 	        if (pathArray.length == 1) {
                     // Property is not nested. We can simply use `set()`.
                     return this.set(property, value, opt);
@@ -383,8 +473,14 @@ joint.dia.Cell = Backbone.Model.extend({
 		});
 		// Fill update with the `value` on `path`.
 		update = joint.util.setByPath(update, path, value, '/');
+
+                var baseAttributes = _.merge({}, this.attributes);
+                // if rewrite mode enabled, we replace value referenced by path with
+                // the new one (we don't merge).
+                opt.rewrite && joint.util.unsetByPath(baseAttributes, path, '/');
+
 		// Merge update with the model attributes.
-		var attributes = _.merge({}, this.attributes, update);
+		var attributes = _.merge(baseAttributes, update);
 		// Finally, set the property to the updated attributes.
 		return this.set(property, attributes[property], opt);
 
@@ -399,27 +495,14 @@ joint.dia.Cell = Backbone.Model.extend({
 
     // A convenient way to set nested attributes.
     attr: function(attrs, value, opt) {
-
-        var currentAttrs = this.get('attrs');
-        var delim = '/';
         
         if (_.isString(attrs)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
-
-            if (typeof value != 'undefined') {
-
-                var attr = {};
-                joint.util.setByPath(attr, attrs, value, delim);
-                return this.set('attrs', _.merge({}, currentAttrs, attr), opt);
-                
-            } else {
-                
-                return joint.util.getByPath(currentAttrs, attrs, delim);
-            }
+            return this.prop('attrs/' + attrs, value, opt);
         }
         
-        return this.set('attrs', _.merge({}, currentAttrs, attrs), value, opt);
+        return this.prop({ 'attrs': attrs }, value);
     },
 
     // A convenient way to unset nested attributes
@@ -532,6 +615,11 @@ joint.dia.Cell = Backbone.Model.extend({
     findView: function(paper) {
 
         return paper.findViewByModel(this);
+    },
+
+    isLink: function() {
+
+        return false;
     }
 });
 
@@ -663,18 +751,27 @@ joint.dia.CellView = Backbone.View.extend({
         return V(this.el).bbox();
     },
 
-    highlight: function(el) {
+    highlight: function(el, opt) {
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
-        V(el).addClass('highlighted');
+        // set partial flag if the highlighted element is not the entire view.
+        opt = opt || {};
+        opt.partial = el != this.el;
+
+        this.notify('cell:highlight', el, opt);
+        return this;
     },
 
-    unhighlight: function(el) {
+    unhighlight: function(el, opt) {
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
-        V(el).removeClass('highlighted');
+        opt = opt || {};
+        opt.partial = el != this.el;
+
+        this.notify('cell:unhighlight', el, opt);
+        return this;
     },
 
     // Find the closest element that has the `magnet` attribute set to `true`. If there was not such
@@ -842,6 +939,16 @@ joint.dia.CellView = Backbone.View.extend({
 	    delete this._collection;
 	}
 
+    },
+
+    mouseover: function(evt) {
+
+        this.notify('cell:mouseover', evt);
+    },
+
+    mouseout: function(evt) {
+
+        this.notify('cell:mouseout', evt);
     }
 });
 

@@ -19,7 +19,7 @@ joint.shapes.fsa.State = joint.shapes.basic.Circle.extend({
         type: 'fsa.State',
         attrs: {
             circle: { 'stroke-width': 3 },
-            text: { 'font-weight': 'bold' }
+            text: { 'font-weight': '800' }
         }
     }, joint.shapes.basic.Circle.prototype.defaults)
 });
@@ -36,7 +36,7 @@ joint.shapes.fsa.StartState = joint.dia.Element.extend({
             circle: {
                 transform: 'translate(10, 10)',
                 r: 10,
-                fill: 'black'
+                fill: '#000000'
             }
         }
 
@@ -55,8 +55,8 @@ joint.shapes.fsa.EndState = joint.dia.Element.extend({
             '.outer': {
                 transform: 'translate(10, 10)',
                 r: 10,
-                fill: '#FFFFFF',
-                stroke: 'black'
+                fill: '#ffffff',
+                stroke: '#000000'
             },
 
             '.inner': {

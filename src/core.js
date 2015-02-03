@@ -57,7 +57,7 @@ var joint = {
             
             while (keys.length) {
                 key = keys.shift();
-                if (key in obj) {
+                if (Object(obj) === obj && key in obj) {
                     obj = obj[key];
                 } else {
                     return undefined;
@@ -300,6 +300,99 @@ var joint = {
 	    return client ? _.bind(caf, window) : caf;
 	})(),
 
+        // Find the intersection of a line starting in the center
+        // of the SVG node ending in the point `ref`.
+        // The function uses isPointInStroke() method that is
+        // not supported by all the browsers. However, a fallback
+        // that finds the intersection of only the bounding box is used in those cases.
+        // Returns `undefined` if no intersection is found.
+        findIntersection: function(node, ref) {
+
+            var bbox = g.rect(V(node).bbox()).moveAndExpand(g.rect(-5, -5, 10, 10));
+            var center = bbox.center();
+            var spot = g.rect(bbox).intersectionWithLineFromCenterToPoint(ref);
+
+            if (!spot) return undefined;
+            
+            if (!_.contains(['PATH', 'CIRCLE', 'ELLIPSE', 'RECT', 'POLYGON', 'LINE', 'POLYLINE'], node.localName.toUpperCase())) {
+
+                return spot;
+            }
+
+            // Fallback for browsers that do not support `isPointInStroke()` and `isPointInFill()` SVG methods.
+            if (!node.isPointInStroke || !node.isPointInFill) {
+
+                return spot;
+            }
+
+            var lastSpot = spot;
+            var ctm = node.getCTM();
+            var svgPoint = V.createSVGPoint(0, 0);
+            var dist = spot.distance(center);
+            
+            while (dist > 1) {
+	        
+	        spot = spot.move(center, -1);
+	        dist = spot.distance(center);
+
+	        svgPoint.x = spot.x;
+	        svgPoint.y = spot.y;
+	        svgPoint = svgPoint.matrixTransform(ctm.inverse());
+
+	        if (node.isPointInStroke(svgPoint) || node.isPointInFill(svgPoint)) {
+
+	            return lastSpot;
+	        }
+	        lastSpot = g.point(spot);
+            }
+
+            return undefined;
+        },
+
+        shapePerimeterConnectionPoint: function(linkView, view, magnet, reference) {
+
+            var bbox = g.rect(view.getBBox());
+
+            var spot;
+
+            if (!magnet) {
+
+                // There is no magnet, try to make the best guess what is the 
+                // wrapping SVG element. This is because we want this "smart"
+                // connection points to work out of the box without the
+                // programmer to put magnet marks to any of the subelements.
+                // For example, we want the functoin to work on basic.Path elements
+                // without any special treatment of such elements.
+                // The code below guesses the wrapping element based on 
+                // one simple assumption. The wrapping elemnet is the
+                // first child of the scalable group if such a group exists
+                // or the first child of the rotatable group if not.
+                // This makese sense because usually the wrapping element
+                // is below any other sub element in the shapes.
+                var scalable = view.$('.scalable')[0];
+                var rotatable = view.$('.rotatable')[0];
+
+                if (scalable && scalable.firstChild) {
+
+                    magnet = scalable.firstChild;
+
+                } else if (rotatable && rotatable.firstChild) {
+
+                    magnet = rotatable.firstChild;
+                }
+            }
+
+            if (magnet) {
+
+                spot = joint.util.findIntersection(magnet, reference);
+
+            } else {
+
+                spot = bbox.intersectionWithLineFromCenterToPoint(reference);
+            }
+            return spot || bbox.center();
+        },
+
         breakText: function(text, size, styles, opt) {
 
             opt = opt || {};
@@ -444,7 +537,7 @@ var joint = {
 
 	imageToDataUri: function(url, callback) {
 
-	    if (url.substr(0, 'data:'.length) === 'data:') {
+	    if (!url || url.substr(0, 'data:'.length) === 'data:') {
 		// No need to convert to data uri if it is already in data uri.
 
 		// This not only convenient but desired. For example, 

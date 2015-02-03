@@ -32,20 +32,19 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend(_.extend({}, joint.s
             '.': { magnet: false },
             '.body': {
                 width: 150, height: 250,
-                stroke: 'black'
+                stroke: '#000000'
             },
             '.port-body': {
                 r: 10,
                 magnet: true,
-                stroke: 'black'
+                stroke: '#000000'
             },
             text: {
-                fill: 'black',
                 'pointer-events': 'none'
             },
-            '.label': { text: 'Model', 'ref-x': .5, 'ref-y': 10, ref: '.body', 'text-anchor': 'middle' },
-            '.inPorts .port-label': { x:-15, dy: 4, 'text-anchor': 'end' },
-            '.outPorts .port-label':{ x: 15, dy: 4 }
+            '.label': { text: 'Model', 'ref-x': .5, 'ref-y': 10, ref: '.body', 'text-anchor': 'middle', fill: '#000000' },
+            '.inPorts .port-label': { x:-15, dy: 4, 'text-anchor': 'end', fill: '#000000' },
+            '.outPorts .port-label':{ x: 15, dy: 4, fill: '#000000' }
         }
 
     }, joint.shapes.basic.Generic.prototype.defaults),

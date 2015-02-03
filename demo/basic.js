@@ -1,12 +1,12 @@
 var graph = new joint.dia.Graph;
 
 var paper = new joint.dia.Paper({
-
     el: $('#paper'),
     width: 650,
     height: 400,
     gridSize: 20,
-    model: graph
+    model: graph,
+    linkConnectionPoint: joint.util.shapePerimeterConnectionPoint
 });
 
 var rb = new joint.shapes.basic.Rect({
@@ -35,7 +35,7 @@ var ib = new joint.shapes.basic.Image({
     size: { width: 40, height: 40 },
     attrs: {
         text: { text: 'basic.Image' },
-        image: { 'xlink:href': 'https://cdn3.iconfinder.com/data/icons/betelgeuse/96/224386-folder-image-48.png', width: 48, height: 48 }
+        image: { 'xlink:href': 'http://placehold.it/48x48', width: 48, height: 48 }
     }
 });
 graph.addCell(ib);
@@ -166,3 +166,67 @@ rb.on('change:attrs', function(element) {
     element.resize(width + 10, height);
 });
 
+// Image decorated rectangle shape example.
+
+joint.shapes.basic.DecoratedRect = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><rect/></g><image/><text/></g>',
+    
+    defaults: joint.util.deepSupplement({
+    
+        type: 'basic.DecoratedRect',
+        size: { width: 100, height: 60 },
+        attrs: {
+            'rect': { fill: '#FFFFFF', stroke: 'black', width: 100, height: 60 },
+            'text': { 'font-size': 14, text: '', 'ref-x': .5, 'ref-y': .5, ref: 'rect', 'y-alignment': 'middle', 'x-alignment': 'middle', fill: 'black' },
+            'image': { 'ref-x': 2, 'ref-y': 2, ref: 'rect', width: 16, height: 16 }
+        }
+        
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+var decoratedRect = new joint.shapes.basic.DecoratedRect({
+    position: { x: 150, y: 80 },
+    size: { width: 100, height: 60 },
+    attrs: { 
+        text: { text: 'My Element' },
+        image: { 'xlink:href': 'http://placehold.it/16x16' }
+    }
+});
+graph.addCell(decoratedRect);
+
+
+joint.shapes.basic.Cylinder = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><path/></g><text/></g>',
+
+    defaults: joint.util.deepSupplement({
+    
+        type: 'basic.Cylinder',
+        size: { width: 40, height: 40 },
+        attrs: {
+            'path': { 
+                fill: '#FFFFFF', stroke: '#cbd2d7', 'stroke-width': 3,
+                d: [
+                    'M 0 10 C 10 5, 30 5, 40 10 C 30 15, 10 15, 0 10',
+                    'L 0 20',
+                    'C 10 25, 30 25, 40 20',
+                    'L 40 10'
+                ].join(' ')
+            },
+            'text': { fill: '#435460', 'font-size': 14, text: '', 'ref-x': .5, 'ref-y': .7, ref: 'path', 'y-alignment': 'middle', 'text-anchor': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+        }
+        
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+
+var cylinder = new joint.shapes.basic.Cylinder({
+    position: { x: 200, y: 200 },
+    size: { width: 180, height: 150 },
+    attrs: {
+        text: { text: 'SEQUENCE\nLIBRARY' }
+    }
+});
+
+graph.addCell(cylinder);

@@ -6,21 +6,7 @@ var paper = new joint.dia.Paper({
     gridSize: 10,
     perpendicularLinks: false,
     model: graph,
-    linkConnectionPoint: function(linkView, view, magnet, reference) {
-
-	var bbox = view.getStrokeBBox(magnet);
-
-	if (magnet && magnet.isPointInStroke && _.contains(['path', 'circle', 'rect'], magnet.localName)) {
-
-	    spot = intersection(magnet, reference);
-
-	} else {
-
-	    spot = g.rect(bbox).intersectionWithLineFromCenterToPoint(reference);
-	}
-
-	return spot || g.rect(bbox).center();
-    }
+    linkConnectionPoint: joint.util.shapePerimeterConnectionPoint
 });
 
 // Shortcuts.
@@ -67,7 +53,7 @@ var palm = 'M14.296,27.885v-2.013c0,0-0.402-1.408-1.073-2.013c-0.671-0.604-1.274
 var icons = [cross, star, umbrella, music, thunder, palm];
 
 var d = star;
-var o7 = (new path({ position: { x: 150, y: 370 }, attrs: { text: { text: 'path' }, path: { magnet: true, d: d }}})).addTo(graph);
+var o7 = (new path({ position: { x: 150, y: 370 }, attrs: { text: { text: 'path' }, path: { d: d }}})).addTo(graph);
 var o8 = (new rect({ position: { x: 300, y: 380 }, size: { width: 60, height: 30 } })).addTo(graph);
 var linko7o8 = (new link({ source: { id: o7.id, selector: 'path' }, target: { id: o8.id } })).addTo(graph);
 
@@ -76,6 +62,10 @@ paper.on('cell:pointerdown', function(cellView, evt, x, y) {
 	o7.attr('path/d', _.shuffle(icons)[0]);
     }
 });
+
+var o9 = (new text({ position: { x: 400, y: 50 }, size: { width: 60, height: 30 }, attrs: { text: { text: 'my text' } } })).addTo(graph);
+var o10 = o1.clone().position(500, 50).addTo(graph);
+var linko9o10 = (new link({ source: { id: o9.id, selector: 'text' }, target: { id: o10.id } })).addTo(graph);
 
 function intersection(node, ref) {
 

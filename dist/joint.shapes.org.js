@@ -1,4 +1,4 @@
-/*! JointJS v0.9.2 - JavaScript diagramming library  2014-09-16 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-02-03 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -49,7 +49,7 @@ joint.shapes.org.Member = joint.dia.Element.extend({
             },
 
             '.name': {
-                'font-weight': 'bold',
+                'font-weight': '800',
                 ref: '.card', 'ref-x': 0.9, 'ref-y': 0.6,
                 'font-family': 'Courier New', 'font-size': 14,
 		'text-anchor': 'end'

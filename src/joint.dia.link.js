@@ -76,7 +76,9 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     defaults: {
 
-        type: 'link'
+        type: 'link',
+        source: {},
+        target: {}
     },
 
     disconnect: function() {
@@ -127,6 +129,47 @@ joint.dia.Link = joint.dia.Cell.extend({
         }
 
         return this.set(attrs, opt);
+    },
+
+    reparent: function(opt) {
+
+        var newParent;
+
+        if (this.collection) {
+
+            var source = this.collection.get(this.get('source').id);
+            var target = this.collection.get(this.get('target').id);
+            var prevParent = this.collection.get(this.get('parent'));
+
+            if (source && target) {
+                newParent = this.collection.getCommonAncestor(source, target);
+            }
+
+            if (prevParent && (!newParent || newParent.id != prevParent.id)) {
+                // Unembed the link if source and target has no common ancestor
+                // or common ancestor changed
+                prevParent.unembed(this, opt);
+            }
+
+            if (newParent) {
+                newParent.embed(this, opt);
+            }
+        }
+
+        return newParent;
+    },
+
+    isLink: function() {
+
+        return true;
+    },
+
+    hasLoop: function() {
+
+        var sourceId = this.get('source').id;
+        var targetId = this.get('target').id;
+
+        return sourceId && targetId && sourceId == targetId;
     }
 });
 
@@ -142,18 +185,22 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     options: {
 
-        shortLinkLength: 100
+        shortLinkLength: 100,
+        doubleLinkTools: false,
+        longLinkLength: 160,
+        linkToolsOffset: 40,
+        doubleLinkToolsOffset: 60
     },
     
-    initialize: function() {
+    initialize: function(options) {
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
 
         // create methods in prototype, so they can be accessed from any instance and
         // don't need to be create over and over
         if (typeof this.constructor.prototype.watchSource !== 'function') {
-            this.constructor.prototype.watchSource = this._createWatcher('source');
-            this.constructor.prototype.watchTarget = this._createWatcher('target');
+            this.constructor.prototype.watchSource = this.createWatcher('source');
+            this.constructor.prototype.watchTarget = this.createWatcher('target');
         }
 
         // `_.labelCache` is a mapping of indexes of labels in the `this.get('labels')` array to
@@ -178,8 +225,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 	this.listenTo(this.model, 'change:labels change:labelMarkup', function() {
             this.renderLabels().updateLabelPositions();
         });
-        this.listenTo(this.model, 'change:vertices change:vertexMarkup', function() {
-            this.renderVertexMarkers().update();
+        this.listenTo(this.model, 'change:vertices change:vertexMarkup', function(cell, changed, opt) {
+            this.renderVertexMarkers();
+            // If the vertices have been changed by a translation we do update only if the link was
+            // only one translated. If the link was translated via another element which the link
+            // is embedded in, this element will be translated as well and that triggers an update.
+            // Note that all embeds in a model are sorted - first comes links, then elements.
+            if (!opt.translateBy || (opt.translateBy == this.model.id || this.model.hasLoop())) {
+                this.update();
+            }
         });
 	this.listenTo(this.model, 'change:source', function(cell, source) {
             this.watchSource(cell, source).update();
@@ -318,6 +372,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Cache the tool node so that the `updateToolsPosition()` can update the tool position quickly.
         this._toolCache = tool;
 
+        // If `doubleLinkTools` is enabled, we render copy of the tools on the other side of the
+        // link as well but only if the link is longer than `longLinkLength`.
+        if (this.options.doubleLinkTools) {
+
+            var tool2 = tool.clone();
+            $tools.append(tool2.node);
+            this._tool2Cache = tool2;
+        }
+
         return this;
     },
 
@@ -370,18 +433,40 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Update attributes.
         _.each(this.model.get('attrs'), function(attrs, selector) {
-            
+
+            var processedAttributes = [];
+
+            // If the `fill` or `stroke` attribute is an object, it is in the special JointJS gradient format and so
+            // it becomes a special attribute and is treated separately.
+            if (_.isObject(attrs.fill)) {
+
+                this.applyGradient(selector, 'fill', attrs.fill);
+                processedAttributes.push('fill');
+            }
+
+            if (_.isObject(attrs.stroke)) {
+
+                this.applyGradient(selector, 'stroke', attrs.stroke);
+                processedAttributes.push('stroke');
+            }
+
             // If the `filter` attribute is an object, it is in the special JointJS filter format and so
             // it becomes a special attribute and is treated separately.
             if (_.isObject(attrs.filter)) {
-                
-                this.findBySelector(selector).attr(_.omit(attrs, 'filter'));
+
                 this.applyFilter(selector, attrs.filter);
-                
-            } else {
-                
-                this.findBySelector(selector).attr(attrs);
+                processedAttributes.push('filter');
             }
+
+            // remove processed special attributes from attrs
+            if (processedAttributes.length > 0) {
+
+                processedAttributes.unshift(attrs);
+                attrs = _.omit.apply(_, processedAttributes);
+            }
+
+            this.findBySelector(selector).attr(attrs);
+
         }, this);
 
         // Path finding
@@ -404,6 +489,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.updateArrowheadMarkers();
 
         delete this.options.perpendicular;
+        // Mark that postponed update has been already executed.
+        this.updatePostponed = false;
 
         return this;
     },
@@ -506,10 +593,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // this up all the time would be slow.
 
         var scale = '';
-        var offset = 40;
+        var offset = this.options.linkToolsOffset;
+        var connectionLength = this.getConnectionLength();
 
         // If the link is too short, make the tools half the size and the offset twice as low.
-        if (this.getConnectionLength() < this.options.shortLinkLength) {
+        if (connectionLength < this.options.shortLinkLength) {
             scale = 'scale(.5)';
             offset /= 2;
         }
@@ -517,6 +605,19 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var toolPosition = this.getPointAtLength(offset);
         
         this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
+
+        if (this.options.doubleLinkTools && connectionLength >= this.options.longLinkLength) {
+
+            var doubleLinkToolsOffset = this.options.doubleLinkToolsOffset || offset;
+
+            toolPosition = this.getPointAtLength(connectionLength - doubleLinkToolsOffset);
+            this._tool2Cache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
+            this._tool2Cache.attr('visibility', 'visible');
+
+        } else if (this.options.doubleLinkTools) {
+            
+            this._tool2Cache.attr('visibility', 'hidden');
+        }
 
         return this;
     },
@@ -540,87 +641,115 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     // Returns a function observing changes on an end of the link. If a change happens and new end is a new model,
     // it stops listening on the previous one and starts listening to the new one.
-    _createWatcher: function(endType) {
+    createWatcher: function(endType) {
 
-        function watchEnd(link, end) {
+        // create handler for specific end type (source|target).
+        var onModelChange = _.partial(this.onEndModelChange, endType);
+
+        function watchEndModel(link, end) {
 
             end = end || {};
 
+            var endModel = null;
             var previousEnd = link.previous(endType) || {};
 
-            // Pick updateMethod this._sourceBboxUpdate or this._targetBboxUpdate.
-            var updateEndFunction = this['_' + endType + 'BBoxUpdate'];
-
-            if (this._isModel(previousEnd)) {
-                this.stopListening(this.paper.getModelById(previousEnd.id), 'change', updateEndFunction);
+            if (previousEnd.id) {
+                this.stopListening(this.paper.getModelById(previousEnd.id), 'change', onModelChange);
             }
 
-            if (this._isModel(end)) {
+            if (end.id) {
                 // If the observed model changes, it caches a new bbox and do the link update.
-                this.listenTo(this.paper.getModelById(end.id), 'change', updateEndFunction);
+                endModel = this.paper.getModelById(end.id);
+                this.listenTo(endModel, 'change', onModelChange);
             }
 
-            _.bind(updateEndFunction, this)({ cacheOnly: true });
+            onModelChange.call(this, endModel, { cacheOnly: true });
 
             return this;
         }
 
-        return watchEnd;
+        return watchEndModel;
     },
 
-    // It's important to keep both methods (sourceBboxUpdate and targetBboxUpdate) as unique methods
-    // because of loop links. We have to be able to determine, which method we want to stop listen to.
-    // ListenTo(model, event, handler) as model and event will be identical.
-    _sourceBBoxUpdate: function(update) {
+    onEndModelChange: function(endType, endModel, opt) {
 
-        // keep track which end had been changed very last
-        this.lastEndChange = 'source';
+        var doUpdate = !opt.cacheOnly;
+        var end = this.model.get(endType) || {};
 
-        update = update || {};
-        var end = this.model.get('source');
+        if (endModel) {
 
-        if (this._isModel(end)) {
+            var selector = this.constructor.makeSelector(end);
+            var oppositeEndType = endType == 'source' ? 'target' : 'source';
+            var oppositeEnd = this.model.get(oppositeEndType) || {};
+            var oppositeSelector = oppositeEnd.id && this.constructor.makeSelector(oppositeEnd);
 
-            var selector = this._makeSelector(end);
-            var view = this.paper.findViewByModel(end.id);
-            var magnetElement = this.paper.viewport.querySelector(selector);
+            // Caching end models bounding boxes
+            if (opt.isLoop && selector == oppositeSelector) {
 
-            this.sourceBBox = view.getStrokeBBox(magnetElement);
-	    this.sourceView = view;
-	    this.sourceMagnet = magnetElement;
+                // Source and target elements are identical. We are handling `change` event for the
+                // second time now. There is no need to calculate bbox and find magnet element again.
+                // It was calculated already for opposite link end.
+                this[endType + 'BBox'] = this[oppositeEndType + 'BBox'];
+	        this[endType + 'View'] = this[oppositeEndType + 'View'];
+	        this[endType + 'Magnet'] = this[oppositeEndType + 'Magnet'];
 
-        } else if (end) {
+            } else if (opt.translateBy) {
+
+                var bbox = this[endType + 'BBox'];
+                bbox.x += opt.tx;
+                bbox.y += opt.ty;
+
+            } else {
+
+                var view = this.paper.findViewByModel(end.id);
+                var magnetElement = view.el.querySelector(selector);
+
+                this[endType + 'BBox'] = view.getStrokeBBox(magnetElement);
+	        this[endType + 'View'] = view;
+	        this[endType + 'Magnet'] = magnetElement;
+            }
+
+            if (opt.isLoop && opt.translateBy &&
+                this.model.isEmbeddedIn(endModel) &&
+                !_.isEmpty(this.model.get('vertices'))) {
+                // If the link is embedded, has a loop and vertices and the end model
+                // has been translated, do not update yet. There are vertices still to be updated.
+                doUpdate = false;
+            }
+
+            if (!this.updatePostponed && oppositeEnd.id) {
+
+                var oppositeEndModel = this.paper.getModelById(oppositeEnd.id);
+
+                // Passing `isLoop` flag via event option.
+                // Note that if we are listening to the same model for event 'change' twice.
+                // The same event will be handled by this method also twice.
+                opt.isLoop = end.id == oppositeEnd.id;
+
+                if (opt.isLoop || (opt.translateBy && oppositeEndModel.isEmbeddedIn(opt.translateBy))) {
+
+                    // Here are two options:
+                    // - Source and target are connected to the same model (not necessary the same port)
+                    // - both end models are translated by same ancestor. We know that opposte end
+                    //   model will be translated in the moment as well.
+                    // In both situations there will be more changes on model that will trigger an
+                    // update. So there is no need to update the linkView yet.
+                    this.updatePostponed = true;
+                    doUpdate = false;
+                }
+            }
+
+        } else {
+
             // the link end is a point ~ rect 1x1
-            this.sourceBBox = g.rect(end.x, end.y, 1, 1);
+            this[endType + 'BBox'] = g.rect(end.x || 0, end.y || 0, 1, 1);
+	    this[endType + 'View'] = this[endType + 'Magnet'] = null;
         }
 
-        if (!update.cacheOnly) this.update();
-    },
-
-    _targetBBoxUpdate: function(update) {
-
         // keep track which end had been changed very last
-        this.lastEndChange = 'target';
+        this.lastEndChange = endType;
 
-        update = update || {};
-        var end = this.model.get('target');
-
-        if (this._isModel(end)) {
-
-            var selector = this._makeSelector(end);
-            var view = this.paper.findViewByModel(end.id);
-            var magnetElement = this.paper.viewport.querySelector(selector);
-
-            this.targetBBox = view.getStrokeBBox(magnetElement);
-	    this.targetView = view;
-	    this.targetMagnet = magnetElement;
-
-        } else if (end) {
-            // the link end is a point ~ rect 1x1
-            this.targetBBox = g.rect(end.x, end.y, 1, 1);
-        }
-
-        if (!update.cacheOnly) this.update();
+        doUpdate && this.update();
     },
 
     _translateAndAutoOrientArrows: function(sourceArrow, targetArrow) {
@@ -651,7 +780,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (vertices && vertices.length) {
 
             vertices.splice(idx, 1);
-            this.model.set('vertices', vertices);
+            this.model.set('vertices', vertices, { ui: true });
         }
 
         return this;
@@ -662,9 +791,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // the new vertex is somewhere on the path.
     addVertex: function(vertex) {
 
-        this.model.set('attrs', this.model.get('attrs') || {});
-        var attrs = this.model.get('attrs');
-        
         // As it is very hard to find a correct index of the newly created vertex,
         // a little heuristics is taking place here.
         // The heuristics checks if length of the newly created
@@ -718,7 +844,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 	    vertices.splice(idx, 0, vertex);
 	}
 
-        this.model.set('vertices', vertices);
+        this.model.set('vertices', vertices, { ui: true });
 
         return idx;
     },
@@ -803,10 +929,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // If the `selectorOrPoint` (or `referenceSelectorOrPoint`) is `undefined`, the `source`/`target` of the link model is `undefined`.
         // We want to allow this however so that one can create links such as `var link = new joint.dia.Link` and
         // set the `source`/`target` later.
-        selectorOrPoint = selectorOrPoint || { x: 0, y: 0 };
-        referenceSelectorOrPoint = referenceSelectorOrPoint || { x: 0, y: 0 };
+        _.isEmpty(selectorOrPoint) && (selectorOrPoint = { x: 0, y: 0 });
+        _.isEmpty(referenceSelectorOrPoint) && (referenceSelectorOrPoint = { x: 0, y: 0 });
 
-        if (this._isPoint(selectorOrPoint)) {
+        if (!selectorOrPoint.id) {
 
             // If the source is a point, we don't need a reference point to find the sticky point of connection.
             spot = g.point(selectorOrPoint);
@@ -823,7 +949,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             
             var reference;
             
-            if (this._isPoint(referenceSelectorOrPoint)) {
+            if (!referenceSelectorOrPoint.id) {
 
                 // Reference was passed as a point, therefore, we're ready to find the sticky point of connection on the source element.
                 reference = g.point(referenceSelectorOrPoint);
@@ -906,30 +1032,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return spot;
     },
 
-    _isModel: function(end) {
-
-        return end && end.id;
-    },
-
-    _isPoint: function(end) {
-
-        return !this._isModel(end);
-    },
-
-    _makeSelector: function(end) {
-
-        var selector = '[model-id="' + end.id + '"]';
-        // `port` has a higher precendence over `selector`. This is because the selector to the magnet
-        // might change while the name of the port can stay the same.
-        if (end.port) {
-            selector += ' [port="' + end.port + '"]';
-        } else if (end.selector) {
-            selector += ' ' + end.selector;
-        }
-
-        return selector;
-    },
-
     // Public API
     // ----------
 
@@ -951,7 +1053,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.model.trigger('batch:start');
 
         this._z = this.model.get('z');
-        this.model.set('z', Number.MAX_VALUE);
+        this.model.toFront();
 
         // Let the pointer propagate throught the link view elements so that
         // the `evt.target` is another element under the pointer, not the link itself.
@@ -965,7 +1067,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     _afterArrowheadMove: function() {
 
         if (this._z) {
-            this.model.set('z', this._z);
+            this.model.set('z', this._z, { ui: true });
             delete this._z;
         }
 
@@ -1138,7 +1240,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             var vertices = _.clone(this.model.get('vertices'));
             vertices[this._vertexIdx] = { x: x, y: y };
-            this.model.set('vertices', vertices);
+            this.model.set('vertices', vertices, { ui: true });
             break;
 
           case 'arrowhead-move':
@@ -1150,7 +1252,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var r = this.paper.options.snapLinks.radius || 50;
                 var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
 
-                this._closestView && this._closestView.unhighlight(this._closestEnd.selector);
+                this._closestView && this._closestView.unhighlight(this._closestEnd.selector, { connecting: true, snapping: true });
                 this._closestView = this._closestEnd = null;
 
                 var pointer = g.point(x,y);
@@ -1205,9 +1307,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 }, this);
 
-                this._closestView && this._closestView.highlight(this._closestEnd.selector);
+                this._closestView && this._closestView.highlight(this._closestEnd.selector, { connecting: true, snapping: true });
 
-                this.model.set(this._arrowhead, this._closestEnd || { x: x, y: y });
+                this.model.set(this._arrowhead, this._closestEnd || { x: x, y: y }, { ui: true });
 
             } else {
 
@@ -1221,7 +1323,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 if (this._targetEvent !== target) {
                     // Unhighlight the previous view under pointer if there was one.
-                    this._magnetUnderPointer && this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
+                    this._magnetUnderPointer && this._viewUnderPointer.unhighlight(this._magnetUnderPointer, { connecting: true });
                     this._viewUnderPointer = this.paper.findView(target);
                     if (this._viewUnderPointer) {
                         // If we found a view that is under the pointer, we need to find the closest
@@ -1235,7 +1337,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                             // If there was no magnet found, do not highlight anything and assume there
                             // is no view under pointer we're interested in reconnecting to.
                             // This can only happen if the overall element has the attribute `'.': { magnet: false }`.
-                            this._magnetUnderPointer && this._viewUnderPointer.highlight(this._magnetUnderPointer);
+                            this._magnetUnderPointer && this._viewUnderPointer.highlight(this._magnetUnderPointer, { connecting: true });
                         } else {
                             // This type of connection is not valid. Disregard this magnet.
                             this._magnetUnderPointer = null;
@@ -1248,7 +1350,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
 	        this._targetEvent = target;
 
-                this.model.set(this._arrowhead, { x: x, y: y });
+                this.model.set(this._arrowhead, { x: x, y: y }, { ui: true });
             }
 
             break;
@@ -1266,13 +1368,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             if (this.paper.options.snapLinks) {
 
-                this._closestView && this._closestView.unhighlight(this._closestEnd.selector);
+                this._closestView && this._closestView.unhighlight(this._closestEnd.selector, { connecting: true, snapping: true });
                 this._closestView = this._closestEnd = null;
 
             } else {
 
                 if (this._magnetUnderPointer) {
-                    this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
+                    this._viewUnderPointer.unhighlight(this._magnetUnderPointer, { connecting: true });
                     // Find a unique `selector` of the element under pointer that is a magnet. If the
                     // `this._magnetUnderPointer` is the root element of the `this._viewUnderPointer` itself,
                     // the returned `selector` will be `undefined`. That means we can directly pass it to the
@@ -1281,13 +1383,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                         id: this._viewUnderPointer.model.id,
                         selector: this._viewUnderPointer.getSelector(this._magnetUnderPointer),
                         port: $(this._magnetUnderPointer).attr('port')
-                    });
+                    }, { ui: true });
                 }
 
                 delete this._viewUnderPointer;
                 delete this._magnetUnderPointer;
-                delete this._staticView;
-                delete this._staticMagnet;
+            }
+
+            // Reparent the link if embedding is enabled
+            if (this.paper.options.embeddingMode && this.model.reparent()) {
+
+                // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
+                delete this._z;
             }
 
             this._afterArrowheadMove();
@@ -1295,6 +1402,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         delete this._action;
     }
+
+}, {
+
+    makeSelector: function(end) {
+
+        var selector = '[model-id="' + end.id + '"]';
+        // `port` has a higher precendence over `selector`. This is because the selector to the magnet
+        // might change while the name of the port can stay the same.
+        if (end.port) {
+            selector += ' [port="' + end.port + '"]';
+        } else if (end.selector) {
+            selector += ' ' + end.selector;
+        }
+
+        return selector;
+    }
+
 });
 
 

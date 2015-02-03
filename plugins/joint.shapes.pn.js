@@ -25,8 +25,8 @@ joint.shapes.pn.Place = joint.shapes.basic.Generic.extend({
         attrs: {
             '.root': {
                 r: 25,
-                fill: 'white',
-                stroke: 'black',
+                fill: '#ffffff',
+                stroke: '#000000',
                 transform: 'translate(25, 25)'
             },
             '.label': {
@@ -34,11 +34,11 @@ joint.shapes.pn.Place = joint.shapes.basic.Generic.extend({
                 'ref-x': .5,
                 'ref-y': -20,
                 ref: '.root',
-                fill: 'black',
+                fill: '#000000',
                 'font-size': 12
             },
             '.tokens > circle': {
-                fill: 'black',
+                fill: '#000000',
                 r: 5
             },
             '.tokens.one > circle': { transform: 'translate(25, 25)' },
@@ -53,7 +53,7 @@ joint.shapes.pn.Place = joint.shapes.basic.Generic.extend({
             '.tokens.alot > text': {
 		transform: 'translate(25, 18)',
 		'text-anchor': 'middle',
-                fill: 'black'
+                fill: '#000000'
             }
         }
 
@@ -130,15 +130,15 @@ joint.shapes.pn.Transition = joint.shapes.basic.Generic.extend({
             'rect': {
                 width: 12,
                 height: 50,
-                fill: 'black',
-                stroke: 'black'
+                fill: '#000000',
+                stroke: '#000000'
             },
             '.label': {
                 'text-anchor': 'middle',
                 'ref-x': .5,
                 'ref-y': -20,
                 ref: 'rect',
-                fill: 'black',
+                fill: '#000000',
                 'font-size': 12
             }
         }

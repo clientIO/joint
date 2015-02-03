@@ -1,4 +1,4 @@
-/*! JointJS v0.9.1 - JavaScript diagramming library  2014-08-07 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-02-03 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -16843,6 +16843,16 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
         return 'v-' + id;
     }
 
+    // Create an SVG document element.
+    // If `content` is passed, it will be used as the SVG content of the `<svg>` root element.
+    function createSvgDocument(content) {
+
+        var svg = '<svg xmlns="' + ns.xmlns + '" xmlns:xlink="' + ns.xlink + '" version="' + SVGversion + '">' + (content || '') + '</svg>';
+        var parser = new DOMParser();
+        parser.async = false;
+	return parser.parseFromString(svg, 'text/xml').documentElement;
+    }
+
     // Create SVG element.
     // -------------------
 
@@ -16859,18 +16869,13 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
         // If `el` is a `'svg'` or `'SVG'` string, create a new SVG canvas.
         if (el.toLowerCase() === 'svg') {
             
-            attrs.xmlns = ns.xmlns;
-            attrs['xmlns:xlink'] = ns.xlink;
-            attrs.version = SVGversion;
+	    return new VElement(createSvgDocument());
             
         } else if (el[0] === '<') {
             // Create element from an SVG string.
             // Allows constructs of type: `document.appendChild(Vectorizer('<rect></rect>').node)`.
             
-            var svg = '<svg xmlns="' + ns.xmlns + '" xmlns:xlink="' + ns.xlink + '" version="' + SVGversion + '">' + el + '</svg>';
-            var parser = new DOMParser();
-            parser.async = false;
-            var svgDoc = parser.parseFromString(svg, 'text/xml').documentElement;
+            var svgDoc = createSvgDocument(el);
 
             // Note that `createElement()` might also return an array should the SVG string passed as
             // the first argument contain more then one root element.
@@ -16917,6 +16922,7 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
             // have a `xlink:href` attribute to set the source of the image.
             var combinedKey = name.split(':');
             el.setAttributeNS(ns[combinedKey[0]], combinedKey[1], value);
+
         } else if (name === 'id') {
             el.id = value;
         } else {
@@ -17122,55 +17128,8 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
             }
 
             var matrix = this.node.getTransformToElement(target || this.node.ownerSVGElement);
-            var corners = [];
-            var point = this.node.ownerSVGElement.createSVGPoint();
 
-
-            point.x = box.x;
-            point.y = box.y;
-            corners.push(point.matrixTransform(matrix));
-            
-            point.x = box.x + box.width;
-            point.y = box.y;
-            corners.push(point.matrixTransform(matrix));
-            
-            point.x = box.x + box.width;
-            point.y = box.y + box.height;
-            corners.push(point.matrixTransform(matrix));
-            
-            point.x = box.x;
-            point.y = box.y + box.height;
-            corners.push(point.matrixTransform(matrix));
-
-            var minX = corners[0].x;
-            var maxX = minX;
-            var minY = corners[0].y;
-            var maxY = minY;
-            
-            for (var i = 1, len = corners.length; i < len; i++) {
-                
-                var x = corners[i].x;
-                var y = corners[i].y;
-
-                if (x < minX) {
-                    minX = x;
-                } else if (x > maxX) {
-                    maxX = x;
-                }
-                
-                if (y < minY) {
-                    minY = y;
-                } else if (y > maxY) {
-                    maxY = y;
-                }
-            }
-
-            return {
-                x: minX,
-                y: minY,
-                width: maxX - minX,
-                height: maxY - minY
-            };
+            return V.transformRect(box, matrix);
         },
 
         text: function(content, opt) {
@@ -17196,23 +17155,68 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
 	    // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
 	    this.node.setAttributeNS("http://www.w3.org/XML/1998/namespace", "xml:space","preserve");
 
-            if (lines.length === 1) {
-                this.node.textContent = content;
-                return this;
-            }
             // Easy way to erase all `<tspan>` children;
             this.node.textContent = '';
-            
+
+            var textNode = this.node;
+
+            if (opt.textPath) {
+
+                // Wrap the text in the SVG <textPath> element that points
+                // to a path defined by `opt.textPath` inside the internal `<defs>` element.
+                var defs = this.find('defs');
+                if (defs.length === 0) {
+                    defs = createElement('defs');
+                    this.append(defs);
+                }
+                
+                // If `opt.textPath` is a plain string, consider it to be directly the
+                // SVG path data for the text to go along (this is a shortcut).
+                // Otherwise if it is an object and contains the `d` property, then this is our path.
+                var d = Object(opt.textPath) === opt.textPath ? opt.textPath.d : opt.textPath;
+                if (d) {
+                    var path = createElement('path', { d: d });
+                    defs.append(path);
+                }
+
+                var textPath = createElement('textPath');
+                // Set attributes on the `<textPath>`. The most important one
+                // is the `xlink:href` that points to our newly created `<path/>` element in `<defs/>`.
+                // Note that we also allow the following construct:
+                // `t.text('my text', { textPath: { 'xlink:href': '#my-other-path' } })`.
+                // In other words, one can completely skip the auto-creation of the path
+                // and use any other arbitrary path that is in the document.
+                if (!opt.textPath['xlink:href'] && path) {
+                    textPath.attr('xlink:href', '#' + path.node.id);
+                }
+
+                if (Object(opt.textPath) === opt.textPath) {
+                    textPath.attr(opt.textPath);
+                }
+                this.append(textPath);
+                // Now all the `<tspan>`s will be inside the `<textPath>`.
+                textNode = textPath.node;
+            }
+
+            if (lines.length === 1) {
+                textNode.textContent = content;
+                return this;
+            }
+
             for (; i < lines.length; i++) {
 
                 // Shift all the <tspan> but first by one line (`1em`)
-                tspan = V('tspan', { dy: (i == 0 ? '0em' : opt.lineHeight || '1em'), x: this.attr('x') || 0});
+                tspan = V('tspan', { dy: (i == 0 ? '0em' : opt.lineHeight || '1em'), x: this.attr('x') || 0 });
+                tspan.addClass('line');
+                if (!lines[i]) {
+                    tspan.addClass('empty-line');
+                }
 		// Make sure the textContent is never empty. If it is, add an additional 
 		// space (an invisible character) so that following lines are correctly
 		// relatively positioned. `dy=1em` won't work with empty lines otherwise.
                 tspan.node.textContent = lines[i] || ' ';
                 
-                this.append(tspan);
+                V(textNode).append(tspan);
             }
             return this;
         },
@@ -17519,6 +17523,34 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
         return p;
     };
 
+    V.transformRect = function(r, matrix) {
+
+        var p = svgDocument.createSVGPoint();
+
+        p.x = r.x;
+        p.y = r.y;
+        var corner1 = p.matrixTransform(matrix);
+
+        p.x = r.x + r.width;
+        p.y = r.y;
+        var corner2 = p.matrixTransform(matrix);
+
+        p.x = r.x + r.width;
+        p.y = r.y + r.height;
+        var corner3 = p.matrixTransform(matrix);
+
+        p.x = r.x;
+        p.y = r.y + r.height;
+        var corner4 = p.matrixTransform(matrix);
+
+        var minX = Math.min(corner1.x,corner2.x,corner3.x,corner4.x);
+        var maxX = Math.max(corner1.x,corner2.x,corner3.x,corner4.x);
+        var minY = Math.min(corner1.y,corner2.y,corner3.y,corner4.y);
+        var maxY = Math.max(corner1.y,corner2.y,corner3.y,corner4.y);
+
+        return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+    };
+
     return V;
 
 }));
@@ -17564,7 +17596,11 @@ if ( typeof window === "object" && typeof window.document === "object" ) {
     var PI = math.PI;
     var random = math.random;
     var toDeg = function(rad) { return (180*rad / PI) % 360; };
-    var toRad = function(deg) { return (deg % 360) * PI / 180; };
+    var toRad = function(deg, over360) {
+        over360 = over360 || false;
+        deg = over360 ? deg : (deg % 360);
+        return deg * PI / 180;
+    };
     var snapToGrid = function(val, gridSize) { return gridSize * Math.round(val/gridSize); };
     var normalizeAngle = function(angle) { return (angle % 360) + (angle < 0 ? 360 : 0); };
 
@@ -18283,6 +18319,8 @@ if (typeof exports === 'object') {
 
 var joint = {
 
+    version: '[%= pkg.version %]',
+
     // `joint.dia` namespace.
     dia: {},
 
@@ -18327,7 +18365,7 @@ var joint = {
             
             while (keys.length) {
                 key = keys.shift();
-                if (key in obj) {
+                if (Object(obj) === obj && key in obj) {
                     obj = obj[key];
                 } else {
                     return undefined;
@@ -18570,6 +18608,99 @@ var joint = {
 	    return client ? _.bind(caf, window) : caf;
 	})(),
 
+        // Find the intersection of a line starting in the center
+        // of the SVG node ending in the point `ref`.
+        // The function uses isPointInStroke() method that is
+        // not supported by all the browsers. However, a fallback
+        // that finds the intersection of only the bounding box is used in those cases.
+        // Returns `undefined` if no intersection is found.
+        findIntersection: function(node, ref) {
+
+            var bbox = g.rect(V(node).bbox()).moveAndExpand(g.rect(-5, -5, 10, 10));
+            var center = bbox.center();
+            var spot = g.rect(bbox).intersectionWithLineFromCenterToPoint(ref);
+
+            if (!spot) return undefined;
+            
+            if (!_.contains(['PATH', 'CIRCLE', 'ELLIPSE', 'RECT', 'POLYGON', 'LINE', 'POLYLINE'], node.localName.toUpperCase())) {
+
+                return spot;
+            }
+
+            // Fallback for browsers that do not support `isPointInStroke()` and `isPointInFill()` SVG methods.
+            if (!node.isPointInStroke || !node.isPointInFill) {
+
+                return spot;
+            }
+
+            var lastSpot = spot;
+            var ctm = node.getCTM();
+            var svgPoint = V.createSVGPoint(0, 0);
+            var dist = spot.distance(center);
+            
+            while (dist > 1) {
+	        
+	        spot = spot.move(center, -1);
+	        dist = spot.distance(center);
+
+	        svgPoint.x = spot.x;
+	        svgPoint.y = spot.y;
+	        svgPoint = svgPoint.matrixTransform(ctm.inverse());
+
+	        if (node.isPointInStroke(svgPoint) || node.isPointInFill(svgPoint)) {
+
+	            return lastSpot;
+	        }
+	        lastSpot = g.point(spot);
+            }
+
+            return undefined;
+        },
+
+        shapePerimeterConnectionPoint: function(linkView, view, magnet, reference) {
+
+            var bbox = g.rect(view.getBBox());
+
+            var spot;
+
+            if (!magnet) {
+
+                // There is no magnet, try to make the best guess what is the 
+                // wrapping SVG element. This is because we want this "smart"
+                // connection points to work out of the box without the
+                // programmer to put magnet marks to any of the subelements.
+                // For example, we want the functoin to work on basic.Path elements
+                // without any special treatment of such elements.
+                // The code below guesses the wrapping element based on 
+                // one simple assumption. The wrapping elemnet is the
+                // first child of the scalable group if such a group exists
+                // or the first child of the rotatable group if not.
+                // This makese sense because usually the wrapping element
+                // is below any other sub element in the shapes.
+                var scalable = view.$('.scalable')[0];
+                var rotatable = view.$('.rotatable')[0];
+
+                if (scalable && scalable.firstChild) {
+
+                    magnet = scalable.firstChild;
+
+                } else if (rotatable && rotatable.firstChild) {
+
+                    magnet = rotatable.firstChild;
+                }
+            }
+
+            if (magnet) {
+
+                spot = joint.util.findIntersection(magnet, reference);
+
+            } else {
+
+                spot = bbox.intersectionWithLineFromCenterToPoint(reference);
+            }
+            return spot || bbox.center();
+        },
+
         breakText: function(text, size, styles, opt) {
 
             opt = opt || {};
@@ -18711,6 +18842,70 @@ var joint = {
 
             return lines.join('\n');
         },
+
+	imageToDataUri: function(url, callback) {
+
+	    if (!url || url.substr(0, 'data:'.length) === 'data:') {
+		// No need to convert to data uri if it is already in data uri.
+
+		// This not only convenient but desired. For example, 
+		// IE throws a security error if data:image/svg+xml is used to render
+		// an image to the canvas and an attempt is made to read out data uri.
+		// Now if our image is already in data uri, there is no need to render it to the canvas
+		// and so we can bypass this error.
+
+		// Keep the async nature of the function.
+		return setTimeout(function() { callback(null, url) }, 0);
+	    }
+
+	    var canvas = document.createElement('canvas');
+            var img = document.createElement('img');
+
+	    img.onload = function() {
+
+		var ctx = canvas.getContext('2d');
+
+		canvas.width = img.width;
+		canvas.height = img.height;
+
+		ctx.drawImage(img, 0, 0);
+		
+		try {
+
+		    // Guess the type of the image from the url suffix.
+		    var suffix = (url.split('.').pop()) || 'png';
+		    // A little correction for JPEGs. There is no image/jpg mime type but image/jpeg.
+		    var type = 'image/' + (suffix === 'jpg') ? 'jpeg' : suffix;
+		    var dataUri = canvas.toDataURL(type);
+
+		} catch (e) {
+
+		    if (/\.svg$/.test(url)) {
+			// IE throws a security error if we try to render an SVG into the canvas.
+			// Luckily for us, we don't need canvas at all to convert
+			// SVG to data uri. We can just use AJAX to load the SVG string
+			// and construct the data uri ourselves.
+			var xhr = window.XMLHttpRequest ? new XMLHttpRequest : new ActiveXObject('Microsoft.XMLHTTP');
+			xhr.open('GET', url, false);
+			xhr.send(null);
+			var svg = xhr.responseText;
+
+			return callback(null, 'data:image/svg+xml,' + encodeURIComponent(svg));
+		    }
+
+		    console.error(img.src, 'fails to convert', e);
+		}
+
+		callback(null, dataUri);
+	    };
+
+	    img.ononerror = function() {
+
+		callback(new Error('Failed to load image.'));
+	    };
+
+	    img.src = url;
+	},
 
 	timing: {
 
@@ -19084,7 +19279,43 @@ var joint = {
                         : negative + (zcomma ? value : padding + value)) + fullSuffix;
             },
 
-            convert: function(type, value, precision) {
+            // Formatting string via the Python Format string.
+            // See https://docs.python.org/2/library/string.html#format-string-syntax)
+            string: function (formatString, value) {
+                var fieldDelimiterIndex;
+                var fieldDelimiter = '{';
+                var endPlaceholder = false;
+                var formattedStringArray = [];
+
+                while ((fieldDelimiterIndex = formatString.indexOf(fieldDelimiter)) !== -1) {
+
+                    var pieceFormatedString, formatSpec, fieldName;
+
+                    pieceFormatedString = formatString.slice(0, fieldDelimiterIndex);
+
+                    if (endPlaceholder) {
+                        formatSpec = pieceFormatedString.split(":");
+                        fieldName = formatSpec.shift().split(".");
+                        pieceFormatedString = value;
+
+                        for (var i = 0; i < fieldName.length; i++)
+                            pieceFormatedString = pieceFormatedString[fieldName[i]];
+
+                        if (formatSpec.length)
+                            pieceFormatedString = this.number(formatSpec, pieceFormatedString);
+                    }
+
+                    formattedStringArray.push(pieceFormatedString);
+
+                    formatString = formatString.slice(fieldDelimiterIndex + 1);
+                    fieldDelimiter = (endPlaceholder = !endPlaceholder) ? '}' : '{'
+                }
+                formattedStringArray.push(formatString);
+
+                return formattedStringArray.join('')
+            },
+
+            convert: function (type, value, precision) {
 
                 switch (type) {
                   case 'b': return value.toString(2);
@@ -19125,7 +19356,7 @@ var joint = {
                 var i = 0;
                 if (value) {
                     if (value < 0) value *= -1;
-                    if (precision) value = d3.round(value, this.precision(value, precision));
+                    if (precision) value = this.round(value, this.precision(value, precision));
                     i = 1 + Math.floor(1e-12 + Math.log(value) / Math.LN10);
                     i = Math.max(-24, Math.min(24, Math.floor((i <= 0 ? i + 1 : i - 1) / 3) * 3));
                 }
@@ -19202,34 +19433,87 @@ joint.dia.GraphCells = Backbone.Collection.extend({
             opt.inbound = opt.outbound = true;
         }
 
-        var links = [];
-        
-        this.each(function(cell) {
+        var links = this.filter(function(cell) {
 
             var source = cell.get('source');
             var target = cell.get('target');
 
-            if (source && source.id === model.id && opt.outbound) {
-                
-                links.push(cell);
-            }
-
-            if (target && target.id === model.id && opt.inbound) {
-
-                links.push(cell);
-            }
+            return (source && source.id === model.id && opt.outbound) ||
+                (target && target.id === model.id  && opt.inbound);
         });
 
+        // option 'deep' returns all links that are connected to any of the descendent cell
+        // and are not descendents itself
+        if (opt.deep) {
+
+            var embeddedCells = model.getEmbeddedCells({ deep: true });
+
+            _.each(this.difference(links, embeddedCells), function(cell) {
+
+                if (opt.outbound) {
+
+                    var source = cell.get('source');
+
+                    if (source && source.id && _.find(embeddedCells, { id: source.id })) {
+                        links.push(cell);
+                        return; // prevent a loop link to be pushed twice
+                    }
+                }
+
+                if (opt.inbound) {
+
+                    var target = cell.get('target');
+
+                    if (target && target.id && _.find(embeddedCells, { id: target.id })) {
+                        links.push(cell);
+                    }
+                }
+            });
+        }
+
         return links;
+    },
+
+    getCommonAncestor: function(/* cells */) {
+
+        var cellsAncestors = _.map(arguments, function(cell) {
+
+            var ancestors = [cell.id];
+            var parentId = cell.get('parent');
+
+            while (parentId) {
+
+                ancestors.push(parentId);
+                parentId = this.get(parentId).get('parent');
+            }
+
+            return ancestors;
+
+        }, this);
+
+        cellsAncestors = _.sortBy(cellsAncestors, 'length');
+
+        var commonAncestor = _.find(cellsAncestors.shift(), function(ancestor) {
+
+            return _.every(cellsAncestors, function(cellAncestors) {
+                return _.contains(cellAncestors, ancestor);
+            });
+        });
+
+        return this.get(commonAncestor);
     }
+    
 });
 
 
 joint.dia.Graph = Backbone.Model.extend({
 
-    initialize: function() {
+    initialize: function(attrs, opt) {
 
-        this.set('cells', new joint.dia.GraphCells);
+        // Passing `cellModel` function in the options object to graph allows for
+        // setting models based on attribute objects. This is especially handy
+        // when processing JSON graphs that are in a different than JointJS format.
+        this.set('cells', new joint.dia.GraphCells([], { model: opt && opt.cellModel }));
 
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
@@ -19299,7 +19583,13 @@ joint.dia.Graph = Backbone.Model.extend({
 
     addCells: function(cells, options) {
 
-        _.each(cells, function(cell) { this.addCell(cell, options); }, this);
+        options = options || {};
+        options.position = cells.length;
+
+        _.each(cells, function(cell) {
+            options.position--;
+            this.addCell(cell, options);
+        }, this);
 
         return this;
     },
@@ -19321,11 +19611,11 @@ joint.dia.Graph = Backbone.Model.extend({
         // is to remove all the associated links.
         if (options && options.disconnectLinks) {
             
-            this.disconnectLinks(cell);
+            this.disconnectLinks(cell, options);
 
         } else {
 
-            this.removeLinks(cell);
+            this.removeLinks(cell, options);
         }
 
         // Silently remove the cell from the cells collection. Silently, because
@@ -19395,18 +19685,18 @@ joint.dia.Graph = Backbone.Model.extend({
     },
     
     // Disconnect links connected to the cell `model`.
-    disconnectLinks: function(model) {
+    disconnectLinks: function(model, options) {
 
         _.each(this.getConnectedLinks(model), function(link) {
 
-            link.set(link.get('source').id === model.id ? 'source' : 'target', g.point(0, 0));
+            link.set(link.get('source').id === model.id ? 'source' : 'target', g.point(0, 0), options);
         });
     },
 
     // Remove links connected to the cell `model` completely.
-    removeLinks: function(model) {
+    removeLinks: function(model, options) {
 
-        _.invoke(this.getConnectedLinks(model), 'remove');
+        _.invoke(this.getConnectedLinks(model), 'remove', options);
     },
 
     // Find all views at given point
@@ -19441,8 +19731,13 @@ joint.dia.Graph = Backbone.Model.extend({
 	});
 
 	return g.rect(origin.x, origin.y, corner.x - origin.x, corner.y - origin.y);
-    }
+    },
 
+    getCommonAncestor: function(/* cells */) {
+
+        var collection = this.get('cells');
+        return collection.getCommonAncestor.apply(collection, arguments);
+    }
 });
 
 
@@ -19631,29 +19926,55 @@ joint.dia.Cell = Backbone.Model.extend({
 	return this;
     },
 
-    toFront: function() {
+    toFront: function(opt) {
 
         if (this.collection) {
 
-            this.set('z', (this.collection.last().get('z') || 0) + 1);
+            opt = opt || {};
+
+            var z = (this.collection.last().get('z') || 0) + 1;
+
+            this.trigger('batch:start').set('z', z, opt);
+
+            if (opt.deep) {
+
+                var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
+                _.each(cells, function(cell) { cell.set('z', ++z, opt); });
+
+            }
+
+            this.trigger('batch:stop');
         }
 
 	return this;
     },
-    
-    toBack: function() {
+
+    toBack: function(opt) {
 
         if (this.collection) {
+
+            opt = opt || {};
             
-            this.set('z', (this.collection.first().get('z') || 0) - 1);
+            var z = (this.collection.first().get('z') || 0) - 1;
+
+            this.trigger('batch:start');
+
+            if (opt.deep) {
+
+                var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
+                _.eachRight(cells, function(cell) { cell.set('z', z--, opt); });
+
+            }
+
+            this.set('z', z, opt).trigger('batch:stop');
         }
 
 	return this;
     },
 
-    embed: function(cell) {
+    embed: function(cell, opt) {
 
-	if (this.get('parent') == cell.id) {
+	if (this == cell || this.isEmbeddedIn(cell)) {
 
 	    throw new Error('Recursive embedding not allowed.');
 
@@ -19661,8 +19982,13 @@ joint.dia.Cell = Backbone.Model.extend({
 
 	    this.trigger('batch:start');
 
-	    cell.set('parent', this.id);
-	    this.set('embeds', _.uniq((this.get('embeds') || []).concat([cell.id])));
+            var embeds = _.clone(this.get('embeds') || []);
+
+            // We keep all element ids after links ids.
+            embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
+
+	    cell.set('parent', this.id, opt);
+	    this.set('embeds', _.uniq(embeds), opt);
 
 	    this.trigger('batch:stop');
 	}
@@ -19670,21 +19996,21 @@ joint.dia.Cell = Backbone.Model.extend({
 	return this;
     },
 
-    unembed: function(cell) {
+    unembed: function(cell, opt) {
 
 	this.trigger('batch:start');
 
-        var cellId = cell.id;
-        cell.unset('parent');
-
-        this.set('embeds', _.without(this.get('embeds'), cellId));
+        cell.unset('parent', opt);
+        this.set('embeds', _.without(this.get('embeds'), cell.id), opt);
 
 	this.trigger('batch:stop');
 
 	return this;
     },
 
-    getEmbeddedCells: function() {
+    getEmbeddedCells: function(opt) {
+
+        opt = opt || {};
 
         // Cell models can only be retrieved when this element is part of a collection.
         // There is no way this element knows about other cells otherwise.
@@ -19692,13 +20018,68 @@ joint.dia.Cell = Backbone.Model.extend({
         // adding it to a graph does not translate its embeds.
         if (this.collection) {
 
-            return _.map(this.get('embeds') || [], function(cellId) {
+            var cells;
 
-                return this.collection.get(cellId);
-                
-            }, this);
+            if (opt.deep) {
+
+                if (opt.breadthFirst) {
+
+                    // breadthFirst algorithm
+                    cells = [];
+                    var queue = this.getEmbeddedCells();
+
+                    while (queue.length > 0) {
+
+                        var parent = queue.shift();
+                        cells.push(parent);
+                        queue.push.apply(queue, parent.getEmbeddedCells());
+                    }
+
+                } else {
+
+                    // depthFirst algorithm
+                    cells = this.getEmbeddedCells();
+                    _.each(cells, function(cell) {
+                        cells.push.apply(cells, cell.getEmbeddedCells(opt));
+                    });
+                }
+
+            } else {
+
+                cells = _.map(this.get('embeds'), this.collection.get, this.collection);
+            }
+
+            return cells;
         }
         return [];
+    },
+
+    isEmbeddedIn: function(cell, opt) {
+
+        var cellId = _.isString(cell) ? cell : cell.id;
+
+        opt = _.defaults({ deep: true }, opt);
+
+        var parentId = this.get('parent');
+
+        // See getEmbeddedCells().
+        if (this.collection && opt.deep) {
+
+            while (parentId) {
+                if (parentId == cellId) {
+                    return true;
+                }
+                parentId = this.collection.get(parentId).get('parent');
+            }
+
+            return false;
+
+        } else {
+
+            // When this cell is not part of a collection check
+            // at least whether it's a direct child of given cell.
+            return parentId == cellId;
+        }
     },
 
     clone: function(opt) {
@@ -19741,16 +20122,12 @@ joint.dia.Cell = Backbone.Model.extend({
 
                     if (embedClone.get('source').id == this.id) {
 
-                        var source = _.clone(embedClone.get('source'));
-                        source.id = clone.id;
-                        embedClone.set('source', source);
+                        embedClone.prop('source', { id: clone.id });
                     }
 
                     if (embedClone.get('target').id == this.id) {
 
-                        var target = _.clone(embedClone.get('target'));
-                        target.id = clone.id;
-                        embedClone.set('target', target);
+                        embedClone.prop('target', { id: clone.id });
                     }
 
                     linkCloneMapping[embed.id] = embedClone;
@@ -19771,9 +20148,7 @@ joint.dia.Cell = Backbone.Model.extend({
                     // Make sure we don't clone a link more then once.
                     linkCloneMapping[link.id] = linkClone;
 
-                    var target = _.clone(linkClone.get('target'));
-                    target.id = embedClone.id;
-                    linkClone.set('target', target);
+                    linkClone.prop('target', { id: embedClone.id });
                 });
 
                 // Collect all inbound links, clone them (if not done already) and set their source to the `embedClone.id`.
@@ -19786,9 +20161,7 @@ joint.dia.Cell = Backbone.Model.extend({
                     // Make sure we don't clone a link more then once.
                     linkCloneMapping[link.id] = linkClone;
 
-                    var source = _.clone(linkClone.get('source'));
-                    source.id = embedClone.id;
-                    linkClone.set('source', source);
+                    linkClone.prop('source', { id: embedClone.id });
                 });
 
             }, this);
@@ -19801,29 +20174,83 @@ joint.dia.Cell = Backbone.Model.extend({
         return clones;
     },
 
+    // A convenient way to set nested properties.
+    // This method merges the properties you'd like to set with the ones
+    // stored in the cell and makes sure change events are properly triggered.
+    // You can either set a nested property with one object
+    // or use a property path. 
+    // The most simple use case is:
+    // `cell.prop('name/first', 'John')` or
+    // `cell.prop({ name: { first: 'John' } })`.
+    // Nested arrays are supported too:
+    // `cell.prop('series/0/data/0/degree', 50)` or
+    // `cell.prop({ series: [ { data: [ { degree: 50 } ] } ] })`.
+    prop: function(props, value, opt) {
+
+        var delim = '/';
+
+        if (_.isString(props)) {
+            // Get/set an attribute by a special path syntax that delimits
+            // nested objects by the colon character.
+
+            if (typeof value !== 'undefined') {
+
+		var path = props;
+		var pathArray = path.split('/');
+		var property = pathArray[0];
+
+                opt = opt || {};
+                opt.propertyPath = path;
+                opt.propertyValue = value;
+
+	        if (pathArray.length == 1) {
+                    // Property is not nested. We can simply use `set()`.
+                    return this.set(property, value, opt);
+                }
+
+		var update = {};
+		// Initialize the nested object. Subobjects are either arrays or objects.
+		// An empty array is created if the sub-key is an integer. Otherwise, an empty object is created.
+		// Note that this imposes a limitation on object keys one can use with Inspector.
+		// Pure integer keys will cause issues and are therefore not allowed.
+		var initializer = update;
+		var prevProperty = property;
+		_.each(_.rest(pathArray), function(key) {
+                    initializer = initializer[prevProperty] = (_.isFinite(Number(key)) ? [] : {});
+                    prevProperty = key;
+		});
+		// Fill update with the `value` on `path`.
+		update = joint.util.setByPath(update, path, value, '/');
+
+                var baseAttributes = _.merge({}, this.attributes);
+                // if rewrite mode enabled, we replace value referenced by path with
+                // the new one (we don't merge).
+                opt.rewrite && joint.util.unsetByPath(baseAttributes, path, '/');
+
+		// Merge update with the model attributes.
+		var attributes = _.merge(baseAttributes, update);
+		// Finally, set the property to the updated attributes.
+		return this.set(property, attributes[property], opt);
+
+            } else {
+
+                return joint.util.getByPath(this.attributes, props, delim);
+            }
+        }
+
+        return this.set(_.merge({}, this.attributes, props), value);
+    },
+
     // A convenient way to set nested attributes.
     attr: function(attrs, value, opt) {
-
-        var currentAttrs = this.get('attrs');
-        var delim = '/';
         
         if (_.isString(attrs)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
-
-            if (typeof value != 'undefined') {
-
-                var attr = {};
-                joint.util.setByPath(attr, attrs, value, delim);
-                return this.set('attrs', _.merge({}, currentAttrs, attr), opt);
-                
-            } else {
-                
-                return joint.util.getByPath(currentAttrs, attrs, delim);
-            }
+            return this.prop('attrs/' + attrs, value, opt);
         }
         
-        return this.set('attrs', _.merge({}, currentAttrs, attrs), value, opt);
+        return this.prop({ 'attrs': attrs }, value);
     },
 
     // A convenient way to unset nested attributes
@@ -19852,9 +20279,6 @@ joint.dia.Cell = Backbone.Model.extend({
 
 	opt = _.extend(defaults, opt);
 
-	var pathArray = path.split(delim);
-        var property = pathArray[0];
-	var isPropertyNested = pathArray.length > 1;
 	var firstFrameTime = 0;
 	var interpolatingFunction;
 
@@ -19875,14 +20299,9 @@ joint.dia.Cell = Backbone.Model.extend({
 
 	    propertyValue = interpolatingFunction(opt.timingFunction(progress));
 
-	    if (isPropertyNested) {
-		var nestedPropertyValue = joint.util.setByPath({}, path, propertyValue, delim)[property];
-		propertyValue = _.merge({}, this.get(property), nestedPropertyValue);
-	    }
-
 	    opt.transitionId = id;
 
-	    this.set(property, propertyValue, opt);
+	    this.prop(path, propertyValue, opt);
 
 	    if (!id) this.trigger('transition:end', this, path);
 
@@ -19936,6 +20355,19 @@ joint.dia.Cell = Backbone.Model.extend({
 
 	graph.addCell(this);
 	return this;
+    },
+
+    // A shortcut for an equivalent call: `paper.findViewByModel(cell)`
+    // making it easy to create constructs like the following:
+    // `cell.findView(paper).highlight()`
+    findView: function(paper) {
+
+        return paper.findViewByModel(this);
+    },
+
+    isLink: function() {
+
+        return false;
     }
 });
 
@@ -20067,18 +20499,27 @@ joint.dia.CellView = Backbone.View.extend({
         return V(this.el).bbox();
     },
 
-    highlight: function(el) {
+    highlight: function(el, opt) {
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
-        V(el).addClass('highlighted');
+        // set partial flag if the highlighted element is not the entire view.
+        opt = opt || {};
+        opt.partial = el != this.el;
+
+        this.notify('cell:highlight', el, opt);
+        return this;
     },
 
-    unhighlight: function(el) {
+    unhighlight: function(el, opt) {
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
-        V(el).removeClass('highlighted');
+        opt = opt || {};
+        opt.partial = el != this.el;
+
+        this.notify('cell:unhighlight', el, opt);
+        return this;
     },
 
     // Find the closest element that has the `magnet` attribute set to `true`. If there was not such
@@ -20130,7 +20571,12 @@ joint.dia.CellView = Backbone.View.extend({
                 throw new Error('Non-existing filter ' + filter.name);
             }
             var filterElement = V(filterSVGString);
-            filterElement.attr('filterUnits', 'userSpaceOnUse');
+	    // Set the filter area to be 3x the bounding box of the cell
+	    // and center the filter around the cell.
+	    filterElement.attr({
+		filterUnits: 'objectBoundingBox',
+		x: -1, y: -1, width: 3, height: 3
+	    });
             if (filter.attrs) filterElement.attr(filter.attrs);
             filterElement.node.id = filterId;
             V(this.paper.svg).defs().append(filterElement);
@@ -20241,6 +20687,16 @@ joint.dia.CellView = Backbone.View.extend({
 	    delete this._collection;
 	}
 
+    },
+
+    mouseover: function(evt) {
+
+        this.notify('cell:mouseover', evt);
+    },
+
+    mouseout: function(evt) {
+
+        this.notify('cell:mouseout', evt);
     }
 });
 
@@ -20280,11 +20736,44 @@ joint.dia.Element = joint.dia.Cell.extend({
         angle: 0
     },
 
-    position: function(x, y) {
+    position: function(x, y, opt) {
 
-        this.set('position', { x: x, y: y });
+        var isSetter = _.isNumber(y);
+
+        opt = (isSetter ? opt : x) || {};
+
+        // option `parentRelative` for setting the position relative to the element's parent.
+        if (opt.parentRelative) {
+
+            // Getting the parent's position requires the collection.
+            // Cell.get('parent') helds cell id only.
+            if (!this.collection) throw new Error("Element must be part of a collection.");
+
+            var parent = this.collection.get(this.get('parent'));
+            var parentPosition = parent && !parent.isLink()
+                ? parent.get('position')
+                : { x: 0, y: 0 };
+        }
+
+        if (isSetter) {
+
+            if (opt.parentRelative) {
+                x += parentPosition.x;
+                y += parentPosition.y;
+            }
+
+            return this.set('position', { x: x, y: y }, opt);
+
+        } else { // Getter returns a geometry point.
+
+            var elementPosition = g.point(this.get('position'));
+
+            return opt.parentRelative
+                ? elementPosition.difference(parentPosition)
+                : elementPosition;
+        }
     },
-    
+
     translate: function(tx, ty, opt) {
 
         ty = ty || 0;
@@ -20294,10 +20783,17 @@ joint.dia.Element = joint.dia.Cell.extend({
             return this;
         }
 
+        opt = opt || {};
+        // Pass the initiator of the translation.
+        opt.translateBy = opt.translateBy || this.id;
+        // To find out by how much an element was translated in event 'change:position' handlers.
+        opt.tx = tx;
+        opt.ty = ty;
+
         var position = this.get('position') || { x: 0, y: 0 };
 	var translatedPosition = { x: position.x + tx || 0, y: position.y + ty || 0 };
 
-	if (opt && opt.transition) {
+	if (opt.transition) {
 
 	    if (!_.isObject(opt.transition)) opt.transition = {};
 
@@ -20435,8 +20931,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 $selected.each(function() {
 
-                    V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight });
+                    V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight, textPath: attrs.textPath });
                 });
+                specialAttributes.push('lineHeight','textPath');
             }
 
             // Set regular attributes on the `$selected` subelement. Note that we cannot use the jQuery attr()
@@ -20791,32 +21288,141 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         rotatable.attr('transform', 'rotate(' + angle + ',' + ox + ',' + oy + ')');
     },
 
+    getBBox: function(opt) {
+
+        if (opt && opt.useModelGeometry) {
+            var noTransformationBBox = this.model.getBBox().bbox(this.model.get('angle'));
+            var transformationMatrix = this.paper.viewport.getCTM();
+            return V.transformRect(noTransformationBBox, transformationMatrix);
+        }
+
+        return joint.dia.CellView.prototype.getBBox.apply(this, arguments);
+    },
+
+    // Embedding mode methods
+    // ----------------------
+
+    findParentsByKey: function(key) {
+
+        var bbox = this.model.getBBox();
+
+        return key == 'bbox'
+            ? this.paper.model.findModelsInArea(bbox)
+            : this.paper.model.findModelsFromPoint(bbox[key]());
+    },
+
+    prepareEmbedding: function() {
+
+        // Bring the model to the front with all his embeds.
+        this.model.toFront({ deep: true, ui: true });
+
+        // Move to front also all the inbound and outbound links that are connected
+        // to any of the element descendant. If we bring to front only embedded elements,
+        // links connected to them would stay in the background.
+        _.invoke(this.paper.model.getConnectedLinks(this.model, { deep: true }), 'toFront', { ui: true });
+
+        // Before we start looking for suitable parent we remove the current one.
+        var parentId = this.model.get('parent');
+	parentId && this.paper.model.getCell(parentId).unembed(this.model, { ui: true });
+    },
+
+    processEmbedding: function(opt) {
+
+        opt = opt || this.paper.options;
+
+        var candidates = this.findParentsByKey(opt.findParentBy);
+
+        // don't account element itself or any of its descendents
+        candidates = _.reject(candidates, function(el) {
+            return this.model.id == el.id || el.isEmbeddedIn(this.model);
+        }, this);
+
+        if (opt.frontParentOnly) {
+            // pick the element with the highest `z` index
+            candidates = candidates.slice(-1);
+        }
+
+        var newCandidateView = null;
+        var prevCandidateView = this._candidateEmbedView;
+
+        // iterate over all candidates starting from the last one (has the highest z-index).
+        for (var i = candidates.length - 1; i >= 0; i--) {
+
+            var candidate = candidates[i];
+
+            if (prevCandidateView && prevCandidateView.model.id == candidate.id) {
+
+                // candidate remains the same
+                newCandidateView = prevCandidateView;
+                break;
+
+            } else {
+
+                var view = candidate.findView(this.paper);
+                if (opt.validateEmbedding.call(this.paper, this, view)) {
+
+                    // flip to the new candidate
+                    newCandidateView = view;
+                    break;
+                }
+            }
+        }
+
+        if (newCandidateView && newCandidateView != prevCandidateView) {
+            // A new candidate view found. Highlight the new one.
+            prevCandidateView && prevCandidateView.unhighlight(null, { embedding: true });
+            this._candidateEmbedView = newCandidateView.highlight(null, { embedding: true });
+        }
+
+        if (!newCandidateView && prevCandidateView) {
+            // No candidate view found. Unhighlight the previous candidate.
+            prevCandidateView.unhighlight(null, { embedding: true });
+            delete this._candidateEmbedView;
+        }
+    },
+
+    finalizeEmbedding: function() {
+
+        var candidateView = this._candidateEmbedView;
+
+        if (candidateView) {
+
+            // We finished embedding. Candidate view is chosen to become the parent of the model.
+            candidateView.model.embed(this.model, { ui: true });
+            candidateView.unhighlight(null, { embedding: true });
+
+            delete this._candidateEmbedView;
+        }
+
+        _.invoke(this.paper.model.getConnectedLinks(this.model, { deep: true }), 'reparent', { ui: true });
+    },
+
     // Interaction. The controller part.
     // ---------------------------------
 
-    
     pointerdown: function(evt, x, y) {
+
+        this.model.trigger('batch:start');
 
         if ( // target is a valid magnet start linking
             evt.target.getAttribute('magnet') &&
             this.paper.options.validateMagnet.call(this.paper, this, evt.target)
         ) {
-                this.model.trigger('batch:start');
 
-                var link = this.paper.getDefaultLink(this, evt.target);
-                link.set({
-                    source: {
-                        id: this.model.id,
-                        selector: this.getSelector(evt.target),
-                        port: $(evt.target).attr('port')
-                    },
-                    target: { x: x, y: y }
-                });
+            var link = this.paper.getDefaultLink(this, evt.target);
+            link.set({
+                source: {
+                    id: this.model.id,
+                    selector: this.getSelector(evt.target),
+                    port: $(evt.target).attr('port')
+                },
+                target: { x: x, y: y }
+            });
 
-                this.paper.model.addCell(link);
+            this.paper.model.addCell(link);
 
-	        this._linkView = this.paper.findViewByModel(link);
-                this._linkView.startArrowheadMove('target');
+	    this._linkView = this.paper.findViewByModel(link);
+            this._linkView.startArrowheadMove('target');
 
         } else {
 
@@ -20838,7 +21444,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
 	    var grid = this.paper.options.gridSize;
 
-            if (this.options.interactive !== false) {
+	    var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointermove') : this.options.interactive;
+
+            if (interactive !== false) {
 
 	        var position = this.model.get('position');
 
@@ -20848,6 +21456,19 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 		    g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - this._dx, grid),
 		    g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - this._dy, grid)
 	        );
+
+                if (this.paper.options.embeddingMode) {
+
+                    if (!this._inProcessOfEmbedding) {
+                        // Prepare the element for embedding only if the pointer moves.
+                        // We don't want to do unnecessary action with the element
+                        // if an user only clicks/dblclicks on it.
+                        this.prepareEmbedding();
+                        this._inProcessOfEmbedding = true;
+                    }
+
+                    this.processEmbedding();
+                }
             }
 
             this._dx = g.snapToGrid(x, grid);
@@ -20866,12 +21487,17 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             delete this._linkView;
 
-            this.model.trigger('batch:stop');
-
         } else {
+
+            if (this._inProcessOfEmbedding) {
+                this.finalizeEmbedding();
+                this._inProcessOfEmbedding = false;
+            }
 
             joint.dia.CellView.prototype.pointerup.apply(this, arguments);
         }
+
+        this.model.trigger('batch:stop');
     }
 
 });
@@ -20960,7 +21586,9 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     defaults: {
 
-        type: 'link'
+        type: 'link',
+        source: {},
+        target: {}
     },
 
     disconnect: function() {
@@ -21011,6 +21639,47 @@ joint.dia.Link = joint.dia.Cell.extend({
         }
 
         return this.set(attrs, opt);
+    },
+
+    reparent: function(opt) {
+
+        var newParent;
+
+        if (this.collection) {
+
+            var source = this.collection.get(this.get('source').id);
+            var target = this.collection.get(this.get('target').id);
+            var prevParent = this.collection.get(this.get('parent'));
+
+            if (source && target) {
+                newParent = this.collection.getCommonAncestor(source, target);
+            }
+
+            if (prevParent && (!newParent || newParent.id != prevParent.id)) {
+                // Unembed the link if source and target has no common ancestor
+                // or common ancestor changed
+                prevParent.unembed(this, opt);
+            }
+
+            if (newParent) {
+                newParent.embed(this, opt);
+            }
+        }
+
+        return newParent;
+    },
+
+    isLink: function() {
+
+        return true;
+    },
+
+    hasLoop: function() {
+
+        var sourceId = this.get('source').id;
+        var targetId = this.get('target').id;
+
+        return sourceId && targetId && sourceId == targetId;
     }
 });
 
@@ -21026,18 +21695,22 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     options: {
 
-        shortLinkLength: 100
+        shortLinkLength: 100,
+        doubleLinkTools: false,
+        longLinkLength: 160,
+        linkToolsOffset: 40,
+        doubleLinkToolsOffset: 60
     },
     
-    initialize: function() {
+    initialize: function(options) {
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
 
         // create methods in prototype, so they can be accessed from any instance and
         // don't need to be create over and over
         if (typeof this.constructor.prototype.watchSource !== 'function') {
-            this.constructor.prototype.watchSource = this._createWatcher('source');
-            this.constructor.prototype.watchTarget = this._createWatcher('target');
+            this.constructor.prototype.watchSource = this.createWatcher('source');
+            this.constructor.prototype.watchTarget = this.createWatcher('target');
         }
 
         // `_.labelCache` is a mapping of indexes of labels in the `this.get('labels')` array to
@@ -21062,8 +21735,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 	this.listenTo(this.model, 'change:labels change:labelMarkup', function() {
             this.renderLabels().updateLabelPositions();
         });
-        this.listenTo(this.model, 'change:vertices change:vertexMarkup', function() {
-            this.renderVertexMarkers().update();
+        this.listenTo(this.model, 'change:vertices change:vertexMarkup', function(cell, changed, opt) {
+            this.renderVertexMarkers();
+            // If the vertices have been changed by a translation we do update only if the link was
+            // only one translated. If the link was translated via another element which the link
+            // is embedded in, this element will be translated as well and that triggers an update.
+            // Note that all embeds in a model are sorted - first comes links, then elements.
+            if (!opt.translateBy || (opt.translateBy == this.model.id || this.model.hasLoop())) {
+                this.update();
+            }
         });
 	this.listenTo(this.model, 'change:source', function(cell, source) {
             this.watchSource(cell, source).update();
@@ -21202,6 +21882,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Cache the tool node so that the `updateToolsPosition()` can update the tool position quickly.
         this._toolCache = tool;
 
+        // If `doubleLinkTools` is enabled, we render copy of the tools on the other side of the
+        // link as well but only if the link is longer than `longLinkLength`.
+        if (this.options.doubleLinkTools) {
+
+            var tool2 = tool.clone();
+            $tools.append(tool2.node);
+            this._tool2Cache = tool2;
+        }
+
         return this;
     },
 
@@ -21254,18 +21943,40 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Update attributes.
         _.each(this.model.get('attrs'), function(attrs, selector) {
-            
+
+            var processedAttributes = [];
+
+            // If the `fill` or `stroke` attribute is an object, it is in the special JointJS gradient format and so
+            // it becomes a special attribute and is treated separately.
+            if (_.isObject(attrs.fill)) {
+
+                this.applyGradient(selector, 'fill', attrs.fill);
+                processedAttributes.push('fill');
+            }
+
+            if (_.isObject(attrs.stroke)) {
+
+                this.applyGradient(selector, 'stroke', attrs.stroke);
+                processedAttributes.push('stroke');
+            }
+
             // If the `filter` attribute is an object, it is in the special JointJS filter format and so
             // it becomes a special attribute and is treated separately.
             if (_.isObject(attrs.filter)) {
-                
-                this.findBySelector(selector).attr(_.omit(attrs, 'filter'));
+
                 this.applyFilter(selector, attrs.filter);
-                
-            } else {
-                
-                this.findBySelector(selector).attr(attrs);
+                processedAttributes.push('filter');
             }
+
+            // remove processed special attributes from attrs
+            if (processedAttributes.length > 0) {
+
+                processedAttributes.unshift(attrs);
+                attrs = _.omit.apply(_, processedAttributes);
+            }
+
+            this.findBySelector(selector).attr(attrs);
+
         }, this);
 
         // Path finding
@@ -21288,6 +21999,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.updateArrowheadMarkers();
 
         delete this.options.perpendicular;
+        // Mark that postponed update has been already executed.
+        this.updatePostponed = false;
 
         return this;
     },
@@ -21358,18 +22071,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var connectionElement = this._V.connection.node;
         var connectionLength = connectionElement.getTotalLength();
 
-        _.each(labels, function(label, idx) {
+        // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
+        // In that case we won't update labels at all.
+        if (!_.isNaN(connectionLength)) {
 
-            var position = label.position;
-            position = (position > connectionLength) ? connectionLength : position; // sanity check
-            position = (position < 0) ? connectionLength + position : position;
-            position = position > 1 ? position : connectionLength * position;
+            _.each(labels, function(label, idx) {
 
-            var labelCoordinates = connectionElement.getPointAtLength(position);
+                var position = label.position;
+                position = (position > connectionLength) ? connectionLength : position; // sanity check
+                position = (position < 0) ? connectionLength + position : position;
+                position = position > 1 ? position : connectionLength * position;
 
-            this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
+                var labelCoordinates = connectionElement.getPointAtLength(position);
 
-        }, this);
+                this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
+
+            }, this);
+        }
 
         return this;
     },
@@ -21385,10 +22103,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // this up all the time would be slow.
 
         var scale = '';
-        var offset = 40;
+        var offset = this.options.linkToolsOffset;
+        var connectionLength = this.getConnectionLength();
 
         // If the link is too short, make the tools half the size and the offset twice as low.
-        if (this.getConnectionLength() < this.options.shortLinkLength) {
+        if (connectionLength < this.options.shortLinkLength) {
             scale = 'scale(.5)';
             offset /= 2;
         }
@@ -21396,6 +22115,19 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var toolPosition = this.getPointAtLength(offset);
         
         this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
+
+        if (this.options.doubleLinkTools && connectionLength >= this.options.longLinkLength) {
+
+            var doubleLinkToolsOffset = this.options.doubleLinkToolsOffset || offset;
+
+            toolPosition = this.getPointAtLength(connectionLength - doubleLinkToolsOffset);
+            this._tool2Cache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
+            this._tool2Cache.attr('visibility', 'visible');
+
+        } else if (this.options.doubleLinkTools) {
+            
+            this._tool2Cache.attr('visibility', 'hidden');
+        }
 
         return this;
     },
@@ -21419,87 +22151,115 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     // Returns a function observing changes on an end of the link. If a change happens and new end is a new model,
     // it stops listening on the previous one and starts listening to the new one.
-    _createWatcher: function(endType) {
+    createWatcher: function(endType) {
 
-        function watchEnd(link, end) {
+        // create handler for specific end type (source|target).
+        var onModelChange = _.partial(this.onEndModelChange, endType);
+
+        function watchEndModel(link, end) {
 
             end = end || {};
 
+            var endModel = null;
             var previousEnd = link.previous(endType) || {};
 
-            // Pick updateMethod this._sourceBboxUpdate or this._targetBboxUpdate.
-            var updateEndFunction = this['_' + endType + 'BBoxUpdate'];
-
-            if (this._isModel(previousEnd)) {
-                this.stopListening(this.paper.getModelById(previousEnd.id), 'change', updateEndFunction);
+            if (previousEnd.id) {
+                this.stopListening(this.paper.getModelById(previousEnd.id), 'change', onModelChange);
             }
 
-            if (this._isModel(end)) {
+            if (end.id) {
                 // If the observed model changes, it caches a new bbox and do the link update.
-                this.listenTo(this.paper.getModelById(end.id), 'change', updateEndFunction);
+                endModel = this.paper.getModelById(end.id);
+                this.listenTo(endModel, 'change', onModelChange);
             }
 
-            _.bind(updateEndFunction, this)({ cacheOnly: true });
+            onModelChange.call(this, endModel, { cacheOnly: true });
 
             return this;
         }
 
-        return watchEnd;
+        return watchEndModel;
     },
 
-    // It's important to keep both methods (sourceBboxUpdate and targetBboxUpdate) as unique methods
-    // because of loop links. We have to be able to determine, which method we want to stop listen to.
-    // ListenTo(model, event, handler) as model and event will be identical.
-    _sourceBBoxUpdate: function(update) {
+    onEndModelChange: function(endType, endModel, opt) {
 
-        // keep track which end had been changed very last
-        this.lastEndChange = 'source';
+        var doUpdate = !opt.cacheOnly;
+        var end = this.model.get(endType) || {};
 
-        update = update || {};
-        var end = this.model.get('source');
+        if (endModel) {
 
-        if (this._isModel(end)) {
+            var selector = this.constructor.makeSelector(end);
+            var oppositeEndType = endType == 'source' ? 'target' : 'source';
+            var oppositeEnd = this.model.get(oppositeEndType) || {};
+            var oppositeSelector = oppositeEnd.id && this.constructor.makeSelector(oppositeEnd);
 
-            var selector = this._makeSelector(end);
-            var view = this.paper.findViewByModel(end.id);
-            var magnetElement = this.paper.viewport.querySelector(selector);
+            // Caching end models bounding boxes
+            if (opt.isLoop && selector == oppositeSelector) {
 
-            this.sourceBBox = view.getStrokeBBox(magnetElement);
-	    this.sourceView = view;
-	    this.sourceMagnet = magnetElement;
+                // Source and target elements are identical. We are handling `change` event for the
+                // second time now. There is no need to calculate bbox and find magnet element again.
+                // It was calculated already for opposite link end.
+                this[endType + 'BBox'] = this[oppositeEndType + 'BBox'];
+	        this[endType + 'View'] = this[oppositeEndType + 'View'];
+	        this[endType + 'Magnet'] = this[oppositeEndType + 'Magnet'];
 
-        } else if (end) {
+            } else if (opt.translateBy) {
+
+                var bbox = this[endType + 'BBox'];
+                bbox.x += opt.tx;
+                bbox.y += opt.ty;
+
+            } else {
+
+                var view = this.paper.findViewByModel(end.id);
+                var magnetElement = view.el.querySelector(selector);
+
+                this[endType + 'BBox'] = view.getStrokeBBox(magnetElement);
+	        this[endType + 'View'] = view;
+	        this[endType + 'Magnet'] = magnetElement;
+            }
+
+            if (opt.isLoop && opt.translateBy &&
+                this.model.isEmbeddedIn(endModel) &&
+                !_.isEmpty(this.model.get('vertices'))) {
+                // If the link is embedded, has a loop and vertices and the end model
+                // has been translated, do not update yet. There are vertices still to be updated.
+                doUpdate = false;
+            }
+
+            if (!this.updatePostponed && oppositeEnd.id) {
+
+                var oppositeEndModel = this.paper.getModelById(oppositeEnd.id);
+
+                // Passing `isLoop` flag via event option.
+                // Note that if we are listening to the same model for event 'change' twice.
+                // The same event will be handled by this method also twice.
+                opt.isLoop = end.id == oppositeEnd.id;
+
+                if (opt.isLoop || (opt.translateBy && oppositeEndModel.isEmbeddedIn(opt.translateBy))) {
+
+                    // Here are two options:
+                    // - Source and target are connected to the same model (not necessary the same port)
+                    // - both end models are translated by same ancestor. We know that opposte end
+                    //   model will be translated in the moment as well.
+                    // In both situations there will be more changes on model that will trigger an
+                    // update. So there is no need to update the linkView yet.
+                    this.updatePostponed = true;
+                    doUpdate = false;
+                }
+            }
+
+        } else {
+
             // the link end is a point ~ rect 1x1
-            this.sourceBBox = g.rect(end.x, end.y, 1, 1);
+            this[endType + 'BBox'] = g.rect(end.x || 0, end.y || 0, 1, 1);
+	    this[endType + 'View'] = this[endType + 'Magnet'] = null;
         }
 
-        if (!update.cacheOnly) this.update();
-    },
-
-    _targetBBoxUpdate: function(update) {
-
         // keep track which end had been changed very last
-        this.lastEndChange = 'target';
+        this.lastEndChange = endType;
 
-        update = update || {};
-        var end = this.model.get('target');
-
-        if (this._isModel(end)) {
-
-            var selector = this._makeSelector(end);
-            var view = this.paper.findViewByModel(end.id);
-            var magnetElement = this.paper.viewport.querySelector(selector);
-
-            this.targetBBox = view.getStrokeBBox(magnetElement);
-	    this.targetView = view;
-	    this.targetMagnet = magnetElement;
-
-        } else if (end) {
-            // the link end is a point ~ rect 1x1
-            this.targetBBox = g.rect(end.x, end.y, 1, 1);
-        }
-
-        if (!update.cacheOnly) this.update();
+        doUpdate && this.update();
     },
 
     _translateAndAutoOrientArrows: function(sourceArrow, targetArrow) {
@@ -21530,7 +22290,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (vertices && vertices.length) {
 
             vertices.splice(idx, 1);
-            this.model.set('vertices', vertices);
+            this.model.set('vertices', vertices, { ui: true });
         }
 
         return this;
@@ -21541,9 +22301,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // the new vertex is somewhere on the path.
     addVertex: function(vertex) {
 
-        this.model.set('attrs', this.model.get('attrs') || {});
-        var attrs = this.model.get('attrs');
-        
         // As it is very hard to find a correct index of the newly created vertex,
         // a little heuristics is taking place here.
         // The heuristics checks if length of the newly created
@@ -21591,12 +22348,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
         }
 
-        this.model.set('vertices', vertices);
+	if (idx === -1) {
+	    // If no suitable index was found for such a vertex, make the vertex the first one.
+	    idx = 0;
+	    vertices.splice(idx, 0, vertex);
+	}
 
-        // In manhattan routing, if there are no vertices, the path length changes significantly
-        // with the first vertex added. Shall we check vertices.length === 0? at beginning of addVertex()
-        // in order to avoid the temporary path construction and other operations?
-        return Math.max(idx, 0);
+        this.model.set('vertices', vertices, { ui: true });
+
+        return idx;
     },
 
     // Send a token (an SVG element, usually a circle) along the connection path.
@@ -21679,10 +22439,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // If the `selectorOrPoint` (or `referenceSelectorOrPoint`) is `undefined`, the `source`/`target` of the link model is `undefined`.
         // We want to allow this however so that one can create links such as `var link = new joint.dia.Link` and
         // set the `source`/`target` later.
-        selectorOrPoint = selectorOrPoint || { x: 0, y: 0 };
-        referenceSelectorOrPoint = referenceSelectorOrPoint || { x: 0, y: 0 };
+        _.isEmpty(selectorOrPoint) && (selectorOrPoint = { x: 0, y: 0 });
+        _.isEmpty(referenceSelectorOrPoint) && (referenceSelectorOrPoint = { x: 0, y: 0 });
 
-        if (this._isPoint(selectorOrPoint)) {
+        if (!selectorOrPoint.id) {
 
             // If the source is a point, we don't need a reference point to find the sticky point of connection.
             spot = g.point(selectorOrPoint);
@@ -21699,7 +22459,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             
             var reference;
             
-            if (this._isPoint(referenceSelectorOrPoint)) {
+            if (!referenceSelectorOrPoint.id) {
 
                 // Reference was passed as a point, therefore, we're ready to find the sticky point of connection on the source element.
                 reference = g.point(referenceSelectorOrPoint);
@@ -21782,30 +22542,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return spot;
     },
 
-    _isModel: function(end) {
-
-        return end && end.id;
-    },
-
-    _isPoint: function(end) {
-
-        return !this._isModel(end);
-    },
-
-    _makeSelector: function(end) {
-
-        var selector = '[model-id="' + end.id + '"]';
-        // `port` has a higher precendence over `selector`. This is because the selector to the magnet
-        // might change while the name of the port can stay the same.
-        if (end.port) {
-            selector += ' [port="' + end.port + '"]';
-        } else if (end.selector) {
-            selector += ' ' + end.selector;
-        }
-
-        return selector;
-    },
-
     // Public API
     // ----------
 
@@ -21827,7 +22563,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.model.trigger('batch:start');
 
         this._z = this.model.get('z');
-        this.model.set('z', Number.MAX_VALUE);
+        this.model.toFront();
 
         // Let the pointer propagate throught the link view elements so that
         // the `evt.target` is another element under the pointer, not the link itself.
@@ -21841,7 +22577,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     _afterArrowheadMove: function() {
 
         if (this._z) {
-            this.model.set('z', this._z);
+            this.model.set('z', this._z, { ui: true });
             delete this._z;
         }
 
@@ -21943,24 +22679,37 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 	this._dx = x;
         this._dy = y;
 
-        if (this.options.interactive === false) return;
+	var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointerdown') : this.options.interactive;
+
+        if (interactive === false) return;
+
+	function can(feature) {
+	    if (!_.isObject(interactive) || interactive[feature] !== false) return true;
+	    return false;
+	}
 
         var className = evt.target.getAttribute('class');
 
         switch (className) {
 
         case 'marker-vertex':
-            this._action = 'vertex-move';
-            this._vertexIdx = evt.target.getAttribute('idx');
+	    if (can('vertexMove')) {
+		this._action = 'vertex-move';
+		this._vertexIdx = evt.target.getAttribute('idx');
+	    }
             break;
 
         case 'marker-vertex-remove':
         case 'marker-vertex-remove-area':
-            this.removeVertex(evt.target.getAttribute('idx'));
+	    if (can('vertexRemove')) {
+		this.removeVertex(evt.target.getAttribute('idx'));
+	    }
             break;
 
         case 'marker-arrowhead':
-            this.startArrowheadMove(evt.target.getAttribute('end'));
+	    if (can('arrowheadMove')) {
+		this.startArrowheadMove(evt.target.getAttribute('end'));
+	    }
             break;
 
         default:
@@ -21978,12 +22727,17 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             } else {
 
-                // Store the index at which the new vertex has just been placed.
-                // We'll be update the very same vertex position in `pointermove()`.
-                this._vertexIdx = this.addVertex({ x: x, y: y });
-                this._action = 'vertex-move';
+		if (can('vertexAdd')) {
+
+                    // Store the index at which the new vertex has just been placed.
+                    // We'll be update the very same vertex position in `pointermove()`.
+                    this._vertexIdx = this.addVertex({ x: x, y: y });
+                    this._action = 'vertex-move';
+		}
             }
         }
+
+        this.paper.trigger('link:pointerdown', evt, this, x, y);
     },
 
     pointermove: function(evt, x, y) {
@@ -21996,7 +22750,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             var vertices = _.clone(this.model.get('vertices'));
             vertices[this._vertexIdx] = { x: x, y: y };
-            this.model.set('vertices', vertices);
+            this.model.set('vertices', vertices, { ui: true });
             break;
 
           case 'arrowhead-move':
@@ -22008,7 +22762,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var r = this.paper.options.snapLinks.radius || 50;
                 var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
 
-                this._closestView && this._closestView.unhighlight(this._closestEnd.selector);
+                this._closestView && this._closestView.unhighlight(this._closestEnd.selector, { connecting: true, snapping: true });
                 this._closestView = this._closestEnd = null;
 
                 var pointer = g.point(x,y);
@@ -22063,9 +22817,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 }, this);
 
-                this._closestView && this._closestView.highlight(this._closestEnd.selector);
+                this._closestView && this._closestView.highlight(this._closestEnd.selector, { connecting: true, snapping: true });
 
-                this.model.set(this._arrowhead, this._closestEnd || { x: x, y: y });
+                this.model.set(this._arrowhead, this._closestEnd || { x: x, y: y }, { ui: true });
 
             } else {
 
@@ -22079,7 +22833,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 if (this._targetEvent !== target) {
                     // Unhighlight the previous view under pointer if there was one.
-                    this._magnetUnderPointer && this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
+                    this._magnetUnderPointer && this._viewUnderPointer.unhighlight(this._magnetUnderPointer, { connecting: true });
                     this._viewUnderPointer = this.paper.findView(target);
                     if (this._viewUnderPointer) {
                         // If we found a view that is under the pointer, we need to find the closest
@@ -22093,7 +22847,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                             // If there was no magnet found, do not highlight anything and assume there
                             // is no view under pointer we're interested in reconnecting to.
                             // This can only happen if the overall element has the attribute `'.': { magnet: false }`.
-                            this._magnetUnderPointer && this._viewUnderPointer.highlight(this._magnetUnderPointer);
+                            this._magnetUnderPointer && this._viewUnderPointer.highlight(this._magnetUnderPointer, { connecting: true });
                         } else {
                             // This type of connection is not valid. Disregard this magnet.
                             this._magnetUnderPointer = null;
@@ -22106,7 +22860,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
 	        this._targetEvent = target;
 
-                this.model.set(this._arrowhead, { x: x, y: y });
+                this.model.set(this._arrowhead, { x: x, y: y }, { ui: true });
             }
 
             break;
@@ -22124,13 +22878,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             if (this.paper.options.snapLinks) {
 
-                this._closestView && this._closestView.unhighlight(this._closestEnd.selector);
+                this._closestView && this._closestView.unhighlight(this._closestEnd.selector, { connecting: true, snapping: true });
                 this._closestView = this._closestEnd = null;
 
             } else {
 
                 if (this._magnetUnderPointer) {
-                    this._viewUnderPointer.unhighlight(this._magnetUnderPointer);
+                    this._viewUnderPointer.unhighlight(this._magnetUnderPointer, { connecting: true });
                     // Find a unique `selector` of the element under pointer that is a magnet. If the
                     // `this._magnetUnderPointer` is the root element of the `this._viewUnderPointer` itself,
                     // the returned `selector` will be `undefined`. That means we can directly pass it to the
@@ -22139,13 +22893,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                         id: this._viewUnderPointer.model.id,
                         selector: this._viewUnderPointer.getSelector(this._magnetUnderPointer),
                         port: $(this._magnetUnderPointer).attr('port')
-                    });
+                    }, { ui: true });
                 }
 
                 delete this._viewUnderPointer;
                 delete this._magnetUnderPointer;
-                delete this._staticView;
-                delete this._staticMagnet;
+            }
+
+            // Reparent the link if embedding is enabled
+            if (this.paper.options.embeddingMode && this.model.reparent()) {
+
+                // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
+                delete this._z;
             }
 
             this._afterArrowheadMove();
@@ -22153,6 +22912,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         delete this._action;
     }
+
+}, {
+
+    makeSelector: function(end) {
+
+        var selector = '[model-id="' + end.id + '"]';
+        // `port` has a higher precendence over `selector`. This is because the selector to the magnet
+        // might change while the name of the port can stay the same.
+        if (end.port) {
+            selector += ' [port="' + end.port + '"]';
+        } else if (end.selector) {
+            selector += ' ' + end.selector;
+        }
+
+        return selector;
+    }
+
 });
 
 
@@ -22191,6 +22967,8 @@ joint.dia.Paper = Backbone.View.extend({
         // defaultLink: function(elementView, magnet) { return condition ? new customLink1() : new customLink2() }
         defaultLink: new joint.dia.Link,
 
+        /* CONNECTING */
+
         // Check whether to add a new link to the graph when user clicks on an a magnet.
         validateMagnet: function(cellView, magnet) {
             return magnet.getAttribute('magnet') !== 'passive';
@@ -22200,7 +22978,28 @@ joint.dia.Paper = Backbone.View.extend({
         // being changed.
         validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
             return (end === 'target' ? cellViewT : cellViewS) instanceof joint.dia.ElementView;
-        }
+        },
+
+        /* EMBEDDING */
+
+        // Enables embedding. Reparents the dragged element with elements under it and makes sure that
+        // all links and elements are visible taken the level of embedding into account.
+        embeddingMode: false,
+
+        // Check whether to allow or disallow the element embedding while an element being translated.
+        validateEmbedding: function(childView, parentView) {
+            // by default all elements can be in relation child-parent
+            return true;
+        },
+
+        // Determines the way how a cell finds a suitable parent when it's dragged over the paper.
+        // The cell with the highest z-index (visually on the top) will be choosen.
+        findParentBy: 'bbox', // 'bbox'|'center'|'origin'|'corner'|'topRight'|'bottomLeft'
+
+        // If enabled only the element on the very front is taken into account for the embedding.
+        // If disabled the elements under the dragged view are tested one by one
+        // (from front to back) until a valid parent found.
+        frontParentOnly: true
     },
 
     events: {
@@ -22210,7 +23009,11 @@ joint.dia.Paper = Backbone.View.extend({
         'click': 'mouseclick',
         'touchstart': 'pointerdown',
         'mousemove': 'pointermove',
-        'touchmove': 'pointermove'
+        'touchmove': 'pointermove',
+        'mouseover .element': 'cellMouseover',
+        'mouseover .link': 'cellMouseover',
+        'mouseout .element': 'cellMouseout',
+        'mouseout .link': 'cellMouseout'
     },
 
     constructor: function(options) {
@@ -22230,21 +23033,18 @@ joint.dia.Paper = Backbone.View.extend({
         _.bindAll(this, 'addCell', 'sortCells', 'resetCells', 'pointerup', 'asyncRenderCells');
 
         this.svg = V('svg').node;
-        this.viewport = V('g').node;
+        this.viewport = V('g').addClass('viewport').node;
+        this.defs = V('defs').node;
 
         // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
-        V(this.svg).append(V('defs').node);
-
-        V(this.viewport).attr({ 'class': 'viewport' });
-        
-        V(this.svg).append(this.viewport);
+        V(this.svg).append([this.viewport, this.defs]);
 
         this.$el.append(this.svg);
 
         this.setOrigin();
         this.setDimensions();
 
-	this.listenTo(this.model, 'add', this.addCell);
+	this.listenTo(this.model, 'add', this.onAddCell);
 	this.listenTo(this.model, 'reset', this.resetCells);
 	this.listenTo(this.model, 'sort', this.sortCells);
 
@@ -22252,9 +23052,15 @@ joint.dia.Paper = Backbone.View.extend({
 
         // Hold the value when mouse has been moved: when mouse moved, no click event will be triggered.
         this._mousemoved = false;
+
+        // default cell highlighting
+        this.on({ 'cell:highlight': this.onCellHighlight, 'cell:unhighlight': this.onCellUnhighlight });
     },
 
     remove: function() {
+
+        //clean up all DOM elements/views to prevent memory leaks
+        this.removeCells();
 
 	$(document).off('mouseup touchend', this.pointerup);
 
@@ -22305,30 +23111,40 @@ joint.dia.Paper = Backbone.View.extend({
 	// Calculate the paper size to accomodate all the graph's elements.
 	var bbox = V(this.viewport).bbox(true, this.svg);
 
+        var currentScale = V(this.viewport).scale();
+
+        bbox.x *= currentScale.sx;
+        bbox.y *= currentScale.sy;
+        bbox.width *= currentScale.sx;
+        bbox.height *= currentScale.sy;
+
 	var calcWidth = Math.max(Math.ceil((bbox.width + bbox.x) / gridWidth), 1) * gridWidth;
 	var calcHeight = Math.max(Math.ceil((bbox.height + bbox.y) / gridHeight), 1) * gridHeight;
 
         var tx = 0;
         var ty = 0;
 
-        if (opt.fitNegative) {
+        if ((opt.allowNewOrigin == 'negative' && bbox.x < 0) || (opt.allowNewOrigin == 'positive' && bbox.x >= 0) || opt.allowNewOrigin == 'any') {
+            tx = Math.ceil(-bbox.x / gridWidth) * gridWidth;
+            tx += padding;
+            calcWidth += tx;
+        }
 
-            if (bbox.x < 0) {
-                tx = Math.ceil(-bbox.x / gridWidth) * gridWidth;
-                calcWidth += tx;
-            }
-
-            if (bbox.y < 0) {
-                ty = Math.ceil(-bbox.y / gridHeight) * gridHeight;
-                calcHeight += ty;
-            }
+        if ((opt.allowNewOrigin == 'negative' && bbox.y < 0) || (opt.allowNewOrigin == 'positive' && bbox.y >= 0) || opt.allowNewOrigin == 'any') {
+            ty = Math.ceil(-bbox.y / gridHeight) * gridHeight;
+            ty += padding;
+            calcHeight += ty;
         }
 
         calcWidth += padding;
         calcHeight += padding;
 
+        // Make sure the resulting width and height are greater than minimum.
+        calcWidth = Math.max(calcWidth, opt.minWidth || 0);
+        calcHeight = Math.max(calcHeight, opt.minHeight || 0);
+
         var dimensionChange = calcWidth != this.options.width || calcHeight != this.options.height;
-        var originChange = opt.fitNegative && (tx != this.options.origin.x || ty != this.options.origin.y);
+        var originChange = tx != this.options.origin.x || ty != this.options.origin.y;
 
 	// Change the dimensions only if there is a size discrepency or an origin change
         if (originChange) {
@@ -22368,8 +23184,8 @@ joint.dia.Paper = Backbone.View.extend({
         var maxScaleY = opt.maxScaleY || opt.maxScale;
 
         var fittingBBox = opt.fittingBBox || ({
-            x: 0,
-            y: 0,
+            x: this.options.origin.x,
+            y: this.options.origin.y,
             width: this.options.width,
             height: this.options.height
         });
@@ -22458,7 +23274,28 @@ joint.dia.Paper = Backbone.View.extend({
 
         return view;
     },
-    
+
+    onAddCell: function(cell, graph, options) {
+
+        if (this.options.async && options.async !== false && _.isNumber(options.position)) {
+
+            this._asyncCells = this._asyncCells || [];
+            this._asyncCells.push(cell);
+
+            if (options.position == 0) {
+
+                if (this._frameId) throw 'another asynchronous rendering in progress';
+
+                this.asyncRenderCells(this._asyncCells);
+                delete this._asyncCells;
+            }
+
+        } else {
+
+            this.addCell(cell);
+        }
+    },
+
     addCell: function(cell) {
 
         var view = this.createViewForModel(cell);
@@ -22472,53 +23309,86 @@ joint.dia.Paper = Backbone.View.extend({
         $(view.el).find('image').on('dragstart', function() { return false; });
     },
 
+    beforeRenderCells: function(cells) {
+
+        // Make sure links are always added AFTER elements.
+        // They wouldn't find their sources/targets in the DOM otherwise.
+        cells.sort(function(a, b) { return a instanceof joint.dia.Link ? 1 : -1; });
+
+        return cells;
+    },
+
+    afterRenderCells: function() {
+
+        this.sortCells();
+    },
+
     resetCells: function(cellsCollection) {
 
         $(this.viewport).empty();
 
         var cells = cellsCollection.models.slice();
 
-        // Make sure links are always added AFTER elements.
-        // They wouldn't find their sources/targets in the DOM otherwise.
-        cells.sort(function(a, b) { return a instanceof joint.dia.Link ? 1 : -1; });
+        cells = this.beforeRenderCells(cells);
         
 	if (this._frameId) {
+
 	    joint.util.cancelFrame(this._frameId);
+            delete this._frameId;
 	}
+
 	if (this.options.async) {
 
 	    this.asyncRenderCells(cells);
+            // Sort the cells once all elements rendered (see asyncRenderCells()).
 
 	} else {
 
             _.each(cells, this.addCell, this);
-	}
 
-        // Sort the cells in the DOM manually as we might have changed the order they
-        // were added to the DOM (see above).
-        this.sortCells();
+            // Sort the cells in the DOM manually as we might have changed the order they
+            // were added to the DOM (see above).
+            this.sortCells();
+	}
     },
 
-    asyncRenderCells: function(cells) {
+    removeCells: function() {
+
+        this.model.get('cells').each(function(cell) {
+            var view = this.findViewByModel(cell);
+            view && view.remove();
+        }, this);
+    },
+
+    asyncBatchAdded: _.identity,
+
+    asyncRenderCells: function(cells, opt) {
 
         var done = false;
 
-        _.each(_.range(this.options.async && this.options.async.batchSize || 50), function() {
+        if (this._frameId) {
 
-            var cell = cells.shift();
-	    done = !cell;
-            if (!done) this.addCell(cell);
+            _.each(_.range(this.options.async && this.options.async.batchSize || 50), function() {
 
-        }, this);
+                var cell = cells.shift();
+	        done = !cell;
+                if (!done) this.addCell(cell);
+
+            }, this);
+
+            this.asyncBatchAdded();
+        }
 
         if (done) {
 
-	    this.trigger('render:done');
+            delete this._frameId;
+            this.afterRenderCells();
+	    this.trigger('render:done', opt);
 
 	} else {
 
             this._frameId = joint.util.nextFrame(_.bind(function() {
-		this.asyncRenderCells(cells);
+		this.asyncRenderCells(cells, opt);
 	    }, this));
         }
     },
@@ -22602,10 +23472,7 @@ joint.dia.Paper = Backbone.View.extend({
 
             var newTx = oldTx - ox * (sx - 1);
             var newTy = oldTy - oy * (sy - 1);
-
-            if (newTx != oldTx || newTy != oldTy) {
-                this.setOrigin(newTx, newTy);
-            }
+            this.setOrigin(newTx, newTy);
         }
 
         V(this.viewport).scale(sx, sy);
@@ -22670,7 +23537,7 @@ joint.dia.Paper = Backbone.View.extend({
         var views = _.map(this.model.getElements(), this.findViewByModel);
 
 	return _.filter(views, function(view) {
-	    return g.rect(V(view.el).bbox(false, this.viewport)).containsPoint(p);
+	    return view && g.rect(V(view.el).bbox(false, this.viewport)).containsPoint(p);
 	}, this);
     },
 
@@ -22682,7 +23549,7 @@ joint.dia.Paper = Backbone.View.extend({
         var views = _.map(this.model.getElements(), this.findViewByModel);
 
 	return _.filter(views, function(view) {
-	    return r.intersect(g.rect(V(view.el).bbox(false, this.viewport)));
+	    return view && r.intersect(g.rect(V(view.el).bbox(false, this.viewport)));
 	}, this);
     },
 
@@ -22712,6 +23579,17 @@ joint.dia.Paper = Backbone.View.extend({
             : this.options.defaultLink.clone();
     },
 
+    // Cell highlighting
+    // -----------------
+
+    onCellHighlight: function(cellView, el) {
+        V(el).addClass('highlighted');
+    },
+
+    onCellUnhighlight: function(cellView, el) {
+        V(el).removeClass('highlighted');
+    },
+
     // Interaction.
     // ------------
 
@@ -22738,7 +23616,6 @@ joint.dia.Paper = Backbone.View.extend({
         // Trigger event when mouse not moved.
         if (!this._mousemoved) {
             
-            evt.preventDefault();
             evt = joint.util.normalizeEvent(evt);
 
             var view = this.findView(evt.target);
@@ -22759,7 +23636,6 @@ joint.dia.Paper = Backbone.View.extend({
 
     pointerdown: function(evt) {
 
-        evt.preventDefault();
         evt = joint.util.normalizeEvent(evt);
         
         var view = this.findView(evt.target);
@@ -22811,6 +23687,26 @@ joint.dia.Paper = Backbone.View.extend({
 
             this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
         }
+    },
+    
+    cellMouseover: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+        var view = this.findView(evt.target);
+        if (view) {
+
+            view.mouseover(evt);
+        }
+    },
+
+    cellMouseout: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+        var view = this.findView(evt.target);
+        if (view) {
+
+            view.mouseout(evt);
+        }
     }
 });
 
@@ -22861,6 +23757,16 @@ joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
         }
         
     }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.basic.TextView = joint.dia.ElementView.extend({
+
+    initialize: function() {
+        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+        // The element view is not automatically rescaled to fit the model size
+        // when the attribute 'attrs' is changed.
+        this.listenTo(this.model, 'change:attrs', this.resize);
+    }
 });
 
 joint.shapes.basic.Text = joint.shapes.basic.Generic.extend({
@@ -24097,7 +25003,7 @@ joint.shapes.erd.Attribute = joint.dia.Element.extend({
             '.inner': {
                 stroke: '#D35400', 'stroke-width': 2,
                 cx: 0, cy: 0, rx: 45, ry: 20,
-                fill: 'transparent', display: 'none'
+                fill: '#E67E22', display: 'none'
             },
             text: {
                  'font-family': 'Arial', 'font-size': 14,
@@ -24145,7 +25051,7 @@ joint.shapes.erd.Attribute = joint.dia.Element.extend({
 
          attrs: {
              ellipse: { 'stroke-width': 4 },
-             text: { text: 'key', 'font-weight': 'bold', 'text-decoration': 'underline' }
+             text: { text: 'key', 'font-weight': '800', 'text-decoration': 'underline' }
          }
      }, joint.shapes.erd.Attribute.prototype.defaults)
 });
@@ -24175,8 +25081,8 @@ joint.shapes.erd.ISA = joint.dia.Element.extend({
                 fill: '#F1C40F', stroke: '#F39C12', 'stroke-width': 2
             },
             text: {
-                text: 'ISA',
-                ref: '.', 'ref-x': .5, 'ref-y': .3,
+                text: 'ISA', 'font-size': 18,
+                ref: 'polygon', 'ref-x': .5, 'ref-y': .3,
                 'x-alignment': 'middle', 'y-alignment': 'middle'
             }
         }
@@ -24220,7 +25126,7 @@ joint.shapes.fsa.State = joint.shapes.basic.Circle.extend({
         type: 'fsa.State',
         attrs: {
             circle: { 'stroke-width': 3 },
-            text: { 'font-weight': 'bold' }
+            text: { 'font-weight': '800' }
         }
     }, joint.shapes.basic.Circle.prototype.defaults)
 });
@@ -24237,7 +25143,7 @@ joint.shapes.fsa.StartState = joint.dia.Element.extend({
             circle: {
                 transform: 'translate(10, 10)',
                 r: 10,
-                fill: 'black'
+                fill: '#000000'
             }
         }
 
@@ -24256,8 +25162,8 @@ joint.shapes.fsa.EndState = joint.dia.Element.extend({
             '.outer': {
                 transform: 'translate(10, 10)',
                 r: 10,
-                fill: '#FFFFFF',
-                stroke: 'black'
+                fill: '#ffffff',
+                stroke: '#000000'
             },
 
             '.inner': {
@@ -24328,7 +25234,7 @@ joint.shapes.org.Member = joint.dia.Element.extend({
             },
 
             '.name': {
-                'font-weight': 'bold',
+                'font-weight': '800',
                 ref: '.card', 'ref-x': 0.9, 'ref-y': 0.6,
                 'font-family': 'Courier New', 'font-size': 14,
 		'text-anchor': 'end'
@@ -24542,8 +25448,8 @@ joint.shapes.pn.Place = joint.shapes.basic.Generic.extend({
         attrs: {
             '.root': {
                 r: 25,
-                fill: 'white',
-                stroke: 'black',
+                fill: '#ffffff',
+                stroke: '#000000',
                 transform: 'translate(25, 25)'
             },
             '.label': {
@@ -24551,11 +25457,11 @@ joint.shapes.pn.Place = joint.shapes.basic.Generic.extend({
                 'ref-x': .5,
                 'ref-y': -20,
                 ref: '.root',
-                fill: 'black',
+                fill: '#000000',
                 'font-size': 12
             },
             '.tokens > circle': {
-                fill: 'black',
+                fill: '#000000',
                 r: 5
             },
             '.tokens.one > circle': { transform: 'translate(25, 25)' },
@@ -24570,7 +25476,7 @@ joint.shapes.pn.Place = joint.shapes.basic.Generic.extend({
             '.tokens.alot > text': {
 		transform: 'translate(25, 18)',
 		'text-anchor': 'middle',
-                fill: 'black'
+                fill: '#000000'
             }
         }
 
@@ -24647,15 +25553,15 @@ joint.shapes.pn.Transition = joint.shapes.basic.Generic.extend({
             'rect': {
                 width: 12,
                 height: 50,
-                fill: 'black',
-                stroke: 'black'
+                fill: '#000000',
+                stroke: '#000000'
             },
             '.label': {
                 'text-anchor': 'middle',
                 'ref-x': .5,
                 'ref-y': -20,
                 ref: 'rect',
-                fill: 'black',
+                fill: '#000000',
                 'font-size': 12
             }
         }
@@ -24711,20 +25617,19 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend(_.extend({}, joint.s
             '.': { magnet: false },
             '.body': {
                 width: 150, height: 250,
-                stroke: 'black'
+                stroke: '#000000'
             },
             '.port-body': {
                 r: 10,
                 magnet: true,
-                stroke: 'black'
+                stroke: '#000000'
             },
             text: {
-                fill: 'black',
                 'pointer-events': 'none'
             },
-            '.label': { text: 'Model', 'ref-x': .3, 'ref-y': .2 },
-            '.inPorts .port-label': { x:-15, dy: 4, 'text-anchor': 'end' },
-            '.outPorts .port-label':{ x: 15, dy: 4 }
+            '.label': { text: 'Model', 'ref-x': .5, 'ref-y': 10, ref: '.body', 'text-anchor': 'middle', fill: '#000000' },
+            '.inPorts .port-label': { x:-15, dy: 4, 'text-anchor': 'end', fill: '#000000' },
+            '.outPorts .port-label':{ x: 15, dy: 4, fill: '#000000' }
         }
 
     }, joint.shapes.basic.Generic.prototype.defaults),
@@ -25088,7 +25993,7 @@ joint.shapes.uml.EndState = joint.shapes.basic.Generic.extend({
             'circle.outer': {
                 transform: 'translate(10, 10)',
                 r: 10,
-                fill: 'white',
+                fill: '#ffffff',
                 stroke: '#2c3e50'
             },
 
@@ -25116,6 +26021,291 @@ joint.shapes.uml.Transition = joint.dia.Link.extend({
 if (typeof exports === 'object') {
 
     module.exports = joint.shapes.uml;
+}
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+
+if (typeof exports === 'object') {
+
+    var joint = {
+        util: require('../src/core').util,
+        shapes: {
+            basic: require('./joint.shapes.basic')
+        },
+        dia: {
+            Link: require('../src/joint.dia.link').Link
+        }
+    };
+}
+
+joint.shapes.logic = {};
+
+joint.shapes.logic.Gate = joint.shapes.basic.Generic.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Gate',
+        size: { width: 80, height: 40 },
+        attrs: {
+            '.': { magnet: false },
+            '.body': { width: 100, height: 50 },
+            circle: { r: 7, stroke: 'black', fill: 'transparent', 'stroke-width': 2 }
+        }
+
+    }, joint.shapes.basic.Generic.prototype.defaults),
+
+    operation: function() { return true; }
+});
+
+joint.shapes.logic.IO = joint.shapes.logic.Gate.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><path class="wire"/><circle/><text/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.IO',
+        size: { width: 60, height: 30 },
+        attrs: {
+            '.body': { fill: 'white', stroke: 'black', 'stroke-width': 2 },
+            '.wire': { ref: '.body', 'ref-y': .5, stroke: 'black'},
+            text: {
+                fill: 'black',
+                ref: '.body', 'ref-x': .5, 'ref-y': .5, 'y-alignment': 'middle',
+                'text-anchor': 'middle',
+                'font-weight': 'bold',
+                'font-variant': 'small-caps', 
+                'text-transform': 'capitalize',
+                'font-size': '14px'
+            }
+        }
+
+    }, joint.shapes.logic.Gate.prototype.defaults)
+
+});
+
+joint.shapes.logic.Input = joint.shapes.logic.IO.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Input',
+        attrs: {
+            '.wire': { 'ref-dx': 0, d: 'M 0 0 L 23 0' },
+            circle: { ref: '.body', 'ref-dx': 30, 'ref-y': 0.5, magnet: true, 'class': 'output', port: 'out' },
+            text: { text: 'input' }
+        }
+
+    }, joint.shapes.logic.IO.prototype.defaults)
+});
+
+joint.shapes.logic.Output = joint.shapes.logic.IO.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Output',
+        attrs: {
+            '.wire': { 'ref-x': 0, d: 'M 0 0 L -23 0' },
+            circle: { ref: '.body', 'ref-x': -30, 'ref-y': 0.5, magnet: 'passive', 'class': 'input', port: 'in' },
+            text: { text: 'output' }
+        }
+
+    }, joint.shapes.logic.IO.prototype.defaults)
+
+});
+
+
+joint.shapes.logic.Gate11 = joint.shapes.logic.Gate.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input"/><circle class="output"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Gate11',
+        attrs: {
+            '.input': { ref: '.body', 'ref-x': -2, 'ref-y': 0.5, magnet: 'passive', port: 'in' },
+            '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
+        }
+
+    }, joint.shapes.logic.Gate.prototype.defaults)
+});
+
+joint.shapes.logic.Gate21 = joint.shapes.logic.Gate.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input input1"/><circle  class="input input2"/><circle class="output"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Gate21',
+        attrs: {
+            '.input1': { ref: '.body', 'ref-x': -2, 'ref-y': 0.3, magnet: 'passive', port: 'in1' },
+            '.input2': { ref: '.body', 'ref-x': -2, 'ref-y': 0.7, magnet: 'passive', port: 'in2' },
+            '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
+        }
+
+    }, joint.shapes.logic.Gate.prototype.defaults),
+
+});
+
+joint.shapes.logic.Repeater = joint.shapes.logic.Gate11.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Repeater',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PVCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjgiCiAgICAgaW5rc2NhcGU6Y3g9Ijg0LjY4NTM1MiIKICAgICBpbmtzY2FwZTpjeT0iMTUuMjg4NjI4IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzIuMTU2OTEsMjUgTCA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAyOS4wNDM0NzgsMjUgTCA1LjA0MzQ3ODEsMjUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgZD0iTSAyOC45Njg3NSwyLjU5Mzc1IEwgMjguOTY4NzUsNSBMIDI4Ljk2ODc1LDQ1IEwgMjguOTY4NzUsNDcuNDA2MjUgTCAzMS4xMjUsNDYuMzQzNzUgTCA3Mi4xNTYyNSwyNi4zNDM3NSBMIDcyLjE1NjI1LDIzLjY1NjI1IEwgMzEuMTI1LDMuNjU2MjUgTCAyOC45Njg3NSwyLjU5Mzc1IHogTSAzMS45Njg3NSw3LjQwNjI1IEwgNjguMDkzNzUsMjUgTCAzMS45Njg3NSw0Mi41OTM3NSBMIDMxLjk2ODc1LDcuNDA2MjUgeiIKICAgICAgIGlkPSJwYXRoMjYzOCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2NjY2NjYyIgLz4KICA8L2c+Cjwvc3ZnPgo=' }}
+
+    }, joint.shapes.logic.Gate11.prototype.defaults),
+
+    operation: function(input) {
+        return input;
+    }
+
+});
+
+joint.shapes.logic.Not = joint.shapes.logic.Gate11.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Not',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PVCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjgiCiAgICAgaW5rc2NhcGU6Y3g9Ijg0LjY4NTM1MiIKICAgICBpbmtzY2FwZTpjeT0iMTUuMjg4NjI4IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzkuMTU2OTEsMjUgTCA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAyOS4wNDM0NzgsMjUgTCA1LjA0MzQ3ODEsMjUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgZD0iTSAyOC45Njg3NSwyLjU5Mzc1IEwgMjguOTY4NzUsNSBMIDI4Ljk2ODc1LDQ1IEwgMjguOTY4NzUsNDcuNDA2MjUgTCAzMS4xMjUsNDYuMzQzNzUgTCA3Mi4xNTYyNSwyNi4zNDM3NSBMIDcyLjE1NjI1LDIzLjY1NjI1IEwgMzEuMTI1LDMuNjU2MjUgTCAyOC45Njg3NSwyLjU5Mzc1IHogTSAzMS45Njg3NSw3LjQwNjI1IEwgNjguMDkzNzUsMjUgTCAzMS45Njg3NSw0Mi41OTM3NSBMIDMxLjk2ODc1LDcuNDA2MjUgeiIKICAgICAgIGlkPSJwYXRoMjYzOCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2NjY2NjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDI2NzEiCiAgICAgICBzb2RpcG9kaTpjeD0iNzYiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA4MCwyNSBBIDQsNCAwIDEgMSA3MiwyNSBBIDQsNCAwIDEgMSA4MCwyNSB6IgogICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEsMCkiIC8+CiAgPC9nPgo8L3N2Zz4K' }}
+
+    }, joint.shapes.logic.Gate11.prototype.defaults),
+
+    operation: function(input) {
+        return !input;
+    }
+
+});
+
+joint.shapes.logic.Or = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Or',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik9SIEFOU0kuc3ZnIgogICBpbmtzY2FwZTpvdXRwdXRfZXh0ZW5zaW9uPSJvcmcuaW5rc2NhcGUub3V0cHV0LnN2Zy5pbmtzY2FwZSI+CiAgPGRlZnMKICAgICBpZD0iZGVmczQiPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjUwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjI1IDogMTAgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjcxNCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iMSA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMC41IDogMC4zMzMzMzMzMyA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyODA2IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyODE5IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjM3Mi4wNDcyNCA6IDM1MC43ODczOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI3NDQuMDk0NDggOiA1MjYuMTgxMDkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzc3IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49Ijc1IDogNDAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iMTUwIDogNjAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDYwIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTMyNzUiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNTAgOiAzMy4zMzMzMzMgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iMTAwIDogNTAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDUwIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTU1MzMiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzIgOiAyMS4zMzMzMzMgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNjQgOiAzMiA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMzIgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjU1NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDE2LjY2NjY2NyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDI1IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAyNSA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogIDwvZGVmcz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6em9vbT0iNCIKICAgICBpbmtzY2FwZTpjeD0iMTEzLjAwMDM5IgogICAgIGlua3NjYXBlOmN5PSIxMi44OTM3MzEiCiAgICAgaW5rc2NhcGU6ZG9jdW1lbnQtdW5pdHM9InB4IgogICAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9ImcyNTYwIgogICAgIHNob3dncmlkPSJmYWxzZSIKICAgICBpbmtzY2FwZTpncmlkLWJib3g9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1wb2ludHM9InRydWUiCiAgICAgZ3JpZHRvbGVyYW5jZT0iMTAwMDAiCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxMzk5IgogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9Ijg3NCIKICAgICBpbmtzY2FwZTp3aW5kb3cteD0iMzciCiAgICAgaW5rc2NhcGU6d2luZG93LXk9Ii00IgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Im0gNzAsMjUgYyAyMCwwIDI1LDAgMjUsMCIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMSwxNSA1LDE1IgogICAgICAgaWQ9InBhdGgzMDYxIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzIsMzUgNSwzNSIKICAgICAgIGlkPSJwYXRoMzk0NCIgLz4KICAgIDxnCiAgICAgICBpZD0iZzI1NjAiCiAgICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI2LjUsLTM5LjUpIj4KICAgICAgPHBhdGgKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjQwNjI1LDQ0LjUgTCAtMC40MDYyNSw0Ni45Mzc1IEMgLTAuNDA2MjUsNDYuOTM3NSA1LjI1LDUzLjkzNzU0OSA1LjI1LDY0LjUgQyA1LjI1LDc1LjA2MjQ1MSAtMC40MDYyNSw4Mi4wNjI1IC0wLjQwNjI1LDgyLjA2MjUgTCAtMi40MDYyNSw4NC41IEwgMC43NSw4NC41IEwgMTQuNzUsODQuNSBDIDE3LjE1ODA3Niw4NC41MDAwMDEgMjIuNDM5Njk5LDg0LjUyNDUxNCAyOC4zNzUsODIuMDkzNzUgQyAzNC4zMTAzMDEsNzkuNjYyOTg2IDQwLjkxMTUzNiw3NC43NTA0ODQgNDYuMDYyNSw2NS4yMTg3NSBMIDQ0Ljc1LDY0LjUgTCA0Ni4wNjI1LDYzLjc4MTI1IEMgMzUuNzU5Mzg3LDQ0LjcxNTU5IDE5LjUwNjU3NCw0NC41IDE0Ljc1LDQ0LjUgTCAwLjc1LDQ0LjUgTCAtMi40MDYyNSw0NC41IHogTSAzLjQ2ODc1LDQ3LjUgTCAxNC43NSw0Ny41IEMgMTkuNDM0MTczLDQ3LjUgMzMuMDM2ODUsNDcuMzY5NzkzIDQyLjcxODc1LDY0LjUgQyAzNy45NTE5NjQsNzIuOTI5MDc1IDMyLjE5NzQ2OSw3Ny4xODM5MSAyNyw3OS4zMTI1IEMgMjEuNjM5MzM5LDgxLjUwNzkyNCAxNy4xNTgwNzUsODEuNTAwMDAxIDE0Ljc1LDgxLjUgTCAzLjUsODEuNSBDIDUuMzczNTg4NCw3OC4zOTE1NjYgOC4yNSw3Mi40NTA2NSA4LjI1LDY0LjUgQyA4LjI1LDU2LjUyNjY0NiA1LjM0MTQ2ODYsNTAuNTk5ODE1IDMuNDY4NzUsNDcuNSB6IgogICAgICAgICBpZD0icGF0aDQ5NzMiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NzY2NjY3NjY2NjY2NjY2NzY2NzYyIgLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPgo=' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return input1 || input2;
+    }
+
+});
+
+joint.shapes.logic.And = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.And',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IkFORCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgPC9kZWZzPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0iYmFzZSIKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTp6b29tPSI4IgogICAgIGlua3NjYXBlOmN4PSI1Ni42OTgzNDgiCiAgICAgaW5rc2NhcGU6Y3k9IjI1LjMyNjg5OSIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJtIDcwLDI1IGMgMjAsMCAyNSwwIDI1LDAiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEsMTUgNSwxNSIKICAgICAgIGlkPSJwYXRoMzA2MSIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjk5OTk5OTg4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMyLDM1IDUsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZvbnQtc2l6ZTptZWRpdW07Zm9udC1zdHlsZTpub3JtYWw7Zm9udC12YXJpYW50Om5vcm1hbDtmb250LXdlaWdodDpub3JtYWw7Zm9udC1zdHJldGNoOm5vcm1hbDt0ZXh0LWluZGVudDowO3RleHQtYWxpZ246c3RhcnQ7dGV4dC1kZWNvcmF0aW9uOm5vbmU7bGluZS1oZWlnaHQ6bm9ybWFsO2xldHRlci1zcGFjaW5nOm5vcm1hbDt3b3JkLXNwYWNpbmc6bm9ybWFsO3RleHQtdHJhbnNmb3JtOm5vbmU7ZGlyZWN0aW9uOmx0cjtibG9jay1wcm9ncmVzc2lvbjp0Yjt3cml0aW5nLW1vZGU6bHItdGI7dGV4dC1hbmNob3I6c3RhcnQ7ZmlsbDojMDAwMDAwO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTpub25lO3N0cm9rZS13aWR0aDozO21hcmtlcjpub25lO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGU7Zm9udC1mYW1pbHk6Qml0c3RyZWFtIFZlcmEgU2FuczstaW5rc2NhcGUtZm9udC1zcGVjaWZpY2F0aW9uOkJpdHN0cmVhbSBWZXJhIFNhbnMiCiAgICAgICBkPSJNIDMwLDUgTCAzMCw2LjQyODU3MTQgTCAzMCw0My41NzE0MjkgTCAzMCw0NSBMIDMxLjQyODU3MSw0NSBMIDUwLjQ3NjE5LDQ1IEMgNjEuNzQ0MDk4LDQ1IDcwLjQ3NjE5LDM1Ljk5OTk1NSA3MC40NzYxOSwyNSBDIDcwLjQ3NjE5LDE0LjAwMDA0NSA2MS43NDQwOTksNS4wMDAwMDAyIDUwLjQ3NjE5LDUgQyA1MC40NzYxOSw1IDUwLjQ3NjE5LDUgMzEuNDI4NTcxLDUgTCAzMCw1IHogTSAzMi44NTcxNDMsNy44NTcxNDI5IEMgNDAuODM0MjY0LDcuODU3MTQyOSA0NS45MTgzNjgsNy44NTcxNDI5IDQ4LjA5NTIzOCw3Ljg1NzE0MjkgQyA0OS4yODU3MTQsNy44NTcxNDI5IDQ5Ljg4MDk1Miw3Ljg1NzE0MjkgNTAuMTc4NTcxLDcuODU3MTQyOSBDIDUwLjMyNzM4MSw3Ljg1NzE0MjkgNTAuNDA5MjI3LDcuODU3MTQyOSA1MC40NDY0MjksNy44NTcxNDI5IEMgNTAuNDY1MDI5LDcuODU3MTQyOSA1MC40NzE1NDMsNy44NTcxNDI5IDUwLjQ3NjE5LDcuODU3MTQyOSBDIDYwLjIzNjg1Myw3Ljg1NzE0MyA2Ny4xNDI4NTcsMTUuNDk3MDk4IDY3LjE0Mjg1NywyNSBDIDY3LjE0Mjg1NywzNC41MDI5MDIgNTkuNzYwNjYyLDQyLjE0Mjg1NyA1MCw0Mi4xNDI4NTcgTCAzMi44NTcxNDMsNDIuMTQyODU3IEwgMzIuODU3MTQzLDcuODU3MTQyOSB6IgogICAgICAgaWQ9InBhdGgyODg0IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2NjY2NzY2NjY3Nzc3NzY2NjIiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return input1 && input2;
+    }
+
+});
+
+joint.shapes.logic.Nor = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Nor',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PUiBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjEiCiAgICAgaW5rc2NhcGU6Y3g9Ijc4LjY3NzY0NCIKICAgICBpbmtzY2FwZTpjeT0iMjIuMTAyMzQ0IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjM3IgogICAgIGlua3NjYXBlOndpbmRvdy15PSItNCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDc5LDI1IEMgOTksMjUgOTUsMjUgOTUsMjUiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEsMTUgNSwxNSIKICAgICAgIGlkPSJwYXRoMzA2MSIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjk5OTk5OTg4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMyLDM1IDUsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8ZwogICAgICAgaWQ9ImcyNTYwIgogICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNi41LC0zOS41KSI+CiAgICAgIDxwYXRoCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi40MDYyNSw0NC41IEwgLTAuNDA2MjUsNDYuOTM3NSBDIC0wLjQwNjI1LDQ2LjkzNzUgNS4yNSw1My45Mzc1NDkgNS4yNSw2NC41IEMgNS4yNSw3NS4wNjI0NTEgLTAuNDA2MjUsODIuMDYyNSAtMC40MDYyNSw4Mi4wNjI1IEwgLTIuNDA2MjUsODQuNSBMIDAuNzUsODQuNSBMIDE0Ljc1LDg0LjUgQyAxNy4xNTgwNzYsODQuNTAwMDAxIDIyLjQzOTY5OSw4NC41MjQ1MTQgMjguMzc1LDgyLjA5Mzc1IEMgMzQuMzEwMzAxLDc5LjY2Mjk4NiA0MC45MTE1MzYsNzQuNzUwNDg0IDQ2LjA2MjUsNjUuMjE4NzUgTCA0NC43NSw2NC41IEwgNDYuMDYyNSw2My43ODEyNSBDIDM1Ljc1OTM4Nyw0NC43MTU1OSAxOS41MDY1NzQsNDQuNSAxNC43NSw0NC41IEwgMC43NSw0NC41IEwgLTIuNDA2MjUsNDQuNSB6IE0gMy40Njg3NSw0Ny41IEwgMTQuNzUsNDcuNSBDIDE5LjQzNDE3Myw0Ny41IDMzLjAzNjg1LDQ3LjM2OTc5MyA0Mi43MTg3NSw2NC41IEMgMzcuOTUxOTY0LDcyLjkyOTA3NSAzMi4xOTc0NjksNzcuMTgzOTEgMjcsNzkuMzEyNSBDIDIxLjYzOTMzOSw4MS41MDc5MjQgMTcuMTU4MDc1LDgxLjUwMDAwMSAxNC43NSw4MS41IEwgMy41LDgxLjUgQyA1LjM3MzU4ODQsNzguMzkxNTY2IDguMjUsNzIuNDUwNjUgOC4yNSw2NC41IEMgOC4yNSw1Ni41MjY2NDYgNS4zNDE0Njg2LDUwLjU5OTgxNSAzLjQ2ODc1LDQ3LjUgeiIKICAgICAgICAgaWQ9InBhdGg0OTczIgogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjc2NjY2NzY2NjY2NjY2Njc2Njc2MiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIHNvZGlwb2RpOnR5cGU9ImFyYyIKICAgICAgICAgc3R5bGU9ImZpbGw6bm9uZTtmaWxsLW9wYWNpdHk6MTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgICBpZD0icGF0aDI2MDQiCiAgICAgICAgIHNvZGlwb2RpOmN4PSI3NSIKICAgICAgICAgc29kaXBvZGk6Y3k9IjI1IgogICAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgICAgc29kaXBvZGk6cnk9IjQiCiAgICAgICAgIGQ9Ik0gNzksMjUgQSA0LDQgMCAxIDEgNzEsMjUgQSA0LDQgMCAxIDEgNzksMjUgeiIKICAgICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTI2LjUsMzkuNSkiIC8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return !(input1 || input2);
+    }
+
+});
+
+joint.shapes.logic.Nand = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Nand',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5BTkQgQU5TSS5zdmciCiAgIGlua3NjYXBlOm91dHB1dF9leHRlbnNpb249Im9yZy5pbmtzY2FwZS5vdXRwdXQuc3ZnLmlua3NjYXBlIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCI+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxMCA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzE0IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIwLjUgOiAwLjMzMzMzMzMzIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MDYiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MTkiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9Ijc0NC4wOTQ0OCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3NzciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNzUgOiA0MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxNTAgOiA2MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNjAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMzI3NSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI1MCA6IDMzLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxMDAgOiA1MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlNTUzMyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzMiA6IDIxLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI2NCA6IDMyIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAzMiA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogIDwvZGVmcz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6em9vbT0iMTYiCiAgICAgaW5rc2NhcGU6Y3g9Ijc4LjI4MzMwNyIKICAgICBpbmtzY2FwZTpjeT0iMTYuNDQyODQzIgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzksMjUgQyA5MS44LDI1IDk1LDI1IDk1LDI1IgogICAgICAgaWQ9InBhdGgzMDU5IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMxLDE1IDUsMTUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk4ODtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMiwzNSA1LDM1IgogICAgICAgaWQ9InBhdGgzOTQ0IiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmb250LXNpemU6bWVkaXVtO2ZvbnQtc3R5bGU6bm9ybWFsO2ZvbnQtdmFyaWFudDpub3JtYWw7Zm9udC13ZWlnaHQ6bm9ybWFsO2ZvbnQtc3RyZXRjaDpub3JtYWw7dGV4dC1pbmRlbnQ6MDt0ZXh0LWFsaWduOnN0YXJ0O3RleHQtZGVjb3JhdGlvbjpub25lO2xpbmUtaGVpZ2h0Om5vcm1hbDtsZXR0ZXItc3BhY2luZzpub3JtYWw7d29yZC1zcGFjaW5nOm5vcm1hbDt0ZXh0LXRyYW5zZm9ybTpub25lO2RpcmVjdGlvbjpsdHI7YmxvY2stcHJvZ3Jlc3Npb246dGI7d3JpdGluZy1tb2RlOmxyLXRiO3RleHQtYW5jaG9yOnN0YXJ0O2ZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MzttYXJrZXI6bm9uZTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlO2ZvbnQtZmFtaWx5OkJpdHN0cmVhbSBWZXJhIFNhbnM7LWlua3NjYXBlLWZvbnQtc3BlY2lmaWNhdGlvbjpCaXRzdHJlYW0gVmVyYSBTYW5zIgogICAgICAgZD0iTSAzMCw1IEwgMzAsNi40Mjg1NzE0IEwgMzAsNDMuNTcxNDI5IEwgMzAsNDUgTCAzMS40Mjg1NzEsNDUgTCA1MC40NzYxOSw0NSBDIDYxLjc0NDA5OCw0NSA3MC40NzYxOSwzNS45OTk5NTUgNzAuNDc2MTksMjUgQyA3MC40NzYxOSwxNC4wMDAwNDUgNjEuNzQ0MDk5LDUuMDAwMDAwMiA1MC40NzYxOSw1IEMgNTAuNDc2MTksNSA1MC40NzYxOSw1IDMxLjQyODU3MSw1IEwgMzAsNSB6IE0gMzIuODU3MTQzLDcuODU3MTQyOSBDIDQwLjgzNDI2NCw3Ljg1NzE0MjkgNDUuOTE4MzY4LDcuODU3MTQyOSA0OC4wOTUyMzgsNy44NTcxNDI5IEMgNDkuMjg1NzE0LDcuODU3MTQyOSA0OS44ODA5NTIsNy44NTcxNDI5IDUwLjE3ODU3MSw3Ljg1NzE0MjkgQyA1MC4zMjczODEsNy44NTcxNDI5IDUwLjQwOTIyNyw3Ljg1NzE0MjkgNTAuNDQ2NDI5LDcuODU3MTQyOSBDIDUwLjQ2NTAyOSw3Ljg1NzE0MjkgNTAuNDcxNTQzLDcuODU3MTQyOSA1MC40NzYxOSw3Ljg1NzE0MjkgQyA2MC4yMzY4NTMsNy44NTcxNDMgNjcuMTQyODU3LDE1LjQ5NzA5OCA2Ny4xNDI4NTcsMjUgQyA2Ny4xNDI4NTcsMzQuNTAyOTAyIDU5Ljc2MDY2Miw0Mi4xNDI4NTcgNTAsNDIuMTQyODU3IEwgMzIuODU3MTQzLDQyLjE0Mjg1NyBMIDMyLjg1NzE0Myw3Ljg1NzE0MjkgeiIKICAgICAgIGlkPSJwYXRoMjg4NCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2Njc2NjY2Nzc3Nzc2NjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDQwMDgiCiAgICAgICBzb2RpcG9kaTpjeD0iNzUiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA3OSwyNSBBIDQsNCAwIDEgMSA3MSwyNSBBIDQsNCAwIDEgMSA3OSwyNSB6IiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return !(input1 && input2);
+    }
+
+});
+
+joint.shapes.logic.Xor = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Xor',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IlhPUiBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjUuNjU2ODU0MiIKICAgICBpbmtzY2FwZTpjeD0iMjUuOTM4MTE2IgogICAgIGlua3NjYXBlOmN5PSIxNy4yMzAwNSIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJtIDcwLDI1IGMgMjAsMCAyNSwwIDI1LDAiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzAuMzg1NzE3LDE1IEwgNC45OTk5OTk4LDE1IgogICAgICAgaWQ9InBhdGgzMDYxIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5NzY7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEuMzYyMDkxLDM1IEwgNC45OTk5OTk4LDM1IgogICAgICAgaWQ9InBhdGgzOTQ0IiAvPgogICAgPGcKICAgICAgIGlkPSJnMjU2MCIKICAgICAgIGlua3NjYXBlOmxhYmVsPSJMYXllciAxIgogICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjYuNSwtMzkuNSkiPgogICAgICA8cGF0aAogICAgICAgICBpZD0icGF0aDM1MTYiCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi4yNSw4MS41MDAwMDUgQyAtMy44NDczNzQsODQuMTQ0NDA1IC00LjUsODQuNTAwMDA1IC00LjUsODQuNTAwMDA1IEwgLTguMTU2MjUsODQuNTAwMDA1IEwgLTYuMTU2MjUsODIuMDYyNTA1IEMgLTYuMTU2MjUsODIuMDYyNTA1IC0wLjUsNzUuMDYyNDUxIC0wLjUsNjQuNSBDIC0wLjUsNTMuOTM3NTQ5IC02LjE1NjI1LDQ2LjkzNzUgLTYuMTU2MjUsNDYuOTM3NSBMIC04LjE1NjI1LDQ0LjUgTCAtNC41LDQ0LjUgQyAtMy43MTg3NSw0NS40Mzc1IC0zLjA3ODEyNSw0Ni4xNTYyNSAtMi4yODEyNSw0Ny41IEMgLTAuNDA4NTMxLDUwLjU5OTgxNSAyLjUsNTYuNTI2NjQ2IDIuNSw2NC41IEMgMi41LDcyLjQ1MDY1IC0wLjM5NjY5Nyw3OC4zNzk0MjUgLTIuMjUsODEuNTAwMDA1IHoiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY3NjY2Njc2MiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi40MDYyNSw0NC41IEwgLTAuNDA2MjUsNDYuOTM3NSBDIC0wLjQwNjI1LDQ2LjkzNzUgNS4yNSw1My45Mzc1NDkgNS4yNSw2NC41IEMgNS4yNSw3NS4wNjI0NTEgLTAuNDA2MjUsODIuMDYyNSAtMC40MDYyNSw4Mi4wNjI1IEwgLTIuNDA2MjUsODQuNSBMIDAuNzUsODQuNSBMIDE0Ljc1LDg0LjUgQyAxNy4xNTgwNzYsODQuNTAwMDAxIDIyLjQzOTY5OSw4NC41MjQ1MTQgMjguMzc1LDgyLjA5Mzc1IEMgMzQuMzEwMzAxLDc5LjY2Mjk4NiA0MC45MTE1MzYsNzQuNzUwNDg0IDQ2LjA2MjUsNjUuMjE4NzUgTCA0NC43NSw2NC41IEwgNDYuMDYyNSw2My43ODEyNSBDIDM1Ljc1OTM4Nyw0NC43MTU1OSAxOS41MDY1NzQsNDQuNSAxNC43NSw0NC41IEwgMC43NSw0NC41IEwgLTIuNDA2MjUsNDQuNSB6IE0gMy40Njg3NSw0Ny41IEwgMTQuNzUsNDcuNSBDIDE5LjQzNDE3Myw0Ny41IDMzLjAzNjg1LDQ3LjM2OTc5MyA0Mi43MTg3NSw2NC41IEMgMzcuOTUxOTY0LDcyLjkyOTA3NSAzMi4xOTc0NjksNzcuMTgzOTEgMjcsNzkuMzEyNSBDIDIxLjYzOTMzOSw4MS41MDc5MjQgMTcuMTU4MDc1LDgxLjUwMDAwMSAxNC43NSw4MS41IEwgMy41LDgxLjUgQyA1LjM3MzU4ODQsNzguMzkxNTY2IDguMjUsNzIuNDUwNjUgOC4yNSw2NC41IEMgOC4yNSw1Ni41MjY2NDYgNS4zNDE0Njg2LDUwLjU5OTgxNSAzLjQ2ODc1LDQ3LjUgeiIKICAgICAgICAgaWQ9InBhdGg0OTczIgogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjc2NjY2NzY2NjY2NjY2Njc2Njc2MiIC8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return (!input1 || input2) && (input1 || !input2);
+    }
+
+});
+
+joint.shapes.logic.Xnor = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Xnor',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IlhOT1IgQU5TSS5zdmciCiAgIGlua3NjYXBlOm91dHB1dF9leHRlbnNpb249Im9yZy5pbmtzY2FwZS5vdXRwdXQuc3ZnLmlua3NjYXBlIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCI+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxMCA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzE0IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIwLjUgOiAwLjMzMzMzMzMzIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MDYiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MTkiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9Ijc0NC4wOTQ0OCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3NzciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNzUgOiA0MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxNTAgOiA2MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNjAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMzI3NSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI1MCA6IDMzLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxMDAgOiA1MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlNTUzMyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzMiA6IDIxLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI2NCA6IDMyIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAzMiA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNTU3IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjI1IDogMTYuNjY2NjY3IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjUwIDogMjUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDI1IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgPC9kZWZzPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0iYmFzZSIKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTp6b29tPSI0IgogICAgIGlua3NjYXBlOmN4PSI5NS43MjM2NiIKICAgICBpbmtzY2FwZTpjeT0iLTI2Ljc3NTAyMyIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyLjAwMDAwMDI0O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDc4LjMzMzMzMiwyNSBDIDkxLjY2NjY2NiwyNSA5NSwyNSA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk4ODtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMC4zODU3MTcsMTUgTCA0Ljk5OTk5OTgsMTUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk3NjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMS4zNjIwOTEsMzUgTCA0Ljk5OTk5OTgsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8ZwogICAgICAgaWQ9ImcyNTYwIgogICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNi41LC0zOS41KSI+CiAgICAgIDxwYXRoCiAgICAgICAgIGlkPSJwYXRoMzUxNiIKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjI1LDgxLjUwMDAwNSBDIC0zLjg0NzM3NCw4NC4xNDQ0MDUgLTQuNSw4NC41MDAwMDUgLTQuNSw4NC41MDAwMDUgTCAtOC4xNTYyNSw4NC41MDAwMDUgTCAtNi4xNTYyNSw4Mi4wNjI1MDUgQyAtNi4xNTYyNSw4Mi4wNjI1MDUgLTAuNSw3NS4wNjI0NTEgLTAuNSw2NC41IEMgLTAuNSw1My45Mzc1NDkgLTYuMTU2MjUsNDYuOTM3NSAtNi4xNTYyNSw0Ni45Mzc1IEwgLTguMTU2MjUsNDQuNSBMIC00LjUsNDQuNSBDIC0zLjcxODc1LDQ1LjQzNzUgLTMuMDc4MTI1LDQ2LjE1NjI1IC0yLjI4MTI1LDQ3LjUgQyAtMC40MDg1MzEsNTAuNTk5ODE1IDIuNSw1Ni41MjY2NDYgMi41LDY0LjUgQyAyLjUsNzIuNDUwNjUgLTAuMzk2Njk3LDc4LjM3OTQyNSAtMi4yNSw4MS41MDAwMDUgeiIKICAgICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2Njc2NjY2NzYyIgLz4KICAgICAgPHBhdGgKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjQwNjI1LDQ0LjUgTCAtMC40MDYyNSw0Ni45Mzc1IEMgLTAuNDA2MjUsNDYuOTM3NSA1LjI1LDUzLjkzNzU0OSA1LjI1LDY0LjUgQyA1LjI1LDc1LjA2MjQ1MSAtMC40MDYyNSw4Mi4wNjI1IC0wLjQwNjI1LDgyLjA2MjUgTCAtMi40MDYyNSw4NC41IEwgMC43NSw4NC41IEwgMTQuNzUsODQuNSBDIDE3LjE1ODA3Niw4NC41MDAwMDEgMjIuNDM5Njk5LDg0LjUyNDUxNCAyOC4zNzUsODIuMDkzNzUgQyAzNC4zMTAzMDEsNzkuNjYyOTg2IDQwLjkxMTUzNiw3NC43NTA0ODQgNDYuMDYyNSw2NS4yMTg3NSBMIDQ0Ljc1LDY0LjUgTCA0Ni4wNjI1LDYzLjc4MTI1IEMgMzUuNzU5Mzg3LDQ0LjcxNTU5IDE5LjUwNjU3NCw0NC41IDE0Ljc1LDQ0LjUgTCAwLjc1LDQ0LjUgTCAtMi40MDYyNSw0NC41IHogTSAzLjQ2ODc1LDQ3LjUgTCAxNC43NSw0Ny41IEMgMTkuNDM0MTczLDQ3LjUgMzMuMDM2ODUsNDcuMzY5NzkzIDQyLjcxODc1LDY0LjUgQyAzNy45NTE5NjQsNzIuOTI5MDc1IDMyLjE5NzQ2OSw3Ny4xODM5MSAyNyw3OS4zMTI1IEMgMjEuNjM5MzM5LDgxLjUwNzkyNCAxNy4xNTgwNzUsODEuNTAwMDAxIDE0Ljc1LDgxLjUgTCAzLjUsODEuNSBDIDUuMzczNTg4NCw3OC4zOTE1NjYgOC4yNSw3Mi40NTA2NSA4LjI1LDY0LjUgQyA4LjI1LDU2LjUyNjY0NiA1LjM0MTQ2ODYsNTAuNTk5ODE1IDMuNDY4NzUsNDcuNSB6IgogICAgICAgICBpZD0icGF0aDQ5NzMiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NzY2NjY3NjY2NjY2NjY2NzY2NzYyIgLz4KICAgIDwvZz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDM1NTEiCiAgICAgICBzb2RpcG9kaTpjeD0iNzUiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA3OSwyNSBBIDQsNCAwIDEgMSA3MSwyNSBBIDQsNCAwIDEgMSA3OSwyNSB6IiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return (!input1 || !input2) && (input1 || input2);
+    }
+
+});
+
+joint.shapes.logic.Wire = joint.dia.Link.extend({
+
+    arrowheadMarkup: [
+        '<g class="marker-arrowhead-group marker-arrowhead-group-<%= end %>">',
+        '<circle class="marker-arrowhead" end="<%= end %>" r="7"/>',
+        '</g>'
+    ].join(''),
+
+    vertexMarkup: [
+        '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
+        '<circle class="marker-vertex" idx="<%= idx %>" r="10" />',
+        '<g class="marker-vertex-remove-group">',
+        '<path class="marker-vertex-remove-area" idx="<%= idx %>" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
+        '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
+        '<title>Remove vertex.</title>',
+        '</path>',
+        '</g>',
+        '</g>'
+    ].join(''),
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Wire',
+
+        attrs: {
+            '.connection': { 'stroke-width': 2 },
+            '.marker-vertex': { r: 7 }
+        },
+
+        router: { name: 'orthogonal' },
+        connector: { name: 'rounded', args: { radius: 10 }},
+
+    }, joint.dia.Link.prototype.defaults)
+
+});
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.shapes.logic;
 }
 
 ;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){

@@ -1,4 +1,4 @@
-/*! JointJS v0.9.2 - JavaScript diagramming library  2014-09-16 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-02-03 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -126,7 +126,7 @@ joint.shapes.erd.Attribute = joint.dia.Element.extend({
             '.inner': {
                 stroke: '#D35400', 'stroke-width': 2,
                 cx: 0, cy: 0, rx: 45, ry: 20,
-                fill: 'transparent', display: 'none'
+                fill: '#E67E22', display: 'none'
             },
             text: {
                  'font-family': 'Arial', 'font-size': 14,
@@ -174,7 +174,7 @@ joint.shapes.erd.Attribute = joint.dia.Element.extend({
 
          attrs: {
              ellipse: { 'stroke-width': 4 },
-             text: { text: 'key', 'font-weight': 'bold', 'text-decoration': 'underline' }
+             text: { text: 'key', 'font-weight': '800', 'text-decoration': 'underline' }
          }
      }, joint.shapes.erd.Attribute.prototype.defaults)
 });
@@ -204,8 +204,8 @@ joint.shapes.erd.ISA = joint.dia.Element.extend({
                 fill: '#F1C40F', stroke: '#F39C12', 'stroke-width': 2
             },
             text: {
-                text: 'ISA',
-                ref: '.', 'ref-x': .5, 'ref-y': .3,
+                text: 'ISA', 'font-size': 18,
+                ref: 'polygon', 'ref-x': .5, 'ref-y': .3,
                 'x-alignment': 'middle', 'y-alignment': 'middle'
             }
         }

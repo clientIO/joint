@@ -60,34 +60,87 @@ joint.dia.GraphCells = Backbone.Collection.extend({
             opt.inbound = opt.outbound = true;
         }
 
-        var links = [];
-        
-        this.each(function(cell) {
+        var links = this.filter(function(cell) {
 
             var source = cell.get('source');
             var target = cell.get('target');
 
-            if (source && source.id === model.id && opt.outbound) {
-                
-                links.push(cell);
-            }
-
-            if (target && target.id === model.id && opt.inbound) {
-
-                links.push(cell);
-            }
+            return (source && source.id === model.id && opt.outbound) ||
+                (target && target.id === model.id  && opt.inbound);
         });
 
+        // option 'deep' returns all links that are connected to any of the descendent cell
+        // and are not descendents itself
+        if (opt.deep) {
+
+            var embeddedCells = model.getEmbeddedCells({ deep: true });
+
+            _.each(this.difference(links, embeddedCells), function(cell) {
+
+                if (opt.outbound) {
+
+                    var source = cell.get('source');
+
+                    if (source && source.id && _.find(embeddedCells, { id: source.id })) {
+                        links.push(cell);
+                        return; // prevent a loop link to be pushed twice
+                    }
+                }
+
+                if (opt.inbound) {
+
+                    var target = cell.get('target');
+
+                    if (target && target.id && _.find(embeddedCells, { id: target.id })) {
+                        links.push(cell);
+                    }
+                }
+            });
+        }
+
         return links;
+    },
+
+    getCommonAncestor: function(/* cells */) {
+
+        var cellsAncestors = _.map(arguments, function(cell) {
+
+            var ancestors = [cell.id];
+            var parentId = cell.get('parent');
+
+            while (parentId) {
+
+                ancestors.push(parentId);
+                parentId = this.get(parentId).get('parent');
+            }
+
+            return ancestors;
+
+        }, this);
+
+        cellsAncestors = _.sortBy(cellsAncestors, 'length');
+
+        var commonAncestor = _.find(cellsAncestors.shift(), function(ancestor) {
+
+            return _.every(cellsAncestors, function(cellAncestors) {
+                return _.contains(cellAncestors, ancestor);
+            });
+        });
+
+        return this.get(commonAncestor);
     }
+    
 });
 
 
 joint.dia.Graph = Backbone.Model.extend({
 
-    initialize: function() {
+    initialize: function(attrs, opt) {
 
-        this.set('cells', new joint.dia.GraphCells);
+        // Passing `cellModel` function in the options object to graph allows for
+        // setting models based on attribute objects. This is especially handy
+        // when processing JSON graphs that are in a different than JointJS format.
+        this.set('cells', new joint.dia.GraphCells([], { model: opt && opt.cellModel }));
 
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
@@ -185,11 +238,11 @@ joint.dia.Graph = Backbone.Model.extend({
         // is to remove all the associated links.
         if (options && options.disconnectLinks) {
             
-            this.disconnectLinks(cell);
+            this.disconnectLinks(cell, options);
 
         } else {
 
-            this.removeLinks(cell);
+            this.removeLinks(cell, options);
         }
 
         // Silently remove the cell from the cells collection. Silently, because
@@ -259,18 +312,18 @@ joint.dia.Graph = Backbone.Model.extend({
     },
     
     // Disconnect links connected to the cell `model`.
-    disconnectLinks: function(model) {
+    disconnectLinks: function(model, options) {
 
         _.each(this.getConnectedLinks(model), function(link) {
 
-            link.set(link.get('source').id === model.id ? 'source' : 'target', g.point(0, 0));
+            link.set(link.get('source').id === model.id ? 'source' : 'target', g.point(0, 0), options);
         });
     },
 
     // Remove links connected to the cell `model` completely.
-    removeLinks: function(model) {
+    removeLinks: function(model, options) {
 
-        _.invoke(this.getConnectedLinks(model), 'remove');
+        _.invoke(this.getConnectedLinks(model), 'remove', options);
     },
 
     // Find all views at given point
@@ -305,8 +358,13 @@ joint.dia.Graph = Backbone.Model.extend({
 	});
 
 	return g.rect(origin.x, origin.y, corner.x - origin.x, corner.y - origin.y);
-    }
+    },
 
+    getCommonAncestor: function(/* cells */) {
+
+        var collection = this.get('cells');
+        return collection.getCommonAncestor.apply(collection, arguments);
+    }
 });
 
 
