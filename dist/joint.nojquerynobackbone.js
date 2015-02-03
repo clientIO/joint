@@ -1519,7 +1519,7 @@ if (typeof exports === 'object') {
 
 var joint = {
 
-    version: '[%= pkg.version %]',
+    version: '0.9.3',
 
     // `joint.dia` namespace.
     dia: {},

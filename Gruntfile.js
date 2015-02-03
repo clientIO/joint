@@ -66,7 +66,8 @@ module.exports = function(grunt) {
         }
         return ret;
     }
-    
+
+    grunt.template.addDelimiters("square", "[%", "%]");
     
     var config = {
         
@@ -81,6 +82,11 @@ module.exports = function(grunt) {
                 banner: '/*! <%= pkg.title %> v<%= pkg.version %> - <%= pkg.description %>  <%= grunt.template.today("yyyy-mm-dd") %> \n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n */\n'
             },
             dist: {
+		options: {
+		    process: {
+			delimiters: 'square'
+		    }
+		},
                 files: {
                     'dist/joint.js': [].concat(
                         js.libs.jquery, js.libs.backbone,
@@ -96,6 +102,11 @@ module.exports = function(grunt) {
                 }
             },
             allinone: {
+		options: {
+		    process: {
+			delimiters: 'square'
+		    }
+		},
                 files: {
                     'dist/joint.all.js': [].concat(
                         js.libs.jquery, js.libs.backbone,
@@ -111,6 +122,11 @@ module.exports = function(grunt) {
                 }
             },
             nojquery: {
+		options: {
+		    process: {
+			delimiters: 'square'
+		    }
+		},
                 files: {
                     'dist/joint.nojquery.js': [].concat(
                         js.libs.backbone,
@@ -123,6 +139,11 @@ module.exports = function(grunt) {
                 }
             },
             nobackbone: {
+		options: {
+		    process: {
+			delimiters: 'square'
+		    }
+		},
                 files: {
                     'dist/joint.nobackbone.js': [].concat(
                         js.libs.jquery,
@@ -135,6 +156,11 @@ module.exports = function(grunt) {
                 }
             },
             nojquerynobackbone: {
+		options: {
+		    process: {
+			delimiters: 'square'
+		    }
+		},
                 files: {
                     'dist/joint.nojquerynobackbone.js': [].concat(
                         js.helpers.vectorizer, js.helpers.geometry,
@@ -151,55 +177,31 @@ module.exports = function(grunt) {
                 report: 'min',
                 banner: '/*! <%= pkg.title %> v<%= pkg.version %> - <%= pkg.description %>  <%= grunt.template.today("yyyy-mm-dd") %> \n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n */\n'
             },
-            
             dist: {
                 files: {
-                    'dist/joint.min.js': [].concat(
-                        js.libs.jquery, js.libs.backbone,
-                        js.helpers.vectorizer, js.helpers.geometry,
-                        js.core
-                    ),
-                    'dist/joint.clean.min.js': [].concat(
-                        js.core
-                    )
+                    'dist/joint.min.js': 'dist/joint.js',
+                    'dist/joint.clean.min.js': 'dist/joint.clean.js'
                 }
             },
             allinone: {
                 files: {
-                    'dist/joint.all.min.js': [].concat(
-                        js.libs.jquery, js.libs.backbone,
-                        js.helpers.vectorizer, js.helpers.geometry,
-                        js.core, allJSPlugins()
-                    ),
-                    'dist/joint.all.clean.min.js': [].concat(
-                        js.core, allJSPlugins()
-                    )
+                    'dist/joint.all.min.js': 'dist/joint.all.js',
+                    'dist/joint.all.clean.min.js': 'dist/joint.all.clean.js'
                 }
             },
             nojquery: {
                 files: {
-                    'dist/joint.nojquery.min.js': [].concat(
-                        js.libs.backbone,
-                        js.helpers.vectorizer, js.helpers.geometry,
-                        js.core
-                    )
+                    'dist/joint.nojquery.min.js': 'dist/joint.nojquery.js'
                 }
             },
             nobackbone: {
                 files: {
-                    'dist/joint.nobackbone.min.js': [].concat(
-                        js.libs.jquery,
-                        js.helpers.vectorizer, js.helpers.geometry,
-                        js.core
-                    )
+                    'dist/joint.nobackbone.min.js': 'dist/joint.nobackbone.js'
                 }
             },
             nojquerynobackbone: {
                 files: {
-                    'dist/joint.nojquerynobackbone.min.js': [].concat(
-                        js.helpers.vectorizer, js.helpers.geometry,                        
-                        js.core
-                    )
+                    'dist/joint.nojquerynobackbone.min.js': 'dist/joint.nojquerynobackbone.js'
                 }
             }
         },
