@@ -620,6 +620,17 @@ joint.dia.Paper = Backbone.View.extend({
 
     snapToGrid: function(p) {
 
+        // Synthesized events such as in unit tests won't have clientX/clientY
+        // values set, but Firefox throws an exception if we call toLocalPoint
+        // with undefined values, so in this case, just return an undefined/undefined
+        // point.
+        if (p.x === undefined || p.y === undefined) {
+            return {
+                x: undefined,
+                y: undefined
+            };
+        }
+
         // Convert global coordinates to the local ones of the `viewport`. Otherwise,
         // improper transformation would be applied when the viewport gets transformed (scaled/rotated). 
         var localPoint = V(this.viewport).toLocalPoint(p.x, p.y);
