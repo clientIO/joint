@@ -1,6 +1,13 @@
+if (typeof exports === 'object') {
+    var joint = require('jointjs');
+    var Backbone = require('backbone');
+    var _ = require('lodash');
+    var g = require('./geometry');
+    var V = require('./vectorizer').V;
+}
+
 //      JointJS library.
 //      (c) 2011-2013 client IO
-
 
 joint.dia.Paper = Backbone.View.extend({
 
@@ -313,7 +320,7 @@ joint.dia.Paper = Backbone.View.extend({
     createViewForModel: function(cell) {
 
         var view;
-        
+
         var type = cell.get('type');
         var module = type.split('.')[0];
         var entity = type.split('.')[1];
@@ -322,9 +329,9 @@ joint.dia.Paper = Backbone.View.extend({
         if (joint.shapes[module] && joint.shapes[module][entity + 'View']) {
 
             view = new joint.shapes[module][entity + 'View']({ model: cell, interactive: this.options.interactive });
-            
+
         } else if (cell instanceof joint.dia.Element) {
-                
+
             view = new this.options.elementView({ model: cell, interactive: this.options.interactive });
 
         } else {
@@ -390,7 +397,7 @@ joint.dia.Paper = Backbone.View.extend({
         var cells = cellsCollection.models.slice();
 
         cells = this.beforeRenderCells(cells);
-        
+
 	if (this._frameId) {
 
 	    joint.util.cancelFrame(this._frameId);
@@ -465,7 +472,7 @@ joint.dia.Paper = Backbone.View.extend({
 
             var cellA = cells.get($(a).attr('model-id'));
             var cellB = cells.get($(b).attr('model-id'));
-            
+
             return (cellA.get('z') || 0) > (cellB.get('z') || 0) ? 1 : -1;
         });
     },
@@ -475,7 +482,7 @@ joint.dia.Paper = Backbone.View.extend({
     sortElements: function(elements, comparator) {
 
         var $elements = $(elements);
-        
+
         var placements = $elements.map(function() {
 
             var sortElement = this;
@@ -490,18 +497,18 @@ joint.dia.Paper = Backbone.View.extend({
             );
 
             return function() {
-                
+
                 if (parentNode === this) {
                     throw new Error(
                         "You can't sort elements if any one is a descendant of another."
                     );
                 }
-                
+
                 // Insert before flag:
                 parentNode.insertBefore(this, nextSibling);
                 // Remove flag:
                 parentNode.removeChild(nextSibling);
-                
+
             };
         });
 
@@ -527,7 +534,7 @@ joint.dia.Paper = Backbone.View.extend({
         var oldTx = this.options.origin.x;
         var oldTy = this.options.origin.y;
 
-        // TODO: V.scale() doesn't support setting scale origin. #Fix        
+        // TODO: V.scale() doesn't support setting scale origin. #Fix
         if (ox || oy || oldTx || oldTy) {
 
             var newTx = oldTx - ox * (sx - 1);
@@ -543,7 +550,7 @@ joint.dia.Paper = Backbone.View.extend({
     },
 
     rotate: function(deg, ox, oy) {
-        
+
         // If the origin is not set explicitely, rotate around the center. Note that
         // we must use the plain bounding box (`this.el.getBBox()` instead of the one that gives us
         // the real bounding box (`bbox()`) including transformations).
@@ -580,7 +587,7 @@ joint.dia.Paper = Backbone.View.extend({
     findViewByModel: function(cell) {
 
         var id = _.isString(cell) ? cell : cell.id;
-        
+
         var $view = this.$('[model-id="' + id + '"]');
         if ($view.length) {
 
@@ -621,7 +628,7 @@ joint.dia.Paper = Backbone.View.extend({
     snapToGrid: function(p) {
 
         // Convert global coordinates to the local ones of the `viewport`. Otherwise,
-        // improper transformation would be applied when the viewport gets transformed (scaled/rotated). 
+        // improper transformation would be applied when the viewport gets transformed (scaled/rotated).
         var localPoint = V(this.viewport).toLocalPoint(p.x, p.y);
 
         return {
@@ -654,19 +661,19 @@ joint.dia.Paper = Backbone.View.extend({
     // ------------
 
     mousedblclick: function(evt) {
-        
+
         evt.preventDefault();
         evt = joint.util.normalizeEvent(evt);
-        
+
         var view = this.findView(evt.target);
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
         if (view) {
-            
+
             view.pointerdblclick(evt, localPoint.x, localPoint.y);
-            
+
         } else {
-            
+
             this.trigger('blank:pointerdblclick', evt, localPoint.x, localPoint.y);
         }
     },
@@ -675,7 +682,7 @@ joint.dia.Paper = Backbone.View.extend({
 
         // Trigger event when mouse not moved.
         if (!this._mousemoved) {
-            
+
             evt = joint.util.normalizeEvent(evt);
 
             var view = this.findView(evt.target);
@@ -684,7 +691,7 @@ joint.dia.Paper = Backbone.View.extend({
             if (view) {
 
                 view.pointerclick(evt, localPoint.x, localPoint.y);
-                
+
             } else {
 
                 this.trigger('blank:pointerclick', evt, localPoint.x, localPoint.y);
@@ -697,17 +704,17 @@ joint.dia.Paper = Backbone.View.extend({
     pointerdown: function(evt) {
 
         evt = joint.util.normalizeEvent(evt);
-        
+
         var view = this.findView(evt.target);
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-        
+
         if (view) {
 
             this.sourceView = view;
 
             view.pointerdown(evt, localPoint.x, localPoint.y);
-            
+
         } else {
 
             this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
@@ -735,7 +742,7 @@ joint.dia.Paper = Backbone.View.extend({
         evt = joint.util.normalizeEvent(evt);
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-        
+
         if (this.sourceView) {
 
             this.sourceView.pointerup(evt, localPoint.x, localPoint.y);
@@ -748,7 +755,7 @@ joint.dia.Paper = Backbone.View.extend({
             this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
         }
     },
-    
+
     cellMouseover: function(evt) {
 
         evt = joint.util.normalizeEvent(evt);
@@ -769,3 +776,8 @@ joint.dia.Paper = Backbone.View.extend({
         }
     }
 });
+
+if (typeof exports === 'object') {
+
+    module.exports.Paper = joint.dia.Paper;
+}

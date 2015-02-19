@@ -1,13 +1,13 @@
 if (typeof exports === 'object') {
-
-    var joint = {
-        util: require('../src/core').util,
-        shapes: {
-            basic: require('./joint.shapes.basic')
-        },
-        dia: {}
-    };
+    var joint = require('jointjs');
+    var Backbone = require('backbone');
+    var _ = require('lodash');
+    var g = require('../src/geometry');
+    var V = require('../src/vectorizer').V;
 }
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
 
 joint.shapes.chess = {};
 
@@ -31,7 +31,7 @@ joint.shapes.chess.KingBlack = joint.shapes.basic.Generic.extend({
 
         type: 'chess.KingBlack',
         size: { width: 42, height: 38 }
-        
+
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
@@ -79,7 +79,7 @@ joint.shapes.chess.RookBlack = joint.shapes.basic.Generic.extend({
 
         type: 'chess.RookBlack',
         size: { width: 32, height: 34 }
-        
+
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
 

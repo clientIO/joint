@@ -1,3 +1,14 @@
+if (typeof exports === 'object') {
+    var joint = require('jointjs');
+    var Backbone = require('backbone');
+    var _ = require('lodash');
+    var g = require('../../src/geometry');
+    var V = require('../../src/vectorizer').V;
+}
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
 joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opts) {
 
     var offset = opts.radius || 10;
@@ -28,3 +39,8 @@ joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opts) {
 
     return d.join(' ');
 };
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.connectors.rounded;
+}

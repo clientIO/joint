@@ -1,15 +1,13 @@
 if (typeof exports === 'object') {
-
-    var joint = {
-        util: require('../src/core').util,
-        shapes: {},
-        dia: {
-            Element: require('../src/joint.dia.element').Element,
-            Link: require('../src/joint.dia.link').Link
-        }
-    };
+    var joint = require('jointjs');
+    var Backbone = require('backbone');
+    var _ = require('lodash');
+    var g = require('../src/geometry');
+    var V = require('../src/vectorizer').V;
 }
 
+//      JointJS library.
+//      (c) 2011-2013 client IO
 
 joint.shapes.erd = {};
 
@@ -59,7 +57,7 @@ joint.shapes.erd.WeakEntity = joint.shapes.erd.Entity.extend({
 joint.shapes.erd.Relationship = joint.dia.Element.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
-    
+
     defaults: joint.util.deepSupplement({
 
         type: 'erd.Relationship',

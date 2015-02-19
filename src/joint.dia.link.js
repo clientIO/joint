@@ -1,24 +1,14 @@
-//      JointJS diagramming library.
-//      (c) 2011-2013 client IO
-
-
 if (typeof exports === 'object') {
-
-    var joint = {
-        dia: {
-            Cell: require('./joint.dia.cell').Cell,
-            CellView: require('./joint.dia.cell').CellView
-        }
-    };
+    var joint = require('jointjs');
     var Backbone = require('backbone');
     var _ = require('lodash');
     var g = require('./geometry');
+    var V = require('./vectorizer').V;
 }
 
+//      JointJS library.
+//      (c) 2011-2013 client IO
 
-
-// joint.dia.Link base model.
-// --------------------------
 joint.dia.Link = joint.dia.Cell.extend({
 
     // The default markup for links.
@@ -90,12 +80,12 @@ joint.dia.Link = joint.dia.Cell.extend({
     label: function(idx, value) {
 
         idx = idx || 0;
-        
+
         var labels = this.get('labels') || [];
-        
+
         // Is it a getter?
         if (arguments.length === 0 || arguments.length === 1) {
-            
+
             return labels[idx];
         }
 
@@ -103,7 +93,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         var newLabels = labels.slice();
         newLabels[idx] = newValue;
-        
+
         return this.set({ labels: newLabels });
     },
 
@@ -191,7 +181,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         linkToolsOffset: 40,
         doubleLinkToolsOffset: 60
     },
-    
+
     initialize: function(options) {
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
@@ -298,7 +288,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var labels = this.model.get('labels') || [];
         if (!labels.length) return this;
-        
+
         var labelTemplate = _.template(this.model.get('labelMarkup') || this.model.labelMarkup);
         // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
@@ -316,9 +306,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             // Text attributes with the default `text-anchor` and font-size set.
             var textAttributes = _.extend({ 'text-anchor': 'middle', 'font-size': 14 }, joint.util.getByPath(label, 'attrs/text', '/'));
-            
+
             $text.attr(_.omit(textAttributes, 'text'));
-                
+
             if (!_.isUndefined(textAttributes.text)) {
 
                 V($text[0]).text(textAttributes.text + '');
@@ -338,9 +328,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 fill: 'white',
                 rx: 3,
                 ry: 3
-                
+
             }, joint.util.getByPath(label, 'attrs/rect', '/'));
-            
+
             $rect.attr(_.extend(rectAttributes, {
 
                 x: textBbox.x,
@@ -348,7 +338,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 width: textBbox.width,
                 height: textBbox.height
             }));
-            
+
         }, this);
 
         return this;
@@ -368,7 +358,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var tool = V(toolTemplate());
 
         $tools.append(tool.node);
-        
+
         // Cache the tool node so that the `updateToolsPosition()` can update the tool position quickly.
         this._toolCache = tool;
 
@@ -394,12 +384,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // if default styling (elements) are not desired. This makes it possible to use any
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
         var markupTemplate = _.template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
-        
+
         _.each(this.model.get('vertices'), function(vertex, idx) {
 
             $markerVertices.append(V(markupTemplate(_.extend({ idx: idx }, vertex))).node);
         });
-        
+
         return this;
     },
 
@@ -603,7 +593,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         var toolPosition = this.getPointAtLength(offset);
-        
+
         this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
 
         if (this.options.doubleLinkTools && connectionLength >= this.options.longLinkLength) {
@@ -615,7 +605,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             this._tool2Cache.attr('visibility', 'visible');
 
         } else if (this.options.doubleLinkTools) {
-            
+
             this._tool2Cache.attr('visibility', 'hidden');
         }
 
@@ -776,7 +766,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     removeVertex: function(idx) {
 
         var vertices = _.clone(this.model.get('vertices'));
-        
+
         if (vertices && vertices.length) {
 
             vertices.splice(idx, 1);
@@ -804,8 +794,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // A `<path>` element used to compute the length of the path during heuristics.
         var path = this._V.connection.node.cloneNode(false);
-        
-        // Length of the original path.        
+
+        // Length of the original path.
         var originalPathLength = path.getTotalLength();
         // Current path length.
         var pathLength;
@@ -831,7 +821,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // Revert vertices to the original array. The path length has changed too much
                 // so that the index was not found yet.
                 vertices = originalVertices.slice();
-                
+
             } else {
 
                 break;
@@ -946,9 +936,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             // `_sourceBbox` (`_targetBbox`) comes from `_sourceBboxUpdate` (`_sourceBboxUpdate`)
             // method, it exists since first render and are automatically updated
             var spotBbox = end === 'source' ? this.sourceBBox : this.targetBBox;
-            
+
             var reference;
-            
+
             if (!referenceSelectorOrPoint.id) {
 
                 // Reference was passed as a point, therefore, we're ready to find the sticky point of connection on the source element.
@@ -989,7 +979,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                         spot = g.rect(spotBbox).center();
                         break;
                     }
-                    
+
                 } else if (verticalLineRect.intersect(g.rect(spotBbox))) {
 
                     nearestSide = g.rect(spotBbox).sideNearestToPoint(reference);
@@ -1004,7 +994,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                         spot = g.rect(spotBbox).center();
                         break;
                     }
-                    
+
                 } else {
 
                     // If there is no intersection horizontally or vertically with the object bounding box,
@@ -1014,7 +1004,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     spot = g.rect(spotBbox).intersectionWithLineFromCenterToPoint(reference);
                     spot = spot || g.rect(spotBbox).center();
                 }
-                
+
             } else if (this.paper.options.linkConnectionPoint) {
 
 		var view = end === 'target' ? this.targetView : this.sourceView;

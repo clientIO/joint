@@ -10,5 +10,6 @@ module.exports = {
     fsa: require('./joint.shapes.fsa'),
     uml: require('./joint.shapes.uml'),
     devs: require('./joint.shapes.devs'),
-    org: require('./joint.shapes.org')
+    org: require('./joint.shapes.org'),
+    logic: require('./joint.shapes.logic')
 };
