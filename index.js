@@ -8,6 +8,7 @@ module.exports = {
   util:       {},
   shapes:     {},
   connectors: {},
+  routers: {},
   alg:        {},
   dia:    {
     Cell:     {},
@@ -32,6 +33,10 @@ jointjs.shapes          = require('./plugins/shapes');
 jointjs.connectors.smooth   = require('./plugins/connectors/joint.connectors.smooth');
 jointjs.connectors.rounded  = require('./plugins/connectors/joint.connectors.rounded');
 jointjs.connectors.normal   = require('./plugins/connectors/joint.connectors.normal');
+
+jointjs.routers.manhattan = require('./plugins/routers/joint.routers.manhattan');
+jointjs.routers.metro = require('./plugins/routers/joint.routers.metro');
+jointjs.routers.orthogonal = require('./plugins/routers/joint.routers.orthogonal');
 
 jointjs.geometry            = require('./src/geometry');
 jointjs.vectorizer          = require('./src/vectorizer').Vectorizer;

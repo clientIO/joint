@@ -1,3 +1,9 @@
+if (typeof exports === 'object') {
+    var joint = require('jointjs');
+    var _ = require('lodash');
+    var g = require('../../src/geometry');
+}
+
 joint.routers.orthogonal = function() {
 
     var sourceBBox, targetBBox;
@@ -149,3 +155,8 @@ joint.routers.orthogonal = function() {
     };
 
 }();
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.routers.orthogonal;
+}

@@ -1,3 +1,9 @@
+if (typeof exports === 'object') {
+    var joint = require('jointjs');
+    var _ = require('lodash');
+    var g = require('../../src/geometry');
+}
+
 joint.routers.manhattan = (function() {
 
     'use strict';
@@ -467,3 +473,8 @@ joint.routers.manhattan = (function() {
     };
 
 })();
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.routers.manhattan;
+}
