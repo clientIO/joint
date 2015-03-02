@@ -313,17 +313,17 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var ref = elAttrs['ref'];
         var refX = parseFloat(elAttrs['ref-x']);
-        var refXMult = _.isString(elAttrs['ref-x']) ? (elAttrs['ref-x'][elAttrs['ref-x']-1] === 'x') : false;
+        var refXMult = _.isString(elAttrs['ref-x']) ? (elAttrs['ref-x'][elAttrs['ref-x'].length-1] === 'x') : false;
         var refY = parseFloat(elAttrs['ref-y']);
-        var refYMult = _.isString(elAttrs['ref-y']) ? (elAttrs['ref-y'][elAttrs['ref-y']-1] === 'x') : false;
+        var refYMult = _.isString(elAttrs['ref-y']) ? (elAttrs['ref-y'][elAttrs['ref-y'].length-1] === 'x') : false;
         var refDx = parseFloat(elAttrs['ref-dx']);
         var refDy = parseFloat(elAttrs['ref-dy']);
         var yAlignment = elAttrs['y-alignment'];
         var xAlignment = elAttrs['x-alignment'];
         var refWidth = parseFloat(elAttrs['ref-width']);
-        var refWidthMult = _.isString(elAttrs['ref-width']) ? (elAttrs['ref-width'][elAttrs['ref-width']-1] === 'x') : false;
+        var refWidthMult = _.isString(elAttrs['ref-width']) ? (elAttrs['ref-width'][elAttrs['ref-width'].length-1] === 'x') : false;
         var refHeight = parseFloat(elAttrs['ref-height']);
-        var refHeightMult = _.isString(elAttrs['ref-height']) ? (elAttrs['ref-height'][elAttrs['ref-height']-1] === 'x') : false;
+        var refHeightMult = _.isString(elAttrs['ref-height']) ? (elAttrs['ref-height'][elAttrs['ref-height'].length-1] === 'x') : false;
 
         // `ref` is the selector of the reference element. If no `ref` is passed, reference
         // element is the root element.
