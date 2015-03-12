@@ -1042,7 +1042,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     getPointAtLength: function(length) {
 
-        return this._V.connection.node.getPointAtLength(length);
+        return this._V.connection.node.getPointAtLength(length || 0);
     },
 
     // Interaction. The controller part.
