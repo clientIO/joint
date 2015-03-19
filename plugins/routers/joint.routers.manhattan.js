@@ -413,6 +413,9 @@ joint.routers.manhattan = (function() {
         var newVertices = [];
 
         var points = _.map(oldVertices, g.point);
+        if (reverseRouting) {
+            points.reverse();
+        }
 
         var tailPoint = sourceBBox.center();
 
