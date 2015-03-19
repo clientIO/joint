@@ -1105,7 +1105,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (end.id) {
             args[i] = this.paper.findViewByModel(end.id);
-            args[i+1] = end.selector && args[i].el.querySelector(end.selector);
+            args[i+1] = end.selector && args[i].$el.find(end.selector)[0];
         }
 
         function validateConnectionArgs(cellView, magnet) {
