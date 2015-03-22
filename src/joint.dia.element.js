@@ -1,23 +1,13 @@
-//      JointJS library.
-//      (c) 2011-2013 client IO
-
-
 if (typeof exports === 'object') {
-
-    var joint = {
-        util: require('./core').util,
-        dia: {
-            Cell: require('./joint.dia.cell').Cell,
-            CellView: require('./joint.dia.cell').CellView
-        }
-    };
+    var joint = require('jointjs');
     var Backbone = require('backbone');
     var _ = require('lodash');
+    var g = require('./geometry');
+    var V = require('./vectorizer').V;
 }
 
-
-// joint.dia.Element base model.
-// -----------------------------
+//      JointJS library.
+//      (c) 2011-2013 client IO
 
 joint.dia.Element = joint.dia.Cell.extend({
 
@@ -117,7 +107,7 @@ joint.dia.Element = joint.dia.Cell.extend({
     // If `absolute` is `true`, the `angle` is considered is abslute, i.e. it is not
     // the difference from the previous angle.
     rotate: function(angle, absolute, origin) {
-	
+
 	if (origin) {
 
 	    var center = this.getBBox().center();
@@ -130,7 +120,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 	    this.translate(dx, dy);
 	    this.rotate(angle, absolute);
 	    this.trigger('batch:stop');
-            
+
 	} else {
 
 	    this.set('angle', absolute ? angle : ((this.get('angle') || 0) + angle) % 360);
@@ -161,7 +151,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         _.bindAll(this, 'translate', 'resize', 'rotate');
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
-        
+
 	this.listenTo(this.model, 'change:position', this.translate);
 	this.listenTo(this.model, 'change:size', this.resize);
 	this.listenTo(this.model, 'change:angle', this.rotate);
@@ -178,7 +168,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             var rotation = rotatable.attr('transform');
             rotatable.attr('transform', '');
         }
-        
+
         var relativelyPositioned = [];
 
         _.each(renderingOnlyAttrs || allAttrs, function(attrs, selector) {
@@ -230,9 +220,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             // Set regular attributes on the `$selected` subelement. Note that we cannot use the jQuery attr()
             // method as some of the attributes might be namespaced (e.g. xlink:href) which fails with jQuery attr().
             var finalAttributes = _.omit(attrs, specialAttributes);
-            
+
             $selected.each(function() {
-                
+
                 V(this).attr(finalAttributes);
             });
 
@@ -247,7 +237,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 $selected.css(attrs.style);
             }
-            
+
             if (!_.isUndefined(attrs.html)) {
 
                 $selected.each(function() {
@@ -255,7 +245,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                     $(this).html(attrs.html + '');
                 });
             }
-            
+
             // Special `ref-x` and `ref-y` attributes make it possible to set both absolute or
             // relative positioning of subelements.
             if (!_.isUndefined(attrs['ref-x']) ||
@@ -275,7 +265,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                        relativelyPositioned.push($el);
                    });
             }
-            
+
         }, this);
 
         // We don't want the sub elements to affect the bounding box of the root element when
@@ -285,7 +275,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // Note that we're using the bounding box without transformation because we are already inside
         // a transformed coordinate system.
-        var bbox = this.el.getBBox();        
+        var bbox = this.el.getBBox();
 
         renderingOnlyAttrs = renderingOnlyAttrs || {};
 
@@ -300,7 +290,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 : allAttrs[$el.selector];
 
             this.positionRelative($el, bbox, elAttrs);
-            
+
         }, this);
 
         if (rotatable) {
@@ -387,21 +377,21 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
                 var scale = V(this.$('.scalable')[0]).scale();
                 tx = bbox.x + bbox.width + refDx / scale.sx;
-                
+
             } else {
-                
+
                 tx = bbox.x + bbox.width + refDx;
             }
         }
         if (isDefined(refDy)) {
 
             if (isScalable) {
-                
+
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
                 var scale = V(this.$('.scalable')[0]).scale();
                 ty = bbox.y + bbox.height + refDy / scale.sy;
             } else {
-                
+
                 ty = bbox.y + bbox.height + refDy;
             }
         }
@@ -421,7 +411,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
                 var scale = V(this.$('.scalable')[0]).scale();
                 tx = bbox.x + refX / scale.sx;
-                
+
             } else {
 
                 tx = bbox.x + refX;
@@ -430,15 +420,15 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (isDefined(refY)) {
 
             if (refY > 0 && refY < 1) {
-                
+
                 ty = bbox.y + bbox.height * refY;
-                
+
             } else if (isScalable) {
 
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
                 var scale = V(this.$('.scalable')[0]).scale();
                 ty = bbox.y + refY / scale.sy;
-                
+
             } else {
 
                 ty = bbox.y + refY;
@@ -450,7 +440,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (yAlignment === 'middle') {
 
             ty -= velbbox.height/2;
-            
+
         } else if (isDefined(yAlignment)) {
 
             ty += (yAlignment > -1 && yAlignment < 1) ?  velbbox.height * yAlignment : yAlignment;
@@ -458,9 +448,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
         if (xAlignment === 'middle') {
-            
+
             tx -= velbbox.width/2;
-            
+
         } else if (isDefined(xAlignment)) {
 
             tx += (xAlignment > -1 && xAlignment < 1) ?  velbbox.width * xAlignment : xAlignment;
@@ -472,14 +462,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
     // default markup is not desirable.
     renderMarkup: function() {
-        
+
         var markup = this.model.markup || this.model.get('markup');
-        
+
         if (markup) {
 
             var nodes = V(markup);
             V(this.el).append(nodes);
-            
+
         } else {
 
             throw new Error('properties.markup is missing while the default render() implementation is used.');
@@ -496,7 +486,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         this.resize();
         this.rotate();
-        this.translate();        
+        this.translate();
 
         return this;
     },
@@ -517,7 +507,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var size = this.model.get('size') || { width: 1, height: 1 };
         var angle = this.model.get('angle') || 0;
-        
+
         var scalable = V(this.$('.scalable')[0]);
         if (!scalable) {
             // If there is no scalable elements, than there is nothing to resize.
@@ -535,7 +525,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // rotation changes). The new `x` and `y` coordinates are computed by canceling the previous rotation
         // around the center of the resized object (which is a different origin then the origin of the previous rotation)
         // and getting the top-left corner of the resulting object. Then we clean up the rotation back to what it originally was.
-        
+
         // Cancel the rotation but now around a different origin, which is the center of the scaled object.
         var rotatable = V(this.$('.rotatable')[0]);
         var rotation = rotatable && rotatable.attr('transform');
@@ -543,7 +533,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width/2) + ',' + (size.height/2) + ')');
             var rotatableBbox = scalable.bbox(false, this.paper.viewport);
-            
+
             // Store new x, y and perform rotate() again against the new rotation origin.
             this.model.set('position', { x: rotatableBbox.x, y: rotatableBbox.y });
             this.rotate();
@@ -568,13 +558,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             // If there is no rotatable elements, then there is nothing to rotate.
             return;
         }
-        
+
         var angle = this.model.get('angle') || 0;
         var size = this.model.get('size') || { width: 1, height: 1 };
 
         var ox = size.width/2;
         var oy = size.height/2;
-        
+
 
         rotatable.attr('transform', 'rotate(' + angle + ',' + ox + ',' + oy + ')');
     },

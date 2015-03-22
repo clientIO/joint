@@ -1,3 +1,14 @@
+if (typeof exports === 'object') {
+    var joint = require('jointjs');
+    var Backbone = require('backbone');
+    var _ = require('lodash');
+    var g = require('../../src/geometry');
+    var V = require('../../src/vectorizer').V;
+}
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
 joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
 
     var d;
@@ -12,7 +23,7 @@ joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
         // between the source and target points. SourceControlPoint Y is equal to sourcePoint Y
         // and targetControlPointY being equal to targetPointY. Handle situation were
         // sourcePointX is greater or less then targetPointX.
-        var controlPointX = (sourcePoint.x < targetPoint.x) 
+        var controlPointX = (sourcePoint.x < targetPoint.x)
                 ? targetPoint.x - ((targetPoint.x - sourcePoint.x) / 2)
                 : sourcePoint.x - ((sourcePoint.x - targetPoint.x) / 2);
 
@@ -25,3 +36,8 @@ joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
 
     return d.join(' ');
 };
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.connectors.smooth;
+}

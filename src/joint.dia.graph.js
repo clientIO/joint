@@ -1,27 +1,18 @@
-//      JointJS, the JavaScript diagramming library.
-//      (c) 2011-2013 client IO
-
-
 if (typeof exports === 'object') {
-
-    var joint = {
-        dia: {
-            Link: require('./joint.dia.link').Link,
-            Element: require('./joint.dia.element').Element
-        },
-        shapes: require('../plugins/shapes')
-    };
+    var joint = require('jointjs');
     var Backbone = require('backbone');
     var _ = require('lodash');
     var g = require('./geometry');
+    var V = require('./vectorizer').V;
 }
 
-
+//      JointJS library.
+//      (c) 2011-2013 client IO
 
 joint.dia.GraphCells = Backbone.Collection.extend({
 
     initialize: function() {
-        
+
         // Backbone automatically doesn't trigger re-sort if models attributes are changed later when
         // they're already in the collection. Therefore, we're triggering sort manually here.
         this.on('change:z', this.sort, this);
@@ -41,7 +32,7 @@ joint.dia.GraphCells = Backbone.Collection.extend({
 
             return new joint.shapes[module][entity](attrs, options);
         }
-        
+
         return new joint.dia.Element(attrs, options);
     },
 
@@ -129,7 +120,7 @@ joint.dia.GraphCells = Backbone.Collection.extend({
 
         return this.get(commonAncestor);
     }
-    
+
 });
 
 
@@ -145,7 +136,7 @@ joint.dia.Graph = Backbone.Model.extend({
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
         this.get('cells').on('all', this.trigger, this);
-        
+
         this.get('cells').on('remove', this.removeCell, this);
     },
 
@@ -181,7 +172,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (cell instanceof Backbone.Model && _.isUndefined(cell.get('z'))) {
 
             cell.set('z', this.maxZIndex() + 1, { silent: true });
-            
+
         } else if (_.isUndefined(cell.z)) {
 
             cell.z = this.maxZIndex() + 1;
@@ -225,7 +216,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // reset the entire cells collection in one go.
     // Useful for bulk operations and optimizations.
     resetCells: function(cells, opt) {
-        
+
         this.get('cells').reset(_.map(cells, this._prepareCell, this), opt);
 
         return this;
@@ -237,7 +228,7 @@ joint.dia.Graph = Backbone.Model.extend({
         // disconnect links when a cell is removed rather then removing them. The default
         // is to remove all the associated links.
         if (options && options.disconnectLinks) {
-            
+
             this.disconnectLinks(cell, options);
 
         } else {
@@ -265,7 +256,7 @@ joint.dia.Graph = Backbone.Model.extend({
             return cell instanceof joint.dia.Element;
         });
     },
-    
+
     getLinks: function() {
 
         return this.get('cells').filter(function(cell) {
@@ -285,7 +276,7 @@ joint.dia.Graph = Backbone.Model.extend({
         var links = this.getConnectedLinks(el);
         var neighbors = [];
         var cells = this.get('cells');
-        
+
         _.each(links, function(link) {
 
             var source = link.get('source');
@@ -310,7 +301,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         return neighbors;
     },
-    
+
     // Disconnect links connected to the cell `model`.
     disconnectLinks: function(model, options) {
 
@@ -347,9 +338,9 @@ joint.dia.Graph = Backbone.Model.extend({
 
 	var origin = { x: Infinity, y: Infinity };
 	var corner = { x: 0, y: 0 };
-	
+
 	_.each(elements, function(cell) {
-	    
+
 	    var bbox = cell.getBBox();
 	    origin.x = Math.min(origin.x, bbox.x);
 	    origin.y = Math.min(origin.y, bbox.y);

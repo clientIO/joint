@@ -1,21 +1,13 @@
+if (typeof exports === 'object') {
+    var joint = require('jointjs');
+    var Backbone = require('backbone');
+    var _ = require('lodash');
+    var g = require('../src/geometry');
+    var V = require('../src/vectorizer').V;
+}
 
 //      JointJS library.
 //      (c) 2011-2013 client IO
-
-
-if (typeof exports === 'object') {
-
-    var joint = {
-        util: require('../src/core').util,
-        shapes: {},
-        dia: {
-            Element: require('../src/joint.dia.element').Element,
-            ElementView: require('../src/joint.dia.element').ElementView
-        }
-    };
-    var _ = require('lodash');
-}
-
 
 joint.shapes.basic = {};
 
@@ -23,27 +15,27 @@ joint.shapes.basic = {};
 joint.shapes.basic.Generic = joint.dia.Element.extend({
 
     defaults: joint.util.deepSupplement({
-        
+
         type: 'basic.Generic',
         attrs: {
             '.': { fill: '#FFFFFF', stroke: 'none' }
         }
-        
+
     }, joint.dia.Element.prototype.defaults)
 });
 
 joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><rect/></g><text/></g>',
-    
+
     defaults: joint.util.deepSupplement({
-    
+
         type: 'basic.Rect',
         attrs: {
             'rect': { fill: '#FFFFFF', stroke: 'black', width: 100, height: 60 },
             'text': { 'font-size': 14, text: '', 'ref-x': .5, 'ref-y': .5, ref: 'rect', 'y-alignment': 'middle', 'x-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
         }
-        
+
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
@@ -60,21 +52,21 @@ joint.shapes.basic.TextView = joint.dia.ElementView.extend({
 joint.shapes.basic.Text = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><text/></g></g>',
-    
+
     defaults: joint.util.deepSupplement({
-        
+
         type: 'basic.Text',
         attrs: {
             'text': { 'font-size': 18, fill: 'black' }
         }
-        
+
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
 joint.shapes.basic.Circle = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><circle/></g><text/></g>',
-    
+
     defaults: joint.util.deepSupplement({
 
         type: 'basic.Circle',
@@ -89,7 +81,7 @@ joint.shapes.basic.Circle = joint.shapes.basic.Generic.extend({
 joint.shapes.basic.Image = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><image/></g><text/></g>',
-    
+
     defaults: joint.util.deepSupplement({
 
         type: 'basic.Image',
@@ -102,7 +94,7 @@ joint.shapes.basic.Image = joint.shapes.basic.Generic.extend({
 joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><path/></g><text/></g>',
-    
+
     defaults: joint.util.deepSupplement({
 
         type: 'basic.Path',
@@ -117,13 +109,13 @@ joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
 joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
 
     defaults: joint.util.deepSupplement({
-    
+
         type: 'basic.Rhombus',
         attrs: {
             'path': { d: 'M 30 0 L 60 30 30 60 0 30 z' },
             'text': { 'ref-y': .5 }
         }
-        
+
     }, joint.shapes.basic.Path.prototype.defaults)
 });
 
@@ -162,7 +154,7 @@ joint.shapes.basic.PortsModelInterface = {
         // Call the `initialize()` of the parent.
         this.constructor.__super__.constructor.__super__.initialize.apply(this, arguments);
     },
-    
+
     updatePortsAttrs: function(eventName) {
 
         // Delete previously set attributes for ports.
@@ -170,20 +162,20 @@ joint.shapes.basic.PortsModelInterface = {
         _.each(this._portSelectors, function(selector) {
             if (currAttrs[selector]) delete currAttrs[selector];
         });
-        
+
         // This holds keys to the `attrs` object for all the port specific attribute that
         // we set in this method. This is necessary in order to remove previously set
         // attributes for previous ports.
         this._portSelectors = [];
-        
+
         var attrs = {};
-        
+
         _.each(this.get('inPorts'), function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.inPorts', 'in');
             this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
             _.extend(attrs, portAttributes);
         }, this);
-        
+
         _.each(this.get('outPorts'), function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.outPorts', 'out');
             this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
@@ -217,12 +209,12 @@ joint.shapes.basic.PortsModelInterface = {
 };
 
 joint.shapes.basic.PortsViewInterface = {
-    
+
     initialize: function() {
 
         // `Model` emits the `process:ports` whenever it's done configuring the `attrs` object for ports.
         this.listenTo(this.model, 'process:ports', this.update);
-        
+
         joint.dia.ElementView.prototype.initialize.apply(this, arguments);
     },
 

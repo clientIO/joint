@@ -8,6 +8,7 @@
     "graph",
     "visualization"
   ],
+  "main": "./index.js",
   "version": "0.9.3",
   "homepage": "http://jointjs.com",
   "author": {

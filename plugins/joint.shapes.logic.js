@@ -1,19 +1,13 @@
+if (typeof exports === 'object') {
+    var joint = require('jointjs');
+    var Backbone = require('backbone');
+    var _ = require('lodash');
+    var g = require('../src/geometry');
+    var V = require('../src/vectorizer').V;
+}
+
 //      JointJS library.
 //      (c) 2011-2013 client IO
-
-
-if (typeof exports === 'object') {
-
-    var joint = {
-        util: require('../src/core').util,
-        shapes: {
-            basic: require('./joint.shapes.basic')
-        },
-        dia: {
-            Link: require('../src/joint.dia.link').Link
-        }
-    };
-}
 
 joint.shapes.logic = {};
 
@@ -50,7 +44,7 @@ joint.shapes.logic.IO = joint.shapes.logic.Gate.extend({
                 ref: '.body', 'ref-x': .5, 'ref-y': .5, 'y-alignment': 'middle',
                 'text-anchor': 'middle',
                 'font-weight': 'bold',
-                'font-variant': 'small-caps', 
+                'font-variant': 'small-caps',
                 'text-transform': 'capitalize',
                 'font-size': '14px'
             }

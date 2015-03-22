@@ -1,3 +1,9 @@
+if (typeof exports === 'object') {
+    var joint = require('jointjs');
+    var _ = require('lodash');
+    var g = require('../../src/geometry');
+}
+
 joint.routers.metro = (function() {
 
     if (!_.isFunction(joint.routers.manhattan)) {
@@ -68,3 +74,8 @@ joint.routers.metro = (function() {
     };
 
 })();
+
+if (typeof exports === 'object') {
+
+    module.exports = joint.routers.metro;
+}
