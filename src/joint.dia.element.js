@@ -23,7 +23,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
     defaults: {
         position: { x: 0, y: 0 },
-	size: { width: 1, height: 1 },
+        size: { width: 1, height: 1 },
         angle: 0
     },
 
@@ -38,7 +38,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             // Getting the parent's position requires the collection.
             // Cell.get('parent') helds cell id only.
-            if (!this.collection) throw new Error("Element must be part of a collection.");
+            if (!this.collection) throw new Error('Element must be part of a collection.');
 
             var parent = this.collection.get(this.get('parent'));
             var parentPosition = parent && !parent.isLink()
@@ -82,34 +82,34 @@ joint.dia.Element = joint.dia.Cell.extend({
         opt.ty = ty;
 
         var position = this.get('position') || { x: 0, y: 0 };
-	var translatedPosition = { x: position.x + tx || 0, y: position.y + ty || 0 };
+        var translatedPosition = { x: position.x + tx || 0, y: position.y + ty || 0 };
 
-	if (opt.transition) {
+        if (opt.transition) {
 
-	    if (!_.isObject(opt.transition)) opt.transition = {};
+            if (!_.isObject(opt.transition)) opt.transition = {};
 
-	    this.transition('position', translatedPosition, _.extend({}, opt.transition, {
-		valueFunction: joint.util.interpolate.object
-	    }));
+            this.transition('position', translatedPosition, _.extend({}, opt.transition, {
+                valueFunction: joint.util.interpolate.object
+            }));
 
-	} else {
+        } else {
 
             this.set('position', translatedPosition, opt);
 
             // Recursively call `translate()` on all the embeds cells.
             _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
-	}
+        }
 
         return this;
     },
 
     resize: function(width, height) {
 
-	this.trigger('batch:start');
+        this.trigger('batch:start');
         this.set('size', { width: width, height: height });
-	this.trigger('batch:stop');
+        this.trigger('batch:stop');
 
-	return this;
+        return this;
     },
 
     // Rotate element by `angle` degrees, optionally around `origin` point.
@@ -117,33 +117,34 @@ joint.dia.Element = joint.dia.Cell.extend({
     // If `absolute` is `true`, the `angle` is considered is abslute, i.e. it is not
     // the difference from the previous angle.
     rotate: function(angle, absolute, origin) {
-	
-	if (origin) {
 
-	    var center = this.getBBox().center();
-	    var size = this.get('size');
-	    var position = this.get('position');
-	    center.rotate(origin, (this.get('angle') || 0) - angle);
-	    var dx = center.x - size.width/2 - position.x;
-	    var dy = center.y - size.height/2 - position.y;
-	    this.trigger('batch:start');
-	    this.translate(dx, dy);
-	    this.rotate(angle, absolute);
-	    this.trigger('batch:stop');
-            
-	} else {
+        if (origin) {
 
-	    this.set('angle', absolute ? angle : ((this.get('angle') || 0) + angle) % 360);
-	}
-	return this;
+            var center = this.getBBox().center();
+            var size = this.get('size');
+            var position = this.get('position');
+            center.rotate(origin, this.get('angle') - angle);
+            var dx = center.x - size.width / 2 - position.x;
+            var dy = center.y - size.height / 2 - position.y;
+            this.trigger('batch:start');
+            this.translate(dx, dy);
+            this.rotate(angle, absolute);
+            this.trigger('batch:stop');
+
+        } else {
+
+            this.set('angle', absolute ? angle : (this.get('angle') + angle) % 360);
+        }
+
+        return this;
     },
 
     getBBox: function() {
 
-	var position = this.get('position');
-	var size = this.get('size');
+        var position = this.get('position');
+        var size = this.get('size');
 
-	return g.rect(position.x, position.y, size.width, size.height);
+        return g.rect(position.x, position.y, size.width, size.height);
     }
 });
 
@@ -161,10 +162,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         _.bindAll(this, 'translate', 'resize', 'rotate');
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
-        
-	this.listenTo(this.model, 'change:position', this.translate);
-	this.listenTo(this.model, 'change:size', this.resize);
-	this.listenTo(this.model, 'change:angle', this.rotate);
+
+        this.listenTo(this.model, 'change:position', this.translate);
+        this.listenTo(this.model, 'change:size', this.resize);
+        this.listenTo(this.model, 'change:angle', this.rotate);
     },
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
@@ -178,7 +179,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             var rotation = rotatable.attr('transform');
             rotatable.attr('transform', '');
         }
-        
+
         var relativelyPositioned = [];
 
         _.each(renderingOnlyAttrs || allAttrs, function(attrs, selector) {
@@ -224,15 +225,15 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                     V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight, textPath: attrs.textPath });
                 });
-                specialAttributes.push('lineHeight','textPath');
+                specialAttributes.push('lineHeight', 'textPath');
             }
 
             // Set regular attributes on the `$selected` subelement. Note that we cannot use the jQuery attr()
             // method as some of the attributes might be namespaced (e.g. xlink:href) which fails with jQuery attr().
             var finalAttributes = _.omit(attrs, specialAttributes);
-            
+
             $selected.each(function() {
-                
+
                 V(this).attr(finalAttributes);
             });
 
@@ -247,7 +248,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 $selected.css(attrs.style);
             }
-            
+
             if (!_.isUndefined(attrs.html)) {
 
                 $selected.each(function() {
@@ -255,7 +256,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                     $(this).html(attrs.html + '');
                 });
             }
-            
+
             // Special `ref-x` and `ref-y` attributes make it possible to set both absolute or
             // relative positioning of subelements.
             if (!_.isUndefined(attrs['ref-x']) ||
@@ -268,14 +269,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 !_.isUndefined(attrs['ref-height'])
                ) {
 
-                   _.each($selected, function(el, index, list) {
-                       var $el = $(el);
-                       // copy original list selector to the element
-                       $el.selector = list.selector;
-                       relativelyPositioned.push($el);
-                   });
+                _.each($selected, function(el, index, list) {
+                    var $el = $(el);
+                    // copy original list selector to the element
+                    $el.selector = list.selector;
+                    relativelyPositioned.push($el);
+                });
             }
-            
+
         }, this);
 
         // We don't want the sub elements to affect the bounding box of the root element when
@@ -285,7 +286,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // Note that we're using the bounding box without transformation because we are already inside
         // a transformed coordinate system.
-        var bbox = this.el.getBBox();        
+        var bbox = this.el.getBBox();
 
         renderingOnlyAttrs = renderingOnlyAttrs || {};
 
@@ -297,10 +298,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             var renderingOnlyElAttrs = renderingOnlyAttrs[$el.selector];
             var elAttrs = renderingOnlyElAttrs
                 ? _.merge({}, allAttrs[$el.selector], renderingOnlyElAttrs)
-                : allAttrs[$el.selector];
+            : allAttrs[$el.selector];
 
             this.positionRelative($el, bbox, elAttrs);
-            
+
         }, this);
 
         if (rotatable) {
@@ -387,21 +388,21 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
                 var scale = V(this.$('.scalable')[0]).scale();
                 tx = bbox.x + bbox.width + refDx / scale.sx;
-                
+
             } else {
-                
+
                 tx = bbox.x + bbox.width + refDx;
             }
         }
         if (isDefined(refDy)) {
 
             if (isScalable) {
-                
+
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
                 var scale = V(this.$('.scalable')[0]).scale();
                 ty = bbox.y + bbox.height + refDy / scale.sy;
             } else {
-                
+
                 ty = bbox.y + bbox.height + refDy;
             }
         }
@@ -421,7 +422,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
                 var scale = V(this.$('.scalable')[0]).scale();
                 tx = bbox.x + refX / scale.sx;
-                
+
             } else {
 
                 tx = bbox.x + refX;
@@ -430,27 +431,27 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (isDefined(refY)) {
 
             if (refY > 0 && refY < 1) {
-                
+
                 ty = bbox.y + bbox.height * refY;
-                
+
             } else if (isScalable) {
 
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
                 var scale = V(this.$('.scalable')[0]).scale();
                 ty = bbox.y + refY / scale.sy;
-                
+
             } else {
 
                 ty = bbox.y + refY;
             }
         }
 
-	var velbbox = vel.bbox(false, this.paper.viewport);
+        var velbbox = vel.bbox(false, this.paper.viewport);
         // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
         if (yAlignment === 'middle') {
 
-            ty -= velbbox.height/2;
-            
+            ty -= velbbox.height / 2;
+
         } else if (isDefined(yAlignment)) {
 
             ty += (yAlignment > -1 && yAlignment < 1) ?  velbbox.height * yAlignment : yAlignment;
@@ -458,9 +459,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
         if (xAlignment === 'middle') {
-            
-            tx -= velbbox.width/2;
-            
+
+            tx -= velbbox.width / 2;
+
         } else if (isDefined(xAlignment)) {
 
             tx += (xAlignment > -1 && xAlignment < 1) ?  velbbox.width * xAlignment : xAlignment;
@@ -472,14 +473,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
     // default markup is not desirable.
     renderMarkup: function() {
-        
+
         var markup = this.model.markup || this.model.get('markup');
-        
+
         if (markup) {
 
             var nodes = V(markup);
             V(this.el).append(nodes);
-            
+
         } else {
 
             throw new Error('properties.markup is missing while the default render() implementation is used.');
@@ -496,7 +497,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         this.resize();
         this.rotate();
-        this.translate();        
+        this.translate();
 
         return this;
     },
@@ -517,7 +518,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var size = this.model.get('size') || { width: 1, height: 1 };
         var angle = this.model.get('angle') || 0;
-        
+
         var scalable = V(this.$('.scalable')[0]);
         if (!scalable) {
             // If there is no scalable elements, than there is nothing to resize.
@@ -535,15 +536,15 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // rotation changes). The new `x` and `y` coordinates are computed by canceling the previous rotation
         // around the center of the resized object (which is a different origin then the origin of the previous rotation)
         // and getting the top-left corner of the resulting object. Then we clean up the rotation back to what it originally was.
-        
+
         // Cancel the rotation but now around a different origin, which is the center of the scaled object.
         var rotatable = V(this.$('.rotatable')[0]);
         var rotation = rotatable && rotatable.attr('transform');
         if (rotation && rotation !== 'null') {
 
-            rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width/2) + ',' + (size.height/2) + ')');
+            rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width / 2) + ',' + (size.height / 2) + ')');
             var rotatableBbox = scalable.bbox(false, this.paper.viewport);
-            
+
             // Store new x, y and perform rotate() again against the new rotation origin.
             this.model.set('position', { x: rotatableBbox.x, y: rotatableBbox.y });
             this.rotate();
@@ -568,13 +569,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             // If there is no rotatable elements, then there is nothing to rotate.
             return;
         }
-        
+
         var angle = this.model.get('angle') || 0;
         var size = this.model.get('size') || { width: 1, height: 1 };
 
-        var ox = size.width/2;
-        var oy = size.height/2;
-        
+        var ox = size.width / 2;
+        var oy = size.height / 2;
+
 
         rotatable.attr('transform', 'rotate(' + angle + ',' + ox + ',' + oy + ')');
     },
@@ -614,7 +615,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // Before we start looking for suitable parent we remove the current one.
         var parentId = this.model.get('parent');
-	parentId && this.paper.model.getCell(parentId).unembed(this.model, { ui: true });
+        parentId && this.paper.model.getCell(parentId).unembed(this.model, { ui: true });
     },
 
     processEmbedding: function(opt) {
@@ -695,10 +696,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         this.model.trigger('batch:start');
 
-        if ( // target is a valid magnet start linking
-            evt.target.getAttribute('magnet') &&
-            this.paper.options.validateMagnet.call(this.paper, this, evt.target)
-        ) {
+        // target is a valid magnet start linking
+        if (evt.target.getAttribute('magnet') && this.paper.options.validateMagnet.call(this.paper, this, evt.target)) {
 
             var link = this.paper.getDefaultLink(this, evt.target);
             link.set({
@@ -712,7 +711,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             this.paper.model.addCell(link);
 
-	    this._linkView = this.paper.findViewByModel(link);
+            this._linkView = this.paper.findViewByModel(link);
             this._linkView.startArrowheadMove('target');
 
         } else {
@@ -733,17 +732,18 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         } else {
 
-	    var grid = this.paper.options.gridSize;
-
-	    var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointermove') : this.options.interactive;
+            var grid = this.paper.options.gridSize;
+            var interactive = _.isFunction(this.options.interactive)
+                ? this.options.interactive(this, 'pointermove')
+                : this.options.interactive;
 
             if (interactive !== false) {
 
-	        var position = this.model.get('position');
+                var position = this.model.get('position');
 
-	        // Make sure the new element's position always snaps to the current grid after
-	        // translate as the previous one could be calculated with a different grid size.
-	        this.model.translate(
+                // Make sure the new element's position always snaps to the current grid after
+                // translate as the previous one could be calculated with a different grid size.
+                this.model.translate(
 		    g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - this._dx, grid),
 		    g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - this._dy, grid)
 	        );

@@ -21,7 +21,7 @@ if (typeof exports === 'object') {
 joint.dia.GraphCells = Backbone.Collection.extend({
 
     initialize: function() {
-        
+
         // Backbone automatically doesn't trigger re-sort if models attributes are changed later when
         // they're already in the collection. Therefore, we're triggering sort manually here.
         this.on('change:z', this.sort, this);
@@ -41,7 +41,7 @@ joint.dia.GraphCells = Backbone.Collection.extend({
 
             return new joint.shapes[module][entity](attrs, options);
         }
-        
+
         return new joint.dia.Element(attrs, options);
     },
 
@@ -129,7 +129,7 @@ joint.dia.GraphCells = Backbone.Collection.extend({
 
         return this.get(commonAncestor);
     }
-    
+
 });
 
 
@@ -145,7 +145,7 @@ joint.dia.Graph = Backbone.Model.extend({
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
         this.get('cells').on('all', this.trigger, this);
-        
+
         this.get('cells').on('remove', this.removeCell, this);
     },
 
@@ -181,7 +181,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (cell instanceof Backbone.Model && _.isUndefined(cell.get('z'))) {
 
             cell.set('z', this.maxZIndex() + 1, { silent: true });
-            
+
         } else if (_.isUndefined(cell.z)) {
 
             cell.z = this.maxZIndex() + 1;
@@ -225,7 +225,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // reset the entire cells collection in one go.
     // Useful for bulk operations and optimizations.
     resetCells: function(cells, opt) {
-        
+
         this.get('cells').reset(_.map(cells, this._prepareCell, this), opt);
 
         return this;
@@ -237,7 +237,7 @@ joint.dia.Graph = Backbone.Model.extend({
         // disconnect links when a cell is removed rather then removing them. The default
         // is to remove all the associated links.
         if (options && options.disconnectLinks) {
-            
+
             this.disconnectLinks(cell, options);
 
         } else {
@@ -265,7 +265,7 @@ joint.dia.Graph = Backbone.Model.extend({
             return cell instanceof joint.dia.Element;
         });
     },
-    
+
     getLinks: function() {
 
         return this.get('cells').filter(function(cell) {
@@ -285,7 +285,7 @@ joint.dia.Graph = Backbone.Model.extend({
         var links = this.getConnectedLinks(el);
         var neighbors = [];
         var cells = this.get('cells');
-        
+
         _.each(links, function(link) {
 
             var source = link.get('source');
@@ -310,7 +310,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         return neighbors;
     },
-    
+
     // Disconnect links connected to the cell `model`.
     disconnectLinks: function(model, options) {
 
@@ -329,35 +329,35 @@ joint.dia.Graph = Backbone.Model.extend({
     // Find all views at given point
     findModelsFromPoint: function(p) {
 
-	return _.filter(this.getElements(), function(el) {
-	    return el.getBBox().containsPoint(p);
-	});
+        return _.filter(this.getElements(), function(el) {
+            return el.getBBox().containsPoint(p);
+        });
     },
 
     // Find all views in given area
     findModelsInArea: function(r) {
 
-	return _.filter(this.getElements(), function(el) {
-	    return el.getBBox().intersect(r);
-	});
+        return _.filter(this.getElements(), function(el) {
+            return el.getBBox().intersect(r);
+        });
     },
 
     // Return the bounding box of all `elements`.
     getBBox: function(elements) {
 
-	var origin = { x: Infinity, y: Infinity };
-	var corner = { x: 0, y: 0 };
-	
-	_.each(elements, function(cell) {
-	    
-	    var bbox = cell.getBBox();
-	    origin.x = Math.min(origin.x, bbox.x);
-	    origin.y = Math.min(origin.y, bbox.y);
-	    corner.x = Math.max(corner.x, bbox.x + bbox.width);
-	    corner.y = Math.max(corner.y, bbox.y + bbox.height);
-	});
+        var origin = { x: Infinity, y: Infinity };
+        var corner = { x: 0, y: 0 };
 
-	return g.rect(origin.x, origin.y, corner.x - origin.x, corner.y - origin.y);
+        _.each(elements, function(cell) {
+
+            var bbox = cell.getBBox();
+            origin.x = Math.min(origin.x, bbox.x);
+            origin.y = Math.min(origin.y, bbox.y);
+            corner.x = Math.max(corner.x, bbox.x + bbox.width);
+            corner.y = Math.max(corner.y, bbox.y + bbox.height);
+        });
+
+        return g.rect(origin.x, origin.y, corner.x - origin.x, corner.y - origin.y);
     },
 
     getCommonAncestor: function(/* cells */) {

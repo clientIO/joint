@@ -111,7 +111,10 @@ test('interaction', function() {
     var l0 = new joint.dia.Link({
         source: { id: r1.id },
         target: { id: r2.id },
-        attrs: { '.connection': { stroke: 'black' } }
+        attrs: { '.connection': { stroke: 'black' } },
+        labels: [
+            { position: .5, attrs: { text: { text: 'test label' } } }
+        ]
     });
 
     this.graph.addCell(l0);
@@ -150,7 +153,39 @@ test('interaction', function() {
 
     v0.pointerup();
     equal(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 300 100 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400,400');
+});
 
+test('labelMove', function() {
+
+    expect(2);
+
+    var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 50, height: 50 }});
+    var r2 = r1.clone().translate(250);
+
+    this.graph.addCell([r1,r2]);
+
+    var vr1 = this.paper.findViewByModel(r1);
+    var vr2 = this.paper.findViewByModel(r2);
+
+    var l0 = new joint.dia.Link({
+        source: { id: r1.id },
+        target: { id: r2.id },
+        attrs: { '.connection': { stroke: 'black' } },
+        labels: [
+            { position: .5, attrs: { text: { text: 'test label' } } }
+        ]
+    });
+
+    this.graph.addCell(l0);
+
+    var v0 = this.paper.findViewByModel(l0);
+
+    v0.options.interactive = { labelMove: true };
+    v0.pointerdown({ target: v0.$('.label')[0], type: 'mousedown' });
+    v0.pointermove({ target: v0.$('.label')[0], type: 'mousemove' }, 150, 25);
+    equal(l0.get('labels')[0].position.offset, -50, 'offset was set during the label drag');
+    equal(l0.get('labels')[0].position.distance, .25, 'distance was set during the label drag');
+    v0.pointerup();
 });
 
 test('defaultLink', function() {

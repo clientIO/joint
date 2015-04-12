@@ -9,6 +9,5 @@ module.exports = {
         Element: require('./src/joint.dia.element').Element
     },
     util: require('./src/core').util,
-    shapes: require('./plugins/shapes'),
-    alg: require('./plugins/alg/alg')
+    shapes: require('./plugins/shapes')
 };

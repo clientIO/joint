@@ -54,11 +54,11 @@ joint.dia.Cell = Backbone.Model.extend({
             var defaultAttr = defaultAttrs[selector];
 
             _.each(attr, function(value, name) {
-                
+
                 // attr is mainly flat though it might have one more level (consider the `style` attribute).
                 // Check if the `value` is object and if yes, go one level deep.
                 if (_.isObject(value) && !_.isArray(value)) {
-                    
+
                     _.each(value, function(value2, name2) {
 
                         if (!defaultAttr || !defaultAttr[name] || !_.isEqual(defaultAttr[name][name2], value2)) {
@@ -92,7 +92,7 @@ joint.dia.Cell = Backbone.Model.extend({
             this.set('id', joint.util.uuid(), { silent: true });
         }
 
-	this._transitionIds = {};
+        this._transitionIds = {};
 
         // Collect ports defined in `attrs` and keep collecting whenever `attrs` object changes.
         this.processPorts();
@@ -133,7 +133,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         // Remove all the incoming/outgoing links that have source/target port set to any of the removed ports.
         if (this.collection && !_.isEmpty(removedPorts)) {
-            
+
             var inboundLinks = this.collection.getConnectedLinks(this, { inbound: true });
             _.each(inboundLinks, function(link) {
 
@@ -151,31 +151,33 @@ joint.dia.Cell = Backbone.Model.extend({
         this.ports = ports;
     },
 
-    remove: function(options) {
+    remove: function(opt) {
 
-	var collection = this.collection;
+        opt = opt || {};
 
-	if (collection) {
-	    collection.trigger('batch:start');
-	}
+        var collection = this.collection;
+
+        if (collection) {
+            collection.trigger('batch:start');
+        }
 
         // First, unembed this cell from its parent cell if there is one.
         var parentCellId = this.get('parent');
         if (parentCellId) {
-            
+
             var parentCell = this.collection && this.collection.get(parentCellId);
             parentCell.unembed(this);
         }
-        
-        _.invoke(this.getEmbeddedCells(), 'remove', options);
-        
-        this.trigger('remove', this, this.collection, options);
 
-	if (collection) {
-	    collection.trigger('batch:stop');
-	}
+        _.invoke(this.getEmbeddedCells(), 'remove', opt);
 
-	return this;
+        this.trigger('remove', this, this.collection, opt);
+
+        if (collection) {
+            collection.trigger('batch:stop');
+        }
+
+        return this;
     },
 
     toFront: function(opt) {
@@ -198,7 +200,7 @@ joint.dia.Cell = Backbone.Model.extend({
             this.trigger('batch:stop');
         }
 
-	return this;
+        return this;
     },
 
     toBack: function(opt) {
@@ -206,7 +208,7 @@ joint.dia.Cell = Backbone.Model.extend({
         if (this.collection) {
 
             opt = opt || {};
-            
+
             var z = (this.collection.first().get('z') || 0) - 1;
 
             this.trigger('batch:start');
@@ -215,49 +217,48 @@ joint.dia.Cell = Backbone.Model.extend({
 
                 var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
                 _.eachRight(cells, function(cell) { cell.set('z', z--, opt); });
-
             }
 
             this.set('z', z, opt).trigger('batch:stop');
         }
 
-	return this;
+        return this;
     },
 
     embed: function(cell, opt) {
 
-	if (this == cell || this.isEmbeddedIn(cell)) {
+        if (this == cell || this.isEmbeddedIn(cell)) {
 
-	    throw new Error('Recursive embedding not allowed.');
+            throw new Error('Recursive embedding not allowed.');
 
-	} else {
+        } else {
 
-	    this.trigger('batch:start');
+            this.trigger('batch:start');
 
             var embeds = _.clone(this.get('embeds') || []);
 
             // We keep all element ids after links ids.
             embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
 
-	    cell.set('parent', this.id, opt);
-	    this.set('embeds', _.uniq(embeds), opt);
+            cell.set('parent', this.id, opt);
+            this.set('embeds', _.uniq(embeds), opt);
 
-	    this.trigger('batch:stop');
-	}
+            this.trigger('batch:stop');
+        }
 
-	return this;
+        return this;
     },
 
     unembed: function(cell, opt) {
 
-	this.trigger('batch:start');
+        this.trigger('batch:start');
 
         cell.unset('parent', opt);
         this.set('embeds', _.without(this.get('embeds'), cell.id), opt);
 
-	this.trigger('batch:stop');
+        this.trigger('batch:stop');
 
-	return this;
+        return this;
     },
 
     getEmbeddedCells: function(opt) {
@@ -309,10 +310,9 @@ joint.dia.Cell = Backbone.Model.extend({
     isEmbeddedIn: function(cell, opt) {
 
         var cellId = _.isString(cell) ? cell : cell.id;
+        var parentId = this.get('parent');
 
         opt = _.defaults({ deep: true }, opt);
-
-        var parentId = this.get('parent');
 
         // See getEmbeddedCells().
         if (this.collection && opt.deep) {
@@ -339,7 +339,7 @@ joint.dia.Cell = Backbone.Model.extend({
         opt = opt || {};
 
         var clone = Backbone.Model.prototype.clone.apply(this, arguments);
-        
+
         // We don't want the clone to have the same ID as the original.
         clone.set('id', joint.util.uuid(), { silent: true });
         clone.set('embeds', '');
@@ -359,7 +359,7 @@ joint.dia.Cell = Backbone.Model.extend({
         // This mapping stores cloned links under the `id`s of they originals.
         // This prevents cloning a link more then once. Consider a link 'self loop' for example.
         var linkCloneMapping = {};
-        
+
         _.each(embeds, function(embed) {
 
             var embedClones = embed.clone({ deep: true });
@@ -417,7 +417,7 @@ joint.dia.Cell = Backbone.Model.extend({
                 });
 
             }, this);
-            
+
         }, this);
 
         // Add link clones to the array of all the new clones.
@@ -430,7 +430,7 @@ joint.dia.Cell = Backbone.Model.extend({
     // This method merges the properties you'd like to set with the ones
     // stored in the cell and makes sure change events are properly triggered.
     // You can either set a nested property with one object
-    // or use a property path. 
+    // or use a property path.
     // The most simple use case is:
     // `cell.prop('name/first', 'John')` or
     // `cell.prop({ name: { first: 'John' } })`.
@@ -445,44 +445,44 @@ joint.dia.Cell = Backbone.Model.extend({
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
 
-            if (typeof value !== 'undefined') {
+            if (arguments.length > 1) {
 
-		var path = props;
-		var pathArray = path.split('/');
-		var property = pathArray[0];
+                var path = props;
+                var pathArray = path.split('/');
+                var property = pathArray[0];
 
                 opt = opt || {};
                 opt.propertyPath = path;
                 opt.propertyValue = value;
 
-	        if (pathArray.length == 1) {
+                if (pathArray.length == 1) {
                     // Property is not nested. We can simply use `set()`.
                     return this.set(property, value, opt);
                 }
 
-		var update = {};
-		// Initialize the nested object. Subobjects are either arrays or objects.
-		// An empty array is created if the sub-key is an integer. Otherwise, an empty object is created.
-		// Note that this imposes a limitation on object keys one can use with Inspector.
-		// Pure integer keys will cause issues and are therefore not allowed.
-		var initializer = update;
-		var prevProperty = property;
-		_.each(_.rest(pathArray), function(key) {
+                var update = {};
+                // Initialize the nested object. Subobjects are either arrays or objects.
+                // An empty array is created if the sub-key is an integer. Otherwise, an empty object is created.
+                // Note that this imposes a limitation on object keys one can use with Inspector.
+                // Pure integer keys will cause issues and are therefore not allowed.
+                var initializer = update;
+                var prevProperty = property;
+                _.each(_.rest(pathArray), function(key) {
                     initializer = initializer[prevProperty] = (_.isFinite(Number(key)) ? [] : {});
                     prevProperty = key;
-		});
-		// Fill update with the `value` on `path`.
-		update = joint.util.setByPath(update, path, value, '/');
+                });
+                // Fill update with the `value` on `path`.
+                update = joint.util.setByPath(update, path, value, '/');
 
                 var baseAttributes = _.merge({}, this.attributes);
                 // if rewrite mode enabled, we replace value referenced by path with
                 // the new one (we don't merge).
                 opt.rewrite && joint.util.unsetByPath(baseAttributes, path, '/');
 
-		// Merge update with the model attributes.
-		var attributes = _.merge(baseAttributes, update);
-		// Finally, set the property to the updated attributes.
-		return this.set(property, attributes[property], opt);
+                // Merge update with the model attributes.
+                var attributes = _.merge(baseAttributes, update);
+                // Finally, set the property to the updated attributes.
+                return this.set(property, attributes[property], opt);
 
             } else {
 
@@ -493,16 +493,48 @@ joint.dia.Cell = Backbone.Model.extend({
         return this.set(_.merge({}, this.attributes, props), value);
     },
 
+    // A convient way to unset nested properties
+    removeProp: function(path, opt) {
+
+        // Once a property is removed from the `attrs` attribute
+        // the cellView will recognize a `dirty` flag and rerender itself
+        // in order to remove the attribute from SVG element.
+        opt = opt || {};
+        opt.dirty = true;
+
+        var pathArray = path.split('/');
+
+        if (pathArray.length === 0) {
+            // A top level property
+            return this.unset(path, opt);
+        }
+
+        // A nested property
+        var property = pathArray[0];
+        var nestedPath = pathArray.slice(1).join('/');
+        var propertyValue = _.merge({}, this.get(property));
+
+        joint.util.unsetByPath(propertyValue, nestedPath, '/');
+
+        return this.set(property, propertyValue, opt);
+    },
+
     // A convenient way to set nested attributes.
     attr: function(attrs, value, opt) {
-        
+
+        var args = Array.prototype.slice.call(arguments);
+
         if (_.isString(attrs)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
-            return this.prop('attrs/' + attrs, value, opt);
+            args[0] = 'attrs/' + attrs;
+
+        } else {
+
+            args[0] = { 'attrs' : attrs };
         }
-        
-        return this.prop({ 'attrs': attrs }, value);
+
+        return this.prop.apply(this, args);
     },
 
     // A convenient way to unset nested attributes
@@ -512,101 +544,99 @@ joint.dia.Cell = Backbone.Model.extend({
             _.each(path, function(p) { this.removeAttr(p, opt); }, this);
             return this;
         }
-        
-        var attrs = joint.util.unsetByPath(_.merge({}, this.get('attrs')), path, '/');
 
-        return this.set('attrs', attrs, _.extend({ dirty: true }, opt));
+        return this.removeProp('attrs/' + path, opt);
     },
 
     transition: function(path, value, opt, delim) {
 
-	delim = delim || '/';
+        delim = delim || '/';
 
-	var defaults = {
-	    duration: 100,
-	    delay: 10,
-	    timingFunction: joint.util.timing.linear,
-	    valueFunction: joint.util.interpolate.number
-	};
+        var defaults = {
+            duration: 100,
+            delay: 10,
+            timingFunction: joint.util.timing.linear,
+            valueFunction: joint.util.interpolate.number
+        };
 
-	opt = _.extend(defaults, opt);
+        opt = _.extend(defaults, opt);
 
-	var firstFrameTime = 0;
-	var interpolatingFunction;
+        var firstFrameTime = 0;
+        var interpolatingFunction;
 
-	var setter = _.bind(function(runtime) {
+        var setter = _.bind(function(runtime) {
 
-	    var id, progress, propertyValue, status;
+            var id, progress, propertyValue, status;
 
-	    firstFrameTime = firstFrameTime || runtime;
-	    runtime -= firstFrameTime;
-	    progress = runtime / opt.duration;
+            firstFrameTime = firstFrameTime || runtime;
+            runtime -= firstFrameTime;
+            progress = runtime / opt.duration;
 
-	    if (progress < 1) {
-		this._transitionIds[path] = id = joint.util.nextFrame(setter);
-	    } else {
-		progress = 1;
-		delete this._transitionIds[path];
-	    }
+            if (progress < 1) {
+                this._transitionIds[path] = id = joint.util.nextFrame(setter);
+            } else {
+                progress = 1;
+                delete this._transitionIds[path];
+            }
 
-	    propertyValue = interpolatingFunction(opt.timingFunction(progress));
+            propertyValue = interpolatingFunction(opt.timingFunction(progress));
 
-	    opt.transitionId = id;
+            opt.transitionId = id;
 
-	    this.prop(path, propertyValue, opt);
+            this.prop(path, propertyValue, opt);
 
-	    if (!id) this.trigger('transition:end', this, path);
+            if (!id) this.trigger('transition:end', this, path);
 
-	}, this);
+        }, this);
 
-	var initiator =_.bind(function(callback) {
+        var initiator = _.bind(function(callback) {
 
-	    this.stopTransitions(path);
+            this.stopTransitions(path);
 
-	    interpolatingFunction = opt.valueFunction(joint.util.getByPath(this.attributes, path, delim), value);
+            interpolatingFunction = opt.valueFunction(joint.util.getByPath(this.attributes, path, delim), value);
 
-	    this._transitionIds[path] = joint.util.nextFrame(callback);
+            this._transitionIds[path] = joint.util.nextFrame(callback);
 
-	    this.trigger('transition:start', this, path);
+            this.trigger('transition:start', this, path);
 
-	}, this);
+        }, this);
 
-	return _.delay(initiator, opt.delay, setter);
+        return _.delay(initiator, opt.delay, setter);
     },
 
     getTransitions: function() {
-	return _.keys(this._transitionIds);
+        return _.keys(this._transitionIds);
     },
 
     stopTransitions: function(path, delim) {
 
-	delim = delim || '/';
+        delim = delim || '/';
 
-	var pathArray = path && path.split(delim);
+        var pathArray = path && path.split(delim);
 
-	_(this._transitionIds).keys().filter(pathArray && function(key) {
+        _(this._transitionIds).keys().filter(pathArray && function(key) {
 
-	    return _.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
+            return _.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
 
-	}).each(function(key) {
+        }).each(function(key) {
 
-	    joint.util.cancelFrame(this._transitionIds[key]);
+            joint.util.cancelFrame(this._transitionIds[key]);
 
-	    delete this._transitionIds[key];
+            delete this._transitionIds[key];
 
-	    this.trigger('transition:end', this, key);
+            this.trigger('transition:end', this, key);
 
-	}, this);
+        }, this);
 
-	return this;
+        return this;
     },
 
     // A shorcut making it easy to create constructs like the following:
     // `var el = (new joint.shapes.basic.Rect).addTo(graph)`.
-    addTo: function(graph) {
+    addTo: function(graph, opt) {
 
-	graph.addCell(this);
-	return this;
+        graph.addCell(this, opt);
+        return this;
     },
 
     // A shortcut for an equivalent call: `paper.findViewByModel(cell)`
@@ -634,19 +664,19 @@ joint.dia.CellView = Backbone.View.extend({
 
     attributes: function() {
 
-        return { 'model-id': this.model.id }
+        return { 'model-id': this.model.id };
     },
 
     constructor: function(options) {
 
-	this._configure(options);
-	Backbone.View.apply(this, arguments);
+        this._configure(options);
+        Backbone.View.apply(this, arguments);
     },
 
     _configure: function(options) {
 
-	if (this.options) options = _.extend({}, _.result(this, 'options'), options);
-	this.options = options;
+        if (this.options) options = _.extend({}, _.result(this, 'options'), options);
+        this.options = options;
         // Make sure a global unique id is assigned to this view. Store this id also to the properties object.
         // The global unique id makes sure that the same view can be rendered on e.g. different machines and
         // still be associated to the same object among all those clients. This is necessary for real-time
@@ -661,8 +691,8 @@ joint.dia.CellView = Backbone.View.extend({
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);
 
-	this.listenTo(this.model, 'remove', this.remove);
-	this.listenTo(this.model, 'change:attrs', this.onChangeAttrs);
+        this.listenTo(this.model, 'remove', this.remove);
+        this.listenTo(this.model, 'change:attrs', this.onChangeAttrs);
     },
 
     onChangeAttrs: function(cell, attrs, opt) {
@@ -691,16 +721,16 @@ joint.dia.CellView = Backbone.View.extend({
 
         } else {
 
-            el = _.result(this, 'el')
+            el = _.result(this, 'el');
         }
 
         this.setElement(el, false);
     },
-    
+
     findBySelector: function(selector) {
 
-        // These are either descendants of `this.$el` of `this.$el` itself. 
-       // `.` is a special selector used to select the wrapping `<g>` element.
+        // These are either descendants of `this.$el` of `this.$el` itself.
+        // `.` is a special selector used to select the wrapping `<g>` element.
         var $selected = selector === '.' ? this.$el : this.$el.find(selector);
         return $selected;
     },
@@ -713,7 +743,7 @@ joint.dia.CellView = Backbone.View.extend({
 
             // Trigger the event on both the element itself and also on the paper.
             this.trigger.apply(this, [evt].concat(args));
-            
+
             // Paper event handlers receive the view object as the first argument.
             this.paper.trigger.apply(this.paper, [evt, this].concat(args));
         }
@@ -727,7 +757,7 @@ joint.dia.CellView = Backbone.View.extend({
         // @TODO any better solution is very welcome!
 
         var isMagnet = !!el;
-        
+
         el = el || this.el;
         var bbox = V(el).bbox(false, this.paper.viewport);
 
@@ -735,7 +765,7 @@ joint.dia.CellView = Backbone.View.extend({
         if (isMagnet) {
 
             strokeWidth = V(el).attr('stroke-width');
-            
+
         } else {
 
             strokeWidth = this.model.attr('rect/stroke-width') || this.model.attr('circle/stroke-width') || this.model.attr('ellipse/stroke-width') || this.model.attr('path/stroke-width');
@@ -743,9 +773,9 @@ joint.dia.CellView = Backbone.View.extend({
 
         strokeWidth = parseFloat(strokeWidth) || 0;
 
-        return g.rect(bbox).moveAndExpand({ x: -strokeWidth/2, y: -strokeWidth/2, width: strokeWidth, height: strokeWidth });
+        return g.rect(bbox).moveAndExpand({ x: -strokeWidth / 2, y: -strokeWidth / 2, width: strokeWidth, height: strokeWidth });
     },
-    
+
     getBBox: function() {
 
         return V(this.el).bbox();
@@ -823,19 +853,19 @@ joint.dia.CellView = Backbone.View.extend({
                 throw new Error('Non-existing filter ' + filter.name);
             }
             var filterElement = V(filterSVGString);
-	    // Set the filter area to be 3x the bounding box of the cell
-	    // and center the filter around the cell.
-	    filterElement.attr({
-		filterUnits: 'objectBoundingBox',
-		x: -1, y: -1, width: 3, height: 3
-	    });
+            // Set the filter area to be 3x the bounding box of the cell
+            // and center the filter around the cell.
+            filterElement.attr({
+                filterUnits: 'objectBoundingBox',
+                x: -1, y: -1, width: 3, height: 3
+            });
             if (filter.attrs) filterElement.attr(filter.attrs);
             filterElement.node.id = filterId;
             V(this.paper.svg).defs().append(filterElement);
         }
 
         $selected.each(function() {
-            
+
             V(this).attr('filter', 'url(#' + filterId + ')');
         });
     },
@@ -860,11 +890,11 @@ joint.dia.CellView = Backbone.View.extend({
             var gradientSVGString = [
                 '<' + gradient.type + '>',
                 _.map(gradient.stops, function(stop) {
-                    return '<stop offset="' + stop.offset + '" stop-color="' + stop.color + '" stop-opacity="' + (_.isFinite(stop.opacity) ? stop.opacity : 1) + '" />'
+                    return '<stop offset="' + stop.offset + '" stop-color="' + stop.color + '" stop-opacity="' + (_.isFinite(stop.opacity) ? stop.opacity : 1) + '" />';
                 }).join(''),
                 '</' + gradient.type + '>'
             ].join('');
-            
+
             var gradientElement = V(gradientSVGString);
             if (gradient.attrs) { gradientElement.attr(gradient.attrs); }
             gradientElement.node.id = gradientId;
@@ -872,7 +902,7 @@ joint.dia.CellView = Backbone.View.extend({
         }
 
         $selected.each(function() {
-            
+
             V(this).attr(attr, 'url(#' + gradientId + ')');
         });
     },
@@ -912,33 +942,32 @@ joint.dia.CellView = Backbone.View.extend({
 
         this.notify('cell:pointerclick', evt, x, y);
     },
-    
+
     pointerdown: function(evt, x, y) {
 
-	if (this.model.collection) {
-	    this.model.trigger('batch:start');
-	    this._collection = this.model.collection;
-	}
+        if (this.model.collection) {
+            this.model.trigger('batch:start');
+            this._collection = this.model.collection;
+        }
 
         this.notify('cell:pointerdown', evt, x, y);
     },
-    
+
     pointermove: function(evt, x, y) {
 
         this.notify('cell:pointermove', evt, x, y);
     },
-    
+
     pointerup: function(evt, x, y) {
 
         this.notify('cell:pointerup', evt, x, y);
 
-	if (this._collection) {
-	    // we don't want to trigger event on model as model doesn't
-	    // need to be member of collection anymore (remove)
-	    this._collection.trigger('batch:stop');
-	    delete this._collection;
-	}
-
+        if (this._collection) {
+            // we don't want to trigger event on model as model doesn't
+            // need to be member of collection anymore (remove)
+            this._collection.trigger('batch:stop');
+            delete this._collection;
+        }
     },
 
     mouseover: function(evt) {

@@ -10,8 +10,8 @@ joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opts) {
     _.each(vertices, function(vertex, index) {
 
         // the closest vertices
-        prev = vertices[index-1] || sourcePoint;
-        next = vertices[index+1] || targetPoint;
+        prev = vertices[index - 1] || sourcePoint;
+        next = vertices[index + 1] || targetPoint;
 
         // a half distance to the closest vertex
         d1 = d2 || g.point(vertex).distance(prev) / 2;

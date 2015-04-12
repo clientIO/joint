@@ -1,7 +1,6 @@
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
-
 if (typeof exports === 'object') {
 
     var joint = {
@@ -44,13 +43,13 @@ joint.shapes.logic.IO = joint.shapes.logic.Gate.extend({
         size: { width: 60, height: 30 },
         attrs: {
             '.body': { fill: 'white', stroke: 'black', 'stroke-width': 2 },
-            '.wire': { ref: '.body', 'ref-y': .5, stroke: 'black'},
+            '.wire': { ref: '.body', 'ref-y': .5, stroke: 'black' },
             text: {
                 fill: 'black',
                 ref: '.body', 'ref-x': .5, 'ref-y': .5, 'y-alignment': 'middle',
                 'text-anchor': 'middle',
                 'font-weight': 'bold',
-                'font-variant': 'small-caps', 
+                'font-variant': 'small-caps',
                 'text-transform': 'capitalize',
                 'font-size': '14px'
             }
@@ -118,7 +117,7 @@ joint.shapes.logic.Gate21 = joint.shapes.logic.Gate.extend({
             '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
         }
 
-    }, joint.shapes.logic.Gate.prototype.defaults),
+    }, joint.shapes.logic.Gate.prototype.defaults)
 
 });
 
@@ -272,7 +271,7 @@ joint.shapes.logic.Wire = joint.dia.Link.extend({
         },
 
         router: { name: 'orthogonal' },
-        connector: { name: 'rounded', args: { radius: 10 }},
+        connector: { name: 'rounded', args: { radius: 10 }}
 
     }, joint.dia.Link.prototype.defaults)
 

@@ -24,10 +24,10 @@ joint.routers.manhattan = (function() {
         maximumLoops: 500,
 
         // possible starting directions from an element
-        startDirections: ['left','right','top','bottom'],
+        startDirections: ['left', 'right', 'top', 'bottom'],
 
         // possible ending directions to an element
-        endDirections: ['left','right','top','bottom'],
+        endDirections: ['left', 'right', 'top', 'bottom'],
 
         // specify directions above
         directionMap: {
@@ -48,9 +48,9 @@ joint.routers.manhattan = (function() {
             return {
                 x: -step,
                 y: -step,
-                width: 2*step,
-                height: 2*step
-            }
+                width: 2 * step,
+                height: 2 * step
+            };
         },
 
         // an array of directions to find next points on the route
@@ -136,7 +136,7 @@ joint.routers.manhattan = (function() {
             var x = direction.x * bbox.width / 2;
             var y = direction.y * bbox.height / 2;
 
-            var point = g.point(center).offset(x,y).snapToGrid(step);
+            var point = g.point(center).offset(x, y).snapToGrid(step);
 
             if (bbox.containsPoint(point)) {
 
@@ -413,9 +413,6 @@ joint.routers.manhattan = (function() {
         var newVertices = [];
 
         var points = _.map(oldVertices, g.point);
-        if (reverseRouting) {
-            points.reverse();
-        }
 
         var tailPoint = sourceBBox.center();
 

@@ -2,15 +2,16 @@
 // -----------
 
 // A tiny library for making your live easier when dealing with SVG.
+// The only Vectorizer dependency is the Geometry library.
 
-// Copyright © 2012 - 2014 client IO (http://client.io)
+// Copyright © 2012 - 2015 client IO (http://client.io)
 
 (function(root, factory) {
 
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
         define([], factory);
-        
+
     } else {
         // Browser globals.
         root.Vectorizer = root.V = factory();
@@ -43,7 +44,7 @@
         var svg = '<svg xmlns="' + ns.xmlns + '" xmlns:xlink="' + ns.xlink + '" version="' + SVGversion + '">' + (content || '') + '</svg>';
         var parser = new DOMParser();
         parser.async = false;
-	return parser.parseFromString(svg, 'text/xml').documentElement;
+        return parser.parseFromString(svg, 'text/xml').documentElement;
     }
 
     // Create SVG element.
@@ -51,8 +52,10 @@
 
     function createElement(el, attrs, children) {
 
+        var i, len;
+
         if (!el) return undefined;
-        
+
         // If `el` is an object, it is probably a native SVG element. Wrap it to VElement.
         if (typeof el === 'object') {
             return new VElement(el);
@@ -61,13 +64,13 @@
 
         // If `el` is a `'svg'` or `'SVG'` string, create a new SVG canvas.
         if (el.toLowerCase() === 'svg') {
-            
-	    return new VElement(createSvgDocument());
-            
+
+            return new VElement(createSvgDocument());
+
         } else if (el[0] === '<') {
             // Create element from an SVG string.
             // Allows constructs of type: `document.appendChild(Vectorizer('<rect></rect>').node)`.
-            
+
             var svgDoc = createSvgDocument(el);
 
             // Note that `createElement()` might also return an array should the SVG string passed as
@@ -76,17 +79,17 @@
 
                 // Map child nodes to `VElement`s.
                 var ret = [];
-                for (var i = 0, len = svgDoc.childNodes.length; i < len; i++) {
+                for (i = 0, len = svgDoc.childNodes.length; i < len; i++) {
 
                     var childNode = svgDoc.childNodes[i];
                     ret.push(new VElement(document.importNode(childNode, true)));
                 }
                 return ret;
             }
-            
+
             return new VElement(document.importNode(svgDoc.firstChild, true));
         }
-        
+
         el = document.createElementNS(ns.xmlns, el);
 
         // Set attributes.
@@ -94,22 +97,21 @@
 
             setAttribute(el, key, attrs[key]);
         }
-        
+
         // Normalize `children` array.
         if (Object.prototype.toString.call(children) != '[object Array]') children = [children];
 
         // Append children if they are specified.
-        var i = 0, len = (children[0] && children.length) || 0, child;
-        for (; i < len; i++) {
-            child = children[i];
+        for (i = 0, len = (children[0] && children.length) || 0; i < len; i++) {
+            var child = children[i];
             el.appendChild(child instanceof VElement ? child.node : child);
         }
-        
+
         return new VElement(el);
     }
 
     function setAttribute(el, name, value) {
-        
+
         if (name.indexOf(':') > -1) {
             // Attribute names can be namespaced. E.g. `image` elements
             // have a `xlink:href` attribute to set the source of the image.
@@ -147,7 +149,7 @@
         }
 
         var sx = (scale && scale[0]) ? parseFloat(scale[0]) : 1;
-        
+
         return {
             translate: {
                 tx: (translate && translate[0]) ? parseInt(translate[0], 10) : 0,
@@ -169,37 +171,37 @@
     // Matrix decomposition.
     // ---------------------
 
-    function deltaTransformPoint(matrix, point)  {
-        
-	var dx = point.x * matrix.a + point.y * matrix.c + 0;
-	var dy = point.x * matrix.b + point.y * matrix.d + 0;
-	return { x: dx, y: dy };
+    function deltaTransformPoint(matrix, point) {
+
+        var dx = point.x * matrix.a + point.y * matrix.c + 0;
+        var dy = point.x * matrix.b + point.y * matrix.d + 0;
+        return { x: dx, y: dy };
     }
 
     function decomposeMatrix(matrix) {
 
         // @see https://gist.github.com/2052247
-        
+
         // calculate delta transform point
-	var px = deltaTransformPoint(matrix, { x: 0, y: 1 });
-	var py = deltaTransformPoint(matrix, { x: 1, y: 0 });
-        
-	// calculate skew
-	var skewX = ((180 / Math.PI) * Math.atan2(px.y, px.x) - 90);
-	var skewY = ((180 / Math.PI) * Math.atan2(py.y, py.x));
-        
-	return {
-            
-	    translateX: matrix.e,
-	    translateY: matrix.f,
-	    scaleX: Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b),
-	    scaleY: Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d),
-	    skewX: skewX,
-	    skewY: skewY,
-	    rotation: skewX // rotation is the same as skew x
-	};
+        var px = deltaTransformPoint(matrix, { x: 0, y: 1 });
+        var py = deltaTransformPoint(matrix, { x: 1, y: 0 });
+
+        // calculate skew
+        var skewX = ((180 / Math.PI) * Math.atan2(px.y, px.x) - 90);
+        var skewY = ((180 / Math.PI) * Math.atan2(py.y, py.x));
+
+        return {
+
+            translateX: matrix.e,
+            translateY: matrix.f,
+            scaleX: Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b),
+            scaleY: Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d),
+            skewX: skewX,
+            skewY: skewY,
+            rotation: skewX // rotation is the same as skew x
+        };
     }
-    
+
     // VElement.
     // ---------
 
@@ -214,25 +216,25 @@
     // --------------------
 
     VElement.prototype = {
-        
+
         translate: function(tx, ty, opt) {
 
             opt = opt || {};
             ty = ty || 0;
-            
-            var transformAttr = this.attr('transform') || '',
-                transform = parseTransformString(transformAttr);
+
+            var transformAttr = this.attr('transform') || '';
+            var transform = parseTransformString(transformAttr);
 
             // Is it a getter?
             if (typeof tx === 'undefined') {
                 return transform.translate;
             }
-            
+
             transformAttr = transformAttr.replace(/translate\([^\)]*\)/g, '').trim();
 
-            var newTx = opt.absolute ? tx : transform.translate.tx + tx,
-                newTy = opt.absolute ? ty : transform.translate.ty + ty,
-                newTranslate = 'translate(' + newTx + ',' + newTy + ')';
+            var newTx = opt.absolute ? tx : transform.translate.tx + tx;
+            var newTy = opt.absolute ? ty : transform.translate.ty + ty;
+            var newTranslate = 'translate(' + newTx + ',' + newTy + ')';
 
             // Note that `translate()` is always the first transformation. This is
             // usually the desired case.
@@ -244,21 +246,21 @@
 
             opt = opt || {};
 
-            var transformAttr = this.attr('transform') || '',
-                transform = parseTransformString(transformAttr);
+            var transformAttr = this.attr('transform') || '';
+            var transform = parseTransformString(transformAttr);
 
             // Is it a getter?
             if (typeof angle === 'undefined') {
                 return transform.rotate;
             }
-            
+
             transformAttr = transformAttr.replace(/rotate\([^\)]*\)/g, '').trim();
 
             angle %= 360;
 
-            var newAngle = opt.absolute ? angle: transform.rotate.angle + angle,
-                newOrigin = (cx !== undefined && cy !== undefined) ? ',' + cx + ',' + cy : '',
-                newRotate = 'rotate(' + newAngle + newOrigin + ')';
+            var newAngle = opt.absolute ? angle : transform.rotate.angle + angle;
+            var newOrigin = (cx !== undefined && cy !== undefined) ? ',' + cx + ',' + cy : '';
+            var newRotate = 'rotate(' + newAngle + newOrigin + ')';
 
             this.attr('transform', (transformAttr + ' ' + newRotate).trim());
             return this;
@@ -267,15 +269,15 @@
         // Note that `scale` as the only transformation does not combine with previous values.
         scale: function(sx, sy) {
             sy = (typeof sy === 'undefined') ? sx : sy;
-            
-            var transformAttr = this.attr('transform') || '',
-                transform = parseTransformString(transformAttr);
+
+            var transformAttr = this.attr('transform') || '';
+            var transform = parseTransformString(transformAttr);
 
             // Is it a getter?
             if (typeof sx === 'undefined') {
                 return transform.scale;
             }
-            
+
             transformAttr = transformAttr.replace(/scale\([^\)]*\)/g, '').trim();
 
             var newScale = 'scale(' + sx + ',' + sy + ')';
@@ -292,17 +294,17 @@
             // If the element is not in the live DOM, it does not have a bounding box defined and
             // so fall back to 'zero' dimension element.
             if (!this.node.ownerSVGElement) return { x: 0, y: 0, width: 0, height: 0 };
-            
+
             var box;
             try {
 
                 box = this.node.getBBox();
 
-		// Opera returns infinite values in some cases.
-		// Note that Infinity | 0 produces 0 as opposed to Infinity || 0.
-		// We also have to create new object as the standard says that you can't
-		// modify the attributes of a bbox.
-		box = { x: box.x | 0, y: box.y | 0, width: box.width | 0, height: box.height | 0};
+                // Opera returns infinite values in some cases.
+                // Note that Infinity | 0 produces 0 as opposed to Infinity || 0.
+                // We also have to create new object as the standard says that you can't
+                // modify the attributes of a bbox.
+                box = { x: box.x | 0, y: box.y | 0, width: box.width | 0, height: box.height | 0 };
 
             } catch (e) {
 
@@ -327,26 +329,26 @@
 
         text: function(content, opt) {
 
-	    opt = opt || {};
+            opt = opt || {};
             var lines = content.split('\n');
-	    var i = 0;
+            var i = 0;
             var tspan;
 
             // `alignment-baseline` does not work in Firefox.
-	    // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
+            // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
             // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
-	    // in the top left corner we translate the `<text>` element by `0.8em`.
-	    // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
-	    // See also `http://apike.ca/prog_svg_text_style.html`.
-	    this.attr('y', '0.8em');
+            // in the top left corner we translate the `<text>` element by `0.8em`.
+            // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
+            // See also `http://apike.ca/prog_svg_text_style.html`.
+            this.attr('y', '0.8em');
 
             // An empty text gets rendered into the DOM in webkit-based browsers.
             // In order to unify this behaviour across all browsers
             // we rather hide the text element when it's empty.
             this.attr('display', content ? null : 'none');
 
-	    // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
-	    this.node.setAttributeNS("http://www.w3.org/XML/1998/namespace", "xml:space","preserve");
+            // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
+            this.node.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
 
             // Easy way to erase all `<tspan>` children;
             this.node.textContent = '';
@@ -362,7 +364,7 @@
                     defs = createElement('defs');
                     this.append(defs);
                 }
-                
+
                 // If `opt.textPath` is a plain string, consider it to be directly the
                 // SVG path data for the text to go along (this is a shortcut).
                 // Otherwise if it is an object and contains the `d` property, then this is our path.
@@ -400,26 +402,36 @@
 
                 // Shift all the <tspan> but first by one line (`1em`)
                 tspan = V('tspan', { dy: (i == 0 ? '0em' : opt.lineHeight || '1em'), x: this.attr('x') || 0 });
-                tspan.addClass('line');
+                tspan.addClass('v-line');
                 if (!lines[i]) {
-                    tspan.addClass('empty-line');
+                    tspan.addClass('v-empty-line');
                 }
-		// Make sure the textContent is never empty. If it is, add an additional 
-		// space (an invisible character) so that following lines are correctly
-		// relatively positioned. `dy=1em` won't work with empty lines otherwise.
+                // Make sure the textContent is never empty. If it is, add an additional
+                // space (an invisible character) so that following lines are correctly
+                // relatively positioned. `dy=1em` won't work with empty lines otherwise.
                 tspan.node.textContent = lines[i] || ' ';
-                
+
                 V(textNode).append(tspan);
             }
             return this;
         },
-        
+
         attr: function(name, value) {
-            
+
+            if (typeof name === 'undefined') {
+                // Return all attributes.
+                var attributes = this.node.attributes;
+                var attrs = {};
+                for (var i = 0; i < attributes.length; i++) {
+                    attrs[attributes[i].nodeName] = attributes[i].nodeValue;
+                }
+                return attrs;
+            }
+
             if (typeof name === 'string' && typeof value === 'undefined') {
                 return this.node.getAttribute(name);
             }
-            
+
             if (typeof name === 'object') {
 
                 for (var attrName in name) {
@@ -427,7 +439,7 @@
                         setAttribute(this.node, attrName, name[attrName]);
                     }
                 }
-                
+
             } else {
 
                 setAttribute(this.node, name, value);
@@ -445,9 +457,9 @@
         append: function(el) {
 
             var els = el;
-            
+
             if (Object.prototype.toString.call(el) !== '[object Array]') {
-                
+
                 els = [el];
             }
 
@@ -455,7 +467,7 @@
                 el = els[i];
                 this.node.appendChild(el instanceof VElement ? el.node : el);
             }
-            
+
             return this;
         },
 
@@ -471,7 +483,7 @@
         defs: function() {
 
             var defs = this.svg().node.getElementsByTagName('defs');
-            
+
             return (defs && defs.length) ? V(defs[0]) : undefined;
         },
 
@@ -498,26 +510,26 @@
             }
             return nodes;
         },
-        
+
         // Convert global point into the coordinate space of this element.
         toLocalPoint: function(x, y) {
 
             var svg = this.svg().node;
-            
+
             var p = svg.createSVGPoint();
             p.x = x;
             p.y = y;
 
-	    try {
+            try {
 
-		var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
-		var globalToLocalMatrix = this.node.getTransformToElement(svg).inverse();
+                var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
+                var globalToLocalMatrix = this.node.getTransformToElement(svg).inverse();
 
-	    } catch(e) {
-		// IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
-		// We have to make do with the original coordianates.
-		return p;
-	    }
+            } catch (e) {
+                // IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
+                // We have to make do with the original coordianates.
+                return p;
+            }
 
             return globalPoint.matrixTransform(globalToLocalMatrix);
         },
@@ -551,7 +563,7 @@
 
             // 1. Translate to origin.
             var translateToOrigin = svg.createSVGTransform();
-            translateToOrigin.setTranslate(-bbox.x - bbox.width/2, -bbox.y - bbox.height/2);
+            translateToOrigin.setTranslate(-bbox.x - bbox.width / 2, -bbox.y - bbox.height / 2);
 
             // 2. Rotate around origin.
             var rotateAroundOrigin = svg.createSVGTransform();
@@ -560,7 +572,7 @@
 
             // 3. Translate to the `position` + the offset (half my width) towards the `reference` point.
             var translateFinal = svg.createSVGTransform();
-            var finalPosition = g.point(position).move(reference, bbox.width/2);
+            var finalPosition = g.point(position).move(reference, bbox.width / 2);
             translateFinal.setTranslate(position.x + (position.x - finalPosition.x), position.y + (position.y - finalPosition.y));
 
             // 4. Apply transformations.
@@ -600,25 +612,25 @@
                 animateMotion.node.beginElement();
             } catch (e) {
                 // Fallback for IE 9.
-		// Run the animation programatically if FakeSmile (`http://leunen.me/fakesmile/`) present 
-		if (document.documentElement.getAttribute('smiling') === 'fake') {
+                // Run the animation programatically if FakeSmile (`http://leunen.me/fakesmile/`) present
+                if (document.documentElement.getAttribute('smiling') === 'fake') {
 
-		    // Register the animation. (See `https://answers.launchpad.net/smil/+question/203333`)
-		    var animation = animateMotion.node;
-		    animation.animators = [];
+                    // Register the animation. (See `https://answers.launchpad.net/smil/+question/203333`)
+                    var animation = animateMotion.node;
+                    animation.animators = [];
 
-		    var animationID = animation.getAttribute('id');
-		    if (animationID) id2anim[animationID] = animation;
+                    var animationID = animation.getAttribute('id');
+                    if (animationID) id2anim[animationID] = animation;
 
                     var targets = getTargets(animation);
                     for (var i = 0, len = targets.length; i < len; i++) {
                         var target = targets[i];
-			var animator = new Animator(animation, target, i);
-			animators.push(animator);
-			animation.animators[i] = animator;
+                        var animator = new Animator(animation, target, i);
+                        animators.push(animator);
+                        animation.animators[i] = animator;
                         animator.register();
                     }
-		}
+                }
             }
         },
 
@@ -658,8 +670,265 @@
             }
 
             return this;
+        },
+
+        // Interpolate path by discrete points. The precision of the sampling
+        // is controlled by `interval`. In other words, `sample()` will generate
+        // a point on the path starting at the beginning of the path going to the end
+        // every `interval` pixels.
+        // The sampler can be very useful for e.g. finding intersection between two
+        // paths (finding the two closest points from two samples).
+        sample: function(interval) {
+
+            interval = interval || 1;
+            var node = this.node;
+            var length = node.getTotalLength();
+            var samples = [];
+            var distance = 0;
+            var sample;
+            while (distance < length) {
+                sample = node.getPointAtLength(distance);
+                samples.push({ x: sample.x, y: sample.y, distance: distance });
+                distance += interval;
+            }
+            return samples;
+        },
+
+        convertToPath: function() {
+
+            var path = createElement('path');
+            path.attr(this.attr());
+            var d = this.convertToPathData();
+            if (d) {
+                path.attr('d', d);
+            }
+            return path;
+        },
+
+        convertToPathData: function() {
+
+            var tagName = this.node.tagName.toUpperCase();
+
+            switch (tagName) {
+            case 'PATH':
+                return this.attr('d');
+            case 'LINE':
+                return convertLineToPathData(this.node);
+            case 'POLYGON':
+                return convertPolygonToPathData(this.node);
+            case 'POLYLINE':
+                return convertPolylineToPathData(this.node);
+            case 'ELLIPSE':
+                return convertEllipseToPathData(this.node);
+            case 'CIRCLE':
+                return convertCircleToPathData(this.node);
+            case 'RECT':
+                return convertRectToPathData(this.node);
+            }
+
+            throw new Error(tagName + ' cannot be converted to PATH.');
+        },
+
+        // Find the intersection of a line starting in the center
+        // of the SVG `node` ending in the point `ref`.
+        // `target` is an SVG element to which `node`s transformations are relative to.
+        // In JointJS, `target` is the `paper.viewport` SVG group element.
+        // Note that `ref` point must be in the coordinate system of the `target` for this function to work properly.
+        // Returns a point in the `target` coordinte system (the same system as `ref` is in) if
+        // an intersection is found. Returns `undefined` otherwise.
+        findIntersection: function(ref, target) {
+
+            var svg = this.svg().node;
+            target = target || svg;
+            var bbox = g.rect(this.bbox(false, target));
+            var center = bbox.center();
+            var spot = bbox.intersectionWithLineFromCenterToPoint(ref);
+
+            if (!spot) return undefined;
+
+            var tagName = this.node.localName.toUpperCase();
+
+            // Little speed up optimalization for `<rect>` element. We do not do conversion
+            // to path element and sampling but directly calculate the intersection through
+            // a transformed geometrical rectangle.
+            if (tagName === 'RECT') {
+
+                var gRect = g.rect(
+                    parseFloat(this.attr('x') || 0),
+                    parseFloat(this.attr('y') || 0),
+                    parseFloat(this.attr('width')),
+                    parseFloat(this.attr('height'))
+                );
+                // Get the rect transformation matrix with regards to the SVG document.
+                var rectMatrix = this.node.getTransformToElement(target);
+                // Decompose the matrix to find the rotation angle.
+                var rectMatrixComponents = V.decomposeMatrix(rectMatrix);
+                // Now we want to rotate the rectangle back so that we
+                // can use `intersectionWithLineFromCenterToPoint()` passing the angle as the second argument.
+                var resetRotation = svg.createSVGTransform();
+                resetRotation.setRotate(-rectMatrixComponents.rotation, center.x, center.y);
+                var rect = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
+                spot = g.rect(rect).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
+
+            } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
+
+                var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
+                var samples = pathNode.sample();
+                var minDistance = Infinity;
+                var closestSamples = [];
+
+                for (var i = 0, len = samples.length; i < len; i++) {
+
+                    var sample = samples[i];
+                    // Convert the sample point in the local coordinate system to the global coordinate system.
+                    var gp = V.createSVGPoint(sample.x, sample.y);
+                    gp = gp.matrixTransform(this.node.getTransformToElement(target));
+                    sample = g.point(gp);
+                    var centerDistance = sample.distance(center);
+                    // Penalize a higher distance to the reference point by 10%.
+                    // This gives better results. This is due to
+                    // inaccuracies introduced by rounding errors and getPointAtLength() returns.
+                    var refDistance = sample.distance(ref) * 1.1;
+                    var distance = centerDistance + refDistance;
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestSamples = [{ sample: sample, refDistance: refDistance }];
+                    } else if (distance < minDistance + 1) {
+                        closestSamples.push({ sample: sample, refDistance: refDistance });
+                    }
+                }
+                closestSamples.sort(function(a, b) { return a.refDistance - b.refDistance; });
+                spot = closestSamples[0].sample;
+            }
+
+            return spot;
         }
     };
+
+    function convertLineToPathData(line) {
+
+        line = createElement(line);
+        var d = [
+            'M', line.attr('x1'), line.attr('y1'),
+            'L', line.attr('x2'), line.attr('y2')
+        ].join(' ');
+        return d;
+    }
+
+    function convertPolygonToPathData(polygon) {
+
+        polygon = createElement(polygon);
+        var points = polygon.node.points;
+
+        var d = [];
+        var p;
+        for (var i = 0; i < points.length; i++) {
+            p = points[i];
+            d.push(i === 0 ? 'M' : 'L', p.x, p.y);
+        }
+        d.push('Z');
+        return d.join(' ');
+    }
+
+    function convertPolylineToPathData(polyline) {
+
+        polyline = createElement(polyline);
+        var points = polyline.node.points;
+
+        var d = [];
+        var p;
+        for (var i = 0; i < points.length; i++) {
+            p = points[i];
+            d.push(i === 0 ? 'M' : 'L', p.x, p.y);
+        }
+        return d.join(' ');
+    }
+
+    var KAPPA = 0.5522847498307935;
+
+    function convertCircleToPathData(circle) {
+
+        circle = createElement(circle);
+        var cx = parseFloat(circle.attr('cx')) || 0;
+        var cy = parseFloat(circle.attr('cy')) || 0;
+        var r = parseFloat(circle.attr('r'));
+        var cd = r * KAPPA; // Control distance.
+
+        var d = [
+            'M', cx, cy - r,    // Move to the first point.
+            'C', cx + cd, cy - r, cx + r, cy - cd, cx + r, cy, // I. Quadrant.
+            'C', cx + r, cy + cd, cx + cd, cy + r, cx, cy + r, // II. Quadrant.
+            'C', cx - cd, cy + r, cx - r, cy + cd, cx - r, cy, // III. Quadrant.
+            'C', cx - r, cy - cd, cx - cd, cy - r, cx, cy - r, // IV. Quadrant.
+            'Z'
+        ].join(' ');
+        return d;
+    }
+
+    function convertEllipseToPathData(ellipse) {
+
+        ellipse = createElement(ellipse);
+        var cx = parseFloat(ellipse.attr('cx')) || 0;
+        var cy = parseFloat(ellipse.attr('cy')) || 0;
+        var rx = parseFloat(ellipse.attr('rx'));
+        var ry = parseFloat(ellipse.attr('ry')) || rx;
+        var cdx = rx * KAPPA; // Control distance x.
+        var cdy = ry * KAPPA; // Control distance y.
+
+        var d = [
+            'M', cx, cy - ry,    // Move to the first point.
+            'C', cx + cdx, cy - ry, cx + rx, cy - cdy, cx + rx, cy, // I. Quadrant.
+            'C', cx + rx, cy + cdy, cx + cdx, cy + ry, cx, cy + ry, // II. Quadrant.
+            'C', cx - cdx, cy + ry, cx - rx, cy + cdy, cx - rx, cy, // III. Quadrant.
+            'C', cx - rx, cy - cdy, cx - cdx, cy - ry, cx, cy - ry, // IV. Quadrant.
+            'Z'
+        ].join(' ');
+        return d;
+    }
+
+    function convertRectToPathData(rect) {
+
+        rect = createElement(rect);
+        var x = parseFloat(rect.attr('x')) || 0;
+        var y = parseFloat(rect.attr('y')) || 0;
+        var width = parseFloat(rect.attr('width')) || 0;
+        var height = parseFloat(rect.attr('height')) || 0;
+        var rx = parseFloat(rect.attr('rx')) || 0;
+        var ry = parseFloat(rect.attr('ry')) || 0;
+        var bbox = g.rect(x, y, width, height);
+
+        var d;
+
+        if (!rx && !ry) {
+
+            d = [
+                'M', bbox.origin().x, bbox.origin().y,
+                'H', bbox.corner().x,
+                'V', bbox.corner().y,
+                'H', bbox.origin().x,
+                'V', bbox.origin().y,
+                'Z'
+            ].join(' ');
+
+        } else {
+
+            var r = x + width;
+            var b = y + height;
+            d = [
+                'M', x + rx, y,
+                'L', r - rx, y,
+                'Q', r, y, r, y + ry,
+                'L', r, y + height - ry,
+                'Q', r, b, r - rx, b,
+                'L', x + rx, b,
+                'Q', x, b, x, b - rx,
+                'L', x, y + ry,
+                'Q', x, y, x + rx, y,
+                'Z'
+            ].join(' ');
+        }
+        return d;
+    }
 
     // Convert a rectangle to SVG path commands. `r` is an object of the form:
     // `{ x: [number], y: [number], width: [number], height: [number], top-ry: [number], top-ry: [number], bottom-rx: [number], bottom-ry: [number] }`,
@@ -692,14 +961,14 @@
     V.rectToPath = rectToPath;
 
     var svgDocument = V('svg').node;
-    
+
     V.createSVGMatrix = function(m) {
 
         var svgMatrix = svgDocument.createSVGMatrix();
         for (var component in m) {
             svgMatrix[component] = m[component];
         }
-        
+
         return svgMatrix;
     };
 
@@ -736,10 +1005,10 @@
         p.y = r.y + r.height;
         var corner4 = p.matrixTransform(matrix);
 
-        var minX = Math.min(corner1.x,corner2.x,corner3.x,corner4.x);
-        var maxX = Math.max(corner1.x,corner2.x,corner3.x,corner4.x);
-        var minY = Math.min(corner1.y,corner2.y,corner3.y,corner4.y);
-        var maxY = Math.max(corner1.y,corner2.y,corner3.y,corner4.y);
+        var minX = Math.min(corner1.x, corner2.x, corner3.x, corner4.x);
+        var maxX = Math.max(corner1.x, corner2.x, corner3.x, corner4.x);
+        var minY = Math.min(corner1.y, corner2.y, corner3.y, corner4.y);
+        var maxY = Math.max(corner1.y, corner2.y, corner3.y, corner4.y);
 
         return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
     };
@@ -747,4 +1016,3 @@
     return V;
 
 }));
-

@@ -116,4 +116,13 @@ describe('shapes', function() {
             });
         });
     });
+
+    describe('logic', function() {
+        it('should contain all the shapes', function() {
+
+            ['Or', 'And', 'Not','Nor', 'Nand', 'Xor', 'Xnor'].forEach(function(type) {
+                (new joint.shapes.logic[type]()).should.not.be.empty;
+            });
+        });
+    });
 });

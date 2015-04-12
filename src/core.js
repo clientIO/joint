@@ -1,6 +1,7 @@
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
+
 if (typeof exports === 'object') {
 
     var _ = require('lodash');
@@ -50,11 +51,11 @@ var joint = {
         },
 
         getByPath: function(obj, path, delim) {
-            
+
             delim = delim || '.';
             var keys = path.split(delim);
             var key;
-            
+
             while (keys.length) {
                 key = keys.shift();
                 if (Object(obj) === obj && key in obj) {
@@ -101,7 +102,6 @@ var joint = {
                 var parent = joint.util.getByPath(obj, path.substr(0, i), delim);
 
                 if (parent) {
-
                     delete parent[path.slice(i + 1)];
                 }
 
@@ -115,45 +115,51 @@ var joint = {
         },
 
         flattenObject: function(obj, delim, stop) {
-            
+
             delim = delim || '.';
             var ret = {};
-	    
-	    for (var key in obj) {
-		if (!obj.hasOwnProperty(key)) continue;
+
+            for (var key in obj) {
+
+                if (!obj.hasOwnProperty(key)) continue;
 
                 var shouldGoDeeper = typeof obj[key] === 'object';
                 if (shouldGoDeeper && stop && stop(obj[key])) {
                     shouldGoDeeper = false;
                 }
-                
-		if (shouldGoDeeper) {
-		    var flatObject = this.flattenObject(obj[key], delim, stop);
-		    for (var flatKey in flatObject) {
-			if (!flatObject.hasOwnProperty(flatKey)) continue;
-			
-			ret[key + delim + flatKey] = flatObject[flatKey];
-		    }
-		} else {
-		    ret[key] = obj[key];
-		}
-	    }
-	    return ret;
+
+                if (shouldGoDeeper) {
+
+                    var flatObject = this.flattenObject(obj[key], delim, stop);
+
+                    for (var flatKey in flatObject) {
+                        if (!flatObject.hasOwnProperty(flatKey)) continue;
+                        ret[key + delim + flatKey] = flatObject[flatKey];
+                    }
+
+                } else {
+
+                    ret[key] = obj[key];
+                }
+            }
+
+            return ret;
         },
 
         uuid: function() {
 
             // credit: http://stackoverflow.com/posts/2117523/revisions
-            
+
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+                var r = Math.random() * 16|0;
+                var v = c == 'x' ? r : (r&0x3|0x8);
                 return v.toString(16);
             });
         },
 
         // Generate global unique id for obj and store it as a property of the object.
         guid: function(obj) {
-            
+
             this.guid.id = this.guid.id || 1;
             obj.id = (obj.id === undefined ? 'j_' + this.guid.id++ : obj.id);
             return obj.id;
@@ -163,13 +169,13 @@ var joint = {
         // All the properties will be overwritten by the properties from the following
         // arguments. Inherited properties are ignored.
         mixin: function() {
-            
+
             var target = arguments[0];
-            
+
             for (var i = 1, l = arguments.length; i < l; i++) {
-                
+
                 var extension = arguments[i];
-                
+
                 // Only functions and objects can be mixined.
 
                 if ((Object(extension) !== extension) &&
@@ -180,30 +186,30 @@ var joint = {
                 }
 
                 _.each(extension, function(copy, key) {
-                    
+
                     if (this.mixin.deep && (Object(copy) === copy)) {
 
                         if (!target[key]) {
 
                             target[key] = _.isArray(copy) ? [] : {};
                         }
-                        
+
                         this.mixin(target[key], copy);
                         return;
                     }
-                    
+
                     if (target[key] !== copy) {
-                        
+
                         if (!this.mixin.supplement || !target.hasOwnProperty(key)) {
-                            
-	                    target[key] = copy;
+
+                            target[key] = copy;
                         }
 
                     }
-                    
+
                 }, this);
             }
-            
+
             return target;
         },
 
@@ -222,7 +228,7 @@ var joint = {
 
         // Same as `mixin()` but deep version.
         deepMixin: function() {
-            
+
             this.mixin.deep = true;
             var ret = this.mixin.apply(this, arguments);
             this.mixin.deep = false;
@@ -231,7 +237,7 @@ var joint = {
 
         // Same as `supplement()` but deep version.
         deepSupplement: function() {
-            
+
             this.mixin.deep = this.mixin.supplement = true;
             var ret = this.mixin.apply(this, arguments);
             this.mixin.deep = this.mixin.supplement = false;
@@ -243,127 +249,78 @@ var joint = {
             return (evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches.length) ? evt.originalEvent.changedTouches[0] : evt;
         },
 
-	nextFrame:(function() {
+        nextFrame:(function() {
 
-	    var raf;
-	    var client = typeof window != 'undefined';
+            var raf;
+            var client = typeof window != 'undefined';
 
-	    if (client) {
+            if (client) {
 
-		raf = window.requestAnimationFrame       ||
-		      window.webkitRequestAnimationFrame ||
-	              window.mozRequestAnimationFrame    ||
-		      window.oRequestAnimationFrame      ||
-		      window.msRequestAnimationFrame;
-
-	    }
-
-	    if (!raf) {
-
-		var lastTime = 0;
-
-		raf = function(callback) {
-
-		    var currTime = new Date().getTime();
-		    var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-		    var id = setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
-		    lastTime = currTime + timeToCall;
-		    return id;
-
-		};
-	    }
-
-	    return client ? _.bind(raf, window) : raf;
-	})(),
-
-	cancelFrame: (function() {
-
-	    var caf;
-	    var client = typeof window != 'undefined';
-
-	    if (client) {
-
-		caf = window.cancelAnimationFrame              ||
-		      window.webkitCancelAnimationFrame        ||
-	              window.webkitCancelRequestAnimationFrame ||
-		      window.msCancelAnimationFrame            ||
-	              window.msCancelRequestAnimationFrame     ||
-		      window.oCancelAnimationFrame             ||
-	              window.oCancelRequestAnimationFrame      ||
-	              window.mozCancelAnimationFrame           ||
-		      window.mozCancelRequestAnimationFrame;
-
-	    }
-
-	    caf = caf || clearTimeout;
-
-	    return client ? _.bind(caf, window) : caf;
-	})(),
-
-        // Find the intersection of a line starting in the center
-        // of the SVG node ending in the point `ref`.
-        // The function uses isPointInStroke() method that is
-        // not supported by all the browsers. However, a fallback
-        // that finds the intersection of only the bounding box is used in those cases.
-        // Returns `undefined` if no intersection is found.
-        findIntersection: function(node, ref) {
-
-            var bbox = g.rect(V(node).bbox()).moveAndExpand(g.rect(-5, -5, 10, 10));
-            var center = bbox.center();
-            var spot = g.rect(bbox).intersectionWithLineFromCenterToPoint(ref);
-
-            if (!spot) return undefined;
-            
-            if (!_.contains(['PATH', 'CIRCLE', 'ELLIPSE', 'RECT', 'POLYGON', 'LINE', 'POLYLINE'], node.localName.toUpperCase())) {
-
-                return spot;
+                raf = window.requestAnimationFrame     ||
+		    window.webkitRequestAnimationFrame ||
+	            window.mozRequestAnimationFrame    ||
+		    window.oRequestAnimationFrame      ||
+		    window.msRequestAnimationFrame;
             }
 
-            // Fallback for browsers that do not support `isPointInStroke()` and `isPointInFill()` SVG methods.
-            if (!node.isPointInStroke || !node.isPointInFill) {
+            if (!raf) {
 
-                return spot;
+                var lastTime = 0;
+
+                raf = function(callback) {
+
+                    var currTime = new Date().getTime();
+                    var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+                    var id = setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
+
+                    lastTime = currTime + timeToCall;
+
+                    return id;
+                };
             }
 
-            var lastSpot = spot;
-            var ctm = node.getCTM();
-            var svgPoint = V.createSVGPoint(0, 0);
-            var dist = spot.distance(center);
-            
-            while (dist > 1) {
-	        
-	        spot = spot.move(center, -1);
-	        dist = spot.distance(center);
+            return client ? _.bind(raf, window) : raf;
 
-	        svgPoint.x = spot.x;
-	        svgPoint.y = spot.y;
-	        svgPoint = svgPoint.matrixTransform(ctm.inverse());
+        })(),
 
-	        if (node.isPointInStroke(svgPoint) || node.isPointInFill(svgPoint)) {
+        cancelFrame: (function() {
 
-	            return lastSpot;
-	        }
-	        lastSpot = g.point(spot);
+            var caf;
+            var client = typeof window != 'undefined';
+
+            if (client) {
+
+                caf = window.cancelAnimationFrame            ||
+		    window.webkitCancelAnimationFrame        ||
+	            window.webkitCancelRequestAnimationFrame ||
+		    window.msCancelAnimationFrame            ||
+	            window.msCancelRequestAnimationFrame     ||
+		    window.oCancelAnimationFrame             ||
+	            window.oCancelRequestAnimationFrame      ||
+	            window.mozCancelAnimationFrame           ||
+		    window.mozCancelRequestAnimationFrame;
             }
 
-            return undefined;
-        },
+            caf = caf || clearTimeout;
+
+            return client ? _.bind(caf, window) : caf;
+
+        })(),
 
         shapePerimeterConnectionPoint: function(linkView, view, magnet, reference) {
 
-            var bbox = g.rect(view.getBBox());
-
+            var bbox;
             var spot;
 
             if (!magnet) {
 
-                // There is no magnet, try to make the best guess what is the 
+                // There is no magnet, try to make the best guess what is the
                 // wrapping SVG element. This is because we want this "smart"
                 // connection points to work out of the box without the
                 // programmer to put magnet marks to any of the subelements.
                 // For example, we want the functoin to work on basic.Path elements
                 // without any special treatment of such elements.
-                // The code below guesses the wrapping element based on 
+                // The code below guesses the wrapping element based on
                 // one simple assumption. The wrapping elemnet is the
                 // first child of the scalable group if such a group exists
                 // or the first child of the rotatable group if not.
@@ -384,10 +341,14 @@ var joint = {
 
             if (magnet) {
 
-                spot = joint.util.findIntersection(magnet, reference);
+                spot = V(magnet).findIntersection(reference, linkView.paper.viewport);
+                if (!spot) {
+                    bbox = g.rect(V(magnet).bbox(false, linkView.paper.viewport));
+                }
 
             } else {
 
+                bbox = view.model.getBBox();
                 spot = bbox.intersectionWithLineFromCenterToPoint(reference);
             }
             return spot || bbox.center();
@@ -463,7 +424,7 @@ var joint = {
                                 // try again, but this time start with a new line
 
                                 // cancel partitions created
-                                words.splice(i,2, word + words[i+1]);
+                                words.splice(i, 2, word + words[i + 1]);
 
                                 // adjust word length
                                 len--;
@@ -475,19 +436,19 @@ var joint = {
                             }
 
                             // move last letter to the beginning of the next word
-                            words[i] = word.substring(0,p);
-                            words[i+1] = word.substring(p) + words[i+1];
+                            words[i] = word.substring(0, p);
+                            words[i + 1] = word.substring(p) + words[i + 1];
 
                         } else {
 
                             // We initiate partitioning
                             // split the long word into two words
-                            words.splice(i, 1, word.substring(0,p), word.substring(p));
+                            words.splice(i, 1, word.substring(0, p), word.substring(p));
 
                             // adjust words length
                             len++;
 
-                            if (l && !full[l-1]) {
+                            if (l && !full[l - 1]) {
                                 // if the previous line is not full, try to fit max part of
                                 // the current word there
                                 l--;
@@ -535,189 +496,198 @@ var joint = {
             return lines.join('\n');
         },
 
-	imageToDataUri: function(url, callback) {
+        imageToDataUri: function(url, callback) {
 
-	    if (!url || url.substr(0, 'data:'.length) === 'data:') {
-		// No need to convert to data uri if it is already in data uri.
+            if (!url || url.substr(0, 'data:'.length) === 'data:') {
+                // No need to convert to data uri if it is already in data uri.
 
-		// This not only convenient but desired. For example, 
-		// IE throws a security error if data:image/svg+xml is used to render
-		// an image to the canvas and an attempt is made to read out data uri.
-		// Now if our image is already in data uri, there is no need to render it to the canvas
-		// and so we can bypass this error.
+                // This not only convenient but desired. For example,
+                // IE throws a security error if data:image/svg+xml is used to render
+                // an image to the canvas and an attempt is made to read out data uri.
+                // Now if our image is already in data uri, there is no need to render it to the canvas
+                // and so we can bypass this error.
 
-		// Keep the async nature of the function.
-		return setTimeout(function() { callback(null, url) }, 0);
-	    }
+                // Keep the async nature of the function.
+                return setTimeout(function() { callback(null, url); }, 0);
+            }
 
-	    var canvas = document.createElement('canvas');
+            var canvas = document.createElement('canvas');
             var img = document.createElement('img');
 
-	    img.onload = function() {
+            img.onload = function() {
 
-		var ctx = canvas.getContext('2d');
+                var ctx = canvas.getContext('2d');
 
-		canvas.width = img.width;
-		canvas.height = img.height;
+                canvas.width = img.width;
+                canvas.height = img.height;
 
-		ctx.drawImage(img, 0, 0);
-		
-		try {
+                ctx.drawImage(img, 0, 0);
 
-		    // Guess the type of the image from the url suffix.
-		    var suffix = (url.split('.').pop()) || 'png';
-		    // A little correction for JPEGs. There is no image/jpg mime type but image/jpeg.
-		    var type = 'image/' + (suffix === 'jpg') ? 'jpeg' : suffix;
-		    var dataUri = canvas.toDataURL(type);
+                try {
 
-		} catch (e) {
+                    // Guess the type of the image from the url suffix.
+                    var suffix = (url.split('.').pop()) || 'png';
+                    // A little correction for JPEGs. There is no image/jpg mime type but image/jpeg.
+                    var type = 'image/' + (suffix === 'jpg') ? 'jpeg' : suffix;
+                    var dataUri = canvas.toDataURL(type);
 
-		    if (/\.svg$/.test(url)) {
-			// IE throws a security error if we try to render an SVG into the canvas.
-			// Luckily for us, we don't need canvas at all to convert
-			// SVG to data uri. We can just use AJAX to load the SVG string
-			// and construct the data uri ourselves.
-			var xhr = window.XMLHttpRequest ? new XMLHttpRequest : new ActiveXObject('Microsoft.XMLHTTP');
-			xhr.open('GET', url, false);
-			xhr.send(null);
-			var svg = xhr.responseText;
+                } catch (e) {
 
-			return callback(null, 'data:image/svg+xml,' + encodeURIComponent(svg));
-		    }
+                    if (/\.svg$/.test(url)) {
+                        // IE throws a security error if we try to render an SVG into the canvas.
+                        // Luckily for us, we don't need canvas at all to convert
+                        // SVG to data uri. We can just use AJAX to load the SVG string
+                        // and construct the data uri ourselves.
+                        var xhr = window.XMLHttpRequest ? new XMLHttpRequest : new ActiveXObject('Microsoft.XMLHTTP');
+                        xhr.open('GET', url, false);
+                        xhr.send(null);
+                        var svg = xhr.responseText;
 
-		    console.error(img.src, 'fails to convert', e);
-		}
+                        return callback(null, 'data:image/svg+xml,' + encodeURIComponent(svg));
+                    }
 
-		callback(null, dataUri);
-	    };
+                    console.error(img.src, 'fails to convert', e);
+                }
 
-	    img.ononerror = function() {
+                callback(null, dataUri);
+            };
 
-		callback(new Error('Failed to load image.'));
-	    };
+            img.ononerror = function() {
 
-	    img.src = url;
-	},
+                callback(new Error('Failed to load image.'));
+            };
 
-	timing: {
+            img.src = url;
+        },
 
-	    linear: function(t) {
-		return t;
-	    },
+        timing: {
 
-	    quad: function(t) {
-		return t * t;
-	    },
+            linear: function(t) {
+                return t;
+            },
 
-	    cubic: function(t) {
-		return t * t * t;
-	    },
+            quad: function(t) {
+                return t * t;
+            },
 
-	    inout: function(t) {
-		if (t <= 0) return 0;
-		if (t >= 1) return 1;
-		var t2 = t * t, t3 = t2 * t;
-		return 4 * (t < .5 ? t3 : 3 * (t - t2) + t3 - .75);
-	    },
+            cubic: function(t) {
+                return t * t * t;
+            },
 
-	    exponential: function(t) {
-		return Math.pow(2, 10 * (t - 1));
-	    },
+            inout: function(t) {
+                if (t <= 0) return 0;
+                if (t >= 1) return 1;
+                var t2 = t * t;
+                var t3 = t2 * t;
+                return 4 * (t < .5 ? t3 : 3 * (t - t2) + t3 - .75);
+            },
 
-	    bounce: function(t) {
-		for(var a = 0, b = 1; 1; a += b, b /= 2) {
-		    if (t >= (7 - 4 * a) / 11) {
-			var q = (11 - 6 * a - 11 * t) / 4;
-			return -q * q + b * b;
-		    }
-		}
-	    },
+            exponential: function(t) {
+                return Math.pow(2, 10 * (t - 1));
+            },
 
-	    reverse: function(f) {
-		return function(t) {
-		    return 1 - f(1 - t)
-		}
-	    },
+            bounce: function(t) {
+                for (var a = 0, b = 1; 1; a += b, b /= 2) {
+                    if (t >= (7 - 4 * a) / 11) {
+                        var q = (11 - 6 * a - 11 * t) / 4;
+                        return -q * q + b * b;
+                    }
+                }
+            },
 
-	    reflect: function(f) {
-		return function(t) {
-		    return .5 * (t < .5 ? f(2 * t) : (2 - f(2 - 2 * t)));
-		};
-	    },
+            reverse: function(f) {
+                return function(t) {
+                    return 1 - f(1 - t);
+                };
+            },
 
-	    clamp: function(f,n,x) {
-		n = n || 0;
-		x = x || 1;
-		return function(t) {
-		    var r = f(t);
-		    return r < n ? n : r > x ? x : r;
-		}
-	    },
+            reflect: function(f) {
+                return function(t) {
+                    return .5 * (t < .5 ? f(2 * t) : (2 - f(2 - 2 * t)));
+                };
+            },
 
-	    back: function(s) {
-		if (!s) s = 1.70158;
-		return function(t) {
-		    return t * t * ((s + 1) * t - s);
-		};
-	    },
+            clamp: function(f, n, x) {
+                n = n || 0;
+                x = x || 1;
+                return function(t) {
+                    var r = f(t);
+                    return r < n ? n : r > x ? x : r;
+                };
+            },
 
-	    elastic: function(x) {
-		if (!x) x = 1.5;
-		return function(t) {
-		    return Math.pow(2, 10 * (t - 1)) * Math.cos(20*Math.PI*x/3*t);
-		}
-	    }
+            back: function(s) {
+                if (!s) s = 1.70158;
+                return function(t) {
+                    return t * t * ((s + 1) * t - s);
+                };
+            },
 
-	},
+            elastic: function(x) {
+                if (!x) x = 1.5;
+                return function(t) {
+                    return Math.pow(2, 10 * (t - 1)) * Math.cos(20 * Math.PI * x / 3 * t);
+                };
+            }
+        },
 
-	interpolate: {
+        interpolate: {
 
-	    number: function(a, b) {
-		var d = b - a;
-		return function(t) { return a + d * t; };
-	    },
+            number: function(a, b) {
+                var d = b - a;
+                return function(t) { return a + d * t; };
+            },
 
-	    object: function(a, b) {
-		var s = _.keys(a);
-		return function(t) {
-		    var i, p, r = {};
-		    for (i = s.length - 1; i != -1; i--) {
-			p = s[i];
-			r[p] = a[p] + (b[p] - a[p]) * t;
-		    }
-		    return  r;
-		}
-	    },
+            object: function(a, b) {
+                var s = _.keys(a);
+                return function(t) {
+                    var i, p;
+                    var r = {};
+                    for (i = s.length - 1; i != -1; i--) {
+                        p = s[i];
+                        r[p] = a[p] + (b[p] - a[p]) * t;
+                    }
+                    return r;
+                };
+            },
 
-	    hexColor: function(a, b) {
+            hexColor: function(a, b) {
 
-		var ca = parseInt(a.slice(1), 16), cb = parseInt(b.slice(1), 16);
+                var ca = parseInt(a.slice(1), 16);
+                var cb = parseInt(b.slice(1), 16);
+                var ra = ca & 0x0000ff;
+                var rd = (cb & 0x0000ff) - ra;
+                var ga = ca & 0x00ff00;
+                var gd = (cb & 0x00ff00) - ga;
+                var ba = ca & 0xff0000;
+                var bd = (cb & 0xff0000) - ba;
 
-		var ra = ca & 0x0000ff, rd = (cb & 0x0000ff) - ra;
-		var ga = ca & 0x00ff00, gd = (cb & 0x00ff00) - ga;
-		var ba = ca & 0xff0000, bd = (cb & 0xff0000) - ba;
+                return function(t) {
 
-		return function(t) {
                     var r = (ra + rd * t) & 0x000000ff;
                     var g = (ga + gd * t) & 0x0000ff00;
                     var b = (ba + bd * t) & 0x00ff0000;
-		    return '#' + (1 << 24 | r | g | b ).toString(16).slice(1);
-		};
-	    },
 
-	    unit: function(a, b) {
+                    return '#' + (1 << 24 | r | g | b ).toString(16).slice(1);
+                };
+            },
 
-		var r = /(-?[0-9]*.[0-9]*)(px|em|cm|mm|in|pt|pc|%)/;
+            unit: function(a, b) {
 
-		var ma = r.exec(a), mb = r.exec(b);
-		var p = mb[1].indexOf('.'), f = p > 0 ? mb[1].length - p - 1 : 0;
-		var a = +ma[1], d = +mb[1] - a, u = ma[2];
+                var r = /(-?[0-9]*.[0-9]*)(px|em|cm|mm|in|pt|pc|%)/;
+                var ma = r.exec(a);
+                var mb = r.exec(b);
+                var p = mb[1].indexOf('.');
+                var f = p > 0 ? mb[1].length - p - 1 : 0;
+                a = +ma[1];
+                var d = +mb[1] - a;
+                var u = ma[2];
 
-		return function(t) {
-		    return (a + d * t).toFixed(f) + u;
-		}
-	    }
-	},
+                return function(t) {
+                    return (a + d * t).toFixed(f) + u;
+                };
+            }
+        },
 
         // SVG filters.
         filter: {
@@ -725,7 +695,7 @@ var joint = {
             // `x` ... horizontal blur
             // `y` ... vertical blur (optional)
             blur: function(args) {
-                
+
                 var x = _.isFinite(args.x) ? args.x : 2;
 
                 return _.template('<filter><feGaussianBlur stdDeviation="${stdDeviation}"/></filter>', {
@@ -757,7 +727,7 @@ var joint = {
             grayscale: function(args) {
 
                 var amount = _.isFinite(args.amount) ? args.amount : 1;
-                
+
                 return _.template('<filter><feColorMatrix type="matrix" values="${a} ${b} ${c} 0 0 ${d} ${e} ${f} 0 0 ${g} ${b} ${h} 0 0 0 0 0 1 0"/></filter>', {
                     a: 0.2126 + 0.7874 * (1 - amount),
                     b: 0.7152 - 0.7152 * (1 - amount),
@@ -810,7 +780,7 @@ var joint = {
             invert: function(args) {
 
                 var amount = _.isFinite(args.amount) ? args.amount : 1;
-                
+
                 return _.template('<filter><feComponentTransfer><feFuncR type="table" tableValues="${amount} ${amount2}"/><feFuncG type="table" tableValues="${amount} ${amount2}"/><feFuncB type="table" tableValues="${amount} ${amount2}"/></feComponentTransfer></filter>', {
                     amount: amount,
                     amount2: 1 - amount
@@ -829,7 +799,7 @@ var joint = {
             contrast: function(args) {
 
                 var amount = _.isFinite(args.amount) ? args.amount : 1;
-                
+
                 return _.template('<filter><feComponentTransfer><feFuncR type="linear" slope="${amount}" intercept="${amount2}"/><feFuncG type="linear" slope="${amount}" intercept="${amount2}"/><feFuncB type="linear" slope="${amount}" intercept="${amount2}"/></feComponentTransfer></filter>', {
                     amount: amount,
                     amount2: .5 - amount / 2
@@ -851,7 +821,7 @@ var joint = {
                     thousands: ',',
                     grouping: [3]
                 };
-                
+
                 // See Python format specification mini-language: http://docs.python.org/release/3.1.3/library/string.html#format-specification-mini-language.
                 // [[fill]align][sign][symbol][0][width][,][.precision][type]
                 var re = /(?:([^{])?([<>=^]))?([+\- ])?([$#])?(0)?(\d+)?(,)?(\.-?\d+)?([a-z%])?/i;
@@ -872,7 +842,7 @@ var joint = {
                 var integer = false;
 
                 if (precision) precision = +precision.substring(1);
-                
+
                 if (zfill || fill === '0' && align === '=') {
                     zfill = fill = '0';
                     align = '=';
@@ -880,16 +850,16 @@ var joint = {
                 }
 
                 switch (type) {
-                  case 'n': comma = true; type = 'g'; break;
-                  case '%': scale = 100; suffix = '%'; type = 'f'; break;
-                  case 'p': scale = 100; suffix = '%'; type = 'r'; break;
-                  case 'b':
-                  case 'o':
-                  case 'x':
-                  case 'X': if (symbol === '#') prefix = '0' + type.toLowerCase();
-                  case 'c':
-                  case 'd': integer = true; precision = 0; break;
-                  case 's': scale = -1; type = 'r'; break;
+                    case 'n': comma = true; type = 'g'; break;
+                    case '%': scale = 100; suffix = '%'; type = 'f'; break;
+                    case 'p': scale = 100; suffix = '%'; type = 'r'; break;
+                    case 'b':
+                    case 'o':
+                    case 'x':
+                    case 'X': if (symbol === '#') prefix = '0' + type.toLowerCase();
+                    case 'c':
+                    case 'd': integer = true; precision = 0; break;
+                    case 's': scale = -1; type = 'r'; break;
                 }
 
                 if (symbol === '$') {
@@ -915,7 +885,7 @@ var joint = {
                 var negative = value < 0 || value === 0 && 1 / value < 0 ? (value = -value, '-') : sign;
 
                 var fullSuffix = suffix;
-                
+
                 // Apply the scale, computing it from the value's exponent for si format.
                 // Preserve the existing suffix, if any, such as the currency symbol.
                 if (scale < 0) {
@@ -935,7 +905,7 @@ var joint = {
                 var after = i < 0 ? '' : locale.decimal + value.substring(i + 1);
 
                 function formatGroup(value) {
-                    
+
                     var i = value.length;
                     var t = [];
                     var j = 0;
@@ -946,7 +916,7 @@ var joint = {
                     }
                     return t.reverse().join(locale.thousands);
                 }
-                
+
                 // If the fill character is not `'0'`, grouping is applied before padding.
                 if (!zfill && comma && locale.grouping) {
 
@@ -973,7 +943,8 @@ var joint = {
 
             // Formatting string via the Python Format string.
             // See https://docs.python.org/2/library/string.html#format-string-syntax)
-            string: function (formatString, value) {
+            string: function(formatString, value) {
+
                 var fieldDelimiterIndex;
                 var fieldDelimiter = '{';
                 var endPlaceholder = false;
@@ -986,8 +957,8 @@ var joint = {
                     pieceFormatedString = formatString.slice(0, fieldDelimiterIndex);
 
                     if (endPlaceholder) {
-                        formatSpec = pieceFormatedString.split(":");
-                        fieldName = formatSpec.shift().split(".");
+                        formatSpec = pieceFormatedString.split(':');
+                        fieldName = formatSpec.shift().split('.');
                         pieceFormatedString = value;
 
                         for (var i = 0; i < fieldName.length; i++)
@@ -1000,26 +971,26 @@ var joint = {
                     formattedStringArray.push(pieceFormatedString);
 
                     formatString = formatString.slice(fieldDelimiterIndex + 1);
-                    fieldDelimiter = (endPlaceholder = !endPlaceholder) ? '}' : '{'
+                    fieldDelimiter = (endPlaceholder = !endPlaceholder) ? '}' : '{';
                 }
                 formattedStringArray.push(formatString);
 
-                return formattedStringArray.join('')
+                return formattedStringArray.join('');
             },
 
-            convert: function (type, value, precision) {
+            convert: function(type, value, precision) {
 
                 switch (type) {
-                  case 'b': return value.toString(2);
-                  case 'c': return String.fromCharCode(value);
-                  case 'o': return value.toString(8);
-                  case 'x': return value.toString(16);
-                  case 'X': return value.toString(16).toUpperCase();
-                  case 'g': return value.toPrecision(precision);
-                  case 'e': return value.toExponential(precision);
-                  case 'f': return value.toFixed(precision);
-                  case 'r': return (value = this.round(value, this.precision(value, precision))).toFixed(Math.max(0, Math.min(20, this.precision(value * (1 + 1e-15), precision))));
-                default: return value + '';
+                    case 'b': return value.toString(2);
+                    case 'c': return String.fromCharCode(value);
+                    case 'o': return value.toString(8);
+                    case 'x': return value.toString(16);
+                    case 'X': return value.toString(16).toUpperCase();
+                    case 'g': return value.toPrecision(precision);
+                    case 'e': return value.toExponential(precision);
+                    case 'f': return value.toFixed(precision);
+                    case 'r': return (value = this.round(value, this.precision(value, precision))).toFixed(Math.max(0, Math.min(20, this.precision(value * (1 + 1e-15), precision))));
+                    default: return value + '';
                 }
             },
 
@@ -1031,20 +1002,20 @@ var joint = {
             },
 
             precision: function(value, precision) {
-                
+
                 return precision - (value ? Math.ceil(Math.log(value) / Math.LN10) : 1);
             },
 
             prefix: function(value, precision) {
 
-                var prefixes = _.map(['y','z','a','f','p','n','µ','m','','k','M','G','T','P','E','Z','Y'], function(d, i) {
+                var prefixes = _.map(['y', 'z', 'a', 'f', 'p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'], function(d, i) {
                     var k = Math.pow(10, abs(8 - i) * 3);
                     return {
                         scale: i > 8 ? function(d) { return d / k; } : function(d) { return d * k; },
                         symbol: d
                     };
                 });
-                
+
                 var i = 0;
                 if (value) {
                     if (value < 0) value *= -1;

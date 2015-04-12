@@ -1,3 +1,6 @@
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
 if (typeof exports === 'object') {
 
     var joint = {
@@ -42,17 +45,17 @@ joint.shapes.pn.Place = joint.shapes.basic.Generic.extend({
                 r: 5
             },
             '.tokens.one > circle': { transform: 'translate(25, 25)' },
-            
+
             '.tokens.two > circle:nth-child(1)': { transform: 'translate(19, 25)' },
             '.tokens.two > circle:nth-child(2)': { transform: 'translate(31, 25)' },
-            
+
             '.tokens.three > circle:nth-child(1)': { transform: 'translate(18, 29)' },
             '.tokens.three > circle:nth-child(2)': { transform: 'translate(25, 19)' },
             '.tokens.three > circle:nth-child(3)': { transform: 'translate(32, 29)' },
 
             '.tokens.alot > text': {
-		transform: 'translate(25, 18)',
-		'text-anchor': 'middle',
+                transform: 'translate(25, 18)',
+                'text-anchor': 'middle',
                 fill: '#000000'
             }
         }
@@ -94,25 +97,25 @@ joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
 
         switch (tokens) {
 
-          case 1:
-            $tokens[0].className.baseVal += ' one';
-            $tokens.append(V('<circle/>').node);
-            break;
-            
-          case 2:
-            $tokens[0].className.baseVal += ' two';
-            $tokens.append(V('<circle/>').node, V('<circle/>').node);
-            break;
+            case 1:
+                $tokens[0].className.baseVal += ' one';
+                $tokens.append(V('<circle/>').node);
+                break;
 
-          case 3:
-            $tokens[0].className.baseVal += ' three';
-            $tokens.append(V('<circle/>').node, V('<circle/>').node, V('<circle/>').node);
-            break;
+            case 2:
+                $tokens[0].className.baseVal += ' two';
+                $tokens.append(V('<circle/>').node, V('<circle/>').node);
+                break;
 
-          default:
-            $tokens[0].className.baseVal += ' alot';
-            $tokens.append(V('<text/>').text(tokens + '' ).node);
-            break;
+            case 3:
+                $tokens[0].className.baseVal += ' three';
+                $tokens.append(V('<circle/>').node, V('<circle/>').node, V('<circle/>').node);
+                break;
+
+            default:
+                $tokens[0].className.baseVal += ' alot';
+                $tokens.append(V('<text/>').text(tokens + '' ).node);
+                break;
         }
     }
 });
@@ -151,7 +154,7 @@ joint.shapes.pn.Link = joint.dia.Link.extend({
     defaults: joint.util.deepSupplement({
 
         attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
-        
+
     }, joint.dia.Link.prototype.defaults)
 });
 

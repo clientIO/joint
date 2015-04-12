@@ -16,7 +16,6 @@ if (typeof exports === 'object') {
 }
 
 
-
 // joint.dia.Link base model.
 // --------------------------
 joint.dia.Link = joint.dia.Cell.extend({
@@ -90,12 +89,12 @@ joint.dia.Link = joint.dia.Cell.extend({
     label: function(idx, value) {
 
         idx = idx || 0;
-        
+
         var labels = this.get('labels') || [];
-        
+
         // Is it a getter?
         if (arguments.length === 0 || arguments.length === 1) {
-            
+
             return labels[idx];
         }
 
@@ -103,7 +102,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         var newLabels = labels.slice();
         newLabels[idx] = newValue;
-        
+
         return this.set({ labels: newLabels });
     },
 
@@ -189,9 +188,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         doubleLinkTools: false,
         longLinkLength: 160,
         linkToolsOffset: 40,
-        doubleLinkToolsOffset: 60
+        doubleLinkToolsOffset: 60,
+        sampleInterval: 50
     },
-    
+
     initialize: function(options) {
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
@@ -217,12 +217,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     startListening: function() {
 
-	this.listenTo(this.model, 'change:markup', this.render);
-	this.listenTo(this.model, 'change:smooth change:manhattan change:router change:connector', this.update);
+        this.listenTo(this.model, 'change:markup', this.render);
+        this.listenTo(this.model, 'change:smooth change:manhattan change:router change:connector', this.update);
         this.listenTo(this.model, 'change:toolMarkup', function() {
             this.renderTools().updateToolsPosition();
         });
-	this.listenTo(this.model, 'change:labels change:labelMarkup', function() {
+        this.listenTo(this.model, 'change:labels change:labelMarkup', function() {
             this.renderLabels().updateLabelPositions();
         });
         this.listenTo(this.model, 'change:vertices change:vertexMarkup', function(cell, changed, opt) {
@@ -235,10 +235,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 this.update();
             }
         });
-	this.listenTo(this.model, 'change:source', function(cell, source) {
+        this.listenTo(this.model, 'change:source', function(cell, source) {
             this.watchSource(cell, source).update();
         });
-	this.listenTo(this.model, 'change:target', function(cell, target) {
+        this.listenTo(this.model, 'change:target', function(cell, target) {
             this.watchTarget(cell, target).update();
         });
     },
@@ -248,7 +248,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     render: function() {
 
-	this.$el.empty();
+        this.$el.empty();
 
         // A special markup can be given in the `properties.markup` property. This might be handy
         // if e.g. arrowhead markers should be `<image>` elements or any other element than `<path>`s.
@@ -298,16 +298,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var labels = this.model.get('labels') || [];
         if (!labels.length) return this;
-        
+
         var labelTemplate = _.template(this.model.get('labelMarkup') || this.model.labelMarkup);
         // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
         var labelNodeInstance = V(labelTemplate());
 
+        var canLabelMove = this.can('labelMove');
+
         _.each(labels, function(label, idx) {
 
             var labelNode = labelNodeInstance.clone().node;
+            V(labelNode).attr('label-idx', idx);
+            if (canLabelMove) {
+                V(labelNode).attr('cursor', 'move');
+            }
+
             // Cache label nodes so that the `updateLabels()` can just update the label node positions.
             this._labelCache[idx] = V(labelNode);
 
@@ -316,9 +323,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             // Text attributes with the default `text-anchor` and font-size set.
             var textAttributes = _.extend({ 'text-anchor': 'middle', 'font-size': 14 }, joint.util.getByPath(label, 'attrs/text', '/'));
-            
+
             $text.attr(_.omit(textAttributes, 'text'));
-                
+
             if (!_.isUndefined(textAttributes.text)) {
 
                 V($text[0]).text(textAttributes.text + '');
@@ -330,7 +337,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             // `y-alignment` - center the text element around its y coordinate.
             var textBbox = V($text[0]).bbox(true, $labels[0]);
-            V($text[0]).translate(0, -textBbox.height/2);
+            V($text[0]).translate(0, -textBbox.height / 2);
 
             // Add default values.
             var rectAttributes = _.extend({
@@ -338,17 +345,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 fill: 'white',
                 rx: 3,
                 ry: 3
-                
-            }, joint.util.getByPath(label, 'attrs/rect', '/'));
-            
-            $rect.attr(_.extend(rectAttributes, {
 
+            }, joint.util.getByPath(label, 'attrs/rect', '/'));
+
+            $rect.attr(_.extend(rectAttributes, {
                 x: textBbox.x,
-                y: textBbox.y - textBbox.height/2,  // Take into account the y-alignment translation.
+                y: textBbox.y - textBbox.height / 2,  // Take into account the y-alignment translation.
                 width: textBbox.width,
                 height: textBbox.height
             }));
-            
+
         }, this);
 
         return this;
@@ -368,7 +374,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var tool = V(toolTemplate());
 
         $tools.append(tool.node);
-        
+
         // Cache the tool node so that the `updateToolsPosition()` can update the tool position quickly.
         this._toolCache = tool;
 
@@ -394,12 +400,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // if default styling (elements) are not desired. This makes it possible to use any
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
         var markupTemplate = _.template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
-        
+
         _.each(this.model.get('vertices'), function(vertex, idx) {
 
             $markerVertices.append(V(markupTemplate(_.extend({ idx: idx }, vertex))).node);
         });
-        
+
         return this;
     },
 
@@ -565,14 +571,63 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // In that case we won't update labels at all.
         if (!_.isNaN(connectionLength)) {
 
+            var samples;
+
             _.each(labels, function(label, idx) {
 
                 var position = label.position;
-                position = (position > connectionLength) ? connectionLength : position; // sanity check
-                position = (position < 0) ? connectionLength + position : position;
-                position = position > 1 ? position : connectionLength * position;
+                var distance = _.isObject(position) ? position.distance : position;
+                var offset = _.isObject(position) ? position.offset : { x: 0, y: 0 };
 
-                var labelCoordinates = connectionElement.getPointAtLength(position);
+                distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
+                distance = (distance < 0) ? connectionLength + distance : distance;
+                distance = (distance > 1) ? distance : connectionLength * distance;
+
+                var labelCoordinates = connectionElement.getPointAtLength(distance);
+
+                if (_.isObject(offset)) {
+
+                    // Just offset the label by the x,y provided in the offset object.
+                    labelCoordinates = g.point(labelCoordinates).offset(offset.x, offset.y);
+
+                } else if (_.isNumber(offset)) {
+
+                    if (!samples) {
+                        samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
+                    }
+
+                    // Offset the label by the amount provided in `offset` to an either
+                    // side of the link.
+
+                    // 1. Find the closest sample & its left and right neighbours.
+                    var minSqDistance = Infinity;
+                    var closestSample;
+                    var closestSampleIndex;
+                    var p;
+                    var sqDistance;
+                    for (var i = 0, len = samples.length; i < len; i++) {
+                        p = samples[i];
+                        sqDistance = g.line(p, labelCoordinates).squaredLength();
+                        if (sqDistance < minSqDistance) {
+                            minSqDistance = sqDistance;
+                            closestSample = p;
+                            closestSampleIndex = i;
+                        }
+                    }
+                    var prevSample = samples[closestSampleIndex - 1];
+                    var nextSample = samples[closestSampleIndex + 1];
+
+                    // 2. Offset the label on the perpendicular line between
+                    // the current label coordinate ("at `distance`") and
+                    // the next sample.
+                    var angle = 0;
+                    if (nextSample) {
+                        angle = g.point(labelCoordinates).theta(nextSample);
+                    } else if (prevSample) {
+                        angle = g.point(prevSample).theta(labelCoordinates);
+                    }
+                    labelCoordinates = g.point(labelCoordinates).offset(offset).rotate(labelCoordinates, angle - 90);
+                }
 
                 this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
 
@@ -603,7 +658,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         var toolPosition = this.getPointAtLength(offset);
-        
+
         this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
 
         if (this.options.doubleLinkTools && connectionLength >= this.options.longLinkLength) {
@@ -615,7 +670,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             this._tool2Cache.attr('visibility', 'visible');
 
         } else if (this.options.doubleLinkTools) {
-            
+
             this._tool2Cache.attr('visibility', 'hidden');
         }
 
@@ -690,8 +745,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // second time now. There is no need to calculate bbox and find magnet element again.
                 // It was calculated already for opposite link end.
                 this[endType + 'BBox'] = this[oppositeEndType + 'BBox'];
-	        this[endType + 'View'] = this[oppositeEndType + 'View'];
-	        this[endType + 'Magnet'] = this[oppositeEndType + 'Magnet'];
+                this[endType + 'View'] = this[oppositeEndType + 'View'];
+                this[endType + 'Magnet'] = this[oppositeEndType + 'Magnet'];
 
             } else if (opt.translateBy) {
 
@@ -705,8 +760,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var magnetElement = view.el.querySelector(selector);
 
                 this[endType + 'BBox'] = view.getStrokeBBox(magnetElement);
-	        this[endType + 'View'] = view;
-	        this[endType + 'Magnet'] = magnetElement;
+                this[endType + 'View'] = view;
+                this[endType + 'Magnet'] = magnetElement;
             }
 
             if (opt.isLoop && opt.translateBy &&
@@ -743,7 +798,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             // the link end is a point ~ rect 1x1
             this[endType + 'BBox'] = g.rect(end.x || 0, end.y || 0, 1, 1);
-	    this[endType + 'View'] = this[endType + 'Magnet'] = null;
+            this[endType + 'View'] = this[endType + 'Magnet'] = null;
         }
 
         // keep track which end had been changed very last
@@ -776,7 +831,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     removeVertex: function(idx) {
 
         var vertices = _.clone(this.model.get('vertices'));
-        
+
         if (vertices && vertices.length) {
 
             vertices.splice(idx, 1);
@@ -804,8 +859,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // A `<path>` element used to compute the length of the path during heuristics.
         var path = this._V.connection.node.cloneNode(false);
-        
-        // Length of the original path.        
+
+        // Length of the original path.
         var originalPathLength = path.getTotalLength();
         // Current path length.
         var pathLength;
@@ -831,18 +886,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // Revert vertices to the original array. The path length has changed too much
                 // so that the index was not found yet.
                 vertices = originalVertices.slice();
-                
+
             } else {
 
                 break;
             }
         }
 
-	if (idx === -1) {
-	    // If no suitable index was found for such a vertex, make the vertex the first one.
-	    idx = 0;
-	    vertices.splice(idx, 0, vertex);
-	}
+        if (idx === -1) {
+            // If no suitable index was found for such a vertex, make the vertex the first one.
+            idx = 0;
+            vertices.splice(idx, 0, vertex);
+        }
 
         this.model.set('vertices', vertices, { ui: true });
 
@@ -855,11 +910,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // `callback` is optional and is a function to be called once the token reaches the target.
     sendToken: function(token, duration, callback) {
 
-	duration = duration || 1000;
+        duration = duration || 1000;
 
-	V(this.paper.viewport).append(token);
-	V(token).animateAlongPath({ dur: duration + 'ms', repeatCount: 1 }, this._V.connection.node);
-	_.delay(function() { V(token).remove(); callback && callback(); }, duration);
+        V(this.paper.viewport).append(token);
+        V(token).animateAlongPath({ dur: duration + 'ms', repeatCount: 1 }, this._V.connection.node);
+        _.delay(function() { V(token).remove(); callback && callback(); }, duration);
     },
 
     findRoute: function(oldVertices) {
@@ -946,9 +1001,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             // `_sourceBbox` (`_targetBbox`) comes from `_sourceBboxUpdate` (`_sourceBboxUpdate`)
             // method, it exists since first render and are automatically updated
             var spotBbox = end === 'source' ? this.sourceBBox : this.targetBBox;
-            
+
             var reference;
-            
+
             if (!referenceSelectorOrPoint.id) {
 
                 // Reference was passed as a point, therefore, we're ready to find the sticky point of connection on the source element.
@@ -979,32 +1034,32 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                     nearestSide = g.rect(spotBbox).sideNearestToPoint(reference);
                     switch (nearestSide) {
-                      case 'left':
-                        spot = g.point(spotBbox.x, reference.y);
-                        break;
-                      case 'right':
-                        spot = g.point(spotBbox.x + spotBbox.width, reference.y);
-                        break;
-                    default:
-                        spot = g.rect(spotBbox).center();
-                        break;
+                        case 'left':
+                            spot = g.point(spotBbox.x, reference.y);
+                            break;
+                        case 'right':
+                            spot = g.point(spotBbox.x + spotBbox.width, reference.y);
+                            break;
+                        default:
+                            spot = g.rect(spotBbox).center();
+                            break;
                     }
-                    
+
                 } else if (verticalLineRect.intersect(g.rect(spotBbox))) {
 
                     nearestSide = g.rect(spotBbox).sideNearestToPoint(reference);
                     switch (nearestSide) {
-                      case 'top':
-                        spot = g.point(reference.x, spotBbox.y);
-                        break;
-                      case 'bottom':
-                        spot = g.point(reference.x, spotBbox.y + spotBbox.height);
-                        break;
-                    default:
-                        spot = g.rect(spotBbox).center();
-                        break;
+                        case 'top':
+                            spot = g.point(reference.x, spotBbox.y);
+                            break;
+                        case 'bottom':
+                            spot = g.point(reference.x, spotBbox.y + spotBbox.height);
+                            break;
+                        default:
+                            spot = g.rect(spotBbox).center();
+                            break;
                     }
-                    
+
                 } else {
 
                     // If there is no intersection horizontally or vertically with the object bounding box,
@@ -1014,17 +1069,17 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     spot = g.rect(spotBbox).intersectionWithLineFromCenterToPoint(reference);
                     spot = spot || g.rect(spotBbox).center();
                 }
-                
+
             } else if (this.paper.options.linkConnectionPoint) {
 
-		var view = end === 'target' ? this.targetView : this.sourceView;
-		var magnet = end === 'target' ? this.targetMagnet : this.sourceMagnet;
+                var view = end === 'target' ? this.targetView : this.sourceView;
+                var magnet = end === 'target' ? this.targetMagnet : this.sourceMagnet;
 
-		spot = this.paper.options.linkConnectionPoint(this, view, magnet, reference);
+                spot = this.paper.options.linkConnectionPoint(this, view, magnet, reference);
 
-	    } else {
+            } else {
 
-            	spot = g.rect(spotBbox).intersectionWithLineFromCenterToPoint(reference);
+                spot = g.rect(spotBbox).intersectionWithLineFromCenterToPoint(reference);
                 spot = spot || g.rect(spotBbox).center();
             }
         }
@@ -1072,8 +1127,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         // Put `pointer-events` back to its original value. See `startArrowheadMove()` for explanation.
-	// Value `auto` doesn't work in IE9. We force to use `visiblePainted` instead.
-	// See `https://developer.mozilla.org/en-US/docs/Web/CSS/pointer-events`.
+        // Value `auto` doesn't work in IE9. We force to use `visiblePainted` instead.
+        // See `https://developer.mozilla.org/en-US/docs/Web/CSS/pointer-events`.
         this.el.style.pointerEvents = 'visiblePainted';
 
         if (this.paper.options.markAvailable) {
@@ -1091,7 +1146,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         args[4] = arrowhead;
         args[5] = this;
 
-        var oppositeArrowhead, i = 0, j = 0;
+        var oppositeArrowhead;
+        var i = 0;
+        var j = 0;
 
         if (arrowhead === 'source') {
             i = 2;
@@ -1105,12 +1162,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (end.id) {
             args[i] = this.paper.findViewByModel(end.id);
-            args[i+1] = end.selector && args[i].el.querySelector(end.selector);
+            args[i + 1] = end.selector && args[i].el.querySelector(end.selector);
         }
 
         function validateConnectionArgs(cellView, magnet) {
             args[j] = cellView;
-            args[j+1] = cellView.el === magnet ? undefined : magnet;
+            args[j + 1] = cellView.el === magnet ? undefined : magnet;
             return args;
         }
 
@@ -1162,69 +1219,91 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this._beforeArrowheadMove();
     },
 
+    // Return `true` if the link is allowed to perform a certain UI `feature`.
+    // Example: `can('vertexMove')`, `can('labelMove')`.
+    can: function(feature) {
+
+        var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointerdown') : this.options.interactive;
+        if (!_.isObject(interactive) || interactive[feature] !== false) return true;
+        return false;
+    },
+
     pointerdown: function(evt, x, y) {
 
         joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
 
-	this._dx = x;
+        this._dx = x;
         this._dy = y;
 
-	var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointerdown') : this.options.interactive;
-
+        var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointerdown') : this.options.interactive;
         if (interactive === false) return;
 
-	function can(feature) {
-	    if (!_.isObject(interactive) || interactive[feature] !== false) return true;
-	    return false;
-	}
-
         var className = evt.target.getAttribute('class');
+        var parentClassName = evt.target.parentNode.getAttribute('class');
+        var labelNode;
+        if (parentClassName === 'label') {
+            className = parentClassName;
+            labelNode = evt.target.parentNode;
+        } else {
+            labelNode = evt.target;
+        }
 
         switch (className) {
 
-        case 'marker-vertex':
-	    if (can('vertexMove')) {
-		this._action = 'vertex-move';
-		this._vertexIdx = evt.target.getAttribute('idx');
-	    }
-            break;
-
-        case 'marker-vertex-remove':
-        case 'marker-vertex-remove-area':
-	    if (can('vertexRemove')) {
-		this.removeVertex(evt.target.getAttribute('idx'));
-	    }
-            break;
-
-        case 'marker-arrowhead':
-	    if (can('arrowheadMove')) {
-		this.startArrowheadMove(evt.target.getAttribute('end'));
-	    }
-            break;
-
-        default:
-
-            var targetParentEvent = evt.target.parentNode.getAttribute('event');
-
-            if (targetParentEvent) {
-
-                // `remove` event is built-in. Other custom events are triggered on the paper.
-                if (targetParentEvent === 'remove') {
-                    this.model.remove();
-                } else {
-                    this.paper.trigger(targetParentEvent, evt, this, x, y);
-                }
-
-            } else {
-
-		if (can('vertexAdd')) {
-
-                    // Store the index at which the new vertex has just been placed.
-                    // We'll be update the very same vertex position in `pointermove()`.
-                    this._vertexIdx = this.addVertex({ x: x, y: y });
+            case 'marker-vertex':
+                if (this.can('vertexMove')) {
                     this._action = 'vertex-move';
-		}
-            }
+                    this._vertexIdx = evt.target.getAttribute('idx');
+                }
+                break;
+
+            case 'marker-vertex-remove':
+            case 'marker-vertex-remove-area':
+                if (this.can('vertexRemove')) {
+                    this.removeVertex(evt.target.getAttribute('idx'));
+                }
+                break;
+
+            case 'marker-arrowhead':
+                if (this.can('arrowheadMove')) {
+                    this.startArrowheadMove(evt.target.getAttribute('end'));
+                }
+                break;
+
+            case 'label':
+                if (this.can('labelMove')) {
+                    this._action = 'label-move';
+                    this._labelIdx = parseInt(V(labelNode).attr('label-idx'), 10);
+                    // Precalculate samples so that we don't have to do that
+                    // over and over again while dragging the label.
+                    this._samples = this._V.connection.sample(1);
+                    this._linkLength = this._V.connection.node.getTotalLength();
+                }
+                break;
+
+            default:
+
+                var targetParentEvent = evt.target.parentNode.getAttribute('event');
+
+                if (targetParentEvent) {
+
+                    // `remove` event is built-in. Other custom events are triggered on the paper.
+                    if (targetParentEvent === 'remove') {
+                        this.model.remove();
+                    } else {
+                        this.paper.trigger(targetParentEvent, evt, this, x, y);
+                    }
+
+                } else {
+
+                    if (this.can('vertexAdd')) {
+
+                        // Store the index at which the new vertex has just been placed.
+                        // We'll be update the very same vertex position in `pointermove()`.
+                        this._vertexIdx = this.addVertex({ x: x, y: y });
+                        this._action = 'vertex-move';
+                    }
+                }
         }
 
         this.paper.trigger('link:pointerdown', evt, this, x, y);
@@ -1236,14 +1315,54 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         switch (this._action) {
 
-          case 'vertex-move':
+        case 'vertex-move':
 
             var vertices = _.clone(this.model.get('vertices'));
             vertices[this._vertexIdx] = { x: x, y: y };
             this.model.set('vertices', vertices, { ui: true });
             break;
 
-          case 'arrowhead-move':
+        case 'label-move':
+
+            var dragPoint = { x: x, y: y };
+            var label = this.model.get('labels')[this._labelIdx];
+            var samples = this._samples;
+            var minSqDistance = Infinity;
+            var closestSample;
+            var closestSampleIndex;
+            var p;
+            var sqDistance;
+            for (var i = 0, len = samples.length; i < len; i++) {
+                p = samples[i];
+                sqDistance = g.line(p, dragPoint).squaredLength();
+                if (sqDistance < minSqDistance) {
+                    minSqDistance = sqDistance;
+                    closestSample = p;
+                    closestSampleIndex = i;
+                }
+            }
+            var prevSample = samples[closestSampleIndex - 1];
+            var nextSample = samples[closestSampleIndex + 1];
+
+            var closestSampleDistance = g.point(closestSample).distance(dragPoint);
+            var offset = 0;
+            if (prevSample && nextSample) {
+                offset = g.line(prevSample, nextSample).pointOffset(dragPoint);
+            } else if (prevSample) {
+                offset = g.line(prevSample, closestSample).pointOffset(dragPoint);
+            } else if (nextSample) {
+                offset = g.line(closestSample, nextSample).pointOffset(dragPoint);
+            }
+
+            this.model.label(this._labelIdx, {
+                position: {
+                    distance: closestSample.distance / this._linkLength,
+                    offset: offset
+                }
+            });
+            break;
+
+        case 'arrowhead-move':
 
             if (this.paper.options.snapLinks) {
 
@@ -1255,8 +1374,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 this._closestView && this._closestView.unhighlight(this._closestEnd.selector, { connecting: true, snapping: true });
                 this._closestView = this._closestEnd = null;
 
-                var pointer = g.point(x,y);
-                var distance, minDistance = Number.MAX_VALUE;
+                var distance;
+                var minDistance = Number.MAX_VALUE;
+                var pointer = g.point(x, y);
 
                 _.each(viewsInArea, function(view) {
 
@@ -1348,7 +1468,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     }
                 }
 
-	        this._targetEvent = target;
+                this._targetEvent = target;
 
                 this.model.set(this._arrowhead, { x: x, y: y }, { ui: true });
             }
@@ -1364,7 +1484,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);
 
-        if (this._action === 'arrowhead-move') {
+        if (this._action === 'label-move') {
+
+            this._samples = null;
+
+        } else if (this._action === 'arrowhead-move') {
 
             if (this.paper.options.snapLinks) {
 
@@ -1379,7 +1503,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     // `this._magnetUnderPointer` is the root element of the `this._viewUnderPointer` itself,
                     // the returned `selector` will be `undefined`. That means we can directly pass it to the
                     // `source`/`target` attribute of the link model below.
-		    this.model.set(this._arrowhead, {
+                    this.model.set(this._arrowhead, {
                         id: this._viewUnderPointer.model.id,
                         selector: this._viewUnderPointer.getSelector(this._magnetUnderPointer),
                         port: $(this._magnetUnderPointer).attr('port')

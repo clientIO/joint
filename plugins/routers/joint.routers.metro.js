@@ -17,13 +17,13 @@ joint.routers.metro = (function() {
             var diagonalCost = this.diagonalCost || Math.ceil(Math.sqrt(step * step << 1));
 
             return [
-                { offsetX: step  , offsetY: 0     , cost: step         },
+                { offsetX: step  , offsetY: 0     , cost: step },
                 { offsetX: step  , offsetY: step  , cost: diagonalCost },
-                { offsetX: 0     , offsetY: step  , cost: step         },
+                { offsetX: 0     , offsetY: step  , cost: step },
                 { offsetX: -step , offsetY: step  , cost: diagonalCost },
-                { offsetX: -step , offsetY: 0     , cost: step         },
+                { offsetX: -step , offsetY: 0     , cost: step },
                 { offsetX: -step , offsetY: -step , cost: diagonalCost },
-                { offsetX: 0     , offsetY: -step , cost: step         },
+                { offsetX: 0     , offsetY: -step , cost: step },
                 { offsetX: step  , offsetY: -step , cost: diagonalCost }
             ];
         },

@@ -5,7 +5,7 @@ var paper = new joint.dia.Paper({
     el: $('#paper'),
     width: 800,
     height: 1200,
-    gridSize: 10,
+    gridSize: 1,
     perpendicularLinks: false,
     model: graph,
     linkView: joint.dia.LinkView.extend({
@@ -247,7 +247,7 @@ var link6 = new joint.dia.Link({
     target: { id: r11.id },
     labels: [
         { position: 10, attrs: { text: { text: '1..n' } }},
-        { position: .5, attrs: { text: { text: 'Foo', fill: 'white', 'font-family': 'sans-serif' }, rect: { stroke: '#F39C12', 'stroke-width': 20, rx: 5, ry: 5 } }},
+        { position: { distance: .5, offset: { x: 20, y: 20 } }, attrs: { text: { text: 'Foo', fill: 'white', 'font-family': 'sans-serif' }, rect: { stroke: '#F39C12', 'stroke-width': 20, rx: 5, ry: 5 } }},
         { position: -10, attrs: { text: { text: '*' } }}
     ],
     attrs: {
