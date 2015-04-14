@@ -504,7 +504,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         var pathArray = path.split('/');
 
-        if (pathArray.length === 0) {
+        if (pathArray.length === 1) {
             // A top level property
             return this.unset(path, opt);
         }

@@ -5,7 +5,7 @@ test: ctest stest cstest
 
 # client-side tests only
 stest:
-	./node_modules/.bin/mocha test/nodejs/tests.js --reporter spec
+	./node_modules/.bin/mocha test/jointjs-nodejs/*.js --reporter spec
 # server-side tests only
 ctest:
 	grunt qunit

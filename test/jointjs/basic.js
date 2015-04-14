@@ -431,6 +431,37 @@ test('prop()', function() {
     deepEqual(el.prop('a/b'), { d: 2 }, 'rewrite mode doesn\'t merge values');
 });
 
+test('removeProp()', function() {
+
+    expect(4);
+
+    var el = new joint.dia.Cell({
+	flat: 6,
+        nested: { a: 4, b: 5 }
+    });
+
+    el.removeProp('NonExisting');
+
+    deepEqual(el.attributes, {
+        id: el.id,
+	flat: 6,
+        nested: { a: 4, b: 5 }
+    }, 'Removing a non-existing property won\'t affect the model\'s attributes.');
+
+    el.removeProp('flat');
+
+    ok(!el.has('flat'), 'A flat property was unset from the model.');
+
+    el.removeProp('nested/a');
+
+    deepEqual(el.get('nested'), { b: 5 }, 'A nested property was unset from the model.');
+
+    el.on('change', function(cell, opt) {
+        ok(opt.OPT_PRESENT, 'Options are propagated to the underlying model method.');
+    });
+
+    el.removeProp('nested/b', { OPT_PRESENT: true });
+});
 
 test('toBack(), toFront()', function() {
 

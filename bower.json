@@ -1,0 +1,10 @@
+{
+  "name": "jointjs",
+  "private": true,
+  "devDependencies": {
+    "qunit": "~1.18.0",
+    "blanket": "~1.1.5",
+    "resemblejs": "~1.2.1",
+    "sinonjs": "~1.14.1"
+  }
+}
