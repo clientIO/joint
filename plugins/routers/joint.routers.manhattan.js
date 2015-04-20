@@ -382,7 +382,31 @@ joint.routers.manhattan = (function() {
             .difference(excludedEnds)
             // remove all elements whose type is listed in excludedTypes array
             .reject(function(element) {
-                return _.contains(opt.excludeTypes, element.get('type'));
+                // reject any element which is an ancestor of either source or target
+                var excludeAncestors = [];
+
+                var findAncestors = function(cell, arr){
+                    if(cell === undefined)
+                        return;
+
+                    var parent = cell.get('parent');
+                    if(parent !== undefined){
+                        arr.push(parent);
+                        findAncestors(graph.getCell(parent), arr);
+                    }
+                };
+
+                var sourceId = link.get('source').id;
+                if(sourceId !== undefined) {
+                    findAncestors(graph.getCell(sourceId), excludeAncestors);
+                }
+
+                var targetId = link.get('target').id;
+                if(targetId !== undefined) {
+                    findAncestors(graph.getCell(targetId), excludeAncestors);
+                }
+
+                return _.contains(opt.excludeTypes, element.get('type')) || _.contains(excludeAncestors, element.id);
             })
             // change elements (models) to their bounding boxes
             .invoke('getBBox')
