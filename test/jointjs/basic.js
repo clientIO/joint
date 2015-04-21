@@ -1052,3 +1052,22 @@ test('graph.getCommonAncestor()', function() {
     equal((this.graph.getCommonAncestor(r5,r4) || {}).id, r2.id, 'Common ancestor for r5 and r4 is r2');
     equal((this.graph.getCommonAncestor(r5,r6) || {}).id, r1.id, 'Common ancestor for r5 and r6 is r1');
 });
+
+test('cell.getAncestors()', function() {
+
+    var r0 = new joint.shapes.basic.Rect;
+    var r1 = new joint.shapes.basic.Rect;
+    var r2 = new joint.shapes.basic.Rect;
+    var r3 = new joint.shapes.basic.Rect;
+    var r4 = new joint.shapes.basic.Rect;
+    var r5 = new joint.shapes.basic.Rect;
+
+    r1.embed(r2.embed(r4).embed(r5));
+
+    this.graph.addCells([r1,r2,r3,r4,r5]);
+
+    deepEqual(r0.getAncestors(), [], 'A cell that is not part of a collection has no ancestors.');
+    deepEqual(r1.getAncestors(), [], 'A cell with no parent has no ancestors.');
+    deepEqual(_.pluck(r2.getAncestors(), 'id'), [r1.id], 'A cell embedded in a parent with no ancestor has exactly one ancestor.');
+    deepEqual(_.pluck(r5.getAncestors(), 'id'), [r2.id, r1.id], 'If a cell has more than one ancestor, the ancesotrs are sorted from the parent to the most distant ancestor.');
+});

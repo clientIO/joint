@@ -261,6 +261,9 @@ joint.dia.Cell = Backbone.Model.extend({
         return this;
     },
 
+    // Return an array of ancestor cells.
+    // The array is ordered from the parent of the cell
+    // to the most distant ancestor.
     getAncestors: function() {
 
         var ancestors = [];
@@ -270,7 +273,7 @@ joint.dia.Cell = Backbone.Model.extend({
             return ancestors;
 
         while (parentId !== undefined) {
-            var parent = _.find(this.collection.models, function(item) { return item.id === parentId; });
+            var parent = this.collection.get(parentId);
             if (parent !== undefined) {
                 ancestors.push(parent);
                 parentId = parent.get('parent');
