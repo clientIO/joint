@@ -372,6 +372,24 @@ joint.routers.manhattan = (function() {
 
         var mapGridSize = opt.mapGridSize;
 
+        var excludeAncestors = [];
+
+        var sourceId = link.get('source').id;
+        if (sourceId !== undefined) {
+            var source = graph.getCell(sourceId);
+            if (source !== undefined) {
+                excludeAncestors = _.union(excludeAncestors, _.map(source.getAncestors(), 'id'));
+            };
+        }
+
+        var targetId = link.get('target').id;
+        if (targetId !== undefined) {
+            var target = graph.getCell(targetId);
+            if (target !== undefined) {
+                excludeAncestors = _.union(excludeAncestors, _.map(target.getAncestors(), 'id'));
+            }
+        }
+
         // builds a map of all elements for quicker obstacle queries (i.e. is a point contained
         // in any obstacle?) (a simplified grid search)
         // The paper is divided to smaller cells, where each of them holds an information which
@@ -382,7 +400,8 @@ joint.routers.manhattan = (function() {
             .difference(excludedEnds)
             // remove all elements whose type is listed in excludedTypes array
             .reject(function(element) {
-                return _.contains(opt.excludeTypes, element.get('type'));
+                // reject any element which is an ancestor of either source or target
+                return _.contains(opt.excludeTypes, element.get('type')) || _.contains(excludeAncestors, element.id);
             })
             // change elements (models) to their bounding boxes
             .invoke('getBBox')

@@ -261,6 +261,27 @@ joint.dia.Cell = Backbone.Model.extend({
         return this;
     },
 
+    getAncestors: function() {
+
+        var ancestors = [];
+        var parentId = this.get('parent');
+
+        if (this.collection === undefined)
+            return ancestors;
+
+        while (parentId !== undefined) {
+            var parent = _.find(this.collection.models, function(item) { return item.id === parentId; });
+            if (parent !== undefined) {
+                ancestors.push(parent);
+                parentId = parent.get('parent');
+            } else {
+                break;
+            }
+        }
+
+        return ancestors;
+    },
+
     getEmbeddedCells: function(opt) {
 
         opt = opt || {};
