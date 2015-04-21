@@ -375,17 +375,17 @@ joint.routers.manhattan = (function() {
         var excludeAncestors = [];
 
         var sourceId = link.get('source').id;
-        if(sourceId !== undefined) {
+        if (sourceId !== undefined) {
             var source = graph.getCell(sourceId);
-            if(source !== undefined){
+            if (source !== undefined) {
                 excludeAncestors = _.union(excludeAncestors, _.map(source.getAncestors(), 'id'));
             };
         }
 
         var targetId = link.get('target').id;
-        if(targetId !== undefined) {
+        if (targetId !== undefined) {
             var target = graph.getCell(targetId);
-            if(target !== undefined) {
+            if (target !== undefined) {
                 excludeAncestors = _.union(excludeAncestors, _.map(target.getAncestors(), 'id'));
             }
         }
