@@ -1105,8 +1105,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _beforeArrowheadMove: function() {
 
-        this.model.trigger('batch:start');
-
         this._z = this.model.get('z');
         this.model.toFront();
 
@@ -1134,8 +1132,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (this.paper.options.markAvailable) {
             this._unmarkAvailableMagnets();
         }
-
-        this.model.trigger('batch:stop');
     },
 
     _createValidateConnectionArgs: function(arrowhead) {
@@ -1231,9 +1227,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     pointerdown: function(evt, x, y) {
 
         joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
+        this.notify('link:pointerdown', evt, x, y);
 
         this._dx = x;
         this._dy = y;
+
+        // if are simulating pointerdown on a link during a magnet click, skip link interactions
+        if (evt.target.getAttribute('magnet') != null) return;
 
         var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointerdown') : this.options.interactive;
         if (interactive === false) return;
@@ -1284,7 +1284,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             default:
 
                 var targetParentEvent = evt.target.parentNode.getAttribute('event');
-
                 if (targetParentEvent) {
 
                     // `remove` event is built-in. Other custom events are triggered on the paper.
@@ -1295,7 +1294,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     }
 
                 } else {
-
                     if (this.can('vertexAdd')) {
 
                         // Store the index at which the new vertex has just been placed.
@@ -1305,13 +1303,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     }
                 }
         }
-
-        this.paper.trigger('link:pointerdown', evt, this, x, y);
     },
 
     pointermove: function(evt, x, y) {
-
-        joint.dia.CellView.prototype.pointermove.apply(this, arguments);
 
         switch (this._action) {
 
@@ -1478,11 +1472,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         this._dx = x;
         this._dy = y;
+
+        joint.dia.CellView.prototype.pointermove.apply(this, arguments);
+        this.notify('link:pointermove', evt, x, y);
     },
 
-    pointerup: function(evt) {
-
-        joint.dia.CellView.prototype.pointerup.apply(this, arguments);
+    pointerup: function(evt, x, y) {
 
         if (this._action === 'label-move') {
 
@@ -1525,6 +1520,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         delete this._action;
+
+        this.notify('link:pointerup', evt, x, y);
+        joint.dia.CellView.prototype.pointerup.apply(this, arguments);
+
     }
 
 }, {
