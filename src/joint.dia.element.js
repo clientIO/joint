@@ -694,11 +694,11 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     pointerdown: function(evt, x, y) {
 
-        this.model.trigger('batch:start');
-
         // target is a valid magnet start linking
         if (evt.target.getAttribute('magnet') && this.paper.options.validateMagnet.call(this.paper, this, evt.target)) {
 
+            this.model.trigger('batch:start');
+            
             var link = this.paper.getDefaultLink(this, evt.target);
             link.set({
                 source: {
@@ -712,14 +712,15 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             this.paper.model.addCell(link);
 
             this._linkView = this.paper.findViewByModel(link);
+            this._linkView.pointerdown(evt, x, y);
             this._linkView.startArrowheadMove('target');
 
         } else {
-
             this._dx = x;
             this._dy = y;
 
             joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
+            this.notify('element:pointerdown', evt, x, y);
         }
     },
 
@@ -765,7 +766,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             this._dx = g.snapToGrid(x, grid);
             this._dy = g.snapToGrid(y, grid);
 
+
             joint.dia.CellView.prototype.pointermove.apply(this, arguments);
+            this.notify('element:pointermove', evt, x, y);
         }
     },
 
@@ -775,8 +778,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             // let the linkview deal with this event
             this._linkView.pointerup(evt, x, y);
-
             delete this._linkView;
+
+            this.model.trigger('batch:stop');
 
         } else {
 
@@ -785,10 +789,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 this._inProcessOfEmbedding = false;
             }
 
+            this.notify('element:pointerup', evt, x, y);
             joint.dia.CellView.prototype.pointerup.apply(this, arguments);
-        }
 
-        this.model.trigger('batch:stop');
+        }
     }
 
 });
