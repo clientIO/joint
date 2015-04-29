@@ -158,7 +158,7 @@ joint.dia.Cell = Backbone.Model.extend({
         var collection = this.collection;
 
         if (collection) {
-            collection.trigger('batch:start');
+            collection.trigger('batch:start', { batchName: 'remove' });
         }
 
         // First, unembed this cell from its parent cell if there is one.
@@ -174,7 +174,7 @@ joint.dia.Cell = Backbone.Model.extend({
         this.trigger('remove', this, this.collection, opt);
 
         if (collection) {
-            collection.trigger('batch:stop');
+            collection.trigger('batch:stop', { batchName: 'remove' });
         }
 
         return this;
@@ -188,7 +188,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             var z = (this.collection.last().get('z') || 0) + 1;
 
-            this.trigger('batch:start').set('z', z, opt);
+            this.trigger('batch:start', { batchName: 'to-front' }).set('z', z, opt);
 
             if (opt.deep) {
 
@@ -197,7 +197,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             }
 
-            this.trigger('batch:stop');
+            this.trigger('batch:stop', { batchName: 'to-front' });
         }
 
         return this;
@@ -211,7 +211,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             var z = (this.collection.first().get('z') || 0) - 1;
 
-            this.trigger('batch:start');
+            this.trigger('batch:start', { batchName: 'to-back' });
 
             if (opt.deep) {
 
@@ -219,7 +219,7 @@ joint.dia.Cell = Backbone.Model.extend({
                 _.eachRight(cells, function(cell) { cell.set('z', z--, opt); });
             }
 
-            this.set('z', z, opt).trigger('batch:stop');
+            this.set('z', z, opt).trigger('batch:stop', { batchName: 'to-back' });
         }
 
         return this;
@@ -233,7 +233,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         } else {
 
-            this.trigger('batch:start');
+            this.trigger('batch:start', { batchName: 'embed' });
 
             var embeds = _.clone(this.get('embeds') || []);
 
@@ -243,7 +243,7 @@ joint.dia.Cell = Backbone.Model.extend({
             cell.set('parent', this.id, opt);
             this.set('embeds', _.uniq(embeds), opt);
 
-            this.trigger('batch:stop');
+            this.trigger('batch:stop', { batchName: 'embed' });
         }
 
         return this;
@@ -251,12 +251,12 @@ joint.dia.Cell = Backbone.Model.extend({
 
     unembed: function(cell, opt) {
 
-        this.trigger('batch:start');
+        this.trigger('batch:start', { batchName: 'unembed' });
 
         cell.unset('parent', opt);
         this.set('embeds', _.without(this.get('embeds'), cell.id), opt);
 
-        this.trigger('batch:stop');
+        this.trigger('batch:stop', { batchName: 'unembed' });
 
         return this;
     },
@@ -970,7 +970,7 @@ joint.dia.CellView = Backbone.View.extend({
     pointerdown: function(evt, x, y) {
 
         if (this.model.collection) {
-            this.model.trigger('batch:start');
+            this.model.trigger('batch:start', { batchName: 'pointer' });
             this._collection = this.model.collection;
         }
 
@@ -989,7 +989,7 @@ joint.dia.CellView = Backbone.View.extend({
         if (this._collection) {
             // we don't want to trigger event on model as model doesn't
             // need to be member of collection anymore (remove)
-            this._collection.trigger('batch:stop');
+            this._collection.trigger('batch:stop', { batchName: 'pointer' });
             delete this._collection;
         }
     },

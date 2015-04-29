@@ -105,9 +105,9 @@ joint.dia.Element = joint.dia.Cell.extend({
 
     resize: function(width, height) {
 
-        this.trigger('batch:start');
+        this.trigger('batch:start', { batchName: 'resize' });
         this.set('size', { width: width, height: height });
-        this.trigger('batch:stop');
+        this.trigger('batch:stop', { batchName: 'resize' });
 
         return this;
     },
@@ -126,10 +126,10 @@ joint.dia.Element = joint.dia.Cell.extend({
             center.rotate(origin, this.get('angle') - angle);
             var dx = center.x - size.width / 2 - position.x;
             var dy = center.y - size.height / 2 - position.y;
-            this.trigger('batch:start');
+            this.trigger('batch:start', { batchName: 'rotate' });
             this.translate(dx, dy);
             this.rotate(angle, absolute);
-            this.trigger('batch:stop');
+            this.trigger('batch:stop', { batchName: 'rotate' });
 
         } else {
 
@@ -697,8 +697,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // target is a valid magnet start linking
         if (evt.target.getAttribute('magnet') && this.paper.options.validateMagnet.call(this.paper, this, evt.target)) {
 
-            this.model.trigger('batch:start');
-            
+            this.model.trigger('batch:start', { batchName: 'add-link' });
+
             var link = this.paper.getDefaultLink(this, evt.target);
             link.set({
                 source: {
@@ -780,7 +780,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             this._linkView.pointerup(evt, x, y);
             delete this._linkView;
 
-            this.model.trigger('batch:stop');
+            this.model.trigger('batch:stop', { batchName: 'add-link' });
 
         } else {
 
