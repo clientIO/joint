@@ -1,19 +1,6 @@
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
-if (typeof exports === 'object') {
-
-    var joint = {
-        util: require('../src/core').util,
-        shapes: {
-            basic: require('./joint.shapes.basic')
-        },
-        dia: {
-            Link: require('../src/joint.dia.link').Link
-        }
-    };
-}
-
 joint.shapes.logic = {};
 
 joint.shapes.logic.Gate = joint.shapes.basic.Generic.extend({
@@ -276,8 +263,3 @@ joint.shapes.logic.Wire = joint.dia.Link.extend({
     }, joint.dia.Link.prototype.defaults)
 
 });
-
-if (typeof exports === 'object') {
-
-    module.exports = joint.shapes.logic;
-}

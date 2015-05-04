@@ -1,17 +1,3 @@
-if (typeof exports === 'object') {
-
-    var joint = {
-        util: require('../src/core').util,
-        shapes: {
-            basic: require('./joint.shapes.basic')
-        },
-        dia: {
-            Element: require('../src/joint.dia.element').Element,
-            Link: require('../src/joint.dia.link').Link
-        }
-    };
-}
-
 joint.shapes.fsa = {};
 
 joint.shapes.fsa.State = joint.shapes.basic.Circle.extend({
@@ -77,8 +63,3 @@ joint.shapes.fsa.Arrow = joint.dia.Link.extend({
         smooth: true
     }, joint.dia.Link.prototype.defaults)
 });
-
-if (typeof exports === 'object') {
-
-    module.exports = joint.shapes.fsa;
-}

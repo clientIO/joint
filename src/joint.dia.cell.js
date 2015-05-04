@@ -1,20 +1,6 @@
 //      JointJS.
 //      (c) 2011-2013 client IO
 
-
-if (typeof exports === 'object') {
-
-    var joint = {
-        util: require('./core').util,
-        dia: {
-            Link: require('./joint.dia.link').Link
-        }
-    };
-    var Backbone = require('backbone');
-    var _ = require('lodash');
-}
-
-
 // joint.dia.Cell base model.
 // --------------------------
 
@@ -1004,10 +990,3 @@ joint.dia.CellView = Backbone.View.extend({
         this.notify('cell:mouseout', evt);
     }
 });
-
-
-if (typeof exports === 'object') {
-
-    module.exports.Cell = joint.dia.Cell;
-    module.exports.CellView = joint.dia.CellView;
-}

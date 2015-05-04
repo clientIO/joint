@@ -14,3 +14,4 @@ cstest:
 all:
 	grunt all
 	grunt allinone
+	grunt build

@@ -5,6 +5,54 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+(function(root, factory) {
+
+    if (typeof define === 'function' && define.amd) {
+
+        // For AMD.
+
+        define(['backbone', 'lodash', 'jquery', 'g', 'V'], function(Backbone, _, $, g, V) {
+
+            Backbone.$ = $;
+
+            return factory(root, Backbone, _, $, g, V);
+        });
+
+    } else if (typeof exports !== 'undefined') {
+
+        // For Node.js or CommonJS.
+
+        var Backbone = require('backbone');
+        var _ = require('lodash');
+        var $ = Backbone.$ = require('jquery');
+        var g = require('./geometry');
+        var V = require('./vectorizer');
+
+        module.exports = factory(root, Backbone, _, $, g, V);
+
+    } else {
+
+        // As a browser global.
+
+        var Backbone = root.Backbone;
+        var _ = root._;
+        var $ = Backbone.$ = root.jQuery || root.$;
+        var g = root.g;
+        var V = root.V;
+
+        root.joint = factory(root, Backbone, _, $, g, V);
+
+    }
+
+}(this, function(root, Backbone, _, $, g, V) {
+
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-04 
+
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
@@ -3203,18 +3251,18 @@ joint.dia.Link = joint.dia.Cell.extend({
     // Only .marker-vertex and .marker-vertex-remove element have special meaning. The former is used for
     // dragging vertices (changin their position). The latter is used for removing vertices.
     vertexMarkup: [
-        '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
-        '<circle class="marker-vertex" idx="<%= idx %>" r="10" />',
-        '<path class="marker-vertex-remove-area" idx="<%= idx %>" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
-        '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
+        '<g class="marker-vertex-group" transform="translate(, )">',
+        '<circle class="marker-vertex" idx="" r="10" />',
+        '<path class="marker-vertex-remove-area" idx="" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
+        '<path class="marker-vertex-remove" idx="" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
         '<title>Remove vertex.</title>',
         '</path>',
         '</g>'
     ].join(''),
 
     arrowheadMarkup: [
-        '<g class="marker-arrowhead-group marker-arrowhead-group-<%= end %>">',
-        '<path class="marker-arrowhead" end="<%= end %>" d="M 26 0 L 0 13 L 26 26 z" />',
+        '<g class="marker-arrowhead-group marker-arrowhead-group-">',
+        '<path class="marker-arrowhead" end="" d="M 26 0 L 0 13 L 26 26 z" />',
         '</g>'
     ].join(''),
 
@@ -6825,3 +6873,8 @@ joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
 
     return d.join(' ');
 };
+
+
+	return joint;
+
+}));

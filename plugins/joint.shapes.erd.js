@@ -1,18 +1,6 @@
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
-if (typeof exports === 'object') {
-
-    var joint = {
-        util: require('../src/core').util,
-        shapes: {},
-        dia: {
-            Element: require('../src/joint.dia.element').Element,
-            Link: require('../src/joint.dia.link').Link
-        }
-    };
-}
-
 joint.shapes.erd = {};
 
 joint.shapes.erd.Entity = joint.dia.Element.extend({
@@ -217,8 +205,3 @@ joint.shapes.erd.Line = joint.dia.Link.extend({
         this.set('labels', [{ position: -20, attrs: { text: { dy: -8, text: value }}}]);
     }
 });
-
-if (typeof exports === 'object') {
-
-    module.exports = joint.shapes.erd;
-}

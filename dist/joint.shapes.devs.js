@@ -1,24 +1,12 @@
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-02-03 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-04 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-if (typeof exports === 'object') {
-
-    var joint = {
-        util: require('../src/core').util,
-        shapes: {
-            basic: require('./joint.shapes.basic')
-        },
-        dia: {
-            ElementView: require('../src/joint.dia.element').ElementView,
-            Link: require('../src/joint.dia.link').Link
-        }
-    };
-    var _ = require('lodash');
-}
+//      JointJS library.
+//      (c) 2011-2013 client IO
 
 joint.shapes.devs = {};
 
@@ -31,7 +19,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend(_.extend({}, joint.s
 
         type: 'devs.Model',
         size: { width: 1, height: 1 },
-        
+
         inPorts: [],
         outPorts: [],
 
@@ -120,9 +108,3 @@ joint.shapes.devs.Link = joint.dia.Link.extend({
 joint.shapes.devs.ModelView = joint.dia.ElementView.extend(joint.shapes.basic.PortsViewInterface);
 joint.shapes.devs.AtomicView = joint.shapes.devs.ModelView;
 joint.shapes.devs.CoupledView = joint.shapes.devs.ModelView;
-
-
-if (typeof exports === 'object') {
-
-    module.exports = joint.shapes.devs;
-}

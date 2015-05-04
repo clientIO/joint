@@ -67,6 +67,11 @@ module.exports = function(grunt) {
         return ret;
     }
 
+    var buildWrapper = {
+        head: 'build/wrapper-head.js.partial',
+        foot: 'build/wrapper-foot.js.partial'
+    };
+
     grunt.template.addDelimiters("square", "[%", "%]");
 
     var config = {
@@ -111,7 +116,23 @@ module.exports = function(grunt) {
                     ),
                     'dist/joint.css': [].concat(
                         css.core
-                    )
+                    ),
+                    'dist/vectorizer.js': js.helpers.vectorizer,
+                    'dist/geometry.js': js.helpers.geometry
+                }
+            },
+            distbuild: {
+                options: {
+                    process: {
+                        delimiters: ''
+                    }
+                },
+                files: {
+                    'dist/joint.clean.build.js': [
+                        buildWrapper.head,
+                        'dist/joint.clean.js',
+                        buildWrapper.foot
+                    ]
                 }
             },
             allinone: {
@@ -132,6 +153,20 @@ module.exports = function(grunt) {
                     'dist/joint.all.css': [].concat(
                         css.core, allCSSPlugins()
                     )
+                }
+            },
+            allinonebuild: {
+                options: {
+                    process: {
+                        delimiters: ''
+                    }
+                },
+                files: {
+                    'dist/joint.all.clean.build.js': [
+                        buildWrapper.head,
+                        'dist/joint.all.clean.js',
+                        buildWrapper.foot
+                    ]
                 }
             },
             nojquery: {
@@ -216,6 +251,12 @@ module.exports = function(grunt) {
                 files: {
                     'dist/joint.nojquerynobackbone.min.js': 'dist/joint.nojquerynobackbone.js'
                 }
+            },
+            build: {
+                files: {
+                    'dist/joint.all.clean.build.min.js': ['dist/joint.all.clean.build.js'],
+                    'dist/joint.clean.build.min.js': ['dist/joint.clean.build.js']
+                }
             }
         },
         cssmin: {
@@ -258,6 +299,18 @@ module.exports = function(grunt) {
                     )
                 }
             }
+        },
+        browserify: {
+            build: {
+                files: {
+                    'dist/joint.clean.browserify-bundle.js': 'dist/joint.clean.build.js'
+                },
+                options: {
+                    browserifyOptions: {
+                        standalone: 'joint'
+                    }
+                }
+            }
         }
     };
 
@@ -280,6 +333,7 @@ module.exports = function(grunt) {
 
     grunt.initConfig(config);
 
+    grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
@@ -312,4 +366,8 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('all', allTasks);
+
+    grunt.registerTask('build', [
+        'concat:distbuild', 'concat:allinonebuild', 'uglify:build', 'browserify'
+    ]);
 };

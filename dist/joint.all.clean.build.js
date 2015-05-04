@@ -5,6 +5,54 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+(function(root, factory) {
+
+    if (typeof define === 'function' && define.amd) {
+
+        // For AMD.
+
+        define(['backbone', 'lodash', 'jquery', 'g', 'V'], function(Backbone, _, $, g, V) {
+
+            Backbone.$ = $;
+
+            return factory(root, Backbone, _, $, g, V);
+        });
+
+    } else if (typeof exports !== 'undefined') {
+
+        // For Node.js or CommonJS.
+
+        var Backbone = require('backbone');
+        var _ = require('lodash');
+        var $ = Backbone.$ = require('jquery');
+        var g = require('./geometry');
+        var V = require('./vectorizer');
+
+        module.exports = factory(root, Backbone, _, $, g, V);
+
+    } else {
+
+        // As a browser global.
+
+        var Backbone = root.Backbone;
+        var _ = root._;
+        var $ = Backbone.$ = root.jQuery || root.$;
+        var g = root.g;
+        var V = root.V;
+
+        root.joint = factory(root, Backbone, _, $, g, V);
+
+    }
+
+}(this, function(root, Backbone, _, $, g, V) {
+
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-04 
+
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
@@ -3203,18 +3251,18 @@ joint.dia.Link = joint.dia.Cell.extend({
     // Only .marker-vertex and .marker-vertex-remove element have special meaning. The former is used for
     // dragging vertices (changin their position). The latter is used for removing vertices.
     vertexMarkup: [
-        '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
-        '<circle class="marker-vertex" idx="<%= idx %>" r="10" />',
-        '<path class="marker-vertex-remove-area" idx="<%= idx %>" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
-        '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
+        '<g class="marker-vertex-group" transform="translate(, )">',
+        '<circle class="marker-vertex" idx="" r="10" />',
+        '<path class="marker-vertex-remove-area" idx="" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
+        '<path class="marker-vertex-remove" idx="" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
         '<title>Remove vertex.</title>',
         '</path>',
         '</g>'
     ].join(''),
 
     arrowheadMarkup: [
-        '<g class="marker-arrowhead-group marker-arrowhead-group-<%= end %>">',
-        '<path class="marker-arrowhead" end="<%= end %>" d="M 26 0 L 0 13 L 26 26 z" />',
+        '<g class="marker-arrowhead-group marker-arrowhead-group-">',
+        '<path class="marker-arrowhead" end="" d="M 26 0 L 0 13 L 26 26 z" />',
         '</g>'
     ].join(''),
 
@@ -6825,3 +6873,5414 @@ joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
 
     return d.join(' ');
 };
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+joint.shapes.erd = {};
+
+joint.shapes.erd.Entity = joint.dia.Element.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.Entity',
+        size: { width: 150, height: 60 },
+        attrs: {
+            '.outer': {
+                fill: '#2ECC71', stroke: '#27AE60', 'stroke-width': 2,
+                points: '100,0 100,60 0,60 0,0'
+            },
+            '.inner': {
+                fill: '#2ECC71', stroke: '#27AE60', 'stroke-width': 2,
+                points: '95,5 95,55 5,55 5,5',
+                display: 'none'
+            },
+            text: {
+                text: 'Entity',
+                'font-family': 'Arial', 'font-size': 14,
+                ref: '.outer', 'ref-x': .5, 'ref-y': .5,
+                'x-alignment': 'middle', 'y-alignment': 'middle'
+            }
+        }
+
+    }, joint.dia.Element.prototype.defaults)
+});
+
+joint.shapes.erd.WeakEntity = joint.shapes.erd.Entity.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.WeakEntity',
+
+        attrs: {
+            '.inner' : { display: 'auto' },
+            text: { text: 'Weak Entity' }
+        }
+
+    }, joint.shapes.erd.Entity.prototype.defaults)
+});
+
+joint.shapes.erd.Relationship = joint.dia.Element.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.Relationship',
+        size: { width: 80, height: 80 },
+        attrs: {
+            '.outer': {
+                fill: '#3498DB', stroke: '#2980B9', 'stroke-width': 2,
+                points: '40,0 80,40 40,80 0,40'
+            },
+            '.inner': {
+                fill: '#3498DB', stroke: '#2980B9', 'stroke-width': 2,
+                points: '40,5 75,40 40,75 5,40',
+                display: 'none'
+            },
+            text: {
+                text: 'Relationship',
+                'font-family': 'Arial', 'font-size': 12,
+                ref: '.', 'ref-x': .5, 'ref-y': .5,
+                'x-alignment': 'middle', 'y-alignment': 'middle'
+            }
+        }
+
+    }, joint.dia.Element.prototype.defaults)
+});
+
+joint.shapes.erd.IdentifyingRelationship = joint.shapes.erd.Relationship.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.IdentifyingRelationship',
+
+        attrs: {
+            '.inner': { display: 'auto' },
+            text: { text: 'Identifying' }
+        }
+
+    }, joint.shapes.erd.Relationship.prototype.defaults)
+});
+
+joint.shapes.erd.Attribute = joint.dia.Element.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><ellipse class="outer"/><ellipse class="inner"/></g><text/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.Attribute',
+        size: { width: 100, height: 50 },
+        attrs: {
+            'ellipse': {
+                transform: 'translate(50, 25)'
+            },
+            '.outer': {
+                stroke: '#D35400', 'stroke-width': 2,
+                cx: 0, cy: 0, rx: 50, ry: 25,
+                fill: '#E67E22'
+            },
+            '.inner': {
+                stroke: '#D35400', 'stroke-width': 2,
+                cx: 0, cy: 0, rx: 45, ry: 20,
+                fill: '#E67E22', display: 'none'
+            },
+            text: {
+                 'font-family': 'Arial', 'font-size': 14,
+                 ref: '.', 'ref-x': .5, 'ref-y': .5,
+                 'x-alignment': 'middle', 'y-alignment': 'middle'
+             }
+        }
+
+    }, joint.dia.Element.prototype.defaults)
+
+});
+
+joint.shapes.erd.Multivalued = joint.shapes.erd.Attribute.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.Multivalued',
+
+        attrs: {
+             '.inner': { display: 'block' },
+             text: { text: 'multivalued' }
+         }
+    }, joint.shapes.erd.Attribute.prototype.defaults)
+});
+
+joint.shapes.erd.Derived = joint.shapes.erd.Attribute.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.Derived',
+
+        attrs: {
+             '.outer': { 'stroke-dasharray': '3,5' },
+             text: { text: 'derived' }
+         }
+
+    }, joint.shapes.erd.Attribute.prototype.defaults)
+});
+
+joint.shapes.erd.Key = joint.shapes.erd.Attribute.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.Key',
+
+        attrs: {
+             ellipse: { 'stroke-width': 4 },
+             text: { text: 'key', 'font-weight': '800', 'text-decoration': 'underline' }
+         }
+    }, joint.shapes.erd.Attribute.prototype.defaults)
+});
+
+joint.shapes.erd.Normal = joint.shapes.erd.Attribute.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.Normal',
+
+        attrs: { text: { text: 'Normal' }}
+
+    }, joint.shapes.erd.Attribute.prototype.defaults)
+});
+
+joint.shapes.erd.ISA = joint.dia.Element.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><polygon/></g><text/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.ISA',
+        size: { width: 100, height: 50 },
+        attrs: {
+            polygon: {
+                points: '0,0 50,50 100,0',
+                fill: '#F1C40F', stroke: '#F39C12', 'stroke-width': 2
+            },
+            text: {
+                text: 'ISA', 'font-size': 18,
+                ref: 'polygon', 'ref-x': .5, 'ref-y': .3,
+                'x-alignment': 'middle', 'y-alignment': 'middle'
+            }
+        }
+
+    }, joint.dia.Element.prototype.defaults)
+
+});
+
+joint.shapes.erd.Line = joint.dia.Link.extend({
+
+    defaults: { type: 'erd.Line' },
+
+    cardinality: function(value) {
+        this.set('labels', [{ position: -20, attrs: { text: { dy: -8, text: value }}}]);
+    }
+});
+
+joint.shapes.fsa = {};
+
+joint.shapes.fsa.State = joint.shapes.basic.Circle.extend({
+    defaults: joint.util.deepSupplement({
+        type: 'fsa.State',
+        attrs: {
+            circle: { 'stroke-width': 3 },
+            text: { 'font-weight': '800' }
+        }
+    }, joint.shapes.basic.Circle.prototype.defaults)
+});
+
+joint.shapes.fsa.StartState = joint.dia.Element.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><circle/></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'fsa.StartState',
+        size: { width: 20, height: 20 },
+        attrs: {
+            circle: {
+                transform: 'translate(10, 10)',
+                r: 10,
+                fill: '#000000'
+            }
+        }
+
+    }, joint.dia.Element.prototype.defaults)
+});
+
+joint.shapes.fsa.EndState = joint.dia.Element.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'fsa.EndState',
+        size: { width: 20, height: 20 },
+        attrs: {
+            '.outer': {
+                transform: 'translate(10, 10)',
+                r: 10,
+                fill: '#ffffff',
+                stroke: '#000000'
+            },
+
+            '.inner': {
+                transform: 'translate(10, 10)',
+                r: 6,
+                fill: '#000000'
+            }
+        }
+
+    }, joint.dia.Element.prototype.defaults)
+});
+
+joint.shapes.fsa.Arrow = joint.dia.Link.extend({
+
+    defaults: joint.util.deepSupplement({
+        type: 'fsa.Arrow',
+        attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }},
+        smooth: true
+    }, joint.dia.Link.prototype.defaults)
+});
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+joint.shapes.org = {};
+
+joint.shapes.org.Member = joint.dia.Element.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><rect class="card"/><image/></g><text class="rank"/><text class="name"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'org.Member',
+        size: { width: 180, height: 70 },
+        attrs: {
+
+            rect: { width: 170, height: 60 },
+
+            '.card': {
+                fill: '#FFFFFF', stroke: '#000000', 'stroke-width': 2,
+                'pointer-events': 'visiblePainted', rx: 10, ry: 10
+            },
+
+            image: {
+                width: 48, height: 48,
+                ref: '.card', 'ref-x': 10, 'ref-y': 5
+            },
+
+            '.rank': {
+                'text-decoration': 'underline',
+                ref: '.card', 'ref-x': 0.9, 'ref-y': 0.2,
+                'font-family': 'Courier New', 'font-size': 14,
+                'text-anchor': 'end'
+            },
+
+            '.name': {
+                'font-weight': '800',
+                ref: '.card', 'ref-x': 0.9, 'ref-y': 0.6,
+                'font-family': 'Courier New', 'font-size': 14,
+                'text-anchor': 'end'
+            }
+        }
+    }, joint.dia.Element.prototype.defaults)
+});
+
+joint.shapes.org.Arrow = joint.dia.Link.extend({
+
+    defaults: {
+        type: 'org.Arrow',
+        source: { selector: '.card' }, target: { selector: '.card' },
+        attrs: { '.connection': { stroke: '#585858', 'stroke-width': 3 }},
+        z: -1
+    }
+});
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+joint.shapes.chess = {};
+
+joint.shapes.chess.KingWhite = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;"><path      d="M 22.5,11.63 L 22.5,6"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path      d="M 20,8 L 25,8"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path      d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25"      style="fill:#ffffff; stroke:#000000; stroke-linecap:butt; stroke-linejoin:miter;" />    <path      d="M 11.5,37 C 17,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 19,16 9.5,13 6.5,19.5 C 3.5,25.5 11.5,29.5 11.5,29.5 L 11.5,37 z "      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 11.5,30 C 17,27 27,27 32.5,30"      style="fill:none; stroke:#000000;" />    <path      d="M 11.5,33.5 C 17,30.5 27,30.5 32.5,33.5"      style="fill:none; stroke:#000000;" />    <path      d="M 11.5,37 C 17,34 27,34 32.5,37"      style="fill:none; stroke:#000000;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.KingWhite',
+        size: { width: 42, height: 38 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.KingBlack = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path       d="M 22.5,11.63 L 22.5,6"       style="fill:none; stroke:#000000; stroke-linejoin:miter;"       id="path6570" />    <path       d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25"       style="fill:#000000;fill-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;" />    <path       d="M 11.5,37 C 17,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 19,16 9.5,13 6.5,19.5 C 3.5,25.5 11.5,29.5 11.5,29.5 L 11.5,37 z "       style="fill:#000000; stroke:#000000;" />    <path       d="M 20,8 L 25,8"       style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path       d="M 32,29.5 C 32,29.5 40.5,25.5 38.03,19.85 C 34.15,14 25,18 22.5,24.5 L 22.51,26.6 L 22.5,24.5 C 20,18 9.906,14 6.997,19.85 C 4.5,25.5 11.85,28.85 11.85,28.85"       style="fill:none; stroke:#ffffff;" />    <path       d="M 11.5,30 C 17,27 27,27 32.5,30 M 11.5,33.5 C 17,30.5 27,30.5 32.5,33.5 M 11.5,37 C 17,34 27,34 32.5,37"       style="fill:none; stroke:#ffffff;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.KingBlack',
+        size: { width: 42, height: 38 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.QueenWhite = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(-1,-1)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(15.5,-5.5)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(32,-1)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(7,-4.5)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(24,-4)" />    <path      d="M 9,26 C 17.5,24.5 30,24.5 36,26 L 38,14 L 31,25 L 31,11 L 25.5,24.5 L 22.5,9.5 L 19.5,24.5 L 14,10.5 L 14,25 L 7,14 L 9,26 z "      style="stroke-linecap:butt;" />    <path      d="M 9,26 C 9,28 10.5,28 11.5,30 C 12.5,31.5 12.5,31 12,33.5 C 10.5,34.5 10.5,36 10.5,36 C 9,37.5 11,38.5 11,38.5 C 17.5,39.5 27.5,39.5 34,38.5 C 34,38.5 35.5,37.5 34,36 C 34,36 34.5,34.5 33,33.5 C 32.5,31 32.5,31.5 33.5,30 C 34.5,28 36,28 36,26 C 27.5,24.5 17.5,24.5 9,26 z "      style="stroke-linecap:butt;" />    <path      d="M 11.5,30 C 15,29 30,29 33.5,30"      style="fill:none;" />    <path      d="M 12,33.5 C 18,32.5 27,32.5 33,33.5"      style="fill:none;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.QueenWhite',
+        size: { width: 42, height: 38 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.QueenBlack = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#000000; stroke:none;">      <circle cx="6"    cy="12" r="2.75" />      <circle cx="14"   cy="9"  r="2.75" />      <circle cx="22.5" cy="8"  r="2.75" />      <circle cx="31"   cy="9"  r="2.75" />      <circle cx="39"   cy="12" r="2.75" />    </g>    <path       d="M 9,26 C 17.5,24.5 30,24.5 36,26 L 38.5,13.5 L 31,25 L 30.7,10.9 L 25.5,24.5 L 22.5,10 L 19.5,24.5 L 14.3,10.9 L 14,25 L 6.5,13.5 L 9,26 z"       style="stroke-linecap:butt; stroke:#000000;" />    <path       d="M 9,26 C 9,28 10.5,28 11.5,30 C 12.5,31.5 12.5,31 12,33.5 C 10.5,34.5 10.5,36 10.5,36 C 9,37.5 11,38.5 11,38.5 C 17.5,39.5 27.5,39.5 34,38.5 C 34,38.5 35.5,37.5 34,36 C 34,36 34.5,34.5 33,33.5 C 32.5,31 32.5,31.5 33.5,30 C 34.5,28 36,28 36,26 C 27.5,24.5 17.5,24.5 9,26 z"       style="stroke-linecap:butt;" />    <path       d="M 11,38.5 A 35,35 1 0 0 34,38.5"       style="fill:none; stroke:#000000; stroke-linecap:butt;" />    <path       d="M 11,29 A 35,35 1 0 1 34,29"       style="fill:none; stroke:#ffffff;" />    <path       d="M 12.5,31.5 L 32.5,31.5"       style="fill:none; stroke:#ffffff;" />    <path       d="M 11.5,34.5 A 35,35 1 0 0 33.5,34.5"       style="fill:none; stroke:#ffffff;" />    <path       d="M 10.5,37.5 A 35,35 1 0 0 34.5,37.5"       style="fill:none; stroke:#ffffff;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.QueenBlack',
+        size: { width: 42, height: 38 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.RookWhite = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z "      style="stroke-linecap:butt;" />    <path      d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z "      style="stroke-linecap:butt;" />    <path      d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14"      style="stroke-linecap:butt;" />    <path      d="M 34,14 L 31,17 L 14,17 L 11,14" />    <path      d="M 31,17 L 31,29.5 L 14,29.5 L 14,17"      style="stroke-linecap:butt; stroke-linejoin:miter;" />    <path      d="M 31,29.5 L 32.5,32 L 12.5,32 L 14,29.5" />    <path      d="M 11,14 L 34,14"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.RookWhite',
+        size: { width: 32, height: 34 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.RookBlack = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z "      style="stroke-linecap:butt;" />    <path      d="M 12.5,32 L 14,29.5 L 31,29.5 L 32.5,32 L 12.5,32 z "      style="stroke-linecap:butt;" />    <path      d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z "      style="stroke-linecap:butt;" />    <path      d="M 14,29.5 L 14,16.5 L 31,16.5 L 31,29.5 L 14,29.5 z "      style="stroke-linecap:butt;stroke-linejoin:miter;" />    <path      d="M 14,16.5 L 11,14 L 34,14 L 31,16.5 L 14,16.5 z "      style="stroke-linecap:butt;" />    <path      d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14 L 11,14 z "      style="stroke-linecap:butt;" />    <path      d="M 12,35.5 L 33,35.5 L 33,35.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 13,31.5 L 32,31.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 14,29.5 L 31,29.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 14,16.5 L 31,16.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 11,14 L 34,14"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.RookBlack',
+        size: { width: 32, height: 34 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.BishopWhite = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-rule:evenodd; fill-opacity:1; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#ffffff; stroke:#000000; stroke-linecap:butt;">       <path        d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.646,38.99 6.677,38.97 6,38 C 7.354,36.06 9,36 9,36 z" />      <path        d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z" />      <path        d="M 25 8 A 2.5 2.5 0 1 1  20,8 A 2.5 2.5 0 1 1  25 8 z" />    </g>    <path      d="M 17.5,26 L 27.5,26 M 15,30 L 30,30 M 22.5,15.5 L 22.5,20.5 M 20,18 L 25,18"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.BishopWhite',
+        size: { width: 38, height: 38 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.BishopBlack = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-rule:evenodd; fill-opacity:1; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#000000; stroke:#000000; stroke-linecap:butt;">       <path        d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.646,38.99 6.677,38.97 6,38 C 7.354,36.06 9,36 9,36 z" />      <path        d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z" />      <path        d="M 25 8 A 2.5 2.5 0 1 1  20,8 A 2.5 2.5 0 1 1  25 8 z" />    </g>    <path       d="M 17.5,26 L 27.5,26 M 15,30 L 30,30 M 22.5,15.5 L 22.5,20.5 M 20,18 L 25,18"       style="fill:none; stroke:#ffffff; stroke-linejoin:miter;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.BishopBlack',
+        size: { width: 38, height: 38 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.KnightWhite = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18"      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10"      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z"      style="fill:#000000; stroke:#000000;" />    <path      d="M 15 15.5 A 0.5 1.5 0 1 1  14,15.5 A 0.5 1.5 0 1 1  15 15.5 z"      transform="matrix(0.866,0.5,-0.5,0.866,9.693,-5.173)"      style="fill:#000000; stroke:#000000;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.KnightWhite',
+        size: { width: 38, height: 37 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.KnightBlack = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18"      style="fill:#000000; stroke:#000000;" />    <path      d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10"      style="fill:#000000; stroke:#000000;" />    <path      d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z"      style="fill:#ffffff; stroke:#ffffff;" />    <path      d="M 15 15.5 A 0.5 1.5 0 1 1  14,15.5 A 0.5 1.5 0 1 1  15 15.5 z"      transform="matrix(0.866,0.5,-0.5,0.866,9.693,-5.173)"      style="fill:#ffffff; stroke:#ffffff;" />    <path      d="M 24.55,10.4 L 24.1,11.85 L 24.6,12 C 27.75,13 30.25,14.49 32.5,18.75 C 34.75,23.01 35.75,29.06 35.25,39 L 35.2,39.5 L 37.45,39.5 L 37.5,39 C 38,28.94 36.62,22.15 34.25,17.66 C 31.88,13.17 28.46,11.02 25.06,10.5 L 24.55,10.4 z "      style="fill:#ffffff; stroke:none;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.KnightBlack',
+        size: { width: 38, height: 37 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.PawnWhite = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><path d="M 22,9 C 19.79,9 18,10.79 18,13 C 18,13.89 18.29,14.71 18.78,15.38 C 16.83,16.5 15.5,18.59 15.5,21 C 15.5,23.03 16.44,24.84 17.91,26.03 C 14.91,27.09 10.5,31.58 10.5,39.5 L 33.5,39.5 C 33.5,31.58 29.09,27.09 26.09,26.03 C 27.56,24.84 28.5,23.03 28.5,21 C 28.5,18.59 27.17,16.5 25.22,15.38 C 25.71,14.71 26,13.89 26,13 C 26,10.79 24.21,9 22,9 z "  style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:nonzero; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:miter; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;" /></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.PawnWhite',
+        size: { width: 28, height: 33 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.PawnBlack = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><path d="M 22,9 C 19.79,9 18,10.79 18,13 C 18,13.89 18.29,14.71 18.78,15.38 C 16.83,16.5 15.5,18.59 15.5,21 C 15.5,23.03 16.44,24.84 17.91,26.03 C 14.91,27.09 10.5,31.58 10.5,39.5 L 33.5,39.5 C 33.5,31.58 29.09,27.09 26.09,26.03 C 27.56,24.84 28.5,23.03 28.5,21 C 28.5,18.59 27.17,16.5 25.22,15.38 C 25.71,14.71 26,13.89 26,13 C 26,10.79 24.21,9 22,9 z "  style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:nonzero; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:miter; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;" /></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.PawnBlack',
+        size: { width: 28, height: 33 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+joint.shapes.pn = {};
+
+joint.shapes.pn.Place = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'pn.Place',
+        size: { width: 50, height: 50 },
+        attrs: {
+            '.root': {
+                r: 25,
+                fill: '#ffffff',
+                stroke: '#000000',
+                transform: 'translate(25, 25)'
+            },
+            '.label': {
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-y': -20,
+                ref: '.root',
+                fill: '#000000',
+                'font-size': 12
+            },
+            '.tokens > circle': {
+                fill: '#000000',
+                r: 5
+            },
+            '.tokens.one > circle': { transform: 'translate(25, 25)' },
+
+            '.tokens.two > circle:nth-child(1)': { transform: 'translate(19, 25)' },
+            '.tokens.two > circle:nth-child(2)': { transform: 'translate(31, 25)' },
+
+            '.tokens.three > circle:nth-child(1)': { transform: 'translate(18, 29)' },
+            '.tokens.three > circle:nth-child(2)': { transform: 'translate(25, 19)' },
+            '.tokens.three > circle:nth-child(3)': { transform: 'translate(32, 29)' },
+
+            '.tokens.alot > text': {
+                transform: 'translate(25, 18)',
+                'text-anchor': 'middle',
+                fill: '#000000'
+            }
+        }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+
+joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
+
+    initialize: function() {
+
+        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+
+        this.model.on('change:tokens', function() {
+
+            this.renderTokens();
+            this.update();
+
+        }, this);
+    },
+
+    render: function() {
+
+        joint.dia.ElementView.prototype.render.apply(this, arguments);
+
+        this.renderTokens();
+        this.update();
+    },
+
+    renderTokens: function() {
+
+        var $tokens = this.$('.tokens').empty();
+        $tokens[0].className.baseVal = 'tokens';
+
+        var tokens = this.model.get('tokens');
+
+        if (!tokens) return;
+
+        switch (tokens) {
+
+            case 1:
+                $tokens[0].className.baseVal += ' one';
+                $tokens.append(V('<circle/>').node);
+                break;
+
+            case 2:
+                $tokens[0].className.baseVal += ' two';
+                $tokens.append(V('<circle/>').node, V('<circle/>').node);
+                break;
+
+            case 3:
+                $tokens[0].className.baseVal += ' three';
+                $tokens.append(V('<circle/>').node, V('<circle/>').node, V('<circle/>').node);
+                break;
+
+            default:
+                $tokens[0].className.baseVal += ' alot';
+                $tokens.append(V('<text/>').text(tokens + '' ).node);
+                break;
+        }
+    }
+});
+
+
+joint.shapes.pn.Transition = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><rect class="root"/></g></g><text class="label"/>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'pn.Transition',
+        size: { width: 12, height: 50 },
+        attrs: {
+            'rect': {
+                width: 12,
+                height: 50,
+                fill: '#000000',
+                stroke: '#000000'
+            },
+            '.label': {
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-y': -20,
+                ref: 'rect',
+                fill: '#000000',
+                'font-size': 12
+            }
+        }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.pn.Link = joint.dia.Link.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
+
+    }, joint.dia.Link.prototype.defaults)
+});
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+joint.shapes.devs = {};
+
+joint.shapes.devs.Model = joint.shapes.basic.Generic.extend(_.extend({}, joint.shapes.basic.PortsModelInterface, {
+
+    markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><text class="label"/><g class="inPorts"/><g class="outPorts"/></g>',
+    portMarkup: '<g class="port port"><circle class="port-body"/><text class="port-label"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'devs.Model',
+        size: { width: 1, height: 1 },
+
+        inPorts: [],
+        outPorts: [],
+
+        attrs: {
+            '.': { magnet: false },
+            '.body': {
+                width: 150, height: 250,
+                stroke: '#000000'
+            },
+            '.port-body': {
+                r: 10,
+                magnet: true,
+                stroke: '#000000'
+            },
+            text: {
+                'pointer-events': 'none'
+            },
+            '.label': { text: 'Model', 'ref-x': .5, 'ref-y': 10, ref: '.body', 'text-anchor': 'middle', fill: '#000000' },
+            '.inPorts .port-label': { x:-15, dy: 4, 'text-anchor': 'end', fill: '#000000' },
+            '.outPorts .port-label':{ x: 15, dy: 4, fill: '#000000' }
+        }
+
+    }, joint.shapes.basic.Generic.prototype.defaults),
+
+    getPortAttrs: function(portName, index, total, selector, type) {
+
+        var attrs = {};
+
+        var portClass = 'port' + index;
+        var portSelector = selector + '>.' + portClass;
+        var portLabelSelector = portSelector + '>.port-label';
+        var portBodySelector = portSelector + '>.port-body';
+
+        attrs[portLabelSelector] = { text: portName };
+        attrs[portBodySelector] = { port: { id: portName || _.uniqueId(type) , type: type } };
+        attrs[portSelector] = { ref: '.body', 'ref-y': (index + 0.5) * (1 / total) };
+
+        if (selector === '.outPorts') { attrs[portSelector]['ref-dx'] = 0; }
+
+        return attrs;
+    }
+}));
+
+
+joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'devs.Atomic',
+        size: { width: 80, height: 80 },
+        attrs: {
+            '.body': { fill: 'salmon' },
+            '.label': { text: 'Atomic' },
+            '.inPorts .port-body': { fill: 'PaleGreen' },
+            '.outPorts .port-body': { fill: 'Tomato' }
+        }
+
+    }, joint.shapes.devs.Model.prototype.defaults)
+
+});
+
+joint.shapes.devs.Coupled = joint.shapes.devs.Model.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'devs.Coupled',
+        size: { width: 200, height: 300 },
+        attrs: {
+            '.body': { fill: 'seaGreen' },
+            '.label': { text: 'Coupled' },
+            '.inPorts .port-body': { fill: 'PaleGreen' },
+            '.outPorts .port-body': { fill: 'Tomato' }
+        }
+
+    }, joint.shapes.devs.Model.prototype.defaults)
+});
+
+joint.shapes.devs.Link = joint.dia.Link.extend({
+
+    defaults: {
+        type: 'devs.Link',
+        attrs: { '.connection' : { 'stroke-width' :  2 }}
+    }
+});
+
+joint.shapes.devs.ModelView = joint.dia.ElementView.extend(joint.shapes.basic.PortsViewInterface);
+joint.shapes.devs.AtomicView = joint.shapes.devs.ModelView;
+joint.shapes.devs.CoupledView = joint.shapes.devs.ModelView;
+
+joint.shapes.uml = {};
+
+joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
+
+    markup: [
+        '<g class="rotatable">',
+          '<g class="scalable">',
+            '<rect class="uml-class-name-rect"/><rect class="uml-class-attrs-rect"/><rect class="uml-class-methods-rect"/>',
+          '</g>',
+          '<text class="uml-class-name-text"/><text class="uml-class-attrs-text"/><text class="uml-class-methods-text"/>',
+        '</g>'
+    ].join(''),
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'uml.Class',
+
+        attrs: {
+            rect: { 'width': 200 },
+
+            '.uml-class-name-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#3498db' },
+            '.uml-class-attrs-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
+            '.uml-class-methods-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
+
+            '.uml-class-name-text': {
+                'ref': '.uml-class-name-rect', 'ref-y': .5, 'ref-x': .5, 'text-anchor': 'middle', 'y-alignment': 'middle', 'font-weight': 'bold',
+                'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
+            },
+            '.uml-class-attrs-text': {
+                'ref': '.uml-class-attrs-rect', 'ref-y': 5, 'ref-x': 5,
+                'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
+            },
+            '.uml-class-methods-text': {
+                'ref': '.uml-class-methods-rect', 'ref-y': 5, 'ref-x': 5,
+                'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
+            }
+        },
+
+        name: [],
+        attributes: [],
+        methods: []
+
+    }, joint.shapes.basic.Generic.prototype.defaults),
+
+    initialize: function() {
+
+        this.on('change:name change:attributes change:methods', function() {
+            this.updateRectangles();
+            this.trigger('uml-update');
+        }, this);
+
+        this.updateRectangles();
+
+        joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
+    },
+
+    getClassName: function() {
+        return this.get('name');
+    },
+
+    updateRectangles: function() {
+
+        var attrs = this.get('attrs');
+
+        var rects = [
+            { type: 'name', text: this.getClassName() },
+            { type: 'attrs', text: this.get('attributes') },
+            { type: 'methods', text: this.get('methods') }
+        ];
+
+        var offsetY = 0;
+
+        _.each(rects, function(rect) {
+
+            var lines = _.isArray(rect.text) ? rect.text : [rect.text];
+            var rectHeight = lines.length * 20 + 20;
+
+            attrs['.uml-class-' + rect.type + '-text'].text = lines.join('\n');
+            attrs['.uml-class-' + rect.type + '-rect'].height = rectHeight;
+            attrs['.uml-class-' + rect.type + '-rect'].transform = 'translate(0,' + offsetY + ')';
+
+            offsetY += rectHeight;
+        });
+    }
+
+});
+
+joint.shapes.uml.ClassView = joint.dia.ElementView.extend({
+
+    initialize: function() {
+
+        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+
+        this.listenTo(this.model, 'uml-update', function() {
+            this.update();
+            this.resize();
+        });
+    }
+});
+
+joint.shapes.uml.Abstract = joint.shapes.uml.Class.extend({
+
+    defaults: joint.util.deepSupplement({
+        type: 'uml.Abstract',
+        attrs: {
+            '.uml-class-name-rect': { fill : '#e74c3c' },
+            '.uml-class-attrs-rect': { fill : '#c0392b' },
+            '.uml-class-methods-rect': { fill : '#c0392b' }
+        }
+    }, joint.shapes.uml.Class.prototype.defaults),
+
+    getClassName: function() {
+        return ['<<Abstract>>', this.get('name')];
+    }
+
+});
+joint.shapes.uml.AbstractView = joint.shapes.uml.ClassView;
+
+joint.shapes.uml.Interface = joint.shapes.uml.Class.extend({
+
+    defaults: joint.util.deepSupplement({
+        type: 'uml.Interface',
+        attrs: {
+            '.uml-class-name-rect': { fill : '#f1c40f' },
+            '.uml-class-attrs-rect': { fill : '#f39c12' },
+            '.uml-class-methods-rect': { fill : '#f39c12' }
+        }
+    }, joint.shapes.uml.Class.prototype.defaults),
+
+    getClassName: function() {
+        return ['<<Interface>>', this.get('name')];
+    }
+
+});
+joint.shapes.uml.InterfaceView = joint.shapes.uml.ClassView;
+
+joint.shapes.uml.Generalization = joint.dia.Link.extend({
+    defaults: {
+        type: 'uml.Generalization',
+        attrs: { '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' }}
+    }
+});
+
+joint.shapes.uml.Implementation = joint.dia.Link.extend({
+    defaults: {
+        type: 'uml.Implementation',
+        attrs: {
+            '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' },
+            '.connection': { 'stroke-dasharray': '3,3' }
+        }
+    }
+});
+
+joint.shapes.uml.Aggregation = joint.dia.Link.extend({
+    defaults: {
+        type: 'uml.Aggregation',
+        attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'white' }}
+    }
+});
+
+joint.shapes.uml.Composition = joint.dia.Link.extend({
+    defaults: {
+        type: 'uml.Composition',
+        attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'black' }}
+    }
+});
+
+joint.shapes.uml.Association = joint.dia.Link.extend({
+    defaults: { type: 'uml.Association' }
+});
+
+// Statechart
+
+joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
+
+    markup: [
+        '<g class="rotatable">',
+          '<g class="scalable">',
+            '<rect class="uml-state-body"/>',
+          '</g>',
+          '<path class="uml-state-separator"/>',
+          '<text class="uml-state-name"/>',
+          '<text class="uml-state-events"/>',
+        '</g>'
+    ].join(''),
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'uml.State',
+
+        attrs: {
+            '.uml-state-body': {
+                'width': 200, 'height': 200, 'rx': 10, 'ry': 10,
+                'fill': '#ecf0f1', 'stroke': '#bdc3c7', 'stroke-width': 3
+            },
+            '.uml-state-separator': {
+                'stroke': '#bdc3c7', 'stroke-width': 2
+            },
+            '.uml-state-name': {
+                'ref': '.uml-state-body', 'ref-x': .5, 'ref-y': 5, 'text-anchor': 'middle',
+                'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
+            },
+            '.uml-state-events': {
+                'ref': '.uml-state-separator', 'ref-x': 5, 'ref-y': 5,
+                'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
+            }
+        },
+
+        name: 'State',
+        events: []
+
+    }, joint.shapes.basic.Generic.prototype.defaults),
+
+    initialize: function() {
+
+        this.on({
+            'change:name': this.updateName,
+            'change:events': this.updateEvents,
+            'change:size': this.updatePath
+        }, this);
+
+        this.updateName();
+        this.updateEvents();
+        this.updatePath();
+
+        joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
+    },
+
+    updateName: function() {
+
+        this.attr('.uml-state-name/text', this.get('name'));
+    },
+
+    updateEvents: function() {
+
+        this.attr('.uml-state-events/text', this.get('events').join('\n'));
+    },
+
+    updatePath: function() {
+
+        var d = 'M 0 20 L ' + this.get('size').width + ' 20';
+
+        // We are using `silent: true` here because updatePath() is meant to be called
+        // on resize and there's no need to to update the element twice (`change:size`
+        // triggers also an update).
+        this.attr('.uml-state-separator/d', d, { silent: true });
+    }
+
+});
+
+joint.shapes.uml.StartState = joint.shapes.basic.Circle.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'uml.StartState',
+        attrs: { circle: { 'fill': '#34495e', 'stroke': '#2c3e50', 'stroke-width': 2, 'rx': 1 }}
+
+    }, joint.shapes.basic.Circle.prototype.defaults)
+
+});
+
+joint.shapes.uml.EndState = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'uml.EndState',
+        size: { width: 20, height: 20 },
+        attrs: {
+            'circle.outer': {
+                transform: 'translate(10, 10)',
+                r: 10,
+                fill: '#ffffff',
+                stroke: '#2c3e50'
+            },
+
+            'circle.inner': {
+                transform: 'translate(10, 10)',
+                r: 6,
+                fill: '#34495e'
+            }
+        }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+
+});
+
+joint.shapes.uml.Transition = joint.dia.Link.extend({
+    defaults: {
+        type: 'uml.Transition',
+        attrs: {
+            '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z', fill: '#34495e', stroke: '#2c3e50' },
+            '.connection': { stroke: '#2c3e50' }
+        }
+    }
+});
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+joint.shapes.logic = {};
+
+joint.shapes.logic.Gate = joint.shapes.basic.Generic.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Gate',
+        size: { width: 80, height: 40 },
+        attrs: {
+            '.': { magnet: false },
+            '.body': { width: 100, height: 50 },
+            circle: { r: 7, stroke: 'black', fill: 'transparent', 'stroke-width': 2 }
+        }
+
+    }, joint.shapes.basic.Generic.prototype.defaults),
+
+    operation: function() { return true; }
+});
+
+joint.shapes.logic.IO = joint.shapes.logic.Gate.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><path class="wire"/><circle/><text/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.IO',
+        size: { width: 60, height: 30 },
+        attrs: {
+            '.body': { fill: 'white', stroke: 'black', 'stroke-width': 2 },
+            '.wire': { ref: '.body', 'ref-y': .5, stroke: 'black' },
+            text: {
+                fill: 'black',
+                ref: '.body', 'ref-x': .5, 'ref-y': .5, 'y-alignment': 'middle',
+                'text-anchor': 'middle',
+                'font-weight': 'bold',
+                'font-variant': 'small-caps',
+                'text-transform': 'capitalize',
+                'font-size': '14px'
+            }
+        }
+
+    }, joint.shapes.logic.Gate.prototype.defaults)
+
+});
+
+joint.shapes.logic.Input = joint.shapes.logic.IO.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Input',
+        attrs: {
+            '.wire': { 'ref-dx': 0, d: 'M 0 0 L 23 0' },
+            circle: { ref: '.body', 'ref-dx': 30, 'ref-y': 0.5, magnet: true, 'class': 'output', port: 'out' },
+            text: { text: 'input' }
+        }
+
+    }, joint.shapes.logic.IO.prototype.defaults)
+});
+
+joint.shapes.logic.Output = joint.shapes.logic.IO.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Output',
+        attrs: {
+            '.wire': { 'ref-x': 0, d: 'M 0 0 L -23 0' },
+            circle: { ref: '.body', 'ref-x': -30, 'ref-y': 0.5, magnet: 'passive', 'class': 'input', port: 'in' },
+            text: { text: 'output' }
+        }
+
+    }, joint.shapes.logic.IO.prototype.defaults)
+
+});
+
+
+joint.shapes.logic.Gate11 = joint.shapes.logic.Gate.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input"/><circle class="output"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Gate11',
+        attrs: {
+            '.input': { ref: '.body', 'ref-x': -2, 'ref-y': 0.5, magnet: 'passive', port: 'in' },
+            '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
+        }
+
+    }, joint.shapes.logic.Gate.prototype.defaults)
+});
+
+joint.shapes.logic.Gate21 = joint.shapes.logic.Gate.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input input1"/><circle  class="input input2"/><circle class="output"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Gate21',
+        attrs: {
+            '.input1': { ref: '.body', 'ref-x': -2, 'ref-y': 0.3, magnet: 'passive', port: 'in1' },
+            '.input2': { ref: '.body', 'ref-x': -2, 'ref-y': 0.7, magnet: 'passive', port: 'in2' },
+            '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
+        }
+
+    }, joint.shapes.logic.Gate.prototype.defaults)
+
+});
+
+joint.shapes.logic.Repeater = joint.shapes.logic.Gate11.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Repeater',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PVCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjgiCiAgICAgaW5rc2NhcGU6Y3g9Ijg0LjY4NTM1MiIKICAgICBpbmtzY2FwZTpjeT0iMTUuMjg4NjI4IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzIuMTU2OTEsMjUgTCA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAyOS4wNDM0NzgsMjUgTCA1LjA0MzQ3ODEsMjUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgZD0iTSAyOC45Njg3NSwyLjU5Mzc1IEwgMjguOTY4NzUsNSBMIDI4Ljk2ODc1LDQ1IEwgMjguOTY4NzUsNDcuNDA2MjUgTCAzMS4xMjUsNDYuMzQzNzUgTCA3Mi4xNTYyNSwyNi4zNDM3NSBMIDcyLjE1NjI1LDIzLjY1NjI1IEwgMzEuMTI1LDMuNjU2MjUgTCAyOC45Njg3NSwyLjU5Mzc1IHogTSAzMS45Njg3NSw3LjQwNjI1IEwgNjguMDkzNzUsMjUgTCAzMS45Njg3NSw0Mi41OTM3NSBMIDMxLjk2ODc1LDcuNDA2MjUgeiIKICAgICAgIGlkPSJwYXRoMjYzOCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2NjY2NjYyIgLz4KICA8L2c+Cjwvc3ZnPgo=' }}
+
+    }, joint.shapes.logic.Gate11.prototype.defaults),
+
+    operation: function(input) {
+        return input;
+    }
+
+});
+
+joint.shapes.logic.Not = joint.shapes.logic.Gate11.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Not',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PVCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjgiCiAgICAgaW5rc2NhcGU6Y3g9Ijg0LjY4NTM1MiIKICAgICBpbmtzY2FwZTpjeT0iMTUuMjg4NjI4IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzkuMTU2OTEsMjUgTCA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAyOS4wNDM0NzgsMjUgTCA1LjA0MzQ3ODEsMjUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgZD0iTSAyOC45Njg3NSwyLjU5Mzc1IEwgMjguOTY4NzUsNSBMIDI4Ljk2ODc1LDQ1IEwgMjguOTY4NzUsNDcuNDA2MjUgTCAzMS4xMjUsNDYuMzQzNzUgTCA3Mi4xNTYyNSwyNi4zNDM3NSBMIDcyLjE1NjI1LDIzLjY1NjI1IEwgMzEuMTI1LDMuNjU2MjUgTCAyOC45Njg3NSwyLjU5Mzc1IHogTSAzMS45Njg3NSw3LjQwNjI1IEwgNjguMDkzNzUsMjUgTCAzMS45Njg3NSw0Mi41OTM3NSBMIDMxLjk2ODc1LDcuNDA2MjUgeiIKICAgICAgIGlkPSJwYXRoMjYzOCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2NjY2NjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDI2NzEiCiAgICAgICBzb2RpcG9kaTpjeD0iNzYiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA4MCwyNSBBIDQsNCAwIDEgMSA3MiwyNSBBIDQsNCAwIDEgMSA4MCwyNSB6IgogICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEsMCkiIC8+CiAgPC9nPgo8L3N2Zz4K' }}
+
+    }, joint.shapes.logic.Gate11.prototype.defaults),
+
+    operation: function(input) {
+        return !input;
+    }
+
+});
+
+joint.shapes.logic.Or = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Or',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik9SIEFOU0kuc3ZnIgogICBpbmtzY2FwZTpvdXRwdXRfZXh0ZW5zaW9uPSJvcmcuaW5rc2NhcGUub3V0cHV0LnN2Zy5pbmtzY2FwZSI+CiAgPGRlZnMKICAgICBpZD0iZGVmczQiPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjUwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjI1IDogMTAgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjcxNCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iMSA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMC41IDogMC4zMzMzMzMzMyA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyODA2IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyODE5IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjM3Mi4wNDcyNCA6IDM1MC43ODczOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI3NDQuMDk0NDggOiA1MjYuMTgxMDkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzc3IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49Ijc1IDogNDAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iMTUwIDogNjAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDYwIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTMyNzUiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNTAgOiAzMy4zMzMzMzMgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iMTAwIDogNTAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDUwIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTU1MzMiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzIgOiAyMS4zMzMzMzMgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNjQgOiAzMiA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMzIgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjU1NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDE2LjY2NjY2NyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDI1IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAyNSA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogIDwvZGVmcz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6em9vbT0iNCIKICAgICBpbmtzY2FwZTpjeD0iMTEzLjAwMDM5IgogICAgIGlua3NjYXBlOmN5PSIxMi44OTM3MzEiCiAgICAgaW5rc2NhcGU6ZG9jdW1lbnQtdW5pdHM9InB4IgogICAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9ImcyNTYwIgogICAgIHNob3dncmlkPSJmYWxzZSIKICAgICBpbmtzY2FwZTpncmlkLWJib3g9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1wb2ludHM9InRydWUiCiAgICAgZ3JpZHRvbGVyYW5jZT0iMTAwMDAiCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxMzk5IgogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9Ijg3NCIKICAgICBpbmtzY2FwZTp3aW5kb3cteD0iMzciCiAgICAgaW5rc2NhcGU6d2luZG93LXk9Ii00IgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Im0gNzAsMjUgYyAyMCwwIDI1LDAgMjUsMCIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMSwxNSA1LDE1IgogICAgICAgaWQ9InBhdGgzMDYxIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzIsMzUgNSwzNSIKICAgICAgIGlkPSJwYXRoMzk0NCIgLz4KICAgIDxnCiAgICAgICBpZD0iZzI1NjAiCiAgICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI2LjUsLTM5LjUpIj4KICAgICAgPHBhdGgKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjQwNjI1LDQ0LjUgTCAtMC40MDYyNSw0Ni45Mzc1IEMgLTAuNDA2MjUsNDYuOTM3NSA1LjI1LDUzLjkzNzU0OSA1LjI1LDY0LjUgQyA1LjI1LDc1LjA2MjQ1MSAtMC40MDYyNSw4Mi4wNjI1IC0wLjQwNjI1LDgyLjA2MjUgTCAtMi40MDYyNSw4NC41IEwgMC43NSw4NC41IEwgMTQuNzUsODQuNSBDIDE3LjE1ODA3Niw4NC41MDAwMDEgMjIuNDM5Njk5LDg0LjUyNDUxNCAyOC4zNzUsODIuMDkzNzUgQyAzNC4zMTAzMDEsNzkuNjYyOTg2IDQwLjkxMTUzNiw3NC43NTA0ODQgNDYuMDYyNSw2NS4yMTg3NSBMIDQ0Ljc1LDY0LjUgTCA0Ni4wNjI1LDYzLjc4MTI1IEMgMzUuNzU5Mzg3LDQ0LjcxNTU5IDE5LjUwNjU3NCw0NC41IDE0Ljc1LDQ0LjUgTCAwLjc1LDQ0LjUgTCAtMi40MDYyNSw0NC41IHogTSAzLjQ2ODc1LDQ3LjUgTCAxNC43NSw0Ny41IEMgMTkuNDM0MTczLDQ3LjUgMzMuMDM2ODUsNDcuMzY5NzkzIDQyLjcxODc1LDY0LjUgQyAzNy45NTE5NjQsNzIuOTI5MDc1IDMyLjE5NzQ2OSw3Ny4xODM5MSAyNyw3OS4zMTI1IEMgMjEuNjM5MzM5LDgxLjUwNzkyNCAxNy4xNTgwNzUsODEuNTAwMDAxIDE0Ljc1LDgxLjUgTCAzLjUsODEuNSBDIDUuMzczNTg4NCw3OC4zOTE1NjYgOC4yNSw3Mi40NTA2NSA4LjI1LDY0LjUgQyA4LjI1LDU2LjUyNjY0NiA1LjM0MTQ2ODYsNTAuNTk5ODE1IDMuNDY4NzUsNDcuNSB6IgogICAgICAgICBpZD0icGF0aDQ5NzMiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NzY2NjY3NjY2NjY2NjY2NzY2NzYyIgLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPgo=' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return input1 || input2;
+    }
+
+});
+
+joint.shapes.logic.And = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.And',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IkFORCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgPC9kZWZzPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0iYmFzZSIKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTp6b29tPSI4IgogICAgIGlua3NjYXBlOmN4PSI1Ni42OTgzNDgiCiAgICAgaW5rc2NhcGU6Y3k9IjI1LjMyNjg5OSIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJtIDcwLDI1IGMgMjAsMCAyNSwwIDI1LDAiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEsMTUgNSwxNSIKICAgICAgIGlkPSJwYXRoMzA2MSIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjk5OTk5OTg4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMyLDM1IDUsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZvbnQtc2l6ZTptZWRpdW07Zm9udC1zdHlsZTpub3JtYWw7Zm9udC12YXJpYW50Om5vcm1hbDtmb250LXdlaWdodDpub3JtYWw7Zm9udC1zdHJldGNoOm5vcm1hbDt0ZXh0LWluZGVudDowO3RleHQtYWxpZ246c3RhcnQ7dGV4dC1kZWNvcmF0aW9uOm5vbmU7bGluZS1oZWlnaHQ6bm9ybWFsO2xldHRlci1zcGFjaW5nOm5vcm1hbDt3b3JkLXNwYWNpbmc6bm9ybWFsO3RleHQtdHJhbnNmb3JtOm5vbmU7ZGlyZWN0aW9uOmx0cjtibG9jay1wcm9ncmVzc2lvbjp0Yjt3cml0aW5nLW1vZGU6bHItdGI7dGV4dC1hbmNob3I6c3RhcnQ7ZmlsbDojMDAwMDAwO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTpub25lO3N0cm9rZS13aWR0aDozO21hcmtlcjpub25lO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGU7Zm9udC1mYW1pbHk6Qml0c3RyZWFtIFZlcmEgU2FuczstaW5rc2NhcGUtZm9udC1zcGVjaWZpY2F0aW9uOkJpdHN0cmVhbSBWZXJhIFNhbnMiCiAgICAgICBkPSJNIDMwLDUgTCAzMCw2LjQyODU3MTQgTCAzMCw0My41NzE0MjkgTCAzMCw0NSBMIDMxLjQyODU3MSw0NSBMIDUwLjQ3NjE5LDQ1IEMgNjEuNzQ0MDk4LDQ1IDcwLjQ3NjE5LDM1Ljk5OTk1NSA3MC40NzYxOSwyNSBDIDcwLjQ3NjE5LDE0LjAwMDA0NSA2MS43NDQwOTksNS4wMDAwMDAyIDUwLjQ3NjE5LDUgQyA1MC40NzYxOSw1IDUwLjQ3NjE5LDUgMzEuNDI4NTcxLDUgTCAzMCw1IHogTSAzMi44NTcxNDMsNy44NTcxNDI5IEMgNDAuODM0MjY0LDcuODU3MTQyOSA0NS45MTgzNjgsNy44NTcxNDI5IDQ4LjA5NTIzOCw3Ljg1NzE0MjkgQyA0OS4yODU3MTQsNy44NTcxNDI5IDQ5Ljg4MDk1Miw3Ljg1NzE0MjkgNTAuMTc4NTcxLDcuODU3MTQyOSBDIDUwLjMyNzM4MSw3Ljg1NzE0MjkgNTAuNDA5MjI3LDcuODU3MTQyOSA1MC40NDY0MjksNy44NTcxNDI5IEMgNTAuNDY1MDI5LDcuODU3MTQyOSA1MC40NzE1NDMsNy44NTcxNDI5IDUwLjQ3NjE5LDcuODU3MTQyOSBDIDYwLjIzNjg1Myw3Ljg1NzE0MyA2Ny4xNDI4NTcsMTUuNDk3MDk4IDY3LjE0Mjg1NywyNSBDIDY3LjE0Mjg1NywzNC41MDI5MDIgNTkuNzYwNjYyLDQyLjE0Mjg1NyA1MCw0Mi4xNDI4NTcgTCAzMi44NTcxNDMsNDIuMTQyODU3IEwgMzIuODU3MTQzLDcuODU3MTQyOSB6IgogICAgICAgaWQ9InBhdGgyODg0IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2NjY2NzY2NjY3Nzc3NzY2NjIiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return input1 && input2;
+    }
+
+});
+
+joint.shapes.logic.Nor = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Nor',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PUiBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjEiCiAgICAgaW5rc2NhcGU6Y3g9Ijc4LjY3NzY0NCIKICAgICBpbmtzY2FwZTpjeT0iMjIuMTAyMzQ0IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjM3IgogICAgIGlua3NjYXBlOndpbmRvdy15PSItNCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDc5LDI1IEMgOTksMjUgOTUsMjUgOTUsMjUiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEsMTUgNSwxNSIKICAgICAgIGlkPSJwYXRoMzA2MSIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjk5OTk5OTg4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMyLDM1IDUsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8ZwogICAgICAgaWQ9ImcyNTYwIgogICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNi41LC0zOS41KSI+CiAgICAgIDxwYXRoCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi40MDYyNSw0NC41IEwgLTAuNDA2MjUsNDYuOTM3NSBDIC0wLjQwNjI1LDQ2LjkzNzUgNS4yNSw1My45Mzc1NDkgNS4yNSw2NC41IEMgNS4yNSw3NS4wNjI0NTEgLTAuNDA2MjUsODIuMDYyNSAtMC40MDYyNSw4Mi4wNjI1IEwgLTIuNDA2MjUsODQuNSBMIDAuNzUsODQuNSBMIDE0Ljc1LDg0LjUgQyAxNy4xNTgwNzYsODQuNTAwMDAxIDIyLjQzOTY5OSw4NC41MjQ1MTQgMjguMzc1LDgyLjA5Mzc1IEMgMzQuMzEwMzAxLDc5LjY2Mjk4NiA0MC45MTE1MzYsNzQuNzUwNDg0IDQ2LjA2MjUsNjUuMjE4NzUgTCA0NC43NSw2NC41IEwgNDYuMDYyNSw2My43ODEyNSBDIDM1Ljc1OTM4Nyw0NC43MTU1OSAxOS41MDY1NzQsNDQuNSAxNC43NSw0NC41IEwgMC43NSw0NC41IEwgLTIuNDA2MjUsNDQuNSB6IE0gMy40Njg3NSw0Ny41IEwgMTQuNzUsNDcuNSBDIDE5LjQzNDE3Myw0Ny41IDMzLjAzNjg1LDQ3LjM2OTc5MyA0Mi43MTg3NSw2NC41IEMgMzcuOTUxOTY0LDcyLjkyOTA3NSAzMi4xOTc0NjksNzcuMTgzOTEgMjcsNzkuMzEyNSBDIDIxLjYzOTMzOSw4MS41MDc5MjQgMTcuMTU4MDc1LDgxLjUwMDAwMSAxNC43NSw4MS41IEwgMy41LDgxLjUgQyA1LjM3MzU4ODQsNzguMzkxNTY2IDguMjUsNzIuNDUwNjUgOC4yNSw2NC41IEMgOC4yNSw1Ni41MjY2NDYgNS4zNDE0Njg2LDUwLjU5OTgxNSAzLjQ2ODc1LDQ3LjUgeiIKICAgICAgICAgaWQ9InBhdGg0OTczIgogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjc2NjY2NzY2NjY2NjY2Njc2Njc2MiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIHNvZGlwb2RpOnR5cGU9ImFyYyIKICAgICAgICAgc3R5bGU9ImZpbGw6bm9uZTtmaWxsLW9wYWNpdHk6MTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgICBpZD0icGF0aDI2MDQiCiAgICAgICAgIHNvZGlwb2RpOmN4PSI3NSIKICAgICAgICAgc29kaXBvZGk6Y3k9IjI1IgogICAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgICAgc29kaXBvZGk6cnk9IjQiCiAgICAgICAgIGQ9Ik0gNzksMjUgQSA0LDQgMCAxIDEgNzEsMjUgQSA0LDQgMCAxIDEgNzksMjUgeiIKICAgICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTI2LjUsMzkuNSkiIC8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return !(input1 || input2);
+    }
+
+});
+
+joint.shapes.logic.Nand = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Nand',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5BTkQgQU5TSS5zdmciCiAgIGlua3NjYXBlOm91dHB1dF9leHRlbnNpb249Im9yZy5pbmtzY2FwZS5vdXRwdXQuc3ZnLmlua3NjYXBlIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCI+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxMCA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzE0IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIwLjUgOiAwLjMzMzMzMzMzIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MDYiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MTkiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9Ijc0NC4wOTQ0OCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3NzciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNzUgOiA0MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxNTAgOiA2MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNjAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMzI3NSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI1MCA6IDMzLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxMDAgOiA1MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlNTUzMyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzMiA6IDIxLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI2NCA6IDMyIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAzMiA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogIDwvZGVmcz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6em9vbT0iMTYiCiAgICAgaW5rc2NhcGU6Y3g9Ijc4LjI4MzMwNyIKICAgICBpbmtzY2FwZTpjeT0iMTYuNDQyODQzIgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzksMjUgQyA5MS44LDI1IDk1LDI1IDk1LDI1IgogICAgICAgaWQ9InBhdGgzMDU5IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMxLDE1IDUsMTUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk4ODtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMiwzNSA1LDM1IgogICAgICAgaWQ9InBhdGgzOTQ0IiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmb250LXNpemU6bWVkaXVtO2ZvbnQtc3R5bGU6bm9ybWFsO2ZvbnQtdmFyaWFudDpub3JtYWw7Zm9udC13ZWlnaHQ6bm9ybWFsO2ZvbnQtc3RyZXRjaDpub3JtYWw7dGV4dC1pbmRlbnQ6MDt0ZXh0LWFsaWduOnN0YXJ0O3RleHQtZGVjb3JhdGlvbjpub25lO2xpbmUtaGVpZ2h0Om5vcm1hbDtsZXR0ZXItc3BhY2luZzpub3JtYWw7d29yZC1zcGFjaW5nOm5vcm1hbDt0ZXh0LXRyYW5zZm9ybTpub25lO2RpcmVjdGlvbjpsdHI7YmxvY2stcHJvZ3Jlc3Npb246dGI7d3JpdGluZy1tb2RlOmxyLXRiO3RleHQtYW5jaG9yOnN0YXJ0O2ZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MzttYXJrZXI6bm9uZTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlO2ZvbnQtZmFtaWx5OkJpdHN0cmVhbSBWZXJhIFNhbnM7LWlua3NjYXBlLWZvbnQtc3BlY2lmaWNhdGlvbjpCaXRzdHJlYW0gVmVyYSBTYW5zIgogICAgICAgZD0iTSAzMCw1IEwgMzAsNi40Mjg1NzE0IEwgMzAsNDMuNTcxNDI5IEwgMzAsNDUgTCAzMS40Mjg1NzEsNDUgTCA1MC40NzYxOSw0NSBDIDYxLjc0NDA5OCw0NSA3MC40NzYxOSwzNS45OTk5NTUgNzAuNDc2MTksMjUgQyA3MC40NzYxOSwxNC4wMDAwNDUgNjEuNzQ0MDk5LDUuMDAwMDAwMiA1MC40NzYxOSw1IEMgNTAuNDc2MTksNSA1MC40NzYxOSw1IDMxLjQyODU3MSw1IEwgMzAsNSB6IE0gMzIuODU3MTQzLDcuODU3MTQyOSBDIDQwLjgzNDI2NCw3Ljg1NzE0MjkgNDUuOTE4MzY4LDcuODU3MTQyOSA0OC4wOTUyMzgsNy44NTcxNDI5IEMgNDkuMjg1NzE0LDcuODU3MTQyOSA0OS44ODA5NTIsNy44NTcxNDI5IDUwLjE3ODU3MSw3Ljg1NzE0MjkgQyA1MC4zMjczODEsNy44NTcxNDI5IDUwLjQwOTIyNyw3Ljg1NzE0MjkgNTAuNDQ2NDI5LDcuODU3MTQyOSBDIDUwLjQ2NTAyOSw3Ljg1NzE0MjkgNTAuNDcxNTQzLDcuODU3MTQyOSA1MC40NzYxOSw3Ljg1NzE0MjkgQyA2MC4yMzY4NTMsNy44NTcxNDMgNjcuMTQyODU3LDE1LjQ5NzA5OCA2Ny4xNDI4NTcsMjUgQyA2Ny4xNDI4NTcsMzQuNTAyOTAyIDU5Ljc2MDY2Miw0Mi4xNDI4NTcgNTAsNDIuMTQyODU3IEwgMzIuODU3MTQzLDQyLjE0Mjg1NyBMIDMyLjg1NzE0Myw3Ljg1NzE0MjkgeiIKICAgICAgIGlkPSJwYXRoMjg4NCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2Njc2NjY2Nzc3Nzc2NjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDQwMDgiCiAgICAgICBzb2RpcG9kaTpjeD0iNzUiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA3OSwyNSBBIDQsNCAwIDEgMSA3MSwyNSBBIDQsNCAwIDEgMSA3OSwyNSB6IiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return !(input1 && input2);
+    }
+
+});
+
+joint.shapes.logic.Xor = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Xor',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IlhPUiBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjUuNjU2ODU0MiIKICAgICBpbmtzY2FwZTpjeD0iMjUuOTM4MTE2IgogICAgIGlua3NjYXBlOmN5PSIxNy4yMzAwNSIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJtIDcwLDI1IGMgMjAsMCAyNSwwIDI1LDAiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzAuMzg1NzE3LDE1IEwgNC45OTk5OTk4LDE1IgogICAgICAgaWQ9InBhdGgzMDYxIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5NzY7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEuMzYyMDkxLDM1IEwgNC45OTk5OTk4LDM1IgogICAgICAgaWQ9InBhdGgzOTQ0IiAvPgogICAgPGcKICAgICAgIGlkPSJnMjU2MCIKICAgICAgIGlua3NjYXBlOmxhYmVsPSJMYXllciAxIgogICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjYuNSwtMzkuNSkiPgogICAgICA8cGF0aAogICAgICAgICBpZD0icGF0aDM1MTYiCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi4yNSw4MS41MDAwMDUgQyAtMy44NDczNzQsODQuMTQ0NDA1IC00LjUsODQuNTAwMDA1IC00LjUsODQuNTAwMDA1IEwgLTguMTU2MjUsODQuNTAwMDA1IEwgLTYuMTU2MjUsODIuMDYyNTA1IEMgLTYuMTU2MjUsODIuMDYyNTA1IC0wLjUsNzUuMDYyNDUxIC0wLjUsNjQuNSBDIC0wLjUsNTMuOTM3NTQ5IC02LjE1NjI1LDQ2LjkzNzUgLTYuMTU2MjUsNDYuOTM3NSBMIC04LjE1NjI1LDQ0LjUgTCAtNC41LDQ0LjUgQyAtMy43MTg3NSw0NS40Mzc1IC0zLjA3ODEyNSw0Ni4xNTYyNSAtMi4yODEyNSw0Ny41IEMgLTAuNDA4NTMxLDUwLjU5OTgxNSAyLjUsNTYuNTI2NjQ2IDIuNSw2NC41IEMgMi41LDcyLjQ1MDY1IC0wLjM5NjY5Nyw3OC4zNzk0MjUgLTIuMjUsODEuNTAwMDA1IHoiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY3NjY2Njc2MiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi40MDYyNSw0NC41IEwgLTAuNDA2MjUsNDYuOTM3NSBDIC0wLjQwNjI1LDQ2LjkzNzUgNS4yNSw1My45Mzc1NDkgNS4yNSw2NC41IEMgNS4yNSw3NS4wNjI0NTEgLTAuNDA2MjUsODIuMDYyNSAtMC40MDYyNSw4Mi4wNjI1IEwgLTIuNDA2MjUsODQuNSBMIDAuNzUsODQuNSBMIDE0Ljc1LDg0LjUgQyAxNy4xNTgwNzYsODQuNTAwMDAxIDIyLjQzOTY5OSw4NC41MjQ1MTQgMjguMzc1LDgyLjA5Mzc1IEMgMzQuMzEwMzAxLDc5LjY2Mjk4NiA0MC45MTE1MzYsNzQuNzUwNDg0IDQ2LjA2MjUsNjUuMjE4NzUgTCA0NC43NSw2NC41IEwgNDYuMDYyNSw2My43ODEyNSBDIDM1Ljc1OTM4Nyw0NC43MTU1OSAxOS41MDY1NzQsNDQuNSAxNC43NSw0NC41IEwgMC43NSw0NC41IEwgLTIuNDA2MjUsNDQuNSB6IE0gMy40Njg3NSw0Ny41IEwgMTQuNzUsNDcuNSBDIDE5LjQzNDE3Myw0Ny41IDMzLjAzNjg1LDQ3LjM2OTc5MyA0Mi43MTg3NSw2NC41IEMgMzcuOTUxOTY0LDcyLjkyOTA3NSAzMi4xOTc0NjksNzcuMTgzOTEgMjcsNzkuMzEyNSBDIDIxLjYzOTMzOSw4MS41MDc5MjQgMTcuMTU4MDc1LDgxLjUwMDAwMSAxNC43NSw4MS41IEwgMy41LDgxLjUgQyA1LjM3MzU4ODQsNzguMzkxNTY2IDguMjUsNzIuNDUwNjUgOC4yNSw2NC41IEMgOC4yNSw1Ni41MjY2NDYgNS4zNDE0Njg2LDUwLjU5OTgxNSAzLjQ2ODc1LDQ3LjUgeiIKICAgICAgICAgaWQ9InBhdGg0OTczIgogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjc2NjY2NzY2NjY2NjY2Njc2Njc2MiIC8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return (!input1 || input2) && (input1 || !input2);
+    }
+
+});
+
+joint.shapes.logic.Xnor = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Xnor',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IlhOT1IgQU5TSS5zdmciCiAgIGlua3NjYXBlOm91dHB1dF9leHRlbnNpb249Im9yZy5pbmtzY2FwZS5vdXRwdXQuc3ZnLmlua3NjYXBlIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCI+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxMCA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzE0IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIwLjUgOiAwLjMzMzMzMzMzIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MDYiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MTkiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9Ijc0NC4wOTQ0OCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3NzciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNzUgOiA0MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxNTAgOiA2MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNjAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMzI3NSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI1MCA6IDMzLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxMDAgOiA1MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlNTUzMyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzMiA6IDIxLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI2NCA6IDMyIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAzMiA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNTU3IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjI1IDogMTYuNjY2NjY3IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjUwIDogMjUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDI1IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgPC9kZWZzPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0iYmFzZSIKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTp6b29tPSI0IgogICAgIGlua3NjYXBlOmN4PSI5NS43MjM2NiIKICAgICBpbmtzY2FwZTpjeT0iLTI2Ljc3NTAyMyIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyLjAwMDAwMDI0O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDc4LjMzMzMzMiwyNSBDIDkxLjY2NjY2NiwyNSA5NSwyNSA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk4ODtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMC4zODU3MTcsMTUgTCA0Ljk5OTk5OTgsMTUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk3NjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMS4zNjIwOTEsMzUgTCA0Ljk5OTk5OTgsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8ZwogICAgICAgaWQ9ImcyNTYwIgogICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNi41LC0zOS41KSI+CiAgICAgIDxwYXRoCiAgICAgICAgIGlkPSJwYXRoMzUxNiIKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjI1LDgxLjUwMDAwNSBDIC0zLjg0NzM3NCw4NC4xNDQ0MDUgLTQuNSw4NC41MDAwMDUgLTQuNSw4NC41MDAwMDUgTCAtOC4xNTYyNSw4NC41MDAwMDUgTCAtNi4xNTYyNSw4Mi4wNjI1MDUgQyAtNi4xNTYyNSw4Mi4wNjI1MDUgLTAuNSw3NS4wNjI0NTEgLTAuNSw2NC41IEMgLTAuNSw1My45Mzc1NDkgLTYuMTU2MjUsNDYuOTM3NSAtNi4xNTYyNSw0Ni45Mzc1IEwgLTguMTU2MjUsNDQuNSBMIC00LjUsNDQuNSBDIC0zLjcxODc1LDQ1LjQzNzUgLTMuMDc4MTI1LDQ2LjE1NjI1IC0yLjI4MTI1LDQ3LjUgQyAtMC40MDg1MzEsNTAuNTk5ODE1IDIuNSw1Ni41MjY2NDYgMi41LDY0LjUgQyAyLjUsNzIuNDUwNjUgLTAuMzk2Njk3LDc4LjM3OTQyNSAtMi4yNSw4MS41MDAwMDUgeiIKICAgICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2Njc2NjY2NzYyIgLz4KICAgICAgPHBhdGgKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjQwNjI1LDQ0LjUgTCAtMC40MDYyNSw0Ni45Mzc1IEMgLTAuNDA2MjUsNDYuOTM3NSA1LjI1LDUzLjkzNzU0OSA1LjI1LDY0LjUgQyA1LjI1LDc1LjA2MjQ1MSAtMC40MDYyNSw4Mi4wNjI1IC0wLjQwNjI1LDgyLjA2MjUgTCAtMi40MDYyNSw4NC41IEwgMC43NSw4NC41IEwgMTQuNzUsODQuNSBDIDE3LjE1ODA3Niw4NC41MDAwMDEgMjIuNDM5Njk5LDg0LjUyNDUxNCAyOC4zNzUsODIuMDkzNzUgQyAzNC4zMTAzMDEsNzkuNjYyOTg2IDQwLjkxMTUzNiw3NC43NTA0ODQgNDYuMDYyNSw2NS4yMTg3NSBMIDQ0Ljc1LDY0LjUgTCA0Ni4wNjI1LDYzLjc4MTI1IEMgMzUuNzU5Mzg3LDQ0LjcxNTU5IDE5LjUwNjU3NCw0NC41IDE0Ljc1LDQ0LjUgTCAwLjc1LDQ0LjUgTCAtMi40MDYyNSw0NC41IHogTSAzLjQ2ODc1LDQ3LjUgTCAxNC43NSw0Ny41IEMgMTkuNDM0MTczLDQ3LjUgMzMuMDM2ODUsNDcuMzY5NzkzIDQyLjcxODc1LDY0LjUgQyAzNy45NTE5NjQsNzIuOTI5MDc1IDMyLjE5NzQ2OSw3Ny4xODM5MSAyNyw3OS4zMTI1IEMgMjEuNjM5MzM5LDgxLjUwNzkyNCAxNy4xNTgwNzUsODEuNTAwMDAxIDE0Ljc1LDgxLjUgTCAzLjUsODEuNSBDIDUuMzczNTg4NCw3OC4zOTE1NjYgOC4yNSw3Mi40NTA2NSA4LjI1LDY0LjUgQyA4LjI1LDU2LjUyNjY0NiA1LjM0MTQ2ODYsNTAuNTk5ODE1IDMuNDY4NzUsNDcuNSB6IgogICAgICAgICBpZD0icGF0aDQ5NzMiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NzY2NjY3NjY2NjY2NjY2NzY2NzYyIgLz4KICAgIDwvZz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDM1NTEiCiAgICAgICBzb2RpcG9kaTpjeD0iNzUiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA3OSwyNSBBIDQsNCAwIDEgMSA3MSwyNSBBIDQsNCAwIDEgMSA3OSwyNSB6IiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return (!input1 || !input2) && (input1 || input2);
+    }
+
+});
+
+joint.shapes.logic.Wire = joint.dia.Link.extend({
+
+    arrowheadMarkup: [
+        '<g class="marker-arrowhead-group marker-arrowhead-group-">',
+        '<circle class="marker-arrowhead" end="" r="7"/>',
+        '</g>'
+    ].join(''),
+
+    vertexMarkup: [
+        '<g class="marker-vertex-group" transform="translate(, )">',
+        '<circle class="marker-vertex" idx="" r="10" />',
+        '<g class="marker-vertex-remove-group">',
+        '<path class="marker-vertex-remove-area" idx="" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
+        '<path class="marker-vertex-remove" idx="" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
+        '<title>Remove vertex.</title>',
+        '</path>',
+        '</g>',
+        '</g>'
+    ].join(''),
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Wire',
+
+        attrs: {
+            '.connection': { 'stroke-width': 2 },
+            '.marker-vertex': { r: 7 }
+        },
+
+        router: { name: 'orthogonal' },
+        connector: { name: 'rounded', args: { radius: 10 }}
+
+    }, joint.dia.Link.prototype.defaults)
+
+});
+
+;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};/**
+ * @license
+ * Copyright (c) 2012-2013 Chris Pettitt
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+global.dagre = require("./index");
+
+},{"./index":2}],2:[function(require,module,exports){
+/*
+Copyright (c) 2012-2013 Chris Pettitt
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+exports.Digraph = require("graphlib").Digraph;
+exports.Graph = require("graphlib").Graph;
+exports.layout = require("./lib/layout");
+exports.version = require("./lib/version");
+
+},{"./lib/layout":3,"./lib/version":18,"graphlib":24}],3:[function(require,module,exports){
+var util = require('./util'),
+    rank = require('./rank'),
+    order = require('./order'),
+    CGraph = require('graphlib').CGraph,
+    CDigraph = require('graphlib').CDigraph;
+
+module.exports = function() {
+  // External configuration
+  var config = {
+    // How much debug information to include?
+    debugLevel: 0,
+    // Max number of sweeps to perform in order phase
+    orderMaxSweeps: order.DEFAULT_MAX_SWEEPS,
+    // Use network simplex algorithm in ranking
+    rankSimplex: false,
+    // Rank direction. Valid values are (TB, LR)
+    rankDir: 'TB'
+  };
+
+  // Phase functions
+  var position = require('./position')();
+
+  // This layout object
+  var self = {};
+
+  self.orderIters = util.propertyAccessor(self, config, 'orderMaxSweeps');
+
+  self.rankSimplex = util.propertyAccessor(self, config, 'rankSimplex');
+
+  self.nodeSep = delegateProperty(position.nodeSep);
+  self.edgeSep = delegateProperty(position.edgeSep);
+  self.universalSep = delegateProperty(position.universalSep);
+  self.rankSep = delegateProperty(position.rankSep);
+  self.rankDir = util.propertyAccessor(self, config, 'rankDir');
+  self.debugAlignment = delegateProperty(position.debugAlignment);
+
+  self.debugLevel = util.propertyAccessor(self, config, 'debugLevel', function(x) {
+    util.log.level = x;
+    position.debugLevel(x);
+  });
+
+  self.run = util.time('Total layout', run);
+
+  self._normalize = normalize;
+
+  return self;
+
+  /*
+   * Constructs an adjacency graph using the nodes and edges specified through
+   * config. For each node and edge we add a property `dagre` that contains an
+   * object that will hold intermediate and final layout information. Some of
+   * the contents include:
+   *
+   *  1) A generated ID that uniquely identifies the object.
+   *  2) Dimension information for nodes (copied from the source node).
+   *  3) Optional dimension information for edges.
+   *
+   * After the adjacency graph is constructed the code no longer needs to use
+   * the original nodes and edges passed in via config.
+   */
+  function initLayoutGraph(inputGraph) {
+    var g = new CDigraph();
+
+    inputGraph.eachNode(function(u, value) {
+      if (value === undefined) value = {};
+      g.addNode(u, {
+        width: value.width,
+        height: value.height
+      });
+      if (value.hasOwnProperty('rank')) {
+        g.node(u).prefRank = value.rank;
+      }
+    });
+
+    // Set up subgraphs
+    if (inputGraph.parent) {
+      inputGraph.nodes().forEach(function(u) {
+        g.parent(u, inputGraph.parent(u));
+      });
+    }
+
+    inputGraph.eachEdge(function(e, u, v, value) {
+      if (value === undefined) value = {};
+      var newValue = {
+        e: e,
+        minLen: value.minLen || 1,
+        width: value.width || 0,
+        height: value.height || 0,
+        points: []
+      };
+
+      g.addEdge(null, u, v, newValue);
+    });
+
+    // Initial graph attributes
+    var graphValue = inputGraph.graph() || {};
+    g.graph({
+      rankDir: graphValue.rankDir || config.rankDir,
+      orderRestarts: graphValue.orderRestarts
+    });
+
+    return g;
+  }
+
+  function run(inputGraph) {
+    var rankSep = self.rankSep();
+    var g;
+    try {
+      // Build internal graph
+      g = util.time('initLayoutGraph', initLayoutGraph)(inputGraph);
+
+      if (g.order() === 0) {
+        return g;
+      }
+
+      // Make space for edge labels
+      g.eachEdge(function(e, s, t, a) {
+        a.minLen *= 2;
+      });
+      self.rankSep(rankSep / 2);
+
+      // Determine the rank for each node. Nodes with a lower rank will appear
+      // above nodes of higher rank.
+      util.time('rank.run', rank.run)(g, config.rankSimplex);
+
+      // Normalize the graph by ensuring that every edge is proper (each edge has
+      // a length of 1). We achieve this by adding dummy nodes to long edges,
+      // thus shortening them.
+      util.time('normalize', normalize)(g);
+
+      // Order the nodes so that edge crossings are minimized.
+      util.time('order', order)(g, config.orderMaxSweeps);
+
+      // Find the x and y coordinates for every node in the graph.
+      util.time('position', position.run)(g);
+
+      // De-normalize the graph by removing dummy nodes and augmenting the
+      // original long edges with coordinate information.
+      util.time('undoNormalize', undoNormalize)(g);
+
+      // Reverses points for edges that are in a reversed state.
+      util.time('fixupEdgePoints', fixupEdgePoints)(g);
+
+      // Restore delete edges and reverse edges that were reversed in the rank
+      // phase.
+      util.time('rank.restoreEdges', rank.restoreEdges)(g);
+
+      // Construct final result graph and return it
+      return util.time('createFinalGraph', createFinalGraph)(g, inputGraph.isDirected());
+    } finally {
+      self.rankSep(rankSep);
+    }
+  }
+
+  /*
+   * This function is responsible for 'normalizing' the graph. The process of
+   * normalization ensures that no edge in the graph has spans more than one
+   * rank. To do this it inserts dummy nodes as needed and links them by adding
+   * dummy edges. This function keeps enough information in the dummy nodes and
+   * edges to ensure that the original graph can be reconstructed later.
+   *
+   * This method assumes that the input graph is cycle free.
+   */
+  function normalize(g) {
+    var dummyCount = 0;
+    g.eachEdge(function(e, s, t, a) {
+      var sourceRank = g.node(s).rank;
+      var targetRank = g.node(t).rank;
+      if (sourceRank + 1 < targetRank) {
+        for (var u = s, rank = sourceRank + 1, i = 0; rank < targetRank; ++rank, ++i) {
+          var v = '_D' + (++dummyCount);
+          var node = {
+            width: a.width,
+            height: a.height,
+            edge: { id: e, source: s, target: t, attrs: a },
+            rank: rank,
+            dummy: true
+          };
+
+          // If this node represents a bend then we will use it as a control
+          // point. For edges with 2 segments this will be the center dummy
+          // node. For edges with more than two segments, this will be the
+          // first and last dummy node.
+          if (i === 0) node.index = 0;
+          else if (rank + 1 === targetRank) node.index = 1;
+
+          g.addNode(v, node);
+          g.addEdge(null, u, v, {});
+          u = v;
+        }
+        g.addEdge(null, u, t, {});
+        g.delEdge(e);
+      }
+    });
+  }
+
+  /*
+   * Reconstructs the graph as it was before normalization. The positions of
+   * dummy nodes are used to build an array of points for the original 'long'
+   * edge. Dummy nodes and edges are removed.
+   */
+  function undoNormalize(g) {
+    g.eachNode(function(u, a) {
+      if (a.dummy) {
+        if ('index' in a) {
+          var edge = a.edge;
+          if (!g.hasEdge(edge.id)) {
+            g.addEdge(edge.id, edge.source, edge.target, edge.attrs);
+          }
+          var points = g.edge(edge.id).points;
+          points[a.index] = { x: a.x, y: a.y, ul: a.ul, ur: a.ur, dl: a.dl, dr: a.dr };
+        }
+        g.delNode(u);
+      }
+    });
+  }
+
+  /*
+   * For each edge that was reversed during the `acyclic` step, reverse its
+   * array of points.
+   */
+  function fixupEdgePoints(g) {
+    g.eachEdge(function(e, s, t, a) { if (a.reversed) a.points.reverse(); });
+  }
+
+  function createFinalGraph(g, isDirected) {
+    var out = isDirected ? new CDigraph() : new CGraph();
+    out.graph(g.graph());
+    g.eachNode(function(u, value) { out.addNode(u, value); });
+    g.eachNode(function(u) { out.parent(u, g.parent(u)); });
+    g.eachEdge(function(e, u, v, value) {
+      out.addEdge(value.e, u, v, value);
+    });
+
+    // Attach bounding box information
+    var maxX = 0, maxY = 0;
+    g.eachNode(function(u, value) {
+      if (!g.children(u).length) {
+        maxX = Math.max(maxX, value.x + value.width / 2);
+        maxY = Math.max(maxY, value.y + value.height / 2);
+      }
+    });
+    g.eachEdge(function(e, u, v, value) {
+      var maxXPoints = Math.max.apply(Math, value.points.map(function(p) { return p.x; }));
+      var maxYPoints = Math.max.apply(Math, value.points.map(function(p) { return p.y; }));
+      maxX = Math.max(maxX, maxXPoints + value.width / 2);
+      maxY = Math.max(maxY, maxYPoints + value.height / 2);
+    });
+    out.graph().width = maxX;
+    out.graph().height = maxY;
+
+    return out;
+  }
+
+  /*
+   * Given a function, a new function is returned that invokes the given
+   * function. The return value from the function is always the `self` object.
+   */
+  function delegateProperty(f) {
+    return function() {
+      if (!arguments.length) return f();
+      f.apply(null, arguments);
+      return self;
+    };
+  }
+};
+
+
+},{"./order":4,"./position":9,"./rank":10,"./util":17,"graphlib":24}],4:[function(require,module,exports){
+var util = require('./util'),
+    crossCount = require('./order/crossCount'),
+    initLayerGraphs = require('./order/initLayerGraphs'),
+    initOrder = require('./order/initOrder'),
+    sortLayer = require('./order/sortLayer');
+
+module.exports = order;
+
+// The maximum number of sweeps to perform before finishing the order phase.
+var DEFAULT_MAX_SWEEPS = 24;
+order.DEFAULT_MAX_SWEEPS = DEFAULT_MAX_SWEEPS;
+
+/*
+ * Runs the order phase with the specified `graph, `maxSweeps`, and
+ * `debugLevel`. If `maxSweeps` is not specified we use `DEFAULT_MAX_SWEEPS`.
+ * If `debugLevel` is not set we assume 0.
+ */
+function order(g, maxSweeps) {
+  if (arguments.length < 2) {
+    maxSweeps = DEFAULT_MAX_SWEEPS;
+  }
+
+  var restarts = g.graph().orderRestarts || 0;
+
+  var layerGraphs = initLayerGraphs(g);
+  // TODO: remove this when we add back support for ordering clusters
+  layerGraphs.forEach(function(lg) {
+    lg = lg.filterNodes(function(u) { return !g.children(u).length; });
+  });
+
+  var iters = 0,
+      currentBestCC,
+      allTimeBestCC = Number.MAX_VALUE,
+      allTimeBest = {};
+
+  function saveAllTimeBest() {
+    g.eachNode(function(u, value) { allTimeBest[u] = value.order; });
+  }
+
+  for (var j = 0; j < Number(restarts) + 1 && allTimeBestCC !== 0; ++j) {
+    currentBestCC = Number.MAX_VALUE;
+    initOrder(g, restarts > 0);
+
+    util.log(2, 'Order phase start cross count: ' + g.graph().orderInitCC);
+
+    var i, lastBest, cc;
+    for (i = 0, lastBest = 0; lastBest < 4 && i < maxSweeps && currentBestCC > 0; ++i, ++lastBest, ++iters) {
+      sweep(g, layerGraphs, i);
+      cc = crossCount(g);
+      if (cc < currentBestCC) {
+        lastBest = 0;
+        currentBestCC = cc;
+        if (cc < allTimeBestCC) {
+          saveAllTimeBest();
+          allTimeBestCC = cc;
+        }
+      }
+      util.log(3, 'Order phase start ' + j + ' iter ' + i + ' cross count: ' + cc);
+    }
+  }
+
+  Object.keys(allTimeBest).forEach(function(u) {
+    if (!g.children || !g.children(u).length) {
+      g.node(u).order = allTimeBest[u];
+    }
+  });
+  g.graph().orderCC = allTimeBestCC;
+
+  util.log(2, 'Order iterations: ' + iters);
+  util.log(2, 'Order phase best cross count: ' + g.graph().orderCC);
+}
+
+function predecessorWeights(g, nodes) {
+  var weights = {};
+  nodes.forEach(function(u) {
+    weights[u] = g.inEdges(u).map(function(e) {
+      return g.node(g.source(e)).order;
+    });
+  });
+  return weights;
+}
+
+function successorWeights(g, nodes) {
+  var weights = {};
+  nodes.forEach(function(u) {
+    weights[u] = g.outEdges(u).map(function(e) {
+      return g.node(g.target(e)).order;
+    });
+  });
+  return weights;
+}
+
+function sweep(g, layerGraphs, iter) {
+  if (iter % 2 === 0) {
+    sweepDown(g, layerGraphs, iter);
+  } else {
+    sweepUp(g, layerGraphs, iter);
+  }
+}
+
+function sweepDown(g, layerGraphs) {
+  var cg;
+  for (i = 1; i < layerGraphs.length; ++i) {
+    cg = sortLayer(layerGraphs[i], cg, predecessorWeights(g, layerGraphs[i].nodes()));
+  }
+}
+
+function sweepUp(g, layerGraphs) {
+  var cg;
+  for (i = layerGraphs.length - 2; i >= 0; --i) {
+    sortLayer(layerGraphs[i], cg, successorWeights(g, layerGraphs[i].nodes()));
+  }
+}
+
+},{"./order/crossCount":5,"./order/initLayerGraphs":6,"./order/initOrder":7,"./order/sortLayer":8,"./util":17}],5:[function(require,module,exports){
+var util = require('../util');
+
+module.exports = crossCount;
+
+/*
+ * Returns the cross count for the given graph.
+ */
+function crossCount(g) {
+  var cc = 0;
+  var ordering = util.ordering(g);
+  for (var i = 1; i < ordering.length; ++i) {
+    cc += twoLayerCrossCount(g, ordering[i-1], ordering[i]);
+  }
+  return cc;
+}
+
+/*
+ * This function searches through a ranked and ordered graph and counts the
+ * number of edges that cross. This algorithm is derived from:
+ *
+ *    W. Barth et al., Bilayer Cross Counting, JGAA, 8(2) 179–194 (2004)
+ */
+function twoLayerCrossCount(g, layer1, layer2) {
+  var indices = [];
+  layer1.forEach(function(u) {
+    var nodeIndices = [];
+    g.outEdges(u).forEach(function(e) { nodeIndices.push(g.node(g.target(e)).order); });
+    nodeIndices.sort(function(x, y) { return x - y; });
+    indices = indices.concat(nodeIndices);
+  });
+
+  var firstIndex = 1;
+  while (firstIndex < layer2.length) firstIndex <<= 1;
+
+  var treeSize = 2 * firstIndex - 1;
+  firstIndex -= 1;
+
+  var tree = [];
+  for (var i = 0; i < treeSize; ++i) { tree[i] = 0; }
+
+  var cc = 0;
+  indices.forEach(function(i) {
+    var treeIndex = i + firstIndex;
+    ++tree[treeIndex];
+    while (treeIndex > 0) {
+      if (treeIndex % 2) {
+        cc += tree[treeIndex + 1];
+      }
+      treeIndex = (treeIndex - 1) >> 1;
+      ++tree[treeIndex];
+    }
+  });
+
+  return cc;
+}
+
+},{"../util":17}],6:[function(require,module,exports){
+var nodesFromList = require('graphlib').filter.nodesFromList,
+    /* jshint -W079 */
+    Set = require('cp-data').Set;
+
+module.exports = initLayerGraphs;
+
+/*
+ * This function takes a compound layered graph, g, and produces an array of
+ * layer graphs. Each entry in the array represents a subgraph of nodes
+ * relevant for performing crossing reduction on that layer.
+ */
+function initLayerGraphs(g) {
+  var ranks = [];
+
+  function dfs(u) {
+    if (u === null) {
+      g.children(u).forEach(function(v) { dfs(v); });
+      return;
+    }
+
+    var value = g.node(u);
+    value.minRank = ('rank' in value) ? value.rank : Number.MAX_VALUE;
+    value.maxRank = ('rank' in value) ? value.rank : Number.MIN_VALUE;
+    var uRanks = new Set();
+    g.children(u).forEach(function(v) {
+      var rs = dfs(v);
+      uRanks = Set.union([uRanks, rs]);
+      value.minRank = Math.min(value.minRank, g.node(v).minRank);
+      value.maxRank = Math.max(value.maxRank, g.node(v).maxRank);
+    });
+
+    if ('rank' in value) uRanks.add(value.rank);
+
+    uRanks.keys().forEach(function(r) {
+      if (!(r in ranks)) ranks[r] = [];
+      ranks[r].push(u);
+    });
+
+    return uRanks;
+  }
+  dfs(null);
+
+  var layerGraphs = [];
+  ranks.forEach(function(us, rank) {
+    layerGraphs[rank] = g.filterNodes(nodesFromList(us));
+  });
+
+  return layerGraphs;
+}
+
+},{"cp-data":19,"graphlib":24}],7:[function(require,module,exports){
+var crossCount = require('./crossCount'),
+    util = require('../util');
+
+module.exports = initOrder;
+
+/*
+ * Given a graph with a set of layered nodes (i.e. nodes that have a `rank`
+ * attribute) this function attaches an `order` attribute that uniquely
+ * arranges each node of each rank. If no constraint graph is provided the
+ * order of the nodes in each rank is entirely arbitrary.
+ */
+function initOrder(g, random) {
+  var layers = [];
+
+  g.eachNode(function(u, value) {
+    var layer = layers[value.rank];
+    if (g.children && g.children(u).length > 0) return;
+    if (!layer) {
+      layer = layers[value.rank] = [];
+    }
+    layer.push(u);
+  });
+
+  layers.forEach(function(layer) {
+    if (random) {
+      util.shuffle(layer);
+    }
+    layer.forEach(function(u, i) {
+      g.node(u).order = i;
+    });
+  });
+
+  var cc = crossCount(g);
+  g.graph().orderInitCC = cc;
+  g.graph().orderCC = Number.MAX_VALUE;
+}
+
+},{"../util":17,"./crossCount":5}],8:[function(require,module,exports){
+var util = require('../util');
+/*
+    Digraph = require('graphlib').Digraph,
+    topsort = require('graphlib').alg.topsort,
+    nodesFromList = require('graphlib').filter.nodesFromList;
+*/
+
+module.exports = sortLayer;
+
+/*
+function sortLayer(g, cg, weights) {
+  var result = sortLayerSubgraph(g, null, cg, weights);
+  result.list.forEach(function(u, i) {
+    g.node(u).order = i;
+  });
+  return result.constraintGraph;
+}
+*/
+
+function sortLayer(g, cg, weights) {
+  var ordering = [];
+  var bs = {};
+  g.eachNode(function(u, value) {
+    ordering[value.order] = u;
+    var ws = weights[u];
+    if (ws.length) {
+      bs[u] = util.sum(ws) / ws.length;
+    }
+  });
+
+  var toSort = g.nodes().filter(function(u) { return bs[u] !== undefined; });
+  toSort.sort(function(x, y) {
+    return bs[x] - bs[y] || g.node(x).order - g.node(y).order;
+  });
+
+  for (var i = 0, j = 0, jl = toSort.length; j < jl; ++i) {
+    if (bs[ordering[i]] !== undefined) {
+      g.node(toSort[j++]).order = i;
+    }
+  }
+}
+
+// TOOD: re-enable constrained sorting once we have a strategy for handling
+// undefined barycenters.
+/*
+function sortLayerSubgraph(g, sg, cg, weights) {
+  cg = cg ? cg.filterNodes(nodesFromList(g.children(sg))) : new Digraph();
+
+  var nodeData = {};
+  g.children(sg).forEach(function(u) {
+    if (g.children(u).length) {
+      nodeData[u] = sortLayerSubgraph(g, u, cg, weights);
+      nodeData[u].firstSG = u;
+      nodeData[u].lastSG = u;
+    } else {
+      var ws = weights[u];
+      nodeData[u] = {
+        degree: ws.length,
+        barycenter: ws.length > 0 ? util.sum(ws) / ws.length : 0,
+        list: [u]
+      };
+    }
+  });
+
+  resolveViolatedConstraints(g, cg, nodeData);
+
+  var keys = Object.keys(nodeData);
+  keys.sort(function(x, y) {
+    return nodeData[x].barycenter - nodeData[y].barycenter;
+  });
+
+  var result =  keys.map(function(u) { return nodeData[u]; })
+                    .reduce(function(lhs, rhs) { return mergeNodeData(g, lhs, rhs); });
+  return result;
+}
+
+/*
+function mergeNodeData(g, lhs, rhs) {
+  var cg = mergeDigraphs(lhs.constraintGraph, rhs.constraintGraph);
+
+  if (lhs.lastSG !== undefined && rhs.firstSG !== undefined) {
+    if (cg === undefined) {
+      cg = new Digraph();
+    }
+    if (!cg.hasNode(lhs.lastSG)) { cg.addNode(lhs.lastSG); }
+    cg.addNode(rhs.firstSG);
+    cg.addEdge(null, lhs.lastSG, rhs.firstSG);
+  }
+
+  return {
+    degree: lhs.degree + rhs.degree,
+    barycenter: (lhs.barycenter * lhs.degree + rhs.barycenter * rhs.degree) /
+                (lhs.degree + rhs.degree),
+    list: lhs.list.concat(rhs.list),
+    firstSG: lhs.firstSG !== undefined ? lhs.firstSG : rhs.firstSG,
+    lastSG: rhs.lastSG !== undefined ? rhs.lastSG : lhs.lastSG,
+    constraintGraph: cg
+  };
+}
+
+function mergeDigraphs(lhs, rhs) {
+  if (lhs === undefined) return rhs;
+  if (rhs === undefined) return lhs;
+
+  lhs = lhs.copy();
+  rhs.nodes().forEach(function(u) { lhs.addNode(u); });
+  rhs.edges().forEach(function(e, u, v) { lhs.addEdge(null, u, v); });
+  return lhs;
+}
+
+function resolveViolatedConstraints(g, cg, nodeData) {
+  // Removes nodes `u` and `v` from `cg` and makes any edges incident on them
+  // incident on `w` instead.
+  function collapseNodes(u, v, w) {
+    // TODO original paper removes self loops, but it is not obvious when this would happen
+    cg.inEdges(u).forEach(function(e) {
+      cg.delEdge(e);
+      cg.addEdge(null, cg.source(e), w);
+    });
+
+    cg.outEdges(v).forEach(function(e) {
+      cg.delEdge(e);
+      cg.addEdge(null, w, cg.target(e));
+    });
+
+    cg.delNode(u);
+    cg.delNode(v);
+  }
+
+  var violated;
+  while ((violated = findViolatedConstraint(cg, nodeData)) !== undefined) {
+    var source = cg.source(violated),
+        target = cg.target(violated);
+
+    var v;
+    while ((v = cg.addNode(null)) && g.hasNode(v)) {
+      cg.delNode(v);
+    }
+
+    // Collapse barycenter and list
+    nodeData[v] = mergeNodeData(g, nodeData[source], nodeData[target]);
+    delete nodeData[source];
+    delete nodeData[target];
+
+    collapseNodes(source, target, v);
+    if (cg.incidentEdges(v).length === 0) { cg.delNode(v); }
+  }
+}
+
+function findViolatedConstraint(cg, nodeData) {
+  var us = topsort(cg);
+  for (var i = 0; i < us.length; ++i) {
+    var u = us[i];
+    var inEdges = cg.inEdges(u);
+    for (var j = 0; j < inEdges.length; ++j) {
+      var e = inEdges[j];
+      if (nodeData[cg.source(e)].barycenter >= nodeData[u].barycenter) {
+        return e;
+      }
+    }
+  }
+}
+*/
+
+},{"../util":17}],9:[function(require,module,exports){
+var util = require('./util');
+
+/*
+ * The algorithms here are based on Brandes and Köpf, "Fast and Simple
+ * Horizontal Coordinate Assignment".
+ */
+module.exports = function() {
+  // External configuration
+  var config = {
+    nodeSep: 50,
+    edgeSep: 10,
+    universalSep: null,
+    rankSep: 30
+  };
+
+  var self = {};
+
+  self.nodeSep = util.propertyAccessor(self, config, 'nodeSep');
+  self.edgeSep = util.propertyAccessor(self, config, 'edgeSep');
+  // If not null this separation value is used for all nodes and edges
+  // regardless of their widths. `nodeSep` and `edgeSep` are ignored with this
+  // option.
+  self.universalSep = util.propertyAccessor(self, config, 'universalSep');
+  self.rankSep = util.propertyAccessor(self, config, 'rankSep');
+  self.debugLevel = util.propertyAccessor(self, config, 'debugLevel');
+
+  self.run = run;
+
+  return self;
+
+  function run(g) {
+    g = g.filterNodes(util.filterNonSubgraphs(g));
+
+    var layering = util.ordering(g);
+
+    var conflicts = findConflicts(g, layering);
+
+    var xss = {};
+    ['u', 'd'].forEach(function(vertDir) {
+      if (vertDir === 'd') layering.reverse();
+
+      ['l', 'r'].forEach(function(horizDir) {
+        if (horizDir === 'r') reverseInnerOrder(layering);
+
+        var dir = vertDir + horizDir;
+        var align = verticalAlignment(g, layering, conflicts, vertDir === 'u' ? 'predecessors' : 'successors');
+        xss[dir]= horizontalCompaction(g, layering, align.pos, align.root, align.align);
+
+        if (config.debugLevel >= 3)
+          debugPositioning(vertDir + horizDir, g, layering, xss[dir]);
+
+        if (horizDir === 'r') flipHorizontally(xss[dir]);
+
+        if (horizDir === 'r') reverseInnerOrder(layering);
+      });
+
+      if (vertDir === 'd') layering.reverse();
+    });
+
+    balance(g, layering, xss);
+
+    g.eachNode(function(v) {
+      var xs = [];
+      for (var alignment in xss) {
+        var alignmentX = xss[alignment][v];
+        posXDebug(alignment, g, v, alignmentX);
+        xs.push(alignmentX);
+      }
+      xs.sort(function(x, y) { return x - y; });
+      posX(g, v, (xs[1] + xs[2]) / 2);
+    });
+
+    // Align y coordinates with ranks
+    var y = 0, reverseY = g.graph().rankDir === 'BT' || g.graph().rankDir === 'RL';
+    layering.forEach(function(layer) {
+      var maxHeight = util.max(layer.map(function(u) { return height(g, u); }));
+      y += maxHeight / 2;
+      layer.forEach(function(u) {
+        posY(g, u, reverseY ? -y : y);
+      });
+      y += maxHeight / 2 + config.rankSep;
+    });
+
+    // Translate layout so that top left corner of bounding rectangle has
+    // coordinate (0, 0).
+    var minX = util.min(g.nodes().map(function(u) { return posX(g, u) - width(g, u) / 2; }));
+    var minY = util.min(g.nodes().map(function(u) { return posY(g, u) - height(g, u) / 2; }));
+    g.eachNode(function(u) {
+      posX(g, u, posX(g, u) - minX);
+      posY(g, u, posY(g, u) - minY);
+    });
+  }
+
+  /*
+   * Generate an ID that can be used to represent any undirected edge that is
+   * incident on `u` and `v`.
+   */
+  function undirEdgeId(u, v) {
+    return u < v
+      ? u.toString().length + ':' + u + '-' + v
+      : v.toString().length + ':' + v + '-' + u;
+  }
+
+  function findConflicts(g, layering) {
+    var conflicts = {}, // Set of conflicting edge ids
+        pos = {},       // Position of node in its layer
+        prevLayer,
+        currLayer,
+        k0,     // Position of the last inner segment in the previous layer
+        l,      // Current position in the current layer (for iteration up to `l1`)
+        k1;     // Position of the next inner segment in the previous layer or
+                // the position of the last element in the previous layer
+
+    if (layering.length <= 2) return conflicts;
+
+    function updateConflicts(v) {
+      var k = pos[v];
+      if (k < k0 || k > k1) {
+        conflicts[undirEdgeId(currLayer[l], v)] = true;
+      }
+    }
+
+    layering[1].forEach(function(u, i) { pos[u] = i; });
+    for (var i = 1; i < layering.length - 1; ++i) {
+      prevLayer = layering[i];
+      currLayer = layering[i+1];
+      k0 = 0;
+      l = 0;
+
+      // Scan current layer for next node that is incident to an inner segement
+      // between layering[i+1] and layering[i].
+      for (var l1 = 0; l1 < currLayer.length; ++l1) {
+        var u = currLayer[l1]; // Next inner segment in the current layer or
+                               // last node in the current layer
+        pos[u] = l1;
+        k1 = undefined;
+
+        if (g.node(u).dummy) {
+          var uPred = g.predecessors(u)[0];
+          // Note: In the case of self loops and sideways edges it is possible
+          // for a dummy not to have a predecessor.
+          if (uPred !== undefined && g.node(uPred).dummy)
+            k1 = pos[uPred];
+        }
+        if (k1 === undefined && l1 === currLayer.length - 1)
+          k1 = prevLayer.length - 1;
+
+        if (k1 !== undefined) {
+          for (; l <= l1; ++l) {
+            g.predecessors(currLayer[l]).forEach(updateConflicts);
+          }
+          k0 = k1;
+        }
+      }
+    }
+
+    return conflicts;
+  }
+
+  function verticalAlignment(g, layering, conflicts, relationship) {
+    var pos = {},   // Position for a node in its layer
+        root = {},  // Root of the block that the node participates in
+        align = {}; // Points to the next node in the block or, if the last
+                    // element in the block, points to the first block's root
+
+    layering.forEach(function(layer) {
+      layer.forEach(function(u, i) {
+        root[u] = u;
+        align[u] = u;
+        pos[u] = i;
+      });
+    });
+
+    layering.forEach(function(layer) {
+      var prevIdx = -1;
+      layer.forEach(function(v) {
+        var related = g[relationship](v), // Adjacent nodes from the previous layer
+            mid;                          // The mid point in the related array
+
+        if (related.length > 0) {
+          related.sort(function(x, y) { return pos[x] - pos[y]; });
+          mid = (related.length - 1) / 2;
+          related.slice(Math.floor(mid), Math.ceil(mid) + 1).forEach(function(u) {
+            if (align[v] === v) {
+              if (!conflicts[undirEdgeId(u, v)] && prevIdx < pos[u]) {
+                align[u] = v;
+                align[v] = root[v] = root[u];
+                prevIdx = pos[u];
+              }
+            }
+          });
+        }
+      });
+    });
+
+    return { pos: pos, root: root, align: align };
+  }
+
+  // This function deviates from the standard BK algorithm in two ways. First
+  // it takes into account the size of the nodes. Second it includes a fix to
+  // the original algorithm that is described in Carstens, "Node and Label
+  // Placement in a Layered Layout Algorithm".
+  function horizontalCompaction(g, layering, pos, root, align) {
+    var sink = {},       // Mapping of node id -> sink node id for class
+        maybeShift = {}, // Mapping of sink node id -> { class node id, min shift }
+        shift = {},      // Mapping of sink node id -> shift
+        pred = {},       // Mapping of node id -> predecessor node (or null)
+        xs = {};         // Calculated X positions
+
+    layering.forEach(function(layer) {
+      layer.forEach(function(u, i) {
+        sink[u] = u;
+        maybeShift[u] = {};
+        if (i > 0)
+          pred[u] = layer[i - 1];
+      });
+    });
+
+    function updateShift(toShift, neighbor, delta) {
+      if (!(neighbor in maybeShift[toShift])) {
+        maybeShift[toShift][neighbor] = delta;
+      } else {
+        maybeShift[toShift][neighbor] = Math.min(maybeShift[toShift][neighbor], delta);
+      }
+    }
+
+    function placeBlock(v) {
+      if (!(v in xs)) {
+        xs[v] = 0;
+        var w = v;
+        do {
+          if (pos[w] > 0) {
+            var u = root[pred[w]];
+            placeBlock(u);
+            if (sink[v] === v) {
+              sink[v] = sink[u];
+            }
+            var delta = sep(g, pred[w]) + sep(g, w);
+            if (sink[v] !== sink[u]) {
+              updateShift(sink[u], sink[v], xs[v] - xs[u] - delta);
+            } else {
+              xs[v] = Math.max(xs[v], xs[u] + delta);
+            }
+          }
+          w = align[w];
+        } while (w !== v);
+      }
+    }
+
+    // Root coordinates relative to sink
+    util.values(root).forEach(function(v) {
+      placeBlock(v);
+    });
+
+    // Absolute coordinates
+    // There is an assumption here that we've resolved shifts for any classes
+    // that begin at an earlier layer. We guarantee this by visiting layers in
+    // order.
+    layering.forEach(function(layer) {
+      layer.forEach(function(v) {
+        xs[v] = xs[root[v]];
+        if (v === root[v] && v === sink[v]) {
+          var minShift = 0;
+          if (v in maybeShift && Object.keys(maybeShift[v]).length > 0) {
+            minShift = util.min(Object.keys(maybeShift[v])
+                                 .map(function(u) {
+                                      return maybeShift[v][u] + (u in shift ? shift[u] : 0);
+                                      }
+                                 ));
+          }
+          shift[v] = minShift;
+        }
+      });
+    });
+
+    layering.forEach(function(layer) {
+      layer.forEach(function(v) {
+        xs[v] += shift[sink[root[v]]] || 0;
+      });
+    });
+
+    return xs;
+  }
+
+  function findMinCoord(g, layering, xs) {
+    return util.min(layering.map(function(layer) {
+      var u = layer[0];
+      return xs[u];
+    }));
+  }
+
+  function findMaxCoord(g, layering, xs) {
+    return util.max(layering.map(function(layer) {
+      var u = layer[layer.length - 1];
+      return xs[u];
+    }));
+  }
+
+  function balance(g, layering, xss) {
+    var min = {},                            // Min coordinate for the alignment
+        max = {},                            // Max coordinate for the alginment
+        smallestAlignment,
+        shift = {};                          // Amount to shift a given alignment
+
+    function updateAlignment(v) {
+      xss[alignment][v] += shift[alignment];
+    }
+
+    var smallest = Number.POSITIVE_INFINITY;
+    for (var alignment in xss) {
+      var xs = xss[alignment];
+      min[alignment] = findMinCoord(g, layering, xs);
+      max[alignment] = findMaxCoord(g, layering, xs);
+      var w = max[alignment] - min[alignment];
+      if (w < smallest) {
+        smallest = w;
+        smallestAlignment = alignment;
+      }
+    }
+
+    // Determine how much to adjust positioning for each alignment
+    ['u', 'd'].forEach(function(vertDir) {
+      ['l', 'r'].forEach(function(horizDir) {
+        var alignment = vertDir + horizDir;
+        shift[alignment] = horizDir === 'l'
+            ? min[smallestAlignment] - min[alignment]
+            : max[smallestAlignment] - max[alignment];
+      });
+    });
+
+    // Find average of medians for xss array
+    for (alignment in xss) {
+      g.eachNode(updateAlignment);
+    }
+  }
+
+  function flipHorizontally(xs) {
+    for (var u in xs) {
+      xs[u] = -xs[u];
+    }
+  }
+
+  function reverseInnerOrder(layering) {
+    layering.forEach(function(layer) {
+      layer.reverse();
+    });
+  }
+
+  function width(g, u) {
+    switch (g.graph().rankDir) {
+      case 'LR': return g.node(u).height;
+      case 'RL': return g.node(u).height;
+      default:   return g.node(u).width;
+    }
+  }
+
+  function height(g, u) {
+    switch(g.graph().rankDir) {
+      case 'LR': return g.node(u).width;
+      case 'RL': return g.node(u).width;
+      default:   return g.node(u).height;
+    }
+  }
+
+  function sep(g, u) {
+    if (config.universalSep !== null) {
+      return config.universalSep;
+    }
+    var w = width(g, u);
+    var s = g.node(u).dummy ? config.edgeSep : config.nodeSep;
+    return (w + s) / 2;
+  }
+
+  function posX(g, u, x) {
+    if (g.graph().rankDir === 'LR' || g.graph().rankDir === 'RL') {
+      if (arguments.length < 3) {
+        return g.node(u).y;
+      } else {
+        g.node(u).y = x;
+      }
+    } else {
+      if (arguments.length < 3) {
+        return g.node(u).x;
+      } else {
+        g.node(u).x = x;
+      }
+    }
+  }
+
+  function posXDebug(name, g, u, x) {
+    if (g.graph().rankDir === 'LR' || g.graph().rankDir === 'RL') {
+      if (arguments.length < 3) {
+        return g.node(u)[name];
+      } else {
+        g.node(u)[name] = x;
+      }
+    } else {
+      if (arguments.length < 3) {
+        return g.node(u)[name];
+      } else {
+        g.node(u)[name] = x;
+      }
+    }
+  }
+
+  function posY(g, u, y) {
+    if (g.graph().rankDir === 'LR' || g.graph().rankDir === 'RL') {
+      if (arguments.length < 3) {
+        return g.node(u).x;
+      } else {
+        g.node(u).x = y;
+      }
+    } else {
+      if (arguments.length < 3) {
+        return g.node(u).y;
+      } else {
+        g.node(u).y = y;
+      }
+    }
+  }
+
+  function debugPositioning(align, g, layering, xs) {
+    layering.forEach(function(l, li) {
+      var u, xU;
+      l.forEach(function(v) {
+        var xV = xs[v];
+        if (u) {
+          var s = sep(g, u) + sep(g, v);
+          if (xV - xU < s)
+            console.log('Position phase: sep violation. Align: ' + align + '. Layer: ' + li + '. ' +
+              'U: ' + u + ' V: ' + v + '. Actual sep: ' + (xV - xU) + ' Expected sep: ' + s);
+        }
+        u = v;
+        xU = xV;
+      });
+    });
+  }
+};
+
+},{"./util":17}],10:[function(require,module,exports){
+var util = require('./util'),
+    acyclic = require('./rank/acyclic'),
+    initRank = require('./rank/initRank'),
+    feasibleTree = require('./rank/feasibleTree'),
+    constraints = require('./rank/constraints'),
+    simplex = require('./rank/simplex'),
+    components = require('graphlib').alg.components,
+    filter = require('graphlib').filter;
+
+exports.run = run;
+exports.restoreEdges = restoreEdges;
+
+/*
+ * Heuristic function that assigns a rank to each node of the input graph with
+ * the intent of minimizing edge lengths, while respecting the `minLen`
+ * attribute of incident edges.
+ *
+ * Prerequisites:
+ *
+ *  * Each edge in the input graph must have an assigned 'minLen' attribute
+ */
+function run(g, useSimplex) {
+  expandSelfLoops(g);
+
+  // If there are rank constraints on nodes, then build a new graph that
+  // encodes the constraints.
+  util.time('constraints.apply', constraints.apply)(g);
+
+  expandSidewaysEdges(g);
+
+  // Reverse edges to get an acyclic graph, we keep the graph in an acyclic
+  // state until the very end.
+  util.time('acyclic', acyclic)(g);
+
+  // Convert the graph into a flat graph for ranking
+  var flatGraph = g.filterNodes(util.filterNonSubgraphs(g));
+
+  // Assign an initial ranking using DFS.
+  initRank(flatGraph);
+
+  // For each component improve the assigned ranks.
+  components(flatGraph).forEach(function(cmpt) {
+    var subgraph = flatGraph.filterNodes(filter.nodesFromList(cmpt));
+    rankComponent(subgraph, useSimplex);
+  });
+
+  // Relax original constraints
+  util.time('constraints.relax', constraints.relax(g));
+
+  // When handling nodes with constrained ranks it is possible to end up with
+  // edges that point to previous ranks. Most of the subsequent algorithms assume
+  // that edges are pointing to successive ranks only. Here we reverse any "back
+  // edges" and mark them as such. The acyclic algorithm will reverse them as a
+  // post processing step.
+  util.time('reorientEdges', reorientEdges)(g);
+}
+
+function restoreEdges(g) {
+  acyclic.undo(g);
+}
+
+/*
+ * Expand self loops into three dummy nodes. One will sit above the incident
+ * node, one will be at the same level, and one below. The result looks like:
+ *
+ *         /--<--x--->--\
+ *     node              y
+ *         \--<--z--->--/
+ *
+ * Dummy nodes x, y, z give us the shape of a loop and node y is where we place
+ * the label.
+ *
+ * TODO: consolidate knowledge of dummy node construction.
+ * TODO: support minLen = 2
+ */
+function expandSelfLoops(g) {
+  g.eachEdge(function(e, u, v, a) {
+    if (u === v) {
+      var x = addDummyNode(g, e, u, v, a, 0, false),
+          y = addDummyNode(g, e, u, v, a, 1, true),
+          z = addDummyNode(g, e, u, v, a, 2, false);
+      g.addEdge(null, x, u, {minLen: 1, selfLoop: true});
+      g.addEdge(null, x, y, {minLen: 1, selfLoop: true});
+      g.addEdge(null, u, z, {minLen: 1, selfLoop: true});
+      g.addEdge(null, y, z, {minLen: 1, selfLoop: true});
+      g.delEdge(e);
+    }
+  });
+}
+
+function expandSidewaysEdges(g) {
+  g.eachEdge(function(e, u, v, a) {
+    if (u === v) {
+      var origEdge = a.originalEdge,
+          dummy = addDummyNode(g, origEdge.e, origEdge.u, origEdge.v, origEdge.value, 0, true);
+      g.addEdge(null, u, dummy, {minLen: 1});
+      g.addEdge(null, dummy, v, {minLen: 1});
+      g.delEdge(e);
+    }
+  });
+}
+
+function addDummyNode(g, e, u, v, a, index, isLabel) {
+  return g.addNode(null, {
+    width: isLabel ? a.width : 0,
+    height: isLabel ? a.height : 0,
+    edge: { id: e, source: u, target: v, attrs: a },
+    dummy: true,
+    index: index
+  });
+}
+
+function reorientEdges(g) {
+  g.eachEdge(function(e, u, v, value) {
+    if (g.node(u).rank > g.node(v).rank) {
+      g.delEdge(e);
+      value.reversed = true;
+      g.addEdge(e, v, u, value);
+    }
+  });
+}
+
+function rankComponent(subgraph, useSimplex) {
+  var spanningTree = feasibleTree(subgraph);
+
+  if (useSimplex) {
+    util.log(1, 'Using network simplex for ranking');
+    simplex(subgraph, spanningTree);
+  }
+  normalize(subgraph);
+}
+
+function normalize(g) {
+  var m = util.min(g.nodes().map(function(u) { return g.node(u).rank; }));
+  g.eachNode(function(u, node) { node.rank -= m; });
+}
+
+},{"./rank/acyclic":11,"./rank/constraints":12,"./rank/feasibleTree":13,"./rank/initRank":14,"./rank/simplex":16,"./util":17,"graphlib":24}],11:[function(require,module,exports){
+var util = require('../util');
+
+module.exports = acyclic;
+module.exports.undo = undo;
+
+/*
+ * This function takes a directed graph that may have cycles and reverses edges
+ * as appropriate to break these cycles. Each reversed edge is assigned a
+ * `reversed` attribute with the value `true`.
+ *
+ * There should be no self loops in the graph.
+ */
+function acyclic(g) {
+  var onStack = {},
+      visited = {},
+      reverseCount = 0;
+  
+  function dfs(u) {
+    if (u in visited) return;
+    visited[u] = onStack[u] = true;
+    g.outEdges(u).forEach(function(e) {
+      var t = g.target(e),
+          value;
+
+      if (u === t) {
+        console.error('Warning: found self loop "' + e + '" for node "' + u + '"');
+      } else if (t in onStack) {
+        value = g.edge(e);
+        g.delEdge(e);
+        value.reversed = true;
+        ++reverseCount;
+        g.addEdge(e, t, u, value);
+      } else {
+        dfs(t);
+      }
+    });
+
+    delete onStack[u];
+  }
+
+  g.eachNode(function(u) { dfs(u); });
+
+  util.log(2, 'Acyclic Phase: reversed ' + reverseCount + ' edge(s)');
+
+  return reverseCount;
+}
+
+/*
+ * Given a graph that has had the acyclic operation applied, this function
+ * undoes that operation. More specifically, any edge with the `reversed`
+ * attribute is again reversed to restore the original direction of the edge.
+ */
+function undo(g) {
+  g.eachEdge(function(e, s, t, a) {
+    if (a.reversed) {
+      delete a.reversed;
+      g.delEdge(e);
+      g.addEdge(e, t, s, a);
+    }
+  });
+}
+
+},{"../util":17}],12:[function(require,module,exports){
+exports.apply = function(g) {
+  function dfs(sg) {
+    var rankSets = {};
+    g.children(sg).forEach(function(u) {
+      if (g.children(u).length) {
+        dfs(u);
+        return;
+      }
+
+      var value = g.node(u),
+          prefRank = value.prefRank;
+      if (prefRank !== undefined) {
+        if (!checkSupportedPrefRank(prefRank)) { return; }
+
+        if (!(prefRank in rankSets)) {
+          rankSets.prefRank = [u];
+        } else {
+          rankSets.prefRank.push(u);
+        }
+
+        var newU = rankSets[prefRank];
+        if (newU === undefined) {
+          newU = rankSets[prefRank] = g.addNode(null, { originalNodes: [] });
+          g.parent(newU, sg);
+        }
+
+        redirectInEdges(g, u, newU, prefRank === 'min');
+        redirectOutEdges(g, u, newU, prefRank === 'max');
+
+        // Save original node and remove it from reduced graph
+        g.node(newU).originalNodes.push({ u: u, value: value, parent: sg });
+        g.delNode(u);
+      }
+    });
+
+    addLightEdgesFromMinNode(g, sg, rankSets.min);
+    addLightEdgesToMaxNode(g, sg, rankSets.max);
+  }
+
+  dfs(null);
+};
+
+function checkSupportedPrefRank(prefRank) {
+  if (prefRank !== 'min' && prefRank !== 'max' && prefRank.indexOf('same_') !== 0) {
+    console.error('Unsupported rank type: ' + prefRank);
+    return false;
+  }
+  return true;
+}
+
+function redirectInEdges(g, u, newU, reverse) {
+  g.inEdges(u).forEach(function(e) {
+    var origValue = g.edge(e),
+        value;
+    if (origValue.originalEdge) {
+      value = origValue;
+    } else {
+      value =  {
+        originalEdge: { e: e, u: g.source(e), v: g.target(e), value: origValue },
+        minLen: g.edge(e).minLen
+      };
+    }
+
+    // Do not reverse edges for self-loops.
+    if (origValue.selfLoop) {
+      reverse = false;
+    }
+
+    if (reverse) {
+      // Ensure that all edges to min are reversed
+      g.addEdge(null, newU, g.source(e), value);
+      value.reversed = true;
+    } else {
+      g.addEdge(null, g.source(e), newU, value);
+    }
+  });
+}
+
+function redirectOutEdges(g, u, newU, reverse) {
+  g.outEdges(u).forEach(function(e) {
+    var origValue = g.edge(e),
+        value;
+    if (origValue.originalEdge) {
+      value = origValue;
+    } else {
+      value =  {
+        originalEdge: { e: e, u: g.source(e), v: g.target(e), value: origValue },
+        minLen: g.edge(e).minLen
+      };
+    }
+
+    // Do not reverse edges for self-loops.
+    if (origValue.selfLoop) {
+      reverse = false;
+    }
+
+    if (reverse) {
+      // Ensure that all edges from max are reversed
+      g.addEdge(null, g.target(e), newU, value);
+      value.reversed = true;
+    } else {
+      g.addEdge(null, newU, g.target(e), value);
+    }
+  });
+}
+
+function addLightEdgesFromMinNode(g, sg, minNode) {
+  if (minNode !== undefined) {
+    g.children(sg).forEach(function(u) {
+      // The dummy check ensures we don't add an edge if the node is involved
+      // in a self loop or sideways edge.
+      if (u !== minNode && !g.outEdges(minNode, u).length && !g.node(u).dummy) {
+        g.addEdge(null, minNode, u, { minLen: 0 });
+      }
+    });
+  }
+}
+
+function addLightEdgesToMaxNode(g, sg, maxNode) {
+  if (maxNode !== undefined) {
+    g.children(sg).forEach(function(u) {
+      // The dummy check ensures we don't add an edge if the node is involved
+      // in a self loop or sideways edge.
+      if (u !== maxNode && !g.outEdges(u, maxNode).length && !g.node(u).dummy) {
+        g.addEdge(null, u, maxNode, { minLen: 0 });
+      }
+    });
+  }
+}
+
+/*
+ * This function "relaxes" the constraints applied previously by the "apply"
+ * function. It expands any nodes that were collapsed and assigns the rank of
+ * the collapsed node to each of the expanded nodes. It also restores the
+ * original edges and removes any dummy edges pointing at the collapsed nodes.
+ *
+ * Note that the process of removing collapsed nodes also removes dummy edges
+ * automatically.
+ */
+exports.relax = function(g) {
+  // Save original edges
+  var originalEdges = [];
+  g.eachEdge(function(e, u, v, value) {
+    var originalEdge = value.originalEdge;
+    if (originalEdge) {
+      originalEdges.push(originalEdge);
+    }
+  });
+
+  // Expand collapsed nodes
+  g.eachNode(function(u, value) {
+    var originalNodes = value.originalNodes;
+    if (originalNodes) {
+      originalNodes.forEach(function(originalNode) {
+        originalNode.value.rank = value.rank;
+        g.addNode(originalNode.u, originalNode.value);
+        g.parent(originalNode.u, originalNode.parent);
+      });
+      g.delNode(u);
+    }
+  });
+
+  // Restore original edges
+  originalEdges.forEach(function(edge) {
+    g.addEdge(edge.e, edge.u, edge.v, edge.value);
+  });
+};
+
+},{}],13:[function(require,module,exports){
+/* jshint -W079 */
+var Set = require('cp-data').Set,
+/* jshint +W079 */
+    Digraph = require('graphlib').Digraph,
+    util = require('../util');
+
+module.exports = feasibleTree;
+
+/*
+ * Given an acyclic graph with each node assigned a `rank` attribute, this
+ * function constructs and returns a spanning tree. This function may reduce
+ * the length of some edges from the initial rank assignment while maintaining
+ * the `minLen` specified by each edge.
+ *
+ * Prerequisites:
+ *
+ * * The input graph is acyclic
+ * * Each node in the input graph has an assigned `rank` attribute
+ * * Each edge in the input graph has an assigned `minLen` attribute
+ *
+ * Outputs:
+ *
+ * A feasible spanning tree for the input graph (i.e. a spanning tree that
+ * respects each graph edge's `minLen` attribute) represented as a Digraph with
+ * a `root` attribute on graph.
+ *
+ * Nodes have the same id and value as that in the input graph.
+ *
+ * Edges in the tree have arbitrarily assigned ids. The attributes for edges
+ * include `reversed`. `reversed` indicates that the edge is a
+ * back edge in the input graph.
+ */
+function feasibleTree(g) {
+  var remaining = new Set(g.nodes()),
+      tree = new Digraph();
+
+  if (remaining.size() === 1) {
+    var root = g.nodes()[0];
+    tree.addNode(root, {});
+    tree.graph({ root: root });
+    return tree;
+  }
+
+  function addTightEdges(v) {
+    var continueToScan = true;
+    g.predecessors(v).forEach(function(u) {
+      if (remaining.has(u) && !slack(g, u, v)) {
+        if (remaining.has(v)) {
+          tree.addNode(v, {});
+          remaining.remove(v);
+          tree.graph({ root: v });
+        }
+
+        tree.addNode(u, {});
+        tree.addEdge(null, u, v, { reversed: true });
+        remaining.remove(u);
+        addTightEdges(u);
+        continueToScan = false;
+      }
+    });
+
+    g.successors(v).forEach(function(w)  {
+      if (remaining.has(w) && !slack(g, v, w)) {
+        if (remaining.has(v)) {
+          tree.addNode(v, {});
+          remaining.remove(v);
+          tree.graph({ root: v });
+        }
+
+        tree.addNode(w, {});
+        tree.addEdge(null, v, w, {});
+        remaining.remove(w);
+        addTightEdges(w);
+        continueToScan = false;
+      }
+    });
+    return continueToScan;
+  }
+
+  function createTightEdge() {
+    var minSlack = Number.MAX_VALUE;
+    remaining.keys().forEach(function(v) {
+      g.predecessors(v).forEach(function(u) {
+        if (!remaining.has(u)) {
+          var edgeSlack = slack(g, u, v);
+          if (Math.abs(edgeSlack) < Math.abs(minSlack)) {
+            minSlack = -edgeSlack;
+          }
+        }
+      });
+
+      g.successors(v).forEach(function(w) {
+        if (!remaining.has(w)) {
+          var edgeSlack = slack(g, v, w);
+          if (Math.abs(edgeSlack) < Math.abs(minSlack)) {
+            minSlack = edgeSlack;
+          }
+        }
+      });
+    });
+
+    tree.eachNode(function(u) { g.node(u).rank -= minSlack; });
+  }
+
+  while (remaining.size()) {
+    var nodesToSearch = !tree.order() ? remaining.keys() : tree.nodes();
+    for (var i = 0, il = nodesToSearch.length;
+         i < il && addTightEdges(nodesToSearch[i]);
+         ++i);
+    if (remaining.size()) {
+      createTightEdge();
+    }
+  }
+
+  return tree;
+}
+
+function slack(g, u, v) {
+  var rankDiff = g.node(v).rank - g.node(u).rank;
+  var maxMinLen = util.max(g.outEdges(u, v)
+                            .map(function(e) { return g.edge(e).minLen; }));
+  return rankDiff - maxMinLen;
+}
+
+},{"../util":17,"cp-data":19,"graphlib":24}],14:[function(require,module,exports){
+var util = require('../util'),
+    topsort = require('graphlib').alg.topsort;
+
+module.exports = initRank;
+
+/*
+ * Assigns a `rank` attribute to each node in the input graph and ensures that
+ * this rank respects the `minLen` attribute of incident edges.
+ *
+ * Prerequisites:
+ *
+ *  * The input graph must be acyclic
+ *  * Each edge in the input graph must have an assigned 'minLen' attribute
+ */
+function initRank(g) {
+  var sorted = topsort(g);
+
+  sorted.forEach(function(u) {
+    var inEdges = g.inEdges(u);
+    if (inEdges.length === 0) {
+      g.node(u).rank = 0;
+      return;
+    }
+
+    var minLens = inEdges.map(function(e) {
+      return g.node(g.source(e)).rank + g.edge(e).minLen;
+    });
+    g.node(u).rank = util.max(minLens);
+  });
+}
+
+},{"../util":17,"graphlib":24}],15:[function(require,module,exports){
+module.exports = {
+  slack: slack
+};
+
+/*
+ * A helper to calculate the slack between two nodes (`u` and `v`) given a
+ * `minLen` constraint. The slack represents how much the distance between `u`
+ * and `v` could shrink while maintaining the `minLen` constraint. If the value
+ * is negative then the constraint is currently violated.
+ *
+  This function requires that `u` and `v` are in `graph` and they both have a
+  `rank` attribute.
+ */
+function slack(graph, u, v, minLen) {
+  return Math.abs(graph.node(u).rank - graph.node(v).rank) - minLen;
+}
+
+},{}],16:[function(require,module,exports){
+var util = require('../util'),
+    rankUtil = require('./rankUtil');
+
+module.exports = simplex;
+
+function simplex(graph, spanningTree) {
+  // The network simplex algorithm repeatedly replaces edges of
+  // the spanning tree with negative cut values until no such
+  // edge exists.
+  initCutValues(graph, spanningTree);
+  while (true) {
+    var e = leaveEdge(spanningTree);
+    if (e === null) break;
+    var f = enterEdge(graph, spanningTree, e);
+    exchange(graph, spanningTree, e, f);
+  }
+}
+
+/*
+ * Set the cut values of edges in the spanning tree by a depth-first
+ * postorder traversal.  The cut value corresponds to the cost, in
+ * terms of a ranking's edge length sum, of lengthening an edge.
+ * Negative cut values typically indicate edges that would yield a
+ * smaller edge length sum if they were lengthened.
+ */
+function initCutValues(graph, spanningTree) {
+  computeLowLim(spanningTree);
+
+  spanningTree.eachEdge(function(id, u, v, treeValue) {
+    treeValue.cutValue = 0;
+  });
+
+  // Propagate cut values up the tree.
+  function dfs(n) {
+    var children = spanningTree.successors(n);
+    for (var c in children) {
+      var child = children[c];
+      dfs(child);
+    }
+    if (n !== spanningTree.graph().root) {
+      setCutValue(graph, spanningTree, n);
+    }
+  }
+  dfs(spanningTree.graph().root);
+}
+
+/*
+ * Perform a DFS postorder traversal, labeling each node v with
+ * its traversal order 'lim(v)' and the minimum traversal number
+ * of any of its descendants 'low(v)'.  This provides an efficient
+ * way to test whether u is an ancestor of v since
+ * low(u) <= lim(v) <= lim(u) if and only if u is an ancestor.
+ */
+function computeLowLim(tree) {
+  var postOrderNum = 0;
+  
+  function dfs(n) {
+    var children = tree.successors(n);
+    var low = postOrderNum;
+    for (var c in children) {
+      var child = children[c];
+      dfs(child);
+      low = Math.min(low, tree.node(child).low);
+    }
+    tree.node(n).low = low;
+    tree.node(n).lim = postOrderNum++;
+  }
+
+  dfs(tree.graph().root);
+}
+
+/*
+ * To compute the cut value of the edge parent -> child, we consider
+ * it and any other graph edges to or from the child.
+ *          parent
+ *             |
+ *           child
+ *          /      \
+ *         u        v
+ */
+function setCutValue(graph, tree, child) {
+  var parentEdge = tree.inEdges(child)[0];
+
+  // List of child's children in the spanning tree.
+  var grandchildren = [];
+  var grandchildEdges = tree.outEdges(child);
+  for (var gce in grandchildEdges) {
+    grandchildren.push(tree.target(grandchildEdges[gce]));
+  }
+
+  var cutValue = 0;
+
+  // TODO: Replace unit increment/decrement with edge weights.
+  var E = 0;    // Edges from child to grandchild's subtree.
+  var F = 0;    // Edges to child from grandchild's subtree.
+  var G = 0;    // Edges from child to nodes outside of child's subtree.
+  var H = 0;    // Edges from nodes outside of child's subtree to child.
+
+  // Consider all graph edges from child.
+  var outEdges = graph.outEdges(child);
+  var gc;
+  for (var oe in outEdges) {
+    var succ = graph.target(outEdges[oe]);
+    for (gc in grandchildren) {
+      if (inSubtree(tree, succ, grandchildren[gc])) {
+        E++;
+      }
+    }
+    if (!inSubtree(tree, succ, child)) {
+      G++;
+    }
+  }
+
+  // Consider all graph edges to child.
+  var inEdges = graph.inEdges(child);
+  for (var ie in inEdges) {
+    var pred = graph.source(inEdges[ie]);
+    for (gc in grandchildren) {
+      if (inSubtree(tree, pred, grandchildren[gc])) {
+        F++;
+      }
+    }
+    if (!inSubtree(tree, pred, child)) {
+      H++;
+    }
+  }
+
+  // Contributions depend on the alignment of the parent -> child edge
+  // and the child -> u or v edges.
+  var grandchildCutSum = 0;
+  for (gc in grandchildren) {
+    var cv = tree.edge(grandchildEdges[gc]).cutValue;
+    if (!tree.edge(grandchildEdges[gc]).reversed) {
+      grandchildCutSum += cv;
+    } else {
+      grandchildCutSum -= cv;
+    }
+  }
+
+  if (!tree.edge(parentEdge).reversed) {
+    cutValue += grandchildCutSum - E + F - G + H;
+  } else {
+    cutValue -= grandchildCutSum - E + F - G + H;
+  }
+
+  tree.edge(parentEdge).cutValue = cutValue;
+}
+
+/*
+ * Return whether n is a node in the subtree with the given
+ * root.
+ */
+function inSubtree(tree, n, root) {
+  return (tree.node(root).low <= tree.node(n).lim &&
+          tree.node(n).lim <= tree.node(root).lim);
+}
+
+/*
+ * Return an edge from the tree with a negative cut value, or null if there
+ * is none.
+ */
+function leaveEdge(tree) {
+  var edges = tree.edges();
+  for (var n in edges) {
+    var e = edges[n];
+    var treeValue = tree.edge(e);
+    if (treeValue.cutValue < 0) {
+      return e;
+    }
+  }
+  return null;
+}
+
+/*
+ * The edge e should be an edge in the tree, with an underlying edge
+ * in the graph, with a negative cut value.  Of the two nodes incident
+ * on the edge, take the lower one.  enterEdge returns an edge with
+ * minimum slack going from outside of that node's subtree to inside
+ * of that node's subtree.
+ */
+function enterEdge(graph, tree, e) {
+  var source = tree.source(e);
+  var target = tree.target(e);
+  var lower = tree.node(target).lim < tree.node(source).lim ? target : source;
+
+  // Is the tree edge aligned with the graph edge?
+  var aligned = !tree.edge(e).reversed;
+
+  var minSlack = Number.POSITIVE_INFINITY;
+  var minSlackEdge;
+  if (aligned) {
+    graph.eachEdge(function(id, u, v, value) {
+      if (id !== e && inSubtree(tree, u, lower) && !inSubtree(tree, v, lower)) {
+        var slack = rankUtil.slack(graph, u, v, value.minLen);
+        if (slack < minSlack) {
+          minSlack = slack;
+          minSlackEdge = id;
+        }
+      }
+    });
+  } else {
+    graph.eachEdge(function(id, u, v, value) {
+      if (id !== e && !inSubtree(tree, u, lower) && inSubtree(tree, v, lower)) {
+        var slack = rankUtil.slack(graph, u, v, value.minLen);
+        if (slack < minSlack) {
+          minSlack = slack;
+          minSlackEdge = id;
+        }
+      }
+    });
+  }
+
+  if (minSlackEdge === undefined) {
+    var outside = [];
+    var inside = [];
+    graph.eachNode(function(id) {
+      if (!inSubtree(tree, id, lower)) {
+        outside.push(id);
+      } else {
+        inside.push(id);
+      }
+    });
+    throw new Error('No edge found from outside of tree to inside');
+  }
+
+  return minSlackEdge;
+}
+
+/*
+ * Replace edge e with edge f in the tree, recalculating the tree root,
+ * the nodes' low and lim properties and the edges' cut values.
+ */
+function exchange(graph, tree, e, f) {
+  tree.delEdge(e);
+  var source = graph.source(f);
+  var target = graph.target(f);
+
+  // Redirect edges so that target is the root of its subtree.
+  function redirect(v) {
+    var edges = tree.inEdges(v);
+    for (var i in edges) {
+      var e = edges[i];
+      var u = tree.source(e);
+      var value = tree.edge(e);
+      redirect(u);
+      tree.delEdge(e);
+      value.reversed = !value.reversed;
+      tree.addEdge(e, v, u, value);
+    }
+  }
+
+  redirect(target);
+
+  var root = source;
+  var edges = tree.inEdges(root);
+  while (edges.length > 0) {
+    root = tree.source(edges[0]);
+    edges = tree.inEdges(root);
+  }
+
+  tree.graph().root = root;
+
+  tree.addEdge(null, source, target, {cutValue: 0});
+
+  initCutValues(graph, tree);
+
+  adjustRanks(graph, tree);
+}
+
+/*
+ * Reset the ranks of all nodes based on the current spanning tree.
+ * The rank of the tree's root remains unchanged, while all other
+ * nodes are set to the sum of minimum length constraints along
+ * the path from the root.
+ */
+function adjustRanks(graph, tree) {
+  function dfs(p) {
+    var children = tree.successors(p);
+    children.forEach(function(c) {
+      var minLen = minimumLength(graph, p, c);
+      graph.node(c).rank = graph.node(p).rank + minLen;
+      dfs(c);
+    });
+  }
+
+  dfs(tree.graph().root);
+}
+
+/*
+ * If u and v are connected by some edges in the graph, return the
+ * minimum length of those edges, as a positive number if v succeeds
+ * u and as a negative number if v precedes u.
+ */
+function minimumLength(graph, u, v) {
+  var outEdges = graph.outEdges(u, v);
+  if (outEdges.length > 0) {
+    return util.max(outEdges.map(function(e) {
+      return graph.edge(e).minLen;
+    }));
+  }
+
+  var inEdges = graph.inEdges(u, v);
+  if (inEdges.length > 0) {
+    return -util.max(inEdges.map(function(e) {
+      return graph.edge(e).minLen;
+    }));
+  }
+}
+
+},{"../util":17,"./rankUtil":15}],17:[function(require,module,exports){
+/*
+ * Returns the smallest value in the array.
+ */
+exports.min = function(values) {
+  return Math.min.apply(Math, values);
+};
+
+/*
+ * Returns the largest value in the array.
+ */
+exports.max = function(values) {
+  return Math.max.apply(Math, values);
+};
+
+/*
+ * Returns `true` only if `f(x)` is `true` for all `x` in `xs`. Otherwise
+ * returns `false`. This function will return immediately if it finds a
+ * case where `f(x)` does not hold.
+ */
+exports.all = function(xs, f) {
+  for (var i = 0; i < xs.length; ++i) {
+    if (!f(xs[i])) {
+      return false;
+    }
+  }
+  return true;
+};
+
+/*
+ * Accumulates the sum of elements in the given array using the `+` operator.
+ */
+exports.sum = function(values) {
+  return values.reduce(function(acc, x) { return acc + x; }, 0);
+};
+
+/*
+ * Returns an array of all values in the given object.
+ */
+exports.values = function(obj) {
+  return Object.keys(obj).map(function(k) { return obj[k]; });
+};
+
+exports.shuffle = function(array) {
+  for (i = array.length - 1; i > 0; --i) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var aj = array[j];
+    array[j] = array[i];
+    array[i] = aj;
+  }
+};
+
+exports.propertyAccessor = function(self, config, field, setHook) {
+  return function(x) {
+    if (!arguments.length) return config[field];
+    config[field] = x;
+    if (setHook) setHook(x);
+    return self;
+  };
+};
+
+/*
+ * Given a layered, directed graph with `rank` and `order` node attributes,
+ * this function returns an array of ordered ranks. Each rank contains an array
+ * of the ids of the nodes in that rank in the order specified by the `order`
+ * attribute.
+ */
+exports.ordering = function(g) {
+  var ordering = [];
+  g.eachNode(function(u, value) {
+    var rank = ordering[value.rank] || (ordering[value.rank] = []);
+    rank[value.order] = u;
+  });
+  return ordering;
+};
+
+/*
+ * A filter that can be used with `filterNodes` to get a graph that only
+ * includes nodes that do not contain others nodes.
+ */
+exports.filterNonSubgraphs = function(g) {
+  return function(u) {
+    return g.children(u).length === 0;
+  };
+};
+
+/*
+ * Returns a new function that wraps `func` with a timer. The wrapper logs the
+ * time it takes to execute the function.
+ *
+ * The timer will be enabled provided `log.level >= 1`.
+ */
+function time(name, func) {
+  return function() {
+    var start = new Date().getTime();
+    try {
+      return func.apply(null, arguments);
+    } finally {
+      log(1, name + ' time: ' + (new Date().getTime() - start) + 'ms');
+    }
+  };
+}
+time.enabled = false;
+
+exports.time = time;
+
+/*
+ * A global logger with the specification `log(level, message, ...)` that
+ * will log a message to the console if `log.level >= level`.
+ */
+function log(level) {
+  if (log.level >= level) {
+    console.log.apply(console, Array.prototype.slice.call(arguments, 1));
+  }
+}
+log.level = 0;
+
+exports.log = log;
+
+},{}],18:[function(require,module,exports){
+module.exports = '0.4.5';
+
+},{}],19:[function(require,module,exports){
+exports.Set = require('./lib/Set');
+exports.PriorityQueue = require('./lib/PriorityQueue');
+exports.version = require('./lib/version');
+
+},{"./lib/PriorityQueue":20,"./lib/Set":21,"./lib/version":23}],20:[function(require,module,exports){
+module.exports = PriorityQueue;
+
+/**
+ * A min-priority queue data structure. This algorithm is derived from Cormen,
+ * et al., "Introduction to Algorithms". The basic idea of a min-priority
+ * queue is that you can efficiently (in O(1) time) get the smallest key in
+ * the queue. Adding and removing elements takes O(log n) time. A key can
+ * have its priority decreased in O(log n) time.
+ */
+function PriorityQueue() {
+  this._arr = [];
+  this._keyIndices = {};
+}
+
+/**
+ * Returns the number of elements in the queue. Takes `O(1)` time.
+ */
+PriorityQueue.prototype.size = function() {
+  return this._arr.length;
+};
+
+/**
+ * Returns the keys that are in the queue. Takes `O(n)` time.
+ */
+PriorityQueue.prototype.keys = function() {
+  return this._arr.map(function(x) { return x.key; });
+};
+
+/**
+ * Returns `true` if **key** is in the queue and `false` if not.
+ */
+PriorityQueue.prototype.has = function(key) {
+  return key in this._keyIndices;
+};
+
+/**
+ * Returns the priority for **key**. If **key** is not present in the queue
+ * then this function returns `undefined`. Takes `O(1)` time.
+ *
+ * @param {Object} key
+ */
+PriorityQueue.prototype.priority = function(key) {
+  var index = this._keyIndices[key];
+  if (index !== undefined) {
+    return this._arr[index].priority;
+  }
+};
+
+/**
+ * Returns the key for the minimum element in this queue. If the queue is
+ * empty this function throws an Error. Takes `O(1)` time.
+ */
+PriorityQueue.prototype.min = function() {
+  if (this.size() === 0) {
+    throw new Error("Queue underflow");
+  }
+  return this._arr[0].key;
+};
+
+/**
+ * Inserts a new key into the priority queue. If the key already exists in
+ * the queue this function returns `false`; otherwise it will return `true`.
+ * Takes `O(n)` time.
+ *
+ * @param {Object} key the key to add
+ * @param {Number} priority the initial priority for the key
+ */
+PriorityQueue.prototype.add = function(key, priority) {
+  var keyIndices = this._keyIndices;
+  if (!(key in keyIndices)) {
+    var arr = this._arr;
+    var index = arr.length;
+    keyIndices[key] = index;
+    arr.push({key: key, priority: priority});
+    this._decrease(index);
+    return true;
+  }
+  return false;
+};
+
+/**
+ * Removes and returns the smallest key in the queue. Takes `O(log n)` time.
+ */
+PriorityQueue.prototype.removeMin = function() {
+  this._swap(0, this._arr.length - 1);
+  var min = this._arr.pop();
+  delete this._keyIndices[min.key];
+  this._heapify(0);
+  return min.key;
+};
+
+/**
+ * Decreases the priority for **key** to **priority**. If the new priority is
+ * greater than the previous priority, this function will throw an Error.
+ *
+ * @param {Object} key the key for which to raise priority
+ * @param {Number} priority the new priority for the key
+ */
+PriorityQueue.prototype.decrease = function(key, priority) {
+  var index = this._keyIndices[key];
+  if (priority > this._arr[index].priority) {
+    throw new Error("New priority is greater than current priority. " +
+        "Key: " + key + " Old: " + this._arr[index].priority + " New: " + priority);
+  }
+  this._arr[index].priority = priority;
+  this._decrease(index);
+};
+
+PriorityQueue.prototype._heapify = function(i) {
+  var arr = this._arr;
+  var l = 2 * i,
+      r = l + 1,
+      largest = i;
+  if (l < arr.length) {
+    largest = arr[l].priority < arr[largest].priority ? l : largest;
+    if (r < arr.length) {
+      largest = arr[r].priority < arr[largest].priority ? r : largest;
+    }
+    if (largest !== i) {
+      this._swap(i, largest);
+      this._heapify(largest);
+    }
+  }
+};
+
+PriorityQueue.prototype._decrease = function(index) {
+  var arr = this._arr;
+  var priority = arr[index].priority;
+  var parent;
+  while (index !== 0) {
+    parent = index >> 1;
+    if (arr[parent].priority < priority) {
+      break;
+    }
+    this._swap(index, parent);
+    index = parent;
+  }
+};
+
+PriorityQueue.prototype._swap = function(i, j) {
+  var arr = this._arr;
+  var keyIndices = this._keyIndices;
+  var origArrI = arr[i];
+  var origArrJ = arr[j];
+  arr[i] = origArrJ;
+  arr[j] = origArrI;
+  keyIndices[origArrJ.key] = i;
+  keyIndices[origArrI.key] = j;
+};
+
+},{}],21:[function(require,module,exports){
+var util = require('./util');
+
+module.exports = Set;
+
+/**
+ * Constructs a new Set with an optional set of `initialKeys`.
+ *
+ * It is important to note that keys are coerced to String for most purposes
+ * with this object, similar to the behavior of JavaScript's Object. For
+ * example, the following will add only one key:
+ *
+ *     var s = new Set();
+ *     s.add(1);
+ *     s.add("1");
+ *
+ * However, the type of the key is preserved internally so that `keys` returns
+ * the original key set uncoerced. For the above example, `keys` would return
+ * `[1]`.
+ */
+function Set(initialKeys) {
+  this._size = 0;
+  this._keys = {};
+
+  if (initialKeys) {
+    for (var i = 0, il = initialKeys.length; i < il; ++i) {
+      this.add(initialKeys[i]);
+    }
+  }
+}
+
+/**
+ * Returns a new Set that represents the set intersection of the array of given
+ * sets.
+ */
+Set.intersect = function(sets) {
+  if (sets.length === 0) {
+    return new Set();
+  }
+
+  var result = new Set(!util.isArray(sets[0]) ? sets[0].keys() : sets[0]);
+  for (var i = 1, il = sets.length; i < il; ++i) {
+    var resultKeys = result.keys(),
+        other = !util.isArray(sets[i]) ? sets[i] : new Set(sets[i]);
+    for (var j = 0, jl = resultKeys.length; j < jl; ++j) {
+      var key = resultKeys[j];
+      if (!other.has(key)) {
+        result.remove(key);
+      }
+    }
+  }
+
+  return result;
+};
+
+/**
+ * Returns a new Set that represents the set union of the array of given sets.
+ */
+Set.union = function(sets) {
+  var totalElems = util.reduce(sets, function(lhs, rhs) {
+    return lhs + (rhs.size ? rhs.size() : rhs.length);
+  }, 0);
+  var arr = new Array(totalElems);
+
+  var k = 0;
+  for (var i = 0, il = sets.length; i < il; ++i) {
+    var cur = sets[i],
+        keys = !util.isArray(cur) ? cur.keys() : cur;
+    for (var j = 0, jl = keys.length; j < jl; ++j) {
+      arr[k++] = keys[j];
+    }
+  }
+
+  return new Set(arr);
+};
+
+/**
+ * Returns the size of this set in `O(1)` time.
+ */
+Set.prototype.size = function() {
+  return this._size;
+};
+
+/**
+ * Returns the keys in this set. Takes `O(n)` time.
+ */
+Set.prototype.keys = function() {
+  return values(this._keys);
+};
+
+/**
+ * Tests if a key is present in this Set. Returns `true` if it is and `false`
+ * if not. Takes `O(1)` time.
+ */
+Set.prototype.has = function(key) {
+  return key in this._keys;
+};
+
+/**
+ * Adds a new key to this Set if it is not already present. Returns `true` if
+ * the key was added and `false` if it was already present. Takes `O(1)` time.
+ */
+Set.prototype.add = function(key) {
+  if (!(key in this._keys)) {
+    this._keys[key] = key;
+    ++this._size;
+    return true;
+  }
+  return false;
+};
+
+/**
+ * Removes a key from this Set. If the key was removed this function returns
+ * `true`. If not, it returns `false`. Takes `O(1)` time.
+ */
+Set.prototype.remove = function(key) {
+  if (key in this._keys) {
+    delete this._keys[key];
+    --this._size;
+    return true;
+  }
+  return false;
+};
+
+/*
+ * Returns an array of all values for properties of **o**.
+ */
+function values(o) {
+  var ks = Object.keys(o),
+      len = ks.length,
+      result = new Array(len),
+      i;
+  for (i = 0; i < len; ++i) {
+    result[i] = o[ks[i]];
+  }
+  return result;
+}
+
+},{"./util":22}],22:[function(require,module,exports){
+/*
+ * This polyfill comes from
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
+ */
+if(!Array.isArray) {
+  exports.isArray = function (vArg) {
+    return Object.prototype.toString.call(vArg) === '[object Array]';
+  };
+} else {
+  exports.isArray = Array.isArray;
+}
+
+/*
+ * Slightly adapted polyfill from
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce
+ */
+if ('function' !== typeof Array.prototype.reduce) {
+  exports.reduce = function(array, callback, opt_initialValue) {
+    'use strict';
+    if (null === array || 'undefined' === typeof array) {
+      // At the moment all modern browsers, that support strict mode, have
+      // native implementation of Array.prototype.reduce. For instance, IE8
+      // does not support strict mode, so this check is actually useless.
+      throw new TypeError(
+          'Array.prototype.reduce called on null or undefined');
+    }
+    if ('function' !== typeof callback) {
+      throw new TypeError(callback + ' is not a function');
+    }
+    var index, value,
+        length = array.length >>> 0,
+        isValueSet = false;
+    if (1 < arguments.length) {
+      value = opt_initialValue;
+      isValueSet = true;
+    }
+    for (index = 0; length > index; ++index) {
+      if (array.hasOwnProperty(index)) {
+        if (isValueSet) {
+          value = callback(value, array[index], index, array);
+        }
+        else {
+          value = array[index];
+          isValueSet = true;
+        }
+      }
+    }
+    if (!isValueSet) {
+      throw new TypeError('Reduce of empty array with no initial value');
+    }
+    return value;
+  };
+} else {
+  exports.reduce = function(array, callback, opt_initialValue) {
+    return array.reduce(callback, opt_initialValue);
+  };
+}
+
+},{}],23:[function(require,module,exports){
+module.exports = '1.1.3';
+
+},{}],24:[function(require,module,exports){
+exports.Graph = require("./lib/Graph");
+exports.Digraph = require("./lib/Digraph");
+exports.CGraph = require("./lib/CGraph");
+exports.CDigraph = require("./lib/CDigraph");
+require("./lib/graph-converters");
+
+exports.alg = {
+  isAcyclic: require("./lib/alg/isAcyclic"),
+  components: require("./lib/alg/components"),
+  dijkstra: require("./lib/alg/dijkstra"),
+  dijkstraAll: require("./lib/alg/dijkstraAll"),
+  findCycles: require("./lib/alg/findCycles"),
+  floydWarshall: require("./lib/alg/floydWarshall"),
+  postorder: require("./lib/alg/postorder"),
+  preorder: require("./lib/alg/preorder"),
+  prim: require("./lib/alg/prim"),
+  tarjan: require("./lib/alg/tarjan"),
+  topsort: require("./lib/alg/topsort")
+};
+
+exports.converter = {
+  json: require("./lib/converter/json.js")
+};
+
+var filter = require("./lib/filter");
+exports.filter = {
+  all: filter.all,
+  nodesFromList: filter.nodesFromList
+};
+
+exports.version = require("./lib/version");
+
+},{"./lib/CDigraph":26,"./lib/CGraph":27,"./lib/Digraph":28,"./lib/Graph":29,"./lib/alg/components":30,"./lib/alg/dijkstra":31,"./lib/alg/dijkstraAll":32,"./lib/alg/findCycles":33,"./lib/alg/floydWarshall":34,"./lib/alg/isAcyclic":35,"./lib/alg/postorder":36,"./lib/alg/preorder":37,"./lib/alg/prim":38,"./lib/alg/tarjan":39,"./lib/alg/topsort":40,"./lib/converter/json.js":42,"./lib/filter":43,"./lib/graph-converters":44,"./lib/version":46}],25:[function(require,module,exports){
+/* jshint -W079 */
+var Set = require("cp-data").Set;
+/* jshint +W079 */
+
+module.exports = BaseGraph;
+
+function BaseGraph() {
+  // The value assigned to the graph itself.
+  this._value = undefined;
+
+  // Map of node id -> { id, value }
+  this._nodes = {};
+
+  // Map of edge id -> { id, u, v, value }
+  this._edges = {};
+
+  // Used to generate a unique id in the graph
+  this._nextId = 0;
+}
+
+// Number of nodes
+BaseGraph.prototype.order = function() {
+  return Object.keys(this._nodes).length;
+};
+
+// Number of edges
+BaseGraph.prototype.size = function() {
+  return Object.keys(this._edges).length;
+};
+
+// Accessor for graph level value
+BaseGraph.prototype.graph = function(value) {
+  if (arguments.length === 0) {
+    return this._value;
+  }
+  this._value = value;
+};
+
+BaseGraph.prototype.hasNode = function(u) {
+  return u in this._nodes;
+};
+
+BaseGraph.prototype.node = function(u, value) {
+  var node = this._strictGetNode(u);
+  if (arguments.length === 1) {
+    return node.value;
+  }
+  node.value = value;
+};
+
+BaseGraph.prototype.nodes = function() {
+  var nodes = [];
+  this.eachNode(function(id) { nodes.push(id); });
+  return nodes;
+};
+
+BaseGraph.prototype.eachNode = function(func) {
+  for (var k in this._nodes) {
+    var node = this._nodes[k];
+    func(node.id, node.value);
+  }
+};
+
+BaseGraph.prototype.hasEdge = function(e) {
+  return e in this._edges;
+};
+
+BaseGraph.prototype.edge = function(e, value) {
+  var edge = this._strictGetEdge(e);
+  if (arguments.length === 1) {
+    return edge.value;
+  }
+  edge.value = value;
+};
+
+BaseGraph.prototype.edges = function() {
+  var es = [];
+  this.eachEdge(function(id) { es.push(id); });
+  return es;
+};
+
+BaseGraph.prototype.eachEdge = function(func) {
+  for (var k in this._edges) {
+    var edge = this._edges[k];
+    func(edge.id, edge.u, edge.v, edge.value);
+  }
+};
+
+BaseGraph.prototype.incidentNodes = function(e) {
+  var edge = this._strictGetEdge(e);
+  return [edge.u, edge.v];
+};
+
+BaseGraph.prototype.addNode = function(u, value) {
+  if (u === undefined || u === null) {
+    do {
+      u = "_" + (++this._nextId);
+    } while (this.hasNode(u));
+  } else if (this.hasNode(u)) {
+    throw new Error("Graph already has node '" + u + "'");
+  }
+  this._nodes[u] = { id: u, value: value };
+  return u;
+};
+
+BaseGraph.prototype.delNode = function(u) {
+  this._strictGetNode(u);
+  this.incidentEdges(u).forEach(function(e) { this.delEdge(e); }, this);
+  delete this._nodes[u];
+};
+
+// inMap and outMap are opposite sides of an incidence map. For example, for
+// Graph these would both come from the _incidentEdges map, while for Digraph
+// they would come from _inEdges and _outEdges.
+BaseGraph.prototype._addEdge = function(e, u, v, value, inMap, outMap) {
+  this._strictGetNode(u);
+  this._strictGetNode(v);
+
+  if (e === undefined || e === null) {
+    do {
+      e = "_" + (++this._nextId);
+    } while (this.hasEdge(e));
+  }
+  else if (this.hasEdge(e)) {
+    throw new Error("Graph already has edge '" + e + "'");
+  }
+
+  this._edges[e] = { id: e, u: u, v: v, value: value };
+  addEdgeToMap(inMap[v], u, e);
+  addEdgeToMap(outMap[u], v, e);
+
+  return e;
+};
+
+// See note for _addEdge regarding inMap and outMap.
+BaseGraph.prototype._delEdge = function(e, inMap, outMap) {
+  var edge = this._strictGetEdge(e);
+  delEdgeFromMap(inMap[edge.v], edge.u, e);
+  delEdgeFromMap(outMap[edge.u], edge.v, e);
+  delete this._edges[e];
+};
+
+BaseGraph.prototype.copy = function() {
+  var copy = new this.constructor();
+  copy.graph(this.graph());
+  this.eachNode(function(u, value) { copy.addNode(u, value); });
+  this.eachEdge(function(e, u, v, value) { copy.addEdge(e, u, v, value); });
+  copy._nextId = this._nextId;
+  return copy;
+};
+
+BaseGraph.prototype.filterNodes = function(filter) {
+  var copy = new this.constructor();
+  copy.graph(this.graph());
+  this.eachNode(function(u, value) {
+    if (filter(u)) {
+      copy.addNode(u, value);
+    }
+  });
+  this.eachEdge(function(e, u, v, value) {
+    if (copy.hasNode(u) && copy.hasNode(v)) {
+      copy.addEdge(e, u, v, value);
+    }
+  });
+  return copy;
+};
+
+BaseGraph.prototype._strictGetNode = function(u) {
+  var node = this._nodes[u];
+  if (node === undefined) {
+    throw new Error("Node '" + u + "' is not in graph");
+  }
+  return node;
+};
+
+BaseGraph.prototype._strictGetEdge = function(e) {
+  var edge = this._edges[e];
+  if (edge === undefined) {
+    throw new Error("Edge '" + e + "' is not in graph");
+  }
+  return edge;
+};
+
+function addEdgeToMap(map, v, e) {
+  (map[v] || (map[v] = new Set())).add(e);
+}
+
+function delEdgeFromMap(map, v, e) {
+  var vEntry = map[v];
+  vEntry.remove(e);
+  if (vEntry.size() === 0) {
+    delete map[v];
+  }
+}
+
+
+},{"cp-data":19}],26:[function(require,module,exports){
+var Digraph = require("./Digraph"),
+    compoundify = require("./compoundify");
+
+var CDigraph = compoundify(Digraph);
+
+module.exports = CDigraph;
+
+CDigraph.fromDigraph = function(src) {
+  var g = new CDigraph(),
+      graphValue = src.graph();
+
+  if (graphValue !== undefined) {
+    g.graph(graphValue);
+  }
+
+  src.eachNode(function(u, value) {
+    if (value === undefined) {
+      g.addNode(u);
+    } else {
+      g.addNode(u, value);
+    }
+  });
+  src.eachEdge(function(e, u, v, value) {
+    if (value === undefined) {
+      g.addEdge(null, u, v);
+    } else {
+      g.addEdge(null, u, v, value);
+    }
+  });
+  return g;
+};
+
+CDigraph.prototype.toString = function() {
+  return "CDigraph " + JSON.stringify(this, null, 2);
+};
+
+},{"./Digraph":28,"./compoundify":41}],27:[function(require,module,exports){
+var Graph = require("./Graph"),
+    compoundify = require("./compoundify");
+
+var CGraph = compoundify(Graph);
+
+module.exports = CGraph;
+
+CGraph.fromGraph = function(src) {
+  var g = new CGraph(),
+      graphValue = src.graph();
+
+  if (graphValue !== undefined) {
+    g.graph(graphValue);
+  }
+
+  src.eachNode(function(u, value) {
+    if (value === undefined) {
+      g.addNode(u);
+    } else {
+      g.addNode(u, value);
+    }
+  });
+  src.eachEdge(function(e, u, v, value) {
+    if (value === undefined) {
+      g.addEdge(null, u, v);
+    } else {
+      g.addEdge(null, u, v, value);
+    }
+  });
+  return g;
+};
+
+CGraph.prototype.toString = function() {
+  return "CGraph " + JSON.stringify(this, null, 2);
+};
+
+},{"./Graph":29,"./compoundify":41}],28:[function(require,module,exports){
+/*
+ * This file is organized with in the following order:
+ *
+ * Exports
+ * Graph constructors
+ * Graph queries (e.g. nodes(), edges()
+ * Graph mutators
+ * Helper functions
+ */
+
+var util = require("./util"),
+    BaseGraph = require("./BaseGraph"),
+/* jshint -W079 */
+    Set = require("cp-data").Set;
+/* jshint +W079 */
+
+module.exports = Digraph;
+
+/*
+ * Constructor to create a new directed multi-graph.
+ */
+function Digraph() {
+  BaseGraph.call(this);
+
+  /*! Map of sourceId -> {targetId -> Set of edge ids} */
+  this._inEdges = {};
+
+  /*! Map of targetId -> {sourceId -> Set of edge ids} */
+  this._outEdges = {};
+}
+
+Digraph.prototype = new BaseGraph();
+Digraph.prototype.constructor = Digraph;
+
+/*
+ * Always returns `true`.
+ */
+Digraph.prototype.isDirected = function() {
+  return true;
+};
+
+/*
+ * Returns all successors of the node with the id `u`. That is, all nodes
+ * that have the node `u` as their source are returned.
+ * 
+ * If no node `u` exists in the graph this function throws an Error.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.successors = function(u) {
+  this._strictGetNode(u);
+  return Object.keys(this._outEdges[u])
+               .map(function(v) { return this._nodes[v].id; }, this);
+};
+
+/*
+ * Returns all predecessors of the node with the id `u`. That is, all nodes
+ * that have the node `u` as their target are returned.
+ * 
+ * If no node `u` exists in the graph this function throws an Error.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.predecessors = function(u) {
+  this._strictGetNode(u);
+  return Object.keys(this._inEdges[u])
+               .map(function(v) { return this._nodes[v].id; }, this);
+};
+
+/*
+ * Returns all nodes that are adjacent to the node with the id `u`. In other
+ * words, this function returns the set of all successors and predecessors of
+ * node `u`.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.neighbors = function(u) {
+  return Set.union([this.successors(u), this.predecessors(u)]).keys();
+};
+
+/*
+ * Returns all nodes in the graph that have no in-edges.
+ */
+Digraph.prototype.sources = function() {
+  var self = this;
+  return this._filterNodes(function(u) {
+    // This could have better space characteristics if we had an inDegree function.
+    return self.inEdges(u).length === 0;
+  });
+};
+
+/*
+ * Returns all nodes in the graph that have no out-edges.
+ */
+Digraph.prototype.sinks = function() {
+  var self = this;
+  return this._filterNodes(function(u) {
+    // This could have better space characteristics if we have an outDegree function.
+    return self.outEdges(u).length === 0;
+  });
+};
+
+/*
+ * Returns the source node incident on the edge identified by the id `e`. If no
+ * such edge exists in the graph this function throws an Error.
+ *
+ * @param {String} e an edge id
+ */
+Digraph.prototype.source = function(e) {
+  return this._strictGetEdge(e).u;
+};
+
+/*
+ * Returns the target node incident on the edge identified by the id `e`. If no
+ * such edge exists in the graph this function throws an Error.
+ *
+ * @param {String} e an edge id
+ */
+Digraph.prototype.target = function(e) {
+  return this._strictGetEdge(e).v;
+};
+
+/*
+ * Returns an array of ids for all edges in the graph that have the node
+ * `target` as their target. If the node `target` is not in the graph this
+ * function raises an Error.
+ *
+ * Optionally a `source` node can also be specified. This causes the results
+ * to be filtered such that only edges from `source` to `target` are included.
+ * If the node `source` is specified but is not in the graph then this function
+ * raises an Error.
+ *
+ * @param {String} target the target node id
+ * @param {String} [source] an optional source node id
+ */
+Digraph.prototype.inEdges = function(target, source) {
+  this._strictGetNode(target);
+  var results = Set.union(util.values(this._inEdges[target])).keys();
+  if (arguments.length > 1) {
+    this._strictGetNode(source);
+    results = results.filter(function(e) { return this.source(e) === source; }, this);
+  }
+  return results;
+};
+
+/*
+ * Returns an array of ids for all edges in the graph that have the node
+ * `source` as their source. If the node `source` is not in the graph this
+ * function raises an Error.
+ *
+ * Optionally a `target` node may also be specified. This causes the results
+ * to be filtered such that only edges from `source` to `target` are included.
+ * If the node `target` is specified but is not in the graph then this function
+ * raises an Error.
+ *
+ * @param {String} source the source node id
+ * @param {String} [target] an optional target node id
+ */
+Digraph.prototype.outEdges = function(source, target) {
+  this._strictGetNode(source);
+  var results = Set.union(util.values(this._outEdges[source])).keys();
+  if (arguments.length > 1) {
+    this._strictGetNode(target);
+    results = results.filter(function(e) { return this.target(e) === target; }, this);
+  }
+  return results;
+};
+
+/*
+ * Returns an array of ids for all edges in the graph that have the `u` as
+ * their source or their target. If the node `u` is not in the graph this
+ * function raises an Error.
+ *
+ * Optionally a `v` node may also be specified. This causes the results to be
+ * filtered such that only edges between `u` and `v` - in either direction -
+ * are included. IF the node `v` is specified but not in the graph then this
+ * function raises an Error.
+ *
+ * @param {String} u the node for which to find incident edges
+ * @param {String} [v] option node that must be adjacent to `u`
+ */
+Digraph.prototype.incidentEdges = function(u, v) {
+  if (arguments.length > 1) {
+    return Set.union([this.outEdges(u, v), this.outEdges(v, u)]).keys();
+  } else {
+    return Set.union([this.inEdges(u), this.outEdges(u)]).keys();
+  }
+};
+
+/*
+ * Returns a string representation of this graph.
+ */
+Digraph.prototype.toString = function() {
+  return "Digraph " + JSON.stringify(this, null, 2);
+};
+
+/*
+ * Adds a new node with the id `u` to the graph and assigns it the value
+ * `value`. If a node with the id is already a part of the graph this function
+ * throws an Error.
+ *
+ * @param {String} u a node id
+ * @param {Object} [value] an optional value to attach to the node
+ */
+Digraph.prototype.addNode = function(u, value) {
+  u = BaseGraph.prototype.addNode.call(this, u, value);
+  this._inEdges[u] = {};
+  this._outEdges[u] = {};
+  return u;
+};
+
+/*
+ * Removes a node from the graph that has the id `u`. Any edges incident on the
+ * node are also removed. If the graph does not contain a node with the id this
+ * function will throw an Error.
+ *
+ * @param {String} u a node id
+ */
+Digraph.prototype.delNode = function(u) {
+  BaseGraph.prototype.delNode.call(this, u);
+  delete this._inEdges[u];
+  delete this._outEdges[u];
+};
+
+/*
+ * Adds a new edge to the graph with the id `e` from a node with the id `source`
+ * to a node with an id `target` and assigns it the value `value`. This graph
+ * allows more than one edge from `source` to `target` as long as the id `e`
+ * is unique in the set of edges. If `e` is `null` the graph will assign a
+ * unique identifier to the edge.
+ *
+ * If `source` or `target` are not present in the graph this function will
+ * throw an Error.
+ *
+ * @param {String} [e] an edge id
+ * @param {String} source the source node id
+ * @param {String} target the target node id
+ * @param {Object} [value] an optional value to attach to the edge
+ */
+Digraph.prototype.addEdge = function(e, source, target, value) {
+  return BaseGraph.prototype._addEdge.call(this, e, source, target, value,
+                                           this._inEdges, this._outEdges);
+};
+
+/*
+ * Removes an edge in the graph with the id `e`. If no edge in the graph has
+ * the id `e` this function will throw an Error.
+ *
+ * @param {String} e an edge id
+ */
+Digraph.prototype.delEdge = function(e) {
+  BaseGraph.prototype._delEdge.call(this, e, this._inEdges, this._outEdges);
+};
+
+// Unlike BaseGraph.filterNodes, this helper just returns nodes that
+// satisfy a predicate.
+Digraph.prototype._filterNodes = function(pred) {
+  var filtered = [];
+  this.eachNode(function(u) {
+    if (pred(u)) {
+      filtered.push(u);
+    }
+  });
+  return filtered;
+};
+
+
+},{"./BaseGraph":25,"./util":45,"cp-data":19}],29:[function(require,module,exports){
+/*
+ * This file is organized with in the following order:
+ *
+ * Exports
+ * Graph constructors
+ * Graph queries (e.g. nodes(), edges()
+ * Graph mutators
+ * Helper functions
+ */
+
+var util = require("./util"),
+    BaseGraph = require("./BaseGraph"),
+/* jshint -W079 */
+    Set = require("cp-data").Set;
+/* jshint +W079 */
+
+module.exports = Graph;
+
+/*
+ * Constructor to create a new undirected multi-graph.
+ */
+function Graph() {
+  BaseGraph.call(this);
+
+  /*! Map of nodeId -> { otherNodeId -> Set of edge ids } */
+  this._incidentEdges = {};
+}
+
+Graph.prototype = new BaseGraph();
+Graph.prototype.constructor = Graph;
+
+/*
+ * Always returns `false`.
+ */
+Graph.prototype.isDirected = function() {
+  return false;
+};
+
+/*
+ * Returns all nodes that are adjacent to the node with the id `u`.
+ *
+ * @param {String} u a node id
+ */
+Graph.prototype.neighbors = function(u) {
+  this._strictGetNode(u);
+  return Object.keys(this._incidentEdges[u])
+               .map(function(v) { return this._nodes[v].id; }, this);
+};
+
+/*
+ * Returns an array of ids for all edges in the graph that are incident on `u`.
+ * If the node `u` is not in the graph this function raises an Error.
+ *
+ * Optionally a `v` node may also be specified. This causes the results to be
+ * filtered such that only edges between `u` and `v` are included. If the node
+ * `v` is specified but not in the graph then this function raises an Error.
+ *
+ * @param {String} u the node for which to find incident edges
+ * @param {String} [v] option node that must be adjacent to `u`
+ */
+Graph.prototype.incidentEdges = function(u, v) {
+  this._strictGetNode(u);
+  if (arguments.length > 1) {
+    this._strictGetNode(v);
+    return v in this._incidentEdges[u] ? this._incidentEdges[u][v].keys() : [];
+  } else {
+    return Set.union(util.values(this._incidentEdges[u])).keys();
+  }
+};
+
+/*
+ * Returns a string representation of this graph.
+ */
+Graph.prototype.toString = function() {
+  return "Graph " + JSON.stringify(this, null, 2);
+};
+
+/*
+ * Adds a new node with the id `u` to the graph and assigns it the value
+ * `value`. If a node with the id is already a part of the graph this function
+ * throws an Error.
+ *
+ * @param {String} u a node id
+ * @param {Object} [value] an optional value to attach to the node
+ */
+Graph.prototype.addNode = function(u, value) {
+  u = BaseGraph.prototype.addNode.call(this, u, value);
+  this._incidentEdges[u] = {};
+  return u;
+};
+
+/*
+ * Removes a node from the graph that has the id `u`. Any edges incident on the
+ * node are also removed. If the graph does not contain a node with the id this
+ * function will throw an Error.
+ *
+ * @param {String} u a node id
+ */
+Graph.prototype.delNode = function(u) {
+  BaseGraph.prototype.delNode.call(this, u);
+  delete this._incidentEdges[u];
+};
+
+/*
+ * Adds a new edge to the graph with the id `e` between a node with the id `u`
+ * and a node with an id `v` and assigns it the value `value`. This graph
+ * allows more than one edge between `u` and `v` as long as the id `e`
+ * is unique in the set of edges. If `e` is `null` the graph will assign a
+ * unique identifier to the edge.
+ *
+ * If `u` or `v` are not present in the graph this function will throw an
+ * Error.
+ *
+ * @param {String} [e] an edge id
+ * @param {String} u the node id of one of the adjacent nodes
+ * @param {String} v the node id of the other adjacent node
+ * @param {Object} [value] an optional value to attach to the edge
+ */
+Graph.prototype.addEdge = function(e, u, v, value) {
+  return BaseGraph.prototype._addEdge.call(this, e, u, v, value,
+                                           this._incidentEdges, this._incidentEdges);
+};
+
+/*
+ * Removes an edge in the graph with the id `e`. If no edge in the graph has
+ * the id `e` this function will throw an Error.
+ *
+ * @param {String} e an edge id
+ */
+Graph.prototype.delEdge = function(e) {
+  BaseGraph.prototype._delEdge.call(this, e, this._incidentEdges, this._incidentEdges);
+};
+
+
+},{"./BaseGraph":25,"./util":45,"cp-data":19}],30:[function(require,module,exports){
+/* jshint -W079 */
+var Set = require("cp-data").Set;
+/* jshint +W079 */
+
+module.exports = components;
+
+/**
+ * Finds all [connected components][] in a graph and returns an array of these
+ * components. Each component is itself an array that contains the ids of nodes
+ * in the component.
+ *
+ * This function only works with undirected Graphs.
+ *
+ * [connected components]: http://en.wikipedia.org/wiki/Connected_component_(graph_theory)
+ *
+ * @param {Graph} g the graph to search for components
+ */
+function components(g) {
+  var results = [];
+  var visited = new Set();
+
+  function dfs(v, component) {
+    if (!visited.has(v)) {
+      visited.add(v);
+      component.push(v);
+      g.neighbors(v).forEach(function(w) {
+        dfs(w, component);
+      });
+    }
+  }
+
+  g.nodes().forEach(function(v) {
+    var component = [];
+    dfs(v, component);
+    if (component.length > 0) {
+      results.push(component);
+    }
+  });
+
+  return results;
+}
+
+},{"cp-data":19}],31:[function(require,module,exports){
+var PriorityQueue = require("cp-data").PriorityQueue;
+
+module.exports = dijkstra;
+
+/**
+ * This function is an implementation of [Dijkstra's algorithm][] which finds
+ * the shortest path from **source** to all other nodes in **g**. This
+ * function returns a map of `u -> { distance, predecessor }`. The distance
+ * property holds the sum of the weights from **source** to `u` along the
+ * shortest path or `Number.POSITIVE_INFINITY` if there is no path from
+ * **source**. The predecessor property can be used to walk the individual
+ * elements of the path from **source** to **u** in reverse order.
+ *
+ * This function takes an optional `weightFunc(e)` which returns the
+ * weight of the edge `e`. If no weightFunc is supplied then each edge is
+ * assumed to have a weight of 1. This function throws an Error if any of
+ * the traversed edges have a negative edge weight.
+ *
+ * This function takes an optional `incidentFunc(u)` which returns the ids of
+ * all edges incident to the node `u` for the purposes of shortest path
+ * traversal. By default this function uses the `g.outEdges` for Digraphs and
+ * `g.incidentEdges` for Graphs.
+ *
+ * This function takes `O((|E| + |V|) * log |V|)` time.
+ *
+ * [Dijkstra's algorithm]: http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
+ *
+ * @param {Graph} g the graph to search for shortest paths from **source**
+ * @param {Object} source the source from which to start the search
+ * @param {Function} [weightFunc] optional weight function
+ * @param {Function} [incidentFunc] optional incident function
+ */
+function dijkstra(g, source, weightFunc, incidentFunc) {
+  var results = {},
+      pq = new PriorityQueue();
+
+  function updateNeighbors(e) {
+    var incidentNodes = g.incidentNodes(e),
+        v = incidentNodes[0] !== u ? incidentNodes[0] : incidentNodes[1],
+        vEntry = results[v],
+        weight = weightFunc(e),
+        distance = uEntry.distance + weight;
+
+    if (weight < 0) {
+      throw new Error("dijkstra does not allow negative edge weights. Bad edge: " + e + " Weight: " + weight);
+    }
+
+    if (distance < vEntry.distance) {
+      vEntry.distance = distance;
+      vEntry.predecessor = u;
+      pq.decrease(v, distance);
+    }
+  }
+
+  weightFunc = weightFunc || function() { return 1; };
+  incidentFunc = incidentFunc || (g.isDirected()
+      ? function(u) { return g.outEdges(u); }
+      : function(u) { return g.incidentEdges(u); });
+
+  g.eachNode(function(u) {
+    var distance = u === source ? 0 : Number.POSITIVE_INFINITY;
+    results[u] = { distance: distance };
+    pq.add(u, distance);
+  });
+
+  var u, uEntry;
+  while (pq.size() > 0) {
+    u = pq.removeMin();
+    uEntry = results[u];
+    if (uEntry.distance === Number.POSITIVE_INFINITY) {
+      break;
+    }
+
+    incidentFunc(u).forEach(updateNeighbors);
+  }
+
+  return results;
+}
+
+},{"cp-data":19}],32:[function(require,module,exports){
+var dijkstra = require("./dijkstra");
+
+module.exports = dijkstraAll;
+
+/**
+ * This function finds the shortest path from each node to every other
+ * reachable node in the graph. It is similar to [alg.dijkstra][], but
+ * instead of returning a single-source array, it returns a mapping of
+ * of `source -> alg.dijksta(g, source, weightFunc, incidentFunc)`.
+ *
+ * This function takes an optional `weightFunc(e)` which returns the
+ * weight of the edge `e`. If no weightFunc is supplied then each edge is
+ * assumed to have a weight of 1. This function throws an Error if any of
+ * the traversed edges have a negative edge weight.
+ *
+ * This function takes an optional `incidentFunc(u)` which returns the ids of
+ * all edges incident to the node `u` for the purposes of shortest path
+ * traversal. By default this function uses the `outEdges` function on the
+ * supplied graph.
+ *
+ * This function takes `O(|V| * (|E| + |V|) * log |V|)` time.
+ *
+ * [alg.dijkstra]: dijkstra.js.html#dijkstra
+ *
+ * @param {Graph} g the graph to search for shortest paths from **source**
+ * @param {Function} [weightFunc] optional weight function
+ * @param {Function} [incidentFunc] optional incident function
+ */
+function dijkstraAll(g, weightFunc, incidentFunc) {
+  var results = {};
+  g.eachNode(function(u) {
+    results[u] = dijkstra(g, u, weightFunc, incidentFunc);
+  });
+  return results;
+}
+
+},{"./dijkstra":31}],33:[function(require,module,exports){
+var tarjan = require("./tarjan");
+
+module.exports = findCycles;
+
+/*
+ * Given a Digraph **g** this function returns all nodes that are part of a
+ * cycle. Since there may be more than one cycle in a graph this function
+ * returns an array of these cycles, where each cycle is itself represented
+ * by an array of ids for each node involved in that cycle.
+ *
+ * [alg.isAcyclic][] is more efficient if you only need to determine whether
+ * a graph has a cycle or not.
+ *
+ * [alg.isAcyclic]: isAcyclic.js.html#isAcyclic
+ *
+ * @param {Digraph} g the graph to search for cycles.
+ */
+function findCycles(g) {
+  return tarjan(g).filter(function(cmpt) { return cmpt.length > 1; });
+}
+
+},{"./tarjan":39}],34:[function(require,module,exports){
+module.exports = floydWarshall;
+
+/**
+ * This function is an implementation of the [Floyd-Warshall algorithm][],
+ * which finds the shortest path from each node to every other reachable node
+ * in the graph. It is similar to [alg.dijkstraAll][], but it handles negative
+ * edge weights and is more efficient for some types of graphs. This function
+ * returns a map of `source -> { target -> { distance, predecessor }`. The
+ * distance property holds the sum of the weights from `source` to `target`
+ * along the shortest path of `Number.POSITIVE_INFINITY` if there is no path
+ * from `source`. The predecessor property can be used to walk the individual
+ * elements of the path from `source` to `target` in reverse order.
+ *
+ * This function takes an optional `weightFunc(e)` which returns the
+ * weight of the edge `e`. If no weightFunc is supplied then each edge is
+ * assumed to have a weight of 1.
+ *
+ * This function takes an optional `incidentFunc(u)` which returns the ids of
+ * all edges incident to the node `u` for the purposes of shortest path
+ * traversal. By default this function uses the `outEdges` function on the
+ * supplied graph.
+ *
+ * This algorithm takes O(|V|^3) time.
+ *
+ * [Floyd-Warshall algorithm]: https://en.wikipedia.org/wiki/Floyd-Warshall_algorithm
+ * [alg.dijkstraAll]: dijkstraAll.js.html#dijkstraAll
+ *
+ * @param {Graph} g the graph to search for shortest paths from **source**
+ * @param {Function} [weightFunc] optional weight function
+ * @param {Function} [incidentFunc] optional incident function
+ */
+function floydWarshall(g, weightFunc, incidentFunc) {
+  var results = {},
+      nodes = g.nodes();
+
+  weightFunc = weightFunc || function() { return 1; };
+  incidentFunc = incidentFunc || (g.isDirected()
+      ? function(u) { return g.outEdges(u); }
+      : function(u) { return g.incidentEdges(u); });
+
+  nodes.forEach(function(u) {
+    results[u] = {};
+    results[u][u] = { distance: 0 };
+    nodes.forEach(function(v) {
+      if (u !== v) {
+        results[u][v] = { distance: Number.POSITIVE_INFINITY };
+      }
+    });
+    incidentFunc(u).forEach(function(e) {
+      var incidentNodes = g.incidentNodes(e),
+          v = incidentNodes[0] !== u ? incidentNodes[0] : incidentNodes[1],
+          d = weightFunc(e);
+      if (d < results[u][v].distance) {
+        results[u][v] = { distance: d, predecessor: u };
+      }
+    });
+  });
+
+  nodes.forEach(function(k) {
+    var rowK = results[k];
+    nodes.forEach(function(i) {
+      var rowI = results[i];
+      nodes.forEach(function(j) {
+        var ik = rowI[k];
+        var kj = rowK[j];
+        var ij = rowI[j];
+        var altDistance = ik.distance + kj.distance;
+        if (altDistance < ij.distance) {
+          ij.distance = altDistance;
+          ij.predecessor = kj.predecessor;
+        }
+      });
+    });
+  });
+
+  return results;
+}
+
+},{}],35:[function(require,module,exports){
+var topsort = require("./topsort");
+
+module.exports = isAcyclic;
+
+/*
+ * Given a Digraph **g** this function returns `true` if the graph has no
+ * cycles and returns `false` if it does. This algorithm returns as soon as it
+ * detects the first cycle.
+ *
+ * Use [alg.findCycles][] if you need the actual list of cycles in a graph.
+ *
+ * [alg.findCycles]: findCycles.js.html#findCycles
+ *
+ * @param {Digraph} g the graph to test for cycles
+ */
+function isAcyclic(g) {
+  try {
+    topsort(g);
+  } catch (e) {
+    if (e instanceof topsort.CycleException) return false;
+    throw e;
+  }
+  return true;
+}
+
+},{"./topsort":40}],36:[function(require,module,exports){
+/* jshint -W079 */
+var Set = require("cp-data").Set;
+/* jshint +W079 */
+
+module.exports = postorder;
+
+// Postorder traversal of g, calling f for each visited node. Assumes the graph
+// is a tree.
+function postorder(g, root, f) {
+  var visited = new Set();
+  if (g.isDirected()) {
+    throw new Error("This function only works for undirected graphs");
+  }
+  function dfs(u, prev) {
+    if (visited.has(u)) {
+      throw new Error("The input graph is not a tree: " + g);
+    }
+    visited.add(u);
+    g.neighbors(u).forEach(function(v) {
+      if (v !== prev) dfs(v, u);
+    });
+    f(u);
+  }
+  dfs(root);
+}
+
+},{"cp-data":19}],37:[function(require,module,exports){
+/* jshint -W079 */
+var Set = require("cp-data").Set;
+/* jshint +W079 */
+
+module.exports = preorder;
+
+// Preorder traversal of g, calling f for each visited node. Assumes the graph
+// is a tree.
+function preorder(g, root, f) {
+  var visited = new Set();
+  if (g.isDirected()) {
+    throw new Error("This function only works for undirected graphs");
+  }
+  function dfs(u, prev) {
+    if (visited.has(u)) {
+      throw new Error("The input graph is not a tree: " + g);
+    }
+    visited.add(u);
+    f(u);
+    g.neighbors(u).forEach(function(v) {
+      if (v !== prev) dfs(v, u);
+    });
+  }
+  dfs(root);
+}
+
+},{"cp-data":19}],38:[function(require,module,exports){
+var Graph = require("../Graph"),
+    PriorityQueue = require("cp-data").PriorityQueue;
+
+module.exports = prim;
+
+/**
+ * [Prim's algorithm][] takes a connected undirected graph and generates a
+ * [minimum spanning tree][]. This function returns the minimum spanning
+ * tree as an undirected graph. This algorithm is derived from the description
+ * in "Introduction to Algorithms", Third Edition, Cormen, et al., Pg 634.
+ *
+ * This function takes a `weightFunc(e)` which returns the weight of the edge
+ * `e`. It throws an Error if the graph is not connected.
+ *
+ * This function takes `O(|E| log |V|)` time.
+ *
+ * [Prim's algorithm]: https://en.wikipedia.org/wiki/Prim's_algorithm
+ * [minimum spanning tree]: https://en.wikipedia.org/wiki/Minimum_spanning_tree
+ *
+ * @param {Graph} g the graph used to generate the minimum spanning tree
+ * @param {Function} weightFunc the weight function to use
+ */
+function prim(g, weightFunc) {
+  var result = new Graph(),
+      parents = {},
+      pq = new PriorityQueue(),
+      u;
+
+  function updateNeighbors(e) {
+    var incidentNodes = g.incidentNodes(e),
+        v = incidentNodes[0] !== u ? incidentNodes[0] : incidentNodes[1],
+        pri = pq.priority(v);
+    if (pri !== undefined) {
+      var edgeWeight = weightFunc(e);
+      if (edgeWeight < pri) {
+        parents[v] = u;
+        pq.decrease(v, edgeWeight);
+      }
+    }
+  }
+
+  if (g.order() === 0) {
+    return result;
+  }
+
+  g.eachNode(function(u) {
+    pq.add(u, Number.POSITIVE_INFINITY);
+    result.addNode(u);
+  });
+
+  // Start from an arbitrary node
+  pq.decrease(g.nodes()[0], 0);
+
+  var init = false;
+  while (pq.size() > 0) {
+    u = pq.removeMin();
+    if (u in parents) {
+      result.addEdge(null, u, parents[u]);
+    } else if (init) {
+      throw new Error("Input graph is not connected: " + g);
+    } else {
+      init = true;
+    }
+
+    g.incidentEdges(u).forEach(updateNeighbors);
+  }
+
+  return result;
+}
+
+},{"../Graph":29,"cp-data":19}],39:[function(require,module,exports){
+module.exports = tarjan;
+
+/**
+ * This function is an implementation of [Tarjan's algorithm][] which finds
+ * all [strongly connected components][] in the directed graph **g**. Each
+ * strongly connected component is composed of nodes that can reach all other
+ * nodes in the component via directed edges. A strongly connected component
+ * can consist of a single node if that node cannot both reach and be reached
+ * by any other specific node in the graph. Components of more than one node
+ * are guaranteed to have at least one cycle.
+ *
+ * This function returns an array of components. Each component is itself an
+ * array that contains the ids of all nodes in the component.
+ *
+ * [Tarjan's algorithm]: http://en.wikipedia.org/wiki/Tarjan's_strongly_connected_components_algorithm
+ * [strongly connected components]: http://en.wikipedia.org/wiki/Strongly_connected_component
+ *
+ * @param {Digraph} g the graph to search for strongly connected components
+ */
+function tarjan(g) {
+  if (!g.isDirected()) {
+    throw new Error("tarjan can only be applied to a directed graph. Bad input: " + g);
+  }
+
+  var index = 0,
+      stack = [],
+      visited = {}, // node id -> { onStack, lowlink, index }
+      results = [];
+
+  function dfs(u) {
+    var entry = visited[u] = {
+      onStack: true,
+      lowlink: index,
+      index: index++
+    };
+    stack.push(u);
+
+    g.successors(u).forEach(function(v) {
+      if (!(v in visited)) {
+        dfs(v);
+        entry.lowlink = Math.min(entry.lowlink, visited[v].lowlink);
+      } else if (visited[v].onStack) {
+        entry.lowlink = Math.min(entry.lowlink, visited[v].index);
+      }
+    });
+
+    if (entry.lowlink === entry.index) {
+      var cmpt = [],
+          v;
+      do {
+        v = stack.pop();
+        visited[v].onStack = false;
+        cmpt.push(v);
+      } while (u !== v);
+      results.push(cmpt);
+    }
+  }
+
+  g.nodes().forEach(function(u) {
+    if (!(u in visited)) {
+      dfs(u);
+    }
+  });
+
+  return results;
+}
+
+},{}],40:[function(require,module,exports){
+module.exports = topsort;
+topsort.CycleException = CycleException;
+
+/*
+ * Given a graph **g**, this function returns an ordered list of nodes such
+ * that for each edge `u -> v`, `u` appears before `v` in the list. If the
+ * graph has a cycle it is impossible to generate such a list and
+ * **CycleException** is thrown.
+ *
+ * See [topological sorting](https://en.wikipedia.org/wiki/Topological_sorting)
+ * for more details about how this algorithm works.
+ *
+ * @param {Digraph} g the graph to sort
+ */
+function topsort(g) {
+  if (!g.isDirected()) {
+    throw new Error("topsort can only be applied to a directed graph. Bad input: " + g);
+  }
+
+  var visited = {};
+  var stack = {};
+  var results = [];
+
+  function visit(node) {
+    if (node in stack) {
+      throw new CycleException();
+    }
+
+    if (!(node in visited)) {
+      stack[node] = true;
+      visited[node] = true;
+      g.predecessors(node).forEach(function(pred) {
+        visit(pred);
+      });
+      delete stack[node];
+      results.push(node);
+    }
+  }
+
+  var sinks = g.sinks();
+  if (g.order() !== 0 && sinks.length === 0) {
+    throw new CycleException();
+  }
+
+  g.sinks().forEach(function(sink) {
+    visit(sink);
+  });
+
+  return results;
+}
+
+function CycleException() {}
+
+CycleException.prototype.toString = function() {
+  return "Graph has at least one cycle";
+};
+
+},{}],41:[function(require,module,exports){
+// This file provides a helper function that mixes-in Dot behavior to an
+// existing graph prototype.
+
+/* jshint -W079 */
+var Set = require("cp-data").Set;
+/* jshint +W079 */
+
+module.exports = compoundify;
+
+// Extends the given SuperConstructor with the ability for nodes to contain
+// other nodes. A special node id `null` is used to indicate the root graph.
+function compoundify(SuperConstructor) {
+  function Constructor() {
+    SuperConstructor.call(this);
+
+    // Map of object id -> parent id (or null for root graph)
+    this._parents = {};
+
+    // Map of id (or null) -> children set
+    this._children = {};
+    this._children[null] = new Set();
+  }
+
+  Constructor.prototype = new SuperConstructor();
+  Constructor.prototype.constructor = Constructor;
+
+  Constructor.prototype.parent = function(u, parent) {
+    this._strictGetNode(u);
+
+    if (arguments.length < 2) {
+      return this._parents[u];
+    }
+
+    if (u === parent) {
+      throw new Error("Cannot make " + u + " a parent of itself");
+    }
+    if (parent !== null) {
+      this._strictGetNode(parent);
+    }
+
+    this._children[this._parents[u]].remove(u);
+    this._parents[u] = parent;
+    this._children[parent].add(u);
+  };
+
+  Constructor.prototype.children = function(u) {
+    if (u !== null) {
+      this._strictGetNode(u);
+    }
+    return this._children[u].keys();
+  };
+
+  Constructor.prototype.addNode = function(u, value) {
+    u = SuperConstructor.prototype.addNode.call(this, u, value);
+    this._parents[u] = null;
+    this._children[u] = new Set();
+    this._children[null].add(u);
+    return u;
+  };
+
+  Constructor.prototype.delNode = function(u) {
+    // Promote all children to the parent of the subgraph
+    var parent = this.parent(u);
+    this._children[u].keys().forEach(function(child) {
+      this.parent(child, parent);
+    }, this);
+
+    this._children[parent].remove(u);
+    delete this._parents[u];
+    delete this._children[u];
+
+    return SuperConstructor.prototype.delNode.call(this, u);
+  };
+
+  Constructor.prototype.copy = function() {
+    var copy = SuperConstructor.prototype.copy.call(this);
+    this.nodes().forEach(function(u) {
+      copy.parent(u, this.parent(u));
+    }, this);
+    return copy;
+  };
+
+  Constructor.prototype.filterNodes = function(filter) {
+    var self = this,
+        copy = SuperConstructor.prototype.filterNodes.call(this, filter);
+
+    var parents = {};
+    function findParent(u) {
+      var parent = self.parent(u);
+      if (parent === null || copy.hasNode(parent)) {
+        parents[u] = parent;
+        return parent;
+      } else if (parent in parents) {
+        return parents[parent];
+      } else {
+        return findParent(parent);
+      }
+    }
+
+    copy.eachNode(function(u) { copy.parent(u, findParent(u)); });
+
+    return copy;
+  };
+
+  return Constructor;
+}
+
+},{"cp-data":19}],42:[function(require,module,exports){
+var Graph = require("../Graph"),
+    Digraph = require("../Digraph"),
+    CGraph = require("../CGraph"),
+    CDigraph = require("../CDigraph");
+
+exports.decode = function(nodes, edges, Ctor) {
+  Ctor = Ctor || Digraph;
+
+  if (typeOf(nodes) !== "Array") {
+    throw new Error("nodes is not an Array");
+  }
+
+  if (typeOf(edges) !== "Array") {
+    throw new Error("edges is not an Array");
+  }
+
+  if (typeof Ctor === "string") {
+    switch(Ctor) {
+      case "graph": Ctor = Graph; break;
+      case "digraph": Ctor = Digraph; break;
+      case "cgraph": Ctor = CGraph; break;
+      case "cdigraph": Ctor = CDigraph; break;
+      default: throw new Error("Unrecognized graph type: " + Ctor);
+    }
+  }
+
+  var graph = new Ctor();
+
+  nodes.forEach(function(u) {
+    graph.addNode(u.id, u.value);
+  });
+
+  // If the graph is compound, set up children...
+  if (graph.parent) {
+    nodes.forEach(function(u) {
+      if (u.children) {
+        u.children.forEach(function(v) {
+          graph.parent(v, u.id);
+        });
+      }
+    });
+  }
+
+  edges.forEach(function(e) {
+    graph.addEdge(e.id, e.u, e.v, e.value);
+  });
+
+  return graph;
+};
+
+exports.encode = function(graph) {
+  var nodes = [];
+  var edges = [];
+
+  graph.eachNode(function(u, value) {
+    var node = {id: u, value: value};
+    if (graph.children) {
+      var children = graph.children(u);
+      if (children.length) {
+        node.children = children;
+      }
+    }
+    nodes.push(node);
+  });
+
+  graph.eachEdge(function(e, u, v, value) {
+    edges.push({id: e, u: u, v: v, value: value});
+  });
+
+  var type;
+  if (graph instanceof CDigraph) {
+    type = "cdigraph";
+  } else if (graph instanceof CGraph) {
+    type = "cgraph";
+  } else if (graph instanceof Digraph) {
+    type = "digraph";
+  } else if (graph instanceof Graph) {
+    type = "graph";
+  } else {
+    throw new Error("Couldn't determine type of graph: " + graph);
+  }
+
+  return { nodes: nodes, edges: edges, type: type };
+};
+
+function typeOf(obj) {
+  return Object.prototype.toString.call(obj).slice(8, -1);
+}
+
+},{"../CDigraph":26,"../CGraph":27,"../Digraph":28,"../Graph":29}],43:[function(require,module,exports){
+/* jshint -W079 */
+var Set = require("cp-data").Set;
+/* jshint +W079 */
+
+exports.all = function() {
+  return function() { return true; };
+};
+
+exports.nodesFromList = function(nodes) {
+  var set = new Set(nodes);
+  return function(u) {
+    return set.has(u);
+  };
+};
+
+},{"cp-data":19}],44:[function(require,module,exports){
+var Graph = require("./Graph"),
+    Digraph = require("./Digraph");
+
+// Side-effect based changes are lousy, but node doesn't seem to resolve the
+// requires cycle.
+
+/**
+ * Returns a new directed graph using the nodes and edges from this graph. The
+ * new graph will have the same nodes, but will have twice the number of edges:
+ * each edge is split into two edges with opposite directions. Edge ids,
+ * consequently, are not preserved by this transformation.
+ */
+Graph.prototype.toDigraph =
+Graph.prototype.asDirected = function() {
+  var g = new Digraph();
+  this.eachNode(function(u, value) { g.addNode(u, value); });
+  this.eachEdge(function(e, u, v, value) {
+    g.addEdge(null, u, v, value);
+    g.addEdge(null, v, u, value);
+  });
+  return g;
+};
+
+/**
+ * Returns a new undirected graph using the nodes and edges from this graph.
+ * The new graph will have the same nodes, but the edges will be made
+ * undirected. Edge ids are preserved in this transformation.
+ */
+Digraph.prototype.toGraph =
+Digraph.prototype.asUndirected = function() {
+  var g = new Graph();
+  this.eachNode(function(u, value) { g.addNode(u, value); });
+  this.eachEdge(function(e, u, v, value) {
+    g.addEdge(e, u, v, value);
+  });
+  return g;
+};
+
+},{"./Digraph":28,"./Graph":29}],45:[function(require,module,exports){
+// Returns an array of all values for properties of **o**.
+exports.values = function(o) {
+  var ks = Object.keys(o),
+      len = ks.length,
+      result = new Array(len),
+      i;
+  for (i = 0; i < len; ++i) {
+    result[i] = o[ks[i]];
+  }
+  return result;
+};
+
+},{}],46:[function(require,module,exports){
+module.exports = '0.7.4';
+
+},{}]},{},[1])
+;
+if (typeof exports === 'object') {
+
+    var dagre = require('dagre');
+}
+
+joint.layout.DirectedGraph = {
+
+    layout: function(graph, opt) {
+
+        opt = opt || {};
+
+        var inputGraph = this._prepareData(graph);
+        var runner = dagre.layout();
+
+        if (opt.debugLevel) { runner.debugLevel(opt.debugLevel); }
+        if (opt.rankDir) { runner.rankDir(opt.rankDir); }
+        if (opt.rankSep) { runner.rankSep(opt.rankSep); }
+        if (opt.edgeSep) { runner.edgeSep(opt.edgeSep); }
+        if (opt.nodeSep) { runner.nodeSep(opt.nodeSep); }
+
+        var layoutGraph = runner.run(inputGraph);
+
+        layoutGraph.eachNode(function(u, value) {
+            if (value.dummy) return;
+            var cell = graph.getCell(u);
+            opt.setPosition
+                ? opt.setPosition(cell, value)
+                : cell.set('position', {
+                    x: value.x - value.width / 2,
+                    y: value.y - value.height / 2
+                });
+        });
+
+        if (opt.setLinkVertices) {
+
+            layoutGraph.eachEdge(function(e, u, v, value) {
+                var link = graph.getCell(e);
+                if (link) {
+                    opt.setVertices
+                    ? opt.setVertices(link, value.points)
+                    : link.set('vertices', value.points);
+                }
+            });
+        }
+
+        return { width: layoutGraph.graph().width, height: layoutGraph.graph().height };
+    },
+
+    _prepareData: function(graph) {
+
+        var dagreGraph = new dagre.Digraph();
+
+        // For each element.
+        _.each(graph.getElements(), function(cell) {
+
+            if (dagreGraph.hasNode(cell.id)) return;
+
+            dagreGraph.addNode(cell.id, {
+                width: cell.get('size').width,
+                height: cell.get('size').height,
+                rank: cell.get('rank')
+            });
+        });
+
+        // For each link.
+        _.each(graph.getLinks(), function(cell) {
+
+            if (dagreGraph.hasEdge(cell.id)) return;
+
+            var sourceId = cell.get('source').id;
+            var targetId = cell.get('target').id;
+
+            dagreGraph.addEdge(cell.id, sourceId, targetId, { minLen: cell.get('minLen') || 1 });
+        });
+
+        return dagreGraph;
+    }
+};
+
+
+	return joint;
+
+}));
