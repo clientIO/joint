@@ -1,3 +1,8 @@
+if (typeof exports === 'object') {
+
+    var dagre = require('dagre');
+}
+
 joint.layout.DirectedGraph = {
 
     layout: function(graph, opt) {

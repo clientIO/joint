@@ -4,6 +4,7 @@
   "devDependencies": {
     "qunit": "~1.18.0",
     "blanket": "~1.1.5",
+    "requirejs": "2.1.17",
     "resemblejs": "~1.2.1",
     "sinonjs": "~1.14.1"
   }

@@ -1,26 +1,11 @@
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-02-03 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-04 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-if (typeof exports === 'object') {
-
-    var joint = {
-        util: require('../src/core').util,
-        shapes: {
-            basic: require('./joint.shapes.basic')
-        },
-        dia: {
-            ElementView: require('../src/joint.dia.element').ElementView,
-            Link: require('../src/joint.dia.link').Link
-        }
-    };
-    var _ = require('lodash');
-}
-
-joint.shapes.uml = {}
+joint.shapes.uml = {};
 
 joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
 
@@ -68,7 +53,7 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
 
         this.on('change:name change:attributes change:methods', function() {
             this.updateRectangles();
-	    this.trigger('uml-update');
+            this.trigger('uml-update');
         }, this);
 
         this.updateRectangles();
@@ -95,11 +80,11 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
         _.each(rects, function(rect) {
 
             var lines = _.isArray(rect.text) ? rect.text : [rect.text];
-	    var rectHeight = lines.length * 20 + 20;
+            var rectHeight = lines.length * 20 + 20;
 
             attrs['.uml-class-' + rect.type + '-text'].text = lines.join('\n');
             attrs['.uml-class-' + rect.type + '-rect'].height = rectHeight;
-            attrs['.uml-class-' + rect.type + '-rect'].transform = 'translate(0,'+ offsetY + ')';
+            attrs['.uml-class-' + rect.type + '-rect'].transform = 'translate(0,' + offsetY + ')';
 
             offsetY += rectHeight;
         });
@@ -113,7 +98,7 @@ joint.shapes.uml.ClassView = joint.dia.ElementView.extend({
 
         joint.dia.ElementView.prototype.initialize.apply(this, arguments);
 
-	this.listenTo(this.model, 'uml-update', function() {
+        this.listenTo(this.model, 'uml-update', function() {
             this.update();
             this.resize();
         });
@@ -317,8 +302,3 @@ joint.shapes.uml.Transition = joint.dia.Link.extend({
         }
     }
 });
-
-if (typeof exports === 'object') {
-
-    module.exports = joint.shapes.uml;
-}

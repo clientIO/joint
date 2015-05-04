@@ -1,21 +1,6 @@
 //      JointJS diagramming library.
 //      (c) 2011-2013 client IO
 
-
-if (typeof exports === 'object') {
-
-    var joint = {
-        dia: {
-            Cell: require('./joint.dia.cell').Cell,
-            CellView: require('./joint.dia.cell').CellView
-        }
-    };
-    var Backbone = require('backbone');
-    var _ = require('lodash');
-    var g = require('./geometry');
-}
-
-
 // joint.dia.Link base model.
 // --------------------------
 joint.dia.Link = joint.dia.Cell.extend({
@@ -1543,10 +1528,3 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     }
 
 });
-
-
-if (typeof exports === 'object') {
-
-    module.exports.Link = joint.dia.Link;
-    module.exports.LinkView = joint.dia.LinkView;
-}

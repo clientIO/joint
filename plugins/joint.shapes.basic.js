@@ -1,19 +1,6 @@
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
-if (typeof exports === 'object') {
-
-    var joint = {
-        util: require('../src/core').util,
-        shapes: {},
-        dia: {
-            Element: require('../src/joint.dia.element').Element,
-            ElementView: require('../src/joint.dia.element').ElementView
-        }
-    };
-    var _ = require('lodash');
-}
-
 joint.shapes.basic = {};
 
 joint.shapes.basic.Generic = joint.dia.Element.extend({
@@ -438,8 +425,3 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
         joint.dia.ElementView.prototype.update.call(this, cell, attrs);
     }
 });
-
-if (typeof exports === 'object') {
-
-    module.exports = joint.shapes.basic;
-}

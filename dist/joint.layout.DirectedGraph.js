@@ -1,4 +1,4 @@
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-02-03 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-04 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -4041,6 +4041,11 @@ module.exports = '0.7.4';
 
 },{}]},{},[1])
 ;
+if (typeof exports === 'object') {
+
+    var dagre = require('dagre');
+}
+
 joint.layout.DirectedGraph = {
 
     layout: function(graph, opt) {
@@ -4057,18 +4062,16 @@ joint.layout.DirectedGraph = {
         if (opt.nodeSep) { runner.nodeSep(opt.nodeSep); }
 
         var layoutGraph = runner.run(inputGraph);
-        
-        layoutGraph.eachNode(function(u, value) {
-            if (!value.dummy) {
 
-		var cell = graph.getCell(u);
-		opt.setPosition 
-		    ? opt.setPosition(cell, value)
-		    : graph.get('cells').get(u).set('position', {
-			x: value.x - value.width/2,
-			y: value.y - value.height/2
-                    });
-            }
+        layoutGraph.eachNode(function(u, value) {
+            if (value.dummy) return;
+            var cell = graph.getCell(u);
+            opt.setPosition
+                ? opt.setPosition(cell, value)
+                : cell.set('position', {
+                    x: value.x - value.width / 2,
+                    y: value.y - value.height / 2
+                });
         });
 
         if (opt.setLinkVertices) {
@@ -4076,16 +4079,16 @@ joint.layout.DirectedGraph = {
             layoutGraph.eachEdge(function(e, u, v, value) {
                 var link = graph.getCell(e);
                 if (link) {
-		    opt.setVertices
-			? opt.setVertices(link, value.points)
-			: link.set('vertices', value.points);
+                    opt.setVertices
+                    ? opt.setVertices(link, value.points)
+                    : link.set('vertices', value.points);
                 }
             });
         }
 
         return { width: layoutGraph.graph().width, height: layoutGraph.graph().height };
     },
-    
+
     _prepareData: function(graph) {
 
         var dagreGraph = new dagre.Digraph();
