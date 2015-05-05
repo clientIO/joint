@@ -1,5 +1,5 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.joint = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-04 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-05 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -771,7 +771,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 }));
 
 },{}],2:[function(require,module,exports){
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-04 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-05 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -819,7 +819,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 }(this, function(root, Backbone, _, $, g, V) {
 
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-04 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-05 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -4617,27 +4617,32 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var offset = this.options.linkToolsOffset;
         var connectionLength = this.getConnectionLength();
 
-        // If the link is too short, make the tools half the size and the offset twice as low.
-        if (connectionLength < this.options.shortLinkLength) {
-            scale = 'scale(.5)';
-            offset /= 2;
-        }
+        // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
+        // In that case we won't update tools position at all.
+        if (!_.isNaN(connectionLength)) {
 
-        var toolPosition = this.getPointAtLength(offset);
+            // If the link is too short, make the tools half the size and the offset twice as low.
+            if (connectionLength < this.options.shortLinkLength) {
+                scale = 'scale(.5)';
+                offset /= 2;
+            }
 
-        this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
+            var toolPosition = this.getPointAtLength(offset);
 
-        if (this.options.doubleLinkTools && connectionLength >= this.options.longLinkLength) {
+            this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
 
-            var doubleLinkToolsOffset = this.options.doubleLinkToolsOffset || offset;
+            if (this.options.doubleLinkTools && connectionLength >= this.options.longLinkLength) {
 
-            toolPosition = this.getPointAtLength(connectionLength - doubleLinkToolsOffset);
-            this._tool2Cache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
-            this._tool2Cache.attr('visibility', 'visible');
+                var doubleLinkToolsOffset = this.options.doubleLinkToolsOffset || offset;
 
-        } else if (this.options.doubleLinkTools) {
+                toolPosition = this.getPointAtLength(connectionLength - doubleLinkToolsOffset);
+                this._tool2Cache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
+                this._tool2Cache.attr('visibility', 'visible');
 
-            this._tool2Cache.attr('visibility', 'hidden');
+            } else if (this.options.doubleLinkTools) {
+
+                this._tool2Cache.attr('visibility', 'hidden');
+            }
         }
 
         return this;
@@ -7653,7 +7658,7 @@ joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
 }));
 
 },{"./geometry":1,"./vectorizer":3,"backbone":4,"jquery":6,"lodash":7}],3:[function(require,module,exports){
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-04 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-05 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
