@@ -151,8 +151,8 @@ joint.shapes.basic.PortsModelInterface = {
         this.updatePortsAttrs();
         this.on('change:inPorts change:outPorts', this.updatePortsAttrs, this);
 
-        // Call the `initialize()` of the parent.
-        var thisInterface = this.constructor.__super__;
+        //Call parent's existent initialize function
+        var thisInterface = this;
         while(!thisInterface.hasOwnProperty("interface") || !(thisInterface.interface == "Ports")){
             thisInterface = thisInterface.constructor.__super__;
         }
@@ -225,7 +225,8 @@ joint.shapes.basic.PortsViewInterface = {
         // `Model` emits the `process:ports` whenever it's done configuring the `attrs` object for ports.
         this.listenTo(this.model, 'process:ports', this.update);
         
-        var thisInterface = this.constructor.__super__;
+        //Call parent's existent initialize function
+        var thisInterface = this;
         while(!thisInterface.hasOwnProperty("interface") || !(thisInterface.interface == "Ports")){
             thisInterface = thisInterface.constructor.__super__;
         }
@@ -241,7 +242,9 @@ joint.shapes.basic.PortsViewInterface = {
         // First render ports so that `attrs` can be applied to those newly created DOM elements
         // in `ElementView.prototype.update()`.
         this.renderPorts();
-        var thisInterface = this.constructor.__super__;
+        
+        //Call parent's existent update function
+        var thisInterface = this;
         while(!thisInterface.hasOwnProperty("interface") || !(thisInterface.interface == "Ports")){
             thisInterface = thisInterface.constructor.__super__;
         }
