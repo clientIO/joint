@@ -218,12 +218,22 @@ joint.shapes.basic.PortsModelInterface = {
 
 joint.shapes.basic.PortsViewInterface = {
     
+    interface: "Ports",
+    
     initialize: function() {
 
         // `Model` emits the `process:ports` whenever it's done configuring the `attrs` object for ports.
         this.listenTo(this.model, 'process:ports', this.update);
         
-        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+        var thisInterface = this.constructor.__super__;
+        while(!thisInterface.hasOwnProperty("interface") || !(thisInterface.interface == "Ports")){
+            thisInterface = thisInterface.constructor.__super__;
+        }
+        var parentWithInitialize = thisInterface.constructor.__super__;
+        while(!parentWithInitialize.hasOwnProperty("initialize")){
+            parentWithInitialize = parentWithInitialize.constructor.__super__;
+        }
+        parentWithInitialize.initialize.apply(this, arguments);
     },
 
     update: function() {
@@ -231,7 +241,15 @@ joint.shapes.basic.PortsViewInterface = {
         // First render ports so that `attrs` can be applied to those newly created DOM elements
         // in `ElementView.prototype.update()`.
         this.renderPorts();
-        joint.dia.ElementView.prototype.update.apply(this, arguments);
+        var thisInterface = this.constructor.__super__;
+        while(!thisInterface.hasOwnProperty("interface") || !(thisInterface.interface == "Ports")){
+            thisInterface = thisInterface.constructor.__super__;
+        }
+        var parentWithUpdate = thisInterface.constructor.__super__;
+        while(!parentWithUpdate.hasOwnProperty("update")){
+            parentWithUpdate = parentWithUpdate.constructor.__super__;
+        }
+        parentWithUpdate.update.apply(this, arguments);
     },
 
     renderPorts: function() {
