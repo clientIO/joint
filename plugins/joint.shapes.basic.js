@@ -143,6 +143,8 @@ joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
 //     }
 //}));
 joint.shapes.basic.PortsModelInterface = {
+    
+    interface: "Ports",
 
     initialize: function() {
 
@@ -150,7 +152,15 @@ joint.shapes.basic.PortsModelInterface = {
         this.on('change:inPorts change:outPorts', this.updatePortsAttrs, this);
 
         // Call the `initialize()` of the parent.
-        this.constructor.__super__.constructor.__super__.initialize.apply(this, arguments);
+        var thisInterface = this.constructor.__super__;
+        while(!thisInterface.hasOwnProperty("interface") || !(thisInterface.interface == "Ports")){
+            thisInterface = thisInterface.constructor.__super__;
+        }
+        var parentWithInitialize = thisInterface.constructor.__super__;
+        while(!parentWithInitialize.hasOwnProperty("initialize")){
+            parentWithInitialize = parentWithInitialize.constructor.__super__;
+        }
+        parentWithInitialize.initialize.apply(this, arguments);
     },
     
     updatePortsAttrs: function(eventName) {
