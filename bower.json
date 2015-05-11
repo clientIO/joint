@@ -7,5 +7,9 @@
     "requirejs": "2.1.17",
     "resemblejs": "~1.2.1",
     "sinonjs": "~1.14.1"
-  }
+  },
+  "main": [
+    "dist/joint.js",
+    "dist/joint.css"
+  ]
 }
