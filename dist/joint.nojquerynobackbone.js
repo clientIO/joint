@@ -1,4 +1,4 @@
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-05 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-22 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -528,6 +528,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 nodes[i] = V(nodes[i]);
             }
             return nodes;
+        },
+
+        // Find an index of an element inside its container.
+        index: function() {
+
+            var index = 0;
+            var node = this.node.previousSibling;
+
+            while (node) {
+                // nodeType 1 for ELEMENT_NODE
+                if (node.nodeType === 1) index++;
+                node = node.previousSibling;
+            }
+
+            return index;
         },
 
         // Convert global point into the coordinate space of this element.
@@ -2937,8 +2952,31 @@ joint.dia.GraphCells = Backbone.Collection.extend({
         });
 
         return this.get(commonAncestor);
-    }
+    },
 
+    // Return the bounding box of all cells in array provided. If no array
+    // provided returns bounding box of all cells. Links are being ignored.
+    getBBox: function(cells) {
+
+        cells = cells || this.models;
+
+        var origin = { x: Infinity, y: Infinity };
+        var corner = { x: -Infinity, y: -Infinity };
+
+        _.each(cells, function(cell) {
+
+            // Links has no bounding box defined on the model.
+            if (cell.isLink()) return;
+
+            var bbox = cell.getBBox();
+            origin.x = Math.min(origin.x, bbox.x);
+            origin.y = Math.min(origin.y, bbox.y);
+            corner.x = Math.max(corner.x, bbox.x + bbox.width);
+            corner.y = Math.max(corner.y, bbox.y + bbox.height);
+        });
+
+        return g.rect(origin.x, origin.y, corner.x - origin.x, corner.y - origin.y);
+    }
 });
 
 
@@ -3152,21 +3190,10 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     // Return the bounding box of all `elements`.
-    getBBox: function(elements) {
+    getBBox: function(/* elements */) {
 
-        var origin = { x: Infinity, y: Infinity };
-        var corner = { x: 0, y: 0 };
-
-        _.each(elements, function(cell) {
-
-            var bbox = cell.getBBox();
-            origin.x = Math.min(origin.x, bbox.x);
-            origin.y = Math.min(origin.y, bbox.y);
-            corner.x = Math.max(corner.x, bbox.x + bbox.width);
-            corner.y = Math.max(corner.y, bbox.y + bbox.height);
-        });
-
-        return g.rect(origin.x, origin.y, corner.x - origin.x, corner.y - origin.y);
+        var collection = this.get('cells');
+        return collection.getBBox.apply(collection, arguments);
     },
 
     getCommonAncestor: function(/* cells */) {
@@ -4096,19 +4123,22 @@ joint.dia.CellView = Backbone.View.extend({
     },
 
     // Construct a unique selector for the `el` element within this view.
-    // `selector` is being collected through the recursive call. No value for `selector` is expected when using this method.
-    getSelector: function(el, selector) {
+    // `prevSelector` is being collected through the recursive call.
+    // No value for `prevSelector` is expected when using this method.
+    getSelector: function(el, prevSelector) {
 
         if (el === this.el) {
-
-            return selector;
+            return prevSelector;
         }
 
-        var index = $(el).index();
+        var nthChild = V(el).index() + 1;
+        var selector = el.tagName + ':nth-child(' + nthChild + ')';
 
-        selector = el.tagName + ':nth-child(' + (index + 1) + ')' + ' ' + (selector || '');
+        if (prevSelector) {
+            selector += ' > ' + prevSelector;
+        }
 
-        return this.getSelector($(el).parent()[0], selector + ' ');
+        return this.getSelector(el.parentNode, selector);
     },
 
     // Interaction. The controller part.
@@ -4259,11 +4289,73 @@ joint.dia.Element = joint.dia.Cell.extend({
         return this;
     },
 
-    resize: function(width, height) {
+    resize: function(width, height, opt) {
 
         this.trigger('batch:start', { batchName: 'resize' });
-        this.set('size', { width: width, height: height });
+        this.set('size', { width: width, height: height }, opt);
         this.trigger('batch:stop', { batchName: 'resize' });
+
+        return this;
+    },
+
+    fitEmbeds: function(opt) {
+
+        opt = opt || 0;
+
+        var collection = this.collection;
+
+        // Getting the children's size and position requires the collection.
+        // Cell.get('embdes') helds an array of cell ids only.
+        if (!collection) throw new Error('Element must be part of a collection.');
+
+        var embeddedCells = this.getEmbeddedCells();
+
+        if (embeddedCells.length > 0) {
+
+            this.trigger('batch:start', { batchName: 'fit-embeds' });
+
+            if (opt.deep) {
+                // Recursively apply fitEmbeds on all embeds first.
+                _.invoke(embeddedCells, 'fitEmbeds', opt);
+            }
+
+            // Compute cell's size and position  based on the children bbox
+            // and given padding.
+            var bbox = collection.getBBox(embeddedCells);
+            var padding = opt.padding || 0;
+
+            if (_.isNumber(padding)) {
+                padding = {
+                    left: padding,
+                    right: padding,
+                    top: padding,
+                    bottom: padding
+                };
+            } else {
+                padding = {
+                    left: padding.left || 0,
+                    right: padding.right || 0,
+                    top: padding.top || 0,
+                    bottom: padding.bottom || 0
+                };
+            }
+
+            // Apply padding computed above to the bbox.
+            bbox.moveAndExpand({
+                x: - padding.left,
+                y: - padding.top,
+                width: padding.right + padding.left,
+                height: padding.bottom + padding.top
+            });
+
+            // Set new element dimensions finally.
+            this.set({
+                position: { x: bbox.x, y: bbox.y },
+                size: { width: bbox.width, height: bbox.height }
+            }, opt);
+
+            this.trigger('batch:stop', { batchName: 'fit-embeds' });
+        }
 
         return this;
     },

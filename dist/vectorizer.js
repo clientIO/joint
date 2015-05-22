@@ -1,4 +1,4 @@
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-05 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-22 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -528,6 +528,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 nodes[i] = V(nodes[i]);
             }
             return nodes;
+        },
+
+        // Find an index of an element inside its container.
+        index: function() {
+
+            var index = 0;
+            var node = this.node.previousSibling;
+
+            while (node) {
+                // nodeType 1 for ELEMENT_NODE
+                if (node.nodeType === 1) index++;
+                node = node.previousSibling;
+            }
+
+            return index;
         },
 
         // Convert global point into the coordinate space of this element.
