@@ -523,6 +523,37 @@ test('toBack(), toFront() with { deep: true } option', function() {
 
 });
 
+test('fitEmbeds()', function(assert) {
+
+    var mainGroup = new joint.shapes.basic.Rect;
+    var group1 = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 }});
+    var group2 = new joint.shapes.basic.Rect({ position: { x: 1000, y: 1000 }, size: { width: 10, height: 10 }});
+    var a = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 20, height: 20 }});
+    var b = new joint.shapes.basic.Rect({ position: { x: 200, y: 100 }, size: { width: 20, height: 20 }});
+    var c = new joint.shapes.basic.Rect({ position: { x: 150, y: 200 }, size: { width: 20, height: 20 }});
+
+    mainGroup.embed(group2.embed(c)).embed(group1.embed(a).embed(b));
+
+    assert.throws(function() {
+        a.fitEmbeds({ deep: true });
+    }, /collection/, 'Calling method on element that is not part of a collection throws an error.');
+
+    this.graph.addCells([mainGroup, group1, group2, a, b, c]);
+
+    a.fitEmbeds();
+    assert.deepEqual(a.getBBox(), g.rect(100, 100, 20, 20), 'Calling method on element that has no embeds has no effect.');
+
+    mainGroup.fitEmbeds({ deep: false });
+    assert.deepEqual(mainGroup.getBBox(), g.rect(0, 0, 1010, 1010), 'Shallow call takes embeds only one level deep into account.');
+
+    mainGroup.fitEmbeds({ deep: true });
+    assert.deepEqual(mainGroup.getBBox(), g.rect(100, 100, 120, 120), 'Deep call takes all descendant embeds into account.');
+    assert.deepEqual(group1.getBBox(), g.rect(100, 100, 120, 20), 'After the call the first group fits its embeds.');
+    assert.deepEqual(group2.getBBox(), g.rect(150, 200, 20, 20), 'So the second group.');
+
+    mainGroup.fitEmbeds({ deep: true, padding: 10 });
+    assert.deepEqual(mainGroup.getBBox(), g.rect(80, 80, 160, 160), 'Using padding options is expanding the groups.');
+});
 
 
 test('clone()', function() {
@@ -637,16 +668,35 @@ test('findMagnet()', function() {
     equal(magnet, r1View.$('text')[0], 'should return the text element that has the magnet attribute set to true even though we passed the child <tspan> in the selector');
 });
 
-test('getSelector()', function() {
+test('getSelector()', function(assert) {
 
-    var r1 = new joint.shapes.basic.Rect;
+    var model = new joint.shapes.devs.Model({ inPorts: ['1','2'], outPorts: ['3','4'] });
 
-    this.graph.addCell(r1);
+    // See issue #130 (https://github.com/DavidDurman/joint/issues/130)
+    this.graph.addCell([model.clone(), model.clone(), model.clone(), model]);
 
-    var r1View = this.paper.findViewByModel(r1);
+    var view = model.findView(this.paper);
+    var svgText = view.el.querySelector('.label');
+    var svgPort1 = view.el.querySelector('[port="1"]');
+    var svgPort2 = view.el.querySelector('[port="2"]');
+    var svgPort3 = view.el.querySelector('[port="3"]');
+    var svgPort4 = view.el.querySelector('[port="4"]');
+    var selector;
 
-    var selector = r1View.getSelector(r1View.$('text')[0]);
-    equal(r1View.$(selector)[0], r1View.$('text')[0], 'applying the selector returned from getSelector() should point to the selected element');
+    selector = view.getSelector(svgText);
+    assert.equal(view.el.querySelector(selector), svgText, 'Applying the selector returned from getSelector() should point to the selected element. It finds the exact same text node.');
+
+    selector = view.getSelector(svgPort1);
+    assert.equal(view.el.querySelector(selector), svgPort1, 'It finds the exact same port no. 1.');
+
+    selector = view.getSelector(svgPort2);
+    assert.equal(view.el.querySelector(selector), svgPort2, 'It finds the exact same port no. 2.');
+
+    selector = view.getSelector(svgPort3);
+    assert.equal(view.el.querySelector(selector), svgPort3, 'It finds the exact same port no. 3.');
+
+    selector = view.getSelector(svgPort4);
+    assert.equal(view.el.querySelector(selector), svgPort4, 'It finds the exact same port no. 4.');
 });
 
 test('ref-x, ref-y, ref', function() {

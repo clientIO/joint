@@ -88,11 +88,73 @@ joint.dia.Element = joint.dia.Cell.extend({
         return this;
     },
 
-    resize: function(width, height) {
+    resize: function(width, height, opt) {
 
         this.trigger('batch:start', { batchName: 'resize' });
-        this.set('size', { width: width, height: height });
+        this.set('size', { width: width, height: height }, opt);
         this.trigger('batch:stop', { batchName: 'resize' });
+
+        return this;
+    },
+
+    fitEmbeds: function(opt) {
+
+        opt = opt || 0;
+
+        var collection = this.collection;
+
+        // Getting the children's size and position requires the collection.
+        // Cell.get('embdes') helds an array of cell ids only.
+        if (!collection) throw new Error('Element must be part of a collection.');
+
+        var embeddedCells = this.getEmbeddedCells();
+
+        if (embeddedCells.length > 0) {
+
+            this.trigger('batch:start', { batchName: 'fit-embeds' });
+
+            if (opt.deep) {
+                // Recursively apply fitEmbeds on all embeds first.
+                _.invoke(embeddedCells, 'fitEmbeds', opt);
+            }
+
+            // Compute cell's size and position  based on the children bbox
+            // and given padding.
+            var bbox = collection.getBBox(embeddedCells);
+            var padding = opt.padding || 0;
+
+            if (_.isNumber(padding)) {
+                padding = {
+                    left: padding,
+                    right: padding,
+                    top: padding,
+                    bottom: padding
+                };
+            } else {
+                padding = {
+                    left: padding.left || 0,
+                    right: padding.right || 0,
+                    top: padding.top || 0,
+                    bottom: padding.bottom || 0
+                };
+            }
+
+            // Apply padding computed above to the bbox.
+            bbox.moveAndExpand({
+                x: - padding.left,
+                y: - padding.top,
+                width: padding.right + padding.left,
+                height: padding.bottom + padding.top
+            });
+
+            // Set new element dimensions finally.
+            this.set({
+                position: { x: bbox.x, y: bbox.y },
+                size: { width: bbox.width, height: bbox.height }
+            }, opt);
+
+            this.trigger('batch:stop', { batchName: 'fit-embeds' });
+        }
 
         return this;
     },

@@ -111,8 +111,31 @@ joint.dia.GraphCells = Backbone.Collection.extend({
         });
 
         return this.get(commonAncestor);
-    }
+    },
 
+    // Return the bounding box of all cells in array provided. If no array
+    // provided returns bounding box of all cells. Links are being ignored.
+    getBBox: function(cells) {
+
+        cells = cells || this.models;
+
+        var origin = { x: Infinity, y: Infinity };
+        var corner = { x: -Infinity, y: -Infinity };
+
+        _.each(cells, function(cell) {
+
+            // Links has no bounding box defined on the model.
+            if (cell.isLink()) return;
+
+            var bbox = cell.getBBox();
+            origin.x = Math.min(origin.x, bbox.x);
+            origin.y = Math.min(origin.y, bbox.y);
+            corner.x = Math.max(corner.x, bbox.x + bbox.width);
+            corner.y = Math.max(corner.y, bbox.y + bbox.height);
+        });
+
+        return g.rect(origin.x, origin.y, corner.x - origin.x, corner.y - origin.y);
+    }
 });
 
 
@@ -326,21 +349,10 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     // Return the bounding box of all `elements`.
-    getBBox: function(elements) {
+    getBBox: function(/* elements */) {
 
-        var origin = { x: Infinity, y: Infinity };
-        var corner = { x: 0, y: 0 };
-
-        _.each(elements, function(cell) {
-
-            var bbox = cell.getBBox();
-            origin.x = Math.min(origin.x, bbox.x);
-            origin.y = Math.min(origin.y, bbox.y);
-            corner.x = Math.max(corner.x, bbox.x + bbox.width);
-            corner.y = Math.max(corner.y, bbox.y + bbox.height);
-        });
-
-        return g.rect(origin.x, origin.y, corner.x - origin.x, corner.y - origin.y);
+        var collection = this.get('cells');
+        return collection.getBBox.apply(collection, arguments);
     },
 
     getCommonAncestor: function(/* cells */) {

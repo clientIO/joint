@@ -523,6 +523,21 @@
             return nodes;
         },
 
+        // Find an index of an element inside its container.
+        index: function() {
+
+            var index = 0;
+            var node = this.node.previousSibling;
+
+            while (node) {
+                // nodeType 1 for ELEMENT_NODE
+                if (node.nodeType === 1) index++;
+                node = node.previousSibling;
+            }
+
+            return index;
+        },
+
         // Convert global point into the coordinate space of this element.
         toLocalPoint: function(x, y) {
 

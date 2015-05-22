@@ -2,11 +2,12 @@ require.config({
     baseUrl: '../../',
     paths: {
         // Dependencies for Joint:
-        'jquery': 'lib/jquery',
-        'backbone': 'lib/backbone',
-        'lodash': 'lib/lodash',
+        'jquery': 'lib/jquery/dist/jquery',
+        'backbone': 'lib/backbone/backbone',
+        'lodash': 'lib/lodash/dist/lodash',
         'g': 'src/geometry',
-        'V': 'src/vectorizer'
+        'V': 'src/vectorizer',
+        'Handlebars': 'lib/handlebars/handlebars'
     },
     map: {
         '*': {

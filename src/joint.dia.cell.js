@@ -918,19 +918,22 @@ joint.dia.CellView = Backbone.View.extend({
     },
 
     // Construct a unique selector for the `el` element within this view.
-    // `selector` is being collected through the recursive call. No value for `selector` is expected when using this method.
-    getSelector: function(el, selector) {
+    // `prevSelector` is being collected through the recursive call.
+    // No value for `prevSelector` is expected when using this method.
+    getSelector: function(el, prevSelector) {
 
         if (el === this.el) {
-
-            return selector;
+            return prevSelector;
         }
 
-        var index = $(el).index();
+        var nthChild = V(el).index() + 1;
+        var selector = el.tagName + ':nth-child(' + nthChild + ')';
 
-        selector = el.tagName + ':nth-child(' + (index + 1) + ')' + ' ' + (selector || '');
+        if (prevSelector) {
+            selector += ' > ' + prevSelector;
+        }
 
-        return this.getSelector($(el).parent()[0], selector + ' ');
+        return this.getSelector(el.parentNode, selector);
     },
 
     // Interaction. The controller part.
