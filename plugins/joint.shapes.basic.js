@@ -169,10 +169,10 @@ joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
 //         var portClass = 'port' + index;
 //         var portSelector = selector + '>.' + portClass;
 //         var portTextSelector = portSelector + '>text';
-//         var portCircleSelector = portSelector + '>circle';
+//         var portBodySelector = portSelector + '>.port-body';
 //
 //         attrs[portTextSelector] = { text: portName };
-//         attrs[portCircleSelector] = { port: { id: portName || _.uniqueId(type) , type: type } };
+//         attrs[portBodySelector] = { port: { id: portName || _.uniqueId(type) , type: type } };
 //         attrs[portSelector] = { ref: 'rect', 'ref-y': (index + 0.5) * (1 / total) };
 //
 //         if (selector === '.outPorts') { attrs[portSelector]['ref-dx'] = 0; }
@@ -240,7 +240,7 @@ joint.shapes.basic.PortsModelInterface = {
             if (index < 0) throw new Error("getPortSelector(): Port doesn't exist.");
         }
 
-        return selector + '>g:nth-child(' + (index + 1) + ')>circle';
+        return selector + '>g:nth-child(' + (index + 1) + ')>.port-body';
     }
 };
 
