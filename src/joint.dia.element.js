@@ -460,7 +460,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Analogical rules apply for `refY`.
         if (isDefined(refX)) {
 
-            if (refX > 0 && refX < 1) {
+            if (refX > 0 && refX <= 1) {
 
                 tx = bbox.x + bbox.width * refX;
 
@@ -477,7 +477,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
         if (isDefined(refY)) {
 
-            if (refY > 0 && refY < 1) {
+            if (refY > 0 && refY <= 1) {
 
                 ty = bbox.y + bbox.height * refY;
 
