@@ -691,7 +691,7 @@ var joint = {
 
                 var x = _.isFinite(args.x) ? args.x : 2;
 
-                return _.template('<filter><feGaussianBlur stdDeviation="${stdDeviation}"/></filter>', {
+                return joint.templates.blurFilter({
                     stdDeviation: _.isFinite(args.y) ? [x, args.y] : x
                 });
             },
@@ -704,10 +704,10 @@ var joint = {
             dropShadow: function(args) {
 
                 var tpl = 'SVGFEDropShadowElement' in window
-                    ? '<filter><feDropShadow stdDeviation="${blur}" dx="${dx}" dy="${dy}" flood-color="${color}" flood-opacity="${opacity}"/></filter>'
-                    : '<filter><feGaussianBlur in="SourceAlpha" stdDeviation="${blur}"/><feOffset dx="${dx}" dy="${dy}" result="offsetblur"/><feFlood flood-color="${color}"/><feComposite in2="offsetblur" operator="in"/><feComponentTransfer><feFuncA type="linear" slope="${opacity}"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+                    ? joint.templates.dropShadow
+                    : joint.templates.guassianDropShadow;
 
-                return _.template(tpl, {
+                return tpl({
                     dx: args.dx || 0,
                     dy: args.dy || 0,
                     opacity: _.isFinite(args.opacity) ? args.opacity : 1,
@@ -721,7 +721,7 @@ var joint = {
 
                 var amount = _.isFinite(args.amount) ? args.amount : 1;
 
-                return _.template('<filter><feColorMatrix type="matrix" values="${a} ${b} ${c} 0 0 ${d} ${e} ${f} 0 0 ${g} ${b} ${h} 0 0 0 0 0 1 0"/></filter>', {
+                return joint.templates.grayScale({
                     a: 0.2126 + 0.7874 * (1 - amount),
                     b: 0.7152 - 0.7152 * (1 - amount),
                     c: 0.0722 - 0.0722 * (1 - amount),
@@ -738,7 +738,7 @@ var joint = {
 
                 var amount = _.isFinite(args.amount) ? args.amount : 1;
 
-                return _.template('<filter><feColorMatrix type="matrix" values="${a} ${b} ${c} 0 0 ${d} ${e} ${f} 0 0 ${g} ${h} ${i} 0 0 0 0 0 1 0"/></filter>', {
+                return joint.templates.sepia({
                     a: 0.393 + 0.607 * (1 - amount),
                     b: 0.769 - 0.769 * (1 - amount),
                     c: 0.189 - 0.189 * (1 - amount),
@@ -756,7 +756,7 @@ var joint = {
 
                 var amount = _.isFinite(args.amount) ? args.amount : 1;
 
-                return _.template('<filter><feColorMatrix type="saturate" values="${amount}"/></filter>', {
+                return joint.templates.saturate({
                     amount: 1 - amount
                 });
             },
@@ -764,7 +764,7 @@ var joint = {
             // `angle` ...  the number of degrees around the color circle the input samples will be adjusted.
             hueRotate: function(args) {
 
-                return _.template('<filter><feColorMatrix type="hueRotate" values="${angle}"/></filter>', {
+                return joint.templates.hueRotate({
                     angle: args.angle || 0
                 });
             },
@@ -774,7 +774,7 @@ var joint = {
 
                 var amount = _.isFinite(args.amount) ? args.amount : 1;
 
-                return _.template('<filter><feComponentTransfer><feFuncR type="table" tableValues="${amount} ${amount2}"/><feFuncG type="table" tableValues="${amount} ${amount2}"/><feFuncB type="table" tableValues="${amount} ${amount2}"/></feComponentTransfer></filter>', {
+                return joint.templates.invert({
                     amount: amount,
                     amount2: 1 - amount
                 });
@@ -783,7 +783,7 @@ var joint = {
             // `amount` ... proportion of the conversion. A value of 0 will create an image that is completely black. A value of 1 leaves the input unchanged.
             brightness: function(args) {
 
-                return _.template('<filter><feComponentTransfer><feFuncR type="linear" slope="${amount}"/><feFuncG type="linear" slope="${amount}"/><feFuncB type="linear" slope="${amount}"/></feComponentTransfer></filter>', {
+                return joint.templates.brightness({
                     amount: _.isFinite(args.amount) ? args.amount : 1
                 });
             },
@@ -793,7 +793,7 @@ var joint = {
 
                 var amount = _.isFinite(args.amount) ? args.amount : 1;
 
-                return _.template('<filter><feComponentTransfer><feFuncR type="linear" slope="${amount}" intercept="${amount2}"/><feFuncG type="linear" slope="${amount}" intercept="${amount2}"/><feFuncB type="linear" slope="${amount}" intercept="${amount2}"/></feComponentTransfer></filter>', {
+                return joint.templates.contrast({
                     amount: amount,
                     amount2: .5 - amount / 2
                 });

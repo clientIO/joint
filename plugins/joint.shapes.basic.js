@@ -267,7 +267,7 @@ joint.shapes.basic.PortsViewInterface = {
         var $inPorts = this.$('.inPorts').empty();
         var $outPorts = this.$('.outPorts').empty();
 
-        var portTemplate = _.template(this.model.portMarkup);
+        var portTemplate = this.model.portMarkup;
 
         _.each(_.filter(this.model.ports, function(p) { return p.type === 'in'; }), function(port, index) {
 

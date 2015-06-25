@@ -16,7 +16,7 @@ module.exports = function(grunt) {
         },
 
         core: [
-            'src/core.js', 'src/joint.dia.graph.js', 'src/joint.dia.cell.js', 'src/joint.dia.element.js', 'src/joint.dia.link.js', 'src/joint.dia.paper.js',
+            'src/core.js', 'src/joint.templates.js', 'src/joint.dia.graph.js', 'src/joint.dia.cell.js', 'src/joint.dia.element.js', 'src/joint.dia.link.js', 'src/joint.dia.paper.js',
             'plugins/joint.shapes.basic.js',
             'plugins/routers/joint.routers.orthogonal.js', 'plugins/routers/joint.routers.manhattan.js', 'plugins/routers/joint.routers.metro.js',
             'plugins/connectors/joint.connectors.normal.js', 'plugins/connectors/joint.connectors.rounded.js', 'plugins/connectors/joint.connectors.smooth.js'
@@ -220,6 +220,25 @@ module.exports = function(grunt) {
                 }
             }
         },
+
+        "template-module": {
+            compile:{
+                files: {
+                    "src/joint.templates.js": ["templates/**/*.html"]
+                },
+                options: {
+                    module: false,
+                    namespace: 'joint.templates',
+                    processName: function(filename){
+                        var name = filename.split('/');
+                        name = name[name.length-1];
+                        return name.split('.')[0];
+                    },
+                    provider: 'lodash'
+                }
+            }
+        },
+
         uglify: {
             options: {
                 report: 'min',
@@ -338,11 +357,12 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-contrib-qunit');
+    grunt.loadNpmTasks('grunt-template-module');
     grunt.loadNpmTasks('grunt-jscs');
 
     // Default task(s).
-    grunt.registerTask('default', ['concat:dist', 'uglify:dist', 'cssmin:dist']);
-    grunt.registerTask('allinone', ['concat:allinone', 'uglify:allinone', 'cssmin:allinone']);
+    grunt.registerTask('default', ['template-module', 'concat:dist', 'uglify:dist', 'cssmin:dist']);
+    grunt.registerTask('allinone', ['template-module', 'concat:allinone', 'uglify:allinone', 'cssmin:allinone']);
 
     // Separate tasks for all the plugins.
     Object.keys(js.plugins).forEach(function(name) {
@@ -354,7 +374,7 @@ module.exports = function(grunt) {
     // everything into one file (for JS and CSS).
 
     var allTasks = [
-        'concat:dist', 'uglify:dist', 'cssmin:dist',
+        'template-module', 'concat:dist', 'uglify:dist', 'cssmin:dist',
         'concat:nojquery', 'uglify:nojquery', 'cssmin:nojquery',
         'concat:nobackbone', 'uglify:nobackbone', 'cssmin:nobackbone',
         'concat:nojquerynobackbone', 'uglify:nojquerynobackbone', 'cssmin:nojquerynobackbone'
@@ -368,6 +388,6 @@ module.exports = function(grunt) {
     grunt.registerTask('all', allTasks);
 
     grunt.registerTask('build', [
-        'concat:distbuild', 'concat:allinonebuild', 'uglify:build', 'browserify'
+        'template-module', 'concat:distbuild', 'concat:allinonebuild', 'uglify:build', 'browserify'
     ]);
 };

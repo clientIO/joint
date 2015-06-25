@@ -47,6 +47,7 @@
     "grunt-contrib-uglify": "~0.2.0",
     "grunt-contrib-cssmin": "~0.6.0",
     "grunt-contrib-qunit": "~0.3.0",
+    "grunt-template-module" : "^0.5.0",
     "grunt-jscs": "~1.6.0",
     "mocha": "~1.13.0",
     "should": "~2.0.2"
