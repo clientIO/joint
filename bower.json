@@ -17,5 +17,6 @@
   "main": [
     "dist/joint.js",
     "dist/joint.css"
-  ]
+  ],
+  "license": "MPL-2.0"
 }
