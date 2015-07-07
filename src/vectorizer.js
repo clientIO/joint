@@ -10,24 +10,30 @@
 
     if (typeof define === 'function' && define.amd) {
 
-        // AMD. Register as an anonymous module.
-        define([], factory);
+        // AMD.
+        define('V', ['g'], function(g) {
+            return factory(g);
+        });
 
     } else if (typeof exports === 'object') {
 
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
-        module.exports = factory();
+        var g = require('./geometry');
+
+        module.exports = factory(g);
 
     } else {
 
         // Browser globals.
-        root.Vectorizer = root.V = factory();
+        var g = root.g;
+
+        root.Vectorizer = root.V = factory(g);
 
     }
 
-}(this, function() {
+}(this, function(g) {
 
     var SVGsupported = typeof window === 'object' && !!(window.SVGAngle || document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1'));
 
