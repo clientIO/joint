@@ -6,8 +6,8 @@ module.exports = function(grunt) {
     var js = {
 
         libs: {
-            jquery: ['lib/jquery.js'],
-            backbone: ['lib/lodash.js', 'lib/backbone.js']
+            jquery: ['lib/jquery/dist/jquery.js'],
+            backbone: ['lib/lodash/dist/lodash.js', 'lib/backbone/backbone.js']
         },
 
         helpers: {
