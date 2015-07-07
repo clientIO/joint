@@ -124,7 +124,7 @@ module.exports = function(grunt) {
             distbuild: {
                 options: {
                     process: {
-                        delimiters: ''
+                        delimiters: 'square'
                     }
                 },
                 files: {
@@ -158,7 +158,7 @@ module.exports = function(grunt) {
             allinonebuild: {
                 options: {
                     process: {
-                        delimiters: ''
+                        delimiters: 'square'
                     }
                 },
                 files: {
