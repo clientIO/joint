@@ -1,5 +1,5 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.joint = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-22 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-07-07 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -13,8 +13,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     if (typeof define === 'function' && define.amd) {
 
-        // AMD. Register as an anonymous module.
-        define([], factory);
+        // AMD.
+        define('g', [], factory);
 
     } else if (typeof exports === 'object') {
 
@@ -771,7 +771,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 }));
 
 },{}],2:[function(require,module,exports){
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-22 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-07-07 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -819,7 +819,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 }(this, function(root, Backbone, _, $, g, V) {
 
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-22 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-07-07 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -4101,18 +4101,18 @@ joint.dia.Link = joint.dia.Cell.extend({
     // Only .marker-vertex and .marker-vertex-remove element have special meaning. The former is used for
     // dragging vertices (changin their position). The latter is used for removing vertices.
     vertexMarkup: [
-        '<g class="marker-vertex-group" transform="translate(, )">',
-        '<circle class="marker-vertex" idx="" r="10" />',
-        '<path class="marker-vertex-remove-area" idx="" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
-        '<path class="marker-vertex-remove" idx="" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
+        '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
+        '<circle class="marker-vertex" idx="<%= idx %>" r="10" />',
+        '<path class="marker-vertex-remove-area" idx="<%= idx %>" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
+        '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
         '<title>Remove vertex.</title>',
         '</path>',
         '</g>'
     ].join(''),
 
     arrowheadMarkup: [
-        '<g class="marker-arrowhead-group marker-arrowhead-group-">',
-        '<path class="marker-arrowhead" end="" d="M 26 0 L 0 13 L 26 26 z" />',
+        '<g class="marker-arrowhead-group marker-arrowhead-group-<%= end %>">',
+        '<path class="marker-arrowhead" end="<%= end %>" d="M 26 0 L 0 13 L 26 26 z" />',
         '</g>'
     ].join(''),
 
@@ -7735,7 +7735,7 @@ joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
 }));
 
 },{"./geometry":1,"./vectorizer":3,"backbone":4,"jquery":6,"lodash":7}],3:[function(require,module,exports){
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-22 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-07-07 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -7754,24 +7754,30 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     if (typeof define === 'function' && define.amd) {
 
-        // AMD. Register as an anonymous module.
-        define([], factory);
+        // AMD.
+        define('V', ['g'], function(g) {
+            return factory(g);
+        });
 
     } else if (typeof exports === 'object') {
 
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
-        module.exports = factory();
+        var g = require('./geometry');
+
+        module.exports = factory(g);
 
     } else {
 
         // Browser globals.
-        root.Vectorizer = root.V = factory();
+        var g = root.g;
+
+        root.Vectorizer = root.V = factory(g);
 
     }
 
-}(this, function() {
+}(this, function(g) {
 
     var SVGsupported = typeof window === 'object' && !!(window.SVGAngle || document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1'));
 
@@ -8788,7 +8794,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 }));
 
-},{}],4:[function(require,module,exports){
+},{"./geometry":1}],4:[function(require,module,exports){
 //     Backbone.js 1.1.2
 
 //     (c) 2010-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
