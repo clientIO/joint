@@ -59,6 +59,8 @@ Contributors
 
 - [David Durman](http://github.com/DavidDurman)
 - [Roman Bruckner](http://github.com/kumilingus)
+- [Emanuele Palombo](http://github.com/elbowz)
+- [Charles Hill](http://github.com/chill117)
 
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/DavidDurman/joint/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
