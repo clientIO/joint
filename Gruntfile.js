@@ -6,8 +6,8 @@ module.exports = function(grunt) {
     var js = {
 
         libs: {
-            jquery: ['lib/jquery.js'],
-            backbone: ['lib/lodash.js', 'lib/backbone.js']
+            jquery: ['lib/jquery/dist/jquery.js'],
+            backbone: ['lib/lodash/dist/lodash.js', 'lib/backbone/backbone.js']
         },
 
         helpers: {
@@ -108,7 +108,7 @@ module.exports = function(grunt) {
                 files: {
                     'dist/joint.js': [].concat(
                         js.libs.jquery, js.libs.backbone,
-                        js.helpers.vectorizer, js.helpers.geometry,
+                        js.helpers.geometry, js.helpers.vectorizer,
                         js.core
                     ),
                     'dist/joint.clean.js': [].concat(
@@ -124,7 +124,7 @@ module.exports = function(grunt) {
             distbuild: {
                 options: {
                     process: {
-                        delimiters: ''
+                        delimiters: 'square'
                     }
                 },
                 files: {
@@ -144,7 +144,7 @@ module.exports = function(grunt) {
                 files: {
                     'dist/joint.all.js': [].concat(
                         js.libs.jquery, js.libs.backbone,
-                        js.helpers.vectorizer, js.helpers.geometry,
+                        js.helpers.geometry, js.helpers.vectorizer,
                         js.core, allJSPlugins()
                     ),
                     'dist/joint.all.clean.js': [].concat(
@@ -158,7 +158,7 @@ module.exports = function(grunt) {
             allinonebuild: {
                 options: {
                     process: {
-                        delimiters: ''
+                        delimiters: 'square'
                     }
                 },
                 files: {
@@ -178,7 +178,7 @@ module.exports = function(grunt) {
                 files: {
                     'dist/joint.nojquery.js': [].concat(
                         js.libs.backbone,
-                        js.helpers.vectorizer, js.helpers.geometry,
+                        js.helpers.geometry, js.helpers.vectorizer,
                         js.core
                     ),
                     'dist/joint.nojquery.css': [].concat(
@@ -195,7 +195,7 @@ module.exports = function(grunt) {
                 files: {
                     'dist/joint.nobackbone.js': [].concat(
                         js.libs.jquery,
-                        js.helpers.vectorizer, js.helpers.geometry,
+                        js.helpers.geometry, js.helpers.vectorizer,
                         js.core
                     ),
                     'dist/joint.nojquery.css': [].concat(
@@ -211,7 +211,7 @@ module.exports = function(grunt) {
                 },
                 files: {
                     'dist/joint.nojquerynobackbone.js': [].concat(
-                        js.helpers.vectorizer, js.helpers.geometry,
+                        js.helpers.geometry, js.helpers.vectorizer,
                         js.core
                     ),
                     'dist/joint.nojquerynobackbone.css': [].concat(

@@ -1,4 +1,4 @@
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-22 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-07-07 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -17,24 +17,30 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     if (typeof define === 'function' && define.amd) {
 
-        // AMD. Register as an anonymous module.
-        define([], factory);
+        // AMD.
+        define('V', ['g'], function(g) {
+            return factory(g);
+        });
 
     } else if (typeof exports === 'object') {
 
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
-        module.exports = factory();
+        var g = require('./geometry');
+
+        module.exports = factory(g);
 
     } else {
 
         // Browser globals.
-        root.Vectorizer = root.V = factory();
+        var g = root.g;
+
+        root.Vectorizer = root.V = factory(g);
 
     }
 
-}(this, function() {
+}(this, function(g) {
 
     var SVGsupported = typeof window === 'object' && !!(window.SVGAngle || document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1'));
 
