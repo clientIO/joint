@@ -34,7 +34,6 @@
         var V = root.V;
 
         root.joint = factory(root, Backbone, _, $, g, V);
-
     }
 
 }(this, function(root, Backbone, _, $, g, V) {

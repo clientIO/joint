@@ -1,17 +1,21 @@
 
-.PHONY: stest ctest
+.PHONY: test stest ctest cstest all
 
-test: ctest stest cstest
+# all tests
+test:
+	grunt test
+
+# server-side tests only
+stest:
+	grunt test:server
 
 # client-side tests only
-stest:
-	./node_modules/.bin/mocha test/jointjs-nodejs/*.js --reporter spec
-# server-side tests only
 ctest:
-	grunt qunit
+	grunt qunit:all
+
+# code styling tests only
 cstest:
-	grunt jscs
+	grunt jscs:
+
 all:
 	grunt all
-	grunt allinone
-	grunt build
