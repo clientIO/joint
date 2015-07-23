@@ -1,9 +1,3 @@
-if (typeof exports === 'object') {
-
-    var graphlib = require('graphlib');
-    var dagre = require('dagre');
-}
-
 // create graphlib.Graph from existing joint.dia.Graph
 joint.dia.Graph.prototype.toGraphLib = function(opt) {
 

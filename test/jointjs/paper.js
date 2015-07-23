@@ -85,3 +85,21 @@ test('graph.getBBox()', function() {
     equal(bbox.width, 100, 'bbox.width correct');
     equal(bbox.height, 210, 'bbox.height correct');
 });
+
+test('contextmenu', function() {
+
+    var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 } });
+    this.graph.resetCells([r1]);
+
+    var cellContextmenuCallback = sinon.spy();
+    this.paper.on('cell:contextmenu', cellContextmenuCallback);
+    var blankContextmenuCallback = sinon.spy();
+    this.paper.on('blank:contextmenu', blankContextmenuCallback);
+
+    var r1View = this.paper.findViewByModel(r1);
+    r1View.$el.trigger('contextmenu');
+    ok(cellContextmenuCallback.called, 'cell:contextmenu triggered');    
+
+    this.paper.$el.trigger('contextmenu');
+    ok(blankContextmenuCallback.called, 'blank:contextmenu triggered');    
+});
