@@ -1,4 +1,4 @@
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-07-07 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-07-23 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -12,7 +12,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     if (typeof define === 'function' && define.amd) {
 
-        // AMD.
+        // AMD. Register as an anonymous module.
         define('g', [], factory);
 
     } else if (typeof exports === 'object') {
@@ -26,7 +26,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         // Browser globals.
         root.g = factory();
-
     }
 
 }(this, function() {
