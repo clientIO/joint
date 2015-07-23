@@ -4,7 +4,7 @@ var paper = new joint.dia.Paper({
 
     el: $('#paper'),
     width: 800,
-    height: 1200,
+    height: 1400,
     gridSize: 1,
     perpendicularLinks: false,
     model: graph,
@@ -382,4 +382,21 @@ V(paper.viewport).defs().append(diamondMarker);
 
 graph.addCell([link10]);
 
+// OneSide routing
 
+title(250, 1200, 'OneSide routing');
+
+var r19 = r17.clone();
+graph.addCell(r19);
+r19.translate(0, 150);
+
+var r20 = r19.clone();
+graph.addCell(r20);
+r20.translate(200, 0);
+
+var link12 = new joint.dia.Link({
+    source: { id: r19.id },
+    target: { id: r20.id },
+    router: { name: 'oneSide', args: { side: 'bottom' }}
+});
+graph.addCell(link12);

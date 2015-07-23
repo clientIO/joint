@@ -1,4 +1,4 @@
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-07-07 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-07-23 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -52,7 +52,7 @@ var joint = {
 
         getByPath: function(obj, path, delim) {
 
-            delim = delim || '.';
+            delim = delim || '/';
             var keys = path.split(delim);
             var key;
 
@@ -69,7 +69,7 @@ var joint = {
 
         setByPath: function(obj, path, value, delim) {
 
-            delim = delim || '.';
+            delim = delim || '/';
 
             var keys = path.split(delim);
             var diver = obj;
@@ -91,7 +91,7 @@ var joint = {
 
         unsetByPath: function(obj, path, delim) {
 
-            delim = delim || '.';
+            delim = delim || '/';
 
             // index of the last delimiter
             var i = path.lastIndexOf(delim);
@@ -116,7 +116,7 @@ var joint = {
 
         flattenObject: function(obj, delim, stop) {
 
-            delim = delim || '.';
+            delim = delim || '/';
             var ret = {};
 
             for (var key in obj) {
@@ -560,6 +560,92 @@ var joint = {
             img.src = url;
         },
 
+        getElementBBox: function(el) {
+
+            var $el = $(el);
+            var offset = $el.offset();
+            var bbox;
+
+            if (el.ownerSVGElement) {
+
+                // Use Vectorizer to get the dimensions of the element if it is an SVG element.
+                bbox = V(el).bbox();
+
+                // getBoundingClientRect() used in jQuery.fn.offset() takes into account `stroke-width`
+                // in Firefox only. So clientRect width/height and getBBox width/height in FF don't match.
+                // To unify this across all browsers we add the `stroke-width` (left & top) back to
+                // the calculated offset.
+                var crect = el.getBoundingClientRect();
+                var strokeWidthX = (crect.width - bbox.width) / 2;
+                var strokeWidthY = (crect.height - bbox.height) / 2;
+
+                // The `bbox()` returns coordinates relative to the SVG viewport, therefore, use the
+                // ones returned from the `offset()` method that are relative to the document.
+                bbox.x = offset.left + strokeWidthX;
+                bbox.y = offset.top + strokeWidthY;
+
+            } else {
+
+                bbox = { x: offset.left, y: offset.top, width: $el.outerWidth(), height: $el.outerHeight() };
+            }
+
+            return bbox;
+        },
+
+
+        // Highly inspired by the jquery.sortElements plugin by Padolsey.
+        // See http://james.padolsey.com/javascript/sorting-elements-with-jquery/.
+        sortElements: function(elements, comparator) {
+
+            var $elements = $(elements);
+            var placements = $elements.map(function() {
+
+                var sortElement = this;
+                var parentNode = sortElement.parentNode;
+                // Since the element itself will change position, we have
+                // to have some way of storing it's original position in
+                // the DOM. The easiest way is to have a 'flag' node:
+                var nextSibling = parentNode.insertBefore(document.createTextNode(''), sortElement.nextSibling);
+
+                return function() {
+
+                    if (parentNode === this) {
+                        throw new Error('You can\'t sort elements if any one is a descendant of another.');
+                    }
+
+                    // Insert before flag:
+                    parentNode.insertBefore(this, nextSibling);
+                    // Remove flag:
+                    parentNode.removeChild(nextSibling);
+                };
+            });
+
+            return Array.prototype.sort.call($elements, comparator).each(function(i) {
+                placements[i].call(this);
+            });
+        },
+
+        // Return a new object with all for sides (top, bottom, left and right) in it.
+        // Value of each side is taken from the given argument (either number or object).
+        // Default value for a side is 0.
+        // Examples:
+        // joint.util.normalizeSides(5) --> { top: 5, left: 5, right: 5, bottom: 5 }
+        // joint.util.normalizeSides({ left: 5 }) --> { top: 0, left: 5, right: 0, bottom: 0 }
+        normalizeSides: function(box) {
+
+            if (Object(box) !== box) {
+                box = box || 0;
+                return { top: box, bottom: box, left: box, right: box };
+            }
+
+            return {
+                top: box.top || 0,
+                bottom: box.bottom || 0,
+                left: box.left || 0,
+                right: box.right || 0
+            };
+        },
+
         timing: {
 
             linear: function(t) {
@@ -691,6 +777,41 @@ var joint = {
 
         // SVG filters.
         filter: {
+
+            // `color` ... outline color
+            // `width`... outline width
+            // `opacity` ... outline opacity
+            // `margin` ... gap between outline and the element
+            outline: function(args) {
+
+                var tpl = '<filter><feFlood flood-color="${color}" flood-opacity="${opacity}" result="colored"/><feMorphology in="SourceAlpha" result="morphedOuter" operator="dilate" radius="${outerRadius}" /><feMorphology in="SourceAlpha" result="morphedInner" operator="dilate" radius="${innerRadius}" /><feComposite result="morphedOuterColored" in="colored" in2="morphedOuter" operator="in"/><feComposite operator="xor" in="morphedOuterColored" in2="morphedInner" result="outline"/><feMerge><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+
+                var margin = _.isFinite(args.margin) ? args.margin : 2;
+                var width = _.isFinite(args.width) ? args.width : 1;
+
+                return _.template(tpl, {
+                    color: args.color || 'blue',
+                    opacity: _.isFinite(args.opacity) ? args.opacity : 1,
+                    outerRadius: margin + width,
+                    innerRadius: margin
+                });
+            },
+
+            // `color` ... color
+            // `width`... width
+            // `blur` ... blur
+            // `opacity` ... opacity
+            highlight: function(args) {
+
+                var tpl = '<filter><feFlood flood-color="${color}" flood-opacity="${opacity}" result="colored"/><feMorphology result="morphed" in="SourceGraphic" operator="dilate" radius="${width}"/><feComposite result="composed" in="colored" in2="morphed" operator="in"/><feGaussianBlur result="blured" in="composed" stdDeviation="${blur}"/><feBlend in="SourceGraphic" in2="blured" mode="normal"/></filter>';
+
+                return _.template(tpl, {
+                    color: args.color || 'red',
+                    width: _.isFinite(args.width) ? args.width : 1,
+                    blur: _.isFinite(args.blur) ? args.blur : 0,
+                    opacity: _.isFinite(args.opacity) ? args.opacity : 1
+                });
+            },
 
             // `x` ... horizontal blur
             // `y` ... vertical blur (optional)
@@ -2132,6 +2253,14 @@ joint.dia.CellView = Backbone.View.extend({
         this.setElement(el, false);
     },
 
+    // Utilize an alternative DOM manipulation API by
+    // adding an element reference wrapped in Vectorizer.
+    _setElement: function(el) {
+        this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
+        this.el = this.$el[0];
+        this.vel = V(this.el);
+    },
+
     findBySelector: function(selector) {
 
         // These are either descendants of `this.$el` of `this.$el` itself.
@@ -2183,7 +2312,7 @@ joint.dia.CellView = Backbone.View.extend({
 
     getBBox: function() {
 
-        return V(this.el).bbox();
+        return g.rect(this.vel.bbox());
     },
 
     highlight: function(el, opt) {
@@ -2242,7 +2371,7 @@ joint.dia.CellView = Backbone.View.extend({
     // An example is: `{ filter: { name: 'blur', args: { radius: 5 } } }`.
     applyFilter: function(selector, filter) {
 
-        var $selected = this.findBySelector(selector);
+        var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
 
         // Generate a hash code from the stringified filter definition. This gives us
         // a unique filter ID for different definitions.
@@ -2281,7 +2410,7 @@ joint.dia.CellView = Backbone.View.extend({
     // An example is: `{ fill: { type: 'linearGradient', stops: [ { offset: '10%', color: 'green' }, { offset: '50%', color: 'blue' } ] } }`.
     applyGradient: function(selector, attr, gradient) {
 
-        var $selected = this.findBySelector(selector);
+        var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
 
         // Generate a hash code from the stringified filter definition. This gives us
         // a unique filter ID for different definitions.
@@ -2386,6 +2515,11 @@ joint.dia.CellView = Backbone.View.extend({
     mouseout: function(evt) {
 
         this.notify('cell:mouseout', evt);
+    },
+
+    contextmenu: function(evt, x, y) {
+
+        this.notify('cell:contextmenu', evt, x, y);
     }
 });
 
@@ -2512,23 +2646,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             // Compute cell's size and position  based on the children bbox
             // and given padding.
             var bbox = collection.getBBox(embeddedCells);
-            var padding = opt.padding || 0;
-
-            if (_.isNumber(padding)) {
-                padding = {
-                    left: padding,
-                    right: padding,
-                    top: padding,
-                    bottom: padding
-                };
-            } else {
-                padding = {
-                    left: padding.left || 0,
-                    right: padding.right || 0,
-                    top: padding.top || 0,
-                    bottom: padding.bottom || 0
-                };
-            }
+            var padding = joint.util.normalizeSides(opt.padding);
 
             // Apply padding computed above to the bbox.
             bbox.moveAndExpand({
@@ -2591,8 +2709,24 @@ joint.dia.Element = joint.dia.Cell.extend({
 
 joint.dia.ElementView = joint.dia.CellView.extend({
 
+    SPECIAL_ATTRIBUTES: [
+        'style',
+        'text',
+        'html',
+        'ref-x',
+        'ref-y',
+        'ref-dx',
+        'ref-dy',
+        'ref-width',
+        'ref-height',
+        'ref',
+        'x-alignment',
+        'y-alignment',
+        'port'
+    ],
+
     className: function() {
-        return 'element ' + this.model.get('type').split('.').join(' ');
+        return 'element ' + this.model.get('type').replace('.', ' ', 'g');
     },
 
     initialize: function() {
@@ -2611,32 +2745,33 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var allAttrs = this.model.get('attrs');
 
-        var rotatable = V(this.$('.rotatable')[0]);
+        var rotatable = this.rotatableNode;
         if (rotatable) {
-
             var rotation = rotatable.attr('transform');
             rotatable.attr('transform', '');
         }
 
         var relativelyPositioned = [];
+        var nodesBySelector = {};
 
         _.each(renderingOnlyAttrs || allAttrs, function(attrs, selector) {
 
             // Elements that should be updated.
             var $selected = this.findBySelector(selector);
-
             // No element matched by the `selector` was found. We're done then.
             if ($selected.length === 0) return;
 
+            nodesBySelector[selector] = $selected;
+
             // Special attributes are treated by JointJS, not by SVG.
-            var specialAttributes = ['style', 'text', 'html', 'ref-x', 'ref-y', 'ref-dx', 'ref-dy', 'ref-width', 'ref-height', 'ref', 'x-alignment', 'y-alignment', 'port'];
+            var specialAttributes = this.SPECIAL_ATTRIBUTES.slice();
 
             // If the `filter` attribute is an object, it is in the special JointJS filter format and so
             // it becomes a special attribute and is treated separately.
             if (_.isObject(attrs.filter)) {
 
                 specialAttributes.push('filter');
-                this.applyFilter(selector, attrs.filter);
+                this.applyFilter($selected, attrs.filter);
             }
 
             // If the `fill` or `stroke` attribute is an object, it is in the special JointJS gradient format and so
@@ -2644,12 +2779,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             if (_.isObject(attrs.fill)) {
 
                 specialAttributes.push('fill');
-                this.applyGradient(selector, 'fill', attrs.fill);
+                this.applyGradient($selected, 'fill', attrs.fill);
             }
             if (_.isObject(attrs.stroke)) {
 
                 specialAttributes.push('stroke');
-                this.applyGradient(selector, 'stroke', attrs.stroke);
+                this.applyGradient($selected, 'stroke', attrs.stroke);
             }
 
             // Make special case for `text` attribute. So that we can set text content of the `<text>` element
@@ -2661,9 +2796,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 $selected.each(function() {
 
-                    V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight, textPath: attrs.textPath });
+                    V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight, textPath: attrs.textPath, annotations: attrs.annotations });
                 });
-                specialAttributes.push('lineHeight', 'textPath');
+                specialAttributes.push('lineHeight', 'textPath', 'annotations');
             }
 
             // Set regular attributes on the `$selected` subelement. Note that we cannot use the jQuery attr()
@@ -2724,7 +2859,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // Note that we're using the bounding box without transformation because we are already inside
         // a transformed coordinate system.
-        var bbox = this.el.getBBox();
+        var size = this.model.get('size');
+        var bbox = { x: 0, y: 0, width: size.width, height: size.height };
 
         renderingOnlyAttrs = renderingOnlyAttrs || {};
 
@@ -2738,7 +2874,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 ? _.merge({}, allAttrs[$el.selector], renderingOnlyElAttrs)
             : allAttrs[$el.selector];
 
-            this.positionRelative($el, bbox, elAttrs);
+            this.positionRelative(V($el[0]), bbox, elAttrs, nodesBySelector);
 
         }, this);
 
@@ -2748,30 +2884,68 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
     },
 
-    positionRelative: function($el, bbox, elAttrs) {
+    positionRelative: function(vel, bbox, attributes, nodesBySelector) {
 
-        var ref = elAttrs['ref'];
-        var refX = parseFloat(elAttrs['ref-x']);
-        var refY = parseFloat(elAttrs['ref-y']);
-        var refDx = parseFloat(elAttrs['ref-dx']);
-        var refDy = parseFloat(elAttrs['ref-dy']);
-        var yAlignment = elAttrs['y-alignment'];
-        var xAlignment = elAttrs['x-alignment'];
-        var refWidth = parseFloat(elAttrs['ref-width']);
-        var refHeight = parseFloat(elAttrs['ref-height']);
+        var ref = attributes['ref'];
+        var refDx = parseFloat(attributes['ref-dx']);
+        var refDy = parseFloat(attributes['ref-dy']);
+        var yAlignment = attributes['y-alignment'];
+        var xAlignment = attributes['x-alignment'];
+
+        // 'ref-y', 'ref-x', 'ref-width', 'ref-height' can be defined
+        // by value or by percentage e.g 4, 0.5, '200%'.
+        var refY = attributes['ref-y'];
+        var refYPercentage = _.isString(refY) && refY.slice(-1) === '%';
+        refY = parseFloat(refY);
+        if (refYPercentage) {
+            refY /= 100;
+        }
+
+        var refX = attributes['ref-x'];
+        var refXPercentage = _.isString(refX) && refX.slice(-1) === '%';
+        refX = parseFloat(refX);
+        if (refXPercentage) {
+            refX /= 100;
+        }
+
+        var refWidth = attributes['ref-width'];
+        var refWidthPercentage = _.isString(refWidth) && refWidth.slice(-1) === '%';
+        refWidth = parseFloat(refWidth);
+        if (refWidthPercentage) {
+            refWidth /= 100;
+        }
+
+        var refHeight = attributes['ref-height'];
+        var refHeightPercentage = _.isString(refHeight) && refHeight.slice(-1) === '%';
+        refHeight = parseFloat(refHeight);
+        if (refHeightPercentage) {
+            refHeight /= 100;
+        }
+
+        // Check if the node is a descendant of the scalable group.
+        var scalable = vel.findParentByClass('scalable', this.el);
 
         // `ref` is the selector of the reference element. If no `ref` is passed, reference
         // element is the root element.
-
-        var isScalable = _.contains(_.pluck(_.pluck($el.parents('g'), 'className'), 'baseVal'), 'scalable');
-
         if (ref) {
 
-            // Get the bounding box of the reference element relative to the root `<g>` element.
-            bbox = V(this.findBySelector(ref)[0]).bbox(false, this.el);
-        }
+            var vref;
 
-        var vel = V($el[0]);
+            if (nodesBySelector && nodesBySelector[ref]) {
+                // First we check if the same selector has been already used.
+                vref = V(nodesBySelector[ref][0]);
+            } else {
+                // Other wise we find the ref ourselves.
+                vref = ref === '.' ? this.vel : this.vel.findOne(ref);
+            }
+
+            if (!vref) {
+                throw new Error('dia.ElementView: reference does not exists.');
+            }
+
+            // Get the bounding box of the reference element relative to the root `<g>` element.
+            bbox = vref.bbox(false, this.el);
+        }
 
         // Remove the previous translate() from the transform attribute and translate the element
         // relative to the root bounding box following the `ref-x` and `ref-y` attributes.
@@ -2780,22 +2954,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '').trim() || '');
         }
 
-        function isDefined(x) {
-            return _.isNumber(x) && !_.isNaN(x);
-        }
-
-        // The final translation of the subelement.
-        var tx = 0;
-        var ty = 0;
-
         // 'ref-width'/'ref-height' defines the width/height of the subelement relatively to
         // the reference element size
         // val in 0..1         ref-width = 0.75 sets the width to 75% of the ref. el. width
         // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
 
-        if (isDefined(refWidth)) {
+        if (isFinite(refWidth)) {
 
-            if (refWidth >= 0 && refWidth <= 1) {
+            if (refWidthPercentage || refWidth >= 0 && refWidth <= 1) {
 
                 vel.attr('width', refWidth * bbox.width);
 
@@ -2805,9 +2971,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
-        if (isDefined(refHeight)) {
+        if (isFinite(refHeight)) {
 
-            if (refHeight >= 0 && refHeight <= 1) {
+            if (refHeightPercentage || refHeight >= 0 && refHeight <= 1) {
 
                 vel.attr('height', refHeight * bbox.height);
 
@@ -2817,14 +2983,19 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
+        // The final translation of the subelement.
+        var tx = 0;
+        var ty = 0;
+        var scale;
+
         // `ref-dx` and `ref-dy` define the offset of the subelement relative to the right and/or bottom
         // coordinate of the reference element.
-        if (isDefined(refDx)) {
+        if (isFinite(refDx)) {
 
-            if (isScalable) {
+            if (scalable) {
 
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
-                var scale = V(this.$('.scalable')[0]).scale();
+                scale = scale || scalable.scale();
                 tx = bbox.x + bbox.width + refDx / scale.sx;
 
             } else {
@@ -2832,12 +3003,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 tx = bbox.x + bbox.width + refDx;
             }
         }
-        if (isDefined(refDy)) {
+        if (isFinite(refDy)) {
 
-            if (isScalable) {
+            if (scalable) {
 
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
-                var scale = V(this.$('.scalable')[0]).scale();
+                scale = scale || scalable.scale();
                 ty = bbox.y + bbox.height + refDy / scale.sy;
             } else {
 
@@ -2849,16 +3020,16 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // if `refX` is < 0 then `refX`'s absolute values is the right coordinate of the bounding box
         // otherwise, `refX` is the left coordinate of the bounding box
         // Analogical rules apply for `refY`.
-        if (isDefined(refX)) {
+        if (isFinite(refX)) {
 
-            if (refX > 0 && refX < 1) {
+            if (refXPercentage || refX > 0 && refX < 1) {
 
                 tx = bbox.x + bbox.width * refX;
 
-            } else if (isScalable) {
+            } else if (scalable) {
 
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
-                var scale = V(this.$('.scalable')[0]).scale();
+                scale = scale || scalable.scale();
                 tx = bbox.x + refX / scale.sx;
 
             } else {
@@ -2866,16 +3037,16 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 tx = bbox.x + refX;
             }
         }
-        if (isDefined(refY)) {
+        if (isFinite(refY)) {
 
-            if (refY > 0 && refY < 1) {
+            if (refXPercentage || refY > 0 && refY < 1) {
 
                 ty = bbox.y + bbox.height * refY;
 
-            } else if (isScalable) {
+            } else if (scalable) {
 
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
-                var scale = V(this.$('.scalable')[0]).scale();
+                scale = scale || scalable.scale();
                 ty = bbox.y + refY / scale.sy;
 
             } else {
@@ -2884,25 +3055,29 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
-        var velbbox = vel.bbox(false, this.paper.viewport);
-        // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
-        if (yAlignment === 'middle') {
+        if (!_.isUndefined(yAlignment) || !_.isUndefined(xAlignment)) {
 
-            ty -= velbbox.height / 2;
+            var velBBox = vel.bbox(false, this.paper.viewport);
 
-        } else if (isDefined(yAlignment)) {
+            // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
+            if (yAlignment === 'middle') {
 
-            ty += (yAlignment > -1 && yAlignment < 1) ?  velbbox.height * yAlignment : yAlignment;
-        }
+                ty -= velBBox.height / 2;
 
-        // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
-        if (xAlignment === 'middle') {
+            } else if (isFinite(yAlignment)) {
 
-            tx -= velbbox.width / 2;
+                ty += (yAlignment > -1 && yAlignment < 1) ?  velBBox.height * yAlignment : yAlignment;
+            }
 
-        } else if (isDefined(xAlignment)) {
+            // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
+            if (xAlignment === 'middle') {
 
-            tx += (xAlignment > -1 && xAlignment < 1) ?  velbbox.width * xAlignment : xAlignment;
+                tx -= velBBox.width / 2;
+
+            } else if (isFinite(xAlignment)) {
+
+                tx += (xAlignment > -1 && xAlignment < 1) ?  velBBox.width * xAlignment : xAlignment;
+            }
         }
 
         vel.translate(tx, ty);
@@ -2917,7 +3092,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (markup) {
 
             var nodes = V(markup);
-            V(this.el).append(nodes);
+
+            this.vel.append(nodes);
 
         } else {
 
@@ -2930,6 +3106,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.$el.empty();
 
         this.renderMarkup();
+
+        this.rotatableNode = this.vel.findOne('.rotatable');
+        this.scalableNode = this.vel.findOne('.scalable');
 
         this.update();
 
@@ -2949,7 +3128,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     scale: function(sx, sy) {
 
         // TODO: take into account the origin coordinates `ox` and `oy`.
-        V(this.el).scale(sx, sy);
+        this.vel.scale(sx, sy);
     },
 
     resize: function() {
@@ -2957,7 +3136,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var size = this.model.get('size') || { width: 1, height: 1 };
         var angle = this.model.get('angle') || 0;
 
-        var scalable = V(this.$('.scalable')[0]);
+        var scalable = this.scalableNode;
         if (!scalable) {
             // If there is no scalable elements, than there is nothing to resize.
             return;
@@ -2976,7 +3155,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // and getting the top-left corner of the resulting object. Then we clean up the rotation back to what it originally was.
 
         // Cancel the rotation but now around a different origin, which is the center of the scaled object.
-        var rotatable = V(this.$('.rotatable')[0]);
+        var rotatable = this.rotatableNode;
         var rotation = rotatable && rotatable.attr('transform');
         if (rotation && rotation !== 'null') {
 
@@ -2997,12 +3176,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var position = this.model.get('position') || { x: 0, y: 0 };
 
-        V(this.el).attr('transform', 'translate(' + position.x + ',' + position.y + ')');
+        this.vel.attr('transform', 'translate(' + position.x + ',' + position.y + ')');
     },
 
     rotate: function() {
 
-        var rotatable = V(this.$('.rotatable')[0]);
+        var rotatable = this.rotatableNode;
         if (!rotatable) {
             // If there is no rotatable elements, then there is nothing to rotate.
             return;
@@ -3023,7 +3202,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (opt && opt.useModelGeometry) {
             var noTransformationBBox = this.model.getBBox().bbox(this.model.get('angle'));
             var transformationMatrix = this.paper.viewport.getCTM();
-            return V.transformRect(noTransformationBBox, transformationMatrix);
+            return g.rect(V.transformRect(noTransformationBBox, transformationMatrix));
         }
 
         return joint.dia.CellView.prototype.getBBox.apply(this, arguments);
@@ -3439,30 +3618,50 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     startListening: function() {
 
-        this.listenTo(this.model, 'change:markup', this.render);
-        this.listenTo(this.model, 'change:smooth change:manhattan change:router change:connector', this.update);
-        this.listenTo(this.model, 'change:toolMarkup', function() {
-            this.renderTools().updateToolsPosition();
-        });
-        this.listenTo(this.model, 'change:labels change:labelMarkup', function() {
-            this.renderLabels().updateLabelPositions();
-        });
-        this.listenTo(this.model, 'change:vertices change:vertexMarkup', function(cell, changed, opt) {
-            this.renderVertexMarkers();
-            // If the vertices have been changed by a translation we do update only if the link was
-            // only one translated. If the link was translated via another element which the link
-            // is embedded in, this element will be translated as well and that triggers an update.
-            // Note that all embeds in a model are sorted - first comes links, then elements.
-            if (!opt.translateBy || (opt.translateBy == this.model.id || this.model.hasLoop())) {
-                this.update();
-            }
-        });
-        this.listenTo(this.model, 'change:source', function(cell, source) {
-            this.watchSource(cell, source).update();
-        });
-        this.listenTo(this.model, 'change:target', function(cell, target) {
-            this.watchTarget(cell, target).update();
-        });
+        var model = this.model;
+
+        this.listenTo(model, 'change:markup', this.render);
+        this.listenTo(model, 'change:smooth change:manhattan change:router change:connector', this.update);
+        this.listenTo(model, 'change:toolMarkup', this.onToolsChange);
+        this.listenTo(model, 'change:labels change:labelMarkup', this.onLabelsChange);
+        this.listenTo(model, 'change:vertices change:vertexMarkup', this.onVerticesChange);
+        this.listenTo(model, 'change:source', this.onSourceChange);
+        this.listenTo(model, 'change:target', this.onTargetChange);
+    },
+
+    onSourceChange: function(cell, source) {
+
+        this.watchSource(cell, source).update();
+    },
+
+    onTargetChange: function(cell, target) {
+
+        this.watchTarget(cell, target).update();
+    },
+
+    onVerticesChange: function(cell, changed, opt) {
+
+        this.renderVertexMarkers();
+
+        // If the vertices have been changed by a translation we do update only if the link was
+        // the only link that was translated. If the link was translated via another element which the link
+        // is embedded in, this element will be translated as well and that triggers an update.
+        // Note that all embeds in a model are sorted - first comes links, then elements.
+        if (!opt.translateBy || opt.translateBy === this.model.id || this.model.hasLoop()) {
+            // Vertices were changed (not as a reaction on translate) or link.translate() was called or
+            // we're dealing with a loop link that is embedded.
+            this.update();
+        }
+    },
+
+    onToolsChange: function() {
+
+        this.renderTools().updateToolsPosition();
+    },
+
+    onLabelsChange: function() {
+
+        this.renderLabels().updateLabelPositions();
     },
 
     // Rendering
@@ -3497,7 +3696,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.renderVertexMarkers();
         this.renderArrowheadMarkers();
 
-        V(this.el).append(children);
+        this.vel.append(children);
 
         // rendering labels has to be run after the link is appended to DOM tree. (otherwise <Text> bbox
         // returns zero values)
@@ -3965,10 +4164,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var oppositeEnd = this.model.get(oppositeEndType) || {};
             var oppositeSelector = oppositeEnd.id && this.constructor.makeSelector(oppositeEnd);
 
-            // Caching end models bounding boxes
-            if (opt.isLoop && selector == oppositeSelector) {
+            // Caching end models bounding boxes.
+            // If `opt.handleBy` equals the client-side ID of this link view and it is a loop link, then we already cached
+            // the bounding boxes in the previous turn (e.g. for loop link, the change:source event is followed
+            // by change:target and so on change:source, we already chached the bounding boxes of - the same - element).
+            if (opt.handleBy === this.cid && selector == oppositeSelector) {
 
-                // Source and target elements are identical. We are handling `change` event for the
+                // Source and target elements are identical. We're dealing with a loop link. We are handling `change` event for the
                 // second time now. There is no need to calculate bbox and find magnet element again.
                 // It was calculated already for opposite link end.
                 this[endType + 'BBox'] = this[oppositeEndType + 'BBox'];
@@ -3976,12 +4178,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 this[endType + 'Magnet'] = this[oppositeEndType + 'Magnet'];
 
             } else if (opt.translateBy) {
+                // `opt.translateBy` optimizes the way we calculate bounding box of the source/target element.
+                // If `opt.translateBy` is an ID of the element that was originally translated. This allows us
+                // to just offset the cached bounding box by the translation instead of calculating the bounding
+                // box from scratch on every translate.
 
                 var bbox = this[endType + 'BBox'];
                 bbox.x += opt.tx;
                 bbox.y += opt.ty;
 
             } else {
+                // The slowest path, source/target could have been rotated or resized or any attribute
+                // that affects the bounding box of the view might have been changed.
 
                 var view = this.paper.findViewByModel(end.id);
                 var magnetElement = view.el.querySelector(selector);
@@ -3991,30 +4199,42 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 this[endType + 'Magnet'] = magnetElement;
             }
 
-            if (opt.isLoop && opt.translateBy &&
+            if (opt.handleBy === this.cid && opt.translateBy &&
                 this.model.isEmbeddedIn(endModel) &&
                 !_.isEmpty(this.model.get('vertices'))) {
+                // Loop link whose element was translated and that has vertices (that need to be translated with
+                // the parent in which my element is embedded).
                 // If the link is embedded, has a loop and vertices and the end model
-                // has been translated, do not update yet. There are vertices still to be updated.
+                // has been translated, do not update yet. There are vertices still to be updated (change:vertices
+                // event will come in the next turn).
                 doUpdate = false;
             }
 
             if (!this.updatePostponed && oppositeEnd.id) {
+                // The update was not postponed (that can happen e.g. on the first change event) and the opposite
+                // end is a model (opposite end is the opposite end of the link we're just updating, e.g. if
+                // we're reacting on change:source event, the oppositeEnd is the target model).
 
                 var oppositeEndModel = this.paper.getModelById(oppositeEnd.id);
 
-                // Passing `isLoop` flag via event option.
+                // Passing `handleBy` flag via event option.
                 // Note that if we are listening to the same model for event 'change' twice.
                 // The same event will be handled by this method also twice.
-                opt.isLoop = end.id == oppositeEnd.id;
+                if (end.id === oppositeEnd.id) {
+                    // We're dealing with a loop link. Tell the handlers in the next turn that they should update
+                    // the link instead of me. (We know for sure there will be a next turn because
+                    // loop links react on at least two events: change on the source model followed by a change on
+                    // the target model).
+                    opt.handleBy = this.cid;
+                }
 
-                if (opt.isLoop || (opt.translateBy && oppositeEndModel.isEmbeddedIn(opt.translateBy))) {
+                if (opt.handleBy === this.cid || (opt.translateBy && oppositeEndModel.isEmbeddedIn(opt.translateBy))) {
 
                     // Here are two options:
-                    // - Source and target are connected to the same model (not necessary the same port)
-                    // - both end models are translated by same ancestor. We know that opposte end
-                    //   model will be translated in the moment as well.
-                    // In both situations there will be more changes on model that will trigger an
+                    // - Source and target are connected to the same model (not necessarily the same port).
+                    // - Both end models are translated by the same ancestor. We know that opposite end
+                    //   model will be translated in the next turn as well.
+                    // In both situations there will be more changes on the model that trigger an
                     // update. So there is no need to update the linkView yet.
                     this.updatePostponed = true;
                     doUpdate = false;
@@ -4851,7 +5071,8 @@ joint.dia.Paper = Backbone.View.extend({
         'mouseover .element': 'cellMouseover',
         'mouseover .link': 'cellMouseover',
         'mouseout .element': 'cellMouseout',
-        'mouseout .link': 'cellMouseout'
+        'mouseout .link': 'cellMouseout',
+        'contextmenu': 'contextmenu'
     },
 
     constructor: function(options) {
@@ -4946,9 +5167,7 @@ joint.dia.Paper = Backbone.View.extend({
             padding = padding || 0;
         }
 
-        padding = _.isNumber(padding)
-            ? { left: padding, right: padding, top: padding, bottom: padding }
-        : { left: padding.left || 0, right: padding.right || 0, top: padding.top || 0, bottom: padding.bottom || 0 };
+        padding = joint.util.normalizeSides(padding);
 
         // Calculate the paper size to accomodate all the graph's elements.
         var bbox = V(this.viewport).bbox(true, this.svg);
@@ -4984,6 +5203,10 @@ joint.dia.Paper = Backbone.View.extend({
         // Make sure the resulting width and height are greater than minimum.
         calcWidth = Math.max(calcWidth, opt.minWidth || 0);
         calcHeight = Math.max(calcHeight, opt.minHeight || 0);
+
+        // Make sure the resulting width and height are lesser than maximum.
+        calcWidth = Math.min(calcWidth, opt.maxWidth || Number.MAX_VALUE);
+        calcHeight = Math.min(calcHeight, opt.maxHeight || Number.MAX_VALUE);
 
         var dimensionChange = calcWidth != this.options.width || calcHeight != this.options.height;
         var originChange = tx != this.options.origin.x || ty != this.options.origin.y;
@@ -5243,52 +5466,12 @@ joint.dia.Paper = Backbone.View.extend({
         var $cells = $(this.viewport).children('[model-id]');
         var cells = this.model.get('cells');
 
-        this.sortElements($cells, function(a, b) {
+        joint.util.sortElements($cells, function(a, b) {
 
             var cellA = cells.get($(a).attr('model-id'));
             var cellB = cells.get($(b).attr('model-id'));
 
             return (cellA.get('z') || 0) > (cellB.get('z') || 0) ? 1 : -1;
-        });
-    },
-
-    // Highly inspired by the jquery.sortElements plugin by Padolsey.
-    // See http://james.padolsey.com/javascript/sorting-elements-with-jquery/.
-    sortElements: function(elements, comparator) {
-
-        var $elements = $(elements);
-
-        var placements = $elements.map(function() {
-
-            var sortElement = this;
-            var parentNode = sortElement.parentNode;
-
-            // Since the element itself will change position, we have
-            // to have some way of storing it's original position in
-            // the DOM. The easiest way is to have a 'flag' node:
-            var nextSibling = parentNode.insertBefore(
-                document.createTextNode(''),
-                sortElement.nextSibling
-            );
-
-            return function() {
-
-                if (parentNode === this) {
-                    throw new Error(
-                        "You can't sort elements if any one is a descendant of another."
-                    );
-                }
-
-                // Insert before flag:
-                parentNode.insertBefore(this, nextSibling);
-                // Remove flag:
-                parentNode.removeChild(nextSibling);
-
-            };
-        });
-
-        return Array.prototype.sort.call($elements, comparator).each(function(i) {
-            placements[i].call(this);
         });
     },
 
@@ -5464,6 +5647,8 @@ joint.dia.Paper = Backbone.View.extend({
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
         if (view) {
@@ -5484,6 +5669,8 @@ joint.dia.Paper = Backbone.View.extend({
             evt = joint.util.normalizeEvent(evt);
 
             var view = this.findView(evt.target);
+            if (this.guard(evt, view)) return;
+
             var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
             if (view) {
@@ -5499,11 +5686,46 @@ joint.dia.Paper = Backbone.View.extend({
         this._mousemoved = false;
     },
 
+    // Guard guards the event received. If the event is not interesting, guard returns `true`.
+    // Otherwise, it return `false`.
+    guard: function(evt, view) {
+
+        if (view && view.model && (view.model instanceof joint.dia.Cell)) {
+
+            return false;
+
+        } else if (this.svg === evt.target || this.el === evt.target || $.contains(this.svg, evt.target)) {
+
+            return false;
+        }
+
+        return true;    // Event guarded. Paper should not react on it in any way.
+    },
+
+    contextmenu: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+        if (view) {
+
+            view.contextmenu(evt, localPoint.x, localPoint.y);
+
+        } else {
+
+            this.trigger('blank:contextmenu', evt, localPoint.x, localPoint.y);
+        }
+    },
+
     pointerdown: function(evt) {
 
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
@@ -5559,7 +5781,7 @@ joint.dia.Paper = Backbone.View.extend({
         evt = joint.util.normalizeEvent(evt);
         var view = this.findView(evt.target);
         if (view) {
-
+            if (this.guard(evt, view)) return;
             view.mouseover(evt);
         }
     },
@@ -5569,7 +5791,7 @@ joint.dia.Paper = Backbone.View.extend({
         evt = joint.util.normalizeEvent(evt);
         var view = this.findView(evt.target);
         if (view) {
-
+            if (this.guard(evt, view)) return;
             view.mouseout(evt);
         }
     }
@@ -5586,7 +5808,7 @@ joint.shapes.basic.Generic = joint.dia.Element.extend({
 
         type: 'basic.Generic',
         attrs: {
-            '.': { fill: '#FFFFFF', stroke: 'none' }
+            '.': { fill: '#ffffff', stroke: 'none' }
         }
 
     }, joint.dia.Element.prototype.defaults)
@@ -5600,8 +5822,22 @@ joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
 
         type: 'basic.Rect',
         attrs: {
-            'rect': { fill: '#FFFFFF', stroke: 'black', width: 100, height: 60 },
-            'text': { 'font-size': 14, text: '', 'ref-x': .5, 'ref-y': .5, ref: 'rect', 'y-alignment': 'middle', 'x-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'rect': {
+                fill: '#ffffff',
+                stroke: '#000000',
+                width: 100,
+                height: 60
+            },
+            'text': {
+                fill: '#000000',
+                text: '',
+                'font-size': 14,
+                'ref-x': .5,
+                'ref-y': .5,
+                'text-anchor': 'middle',
+                'y-alignment': 'middle',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
 
     }, joint.shapes.basic.Generic.prototype.defaults)
@@ -5625,7 +5861,10 @@ joint.shapes.basic.Text = joint.shapes.basic.Generic.extend({
 
         type: 'basic.Text',
         attrs: {
-            'text': { 'font-size': 18, fill: 'black' }
+            'text': {
+                'font-size': 18,
+                fill: '#000000'
+            }
         }
 
     }, joint.shapes.basic.Generic.prototype.defaults)
@@ -5640,8 +5879,23 @@ joint.shapes.basic.Circle = joint.shapes.basic.Generic.extend({
         type: 'basic.Circle',
         size: { width: 60, height: 60 },
         attrs: {
-            'circle': { fill: '#FFFFFF', stroke: 'black', r: 30, transform: 'translate(30, 30)' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-y': .5, ref: 'circle', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'circle': {
+                fill: '#ffffff',
+                stroke: '#000000',
+                r: 30,
+                cx: 30,
+                cy: 30
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-y': .5,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -5655,8 +5909,24 @@ joint.shapes.basic.Ellipse = joint.shapes.basic.Generic.extend({
         type: 'basic.Ellipse',
         size: { width: 60, height: 40 },
         attrs: {
-            'ellipse': { fill: '#FFFFFF', stroke: 'black', rx: 30, ry: 20, transform: 'translate(30, 20)' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-y': .5, ref: 'ellipse', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'ellipse': {
+                fill: '#ffffff',
+                stroke: '#000000',
+                rx: 30,
+                ry: 20,
+                cx: 30,
+                cy: 20
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-y': .5,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -5670,8 +5940,20 @@ joint.shapes.basic.Polygon = joint.shapes.basic.Generic.extend({
         type: 'basic.Polygon',
         size: { width: 60, height: 40 },
         attrs: {
-            'polygon': { fill: '#FFFFFF', stroke: 'black' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'polygon', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'polygon': {
+                fill: '#ffffff',
+                stroke: '#000000'
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-dy': 20,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -5685,8 +5967,20 @@ joint.shapes.basic.Polyline = joint.shapes.basic.Generic.extend({
         type: 'basic.Polyline',
         size: { width: 60, height: 40 },
         attrs: {
-            'polyline': { fill: '#FFFFFF', stroke: 'black' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'polyline', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'polyline': {
+                fill: '#ffffff',
+                stroke: '#000000'
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-dy': 20,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -5699,7 +5993,16 @@ joint.shapes.basic.Image = joint.shapes.basic.Generic.extend({
 
         type: 'basic.Image',
         attrs: {
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'image', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-dy': 20,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -5713,8 +6016,20 @@ joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
         type: 'basic.Path',
         size: { width: 60, height: 60 },
         attrs: {
-            'path': { fill: '#FFFFFF', stroke: 'black' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'path', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'path': {
+                fill: '#ffffff',
+                stroke: '#000000'
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref': 'path',
+                'ref-x': .5,
+                'ref-dy': 10,
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -5725,8 +6040,13 @@ joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
 
         type: 'basic.Rhombus',
         attrs: {
-            'path': { d: 'M 30 0 L 60 30 30 60 0 30 z' },
-            'text': { 'ref-y': .5 }
+            'path': {
+                d: 'M 30 0 L 60 30 30 60 0 30 z'
+            },
+            'text': {
+                'ref-y': .5,
+                'y-alignment': 'middle'
+            }
         }
 
     }, joint.shapes.basic.Path.prototype.defaults)

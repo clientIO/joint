@@ -19,7 +19,6 @@
 
         // Browser globals.
         root.g = factory();
-
     }
 
 }(this, function() {

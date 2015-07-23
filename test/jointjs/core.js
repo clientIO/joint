@@ -121,17 +121,17 @@ test('core.util.getByPath()', function() {
     deepEqual(joint.util.getByPath(obj, 'none'), undefined, 'non-existing property is undefined');
     equal(joint.util.getByPath(obj, 'a'), 1, 'existing property is a number');
     deepEqual(joint.util.getByPath(obj, 'b'), { c: 2, d: 3 }, 'existing property is an object');
-    equal(joint.util.getByPath(obj, 'b.c'), 2, 'nested property is a number');
-    deepEqual(joint.util.getByPath(obj, 'b.none'), undefined, 'non-existing nested property is undefined');
+    equal(joint.util.getByPath(obj, 'b/c'), 2, 'nested property is a number');
+    deepEqual(joint.util.getByPath(obj, 'b/none'), undefined, 'non-existing nested property is undefined');
     deepEqual(joint.util.getByPath(obj, 'f'), {}, 'property is an empty object');
     deepEqual(joint.util.getByPath(obj, 'g'), [], 'property is an empty array');
-    deepEqual(joint.util.getByPath(obj, 'g.0'), undefined, 'first item of an empty array is undefined');
-    deepEqual(joint.util.getByPath(obj, 'h.0'), null, 'first item of an array is null');
-    deepEqual(joint.util.getByPath(obj, 'h.0.none'), undefined, 'nested property in null is undefined');
-    equal(joint.util.getByPath(obj, 'h.1'), 4, 'nth item of an array is number');
-    deepEqual(joint.util.getByPath(obj, 'h.1.none'), undefined, 'non-existing property of nth item of an array is undefined');
-    equal(joint.util.getByPath(obj, 'h.2.i.j'), 6, 'nested property of nth item of an array is number');
-    equal(joint.util.getByPath(obj, 'h/2/i/j', '/'), 6, 'same but this time with a custom delimiter');
+    deepEqual(joint.util.getByPath(obj, 'g/0'), undefined, 'first item of an empty array is undefined');
+    deepEqual(joint.util.getByPath(obj, 'h/0'), null, 'first item of an array is null');
+    deepEqual(joint.util.getByPath(obj, 'h/0/none'), undefined, 'nested property in null is undefined');
+    equal(joint.util.getByPath(obj, 'h/1'), 4, 'nth item of an array is number');
+    deepEqual(joint.util.getByPath(obj, 'h/1/none'), undefined, 'non-existing property of nth item of an array is undefined');
+    equal(joint.util.getByPath(obj, 'h/2/i/j'), 6, 'nested property of nth item of an array is number');
+    equal(joint.util.getByPath(obj, 'h.2.i.j', '.'), 6, 'same but this time with a custom delimiter');
 
 });
 
@@ -141,9 +141,9 @@ test('core.util.setByPath()', function() {
     deepEqual(joint.util.setByPath({ property: 2 }, 'property', 3), { property: 3 }, 'existing property in an obj set as a number');
     deepEqual(joint.util.setByPath([], '0', 4), [4], 'add an item to an empty array');
     deepEqual(joint.util.setByPath([5,6], '1', 7), [5,7], 'change an item in an array');
-    deepEqual(joint.util.setByPath({}, 'first.second.third', 8), { first: { second: { third: 8 }}}, 'populate an empty object with nested objects');
-    deepEqual(joint.util.setByPath({}, 'first/second/third', 9, '/'), { first: { second: { third: 9 }}}, 'same but this time with a custom delimiter');
-    deepEqual(joint.util.setByPath([null], '0.property', 10), [{ property: 10 }], 'replace null item with an object');
+    deepEqual(joint.util.setByPath({}, 'first/second/third', 8), { first: { second: { third: 8 }}}, 'populate an empty object with nested objects');
+    deepEqual(joint.util.setByPath({}, 'first.second.third', 9, '.'), { first: { second: { third: 9 }}}, 'same but this time with a custom delimiter');
+    deepEqual(joint.util.setByPath([null], '0/property', 10), [{ property: 10 }], 'replace null item with an object');
 });
 
 test('core.util.unsetByPath()', function() {
@@ -167,5 +167,18 @@ test('core.util.unsetByPath()', function() {
     joint.util.unsetByPath(obj, 'c/d');
 
     deepEqual(obj, { a: 1 }, "Attempt to delete non-existing attribute doesn't affect object.");
+
+});
+
+test('core.util.normalizeSides()', function(assert) {
+
+    assert.deepEqual(joint.util.normalizeSides(), { top: 0, left: 0, right: 0, bottom: 0 },
+                     'Returns sides defaulted to 0 if called without an argument.');
+
+    assert.deepEqual(joint.util.normalizeSides(5), { top: 5, left: 5, right: 5, bottom: 5 },
+                     'Returns sides equaled to a number if called with this number as an argument.');
+
+    assert.deepEqual(joint.util.normalizeSides({ left: 5 }), { top: 0, left: 5, right: 0, bottom: 0 },
+                     'If called with an object, the existing sides are copied from the given object and the rest is defaulted to 0.');
 
 });

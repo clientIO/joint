@@ -45,6 +45,22 @@ var asserts = {
     }
 };
 
+function isHandlerRegistered(el, event, handler) {
+
+    var handlers = jQuery._data(document, 'events');
+    if (!handlers) return false;
+    
+    var eventHandlers = handlers[event];
+    if (!eventHandlers) return false;
+
+    for (var i = 0; i < eventHandlers.length; i++) {
+        if (eventHandlers[i].handler === handler) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Simulate user events.
 // ---------------------
 

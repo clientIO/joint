@@ -13,7 +13,7 @@ var el = new joint.shapes.basic.Rect({
 var dropShadow = el.clone();
 dropShadow.translate(20, 20);
 dropShadow.attr('text/text', 'dropShadow(2,2,3)');
-dropShadow.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 } });
+dropShadow.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 5, opacity: .8 } });
 graph.addCell(dropShadow);
 
 var blur = el.clone();

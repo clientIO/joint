@@ -45,7 +45,7 @@ var joint = {
 
         getByPath: function(obj, path, delim) {
 
-            delim = delim || '.';
+            delim = delim || '/';
             var keys = path.split(delim);
             var key;
 
@@ -62,7 +62,7 @@ var joint = {
 
         setByPath: function(obj, path, value, delim) {
 
-            delim = delim || '.';
+            delim = delim || '/';
 
             var keys = path.split(delim);
             var diver = obj;
@@ -84,7 +84,7 @@ var joint = {
 
         unsetByPath: function(obj, path, delim) {
 
-            delim = delim || '.';
+            delim = delim || '/';
 
             // index of the last delimiter
             var i = path.lastIndexOf(delim);
@@ -109,7 +109,7 @@ var joint = {
 
         flattenObject: function(obj, delim, stop) {
 
-            delim = delim || '.';
+            delim = delim || '/';
             var ret = {};
 
             for (var key in obj) {
@@ -553,6 +553,92 @@ var joint = {
             img.src = url;
         },
 
+        getElementBBox: function(el) {
+
+            var $el = $(el);
+            var offset = $el.offset();
+            var bbox;
+
+            if (el.ownerSVGElement) {
+
+                // Use Vectorizer to get the dimensions of the element if it is an SVG element.
+                bbox = V(el).bbox();
+
+                // getBoundingClientRect() used in jQuery.fn.offset() takes into account `stroke-width`
+                // in Firefox only. So clientRect width/height and getBBox width/height in FF don't match.
+                // To unify this across all browsers we add the `stroke-width` (left & top) back to
+                // the calculated offset.
+                var crect = el.getBoundingClientRect();
+                var strokeWidthX = (crect.width - bbox.width) / 2;
+                var strokeWidthY = (crect.height - bbox.height) / 2;
+
+                // The `bbox()` returns coordinates relative to the SVG viewport, therefore, use the
+                // ones returned from the `offset()` method that are relative to the document.
+                bbox.x = offset.left + strokeWidthX;
+                bbox.y = offset.top + strokeWidthY;
+
+            } else {
+
+                bbox = { x: offset.left, y: offset.top, width: $el.outerWidth(), height: $el.outerHeight() };
+            }
+
+            return bbox;
+        },
+
+
+        // Highly inspired by the jquery.sortElements plugin by Padolsey.
+        // See http://james.padolsey.com/javascript/sorting-elements-with-jquery/.
+        sortElements: function(elements, comparator) {
+
+            var $elements = $(elements);
+            var placements = $elements.map(function() {
+
+                var sortElement = this;
+                var parentNode = sortElement.parentNode;
+                // Since the element itself will change position, we have
+                // to have some way of storing it's original position in
+                // the DOM. The easiest way is to have a 'flag' node:
+                var nextSibling = parentNode.insertBefore(document.createTextNode(''), sortElement.nextSibling);
+
+                return function() {
+
+                    if (parentNode === this) {
+                        throw new Error('You can\'t sort elements if any one is a descendant of another.');
+                    }
+
+                    // Insert before flag:
+                    parentNode.insertBefore(this, nextSibling);
+                    // Remove flag:
+                    parentNode.removeChild(nextSibling);
+                };
+            });
+
+            return Array.prototype.sort.call($elements, comparator).each(function(i) {
+                placements[i].call(this);
+            });
+        },
+
+        // Return a new object with all for sides (top, bottom, left and right) in it.
+        // Value of each side is taken from the given argument (either number or object).
+        // Default value for a side is 0.
+        // Examples:
+        // joint.util.normalizeSides(5) --> { top: 5, left: 5, right: 5, bottom: 5 }
+        // joint.util.normalizeSides({ left: 5 }) --> { top: 0, left: 5, right: 0, bottom: 0 }
+        normalizeSides: function(box) {
+
+            if (Object(box) !== box) {
+                box = box || 0;
+                return { top: box, bottom: box, left: box, right: box };
+            }
+
+            return {
+                top: box.top || 0,
+                bottom: box.bottom || 0,
+                left: box.left || 0,
+                right: box.right || 0
+            };
+        },
+
         timing: {
 
             linear: function(t) {
@@ -684,6 +770,41 @@ var joint = {
 
         // SVG filters.
         filter: {
+
+            // `color` ... outline color
+            // `width`... outline width
+            // `opacity` ... outline opacity
+            // `margin` ... gap between outline and the element
+            outline: function(args) {
+
+                var tpl = '<filter><feFlood flood-color="${color}" flood-opacity="${opacity}" result="colored"/><feMorphology in="SourceAlpha" result="morphedOuter" operator="dilate" radius="${outerRadius}" /><feMorphology in="SourceAlpha" result="morphedInner" operator="dilate" radius="${innerRadius}" /><feComposite result="morphedOuterColored" in="colored" in2="morphedOuter" operator="in"/><feComposite operator="xor" in="morphedOuterColored" in2="morphedInner" result="outline"/><feMerge><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+
+                var margin = _.isFinite(args.margin) ? args.margin : 2;
+                var width = _.isFinite(args.width) ? args.width : 1;
+
+                return _.template(tpl, {
+                    color: args.color || 'blue',
+                    opacity: _.isFinite(args.opacity) ? args.opacity : 1,
+                    outerRadius: margin + width,
+                    innerRadius: margin
+                });
+            },
+
+            // `color` ... color
+            // `width`... width
+            // `blur` ... blur
+            // `opacity` ... opacity
+            highlight: function(args) {
+
+                var tpl = '<filter><feFlood flood-color="${color}" flood-opacity="${opacity}" result="colored"/><feMorphology result="morphed" in="SourceGraphic" operator="dilate" radius="${width}"/><feComposite result="composed" in="colored" in2="morphed" operator="in"/><feGaussianBlur result="blured" in="composed" stdDeviation="${blur}"/><feBlend in="SourceGraphic" in2="blured" mode="normal"/></filter>';
+
+                return _.template(tpl, {
+                    color: args.color || 'red',
+                    width: _.isFinite(args.width) ? args.width : 1,
+                    blur: _.isFinite(args.blur) ? args.blur : 0,
+                    opacity: _.isFinite(args.opacity) ? args.opacity : 1
+                });
+            },
 
             // `x` ... horizontal blur
             // `y` ... vertical blur (optional)

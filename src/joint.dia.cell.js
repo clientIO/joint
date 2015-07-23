@@ -737,6 +737,14 @@ joint.dia.CellView = Backbone.View.extend({
         this.setElement(el, false);
     },
 
+    // Utilize an alternative DOM manipulation API by
+    // adding an element reference wrapped in Vectorizer.
+    _setElement: function(el) {
+        this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
+        this.el = this.$el[0];
+        this.vel = V(this.el);
+    },
+
     findBySelector: function(selector) {
 
         // These are either descendants of `this.$el` of `this.$el` itself.
@@ -788,7 +796,7 @@ joint.dia.CellView = Backbone.View.extend({
 
     getBBox: function() {
 
-        return V(this.el).bbox();
+        return g.rect(this.vel.bbox());
     },
 
     highlight: function(el, opt) {
@@ -847,7 +855,7 @@ joint.dia.CellView = Backbone.View.extend({
     // An example is: `{ filter: { name: 'blur', args: { radius: 5 } } }`.
     applyFilter: function(selector, filter) {
 
-        var $selected = this.findBySelector(selector);
+        var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
 
         // Generate a hash code from the stringified filter definition. This gives us
         // a unique filter ID for different definitions.
@@ -886,7 +894,7 @@ joint.dia.CellView = Backbone.View.extend({
     // An example is: `{ fill: { type: 'linearGradient', stops: [ { offset: '10%', color: 'green' }, { offset: '50%', color: 'blue' } ] } }`.
     applyGradient: function(selector, attr, gradient) {
 
-        var $selected = this.findBySelector(selector);
+        var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
 
         // Generate a hash code from the stringified filter definition. This gives us
         // a unique filter ID for different definitions.
@@ -991,5 +999,10 @@ joint.dia.CellView = Backbone.View.extend({
     mouseout: function(evt) {
 
         this.notify('cell:mouseout', evt);
+    },
+
+    contextmenu: function(evt, x, y) {
+
+        this.notify('cell:contextmenu', evt, x, y);
     }
 });

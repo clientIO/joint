@@ -78,7 +78,8 @@ joint.dia.Paper = Backbone.View.extend({
         'mouseover .element': 'cellMouseover',
         'mouseover .link': 'cellMouseover',
         'mouseout .element': 'cellMouseout',
-        'mouseout .link': 'cellMouseout'
+        'mouseout .link': 'cellMouseout',
+        'contextmenu': 'contextmenu'
     },
 
     constructor: function(options) {
@@ -173,9 +174,7 @@ joint.dia.Paper = Backbone.View.extend({
             padding = padding || 0;
         }
 
-        padding = _.isNumber(padding)
-            ? { left: padding, right: padding, top: padding, bottom: padding }
-        : { left: padding.left || 0, right: padding.right || 0, top: padding.top || 0, bottom: padding.bottom || 0 };
+        padding = joint.util.normalizeSides(padding);
 
         // Calculate the paper size to accomodate all the graph's elements.
         var bbox = V(this.viewport).bbox(true, this.svg);
@@ -211,6 +210,10 @@ joint.dia.Paper = Backbone.View.extend({
         // Make sure the resulting width and height are greater than minimum.
         calcWidth = Math.max(calcWidth, opt.minWidth || 0);
         calcHeight = Math.max(calcHeight, opt.minHeight || 0);
+
+        // Make sure the resulting width and height are lesser than maximum.
+        calcWidth = Math.min(calcWidth, opt.maxWidth || Number.MAX_VALUE);
+        calcHeight = Math.min(calcHeight, opt.maxHeight || Number.MAX_VALUE);
 
         var dimensionChange = calcWidth != this.options.width || calcHeight != this.options.height;
         var originChange = tx != this.options.origin.x || ty != this.options.origin.y;
@@ -470,52 +473,12 @@ joint.dia.Paper = Backbone.View.extend({
         var $cells = $(this.viewport).children('[model-id]');
         var cells = this.model.get('cells');
 
-        this.sortElements($cells, function(a, b) {
+        joint.util.sortElements($cells, function(a, b) {
 
             var cellA = cells.get($(a).attr('model-id'));
             var cellB = cells.get($(b).attr('model-id'));
 
             return (cellA.get('z') || 0) > (cellB.get('z') || 0) ? 1 : -1;
-        });
-    },
-
-    // Highly inspired by the jquery.sortElements plugin by Padolsey.
-    // See http://james.padolsey.com/javascript/sorting-elements-with-jquery/.
-    sortElements: function(elements, comparator) {
-
-        var $elements = $(elements);
-
-        var placements = $elements.map(function() {
-
-            var sortElement = this;
-            var parentNode = sortElement.parentNode;
-
-            // Since the element itself will change position, we have
-            // to have some way of storing it's original position in
-            // the DOM. The easiest way is to have a 'flag' node:
-            var nextSibling = parentNode.insertBefore(
-                document.createTextNode(''),
-                sortElement.nextSibling
-            );
-
-            return function() {
-
-                if (parentNode === this) {
-                    throw new Error(
-                        "You can't sort elements if any one is a descendant of another."
-                    );
-                }
-
-                // Insert before flag:
-                parentNode.insertBefore(this, nextSibling);
-                // Remove flag:
-                parentNode.removeChild(nextSibling);
-
-            };
-        });
-
-        return Array.prototype.sort.call($elements, comparator).each(function(i) {
-            placements[i].call(this);
         });
     },
 
@@ -691,6 +654,8 @@ joint.dia.Paper = Backbone.View.extend({
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
         if (view) {
@@ -711,6 +676,8 @@ joint.dia.Paper = Backbone.View.extend({
             evt = joint.util.normalizeEvent(evt);
 
             var view = this.findView(evt.target);
+            if (this.guard(evt, view)) return;
+
             var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
             if (view) {
@@ -726,11 +693,46 @@ joint.dia.Paper = Backbone.View.extend({
         this._mousemoved = false;
     },
 
+    // Guard guards the event received. If the event is not interesting, guard returns `true`.
+    // Otherwise, it return `false`.
+    guard: function(evt, view) {
+
+        if (view && view.model && (view.model instanceof joint.dia.Cell)) {
+
+            return false;
+
+        } else if (this.svg === evt.target || this.el === evt.target || $.contains(this.svg, evt.target)) {
+
+            return false;
+        }
+
+        return true;    // Event guarded. Paper should not react on it in any way.
+    },
+
+    contextmenu: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+        if (view) {
+
+            view.contextmenu(evt, localPoint.x, localPoint.y);
+
+        } else {
+
+            this.trigger('blank:contextmenu', evt, localPoint.x, localPoint.y);
+        }
+    },
+
     pointerdown: function(evt) {
 
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
@@ -786,7 +788,7 @@ joint.dia.Paper = Backbone.View.extend({
         evt = joint.util.normalizeEvent(evt);
         var view = this.findView(evt.target);
         if (view) {
-
+            if (this.guard(evt, view)) return;
             view.mouseover(evt);
         }
     },
@@ -796,7 +798,7 @@ joint.dia.Paper = Backbone.View.extend({
         evt = joint.util.normalizeEvent(evt);
         var view = this.findView(evt.target);
         if (view) {
-
+            if (this.guard(evt, view)) return;
             view.mouseout(evt);
         }
     }
