@@ -19,8 +19,8 @@ require.config({
 (function() {
 
     var buildFiles = [
-        'dist/joint.clean.build',
-        'dist/joint.clean.build.min'
+        'dist/joint.clean',
+        'dist/joint.clean.min'
     ];
 
     while (buildFiles.length > 0) {
