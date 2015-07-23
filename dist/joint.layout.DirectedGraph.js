@@ -1,16 +1,10 @@
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-07-07 
+/*! JointJS v0.9.3 - JavaScript diagramming library  2015-07-23 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-if (typeof exports === 'object') {
-
-    var graphlib = require('graphlib');
-    var dagre = require('dagre');
-}
-
 // create graphlib.Graph from existing joint.dia.Graph
 joint.dia.Graph.prototype.toGraphLib = function(opt) {
 
