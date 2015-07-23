@@ -121,23 +121,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             // Compute cell's size and position  based on the children bbox
             // and given padding.
             var bbox = collection.getBBox(embeddedCells);
-            var padding = opt.padding || 0;
-
-            if (_.isNumber(padding)) {
-                padding = {
-                    left: padding,
-                    right: padding,
-                    top: padding,
-                    bottom: padding
-                };
-            } else {
-                padding = {
-                    left: padding.left || 0,
-                    right: padding.right || 0,
-                    top: padding.top || 0,
-                    bottom: padding.bottom || 0
-                };
-            }
+            var padding = joint.util.normalizeSides(opt.padding);
 
             // Apply padding computed above to the bbox.
             bbox.moveAndExpand({
@@ -200,8 +184,24 @@ joint.dia.Element = joint.dia.Cell.extend({
 
 joint.dia.ElementView = joint.dia.CellView.extend({
 
+    SPECIAL_ATTRIBUTES: [
+        'style',
+        'text',
+        'html',
+        'ref-x',
+        'ref-y',
+        'ref-dx',
+        'ref-dy',
+        'ref-width',
+        'ref-height',
+        'ref',
+        'x-alignment',
+        'y-alignment',
+        'port'
+    ],
+
     className: function() {
-        return 'element ' + this.model.get('type').split('.').join(' ');
+        return 'element ' + this.model.get('type').replace('.', ' ', 'g');
     },
 
     initialize: function() {
@@ -220,32 +220,33 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var allAttrs = this.model.get('attrs');
 
-        var rotatable = V(this.$('.rotatable')[0]);
+        var rotatable = this.rotatableNode;
         if (rotatable) {
-
             var rotation = rotatable.attr('transform');
             rotatable.attr('transform', '');
         }
 
         var relativelyPositioned = [];
+        var nodesBySelector = {};
 
         _.each(renderingOnlyAttrs || allAttrs, function(attrs, selector) {
 
             // Elements that should be updated.
             var $selected = this.findBySelector(selector);
-
             // No element matched by the `selector` was found. We're done then.
             if ($selected.length === 0) return;
 
+            nodesBySelector[selector] = $selected;
+
             // Special attributes are treated by JointJS, not by SVG.
-            var specialAttributes = ['style', 'text', 'html', 'ref-x', 'ref-y', 'ref-dx', 'ref-dy', 'ref-width', 'ref-height', 'ref', 'x-alignment', 'y-alignment', 'port'];
+            var specialAttributes = this.SPECIAL_ATTRIBUTES.slice();
 
             // If the `filter` attribute is an object, it is in the special JointJS filter format and so
             // it becomes a special attribute and is treated separately.
             if (_.isObject(attrs.filter)) {
 
                 specialAttributes.push('filter');
-                this.applyFilter(selector, attrs.filter);
+                this.applyFilter($selected, attrs.filter);
             }
 
             // If the `fill` or `stroke` attribute is an object, it is in the special JointJS gradient format and so
@@ -253,12 +254,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             if (_.isObject(attrs.fill)) {
 
                 specialAttributes.push('fill');
-                this.applyGradient(selector, 'fill', attrs.fill);
+                this.applyGradient($selected, 'fill', attrs.fill);
             }
             if (_.isObject(attrs.stroke)) {
 
                 specialAttributes.push('stroke');
-                this.applyGradient(selector, 'stroke', attrs.stroke);
+                this.applyGradient($selected, 'stroke', attrs.stroke);
             }
 
             // Make special case for `text` attribute. So that we can set text content of the `<text>` element
@@ -270,9 +271,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 $selected.each(function() {
 
-                    V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight, textPath: attrs.textPath });
+                    V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight, textPath: attrs.textPath, annotations: attrs.annotations });
                 });
-                specialAttributes.push('lineHeight', 'textPath');
+                specialAttributes.push('lineHeight', 'textPath', 'annotations');
             }
 
             // Set regular attributes on the `$selected` subelement. Note that we cannot use the jQuery attr()
@@ -333,7 +334,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // Note that we're using the bounding box without transformation because we are already inside
         // a transformed coordinate system.
-        var bbox = this.el.getBBox();
+        var size = this.model.get('size');
+        var bbox = { x: 0, y: 0, width: size.width, height: size.height };
 
         renderingOnlyAttrs = renderingOnlyAttrs || {};
 
@@ -347,7 +349,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 ? _.merge({}, allAttrs[$el.selector], renderingOnlyElAttrs)
             : allAttrs[$el.selector];
 
-            this.positionRelative($el, bbox, elAttrs);
+            this.positionRelative(V($el[0]), bbox, elAttrs, nodesBySelector);
 
         }, this);
 
@@ -357,30 +359,68 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
     },
 
-    positionRelative: function($el, bbox, elAttrs) {
+    positionRelative: function(vel, bbox, attributes, nodesBySelector) {
 
-        var ref = elAttrs['ref'];
-        var refX = parseFloat(elAttrs['ref-x']);
-        var refY = parseFloat(elAttrs['ref-y']);
-        var refDx = parseFloat(elAttrs['ref-dx']);
-        var refDy = parseFloat(elAttrs['ref-dy']);
-        var yAlignment = elAttrs['y-alignment'];
-        var xAlignment = elAttrs['x-alignment'];
-        var refWidth = parseFloat(elAttrs['ref-width']);
-        var refHeight = parseFloat(elAttrs['ref-height']);
+        var ref = attributes['ref'];
+        var refDx = parseFloat(attributes['ref-dx']);
+        var refDy = parseFloat(attributes['ref-dy']);
+        var yAlignment = attributes['y-alignment'];
+        var xAlignment = attributes['x-alignment'];
+
+        // 'ref-y', 'ref-x', 'ref-width', 'ref-height' can be defined
+        // by value or by percentage e.g 4, 0.5, '200%'.
+        var refY = attributes['ref-y'];
+        var refYPercentage = _.isString(refY) && refY.slice(-1) === '%';
+        refY = parseFloat(refY);
+        if (refYPercentage) {
+            refY /= 100;
+        }
+
+        var refX = attributes['ref-x'];
+        var refXPercentage = _.isString(refX) && refX.slice(-1) === '%';
+        refX = parseFloat(refX);
+        if (refXPercentage) {
+            refX /= 100;
+        }
+
+        var refWidth = attributes['ref-width'];
+        var refWidthPercentage = _.isString(refWidth) && refWidth.slice(-1) === '%';
+        refWidth = parseFloat(refWidth);
+        if (refWidthPercentage) {
+            refWidth /= 100;
+        }
+
+        var refHeight = attributes['ref-height'];
+        var refHeightPercentage = _.isString(refHeight) && refHeight.slice(-1) === '%';
+        refHeight = parseFloat(refHeight);
+        if (refHeightPercentage) {
+            refHeight /= 100;
+        }
+
+        // Check if the node is a descendant of the scalable group.
+        var scalable = vel.findParentByClass('scalable', this.el);
 
         // `ref` is the selector of the reference element. If no `ref` is passed, reference
         // element is the root element.
-
-        var isScalable = _.contains(_.pluck(_.pluck($el.parents('g'), 'className'), 'baseVal'), 'scalable');
-
         if (ref) {
 
-            // Get the bounding box of the reference element relative to the root `<g>` element.
-            bbox = V(this.findBySelector(ref)[0]).bbox(false, this.el);
-        }
+            var vref;
 
-        var vel = V($el[0]);
+            if (nodesBySelector && nodesBySelector[ref]) {
+                // First we check if the same selector has been already used.
+                vref = V(nodesBySelector[ref][0]);
+            } else {
+                // Other wise we find the ref ourselves.
+                vref = ref === '.' ? this.vel : this.vel.findOne(ref);
+            }
+
+            if (!vref) {
+                throw new Error('dia.ElementView: reference does not exists.');
+            }
+
+            // Get the bounding box of the reference element relative to the root `<g>` element.
+            bbox = vref.bbox(false, this.el);
+        }
 
         // Remove the previous translate() from the transform attribute and translate the element
         // relative to the root bounding box following the `ref-x` and `ref-y` attributes.
@@ -389,22 +429,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '').trim() || '');
         }
 
-        function isDefined(x) {
-            return _.isNumber(x) && !_.isNaN(x);
-        }
-
-        // The final translation of the subelement.
-        var tx = 0;
-        var ty = 0;
-
         // 'ref-width'/'ref-height' defines the width/height of the subelement relatively to
         // the reference element size
         // val in 0..1         ref-width = 0.75 sets the width to 75% of the ref. el. width
         // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
 
-        if (isDefined(refWidth)) {
+        if (isFinite(refWidth)) {
 
-            if (refWidth >= 0 && refWidth <= 1) {
+            if (refWidthPercentage || refWidth >= 0 && refWidth <= 1) {
 
                 vel.attr('width', refWidth * bbox.width);
 
@@ -414,9 +446,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
-        if (isDefined(refHeight)) {
+        if (isFinite(refHeight)) {
 
-            if (refHeight >= 0 && refHeight <= 1) {
+            if (refHeightPercentage || refHeight >= 0 && refHeight <= 1) {
 
                 vel.attr('height', refHeight * bbox.height);
 
@@ -426,14 +458,19 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
+        // The final translation of the subelement.
+        var tx = 0;
+        var ty = 0;
+        var scale;
+
         // `ref-dx` and `ref-dy` define the offset of the subelement relative to the right and/or bottom
         // coordinate of the reference element.
-        if (isDefined(refDx)) {
+        if (isFinite(refDx)) {
 
-            if (isScalable) {
+            if (scalable) {
 
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
-                var scale = V(this.$('.scalable')[0]).scale();
+                scale = scale || scalable.scale();
                 tx = bbox.x + bbox.width + refDx / scale.sx;
 
             } else {
@@ -441,12 +478,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 tx = bbox.x + bbox.width + refDx;
             }
         }
-        if (isDefined(refDy)) {
+        if (isFinite(refDy)) {
 
-            if (isScalable) {
+            if (scalable) {
 
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
-                var scale = V(this.$('.scalable')[0]).scale();
+                scale = scale || scalable.scale();
                 ty = bbox.y + bbox.height + refDy / scale.sy;
             } else {
 
@@ -458,16 +495,16 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // if `refX` is < 0 then `refX`'s absolute values is the right coordinate of the bounding box
         // otherwise, `refX` is the left coordinate of the bounding box
         // Analogical rules apply for `refY`.
-        if (isDefined(refX)) {
+        if (isFinite(refX)) {
 
-            if (refX > 0 && refX < 1) {
+            if (refXPercentage || refX > 0 && refX < 1) {
 
                 tx = bbox.x + bbox.width * refX;
 
-            } else if (isScalable) {
+            } else if (scalable) {
 
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
-                var scale = V(this.$('.scalable')[0]).scale();
+                scale = scale || scalable.scale();
                 tx = bbox.x + refX / scale.sx;
 
             } else {
@@ -475,16 +512,16 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 tx = bbox.x + refX;
             }
         }
-        if (isDefined(refY)) {
+        if (isFinite(refY)) {
 
-            if (refY > 0 && refY < 1) {
+            if (refXPercentage || refY > 0 && refY < 1) {
 
                 ty = bbox.y + bbox.height * refY;
 
-            } else if (isScalable) {
+            } else if (scalable) {
 
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
-                var scale = V(this.$('.scalable')[0]).scale();
+                scale = scale || scalable.scale();
                 ty = bbox.y + refY / scale.sy;
 
             } else {
@@ -493,25 +530,29 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
-        var velbbox = vel.bbox(false, this.paper.viewport);
-        // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
-        if (yAlignment === 'middle') {
+        if (!_.isUndefined(yAlignment) || !_.isUndefined(xAlignment)) {
 
-            ty -= velbbox.height / 2;
+            var velBBox = vel.bbox(false, this.paper.viewport);
 
-        } else if (isDefined(yAlignment)) {
+            // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
+            if (yAlignment === 'middle') {
 
-            ty += (yAlignment > -1 && yAlignment < 1) ?  velbbox.height * yAlignment : yAlignment;
-        }
+                ty -= velBBox.height / 2;
 
-        // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
-        if (xAlignment === 'middle') {
+            } else if (isFinite(yAlignment)) {
 
-            tx -= velbbox.width / 2;
+                ty += (yAlignment > -1 && yAlignment < 1) ?  velBBox.height * yAlignment : yAlignment;
+            }
 
-        } else if (isDefined(xAlignment)) {
+            // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
+            if (xAlignment === 'middle') {
 
-            tx += (xAlignment > -1 && xAlignment < 1) ?  velbbox.width * xAlignment : xAlignment;
+                tx -= velBBox.width / 2;
+
+            } else if (isFinite(xAlignment)) {
+
+                tx += (xAlignment > -1 && xAlignment < 1) ?  velBBox.width * xAlignment : xAlignment;
+            }
         }
 
         vel.translate(tx, ty);
@@ -526,7 +567,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (markup) {
 
             var nodes = V(markup);
-            V(this.el).append(nodes);
+
+            this.vel.append(nodes);
 
         } else {
 
@@ -539,6 +581,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.$el.empty();
 
         this.renderMarkup();
+
+        this.rotatableNode = this.vel.findOne('.rotatable');
+        this.scalableNode = this.vel.findOne('.scalable');
 
         this.update();
 
@@ -558,7 +603,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     scale: function(sx, sy) {
 
         // TODO: take into account the origin coordinates `ox` and `oy`.
-        V(this.el).scale(sx, sy);
+        this.vel.scale(sx, sy);
     },
 
     resize: function() {
@@ -566,7 +611,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var size = this.model.get('size') || { width: 1, height: 1 };
         var angle = this.model.get('angle') || 0;
 
-        var scalable = V(this.$('.scalable')[0]);
+        var scalable = this.scalableNode;
         if (!scalable) {
             // If there is no scalable elements, than there is nothing to resize.
             return;
@@ -585,7 +630,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // and getting the top-left corner of the resulting object. Then we clean up the rotation back to what it originally was.
 
         // Cancel the rotation but now around a different origin, which is the center of the scaled object.
-        var rotatable = V(this.$('.rotatable')[0]);
+        var rotatable = this.rotatableNode;
         var rotation = rotatable && rotatable.attr('transform');
         if (rotation && rotation !== 'null') {
 
@@ -606,12 +651,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var position = this.model.get('position') || { x: 0, y: 0 };
 
-        V(this.el).attr('transform', 'translate(' + position.x + ',' + position.y + ')');
+        this.vel.attr('transform', 'translate(' + position.x + ',' + position.y + ')');
     },
 
     rotate: function() {
 
-        var rotatable = V(this.$('.rotatable')[0]);
+        var rotatable = this.rotatableNode;
         if (!rotatable) {
             // If there is no rotatable elements, then there is nothing to rotate.
             return;
@@ -632,7 +677,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (opt && opt.useModelGeometry) {
             var noTransformationBBox = this.model.getBBox().bbox(this.model.get('angle'));
             var transformationMatrix = this.paper.viewport.getCTM();
-            return V.transformRect(noTransformationBBox, transformationMatrix);
+            return g.rect(V.transformRect(noTransformationBBox, transformationMatrix));
         }
 
         return joint.dia.CellView.prototype.getBBox.apply(this, arguments);

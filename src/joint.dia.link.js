@@ -202,30 +202,50 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     startListening: function() {
 
-        this.listenTo(this.model, 'change:markup', this.render);
-        this.listenTo(this.model, 'change:smooth change:manhattan change:router change:connector', this.update);
-        this.listenTo(this.model, 'change:toolMarkup', function() {
-            this.renderTools().updateToolsPosition();
-        });
-        this.listenTo(this.model, 'change:labels change:labelMarkup', function() {
-            this.renderLabels().updateLabelPositions();
-        });
-        this.listenTo(this.model, 'change:vertices change:vertexMarkup', function(cell, changed, opt) {
-            this.renderVertexMarkers();
-            // If the vertices have been changed by a translation we do update only if the link was
-            // only one translated. If the link was translated via another element which the link
-            // is embedded in, this element will be translated as well and that triggers an update.
-            // Note that all embeds in a model are sorted - first comes links, then elements.
-            if (!opt.translateBy || (opt.translateBy == this.model.id || this.model.hasLoop())) {
-                this.update();
-            }
-        });
-        this.listenTo(this.model, 'change:source', function(cell, source) {
-            this.watchSource(cell, source).update();
-        });
-        this.listenTo(this.model, 'change:target', function(cell, target) {
-            this.watchTarget(cell, target).update();
-        });
+        var model = this.model;
+
+        this.listenTo(model, 'change:markup', this.render);
+        this.listenTo(model, 'change:smooth change:manhattan change:router change:connector', this.update);
+        this.listenTo(model, 'change:toolMarkup', this.onToolsChange);
+        this.listenTo(model, 'change:labels change:labelMarkup', this.onLabelsChange);
+        this.listenTo(model, 'change:vertices change:vertexMarkup', this.onVerticesChange);
+        this.listenTo(model, 'change:source', this.onSourceChange);
+        this.listenTo(model, 'change:target', this.onTargetChange);
+    },
+
+    onSourceChange: function(cell, source) {
+
+        this.watchSource(cell, source).update();
+    },
+
+    onTargetChange: function(cell, target) {
+
+        this.watchTarget(cell, target).update();
+    },
+
+    onVerticesChange: function(cell, changed, opt) {
+
+        this.renderVertexMarkers();
+
+        // If the vertices have been changed by a translation we do update only if the link was
+        // the only link that was translated. If the link was translated via another element which the link
+        // is embedded in, this element will be translated as well and that triggers an update.
+        // Note that all embeds in a model are sorted - first comes links, then elements.
+        if (!opt.translateBy || opt.translateBy === this.model.id || this.model.hasLoop()) {
+            // Vertices were changed (not as a reaction on translate) or link.translate() was called or
+            // we're dealing with a loop link that is embedded.
+            this.update();
+        }
+    },
+
+    onToolsChange: function() {
+
+        this.renderTools().updateToolsPosition();
+    },
+
+    onLabelsChange: function() {
+
+        this.renderLabels().updateLabelPositions();
     },
 
     // Rendering
@@ -260,7 +280,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.renderVertexMarkers();
         this.renderArrowheadMarkers();
 
-        V(this.el).append(children);
+        this.vel.append(children);
 
         // rendering labels has to be run after the link is appended to DOM tree. (otherwise <Text> bbox
         // returns zero values)
@@ -728,10 +748,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var oppositeEnd = this.model.get(oppositeEndType) || {};
             var oppositeSelector = oppositeEnd.id && this.constructor.makeSelector(oppositeEnd);
 
-            // Caching end models bounding boxes
-            if (opt.isLoop && selector == oppositeSelector) {
+            // Caching end models bounding boxes.
+            // If `opt.handleBy` equals the client-side ID of this link view and it is a loop link, then we already cached
+            // the bounding boxes in the previous turn (e.g. for loop link, the change:source event is followed
+            // by change:target and so on change:source, we already chached the bounding boxes of - the same - element).
+            if (opt.handleBy === this.cid && selector == oppositeSelector) {
 
-                // Source and target elements are identical. We are handling `change` event for the
+                // Source and target elements are identical. We're dealing with a loop link. We are handling `change` event for the
                 // second time now. There is no need to calculate bbox and find magnet element again.
                 // It was calculated already for opposite link end.
                 this[endType + 'BBox'] = this[oppositeEndType + 'BBox'];
@@ -739,12 +762,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 this[endType + 'Magnet'] = this[oppositeEndType + 'Magnet'];
 
             } else if (opt.translateBy) {
+                // `opt.translateBy` optimizes the way we calculate bounding box of the source/target element.
+                // If `opt.translateBy` is an ID of the element that was originally translated. This allows us
+                // to just offset the cached bounding box by the translation instead of calculating the bounding
+                // box from scratch on every translate.
 
                 var bbox = this[endType + 'BBox'];
                 bbox.x += opt.tx;
                 bbox.y += opt.ty;
 
             } else {
+                // The slowest path, source/target could have been rotated or resized or any attribute
+                // that affects the bounding box of the view might have been changed.
 
                 var view = this.paper.findViewByModel(end.id);
                 var magnetElement = view.el.querySelector(selector);
@@ -754,30 +783,42 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 this[endType + 'Magnet'] = magnetElement;
             }
 
-            if (opt.isLoop && opt.translateBy &&
+            if (opt.handleBy === this.cid && opt.translateBy &&
                 this.model.isEmbeddedIn(endModel) &&
                 !_.isEmpty(this.model.get('vertices'))) {
+                // Loop link whose element was translated and that has vertices (that need to be translated with
+                // the parent in which my element is embedded).
                 // If the link is embedded, has a loop and vertices and the end model
-                // has been translated, do not update yet. There are vertices still to be updated.
+                // has been translated, do not update yet. There are vertices still to be updated (change:vertices
+                // event will come in the next turn).
                 doUpdate = false;
             }
 
             if (!this.updatePostponed && oppositeEnd.id) {
+                // The update was not postponed (that can happen e.g. on the first change event) and the opposite
+                // end is a model (opposite end is the opposite end of the link we're just updating, e.g. if
+                // we're reacting on change:source event, the oppositeEnd is the target model).
 
                 var oppositeEndModel = this.paper.getModelById(oppositeEnd.id);
 
-                // Passing `isLoop` flag via event option.
+                // Passing `handleBy` flag via event option.
                 // Note that if we are listening to the same model for event 'change' twice.
                 // The same event will be handled by this method also twice.
-                opt.isLoop = end.id == oppositeEnd.id;
+                if (end.id === oppositeEnd.id) {
+                    // We're dealing with a loop link. Tell the handlers in the next turn that they should update
+                    // the link instead of me. (We know for sure there will be a next turn because
+                    // loop links react on at least two events: change on the source model followed by a change on
+                    // the target model).
+                    opt.handleBy = this.cid;
+                }
 
-                if (opt.isLoop || (opt.translateBy && oppositeEndModel.isEmbeddedIn(opt.translateBy))) {
+                if (opt.handleBy === this.cid || (opt.translateBy && oppositeEndModel.isEmbeddedIn(opt.translateBy))) {
 
                     // Here are two options:
-                    // - Source and target are connected to the same model (not necessary the same port)
-                    // - both end models are translated by same ancestor. We know that opposte end
-                    //   model will be translated in the moment as well.
-                    // In both situations there will be more changes on model that will trigger an
+                    // - Source and target are connected to the same model (not necessarily the same port).
+                    // - Both end models are translated by the same ancestor. We know that opposite end
+                    //   model will be translated in the next turn as well.
+                    // In both situations there will be more changes on the model that trigger an
                     // update. So there is no need to update the linkView yet.
                     this.updatePostponed = true;
                     doUpdate = false;
