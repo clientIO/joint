@@ -1,26 +1,30 @@
 module.exports = function(grunt) {
 
-    // Configurable area.
-    // ------------------
+    require('time-grunt')(grunt);
+    require('load-grunt-tasks')(grunt);
+
+    var banner = '/*! <%= pkg.title %> v<%= pkg.version %> - <%= pkg.description %>  <%= grunt.template.today("yyyy-mm-dd") %> \n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n */\n';
 
     var js = {
 
-        libs: {
-            jquery: ['lib/jquery/dist/jquery.js'],
-            backbone: ['lib/lodash/dist/lodash.js', 'lib/backbone/backbone.js']
-        },
-
-        helpers: {
-            vectorizer: ['src/vectorizer.js'],
-            geometry: ['src/geometry.js']
-        },
-
         core: [
-            'src/core.js', 'src/joint.dia.graph.js', 'src/joint.dia.cell.js', 'src/joint.dia.element.js', 'src/joint.dia.link.js', 'src/joint.dia.paper.js',
+            'src/core.js',
+            'src/joint.dia.graph.js',
+            'src/joint.dia.cell.js',
+            'src/joint.dia.element.js',
+            'src/joint.dia.link.js',
+            'src/joint.dia.paper.js',
             'plugins/joint.shapes.basic.js',
-            'plugins/routers/joint.routers.orthogonal.js', 'plugins/routers/joint.routers.manhattan.js', 'plugins/routers/joint.routers.metro.js',
-            'plugins/connectors/joint.connectors.normal.js', 'plugins/connectors/joint.connectors.rounded.js', 'plugins/connectors/joint.connectors.smooth.js'
+            'plugins/routers/joint.routers.orthogonal.js',
+            'plugins/routers/joint.routers.manhattan.js',
+            'plugins/routers/joint.routers.metro.js',
+            'plugins/connectors/joint.connectors.normal.js',
+            'plugins/connectors/joint.connectors.rounded.js',
+            'plugins/connectors/joint.connectors.smooth.js'
         ],
+
+        geometry: ['src/geometry.js'],
+        vectorizer: ['src/vectorizer.js'],
 
         plugins: {
 
@@ -33,7 +37,7 @@ module.exports = function(grunt) {
             'shapes.uml': ['plugins/joint.shapes.uml.js'],
             'shapes.logic': ['plugins/joint.shapes.logic.js'],
 
-            'layout.DirectedGraph': ['plugins/layout/DirectedGraph/lib/dagre.js', 'plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js']
+            'layout.DirectedGraph': ['plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js']
         }
     };
 
@@ -45,9 +49,6 @@ module.exports = function(grunt) {
 
         }
     };
-
-    // Main.
-    // -----
 
     function allJSPlugins() {
 
@@ -67,243 +68,59 @@ module.exports = function(grunt) {
         return ret;
     }
 
-    var buildWrapper = {
-        head: 'build/wrapper-head.js.partial',
-        foot: 'build/wrapper-foot.js.partial'
-    };
+    function allMinifiedJSPlugins() {
 
-    grunt.template.addDelimiters("square", "[%", "%]");
+        var files = [];
+
+        for (var name in js.plugins) {
+            files.push('build/min/joint.' + name + '.min.js');
+        }
+
+        return files;
+    }
+
+    function allMinifiedCSSPlugins() {
+
+        var files = [];
+
+        for (var name in css.plugins) {
+            files.push('build/min/joint.' + name + '.min.css');
+        }
+
+        return files;
+    }
+
+    function jointDependencies() {
+
+        return [
+            'lib/jquery/jquery.js',
+            'lib/lodash/dist/lodash.js', 'lib/backbone/backbone.js'
+        ].concat(
+            js.vectorizer,
+            js.geometry
+        );
+    }
+
+    function jointMinifiedDependencies() {
+
+        return [
+            'lib/jquery/jquery.min.js',
+            'lib/lodash/dist/lodash.min.js', 'lib/backbone/backbone-min.js',
+            'build/min/vectorizer.min.js',
+            'build/min/geometry.min.js'
+        ];
+    }
+
+    grunt.template.addDelimiters('square', '[%', '%]');
 
     var config = {
 
         pkg: grunt.file.readJSON('package.json'),
 
-        qunit: {
-            all: ['test/**/*.html']
-        },
-
-        jscs: {
-            jointjs: [
-                'src/*.js',
-                'plugins/*.js',
-                'plugins/connectors/*.js',
-                'plugins/routers/*.js',
-                'plugins/layout/DirectedGraph/*.js'
-            ],
-            options: {
-                config: '.jscsrc'
-            }
-        },
-
-        concat: {
-            options: {
-                banner: '/*! <%= pkg.title %> v<%= pkg.version %> - <%= pkg.description %>  <%= grunt.template.today("yyyy-mm-dd") %> \n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n */\n'
-            },
-            dist: {
-                options: {
-                    process: {
-                        delimiters: 'square'
-                    }
-                },
-                files: {
-                    'dist/joint.js': [].concat(
-                        js.libs.jquery, js.libs.backbone,
-                        js.helpers.geometry, js.helpers.vectorizer,
-                        js.core
-                    ),
-                    'dist/joint.clean.js': [].concat(
-                        js.core
-                    ),
-                    'dist/joint.css': [].concat(
-                        css.core
-                    ),
-                    'dist/vectorizer.js': js.helpers.vectorizer,
-                    'dist/geometry.js': js.helpers.geometry
-                }
-            },
-            distbuild: {
-                options: {
-                    process: {
-                        delimiters: 'square'
-                    }
-                },
-                files: {
-                    'dist/joint.clean.build.js': [
-                        buildWrapper.head,
-                        'dist/joint.clean.js',
-                        buildWrapper.foot
-                    ]
-                }
-            },
-            allinone: {
-                options: {
-                    process: {
-                        delimiters: 'square'
-                    }
-                },
-                files: {
-                    'dist/joint.all.js': [].concat(
-                        js.libs.jquery, js.libs.backbone,
-                        js.helpers.geometry, js.helpers.vectorizer,
-                        js.core, allJSPlugins()
-                    ),
-                    'dist/joint.all.clean.js': [].concat(
-                        js.core, allJSPlugins()
-                    ),
-                    'dist/joint.all.css': [].concat(
-                        css.core, allCSSPlugins()
-                    )
-                }
-            },
-            allinonebuild: {
-                options: {
-                    process: {
-                        delimiters: 'square'
-                    }
-                },
-                files: {
-                    'dist/joint.all.clean.build.js': [
-                        buildWrapper.head,
-                        'dist/joint.all.clean.js',
-                        buildWrapper.foot
-                    ]
-                }
-            },
-            nojquery: {
-                options: {
-                    process: {
-                        delimiters: 'square'
-                    }
-                },
-                files: {
-                    'dist/joint.nojquery.js': [].concat(
-                        js.libs.backbone,
-                        js.helpers.geometry, js.helpers.vectorizer,
-                        js.core
-                    ),
-                    'dist/joint.nojquery.css': [].concat(
-                        css.core
-                    )
-                }
-            },
-            nobackbone: {
-                options: {
-                    process: {
-                        delimiters: 'square'
-                    }
-                },
-                files: {
-                    'dist/joint.nobackbone.js': [].concat(
-                        js.libs.jquery,
-                        js.helpers.geometry, js.helpers.vectorizer,
-                        js.core
-                    ),
-                    'dist/joint.nojquery.css': [].concat(
-                        css.core
-                    )
-                }
-            },
-            nojquerynobackbone: {
-                options: {
-                    process: {
-                        delimiters: 'square'
-                    }
-                },
-                files: {
-                    'dist/joint.nojquerynobackbone.js': [].concat(
-                        js.helpers.geometry, js.helpers.vectorizer,
-                        js.core
-                    ),
-                    'dist/joint.nojquerynobackbone.css': [].concat(
-                        css.core
-                    )
-                }
-            }
-        },
-        uglify: {
-            options: {
-                report: 'min',
-                banner: '/*! <%= pkg.title %> v<%= pkg.version %> - <%= pkg.description %>  <%= grunt.template.today("yyyy-mm-dd") %> \n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n */\n'
-            },
-            dist: {
-                files: {
-                    'dist/joint.min.js': 'dist/joint.js',
-                    'dist/joint.clean.min.js': 'dist/joint.clean.js'
-                }
-            },
-            allinone: {
-                files: {
-                    'dist/joint.all.min.js': 'dist/joint.all.js',
-                    'dist/joint.all.clean.min.js': 'dist/joint.all.clean.js'
-                }
-            },
-            nojquery: {
-                files: {
-                    'dist/joint.nojquery.min.js': 'dist/joint.nojquery.js'
-                }
-            },
-            nobackbone: {
-                files: {
-                    'dist/joint.nobackbone.min.js': 'dist/joint.nobackbone.js'
-                }
-            },
-            nojquerynobackbone: {
-                files: {
-                    'dist/joint.nojquerynobackbone.min.js': 'dist/joint.nojquerynobackbone.js'
-                }
-            },
-            build: {
-                files: {
-                    'dist/joint.all.clean.build.min.js': ['dist/joint.all.clean.build.js'],
-                    'dist/joint.clean.build.min.js': ['dist/joint.clean.build.js']
-                }
-            }
-        },
-        cssmin: {
-            options: {
-                report: 'min',
-                banner: '/*! <%= pkg.title %> v<%= pkg.version %> - <%= pkg.description %>  <%= grunt.template.today("yyyy-mm-dd") %> \n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n */\n'
-            },
-            dist: {
-                files: {
-                    'dist/joint.min.css': [].concat(
-                        css.core
-                    )
-                }
-            },
-            allinone: {
-                files: {
-                    'dist/joint.all.min.css': [].concat(
-                        css.core, allCSSPlugins()
-                    )
-                }
-            },
-            nojquery: {
-                files: {
-                    'dist/joint.nojquery.min.css': [].concat(
-                        css.core
-                    )
-                }
-            },
-            nobackbone: {
-                files: {
-                    'dist/joint.nojquery.min.css': [].concat(
-                        css.core
-                    )
-                }
-            },
-            nojquerynobackbone: {
-                files: {
-                    'dist/joint.nojquerynobackbone.min.css': [].concat(
-                        css.core
-                    )
-                }
-            }
-        },
         browserify: {
-            build: {
+            joint: {
                 files: {
-                    'dist/joint.clean.browserify-bundle.js': 'dist/joint.clean.build.js'
+                    'dist/joint.browserify-bundle.js': 'dist/joint.clean.min.js'
                 },
                 options: {
                     browserifyOptions: {
@@ -311,63 +128,224 @@ module.exports = function(grunt) {
                     }
                 }
             }
+        },
+        concat: {
+            options: {
+                banner: banner,
+                process: {
+                    delimiters: 'square'
+                }
+            },
+            geometry: {
+                files: {
+                    'dist/geometry.js': js.geometry,
+                    'dist/geometry.min.js': 'build/min/geometry.min.js'
+                }
+            },
+            vectorizer: {
+                files: {
+                    'dist/vectorizer.js': js.vectorizer,
+                    'dist/vectorizer.min.js': 'build/min/vectorizer.min.js'
+                }
+            },
+            joint: {
+                files: {
+                    'dist/joint.js': [].concat(
+                        ['build/wrappers/joint.head.js'],
+                        jointDependencies(),
+                        js.core,
+                        allJSPlugins(),
+                        ['build/wrappers/foot.js']
+                    ),
+                    'dist/joint.min.js': [].concat(
+                        ['build/wrappers/joint.head.js'],
+                        jointMinifiedDependencies(),
+                        'build/min/joint.min.js',
+                        allMinifiedJSPlugins(),
+                        ['build/wrappers/foot.js']
+                    ),
+                    'dist/joint.clean.js': [].concat(
+                        ['build/wrappers/joint.clean.head.js'],
+                        js.core,
+                        allJSPlugins(),
+                        ['build/wrappers/foot.js']
+                    ),
+                    'dist/joint.clean.min.js': [].concat(
+                        ['build/wrappers/joint.clean.head.js'],
+                        'build/min/joint.min.js',
+                        allMinifiedJSPlugins(),
+                        ['build/wrappers/foot.js']
+                    ),
+                    'dist/joint.css': [].concat(
+                        css.core,
+                        allCSSPlugins()
+                    ),
+                    'dist/joint.min.css': [].concat(
+                        'build/min/joint.min.css',
+                        allMinifiedCSSPlugins()
+                    )
+                }
+            }
+        },
+        copy: {
+
+        },
+        cssmin: {
+            joint: {
+                files: {
+                    'build/min/joint.min.css': [].concat(
+                        css.core
+                    )
+                }
+            }
+        },
+        jscs: {
+            options: {
+                config: '.jscsrc'
+            },
+            src: [
+                'src/*.js',
+                'plugins/*.js',
+                'plugins/connectors/*.js',
+                'plugins/routers/*.js',
+                'plugins/layout/DirectedGraph/*.js'
+            ]
+        },
+        mochaTest: {
+            server: {
+                src: [
+                    'test/*-nodejs/*'
+                ],
+                options: {
+                    reporter: 'spec'
+                }
+            }
+        },
+        qunit: {
+            all: ['test/**/*.html'],
+            joint: ['test/jointjs/*.html'],
+            geometry: ['test/geometry/*.html'],
+            vectorizer: ['test/vectorizer/*.html']
+        },
+        uglify: {
+            geometry: {
+                src: js.geometry,
+                dest: 'build/min/geometry.min.js'
+            },
+            joint: {
+                src: js.core,
+                dest: 'build/min/joint.min.js'
+            },
+            vectorizer: {
+                src: js.vectorizer,
+                dest: 'build/min/vectorizer.min.js'
+            }
+        },
+        watch: {
+            joint: {
+                files: [].concat(
+                    js.geometry,
+                    js.vectorizer,
+                    js.core,
+                    allJSPlugins(),
+                    css.core,
+                    allCSSPlugins()
+                ),
+                tasks: ['build']
+            }
         }
     };
 
-    // Create a separate target for all the plugins.
+    // Create targets for all the plugins.
     Object.keys(js.plugins).forEach(function(name) {
 
         config.concat[name] = { files: {} };
         config.uglify[name] = { files: {} };
 
         config.concat[name].files['dist/joint.' + name + '.js'] = js.plugins[name];
-        config.uglify[name].files['dist/joint.' + name + '.min.js'] = js.plugins[name];
+        config.uglify[name].files['build/min/joint.' + name + '.min.js'] = js.plugins[name];
+        config.copy[name] = { files: [] };
+
+        config.copy[name].files.push({
+            nonull: true,
+            src: ['build/min/joint.' + name + '.min.js'],
+            dest: 'dist/joint.' + name + '.min.js'
+        });
 
         if (css.plugins[name]) {
 
-            config.concat[name].files['dist/joint.' + name + '.css'] = css.plugins[name];
             config.cssmin[name] = { files: {} };
-            config.cssmin[name].files['dist/joint.' + name + '.min.css'] = css.plugins[name];
+
+            config.concat[name].files['dist/joint.' + name + '.css'] = css.plugins[name];
+            config.cssmin[name].files['build/min/joint.' + name + '.min.css'] = css.plugins[name];
+            config.copy[name].files.push({
+                nonull: true,
+                src: ['build/min/joint.' + name + '.min.css'],
+                dest: 'dist/joint.' + name + '.min.css'
+            });
         }
     });
 
     grunt.initConfig(config);
 
-    grunt.loadNpmTasks('grunt-browserify');
-    grunt.loadNpmTasks('grunt-contrib-concat');
-    grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-contrib-cssmin');
-    grunt.loadNpmTasks('grunt-contrib-qunit');
-    grunt.loadNpmTasks('grunt-jscs');
+    var allPluginTasks = {
+        concat: [],
+        copy: [],
+        cssmin: [],
+        uglify: []
+    };
 
-    // Default task(s).
-    grunt.registerTask('default', ['concat:dist', 'uglify:dist', 'cssmin:dist']);
-    grunt.registerTask('allinone', ['concat:allinone', 'uglify:allinone', 'cssmin:allinone']);
-
-    // Separate tasks for all the plugins.
+    // Register tasks for all the plugins.
     Object.keys(js.plugins).forEach(function(name) {
 
-        grunt.registerTask(name, ['concat:' + name, 'uglify:' + name].concat(css.plugins[name] ? ['cssmin:' + name] : []));
+        var pluginTasks = [
+            'newer:concat:' + name,
+            'newer:uglify:' + name
+        ];
+
+        allPluginTasks.concat.push('newer:concat:' + name);
+        allPluginTasks.uglify.push('newer:uglify:' + name);
+
+        if (css.plugins[name]) {
+            pluginTasks.push('newer:cssmin:' + name);
+            allPluginTasks.cssmin.push('newer:cssmin:' + name);
+        }
+
+        pluginTasks.push('newer:copy:' + name);
+        allPluginTasks.copy.push('newer:copy:' + name);
+
+        grunt.registerTask(name, pluginTasks);
     });
 
-    // One task that build everything but separately. Compare this to the 'all' task that builds
-    // everything into one file (for JS and CSS).
+    grunt.registerTask('concat:plugins', allPluginTasks.concat);
+    grunt.registerTask('copy:plugins', allPluginTasks.copy);
+    grunt.registerTask('cssmin:plugins', allPluginTasks.cssmin);
+    grunt.registerTask('uglify:plugins', allPluginTasks.uglify);
 
-    var allTasks = [
-        'concat:dist', 'uglify:dist', 'cssmin:dist',
-        'concat:nojquery', 'uglify:nojquery', 'cssmin:nojquery',
-        'concat:nobackbone', 'uglify:nobackbone', 'cssmin:nobackbone',
-        'concat:nojquerynobackbone', 'uglify:nojquerynobackbone', 'cssmin:nojquerynobackbone'
-    ];
-
-    Object.keys(js.plugins).forEach(function(name) {
-
-        allTasks = allTasks.concat(['concat:' + name, 'uglify:' + name].concat(css.plugins[name] ? ['cssmin:' + name] : []));
-    });
-
-    grunt.registerTask('all', allTasks);
-
-    grunt.registerTask('build', [
-        'concat:distbuild', 'concat:allinonebuild', 'uglify:build', 'browserify'
+    grunt.registerTask('build:plugins', [
+        'uglify:plugins',
+        'cssmin:plugins',
+        'concat:plugins',
+        'copy:plugins'
     ]);
+
+    grunt.registerTask('build:joint', [
+        'build:plugins',
+        'newer:uglify:geometry',
+        'newer:uglify:vectorizer',
+        'newer:uglify:joint',
+        'newer:cssmin:joint',
+        'newer:concat:geometry',
+        'newer:concat:vectorizer',
+        'newer:concat:joint'
+    ]);
+
+    grunt.registerTask('build', ['build:joint']);
+    grunt.registerTask('all', ['build', 'newer:browserify']);
+
+    grunt.registerTask('test:server', ['mochaTest:server']);
+    grunt.registerTask('test:client', ['qunit:all', 'jscs']);
+    grunt.registerTask('test', ['test:server', 'test:client']);
+
+    grunt.registerTask('default', ['build', 'watch']);
 };
