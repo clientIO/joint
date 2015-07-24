@@ -8,6 +8,9 @@
     "graph",
     "visualization"
   ],
+  "scripts": {
+    "test": "make test"
+  },
   "version": "0.9.4",
   "homepage": "http://jointjs.com",
   "author": {
