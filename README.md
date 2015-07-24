@@ -6,6 +6,8 @@ importantly, fully interactive diagramming tools and application builders.
 
 Please see [http://jointjs.com](http://jointjs.com) for more information, demos and documentation.
 
+[![Build Status](https://travis-ci.org/clientIO/joint.svg?branch=master)](https://travis-ci.org/clientIO/joint)
+
 
 Features
 --------
