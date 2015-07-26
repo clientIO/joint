@@ -562,7 +562,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     // default markup is not desirable.
     renderMarkup: function() {
 
-        var markup = this.model.markup || this.model.get('markup');
+        var markup = this.model.get('markup') || this.model.markup;
 
         if (markup) {
 
