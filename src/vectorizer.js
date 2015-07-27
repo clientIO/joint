@@ -11,7 +11,7 @@
     if (typeof define === 'function' && define.amd) {
 
         // AMD.
-        define('V', ['g'], function(g) {
+        define(['g'], function(g) {
             return factory(g);
         });
 
