@@ -96,8 +96,8 @@ module.exports = function(grunt) {
             'lib/jquery/jquery.js',
             'lib/lodash/dist/lodash.js', 'lib/backbone/backbone.js'
         ].concat(
-            js.vectorizer,
-            js.geometry
+            js.geometry,
+            js.vectorizer
         );
     }
 
@@ -106,8 +106,8 @@ module.exports = function(grunt) {
         return [
             'lib/jquery/jquery.min.js',
             'lib/lodash/dist/lodash.min.js', 'lib/backbone/backbone-min.js',
-            'build/min/vectorizer.min.js',
-            'build/min/geometry.min.js'
+            'build/min/geometry.min.js',
+            'build/min/vectorizer.min.js'
         ];
     }
 
