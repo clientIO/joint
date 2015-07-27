@@ -4,22 +4,40 @@
 
         // For AMD.
 
-        define(function() {
+        define(['backbone', 'lodash', 'jquery', 'g', 'V', 'graphlib', 'dagre'], function(Backbone, _, $, g, V, graphlib, dagre) {
 
-            return factory(root);
+            Backbone.$ = $;
+
+            return factory(root, Backbone, _, $, g, V, graphlib, dagre);
         });
 
     } else if (typeof exports !== 'undefined') {
 
         // For Node.js or CommonJS.
 
-        module.exports = factory(root);
+        var Backbone = require('backbone');
+        var _ = require('lodash');
+        var $ = Backbone.$ = require('jquery');
+        var g = require('./geometry');
+        var V = require('./vectorizer');
+        var graphlib = require('graphlib');
+        var dagre = require('dagre');
+
+        module.exports = factory(root, Backbone, _, $, g, V, graphlib, dagre);
 
     } else {
 
         // As a browser global.
 
-        root.joint = factory(root);
+        var Backbone = root.Backbone;
+        var _ = root._;
+        var $ = Backbone.$ = root.jQuery || root.$;
+        var g = root.g;
+        var V = root.V;
+        var graphlib = root.graphlib;
+        var dagre = root.dagre;
+
+        root.joint = factory(root, Backbone, _, $, g, V, graphlib, dagre);
     }
 
-}(this, function(root) {
+}(this, function(root, Backbone, _, $, g, V, graphlib, dagre) {

@@ -1,1 +1,1 @@
-module.exports = require('./dist/joint.clean');
+module.exports = require('./dist/joint');

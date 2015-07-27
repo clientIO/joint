@@ -90,27 +90,6 @@ module.exports = function(grunt) {
         return files;
     }
 
-    function jointDependencies() {
-
-        return [
-            'lib/jquery/jquery.js',
-            'lib/lodash/dist/lodash.js', 'lib/backbone/backbone.js'
-        ].concat(
-            js.geometry,
-            js.vectorizer
-        );
-    }
-
-    function jointMinifiedDependencies() {
-
-        return [
-            'lib/jquery/jquery.min.js',
-            'lib/lodash/dist/lodash.min.js', 'lib/backbone/backbone-min.js',
-            'build/min/geometry.min.js',
-            'build/min/vectorizer.min.js'
-        ];
-    }
-
     grunt.template.addDelimiters('square', '[%', '%]');
 
     var config = {
@@ -120,7 +99,7 @@ module.exports = function(grunt) {
         browserify: {
             joint: {
                 files: {
-                    'dist/joint.browserify-bundle.js': 'dist/joint.clean.min.js'
+                    'dist/joint.browserify-bundle.js': 'dist/joint.min.js'
                 },
                 options: {
                     browserifyOptions: {
@@ -150,29 +129,39 @@ module.exports = function(grunt) {
             },
             joint: {
                 files: {
+                    'dist/joint.core.js': [].concat(
+                        ['build/wrappers/joint.core.head.js'],
+                        js.geometry,
+                        js.vectorizer,
+                        js.core,
+                        ['build/wrappers/foot.js']
+                    ),
+                    'dist/joint.core.min.js': [].concat(
+                        ['build/wrappers/joint.core.head.js'],
+                        ['build/min/geometry.min.js'],
+                        ['build/min/vectorizer.min.js'],
+                        ['build/min/joint.min.js'],
+                        ['build/wrappers/foot.js']
+                    ),
+                    'dist/joint.core.css': [].concat(
+                        css.core
+                    ),
+                    'dist/joint.core.min.css': [].concat(
+                        ['build/min/joint.min.css']
+                    ),
                     'dist/joint.js': [].concat(
                         ['build/wrappers/joint.head.js'],
-                        jointDependencies(),
+                        js.geometry,
+                        js.vectorizer,
                         js.core,
                         allJSPlugins(),
                         ['build/wrappers/foot.js']
                     ),
                     'dist/joint.min.js': [].concat(
                         ['build/wrappers/joint.head.js'],
-                        jointMinifiedDependencies(),
-                        'build/min/joint.min.js',
-                        allMinifiedJSPlugins(),
-                        ['build/wrappers/foot.js']
-                    ),
-                    'dist/joint.clean.js': [].concat(
-                        ['build/wrappers/joint.clean.head.js'],
-                        js.core,
-                        allJSPlugins(),
-                        ['build/wrappers/foot.js']
-                    ),
-                    'dist/joint.clean.min.js': [].concat(
-                        ['build/wrappers/joint.clean.head.js'],
-                        'build/min/joint.min.js',
+                        ['build/min/geometry.min.js'],
+                        ['build/min/vectorizer.min.js'],
+                        ['build/min/joint.min.js'],
                         allMinifiedJSPlugins(),
                         ['build/wrappers/foot.js']
                     ),
@@ -181,7 +170,7 @@ module.exports = function(grunt) {
                         allCSSPlugins()
                     ),
                     'dist/joint.min.css': [].concat(
-                        'build/min/joint.min.css',
+                        ['build/min/joint.min.css'],
                         allMinifiedCSSPlugins()
                     )
                 }
