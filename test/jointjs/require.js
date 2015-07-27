@@ -15,6 +15,11 @@ require.config({
             // Backbone requires underscore. This forces requireJS to load lodash instead:
             'underscore': 'lodash'
         }
+    },
+    shim: {
+        graphlib: {
+            deps: ['lodash']
+        }
     }
 });
 
