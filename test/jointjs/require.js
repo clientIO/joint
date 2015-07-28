@@ -5,40 +5,62 @@ require.config({
         'jquery': 'lib/jquery/jquery',
         'backbone': 'lib/backbone/backbone',
         'lodash': 'lib/lodash/dist/lodash',
-        'g': 'src/geometry',
-        'V': 'src/vectorizer'
+        'g': 'dist/geometry',
+        'V': 'dist/vectorizer',
+        'graphlib': 'lib/graphlib/dist/graphlib.core',
+        'dagre': 'lib/dagre/dist/dagre.core'
     },
     map: {
         '*': {
             // Backbone requires underscore. This forces requireJS to load lodash instead:
             'underscore': 'lodash'
         }
+    },
+    shim: {
+        graphlib: {
+            deps: ['lodash']
+        }
     }
 });
+
+module('RequireJS');
 
 (function() {
 
     var buildFiles = [
-        'dist/joint.clean.build',
-        'dist/joint.clean.build.min'
+        'dist/joint.core',
+        'dist/joint.core.min',
+        'dist/joint',
+        'dist/joint.min'
     ];
 
-    while (buildFiles.length > 0) {
+    test('require joint build files', function(assert) {
 
-        (function(buildFile) {
+        var done = assert.async();
 
-            test('sanity checks for distribution file: "' + buildFile + '"', function(assert) {
+        require(buildFiles, function() {
 
-                var done = assert.async();
+            var modules = Array.prototype.slice.call(arguments);
+            var buildFile, joint;
 
-                require([buildFile], function(joint) {
+            assert.ok(buildFiles.length === modules.length, 'expected ' + buildFiles.length + ' build file(s) to be loaded');
+
+            for (var i = 0; i < modules.length; i++) {
+
+                buildFile = buildFiles[i];
+                joint = modules[i];
+
+                test('sanity checks for build file: "' + buildFile + '"', function(assert) {
 
                     assert.ok(typeof joint !== 'undefined', 'Should be able to require joint module');
                     assert.ok(typeof joint.dia === 'object', 'Joint should have "dia" object');
-                    done();
+                    assert.ok(typeof joint.dia.Graph === 'function', 'joint.dia.Graph should be a function');
+                    assert.ok(typeof joint.dia.Paper === 'function', 'joint.dia.Paper should be a function');
                 });
-            });
-        })( buildFiles.pop() );
-    }
+            }
+
+            done();
+        });
+    });
 
 })();

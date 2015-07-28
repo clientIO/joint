@@ -1,4 +1,4 @@
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-07-23 
+/*! JointJS v0.9.4 - JavaScript diagramming library  2015-07-27 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -41,18 +41,2120 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         var V = root.V;
 
         root.joint = factory(root, Backbone, _, $, g, V);
-
     }
 
 }(this, function(root, Backbone, _, $, g, V) {
 
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-07-23 
+//      Geometry library.
+//      (c) 2011-2013 client IO
+
+(function(root, factory) {
+
+    if (typeof define === 'function' && define.amd) {
+
+        // AMD.
+        define([], factory);
+
+    } else if (typeof exports === 'object') {
+
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory();
+
+    } else {
+
+        // Browser globals.
+        root.g = factory();
+    }
+
+}(this, function() {
+
+    // Declare shorthands to the most used math functions.
+    var math = Math;
+    var abs = math.abs;
+    var cos = math.cos;
+    var sin = math.sin;
+    var sqrt = math.sqrt;
+    var mmin = math.min;
+    var mmax = math.max;
+    var atan = math.atan;
+    var atan2 = math.atan2;
+    var acos = math.acos;
+    var round = math.round;
+    var floor = math.floor;
+    var PI = math.PI;
+    var random = math.random;
+    var toDeg = function(rad) { return (180 * rad / PI) % 360; };
+    var toRad = function(deg, over360) {
+        over360 = over360 || false;
+        deg = over360 ? deg : (deg % 360);
+        return deg * PI / 180;
+    };
+    var snapToGrid = function(val, gridSize) { return gridSize * Math.round(val / gridSize); };
+    var normalizeAngle = function(angle) { return (angle % 360) + (angle < 0 ? 360 : 0); };
+
+    // Point
+    // -----
+
+    // Point is the most basic object consisting of x/y coordinate,.
+
+    // Possible instantiations are:
+
+    // * `point(10, 20)`
+    // * `new point(10, 20)`
+    // * `point('10 20')`
+    // * `point(point(10, 20))`
+    function point(x, y) {
+        if (!(this instanceof point))
+            return new point(x, y);
+        var xy;
+        if (y === undefined && Object(x) !== x) {
+            xy = x.split(x.indexOf('@') === -1 ? ' ' : '@');
+            this.x = parseInt(xy[0], 10);
+            this.y = parseInt(xy[1], 10);
+        } else if (Object(x) === x) {
+            this.x = x.x;
+            this.y = x.y;
+        } else {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    point.prototype = {
+        toString: function() {
+            return this.x + '@' + this.y;
+        },
+        // If point lies outside rectangle `r`, return the nearest point on the boundary of rect `r`,
+        // otherwise return point itself.
+        // (see Squeak Smalltalk, Point>>adhereTo:)
+        adhereToRect: function(r) {
+            if (r.containsPoint(this)) {
+                return this;
+            }
+            this.x = mmin(mmax(this.x, r.x), r.x + r.width);
+            this.y = mmin(mmax(this.y, r.y), r.y + r.height);
+            return this;
+        },
+        // Compute the angle between me and `p` and the x axis.
+        // (cartesian-to-polar coordinates conversion)
+        // Return theta angle in degrees.
+        theta: function(p) {
+            p = point(p);
+            // Invert the y-axis.
+            var y = -(p.y - this.y);
+            var x = p.x - this.x;
+            // Makes sure that the comparison with zero takes rounding errors into account.
+            var PRECISION = 10;
+            // Note that `atan2` is not defined for `x`, `y` both equal zero.
+            var rad = (y.toFixed(PRECISION) == 0 && x.toFixed(PRECISION) == 0) ? 0 : atan2(y, x);
+
+            // Correction for III. and IV. quadrant.
+            if (rad < 0) {
+                rad = 2 * PI + rad;
+            }
+            return 180 * rad / PI;
+        },
+        // Returns distance between me and point `p`.
+        distance: function(p) {
+            return line(this, p).length();
+        },
+        // Returns a manhattan (taxi-cab) distance between me and point `p`.
+        manhattanDistance: function(p) {
+            return abs(p.x - this.x) + abs(p.y - this.y);
+        },
+        // Offset me by the specified amount.
+        offset: function(dx, dy) {
+            this.x += dx || 0;
+            this.y += dy || 0;
+            return this;
+        },
+        magnitude: function() {
+            return sqrt((this.x * this.x) + (this.y * this.y)) || 0.01;
+        },
+        update: function(x, y) {
+            this.x = x || 0;
+            this.y = y || 0;
+            return this;
+        },
+        round: function(decimals) {
+            this.x = decimals ? this.x.toFixed(decimals) : round(this.x);
+            this.y = decimals ? this.y.toFixed(decimals) : round(this.y);
+            return this;
+        },
+        // Scale the line segment between (0,0) and me to have a length of len.
+        normalize: function(len) {
+            var s = (len || 1) / this.magnitude();
+            this.x = s * this.x;
+            this.y = s * this.y;
+            return this;
+        },
+        difference: function(p) {
+            return point(this.x - p.x, this.y - p.y);
+        },
+        // Return the bearing between me and point `p`.
+        bearing: function(p) {
+            return line(this, p).bearing();
+        },
+        // Converts rectangular to polar coordinates.
+        // An origin can be specified, otherwise it's 0@0.
+        toPolar: function(o) {
+            o = (o && point(o)) || point(0, 0);
+            var x = this.x;
+            var y = this.y;
+            this.x = sqrt((x - o.x) * (x - o.x) + (y - o.y) * (y - o.y)); // r
+            this.y = toRad(o.theta(point(x, y)));
+            return this;
+        },
+        // Rotate point by angle around origin o.
+        rotate: function(o, angle) {
+            angle = (angle + 360) % 360;
+            this.toPolar(o);
+            this.y += toRad(angle);
+            var p = point.fromPolar(this.x, this.y, o);
+            this.x = p.x;
+            this.y = p.y;
+            return this;
+        },
+        // Move point on line starting from ref ending at me by
+        // distance distance.
+        move: function(ref, distance) {
+            var theta = toRad(point(ref).theta(this));
+            return this.offset(cos(theta) * distance, -sin(theta) * distance);
+        },
+        // Returns change in angle from my previous position (-dx, -dy) to my new position
+        // relative to ref point.
+        changeInAngle: function(dx, dy, ref) {
+            // Revert the translation and measure the change in angle around x-axis.
+            return point(this).offset(-dx, -dy).theta(ref) - this.theta(ref);
+        },
+        equals: function(p) {
+            return this.x === p.x && this.y === p.y;
+        },
+        snapToGrid: function(gx, gy) {
+            this.x = snapToGrid(this.x, gx);
+            this.y = snapToGrid(this.y, gy || gx);
+            return this;
+        },
+        // Returns a point that is the reflection of me with
+        // the center of inversion in ref point.
+        reflection: function(ref) {
+            return point(ref).move(this, this.distance(ref));
+        }
+    };
+    // Alternative constructor, from polar coordinates.
+    // @param {number} r Distance.
+    // @param {number} angle Angle in radians.
+    // @param {point} [optional] o Origin.
+    point.fromPolar = function(r, angle, o) {
+        o = (o && point(o)) || point(0, 0);
+        var x = abs(r * cos(angle));
+        var y = abs(r * sin(angle));
+        var deg = normalizeAngle(toDeg(angle));
+
+        if (deg < 90) {
+            y = -y;
+        } else if (deg < 180) {
+            x = -x;
+            y = -y;
+        } else if (deg < 270) {
+            x = -x;
+        }
+
+        return point(o.x + x, o.y + y);
+    };
+
+    // Create a point with random coordinates that fall into the range `[x1, x2]` and `[y1, y2]`.
+    point.random = function(x1, x2, y1, y2) {
+        return point(floor(random() * (x2 - x1 + 1) + x1), floor(random() * (y2 - y1 + 1) + y1));
+    };
+
+    // Line.
+    // -----
+    function line(p1, p2) {
+        if (!(this instanceof line))
+            return new line(p1, p2);
+        this.start = point(p1);
+        this.end = point(p2);
+    }
+
+    line.prototype = {
+        toString: function() {
+            return this.start.toString() + ' ' + this.end.toString();
+        },
+        // @return {double} length of the line
+        length: function() {
+            return sqrt(this.squaredLength());
+        },
+        // @return {integer} length without sqrt
+        // @note for applications where the exact length is not necessary (e.g. compare only)
+        squaredLength: function() {
+            var x0 = this.start.x;
+            var y0 = this.start.y;
+            var x1 = this.end.x;
+            var y1 = this.end.y;
+            return (x0 -= x1) * x0 + (y0 -= y1) * y0;
+        },
+        // @return {point} my midpoint
+        midpoint: function() {
+            return point((this.start.x + this.end.x) / 2,
+                         (this.start.y + this.end.y) / 2);
+        },
+        // @return {point} Point where I'm intersecting l.
+        // @see Squeak Smalltalk, LineSegment>>intersectionWith:
+        intersection: function(l) {
+            var pt1Dir = point(this.end.x - this.start.x, this.end.y - this.start.y);
+            var pt2Dir = point(l.end.x - l.start.x, l.end.y - l.start.y);
+            var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
+            var deltaPt = point(l.start.x - this.start.x, l.start.y - this.start.y);
+            var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
+            var beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
+
+            if (det === 0 ||
+                alpha * det < 0 ||
+                beta * det < 0) {
+                // No intersection found.
+                return null;
+            }
+            if (det > 0) {
+                if (alpha > det || beta > det) {
+                    return null;
+                }
+            } else {
+                if (alpha < det || beta < det) {
+                    return null;
+                }
+            }
+            return point(this.start.x + (alpha * pt1Dir.x / det),
+                         this.start.y + (alpha * pt1Dir.y / det));
+        },
+
+        // @return the bearing (cardinal direction) of the line. For example N, W, or SE.
+        // @returns {String} One of the following bearings : NE, E, SE, S, SW, W, NW, N.
+        bearing: function() {
+
+            var lat1 = toRad(this.start.y);
+            var lat2 = toRad(this.end.y);
+            var lon1 = this.start.x;
+            var lon2 = this.end.x;
+            var dLon = toRad(lon2 - lon1);
+            var y = sin(dLon) * cos(lat2);
+            var x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
+            var brng = toDeg(atan2(y, x));
+
+            var bearings = ['NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
+
+            var index = brng - 22.5;
+            if (index < 0)
+                index += 360;
+            index = parseInt(index / 45);
+
+            return bearings[index];
+        },
+
+        // @return {point} my point at 't' <0,1>
+        pointAt: function(t) {
+            var x = (1 - t) * this.start.x + t * this.end.x;
+            var y = (1 - t) * this.start.y + t * this.end.y;
+            return point(x, y);
+        },
+
+        // @return {number} the offset of the point `p` from the line. + if the point `p` is on the right side of the line, - if on the left and 0 if on the line.
+        pointOffset: function(p) {
+            // Find the sign of the determinant of vectors (start,end), where p is the query point.
+            return ((this.end.x - this.start.x) * (p.y - this.start.y) - (this.end.y - this.start.y) * (p.x - this.start.x)) / 2;
+        }
+    };
+
+    // Rectangle.
+    // ----------
+    function rect(x, y, w, h) {
+        if (!(this instanceof rect))
+            return new rect(x, y, w, h);
+        if (y === undefined) {
+            y = x.y;
+            w = x.width;
+            h = x.height;
+            x = x.x;
+        }
+        this.x = x;
+        this.y = y;
+        this.width = w;
+        this.height = h;
+    }
+
+    rect.prototype = {
+        toString: function() {
+            return this.origin().toString() + ' ' + this.corner().toString();
+        },
+        origin: function() {
+            return point(this.x, this.y);
+        },
+        corner: function() {
+            return point(this.x + this.width, this.y + this.height);
+        },
+        topRight: function() {
+            return point(this.x + this.width, this.y);
+        },
+        bottomLeft: function() {
+            return point(this.x, this.y + this.height);
+        },
+        center: function() {
+            return point(this.x + this.width / 2, this.y + this.height / 2);
+        },
+        // @return {boolean} true if rectangles intersect
+        intersect: function(r) {
+            var myOrigin = this.origin();
+            var myCorner = this.corner();
+            var rOrigin = r.origin();
+            var rCorner = r.corner();
+
+            if (rCorner.x <= myOrigin.x ||
+                rCorner.y <= myOrigin.y ||
+                rOrigin.x >= myCorner.x ||
+                rOrigin.y >= myCorner.y) return false;
+            return true;
+        },
+        // @return {string} (left|right|top|bottom) side which is nearest to point
+        // @see Squeak Smalltalk, Rectangle>>sideNearestTo:
+        sideNearestToPoint: function(p) {
+            p = point(p);
+            var distToLeft = p.x - this.x;
+            var distToRight = (this.x + this.width) - p.x;
+            var distToTop = p.y - this.y;
+            var distToBottom = (this.y + this.height) - p.y;
+            var closest = distToLeft;
+            var side = 'left';
+
+            if (distToRight < closest) {
+                closest = distToRight;
+                side = 'right';
+            }
+            if (distToTop < closest) {
+                closest = distToTop;
+                side = 'top';
+            }
+            if (distToBottom < closest) {
+                closest = distToBottom;
+                side = 'bottom';
+            }
+            return side;
+        },
+        // @return {bool} true if point p is insight me
+        containsPoint: function(p) {
+            p = point(p);
+            if (p.x >= this.x && p.x <= this.x + this.width &&
+                p.y >= this.y && p.y <= this.y + this.height) {
+                return true;
+            }
+            return false;
+        },
+        // Algorithm ported from java.awt.Rectangle from OpenJDK.
+        // @return {bool} true if rectangle `r` is inside me.
+        containsRect: function(r) {
+            var nr = rect(r).normalize();
+            var W = nr.width;
+            var H = nr.height;
+            var X = nr.x;
+            var Y = nr.y;
+            var w = this.width;
+            var h = this.height;
+            if ((w | h | W | H) < 0) {
+                // At least one of the dimensions is negative...
+                return false;
+            }
+            // Note: if any dimension is zero, tests below must return false...
+            var x = this.x;
+            var y = this.y;
+            if (X < x || Y < y) {
+                return false;
+            }
+            w += x;
+            W += X;
+            if (W <= X) {
+                // X+W overflowed or W was zero, return false if...
+                // either original w or W was zero or
+                // x+w did not overflow or
+                // the overflowed x+w is smaller than the overflowed X+W
+                if (w >= x || W > w) return false;
+            } else {
+                // X+W did not overflow and W was not zero, return false if...
+                // original w was zero or
+                // x+w did not overflow and x+w is smaller than X+W
+                if (w >= x && W > w) return false;
+            }
+            h += y;
+            H += Y;
+            if (H <= Y) {
+                if (h >= y || H > h) return false;
+            } else {
+                if (h >= y && H > h) return false;
+            }
+            return true;
+        },
+        // @return {point} a point on my boundary nearest to p
+        // @see Squeak Smalltalk, Rectangle>>pointNearestTo:
+        pointNearestToPoint: function(p) {
+            p = point(p);
+            if (this.containsPoint(p)) {
+                var side = this.sideNearestToPoint(p);
+                switch (side){
+                    case 'right': return point(this.x + this.width, p.y);
+                    case 'left': return point(this.x, p.y);
+                    case 'bottom': return point(p.x, this.y + this.height);
+                    case 'top': return point(p.x, this.y);
+                }
+            }
+            return p.adhereToRect(this);
+        },
+        // Find point on my boundary where line starting
+        // from my center ending in point p intersects me.
+        // @param {number} angle If angle is specified, intersection with rotated rectangle is computed.
+        intersectionWithLineFromCenterToPoint: function(p, angle) {
+            p = point(p);
+            var center = point(this.x + this.width / 2, this.y + this.height / 2);
+            var result;
+            if (angle) p.rotate(center, angle);
+
+            // (clockwise, starting from the top side)
+            var sides = [
+                line(this.origin(), this.topRight()),
+                line(this.topRight(), this.corner()),
+                line(this.corner(), this.bottomLeft()),
+                line(this.bottomLeft(), this.origin())
+            ];
+            var connector = line(center, p);
+
+            for (var i = sides.length - 1; i >= 0; --i) {
+                var intersection = sides[i].intersection(connector);
+                if (intersection !== null) {
+                    result = intersection;
+                    break;
+                }
+            }
+            if (result && angle) result.rotate(center, -angle);
+            return result;
+        },
+        // Move and expand me.
+        // @param r {rectangle} representing deltas
+        moveAndExpand: function(r) {
+            this.x += r.x || 0;
+            this.y += r.y || 0;
+            this.width += r.width || 0;
+            this.height += r.height || 0;
+            return this;
+        },
+        round: function(decimals) {
+            this.x = decimals ? this.x.toFixed(decimals) : round(this.x);
+            this.y = decimals ? this.y.toFixed(decimals) : round(this.y);
+            this.width = decimals ? this.width.toFixed(decimals) : round(this.width);
+            this.height = decimals ? this.height.toFixed(decimals) : round(this.height);
+            return this;
+        },
+        // Normalize the rectangle; i.e., make it so that it has a non-negative width and height.
+        // If width < 0 the function swaps the left and right corners,
+        // and it swaps the top and bottom corners if height < 0
+        // like in http://qt-project.org/doc/qt-4.8/qrectf.html#normalized
+        normalize: function() {
+            var newx = this.x;
+            var newy = this.y;
+            var newwidth = this.width;
+            var newheight = this.height;
+            if (this.width < 0) {
+                newx = this.x + this.width;
+                newwidth = -this.width;
+            }
+            if (this.height < 0) {
+                newy = this.y + this.height;
+                newheight = -this.height;
+            }
+            this.x = newx;
+            this.y = newy;
+            this.width = newwidth;
+            this.height = newheight;
+            return this;
+        },
+        // Find my bounding box when I'm rotated with the center of rotation in the center of me.
+        // @return r {rectangle} representing a bounding box
+        bbox: function(angle) {
+            var theta = toRad(angle || 0);
+            var st = abs(sin(theta));
+            var ct = abs(cos(theta));
+            var w = this.width * ct + this.height * st;
+            var h = this.width * st + this.height * ct;
+            return rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
+        }
+    };
+
+    // Ellipse.
+    // --------
+    function ellipse(c, a, b) {
+        if (!(this instanceof ellipse))
+            return new ellipse(c, a, b);
+        c = point(c);
+        this.x = c.x;
+        this.y = c.y;
+        this.a = a;
+        this.b = b;
+    }
+
+    ellipse.prototype = {
+        toString: function() {
+            return point(this.x, this.y).toString() + ' ' + this.a + ' ' + this.b;
+        },
+        bbox: function() {
+            return rect(this.x - this.a, this.y - this.b, 2 * this.a, 2 * this.b);
+        },
+        // Find point on me where line from my center to
+        // point p intersects my boundary.
+        // @param {number} angle If angle is specified, intersection with rotated ellipse is computed.
+        intersectionWithLineFromCenterToPoint: function(p, angle) {
+            p = point(p);
+            if (angle) p.rotate(point(this.x, this.y), angle);
+            var dx = p.x - this.x;
+            var dy = p.y - this.y;
+            var result;
+            if (dx === 0) {
+                result = this.bbox().pointNearestToPoint(p);
+                if (angle) return result.rotate(point(this.x, this.y), -angle);
+                return result;
+            }
+            var m = dy / dx;
+            var mSquared = m * m;
+            var aSquared = this.a * this.a;
+            var bSquared = this.b * this.b;
+            var x = sqrt(1 / ((1 / aSquared) + (mSquared / bSquared)));
+
+            x = dx < 0 ? -x : x;
+            var y = m * x;
+            result = point(this.x + x, this.y + y);
+            if (angle) return result.rotate(point(this.x, this.y), -angle);
+            return result;
+        }
+    };
+
+    // Bezier curve.
+    // -------------
+    var bezier = {
+        // Cubic Bezier curve path through points.
+        // Ported from C# implementation by Oleg V. Polikarpotchkin and Peter Lee (http://www.codeproject.com/KB/graphics/BezierSpline.aspx).
+        // @param {array} points Array of points through which the smooth line will go.
+        // @return {array} SVG Path commands as an array
+        curveThroughPoints: function(points) {
+            var controlPoints = this.getCurveControlPoints(points);
+            var path = ['M', points[0].x, points[0].y];
+
+            for (var i = 0; i < controlPoints[0].length; i++) {
+                path.push('C', controlPoints[0][i].x, controlPoints[0][i].y, controlPoints[1][i].x, controlPoints[1][i].y, points[i + 1].x, points[i + 1].y);
+            }
+            return path;
+        },
+
+        // Get open-ended Bezier Spline Control Points.
+        // @param knots Input Knot Bezier spline points (At least two points!).
+        // @param firstControlPoints Output First Control points. Array of knots.length - 1 length.
+        //  @param secondControlPoints Output Second Control points. Array of knots.length - 1 length.
+        getCurveControlPoints: function(knots) {
+            var firstControlPoints = [];
+            var secondControlPoints = [];
+            var n = knots.length - 1;
+            var i;
+
+            // Special case: Bezier curve should be a straight line.
+            if (n == 1) {
+                // 3P1 = 2P0 + P3
+                firstControlPoints[0] = point((2 * knots[0].x + knots[1].x) / 3,
+                                              (2 * knots[0].y + knots[1].y) / 3);
+                // P2 = 2P1 – P0
+                secondControlPoints[0] = point(2 * firstControlPoints[0].x - knots[0].x,
+                                               2 * firstControlPoints[0].y - knots[0].y);
+                return [firstControlPoints, secondControlPoints];
+            }
+
+            // Calculate first Bezier control points.
+            // Right hand side vector.
+            var rhs = [];
+
+            // Set right hand side X values.
+            for (i = 1; i < n - 1; i++) {
+                rhs[i] = 4 * knots[i].x + 2 * knots[i + 1].x;
+            }
+            rhs[0] = knots[0].x + 2 * knots[1].x;
+            rhs[n - 1] = (8 * knots[n - 1].x + knots[n].x) / 2.0;
+            // Get first control points X-values.
+            var x = this.getFirstControlPoints(rhs);
+
+            // Set right hand side Y values.
+            for (i = 1; i < n - 1; ++i) {
+                rhs[i] = 4 * knots[i].y + 2 * knots[i + 1].y;
+            }
+            rhs[0] = knots[0].y + 2 * knots[1].y;
+            rhs[n - 1] = (8 * knots[n - 1].y + knots[n].y) / 2.0;
+            // Get first control points Y-values.
+            var y = this.getFirstControlPoints(rhs);
+
+            // Fill output arrays.
+            for (i = 0; i < n; i++) {
+                // First control point.
+                firstControlPoints.push(point(x[i], y[i]));
+                // Second control point.
+                if (i < n - 1) {
+                    secondControlPoints.push(point(2 * knots [i + 1].x - x[i + 1],
+                                                   2 * knots[i + 1].y - y[i + 1]));
+                } else {
+                    secondControlPoints.push(point((knots[n].x + x[n - 1]) / 2,
+                                                   (knots[n].y + y[n - 1]) / 2));
+                }
+            }
+            return [firstControlPoints, secondControlPoints];
+        },
+
+        // Solves a tridiagonal system for one of coordinates (x or y) of first Bezier control points.
+        // @param rhs Right hand side vector.
+        // @return Solution vector.
+        getFirstControlPoints: function(rhs) {
+            var n = rhs.length;
+            // `x` is a solution vector.
+            var x = [];
+            var tmp = [];
+            var b = 2.0;
+
+            x[0] = rhs[0] / b;
+            // Decomposition and forward substitution.
+            for (var i = 1; i < n; i++) {
+                tmp[i] = 1 / b;
+                b = (i < n - 1 ? 4.0 : 3.5) - tmp[i];
+                x[i] = (rhs[i] - x[i - 1]) / b;
+            }
+            for (i = 1; i < n; i++) {
+                // Backsubstitution.
+                x[n - i - 1] -= tmp[n - i] * x[n - i];
+            }
+            return x;
+        },
+
+        // Solves an inversion problem -- Given the (x, y) coordinates of a point which lies on
+        // a parametric curve x = x(t)/w(t), y = y(t)/w(t), ﬁnd the parameter value t
+        // which corresponds to that point.
+        // @param control points (start, control start, control end, end)
+        // @return a function accepts a point and returns t.
+        getInversionSolver: function(p0, p1, p2, p3) {
+            var pts = arguments;
+            function l(i, j) {
+                // calculates a determinant 3x3
+                // [p.x  p.y  1]
+                // [pi.x pi.y 1]
+                // [pj.x pj.y 1]
+                var pi = pts[i];
+                var pj = pts[j];
+                return function(p) {
+                    var w = (i % 3 ? 3 : 1) * (j % 3 ? 3 : 1);
+                    var lij = p.x * (pi.y - pj.y) + p.y * (pj.x - pi.x) + pi.x * pj.y - pi.y * pj.x;
+                    return w * lij;
+                };
+            }
+            return function solveInversion(p) {
+                var ct = 3 * l(2, 3)(p1);
+                var c1 = l(1, 3)(p0) / ct;
+                var c2 = -l(2, 3)(p0) / ct;
+                var la = c1 * l(3, 1)(p) + c2 * (l(3, 0)(p) + l(2, 1)(p)) + l(2, 0)(p);
+                var lb = c1 * l(3, 0)(p) + c2 * l(2, 0)(p) + l(1, 0)(p);
+                return lb / (lb - la);
+            };
+        },
+
+        // Divide a Bezier curve into two at point defined by value 't' <0,1>.
+        // Using deCasteljau algorithm. http://math.stackexchange.com/a/317867
+        // @param control points (start, control start, control end, end)
+        // @return a function accepts t and returns 2 curves each defined by 4 control points.
+        getCurveDivider: function(p0, p1, p2, p3) {
+            return function divideCurve(t) {
+                var l = line(p0, p1).pointAt(t);
+                var m = line(p1, p2).pointAt(t);
+                var n = line(p2, p3).pointAt(t);
+                var p = line(l, m).pointAt(t);
+                var q = line(m, n).pointAt(t);
+                var r = line(p, q).pointAt(t);
+                return [{ p0: p0, p1: l, p2: p, p3: r }, { p0: r, p1: q, p2: n, p3: p3 }];
+            };
+        }
+    };
+
+    // Scale.
+    var scale = {
+
+        // Return the `value` from the `domain` interval scaled to the `range` interval.
+        linear: function(domain, range, value) {
+
+            var domainSpan = domain[1] - domain[0];
+            var rangeSpan = range[1] - range[0];
+            return (((value - domain[0]) / domainSpan) * rangeSpan + range[0]) || 0;
+        }
+    };
+
+    return {
+        toDeg: toDeg,
+        toRad: toRad,
+        snapToGrid: snapToGrid,
+        normalizeAngle: normalizeAngle,
+        point: point,
+        line: line,
+        rect: rect,
+        ellipse: ellipse,
+        bezier: bezier,
+        scale: scale
+    };
+
+}));
+
+// Vectorizer.
+// -----------
+
+// A tiny library for making your live easier when dealing with SVG.
+// The only Vectorizer dependency is the Geometry library.
+
+// Copyright © 2012 - 2015 client IO (http://client.io)
+
+(function(root, factory) {
+
+    if (typeof define === 'function' && define.amd) {
+
+        // AMD.
+        define(['g'], function(g) {
+            return factory(g);
+        });
+
+    } else if (typeof exports === 'object') {
+
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        var g = require('./geometry');
+
+        module.exports = factory(g);
+
+    } else {
+
+        // Browser globals.
+        var g = root.g;
+
+        root.Vectorizer = root.V = factory(g);
+    }
+
+}(this, function(g) {
+
+    var SVGsupported = typeof window === 'object' && !!(window.SVGAngle || document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1'));
+
+    // SVG support is required.
+    if (!SVGsupported) return function() {};
+
+    // XML namespaces.
+    var ns = {
+        xmlns: 'http://www.w3.org/2000/svg',
+        xlink: 'http://www.w3.org/1999/xlink'
+    };
+    // SVG version.
+    var SVGversion = '1.1';
+
+    // A function returning a unique identifier for this client session with every call.
+    var idCounter = 0;
+    function uniqueId() {
+        var id = ++idCounter + '';
+        return 'v-' + id;
+    }
+
+    function isObject(o) {
+        return Object(o) === Object(o);
+    }
+
+    function isArray(o) {
+        return Object.prototype.toString.call(o) == '[object Array]';
+    }
+
+    // Create an SVG document element.
+    // If `content` is passed, it will be used as the SVG content of the `<svg>` root element.
+    function createSvgDocument(content) {
+
+        var svg = '<svg xmlns="' + ns.xmlns + '" xmlns:xlink="' + ns.xlink + '" version="' + SVGversion + '">' + (content || '') + '</svg>';
+        var parser = new DOMParser();
+        parser.async = false;
+        return parser.parseFromString(svg, 'text/xml').documentElement;
+    }
+
+    // Create SVG element.
+    // -------------------
+
+    function createElement(el, attrs, children) {
+
+        var i, len;
+
+        if (!el) return undefined;
+
+        // If `el` is an object, it is probably a native SVG element. Wrap it to VElement.
+        if (typeof el === 'object') {
+            return new VElement(el);
+        }
+        attrs = attrs || {};
+
+        // If `el` is a `'svg'` or `'SVG'` string, create a new SVG canvas.
+        if (el.toLowerCase() === 'svg') {
+
+            return new VElement(createSvgDocument());
+
+        } else if (el[0] === '<') {
+            // Create element from an SVG string.
+            // Allows constructs of type: `document.appendChild(Vectorizer('<rect></rect>').node)`.
+
+            var svgDoc = createSvgDocument(el);
+
+            // Note that `createElement()` might also return an array should the SVG string passed as
+            // the first argument contain more then one root element.
+            if (svgDoc.childNodes.length > 1) {
+
+                // Map child nodes to `VElement`s.
+                var ret = [];
+                for (i = 0, len = svgDoc.childNodes.length; i < len; i++) {
+
+                    var childNode = svgDoc.childNodes[i];
+                    ret.push(new VElement(document.importNode(childNode, true)));
+                }
+                return ret;
+            }
+
+            return new VElement(document.importNode(svgDoc.firstChild, true));
+        }
+
+        el = document.createElementNS(ns.xmlns, el);
+
+        // Set attributes.
+        for (var key in attrs) {
+
+            setAttribute(el, key, attrs[key]);
+        }
+
+        // Normalize `children` array.
+        if (Object.prototype.toString.call(children) != '[object Array]') children = [children];
+
+        // Append children if they are specified.
+        for (i = 0, len = (children[0] && children.length) || 0; i < len; i++) {
+            var child = children[i];
+            el.appendChild(child instanceof VElement ? child.node : child);
+        }
+
+        return new VElement(el);
+    }
+
+    function setAttribute(el, name, value) {
+
+        if (name.indexOf(':') > -1) {
+            // Attribute names can be namespaced. E.g. `image` elements
+            // have a `xlink:href` attribute to set the source of the image.
+            var combinedKey = name.split(':');
+            el.setAttributeNS(ns[combinedKey[0]], combinedKey[1], value);
+
+        } else if (name === 'id') {
+            el.id = value;
+        } else {
+            el.setAttribute(name, value);
+        }
+    }
+
+    function parseTransformString(transform) {
+        var translate,
+            rotate,
+            scale;
+
+        if (transform) {
+
+            var separator = /[ ,]+/;
+
+            var translateMatch = transform.match(/translate\((.*)\)/);
+            if (translateMatch) {
+                translate = translateMatch[1].split(separator);
+            }
+            var rotateMatch = transform.match(/rotate\((.*)\)/);
+            if (rotateMatch) {
+                rotate = rotateMatch[1].split(separator);
+            }
+            var scaleMatch = transform.match(/scale\((.*)\)/);
+            if (scaleMatch) {
+                scale = scaleMatch[1].split(separator);
+            }
+        }
+
+        var sx = (scale && scale[0]) ? parseFloat(scale[0]) : 1;
+
+        return {
+            translate: {
+                tx: (translate && translate[0]) ? parseInt(translate[0], 10) : 0,
+                ty: (translate && translate[1]) ? parseInt(translate[1], 10) : 0
+            },
+            rotate: {
+                angle: (rotate && rotate[0]) ? parseInt(rotate[0], 10) : 0,
+                cx: (rotate && rotate[1]) ? parseInt(rotate[1], 10) : undefined,
+                cy: (rotate && rotate[2]) ? parseInt(rotate[2], 10) : undefined
+            },
+            scale: {
+                sx: sx,
+                sy: (scale && scale[1]) ? parseFloat(scale[1]) : sx
+            }
+        };
+    }
 
 
-This Source Code Form is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at http://mozilla.org/MPL/2.0/.
- */
+    // Matrix decomposition.
+    // ---------------------
+
+    function deltaTransformPoint(matrix, point) {
+
+        var dx = point.x * matrix.a + point.y * matrix.c + 0;
+        var dy = point.x * matrix.b + point.y * matrix.d + 0;
+        return { x: dx, y: dy };
+    }
+
+    function decomposeMatrix(matrix) {
+
+        // @see https://gist.github.com/2052247
+
+        // calculate delta transform point
+        var px = deltaTransformPoint(matrix, { x: 0, y: 1 });
+        var py = deltaTransformPoint(matrix, { x: 1, y: 0 });
+
+        // calculate skew
+        var skewX = ((180 / Math.PI) * Math.atan2(px.y, px.x) - 90);
+        var skewY = ((180 / Math.PI) * Math.atan2(py.y, py.x));
+
+        return {
+
+            translateX: matrix.e,
+            translateY: matrix.f,
+            scaleX: Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b),
+            scaleY: Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d),
+            skewX: skewX,
+            skewY: skewY,
+            rotation: skewX // rotation is the same as skew x
+        };
+    }
+
+    // VElement.
+    // ---------
+
+    function VElement(el) {
+        if (el instanceof VElement) {
+            el = el.node;
+        }
+        this.node = el;
+        if (!this.node.id) {
+            this.node.id = uniqueId();
+        }
+    }
+
+    // VElement public API.
+    // --------------------
+
+    VElement.prototype = {
+
+        translate: function(tx, ty, opt) {
+
+            opt = opt || {};
+            ty = ty || 0;
+
+            var transformAttr = this.attr('transform') || '';
+            var transform = parseTransformString(transformAttr);
+
+            // Is it a getter?
+            if (typeof tx === 'undefined') {
+                return transform.translate;
+            }
+
+            transformAttr = transformAttr.replace(/translate\([^\)]*\)/g, '').trim();
+
+            var newTx = opt.absolute ? tx : transform.translate.tx + tx;
+            var newTy = opt.absolute ? ty : transform.translate.ty + ty;
+            var newTranslate = 'translate(' + newTx + ',' + newTy + ')';
+
+            // Note that `translate()` is always the first transformation. This is
+            // usually the desired case.
+            this.attr('transform', (newTranslate + ' ' + transformAttr).trim());
+            return this;
+        },
+
+        rotate: function(angle, cx, cy, opt) {
+
+            opt = opt || {};
+
+            var transformAttr = this.attr('transform') || '';
+            var transform = parseTransformString(transformAttr);
+
+            // Is it a getter?
+            if (typeof angle === 'undefined') {
+                return transform.rotate;
+            }
+
+            transformAttr = transformAttr.replace(/rotate\([^\)]*\)/g, '').trim();
+
+            angle %= 360;
+
+            var newAngle = opt.absolute ? angle : transform.rotate.angle + angle;
+            var newOrigin = (cx !== undefined && cy !== undefined) ? ',' + cx + ',' + cy : '';
+            var newRotate = 'rotate(' + newAngle + newOrigin + ')';
+
+            this.attr('transform', (transformAttr + ' ' + newRotate).trim());
+            return this;
+        },
+
+        // Note that `scale` as the only transformation does not combine with previous values.
+        scale: function(sx, sy) {
+            sy = (typeof sy === 'undefined') ? sx : sy;
+
+            var transformAttr = this.attr('transform') || '';
+            var transform = parseTransformString(transformAttr);
+
+            // Is it a getter?
+            if (typeof sx === 'undefined') {
+                return transform.scale;
+            }
+
+            transformAttr = transformAttr.replace(/scale\([^\)]*\)/g, '').trim();
+
+            var newScale = 'scale(' + sx + ',' + sy + ')';
+
+            this.attr('transform', (transformAttr + ' ' + newScale).trim());
+            return this;
+        },
+
+        // Get SVGRect that contains coordinates and dimension of the real bounding box,
+        // i.e. after transformations are applied.
+        // If `target` is specified, bounding box will be computed relatively to `target` element.
+        bbox: function(withoutTransformations, target) {
+
+            // If the element is not in the live DOM, it does not have a bounding box defined and
+            // so fall back to 'zero' dimension element.
+            if (!this.node.ownerSVGElement) return { x: 0, y: 0, width: 0, height: 0 };
+
+            var box;
+            try {
+
+                box = this.node.getBBox();
+
+                // Opera returns infinite values in some cases.
+                // Note that Infinity | 0 produces 0 as opposed to Infinity || 0.
+                // We also have to create new object as the standard says that you can't
+                // modify the attributes of a bbox.
+                box = { x: box.x | 0, y: box.y | 0, width: box.width | 0, height: box.height | 0 };
+
+            } catch (e) {
+
+                // Fallback for IE.
+                box = {
+                    x: this.node.clientLeft,
+                    y: this.node.clientTop,
+                    width: this.node.clientWidth,
+                    height: this.node.clientHeight
+                };
+            }
+
+            if (withoutTransformations) {
+
+                return box;
+            }
+
+            var matrix = this.node.getTransformToElement(target || this.node.ownerSVGElement);
+
+            return V.transformRect(box, matrix);
+        },
+
+        text: function(content, opt) {
+
+            opt = opt || {};
+            var lines = content.split('\n');
+            var i = 0;
+            var tspan;
+
+            // `alignment-baseline` does not work in Firefox.
+            // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
+            // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
+            // in the top left corner we translate the `<text>` element by `0.8em`.
+            // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
+            // See also `http://apike.ca/prog_svg_text_style.html`.
+            var y = this.attr('y');
+            if (!y) {
+                this.attr('y', '0.8em');
+            }
+
+            // An empty text gets rendered into the DOM in webkit-based browsers.
+            // In order to unify this behaviour across all browsers
+            // we rather hide the text element when it's empty.
+            this.attr('display', content ? null : 'none');
+
+            // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
+            this.node.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
+
+            // Easy way to erase all `<tspan>` children;
+            this.node.textContent = '';
+
+            var textNode = this.node;
+
+            if (opt.textPath) {
+
+                // Wrap the text in the SVG <textPath> element that points
+                // to a path defined by `opt.textPath` inside the internal `<defs>` element.
+                var defs = this.find('defs');
+                if (defs.length === 0) {
+                    defs = createElement('defs');
+                    this.append(defs);
+                }
+
+                // If `opt.textPath` is a plain string, consider it to be directly the
+                // SVG path data for the text to go along (this is a shortcut).
+                // Otherwise if it is an object and contains the `d` property, then this is our path.
+                var d = Object(opt.textPath) === opt.textPath ? opt.textPath.d : opt.textPath;
+                if (d) {
+                    var path = createElement('path', { d: d });
+                    defs.append(path);
+                }
+
+                var textPath = createElement('textPath');
+                // Set attributes on the `<textPath>`. The most important one
+                // is the `xlink:href` that points to our newly created `<path/>` element in `<defs/>`.
+                // Note that we also allow the following construct:
+                // `t.text('my text', { textPath: { 'xlink:href': '#my-other-path' } })`.
+                // In other words, one can completely skip the auto-creation of the path
+                // and use any other arbitrary path that is in the document.
+                if (!opt.textPath['xlink:href'] && path) {
+                    textPath.attr('xlink:href', '#' + path.node.id);
+                }
+
+                if (Object(opt.textPath) === opt.textPath) {
+                    textPath.attr(opt.textPath);
+                }
+                this.append(textPath);
+                // Now all the `<tspan>`s will be inside the `<textPath>`.
+                textNode = textPath.node;
+            }
+
+            var offset = 0;
+
+            for (var i = 0; i < lines.length; i++) {
+
+                var line = lines[i];
+                // Shift all the <tspan> but first by one line (`1em`)
+                var lineHeight = opt.lineHeight || '1em';
+                if (opt.lineHeight === 'auto') {
+                    lineHeight = '1.5em';
+                }
+                var vLine = V('tspan', { dy: (i == 0 ? '0em' : lineHeight), x: this.attr('x') || 0 });
+                vLine.addClass('v-line');
+
+                if (line) {
+
+                    if (opt.annotations) {
+
+                        // Get the line height based on the biggest font size in the annotations for this line.
+                        var maxFontSize = 0;
+
+                        // Find the *compacted* annotations for this line.
+                        var lineAnnotations = V.annotateString(lines[i], isArray(opt.annotations) ? opt.annotations : [opt.annotations], { offset: -offset, includeAnnotationIndices: opt.includeAnnotationIndices });
+                        for (var j = 0; j < lineAnnotations.length; j++) {
+
+                            var annotation = lineAnnotations[j];
+                            if (isObject(annotation)) {
+
+                                var fontSize = parseInt(annotation.attrs['font-size'], 10);
+                                if (fontSize && fontSize > maxFontSize) {
+                                    maxFontSize = fontSize;
+                                }
+
+                                tspan = V('tspan', annotation.attrs);
+                                if (opt.includeAnnotationIndices) {
+                                    // If `opt.includeAnnotationIndices` is `true`,
+                                    // set the list of indices of all the applied annotations
+                                    // in the `annotations` attribute. This list is a comma
+                                    // separated list of indices.
+                                    tspan.attr('annotations', annotation.annotations);
+                                }
+                                if (annotation.attrs['class']) {
+                                    tspan.addClass(annotation.attrs['class']);
+                                }
+                                tspan.node.textContent = annotation.t;
+
+                            } else {
+
+                                tspan = document.createTextNode(annotation || ' ');
+
+                            }
+                            vLine.append(tspan);
+                        }
+
+                        if (opt.lineHeight === 'auto' && maxFontSize && i !== 0) {
+
+                            vLine.attr('dy', (maxFontSize * 1.2) + 'px');
+                        }
+
+                    } else {
+
+                        vLine.node.textContent = line;
+                    }
+
+                } else {
+
+                    // Make sure the textContent is never empty. If it is, add an additional
+                    // space (an invisible character) so that following lines are correctly
+                    // relatively positioned. `dy=1em` won't work with empty lines otherwise.
+                    vLine.addClass('v-empty-line');
+                    vLine.node.textContent = ' ';
+                }
+
+                V(textNode).append(vLine);
+
+                offset += line.length + 1;      // + 1 = newline character.
+            }
+
+            return this;
+        },
+
+        attr: function(name, value) {
+
+            if (typeof name === 'undefined') {
+                // Return all attributes.
+                var attributes = this.node.attributes;
+                var attrs = {};
+                for (var i = 0; i < attributes.length; i++) {
+                    attrs[attributes[i].nodeName] = attributes[i].nodeValue;
+                }
+                return attrs;
+            }
+
+            if (typeof name === 'string' && typeof value === 'undefined') {
+                return this.node.getAttribute(name);
+            }
+
+            if (typeof name === 'object') {
+
+                for (var attrName in name) {
+                    if (name.hasOwnProperty(attrName)) {
+                        setAttribute(this.node, attrName, name[attrName]);
+                    }
+                }
+
+            } else {
+
+                setAttribute(this.node, name, value);
+            }
+
+            return this;
+        },
+
+        remove: function() {
+            if (this.node.parentNode) {
+                this.node.parentNode.removeChild(this.node);
+            }
+        },
+
+        append: function(el) {
+
+            var els = el;
+
+            if (Object.prototype.toString.call(el) !== '[object Array]') {
+
+                els = [el];
+            }
+
+            for (var i = 0, len = els.length; i < len; i++) {
+                el = els[i];
+                this.node.appendChild(el instanceof VElement ? el.node : el);
+            }
+
+            return this;
+        },
+
+        prepend: function(el) {
+            this.node.insertBefore(el instanceof VElement ? el.node : el, this.node.firstChild);
+        },
+
+        svg: function() {
+
+            return this.node instanceof window.SVGSVGElement ? this : V(this.node.ownerSVGElement);
+        },
+
+        defs: function() {
+
+            var defs = this.svg().node.getElementsByTagName('defs');
+
+            return (defs && defs.length) ? V(defs[0]) : undefined;
+        },
+
+        clone: function() {
+            var clone = V(this.node.cloneNode(true));
+            // Note that clone inherits also ID. Therefore, we need to change it here.
+            clone.node.id = uniqueId();
+            return clone;
+        },
+
+        findOne: function(selector) {
+
+            var found = this.node.querySelector(selector);
+            return found ? V(found) : undefined;
+        },
+
+        find: function(selector) {
+
+            var nodes = this.node.querySelectorAll(selector);
+
+            // Map DOM elements to `VElement`s.
+            for (var i = 0, len = nodes.length; i < len; i++) {
+                nodes[i] = V(nodes[i]);
+            }
+            return nodes;
+        },
+
+        // Find an index of an element inside its container.
+        index: function() {
+
+            var index = 0;
+            var node = this.node.previousSibling;
+
+            while (node) {
+                // nodeType 1 for ELEMENT_NODE
+                if (node.nodeType === 1) index++;
+                node = node.previousSibling;
+            }
+
+            return index;
+        },
+
+        findParentByClass: function(className, terminator) {
+
+            terminator = terminator || this.node.ownerSVGElement;
+
+            var node = this.node.parentNode;
+
+            while (node && node !== terminator) {
+
+                if (V(node).hasClass(className)) {
+                    return V(node);
+                }
+
+                node = node.parentNode;
+            }
+
+            return null;
+        },
+
+        // Convert global point into the coordinate space of this element.
+        toLocalPoint: function(x, y) {
+
+            var svg = this.svg().node;
+
+            var p = svg.createSVGPoint();
+            p.x = x;
+            p.y = y;
+
+            try {
+
+                var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
+                var globalToLocalMatrix = this.node.getTransformToElement(svg).inverse();
+
+            } catch (e) {
+                // IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
+                // We have to make do with the original coordianates.
+                return p;
+            }
+
+            return globalPoint.matrixTransform(globalToLocalMatrix);
+        },
+
+        translateCenterToPoint: function(p) {
+
+            var bbox = this.bbox();
+            var center = g.rect(bbox).center();
+
+            this.translate(p.x - center.x, p.y - center.y);
+        },
+
+        // Efficiently auto-orient an element. This basically implements the orient=auto attribute
+        // of markers. The easiest way of understanding on what this does is to imagine the element is an
+        // arrowhead. Calling this method on the arrowhead makes it point to the `position` point while
+        // being auto-oriented (properly rotated) towards the `reference` point.
+        // `target` is the element relative to which the transformations are applied. Usually a viewport.
+        translateAndAutoOrient: function(position, reference, target) {
+
+            // Clean-up previously set transformations except the scale. If we didn't clean up the
+            // previous transformations then they'd add up with the old ones. Scale is an exception as
+            // it doesn't add up, consider: `this.scale(2).scale(2).scale(2)`. The result is that the
+            // element is scaled by the factor 2, not 8.
+
+            var s = this.scale();
+            this.attr('transform', '');
+            this.scale(s.sx, s.sy);
+
+            var svg = this.svg().node;
+            var bbox = this.bbox(false, target);
+
+            // 1. Translate to origin.
+            var translateToOrigin = svg.createSVGTransform();
+            translateToOrigin.setTranslate(-bbox.x - bbox.width / 2, -bbox.y - bbox.height / 2);
+
+            // 2. Rotate around origin.
+            var rotateAroundOrigin = svg.createSVGTransform();
+            var angle = g.point(position).changeInAngle(position.x - reference.x, position.y - reference.y, reference);
+            rotateAroundOrigin.setRotate(angle, 0, 0);
+
+            // 3. Translate to the `position` + the offset (half my width) towards the `reference` point.
+            var translateFinal = svg.createSVGTransform();
+            var finalPosition = g.point(position).move(reference, bbox.width / 2);
+            translateFinal.setTranslate(position.x + (position.x - finalPosition.x), position.y + (position.y - finalPosition.y));
+
+            // 4. Apply transformations.
+            var ctm = this.node.getTransformToElement(target);
+            var transform = svg.createSVGTransform();
+            transform.setMatrix(
+                translateFinal.matrix.multiply(
+                    rotateAroundOrigin.matrix.multiply(
+                        translateToOrigin.matrix.multiply(
+                            ctm)))
+            );
+
+            // Instead of directly setting the `matrix()` transform on the element, first, decompose
+            // the matrix into separate transforms. This allows us to use normal Vectorizer methods
+            // as they don't work on matrices. An example of this is to retrieve a scale of an element.
+            // this.node.transform.baseVal.initialize(transform);
+
+            var decomposition = decomposeMatrix(transform.matrix);
+
+            this.translate(decomposition.translateX, decomposition.translateY);
+            this.rotate(decomposition.rotation);
+            // Note that scale has been already applied, hence the following line stays commented. (it's here just for reference).
+            //this.scale(decomposition.scaleX, decomposition.scaleY);
+
+            return this;
+        },
+
+        animateAlongPath: function(attrs, path) {
+
+            var animateMotion = V('animateMotion', attrs);
+            var mpath = V('mpath', { 'xlink:href': '#' + V(path).node.id });
+
+            animateMotion.append(mpath);
+
+            this.append(animateMotion);
+            try {
+                animateMotion.node.beginElement();
+            } catch (e) {
+                // Fallback for IE 9.
+                // Run the animation programatically if FakeSmile (`http://leunen.me/fakesmile/`) present
+                if (document.documentElement.getAttribute('smiling') === 'fake') {
+
+                    // Register the animation. (See `https://answers.launchpad.net/smil/+question/203333`)
+                    var animation = animateMotion.node;
+                    animation.animators = [];
+
+                    var animationID = animation.getAttribute('id');
+                    if (animationID) id2anim[animationID] = animation;
+
+                    var targets = getTargets(animation);
+                    for (var i = 0, len = targets.length; i < len; i++) {
+                        var target = targets[i];
+                        var animator = new Animator(animation, target, i);
+                        animators.push(animator);
+                        animation.animators[i] = animator;
+                        animator.register();
+                    }
+                }
+            }
+        },
+
+        hasClass: function(className) {
+
+            return new RegExp('(\\s|^)' + className + '(\\s|$)').test(this.node.getAttribute('class'));
+        },
+
+        addClass: function(className) {
+
+            if (!this.hasClass(className)) {
+                var prevClasses = this.node.getAttribute('class') || '';
+                this.node.setAttribute('class', (prevClasses + ' ' + className).trim());
+            }
+
+            return this;
+        },
+
+        removeClass: function(className) {
+
+            if (this.hasClass(className)) {
+                var newClasses = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
+                this.node.setAttribute('class', newClasses);
+            }
+
+            return this;
+        },
+
+        toggleClass: function(className, toAdd) {
+
+            var toRemove = typeof toAdd === 'undefined' ? this.hasClass(className) : !toAdd;
+
+            if (toRemove) {
+                this.removeClass(className);
+            } else {
+                this.addClass(className);
+            }
+
+            return this;
+        },
+
+        // Interpolate path by discrete points. The precision of the sampling
+        // is controlled by `interval`. In other words, `sample()` will generate
+        // a point on the path starting at the beginning of the path going to the end
+        // every `interval` pixels.
+        // The sampler can be very useful for e.g. finding intersection between two
+        // paths (finding the two closest points from two samples).
+        sample: function(interval) {
+
+            interval = interval || 1;
+            var node = this.node;
+            var length = node.getTotalLength();
+            var samples = [];
+            var distance = 0;
+            var sample;
+            while (distance < length) {
+                sample = node.getPointAtLength(distance);
+                samples.push({ x: sample.x, y: sample.y, distance: distance });
+                distance += interval;
+            }
+            return samples;
+        },
+
+        convertToPath: function() {
+
+            var path = createElement('path');
+            path.attr(this.attr());
+            var d = this.convertToPathData();
+            if (d) {
+                path.attr('d', d);
+            }
+            return path;
+        },
+
+        convertToPathData: function() {
+
+            var tagName = this.node.tagName.toUpperCase();
+
+            switch (tagName) {
+            case 'PATH':
+                return this.attr('d');
+            case 'LINE':
+                return convertLineToPathData(this.node);
+            case 'POLYGON':
+                return convertPolygonToPathData(this.node);
+            case 'POLYLINE':
+                return convertPolylineToPathData(this.node);
+            case 'ELLIPSE':
+                return convertEllipseToPathData(this.node);
+            case 'CIRCLE':
+                return convertCircleToPathData(this.node);
+            case 'RECT':
+                return convertRectToPathData(this.node);
+            }
+
+            throw new Error(tagName + ' cannot be converted to PATH.');
+        },
+
+        // Find the intersection of a line starting in the center
+        // of the SVG `node` ending in the point `ref`.
+        // `target` is an SVG element to which `node`s transformations are relative to.
+        // In JointJS, `target` is the `paper.viewport` SVG group element.
+        // Note that `ref` point must be in the coordinate system of the `target` for this function to work properly.
+        // Returns a point in the `target` coordinte system (the same system as `ref` is in) if
+        // an intersection is found. Returns `undefined` otherwise.
+        findIntersection: function(ref, target) {
+
+            var svg = this.svg().node;
+            target = target || svg;
+            var bbox = g.rect(this.bbox(false, target));
+            var center = bbox.center();
+            var spot = bbox.intersectionWithLineFromCenterToPoint(ref);
+
+            if (!spot) return undefined;
+
+            var tagName = this.node.localName.toUpperCase();
+
+            // Little speed up optimalization for `<rect>` element. We do not do conversion
+            // to path element and sampling but directly calculate the intersection through
+            // a transformed geometrical rectangle.
+            if (tagName === 'RECT') {
+
+                var gRect = g.rect(
+                    parseFloat(this.attr('x') || 0),
+                    parseFloat(this.attr('y') || 0),
+                    parseFloat(this.attr('width')),
+                    parseFloat(this.attr('height'))
+                );
+                // Get the rect transformation matrix with regards to the SVG document.
+                var rectMatrix = this.node.getTransformToElement(target);
+                // Decompose the matrix to find the rotation angle.
+                var rectMatrixComponents = V.decomposeMatrix(rectMatrix);
+                // Now we want to rotate the rectangle back so that we
+                // can use `intersectionWithLineFromCenterToPoint()` passing the angle as the second argument.
+                var resetRotation = svg.createSVGTransform();
+                resetRotation.setRotate(-rectMatrixComponents.rotation, center.x, center.y);
+                var rect = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
+                spot = g.rect(rect).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
+
+            } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
+
+                var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
+                var samples = pathNode.sample();
+                var minDistance = Infinity;
+                var closestSamples = [];
+
+                for (var i = 0, len = samples.length; i < len; i++) {
+
+                    var sample = samples[i];
+                    // Convert the sample point in the local coordinate system to the global coordinate system.
+                    var gp = V.createSVGPoint(sample.x, sample.y);
+                    gp = gp.matrixTransform(this.node.getTransformToElement(target));
+                    sample = g.point(gp);
+                    var centerDistance = sample.distance(center);
+                    // Penalize a higher distance to the reference point by 10%.
+                    // This gives better results. This is due to
+                    // inaccuracies introduced by rounding errors and getPointAtLength() returns.
+                    var refDistance = sample.distance(ref) * 1.1;
+                    var distance = centerDistance + refDistance;
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestSamples = [{ sample: sample, refDistance: refDistance }];
+                    } else if (distance < minDistance + 1) {
+                        closestSamples.push({ sample: sample, refDistance: refDistance });
+                    }
+                }
+                closestSamples.sort(function(a, b) { return a.refDistance - b.refDistance; });
+                spot = closestSamples[0].sample;
+            }
+
+            return spot;
+        }
+    };
+
+    function convertLineToPathData(line) {
+
+        line = createElement(line);
+        var d = [
+            'M', line.attr('x1'), line.attr('y1'),
+            'L', line.attr('x2'), line.attr('y2')
+        ].join(' ');
+        return d;
+    }
+
+    function convertPolygonToPathData(polygon) {
+
+        polygon = createElement(polygon);
+        var points = polygon.node.points;
+
+        var d = [];
+        var p;
+        for (var i = 0; i < points.length; i++) {
+            p = points[i];
+            d.push(i === 0 ? 'M' : 'L', p.x, p.y);
+        }
+        d.push('Z');
+        return d.join(' ');
+    }
+
+    function convertPolylineToPathData(polyline) {
+
+        polyline = createElement(polyline);
+        var points = polyline.node.points;
+
+        var d = [];
+        var p;
+        for (var i = 0; i < points.length; i++) {
+            p = points[i];
+            d.push(i === 0 ? 'M' : 'L', p.x, p.y);
+        }
+        return d.join(' ');
+    }
+
+    var KAPPA = 0.5522847498307935;
+
+    function convertCircleToPathData(circle) {
+
+        circle = createElement(circle);
+        var cx = parseFloat(circle.attr('cx')) || 0;
+        var cy = parseFloat(circle.attr('cy')) || 0;
+        var r = parseFloat(circle.attr('r'));
+        var cd = r * KAPPA; // Control distance.
+
+        var d = [
+            'M', cx, cy - r,    // Move to the first point.
+            'C', cx + cd, cy - r, cx + r, cy - cd, cx + r, cy, // I. Quadrant.
+            'C', cx + r, cy + cd, cx + cd, cy + r, cx, cy + r, // II. Quadrant.
+            'C', cx - cd, cy + r, cx - r, cy + cd, cx - r, cy, // III. Quadrant.
+            'C', cx - r, cy - cd, cx - cd, cy - r, cx, cy - r, // IV. Quadrant.
+            'Z'
+        ].join(' ');
+        return d;
+    }
+
+    function convertEllipseToPathData(ellipse) {
+
+        ellipse = createElement(ellipse);
+        var cx = parseFloat(ellipse.attr('cx')) || 0;
+        var cy = parseFloat(ellipse.attr('cy')) || 0;
+        var rx = parseFloat(ellipse.attr('rx'));
+        var ry = parseFloat(ellipse.attr('ry')) || rx;
+        var cdx = rx * KAPPA; // Control distance x.
+        var cdy = ry * KAPPA; // Control distance y.
+
+        var d = [
+            'M', cx, cy - ry,    // Move to the first point.
+            'C', cx + cdx, cy - ry, cx + rx, cy - cdy, cx + rx, cy, // I. Quadrant.
+            'C', cx + rx, cy + cdy, cx + cdx, cy + ry, cx, cy + ry, // II. Quadrant.
+            'C', cx - cdx, cy + ry, cx - rx, cy + cdy, cx - rx, cy, // III. Quadrant.
+            'C', cx - rx, cy - cdy, cx - cdx, cy - ry, cx, cy - ry, // IV. Quadrant.
+            'Z'
+        ].join(' ');
+        return d;
+    }
+
+    function convertRectToPathData(rect) {
+
+        rect = createElement(rect);
+        var x = parseFloat(rect.attr('x')) || 0;
+        var y = parseFloat(rect.attr('y')) || 0;
+        var width = parseFloat(rect.attr('width')) || 0;
+        var height = parseFloat(rect.attr('height')) || 0;
+        var rx = parseFloat(rect.attr('rx')) || 0;
+        var ry = parseFloat(rect.attr('ry')) || 0;
+        var bbox = g.rect(x, y, width, height);
+
+        var d;
+
+        if (!rx && !ry) {
+
+            d = [
+                'M', bbox.origin().x, bbox.origin().y,
+                'H', bbox.corner().x,
+                'V', bbox.corner().y,
+                'H', bbox.origin().x,
+                'V', bbox.origin().y,
+                'Z'
+            ].join(' ');
+
+        } else {
+
+            var r = x + width;
+            var b = y + height;
+            d = [
+                'M', x + rx, y,
+                'L', r - rx, y,
+                'Q', r, y, r, y + ry,
+                'L', r, y + height - ry,
+                'Q', r, b, r - rx, b,
+                'L', x + rx, b,
+                'Q', x, b, x, b - rx,
+                'L', x, y + ry,
+                'Q', x, y, x + rx, y,
+                'Z'
+            ].join(' ');
+        }
+        return d;
+    }
+
+    // Convert a rectangle to SVG path commands. `r` is an object of the form:
+    // `{ x: [number], y: [number], width: [number], height: [number], top-ry: [number], top-ry: [number], bottom-rx: [number], bottom-ry: [number] }`,
+    // where `x, y, width, height` are the usual rectangle attributes and [top-/bottom-]rx/ry allows for
+    // specifying radius of the rectangle for all its sides (as opposed to the built-in SVG rectangle
+    // that has only `rx` and `ry` attributes).
+    function rectToPath(r) {
+
+        var topRx = r.rx || r['top-rx'] || 0;
+        var bottomRx = r.rx || r['bottom-rx'] || 0;
+        var topRy = r.ry || r['top-ry'] || 0;
+        var bottomRy = r.ry || r['bottom-ry'] || 0;
+
+        return [
+            'M', r.x, r.y + topRy,
+            'v', r.height - topRy - bottomRy,
+            'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, bottomRy,
+            'h', r.width - 2 * bottomRx,
+            'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, -bottomRy,
+            'v', -(r.height - bottomRy - topRy),
+            'a', topRx, topRy, 0, 0, 0, -topRx, -topRy,
+            'h', -(r.width - 2 * topRx),
+            'a', topRx, topRy, 0, 0, 0, -topRx, topRy
+        ].join(' ');
+    }
+
+    var V = createElement;
+
+    V.isVElement = function(object) {
+        return object instanceof VElement;
+    };
+
+    V.decomposeMatrix = decomposeMatrix;
+    V.rectToPath = rectToPath;
+
+    var svgDocument = V('svg').node;
+
+    V.createSVGMatrix = function(m) {
+
+        var svgMatrix = svgDocument.createSVGMatrix();
+        for (var component in m) {
+            svgMatrix[component] = m[component];
+        }
+
+        return svgMatrix;
+    };
+
+    V.createSVGTransform = function() {
+
+        return svgDocument.createSVGTransform();
+    };
+
+    V.createSVGPoint = function(x, y) {
+
+        var p = svgDocument.createSVGPoint();
+        p.x = x;
+        p.y = y;
+        return p;
+    };
+
+    V.transformRect = function(r, matrix) {
+
+        var p = svgDocument.createSVGPoint();
+
+        p.x = r.x;
+        p.y = r.y;
+        var corner1 = p.matrixTransform(matrix);
+
+        p.x = r.x + r.width;
+        p.y = r.y;
+        var corner2 = p.matrixTransform(matrix);
+
+        p.x = r.x + r.width;
+        p.y = r.y + r.height;
+        var corner3 = p.matrixTransform(matrix);
+
+        p.x = r.x;
+        p.y = r.y + r.height;
+        var corner4 = p.matrixTransform(matrix);
+
+        var minX = Math.min(corner1.x, corner2.x, corner3.x, corner4.x);
+        var maxX = Math.max(corner1.x, corner2.x, corner3.x, corner4.x);
+        var minY = Math.min(corner1.y, corner2.y, corner3.y, corner4.y);
+        var maxY = Math.max(corner1.y, corner2.y, corner3.y, corner4.y);
+
+        return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+    };
+
+    // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
+    // an object (`{ fill: 'blue', stroke: 'red' }`).
+    V.styleToObject = function(styleString) {
+        var ret = {};
+        var styles = styleString.split(';');
+        for (var i = 0; i < styles.length; i++) {
+            var style = styles[i];
+            var pair = style.split('=');
+            ret[pair[0].trim()] = pair[1].trim();
+        }
+        return ret;
+    };
+
+    // Inspired by d3.js https://github.com/mbostock/d3/blob/master/src/svg/arc.js
+    V.createSlicePathData = function(innerRadius, outerRadius, startAngle, endAngle) {
+
+        var svgArcMax = 2 * Math.PI - 1e-6;
+        var r0 = innerRadius;
+        var r1 = outerRadius;
+        var a0 = startAngle;
+        var a1 = endAngle;
+        var da = (a1 < a0 && (da = a0, a0 = a1, a1 = da), a1 - a0);
+        var df = da < Math.PI ? '0' : '1';
+        var c0 = Math.cos(a0);
+        var s0 = Math.sin(a0);
+        var c1 = Math.cos(a1);
+        var s1 = Math.sin(a1);
+
+        return (da >= svgArcMax)
+            ? (r0
+               ? 'M0,' + r1
+               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
+               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
+               + 'M0,' + r0
+               + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + (-r0)
+               + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + r0
+               + 'Z'
+               : 'M0,' + r1
+               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
+               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
+               + 'Z')
+            : (r0
+               ? 'M' + r1 * c0 + ',' + r1 * s0
+               + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
+               + 'L' + r0 * c1 + ',' + r0 * s1
+               + 'A' + r0 + ',' + r0 + ' 0 ' + df + ',0 ' + r0 * c0 + ',' + r0 * s0
+               + 'Z'
+               : 'M' + r1 * c0 + ',' + r1 * s0
+               + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
+               + 'L0,0'
+               + 'Z');
+    };
+
+    // Merge attributes from object `b` with attributes in object `a`.
+    // Note that this modifies the object `a`.
+    // Also important to note that attributes are merged but CSS classes are concatenated.
+    V.mergeAttrs = function(a, b) {
+        for (var attr in b) {
+            if (attr === 'class') {
+                // Concatenate classes.
+                a[attr] = a[attr] ? a[attr] + ' ' + b[attr] : b[attr];
+            } else if (attr === 'style') {
+                // `style` attribute can be an object.
+                if (isObject(a[attr]) && isObject(b[attr])) {
+                    // `style` stored in `a` is an object.
+                    a[attr] = V.mergeAttrs(a[attr], b[attr]);
+                } else if (isObject(a[attr])) {
+                    // `style` in `a` is an object but it's a string in `b`.
+                    // Convert the style represented as a string to an object in `b`.
+                    a[attr] = V.mergeAttrs(a[attr], V.styleToObject(b[attr]));
+                } else if (isObject(b[attr])) {
+                    // `style` in `a` is a string, in `b` it's an object.
+                    a[attr] = V.mergeAttrs(V.styleToObject(a[attr]), b[attr]);
+                } else {
+                    // Both styles are strings.
+                    a[attr] = V.mergeAttrs(V.styleToObject(a[attr]), V.styleToObject(b[attr]));
+                }
+            } else {
+                a[attr] = b[attr];
+            }
+        }
+        return a;
+    };
+
+    V.annotateString = function(t, annotations, opt) {
+
+        annotations = annotations || [];
+        opt = opt || {};
+        offset = opt.offset || 0;
+        var compacted = [];
+        var batch;
+
+        var ret = [];
+        var item;
+        var prev;
+
+        for (var i = 0; i < t.length; i++) {
+
+            item = ret[i] = t[i];
+
+            for (var j = 0; j < annotations.length; j++) {
+                var annotation = annotations[j];
+                var start = annotation.start + offset;
+                var end = annotation.end + offset;
+
+                if (i >= start && i < end) {
+                    // Annotation applies.
+                    if (isObject(item)) {
+                        // There is more than one annotation to be applied => Merge attributes.
+                        item.attrs = V.mergeAttrs(V.mergeAttrs({}, item.attrs), annotation.attrs);
+                    } else {
+                        item = ret[i] = { t: t[i], attrs: annotation.attrs };
+                    }
+                    if (opt.includeAnnotationIndices) {
+                        (item.annotations || (item.annotations = [])).push(j);
+                    }
+                }
+            }
+
+            prev = ret[i - 1];
+
+            if (!prev) {
+
+                batch = item;
+
+            } else if (isObject(item) && isObject(prev)) {
+                // Both previous item and the current one are annotations. If the attributes
+                // didn't change, merge the text.
+                if (JSON.stringify(item.attrs) === JSON.stringify(prev.attrs)) {
+                    batch.t += item.t;
+                } else {
+                    compacted.push(batch);
+                    batch = item;
+                }
+
+            } else if (isObject(item)) {
+                // Previous item was a string, current item is an annotation.
+                compacted.push(batch);
+                batch = item;
+
+            } else if (isObject(prev)) {
+                // Previous item was an annotation, current item is a string.
+                compacted.push(batch);
+                batch = item;
+
+            } else {
+                // Both previous and current item are strings.
+                batch = (batch || '') + item;
+            }
+        }
+
+        if (batch) {
+            compacted.push(batch);
+        }
+
+        return compacted;
+    };
+
+    V.findAnnotationsAtIndex = function(annotations, index) {
+
+        if (!annotations) return [];
+
+        var found = [];
+
+        annotations.forEach(function(annotation) {
+
+            if (annotation.start < index && index <= annotation.end) {
+                found.push(annotation);
+            }
+        });
+        return found;
+    };
+
+    V.findAnnotationsBetweenIndexes = function(annotations, start, end) {
+
+        if (!annotations) return [];
+
+        var found = [];
+
+        annotations.forEach(function(annotation) {
+
+            if ((start >= annotation.start && start < annotation.end) || (end > annotation.start && end <= annotation.end) || (annotation.start >= start && annotation.end < end)) {
+                found.push(annotation);
+            }
+        });
+        return found;
+    };
+
+    // Shift all the textg annotations after character `index` by `offset` positions.
+    V.shiftAnnotations = function(annotations, index, offset) {
+
+        if (!annotations) return annotations;
+
+        annotations.forEach(function(annotation) {
+
+            if (annotation.start >= index) {
+                annotation.start += offset;
+                annotation.end += offset;
+            }
+        });
+
+        return annotations;
+    };
+
+    return V;
+}));
+
 //      JointJS library.
 //      (c) 2011-2013 client IO
 
@@ -60,7 +2162,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 var joint = {
 
-    version: '0.9.3',
+    version: '0.9.4',
 
     // `joint.dia` namespace.
     dia: {},
