@@ -593,10 +593,7 @@
             var nodes = this.node.querySelectorAll(selector);
 
             // Map DOM elements to `VElement`s.
-            for (var i = 0, len = nodes.length; i < len; i++) {
-                nodes[i] = V(nodes[i]);
-            }
-            return nodes;
+            return Array.prototype.map.call(nodes, V);
         },
 
         // Find an index of an element inside its container.
