@@ -51,6 +51,7 @@
     "dagre": "0.7.1"
   },
   "devDependencies": {
+    "express": "4.13.0",
     "grunt": "~0.4.1",
     "grunt-browserify": "3.7.0",
     "grunt-contrib-copy": "0.8.0",
@@ -62,8 +63,10 @@
     "grunt-jscs": "~1.6.0",
     "grunt-mocha-test": "0.12.7",
     "grunt-newer": "1.1.0",
+    "grunt-webpack": "^1.0.11",
     "load-grunt-tasks": "3.2.0",
     "mocha": "1.21.5",
+    "serve-static": "1.10.0",
     "should": "~2.0.2",
     "time-grunt": "^1.2.1"
   }

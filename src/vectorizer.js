@@ -6,33 +6,10 @@
 
 // Copyright © 2012 - 2015 client IO (http://client.io)
 
-(function(root, factory) {
+var V;
+var Vectorizer;
 
-    if (typeof define === 'function' && define.amd) {
-
-        // AMD.
-        define(['g'], function(g) {
-            return factory(g);
-        });
-
-    } else if (typeof exports === 'object') {
-
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like environments that support module.exports,
-        // like Node.
-        var g = require('./geometry');
-
-        module.exports = factory(g);
-
-    } else {
-
-        // Browser globals.
-        var g = root.g;
-
-        root.Vectorizer = root.V = factory(g);
-    }
-
-}(this, function(g) {
+V = Vectorizer = (function() {
 
     var SVGsupported = typeof window === 'object' && !!(window.SVGAngle || document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1'));
 
@@ -1340,4 +1317,5 @@
     };
 
     return V;
-}));
+
+})();
