@@ -40,9 +40,6 @@ graph.addCells([l1, l2]);
 paper.on('cell:pointerdown', function(cellView) {
 
     cellView.model.trigger('signal', cellView.model);
-
-    var halo = new joint.ui.Halo({ graph: graph, paper: paper, cellView: cellView });
-    halo.render();
 });
 
 
