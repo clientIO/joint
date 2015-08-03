@@ -1,10 +1,38 @@
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-22 
+/*! JointJS v0.9.4 - JavaScript diagramming library  2015-08-03 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+(function(root, factory) {
+
+    if (typeof define === 'function' && define.amd) {
+
+        // AMD. Register as an anonymous module.
+        define(['g'], function(g) {
+            return factory(g);
+        });
+
+    } else if (typeof exports === 'object') {
+
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        var g = require('./geometry');
+
+        module.exports = factory(g);
+
+    } else {
+
+        // Browser globals.
+        var g = root.g;
+
+        root.Vectorizer = root.V = factory(g);
+    }
+
+}(this, function(g) {
+
 // Vectorizer.
 // -----------
 
@@ -13,28 +41,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // Copyright © 2012 - 2015 client IO (http://client.io)
 
-(function(root, factory) {
+var V;
+var Vectorizer;
 
-    if (typeof define === 'function' && define.amd) {
-
-        // AMD. Register as an anonymous module.
-        define([], factory);
-
-    } else if (typeof exports === 'object') {
-
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like environments that support module.exports,
-        // like Node.
-        module.exports = factory();
-
-    } else {
-
-        // Browser globals.
-        root.Vectorizer = root.V = factory();
-
-    }
-
-}(this, function() {
+V = Vectorizer = (function() {
 
     var SVGsupported = typeof window === 'object' && !!(window.SVGAngle || document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1'));
 
@@ -54,6 +64,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     function uniqueId() {
         var id = ++idCounter + '';
         return 'v-' + id;
+    }
+
+    function isObject(o) {
+        return Object(o) === Object(o);
+    }
+
+    function isArray(o) {
+        return Object.prototype.toString.call(o) == '[object Array]';
     }
 
     // Create an SVG document element.
@@ -225,6 +243,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     // ---------
 
     function VElement(el) {
+        if (el instanceof VElement) {
+            el = el.node;
+        }
         this.node = el;
         if (!this.node.id) {
             this.node.id = uniqueId();
@@ -359,7 +380,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             // in the top left corner we translate the `<text>` element by `0.8em`.
             // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
             // See also `http://apike.ca/prog_svg_text_style.html`.
-            this.attr('y', '0.8em');
+            var y = this.attr('y');
+            if (!y) {
+                this.attr('y', '0.8em');
+            }
 
             // An empty text gets rendered into the DOM in webkit-based browsers.
             // In order to unify this behaviour across all browsers
@@ -412,26 +436,83 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 textNode = textPath.node;
             }
 
-            if (lines.length === 1) {
-                textNode.textContent = content;
-                return this;
-            }
+            var offset = 0;
 
-            for (; i < lines.length; i++) {
+            for (var i = 0; i < lines.length; i++) {
 
+                var line = lines[i];
                 // Shift all the <tspan> but first by one line (`1em`)
-                tspan = V('tspan', { dy: (i == 0 ? '0em' : opt.lineHeight || '1em'), x: this.attr('x') || 0 });
-                tspan.addClass('v-line');
-                if (!lines[i]) {
-                    tspan.addClass('v-empty-line');
+                var lineHeight = opt.lineHeight || '1em';
+                if (opt.lineHeight === 'auto') {
+                    lineHeight = '1.5em';
                 }
-                // Make sure the textContent is never empty. If it is, add an additional
-                // space (an invisible character) so that following lines are correctly
-                // relatively positioned. `dy=1em` won't work with empty lines otherwise.
-                tspan.node.textContent = lines[i] || ' ';
+                var vLine = V('tspan', { dy: (i == 0 ? '0em' : lineHeight), x: this.attr('x') || 0 });
+                vLine.addClass('v-line');
 
-                V(textNode).append(tspan);
+                if (line) {
+
+                    if (opt.annotations) {
+
+                        // Get the line height based on the biggest font size in the annotations for this line.
+                        var maxFontSize = 0;
+
+                        // Find the *compacted* annotations for this line.
+                        var lineAnnotations = V.annotateString(lines[i], isArray(opt.annotations) ? opt.annotations : [opt.annotations], { offset: -offset, includeAnnotationIndices: opt.includeAnnotationIndices });
+                        for (var j = 0; j < lineAnnotations.length; j++) {
+
+                            var annotation = lineAnnotations[j];
+                            if (isObject(annotation)) {
+
+                                var fontSize = parseInt(annotation.attrs['font-size'], 10);
+                                if (fontSize && fontSize > maxFontSize) {
+                                    maxFontSize = fontSize;
+                                }
+
+                                tspan = V('tspan', annotation.attrs);
+                                if (opt.includeAnnotationIndices) {
+                                    // If `opt.includeAnnotationIndices` is `true`,
+                                    // set the list of indices of all the applied annotations
+                                    // in the `annotations` attribute. This list is a comma
+                                    // separated list of indices.
+                                    tspan.attr('annotations', annotation.annotations);
+                                }
+                                if (annotation.attrs['class']) {
+                                    tspan.addClass(annotation.attrs['class']);
+                                }
+                                tspan.node.textContent = annotation.t;
+
+                            } else {
+
+                                tspan = document.createTextNode(annotation || ' ');
+
+                            }
+                            vLine.append(tspan);
+                        }
+
+                        if (opt.lineHeight === 'auto' && maxFontSize && i !== 0) {
+
+                            vLine.attr('dy', (maxFontSize * 1.2) + 'px');
+                        }
+
+                    } else {
+
+                        vLine.node.textContent = line;
+                    }
+
+                } else {
+
+                    // Make sure the textContent is never empty. If it is, add an additional
+                    // space (an invisible character) so that following lines are correctly
+                    // relatively positioned. `dy=1em` won't work with empty lines otherwise.
+                    vLine.addClass('v-empty-line');
+                    vLine.node.textContent = ' ';
+                }
+
+                V(textNode).append(vLine);
+
+                offset += line.length + 1;      // + 1 = newline character.
             }
+
             return this;
         },
 
@@ -524,10 +605,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var nodes = this.node.querySelectorAll(selector);
 
             // Map DOM elements to `VElement`s.
-            for (var i = 0, len = nodes.length; i < len; i++) {
-                nodes[i] = V(nodes[i]);
-            }
-            return nodes;
+            return Array.prototype.map.call(nodes, V);
         },
 
         // Find an index of an element inside its container.
@@ -543,6 +621,24 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             }
 
             return index;
+        },
+
+        findParentByClass: function(className, terminator) {
+
+            terminator = terminator || this.node.ownerSVGElement;
+
+            var node = this.node.parentNode;
+
+            while (node && node !== terminator) {
+
+                if (V(node).hasClass(className)) {
+                    return V(node);
+                }
+
+                node = node.parentNode;
+            }
+
+            return null;
         },
 
         // Convert global point into the coordinate space of this element.
@@ -991,6 +1087,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     var V = createElement;
 
+    V.isVElement = function(object) {
+        return object instanceof VElement;
+    };
+
     V.decomposeMatrix = decomposeMatrix;
     V.rectToPath = rectToPath;
 
@@ -1046,6 +1146,215 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
     };
+
+    // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
+    // an object (`{ fill: 'blue', stroke: 'red' }`).
+    V.styleToObject = function(styleString) {
+        var ret = {};
+        var styles = styleString.split(';');
+        for (var i = 0; i < styles.length; i++) {
+            var style = styles[i];
+            var pair = style.split('=');
+            ret[pair[0].trim()] = pair[1].trim();
+        }
+        return ret;
+    };
+
+    // Inspired by d3.js https://github.com/mbostock/d3/blob/master/src/svg/arc.js
+    V.createSlicePathData = function(innerRadius, outerRadius, startAngle, endAngle) {
+
+        var svgArcMax = 2 * Math.PI - 1e-6;
+        var r0 = innerRadius;
+        var r1 = outerRadius;
+        var a0 = startAngle;
+        var a1 = endAngle;
+        var da = (a1 < a0 && (da = a0, a0 = a1, a1 = da), a1 - a0);
+        var df = da < Math.PI ? '0' : '1';
+        var c0 = Math.cos(a0);
+        var s0 = Math.sin(a0);
+        var c1 = Math.cos(a1);
+        var s1 = Math.sin(a1);
+
+        return (da >= svgArcMax)
+            ? (r0
+               ? 'M0,' + r1
+               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
+               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
+               + 'M0,' + r0
+               + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + (-r0)
+               + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + r0
+               + 'Z'
+               : 'M0,' + r1
+               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
+               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
+               + 'Z')
+            : (r0
+               ? 'M' + r1 * c0 + ',' + r1 * s0
+               + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
+               + 'L' + r0 * c1 + ',' + r0 * s1
+               + 'A' + r0 + ',' + r0 + ' 0 ' + df + ',0 ' + r0 * c0 + ',' + r0 * s0
+               + 'Z'
+               : 'M' + r1 * c0 + ',' + r1 * s0
+               + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
+               + 'L0,0'
+               + 'Z');
+    };
+
+    // Merge attributes from object `b` with attributes in object `a`.
+    // Note that this modifies the object `a`.
+    // Also important to note that attributes are merged but CSS classes are concatenated.
+    V.mergeAttrs = function(a, b) {
+        for (var attr in b) {
+            if (attr === 'class') {
+                // Concatenate classes.
+                a[attr] = a[attr] ? a[attr] + ' ' + b[attr] : b[attr];
+            } else if (attr === 'style') {
+                // `style` attribute can be an object.
+                if (isObject(a[attr]) && isObject(b[attr])) {
+                    // `style` stored in `a` is an object.
+                    a[attr] = V.mergeAttrs(a[attr], b[attr]);
+                } else if (isObject(a[attr])) {
+                    // `style` in `a` is an object but it's a string in `b`.
+                    // Convert the style represented as a string to an object in `b`.
+                    a[attr] = V.mergeAttrs(a[attr], V.styleToObject(b[attr]));
+                } else if (isObject(b[attr])) {
+                    // `style` in `a` is a string, in `b` it's an object.
+                    a[attr] = V.mergeAttrs(V.styleToObject(a[attr]), b[attr]);
+                } else {
+                    // Both styles are strings.
+                    a[attr] = V.mergeAttrs(V.styleToObject(a[attr]), V.styleToObject(b[attr]));
+                }
+            } else {
+                a[attr] = b[attr];
+            }
+        }
+        return a;
+    };
+
+    V.annotateString = function(t, annotations, opt) {
+
+        annotations = annotations || [];
+        opt = opt || {};
+        offset = opt.offset || 0;
+        var compacted = [];
+        var batch;
+
+        var ret = [];
+        var item;
+        var prev;
+
+        for (var i = 0; i < t.length; i++) {
+
+            item = ret[i] = t[i];
+
+            for (var j = 0; j < annotations.length; j++) {
+                var annotation = annotations[j];
+                var start = annotation.start + offset;
+                var end = annotation.end + offset;
+
+                if (i >= start && i < end) {
+                    // Annotation applies.
+                    if (isObject(item)) {
+                        // There is more than one annotation to be applied => Merge attributes.
+                        item.attrs = V.mergeAttrs(V.mergeAttrs({}, item.attrs), annotation.attrs);
+                    } else {
+                        item = ret[i] = { t: t[i], attrs: annotation.attrs };
+                    }
+                    if (opt.includeAnnotationIndices) {
+                        (item.annotations || (item.annotations = [])).push(j);
+                    }
+                }
+            }
+
+            prev = ret[i - 1];
+
+            if (!prev) {
+
+                batch = item;
+
+            } else if (isObject(item) && isObject(prev)) {
+                // Both previous item and the current one are annotations. If the attributes
+                // didn't change, merge the text.
+                if (JSON.stringify(item.attrs) === JSON.stringify(prev.attrs)) {
+                    batch.t += item.t;
+                } else {
+                    compacted.push(batch);
+                    batch = item;
+                }
+
+            } else if (isObject(item)) {
+                // Previous item was a string, current item is an annotation.
+                compacted.push(batch);
+                batch = item;
+
+            } else if (isObject(prev)) {
+                // Previous item was an annotation, current item is a string.
+                compacted.push(batch);
+                batch = item;
+
+            } else {
+                // Both previous and current item are strings.
+                batch = (batch || '') + item;
+            }
+        }
+
+        if (batch) {
+            compacted.push(batch);
+        }
+
+        return compacted;
+    };
+
+    V.findAnnotationsAtIndex = function(annotations, index) {
+
+        if (!annotations) return [];
+
+        var found = [];
+
+        annotations.forEach(function(annotation) {
+
+            if (annotation.start < index && index <= annotation.end) {
+                found.push(annotation);
+            }
+        });
+        return found;
+    };
+
+    V.findAnnotationsBetweenIndexes = function(annotations, start, end) {
+
+        if (!annotations) return [];
+
+        var found = [];
+
+        annotations.forEach(function(annotation) {
+
+            if ((start >= annotation.start && start < annotation.end) || (end > annotation.start && end <= annotation.end) || (annotation.start >= start && annotation.end < end)) {
+                found.push(annotation);
+            }
+        });
+        return found;
+    };
+
+    // Shift all the textg annotations after character `index` by `offset` positions.
+    V.shiftAnnotations = function(annotations, index, offset) {
+
+        if (!annotations) return annotations;
+
+        annotations.forEach(function(annotation) {
+
+            if (annotation.start >= index) {
+                annotation.start += offset;
+                annotation.end += offset;
+            }
+        });
+
+        return annotations;
+    };
+
+    return V;
+
+})();
+
 
     return V;
 

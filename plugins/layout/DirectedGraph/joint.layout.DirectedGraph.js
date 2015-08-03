@@ -4,6 +4,11 @@ if (typeof exports === 'object') {
     var dagre = require('dagre');
 }
 
+// In the browser, these variables are set to undefined because of JavaScript hoisting.
+// In that case, should grab them from the window object.
+graphlib = graphlib || (typeof window !== 'undefined' && window.graphlib);
+dagre = dagre || (typeof window !== 'undefined' && window.dagre);
+
 // create graphlib.Graph from existing joint.dia.Graph
 joint.dia.Graph.prototype.toGraphLib = function(opt) {
 

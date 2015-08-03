@@ -1,6 +1,8 @@
 JointJS - JavaScript diagramming library
 ========================================
 
+[![Build Status](https://travis-ci.org/clientIO/joint.svg?branch=master)](https://travis-ci.org/clientIO/joint)
+
 JointJS is a JavaScript diagramming library. It can be used to create either static diagrams or, and more
 importantly, fully interactive diagramming tools and application builders.
 
@@ -43,7 +45,64 @@ Only the good ones (those that support SVG):
 Tests
 -----
 
-`open test/joint.dia/index.html`
+Before running tests, be sure to run a full build:
+```
+grunt all
+```
+
+To run all tests (except e2e):
+```
+grunt test
+```
+
+To run only the server-side tests:
+```
+grunt test:server
+```
+
+To run only the client-side tests:
+```
+grunt test:client
+```
+
+To run code style checks:
+```
+grunt jscs
+```
+
+To run e2e tests with the default browser (chrome):
+```
+grunt test:e2e
+```
+
+To run e2e tests using firefox:
+```
+grunt test:e2e --browser firefox
+```
+
+Note that you must start the selenium server before running e2e tests:
+```
+grunt selenium
+```
+
+
+Code Coverage
+-------------
+
+It is possible to generate code coverage reports using the existing qunit tests. For example, to output the coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) for the joint unit tests:
+```
+grunt qunit:joint --reporter lcov --coverage
+```
+
+And for all unit tests:
+```
+grunt qunit:all --reporter lcov --coverage
+```
+
+By default, the output will be saved to `coverage.info` at the root of the project directory. You can change the output file like this:
+```
+grunt qunit:joint --reporter lcov --output customfilename.info --coverage
+```
 
 
 License
@@ -59,6 +118,8 @@ Contributors
 
 - [David Durman](http://github.com/DavidDurman)
 - [Roman Bruckner](http://github.com/kumilingus)
+- [Emanuele Palombo](http://github.com/elbowz)
+- [Charles Hill](http://github.com/chill117)
 
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/DavidDurman/joint/trend.png)](https://bitdeli.com/free "Bitdeli Badge")

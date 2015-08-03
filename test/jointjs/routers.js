@@ -299,3 +299,44 @@ test('metro routing', function() {
           'The default fallback router made a metro link.');
 
 });
+
+test('oneSide routing', function(assert) {
+
+    var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+    var r2 = r1.clone().translate(300,300);
+    var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id }});
+
+    this.graph.addCell([r1, r2, l]);
+
+    var v = this.paper.findViewByModel(l);
+
+    // Left side
+    l.set('router', { name: 'oneSide', args: { padding: 20, side: 'left' }});
+    var d = v.$('.connection').attr('d');
+    assert.equal(d, 'M 20 70 0 70 0 370 320 370', 'Route goes only on the left side.');
+
+    // Padding option
+    l.set('router', { name: 'oneSide', args: { padding: 40, side: 'left' }});
+    d = v.$('.connection').attr('d');
+    assert.equal(d, 'M 20 70 -20 70 -20 370 320 370', 'Route respects the padding.');
+
+    // Right side
+    l.set('router', { name: 'oneSide', args: { padding: 40, side: 'right' }});
+    d = v.$('.connection').attr('d');
+    assert.equal(d, 'M 140 70 480 70 480 370 440 370', 'Route goes only on the right side.');
+
+    // Top side
+    l.set('router', { name: 'oneSide', args: { padding: 40, side: 'top' }});
+    d = v.$('.connection').attr('d');
+    assert.equal(d, 'M 80 30 80 -10 380 -10 380 330', 'Route goes only on the top.');
+
+    // Bottom side
+    l.set('router', { name: 'oneSide', args: { padding: 40, side: 'bottom' }});
+    d = v.$('.connection').attr('d');
+    assert.equal(d, 'M 80 110 80 450 380 450 380 410', 'Route goes only on the bottom');
+
+    // Wrong side specified
+    assert.throws(function() {
+        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'non-existing' }});
+    }, 'An error is thrown when a non-existing side is provided.');
+});

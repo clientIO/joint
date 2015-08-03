@@ -703,6 +703,7 @@ test('ref-x, ref-y, ref', function() {
 
     var el = new joint.shapes.basic.Generic({
         markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
+        size: { width: 100, height: 50 },
         attrs: {
             '.big': { width: 100, height: 50, fill: 'gray' },
             '.small': { width: 10, height: 10, 'ref-x': 20, 'ref-y': 10, fill: 'red' },
@@ -736,6 +737,18 @@ test('ref-x, ref-y, ref', function() {
         'ref-x: .5, ref-y: .5 attributes should position the element in the center, i.e. at [50, 25] coordinate'
     );
 
+    // Percentage
+
+    el.attr({ '.small': { 'ref-x': '50%', 'ref-y': '50%' } });
+
+    smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
+
+    deepEqual(
+        { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
+        { x: 50, y: 25, width: 10, height: 10 },
+        'ref-x: "50%", ref-y: "50%" attributes should position the element in the center, i.e. at [50, 25] coordinate'
+    );
+
     // Range [-x, 0]
 
     el.attr({ '.small': { 'ref-x': -10, 'ref-y': -15 } });
@@ -755,12 +768,17 @@ test('ref-x, ref-y, ref', function() {
         { x: smallRectBbox.x + 20, y: smallRectBbox.y + 10, width: 5, height: 5 },
         'ref-x: 20, ref-y: 10 and ref set to .small should offset the element by 20px in x axis and 10px in y axis with respect to the x-y coordinate of the .small element'
     );
+
+    throws(function() {
+        el.attr({ '.small': { 'ref': '.not-existing-reference' } });
+    }, /dia.ElementView/, 'Use of an invalid reference throws an error.');
 });
 
 test('ref-dx, ref-dy, ref', function() {
 
     var el = new joint.shapes.basic.Generic({
         markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
+        size: { width: 100, height: 50 },
         attrs: {
             '.big': { width: 100, height: 50, fill: 'gray' },
             '.small': { width: 10, height: 10, 'ref-dx': 20, 'ref-dy': 10, fill: 'red' },
@@ -789,10 +807,11 @@ test('ref-dx, ref-dy, ref', function() {
     );
 });
 
- test('ref-width, ref-height', function() {
+test('ref-width, ref-height', function() {
 
     var el = new joint.shapes.basic.Generic({
         markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
+        size: { width: 100, height: 50 },
         attrs: {
             '.big': { width: 100, height: 50, fill: 'gray' },
             '.small': { 'ref-width': .5, 'ref-height': .4, ref: '.big', fill: 'red' },
@@ -815,6 +834,18 @@ test('ref-dx, ref-dy, ref', function() {
     );
 
     var smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
+
+    // Percentage
+
+    el.attr({ '.small': { 'ref-width': '50%', 'ref-height': '40%' } });
+
+    deepEqual(
+        { width: smallRectBbox.width, height: smallRectBbox.height },
+        { width: 50, height: 20 },
+        'ref-width: "50%", ref-height: "40%" attributes should set the element size to 50x20.'
+    );
+
+    smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
 
     // Range [-x, 0] && [1, x]
 
@@ -848,6 +879,7 @@ test('x-alignment, y-alignment', function() {
 
     var el = new joint.shapes.basic.Generic({
         markup: '<rect class="big"/><rect class="small"/>',
+        size: { width: 100, height: 50 },
         attrs: {
             '.big': { width: 100, height: 50, fill: 'gray' },
             '.small': { width: 20, height: 20, 'ref-x': .5, 'ref-y': .5, 'y-alignment': 'middle', 'x-alignment': 'middle', fill: 'red' }
@@ -1120,4 +1152,14 @@ test('cell.getAncestors()', function() {
     deepEqual(r1.getAncestors(), [], 'A cell with no parent has no ancestors.');
     deepEqual(_.pluck(r2.getAncestors(), 'id'), [r1.id], 'A cell embedded in a parent with no ancestor has exactly one ancestor.');
     deepEqual(_.pluck(r5.getAncestors(), 'id'), [r2.id, r1.id], 'If a cell has more than one ancestor, the ancesotrs are sorted from the parent to the most distant ancestor.');
+});
+
+test('cellView: element reference wrapped in Vectorizer', function(assert) {
+
+    var element = new joint.shapes.basic.Rect;
+    var view = element.addTo(this.graph).findView(this.paper);
+
+    assert.ok(V.isVElement(view.vel), 'A cellView has attribute "vel" and its value is wrapped in Vectorizer.');
+    assert.equal(view.vel.node, view.el, 'Value of attribtue "vel" references to the view group element (view.el).');
+
 });

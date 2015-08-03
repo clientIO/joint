@@ -9,7 +9,7 @@ joint.shapes.basic.Generic = joint.dia.Element.extend({
 
         type: 'basic.Generic',
         attrs: {
-            '.': { fill: '#FFFFFF', stroke: 'none' }
+            '.': { fill: '#ffffff', stroke: 'none' }
         }
 
     }, joint.dia.Element.prototype.defaults)
@@ -23,8 +23,22 @@ joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
 
         type: 'basic.Rect',
         attrs: {
-            'rect': { fill: '#FFFFFF', stroke: 'black', width: 100, height: 60 },
-            'text': { 'font-size': 14, text: '', 'ref-x': .5, 'ref-y': .5, ref: 'rect', 'y-alignment': 'middle', 'x-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'rect': {
+                fill: '#ffffff',
+                stroke: '#000000',
+                width: 100,
+                height: 60
+            },
+            'text': {
+                fill: '#000000',
+                text: '',
+                'font-size': 14,
+                'ref-x': .5,
+                'ref-y': .5,
+                'text-anchor': 'middle',
+                'y-alignment': 'middle',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
 
     }, joint.shapes.basic.Generic.prototype.defaults)
@@ -48,7 +62,10 @@ joint.shapes.basic.Text = joint.shapes.basic.Generic.extend({
 
         type: 'basic.Text',
         attrs: {
-            'text': { 'font-size': 18, fill: 'black' }
+            'text': {
+                'font-size': 18,
+                fill: '#000000'
+            }
         }
 
     }, joint.shapes.basic.Generic.prototype.defaults)
@@ -63,8 +80,23 @@ joint.shapes.basic.Circle = joint.shapes.basic.Generic.extend({
         type: 'basic.Circle',
         size: { width: 60, height: 60 },
         attrs: {
-            'circle': { fill: '#FFFFFF', stroke: 'black', r: 30, transform: 'translate(30, 30)' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-y': .5, ref: 'circle', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'circle': {
+                fill: '#ffffff',
+                stroke: '#000000',
+                r: 30,
+                cx: 30,
+                cy: 30
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-y': .5,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -78,8 +110,24 @@ joint.shapes.basic.Ellipse = joint.shapes.basic.Generic.extend({
         type: 'basic.Ellipse',
         size: { width: 60, height: 40 },
         attrs: {
-            'ellipse': { fill: '#FFFFFF', stroke: 'black', rx: 30, ry: 20, transform: 'translate(30, 20)' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-y': .5, ref: 'ellipse', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'ellipse': {
+                fill: '#ffffff',
+                stroke: '#000000',
+                rx: 30,
+                ry: 20,
+                cx: 30,
+                cy: 20
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-y': .5,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -93,8 +141,20 @@ joint.shapes.basic.Polygon = joint.shapes.basic.Generic.extend({
         type: 'basic.Polygon',
         size: { width: 60, height: 40 },
         attrs: {
-            'polygon': { fill: '#FFFFFF', stroke: 'black' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'polygon', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'polygon': {
+                fill: '#ffffff',
+                stroke: '#000000'
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-dy': 20,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -108,8 +168,20 @@ joint.shapes.basic.Polyline = joint.shapes.basic.Generic.extend({
         type: 'basic.Polyline',
         size: { width: 60, height: 40 },
         attrs: {
-            'polyline': { fill: '#FFFFFF', stroke: 'black' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'polyline', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'polyline': {
+                fill: '#ffffff',
+                stroke: '#000000'
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-dy': 20,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -122,7 +194,16 @@ joint.shapes.basic.Image = joint.shapes.basic.Generic.extend({
 
         type: 'basic.Image',
         attrs: {
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'image', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-dy': 20,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -136,8 +217,20 @@ joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
         type: 'basic.Path',
         size: { width: 60, height: 60 },
         attrs: {
-            'path': { fill: '#FFFFFF', stroke: 'black' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'path', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'path': {
+                fill: '#ffffff',
+                stroke: '#000000'
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref': 'path',
+                'ref-x': .5,
+                'ref-dy': 10,
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -148,8 +241,13 @@ joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
 
         type: 'basic.Rhombus',
         attrs: {
-            'path': { d: 'M 30 0 L 60 30 30 60 0 30 z' },
-            'text': { 'ref-y': .5 }
+            'path': {
+                d: 'M 30 0 L 60 30 30 60 0 30 z'
+            },
+            'text': {
+                'ref-y': .5,
+                'y-alignment': 'middle'
+            }
         }
 
     }, joint.shapes.basic.Path.prototype.defaults)
@@ -169,10 +267,10 @@ joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
 //         var portClass = 'port' + index;
 //         var portSelector = selector + '>.' + portClass;
 //         var portTextSelector = portSelector + '>text';
-//         var portCircleSelector = portSelector + '>circle';
+//         var portBodySelector = portSelector + '>.port-body';
 //
 //         attrs[portTextSelector] = { text: portName };
-//         attrs[portCircleSelector] = { port: { id: portName || _.uniqueId(type) , type: type } };
+//         attrs[portBodySelector] = { port: { id: portName || _.uniqueId(type) , type: type } };
 //         attrs[portSelector] = { ref: 'rect', 'ref-y': (index + 0.5) * (1 / total) };
 //
 //         if (selector === '.outPorts') { attrs[portSelector]['ref-dx'] = 0; }
@@ -240,7 +338,7 @@ joint.shapes.basic.PortsModelInterface = {
             if (index < 0) throw new Error("getPortSelector(): Port doesn't exist.");
         }
 
-        return selector + '>g:nth-child(' + (index + 1) + ')>circle';
+        return selector + '>g:nth-child(' + (index + 1) + ')>.port-body';
     }
 };
 

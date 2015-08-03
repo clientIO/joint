@@ -4,11 +4,11 @@
 
         // For AMD.
 
-        define(['backbone', 'lodash', 'jquery', 'g', 'V'], function(Backbone, _, $, g, V) {
+        define(['backbone', 'lodash', 'jquery'], function(Backbone, _, $) {
 
             Backbone.$ = $;
 
-            return factory(root, Backbone, _, $, g, V);
+            return factory(root, Backbone, _, $);
         });
 
     } else if (typeof exports !== 'undefined') {
@@ -18,10 +18,8 @@
         var Backbone = require('backbone');
         var _ = require('lodash');
         var $ = Backbone.$ = require('jquery');
-        var g = require('./geometry');
-        var V = require('./vectorizer');
 
-        module.exports = factory(root, Backbone, _, $, g, V);
+        module.exports = factory(root, Backbone, _, $);
 
     } else {
 
@@ -30,11 +28,10 @@
         var Backbone = root.Backbone;
         var _ = root._;
         var $ = Backbone.$ = root.jQuery || root.$;
-        var g = root.g;
-        var V = root.V;
 
-        root.joint = factory(root, Backbone, _, $, g, V);
-
+        root.joint = factory(root, Backbone, _, $);
+        root.g = root.joint.g;
+        root.V = root.Vectorizer = root.joint.V;
     }
 
-}(this, function(root, Backbone, _, $, g, V) {
+}(this, function(root, Backbone, _, $) {

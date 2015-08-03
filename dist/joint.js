@@ -1,1081 +1,52 @@
-/*! JointJS v0.9.3 - JavaScript diagramming library  2015-05-22 
+/*! JointJS v0.9.4 - JavaScript diagramming library  2015-08-03 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-// Vectorizer.
-// -----------
-
-// A tiny library for making your live easier when dealing with SVG.
-// The only Vectorizer dependency is the Geometry library.
-
-// Copyright © 2012 - 2015 client IO (http://client.io)
-
 (function(root, factory) {
 
     if (typeof define === 'function' && define.amd) {
 
-        // AMD. Register as an anonymous module.
-        define([], factory);
+        // For AMD.
 
-    } else if (typeof exports === 'object') {
+        define(['backbone', 'lodash', 'jquery'], function(Backbone, _, $) {
 
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like environments that support module.exports,
-        // like Node.
-        module.exports = factory();
+            Backbone.$ = $;
+
+            return factory(root, Backbone, _, $);
+        });
+
+    } else if (typeof exports !== 'undefined') {
+
+        // For Node.js or CommonJS.
+
+        var Backbone = require('backbone');
+        var _ = require('lodash');
+        var $ = Backbone.$ = require('jquery');
+
+        module.exports = factory(root, Backbone, _, $);
 
     } else {
 
-        // Browser globals.
-        root.Vectorizer = root.V = factory();
+        // As a browser global.
 
+        var Backbone = root.Backbone;
+        var _ = root._;
+        var $ = Backbone.$ = root.jQuery || root.$;
+
+        root.joint = factory(root, Backbone, _, $);
+        root.g = root.joint.g;
+        root.V = root.Vectorizer = root.joint.V;
     }
 
-}(this, function() {
-
-    var SVGsupported = typeof window === 'object' && !!(window.SVGAngle || document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1'));
-
-    // SVG support is required.
-    if (!SVGsupported) return function() {};
-
-    // XML namespaces.
-    var ns = {
-        xmlns: 'http://www.w3.org/2000/svg',
-        xlink: 'http://www.w3.org/1999/xlink'
-    };
-    // SVG version.
-    var SVGversion = '1.1';
-
-    // A function returning a unique identifier for this client session with every call.
-    var idCounter = 0;
-    function uniqueId() {
-        var id = ++idCounter + '';
-        return 'v-' + id;
-    }
-
-    // Create an SVG document element.
-    // If `content` is passed, it will be used as the SVG content of the `<svg>` root element.
-    function createSvgDocument(content) {
-
-        var svg = '<svg xmlns="' + ns.xmlns + '" xmlns:xlink="' + ns.xlink + '" version="' + SVGversion + '">' + (content || '') + '</svg>';
-        var parser = new DOMParser();
-        parser.async = false;
-        return parser.parseFromString(svg, 'text/xml').documentElement;
-    }
-
-    // Create SVG element.
-    // -------------------
-
-    function createElement(el, attrs, children) {
-
-        var i, len;
-
-        if (!el) return undefined;
-
-        // If `el` is an object, it is probably a native SVG element. Wrap it to VElement.
-        if (typeof el === 'object') {
-            return new VElement(el);
-        }
-        attrs = attrs || {};
-
-        // If `el` is a `'svg'` or `'SVG'` string, create a new SVG canvas.
-        if (el.toLowerCase() === 'svg') {
-
-            return new VElement(createSvgDocument());
-
-        } else if (el[0] === '<') {
-            // Create element from an SVG string.
-            // Allows constructs of type: `document.appendChild(Vectorizer('<rect></rect>').node)`.
-
-            var svgDoc = createSvgDocument(el);
-
-            // Note that `createElement()` might also return an array should the SVG string passed as
-            // the first argument contain more then one root element.
-            if (svgDoc.childNodes.length > 1) {
-
-                // Map child nodes to `VElement`s.
-                var ret = [];
-                for (i = 0, len = svgDoc.childNodes.length; i < len; i++) {
-
-                    var childNode = svgDoc.childNodes[i];
-                    ret.push(new VElement(document.importNode(childNode, true)));
-                }
-                return ret;
-            }
-
-            return new VElement(document.importNode(svgDoc.firstChild, true));
-        }
-
-        el = document.createElementNS(ns.xmlns, el);
-
-        // Set attributes.
-        for (var key in attrs) {
-
-            setAttribute(el, key, attrs[key]);
-        }
-
-        // Normalize `children` array.
-        if (Object.prototype.toString.call(children) != '[object Array]') children = [children];
-
-        // Append children if they are specified.
-        for (i = 0, len = (children[0] && children.length) || 0; i < len; i++) {
-            var child = children[i];
-            el.appendChild(child instanceof VElement ? child.node : child);
-        }
-
-        return new VElement(el);
-    }
-
-    function setAttribute(el, name, value) {
-
-        if (name.indexOf(':') > -1) {
-            // Attribute names can be namespaced. E.g. `image` elements
-            // have a `xlink:href` attribute to set the source of the image.
-            var combinedKey = name.split(':');
-            el.setAttributeNS(ns[combinedKey[0]], combinedKey[1], value);
-
-        } else if (name === 'id') {
-            el.id = value;
-        } else {
-            el.setAttribute(name, value);
-        }
-    }
-
-    function parseTransformString(transform) {
-        var translate,
-            rotate,
-            scale;
-
-        if (transform) {
-
-            var separator = /[ ,]+/;
-
-            var translateMatch = transform.match(/translate\((.*)\)/);
-            if (translateMatch) {
-                translate = translateMatch[1].split(separator);
-            }
-            var rotateMatch = transform.match(/rotate\((.*)\)/);
-            if (rotateMatch) {
-                rotate = rotateMatch[1].split(separator);
-            }
-            var scaleMatch = transform.match(/scale\((.*)\)/);
-            if (scaleMatch) {
-                scale = scaleMatch[1].split(separator);
-            }
-        }
-
-        var sx = (scale && scale[0]) ? parseFloat(scale[0]) : 1;
-
-        return {
-            translate: {
-                tx: (translate && translate[0]) ? parseInt(translate[0], 10) : 0,
-                ty: (translate && translate[1]) ? parseInt(translate[1], 10) : 0
-            },
-            rotate: {
-                angle: (rotate && rotate[0]) ? parseInt(rotate[0], 10) : 0,
-                cx: (rotate && rotate[1]) ? parseInt(rotate[1], 10) : undefined,
-                cy: (rotate && rotate[2]) ? parseInt(rotate[2], 10) : undefined
-            },
-            scale: {
-                sx: sx,
-                sy: (scale && scale[1]) ? parseFloat(scale[1]) : sx
-            }
-        };
-    }
-
-
-    // Matrix decomposition.
-    // ---------------------
-
-    function deltaTransformPoint(matrix, point) {
-
-        var dx = point.x * matrix.a + point.y * matrix.c + 0;
-        var dy = point.x * matrix.b + point.y * matrix.d + 0;
-        return { x: dx, y: dy };
-    }
-
-    function decomposeMatrix(matrix) {
-
-        // @see https://gist.github.com/2052247
-
-        // calculate delta transform point
-        var px = deltaTransformPoint(matrix, { x: 0, y: 1 });
-        var py = deltaTransformPoint(matrix, { x: 1, y: 0 });
-
-        // calculate skew
-        var skewX = ((180 / Math.PI) * Math.atan2(px.y, px.x) - 90);
-        var skewY = ((180 / Math.PI) * Math.atan2(py.y, py.x));
-
-        return {
-
-            translateX: matrix.e,
-            translateY: matrix.f,
-            scaleX: Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b),
-            scaleY: Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d),
-            skewX: skewX,
-            skewY: skewY,
-            rotation: skewX // rotation is the same as skew x
-        };
-    }
-
-    // VElement.
-    // ---------
-
-    function VElement(el) {
-        this.node = el;
-        if (!this.node.id) {
-            this.node.id = uniqueId();
-        }
-    }
-
-    // VElement public API.
-    // --------------------
-
-    VElement.prototype = {
-
-        translate: function(tx, ty, opt) {
-
-            opt = opt || {};
-            ty = ty || 0;
-
-            var transformAttr = this.attr('transform') || '';
-            var transform = parseTransformString(transformAttr);
-
-            // Is it a getter?
-            if (typeof tx === 'undefined') {
-                return transform.translate;
-            }
-
-            transformAttr = transformAttr.replace(/translate\([^\)]*\)/g, '').trim();
-
-            var newTx = opt.absolute ? tx : transform.translate.tx + tx;
-            var newTy = opt.absolute ? ty : transform.translate.ty + ty;
-            var newTranslate = 'translate(' + newTx + ',' + newTy + ')';
-
-            // Note that `translate()` is always the first transformation. This is
-            // usually the desired case.
-            this.attr('transform', (newTranslate + ' ' + transformAttr).trim());
-            return this;
-        },
-
-        rotate: function(angle, cx, cy, opt) {
-
-            opt = opt || {};
-
-            var transformAttr = this.attr('transform') || '';
-            var transform = parseTransformString(transformAttr);
-
-            // Is it a getter?
-            if (typeof angle === 'undefined') {
-                return transform.rotate;
-            }
-
-            transformAttr = transformAttr.replace(/rotate\([^\)]*\)/g, '').trim();
-
-            angle %= 360;
-
-            var newAngle = opt.absolute ? angle : transform.rotate.angle + angle;
-            var newOrigin = (cx !== undefined && cy !== undefined) ? ',' + cx + ',' + cy : '';
-            var newRotate = 'rotate(' + newAngle + newOrigin + ')';
-
-            this.attr('transform', (transformAttr + ' ' + newRotate).trim());
-            return this;
-        },
-
-        // Note that `scale` as the only transformation does not combine with previous values.
-        scale: function(sx, sy) {
-            sy = (typeof sy === 'undefined') ? sx : sy;
-
-            var transformAttr = this.attr('transform') || '';
-            var transform = parseTransformString(transformAttr);
-
-            // Is it a getter?
-            if (typeof sx === 'undefined') {
-                return transform.scale;
-            }
-
-            transformAttr = transformAttr.replace(/scale\([^\)]*\)/g, '').trim();
-
-            var newScale = 'scale(' + sx + ',' + sy + ')';
-
-            this.attr('transform', (transformAttr + ' ' + newScale).trim());
-            return this;
-        },
-
-        // Get SVGRect that contains coordinates and dimension of the real bounding box,
-        // i.e. after transformations are applied.
-        // If `target` is specified, bounding box will be computed relatively to `target` element.
-        bbox: function(withoutTransformations, target) {
-
-            // If the element is not in the live DOM, it does not have a bounding box defined and
-            // so fall back to 'zero' dimension element.
-            if (!this.node.ownerSVGElement) return { x: 0, y: 0, width: 0, height: 0 };
-
-            var box;
-            try {
-
-                box = this.node.getBBox();
-
-                // Opera returns infinite values in some cases.
-                // Note that Infinity | 0 produces 0 as opposed to Infinity || 0.
-                // We also have to create new object as the standard says that you can't
-                // modify the attributes of a bbox.
-                box = { x: box.x | 0, y: box.y | 0, width: box.width | 0, height: box.height | 0 };
-
-            } catch (e) {
-
-                // Fallback for IE.
-                box = {
-                    x: this.node.clientLeft,
-                    y: this.node.clientTop,
-                    width: this.node.clientWidth,
-                    height: this.node.clientHeight
-                };
-            }
-
-            if (withoutTransformations) {
-
-                return box;
-            }
-
-            var matrix = this.node.getTransformToElement(target || this.node.ownerSVGElement);
-
-            return V.transformRect(box, matrix);
-        },
-
-        text: function(content, opt) {
-
-            opt = opt || {};
-            var lines = content.split('\n');
-            var i = 0;
-            var tspan;
-
-            // `alignment-baseline` does not work in Firefox.
-            // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
-            // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
-            // in the top left corner we translate the `<text>` element by `0.8em`.
-            // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
-            // See also `http://apike.ca/prog_svg_text_style.html`.
-            this.attr('y', '0.8em');
-
-            // An empty text gets rendered into the DOM in webkit-based browsers.
-            // In order to unify this behaviour across all browsers
-            // we rather hide the text element when it's empty.
-            this.attr('display', content ? null : 'none');
-
-            // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
-            this.node.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
-
-            // Easy way to erase all `<tspan>` children;
-            this.node.textContent = '';
-
-            var textNode = this.node;
-
-            if (opt.textPath) {
-
-                // Wrap the text in the SVG <textPath> element that points
-                // to a path defined by `opt.textPath` inside the internal `<defs>` element.
-                var defs = this.find('defs');
-                if (defs.length === 0) {
-                    defs = createElement('defs');
-                    this.append(defs);
-                }
-
-                // If `opt.textPath` is a plain string, consider it to be directly the
-                // SVG path data for the text to go along (this is a shortcut).
-                // Otherwise if it is an object and contains the `d` property, then this is our path.
-                var d = Object(opt.textPath) === opt.textPath ? opt.textPath.d : opt.textPath;
-                if (d) {
-                    var path = createElement('path', { d: d });
-                    defs.append(path);
-                }
-
-                var textPath = createElement('textPath');
-                // Set attributes on the `<textPath>`. The most important one
-                // is the `xlink:href` that points to our newly created `<path/>` element in `<defs/>`.
-                // Note that we also allow the following construct:
-                // `t.text('my text', { textPath: { 'xlink:href': '#my-other-path' } })`.
-                // In other words, one can completely skip the auto-creation of the path
-                // and use any other arbitrary path that is in the document.
-                if (!opt.textPath['xlink:href'] && path) {
-                    textPath.attr('xlink:href', '#' + path.node.id);
-                }
-
-                if (Object(opt.textPath) === opt.textPath) {
-                    textPath.attr(opt.textPath);
-                }
-                this.append(textPath);
-                // Now all the `<tspan>`s will be inside the `<textPath>`.
-                textNode = textPath.node;
-            }
-
-            if (lines.length === 1) {
-                textNode.textContent = content;
-                return this;
-            }
-
-            for (; i < lines.length; i++) {
-
-                // Shift all the <tspan> but first by one line (`1em`)
-                tspan = V('tspan', { dy: (i == 0 ? '0em' : opt.lineHeight || '1em'), x: this.attr('x') || 0 });
-                tspan.addClass('v-line');
-                if (!lines[i]) {
-                    tspan.addClass('v-empty-line');
-                }
-                // Make sure the textContent is never empty. If it is, add an additional
-                // space (an invisible character) so that following lines are correctly
-                // relatively positioned. `dy=1em` won't work with empty lines otherwise.
-                tspan.node.textContent = lines[i] || ' ';
-
-                V(textNode).append(tspan);
-            }
-            return this;
-        },
-
-        attr: function(name, value) {
-
-            if (typeof name === 'undefined') {
-                // Return all attributes.
-                var attributes = this.node.attributes;
-                var attrs = {};
-                for (var i = 0; i < attributes.length; i++) {
-                    attrs[attributes[i].nodeName] = attributes[i].nodeValue;
-                }
-                return attrs;
-            }
-
-            if (typeof name === 'string' && typeof value === 'undefined') {
-                return this.node.getAttribute(name);
-            }
-
-            if (typeof name === 'object') {
-
-                for (var attrName in name) {
-                    if (name.hasOwnProperty(attrName)) {
-                        setAttribute(this.node, attrName, name[attrName]);
-                    }
-                }
-
-            } else {
-
-                setAttribute(this.node, name, value);
-            }
-
-            return this;
-        },
-
-        remove: function() {
-            if (this.node.parentNode) {
-                this.node.parentNode.removeChild(this.node);
-            }
-        },
-
-        append: function(el) {
-
-            var els = el;
-
-            if (Object.prototype.toString.call(el) !== '[object Array]') {
-
-                els = [el];
-            }
-
-            for (var i = 0, len = els.length; i < len; i++) {
-                el = els[i];
-                this.node.appendChild(el instanceof VElement ? el.node : el);
-            }
-
-            return this;
-        },
-
-        prepend: function(el) {
-            this.node.insertBefore(el instanceof VElement ? el.node : el, this.node.firstChild);
-        },
-
-        svg: function() {
-
-            return this.node instanceof window.SVGSVGElement ? this : V(this.node.ownerSVGElement);
-        },
-
-        defs: function() {
-
-            var defs = this.svg().node.getElementsByTagName('defs');
-
-            return (defs && defs.length) ? V(defs[0]) : undefined;
-        },
-
-        clone: function() {
-            var clone = V(this.node.cloneNode(true));
-            // Note that clone inherits also ID. Therefore, we need to change it here.
-            clone.node.id = uniqueId();
-            return clone;
-        },
-
-        findOne: function(selector) {
-
-            var found = this.node.querySelector(selector);
-            return found ? V(found) : undefined;
-        },
-
-        find: function(selector) {
-
-            var nodes = this.node.querySelectorAll(selector);
-
-            // Map DOM elements to `VElement`s.
-            for (var i = 0, len = nodes.length; i < len; i++) {
-                nodes[i] = V(nodes[i]);
-            }
-            return nodes;
-        },
-
-        // Find an index of an element inside its container.
-        index: function() {
-
-            var index = 0;
-            var node = this.node.previousSibling;
-
-            while (node) {
-                // nodeType 1 for ELEMENT_NODE
-                if (node.nodeType === 1) index++;
-                node = node.previousSibling;
-            }
-
-            return index;
-        },
-
-        // Convert global point into the coordinate space of this element.
-        toLocalPoint: function(x, y) {
-
-            var svg = this.svg().node;
-
-            var p = svg.createSVGPoint();
-            p.x = x;
-            p.y = y;
-
-            try {
-
-                var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
-                var globalToLocalMatrix = this.node.getTransformToElement(svg).inverse();
-
-            } catch (e) {
-                // IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
-                // We have to make do with the original coordianates.
-                return p;
-            }
-
-            return globalPoint.matrixTransform(globalToLocalMatrix);
-        },
-
-        translateCenterToPoint: function(p) {
-
-            var bbox = this.bbox();
-            var center = g.rect(bbox).center();
-
-            this.translate(p.x - center.x, p.y - center.y);
-        },
-
-        // Efficiently auto-orient an element. This basically implements the orient=auto attribute
-        // of markers. The easiest way of understanding on what this does is to imagine the element is an
-        // arrowhead. Calling this method on the arrowhead makes it point to the `position` point while
-        // being auto-oriented (properly rotated) towards the `reference` point.
-        // `target` is the element relative to which the transformations are applied. Usually a viewport.
-        translateAndAutoOrient: function(position, reference, target) {
-
-            // Clean-up previously set transformations except the scale. If we didn't clean up the
-            // previous transformations then they'd add up with the old ones. Scale is an exception as
-            // it doesn't add up, consider: `this.scale(2).scale(2).scale(2)`. The result is that the
-            // element is scaled by the factor 2, not 8.
-
-            var s = this.scale();
-            this.attr('transform', '');
-            this.scale(s.sx, s.sy);
-
-            var svg = this.svg().node;
-            var bbox = this.bbox(false, target);
-
-            // 1. Translate to origin.
-            var translateToOrigin = svg.createSVGTransform();
-            translateToOrigin.setTranslate(-bbox.x - bbox.width / 2, -bbox.y - bbox.height / 2);
-
-            // 2. Rotate around origin.
-            var rotateAroundOrigin = svg.createSVGTransform();
-            var angle = g.point(position).changeInAngle(position.x - reference.x, position.y - reference.y, reference);
-            rotateAroundOrigin.setRotate(angle, 0, 0);
-
-            // 3. Translate to the `position` + the offset (half my width) towards the `reference` point.
-            var translateFinal = svg.createSVGTransform();
-            var finalPosition = g.point(position).move(reference, bbox.width / 2);
-            translateFinal.setTranslate(position.x + (position.x - finalPosition.x), position.y + (position.y - finalPosition.y));
-
-            // 4. Apply transformations.
-            var ctm = this.node.getTransformToElement(target);
-            var transform = svg.createSVGTransform();
-            transform.setMatrix(
-                translateFinal.matrix.multiply(
-                    rotateAroundOrigin.matrix.multiply(
-                        translateToOrigin.matrix.multiply(
-                            ctm)))
-            );
-
-            // Instead of directly setting the `matrix()` transform on the element, first, decompose
-            // the matrix into separate transforms. This allows us to use normal Vectorizer methods
-            // as they don't work on matrices. An example of this is to retrieve a scale of an element.
-            // this.node.transform.baseVal.initialize(transform);
-
-            var decomposition = decomposeMatrix(transform.matrix);
-
-            this.translate(decomposition.translateX, decomposition.translateY);
-            this.rotate(decomposition.rotation);
-            // Note that scale has been already applied, hence the following line stays commented. (it's here just for reference).
-            //this.scale(decomposition.scaleX, decomposition.scaleY);
-
-            return this;
-        },
-
-        animateAlongPath: function(attrs, path) {
-
-            var animateMotion = V('animateMotion', attrs);
-            var mpath = V('mpath', { 'xlink:href': '#' + V(path).node.id });
-
-            animateMotion.append(mpath);
-
-            this.append(animateMotion);
-            try {
-                animateMotion.node.beginElement();
-            } catch (e) {
-                // Fallback for IE 9.
-                // Run the animation programatically if FakeSmile (`http://leunen.me/fakesmile/`) present
-                if (document.documentElement.getAttribute('smiling') === 'fake') {
-
-                    // Register the animation. (See `https://answers.launchpad.net/smil/+question/203333`)
-                    var animation = animateMotion.node;
-                    animation.animators = [];
-
-                    var animationID = animation.getAttribute('id');
-                    if (animationID) id2anim[animationID] = animation;
-
-                    var targets = getTargets(animation);
-                    for (var i = 0, len = targets.length; i < len; i++) {
-                        var target = targets[i];
-                        var animator = new Animator(animation, target, i);
-                        animators.push(animator);
-                        animation.animators[i] = animator;
-                        animator.register();
-                    }
-                }
-            }
-        },
-
-        hasClass: function(className) {
-
-            return new RegExp('(\\s|^)' + className + '(\\s|$)').test(this.node.getAttribute('class'));
-        },
-
-        addClass: function(className) {
-
-            if (!this.hasClass(className)) {
-                var prevClasses = this.node.getAttribute('class') || '';
-                this.node.setAttribute('class', (prevClasses + ' ' + className).trim());
-            }
-
-            return this;
-        },
-
-        removeClass: function(className) {
-
-            if (this.hasClass(className)) {
-                var newClasses = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
-                this.node.setAttribute('class', newClasses);
-            }
-
-            return this;
-        },
-
-        toggleClass: function(className, toAdd) {
-
-            var toRemove = typeof toAdd === 'undefined' ? this.hasClass(className) : !toAdd;
-
-            if (toRemove) {
-                this.removeClass(className);
-            } else {
-                this.addClass(className);
-            }
-
-            return this;
-        },
-
-        // Interpolate path by discrete points. The precision of the sampling
-        // is controlled by `interval`. In other words, `sample()` will generate
-        // a point on the path starting at the beginning of the path going to the end
-        // every `interval` pixels.
-        // The sampler can be very useful for e.g. finding intersection between two
-        // paths (finding the two closest points from two samples).
-        sample: function(interval) {
-
-            interval = interval || 1;
-            var node = this.node;
-            var length = node.getTotalLength();
-            var samples = [];
-            var distance = 0;
-            var sample;
-            while (distance < length) {
-                sample = node.getPointAtLength(distance);
-                samples.push({ x: sample.x, y: sample.y, distance: distance });
-                distance += interval;
-            }
-            return samples;
-        },
-
-        convertToPath: function() {
-
-            var path = createElement('path');
-            path.attr(this.attr());
-            var d = this.convertToPathData();
-            if (d) {
-                path.attr('d', d);
-            }
-            return path;
-        },
-
-        convertToPathData: function() {
-
-            var tagName = this.node.tagName.toUpperCase();
-
-            switch (tagName) {
-            case 'PATH':
-                return this.attr('d');
-            case 'LINE':
-                return convertLineToPathData(this.node);
-            case 'POLYGON':
-                return convertPolygonToPathData(this.node);
-            case 'POLYLINE':
-                return convertPolylineToPathData(this.node);
-            case 'ELLIPSE':
-                return convertEllipseToPathData(this.node);
-            case 'CIRCLE':
-                return convertCircleToPathData(this.node);
-            case 'RECT':
-                return convertRectToPathData(this.node);
-            }
-
-            throw new Error(tagName + ' cannot be converted to PATH.');
-        },
-
-        // Find the intersection of a line starting in the center
-        // of the SVG `node` ending in the point `ref`.
-        // `target` is an SVG element to which `node`s transformations are relative to.
-        // In JointJS, `target` is the `paper.viewport` SVG group element.
-        // Note that `ref` point must be in the coordinate system of the `target` for this function to work properly.
-        // Returns a point in the `target` coordinte system (the same system as `ref` is in) if
-        // an intersection is found. Returns `undefined` otherwise.
-        findIntersection: function(ref, target) {
-
-            var svg = this.svg().node;
-            target = target || svg;
-            var bbox = g.rect(this.bbox(false, target));
-            var center = bbox.center();
-            var spot = bbox.intersectionWithLineFromCenterToPoint(ref);
-
-            if (!spot) return undefined;
-
-            var tagName = this.node.localName.toUpperCase();
-
-            // Little speed up optimalization for `<rect>` element. We do not do conversion
-            // to path element and sampling but directly calculate the intersection through
-            // a transformed geometrical rectangle.
-            if (tagName === 'RECT') {
-
-                var gRect = g.rect(
-                    parseFloat(this.attr('x') || 0),
-                    parseFloat(this.attr('y') || 0),
-                    parseFloat(this.attr('width')),
-                    parseFloat(this.attr('height'))
-                );
-                // Get the rect transformation matrix with regards to the SVG document.
-                var rectMatrix = this.node.getTransformToElement(target);
-                // Decompose the matrix to find the rotation angle.
-                var rectMatrixComponents = V.decomposeMatrix(rectMatrix);
-                // Now we want to rotate the rectangle back so that we
-                // can use `intersectionWithLineFromCenterToPoint()` passing the angle as the second argument.
-                var resetRotation = svg.createSVGTransform();
-                resetRotation.setRotate(-rectMatrixComponents.rotation, center.x, center.y);
-                var rect = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
-                spot = g.rect(rect).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
-
-            } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
-
-                var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
-                var samples = pathNode.sample();
-                var minDistance = Infinity;
-                var closestSamples = [];
-
-                for (var i = 0, len = samples.length; i < len; i++) {
-
-                    var sample = samples[i];
-                    // Convert the sample point in the local coordinate system to the global coordinate system.
-                    var gp = V.createSVGPoint(sample.x, sample.y);
-                    gp = gp.matrixTransform(this.node.getTransformToElement(target));
-                    sample = g.point(gp);
-                    var centerDistance = sample.distance(center);
-                    // Penalize a higher distance to the reference point by 10%.
-                    // This gives better results. This is due to
-                    // inaccuracies introduced by rounding errors and getPointAtLength() returns.
-                    var refDistance = sample.distance(ref) * 1.1;
-                    var distance = centerDistance + refDistance;
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        closestSamples = [{ sample: sample, refDistance: refDistance }];
-                    } else if (distance < minDistance + 1) {
-                        closestSamples.push({ sample: sample, refDistance: refDistance });
-                    }
-                }
-                closestSamples.sort(function(a, b) { return a.refDistance - b.refDistance; });
-                spot = closestSamples[0].sample;
-            }
-
-            return spot;
-        }
-    };
-
-    function convertLineToPathData(line) {
-
-        line = createElement(line);
-        var d = [
-            'M', line.attr('x1'), line.attr('y1'),
-            'L', line.attr('x2'), line.attr('y2')
-        ].join(' ');
-        return d;
-    }
-
-    function convertPolygonToPathData(polygon) {
-
-        polygon = createElement(polygon);
-        var points = polygon.node.points;
-
-        var d = [];
-        var p;
-        for (var i = 0; i < points.length; i++) {
-            p = points[i];
-            d.push(i === 0 ? 'M' : 'L', p.x, p.y);
-        }
-        d.push('Z');
-        return d.join(' ');
-    }
-
-    function convertPolylineToPathData(polyline) {
-
-        polyline = createElement(polyline);
-        var points = polyline.node.points;
-
-        var d = [];
-        var p;
-        for (var i = 0; i < points.length; i++) {
-            p = points[i];
-            d.push(i === 0 ? 'M' : 'L', p.x, p.y);
-        }
-        return d.join(' ');
-    }
-
-    var KAPPA = 0.5522847498307935;
-
-    function convertCircleToPathData(circle) {
-
-        circle = createElement(circle);
-        var cx = parseFloat(circle.attr('cx')) || 0;
-        var cy = parseFloat(circle.attr('cy')) || 0;
-        var r = parseFloat(circle.attr('r'));
-        var cd = r * KAPPA; // Control distance.
-
-        var d = [
-            'M', cx, cy - r,    // Move to the first point.
-            'C', cx + cd, cy - r, cx + r, cy - cd, cx + r, cy, // I. Quadrant.
-            'C', cx + r, cy + cd, cx + cd, cy + r, cx, cy + r, // II. Quadrant.
-            'C', cx - cd, cy + r, cx - r, cy + cd, cx - r, cy, // III. Quadrant.
-            'C', cx - r, cy - cd, cx - cd, cy - r, cx, cy - r, // IV. Quadrant.
-            'Z'
-        ].join(' ');
-        return d;
-    }
-
-    function convertEllipseToPathData(ellipse) {
-
-        ellipse = createElement(ellipse);
-        var cx = parseFloat(ellipse.attr('cx')) || 0;
-        var cy = parseFloat(ellipse.attr('cy')) || 0;
-        var rx = parseFloat(ellipse.attr('rx'));
-        var ry = parseFloat(ellipse.attr('ry')) || rx;
-        var cdx = rx * KAPPA; // Control distance x.
-        var cdy = ry * KAPPA; // Control distance y.
-
-        var d = [
-            'M', cx, cy - ry,    // Move to the first point.
-            'C', cx + cdx, cy - ry, cx + rx, cy - cdy, cx + rx, cy, // I. Quadrant.
-            'C', cx + rx, cy + cdy, cx + cdx, cy + ry, cx, cy + ry, // II. Quadrant.
-            'C', cx - cdx, cy + ry, cx - rx, cy + cdy, cx - rx, cy, // III. Quadrant.
-            'C', cx - rx, cy - cdy, cx - cdx, cy - ry, cx, cy - ry, // IV. Quadrant.
-            'Z'
-        ].join(' ');
-        return d;
-    }
-
-    function convertRectToPathData(rect) {
-
-        rect = createElement(rect);
-        var x = parseFloat(rect.attr('x')) || 0;
-        var y = parseFloat(rect.attr('y')) || 0;
-        var width = parseFloat(rect.attr('width')) || 0;
-        var height = parseFloat(rect.attr('height')) || 0;
-        var rx = parseFloat(rect.attr('rx')) || 0;
-        var ry = parseFloat(rect.attr('ry')) || 0;
-        var bbox = g.rect(x, y, width, height);
-
-        var d;
-
-        if (!rx && !ry) {
-
-            d = [
-                'M', bbox.origin().x, bbox.origin().y,
-                'H', bbox.corner().x,
-                'V', bbox.corner().y,
-                'H', bbox.origin().x,
-                'V', bbox.origin().y,
-                'Z'
-            ].join(' ');
-
-        } else {
-
-            var r = x + width;
-            var b = y + height;
-            d = [
-                'M', x + rx, y,
-                'L', r - rx, y,
-                'Q', r, y, r, y + ry,
-                'L', r, y + height - ry,
-                'Q', r, b, r - rx, b,
-                'L', x + rx, b,
-                'Q', x, b, x, b - rx,
-                'L', x, y + ry,
-                'Q', x, y, x + rx, y,
-                'Z'
-            ].join(' ');
-        }
-        return d;
-    }
-
-    // Convert a rectangle to SVG path commands. `r` is an object of the form:
-    // `{ x: [number], y: [number], width: [number], height: [number], top-ry: [number], top-ry: [number], bottom-rx: [number], bottom-ry: [number] }`,
-    // where `x, y, width, height` are the usual rectangle attributes and [top-/bottom-]rx/ry allows for
-    // specifying radius of the rectangle for all its sides (as opposed to the built-in SVG rectangle
-    // that has only `rx` and `ry` attributes).
-    function rectToPath(r) {
-
-        var topRx = r.rx || r['top-rx'] || 0;
-        var bottomRx = r.rx || r['bottom-rx'] || 0;
-        var topRy = r.ry || r['top-ry'] || 0;
-        var bottomRy = r.ry || r['bottom-ry'] || 0;
-
-        return [
-            'M', r.x, r.y + topRy,
-            'v', r.height - topRy - bottomRy,
-            'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, bottomRy,
-            'h', r.width - 2 * bottomRx,
-            'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, -bottomRy,
-            'v', -(r.height - bottomRy - topRy),
-            'a', topRx, topRy, 0, 0, 0, -topRx, -topRy,
-            'h', -(r.width - 2 * topRx),
-            'a', topRx, topRy, 0, 0, 0, -topRx, topRy
-        ].join(' ');
-    }
-
-    var V = createElement;
-
-    V.decomposeMatrix = decomposeMatrix;
-    V.rectToPath = rectToPath;
-
-    var svgDocument = V('svg').node;
-
-    V.createSVGMatrix = function(m) {
-
-        var svgMatrix = svgDocument.createSVGMatrix();
-        for (var component in m) {
-            svgMatrix[component] = m[component];
-        }
-
-        return svgMatrix;
-    };
-
-    V.createSVGTransform = function() {
-
-        return svgDocument.createSVGTransform();
-    };
-
-    V.createSVGPoint = function(x, y) {
-
-        var p = svgDocument.createSVGPoint();
-        p.x = x;
-        p.y = y;
-        return p;
-    };
-
-    V.transformRect = function(r, matrix) {
-
-        var p = svgDocument.createSVGPoint();
-
-        p.x = r.x;
-        p.y = r.y;
-        var corner1 = p.matrixTransform(matrix);
-
-        p.x = r.x + r.width;
-        p.y = r.y;
-        var corner2 = p.matrixTransform(matrix);
-
-        p.x = r.x + r.width;
-        p.y = r.y + r.height;
-        var corner3 = p.matrixTransform(matrix);
-
-        p.x = r.x;
-        p.y = r.y + r.height;
-        var corner4 = p.matrixTransform(matrix);
-
-        var minX = Math.min(corner1.x, corner2.x, corner3.x, corner4.x);
-        var maxX = Math.max(corner1.x, corner2.x, corner3.x, corner4.x);
-        var minY = Math.min(corner1.y, corner2.y, corner3.y, corner4.y);
-        var maxY = Math.max(corner1.y, corner2.y, corner3.y, corner4.y);
-
-        return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
-    };
-
-    return V;
-
-}));
+}(this, function(root, Backbone, _, $) {
 
 //      Geometry library.
 //      (c) 2011-2013 client IO
 
-(function(root, factory) {
-
-    if (typeof define === 'function' && define.amd) {
-
-        // AMD. Register as an anonymous module.
-        define([], factory);
-
-    } else if (typeof exports === 'object') {
-
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like environments that support module.exports,
-        // like Node.
-        module.exports = factory();
-
-    } else {
-
-        // Browser globals.
-        root.g = factory();
-
-    }
-
-}(this, function() {
+var g = (function() {
 
     // Declare shorthands to the most used math functions.
     var math = Math;
@@ -1813,7 +784,1329 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         scale: scale
     };
 
-}));
+})();
+
+// Vectorizer.
+// -----------
+
+// A tiny library for making your live easier when dealing with SVG.
+// The only Vectorizer dependency is the Geometry library.
+
+// Copyright © 2012 - 2015 client IO (http://client.io)
+
+var V;
+var Vectorizer;
+
+V = Vectorizer = (function() {
+
+    var SVGsupported = typeof window === 'object' && !!(window.SVGAngle || document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1'));
+
+    // SVG support is required.
+    if (!SVGsupported) return function() {};
+
+    // XML namespaces.
+    var ns = {
+        xmlns: 'http://www.w3.org/2000/svg',
+        xlink: 'http://www.w3.org/1999/xlink'
+    };
+    // SVG version.
+    var SVGversion = '1.1';
+
+    // A function returning a unique identifier for this client session with every call.
+    var idCounter = 0;
+    function uniqueId() {
+        var id = ++idCounter + '';
+        return 'v-' + id;
+    }
+
+    function isObject(o) {
+        return Object(o) === Object(o);
+    }
+
+    function isArray(o) {
+        return Object.prototype.toString.call(o) == '[object Array]';
+    }
+
+    // Create an SVG document element.
+    // If `content` is passed, it will be used as the SVG content of the `<svg>` root element.
+    function createSvgDocument(content) {
+
+        var svg = '<svg xmlns="' + ns.xmlns + '" xmlns:xlink="' + ns.xlink + '" version="' + SVGversion + '">' + (content || '') + '</svg>';
+        var parser = new DOMParser();
+        parser.async = false;
+        return parser.parseFromString(svg, 'text/xml').documentElement;
+    }
+
+    // Create SVG element.
+    // -------------------
+
+    function createElement(el, attrs, children) {
+
+        var i, len;
+
+        if (!el) return undefined;
+
+        // If `el` is an object, it is probably a native SVG element. Wrap it to VElement.
+        if (typeof el === 'object') {
+            return new VElement(el);
+        }
+        attrs = attrs || {};
+
+        // If `el` is a `'svg'` or `'SVG'` string, create a new SVG canvas.
+        if (el.toLowerCase() === 'svg') {
+
+            return new VElement(createSvgDocument());
+
+        } else if (el[0] === '<') {
+            // Create element from an SVG string.
+            // Allows constructs of type: `document.appendChild(Vectorizer('<rect></rect>').node)`.
+
+            var svgDoc = createSvgDocument(el);
+
+            // Note that `createElement()` might also return an array should the SVG string passed as
+            // the first argument contain more then one root element.
+            if (svgDoc.childNodes.length > 1) {
+
+                // Map child nodes to `VElement`s.
+                var ret = [];
+                for (i = 0, len = svgDoc.childNodes.length; i < len; i++) {
+
+                    var childNode = svgDoc.childNodes[i];
+                    ret.push(new VElement(document.importNode(childNode, true)));
+                }
+                return ret;
+            }
+
+            return new VElement(document.importNode(svgDoc.firstChild, true));
+        }
+
+        el = document.createElementNS(ns.xmlns, el);
+
+        // Set attributes.
+        for (var key in attrs) {
+
+            setAttribute(el, key, attrs[key]);
+        }
+
+        // Normalize `children` array.
+        if (Object.prototype.toString.call(children) != '[object Array]') children = [children];
+
+        // Append children if they are specified.
+        for (i = 0, len = (children[0] && children.length) || 0; i < len; i++) {
+            var child = children[i];
+            el.appendChild(child instanceof VElement ? child.node : child);
+        }
+
+        return new VElement(el);
+    }
+
+    function setAttribute(el, name, value) {
+
+        if (name.indexOf(':') > -1) {
+            // Attribute names can be namespaced. E.g. `image` elements
+            // have a `xlink:href` attribute to set the source of the image.
+            var combinedKey = name.split(':');
+            el.setAttributeNS(ns[combinedKey[0]], combinedKey[1], value);
+
+        } else if (name === 'id') {
+            el.id = value;
+        } else {
+            el.setAttribute(name, value);
+        }
+    }
+
+    function parseTransformString(transform) {
+        var translate,
+            rotate,
+            scale;
+
+        if (transform) {
+
+            var separator = /[ ,]+/;
+
+            var translateMatch = transform.match(/translate\((.*)\)/);
+            if (translateMatch) {
+                translate = translateMatch[1].split(separator);
+            }
+            var rotateMatch = transform.match(/rotate\((.*)\)/);
+            if (rotateMatch) {
+                rotate = rotateMatch[1].split(separator);
+            }
+            var scaleMatch = transform.match(/scale\((.*)\)/);
+            if (scaleMatch) {
+                scale = scaleMatch[1].split(separator);
+            }
+        }
+
+        var sx = (scale && scale[0]) ? parseFloat(scale[0]) : 1;
+
+        return {
+            translate: {
+                tx: (translate && translate[0]) ? parseInt(translate[0], 10) : 0,
+                ty: (translate && translate[1]) ? parseInt(translate[1], 10) : 0
+            },
+            rotate: {
+                angle: (rotate && rotate[0]) ? parseInt(rotate[0], 10) : 0,
+                cx: (rotate && rotate[1]) ? parseInt(rotate[1], 10) : undefined,
+                cy: (rotate && rotate[2]) ? parseInt(rotate[2], 10) : undefined
+            },
+            scale: {
+                sx: sx,
+                sy: (scale && scale[1]) ? parseFloat(scale[1]) : sx
+            }
+        };
+    }
+
+
+    // Matrix decomposition.
+    // ---------------------
+
+    function deltaTransformPoint(matrix, point) {
+
+        var dx = point.x * matrix.a + point.y * matrix.c + 0;
+        var dy = point.x * matrix.b + point.y * matrix.d + 0;
+        return { x: dx, y: dy };
+    }
+
+    function decomposeMatrix(matrix) {
+
+        // @see https://gist.github.com/2052247
+
+        // calculate delta transform point
+        var px = deltaTransformPoint(matrix, { x: 0, y: 1 });
+        var py = deltaTransformPoint(matrix, { x: 1, y: 0 });
+
+        // calculate skew
+        var skewX = ((180 / Math.PI) * Math.atan2(px.y, px.x) - 90);
+        var skewY = ((180 / Math.PI) * Math.atan2(py.y, py.x));
+
+        return {
+
+            translateX: matrix.e,
+            translateY: matrix.f,
+            scaleX: Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b),
+            scaleY: Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d),
+            skewX: skewX,
+            skewY: skewY,
+            rotation: skewX // rotation is the same as skew x
+        };
+    }
+
+    // VElement.
+    // ---------
+
+    function VElement(el) {
+        if (el instanceof VElement) {
+            el = el.node;
+        }
+        this.node = el;
+        if (!this.node.id) {
+            this.node.id = uniqueId();
+        }
+    }
+
+    // VElement public API.
+    // --------------------
+
+    VElement.prototype = {
+
+        translate: function(tx, ty, opt) {
+
+            opt = opt || {};
+            ty = ty || 0;
+
+            var transformAttr = this.attr('transform') || '';
+            var transform = parseTransformString(transformAttr);
+
+            // Is it a getter?
+            if (typeof tx === 'undefined') {
+                return transform.translate;
+            }
+
+            transformAttr = transformAttr.replace(/translate\([^\)]*\)/g, '').trim();
+
+            var newTx = opt.absolute ? tx : transform.translate.tx + tx;
+            var newTy = opt.absolute ? ty : transform.translate.ty + ty;
+            var newTranslate = 'translate(' + newTx + ',' + newTy + ')';
+
+            // Note that `translate()` is always the first transformation. This is
+            // usually the desired case.
+            this.attr('transform', (newTranslate + ' ' + transformAttr).trim());
+            return this;
+        },
+
+        rotate: function(angle, cx, cy, opt) {
+
+            opt = opt || {};
+
+            var transformAttr = this.attr('transform') || '';
+            var transform = parseTransformString(transformAttr);
+
+            // Is it a getter?
+            if (typeof angle === 'undefined') {
+                return transform.rotate;
+            }
+
+            transformAttr = transformAttr.replace(/rotate\([^\)]*\)/g, '').trim();
+
+            angle %= 360;
+
+            var newAngle = opt.absolute ? angle : transform.rotate.angle + angle;
+            var newOrigin = (cx !== undefined && cy !== undefined) ? ',' + cx + ',' + cy : '';
+            var newRotate = 'rotate(' + newAngle + newOrigin + ')';
+
+            this.attr('transform', (transformAttr + ' ' + newRotate).trim());
+            return this;
+        },
+
+        // Note that `scale` as the only transformation does not combine with previous values.
+        scale: function(sx, sy) {
+            sy = (typeof sy === 'undefined') ? sx : sy;
+
+            var transformAttr = this.attr('transform') || '';
+            var transform = parseTransformString(transformAttr);
+
+            // Is it a getter?
+            if (typeof sx === 'undefined') {
+                return transform.scale;
+            }
+
+            transformAttr = transformAttr.replace(/scale\([^\)]*\)/g, '').trim();
+
+            var newScale = 'scale(' + sx + ',' + sy + ')';
+
+            this.attr('transform', (transformAttr + ' ' + newScale).trim());
+            return this;
+        },
+
+        // Get SVGRect that contains coordinates and dimension of the real bounding box,
+        // i.e. after transformations are applied.
+        // If `target` is specified, bounding box will be computed relatively to `target` element.
+        bbox: function(withoutTransformations, target) {
+
+            // If the element is not in the live DOM, it does not have a bounding box defined and
+            // so fall back to 'zero' dimension element.
+            if (!this.node.ownerSVGElement) return { x: 0, y: 0, width: 0, height: 0 };
+
+            var box;
+            try {
+
+                box = this.node.getBBox();
+
+                // Opera returns infinite values in some cases.
+                // Note that Infinity | 0 produces 0 as opposed to Infinity || 0.
+                // We also have to create new object as the standard says that you can't
+                // modify the attributes of a bbox.
+                box = { x: box.x | 0, y: box.y | 0, width: box.width | 0, height: box.height | 0 };
+
+            } catch (e) {
+
+                // Fallback for IE.
+                box = {
+                    x: this.node.clientLeft,
+                    y: this.node.clientTop,
+                    width: this.node.clientWidth,
+                    height: this.node.clientHeight
+                };
+            }
+
+            if (withoutTransformations) {
+
+                return box;
+            }
+
+            var matrix = this.node.getTransformToElement(target || this.node.ownerSVGElement);
+
+            return V.transformRect(box, matrix);
+        },
+
+        text: function(content, opt) {
+
+            opt = opt || {};
+            var lines = content.split('\n');
+            var i = 0;
+            var tspan;
+
+            // `alignment-baseline` does not work in Firefox.
+            // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
+            // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
+            // in the top left corner we translate the `<text>` element by `0.8em`.
+            // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
+            // See also `http://apike.ca/prog_svg_text_style.html`.
+            var y = this.attr('y');
+            if (!y) {
+                this.attr('y', '0.8em');
+            }
+
+            // An empty text gets rendered into the DOM in webkit-based browsers.
+            // In order to unify this behaviour across all browsers
+            // we rather hide the text element when it's empty.
+            this.attr('display', content ? null : 'none');
+
+            // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
+            this.node.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
+
+            // Easy way to erase all `<tspan>` children;
+            this.node.textContent = '';
+
+            var textNode = this.node;
+
+            if (opt.textPath) {
+
+                // Wrap the text in the SVG <textPath> element that points
+                // to a path defined by `opt.textPath` inside the internal `<defs>` element.
+                var defs = this.find('defs');
+                if (defs.length === 0) {
+                    defs = createElement('defs');
+                    this.append(defs);
+                }
+
+                // If `opt.textPath` is a plain string, consider it to be directly the
+                // SVG path data for the text to go along (this is a shortcut).
+                // Otherwise if it is an object and contains the `d` property, then this is our path.
+                var d = Object(opt.textPath) === opt.textPath ? opt.textPath.d : opt.textPath;
+                if (d) {
+                    var path = createElement('path', { d: d });
+                    defs.append(path);
+                }
+
+                var textPath = createElement('textPath');
+                // Set attributes on the `<textPath>`. The most important one
+                // is the `xlink:href` that points to our newly created `<path/>` element in `<defs/>`.
+                // Note that we also allow the following construct:
+                // `t.text('my text', { textPath: { 'xlink:href': '#my-other-path' } })`.
+                // In other words, one can completely skip the auto-creation of the path
+                // and use any other arbitrary path that is in the document.
+                if (!opt.textPath['xlink:href'] && path) {
+                    textPath.attr('xlink:href', '#' + path.node.id);
+                }
+
+                if (Object(opt.textPath) === opt.textPath) {
+                    textPath.attr(opt.textPath);
+                }
+                this.append(textPath);
+                // Now all the `<tspan>`s will be inside the `<textPath>`.
+                textNode = textPath.node;
+            }
+
+            var offset = 0;
+
+            for (var i = 0; i < lines.length; i++) {
+
+                var line = lines[i];
+                // Shift all the <tspan> but first by one line (`1em`)
+                var lineHeight = opt.lineHeight || '1em';
+                if (opt.lineHeight === 'auto') {
+                    lineHeight = '1.5em';
+                }
+                var vLine = V('tspan', { dy: (i == 0 ? '0em' : lineHeight), x: this.attr('x') || 0 });
+                vLine.addClass('v-line');
+
+                if (line) {
+
+                    if (opt.annotations) {
+
+                        // Get the line height based on the biggest font size in the annotations for this line.
+                        var maxFontSize = 0;
+
+                        // Find the *compacted* annotations for this line.
+                        var lineAnnotations = V.annotateString(lines[i], isArray(opt.annotations) ? opt.annotations : [opt.annotations], { offset: -offset, includeAnnotationIndices: opt.includeAnnotationIndices });
+                        for (var j = 0; j < lineAnnotations.length; j++) {
+
+                            var annotation = lineAnnotations[j];
+                            if (isObject(annotation)) {
+
+                                var fontSize = parseInt(annotation.attrs['font-size'], 10);
+                                if (fontSize && fontSize > maxFontSize) {
+                                    maxFontSize = fontSize;
+                                }
+
+                                tspan = V('tspan', annotation.attrs);
+                                if (opt.includeAnnotationIndices) {
+                                    // If `opt.includeAnnotationIndices` is `true`,
+                                    // set the list of indices of all the applied annotations
+                                    // in the `annotations` attribute. This list is a comma
+                                    // separated list of indices.
+                                    tspan.attr('annotations', annotation.annotations);
+                                }
+                                if (annotation.attrs['class']) {
+                                    tspan.addClass(annotation.attrs['class']);
+                                }
+                                tspan.node.textContent = annotation.t;
+
+                            } else {
+
+                                tspan = document.createTextNode(annotation || ' ');
+
+                            }
+                            vLine.append(tspan);
+                        }
+
+                        if (opt.lineHeight === 'auto' && maxFontSize && i !== 0) {
+
+                            vLine.attr('dy', (maxFontSize * 1.2) + 'px');
+                        }
+
+                    } else {
+
+                        vLine.node.textContent = line;
+                    }
+
+                } else {
+
+                    // Make sure the textContent is never empty. If it is, add an additional
+                    // space (an invisible character) so that following lines are correctly
+                    // relatively positioned. `dy=1em` won't work with empty lines otherwise.
+                    vLine.addClass('v-empty-line');
+                    vLine.node.textContent = ' ';
+                }
+
+                V(textNode).append(vLine);
+
+                offset += line.length + 1;      // + 1 = newline character.
+            }
+
+            return this;
+        },
+
+        attr: function(name, value) {
+
+            if (typeof name === 'undefined') {
+                // Return all attributes.
+                var attributes = this.node.attributes;
+                var attrs = {};
+                for (var i = 0; i < attributes.length; i++) {
+                    attrs[attributes[i].nodeName] = attributes[i].nodeValue;
+                }
+                return attrs;
+            }
+
+            if (typeof name === 'string' && typeof value === 'undefined') {
+                return this.node.getAttribute(name);
+            }
+
+            if (typeof name === 'object') {
+
+                for (var attrName in name) {
+                    if (name.hasOwnProperty(attrName)) {
+                        setAttribute(this.node, attrName, name[attrName]);
+                    }
+                }
+
+            } else {
+
+                setAttribute(this.node, name, value);
+            }
+
+            return this;
+        },
+
+        remove: function() {
+            if (this.node.parentNode) {
+                this.node.parentNode.removeChild(this.node);
+            }
+        },
+
+        append: function(el) {
+
+            var els = el;
+
+            if (Object.prototype.toString.call(el) !== '[object Array]') {
+
+                els = [el];
+            }
+
+            for (var i = 0, len = els.length; i < len; i++) {
+                el = els[i];
+                this.node.appendChild(el instanceof VElement ? el.node : el);
+            }
+
+            return this;
+        },
+
+        prepend: function(el) {
+            this.node.insertBefore(el instanceof VElement ? el.node : el, this.node.firstChild);
+        },
+
+        svg: function() {
+
+            return this.node instanceof window.SVGSVGElement ? this : V(this.node.ownerSVGElement);
+        },
+
+        defs: function() {
+
+            var defs = this.svg().node.getElementsByTagName('defs');
+
+            return (defs && defs.length) ? V(defs[0]) : undefined;
+        },
+
+        clone: function() {
+            var clone = V(this.node.cloneNode(true));
+            // Note that clone inherits also ID. Therefore, we need to change it here.
+            clone.node.id = uniqueId();
+            return clone;
+        },
+
+        findOne: function(selector) {
+
+            var found = this.node.querySelector(selector);
+            return found ? V(found) : undefined;
+        },
+
+        find: function(selector) {
+
+            var nodes = this.node.querySelectorAll(selector);
+
+            // Map DOM elements to `VElement`s.
+            return Array.prototype.map.call(nodes, V);
+        },
+
+        // Find an index of an element inside its container.
+        index: function() {
+
+            var index = 0;
+            var node = this.node.previousSibling;
+
+            while (node) {
+                // nodeType 1 for ELEMENT_NODE
+                if (node.nodeType === 1) index++;
+                node = node.previousSibling;
+            }
+
+            return index;
+        },
+
+        findParentByClass: function(className, terminator) {
+
+            terminator = terminator || this.node.ownerSVGElement;
+
+            var node = this.node.parentNode;
+
+            while (node && node !== terminator) {
+
+                if (V(node).hasClass(className)) {
+                    return V(node);
+                }
+
+                node = node.parentNode;
+            }
+
+            return null;
+        },
+
+        // Convert global point into the coordinate space of this element.
+        toLocalPoint: function(x, y) {
+
+            var svg = this.svg().node;
+
+            var p = svg.createSVGPoint();
+            p.x = x;
+            p.y = y;
+
+            try {
+
+                var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
+                var globalToLocalMatrix = this.node.getTransformToElement(svg).inverse();
+
+            } catch (e) {
+                // IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
+                // We have to make do with the original coordianates.
+                return p;
+            }
+
+            return globalPoint.matrixTransform(globalToLocalMatrix);
+        },
+
+        translateCenterToPoint: function(p) {
+
+            var bbox = this.bbox();
+            var center = g.rect(bbox).center();
+
+            this.translate(p.x - center.x, p.y - center.y);
+        },
+
+        // Efficiently auto-orient an element. This basically implements the orient=auto attribute
+        // of markers. The easiest way of understanding on what this does is to imagine the element is an
+        // arrowhead. Calling this method on the arrowhead makes it point to the `position` point while
+        // being auto-oriented (properly rotated) towards the `reference` point.
+        // `target` is the element relative to which the transformations are applied. Usually a viewport.
+        translateAndAutoOrient: function(position, reference, target) {
+
+            // Clean-up previously set transformations except the scale. If we didn't clean up the
+            // previous transformations then they'd add up with the old ones. Scale is an exception as
+            // it doesn't add up, consider: `this.scale(2).scale(2).scale(2)`. The result is that the
+            // element is scaled by the factor 2, not 8.
+
+            var s = this.scale();
+            this.attr('transform', '');
+            this.scale(s.sx, s.sy);
+
+            var svg = this.svg().node;
+            var bbox = this.bbox(false, target);
+
+            // 1. Translate to origin.
+            var translateToOrigin = svg.createSVGTransform();
+            translateToOrigin.setTranslate(-bbox.x - bbox.width / 2, -bbox.y - bbox.height / 2);
+
+            // 2. Rotate around origin.
+            var rotateAroundOrigin = svg.createSVGTransform();
+            var angle = g.point(position).changeInAngle(position.x - reference.x, position.y - reference.y, reference);
+            rotateAroundOrigin.setRotate(angle, 0, 0);
+
+            // 3. Translate to the `position` + the offset (half my width) towards the `reference` point.
+            var translateFinal = svg.createSVGTransform();
+            var finalPosition = g.point(position).move(reference, bbox.width / 2);
+            translateFinal.setTranslate(position.x + (position.x - finalPosition.x), position.y + (position.y - finalPosition.y));
+
+            // 4. Apply transformations.
+            var ctm = this.node.getTransformToElement(target);
+            var transform = svg.createSVGTransform();
+            transform.setMatrix(
+                translateFinal.matrix.multiply(
+                    rotateAroundOrigin.matrix.multiply(
+                        translateToOrigin.matrix.multiply(
+                            ctm)))
+            );
+
+            // Instead of directly setting the `matrix()` transform on the element, first, decompose
+            // the matrix into separate transforms. This allows us to use normal Vectorizer methods
+            // as they don't work on matrices. An example of this is to retrieve a scale of an element.
+            // this.node.transform.baseVal.initialize(transform);
+
+            var decomposition = decomposeMatrix(transform.matrix);
+
+            this.translate(decomposition.translateX, decomposition.translateY);
+            this.rotate(decomposition.rotation);
+            // Note that scale has been already applied, hence the following line stays commented. (it's here just for reference).
+            //this.scale(decomposition.scaleX, decomposition.scaleY);
+
+            return this;
+        },
+
+        animateAlongPath: function(attrs, path) {
+
+            var animateMotion = V('animateMotion', attrs);
+            var mpath = V('mpath', { 'xlink:href': '#' + V(path).node.id });
+
+            animateMotion.append(mpath);
+
+            this.append(animateMotion);
+            try {
+                animateMotion.node.beginElement();
+            } catch (e) {
+                // Fallback for IE 9.
+                // Run the animation programatically if FakeSmile (`http://leunen.me/fakesmile/`) present
+                if (document.documentElement.getAttribute('smiling') === 'fake') {
+
+                    // Register the animation. (See `https://answers.launchpad.net/smil/+question/203333`)
+                    var animation = animateMotion.node;
+                    animation.animators = [];
+
+                    var animationID = animation.getAttribute('id');
+                    if (animationID) id2anim[animationID] = animation;
+
+                    var targets = getTargets(animation);
+                    for (var i = 0, len = targets.length; i < len; i++) {
+                        var target = targets[i];
+                        var animator = new Animator(animation, target, i);
+                        animators.push(animator);
+                        animation.animators[i] = animator;
+                        animator.register();
+                    }
+                }
+            }
+        },
+
+        hasClass: function(className) {
+
+            return new RegExp('(\\s|^)' + className + '(\\s|$)').test(this.node.getAttribute('class'));
+        },
+
+        addClass: function(className) {
+
+            if (!this.hasClass(className)) {
+                var prevClasses = this.node.getAttribute('class') || '';
+                this.node.setAttribute('class', (prevClasses + ' ' + className).trim());
+            }
+
+            return this;
+        },
+
+        removeClass: function(className) {
+
+            if (this.hasClass(className)) {
+                var newClasses = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
+                this.node.setAttribute('class', newClasses);
+            }
+
+            return this;
+        },
+
+        toggleClass: function(className, toAdd) {
+
+            var toRemove = typeof toAdd === 'undefined' ? this.hasClass(className) : !toAdd;
+
+            if (toRemove) {
+                this.removeClass(className);
+            } else {
+                this.addClass(className);
+            }
+
+            return this;
+        },
+
+        // Interpolate path by discrete points. The precision of the sampling
+        // is controlled by `interval`. In other words, `sample()` will generate
+        // a point on the path starting at the beginning of the path going to the end
+        // every `interval` pixels.
+        // The sampler can be very useful for e.g. finding intersection between two
+        // paths (finding the two closest points from two samples).
+        sample: function(interval) {
+
+            interval = interval || 1;
+            var node = this.node;
+            var length = node.getTotalLength();
+            var samples = [];
+            var distance = 0;
+            var sample;
+            while (distance < length) {
+                sample = node.getPointAtLength(distance);
+                samples.push({ x: sample.x, y: sample.y, distance: distance });
+                distance += interval;
+            }
+            return samples;
+        },
+
+        convertToPath: function() {
+
+            var path = createElement('path');
+            path.attr(this.attr());
+            var d = this.convertToPathData();
+            if (d) {
+                path.attr('d', d);
+            }
+            return path;
+        },
+
+        convertToPathData: function() {
+
+            var tagName = this.node.tagName.toUpperCase();
+
+            switch (tagName) {
+            case 'PATH':
+                return this.attr('d');
+            case 'LINE':
+                return convertLineToPathData(this.node);
+            case 'POLYGON':
+                return convertPolygonToPathData(this.node);
+            case 'POLYLINE':
+                return convertPolylineToPathData(this.node);
+            case 'ELLIPSE':
+                return convertEllipseToPathData(this.node);
+            case 'CIRCLE':
+                return convertCircleToPathData(this.node);
+            case 'RECT':
+                return convertRectToPathData(this.node);
+            }
+
+            throw new Error(tagName + ' cannot be converted to PATH.');
+        },
+
+        // Find the intersection of a line starting in the center
+        // of the SVG `node` ending in the point `ref`.
+        // `target` is an SVG element to which `node`s transformations are relative to.
+        // In JointJS, `target` is the `paper.viewport` SVG group element.
+        // Note that `ref` point must be in the coordinate system of the `target` for this function to work properly.
+        // Returns a point in the `target` coordinte system (the same system as `ref` is in) if
+        // an intersection is found. Returns `undefined` otherwise.
+        findIntersection: function(ref, target) {
+
+            var svg = this.svg().node;
+            target = target || svg;
+            var bbox = g.rect(this.bbox(false, target));
+            var center = bbox.center();
+            var spot = bbox.intersectionWithLineFromCenterToPoint(ref);
+
+            if (!spot) return undefined;
+
+            var tagName = this.node.localName.toUpperCase();
+
+            // Little speed up optimalization for `<rect>` element. We do not do conversion
+            // to path element and sampling but directly calculate the intersection through
+            // a transformed geometrical rectangle.
+            if (tagName === 'RECT') {
+
+                var gRect = g.rect(
+                    parseFloat(this.attr('x') || 0),
+                    parseFloat(this.attr('y') || 0),
+                    parseFloat(this.attr('width')),
+                    parseFloat(this.attr('height'))
+                );
+                // Get the rect transformation matrix with regards to the SVG document.
+                var rectMatrix = this.node.getTransformToElement(target);
+                // Decompose the matrix to find the rotation angle.
+                var rectMatrixComponents = V.decomposeMatrix(rectMatrix);
+                // Now we want to rotate the rectangle back so that we
+                // can use `intersectionWithLineFromCenterToPoint()` passing the angle as the second argument.
+                var resetRotation = svg.createSVGTransform();
+                resetRotation.setRotate(-rectMatrixComponents.rotation, center.x, center.y);
+                var rect = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
+                spot = g.rect(rect).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
+
+            } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
+
+                var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
+                var samples = pathNode.sample();
+                var minDistance = Infinity;
+                var closestSamples = [];
+
+                for (var i = 0, len = samples.length; i < len; i++) {
+
+                    var sample = samples[i];
+                    // Convert the sample point in the local coordinate system to the global coordinate system.
+                    var gp = V.createSVGPoint(sample.x, sample.y);
+                    gp = gp.matrixTransform(this.node.getTransformToElement(target));
+                    sample = g.point(gp);
+                    var centerDistance = sample.distance(center);
+                    // Penalize a higher distance to the reference point by 10%.
+                    // This gives better results. This is due to
+                    // inaccuracies introduced by rounding errors and getPointAtLength() returns.
+                    var refDistance = sample.distance(ref) * 1.1;
+                    var distance = centerDistance + refDistance;
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestSamples = [{ sample: sample, refDistance: refDistance }];
+                    } else if (distance < minDistance + 1) {
+                        closestSamples.push({ sample: sample, refDistance: refDistance });
+                    }
+                }
+                closestSamples.sort(function(a, b) { return a.refDistance - b.refDistance; });
+                spot = closestSamples[0].sample;
+            }
+
+            return spot;
+        }
+    };
+
+    function convertLineToPathData(line) {
+
+        line = createElement(line);
+        var d = [
+            'M', line.attr('x1'), line.attr('y1'),
+            'L', line.attr('x2'), line.attr('y2')
+        ].join(' ');
+        return d;
+    }
+
+    function convertPolygonToPathData(polygon) {
+
+        polygon = createElement(polygon);
+        var points = polygon.node.points;
+
+        var d = [];
+        var p;
+        for (var i = 0; i < points.length; i++) {
+            p = points[i];
+            d.push(i === 0 ? 'M' : 'L', p.x, p.y);
+        }
+        d.push('Z');
+        return d.join(' ');
+    }
+
+    function convertPolylineToPathData(polyline) {
+
+        polyline = createElement(polyline);
+        var points = polyline.node.points;
+
+        var d = [];
+        var p;
+        for (var i = 0; i < points.length; i++) {
+            p = points[i];
+            d.push(i === 0 ? 'M' : 'L', p.x, p.y);
+        }
+        return d.join(' ');
+    }
+
+    var KAPPA = 0.5522847498307935;
+
+    function convertCircleToPathData(circle) {
+
+        circle = createElement(circle);
+        var cx = parseFloat(circle.attr('cx')) || 0;
+        var cy = parseFloat(circle.attr('cy')) || 0;
+        var r = parseFloat(circle.attr('r'));
+        var cd = r * KAPPA; // Control distance.
+
+        var d = [
+            'M', cx, cy - r,    // Move to the first point.
+            'C', cx + cd, cy - r, cx + r, cy - cd, cx + r, cy, // I. Quadrant.
+            'C', cx + r, cy + cd, cx + cd, cy + r, cx, cy + r, // II. Quadrant.
+            'C', cx - cd, cy + r, cx - r, cy + cd, cx - r, cy, // III. Quadrant.
+            'C', cx - r, cy - cd, cx - cd, cy - r, cx, cy - r, // IV. Quadrant.
+            'Z'
+        ].join(' ');
+        return d;
+    }
+
+    function convertEllipseToPathData(ellipse) {
+
+        ellipse = createElement(ellipse);
+        var cx = parseFloat(ellipse.attr('cx')) || 0;
+        var cy = parseFloat(ellipse.attr('cy')) || 0;
+        var rx = parseFloat(ellipse.attr('rx'));
+        var ry = parseFloat(ellipse.attr('ry')) || rx;
+        var cdx = rx * KAPPA; // Control distance x.
+        var cdy = ry * KAPPA; // Control distance y.
+
+        var d = [
+            'M', cx, cy - ry,    // Move to the first point.
+            'C', cx + cdx, cy - ry, cx + rx, cy - cdy, cx + rx, cy, // I. Quadrant.
+            'C', cx + rx, cy + cdy, cx + cdx, cy + ry, cx, cy + ry, // II. Quadrant.
+            'C', cx - cdx, cy + ry, cx - rx, cy + cdy, cx - rx, cy, // III. Quadrant.
+            'C', cx - rx, cy - cdy, cx - cdx, cy - ry, cx, cy - ry, // IV. Quadrant.
+            'Z'
+        ].join(' ');
+        return d;
+    }
+
+    function convertRectToPathData(rect) {
+
+        rect = createElement(rect);
+        var x = parseFloat(rect.attr('x')) || 0;
+        var y = parseFloat(rect.attr('y')) || 0;
+        var width = parseFloat(rect.attr('width')) || 0;
+        var height = parseFloat(rect.attr('height')) || 0;
+        var rx = parseFloat(rect.attr('rx')) || 0;
+        var ry = parseFloat(rect.attr('ry')) || 0;
+        var bbox = g.rect(x, y, width, height);
+
+        var d;
+
+        if (!rx && !ry) {
+
+            d = [
+                'M', bbox.origin().x, bbox.origin().y,
+                'H', bbox.corner().x,
+                'V', bbox.corner().y,
+                'H', bbox.origin().x,
+                'V', bbox.origin().y,
+                'Z'
+            ].join(' ');
+
+        } else {
+
+            var r = x + width;
+            var b = y + height;
+            d = [
+                'M', x + rx, y,
+                'L', r - rx, y,
+                'Q', r, y, r, y + ry,
+                'L', r, y + height - ry,
+                'Q', r, b, r - rx, b,
+                'L', x + rx, b,
+                'Q', x, b, x, b - rx,
+                'L', x, y + ry,
+                'Q', x, y, x + rx, y,
+                'Z'
+            ].join(' ');
+        }
+        return d;
+    }
+
+    // Convert a rectangle to SVG path commands. `r` is an object of the form:
+    // `{ x: [number], y: [number], width: [number], height: [number], top-ry: [number], top-ry: [number], bottom-rx: [number], bottom-ry: [number] }`,
+    // where `x, y, width, height` are the usual rectangle attributes and [top-/bottom-]rx/ry allows for
+    // specifying radius of the rectangle for all its sides (as opposed to the built-in SVG rectangle
+    // that has only `rx` and `ry` attributes).
+    function rectToPath(r) {
+
+        var topRx = r.rx || r['top-rx'] || 0;
+        var bottomRx = r.rx || r['bottom-rx'] || 0;
+        var topRy = r.ry || r['top-ry'] || 0;
+        var bottomRy = r.ry || r['bottom-ry'] || 0;
+
+        return [
+            'M', r.x, r.y + topRy,
+            'v', r.height - topRy - bottomRy,
+            'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, bottomRy,
+            'h', r.width - 2 * bottomRx,
+            'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, -bottomRy,
+            'v', -(r.height - bottomRy - topRy),
+            'a', topRx, topRy, 0, 0, 0, -topRx, -topRy,
+            'h', -(r.width - 2 * topRx),
+            'a', topRx, topRy, 0, 0, 0, -topRx, topRy
+        ].join(' ');
+    }
+
+    var V = createElement;
+
+    V.isVElement = function(object) {
+        return object instanceof VElement;
+    };
+
+    V.decomposeMatrix = decomposeMatrix;
+    V.rectToPath = rectToPath;
+
+    var svgDocument = V('svg').node;
+
+    V.createSVGMatrix = function(m) {
+
+        var svgMatrix = svgDocument.createSVGMatrix();
+        for (var component in m) {
+            svgMatrix[component] = m[component];
+        }
+
+        return svgMatrix;
+    };
+
+    V.createSVGTransform = function() {
+
+        return svgDocument.createSVGTransform();
+    };
+
+    V.createSVGPoint = function(x, y) {
+
+        var p = svgDocument.createSVGPoint();
+        p.x = x;
+        p.y = y;
+        return p;
+    };
+
+    V.transformRect = function(r, matrix) {
+
+        var p = svgDocument.createSVGPoint();
+
+        p.x = r.x;
+        p.y = r.y;
+        var corner1 = p.matrixTransform(matrix);
+
+        p.x = r.x + r.width;
+        p.y = r.y;
+        var corner2 = p.matrixTransform(matrix);
+
+        p.x = r.x + r.width;
+        p.y = r.y + r.height;
+        var corner3 = p.matrixTransform(matrix);
+
+        p.x = r.x;
+        p.y = r.y + r.height;
+        var corner4 = p.matrixTransform(matrix);
+
+        var minX = Math.min(corner1.x, corner2.x, corner3.x, corner4.x);
+        var maxX = Math.max(corner1.x, corner2.x, corner3.x, corner4.x);
+        var minY = Math.min(corner1.y, corner2.y, corner3.y, corner4.y);
+        var maxY = Math.max(corner1.y, corner2.y, corner3.y, corner4.y);
+
+        return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+    };
+
+    // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
+    // an object (`{ fill: 'blue', stroke: 'red' }`).
+    V.styleToObject = function(styleString) {
+        var ret = {};
+        var styles = styleString.split(';');
+        for (var i = 0; i < styles.length; i++) {
+            var style = styles[i];
+            var pair = style.split('=');
+            ret[pair[0].trim()] = pair[1].trim();
+        }
+        return ret;
+    };
+
+    // Inspired by d3.js https://github.com/mbostock/d3/blob/master/src/svg/arc.js
+    V.createSlicePathData = function(innerRadius, outerRadius, startAngle, endAngle) {
+
+        var svgArcMax = 2 * Math.PI - 1e-6;
+        var r0 = innerRadius;
+        var r1 = outerRadius;
+        var a0 = startAngle;
+        var a1 = endAngle;
+        var da = (a1 < a0 && (da = a0, a0 = a1, a1 = da), a1 - a0);
+        var df = da < Math.PI ? '0' : '1';
+        var c0 = Math.cos(a0);
+        var s0 = Math.sin(a0);
+        var c1 = Math.cos(a1);
+        var s1 = Math.sin(a1);
+
+        return (da >= svgArcMax)
+            ? (r0
+               ? 'M0,' + r1
+               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
+               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
+               + 'M0,' + r0
+               + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + (-r0)
+               + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + r0
+               + 'Z'
+               : 'M0,' + r1
+               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
+               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
+               + 'Z')
+            : (r0
+               ? 'M' + r1 * c0 + ',' + r1 * s0
+               + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
+               + 'L' + r0 * c1 + ',' + r0 * s1
+               + 'A' + r0 + ',' + r0 + ' 0 ' + df + ',0 ' + r0 * c0 + ',' + r0 * s0
+               + 'Z'
+               : 'M' + r1 * c0 + ',' + r1 * s0
+               + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
+               + 'L0,0'
+               + 'Z');
+    };
+
+    // Merge attributes from object `b` with attributes in object `a`.
+    // Note that this modifies the object `a`.
+    // Also important to note that attributes are merged but CSS classes are concatenated.
+    V.mergeAttrs = function(a, b) {
+        for (var attr in b) {
+            if (attr === 'class') {
+                // Concatenate classes.
+                a[attr] = a[attr] ? a[attr] + ' ' + b[attr] : b[attr];
+            } else if (attr === 'style') {
+                // `style` attribute can be an object.
+                if (isObject(a[attr]) && isObject(b[attr])) {
+                    // `style` stored in `a` is an object.
+                    a[attr] = V.mergeAttrs(a[attr], b[attr]);
+                } else if (isObject(a[attr])) {
+                    // `style` in `a` is an object but it's a string in `b`.
+                    // Convert the style represented as a string to an object in `b`.
+                    a[attr] = V.mergeAttrs(a[attr], V.styleToObject(b[attr]));
+                } else if (isObject(b[attr])) {
+                    // `style` in `a` is a string, in `b` it's an object.
+                    a[attr] = V.mergeAttrs(V.styleToObject(a[attr]), b[attr]);
+                } else {
+                    // Both styles are strings.
+                    a[attr] = V.mergeAttrs(V.styleToObject(a[attr]), V.styleToObject(b[attr]));
+                }
+            } else {
+                a[attr] = b[attr];
+            }
+        }
+        return a;
+    };
+
+    V.annotateString = function(t, annotations, opt) {
+
+        annotations = annotations || [];
+        opt = opt || {};
+        offset = opt.offset || 0;
+        var compacted = [];
+        var batch;
+
+        var ret = [];
+        var item;
+        var prev;
+
+        for (var i = 0; i < t.length; i++) {
+
+            item = ret[i] = t[i];
+
+            for (var j = 0; j < annotations.length; j++) {
+                var annotation = annotations[j];
+                var start = annotation.start + offset;
+                var end = annotation.end + offset;
+
+                if (i >= start && i < end) {
+                    // Annotation applies.
+                    if (isObject(item)) {
+                        // There is more than one annotation to be applied => Merge attributes.
+                        item.attrs = V.mergeAttrs(V.mergeAttrs({}, item.attrs), annotation.attrs);
+                    } else {
+                        item = ret[i] = { t: t[i], attrs: annotation.attrs };
+                    }
+                    if (opt.includeAnnotationIndices) {
+                        (item.annotations || (item.annotations = [])).push(j);
+                    }
+                }
+            }
+
+            prev = ret[i - 1];
+
+            if (!prev) {
+
+                batch = item;
+
+            } else if (isObject(item) && isObject(prev)) {
+                // Both previous item and the current one are annotations. If the attributes
+                // didn't change, merge the text.
+                if (JSON.stringify(item.attrs) === JSON.stringify(prev.attrs)) {
+                    batch.t += item.t;
+                } else {
+                    compacted.push(batch);
+                    batch = item;
+                }
+
+            } else if (isObject(item)) {
+                // Previous item was a string, current item is an annotation.
+                compacted.push(batch);
+                batch = item;
+
+            } else if (isObject(prev)) {
+                // Previous item was an annotation, current item is a string.
+                compacted.push(batch);
+                batch = item;
+
+            } else {
+                // Both previous and current item are strings.
+                batch = (batch || '') + item;
+            }
+        }
+
+        if (batch) {
+            compacted.push(batch);
+        }
+
+        return compacted;
+    };
+
+    V.findAnnotationsAtIndex = function(annotations, index) {
+
+        if (!annotations) return [];
+
+        var found = [];
+
+        annotations.forEach(function(annotation) {
+
+            if (annotation.start < index && index <= annotation.end) {
+                found.push(annotation);
+            }
+        });
+        return found;
+    };
+
+    V.findAnnotationsBetweenIndexes = function(annotations, start, end) {
+
+        if (!annotations) return [];
+
+        var found = [];
+
+        annotations.forEach(function(annotation) {
+
+            if ((start >= annotation.start && start < annotation.end) || (end > annotation.start && end <= annotation.end) || (annotation.start >= start && annotation.end < end)) {
+                found.push(annotation);
+            }
+        });
+        return found;
+    };
+
+    // Shift all the textg annotations after character `index` by `offset` positions.
+    V.shiftAnnotations = function(annotations, index, offset) {
+
+        if (!annotations) return annotations;
+
+        annotations.forEach(function(annotation) {
+
+            if (annotation.start >= index) {
+                annotation.start += offset;
+                annotation.end += offset;
+            }
+        });
+
+        return annotations;
+    };
+
+    return V;
+
+})();
 
 //      JointJS library.
 //      (c) 2011-2013 client IO
@@ -1822,7 +2115,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 var joint = {
 
-    version: '0.9.3',
+    version: '0.9.4',
 
     // `joint.dia` namespace.
     dia: {},
@@ -1862,7 +2155,7 @@ var joint = {
 
         getByPath: function(obj, path, delim) {
 
-            delim = delim || '.';
+            delim = delim || '/';
             var keys = path.split(delim);
             var key;
 
@@ -1879,7 +2172,7 @@ var joint = {
 
         setByPath: function(obj, path, value, delim) {
 
-            delim = delim || '.';
+            delim = delim || '/';
 
             var keys = path.split(delim);
             var diver = obj;
@@ -1901,7 +2194,7 @@ var joint = {
 
         unsetByPath: function(obj, path, delim) {
 
-            delim = delim || '.';
+            delim = delim || '/';
 
             // index of the last delimiter
             var i = path.lastIndexOf(delim);
@@ -1926,7 +2219,7 @@ var joint = {
 
         flattenObject: function(obj, delim, stop) {
 
-            delim = delim || '.';
+            delim = delim || '/';
             var ret = {};
 
             for (var key in obj) {
@@ -2370,6 +2663,92 @@ var joint = {
             img.src = url;
         },
 
+        getElementBBox: function(el) {
+
+            var $el = $(el);
+            var offset = $el.offset();
+            var bbox;
+
+            if (el.ownerSVGElement) {
+
+                // Use Vectorizer to get the dimensions of the element if it is an SVG element.
+                bbox = V(el).bbox();
+
+                // getBoundingClientRect() used in jQuery.fn.offset() takes into account `stroke-width`
+                // in Firefox only. So clientRect width/height and getBBox width/height in FF don't match.
+                // To unify this across all browsers we add the `stroke-width` (left & top) back to
+                // the calculated offset.
+                var crect = el.getBoundingClientRect();
+                var strokeWidthX = (crect.width - bbox.width) / 2;
+                var strokeWidthY = (crect.height - bbox.height) / 2;
+
+                // The `bbox()` returns coordinates relative to the SVG viewport, therefore, use the
+                // ones returned from the `offset()` method that are relative to the document.
+                bbox.x = offset.left + strokeWidthX;
+                bbox.y = offset.top + strokeWidthY;
+
+            } else {
+
+                bbox = { x: offset.left, y: offset.top, width: $el.outerWidth(), height: $el.outerHeight() };
+            }
+
+            return bbox;
+        },
+
+
+        // Highly inspired by the jquery.sortElements plugin by Padolsey.
+        // See http://james.padolsey.com/javascript/sorting-elements-with-jquery/.
+        sortElements: function(elements, comparator) {
+
+            var $elements = $(elements);
+            var placements = $elements.map(function() {
+
+                var sortElement = this;
+                var parentNode = sortElement.parentNode;
+                // Since the element itself will change position, we have
+                // to have some way of storing it's original position in
+                // the DOM. The easiest way is to have a 'flag' node:
+                var nextSibling = parentNode.insertBefore(document.createTextNode(''), sortElement.nextSibling);
+
+                return function() {
+
+                    if (parentNode === this) {
+                        throw new Error('You can\'t sort elements if any one is a descendant of another.');
+                    }
+
+                    // Insert before flag:
+                    parentNode.insertBefore(this, nextSibling);
+                    // Remove flag:
+                    parentNode.removeChild(nextSibling);
+                };
+            });
+
+            return Array.prototype.sort.call($elements, comparator).each(function(i) {
+                placements[i].call(this);
+            });
+        },
+
+        // Return a new object with all for sides (top, bottom, left and right) in it.
+        // Value of each side is taken from the given argument (either number or object).
+        // Default value for a side is 0.
+        // Examples:
+        // joint.util.normalizeSides(5) --> { top: 5, left: 5, right: 5, bottom: 5 }
+        // joint.util.normalizeSides({ left: 5 }) --> { top: 0, left: 5, right: 0, bottom: 0 }
+        normalizeSides: function(box) {
+
+            if (Object(box) !== box) {
+                box = box || 0;
+                return { top: box, bottom: box, left: box, right: box };
+            }
+
+            return {
+                top: box.top || 0,
+                bottom: box.bottom || 0,
+                left: box.left || 0,
+                right: box.right || 0
+            };
+        },
+
         timing: {
 
             linear: function(t) {
@@ -2501,6 +2880,41 @@ var joint = {
 
         // SVG filters.
         filter: {
+
+            // `color` ... outline color
+            // `width`... outline width
+            // `opacity` ... outline opacity
+            // `margin` ... gap between outline and the element
+            outline: function(args) {
+
+                var tpl = '<filter><feFlood flood-color="${color}" flood-opacity="${opacity}" result="colored"/><feMorphology in="SourceAlpha" result="morphedOuter" operator="dilate" radius="${outerRadius}" /><feMorphology in="SourceAlpha" result="morphedInner" operator="dilate" radius="${innerRadius}" /><feComposite result="morphedOuterColored" in="colored" in2="morphedOuter" operator="in"/><feComposite operator="xor" in="morphedOuterColored" in2="morphedInner" result="outline"/><feMerge><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+
+                var margin = _.isFinite(args.margin) ? args.margin : 2;
+                var width = _.isFinite(args.width) ? args.width : 1;
+
+                return _.template(tpl, {
+                    color: args.color || 'blue',
+                    opacity: _.isFinite(args.opacity) ? args.opacity : 1,
+                    outerRadius: margin + width,
+                    innerRadius: margin
+                });
+            },
+
+            // `color` ... color
+            // `width`... width
+            // `blur` ... blur
+            // `opacity` ... opacity
+            highlight: function(args) {
+
+                var tpl = '<filter><feFlood flood-color="${color}" flood-opacity="${opacity}" result="colored"/><feMorphology result="morphed" in="SourceGraphic" operator="dilate" radius="${width}"/><feComposite result="composed" in="colored" in2="morphed" operator="in"/><feGaussianBlur result="blured" in="composed" stdDeviation="${blur}"/><feBlend in="SourceGraphic" in2="blured" mode="normal"/></filter>';
+
+                return _.template(tpl, {
+                    color: args.color || 'red',
+                    width: _.isFinite(args.width) ? args.width : 1,
+                    blur: _.isFinite(args.blur) ? args.blur : 0,
+                    opacity: _.isFinite(args.opacity) ? args.opacity : 1
+                });
+            },
 
             // `x` ... horizontal blur
             // `y` ... vertical blur (optional)
@@ -3942,6 +4356,14 @@ joint.dia.CellView = Backbone.View.extend({
         this.setElement(el, false);
     },
 
+    // Utilize an alternative DOM manipulation API by
+    // adding an element reference wrapped in Vectorizer.
+    _setElement: function(el) {
+        this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
+        this.el = this.$el[0];
+        this.vel = V(this.el);
+    },
+
     findBySelector: function(selector) {
 
         // These are either descendants of `this.$el` of `this.$el` itself.
@@ -3993,7 +4415,7 @@ joint.dia.CellView = Backbone.View.extend({
 
     getBBox: function() {
 
-        return V(this.el).bbox();
+        return g.rect(this.vel.bbox());
     },
 
     highlight: function(el, opt) {
@@ -4052,7 +4474,7 @@ joint.dia.CellView = Backbone.View.extend({
     // An example is: `{ filter: { name: 'blur', args: { radius: 5 } } }`.
     applyFilter: function(selector, filter) {
 
-        var $selected = this.findBySelector(selector);
+        var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
 
         // Generate a hash code from the stringified filter definition. This gives us
         // a unique filter ID for different definitions.
@@ -4091,7 +4513,7 @@ joint.dia.CellView = Backbone.View.extend({
     // An example is: `{ fill: { type: 'linearGradient', stops: [ { offset: '10%', color: 'green' }, { offset: '50%', color: 'blue' } ] } }`.
     applyGradient: function(selector, attr, gradient) {
 
-        var $selected = this.findBySelector(selector);
+        var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
 
         // Generate a hash code from the stringified filter definition. This gives us
         // a unique filter ID for different definitions.
@@ -4196,6 +4618,11 @@ joint.dia.CellView = Backbone.View.extend({
     mouseout: function(evt) {
 
         this.notify('cell:mouseout', evt);
+    },
+
+    contextmenu: function(evt, x, y) {
+
+        this.notify('cell:contextmenu', evt, x, y);
     }
 });
 
@@ -4322,23 +4749,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             // Compute cell's size and position  based on the children bbox
             // and given padding.
             var bbox = collection.getBBox(embeddedCells);
-            var padding = opt.padding || 0;
-
-            if (_.isNumber(padding)) {
-                padding = {
-                    left: padding,
-                    right: padding,
-                    top: padding,
-                    bottom: padding
-                };
-            } else {
-                padding = {
-                    left: padding.left || 0,
-                    right: padding.right || 0,
-                    top: padding.top || 0,
-                    bottom: padding.bottom || 0
-                };
-            }
+            var padding = joint.util.normalizeSides(opt.padding);
 
             // Apply padding computed above to the bbox.
             bbox.moveAndExpand({
@@ -4401,8 +4812,24 @@ joint.dia.Element = joint.dia.Cell.extend({
 
 joint.dia.ElementView = joint.dia.CellView.extend({
 
+    SPECIAL_ATTRIBUTES: [
+        'style',
+        'text',
+        'html',
+        'ref-x',
+        'ref-y',
+        'ref-dx',
+        'ref-dy',
+        'ref-width',
+        'ref-height',
+        'ref',
+        'x-alignment',
+        'y-alignment',
+        'port'
+    ],
+
     className: function() {
-        return 'element ' + this.model.get('type').split('.').join(' ');
+        return 'element ' + this.model.get('type').replace('.', ' ', 'g');
     },
 
     initialize: function() {
@@ -4421,32 +4848,33 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var allAttrs = this.model.get('attrs');
 
-        var rotatable = V(this.$('.rotatable')[0]);
+        var rotatable = this.rotatableNode;
         if (rotatable) {
-
             var rotation = rotatable.attr('transform');
             rotatable.attr('transform', '');
         }
 
         var relativelyPositioned = [];
+        var nodesBySelector = {};
 
         _.each(renderingOnlyAttrs || allAttrs, function(attrs, selector) {
 
             // Elements that should be updated.
             var $selected = this.findBySelector(selector);
-
             // No element matched by the `selector` was found. We're done then.
             if ($selected.length === 0) return;
 
+            nodesBySelector[selector] = $selected;
+
             // Special attributes are treated by JointJS, not by SVG.
-            var specialAttributes = ['style', 'text', 'html', 'ref-x', 'ref-y', 'ref-dx', 'ref-dy', 'ref-width', 'ref-height', 'ref', 'x-alignment', 'y-alignment', 'port'];
+            var specialAttributes = this.SPECIAL_ATTRIBUTES.slice();
 
             // If the `filter` attribute is an object, it is in the special JointJS filter format and so
             // it becomes a special attribute and is treated separately.
             if (_.isObject(attrs.filter)) {
 
                 specialAttributes.push('filter');
-                this.applyFilter(selector, attrs.filter);
+                this.applyFilter($selected, attrs.filter);
             }
 
             // If the `fill` or `stroke` attribute is an object, it is in the special JointJS gradient format and so
@@ -4454,12 +4882,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             if (_.isObject(attrs.fill)) {
 
                 specialAttributes.push('fill');
-                this.applyGradient(selector, 'fill', attrs.fill);
+                this.applyGradient($selected, 'fill', attrs.fill);
             }
             if (_.isObject(attrs.stroke)) {
 
                 specialAttributes.push('stroke');
-                this.applyGradient(selector, 'stroke', attrs.stroke);
+                this.applyGradient($selected, 'stroke', attrs.stroke);
             }
 
             // Make special case for `text` attribute. So that we can set text content of the `<text>` element
@@ -4471,9 +4899,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 $selected.each(function() {
 
-                    V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight, textPath: attrs.textPath });
+                    V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight, textPath: attrs.textPath, annotations: attrs.annotations });
                 });
-                specialAttributes.push('lineHeight', 'textPath');
+                specialAttributes.push('lineHeight', 'textPath', 'annotations');
             }
 
             // Set regular attributes on the `$selected` subelement. Note that we cannot use the jQuery attr()
@@ -4534,7 +4962,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // Note that we're using the bounding box without transformation because we are already inside
         // a transformed coordinate system.
-        var bbox = this.el.getBBox();
+        var size = this.model.get('size');
+        var bbox = { x: 0, y: 0, width: size.width, height: size.height };
 
         renderingOnlyAttrs = renderingOnlyAttrs || {};
 
@@ -4548,7 +4977,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 ? _.merge({}, allAttrs[$el.selector], renderingOnlyElAttrs)
             : allAttrs[$el.selector];
 
-            this.positionRelative($el, bbox, elAttrs);
+            this.positionRelative(V($el[0]), bbox, elAttrs, nodesBySelector);
 
         }, this);
 
@@ -4558,30 +4987,68 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
     },
 
-    positionRelative: function($el, bbox, elAttrs) {
+    positionRelative: function(vel, bbox, attributes, nodesBySelector) {
 
-        var ref = elAttrs['ref'];
-        var refX = parseFloat(elAttrs['ref-x']);
-        var refY = parseFloat(elAttrs['ref-y']);
-        var refDx = parseFloat(elAttrs['ref-dx']);
-        var refDy = parseFloat(elAttrs['ref-dy']);
-        var yAlignment = elAttrs['y-alignment'];
-        var xAlignment = elAttrs['x-alignment'];
-        var refWidth = parseFloat(elAttrs['ref-width']);
-        var refHeight = parseFloat(elAttrs['ref-height']);
+        var ref = attributes['ref'];
+        var refDx = parseFloat(attributes['ref-dx']);
+        var refDy = parseFloat(attributes['ref-dy']);
+        var yAlignment = attributes['y-alignment'];
+        var xAlignment = attributes['x-alignment'];
+
+        // 'ref-y', 'ref-x', 'ref-width', 'ref-height' can be defined
+        // by value or by percentage e.g 4, 0.5, '200%'.
+        var refY = attributes['ref-y'];
+        var refYPercentage = _.isString(refY) && refY.slice(-1) === '%';
+        refY = parseFloat(refY);
+        if (refYPercentage) {
+            refY /= 100;
+        }
+
+        var refX = attributes['ref-x'];
+        var refXPercentage = _.isString(refX) && refX.slice(-1) === '%';
+        refX = parseFloat(refX);
+        if (refXPercentage) {
+            refX /= 100;
+        }
+
+        var refWidth = attributes['ref-width'];
+        var refWidthPercentage = _.isString(refWidth) && refWidth.slice(-1) === '%';
+        refWidth = parseFloat(refWidth);
+        if (refWidthPercentage) {
+            refWidth /= 100;
+        }
+
+        var refHeight = attributes['ref-height'];
+        var refHeightPercentage = _.isString(refHeight) && refHeight.slice(-1) === '%';
+        refHeight = parseFloat(refHeight);
+        if (refHeightPercentage) {
+            refHeight /= 100;
+        }
+
+        // Check if the node is a descendant of the scalable group.
+        var scalable = vel.findParentByClass('scalable', this.el);
 
         // `ref` is the selector of the reference element. If no `ref` is passed, reference
         // element is the root element.
-
-        var isScalable = _.contains(_.pluck(_.pluck($el.parents('g'), 'className'), 'baseVal'), 'scalable');
-
         if (ref) {
 
-            // Get the bounding box of the reference element relative to the root `<g>` element.
-            bbox = V(this.findBySelector(ref)[0]).bbox(false, this.el);
-        }
+            var vref;
 
-        var vel = V($el[0]);
+            if (nodesBySelector && nodesBySelector[ref]) {
+                // First we check if the same selector has been already used.
+                vref = V(nodesBySelector[ref][0]);
+            } else {
+                // Other wise we find the ref ourselves.
+                vref = ref === '.' ? this.vel : this.vel.findOne(ref);
+            }
+
+            if (!vref) {
+                throw new Error('dia.ElementView: reference does not exists.');
+            }
+
+            // Get the bounding box of the reference element relative to the root `<g>` element.
+            bbox = vref.bbox(false, this.el);
+        }
 
         // Remove the previous translate() from the transform attribute and translate the element
         // relative to the root bounding box following the `ref-x` and `ref-y` attributes.
@@ -4590,22 +5057,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '').trim() || '');
         }
 
-        function isDefined(x) {
-            return _.isNumber(x) && !_.isNaN(x);
-        }
-
-        // The final translation of the subelement.
-        var tx = 0;
-        var ty = 0;
-
         // 'ref-width'/'ref-height' defines the width/height of the subelement relatively to
         // the reference element size
         // val in 0..1         ref-width = 0.75 sets the width to 75% of the ref. el. width
         // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
 
-        if (isDefined(refWidth)) {
+        if (isFinite(refWidth)) {
 
-            if (refWidth >= 0 && refWidth <= 1) {
+            if (refWidthPercentage || refWidth >= 0 && refWidth <= 1) {
 
                 vel.attr('width', refWidth * bbox.width);
 
@@ -4615,9 +5074,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
-        if (isDefined(refHeight)) {
+        if (isFinite(refHeight)) {
 
-            if (refHeight >= 0 && refHeight <= 1) {
+            if (refHeightPercentage || refHeight >= 0 && refHeight <= 1) {
 
                 vel.attr('height', refHeight * bbox.height);
 
@@ -4627,14 +5086,19 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
+        // The final translation of the subelement.
+        var tx = 0;
+        var ty = 0;
+        var scale;
+
         // `ref-dx` and `ref-dy` define the offset of the subelement relative to the right and/or bottom
         // coordinate of the reference element.
-        if (isDefined(refDx)) {
+        if (isFinite(refDx)) {
 
-            if (isScalable) {
+            if (scalable) {
 
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
-                var scale = V(this.$('.scalable')[0]).scale();
+                scale = scale || scalable.scale();
                 tx = bbox.x + bbox.width + refDx / scale.sx;
 
             } else {
@@ -4642,12 +5106,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 tx = bbox.x + bbox.width + refDx;
             }
         }
-        if (isDefined(refDy)) {
+        if (isFinite(refDy)) {
 
-            if (isScalable) {
+            if (scalable) {
 
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
-                var scale = V(this.$('.scalable')[0]).scale();
+                scale = scale || scalable.scale();
                 ty = bbox.y + bbox.height + refDy / scale.sy;
             } else {
 
@@ -4659,16 +5123,16 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // if `refX` is < 0 then `refX`'s absolute values is the right coordinate of the bounding box
         // otherwise, `refX` is the left coordinate of the bounding box
         // Analogical rules apply for `refY`.
-        if (isDefined(refX)) {
+        if (isFinite(refX)) {
 
-            if (refX > 0 && refX < 1) {
+            if (refXPercentage || refX > 0 && refX < 1) {
 
                 tx = bbox.x + bbox.width * refX;
 
-            } else if (isScalable) {
+            } else if (scalable) {
 
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
-                var scale = V(this.$('.scalable')[0]).scale();
+                scale = scale || scalable.scale();
                 tx = bbox.x + refX / scale.sx;
 
             } else {
@@ -4676,16 +5140,16 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 tx = bbox.x + refX;
             }
         }
-        if (isDefined(refY)) {
+        if (isFinite(refY)) {
 
-            if (refY > 0 && refY < 1) {
+            if (refXPercentage || refY > 0 && refY < 1) {
 
                 ty = bbox.y + bbox.height * refY;
 
-            } else if (isScalable) {
+            } else if (scalable) {
 
                 // Compensate for the scale grid in case the elemnt is in the scalable group.
-                var scale = V(this.$('.scalable')[0]).scale();
+                scale = scale || scalable.scale();
                 ty = bbox.y + refY / scale.sy;
 
             } else {
@@ -4694,25 +5158,29 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
-        var velbbox = vel.bbox(false, this.paper.viewport);
-        // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
-        if (yAlignment === 'middle') {
+        if (!_.isUndefined(yAlignment) || !_.isUndefined(xAlignment)) {
 
-            ty -= velbbox.height / 2;
+            var velBBox = vel.bbox(false, this.paper.viewport);
 
-        } else if (isDefined(yAlignment)) {
+            // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
+            if (yAlignment === 'middle') {
 
-            ty += (yAlignment > -1 && yAlignment < 1) ?  velbbox.height * yAlignment : yAlignment;
-        }
+                ty -= velBBox.height / 2;
 
-        // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
-        if (xAlignment === 'middle') {
+            } else if (isFinite(yAlignment)) {
 
-            tx -= velbbox.width / 2;
+                ty += (yAlignment > -1 && yAlignment < 1) ?  velBBox.height * yAlignment : yAlignment;
+            }
 
-        } else if (isDefined(xAlignment)) {
+            // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
+            if (xAlignment === 'middle') {
 
-            tx += (xAlignment > -1 && xAlignment < 1) ?  velbbox.width * xAlignment : xAlignment;
+                tx -= velBBox.width / 2;
+
+            } else if (isFinite(xAlignment)) {
+
+                tx += (xAlignment > -1 && xAlignment < 1) ?  velBBox.width * xAlignment : xAlignment;
+            }
         }
 
         vel.translate(tx, ty);
@@ -4727,7 +5195,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (markup) {
 
             var nodes = V(markup);
-            V(this.el).append(nodes);
+
+            this.vel.append(nodes);
 
         } else {
 
@@ -4740,6 +5209,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.$el.empty();
 
         this.renderMarkup();
+
+        this.rotatableNode = this.vel.findOne('.rotatable');
+        this.scalableNode = this.vel.findOne('.scalable');
 
         this.update();
 
@@ -4759,7 +5231,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     scale: function(sx, sy) {
 
         // TODO: take into account the origin coordinates `ox` and `oy`.
-        V(this.el).scale(sx, sy);
+        this.vel.scale(sx, sy);
     },
 
     resize: function() {
@@ -4767,7 +5239,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var size = this.model.get('size') || { width: 1, height: 1 };
         var angle = this.model.get('angle') || 0;
 
-        var scalable = V(this.$('.scalable')[0]);
+        var scalable = this.scalableNode;
         if (!scalable) {
             // If there is no scalable elements, than there is nothing to resize.
             return;
@@ -4786,7 +5258,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // and getting the top-left corner of the resulting object. Then we clean up the rotation back to what it originally was.
 
         // Cancel the rotation but now around a different origin, which is the center of the scaled object.
-        var rotatable = V(this.$('.rotatable')[0]);
+        var rotatable = this.rotatableNode;
         var rotation = rotatable && rotatable.attr('transform');
         if (rotation && rotation !== 'null') {
 
@@ -4807,12 +5279,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var position = this.model.get('position') || { x: 0, y: 0 };
 
-        V(this.el).attr('transform', 'translate(' + position.x + ',' + position.y + ')');
+        this.vel.attr('transform', 'translate(' + position.x + ',' + position.y + ')');
     },
 
     rotate: function() {
 
-        var rotatable = V(this.$('.rotatable')[0]);
+        var rotatable = this.rotatableNode;
         if (!rotatable) {
             // If there is no rotatable elements, then there is nothing to rotate.
             return;
@@ -4833,7 +5305,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (opt && opt.useModelGeometry) {
             var noTransformationBBox = this.model.getBBox().bbox(this.model.get('angle'));
             var transformationMatrix = this.paper.viewport.getCTM();
-            return V.transformRect(noTransformationBBox, transformationMatrix);
+            return g.rect(V.transformRect(noTransformationBBox, transformationMatrix));
         }
 
         return joint.dia.CellView.prototype.getBBox.apply(this, arguments);
@@ -5249,30 +5721,50 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     startListening: function() {
 
-        this.listenTo(this.model, 'change:markup', this.render);
-        this.listenTo(this.model, 'change:smooth change:manhattan change:router change:connector', this.update);
-        this.listenTo(this.model, 'change:toolMarkup', function() {
-            this.renderTools().updateToolsPosition();
-        });
-        this.listenTo(this.model, 'change:labels change:labelMarkup', function() {
-            this.renderLabels().updateLabelPositions();
-        });
-        this.listenTo(this.model, 'change:vertices change:vertexMarkup', function(cell, changed, opt) {
-            this.renderVertexMarkers();
-            // If the vertices have been changed by a translation we do update only if the link was
-            // only one translated. If the link was translated via another element which the link
-            // is embedded in, this element will be translated as well and that triggers an update.
-            // Note that all embeds in a model are sorted - first comes links, then elements.
-            if (!opt.translateBy || (opt.translateBy == this.model.id || this.model.hasLoop())) {
-                this.update();
-            }
-        });
-        this.listenTo(this.model, 'change:source', function(cell, source) {
-            this.watchSource(cell, source).update();
-        });
-        this.listenTo(this.model, 'change:target', function(cell, target) {
-            this.watchTarget(cell, target).update();
-        });
+        var model = this.model;
+
+        this.listenTo(model, 'change:markup', this.render);
+        this.listenTo(model, 'change:smooth change:manhattan change:router change:connector', this.update);
+        this.listenTo(model, 'change:toolMarkup', this.onToolsChange);
+        this.listenTo(model, 'change:labels change:labelMarkup', this.onLabelsChange);
+        this.listenTo(model, 'change:vertices change:vertexMarkup', this.onVerticesChange);
+        this.listenTo(model, 'change:source', this.onSourceChange);
+        this.listenTo(model, 'change:target', this.onTargetChange);
+    },
+
+    onSourceChange: function(cell, source) {
+
+        this.watchSource(cell, source).update();
+    },
+
+    onTargetChange: function(cell, target) {
+
+        this.watchTarget(cell, target).update();
+    },
+
+    onVerticesChange: function(cell, changed, opt) {
+
+        this.renderVertexMarkers();
+
+        // If the vertices have been changed by a translation we do update only if the link was
+        // the only link that was translated. If the link was translated via another element which the link
+        // is embedded in, this element will be translated as well and that triggers an update.
+        // Note that all embeds in a model are sorted - first comes links, then elements.
+        if (!opt.translateBy || opt.translateBy === this.model.id || this.model.hasLoop()) {
+            // Vertices were changed (not as a reaction on translate) or link.translate() was called or
+            // we're dealing with a loop link that is embedded.
+            this.update();
+        }
+    },
+
+    onToolsChange: function() {
+
+        this.renderTools().updateToolsPosition();
+    },
+
+    onLabelsChange: function() {
+
+        this.renderLabels().updateLabelPositions();
     },
 
     // Rendering
@@ -5307,7 +5799,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.renderVertexMarkers();
         this.renderArrowheadMarkers();
 
-        V(this.el).append(children);
+        this.vel.append(children);
 
         // rendering labels has to be run after the link is appended to DOM tree. (otherwise <Text> bbox
         // returns zero values)
@@ -5775,10 +6267,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var oppositeEnd = this.model.get(oppositeEndType) || {};
             var oppositeSelector = oppositeEnd.id && this.constructor.makeSelector(oppositeEnd);
 
-            // Caching end models bounding boxes
-            if (opt.isLoop && selector == oppositeSelector) {
+            // Caching end models bounding boxes.
+            // If `opt.handleBy` equals the client-side ID of this link view and it is a loop link, then we already cached
+            // the bounding boxes in the previous turn (e.g. for loop link, the change:source event is followed
+            // by change:target and so on change:source, we already chached the bounding boxes of - the same - element).
+            if (opt.handleBy === this.cid && selector == oppositeSelector) {
 
-                // Source and target elements are identical. We are handling `change` event for the
+                // Source and target elements are identical. We're dealing with a loop link. We are handling `change` event for the
                 // second time now. There is no need to calculate bbox and find magnet element again.
                 // It was calculated already for opposite link end.
                 this[endType + 'BBox'] = this[oppositeEndType + 'BBox'];
@@ -5786,12 +6281,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 this[endType + 'Magnet'] = this[oppositeEndType + 'Magnet'];
 
             } else if (opt.translateBy) {
+                // `opt.translateBy` optimizes the way we calculate bounding box of the source/target element.
+                // If `opt.translateBy` is an ID of the element that was originally translated. This allows us
+                // to just offset the cached bounding box by the translation instead of calculating the bounding
+                // box from scratch on every translate.
 
                 var bbox = this[endType + 'BBox'];
                 bbox.x += opt.tx;
                 bbox.y += opt.ty;
 
             } else {
+                // The slowest path, source/target could have been rotated or resized or any attribute
+                // that affects the bounding box of the view might have been changed.
 
                 var view = this.paper.findViewByModel(end.id);
                 var magnetElement = view.el.querySelector(selector);
@@ -5801,30 +6302,42 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 this[endType + 'Magnet'] = magnetElement;
             }
 
-            if (opt.isLoop && opt.translateBy &&
+            if (opt.handleBy === this.cid && opt.translateBy &&
                 this.model.isEmbeddedIn(endModel) &&
                 !_.isEmpty(this.model.get('vertices'))) {
+                // Loop link whose element was translated and that has vertices (that need to be translated with
+                // the parent in which my element is embedded).
                 // If the link is embedded, has a loop and vertices and the end model
-                // has been translated, do not update yet. There are vertices still to be updated.
+                // has been translated, do not update yet. There are vertices still to be updated (change:vertices
+                // event will come in the next turn).
                 doUpdate = false;
             }
 
             if (!this.updatePostponed && oppositeEnd.id) {
+                // The update was not postponed (that can happen e.g. on the first change event) and the opposite
+                // end is a model (opposite end is the opposite end of the link we're just updating, e.g. if
+                // we're reacting on change:source event, the oppositeEnd is the target model).
 
                 var oppositeEndModel = this.paper.getModelById(oppositeEnd.id);
 
-                // Passing `isLoop` flag via event option.
+                // Passing `handleBy` flag via event option.
                 // Note that if we are listening to the same model for event 'change' twice.
                 // The same event will be handled by this method also twice.
-                opt.isLoop = end.id == oppositeEnd.id;
+                if (end.id === oppositeEnd.id) {
+                    // We're dealing with a loop link. Tell the handlers in the next turn that they should update
+                    // the link instead of me. (We know for sure there will be a next turn because
+                    // loop links react on at least two events: change on the source model followed by a change on
+                    // the target model).
+                    opt.handleBy = this.cid;
+                }
 
-                if (opt.isLoop || (opt.translateBy && oppositeEndModel.isEmbeddedIn(opt.translateBy))) {
+                if (opt.handleBy === this.cid || (opt.translateBy && oppositeEndModel.isEmbeddedIn(opt.translateBy))) {
 
                     // Here are two options:
-                    // - Source and target are connected to the same model (not necessary the same port)
-                    // - both end models are translated by same ancestor. We know that opposte end
-                    //   model will be translated in the moment as well.
-                    // In both situations there will be more changes on model that will trigger an
+                    // - Source and target are connected to the same model (not necessarily the same port).
+                    // - Both end models are translated by the same ancestor. We know that opposite end
+                    //   model will be translated in the next turn as well.
+                    // In both situations there will be more changes on the model that trigger an
                     // update. So there is no need to update the linkView yet.
                     this.updatePostponed = true;
                     doUpdate = false;
@@ -6661,7 +7174,8 @@ joint.dia.Paper = Backbone.View.extend({
         'mouseover .element': 'cellMouseover',
         'mouseover .link': 'cellMouseover',
         'mouseout .element': 'cellMouseout',
-        'mouseout .link': 'cellMouseout'
+        'mouseout .link': 'cellMouseout',
+        'contextmenu': 'contextmenu'
     },
 
     constructor: function(options) {
@@ -6692,7 +7206,8 @@ joint.dia.Paper = Backbone.View.extend({
         this.setOrigin();
         this.setDimensions();
 
-        this.listenTo(this.model, 'add', this.onAddCell);
+        this.listenTo(this.model, 'add', this.onCellAdded);
+        this.listenTo(this.model, 'remove', this.onCellRemoved);
         this.listenTo(this.model, 'reset', this.resetCells);
         this.listenTo(this.model, 'sort', this.sortCells);
 
@@ -6700,6 +7215,8 @@ joint.dia.Paper = Backbone.View.extend({
 
         // Hold the value when mouse has been moved: when mouse moved, no click event will be triggered.
         this._mousemoved = false;
+        // Hash of all cell views.
+        this._views = {};
 
         // default cell highlighting
         this.on({ 'cell:highlight': this.onCellHighlight, 'cell:unhighlight': this.onCellUnhighlight });
@@ -6756,9 +7273,7 @@ joint.dia.Paper = Backbone.View.extend({
             padding = padding || 0;
         }
 
-        padding = _.isNumber(padding)
-            ? { left: padding, right: padding, top: padding, bottom: padding }
-        : { left: padding.left || 0, right: padding.right || 0, top: padding.top || 0, bottom: padding.bottom || 0 };
+        padding = joint.util.normalizeSides(padding);
 
         // Calculate the paper size to accomodate all the graph's elements.
         var bbox = V(this.viewport).bbox(true, this.svg);
@@ -6794,6 +7309,10 @@ joint.dia.Paper = Backbone.View.extend({
         // Make sure the resulting width and height are greater than minimum.
         calcWidth = Math.max(calcWidth, opt.minWidth || 0);
         calcHeight = Math.max(calcHeight, opt.minHeight || 0);
+
+        // Make sure the resulting width and height are lesser than maximum.
+        calcWidth = Math.min(calcWidth, opt.maxWidth || Number.MAX_VALUE);
+        calcHeight = Math.min(calcHeight, opt.maxHeight || Number.MAX_VALUE);
 
         var dimensionChange = calcWidth != this.options.width || calcHeight != this.options.height;
         var originChange = tx != this.options.origin.x || ty != this.options.origin.y;
@@ -6927,18 +7446,18 @@ joint.dia.Paper = Backbone.View.extend({
         return view;
     },
 
-    onAddCell: function(cell, graph, options) {
+    onCellAdded: function(cell, graph, opt) {
 
-        if (this.options.async && options.async !== false && _.isNumber(options.position)) {
+        if (this.options.async && opt.async !== false && _.isNumber(opt.position)) {
 
             this._asyncCells = this._asyncCells || [];
             this._asyncCells.push(cell);
 
-            if (options.position == 0) {
+            if (opt.position == 0) {
 
-                if (this._frameId) throw 'another asynchronous rendering in progress';
+                if (this._frameId) throw new Error('another asynchronous rendering in progress');
 
-                this.asyncRenderCells(this._asyncCells);
+                this.asyncRenderCells(this._asyncCells, opt);
                 delete this._asyncCells;
             }
 
@@ -6948,9 +7467,14 @@ joint.dia.Paper = Backbone.View.extend({
         }
     },
 
+    onCellRemoved: function(cell) {
+
+        delete this._views[cell.id];
+    },
+
     addCell: function(cell) {
 
-        var view = this.createViewForModel(cell);
+        var view = this._views[cell.id] = this.createViewForModel(cell);
 
         V(this.viewport).append(view.el);
         view.paper = this;
@@ -7006,39 +7530,43 @@ joint.dia.Paper = Backbone.View.extend({
 
     removeCells: function() {
 
-        this.model.get('cells').each(function(cell) {
-            var view = this.findViewByModel(cell);
-            view && view.remove();
-        }, this);
+        _.invoke(this._views, 'remove');
+
+        this._views = {};
     },
 
-    asyncBatchAdded: _.identity,
+    asyncBatchAdded: _.noop,
 
     asyncRenderCells: function(cells, opt) {
 
-        var done = false;
-
         if (this._frameId) {
 
-            _.each(_.range(this.options.async && this.options.async.batchSize || 50), function() {
+            var batchSize = (this.options.async && this.options.async.batchSize) || 50;
+            var batchCells = cells.splice(0, batchSize);
+            var collection = this.model.get('cells');
 
-                var cell = cells.shift();
-                done = !cell;
-                if (!done) this.addCell(cell);
+            _.each(batchCells, function(cell) {
+
+                // The cell has to be part of the graph collection.
+                // There is a chance in asynchronous rendering
+                // that a cell was removed before it's rendered to the paper.
+                if (cell.collection === collection) this.addCell(cell);
 
             }, this);
 
             this.asyncBatchAdded();
         }
 
-        if (done) {
+        if (!cells.length) {
 
+            // No cells left to render.
             delete this._frameId;
             this.afterRenderCells(opt);
             this.trigger('render:done', opt);
 
         } else {
 
+            // Schedule a next batch to render.
             this._frameId = joint.util.nextFrame(_.bind(function() {
                 this.asyncRenderCells(cells, opt);
             }, this));
@@ -7053,52 +7581,12 @@ joint.dia.Paper = Backbone.View.extend({
         var $cells = $(this.viewport).children('[model-id]');
         var cells = this.model.get('cells');
 
-        this.sortElements($cells, function(a, b) {
+        joint.util.sortElements($cells, function(a, b) {
 
             var cellA = cells.get($(a).attr('model-id'));
             var cellB = cells.get($(b).attr('model-id'));
 
             return (cellA.get('z') || 0) > (cellB.get('z') || 0) ? 1 : -1;
-        });
-    },
-
-    // Highly inspired by the jquery.sortElements plugin by Padolsey.
-    // See http://james.padolsey.com/javascript/sorting-elements-with-jquery/.
-    sortElements: function(elements, comparator) {
-
-        var $elements = $(elements);
-
-        var placements = $elements.map(function() {
-
-            var sortElement = this;
-            var parentNode = sortElement.parentNode;
-
-            // Since the element itself will change position, we have
-            // to have some way of storing it's original position in
-            // the DOM. The easiest way is to have a 'flag' node:
-            var nextSibling = parentNode.insertBefore(
-                document.createTextNode(''),
-                sortElement.nextSibling
-            );
-
-            return function() {
-
-                if (parentNode === this) {
-                    throw new Error(
-                        "You can't sort elements if any one is a descendant of another."
-                    );
-                }
-
-                // Insert before flag:
-                parentNode.insertBefore(this, nextSibling);
-                // Remove flag:
-                parentNode.removeChild(nextSibling);
-
-            };
-        });
-
-        return Array.prototype.sort.call($elements, comparator).each(function(i) {
-            placements[i].call(this);
         });
     },
 
@@ -7155,21 +7643,26 @@ joint.dia.Paper = Backbone.View.extend({
 
         var $el = this.$(el);
 
-        if ($el.length === 0 || $el[0] === this.el) {
+        if ($el.length > 0 && $el[0] !== this.el) {
+            do {
+                if ($el.data('view')) {
+                    return $el.data('view');
+                }
 
-            return undefined;
+                $el = $el.parent();
+
+            } while ($el[0] !== this.el);
         }
 
-        return $el.data('view') || this.findView($el.parent());
+        return undefined;
     },
 
     // Find a view for a model `cell`. `cell` can also be a string representing a model `id`.
     findViewByModel: function(cell) {
 
         var id = _.isString(cell) ? cell : cell.id;
-        var $view = this.$('[model-id="' + id + '"]');
 
-        return $view.length ? $view.data('view') : undefined;
+        return this._views[id];
     },
 
     // Find all views at given point
@@ -7177,10 +7670,10 @@ joint.dia.Paper = Backbone.View.extend({
 
         p = g.point(p);
 
-        var views = _.map(this.model.getElements(), this.findViewByModel);
+        var views = _.map(this.model.getElements(), this.findViewByModel, this);
 
         return _.filter(views, function(view) {
-            return view && g.rect(V(view.el).bbox(false, this.viewport)).containsPoint(p);
+            return view && g.rect(view.vel.bbox(false, this.viewport)).containsPoint(p);
         }, this);
     },
 
@@ -7189,10 +7682,10 @@ joint.dia.Paper = Backbone.View.extend({
 
         r = g.rect(r);
 
-        var views = _.map(this.model.getElements(), this.findViewByModel);
+        var views = _.map(this.model.getElements(), this.findViewByModel, this);
 
         return _.filter(views, function(view) {
-            return view && r.intersect(g.rect(V(view.el).bbox(false, this.viewport)));
+            return view && r.intersect(g.rect(view.vel.bbox(false, this.viewport)));
         }, this);
     },
 
@@ -7274,6 +7767,8 @@ joint.dia.Paper = Backbone.View.extend({
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
         if (view) {
@@ -7294,6 +7789,8 @@ joint.dia.Paper = Backbone.View.extend({
             evt = joint.util.normalizeEvent(evt);
 
             var view = this.findView(evt.target);
+            if (this.guard(evt, view)) return;
+
             var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
             if (view) {
@@ -7309,11 +7806,46 @@ joint.dia.Paper = Backbone.View.extend({
         this._mousemoved = false;
     },
 
+    // Guard guards the event received. If the event is not interesting, guard returns `true`.
+    // Otherwise, it return `false`.
+    guard: function(evt, view) {
+
+        if (view && view.model && (view.model instanceof joint.dia.Cell)) {
+
+            return false;
+
+        } else if (this.svg === evt.target || this.el === evt.target || $.contains(this.svg, evt.target)) {
+
+            return false;
+        }
+
+        return true;    // Event guarded. Paper should not react on it in any way.
+    },
+
+    contextmenu: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+        if (view) {
+
+            view.contextmenu(evt, localPoint.x, localPoint.y);
+
+        } else {
+
+            this.trigger('blank:contextmenu', evt, localPoint.x, localPoint.y);
+        }
+    },
+
     pointerdown: function(evt) {
 
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
@@ -7369,7 +7901,7 @@ joint.dia.Paper = Backbone.View.extend({
         evt = joint.util.normalizeEvent(evt);
         var view = this.findView(evt.target);
         if (view) {
-
+            if (this.guard(evt, view)) return;
             view.mouseover(evt);
         }
     },
@@ -7379,7 +7911,7 @@ joint.dia.Paper = Backbone.View.extend({
         evt = joint.util.normalizeEvent(evt);
         var view = this.findView(evt.target);
         if (view) {
-
+            if (this.guard(evt, view)) return;
             view.mouseout(evt);
         }
     }
@@ -7396,7 +7928,7 @@ joint.shapes.basic.Generic = joint.dia.Element.extend({
 
         type: 'basic.Generic',
         attrs: {
-            '.': { fill: '#FFFFFF', stroke: 'none' }
+            '.': { fill: '#ffffff', stroke: 'none' }
         }
 
     }, joint.dia.Element.prototype.defaults)
@@ -7410,8 +7942,22 @@ joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
 
         type: 'basic.Rect',
         attrs: {
-            'rect': { fill: '#FFFFFF', stroke: 'black', width: 100, height: 60 },
-            'text': { 'font-size': 14, text: '', 'ref-x': .5, 'ref-y': .5, ref: 'rect', 'y-alignment': 'middle', 'x-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'rect': {
+                fill: '#ffffff',
+                stroke: '#000000',
+                width: 100,
+                height: 60
+            },
+            'text': {
+                fill: '#000000',
+                text: '',
+                'font-size': 14,
+                'ref-x': .5,
+                'ref-y': .5,
+                'text-anchor': 'middle',
+                'y-alignment': 'middle',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
 
     }, joint.shapes.basic.Generic.prototype.defaults)
@@ -7435,7 +7981,10 @@ joint.shapes.basic.Text = joint.shapes.basic.Generic.extend({
 
         type: 'basic.Text',
         attrs: {
-            'text': { 'font-size': 18, fill: 'black' }
+            'text': {
+                'font-size': 18,
+                fill: '#000000'
+            }
         }
 
     }, joint.shapes.basic.Generic.prototype.defaults)
@@ -7450,8 +7999,23 @@ joint.shapes.basic.Circle = joint.shapes.basic.Generic.extend({
         type: 'basic.Circle',
         size: { width: 60, height: 60 },
         attrs: {
-            'circle': { fill: '#FFFFFF', stroke: 'black', r: 30, transform: 'translate(30, 30)' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-y': .5, ref: 'circle', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'circle': {
+                fill: '#ffffff',
+                stroke: '#000000',
+                r: 30,
+                cx: 30,
+                cy: 30
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-y': .5,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -7465,8 +8029,24 @@ joint.shapes.basic.Ellipse = joint.shapes.basic.Generic.extend({
         type: 'basic.Ellipse',
         size: { width: 60, height: 40 },
         attrs: {
-            'ellipse': { fill: '#FFFFFF', stroke: 'black', rx: 30, ry: 20, transform: 'translate(30, 20)' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-y': .5, ref: 'ellipse', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'ellipse': {
+                fill: '#ffffff',
+                stroke: '#000000',
+                rx: 30,
+                ry: 20,
+                cx: 30,
+                cy: 20
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-y': .5,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -7480,8 +8060,20 @@ joint.shapes.basic.Polygon = joint.shapes.basic.Generic.extend({
         type: 'basic.Polygon',
         size: { width: 60, height: 40 },
         attrs: {
-            'polygon': { fill: '#FFFFFF', stroke: 'black' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'polygon', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'polygon': {
+                fill: '#ffffff',
+                stroke: '#000000'
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-dy': 20,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -7495,8 +8087,20 @@ joint.shapes.basic.Polyline = joint.shapes.basic.Generic.extend({
         type: 'basic.Polyline',
         size: { width: 60, height: 40 },
         attrs: {
-            'polyline': { fill: '#FFFFFF', stroke: 'black' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'polyline', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'polyline': {
+                fill: '#ffffff',
+                stroke: '#000000'
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-dy': 20,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -7509,7 +8113,16 @@ joint.shapes.basic.Image = joint.shapes.basic.Generic.extend({
 
         type: 'basic.Image',
         attrs: {
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'image', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-dy': 20,
+                'y-alignment': 'middle',
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -7523,8 +8136,20 @@ joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
         type: 'basic.Path',
         size: { width: 60, height: 60 },
         attrs: {
-            'path': { fill: '#FFFFFF', stroke: 'black' },
-            'text': { 'font-size': 14, text: '', 'text-anchor': 'middle', 'ref-x': .5, 'ref-dy': 20, ref: 'path', 'y-alignment': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'path': {
+                fill: '#ffffff',
+                stroke: '#000000'
+            },
+            'text': {
+                'font-size': 14,
+                text: '',
+                'text-anchor': 'middle',
+                'ref': 'path',
+                'ref-x': .5,
+                'ref-dy': 10,
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif'
+            }
         }
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
@@ -7535,8 +8160,13 @@ joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
 
         type: 'basic.Rhombus',
         attrs: {
-            'path': { d: 'M 30 0 L 60 30 30 60 0 30 z' },
-            'text': { 'ref-y': .5 }
+            'path': {
+                d: 'M 30 0 L 60 30 30 60 0 30 z'
+            },
+            'text': {
+                'ref-y': .5,
+                'y-alignment': 'middle'
+            }
         }
 
     }, joint.shapes.basic.Path.prototype.defaults)
@@ -7556,10 +8186,10 @@ joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
 //         var portClass = 'port' + index;
 //         var portSelector = selector + '>.' + portClass;
 //         var portTextSelector = portSelector + '>text';
-//         var portCircleSelector = portSelector + '>circle';
+//         var portBodySelector = portSelector + '>.port-body';
 //
 //         attrs[portTextSelector] = { text: portName };
-//         attrs[portCircleSelector] = { port: { id: portName || _.uniqueId(type) , type: type } };
+//         attrs[portBodySelector] = { port: { id: portName || _.uniqueId(type) , type: type } };
 //         attrs[portSelector] = { ref: 'rect', 'ref-y': (index + 0.5) * (1 / total) };
 //
 //         if (selector === '.outPorts') { attrs[portSelector]['ref-dx'] = 0; }
@@ -7627,7 +8257,7 @@ joint.shapes.basic.PortsModelInterface = {
             if (index < 0) throw new Error("getPortSelector(): Port doesn't exist.");
         }
 
-        return selector + '>g:nth-child(' + (index + 1) + ')>circle';
+        return selector + '>g:nth-child(' + (index + 1) + ')>.port-body';
     }
 };
 
@@ -8644,6 +9274,65 @@ joint.routers.metro = (function() {
 
 })();
 
+// Routes the link always to/from a certain side
+//
+// Arguments:
+//   padding ... gap between the element and the first vertex. :: Default 40.
+//   side ... 'left' | 'right' | 'top' | 'bottom' :: Default 'bottom'.
+//
+joint.routers.oneSide = function(vertices, opt, linkView) {
+
+    var side = opt.side || 'bottom';
+    var padding = opt.padding || 40;
+
+    // LinkView contains cached source an target bboxes.
+    // Note that those are Geometry rectangle objects.
+    var sourceBBox = linkView.sourceBBox;
+    var targetBBox = linkView.targetBBox;
+    var sourcePoint = sourceBBox.center();
+    var targetPoint = targetBBox.center();
+
+    var coordinate, coordinateValue, dimension, direction;
+
+    switch (side) {
+        case 'bottom':
+            direction = 1;
+            coordinate = 'y';
+            dimension = 'height';
+            break;
+        case 'top':
+            direction = -1;
+            coordinate = 'y';
+            dimension = 'height';
+            break;
+        case 'left':
+            direction = -1;
+            coordinate = 'x';
+            dimension = 'width';
+            break;
+        case 'right':
+            direction = 1;
+            coordinate = 'x';
+            dimension = 'width';
+            break;
+        default:
+            throw new Error('Router: invalid side');
+    }
+
+    // move the points from the center of the element to outside of it.
+    sourcePoint[coordinate] += direction * (sourceBBox[dimension] / 2 + padding);
+    targetPoint[coordinate] += direction * (targetBBox[dimension] / 2 + padding);
+
+    // make link orthogonal (at least the first and last vertex).
+    if (direction * (sourcePoint[coordinate] - targetPoint[coordinate]) > 0) {
+        targetPoint[coordinate] = sourcePoint[coordinate];
+    } else {
+        sourcePoint[coordinate] = targetPoint[coordinate];
+    }
+
+    return [sourcePoint].concat(vertices, targetPoint);
+};
+
 joint.connectors.normal = function(sourcePoint, targetPoint, vertices) {
 
     // Construct the `d` attribute of the `<path>` element.
@@ -8717,3 +9406,1473 @@ joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
 
     return d.join(' ');
 };
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+joint.shapes.erd = {};
+
+joint.shapes.erd.Entity = joint.dia.Element.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.Entity',
+        size: { width: 150, height: 60 },
+        attrs: {
+            '.outer': {
+                fill: '#2ECC71', stroke: '#27AE60', 'stroke-width': 2,
+                points: '100,0 100,60 0,60 0,0'
+            },
+            '.inner': {
+                fill: '#2ECC71', stroke: '#27AE60', 'stroke-width': 2,
+                points: '95,5 95,55 5,55 5,5',
+                display: 'none'
+            },
+            text: {
+                text: 'Entity',
+                'font-family': 'Arial', 'font-size': 14,
+                ref: '.outer', 'ref-x': .5, 'ref-y': .5,
+                'x-alignment': 'middle', 'y-alignment': 'middle'
+            }
+        }
+
+    }, joint.dia.Element.prototype.defaults)
+});
+
+joint.shapes.erd.WeakEntity = joint.shapes.erd.Entity.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.WeakEntity',
+
+        attrs: {
+            '.inner' : { display: 'auto' },
+            text: { text: 'Weak Entity' }
+        }
+
+    }, joint.shapes.erd.Entity.prototype.defaults)
+});
+
+joint.shapes.erd.Relationship = joint.dia.Element.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.Relationship',
+        size: { width: 80, height: 80 },
+        attrs: {
+            '.outer': {
+                fill: '#3498DB', stroke: '#2980B9', 'stroke-width': 2,
+                points: '40,0 80,40 40,80 0,40'
+            },
+            '.inner': {
+                fill: '#3498DB', stroke: '#2980B9', 'stroke-width': 2,
+                points: '40,5 75,40 40,75 5,40',
+                display: 'none'
+            },
+            text: {
+                text: 'Relationship',
+                'font-family': 'Arial', 'font-size': 12,
+                ref: '.', 'ref-x': .5, 'ref-y': .5,
+                'x-alignment': 'middle', 'y-alignment': 'middle'
+            }
+        }
+
+    }, joint.dia.Element.prototype.defaults)
+});
+
+joint.shapes.erd.IdentifyingRelationship = joint.shapes.erd.Relationship.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.IdentifyingRelationship',
+
+        attrs: {
+            '.inner': { display: 'auto' },
+            text: { text: 'Identifying' }
+        }
+
+    }, joint.shapes.erd.Relationship.prototype.defaults)
+});
+
+joint.shapes.erd.Attribute = joint.dia.Element.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><ellipse class="outer"/><ellipse class="inner"/></g><text/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.Attribute',
+        size: { width: 100, height: 50 },
+        attrs: {
+            'ellipse': {
+                transform: 'translate(50, 25)'
+            },
+            '.outer': {
+                stroke: '#D35400', 'stroke-width': 2,
+                cx: 0, cy: 0, rx: 50, ry: 25,
+                fill: '#E67E22'
+            },
+            '.inner': {
+                stroke: '#D35400', 'stroke-width': 2,
+                cx: 0, cy: 0, rx: 45, ry: 20,
+                fill: '#E67E22', display: 'none'
+            },
+            text: {
+                 'font-family': 'Arial', 'font-size': 14,
+                 ref: '.', 'ref-x': .5, 'ref-y': .5,
+                 'x-alignment': 'middle', 'y-alignment': 'middle'
+             }
+        }
+
+    }, joint.dia.Element.prototype.defaults)
+
+});
+
+joint.shapes.erd.Multivalued = joint.shapes.erd.Attribute.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.Multivalued',
+
+        attrs: {
+             '.inner': { display: 'block' },
+             text: { text: 'multivalued' }
+         }
+    }, joint.shapes.erd.Attribute.prototype.defaults)
+});
+
+joint.shapes.erd.Derived = joint.shapes.erd.Attribute.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.Derived',
+
+        attrs: {
+             '.outer': { 'stroke-dasharray': '3,5' },
+             text: { text: 'derived' }
+         }
+
+    }, joint.shapes.erd.Attribute.prototype.defaults)
+});
+
+joint.shapes.erd.Key = joint.shapes.erd.Attribute.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.Key',
+
+        attrs: {
+             ellipse: { 'stroke-width': 4 },
+             text: { text: 'key', 'font-weight': '800', 'text-decoration': 'underline' }
+         }
+    }, joint.shapes.erd.Attribute.prototype.defaults)
+});
+
+joint.shapes.erd.Normal = joint.shapes.erd.Attribute.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.Normal',
+
+        attrs: { text: { text: 'Normal' }}
+
+    }, joint.shapes.erd.Attribute.prototype.defaults)
+});
+
+joint.shapes.erd.ISA = joint.dia.Element.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><polygon/></g><text/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'erd.ISA',
+        size: { width: 100, height: 50 },
+        attrs: {
+            polygon: {
+                points: '0,0 50,50 100,0',
+                fill: '#F1C40F', stroke: '#F39C12', 'stroke-width': 2
+            },
+            text: {
+                text: 'ISA', 'font-size': 18,
+                ref: 'polygon', 'ref-x': .5, 'ref-y': .3,
+                'x-alignment': 'middle', 'y-alignment': 'middle'
+            }
+        }
+
+    }, joint.dia.Element.prototype.defaults)
+
+});
+
+joint.shapes.erd.Line = joint.dia.Link.extend({
+
+    defaults: { type: 'erd.Line' },
+
+    cardinality: function(value) {
+        this.set('labels', [{ position: -20, attrs: { text: { dy: -8, text: value }}}]);
+    }
+});
+
+joint.shapes.fsa = {};
+
+joint.shapes.fsa.State = joint.shapes.basic.Circle.extend({
+    defaults: joint.util.deepSupplement({
+        type: 'fsa.State',
+        attrs: {
+            circle: { 'stroke-width': 3 },
+            text: { 'font-weight': '800' }
+        }
+    }, joint.shapes.basic.Circle.prototype.defaults)
+});
+
+joint.shapes.fsa.StartState = joint.dia.Element.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><circle/></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'fsa.StartState',
+        size: { width: 20, height: 20 },
+        attrs: {
+            circle: {
+                transform: 'translate(10, 10)',
+                r: 10,
+                fill: '#000000'
+            }
+        }
+
+    }, joint.dia.Element.prototype.defaults)
+});
+
+joint.shapes.fsa.EndState = joint.dia.Element.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'fsa.EndState',
+        size: { width: 20, height: 20 },
+        attrs: {
+            '.outer': {
+                transform: 'translate(10, 10)',
+                r: 10,
+                fill: '#ffffff',
+                stroke: '#000000'
+            },
+
+            '.inner': {
+                transform: 'translate(10, 10)',
+                r: 6,
+                fill: '#000000'
+            }
+        }
+
+    }, joint.dia.Element.prototype.defaults)
+});
+
+joint.shapes.fsa.Arrow = joint.dia.Link.extend({
+
+    defaults: joint.util.deepSupplement({
+        type: 'fsa.Arrow',
+        attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }},
+        smooth: true
+    }, joint.dia.Link.prototype.defaults)
+});
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+joint.shapes.org = {};
+
+joint.shapes.org.Member = joint.dia.Element.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><rect class="card"/><image/></g><text class="rank"/><text class="name"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'org.Member',
+        size: { width: 180, height: 70 },
+        attrs: {
+
+            rect: { width: 170, height: 60 },
+
+            '.card': {
+                fill: '#FFFFFF', stroke: '#000000', 'stroke-width': 2,
+                'pointer-events': 'visiblePainted', rx: 10, ry: 10
+            },
+
+            image: {
+                width: 48, height: 48,
+                ref: '.card', 'ref-x': 10, 'ref-y': 5
+            },
+
+            '.rank': {
+                'text-decoration': 'underline',
+                ref: '.card', 'ref-x': 0.9, 'ref-y': 0.2,
+                'font-family': 'Courier New', 'font-size': 14,
+                'text-anchor': 'end'
+            },
+
+            '.name': {
+                'font-weight': '800',
+                ref: '.card', 'ref-x': 0.9, 'ref-y': 0.6,
+                'font-family': 'Courier New', 'font-size': 14,
+                'text-anchor': 'end'
+            }
+        }
+    }, joint.dia.Element.prototype.defaults)
+});
+
+joint.shapes.org.Arrow = joint.dia.Link.extend({
+
+    defaults: {
+        type: 'org.Arrow',
+        source: { selector: '.card' }, target: { selector: '.card' },
+        attrs: { '.connection': { stroke: '#585858', 'stroke-width': 3 }},
+        z: -1
+    }
+});
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+joint.shapes.chess = {};
+
+joint.shapes.chess.KingWhite = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;"><path      d="M 22.5,11.63 L 22.5,6"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path      d="M 20,8 L 25,8"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path      d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25"      style="fill:#ffffff; stroke:#000000; stroke-linecap:butt; stroke-linejoin:miter;" />    <path      d="M 11.5,37 C 17,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 19,16 9.5,13 6.5,19.5 C 3.5,25.5 11.5,29.5 11.5,29.5 L 11.5,37 z "      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 11.5,30 C 17,27 27,27 32.5,30"      style="fill:none; stroke:#000000;" />    <path      d="M 11.5,33.5 C 17,30.5 27,30.5 32.5,33.5"      style="fill:none; stroke:#000000;" />    <path      d="M 11.5,37 C 17,34 27,34 32.5,37"      style="fill:none; stroke:#000000;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.KingWhite',
+        size: { width: 42, height: 38 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.KingBlack = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path       d="M 22.5,11.63 L 22.5,6"       style="fill:none; stroke:#000000; stroke-linejoin:miter;"       id="path6570" />    <path       d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25"       style="fill:#000000;fill-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;" />    <path       d="M 11.5,37 C 17,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 19,16 9.5,13 6.5,19.5 C 3.5,25.5 11.5,29.5 11.5,29.5 L 11.5,37 z "       style="fill:#000000; stroke:#000000;" />    <path       d="M 20,8 L 25,8"       style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path       d="M 32,29.5 C 32,29.5 40.5,25.5 38.03,19.85 C 34.15,14 25,18 22.5,24.5 L 22.51,26.6 L 22.5,24.5 C 20,18 9.906,14 6.997,19.85 C 4.5,25.5 11.85,28.85 11.85,28.85"       style="fill:none; stroke:#ffffff;" />    <path       d="M 11.5,30 C 17,27 27,27 32.5,30 M 11.5,33.5 C 17,30.5 27,30.5 32.5,33.5 M 11.5,37 C 17,34 27,34 32.5,37"       style="fill:none; stroke:#ffffff;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.KingBlack',
+        size: { width: 42, height: 38 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.QueenWhite = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(-1,-1)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(15.5,-5.5)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(32,-1)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(7,-4.5)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(24,-4)" />    <path      d="M 9,26 C 17.5,24.5 30,24.5 36,26 L 38,14 L 31,25 L 31,11 L 25.5,24.5 L 22.5,9.5 L 19.5,24.5 L 14,10.5 L 14,25 L 7,14 L 9,26 z "      style="stroke-linecap:butt;" />    <path      d="M 9,26 C 9,28 10.5,28 11.5,30 C 12.5,31.5 12.5,31 12,33.5 C 10.5,34.5 10.5,36 10.5,36 C 9,37.5 11,38.5 11,38.5 C 17.5,39.5 27.5,39.5 34,38.5 C 34,38.5 35.5,37.5 34,36 C 34,36 34.5,34.5 33,33.5 C 32.5,31 32.5,31.5 33.5,30 C 34.5,28 36,28 36,26 C 27.5,24.5 17.5,24.5 9,26 z "      style="stroke-linecap:butt;" />    <path      d="M 11.5,30 C 15,29 30,29 33.5,30"      style="fill:none;" />    <path      d="M 12,33.5 C 18,32.5 27,32.5 33,33.5"      style="fill:none;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.QueenWhite',
+        size: { width: 42, height: 38 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.QueenBlack = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#000000; stroke:none;">      <circle cx="6"    cy="12" r="2.75" />      <circle cx="14"   cy="9"  r="2.75" />      <circle cx="22.5" cy="8"  r="2.75" />      <circle cx="31"   cy="9"  r="2.75" />      <circle cx="39"   cy="12" r="2.75" />    </g>    <path       d="M 9,26 C 17.5,24.5 30,24.5 36,26 L 38.5,13.5 L 31,25 L 30.7,10.9 L 25.5,24.5 L 22.5,10 L 19.5,24.5 L 14.3,10.9 L 14,25 L 6.5,13.5 L 9,26 z"       style="stroke-linecap:butt; stroke:#000000;" />    <path       d="M 9,26 C 9,28 10.5,28 11.5,30 C 12.5,31.5 12.5,31 12,33.5 C 10.5,34.5 10.5,36 10.5,36 C 9,37.5 11,38.5 11,38.5 C 17.5,39.5 27.5,39.5 34,38.5 C 34,38.5 35.5,37.5 34,36 C 34,36 34.5,34.5 33,33.5 C 32.5,31 32.5,31.5 33.5,30 C 34.5,28 36,28 36,26 C 27.5,24.5 17.5,24.5 9,26 z"       style="stroke-linecap:butt;" />    <path       d="M 11,38.5 A 35,35 1 0 0 34,38.5"       style="fill:none; stroke:#000000; stroke-linecap:butt;" />    <path       d="M 11,29 A 35,35 1 0 1 34,29"       style="fill:none; stroke:#ffffff;" />    <path       d="M 12.5,31.5 L 32.5,31.5"       style="fill:none; stroke:#ffffff;" />    <path       d="M 11.5,34.5 A 35,35 1 0 0 33.5,34.5"       style="fill:none; stroke:#ffffff;" />    <path       d="M 10.5,37.5 A 35,35 1 0 0 34.5,37.5"       style="fill:none; stroke:#ffffff;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.QueenBlack',
+        size: { width: 42, height: 38 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.RookWhite = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z "      style="stroke-linecap:butt;" />    <path      d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z "      style="stroke-linecap:butt;" />    <path      d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14"      style="stroke-linecap:butt;" />    <path      d="M 34,14 L 31,17 L 14,17 L 11,14" />    <path      d="M 31,17 L 31,29.5 L 14,29.5 L 14,17"      style="stroke-linecap:butt; stroke-linejoin:miter;" />    <path      d="M 31,29.5 L 32.5,32 L 12.5,32 L 14,29.5" />    <path      d="M 11,14 L 34,14"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.RookWhite',
+        size: { width: 32, height: 34 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.RookBlack = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z "      style="stroke-linecap:butt;" />    <path      d="M 12.5,32 L 14,29.5 L 31,29.5 L 32.5,32 L 12.5,32 z "      style="stroke-linecap:butt;" />    <path      d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z "      style="stroke-linecap:butt;" />    <path      d="M 14,29.5 L 14,16.5 L 31,16.5 L 31,29.5 L 14,29.5 z "      style="stroke-linecap:butt;stroke-linejoin:miter;" />    <path      d="M 14,16.5 L 11,14 L 34,14 L 31,16.5 L 14,16.5 z "      style="stroke-linecap:butt;" />    <path      d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14 L 11,14 z "      style="stroke-linecap:butt;" />    <path      d="M 12,35.5 L 33,35.5 L 33,35.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 13,31.5 L 32,31.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 14,29.5 L 31,29.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 14,16.5 L 31,16.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 11,14 L 34,14"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.RookBlack',
+        size: { width: 32, height: 34 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.BishopWhite = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-rule:evenodd; fill-opacity:1; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#ffffff; stroke:#000000; stroke-linecap:butt;">       <path        d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.646,38.99 6.677,38.97 6,38 C 7.354,36.06 9,36 9,36 z" />      <path        d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z" />      <path        d="M 25 8 A 2.5 2.5 0 1 1  20,8 A 2.5 2.5 0 1 1  25 8 z" />    </g>    <path      d="M 17.5,26 L 27.5,26 M 15,30 L 30,30 M 22.5,15.5 L 22.5,20.5 M 20,18 L 25,18"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.BishopWhite',
+        size: { width: 38, height: 38 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.BishopBlack = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-rule:evenodd; fill-opacity:1; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#000000; stroke:#000000; stroke-linecap:butt;">       <path        d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.646,38.99 6.677,38.97 6,38 C 7.354,36.06 9,36 9,36 z" />      <path        d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z" />      <path        d="M 25 8 A 2.5 2.5 0 1 1  20,8 A 2.5 2.5 0 1 1  25 8 z" />    </g>    <path       d="M 17.5,26 L 27.5,26 M 15,30 L 30,30 M 22.5,15.5 L 22.5,20.5 M 20,18 L 25,18"       style="fill:none; stroke:#ffffff; stroke-linejoin:miter;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.BishopBlack',
+        size: { width: 38, height: 38 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.KnightWhite = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18"      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10"      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z"      style="fill:#000000; stroke:#000000;" />    <path      d="M 15 15.5 A 0.5 1.5 0 1 1  14,15.5 A 0.5 1.5 0 1 1  15 15.5 z"      transform="matrix(0.866,0.5,-0.5,0.866,9.693,-5.173)"      style="fill:#000000; stroke:#000000;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.KnightWhite',
+        size: { width: 38, height: 37 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.KnightBlack = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18"      style="fill:#000000; stroke:#000000;" />    <path      d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10"      style="fill:#000000; stroke:#000000;" />    <path      d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z"      style="fill:#ffffff; stroke:#ffffff;" />    <path      d="M 15 15.5 A 0.5 1.5 0 1 1  14,15.5 A 0.5 1.5 0 1 1  15 15.5 z"      transform="matrix(0.866,0.5,-0.5,0.866,9.693,-5.173)"      style="fill:#ffffff; stroke:#ffffff;" />    <path      d="M 24.55,10.4 L 24.1,11.85 L 24.6,12 C 27.75,13 30.25,14.49 32.5,18.75 C 34.75,23.01 35.75,29.06 35.25,39 L 35.2,39.5 L 37.45,39.5 L 37.5,39 C 38,28.94 36.62,22.15 34.25,17.66 C 31.88,13.17 28.46,11.02 25.06,10.5 L 24.55,10.4 z "      style="fill:#ffffff; stroke:none;" />  </g></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.KnightBlack',
+        size: { width: 38, height: 37 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.PawnWhite = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><path d="M 22,9 C 19.79,9 18,10.79 18,13 C 18,13.89 18.29,14.71 18.78,15.38 C 16.83,16.5 15.5,18.59 15.5,21 C 15.5,23.03 16.44,24.84 17.91,26.03 C 14.91,27.09 10.5,31.58 10.5,39.5 L 33.5,39.5 C 33.5,31.58 29.09,27.09 26.09,26.03 C 27.56,24.84 28.5,23.03 28.5,21 C 28.5,18.59 27.17,16.5 25.22,15.38 C 25.71,14.71 26,13.89 26,13 C 26,10.79 24.21,9 22,9 z "  style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:nonzero; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:miter; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;" /></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.PawnWhite',
+        size: { width: 28, height: 33 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.chess.PawnBlack = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><path d="M 22,9 C 19.79,9 18,10.79 18,13 C 18,13.89 18.29,14.71 18.78,15.38 C 16.83,16.5 15.5,18.59 15.5,21 C 15.5,23.03 16.44,24.84 17.91,26.03 C 14.91,27.09 10.5,31.58 10.5,39.5 L 33.5,39.5 C 33.5,31.58 29.09,27.09 26.09,26.03 C 27.56,24.84 28.5,23.03 28.5,21 C 28.5,18.59 27.17,16.5 25.22,15.38 C 25.71,14.71 26,13.89 26,13 C 26,10.79 24.21,9 22,9 z "  style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:nonzero; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:miter; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;" /></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'chess.PawnBlack',
+        size: { width: 28, height: 33 }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+joint.shapes.pn = {};
+
+joint.shapes.pn.Place = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'pn.Place',
+        size: { width: 50, height: 50 },
+        attrs: {
+            '.root': {
+                r: 25,
+                fill: '#ffffff',
+                stroke: '#000000',
+                transform: 'translate(25, 25)'
+            },
+            '.label': {
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-y': -20,
+                ref: '.root',
+                fill: '#000000',
+                'font-size': 12
+            },
+            '.tokens > circle': {
+                fill: '#000000',
+                r: 5
+            },
+            '.tokens.one > circle': { transform: 'translate(25, 25)' },
+
+            '.tokens.two > circle:nth-child(1)': { transform: 'translate(19, 25)' },
+            '.tokens.two > circle:nth-child(2)': { transform: 'translate(31, 25)' },
+
+            '.tokens.three > circle:nth-child(1)': { transform: 'translate(18, 29)' },
+            '.tokens.three > circle:nth-child(2)': { transform: 'translate(25, 19)' },
+            '.tokens.three > circle:nth-child(3)': { transform: 'translate(32, 29)' },
+
+            '.tokens.alot > text': {
+                transform: 'translate(25, 18)',
+                'text-anchor': 'middle',
+                fill: '#000000'
+            }
+        }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+
+joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
+
+    initialize: function() {
+
+        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+
+        this.model.on('change:tokens', function() {
+
+            this.renderTokens();
+            this.update();
+
+        }, this);
+    },
+
+    render: function() {
+
+        joint.dia.ElementView.prototype.render.apply(this, arguments);
+
+        this.renderTokens();
+        this.update();
+    },
+
+    renderTokens: function() {
+
+        var $tokens = this.$('.tokens').empty();
+        $tokens[0].className.baseVal = 'tokens';
+
+        var tokens = this.model.get('tokens');
+
+        if (!tokens) return;
+
+        switch (tokens) {
+
+            case 1:
+                $tokens[0].className.baseVal += ' one';
+                $tokens.append(V('<circle/>').node);
+                break;
+
+            case 2:
+                $tokens[0].className.baseVal += ' two';
+                $tokens.append(V('<circle/>').node, V('<circle/>').node);
+                break;
+
+            case 3:
+                $tokens[0].className.baseVal += ' three';
+                $tokens.append(V('<circle/>').node, V('<circle/>').node, V('<circle/>').node);
+                break;
+
+            default:
+                $tokens[0].className.baseVal += ' alot';
+                $tokens.append(V('<text/>').text(tokens + '' ).node);
+                break;
+        }
+    }
+});
+
+
+joint.shapes.pn.Transition = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><rect class="root"/></g></g><text class="label"/>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'pn.Transition',
+        size: { width: 12, height: 50 },
+        attrs: {
+            'rect': {
+                width: 12,
+                height: 50,
+                fill: '#000000',
+                stroke: '#000000'
+            },
+            '.label': {
+                'text-anchor': 'middle',
+                'ref-x': .5,
+                'ref-y': -20,
+                ref: 'rect',
+                fill: '#000000',
+                'font-size': 12
+            }
+        }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+joint.shapes.pn.Link = joint.dia.Link.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
+
+    }, joint.dia.Link.prototype.defaults)
+});
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+joint.shapes.devs = {};
+
+joint.shapes.devs.Model = joint.shapes.basic.Generic.extend(_.extend({}, joint.shapes.basic.PortsModelInterface, {
+
+    markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><text class="label"/><g class="inPorts"/><g class="outPorts"/></g>',
+    portMarkup: '<g class="port port<%= id %>"><circle class="port-body"/><text class="port-label"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'devs.Model',
+        size: { width: 1, height: 1 },
+
+        inPorts: [],
+        outPorts: [],
+
+        attrs: {
+            '.': { magnet: false },
+            '.body': {
+                width: 150, height: 250,
+                stroke: '#000000'
+            },
+            '.port-body': {
+                r: 10,
+                magnet: true,
+                stroke: '#000000'
+            },
+            text: {
+                'pointer-events': 'none'
+            },
+            '.label': { text: 'Model', 'ref-x': .5, 'ref-y': 10, ref: '.body', 'text-anchor': 'middle', fill: '#000000' },
+            '.inPorts .port-label': { x:-15, dy: 4, 'text-anchor': 'end', fill: '#000000' },
+            '.outPorts .port-label':{ x: 15, dy: 4, fill: '#000000' }
+        }
+
+    }, joint.shapes.basic.Generic.prototype.defaults),
+
+    getPortAttrs: function(portName, index, total, selector, type) {
+
+        var attrs = {};
+
+        var portClass = 'port' + index;
+        var portSelector = selector + '>.' + portClass;
+        var portLabelSelector = portSelector + '>.port-label';
+        var portBodySelector = portSelector + '>.port-body';
+
+        attrs[portLabelSelector] = { text: portName };
+        attrs[portBodySelector] = { port: { id: portName || _.uniqueId(type) , type: type } };
+        attrs[portSelector] = { ref: '.body', 'ref-y': (index + 0.5) * (1 / total) };
+
+        if (selector === '.outPorts') { attrs[portSelector]['ref-dx'] = 0; }
+
+        return attrs;
+    }
+}));
+
+
+joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'devs.Atomic',
+        size: { width: 80, height: 80 },
+        attrs: {
+            '.body': { fill: 'salmon' },
+            '.label': { text: 'Atomic' },
+            '.inPorts .port-body': { fill: 'PaleGreen' },
+            '.outPorts .port-body': { fill: 'Tomato' }
+        }
+
+    }, joint.shapes.devs.Model.prototype.defaults)
+
+});
+
+joint.shapes.devs.Coupled = joint.shapes.devs.Model.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'devs.Coupled',
+        size: { width: 200, height: 300 },
+        attrs: {
+            '.body': { fill: 'seaGreen' },
+            '.label': { text: 'Coupled' },
+            '.inPorts .port-body': { fill: 'PaleGreen' },
+            '.outPorts .port-body': { fill: 'Tomato' }
+        }
+
+    }, joint.shapes.devs.Model.prototype.defaults)
+});
+
+joint.shapes.devs.Link = joint.dia.Link.extend({
+
+    defaults: {
+        type: 'devs.Link',
+        attrs: { '.connection' : { 'stroke-width' :  2 }}
+    }
+});
+
+joint.shapes.devs.ModelView = joint.dia.ElementView.extend(joint.shapes.basic.PortsViewInterface);
+joint.shapes.devs.AtomicView = joint.shapes.devs.ModelView;
+joint.shapes.devs.CoupledView = joint.shapes.devs.ModelView;
+
+joint.shapes.uml = {};
+
+joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
+
+    markup: [
+        '<g class="rotatable">',
+          '<g class="scalable">',
+            '<rect class="uml-class-name-rect"/><rect class="uml-class-attrs-rect"/><rect class="uml-class-methods-rect"/>',
+          '</g>',
+          '<text class="uml-class-name-text"/><text class="uml-class-attrs-text"/><text class="uml-class-methods-text"/>',
+        '</g>'
+    ].join(''),
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'uml.Class',
+
+        attrs: {
+            rect: { 'width': 200 },
+
+            '.uml-class-name-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#3498db' },
+            '.uml-class-attrs-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
+            '.uml-class-methods-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
+
+            '.uml-class-name-text': {
+                'ref': '.uml-class-name-rect', 'ref-y': .5, 'ref-x': .5, 'text-anchor': 'middle', 'y-alignment': 'middle', 'font-weight': 'bold',
+                'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
+            },
+            '.uml-class-attrs-text': {
+                'ref': '.uml-class-attrs-rect', 'ref-y': 5, 'ref-x': 5,
+                'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
+            },
+            '.uml-class-methods-text': {
+                'ref': '.uml-class-methods-rect', 'ref-y': 5, 'ref-x': 5,
+                'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
+            }
+        },
+
+        name: [],
+        attributes: [],
+        methods: []
+
+    }, joint.shapes.basic.Generic.prototype.defaults),
+
+    initialize: function() {
+
+        this.on('change:name change:attributes change:methods', function() {
+            this.updateRectangles();
+            this.trigger('uml-update');
+        }, this);
+
+        this.updateRectangles();
+
+        joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
+    },
+
+    getClassName: function() {
+        return this.get('name');
+    },
+
+    updateRectangles: function() {
+
+        var attrs = this.get('attrs');
+
+        var rects = [
+            { type: 'name', text: this.getClassName() },
+            { type: 'attrs', text: this.get('attributes') },
+            { type: 'methods', text: this.get('methods') }
+        ];
+
+        var offsetY = 0;
+
+        _.each(rects, function(rect) {
+
+            var lines = _.isArray(rect.text) ? rect.text : [rect.text];
+            var rectHeight = lines.length * 20 + 20;
+
+            attrs['.uml-class-' + rect.type + '-text'].text = lines.join('\n');
+            attrs['.uml-class-' + rect.type + '-rect'].height = rectHeight;
+            attrs['.uml-class-' + rect.type + '-rect'].transform = 'translate(0,' + offsetY + ')';
+
+            offsetY += rectHeight;
+        });
+    }
+
+});
+
+joint.shapes.uml.ClassView = joint.dia.ElementView.extend({
+
+    initialize: function() {
+
+        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+
+        this.listenTo(this.model, 'uml-update', function() {
+            this.update();
+            this.resize();
+        });
+    }
+});
+
+joint.shapes.uml.Abstract = joint.shapes.uml.Class.extend({
+
+    defaults: joint.util.deepSupplement({
+        type: 'uml.Abstract',
+        attrs: {
+            '.uml-class-name-rect': { fill : '#e74c3c' },
+            '.uml-class-attrs-rect': { fill : '#c0392b' },
+            '.uml-class-methods-rect': { fill : '#c0392b' }
+        }
+    }, joint.shapes.uml.Class.prototype.defaults),
+
+    getClassName: function() {
+        return ['<<Abstract>>', this.get('name')];
+    }
+
+});
+joint.shapes.uml.AbstractView = joint.shapes.uml.ClassView;
+
+joint.shapes.uml.Interface = joint.shapes.uml.Class.extend({
+
+    defaults: joint.util.deepSupplement({
+        type: 'uml.Interface',
+        attrs: {
+            '.uml-class-name-rect': { fill : '#f1c40f' },
+            '.uml-class-attrs-rect': { fill : '#f39c12' },
+            '.uml-class-methods-rect': { fill : '#f39c12' }
+        }
+    }, joint.shapes.uml.Class.prototype.defaults),
+
+    getClassName: function() {
+        return ['<<Interface>>', this.get('name')];
+    }
+
+});
+joint.shapes.uml.InterfaceView = joint.shapes.uml.ClassView;
+
+joint.shapes.uml.Generalization = joint.dia.Link.extend({
+    defaults: {
+        type: 'uml.Generalization',
+        attrs: { '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' }}
+    }
+});
+
+joint.shapes.uml.Implementation = joint.dia.Link.extend({
+    defaults: {
+        type: 'uml.Implementation',
+        attrs: {
+            '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' },
+            '.connection': { 'stroke-dasharray': '3,3' }
+        }
+    }
+});
+
+joint.shapes.uml.Aggregation = joint.dia.Link.extend({
+    defaults: {
+        type: 'uml.Aggregation',
+        attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'white' }}
+    }
+});
+
+joint.shapes.uml.Composition = joint.dia.Link.extend({
+    defaults: {
+        type: 'uml.Composition',
+        attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'black' }}
+    }
+});
+
+joint.shapes.uml.Association = joint.dia.Link.extend({
+    defaults: { type: 'uml.Association' }
+});
+
+// Statechart
+
+joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
+
+    markup: [
+        '<g class="rotatable">',
+          '<g class="scalable">',
+            '<rect class="uml-state-body"/>',
+          '</g>',
+          '<path class="uml-state-separator"/>',
+          '<text class="uml-state-name"/>',
+          '<text class="uml-state-events"/>',
+        '</g>'
+    ].join(''),
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'uml.State',
+
+        attrs: {
+            '.uml-state-body': {
+                'width': 200, 'height': 200, 'rx': 10, 'ry': 10,
+                'fill': '#ecf0f1', 'stroke': '#bdc3c7', 'stroke-width': 3
+            },
+            '.uml-state-separator': {
+                'stroke': '#bdc3c7', 'stroke-width': 2
+            },
+            '.uml-state-name': {
+                'ref': '.uml-state-body', 'ref-x': .5, 'ref-y': 5, 'text-anchor': 'middle',
+                'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
+            },
+            '.uml-state-events': {
+                'ref': '.uml-state-separator', 'ref-x': 5, 'ref-y': 5,
+                'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
+            }
+        },
+
+        name: 'State',
+        events: []
+
+    }, joint.shapes.basic.Generic.prototype.defaults),
+
+    initialize: function() {
+
+        this.on({
+            'change:name': this.updateName,
+            'change:events': this.updateEvents,
+            'change:size': this.updatePath
+        }, this);
+
+        this.updateName();
+        this.updateEvents();
+        this.updatePath();
+
+        joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
+    },
+
+    updateName: function() {
+
+        this.attr('.uml-state-name/text', this.get('name'));
+    },
+
+    updateEvents: function() {
+
+        this.attr('.uml-state-events/text', this.get('events').join('\n'));
+    },
+
+    updatePath: function() {
+
+        var d = 'M 0 20 L ' + this.get('size').width + ' 20';
+
+        // We are using `silent: true` here because updatePath() is meant to be called
+        // on resize and there's no need to to update the element twice (`change:size`
+        // triggers also an update).
+        this.attr('.uml-state-separator/d', d, { silent: true });
+    }
+
+});
+
+joint.shapes.uml.StartState = joint.shapes.basic.Circle.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'uml.StartState',
+        attrs: { circle: { 'fill': '#34495e', 'stroke': '#2c3e50', 'stroke-width': 2, 'rx': 1 }}
+
+    }, joint.shapes.basic.Circle.prototype.defaults)
+
+});
+
+joint.shapes.uml.EndState = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'uml.EndState',
+        size: { width: 20, height: 20 },
+        attrs: {
+            'circle.outer': {
+                transform: 'translate(10, 10)',
+                r: 10,
+                fill: '#ffffff',
+                stroke: '#2c3e50'
+            },
+
+            'circle.inner': {
+                transform: 'translate(10, 10)',
+                r: 6,
+                fill: '#34495e'
+            }
+        }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+
+});
+
+joint.shapes.uml.Transition = joint.dia.Link.extend({
+    defaults: {
+        type: 'uml.Transition',
+        attrs: {
+            '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z', fill: '#34495e', stroke: '#2c3e50' },
+            '.connection': { stroke: '#2c3e50' }
+        }
+    }
+});
+
+//      JointJS library.
+//      (c) 2011-2013 client IO
+
+joint.shapes.logic = {};
+
+joint.shapes.logic.Gate = joint.shapes.basic.Generic.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Gate',
+        size: { width: 80, height: 40 },
+        attrs: {
+            '.': { magnet: false },
+            '.body': { width: 100, height: 50 },
+            circle: { r: 7, stroke: 'black', fill: 'transparent', 'stroke-width': 2 }
+        }
+
+    }, joint.shapes.basic.Generic.prototype.defaults),
+
+    operation: function() { return true; }
+});
+
+joint.shapes.logic.IO = joint.shapes.logic.Gate.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><path class="wire"/><circle/><text/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.IO',
+        size: { width: 60, height: 30 },
+        attrs: {
+            '.body': { fill: 'white', stroke: 'black', 'stroke-width': 2 },
+            '.wire': { ref: '.body', 'ref-y': .5, stroke: 'black' },
+            text: {
+                fill: 'black',
+                ref: '.body', 'ref-x': .5, 'ref-y': .5, 'y-alignment': 'middle',
+                'text-anchor': 'middle',
+                'font-weight': 'bold',
+                'font-variant': 'small-caps',
+                'text-transform': 'capitalize',
+                'font-size': '14px'
+            }
+        }
+
+    }, joint.shapes.logic.Gate.prototype.defaults)
+
+});
+
+joint.shapes.logic.Input = joint.shapes.logic.IO.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Input',
+        attrs: {
+            '.wire': { 'ref-dx': 0, d: 'M 0 0 L 23 0' },
+            circle: { ref: '.body', 'ref-dx': 30, 'ref-y': 0.5, magnet: true, 'class': 'output', port: 'out' },
+            text: { text: 'input' }
+        }
+
+    }, joint.shapes.logic.IO.prototype.defaults)
+});
+
+joint.shapes.logic.Output = joint.shapes.logic.IO.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Output',
+        attrs: {
+            '.wire': { 'ref-x': 0, d: 'M 0 0 L -23 0' },
+            circle: { ref: '.body', 'ref-x': -30, 'ref-y': 0.5, magnet: 'passive', 'class': 'input', port: 'in' },
+            text: { text: 'output' }
+        }
+
+    }, joint.shapes.logic.IO.prototype.defaults)
+
+});
+
+
+joint.shapes.logic.Gate11 = joint.shapes.logic.Gate.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input"/><circle class="output"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Gate11',
+        attrs: {
+            '.input': { ref: '.body', 'ref-x': -2, 'ref-y': 0.5, magnet: 'passive', port: 'in' },
+            '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
+        }
+
+    }, joint.shapes.logic.Gate.prototype.defaults)
+});
+
+joint.shapes.logic.Gate21 = joint.shapes.logic.Gate.extend({
+
+    markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input input1"/><circle  class="input input2"/><circle class="output"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Gate21',
+        attrs: {
+            '.input1': { ref: '.body', 'ref-x': -2, 'ref-y': 0.3, magnet: 'passive', port: 'in1' },
+            '.input2': { ref: '.body', 'ref-x': -2, 'ref-y': 0.7, magnet: 'passive', port: 'in2' },
+            '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
+        }
+
+    }, joint.shapes.logic.Gate.prototype.defaults)
+
+});
+
+joint.shapes.logic.Repeater = joint.shapes.logic.Gate11.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Repeater',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PVCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjgiCiAgICAgaW5rc2NhcGU6Y3g9Ijg0LjY4NTM1MiIKICAgICBpbmtzY2FwZTpjeT0iMTUuMjg4NjI4IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzIuMTU2OTEsMjUgTCA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAyOS4wNDM0NzgsMjUgTCA1LjA0MzQ3ODEsMjUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgZD0iTSAyOC45Njg3NSwyLjU5Mzc1IEwgMjguOTY4NzUsNSBMIDI4Ljk2ODc1LDQ1IEwgMjguOTY4NzUsNDcuNDA2MjUgTCAzMS4xMjUsNDYuMzQzNzUgTCA3Mi4xNTYyNSwyNi4zNDM3NSBMIDcyLjE1NjI1LDIzLjY1NjI1IEwgMzEuMTI1LDMuNjU2MjUgTCAyOC45Njg3NSwyLjU5Mzc1IHogTSAzMS45Njg3NSw3LjQwNjI1IEwgNjguMDkzNzUsMjUgTCAzMS45Njg3NSw0Mi41OTM3NSBMIDMxLjk2ODc1LDcuNDA2MjUgeiIKICAgICAgIGlkPSJwYXRoMjYzOCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2NjY2NjYyIgLz4KICA8L2c+Cjwvc3ZnPgo=' }}
+
+    }, joint.shapes.logic.Gate11.prototype.defaults),
+
+    operation: function(input) {
+        return input;
+    }
+
+});
+
+joint.shapes.logic.Not = joint.shapes.logic.Gate11.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Not',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PVCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjgiCiAgICAgaW5rc2NhcGU6Y3g9Ijg0LjY4NTM1MiIKICAgICBpbmtzY2FwZTpjeT0iMTUuMjg4NjI4IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzkuMTU2OTEsMjUgTCA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAyOS4wNDM0NzgsMjUgTCA1LjA0MzQ3ODEsMjUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgZD0iTSAyOC45Njg3NSwyLjU5Mzc1IEwgMjguOTY4NzUsNSBMIDI4Ljk2ODc1LDQ1IEwgMjguOTY4NzUsNDcuNDA2MjUgTCAzMS4xMjUsNDYuMzQzNzUgTCA3Mi4xNTYyNSwyNi4zNDM3NSBMIDcyLjE1NjI1LDIzLjY1NjI1IEwgMzEuMTI1LDMuNjU2MjUgTCAyOC45Njg3NSwyLjU5Mzc1IHogTSAzMS45Njg3NSw3LjQwNjI1IEwgNjguMDkzNzUsMjUgTCAzMS45Njg3NSw0Mi41OTM3NSBMIDMxLjk2ODc1LDcuNDA2MjUgeiIKICAgICAgIGlkPSJwYXRoMjYzOCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2NjY2NjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDI2NzEiCiAgICAgICBzb2RpcG9kaTpjeD0iNzYiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA4MCwyNSBBIDQsNCAwIDEgMSA3MiwyNSBBIDQsNCAwIDEgMSA4MCwyNSB6IgogICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEsMCkiIC8+CiAgPC9nPgo8L3N2Zz4K' }}
+
+    }, joint.shapes.logic.Gate11.prototype.defaults),
+
+    operation: function(input) {
+        return !input;
+    }
+
+});
+
+joint.shapes.logic.Or = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Or',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik9SIEFOU0kuc3ZnIgogICBpbmtzY2FwZTpvdXRwdXRfZXh0ZW5zaW9uPSJvcmcuaW5rc2NhcGUub3V0cHV0LnN2Zy5pbmtzY2FwZSI+CiAgPGRlZnMKICAgICBpZD0iZGVmczQiPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjUwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjI1IDogMTAgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjcxNCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iMSA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMC41IDogMC4zMzMzMzMzMyA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyODA2IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyODE5IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjM3Mi4wNDcyNCA6IDM1MC43ODczOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI3NDQuMDk0NDggOiA1MjYuMTgxMDkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzc3IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49Ijc1IDogNDAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iMTUwIDogNjAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDYwIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTMyNzUiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNTAgOiAzMy4zMzMzMzMgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iMTAwIDogNTAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDUwIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTU1MzMiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzIgOiAyMS4zMzMzMzMgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNjQgOiAzMiA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMzIgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjU1NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDE2LjY2NjY2NyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDI1IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAyNSA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogIDwvZGVmcz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6em9vbT0iNCIKICAgICBpbmtzY2FwZTpjeD0iMTEzLjAwMDM5IgogICAgIGlua3NjYXBlOmN5PSIxMi44OTM3MzEiCiAgICAgaW5rc2NhcGU6ZG9jdW1lbnQtdW5pdHM9InB4IgogICAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9ImcyNTYwIgogICAgIHNob3dncmlkPSJmYWxzZSIKICAgICBpbmtzY2FwZTpncmlkLWJib3g9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1wb2ludHM9InRydWUiCiAgICAgZ3JpZHRvbGVyYW5jZT0iMTAwMDAiCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxMzk5IgogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9Ijg3NCIKICAgICBpbmtzY2FwZTp3aW5kb3cteD0iMzciCiAgICAgaW5rc2NhcGU6d2luZG93LXk9Ii00IgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Im0gNzAsMjUgYyAyMCwwIDI1LDAgMjUsMCIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMSwxNSA1LDE1IgogICAgICAgaWQ9InBhdGgzMDYxIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzIsMzUgNSwzNSIKICAgICAgIGlkPSJwYXRoMzk0NCIgLz4KICAgIDxnCiAgICAgICBpZD0iZzI1NjAiCiAgICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI2LjUsLTM5LjUpIj4KICAgICAgPHBhdGgKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjQwNjI1LDQ0LjUgTCAtMC40MDYyNSw0Ni45Mzc1IEMgLTAuNDA2MjUsNDYuOTM3NSA1LjI1LDUzLjkzNzU0OSA1LjI1LDY0LjUgQyA1LjI1LDc1LjA2MjQ1MSAtMC40MDYyNSw4Mi4wNjI1IC0wLjQwNjI1LDgyLjA2MjUgTCAtMi40MDYyNSw4NC41IEwgMC43NSw4NC41IEwgMTQuNzUsODQuNSBDIDE3LjE1ODA3Niw4NC41MDAwMDEgMjIuNDM5Njk5LDg0LjUyNDUxNCAyOC4zNzUsODIuMDkzNzUgQyAzNC4zMTAzMDEsNzkuNjYyOTg2IDQwLjkxMTUzNiw3NC43NTA0ODQgNDYuMDYyNSw2NS4yMTg3NSBMIDQ0Ljc1LDY0LjUgTCA0Ni4wNjI1LDYzLjc4MTI1IEMgMzUuNzU5Mzg3LDQ0LjcxNTU5IDE5LjUwNjU3NCw0NC41IDE0Ljc1LDQ0LjUgTCAwLjc1LDQ0LjUgTCAtMi40MDYyNSw0NC41IHogTSAzLjQ2ODc1LDQ3LjUgTCAxNC43NSw0Ny41IEMgMTkuNDM0MTczLDQ3LjUgMzMuMDM2ODUsNDcuMzY5NzkzIDQyLjcxODc1LDY0LjUgQyAzNy45NTE5NjQsNzIuOTI5MDc1IDMyLjE5NzQ2OSw3Ny4xODM5MSAyNyw3OS4zMTI1IEMgMjEuNjM5MzM5LDgxLjUwNzkyNCAxNy4xNTgwNzUsODEuNTAwMDAxIDE0Ljc1LDgxLjUgTCAzLjUsODEuNSBDIDUuMzczNTg4NCw3OC4zOTE1NjYgOC4yNSw3Mi40NTA2NSA4LjI1LDY0LjUgQyA4LjI1LDU2LjUyNjY0NiA1LjM0MTQ2ODYsNTAuNTk5ODE1IDMuNDY4NzUsNDcuNSB6IgogICAgICAgICBpZD0icGF0aDQ5NzMiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NzY2NjY3NjY2NjY2NjY2NzY2NzYyIgLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPgo=' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return input1 || input2;
+    }
+
+});
+
+joint.shapes.logic.And = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.And',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IkFORCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgPC9kZWZzPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0iYmFzZSIKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTp6b29tPSI4IgogICAgIGlua3NjYXBlOmN4PSI1Ni42OTgzNDgiCiAgICAgaW5rc2NhcGU6Y3k9IjI1LjMyNjg5OSIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJtIDcwLDI1IGMgMjAsMCAyNSwwIDI1LDAiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEsMTUgNSwxNSIKICAgICAgIGlkPSJwYXRoMzA2MSIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjk5OTk5OTg4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMyLDM1IDUsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZvbnQtc2l6ZTptZWRpdW07Zm9udC1zdHlsZTpub3JtYWw7Zm9udC12YXJpYW50Om5vcm1hbDtmb250LXdlaWdodDpub3JtYWw7Zm9udC1zdHJldGNoOm5vcm1hbDt0ZXh0LWluZGVudDowO3RleHQtYWxpZ246c3RhcnQ7dGV4dC1kZWNvcmF0aW9uOm5vbmU7bGluZS1oZWlnaHQ6bm9ybWFsO2xldHRlci1zcGFjaW5nOm5vcm1hbDt3b3JkLXNwYWNpbmc6bm9ybWFsO3RleHQtdHJhbnNmb3JtOm5vbmU7ZGlyZWN0aW9uOmx0cjtibG9jay1wcm9ncmVzc2lvbjp0Yjt3cml0aW5nLW1vZGU6bHItdGI7dGV4dC1hbmNob3I6c3RhcnQ7ZmlsbDojMDAwMDAwO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTpub25lO3N0cm9rZS13aWR0aDozO21hcmtlcjpub25lO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGU7Zm9udC1mYW1pbHk6Qml0c3RyZWFtIFZlcmEgU2FuczstaW5rc2NhcGUtZm9udC1zcGVjaWZpY2F0aW9uOkJpdHN0cmVhbSBWZXJhIFNhbnMiCiAgICAgICBkPSJNIDMwLDUgTCAzMCw2LjQyODU3MTQgTCAzMCw0My41NzE0MjkgTCAzMCw0NSBMIDMxLjQyODU3MSw0NSBMIDUwLjQ3NjE5LDQ1IEMgNjEuNzQ0MDk4LDQ1IDcwLjQ3NjE5LDM1Ljk5OTk1NSA3MC40NzYxOSwyNSBDIDcwLjQ3NjE5LDE0LjAwMDA0NSA2MS43NDQwOTksNS4wMDAwMDAyIDUwLjQ3NjE5LDUgQyA1MC40NzYxOSw1IDUwLjQ3NjE5LDUgMzEuNDI4NTcxLDUgTCAzMCw1IHogTSAzMi44NTcxNDMsNy44NTcxNDI5IEMgNDAuODM0MjY0LDcuODU3MTQyOSA0NS45MTgzNjgsNy44NTcxNDI5IDQ4LjA5NTIzOCw3Ljg1NzE0MjkgQyA0OS4yODU3MTQsNy44NTcxNDI5IDQ5Ljg4MDk1Miw3Ljg1NzE0MjkgNTAuMTc4NTcxLDcuODU3MTQyOSBDIDUwLjMyNzM4MSw3Ljg1NzE0MjkgNTAuNDA5MjI3LDcuODU3MTQyOSA1MC40NDY0MjksNy44NTcxNDI5IEMgNTAuNDY1MDI5LDcuODU3MTQyOSA1MC40NzE1NDMsNy44NTcxNDI5IDUwLjQ3NjE5LDcuODU3MTQyOSBDIDYwLjIzNjg1Myw3Ljg1NzE0MyA2Ny4xNDI4NTcsMTUuNDk3MDk4IDY3LjE0Mjg1NywyNSBDIDY3LjE0Mjg1NywzNC41MDI5MDIgNTkuNzYwNjYyLDQyLjE0Mjg1NyA1MCw0Mi4xNDI4NTcgTCAzMi44NTcxNDMsNDIuMTQyODU3IEwgMzIuODU3MTQzLDcuODU3MTQyOSB6IgogICAgICAgaWQ9InBhdGgyODg0IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2NjY2NzY2NjY3Nzc3NzY2NjIiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return input1 && input2;
+    }
+
+});
+
+joint.shapes.logic.Nor = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Nor',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PUiBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjEiCiAgICAgaW5rc2NhcGU6Y3g9Ijc4LjY3NzY0NCIKICAgICBpbmtzY2FwZTpjeT0iMjIuMTAyMzQ0IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjM3IgogICAgIGlua3NjYXBlOndpbmRvdy15PSItNCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDc5LDI1IEMgOTksMjUgOTUsMjUgOTUsMjUiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEsMTUgNSwxNSIKICAgICAgIGlkPSJwYXRoMzA2MSIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjk5OTk5OTg4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMyLDM1IDUsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8ZwogICAgICAgaWQ9ImcyNTYwIgogICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNi41LC0zOS41KSI+CiAgICAgIDxwYXRoCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi40MDYyNSw0NC41IEwgLTAuNDA2MjUsNDYuOTM3NSBDIC0wLjQwNjI1LDQ2LjkzNzUgNS4yNSw1My45Mzc1NDkgNS4yNSw2NC41IEMgNS4yNSw3NS4wNjI0NTEgLTAuNDA2MjUsODIuMDYyNSAtMC40MDYyNSw4Mi4wNjI1IEwgLTIuNDA2MjUsODQuNSBMIDAuNzUsODQuNSBMIDE0Ljc1LDg0LjUgQyAxNy4xNTgwNzYsODQuNTAwMDAxIDIyLjQzOTY5OSw4NC41MjQ1MTQgMjguMzc1LDgyLjA5Mzc1IEMgMzQuMzEwMzAxLDc5LjY2Mjk4NiA0MC45MTE1MzYsNzQuNzUwNDg0IDQ2LjA2MjUsNjUuMjE4NzUgTCA0NC43NSw2NC41IEwgNDYuMDYyNSw2My43ODEyNSBDIDM1Ljc1OTM4Nyw0NC43MTU1OSAxOS41MDY1NzQsNDQuNSAxNC43NSw0NC41IEwgMC43NSw0NC41IEwgLTIuNDA2MjUsNDQuNSB6IE0gMy40Njg3NSw0Ny41IEwgMTQuNzUsNDcuNSBDIDE5LjQzNDE3Myw0Ny41IDMzLjAzNjg1LDQ3LjM2OTc5MyA0Mi43MTg3NSw2NC41IEMgMzcuOTUxOTY0LDcyLjkyOTA3NSAzMi4xOTc0NjksNzcuMTgzOTEgMjcsNzkuMzEyNSBDIDIxLjYzOTMzOSw4MS41MDc5MjQgMTcuMTU4MDc1LDgxLjUwMDAwMSAxNC43NSw4MS41IEwgMy41LDgxLjUgQyA1LjM3MzU4ODQsNzguMzkxNTY2IDguMjUsNzIuNDUwNjUgOC4yNSw2NC41IEMgOC4yNSw1Ni41MjY2NDYgNS4zNDE0Njg2LDUwLjU5OTgxNSAzLjQ2ODc1LDQ3LjUgeiIKICAgICAgICAgaWQ9InBhdGg0OTczIgogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjc2NjY2NzY2NjY2NjY2Njc2Njc2MiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIHNvZGlwb2RpOnR5cGU9ImFyYyIKICAgICAgICAgc3R5bGU9ImZpbGw6bm9uZTtmaWxsLW9wYWNpdHk6MTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgICBpZD0icGF0aDI2MDQiCiAgICAgICAgIHNvZGlwb2RpOmN4PSI3NSIKICAgICAgICAgc29kaXBvZGk6Y3k9IjI1IgogICAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgICAgc29kaXBvZGk6cnk9IjQiCiAgICAgICAgIGQ9Ik0gNzksMjUgQSA0LDQgMCAxIDEgNzEsMjUgQSA0LDQgMCAxIDEgNzksMjUgeiIKICAgICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTI2LjUsMzkuNSkiIC8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return !(input1 || input2);
+    }
+
+});
+
+joint.shapes.logic.Nand = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Nand',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5BTkQgQU5TSS5zdmciCiAgIGlua3NjYXBlOm91dHB1dF9leHRlbnNpb249Im9yZy5pbmtzY2FwZS5vdXRwdXQuc3ZnLmlua3NjYXBlIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCI+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxMCA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzE0IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIwLjUgOiAwLjMzMzMzMzMzIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MDYiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MTkiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9Ijc0NC4wOTQ0OCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3NzciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNzUgOiA0MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxNTAgOiA2MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNjAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMzI3NSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI1MCA6IDMzLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxMDAgOiA1MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlNTUzMyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzMiA6IDIxLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI2NCA6IDMyIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAzMiA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogIDwvZGVmcz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6em9vbT0iMTYiCiAgICAgaW5rc2NhcGU6Y3g9Ijc4LjI4MzMwNyIKICAgICBpbmtzY2FwZTpjeT0iMTYuNDQyODQzIgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzksMjUgQyA5MS44LDI1IDk1LDI1IDk1LDI1IgogICAgICAgaWQ9InBhdGgzMDU5IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMxLDE1IDUsMTUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk4ODtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMiwzNSA1LDM1IgogICAgICAgaWQ9InBhdGgzOTQ0IiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmb250LXNpemU6bWVkaXVtO2ZvbnQtc3R5bGU6bm9ybWFsO2ZvbnQtdmFyaWFudDpub3JtYWw7Zm9udC13ZWlnaHQ6bm9ybWFsO2ZvbnQtc3RyZXRjaDpub3JtYWw7dGV4dC1pbmRlbnQ6MDt0ZXh0LWFsaWduOnN0YXJ0O3RleHQtZGVjb3JhdGlvbjpub25lO2xpbmUtaGVpZ2h0Om5vcm1hbDtsZXR0ZXItc3BhY2luZzpub3JtYWw7d29yZC1zcGFjaW5nOm5vcm1hbDt0ZXh0LXRyYW5zZm9ybTpub25lO2RpcmVjdGlvbjpsdHI7YmxvY2stcHJvZ3Jlc3Npb246dGI7d3JpdGluZy1tb2RlOmxyLXRiO3RleHQtYW5jaG9yOnN0YXJ0O2ZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MzttYXJrZXI6bm9uZTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlO2ZvbnQtZmFtaWx5OkJpdHN0cmVhbSBWZXJhIFNhbnM7LWlua3NjYXBlLWZvbnQtc3BlY2lmaWNhdGlvbjpCaXRzdHJlYW0gVmVyYSBTYW5zIgogICAgICAgZD0iTSAzMCw1IEwgMzAsNi40Mjg1NzE0IEwgMzAsNDMuNTcxNDI5IEwgMzAsNDUgTCAzMS40Mjg1NzEsNDUgTCA1MC40NzYxOSw0NSBDIDYxLjc0NDA5OCw0NSA3MC40NzYxOSwzNS45OTk5NTUgNzAuNDc2MTksMjUgQyA3MC40NzYxOSwxNC4wMDAwNDUgNjEuNzQ0MDk5LDUuMDAwMDAwMiA1MC40NzYxOSw1IEMgNTAuNDc2MTksNSA1MC40NzYxOSw1IDMxLjQyODU3MSw1IEwgMzAsNSB6IE0gMzIuODU3MTQzLDcuODU3MTQyOSBDIDQwLjgzNDI2NCw3Ljg1NzE0MjkgNDUuOTE4MzY4LDcuODU3MTQyOSA0OC4wOTUyMzgsNy44NTcxNDI5IEMgNDkuMjg1NzE0LDcuODU3MTQyOSA0OS44ODA5NTIsNy44NTcxNDI5IDUwLjE3ODU3MSw3Ljg1NzE0MjkgQyA1MC4zMjczODEsNy44NTcxNDI5IDUwLjQwOTIyNyw3Ljg1NzE0MjkgNTAuNDQ2NDI5LDcuODU3MTQyOSBDIDUwLjQ2NTAyOSw3Ljg1NzE0MjkgNTAuNDcxNTQzLDcuODU3MTQyOSA1MC40NzYxOSw3Ljg1NzE0MjkgQyA2MC4yMzY4NTMsNy44NTcxNDMgNjcuMTQyODU3LDE1LjQ5NzA5OCA2Ny4xNDI4NTcsMjUgQyA2Ny4xNDI4NTcsMzQuNTAyOTAyIDU5Ljc2MDY2Miw0Mi4xNDI4NTcgNTAsNDIuMTQyODU3IEwgMzIuODU3MTQzLDQyLjE0Mjg1NyBMIDMyLjg1NzE0Myw3Ljg1NzE0MjkgeiIKICAgICAgIGlkPSJwYXRoMjg4NCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2Njc2NjY2Nzc3Nzc2NjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDQwMDgiCiAgICAgICBzb2RpcG9kaTpjeD0iNzUiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA3OSwyNSBBIDQsNCAwIDEgMSA3MSwyNSBBIDQsNCAwIDEgMSA3OSwyNSB6IiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return !(input1 && input2);
+    }
+
+});
+
+joint.shapes.logic.Xor = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Xor',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IlhPUiBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjUuNjU2ODU0MiIKICAgICBpbmtzY2FwZTpjeD0iMjUuOTM4MTE2IgogICAgIGlua3NjYXBlOmN5PSIxNy4yMzAwNSIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJtIDcwLDI1IGMgMjAsMCAyNSwwIDI1LDAiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzAuMzg1NzE3LDE1IEwgNC45OTk5OTk4LDE1IgogICAgICAgaWQ9InBhdGgzMDYxIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5NzY7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEuMzYyMDkxLDM1IEwgNC45OTk5OTk4LDM1IgogICAgICAgaWQ9InBhdGgzOTQ0IiAvPgogICAgPGcKICAgICAgIGlkPSJnMjU2MCIKICAgICAgIGlua3NjYXBlOmxhYmVsPSJMYXllciAxIgogICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjYuNSwtMzkuNSkiPgogICAgICA8cGF0aAogICAgICAgICBpZD0icGF0aDM1MTYiCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi4yNSw4MS41MDAwMDUgQyAtMy44NDczNzQsODQuMTQ0NDA1IC00LjUsODQuNTAwMDA1IC00LjUsODQuNTAwMDA1IEwgLTguMTU2MjUsODQuNTAwMDA1IEwgLTYuMTU2MjUsODIuMDYyNTA1IEMgLTYuMTU2MjUsODIuMDYyNTA1IC0wLjUsNzUuMDYyNDUxIC0wLjUsNjQuNSBDIC0wLjUsNTMuOTM3NTQ5IC02LjE1NjI1LDQ2LjkzNzUgLTYuMTU2MjUsNDYuOTM3NSBMIC04LjE1NjI1LDQ0LjUgTCAtNC41LDQ0LjUgQyAtMy43MTg3NSw0NS40Mzc1IC0zLjA3ODEyNSw0Ni4xNTYyNSAtMi4yODEyNSw0Ny41IEMgLTAuNDA4NTMxLDUwLjU5OTgxNSAyLjUsNTYuNTI2NjQ2IDIuNSw2NC41IEMgMi41LDcyLjQ1MDY1IC0wLjM5NjY5Nyw3OC4zNzk0MjUgLTIuMjUsODEuNTAwMDA1IHoiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY3NjY2Njc2MiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi40MDYyNSw0NC41IEwgLTAuNDA2MjUsNDYuOTM3NSBDIC0wLjQwNjI1LDQ2LjkzNzUgNS4yNSw1My45Mzc1NDkgNS4yNSw2NC41IEMgNS4yNSw3NS4wNjI0NTEgLTAuNDA2MjUsODIuMDYyNSAtMC40MDYyNSw4Mi4wNjI1IEwgLTIuNDA2MjUsODQuNSBMIDAuNzUsODQuNSBMIDE0Ljc1LDg0LjUgQyAxNy4xNTgwNzYsODQuNTAwMDAxIDIyLjQzOTY5OSw4NC41MjQ1MTQgMjguMzc1LDgyLjA5Mzc1IEMgMzQuMzEwMzAxLDc5LjY2Mjk4NiA0MC45MTE1MzYsNzQuNzUwNDg0IDQ2LjA2MjUsNjUuMjE4NzUgTCA0NC43NSw2NC41IEwgNDYuMDYyNSw2My43ODEyNSBDIDM1Ljc1OTM4Nyw0NC43MTU1OSAxOS41MDY1NzQsNDQuNSAxNC43NSw0NC41IEwgMC43NSw0NC41IEwgLTIuNDA2MjUsNDQuNSB6IE0gMy40Njg3NSw0Ny41IEwgMTQuNzUsNDcuNSBDIDE5LjQzNDE3Myw0Ny41IDMzLjAzNjg1LDQ3LjM2OTc5MyA0Mi43MTg3NSw2NC41IEMgMzcuOTUxOTY0LDcyLjkyOTA3NSAzMi4xOTc0NjksNzcuMTgzOTEgMjcsNzkuMzEyNSBDIDIxLjYzOTMzOSw4MS41MDc5MjQgMTcuMTU4MDc1LDgxLjUwMDAwMSAxNC43NSw4MS41IEwgMy41LDgxLjUgQyA1LjM3MzU4ODQsNzguMzkxNTY2IDguMjUsNzIuNDUwNjUgOC4yNSw2NC41IEMgOC4yNSw1Ni41MjY2NDYgNS4zNDE0Njg2LDUwLjU5OTgxNSAzLjQ2ODc1LDQ3LjUgeiIKICAgICAgICAgaWQ9InBhdGg0OTczIgogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjc2NjY2NzY2NjY2NjY2Njc2Njc2MiIC8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return (!input1 || input2) && (input1 || !input2);
+    }
+
+});
+
+joint.shapes.logic.Xnor = joint.shapes.logic.Gate21.extend({
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Xnor',
+        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IlhOT1IgQU5TSS5zdmciCiAgIGlua3NjYXBlOm91dHB1dF9leHRlbnNpb249Im9yZy5pbmtzY2FwZS5vdXRwdXQuc3ZnLmlua3NjYXBlIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCI+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxMCA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzE0IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIwLjUgOiAwLjMzMzMzMzMzIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MDYiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MTkiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9Ijc0NC4wOTQ0OCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3NzciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNzUgOiA0MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxNTAgOiA2MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNjAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMzI3NSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI1MCA6IDMzLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxMDAgOiA1MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlNTUzMyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzMiA6IDIxLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI2NCA6IDMyIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAzMiA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNTU3IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjI1IDogMTYuNjY2NjY3IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjUwIDogMjUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDI1IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgPC9kZWZzPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0iYmFzZSIKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTp6b29tPSI0IgogICAgIGlua3NjYXBlOmN4PSI5NS43MjM2NiIKICAgICBpbmtzY2FwZTpjeT0iLTI2Ljc3NTAyMyIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyLjAwMDAwMDI0O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDc4LjMzMzMzMiwyNSBDIDkxLjY2NjY2NiwyNSA5NSwyNSA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk4ODtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMC4zODU3MTcsMTUgTCA0Ljk5OTk5OTgsMTUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk3NjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMS4zNjIwOTEsMzUgTCA0Ljk5OTk5OTgsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8ZwogICAgICAgaWQ9ImcyNTYwIgogICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNi41LC0zOS41KSI+CiAgICAgIDxwYXRoCiAgICAgICAgIGlkPSJwYXRoMzUxNiIKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjI1LDgxLjUwMDAwNSBDIC0zLjg0NzM3NCw4NC4xNDQ0MDUgLTQuNSw4NC41MDAwMDUgLTQuNSw4NC41MDAwMDUgTCAtOC4xNTYyNSw4NC41MDAwMDUgTCAtNi4xNTYyNSw4Mi4wNjI1MDUgQyAtNi4xNTYyNSw4Mi4wNjI1MDUgLTAuNSw3NS4wNjI0NTEgLTAuNSw2NC41IEMgLTAuNSw1My45Mzc1NDkgLTYuMTU2MjUsNDYuOTM3NSAtNi4xNTYyNSw0Ni45Mzc1IEwgLTguMTU2MjUsNDQuNSBMIC00LjUsNDQuNSBDIC0zLjcxODc1LDQ1LjQzNzUgLTMuMDc4MTI1LDQ2LjE1NjI1IC0yLjI4MTI1LDQ3LjUgQyAtMC40MDg1MzEsNTAuNTk5ODE1IDIuNSw1Ni41MjY2NDYgMi41LDY0LjUgQyAyLjUsNzIuNDUwNjUgLTAuMzk2Njk3LDc4LjM3OTQyNSAtMi4yNSw4MS41MDAwMDUgeiIKICAgICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2Njc2NjY2NzYyIgLz4KICAgICAgPHBhdGgKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjQwNjI1LDQ0LjUgTCAtMC40MDYyNSw0Ni45Mzc1IEMgLTAuNDA2MjUsNDYuOTM3NSA1LjI1LDUzLjkzNzU0OSA1LjI1LDY0LjUgQyA1LjI1LDc1LjA2MjQ1MSAtMC40MDYyNSw4Mi4wNjI1IC0wLjQwNjI1LDgyLjA2MjUgTCAtMi40MDYyNSw4NC41IEwgMC43NSw4NC41IEwgMTQuNzUsODQuNSBDIDE3LjE1ODA3Niw4NC41MDAwMDEgMjIuNDM5Njk5LDg0LjUyNDUxNCAyOC4zNzUsODIuMDkzNzUgQyAzNC4zMTAzMDEsNzkuNjYyOTg2IDQwLjkxMTUzNiw3NC43NTA0ODQgNDYuMDYyNSw2NS4yMTg3NSBMIDQ0Ljc1LDY0LjUgTCA0Ni4wNjI1LDYzLjc4MTI1IEMgMzUuNzU5Mzg3LDQ0LjcxNTU5IDE5LjUwNjU3NCw0NC41IDE0Ljc1LDQ0LjUgTCAwLjc1LDQ0LjUgTCAtMi40MDYyNSw0NC41IHogTSAzLjQ2ODc1LDQ3LjUgTCAxNC43NSw0Ny41IEMgMTkuNDM0MTczLDQ3LjUgMzMuMDM2ODUsNDcuMzY5NzkzIDQyLjcxODc1LDY0LjUgQyAzNy45NTE5NjQsNzIuOTI5MDc1IDMyLjE5NzQ2OSw3Ny4xODM5MSAyNyw3OS4zMTI1IEMgMjEuNjM5MzM5LDgxLjUwNzkyNCAxNy4xNTgwNzUsODEuNTAwMDAxIDE0Ljc1LDgxLjUgTCAzLjUsODEuNSBDIDUuMzczNTg4NCw3OC4zOTE1NjYgOC4yNSw3Mi40NTA2NSA4LjI1LDY0LjUgQyA4LjI1LDU2LjUyNjY0NiA1LjM0MTQ2ODYsNTAuNTk5ODE1IDMuNDY4NzUsNDcuNSB6IgogICAgICAgICBpZD0icGF0aDQ5NzMiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NzY2NjY3NjY2NjY2NjY2NzY2NzYyIgLz4KICAgIDwvZz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDM1NTEiCiAgICAgICBzb2RpcG9kaTpjeD0iNzUiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA3OSwyNSBBIDQsNCAwIDEgMSA3MSwyNSBBIDQsNCAwIDEgMSA3OSwyNSB6IiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
+
+    }, joint.shapes.logic.Gate21.prototype.defaults),
+
+    operation: function(input1, input2) {
+        return (!input1 || !input2) && (input1 || input2);
+    }
+
+});
+
+joint.shapes.logic.Wire = joint.dia.Link.extend({
+
+    arrowheadMarkup: [
+        '<g class="marker-arrowhead-group marker-arrowhead-group-<%= end %>">',
+        '<circle class="marker-arrowhead" end="<%= end %>" r="7"/>',
+        '</g>'
+    ].join(''),
+
+    vertexMarkup: [
+        '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
+        '<circle class="marker-vertex" idx="<%= idx %>" r="10" />',
+        '<g class="marker-vertex-remove-group">',
+        '<path class="marker-vertex-remove-area" idx="<%= idx %>" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
+        '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
+        '<title>Remove vertex.</title>',
+        '</path>',
+        '</g>',
+        '</g>'
+    ].join(''),
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'logic.Wire',
+
+        attrs: {
+            '.connection': { 'stroke-width': 2 },
+            '.marker-vertex': { r: 7 }
+        },
+
+        router: { name: 'orthogonal' },
+        connector: { name: 'rounded', args: { radius: 10 }}
+
+    }, joint.dia.Link.prototype.defaults)
+
+});
+
+if (typeof exports === 'object') {
+
+    var graphlib = require('graphlib');
+    var dagre = require('dagre');
+}
+
+// In the browser, these variables are set to undefined because of JavaScript hoisting.
+// In that case, should grab them from the window object.
+graphlib = graphlib || (typeof window !== 'undefined' && window.graphlib);
+dagre = dagre || (typeof window !== 'undefined' && window.dagre);
+
+// create graphlib.Graph from existing joint.dia.Graph
+joint.dia.Graph.prototype.toGraphLib = function(opt) {
+
+    opt = opt || {};
+
+    var glGraphType = _.pick(opt, 'directed', 'compound', 'multigraph');
+    var glGraph = new graphlib.Graph(glGraphType);
+
+    var setNodeLabel = opt.setNodeLabel || _.noop;
+    var setEdgeLabel = opt.setEdgeLabel || _.noop;
+    var setEdgeName = opt.setEdgeName || _.noop;
+
+    this.get('cells').each(function(cell) {
+
+        if (cell.isLink()) {
+
+            var source = cell.get('source');
+            var target = cell.get('target');
+
+            // Links that end at a point are ignored.
+            if (!source.id || !target.id) return;
+
+            // Note that if we are creating a multigraph we can name the edges. If
+            // we try to name edges on a non-multigraph an exception is thrown.
+            glGraph.setEdge(source.id, target.id, setEdgeLabel(cell), setEdgeName(cell));
+
+        } else {
+
+            glGraph.setNode(cell.id, setNodeLabel(cell));
+
+            // For the compound graphs we have to take embeds into account.
+            if (glGraph.isCompound() && cell.has('parent')) {
+                glGraph.setParent(cell.id, cell.get('parent'));
+            }
+        }
+    });
+
+    return glGraph;
+};
+
+// update existing joint.dia.Graph from given graphlib.Graph
+joint.dia.Graph.prototype.fromGraphLib = function(glGraph, opt) {
+
+    opt = opt || {};
+
+    var importNode = opt.importNode || _.noop;
+    var importEdge = opt.importEdge || _.noop;
+
+    // import all nodes
+    glGraph.nodes().forEach(function(v) {
+        importNode.call(this, v, glGraph, this, opt);
+    }, this);
+
+    // import all edges
+    glGraph.edges().forEach(function(edgeObj) {
+        importEdge.call(this, edgeObj, glGraph, this, opt);
+    }, this);
+};
+
+joint.layout.DirectedGraph = {
+
+    layout: function(graph, opt) {
+
+        opt = _.defaults(opt || {}, {
+            resizeClusters: true,
+            clusterPadding: 10
+        });
+
+        // create a graphlib.Graph that represents the joint.dia.Graph
+        var glGraph = graph.toGraphLib({
+            directed: true,
+            // We are about to use edge naming feature.
+            multigraph: true,
+            // We are able to layout graphs with embeds.
+            compound: true,
+            setNodeLabel: function(element) {
+                return {
+                    width: element.get('size').width,
+                    height: element.get('size').height,
+                    rank: element.get('rank')
+                };
+            },
+            setEdgeLabel: function(link) {
+                return {
+                    minLen: link.get('minLen') || 1
+                };
+            },
+            setEdgeName: function(link) {
+                // Graphlib edges have no ids. We use edge name property
+                // to store and retrieve ids instead.
+                return link.id;
+            }
+        });
+
+        var glLabel = {};
+
+        // Dagre layout accepts options as lower case.
+        if (opt.rankDir) glLabel.rankdir = opt.rankDir;
+        if (opt.nodeSep) glLabel.nodesep = opt.nodeSep;
+        if (opt.edgeSep) glLabel.edgesep = opt.edgeSep;
+        if (opt.rankSep) glLabel.ranksep = opt.rankSep;
+        if (opt.marginX) glLabel.marginx = opt.marginX;
+        if (opt.marginY) glLabel.marginy = opt.marginY;
+
+        // Set the option object for the graph label
+        glGraph.setGraph(glLabel);
+
+        // executes the layout
+        dagre.layout(glGraph, { debugTiming: !!opt.debugTiming });
+
+        // Update the graph
+        graph.fromGraphLib(glGraph, {
+            importNode: function(v, gl) {
+
+                var element = this.getCell(v);
+                var glNode = gl.node(v);
+
+                if (opt.setPosition) {
+                    opt.setPosition(element, glNode);
+                } else {
+                    element.set('position', {
+                        x: glNode.x - glNode.width / 2,
+                        y: glNode.y - glNode.height / 2
+                    });
+                }
+            },
+            importEdge: function(edgeObj, gl) {
+
+                var link = this.getCell(edgeObj.name);
+                var glEdge = gl.edge(edgeObj);
+
+                if (opt.setLinkVertices) {
+                    if (opt.setVertices) {
+                        opt.setVertices(link, glEdge.points);
+                    } else {
+                        link.set('vertices', glEdge.points);
+                    }
+                }
+            }
+        });
+
+        if (opt.resizeClusters) {
+            // Resize and reposition cluster elements (parents of other elements)
+            // to fit their children.
+            // 1. filter clusters only
+            // 2. map id on cells
+            // 3. sort cells by their depth (the deepest first)
+            // 4. resize cell to fit their direct children only.
+            _.chain(glGraph.nodes())
+                .filter(function(v) { return glGraph.children(v).length > 0; })
+                .map(graph.getCell, graph)
+                .sortBy(function(cluster) { return -cluster.getAncestors().length; })
+                .invoke('fitEmbeds', { padding: opt.clusterPadding });
+        }
+
+        // Return an object with height and width of the graph.
+        return glGraph.graph();
+    }
+};
+
+
+	joint.g = g;
+	joint.V = joint.Vectorizer = V;
+
+	return joint;
+
+}));

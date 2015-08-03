@@ -6,12 +6,12 @@
 
         <title>Links demo</title>
 
-        <link rel="stylesheet" type="text/css" href="../joint.css" />
+        <link rel="stylesheet" type="text/css" href="../dist/joint.css" />
 
         <style>
             #paper {
                 width: 800px;
-                height: 1200px;
+                height: 1400px;
                 border: 1px solid gray;
             }
         </style>
@@ -21,31 +21,12 @@
         <label>Perpendicular links</label><input type="checkbox" id="perpendicularLinks" />
         <div id="paper"></div>
 
-        <script src="../lib/jquery/dist/jquery.js"></script>
+        <!-- Dependencies: -->
+        <script src="../lib/jquery/jquery.js"></script>
         <script src="../lib/lodash/dist/lodash.js"></script>
         <script src="../lib/backbone/backbone.js"></script>
 
-        <script src="../src/core.js"></script>
-        <script src="../src/vectorizer.js"></script>
-        <script src="../src/geometry.js"></script>
-
-
-        <script src="../src/joint.dia.graph.js"></script>
-
-        <script src="../src/joint.dia.cell.js"></script>
-        <script src="../src/joint.dia.element.js"></script>
-        <script src="../src/joint.dia.link.js"></script>
-        <script src="../src/joint.dia.paper.js"></script>
-
-        <script src="../plugins/joint.shapes.basic.js"></script>
-
-        <script src="../plugins/routers/joint.routers.orthogonal.js"></script>
-        <script src="../plugins/routers/joint.routers.manhattan.js"></script>
-        <script src="../plugins/routers/joint.routers.metro.js"></script>
-
-	<script src="../plugins/connectors/joint.connectors.normal.js"></script>
-	<script src="../plugins/connectors/joint.connectors.rounded.js"></script> 
-	<script src="../plugins/connectors/joint.connectors.smooth.js"></script>
+        <script src="../dist/joint.js"></script>
 
         <script src="./links.js"></script>
 

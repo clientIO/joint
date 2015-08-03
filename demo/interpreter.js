@@ -52,10 +52,10 @@ graph.on('signal', function(cell, data) {
     if (cell instanceof joint.dia.Link) {
 
         var targetCell = graph.getCell(cell.get('target').id);
-        sendToken(cell, 1, function() {
 
-            targetCell.trigger('signal', targetCell);
-        });
+	paper.findViewByModel(cell).sendToken(V('circle', { r: 7, fill: 'green' }).node, 1000, function() {
+	    targetCell.trigger('signal', targetCell);
+	});
         
     } else {
 
@@ -72,17 +72,4 @@ function flash(cell) {
     var cellView = paper.findViewByModel(cell);
     cellView.highlight();
     _.delay(function() { cellView.unhighlight(); }, 200);
-}
-
-function sendToken(link, sec, callback) {
-    
-    var token = V('circle', { r: 7, fill: 'green' });
-    
-    $(paper.viewport).append(token.node);
-    token.animateAlongPath({ dur: sec + 's', repeatCount: 1 }, paper.findViewByModel(link).$('.connection')[0]);
-    
-    _.delay(function() {
-        token.remove();
-        callback();
-    }, sec * 1000);
 }
