@@ -102,6 +102,7 @@ grunt qunit:all --reporter lcov --coverage
 By default, the output will be saved to `coverage.info` at the root of the project directory. You can change the output file like this:
 ```
 grunt qunit:joint --reporter lcov --output customfilename.info --coverage
+```
 
 
 License
