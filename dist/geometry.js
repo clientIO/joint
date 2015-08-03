@@ -1,18 +1,15 @@
-/*! JointJS v0.9.4 - JavaScript diagramming library  2015-07-27 
+/*! JointJS v0.9.4 - JavaScript diagramming library  2015-08-03 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-//      Geometry library.
-//      (c) 2011-2013 client IO
-
 (function(root, factory) {
 
     if (typeof define === 'function' && define.amd) {
 
-        // AMD.
+        // AMD. Register as an anonymous module.
         define([], factory);
 
     } else if (typeof exports === 'object') {
@@ -29,6 +26,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     }
 
 }(this, function() {
+
+//      Geometry library.
+//      (c) 2011-2013 client IO
+
+var g = (function() {
 
     // Declare shorthands to the most used math functions.
     var math = Math;
@@ -765,5 +767,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         bezier: bezier,
         scale: scale
     };
+
+})();
+
+
+    return g;
 
 }));

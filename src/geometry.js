@@ -1,27 +1,7 @@
 //      Geometry library.
 //      (c) 2011-2013 client IO
 
-(function(root, factory) {
-
-    if (typeof define === 'function' && define.amd) {
-
-        // AMD.
-        define([], factory);
-
-    } else if (typeof exports === 'object') {
-
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like environments that support module.exports,
-        // like Node.
-        module.exports = factory();
-
-    } else {
-
-        // Browser globals.
-        root.g = factory();
-    }
-
-}(this, function() {
+var g = (function() {
 
     // Declare shorthands to the most used math functions.
     var math = Math;
@@ -759,4 +739,4 @@
         scale: scale
     };
 
-}));
+})();

@@ -110,7 +110,8 @@ joint.dia.Paper = Backbone.View.extend({
         this.setOrigin();
         this.setDimensions();
 
-        this.listenTo(this.model, 'add', this.onAddCell);
+        this.listenTo(this.model, 'add', this.onCellAdded);
+        this.listenTo(this.model, 'remove', this.onCellRemoved);
         this.listenTo(this.model, 'reset', this.resetCells);
         this.listenTo(this.model, 'sort', this.sortCells);
 
@@ -118,6 +119,8 @@ joint.dia.Paper = Backbone.View.extend({
 
         // Hold the value when mouse has been moved: when mouse moved, no click event will be triggered.
         this._mousemoved = false;
+        // Hash of all cell views.
+        this._views = {};
 
         // default cell highlighting
         this.on({ 'cell:highlight': this.onCellHighlight, 'cell:unhighlight': this.onCellUnhighlight });
@@ -347,18 +350,18 @@ joint.dia.Paper = Backbone.View.extend({
         return view;
     },
 
-    onAddCell: function(cell, graph, options) {
+    onCellAdded: function(cell, graph, opt) {
 
-        if (this.options.async && options.async !== false && _.isNumber(options.position)) {
+        if (this.options.async && opt.async !== false && _.isNumber(opt.position)) {
 
             this._asyncCells = this._asyncCells || [];
             this._asyncCells.push(cell);
 
-            if (options.position == 0) {
+            if (opt.position == 0) {
 
-                if (this._frameId) throw 'another asynchronous rendering in progress';
+                if (this._frameId) throw new Error('another asynchronous rendering in progress');
 
-                this.asyncRenderCells(this._asyncCells);
+                this.asyncRenderCells(this._asyncCells, opt);
                 delete this._asyncCells;
             }
 
@@ -368,9 +371,14 @@ joint.dia.Paper = Backbone.View.extend({
         }
     },
 
+    onCellRemoved: function(cell) {
+
+        delete this._views[cell.id];
+    },
+
     addCell: function(cell) {
 
-        var view = this.createViewForModel(cell);
+        var view = this._views[cell.id] = this.createViewForModel(cell);
 
         V(this.viewport).append(view.el);
         view.paper = this;
@@ -426,39 +434,43 @@ joint.dia.Paper = Backbone.View.extend({
 
     removeCells: function() {
 
-        this.model.get('cells').each(function(cell) {
-            var view = this.findViewByModel(cell);
-            view && view.remove();
-        }, this);
+        _.invoke(this._views, 'remove');
+
+        this._views = {};
     },
 
-    asyncBatchAdded: _.identity,
+    asyncBatchAdded: _.noop,
 
     asyncRenderCells: function(cells, opt) {
 
-        var done = false;
-
         if (this._frameId) {
 
-            _.each(_.range(this.options.async && this.options.async.batchSize || 50), function() {
+            var batchSize = (this.options.async && this.options.async.batchSize) || 50;
+            var batchCells = cells.splice(0, batchSize);
+            var collection = this.model.get('cells');
 
-                var cell = cells.shift();
-                done = !cell;
-                if (!done) this.addCell(cell);
+            _.each(batchCells, function(cell) {
+
+                // The cell has to be part of the graph collection.
+                // There is a chance in asynchronous rendering
+                // that a cell was removed before it's rendered to the paper.
+                if (cell.collection === collection) this.addCell(cell);
 
             }, this);
 
             this.asyncBatchAdded();
         }
 
-        if (done) {
+        if (!cells.length) {
 
+            // No cells left to render.
             delete this._frameId;
             this.afterRenderCells(opt);
             this.trigger('render:done', opt);
 
         } else {
 
+            // Schedule a next batch to render.
             this._frameId = joint.util.nextFrame(_.bind(function() {
                 this.asyncRenderCells(cells, opt);
             }, this));
@@ -535,21 +547,26 @@ joint.dia.Paper = Backbone.View.extend({
 
         var $el = this.$(el);
 
-        if ($el.length === 0 || $el[0] === this.el) {
+        if ($el.length > 0 && $el[0] !== this.el) {
+            do {
+                if ($el.data('view')) {
+                    return $el.data('view');
+                }
 
-            return undefined;
+                $el = $el.parent();
+
+            } while ($el[0] !== this.el);
         }
 
-        return $el.data('view') || this.findView($el.parent());
+        return undefined;
     },
 
     // Find a view for a model `cell`. `cell` can also be a string representing a model `id`.
     findViewByModel: function(cell) {
 
         var id = _.isString(cell) ? cell : cell.id;
-        var $view = this.$('[model-id="' + id + '"]');
 
-        return $view.length ? $view.data('view') : undefined;
+        return this._views[id];
     },
 
     // Find all views at given point
@@ -557,10 +574,10 @@ joint.dia.Paper = Backbone.View.extend({
 
         p = g.point(p);
 
-        var views = _.map(this.model.getElements(), this.findViewByModel);
+        var views = _.map(this.model.getElements(), this.findViewByModel, this);
 
         return _.filter(views, function(view) {
-            return view && g.rect(V(view.el).bbox(false, this.viewport)).containsPoint(p);
+            return view && g.rect(view.vel.bbox(false, this.viewport)).containsPoint(p);
         }, this);
     },
 
@@ -569,10 +586,10 @@ joint.dia.Paper = Backbone.View.extend({
 
         r = g.rect(r);
 
-        var views = _.map(this.model.getElements(), this.findViewByModel);
+        var views = _.map(this.model.getElements(), this.findViewByModel, this);
 
         return _.filter(views, function(view) {
-            return view && r.intersect(g.rect(V(view.el).bbox(false, this.viewport)));
+            return view && r.intersect(g.rect(view.vel.bbox(false, this.viewport)));
         }, this);
     },
 

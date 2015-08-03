@@ -1,23 +1,15 @@
-/*! JointJS v0.9.4 - JavaScript diagramming library  2015-07-27 
+/*! JointJS v0.9.4 - JavaScript diagramming library  2015-08-03 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-// Vectorizer.
-// -----------
-
-// A tiny library for making your live easier when dealing with SVG.
-// The only Vectorizer dependency is the Geometry library.
-
-// Copyright © 2012 - 2015 client IO (http://client.io)
-
 (function(root, factory) {
 
     if (typeof define === 'function' && define.amd) {
 
-        // AMD.
+        // AMD. Register as an anonymous module.
         define(['g'], function(g) {
             return factory(g);
         });
@@ -40,6 +32,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     }
 
 }(this, function(g) {
+
+// Vectorizer.
+// -----------
+
+// A tiny library for making your live easier when dealing with SVG.
+// The only Vectorizer dependency is the Geometry library.
+
+// Copyright © 2012 - 2015 client IO (http://client.io)
+
+var V;
+var Vectorizer;
+
+V = Vectorizer = (function() {
 
     var SVGsupported = typeof window === 'object' && !!(window.SVGAngle || document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1'));
 
@@ -600,10 +605,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var nodes = this.node.querySelectorAll(selector);
 
             // Map DOM elements to `VElement`s.
-            for (var i = 0, len = nodes.length; i < len; i++) {
-                nodes[i] = V(nodes[i]);
-            }
-            return nodes;
+            return Array.prototype.map.call(nodes, V);
         },
 
         // Find an index of an element inside its container.
@@ -1350,4 +1352,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     };
 
     return V;
+
+})();
+
+
+    return V;
+
 }));

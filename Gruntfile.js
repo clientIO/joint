@@ -18,6 +18,7 @@ module.exports = function(grunt) {
             'plugins/routers/joint.routers.orthogonal.js',
             'plugins/routers/joint.routers.manhattan.js',
             'plugins/routers/joint.routers.metro.js',
+            'plugins/routers/joint.routers.oneSide.js',
             'plugins/connectors/joint.connectors.normal.js',
             'plugins/connectors/joint.connectors.rounded.js',
             'plugins/connectors/joint.connectors.smooth.js'
@@ -96,6 +97,25 @@ module.exports = function(grunt) {
 
         pkg: grunt.file.readJSON('package.json'),
 
+        webpack: {
+            joint: {
+                files: {
+                   './dist/joint.webpack-bundle.js' : './dist/joint.min.js'
+                },
+                entry: './dist/joint.min.js',
+                output: {
+                    path: './dist/',
+                    filename: 'joint.webpack-bundle.js',
+                    library: 'joint'
+                },
+                resolve: {
+                    alias: {
+                        g: './geometry.min.js',
+                        V: './vectorizer.min.js'
+                    }
+                }
+            }
+        },
         browserify: {
             joint: {
                 files: {
@@ -117,31 +137,47 @@ module.exports = function(grunt) {
             },
             geometry: {
                 files: {
-                    'dist/geometry.js': js.geometry,
-                    'dist/geometry.min.js': 'build/min/geometry.min.js'
+                    'dist/geometry.js': [].concat(
+                        ['build/wrappers/geometry.head.js'],
+                        js.geometry,
+                        ['build/wrappers/geometry.foot.js']
+                    ),
+                    'dist/geometry.min.js': [].concat(
+                        ['build/wrappers/geometry.head.js'],
+                        ['build/min/geometry.min.js'],
+                        ['build/wrappers/geometry.foot.js']
+                    )
                 }
             },
             vectorizer: {
                 files: {
-                    'dist/vectorizer.js': js.vectorizer,
-                    'dist/vectorizer.min.js': 'build/min/vectorizer.min.js'
+                    'dist/vectorizer.js': [].concat(
+                        ['build/wrappers/vectorizer.head.js'],
+                        js.vectorizer,
+                        ['build/wrappers/vectorizer.foot.js']
+                    ),
+                    'dist/vectorizer.min.js': [].concat(
+                        ['build/wrappers/vectorizer.head.js'],
+                        ['build/min/vectorizer.min.js'],
+                        ['build/wrappers/vectorizer.foot.js']
+                    )
                 }
             },
             joint: {
                 files: {
                     'dist/joint.core.js': [].concat(
-                        ['build/wrappers/joint.core.head.js'],
+                        ['build/wrappers/joint.head.js'],
                         js.geometry,
                         js.vectorizer,
                         js.core,
-                        ['build/wrappers/foot.js']
+                        ['build/wrappers/joint.foot.js']
                     ),
                     'dist/joint.core.min.js': [].concat(
-                        ['build/wrappers/joint.core.head.js'],
+                        ['build/wrappers/joint.head.js'],
                         ['build/min/geometry.min.js'],
                         ['build/min/vectorizer.min.js'],
                         ['build/min/joint.min.js'],
-                        ['build/wrappers/foot.js']
+                        ['build/wrappers/joint.foot.js']
                     ),
                     'dist/joint.core.css': [].concat(
                         css.core
@@ -155,7 +191,7 @@ module.exports = function(grunt) {
                         js.vectorizer,
                         js.core,
                         allJSPlugins(),
-                        ['build/wrappers/foot.js']
+                        ['build/wrappers/joint.foot.js']
                     ),
                     'dist/joint.min.js': [].concat(
                         ['build/wrappers/joint.head.js'],
@@ -163,7 +199,7 @@ module.exports = function(grunt) {
                         ['build/min/vectorizer.min.js'],
                         ['build/min/joint.min.js'],
                         allMinifiedJSPlugins(),
-                        ['build/wrappers/foot.js']
+                        ['build/wrappers/joint.foot.js']
                     ),
                     'dist/joint.css': [].concat(
                         css.core,
@@ -245,6 +281,70 @@ module.exports = function(grunt) {
         }
     };
 
+    function enableCodeCoverage() {
+
+        // Replace all qunit configurations with the 'urls' method.
+        // Append all URLs with ?coverage=true&grunt
+        // This will run all qunit tests with test coverage enabled and report results back to grunt.
+
+        var reporter = grunt.option('reporter') || 'lcov';
+
+        // Serve up the test files via an express app.
+        var express = require('express');
+        var serveStatic = require('serve-static');
+        var app = express();
+        var host = 'localhost';
+        var port = 3000;
+
+        app.use('/', serveStatic(__dirname));
+        app.listen(port, host);
+
+        var name, files;
+
+        for (name in config.qunit) {
+
+            // Resolve the paths for all files referenced in the task.
+            files = grunt.file.expand(config.qunit[name]);
+
+            config.qunit[name] = { options: { urls: [] } };
+
+            files.forEach(function(file) {
+
+                var url = 'http://' + host + ':' + port + '/' + file + '?coverage=true&reporter=' + reporter;
+
+                config.qunit[name].options.urls.push(url);
+            });
+        }
+
+        var reporterToFileExtension = {
+            lcov: 'info'
+        };
+
+        var reports = [];
+
+        grunt.event.on('qunit.report', function(data) {
+
+            reports.push(data);
+        });
+
+        var fs = require('fs');
+
+        process.on('exit', function() {
+
+            var ext = reporterToFileExtension[reporter];
+            var outputFile = grunt.option('output') || 'coverage' + (ext ? '.' + ext : '');
+            var data;
+
+            switch (reporter) {
+                case 'lcov':
+                    data = reports.join('\n');
+                break;
+            }
+
+            fs.writeFileSync(outputFile, data);
+        });
+    }
+
     // Create targets for all the plugins.
     Object.keys(js.plugins).forEach(function(name) {
 
@@ -306,6 +406,10 @@ module.exports = function(grunt) {
         grunt.registerTask(name, pluginTasks);
     });
 
+    if (grunt.option('coverage')) {
+        enableCodeCoverage();
+    }
+
     grunt.registerTask('concat:plugins', allPluginTasks.concat);
     grunt.registerTask('copy:plugins', allPluginTasks.copy);
     grunt.registerTask('cssmin:plugins', allPluginTasks.cssmin);
@@ -330,7 +434,7 @@ module.exports = function(grunt) {
     ]);
 
     grunt.registerTask('build', ['build:joint']);
-    grunt.registerTask('all', ['build', 'newer:browserify']);
+    grunt.registerTask('all', ['build', 'newer:browserify', 'newer:webpack']);
 
     grunt.registerTask('test:server', ['mochaTest:server']);
     grunt.registerTask('test:client', ['qunit:all', 'jscs']);

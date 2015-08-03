@@ -4,21 +4,12 @@ require.config({
         // Dependencies for Joint:
         'jquery': 'lib/jquery/jquery',
         'backbone': 'lib/backbone/backbone',
-        'lodash': 'lib/lodash/dist/lodash',
-        'g': 'dist/geometry',
-        'V': 'dist/vectorizer',
-        'graphlib': 'lib/graphlib/dist/graphlib.core',
-        'dagre': 'lib/dagre/dist/dagre.core'
+        'lodash': 'lib/lodash/dist/lodash'
     },
     map: {
         '*': {
             // Backbone requires underscore. This forces requireJS to load lodash instead:
             'underscore': 'lodash'
-        }
-    },
-    shim: {
-        graphlib: {
-            deps: ['lodash']
         }
     }
 });

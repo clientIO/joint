@@ -4,11 +4,11 @@
 
         // For AMD.
 
-        define(['backbone', 'lodash', 'jquery', 'g', 'V', 'graphlib', 'dagre'], function(Backbone, _, $, g, V, graphlib, dagre) {
+        define(['backbone', 'lodash', 'jquery'], function(Backbone, _, $) {
 
             Backbone.$ = $;
 
-            return factory(root, Backbone, _, $, g, V, graphlib, dagre);
+            return factory(root, Backbone, _, $);
         });
 
     } else if (typeof exports !== 'undefined') {
@@ -18,12 +18,8 @@
         var Backbone = require('backbone');
         var _ = require('lodash');
         var $ = Backbone.$ = require('jquery');
-        var g = require('./geometry');
-        var V = require('./vectorizer');
-        var graphlib = require('graphlib');
-        var dagre = require('dagre');
 
-        module.exports = factory(root, Backbone, _, $, g, V, graphlib, dagre);
+        module.exports = factory(root, Backbone, _, $);
 
     } else {
 
@@ -32,12 +28,10 @@
         var Backbone = root.Backbone;
         var _ = root._;
         var $ = Backbone.$ = root.jQuery || root.$;
-        var g = root.g;
-        var V = root.V;
-        var graphlib = root.graphlib;
-        var dagre = root.dagre;
 
-        root.joint = factory(root, Backbone, _, $, g, V, graphlib, dagre);
+        root.joint = factory(root, Backbone, _, $);
+        root.g = root.joint.g;
+        root.V = root.Vectorizer = root.joint.V;
     }
 
-}(this, function(root, Backbone, _, $, g, V, graphlib, dagre) {
+}(this, function(root, Backbone, _, $) {
