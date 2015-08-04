@@ -50,7 +50,7 @@ Before running tests, be sure to run a full build:
 grunt all
 ```
 
-To run all tests (except e2e):
+To run all tests:
 ```
 grunt test
 ```
@@ -68,21 +68,6 @@ grunt test:client
 To run code style checks:
 ```
 grunt jscs
-```
-
-To run e2e tests with the default browser (chrome):
-```
-grunt test:e2e
-```
-
-To run e2e tests using firefox:
-```
-grunt test:e2e --browser firefox
-```
-
-Note that you must start the selenium server before running e2e tests:
-```
-grunt selenium
 ```
 
 
