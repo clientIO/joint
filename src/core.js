@@ -1123,7 +1123,7 @@ var joint = {
             prefix: function(value, precision) {
 
                 var prefixes = _.map(['y', 'z', 'a', 'f', 'p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'], function(d, i) {
-                    var k = Math.pow(10, abs(8 - i) * 3);
+                    var k = Math.pow(10, Math.abs(8 - i) * 3);
                     return {
                         scale: i > 8 ? function(d) { return d / k; } : function(d) { return d * k; },
                         symbol: d
