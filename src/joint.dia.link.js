@@ -387,7 +387,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // link as well but only if the link is longer than `longLinkLength`.
         if (this.options.doubleLinkTools) {
 
-            var tool2 = tool.clone();
+            var tool2;
+            if (this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup) {
+                var toolTemplate = _.template(this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup);
+                tool2 = V(toolTemplate());
+            } else {
+                tool2 = tool.clone();
+            }
+            
             $tools.append(tool2.node);
             this._tool2Cache = tool2;
         }
