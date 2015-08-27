@@ -389,12 +389,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             var tool2;
             if (this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup) {
-                var toolTemplate = _.template(this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup);
+                toolTemplate = _.template(this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup);
                 tool2 = V(toolTemplate());
             } else {
                 tool2 = tool.clone();
             }
-            
+
             $tools.append(tool2.node);
             this._tool2Cache = tool2;
         }
@@ -957,27 +957,35 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     findRoute: function(oldVertices) {
 
+        var namespace = joint.routers;
         var router = this.model.get('router');
+        var routerFn = null;
+        var args = router && router.args || {};
 
         if (!router) {
 
             if (this.model.get('manhattan')) {
                 // backwards compability
-                router = { name: 'orthogonal' };
+                routerFn = namespace['orthogonal'];
             } else {
 
                 return oldVertices;
             }
+
+        } else if (_.isFunction(router)) {
+
+            routerFn = router;
+
+        } else {
+
+            routerFn = namespace[router.name];
+            if (!_.isFunction(routerFn)) {
+
+                throw 'unknown router: ' + router.name;
+            }
         }
 
-        var fn = joint.routers[router.name];
-
-        if (!_.isFunction(fn)) {
-
-            throw 'unknown router: ' + router.name;
-        }
-
-        var newVertices = fn.call(this, oldVertices || [], router.args || {}, this);
+        var newVertices = routerFn.call(this, oldVertices || [], args, this);
 
         return newVertices;
     },
@@ -986,25 +994,35 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // between `source` and `target`.
     getPathData: function(vertices) {
 
+        var namespace = joint.connectors;
         var connector = this.model.get('connector');
+        var connectorFn = null;
+        var args = connector && connector.args || {};
 
         if (!connector) {
 
             // backwards compability
-            connector = this.model.get('smooth') ? { name: 'smooth' } : { name: 'normal' };
+            connectorFn = this.model.get('smooth') ? namespace['smooth'] : namespace['normal'];
+
+        } else if (_.isFunction(connector)) {
+
+            connectorFn = connector;
+
+        } else {
+
+            connectorFn = namespace[connector.name];
+            if (!_.isFunction(connectorFn)) {
+
+                throw 'unknown connector: ' + connector.name;
+            }
         }
 
-        if (!_.isFunction(joint.connectors[connector.name])) {
-
-            throw 'unknown connector: ' + connector.name;
-        }
-
-        var pathData = joint.connectors[connector.name].call(
+        var pathData = connectorFn.call(
             this,
             this._markerCache.sourcePoint, // Note that the value is translated by the size
             this._markerCache.targetPoint, // of the marker. (We'r not using this.sourcePoint)
             vertices || (this.model.get('vertices') || {}),
-            connector.args || {}, // options
+            args, // options
             this
         );
 
