@@ -1150,7 +1150,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _afterArrowheadMove: function() {
 
-        if (this._z) {
+        if (!_.isUndefined(this._z)) {
             this.model.set('z', this._z, { ui: true });
             delete this._z;
         }
