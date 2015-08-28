@@ -146,7 +146,7 @@ joint.dia.Graph = Backbone.Model.extend({
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
         // when processing JSON graphs that are in a different than JointJS format.
-        this.set('cells', new joint.dia.GraphCells([], { model: opt && opt.cellModel }));
+        Backbone.Model.prototype.set.call(this, 'cells', new joint.dia.GraphCells([], { model: opt && opt.cellModel }));
 
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
@@ -171,8 +171,29 @@ joint.dia.Graph = Backbone.Model.extend({
             throw new Error('Graph JSON must contain cells array.');
         }
 
-        this.set(_.omit(json, 'cells'), opt);
-        this.resetCells(json.cells, opt);
+        return this.set(json, opt);
+    },
+
+    set: function(key, val, opt) {
+
+        var attrs;
+
+        // Handle both `key`, value and {key: value} style arguments.
+        if (typeof key === 'object') {
+            attrs = key;
+            opt = val;
+        } else {
+            (attrs = {})[key] = val;
+        }
+
+        // Make sure that `cells` attribute is handled separately via resetCells().
+        if (attrs.hasOwnProperty('cells')) {
+            this.resetCells(attrs.cells, opt);
+            attrs = _.omit(attrs, 'cells');
+        }
+
+        // The rest of the attributes are applied via original set method.
+        return Backbone.Model.prototype.set.call(this, attrs, opt);
     },
 
     clear: function(opt) {
