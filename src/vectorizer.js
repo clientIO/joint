@@ -328,12 +328,9 @@ V = Vectorizer = (function() {
             try {
 
                 box = this.node.getBBox();
-
-                // Opera returns infinite values in some cases.
-                // Note that Infinity | 0 produces 0 as opposed to Infinity || 0.
-                // We also have to create new object as the standard says that you can't
+                // We are creating a new object as the standard says that you can't
                 // modify the attributes of a bbox.
-                box = { x: box.x | 0, y: box.y | 0, width: box.width | 0, height: box.height | 0 };
+                box = { x: box.x, y: box.y, width: box.width, height: box.height };
 
             } catch (e) {
 
