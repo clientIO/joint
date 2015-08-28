@@ -1,4 +1,4 @@
-/*! JointJS v0.9.4 - JavaScript diagramming library  2015-08-03 
+/*! JointJS v0.9.4 - JavaScript diagramming library  2015-08-28 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -79,9 +79,33 @@ V = Vectorizer = (function() {
     function createSvgDocument(content) {
 
         var svg = '<svg xmlns="' + ns.xmlns + '" xmlns:xlink="' + ns.xlink + '" version="' + SVGversion + '">' + (content || '') + '</svg>';
-        var parser = new DOMParser();
-        parser.async = false;
-        return parser.parseFromString(svg, 'text/xml').documentElement;
+        var xml = parseXML(svg, { async: false });
+        return xml.documentElement;
+    }
+
+    function parseXML(data, opt) {
+
+        opt = opt || {};
+
+        var xml;
+
+        try {
+            var parser = new DOMParser();
+
+            if (typeof opt.async !== 'undefined') {
+                parser.async = opt.async;
+            }
+
+            xml = parser.parseFromString(data, 'text/xml');
+        } catch (error) {
+            xml = undefined;
+        }
+
+        if (!xml || xml.getElementsByTagName('parsererror').length) {
+            throw new Error('Invalid XML: ' + data);
+        }
+
+        return xml;
     }
 
     // Create SVG element.
@@ -339,12 +363,9 @@ V = Vectorizer = (function() {
             try {
 
                 box = this.node.getBBox();
-
-                // Opera returns infinite values in some cases.
-                // Note that Infinity | 0 produces 0 as opposed to Infinity || 0.
-                // We also have to create new object as the standard says that you can't
+                // We are creating a new object as the standard says that you can't
                 // modify the attributes of a bbox.
-                box = { x: box.x | 0, y: box.y | 0, width: box.width | 0, height: box.height | 0 };
+                box = { x: box.x, y: box.y, width: box.width, height: box.height };
 
             } catch (e) {
 
@@ -1335,7 +1356,7 @@ V = Vectorizer = (function() {
         return found;
     };
 
-    // Shift all the textg annotations after character `index` by `offset` positions.
+    // Shift all the text annotations after character `index` by `offset` positions.
     V.shiftAnnotations = function(annotations, index, offset) {
 
         if (!annotations) return annotations;

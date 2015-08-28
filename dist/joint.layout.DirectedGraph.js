@@ -1,4 +1,4 @@
-/*! JointJS v0.9.4 - JavaScript diagramming library  2015-08-03 
+/*! JointJS v0.9.4 - JavaScript diagramming library  2015-08-28 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -168,7 +168,8 @@ joint.layout.DirectedGraph = {
                 .filter(function(v) { return glGraph.children(v).length > 0; })
                 .map(graph.getCell, graph)
                 .sortBy(function(cluster) { return -cluster.getAncestors().length; })
-                .invoke('fitEmbeds', { padding: opt.clusterPadding });
+                .invoke('fitEmbeds', { padding: opt.clusterPadding })
+                .value();
         }
 
         // Return an object with height and width of the graph.
