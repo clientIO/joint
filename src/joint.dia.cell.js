@@ -213,7 +213,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
     embed: function(cell, opt) {
 
-        if (this == cell || this.isEmbeddedIn(cell)) {
+        if (this === cell || this.isEmbeddedIn(cell)) {
 
             throw new Error('Recursive embedding not allowed.');
 
@@ -328,7 +328,7 @@ joint.dia.Cell = Backbone.Model.extend({
         if (this.collection && opt.deep) {
 
             while (parentId) {
-                if (parentId == cellId) {
+                if (parentId === cellId) {
                     return true;
                 }
                 parentId = this.collection.get(parentId).get('parent');
@@ -340,7 +340,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             // When this cell is not part of a collection check
             // at least whether it's a direct child of given cell.
-            return parentId == cellId;
+            return parentId === cellId;
         }
     },
 
@@ -382,12 +382,12 @@ joint.dia.Cell = Backbone.Model.extend({
 
                 if (embedClone instanceof joint.dia.Link) {
 
-                    if (embedClone.get('source').id == this.id) {
+                    if (embedClone.get('source').id === this.id) {
 
                         embedClone.prop('source', { id: clone.id });
                     }
 
-                    if (embedClone.get('target').id == this.id) {
+                    if (embedClone.get('target').id === this.id) {
 
                         embedClone.prop('target', { id: clone.id });
                     }
@@ -461,11 +461,14 @@ joint.dia.Cell = Backbone.Model.extend({
                 var pathArray = path.split('/');
                 var property = pathArray[0];
 
+                // Remove the top-level property from the array of properties.
+                pathArray.shift();
+
                 opt = opt || {};
                 opt.propertyPath = path;
                 opt.propertyValue = value;
 
-                if (pathArray.length == 1) {
+                if (pathArray.length === 0) {
                     // Property is not nested. We can simply use `set()`.
                     return this.set(property, value, opt);
                 }
@@ -477,7 +480,7 @@ joint.dia.Cell = Backbone.Model.extend({
                 // Pure integer keys will cause issues and are therefore not allowed.
                 var initializer = update;
                 var prevProperty = property;
-                _.each(_.rest(pathArray), function(key) {
+                _.each(pathArray, function(key) {
                     initializer = initializer[prevProperty] = (_.isFinite(Number(key)) ? [] : {});
                     prevProperty = key;
                 });
@@ -701,7 +704,6 @@ joint.dia.CellView = Backbone.View.extend({
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);
 
-        this.listenTo(this.model, 'remove', this.remove);
         this.listenTo(this.model, 'change:attrs', this.onChangeAttrs);
     },
 

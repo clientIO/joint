@@ -1,4 +1,4 @@
-joint.routers.manhattan = (function() {
+joint.routers.manhattan = (function(g, _) {
 
     'use strict';
 
@@ -10,9 +10,6 @@ joint.routers.manhattan = (function() {
         // use of the perpendicular linkView option to connect center of element with first vertex
         perpendicular: true,
 
-        // tells how to divide the paper when creating the elements map
-        mapGridSize: 100,
-
         // should be source or target not to be consider as an obstacle
         excludeEnds: [], // 'source', 'target'
 
@@ -21,7 +18,7 @@ joint.routers.manhattan = (function() {
 
         // if number of route finding loops exceed the maximum, stops searching and returns
         // fallback route
-        maximumLoops: 500,
+        maximumLoops: 2000,
 
         // possible starting directions from an element
         startDirections: ['left', 'right', 'top', 'bottom'],
@@ -38,7 +35,7 @@ joint.routers.manhattan = (function() {
         },
 
         // maximum change of the direction
-        maxAllowedDirectionChange: 1,
+        maxAllowedDirectionChange: 90,
 
         // padding applied on the element bounding boxes
         paddingBox: function() {
@@ -69,13 +66,11 @@ joint.routers.manhattan = (function() {
         // a penalty received for direction change
         penalties: function() {
 
-            return [0, this.step / 2, this.step];
-        },
-
-        // heurestic method to determine the distance between two points
-        estimateCost: function(from, to) {
-
-            return from.manhattanDistance(to);
+            return {
+                0: 0,
+                45: this.step / 2,
+                90: this.step / 2
+            };
         },
 
         // a simple route used in situations, when main routing method fails
@@ -84,9 +79,7 @@ joint.routers.manhattan = (function() {
 
             // Find an orthogonal route ignoring obstacles.
 
-            var prevDirIndexes = opts.prevDirIndexes || {};
-
-            var point = (prevDirIndexes[from] || 0) % 2
+            var point = ((opts.previousDirAngle || 0) % 180 === 0)
                     ? g.point(from.x, to.y)
                     : g.point(to.x, from.y);
 
@@ -96,6 +89,140 @@ joint.routers.manhattan = (function() {
         // if a function is provided, it's used to route the link while dragging an end
         // i.e. function(from, to, opts) { return []; }
         draggingRoute: null
+    };
+
+    // Map of obstacles
+    // Helper structure to identify whether a point lies in an obstacle.
+    function ObstacleMap(opt) {
+
+        this.map = {};
+        this.options = opt;
+        // tells how to divide the paper when creating the elements map
+        this.mapGridSize = 100;
+    }
+
+    ObstacleMap.prototype.build = function(graph, link) {
+
+        var opt = this.options;
+
+        // source or target element could be excluded from set of obstacles
+        var excludedEnds = _.chain(opt.excludeEnds)
+            .map(link.get, link)
+            .pluck('id')
+            .map(graph.getCell, graph).value();
+
+        // Exclude any embedded elements from the source and the target element.
+        var excludedAncestors = [];
+
+        var source = graph.getCell(link.get('source').id);
+        if (source) {
+            excludedAncestors = _.union(excludedAncestors, _.map(source.getAncestors(), 'id'));
+        };
+
+        var target = graph.getCell(link.get('target').id);
+        if (target) {
+            excludedAncestors = _.union(excludedAncestors, _.map(target.getAncestors(), 'id'));
+        }
+
+        // builds a map of all elements for quicker obstacle queries (i.e. is a point contained
+        // in any obstacle?) (a simplified grid search)
+        // The paper is divided to smaller cells, where each of them holds an information which
+        // elements belong to it. When we query whether a point is in an obstacle we don't need
+        // to go through all obstacles, we check only those in a particular cell.
+        var mapGridSize = this.mapGridSize;
+
+        _.chain(graph.getElements())
+            // remove source and target element if required
+            .difference(excludedEnds)
+            // remove all elements whose type is listed in excludedTypes array
+            .reject(function(element) {
+                // reject any element which is an ancestor of either source or target
+                return _.contains(opt.excludeTypes, element.get('type')) || _.contains(excludedAncestors, element.id);
+            })
+            // change elements (models) to their bounding boxes
+            .invoke('getBBox')
+            // expand their boxes by specific padding
+            .invoke('moveAndExpand', opt.paddingBox)
+            // build the map
+            .foldl(function(map, bbox) {
+
+                var origin = bbox.origin().snapToGrid(mapGridSize);
+                var corner = bbox.corner().snapToGrid(mapGridSize);
+
+                for (var x = origin.x; x <= corner.x; x += mapGridSize) {
+                    for (var y = origin.y; y <= corner.y; y += mapGridSize) {
+
+                        var gridKey = x + '@' + y;
+
+                        map[gridKey] = map[gridKey] || [];
+                        map[gridKey].push(bbox);
+                    }
+                }
+
+                return map;
+
+            }, this.map).value();
+
+        return this;
+    };
+
+    ObstacleMap.prototype.isPointAccessible = function(point) {
+
+        var mapKey = point.clone().snapToGrid(this.mapGridSize).toString();
+
+        return _.every(this.map[mapKey], function(obstacle) {
+            return !obstacle.containsPoint(point);
+        });
+    };
+
+    // Sorted Set
+    // Set of items sorted by given value.
+    function SortedSet() {
+        this.items = [];
+        this.hash = {};
+        this.values = {};
+        this.OPEN = 1;
+        this.CLOSE = 2;
+    }
+
+    SortedSet.prototype.add = function(item, value) {
+
+        if (this.hash[item]) {
+            // item removal
+            this.items.splice(this.items.indexOf(item), 1);
+        } else {
+            this.hash[item] = this.OPEN;
+        }
+
+        this.values[item] = value;
+
+        var index = _.sortedIndex(this.items, item, function(i) {
+            return this.values[i];
+        }, this);
+
+        this.items.splice(index, 0, item);
+    };
+
+    SortedSet.prototype.remove = function(item) {
+        this.hash[item] = this.CLOSE;
+    };
+
+    SortedSet.prototype.isOpen = function(item) {
+        return this.hash[item] === this.OPEN;
+    };
+
+    SortedSet.prototype.isClose = function(item) {
+        return this.hash[item] === this.CLOSE;
+    };
+
+    SortedSet.prototype.isEmpty = function() {
+        return this.items.length === 0;
+    };
+
+    SortedSet.prototype.pop = function() {
+        var item =  this.items.shift();
+        this.remove(item);
+        return item;
     };
 
     // reconstructs a route by concating points with their parents
@@ -122,28 +249,26 @@ joint.routers.manhattan = (function() {
         route.unshift(current);
 
         return route;
-    };
+    }
 
     // find points around the rectangle taking given directions in the account
-    function getRectPoints(bbox, directionList, opts) {
+    function getRectPoints(bbox, directionList, opt) {
 
-        var step = opts.step;
-
+        var step = opt.step;
         var center = bbox.center();
-
-        var startPoints = _.chain(opts.directionMap).pick(directionList).map(function(direction) {
+        var startPoints = _.chain(opt.directionMap).pick(directionList).map(function(direction) {
 
             var x = direction.x * bbox.width / 2;
             var y = direction.y * bbox.height / 2;
 
-            var point = g.point(center).offset(x, y).snapToGrid(step);
+            var point = center.clone().offset(x, y);
 
             if (bbox.containsPoint(point)) {
 
                 point.offset(direction.x * step, direction.y * step);
             }
 
-            return point;
+            return point.snapToGrid(step);
 
         }).value();
 
@@ -151,298 +276,187 @@ joint.routers.manhattan = (function() {
     };
 
     // returns a direction index from start point to end point
-    function getDirection(start, end, dirLen) {
+    function getDirectionAngle(start, end, dirLen) {
 
-        var dirAngle = 360 / dirLen;
+        var q = 360 / dirLen;
+        return Math.floor(g.normalizeAngle(start.theta(end) + q / 2) / q) * q;
+    }
 
-        var q = Math.floor(start.theta(end) / dirAngle);
+    function getDirectionChange(angle1, angle2) {
 
-        return dirLen - q;
+        var dirChange = Math.abs(angle1 - angle2);
+        return dirChange > 180 ? 360 - dirChange : dirChange;
+    }
+
+    // heurestic method to determine the distance between two points
+    function estimateCost(from, endPoints) {
+
+        var min = Infinity;
+
+        for (var i = 0, len = endPoints.length; i < len; i++) {
+            var cost = from.manhattanDistance(endPoints[i]);
+            if (cost < min) min = cost;
+        };
+
+        return min;
     }
 
     // finds the route between to points/rectangles implementing A* alghoritm
     function findRoute(start, end, map, opt) {
 
-        var startDirections = opt.reversed ? opt.endDirections : opt.startDirections;
-        var endDirections = opt.reversed ? opt.startDirections : opt.endDirections;
+        var step = opt.step;
+        var startPoints, endPoints;
+        var startCenter, endCenter;
 
         // set of points we start pathfinding from
-        var startSet = start instanceof g.rect
-                ? getRectPoints(start, startDirections, opt)
-                : [start];
+        if (start instanceof g.rect) {
+            startPoints = getRectPoints(start, opt.startDirections, opt);
+            startCenter = start.center();
+        } else {
+            startCenter = start.clone().snapToGrid(step);
+            startPoints = [start];
+        }
 
         // set of points we want the pathfinding to finish at
-        var endSet = end instanceof g.rect
-                ? getRectPoints(end, endDirections, opt)
-                : [end];
+        if (end instanceof g.rect) {
+            endPoints = getRectPoints(end, opt.endDirections, opt);
+            endCenter = end.center();
+        } else {
+            endCenter = end.clone().snapToGrid(step);
+            endPoints = [end];
+        }
 
-        var startCenter = startSet.length > 1 ? start.center() : startSet[0];
-        var endCenter = endSet.length > 1 ? end.center() : endSet[0];
+        // take into account only accessible end points
+        startPoints = _.filter(startPoints, map.isPointAccessible, map);
+        endPoints = _.filter(endPoints, map.isPointAccessible, map);
 
-        // take into account  only accessible end points
-        var endPoints = _.filter(endSet, function(point) {
+        // Check if there is a accessible end point.
+        // We would have to use a fallback route otherwise.
+        if (startPoints.length > 0 && endPoints.length >  0) {
 
-            var mapKey = g.point(point).snapToGrid(opt.mapGridSize).toString();
+            // The set of tentative points to be evaluated, initially containing the start points.
+            var openSet = new SortedSet();
+            // Keeps reference to a point that is immediate predecessor of given element.
+            var parents = {};
+            // Cost from start to a point along best known path.
+            var costs = {};
 
-            var accesible = _.every(map[mapKey], function(obstacle) {
-                return !obstacle.containsPoint(point);
+            _.each(startPoints, function(point) {
+                var key = point.toString();
+                openSet.add(key, estimateCost(point, endPoints));
+                costs[key] = 0;
             });
 
-            return accesible;
-        });
-
-
-        if (endPoints.length) {
-
-            var step = opt.step;
-            var penalties = opt.penalties;
-
-            // choose the end point with the shortest estimated path cost
-            var endPoint = _.chain(endPoints).invoke('snapToGrid', step).min(function(point) {
-
-                return opt.estimateCost(startCenter, point);
-
-            }).value();
-
-            var parents = {};
-            var costFromStart = {};
-            var totalCost = {};
-
             // directions
+            var dir, dirChange;
             var dirs = opt.directions;
             var dirLen = dirs.length;
-            var dirHalfLen = dirLen / 2;
-            var dirIndexes = opt.previousDirIndexes || {};
-
-            // The set of point already evaluated.
-            var closeHash = {}; // keeps only information whether a point was evaluated'
-
-            // The set of tentative points to be evaluated, initially containing the start points
-            var openHash = {}; // keeps only information whether a point is to be evaluated'
-            var openSet = _.chain(startSet).invoke('snapToGrid', step).each(function(point) {
-
-                var key = point.toString();
-
-                costFromStart[key] = 0; // Cost from start along best known path.
-                totalCost[key] = opt.estimateCost(point, endPoint);
-                dirIndexes[key] = dirIndexes[key] || getDirection(startCenter, point, dirLen);
-                openHash[key] = true;
-
-            }).map(function(point) {
-
-                return point.toString();
-
-            }).sortBy(function(pointKey) {
-
-                return totalCost[pointKey];
-
-            }).value();
-
-            var loopCounter = opt.maximumLoops;
-
-            var maxAllowedDirectionChange = opt.maxAllowedDirectionChange;
+            var loopsRemain = opt.maximumLoops;
+            var endPointsKeys = _.invoke(endPoints, 'toString');
 
             // main route finding loop
-            while (openSet.length && loopCounter--) {
-
-                var currentKey = openSet[0];
-                var currentPoint = g.point(currentKey);
-
-                if (endPoint.equals(currentPoint)) {
-
-                    opt.previousDirIndexes = _.pick(dirIndexes, currentKey);
-                    return reconstructRoute(parents, currentPoint);
-                }
+            while (!openSet.isEmpty() && loopsRemain > 0) {
 
                 // remove current from the open list
-                openSet.splice(0, 1);
-                openHash[neighborKey] = null;
+                var currentKey = openSet.pop();
+                var currentPoint = g.point(currentKey);
+                var currentDist = costs[currentKey];
+                var previousDirAngle = currentDirAngle;
+                var currentDirAngle = parents[currentKey]
+                    ? getDirectionAngle(parents[currentKey], currentPoint, dirLen)
+                    : opt.previousDirAngle != null ? opt.previousDirAngle : getDirectionAngle(startCenter, currentPoint, dirLen);
 
-                // add current to the close list
-                closeHash[neighborKey] = true;
-
-                var currentDirIndex = dirIndexes[currentKey];
-                var currentDist = costFromStart[currentKey];
-
-                for (var dirIndex = 0; dirIndex < dirLen; dirIndex++) {
-
-                    var dirChange = Math.abs(dirIndex - currentDirIndex);
-
-                    if (dirChange > dirHalfLen) {
-
-                        dirChange = dirLen - dirChange;
+                // Check if we reached any endpoint
+                if (endPointsKeys.indexOf(currentKey) >= 0) {
+                    // We don't want to allow route to enter the end point in opposite direction.
+                    dirChange = getDirectionChange(currentDirAngle, getDirectionAngle(currentPoint, endCenter, dirLen));
+                    if (currentPoint.equals(endCenter) || dirChange < 180) {
+                        opt.previousDirAngle = currentDirAngle;
+                        return reconstructRoute(parents, currentPoint);
                     }
+                }
 
+                // Go over all possible directions and find neighbors.
+                for (var i = 0; i < dirLen; i++) {
+
+                    dir = dirs[i];
+                    dirChange = getDirectionChange(currentDirAngle, dir.angle);
                     // if the direction changed rapidly don't use this point
-                    if (dirChange > maxAllowedDirectionChange) {
-
+                    if (dirChange > opt.maxAllowedDirectionChange) {
                         continue;
                     }
 
-                    var dir = dirs[dirIndex];
-
-                    var neighborPoint = g.point(currentPoint).offset(dir.offsetX, dir.offsetY);
+                    var neighborPoint = currentPoint.clone().offset(dir.offsetX, dir.offsetY);
                     var neighborKey = neighborPoint.toString();
-
-                    if (closeHash[neighborKey]) {
-
+                    // Closed points from the openSet were already evaluated.
+                    if (openSet.isClose(neighborKey) || !map.isPointAccessible(neighborPoint)) {
                         continue;
                     }
 
-                    // is point accesible - no obstacle in the way
+                    // The current direction is ok to proccess.
+                    var costFromStart = currentDist + dir.cost + opt.penalties[dirChange];
 
-                    var mapKey = g.point(neighborPoint).snapToGrid(opt.mapGridSize).toString();
-
-                    var isAccesible = _.every(map[mapKey], function(obstacle) {
-                        return !obstacle.containsPoint(neighborPoint);
-                    });
-
-                    if (!isAccesible) {
-
-                        continue;
-                    }
-
-                    var inOpenSet = _.has(openHash, neighborKey);
-
-                    var costToNeighbor = currentDist + dir.cost;
-
-                    if (!inOpenSet || costToNeighbor < costFromStart[neighborKey]) {
-
+                    if (!openSet.isOpen(neighborKey) || costFromStart < costs[neighborKey]) {
+                        // neighbor point has not been processed yet or the cost of the path
+                        // from start is lesser than previously calcluated.
                         parents[neighborKey] = currentPoint;
-                        dirIndexes[neighborKey] = dirIndex;
-                        costFromStart[neighborKey] = costToNeighbor;
-
-                        totalCost[neighborKey] = costToNeighbor +
-                            opt.estimateCost(neighborPoint, endPoint) +
-                            penalties[dirChange];
-
-                        if (!inOpenSet) {
-
-                            var openIndex = _.sortedIndex(openSet, neighborKey, function(openKey) {
-
-                                return totalCost[openKey];
-                            });
-
-                            openSet.splice(openIndex, 0, neighborKey);
-                            openHash[neighborKey] = true;
-                        }
+                        costs[neighborKey] = costFromStart;
+                        openSet.add(neighborKey, costFromStart + estimateCost(neighborPoint, endPoints));
                     };
                 };
+
+                loopsRemain--;
             }
         }
 
         // no route found ('to' point wasn't either accessible or finding route took
         // way to much calculations)
         return opt.fallbackRoute(startCenter, endCenter, opt);
-    };
+    }
 
-    // initiation of the route finding
-    function router(oldVertices, opt) {
+    // resolve some of the options
+    function resolveOptions(opt) {
 
-        // resolve some of the options
         opt.directions = _.result(opt, 'directions');
         opt.penalties = _.result(opt, 'penalties');
         opt.paddingBox = _.result(opt, 'paddingBox');
 
+        _.each(opt.directions, function(direction) {
+
+            var point1 = new g.point(0, 0);
+            var point2 = new g.point(direction.offsetX, direction.offsetY);
+            var angle = g.normalizeAngle(point1.theta(point2));
+
+            direction.angle = angle;
+        });
+    }
+
+    // initiation of the route finding
+    function router(vertices, opt) {
+
+        resolveOptions(opt);
+
         // enable/disable linkView perpendicular option
         this.options.perpendicular = !!opt.perpendicular;
 
-        // As route changes its shape rapidly when we start finding route from different point
-        // it's necessary to start from the element that was not interacted with
-        // (the position was changed) at very last.
-        var reverseRouting = opt.reversed = (this.lastEndChange === 'source');
-
-        var sourceBBox = reverseRouting ? g.rect(this.targetBBox) : g.rect(this.sourceBBox);
-        var targetBBox = reverseRouting ? g.rect(this.sourceBBox) : g.rect(this.targetBBox);
-
         // expand boxes by specific padding
-        sourceBBox.moveAndExpand(opt.paddingBox);
-        targetBBox.moveAndExpand(opt.paddingBox);
-
-        // building an elements map
-
-        var link = this.model;
-        var graph = this.paper.model;
-
-        // source or target element could be excluded from set of obstacles
-        var excludedEnds = _.chain(opt.excludeEnds)
-                .map(link.get, link)
-                .pluck('id')
-                .map(graph.getCell, graph).value();
-
-        var mapGridSize = opt.mapGridSize;
-
-        var excludeAncestors = [];
-
-        var sourceId = link.get('source').id;
-        if (sourceId !== undefined) {
-            var source = graph.getCell(sourceId);
-            if (source !== undefined) {
-                excludeAncestors = _.union(excludeAncestors, _.map(source.getAncestors(), 'id'));
-            };
-        }
-
-        var targetId = link.get('target').id;
-        if (targetId !== undefined) {
-            var target = graph.getCell(targetId);
-            if (target !== undefined) {
-                excludeAncestors = _.union(excludeAncestors, _.map(target.getAncestors(), 'id'));
-            }
-        }
-
-        // builds a map of all elements for quicker obstacle queries (i.e. is a point contained
-        // in any obstacle?) (a simplified grid search)
-        // The paper is divided to smaller cells, where each of them holds an information which
-        // elements belong to it. When we query whether a point is in an obstacle we don't need
-        // to go through all obstacles, we check only those in a particular cell.
-        var map = _.chain(graph.getElements())
-            // remove source and target element if required
-            .difference(excludedEnds)
-            // remove all elements whose type is listed in excludedTypes array
-            .reject(function(element) {
-                // reject any element which is an ancestor of either source or target
-                return _.contains(opt.excludeTypes, element.get('type')) || _.contains(excludeAncestors, element.id);
-            })
-            // change elements (models) to their bounding boxes
-            .invoke('getBBox')
-            // expand their boxes by specific padding
-            .invoke('moveAndExpand', opt.paddingBox)
-            // build the map
-            .foldl(function(res, bbox) {
-
-                var origin = bbox.origin().snapToGrid(mapGridSize);
-                var corner = bbox.corner().snapToGrid(mapGridSize);
-
-                for (var x = origin.x; x <= corner.x; x += mapGridSize) {
-                    for (var y = origin.y; y <= corner.y; y += mapGridSize) {
-
-                        var gridKey = x + '@' + y;
-
-                        res[gridKey] = res[gridKey] || [];
-                        res[gridKey].push(bbox);
-                    }
-                }
-
-                return res;
-
-            }, {}).value();
+        var sourceBBox = g.rect(this.sourceBBox).moveAndExpand(opt.paddingBox);
+        var targetBBox = g.rect(this.targetBBox).moveAndExpand(opt.paddingBox);
 
         // pathfinding
-
+        var map = (new ObstacleMap(opt)).build(this.paper.model, this.model);
+        var oldVertices = _.map(vertices, g.point);
         var newVertices = [];
-
-        var points = _.map(oldVertices, g.point);
-
-        var tailPoint = sourceBBox.center();
+        var tailPoint = sourceBBox.center().snapToGrid(opt.step);
 
         // find a route by concating all partial routes (routes need to go through the vertices)
         // startElement -> vertex[1] -> ... -> vertex[n] -> endElement
-        for (var i = 0, len = points.length; i <= len; i++) {
+        for (var i = 0, len = oldVertices.length; i <= len; i++) {
 
             var partialRoute = null;
 
             var from = to || sourceBBox;
-            var to = points[i];
+            var to = oldVertices[i];
 
             if (!to) {
 
@@ -465,19 +479,17 @@ joint.routers.manhattan = (function() {
             var leadPoint = _.first(partialRoute);
 
             if (leadPoint && leadPoint.equals(tailPoint)) {
-
                 // remove the first point if the previous partial route had the same point as last
                 partialRoute.shift();
             }
 
             tailPoint = _.last(partialRoute) || tailPoint;
 
-            newVertices = newVertices.concat(partialRoute);
+            Array.prototype.push.apply(newVertices, partialRoute);
         };
 
-        // we might have to reverse the result if we swapped source and target at the beginning
-        return reverseRouting ? newVertices.reverse() : newVertices;
-    };
+        return newVertices;
+    }
 
     // public function
     return function(vertices, opt, linkView) {
@@ -485,4 +497,4 @@ joint.routers.manhattan = (function() {
         return router.call(linkView, vertices, _.extend({}, config, opt));
     };
 
-})();
+})(g, _);

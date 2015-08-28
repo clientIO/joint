@@ -52,6 +52,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
     translate: function(tx, ty, opt) {
 
+        tx = tx || 0;
         ty = ty || 0;
 
         if (tx === 0 && ty === 0) {
@@ -62,12 +63,46 @@ joint.dia.Element = joint.dia.Cell.extend({
         opt = opt || {};
         // Pass the initiator of the translation.
         opt.translateBy = opt.translateBy || this.id;
+
+        var position = this.get('position') || { x: 0, y: 0 };
+
+        if (opt.restrictedArea && opt.translateBy === this.id) {
+
+            // We are restricting the translation for the element itself only. We get
+            // the bounding box of the element including all its embeds.
+            // All embeds have to be translated the exact same way as the element.
+            var bbox = this.getBBox({ deep: true });
+            var ra = opt.restrictedArea;
+            //- - - - - - - - - - - - -> ra.x + ra.width
+            // - - - -> position.x      |
+            // -> bbox.x
+            //                ▓▓▓▓▓▓▓   |
+            //         ░░░░░░░▓▓▓▓▓▓▓
+            //         ░░░░░░░░░        |
+            //   ▓▓▓▓▓▓▓▓░░░░░░░
+            //   ▓▓▓▓▓▓▓▓               |
+            //   <-dx->                     | restricted area right border
+            //         <-width->        |   ░ translated element
+            //   <- - bbox.width - ->       ▓ embedded element
+            var dx = position.x - bbox.x;
+            var dy = position.y - bbox.y;
+            // Find the maximal/minimal coordinates that the element can be translated
+            // while complies the restrictions.
+            var x = Math.max(ra.x + dx, Math.min(ra.x + ra.width + dx - bbox.width, position.x + tx));
+            var y = Math.max(ra.y + dy, Math.min(ra.y + ra.height + dy - bbox.height, position.y + ty));
+            // recalculate the translation taking the resctrictions into account.
+            tx = x - position.x;
+            ty = y - position.y;
+        }
+
+        var translatedPosition = {
+            x: position.x + tx,
+            y: position.y + ty
+        };
+
         // To find out by how much an element was translated in event 'change:position' handlers.
         opt.tx = tx;
         opt.ty = ty;
-
-        var position = this.get('position') || { x: 0, y: 0 };
-        var translatedPosition = { x: position.x + tx || 0, y: position.y + ty || 0 };
 
         if (opt.transition) {
 
@@ -99,7 +134,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
     fitEmbeds: function(opt) {
 
-        opt = opt || 0;
+        opt = opt || {};
 
         var collection = this.collection;
 
@@ -170,7 +205,20 @@ joint.dia.Element = joint.dia.Cell.extend({
         return this;
     },
 
-    getBBox: function() {
+    getBBox: function(opt) {
+
+        opt = opt || {};
+
+        if (opt.deep && this.collection) {
+
+            // Get all the embedded elements using breadth first algorithm,
+            // that doesn't use recursion.
+            var elements = this.getEmbeddedCells({ deep: true, breadthFirst: true });
+            // Add the model itself.
+            elements.push(this);
+
+            return this.collection.getBBox(elements);
+        }
 
         var position = this.get('position');
         var size = this.get('size');
@@ -562,7 +610,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     // default markup is not desirable.
     renderMarkup: function() {
 
-        var markup = this.model.get('markup') || this.model.markup;
+        var markup = this.model.markup || this.model.get('markup');
 
         if (markup) {
 
@@ -686,42 +734,37 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     // Embedding mode methods
     // ----------------------
 
-    findParentsByKey: function(key) {
+    prepareEmbedding: function(opt) {
 
-        var bbox = this.model.getBBox();
+        opt = opt || {};
 
-        return key == 'bbox'
-            ? this.paper.model.findModelsInArea(bbox)
-            : this.paper.model.findModelsFromPoint(bbox[key]());
-    },
-
-    prepareEmbedding: function() {
+        var model = opt.model || this.model;
+        var paper = opt.paper || this.paper;
 
         // Bring the model to the front with all his embeds.
-        this.model.toFront({ deep: true, ui: true });
+        model.toFront({ deep: true, ui: true });
 
         // Move to front also all the inbound and outbound links that are connected
         // to any of the element descendant. If we bring to front only embedded elements,
         // links connected to them would stay in the background.
-        _.invoke(this.paper.model.getConnectedLinks(this.model, { deep: true }), 'toFront', { ui: true });
+        _.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'toFront', { ui: true });
 
         // Before we start looking for suitable parent we remove the current one.
-        var parentId = this.model.get('parent');
-        parentId && this.paper.model.getCell(parentId).unembed(this.model, { ui: true });
+        var parentId = model.get('parent');
+        parentId && paper.model.getCell(parentId).unembed(model, { ui: true });
     },
 
     processEmbedding: function(opt) {
 
-        opt = opt || this.paper.options;
+        opt = opt || {};
 
-        var candidates = this.findParentsByKey(opt.findParentBy);
+        var model = opt.model || this.model;
+        var paper = opt.paper || this.paper;
 
-        // don't account element itself or any of its descendents
-        candidates = _.reject(candidates, function(el) {
-            return this.model.id == el.id || el.isEmbeddedIn(this.model);
-        }, this);
+        var paperOptions = paper.options;
+        var candidates = paper.model.findModelsUnderElement(model, { searchBy: paperOptions.findParentBy });
 
-        if (opt.frontParentOnly) {
+        if (paperOptions.frontParentOnly) {
             // pick the element with the highest `z` index
             candidates = candidates.slice(-1);
         }
@@ -742,8 +785,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             } else {
 
-                var view = candidate.findView(this.paper);
-                if (opt.validateEmbedding.call(this.paper, this, view)) {
+                var view = candidate.findView(paper);
+                if (paperOptions.validateEmbedding.call(paper, this, view)) {
 
                     // flip to the new candidate
                     newCandidateView = view;
@@ -765,20 +808,24 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
     },
 
-    finalizeEmbedding: function() {
+    finalizeEmbedding: function(opt) {
+
+        opt = opt || {};
 
         var candidateView = this._candidateEmbedView;
+        var model = opt.model || this.model;
+        var paper = opt.paper || this.paper;
 
         if (candidateView) {
 
             // We finished embedding. Candidate view is chosen to become the parent of the model.
-            candidateView.model.embed(this.model, { ui: true });
+            candidateView.model.embed(model, { ui: true });
             candidateView.unhighlight(null, { embedding: true });
 
             delete this._candidateEmbedView;
         }
 
-        _.invoke(this.paper.model.getConnectedLinks(this.model, { deep: true }), 'reparent', { ui: true });
+        _.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
     },
 
     // Interaction. The controller part.
@@ -786,12 +833,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     pointerdown: function(evt, x, y) {
 
+        var paper = this.paper;
+
         // target is a valid magnet start linking
-        if (evt.target.getAttribute('magnet') && this.paper.options.validateMagnet.call(this.paper, this, evt.target)) {
+        if (evt.target.getAttribute('magnet') && paper.options.validateMagnet.call(paper, this, evt.target)) {
 
             this.model.trigger('batch:start', { batchName: 'add-link' });
 
-            var link = this.paper.getDefaultLink(this, evt.target);
+            var link = paper.getDefaultLink(this, evt.target);
             link.set({
                 source: {
                     id: this.model.id,
@@ -801,15 +850,18 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 target: { x: x, y: y }
             });
 
-            this.paper.model.addCell(link);
+            paper.model.addCell(link);
 
-            this._linkView = this.paper.findViewByModel(link);
+            this._linkView = paper.findViewByModel(link);
             this._linkView.pointerdown(evt, x, y);
             this._linkView.startArrowheadMove('target');
 
         } else {
+
             this._dx = x;
             this._dy = y;
+
+            this.restrictedArea = paper.getRestrictedArea(this);
 
             joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
             this.notify('element:pointerdown', evt, x, y);
@@ -836,10 +888,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 // Make sure the new element's position always snaps to the current grid after
                 // translate as the previous one could be calculated with a different grid size.
-                this.model.translate(
-		    g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - this._dx, grid),
-		    g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - this._dy, grid)
-	        );
+                var tx = g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - this._dx, grid);
+                var ty = g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - this._dy, grid);
+
+                this.model.translate(tx, ty, { restrictedArea: this.restrictedArea, ui: true });
 
                 if (this.paper.options.embeddingMode) {
 

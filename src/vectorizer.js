@@ -44,9 +44,33 @@ V = Vectorizer = (function() {
     function createSvgDocument(content) {
 
         var svg = '<svg xmlns="' + ns.xmlns + '" xmlns:xlink="' + ns.xlink + '" version="' + SVGversion + '">' + (content || '') + '</svg>';
-        var parser = new DOMParser();
-        parser.async = false;
-        return parser.parseFromString(svg, 'text/xml').documentElement;
+        var xml = parseXML(svg, { async: false });
+        return xml.documentElement;
+    }
+
+    function parseXML(data, opt) {
+
+        opt = opt || {};
+
+        var xml;
+
+        try {
+            var parser = new DOMParser();
+
+            if (typeof opt.async !== 'undefined') {
+                parser.async = opt.async;
+            }
+
+            xml = parser.parseFromString(data, 'text/xml');
+        } catch (error) {
+            xml = undefined;
+        }
+
+        if (!xml || xml.getElementsByTagName('parsererror').length) {
+            throw new Error('Invalid XML: ' + data);
+        }
+
+        return xml;
     }
 
     // Create SVG element.
@@ -1300,7 +1324,7 @@ V = Vectorizer = (function() {
         return found;
     };
 
-    // Shift all the textg annotations after character `index` by `offset` positions.
+    // Shift all the text annotations after character `index` by `offset` positions.
     V.shiftAnnotations = function(annotations, index, offset) {
 
         if (!annotations) return annotations;

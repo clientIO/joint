@@ -332,7 +332,7 @@ joint.dia.Graph = Backbone.Model.extend({
         _.invoke(this.getConnectedLinks(model), 'remove', options);
     },
 
-    // Find all views at given point
+    // Find all elements at given point
     findModelsFromPoint: function(p) {
 
         return _.filter(this.getElements(), function(el) {
@@ -340,11 +340,27 @@ joint.dia.Graph = Backbone.Model.extend({
         });
     },
 
-    // Find all views in given area
+    // Find all elements in given area
     findModelsInArea: function(r) {
 
         return _.filter(this.getElements(), function(el) {
             return el.getBBox().intersect(r);
+        });
+    },
+
+    // Find all elements under the given element.
+    findModelsUnderElement: function(element, opt) {
+
+        opt = _.defaults(opt || {}, { searchBy: 'bbox' });
+
+        var bbox = element.getBBox();
+        var elements = (opt.searchBy == 'bbox')
+            ? this.findModelsInArea(bbox)
+            : this.findModelsFromPoint(bbox[opt.searchBy]());
+
+        // don't account element itself or any of its descendents
+        return _.reject(elements, function(el) {
+            return element.id == el.id || el.isEmbeddedIn(element);
         });
     },
 

@@ -35,6 +35,32 @@ test('constuctor', function(assert) {
     assert.ok(V(vRect).node instanceof SVGElement, 'The vectorizer element has again the attribute "node" that references to an SVGElement.');
 });
 
+test('V(\'<invalid markup>\')', function(assert) {
+
+    var error;
+
+    try {
+        V('<invalid markup>');
+    } catch (e) {
+        error = e;
+    }
+
+    assert.ok(typeof error !== 'undefined', 'Should throw an error when given invalid markup.');
+});
+
+test('V(\'<valid markup>\')', function(assert) {
+
+    var error;
+
+    try {
+        V('<rect width="100%" height="100%" fill="red" />');
+    } catch (e) {
+        error = e;
+    }
+
+    assert.ok(typeof error === 'undefined', 'Should not throw an error when given valid markup.');
+});
+
 test('index()', function(assert) {
 
     // svg container
@@ -173,5 +199,3 @@ test('find()', function(assert) {
     assert.ok(found.length, 'The array is not empty.');
     assert.ok(found.reduce(function(memo, vel) { return memo && V.isVElement(vel); }, true), 'Items in the array are wrapped in Vectorizer.');
 });
-
-

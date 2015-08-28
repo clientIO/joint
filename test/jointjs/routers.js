@@ -26,7 +26,7 @@ test('construction', function() {
 
     var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
     var r2 = r1.clone().translate(300);
-    
+
 
     this.graph.addCell([r1,r2]);
 
@@ -61,7 +61,7 @@ test('construction', function() {
 test('orthogonal routing', function() {
 
     // One vertex.
-    
+
     var r1 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 } });
     var r2 = new joint.shapes.basic.Rect({ position: { x: 125, y: 60 }, size: { width: 50, height: 30 } });
 
@@ -121,7 +121,7 @@ test('manhattan routing', function() {
 
     var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
     var r2 = r1.clone().translate(300);
-    
+
     var r3 = r2.clone().translate(300);
 
     var l0 = new joint.dia.Link({
@@ -145,7 +145,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    equal(d, "M 140 120 160 120 460 120 460 80 600 80 620 80",
+    equal(d, "M 140 120 160 120 600 120 600 80 620 80",
           'Source has been moved. Route recalculated starting from target.');
 
     r3.translate(0,-50);
@@ -166,7 +166,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    equal(d, "M 140 120 180 120 280 120 280 140 580 140 580 20 620 20",
+    equal(d, "M 140 120 180 120 280 120 280 0 580 0 580 20 620 20",
           "The option paddingBox was passed. The source and target element and obstacles are avoided taken this padding in account.");
 
     throws(function() {
@@ -186,7 +186,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    equal(d, "M 140 120 680 120 680 20 680 20",
+    equal(d, "M 80 80 80 20 680 20 680 20",
           'The default fallback router made an orthogonal link.');
 
     l0.set({
@@ -244,7 +244,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    equal(d, "M 140 80 160 80 800 80 800 60 760 60 760 80 740 80",
+    equal(d, "M 140 80 160 80 800 80 800 100 760 100 760 80 740 80",
           "Set excludeEnds parameter to 'target' makes routing ignore target element.");
 
     l0.set({
@@ -268,7 +268,7 @@ test('metro routing', function() {
 
     var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
     var r2 = r1.clone().translate(300,300);
-    
+
     var r3 = r2.clone().translate(300,300);
 
     var l0 = new joint.dia.Link({
@@ -286,7 +286,7 @@ test('metro routing', function() {
 
     var d = v0.$('.connection').attr('d');
 
-    equal(d, "M 140 80 160 80 400 320 440 320 600 480 600 680 620 680",
+    equal(d, "M 140 80 160 80 400 320 440 320 680 560 680 620 680 630",
           'Route avoids an obstacle.');
 
     l0.set('router', { name: 'metro', args: {
@@ -339,4 +339,23 @@ test('oneSide routing', function(assert) {
     assert.throws(function() {
         l.set('router', { name: 'oneSide', args: { padding: 40, side: 'non-existing' }});
     }, 'An error is thrown when a non-existing side is provided.');
+});
+
+test('custom routing', function(assert) {
+
+    var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+    var r2 = r1.clone().translate(300,300);
+    var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id }});
+
+    this.graph.addCell([r1, r2, l]);
+
+    var called = 0;
+
+    l.set('router', function(oldVertices) {
+        assert.deepEqual(oldVertices, []);
+        called += 1;
+        return oldVertices;
+    });
+
+    assert.equal(called, 1);
 });

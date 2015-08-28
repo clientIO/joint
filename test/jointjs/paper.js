@@ -103,3 +103,57 @@ test('contextmenu', function() {
     this.paper.$el.trigger('contextmenu');
     ok(blankContextmenuCallback.called, 'blank:contextmenu triggered');    
 });
+
+test('paper.getArea()', function(assert) {
+
+    this.paper.setOrigin(0,0);
+    this.paper.setDimensions(1000, 800);
+
+    assert.ok(this.paper.getArea() instanceof g.rect, 'Paper area is a geometry rectangle.');
+    assert.deepEqual(
+        _.pick(this.paper.getArea(), 'x', 'y', 'width', 'height'),
+        { x: 0, y: 0, width: 1000, height: 800 },
+        'Paper area returns correct results for unscaled, untranslated viewport.');
+
+    this.paper.setOrigin(100,100);
+
+    assert.deepEqual(
+        _.pick(this.paper.getArea(), 'x', 'y', 'width', 'height'),
+        { x: -100, y: -100, width: 1000, height: 800 },
+        'Paper area returns correct results for unscaled, but translated viewport.');
+
+    V(this.paper.viewport).scale(2,2);
+
+    assert.deepEqual(
+        _.pick(this.paper.getArea(), 'x', 'y', 'width', 'height'),
+        { x: -50, y: -50, width: 500, height: 400 },
+        'Paper area returns correct results for scaled and translated viewport.');
+});
+
+test('graph.findModelsUnderElement()', function(assert) {
+
+    var rect = new joint.shapes.basic.Rect({
+        size: { width: 100, height: 100 },
+        position: { x: 100, y: 100 }
+    });
+
+    var under = rect.clone();
+    var away = rect.clone().translate(200,200);
+
+    this.graph.addCells([rect,under,away]);
+
+    assert.deepEqual(this.graph.findModelsUnderElement(away), [], 'There are no models under the element.');
+    assert.deepEqual(this.graph.findModelsUnderElement(rect), [under], 'There is a model under the element.');
+
+    under.translate(50,50);
+
+    assert.deepEqual(this.graph.findModelsUnderElement(rect, { searchBy: 'origin' }), [], 'There is no model under the element if searchBy origin option used.');
+    assert.deepEqual(this.graph.findModelsUnderElement(rect, { searchBy: 'corner' }), [under], 'There is a model under the element if searchBy corner options used.');
+    
+    var embedded = rect.clone().addTo(this.graph);
+    rect.embed(embedded);
+
+    assert.deepEqual(this.graph.findModelsUnderElement(rect), [under], 'There is 1 model under the element found and 1 embedded element is omitted.');
+    assert.deepEqual(this.graph.findModelsUnderElement(under), [rect, embedded], 'There are 2 models under the element. Parent and its embed.');
+    assert.deepEqual(this.graph.findModelsUnderElement(embedded), [rect, under], 'There are 2 models under the element. The element\'s parent and one other element.');
+});

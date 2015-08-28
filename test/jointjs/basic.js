@@ -229,6 +229,51 @@ test('translate()', function() {
     checkBbox(this.paper, myrect, 70, 50, 120, 80, 'translate(-10, -10) should translate back by 10px in both x and y directions');
 });
 
+test('translate() with restrictedArea option', function(assert) {
+
+    var rect = new joint.shapes.basic.Rect({
+        position: { x: 20, y: 30 },
+        size: { width: 120, height: 80 }
+    });
+
+    var embed = new joint.shapes.basic.Rect({
+        position: { x: 100, y: 70 },
+        size: { width: 120, height: 80 }
+    });
+
+    this.graph.addCell(rect);
+
+    rect.translate(1000, 0, { restrictedArea: { x: 0, y: 0, height: 1000, width: 150 }});
+    assert.equal(rect.prop('position/x'), 30, 'restrictedArea is respected when the element is translated to the left.');
+
+    rect.translate(0, 1000, { restrictedArea: { x: 0, y: 0, height: 150, width: 1000 }});
+    assert.equal(rect.prop('position/y'), 70, 'restrictedArea is respected when the element is translated to the bottom.');
+
+    rect.translate(-1000, 0, { restrictedArea: { x: 10, y: 0, height: 1000, width: 1000 }});
+    assert.equal(rect.prop('position/x'), 10, 'restrictedArea is respected when the element is translated to the right.');
+
+    rect.translate(0, -1000, { restrictedArea: { x: 0, y: 10, height: 1000, width: 1000 }});
+    assert.equal(rect.prop('position/y'), 10, 'restrictedArea is respected when the element is translated to the top.');
+
+    rect.position(50, 50).embed(embed);
+    this.graph.addCell(embed);
+
+    rect.translate(1000, 0, { restrictedArea: { x: 0, y: 0, height: 1000, width: 500 }});
+    assert.equal(rect.prop('position/x'), 330, 'restrictedArea is respected when the element and its embeds are translated to the left.');
+
+    rect.translate(0, 1000, { restrictedArea: { x: 0, y: 0, height: 500, width: 1000 }});
+    assert.equal(rect.prop('position/y'), 400, 'restrictedArea is respected when the element and its embeds are translated to the bottom.');
+
+    rect.position(50, 50);
+    embed.position(20,20);
+
+    rect.translate(-1000, 0, { restrictedArea: { x: 10, y: 0, height: 1000, width: 1000 }});
+    assert.equal(rect.prop('position/x'), 40, 'restrictedArea is respected when the element and its embeds are translated to the right.');
+
+    rect.translate(0, -1000, { restrictedArea: { x: 0, y: 10, height: 1000, width: 1000 }});
+    assert.equal(rect.prop('position/y'), 40, 'restrictedArea is respected when the element and its embeds are translated to the top.');
+});
+
 test('resize()', function() {
 
     var myrect = new joint.shapes.basic.Rect({

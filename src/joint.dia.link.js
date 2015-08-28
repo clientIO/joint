@@ -1252,7 +1252,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 V(view.el).addClass('available-cell');
             }
 
-        }, this);
+        }, this).value();
     },
 
     _unmarkAvailableMagnets: function() {

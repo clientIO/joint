@@ -27,7 +27,7 @@ joint.routers.metro = (function() {
                 { offsetX: step  , offsetY: -step , cost: diagonalCost }
             ];
         },
-
+        maxAllowedDirectionChange: 45,
         // a simple route used in situations, when main routing method fails
         // (exceed loops, inaccessible).
         fallbackRoute: function(from, to, opts) {

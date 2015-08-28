@@ -174,6 +174,9 @@ var g = (function() {
         // the center of inversion in ref point.
         reflection: function(ref) {
             return point(ref).move(this, this.distance(ref));
+        },
+        clone: function() {
+            return point(this);
         }
     };
     // Alternative constructor, from polar coordinates.
@@ -297,6 +300,9 @@ var g = (function() {
         pointOffset: function(p) {
             // Find the sign of the determinant of vectors (start,end), where p is the query point.
             return ((this.end.x - this.start.x) * (p.y - this.start.y) - (this.end.y - this.start.y) * (p.x - this.start.x)) / 2;
+        },
+        clone: function() {
+            return line(this);
         }
     };
 
@@ -321,6 +327,12 @@ var g = (function() {
         toString: function() {
             return this.origin().toString() + ' ' + this.corner().toString();
         },
+        // @return {boolean} true if rectangles are equal.
+        equals: function(r) {
+            var mr = g.rect(this).normalize();
+            var nr = g.rect(r).normalize();
+            return mr.x === nr.x && mr.y === nr.y && mr.width === nr.width && mr.height === nr.height;
+        },
         origin: function() {
             return point(this.x, this.y);
         },
@@ -336,19 +348,25 @@ var g = (function() {
         center: function() {
             return point(this.x + this.width / 2, this.y + this.height / 2);
         },
-        // @return {boolean} true if rectangles intersect
+        // @return {rect} if rectangles intersect, {null} if not.
         intersect: function(r) {
             var myOrigin = this.origin();
             var myCorner = this.corner();
             var rOrigin = r.origin();
             var rCorner = r.corner();
 
+            // No intersection found
             if (rCorner.x <= myOrigin.x ||
                 rCorner.y <= myOrigin.y ||
                 rOrigin.x >= myCorner.x ||
-                rOrigin.y >= myCorner.y) return false;
-            return true;
+                rOrigin.y >= myCorner.y) return null;
+
+            var x = Math.max(myOrigin.x, rOrigin.x);
+            var y = Math.max(myOrigin.y, rOrigin.y);
+
+            return rect(x, y, Math.min(myCorner.x, rCorner.x) - x, Math.min(myCorner.y, rCorner.y) - y);
         },
+
         // @return {string} (left|right|top|bottom) side which is nearest to point
         // @see Squeak Smalltalk, Rectangle>>sideNearestTo:
         sideNearestToPoint: function(p) {
@@ -517,6 +535,18 @@ var g = (function() {
             var w = this.width * ct + this.height * st;
             var h = this.width * st + this.height * ct;
             return rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
+        },
+        snapToGrid: function(gx, gy) {
+            var origin = this.origin().snapToGrid(gx, gy);
+            var corner = this.corner().snapToGrid(gx, gy);
+            this.x = origin.x;
+            this.y = origin.y;
+            this.width = corner.x - origin.x;
+            this.height = corner.y - origin.y;
+            return this;
+        },
+        clone: function() {
+            return rect(this);
         }
     };
 
@@ -564,6 +594,9 @@ var g = (function() {
             result = point(this.x + x, this.y + y);
             if (angle) return result.rotate(point(this.x, this.y), -angle);
             return result;
+        },
+        clone: function() {
+            return ellipse(this);
         }
     };
 

@@ -26,7 +26,7 @@ test('construction', function() {
 
     var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
     var r2 = r1.clone().translate(300);
-    
+
 
     this.graph.addCell([r1,r2]);
 
@@ -63,5 +63,15 @@ test('construction', function() {
 
     equal(this.graph.getLinks().length, 3,
           'A link with the smooth connector was succesfully added to the graph');
+
+    var customCalled = 0;
+    var l3 = l0.clone().set('connector', function() {
+        customCalled += 1;
+    });
+
+    this.graph.addCell(l3);
+
+    equal(customCalled, 1,
+        'A link with the custom connector was succesfully added to the graph');
 
 });

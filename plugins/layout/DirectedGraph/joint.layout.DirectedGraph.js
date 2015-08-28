@@ -161,7 +161,8 @@ joint.layout.DirectedGraph = {
                 .filter(function(v) { return glGraph.children(v).length > 0; })
                 .map(graph.getCell, graph)
                 .sortBy(function(cluster) { return -cluster.getAncestors().length; })
-                .invoke('fitEmbeds', { padding: opt.clusterPadding });
+                .invoke('fitEmbeds', { padding: opt.clusterPadding })
+                .value();
         }
 
         // Return an object with height and width of the graph.

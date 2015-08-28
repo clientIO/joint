@@ -219,6 +219,9 @@ Do not allow adding new vertices: .connection-wrap { pointer-events: none; }
 */
 
 /* foreignObject inside the elements (i.e joint.shapes.basic.TextBlock) */
+.element .fobj {
+    overflow: hidden;
+}
 .element .fobj body {
     background-color: transparent;
     margin: 0px;
