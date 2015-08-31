@@ -139,6 +139,7 @@ joint.shapes.pn.Link = joint.dia.Link.extend({
 
     defaults: joint.util.deepSupplement({
 
+        type: 'pn.Link',
         attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
 
     }, joint.dia.Link.prototype.defaults)
