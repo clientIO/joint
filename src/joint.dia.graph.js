@@ -3,29 +3,30 @@
 
 joint.dia.GraphCells = Backbone.Collection.extend({
 
-    initialize: function() {
+    cellNamespace: joint.shapes,
+
+    initialize: function(models, opt) {
 
         // Backbone automatically doesn't trigger re-sort if models attributes are changed later when
         // they're already in the collection. Therefore, we're triggering sort manually here.
         this.on('change:z', this.sort, this);
+
+        // Set the optional namespace where all model classes are defined.
+        if (opt.cellNamespace) {
+            this.cellNamespace = opt.cellNamespace;
+        }
     },
 
     model: function(attrs, options) {
 
-        if (attrs.type === 'link') {
+        var namespace = options.collection.cellNamespace;
 
-            return new joint.dia.Link(attrs, options);
-        }
+        // Find the model class in the namespace or use the default one.
+        var ModelClass = (attrs.type === 'link')
+            ? joint.dia.Link
+            : joint.util.getByPath(namespace, attrs.type, '.') || joint.dia.Element;
 
-        var module = attrs.type.split('.')[0];
-        var entity = attrs.type.split('.')[1];
-
-        if (joint.shapes[module] && joint.shapes[module][entity]) {
-
-            return new joint.shapes[module][entity](attrs, options);
-        }
-
-        return new joint.dia.Element(attrs, options);
+        return new ModelClass(attrs, options);
     },
 
     // `comparator` makes it easy to sort cells based on their `z` index.
@@ -143,10 +144,15 @@ joint.dia.Graph = Backbone.Model.extend({
 
     initialize: function(attrs, opt) {
 
+        opt = opt || {};
+
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
         // when processing JSON graphs that are in a different than JointJS format.
-        Backbone.Model.prototype.set.call(this, 'cells', new joint.dia.GraphCells([], { model: opt && opt.cellModel }));
+        Backbone.Model.prototype.set.call(this, 'cells', new joint.dia.GraphCells([], {
+            model: opt.cellModel,
+            cellNamespace: opt.cellNamespace
+        }));
 
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
@@ -205,13 +211,14 @@ joint.dia.Graph = Backbone.Model.extend({
 
     _prepareCell: function(cell) {
 
-        if (cell instanceof Backbone.Model && _.isUndefined(cell.get('z'))) {
+        var attrs = (cell instanceof Backbone.Model) ? cell.attributes : cell;
 
-            cell.set('z', this.maxZIndex() + 1, { silent: true });
+        if (_.isUndefined(attrs.z)) {
+            attrs.z = this.maxZIndex() + 1;
+        }
 
-        } else if (_.isUndefined(cell.z)) {
-
-            cell.z = this.maxZIndex() + 1;
+        if (!_.isString(attrs.type)) {
+            throw new TypeError('dia.Graph: cell type must be a string.');
         }
 
         return cell;

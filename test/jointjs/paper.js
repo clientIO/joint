@@ -178,3 +178,122 @@ test('graph.findModelsUnderElement()', function(assert) {
     assert.deepEqual(this.graph.findModelsUnderElement(under), [rect, embedded], 'There are 2 models under the element. Parent and its embed.');
     assert.deepEqual(this.graph.findModelsUnderElement(embedded), [rect, under], 'There are 2 models under the element. The element\'s parent and one other element.');
 });
+
+test('paper.options: linkView & elementView', function(assert) {
+
+    assert.expect(8);
+
+    var customElementView = joint.dia.ElementView.extend({ custom: true });
+    var customLinkView = joint.dia.LinkView.extend({ custom: true });
+    var element = new joint.shapes.basic.Rect();
+    var link = new joint.dia.Link();
+
+    // Custom View via class
+
+    this.paper.options.elementView = customElementView;
+    this.paper.options.linkView = customLinkView;
+
+    this.graph.addCell(element);
+    assert.equal(element.findView(this.paper).constructor, customElementView,
+                 'custom element view used when "elementView" option contains one.');
+
+    this.graph.addCell(link);
+    assert.equal(link.findView(this.paper).constructor, customLinkView,
+                 'custom link view used when "linkView" option contains one.');
+
+    // Custom View via function
+
+    element.remove();
+    link.remove();
+
+    this.paper.options.elementView = function(el) {
+        assert.ok(el === element,
+                  '"elementView" option function executed with correct parameters.');
+        return customElementView;
+    };
+
+    this.paper.options.linkView = function(l) {
+        assert.ok(l === link,
+                  '"linkView" option function executed with correct parameters.');
+        return customLinkView;
+    };
+
+    this.graph.addCell(element);
+    assert.equal(element.findView(this.paper).constructor, customElementView,
+                 'the custom element view was used when "elementView" option function returns one.');
+
+    this.graph.addCell(link);
+    assert.equal(link.findView(this.paper).constructor, customLinkView,
+                 'the custom link view was used when "linkView" option function returns one.');
+
+    // Default View via function
+
+    element.remove();
+    link.remove();
+
+    this.paper.options.elementView = function(el) {
+        return null;
+    };
+
+    this.paper.options.linkView = function(l) {
+        return null;
+    };
+
+    this.graph.addCell(element);
+    assert.equal(element.findView(this.paper).constructor, joint.dia.ElementView,
+                 'the default element view was used when "elementView" option function returns no view.');
+
+    this.graph.addCell(link);
+    assert.equal(link.findView(this.paper).constructor, joint.dia.LinkView,
+                 'the default link view was used when "linkView" option function returns no view.');
+
+});
+
+test('paper.options: cellViewNamespace', function(assert) {
+
+    var customElementView = joint.dia.ElementView.extend({ custom: true });
+    var customLinkView = joint.dia.LinkView.extend({ custom: true });
+    var element = new joint.shapes.basic.Rect({ type: 'elements.Element' });
+    var link = new joint.dia.Link({ type: 'links.Link' });
+
+    this.paper.options.cellViewNamespace = {
+        elements: { ElementView: customElementView },
+        links: { LinkView: customLinkView }
+    };
+
+    this.graph.addCells([element, link]);
+
+    assert.equal(element.findView(this.paper).constructor, customElementView,
+                 'the custom element view was found in the custom namespace.');
+
+    assert.equal(link.findView(this.paper).constructor, customLinkView,
+                 'the custom link view was found in the custom namespace.');
+
+});
+
+test('graph.options: cellNamespace', function(assert) {
+
+    var elementJSON = { id: 'a', type: 'elements.Element' };
+    var linkJSON = { id: 'b', type: 'link' };
+    var nonExistingJSON = { id: 'c', type: 'elements.NonExisting' };
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: {
+        elements: { Element: joint.shapes.basic.Rect }
+    }});
+
+    graph.addCell(elementJSON);
+    var element = graph.getCell('a');
+    assert.equal(element.constructor, joint.shapes.basic.Rect,
+                 'The class was found in the custom namespace based on the type provided.');
+
+    graph.addCell(linkJSON);
+    var link = graph.getCell('b');
+    assert.equal(link.constructor, joint.dia.Link,
+                 'The default link model is created when type equals "link".');
+
+    graph.addCell(nonExistingJSON);
+    var nonExisting = graph.getCell('c');
+    assert.equal(nonExisting.constructor, joint.dia.Element,
+                 'If there is no class based on the type in the namespace, the default element model is used.');
+
+});

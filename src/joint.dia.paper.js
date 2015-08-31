@@ -79,7 +79,10 @@ joint.dia.Paper = Backbone.View.extend({
         },
 
         // Allowed number of mousemove events after which the pointerclick event will be still triggered.
-        clickThreshold: 0
+        clickThreshold: 0,
+
+        // The namespace, where all the cell views are defined.
+        cellViewNamespace: joint.shapes
     },
 
     events: {
@@ -371,27 +374,41 @@ joint.dia.Paper = Backbone.View.extend({
 
     createViewForModel: function(cell) {
 
-        var view;
+        // A class taken from the paper options.
+        var optionalViewClass;
 
-        var type = cell.get('type');
-        var module = type.split('.')[0];
-        var entity = type.split('.')[1];
+        // A default basic class (either dia.ElementView or dia.LinkView)
+        var defaultViewClass;
 
-        // If there is a special view defined for this model, use that one instead of the default `elementView`/`linkView`.
-        if (joint.shapes[module] && joint.shapes[module][entity + 'View']) {
+        // A special class defined for this model in the corresponding namespace.
+        // e.g. joint.shapes.basic.Rect searches for joint.shapes.basic.RectView
+        var namespace = this.options.cellViewNamespace;
+        var type = cell.get('type') + 'View';
+        var namespaceViewClass = joint.util.getByPath(namespace, type, '.');
 
-            view = new joint.shapes[module][entity + 'View']({ model: cell, interactive: this.options.interactive });
-
-        } else if (cell instanceof joint.dia.Element) {
-
-            view = new this.options.elementView({ model: cell, interactive: this.options.interactive });
-
+        if (cell.isLink()) {
+            optionalViewClass = this.options.linkView;
+            defaultViewClass = joint.dia.LinkView;
         } else {
-
-            view = new this.options.linkView({ model: cell, interactive: this.options.interactive });
+            optionalViewClass = this.options.elementView;
+            defaultViewClass = joint.dia.ElementView;
         }
 
-        return view;
+        // a) the paper options view is a class (deprecated)
+        //  1. search the namespace for a view
+        //  2. if no view was found, use view from the paper options
+        // b) the paper options view is a function
+        //  1. call the function from the paper options
+        //  2. if no view was return, search the namespace for a view
+        //  3. if no view was found, use the default
+        var ViewClass = (optionalViewClass.prototype instanceof Backbone.View)
+            ? namespaceViewClass || optionalViewClass
+            : optionalViewClass.call(this, cell) || namespaceViewClass || defaultViewClass;
+
+        return new ViewClass({
+            model: cell,
+            interactive: this.options.interactive
+        });
     },
 
     onCellAdded: function(cell, graph, opt) {

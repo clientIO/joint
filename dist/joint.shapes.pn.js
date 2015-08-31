@@ -1,4 +1,4 @@
-/*! JointJS v0.9.4 - JavaScript diagramming library  2015-08-28 
+/*! JointJS v0.9.4 - JavaScript diagramming library  2015-08-31 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -146,6 +146,7 @@ joint.shapes.pn.Link = joint.dia.Link.extend({
 
     defaults: joint.util.deepSupplement({
 
+        type: 'pn.Link',
         attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
 
     }, joint.dia.Link.prototype.defaults)
