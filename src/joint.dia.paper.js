@@ -11,7 +11,7 @@ joint.dia.Paper = Backbone.View.extend({
         width: 800,
         height: 600,
         origin: { x: 0, y: 0 }, // x,y coordinates in top-left corner
-        gridSize: 50,
+        gridSize: 1,
         perpendicularLinks: false,
         elementView: joint.dia.ElementView,
         linkView: joint.dia.LinkView,
@@ -38,6 +38,14 @@ joint.dia.Paper = Backbone.View.extend({
         // Value could be the Backbone.model or a function returning the Backbone.model
         // defaultLink: function(elementView, magnet) { return condition ? new customLink1() : new customLink2() }
         defaultLink: new joint.dia.Link,
+
+        // A connector that is used by links with no connector defined on the model.
+        // e.g. { name: 'rounded', args: { radius: 5 }} or a function
+        defaultConnector: { name: 'normal' },
+
+        // A router that is used by links with no router defined on the model.
+        // e.g. { name: 'oneSide', args: { padding: 10 }} or a function
+        defaultRouter: null,
 
         /* CONNECTING */
 
@@ -77,6 +85,10 @@ joint.dia.Paper = Backbone.View.extend({
         interactive: {
             labelMove: false
         },
+
+        // When set to true the links can be pinned to the paper.
+        // i.e. link source/target can be a point e.g. link.get('source') ==> { x: 100, y: 100 };
+        linkPinning: true,
 
         // Allowed number of mousemove events after which the pointerclick event will be still triggered.
         clickThreshold: 0,
@@ -476,6 +488,9 @@ joint.dia.Paper = Backbone.View.extend({
     resetViews: function(cellsCollection, opt) {
 
         $(this.viewport).empty();
+
+        // clearing views removes any event listeners
+        this.removeViews();
 
         var cells = cellsCollection.models.slice();
 

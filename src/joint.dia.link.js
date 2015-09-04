@@ -148,12 +148,26 @@ joint.dia.Link = joint.dia.Cell.extend({
         return true;
     },
 
-    hasLoop: function() {
+    hasLoop: function(opt) {
+
+        opt = opt || {};
 
         var sourceId = this.get('source').id;
         var targetId = this.get('target').id;
+        var loop = sourceId && targetId && sourceId === targetId;
 
-        return sourceId && targetId && sourceId == targetId;
+        // Note that there in the deep mode a link can have a loop,
+        // even if it connects only a parent and its embed.
+        // A loop "target equals source" is valid in both shallow and deep mode.
+        if (!loop && opt.deep && this.collection) {
+
+            var sourceElement = this.collection.get(sourceId);
+            var targetElement = this.collection.get(targetId);
+
+            loop = sourceElement.isEmbeddedIn(targetElement) || targetElement.isEmbeddedIn(sourceElement);
+        }
+
+        return loop;
     }
 });
 
@@ -959,30 +973,25 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var namespace = joint.routers;
         var router = this.model.get('router');
-        var routerFn = null;
-        var args = router && router.args || {};
+        var defaultRouter = this.paper.options.defaultRouter;
 
         if (!router) {
 
             if (this.model.get('manhattan')) {
                 // backwards compability
-                routerFn = namespace['orthogonal'];
+                router = { name: 'orthogonal' };
+            } else if (defaultRouter) {
+                router = defaultRouter;
             } else {
-
                 return oldVertices;
             }
+        }
 
-        } else if (_.isFunction(router)) {
+        var args = router.args || {};
+        var routerFn = _.isFunction(router) ? router : namespace[router.name];
 
-            routerFn = router;
-
-        } else {
-
-            routerFn = namespace[router.name];
-            if (!_.isFunction(routerFn)) {
-
-                throw 'unknown router: ' + router.name;
-            }
+        if (!_.isFunction(routerFn)) {
+            throw 'unknown router: ' + router.name;
         }
 
         var newVertices = routerFn.call(this, oldVertices || [], args, this);
@@ -996,25 +1005,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var namespace = joint.connectors;
         var connector = this.model.get('connector');
-        var connectorFn = null;
-        var args = connector && connector.args || {};
+        var defaultConnector = this.paper.options.defaultConnector;
 
         if (!connector) {
 
             // backwards compability
-            connectorFn = this.model.get('smooth') ? namespace['smooth'] : namespace['normal'];
-
-        } else if (_.isFunction(connector)) {
-
-            connectorFn = connector;
-
-        } else {
-
-            connectorFn = namespace[connector.name];
-            if (!_.isFunction(connectorFn)) {
-
-                throw 'unknown connector: ' + connector.name;
+            if (this.model.get('smooth')) {
+                connector = { name: 'smooth' };
+            } else {
+                connector = defaultConnector || { name: 'normal' };
             }
+        }
+
+        var connectorFn = _.isFunction(connector) ? connector : namespace[connector.name];
+        var args = connector.args || {};
+
+        if (!_.isFunction(connectorFn)) {
+            throw 'unknown connector: ' + connector.name;
         }
 
         var pathData = connectorFn.call(
@@ -1267,6 +1274,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // move without need to click on the actual arrowhead dom element.
         this._action = 'arrowhead-move';
         this._arrowhead = end;
+        this._initialEnd = _.clone(this.model.get(end)) || { x: 0, y: 0 };
         this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
         this._beforeArrowheadMove();
     },
@@ -1541,33 +1549,47 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         } else if (this._action === 'arrowhead-move') {
 
-            if (this.paper.options.snapLinks) {
+            var paperOptions = this.paper.options;
+            var arrowhead = this._arrowhead;
 
+            if (paperOptions.snapLinks) {
+
+                // Finish off link snapping. Everything except view unhighlighting was already done on pointermove.
                 this._closestView && this._closestView.unhighlight(this._closestEnd.selector, { connecting: true, snapping: true });
                 this._closestView = this._closestEnd = null;
 
             } else {
 
-                if (this._magnetUnderPointer) {
-                    this._viewUnderPointer.unhighlight(this._magnetUnderPointer, { connecting: true });
+                var viewUnderPointer = this._viewUnderPointer;
+                var magnetUnderPointer = this._magnetUnderPointer;
+
+                delete this._viewUnderPointer;
+                delete this._magnetUnderPointer;
+
+                if (magnetUnderPointer) {
+
+                    viewUnderPointer.unhighlight(magnetUnderPointer, { connecting: true });
                     // Find a unique `selector` of the element under pointer that is a magnet. If the
                     // `this._magnetUnderPointer` is the root element of the `this._viewUnderPointer` itself,
                     // the returned `selector` will be `undefined`. That means we can directly pass it to the
                     // `source`/`target` attribute of the link model below.
-                    this.model.set(this._arrowhead, {
-                        id: this._viewUnderPointer.model.id,
-                        selector: this._viewUnderPointer.getSelector(this._magnetUnderPointer),
-                        port: $(this._magnetUnderPointer).attr('port')
-                    }, { ui: true });
+                    var selector = viewUnderPointer.getSelector(magnetUnderPointer);
+                    var port = magnetUnderPointer.getAttribute('port');
+                    var arrowheadValue = { id: viewUnderPointer.model.id };
+                    if (selector != null) arrowheadValue.port = port;
+                    if (port != null) arrowheadValue.selector = selector;
+                    this.model.set(arrowhead, arrowheadValue, { ui: true });
                 }
+            }
 
-                delete this._viewUnderPointer;
-                delete this._magnetUnderPointer;
+            // If the link pinning is not allowed and the link is not connected to an element
+            // reset the arrowhead to the position before the dragging started.
+            if (!paperOptions.linkPinning && !_.has(this.model.get(arrowhead), 'id')) {
+                this.model.set(arrowhead, this._initialEnd, { ui: true });
             }
 
             // Reparent the link if embedding is enabled
-            if (this.paper.options.embeddingMode && this.model.reparent()) {
-
+            if (paperOptions.embeddingMode && this.model.reparent()) {
                 // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
                 delete this._z;
             }
@@ -1579,7 +1601,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         this.notify('link:pointerup', evt, x, y);
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);
-
     }
 
 }, {

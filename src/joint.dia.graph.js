@@ -46,6 +46,8 @@ joint.dia.GraphCells = Backbone.Collection.extend({
 
         var links = this.filter(function(cell) {
 
+            if (!cell.isLink()) return false;
+
             var source = cell.get('source');
             var target = cell.get('target');
 
@@ -60,6 +62,8 @@ joint.dia.GraphCells = Backbone.Collection.extend({
             var embeddedCells = model.getEmbeddedCells({ deep: true });
 
             _.each(this.difference(links, embeddedCells), function(cell) {
+
+                if (!cell.isLink()) return;
 
                 if (opt.outbound) {
 
@@ -83,6 +87,41 @@ joint.dia.GraphCells = Backbone.Collection.extend({
         }
 
         return links;
+    },
+
+    getNeighbors: function(model, opt) {
+
+        opt = opt || {};
+
+        var neighbors = _.transform(this.getConnectedLinks(model, opt), function(res, link) {
+
+            var source = link.get('source');
+            var target = link.get('target');
+            var loop = link.hasLoop(opt);
+
+            // Discard if it is a point, or if the neighbor was already added.
+            if (opt.inbound && _.has(source, 'id') && !res[source.id]) {
+
+                var sourceElement = this.get(source.id);
+
+                if (loop || (sourceElement !== model && (!opt.deep || !sourceElement.isEmbeddedIn(model)))) {
+                    res[source.id] = sourceElement;
+                }
+            }
+
+            // Discard if it is a point, or if the neighbor was already added.
+            if (opt.outbound && _.has(target, 'id') && !res[target.id]) {
+
+                var targetElement = this.get(target.id);
+
+                if (loop || targetElement !== model && (!opt.deep || !targetElement.isEmbeddedIn(model))) {
+                    res[target.id] = targetElement;
+                }
+            }
+
+        }, {}, this);
+
+        return _.values(neighbors);
     },
 
     getCommonAncestor: function(/* cells */) {
@@ -158,7 +197,7 @@ joint.dia.Graph = Backbone.Model.extend({
         // to the outside world.
         this.get('cells').on('all', this.trigger, this);
 
-        this.get('cells').on('remove', this.removeCell, this);
+        this.get('cells').on('remove', this._removeCell, this);
     },
 
     toJSON: function() {
@@ -204,9 +243,32 @@ joint.dia.Graph = Backbone.Model.extend({
 
     clear: function(opt) {
 
-        this.trigger('batch:start');
-        this.get('cells').remove(this.get('cells').models, opt);
-        this.trigger('batch:stop');
+        opt = _.extend({}, opt, { clear: true });
+
+        var collection = this.get('cells');
+
+        if (collection.length === 0) return this;
+
+        this.trigger('batch:start', { batchName: 'clear' });
+
+        // The elements come after the links.
+        var cells = collection.sortBy(function(cell) {
+            return cell.isLink() ? 1 : 2;
+        });
+
+        do {
+
+            // Remove all the cells one by one.
+            // Note that all the links are removed first, so it's
+            // safe to remove the elements without removing the connected
+            // links first.
+            cells.shift().remove(opt);
+
+        } while (cells.length > 0);
+
+        this.trigger('batch:stop', { batchName: 'clear' });
+
+        return this;
     },
 
     _prepareCell: function(cell) {
@@ -265,20 +327,23 @@ joint.dia.Graph = Backbone.Model.extend({
         return this;
     },
 
-    removeCell: function(cell, collection, options) {
+    _removeCell: function(cell, collection, options) {
 
-        // Applications might provide a `disconnectLinks` option set to `true` in order to
-        // disconnect links when a cell is removed rather then removing them. The default
-        // is to remove all the associated links.
-        if (options && options.disconnectLinks) {
+        options = options || {};
 
-            this.disconnectLinks(cell, options);
+        if (!options.clear) {
+            // Applications might provide a `disconnectLinks` option set to `true` in order to
+            // disconnect links when a cell is removed rather then removing them. The default
+            // is to remove all the associated links.
+            if (options.disconnectLinks) {
 
-        } else {
+                this.disconnectLinks(cell, options);
 
-            this.removeLinks(cell, options);
+            } else {
+
+                this.removeLinks(cell, options);
+            }
         }
-
         // Silently remove the cell from the cells collection. Silently, because
         // `joint.dia.Cell.prototype.remove` already triggers the `remove` event which is
         // then propagated to the graph model. If we didn't remove the cell silently, two `remove` events
@@ -290,6 +355,11 @@ joint.dia.Graph = Backbone.Model.extend({
     getCell: function(id) {
 
         return this.get('cells').get(id);
+    },
+
+    getCells: function() {
+
+        return this.get('cells').toArray();
     },
 
     getElements: function() {
@@ -314,35 +384,9 @@ joint.dia.Graph = Backbone.Model.extend({
         return this.get('cells').getConnectedLinks(model, opt);
     },
 
-    getNeighbors: function(el) {
+    getNeighbors: function(model, opt) {
 
-        var links = this.getConnectedLinks(el);
-        var neighbors = [];
-        var cells = this.get('cells');
-
-        _.each(links, function(link) {
-
-            var source = link.get('source');
-            var target = link.get('target');
-
-            // Discard if it is a point.
-            if (!source.x) {
-                var sourceElement = cells.get(source.id);
-                if (sourceElement !== el) {
-
-                    neighbors.push(sourceElement);
-                }
-            }
-            if (!target.x) {
-                var targetElement = cells.get(target.id);
-                if (targetElement !== el) {
-
-                    neighbors.push(targetElement);
-                }
-            }
-        });
-
-        return neighbors;
+        return this.get('cells').getNeighbors(model, opt);
     },
 
     // Disconnect links connected to the cell `model`.

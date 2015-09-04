@@ -35,6 +35,44 @@ test('graph.resetCells()', function() {
     equal(this.paper.$('.element').length, 2, 'previous cells were removed from the paper after calling graph.resetCells()');
 });
 
+test('graph.clear()', function(assert) {
+
+    var graph = this.graph;
+    var r1 = new joint.shapes.basic.Rect;
+    var r2 = new joint.shapes.basic.Rect;
+    var r3 = new joint.shapes.basic.Rect;
+    var r4 = new joint.shapes.basic.Rect;
+    var l1 = new joint.shapes.basic.Rect({ source: { id: r1.id }, target: { id: r2.id }});
+    var l2 = new joint.shapes.basic.Rect({ source: { id: r2.id }, target: { id: r3.id }});
+    var l3 = new joint.shapes.basic.Rect({ source: { id: r2.id }, target: { id: r4.id }});
+
+    graph.addCells([r1, r2, l1, r3, l2, r4]);
+    r3.embed(r2);
+    r3.embed(l3);
+
+    graph.clear();
+
+    assert.equal(graph.getCells().length, 0, 'all the links and elements (even embeddes) were removed.');
+    assert.equal(graph.get('cells').length, 0, 'collection length is exactly 0 (Backbone v1.2.1 was showing negative values.)');
+});
+
+test('graph.getCells(), graph.getLinks(), graph.getElements()', function(assert) {
+
+    var graph = this.graph;
+    var r1 = new joint.shapes.basic.Rect({ id: 'r1' });
+    var r2 = new joint.shapes.basic.Rect({ id: 'r2' });
+    var l1 = new joint.dia.Link({ id: 'l1' });
+
+    graph.addCells([r1, r2, l1]);
+
+    assert.deepEqual(_.pluck(graph.getCells(), 'id'), ['r1', 'r2', 'l1'],
+                     'getCells() returns all the cells in the graph.');
+    assert.deepEqual(_.pluck(graph.getLinks(), 'id'), ['l1'],
+                     'getLinks() returns only the link in the graph.');
+    assert.deepEqual(_.pluck(graph.getElements(), 'id'), ['r1', 'r2'],
+                     'getElements() returns only the elements in the graph');
+});
+
 test('graph.fromJSON(), graph.toJSON()', function() {
 
     var json = {
@@ -295,5 +333,170 @@ test('graph.options: cellNamespace', function(assert) {
     var nonExisting = graph.getCell('c');
     assert.equal(nonExisting.constructor, joint.dia.Element,
                  'If there is no class based on the type in the namespace, the default element model is used.');
+
+});
+
+test('paper.options: linkPinning', function(assert) {
+
+    assert.expect(5);
+
+    var source = new joint.shapes.basic.Rect({ id: 'source', position: { x: 100, y: 100 }, size: { width: 100, height: 100 }});
+    var target = new joint.shapes.basic.Rect({ id: 'target', position: { x: 400, y: 100 }, size: { width: 100, height: 100 }});
+    var link = new joint.dia.Link({ id: 'link', source: { id: source.id }, target: { id: target.id }});
+    var newLink; // to be created.
+
+    this.graph.addCells([source, target, link]);
+
+    var linkView = link.findView(this.paper);
+    var sourceView = source.findView(this.paper);
+    var targetView = target.findView(this.paper);
+
+    var arrowhead = linkView.el.querySelector('.marker-arrowhead[end=target]');
+
+    this.paper.options.linkPinning = false;
+    linkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
+    linkView.pointermove({ target: this.paper.el, type: 'mousemove' }, 50 , 50);
+    linkView.pointerup({ target: this.paper.el, type: 'mouseup' }, 50 , 50);
+
+    assert.deepEqual(link.get('target'), { id: target.id }, 'pinning disabled: when the arrowhead is dragged&dropped to the blank paper area, the arrowhead is return to its original position.');
+
+    this.paper.options.linkPinning = true;
+    linkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
+    linkView.pointermove({ target: this.paper.el, type: 'mousemove' }, 50 , 50);
+    linkView.pointerup({ target: this.paper.el, type: 'mouseup' }, 50 , 50);
+
+    assert.deepEqual(link.get('target'), { x: 50, y: 50 }, 'pinning enabled: when the arrowhead is dragged&dropped to the blank paper area, the arrowhead is set to a point.');
+
+    this.paper.options.linkPinning = false;
+    linkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
+    linkView.pointermove({ target: targetView.el, type: 'mousemove' }, 450 , 150);
+    linkView.pointerup({ target: targetView.el, type: 'mouseup' }, 450 , 150);
+
+    assert.deepEqual(link.get('target'), { id: 'target' }, 'pinning disabled: it\'s still possible to connect link to elements.');
+
+    this.paper.options.linkPinning = true;
+    source.attr('.', { magnet: true });
+    sourceView.pointerdown({ target: sourceView.el, type: 'mousedown' }, 150, 150);
+    sourceView.pointermove({ target: this.paper.el, type: 'mousemove' }, 150 , 400);
+    sourceView.pointerup({ target: this.paper.el, type: 'mouseup' }, 150 , 400);
+
+    newLink = _.reject(this.graph.getLinks(), { id: 'link' })[0];
+    if (newLink) {
+        assert.deepEqual(newLink.get('target'), { x: 150, y: 400 }, 'pinning enabled: when there was a link created from a magnet a dropped into the blank paper area, the link target is set to a point.');
+        newLink.remove();
+    }
+
+    this.paper.options.linkPinning = false;
+    sourceView.pointerdown({ target: sourceView.el, type: 'mousedown' }, 150, 150);
+    sourceView.pointermove({ target: this.paper.el, type: 'mousemove' }, 150 , 400);
+    sourceView.pointerup({ target: this.paper.el, type: 'mouseup' }, 150 , 400);
+
+    newLink = _.reject(this.graph.getLinks(), { id: 'link' })[0];
+    assert.notOk(newLink, 'pinning disabled: when there was a link created from a magnet a dropped into the blank paper area, the link was removed after the drop.');
+});
+
+
+test('graph.getNeighbors()', function(assert) {
+
+    var graph = this.graph;
+    var Element = joint.shapes.basic.Rect;
+    var Link = joint.dia.Link;
+
+    function neighbors(el, opt) { return _.chain(graph.getNeighbors(el, opt)).pluck('id').sort().value(); }
+
+    var r1 = new Element({ id: 'R1' });
+    var r2 = new Element({ id: 'R2' });
+    var r3 = new Element({ id: 'R3' });
+    var r4 = new Element({ id: 'R4' });
+    var r5 = new Element({ id: 'R5' });
+    var r6 = new Element({ id: 'R6' });
+    var l1 = new Link({ id: 'L1' });
+    var l2 = new Link({ id: 'L2' });
+    var l3 = new Link({ id: 'L3' });
+    var l4 = new Link({ id: 'L4' });
+
+    graph.addCells([r1, r2, r3, r4, r5, r6, l1, l2]);
+    l1.set('source', { id: 'R1' }).set('target', { id: 'R2' });
+    l2.set('source', { id: 'R2' }).set('target', { id: 'R3' });
+
+    //
+    // [R1] --L1--> [R2] --L2--> [R3]
+    //
+    // [R4]
+    //
+
+    assert.deepEqual(neighbors(r4), [], 'Returns an empty array if the element has no neighbors.');
+    assert.deepEqual(neighbors(r1), ['R2'], 'Element has only outbound link. The neighbor was found.');
+    assert.deepEqual(neighbors(r3), ['R2'], 'Element has only inbound link. The neighbor was found.');
+    assert.deepEqual(neighbors(r2), ['R1','R3'], 'Elment has both outbound an inbound links. The neighbors were found.');
+
+    graph.addCells([l3]);
+    l3.set('source', { id: 'R2' }).set('target', { id: 'R4' });
+    //
+    //                     L2--> [R3]
+    //                     |
+    // [R1] --L1--> [R2] --|
+    //                     |
+    //                     L3--> [R4]
+    //
+
+    assert.deepEqual(neighbors(r2, { inbound: true }), ['R1'], 'The inbound links were found.');
+    assert.deepEqual(neighbors(r2, { outbound: true }), ['R3','R4'], 'The outbound links were found.');
+
+    graph.addCells([l4]);
+    l1.set('source', { id: 'R1' }).set('target', { id: 'R2' });
+    l2.set('source', { id: 'R2' }).set('target', { id: 'R3' });
+    l3.set('source', { id: 'R2' }).set('target', { id: 'R3' });
+    l4.set('source', { id: 'R1' }).set('target', { id: 'R2' });
+    //
+    // [R1] --L1,L4--> [R2] --L2,L3--> [R3]
+    //
+
+    assert.deepEqual(neighbors(r2), ['R1','R3'], 'There are no duplicates in the result.');
+
+    l1.set('source', { id: 'R1' }).set('target', { id: 'R1' });
+    l2.remove();
+    l3.remove();
+    l4.set('source', { id: 'R1' }).set('target', { id: 'R1' });
+    //  [R1] <--L1,L4
+    //    |       |
+    //     -------
+
+    assert.deepEqual(neighbors(r1), ['R1'], 'Being a self-neighbor is detected.');
+
+    graph.addCells([l2,l3]);
+    r1.embed(r2);
+    l1.set('source', { id: 'R1' }).set('target', { id: 'R3' });
+    l2.set('source', { id: 'R5' }).set('target', { id: 'R1' });
+    l3.set('source', { id: 'R2' }).set('target', { id: 'R4' });
+    l4.set('source', { id: 'R6' }).set('target', { id: 'R2' });
+    //
+    // ░░░░░░░░░░░<-L2-- [R5]
+    // ░R1░░░░░░░░--L1-> [R3]
+    // ░░░░▓▓▓▓▓▓▓
+    // ░░░░▓▓▓R2▓▓--L3-> [R4]
+    // ░░░░▓▓▓▓▓▓▓<-L4-- [R6]
+
+    assert.deepEqual(neighbors(r1), ['R3','R5'], 'Embedded elements are not taken into account by default.');
+    assert.deepEqual(neighbors(r2), ['R4','R6'], 'Parent elements are not taken into account by default.');
+    assert.deepEqual(neighbors(r1, { deep: true }), ['R3','R4','R5','R6'], 'The neighbours of the element and all its embdes were found in the deep mode. But not the embdes themselves.');
+    assert.deepEqual(neighbors(r2, { deep: true }), ['R4','R6'], 'Parent elements are not taken into account in the deep mode.');
+    assert.deepEqual(neighbors(r1, { deep: true, outbound: true }), ['R3','R4'], 'The outbound neighbours of the element and all its embdes were found in the deep mode.');
+    assert.deepEqual(neighbors(r1, { deep: true, inbound: true }), ['R5','R6'], 'The inbound neighbours of the element and all its embdes were found in the deep mode.');
+
+    l1.set('source', { id: 'R1' }).set('target', { id: 'R2' });
+    l2.remove();
+    l3.remove();
+    l4.remove();
+    //
+    // ░░░░░░░░░░░
+    // ░R1░░░░░░░░------
+    // ░░░░▓▓▓▓▓▓▓   L1|
+    // ░░░░▓▓▓R2▓▓<-----
+    // ░░░░▓▓▓▓▓▓▓
+    assert.deepEqual(neighbors(r1), ['R2'], 'A connected embedded elements is found in the shallow mode.');
+    assert.deepEqual(neighbors(r1, { deep: true }), ['R1','R2'], 'All the connected embedded elements are found in the deep mode.');
+    assert.deepEqual(neighbors(r1, { deep: true, inbound: true }), ['R1'], 'All the inbound connected embedded elements are found in the deep mode.');
+    assert.deepEqual(neighbors(r1, { deep: true, outbound: true  }), ['R2'], 'All the outbound connected embedded elements are found in the deep mode.');
 
 });

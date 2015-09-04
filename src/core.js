@@ -239,7 +239,19 @@ var joint = {
 
         normalizeEvent: function(evt) {
 
-            return (evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches.length) ? evt.originalEvent.changedTouches[0] : evt;
+            var touchEvt = evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches[0];
+            if (touchEvt) {
+                for (var property in evt) {
+                    // copy all the properties from the input event that are not
+                    // defined on the touch event (functions included).
+                    if (touchEvt[property] === undefined) {
+                        touchEvt[property] = evt[property];
+                    }
+                }
+                return touchEvt;
+            }
+
+            return evt;
         },
 
         nextFrame:(function() {
@@ -618,6 +630,24 @@ var joint = {
 
             return Array.prototype.sort.call($elements, comparator).each(function(i) {
                 placements[i].call(this);
+            });
+        },
+
+        // Sets attributes on the given element and its descendants based on the selector.
+        // `attrs` object: { [SELECTOR1]: { attrs1 }, [SELECTOR2]: { attrs2}, ... } e.g. { 'input': { color : 'red' }}
+        setAttributesBySelector: function(element, attrs) {
+
+            var $element = $(element);
+
+            _.each(attrs, function(attrs, selector) {
+                var $elements = $element.find(selector).addBack().filter(selector);
+                // Make a special case for setting classes.
+                // We do not want to overwrite any existing class.
+                if (_.has(attrs, 'class')) {
+                    $elements.addClass(attrs['class']);
+                    attrs = _.omit(attrs, 'class');
+                }
+                $elements.attr(attrs);
             });
         },
 

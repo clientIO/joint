@@ -845,7 +845,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 source: {
                     id: this.model.id,
                     selector: this.getSelector(evt.target),
-                    port: $(evt.target).attr('port')
+                    port: evt.target.getAttribute('port')
                 },
                 target: { x: x, y: y }
             });
@@ -920,8 +920,18 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (this._linkView) {
 
+            var linkView = this._linkView;
+            var linkModel = linkView.model;
+
             // let the linkview deal with this event
-            this._linkView.pointerup(evt, x, y);
+            linkView.pointerup(evt, x, y);
+
+            // If the link pinning is not allowed and the link is not connected to an element
+            // we remove the link, because the link was never connected to any target element.
+            if (!this.paper.options.linkPinning && !_.has(linkModel.get('target'), 'id')) {
+                linkModel.remove({ ui: true });
+            }
+
             delete this._linkView;
 
             this.model.trigger('batch:stop', { batchName: 'add-link' });

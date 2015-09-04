@@ -715,3 +715,51 @@ test('mark available', function(){
     equal(availableMagnets.length + availableCells.length, 0,
           'When dragging an arrowhed stopped all magnets and cells were unmarked.');
 });
+
+test('defaultRouter', function(assert) {
+
+    assert.expect(1);
+
+    this.paper.options.defaultRouter = function(vertices) {
+        assert.ok(vertices.length > 0, 'Default router was used for the model with no router defined.');
+    };
+
+    var linkDefaultRouter = new joint.dia.Link({
+        source: { x: 0, y: 0 },
+        target: { x: 0, y: 0 },
+        vertices: [{ x: 50, y: 50}]
+    });
+
+    var linkOwnRouter = new joint.dia.Link({
+        source: { x: 0, y: 0 },
+        target: { x: 0, y: 0 },
+        router: { name: 'orthogonal' },
+        vertices: []
+    });
+
+    this.graph.addCells([linkDefaultRouter, linkOwnRouter]);
+});
+
+test('defaultConnector', function(assert) {
+
+    assert.expect(1);
+
+    this.paper.options.defaultConnector = function(s, t, vertices) {
+        assert.ok(vertices.length > 0, 'Default connector was used for the model with no connector defined.');
+    };
+
+    var linkDefaultConnector = new joint.dia.Link({
+        source: { x: 0, y: 0 },
+        target: { x: 0, y: 0 },
+        vertices: [{ x: 50, y: 50}]
+    });
+
+    var linkOwnConnector = new joint.dia.Link({
+        source: { x: 0, y: 0 },
+        target: { x: 0, y: 0 },
+        connector: { name: 'normal' },
+        vertices: []
+    });
+
+    this.graph.addCells([linkDefaultConnector, linkOwnConnector]);
+});
