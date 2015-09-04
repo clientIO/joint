@@ -3,6 +3,9 @@ joint.connectors.jumpover = (function(_, g) {
     // default size of jump if not specified in options
     var JUMP_SIZE = 5;
 
+    // default size of jump if not specified in options
+    var JUMP_TYPES = ['arc', 'gap'];
+
     // takes care of math. error for case when jump is too close to end of line
     var CLOSE_PROXIMITY_PADDING = 1;
 
@@ -26,25 +29,24 @@ joint.connectors.jumpover = (function(_, g) {
         }, []);
     }
 
-    var jumpOverLinkViews = [];
-    var listeningToBatch = false;
-
     function setupUpdating(jumpOverLinkView) {
+        var updateList = jumpOverLinkView.paper._jumpOverUpdateList;
+
+        // first time setup for this paper
+        if (updateList == null) {
+            updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
+            jumpOverLinkView.paper.on('cell:pointerup', updateJumpOver);
+        }
+
         // add this link to a list so it can be updated when some other link is updated
-        if (jumpOverLinkViews.indexOf(jumpOverLinkView) < 0) {
-            jumpOverLinkViews.push(jumpOverLinkView);
+        if (updateList.indexOf(jumpOverLinkView) < 0) {
+            updateList.push(jumpOverLinkView);
 
             // watch for change of connector type or removal of link itself
             // to remove the link from a list of jump over connectors
             jumpOverLinkView.listenToOnce(jumpOverLinkView.model, 'change:connector remove', function() {
-                jumpOverLinkViews.splice(jumpOverLinkViews.indexOf(jumpOverLinkView));
+                updateList.splice(updateList.indexOf(jumpOverLinkView), 1);
             });
-        }
-
-        // setup once a listening to batch:stop event to update links
-        if (listeningToBatch === false) {
-            jumpOverLinkView.paper.model.on('batch:stop', updateJumpOver);
-            listeningToBatch = true;
         }
     }
 
@@ -53,12 +55,10 @@ joint.connectors.jumpover = (function(_, g) {
      * update of all registered links with jump over connector
      * @param {object} batchEvent optional object with info about batch
      */
-    function updateJumpOver(batchEvent) {
-        if (batchEvent && batchEvent.batchName !== 'pointer') {
-            return;
-        }
-        for (var i = 0; i < jumpOverLinkViews.length; i++) {
-            jumpOverLinkViews[i].update();
+    function updateJumpOver() {
+        var updateList = this._jumpOverUpdateList;
+        for (var i = 0; i < updateList.length; i++) {
+            updateList[i].update();
         }
     }
 
@@ -157,18 +157,22 @@ joint.connectors.jumpover = (function(_, g) {
      * @param {number} jumpSize the size of jump arc (length empty spot on a line)
      * @return {string}
      */
-    function buildPath(lines, jumpSize) {
+    function buildPath(lines, jumpSize, jumpType) {
         // first move to the start of a first line
         var start = ['M', lines[0].start.x, lines[0].start.y];
 
         // make a paths from lines
         var paths = _(lines).map(function(line) {
             if (line.isJump) {
-                var diff = line.start.difference(line.end);
-                // determine rotation of arc based on difference between points
-                var xAxisRotate = Number(diff.x < 0 && diff.y < 0);
-                // for a jump line we create a arc instead
-                return ['A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y];
+                if (jumpType === 'arc') {
+                    var diff = line.start.difference(line.end);
+                    // determine rotation of arc based on difference between points
+                    var xAxisRotate = Number(diff.x < 0 && diff.y < 0);
+                    // for a jump line we create a arc instead
+                    return ['A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y];
+                } else if (jumpType === 'gap') {
+                    return ['M', line.end.x, line.end.y];
+                }
             }
             return ['L', line.end.x, line.end.y];
         }).flatten().value();
@@ -190,6 +194,12 @@ joint.connectors.jumpover = (function(_, g) {
         setupUpdating(this);
 
         var jumpSize = opts.size || JUMP_SIZE;
+        var jumpType = opts.jump && ('' + opts.jump).toLowerCase();
+
+        // grab the first jump type as a default if specified one is invalid
+        if (JUMP_TYPES.indexOf(jumpType) === -1) {
+            jumpType = JUMP_TYPES[0];
+        }
 
         var paper = this.paper;
         var graph = paper.model;
@@ -199,7 +209,7 @@ joint.connectors.jumpover = (function(_, g) {
         if (allLinks.length === 1) {
             return buildPath(
                 createLines(sourcePoint, targetPoint, vertices),
-                jumpSize
+                jumpSize, jumpType
             );
         }
 
@@ -255,6 +265,6 @@ joint.connectors.jumpover = (function(_, g) {
             return resultLines;
         }, []);
 
-        return buildPath(jumpingLines, jumpSize);
+        return buildPath(jumpingLines, jumpSize, jumpType);
     };
 }(_, g));
