@@ -21,7 +21,8 @@ module.exports = function(grunt) {
             'plugins/routers/joint.routers.oneSide.js',
             'plugins/connectors/joint.connectors.normal.js',
             'plugins/connectors/joint.connectors.rounded.js',
-            'plugins/connectors/joint.connectors.smooth.js'
+            'plugins/connectors/joint.connectors.smooth.js',
+            'plugins/connectors/joint.connectors.jumpover.js'
         ],
 
         geometry: ['src/geometry.js'],
