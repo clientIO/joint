@@ -1,4 +1,4 @@
-/*! JointJS v0.9.4 - JavaScript diagramming library  2015-08-31 
+/*! JointJS v0.9.4 - JavaScript diagramming library  2015-09-04 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -2403,7 +2403,19 @@ var joint = {
 
         normalizeEvent: function(evt) {
 
-            return (evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches.length) ? evt.originalEvent.changedTouches[0] : evt;
+            var touchEvt = evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches[0];
+            if (touchEvt) {
+                for (var property in evt) {
+                    // copy all the properties from the input event that are not
+                    // defined on the touch event (functions included).
+                    if (touchEvt[property] === undefined) {
+                        touchEvt[property] = evt[property];
+                    }
+                }
+                return touchEvt;
+            }
+
+            return evt;
         },
 
         nextFrame:(function() {
@@ -2782,6 +2794,24 @@ var joint = {
 
             return Array.prototype.sort.call($elements, comparator).each(function(i) {
                 placements[i].call(this);
+            });
+        },
+
+        // Sets attributes on the given element and its descendants based on the selector.
+        // `attrs` object: { [SELECTOR1]: { attrs1 }, [SELECTOR2]: { attrs2}, ... } e.g. { 'input': { color : 'red' }}
+        setAttributesBySelector: function(element, attrs) {
+
+            var $element = $(element);
+
+            _.each(attrs, function(attrs, selector) {
+                var $elements = $element.find(selector).addBack().filter(selector);
+                // Make a special case for setting classes.
+                // We do not want to overwrite any existing class.
+                if (_.has(attrs, 'class')) {
+                    $elements.addClass(attrs['class']);
+                    attrs = _.omit(attrs, 'class');
+                }
+                $elements.attr(attrs);
             });
         },
 
@@ -3358,6 +3388,8 @@ joint.dia.GraphCells = Backbone.Collection.extend({
 
         var links = this.filter(function(cell) {
 
+            if (!cell.isLink()) return false;
+
             var source = cell.get('source');
             var target = cell.get('target');
 
@@ -3372,6 +3404,8 @@ joint.dia.GraphCells = Backbone.Collection.extend({
             var embeddedCells = model.getEmbeddedCells({ deep: true });
 
             _.each(this.difference(links, embeddedCells), function(cell) {
+
+                if (!cell.isLink()) return;
 
                 if (opt.outbound) {
 
@@ -3395,6 +3429,41 @@ joint.dia.GraphCells = Backbone.Collection.extend({
         }
 
         return links;
+    },
+
+    getNeighbors: function(model, opt) {
+
+        opt = opt || {};
+
+        var neighbors = _.transform(this.getConnectedLinks(model, opt), function(res, link) {
+
+            var source = link.get('source');
+            var target = link.get('target');
+            var loop = link.hasLoop(opt);
+
+            // Discard if it is a point, or if the neighbor was already added.
+            if (opt.inbound && _.has(source, 'id') && !res[source.id]) {
+
+                var sourceElement = this.get(source.id);
+
+                if (loop || (sourceElement !== model && (!opt.deep || !sourceElement.isEmbeddedIn(model)))) {
+                    res[source.id] = sourceElement;
+                }
+            }
+
+            // Discard if it is a point, or if the neighbor was already added.
+            if (opt.outbound && _.has(target, 'id') && !res[target.id]) {
+
+                var targetElement = this.get(target.id);
+
+                if (loop || targetElement !== model && (!opt.deep || !targetElement.isEmbeddedIn(model))) {
+                    res[target.id] = targetElement;
+                }
+            }
+
+        }, {}, this);
+
+        return _.values(neighbors);
     },
 
     getCommonAncestor: function(/* cells */) {
@@ -3470,7 +3539,7 @@ joint.dia.Graph = Backbone.Model.extend({
         // to the outside world.
         this.get('cells').on('all', this.trigger, this);
 
-        this.get('cells').on('remove', this.removeCell, this);
+        this.get('cells').on('remove', this._removeCell, this);
     },
 
     toJSON: function() {
@@ -3516,9 +3585,32 @@ joint.dia.Graph = Backbone.Model.extend({
 
     clear: function(opt) {
 
-        this.trigger('batch:start');
-        this.get('cells').remove(this.get('cells').models, opt);
-        this.trigger('batch:stop');
+        opt = _.extend({}, opt, { clear: true });
+
+        var collection = this.get('cells');
+
+        if (collection.length === 0) return this;
+
+        this.trigger('batch:start', { batchName: 'clear' });
+
+        // The elements come after the links.
+        var cells = collection.sortBy(function(cell) {
+            return cell.isLink() ? 1 : 2;
+        });
+
+        do {
+
+            // Remove all the cells one by one.
+            // Note that all the links are removed first, so it's
+            // safe to remove the elements without removing the connected
+            // links first.
+            cells.shift().remove(opt);
+
+        } while (cells.length > 0);
+
+        this.trigger('batch:stop', { batchName: 'clear' });
+
+        return this;
     },
 
     _prepareCell: function(cell) {
@@ -3577,20 +3669,23 @@ joint.dia.Graph = Backbone.Model.extend({
         return this;
     },
 
-    removeCell: function(cell, collection, options) {
+    _removeCell: function(cell, collection, options) {
 
-        // Applications might provide a `disconnectLinks` option set to `true` in order to
-        // disconnect links when a cell is removed rather then removing them. The default
-        // is to remove all the associated links.
-        if (options && options.disconnectLinks) {
+        options = options || {};
 
-            this.disconnectLinks(cell, options);
+        if (!options.clear) {
+            // Applications might provide a `disconnectLinks` option set to `true` in order to
+            // disconnect links when a cell is removed rather then removing them. The default
+            // is to remove all the associated links.
+            if (options.disconnectLinks) {
 
-        } else {
+                this.disconnectLinks(cell, options);
 
-            this.removeLinks(cell, options);
+            } else {
+
+                this.removeLinks(cell, options);
+            }
         }
-
         // Silently remove the cell from the cells collection. Silently, because
         // `joint.dia.Cell.prototype.remove` already triggers the `remove` event which is
         // then propagated to the graph model. If we didn't remove the cell silently, two `remove` events
@@ -3602,6 +3697,11 @@ joint.dia.Graph = Backbone.Model.extend({
     getCell: function(id) {
 
         return this.get('cells').get(id);
+    },
+
+    getCells: function() {
+
+        return this.get('cells').toArray();
     },
 
     getElements: function() {
@@ -3626,35 +3726,9 @@ joint.dia.Graph = Backbone.Model.extend({
         return this.get('cells').getConnectedLinks(model, opt);
     },
 
-    getNeighbors: function(el) {
+    getNeighbors: function(model, opt) {
 
-        var links = this.getConnectedLinks(el);
-        var neighbors = [];
-        var cells = this.get('cells');
-
-        _.each(links, function(link) {
-
-            var source = link.get('source');
-            var target = link.get('target');
-
-            // Discard if it is a point.
-            if (!source.x) {
-                var sourceElement = cells.get(source.id);
-                if (sourceElement !== el) {
-
-                    neighbors.push(sourceElement);
-                }
-            }
-            if (!target.x) {
-                var targetElement = cells.get(target.id);
-                if (targetElement !== el) {
-
-                    neighbors.push(targetElement);
-                }
-            }
-        });
-
-        return neighbors;
+        return this.get('cells').getNeighbors(model, opt);
     },
 
     // Disconnect links connected to the cell `model`.
@@ -5576,7 +5650,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 source: {
                     id: this.model.id,
                     selector: this.getSelector(evt.target),
-                    port: $(evt.target).attr('port')
+                    port: evt.target.getAttribute('port')
                 },
                 target: { x: x, y: y }
             });
@@ -5651,8 +5725,18 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (this._linkView) {
 
+            var linkView = this._linkView;
+            var linkModel = linkView.model;
+
             // let the linkview deal with this event
-            this._linkView.pointerup(evt, x, y);
+            linkView.pointerup(evt, x, y);
+
+            // If the link pinning is not allowed and the link is not connected to an element
+            // we remove the link, because the link was never connected to any target element.
+            if (!this.paper.options.linkPinning && !_.has(linkModel.get('target'), 'id')) {
+                linkModel.remove({ ui: true });
+            }
+
             delete this._linkView;
 
             this.model.trigger('batch:stop', { batchName: 'add-link' });
@@ -5822,12 +5906,26 @@ joint.dia.Link = joint.dia.Cell.extend({
         return true;
     },
 
-    hasLoop: function() {
+    hasLoop: function(opt) {
+
+        opt = opt || {};
 
         var sourceId = this.get('source').id;
         var targetId = this.get('target').id;
+        var loop = sourceId && targetId && sourceId === targetId;
 
-        return sourceId && targetId && sourceId == targetId;
+        // Note that there in the deep mode a link can have a loop,
+        // even if it connects only a parent and its embed.
+        // A loop "target equals source" is valid in both shallow and deep mode.
+        if (!loop && opt.deep && this.collection) {
+
+            var sourceElement = this.collection.get(sourceId);
+            var targetElement = this.collection.get(targetId);
+
+            loop = sourceElement.isEmbeddedIn(targetElement) || targetElement.isEmbeddedIn(sourceElement);
+        }
+
+        return loop;
     }
 });
 
@@ -6633,30 +6731,25 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var namespace = joint.routers;
         var router = this.model.get('router');
-        var routerFn = null;
-        var args = router && router.args || {};
+        var defaultRouter = this.paper.options.defaultRouter;
 
         if (!router) {
 
             if (this.model.get('manhattan')) {
                 // backwards compability
-                routerFn = namespace['orthogonal'];
+                router = { name: 'orthogonal' };
+            } else if (defaultRouter) {
+                router = defaultRouter;
             } else {
-
                 return oldVertices;
             }
+        }
 
-        } else if (_.isFunction(router)) {
+        var args = router.args || {};
+        var routerFn = _.isFunction(router) ? router : namespace[router.name];
 
-            routerFn = router;
-
-        } else {
-
-            routerFn = namespace[router.name];
-            if (!_.isFunction(routerFn)) {
-
-                throw 'unknown router: ' + router.name;
-            }
+        if (!_.isFunction(routerFn)) {
+            throw 'unknown router: ' + router.name;
         }
 
         var newVertices = routerFn.call(this, oldVertices || [], args, this);
@@ -6670,25 +6763,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var namespace = joint.connectors;
         var connector = this.model.get('connector');
-        var connectorFn = null;
-        var args = connector && connector.args || {};
+        var defaultConnector = this.paper.options.defaultConnector;
 
         if (!connector) {
 
             // backwards compability
-            connectorFn = this.model.get('smooth') ? namespace['smooth'] : namespace['normal'];
-
-        } else if (_.isFunction(connector)) {
-
-            connectorFn = connector;
-
-        } else {
-
-            connectorFn = namespace[connector.name];
-            if (!_.isFunction(connectorFn)) {
-
-                throw 'unknown connector: ' + connector.name;
+            if (this.model.get('smooth')) {
+                connector = { name: 'smooth' };
+            } else {
+                connector = defaultConnector || { name: 'normal' };
             }
+        }
+
+        var connectorFn = _.isFunction(connector) ? connector : namespace[connector.name];
+        var args = connector.args || {};
+
+        if (!_.isFunction(connectorFn)) {
+            throw 'unknown connector: ' + connector.name;
         }
 
         var pathData = connectorFn.call(
@@ -6941,6 +7032,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // move without need to click on the actual arrowhead dom element.
         this._action = 'arrowhead-move';
         this._arrowhead = end;
+        this._initialEnd = _.clone(this.model.get(end)) || { x: 0, y: 0 };
         this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
         this._beforeArrowheadMove();
     },
@@ -7215,33 +7307,47 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         } else if (this._action === 'arrowhead-move') {
 
-            if (this.paper.options.snapLinks) {
+            var paperOptions = this.paper.options;
+            var arrowhead = this._arrowhead;
 
+            if (paperOptions.snapLinks) {
+
+                // Finish off link snapping. Everything except view unhighlighting was already done on pointermove.
                 this._closestView && this._closestView.unhighlight(this._closestEnd.selector, { connecting: true, snapping: true });
                 this._closestView = this._closestEnd = null;
 
             } else {
 
-                if (this._magnetUnderPointer) {
-                    this._viewUnderPointer.unhighlight(this._magnetUnderPointer, { connecting: true });
+                var viewUnderPointer = this._viewUnderPointer;
+                var magnetUnderPointer = this._magnetUnderPointer;
+
+                delete this._viewUnderPointer;
+                delete this._magnetUnderPointer;
+
+                if (magnetUnderPointer) {
+
+                    viewUnderPointer.unhighlight(magnetUnderPointer, { connecting: true });
                     // Find a unique `selector` of the element under pointer that is a magnet. If the
                     // `this._magnetUnderPointer` is the root element of the `this._viewUnderPointer` itself,
                     // the returned `selector` will be `undefined`. That means we can directly pass it to the
                     // `source`/`target` attribute of the link model below.
-                    this.model.set(this._arrowhead, {
-                        id: this._viewUnderPointer.model.id,
-                        selector: this._viewUnderPointer.getSelector(this._magnetUnderPointer),
-                        port: $(this._magnetUnderPointer).attr('port')
-                    }, { ui: true });
+                    var selector = viewUnderPointer.getSelector(magnetUnderPointer);
+                    var port = magnetUnderPointer.getAttribute('port');
+                    var arrowheadValue = { id: viewUnderPointer.model.id };
+                    if (selector != null) arrowheadValue.port = port;
+                    if (port != null) arrowheadValue.selector = selector;
+                    this.model.set(arrowhead, arrowheadValue, { ui: true });
                 }
+            }
 
-                delete this._viewUnderPointer;
-                delete this._magnetUnderPointer;
+            // If the link pinning is not allowed and the link is not connected to an element
+            // reset the arrowhead to the position before the dragging started.
+            if (!paperOptions.linkPinning && !_.has(this.model.get(arrowhead), 'id')) {
+                this.model.set(arrowhead, this._initialEnd, { ui: true });
             }
 
             // Reparent the link if embedding is enabled
-            if (this.paper.options.embeddingMode && this.model.reparent()) {
-
+            if (paperOptions.embeddingMode && this.model.reparent()) {
                 // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
                 delete this._z;
             }
@@ -7253,7 +7359,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         this.notify('link:pointerup', evt, x, y);
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);
-
     }
 
 }, {
@@ -7287,7 +7392,7 @@ joint.dia.Paper = Backbone.View.extend({
         width: 800,
         height: 600,
         origin: { x: 0, y: 0 }, // x,y coordinates in top-left corner
-        gridSize: 50,
+        gridSize: 1,
         perpendicularLinks: false,
         elementView: joint.dia.ElementView,
         linkView: joint.dia.LinkView,
@@ -7314,6 +7419,14 @@ joint.dia.Paper = Backbone.View.extend({
         // Value could be the Backbone.model or a function returning the Backbone.model
         // defaultLink: function(elementView, magnet) { return condition ? new customLink1() : new customLink2() }
         defaultLink: new joint.dia.Link,
+
+        // A connector that is used by links with no connector defined on the model.
+        // e.g. { name: 'rounded', args: { radius: 5 }} or a function
+        defaultConnector: { name: 'normal' },
+
+        // A router that is used by links with no router defined on the model.
+        // e.g. { name: 'oneSide', args: { padding: 10 }} or a function
+        defaultRouter: null,
 
         /* CONNECTING */
 
@@ -7353,6 +7466,10 @@ joint.dia.Paper = Backbone.View.extend({
         interactive: {
             labelMove: false
         },
+
+        // When set to true the links can be pinned to the paper.
+        // i.e. link source/target can be a point e.g. link.get('source') ==> { x: 100, y: 100 };
+        linkPinning: true,
 
         // Allowed number of mousemove events after which the pointerclick event will be still triggered.
         clickThreshold: 0,
@@ -7752,6 +7869,9 @@ joint.dia.Paper = Backbone.View.extend({
     resetViews: function(cellsCollection, opt) {
 
         $(this.viewport).empty();
+
+        // clearing views removes any event listeners
+        this.removeViews();
 
         var cells = cellsCollection.models.slice();
 
