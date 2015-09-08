@@ -1,4 +1,4 @@
-/*! JointJS v0.9.4 - JavaScript diagramming library  2015-09-04 
+/*! JointJS v0.9.4 - JavaScript diagramming library  2015-09-08 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -10024,6 +10024,9 @@ joint.connectors.jumpover = (function(_, g) {
 
         // create lines for each link
         var linkLines = linkViews.map(function(linkView) {
+            if (linkView == null) {
+                return [];
+            }
             return createLines(
                 linkView.sourcePoint,
                 linkView.targetPoint,
