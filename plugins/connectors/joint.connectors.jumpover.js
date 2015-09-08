@@ -233,6 +233,9 @@ joint.connectors.jumpover = (function(_, g) {
 
         // create lines for each link
         var linkLines = linkViews.map(function(linkView) {
+            if (linkView == null) {
+                return [];
+            }
             return createLines(
                 linkView.sourcePoint,
                 linkView.targetPoint,
