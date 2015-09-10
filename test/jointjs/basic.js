@@ -40,7 +40,7 @@ test('construction', function() {
     equal(textEls.length, 1, 'there is exactly one <text> element in the paper');
     equal(rectEls.length, 1, 'there is exactly one <rect> element in the paper');
 
-    equal(textEls[0].textContent, 'my rectangle', 'text element has a proper content');
+    equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
     
 });
 
@@ -63,7 +63,7 @@ asyncTest('async: resetCells', function() {
 	equal(textEls.length, 3, 'there is exactly 3 <text> elements in the paper');
 	equal(rectEls.length, 3, 'there is exactly 3 <rect> elements in the paper');
 
-	equal(textEls[0].textContent, 'my rectangle', 'text element has a proper content');
+	equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
 
 	start();
 
@@ -95,7 +95,7 @@ asyncTest('async: addCells', function() {
 	equal(textEls.length, 5, 'there is exactly 5 <text> elements in the paper');
 	equal(rectEls.length, 5, 'there is exactly 5 <rect> elements in the paper');
 
-	equal(textEls[0].textContent, 'my rectangle', 'text element has a proper content');
+	equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
 
 	start();
 
@@ -620,8 +620,8 @@ test('clone()', function() {
     equal(textEls.length, 2, 'there are exactly two <text> elements in the paper');
     equal(rectEls.length, 2, 'there are exactly two <rect> elements in the paper');
 
-    equal(textEls[0].textContent, 'my rectangle', 'text element has a proper content');
-    equal(textEls[1].textContent, 'my rectangle', 'text element of the cloned element has a proper content');
+    equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
+    equal(textEls[1].textContent, V.sanitizeText('my rectangle'), 'text element of the cloned element has a proper content');
 
     checkBbox(this.paper, r2, 20, 30, 120, 80, 'cloned element is at the exact same position as the original element');
 
