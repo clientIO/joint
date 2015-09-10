@@ -1,4 +1,4 @@
-/*! JointJS v0.9.4 - JavaScript diagramming library  2015-09-08 
+/*! JointJS v0.9.5 - JavaScript diagramming library  2015-09-10 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -852,8 +852,17 @@ V = Vectorizer = (function() {
         return 'v-' + id;
     }
 
+    // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
+    // IE would otherwise collapse all spaces into one. This is used in the text() method but it is
+    // also exposed so that the programmer can use it in case he needs to. This is useful e.g. in tests
+    // when you want to compare the actual DOM text content without having to add the unicode character in
+    // the place of all spaces.
+    function sanitizeText(text) {
+        return (text || '').replace(/ /g, '\u00A0');
+    }
+
     function isObject(o) {
-        return Object(o) === Object(o);
+        return o === Object(o);
     }
 
     function isArray(o) {
@@ -1176,6 +1185,9 @@ V = Vectorizer = (function() {
 
         text: function(content, opt) {
 
+            // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
+            // IE would otherwise collapse all spaces into one.
+            content = sanitizeText(content);
             opt = opt || {};
             var lines = content.split('\n');
             var i = 0;
@@ -1308,11 +1320,12 @@ V = Vectorizer = (function() {
 
                 } else {
 
-                    // Make sure the textContent is never empty. If it is, add an additional
-                    // space (an invisible character) so that following lines are correctly
+                    // Make sure the textContent is never empty. If it is, add a dummy
+                    // character and make it invisible, making the following lines correctly
                     // relatively positioned. `dy=1em` won't work with empty lines otherwise.
                     vLine.addClass('v-empty-line');
-                    vLine.node.textContent = ' ';
+                    vLine.node.style.opacity = 0;
+                    vLine.node.textContent = '-';
                 }
 
                 V(textNode).append(vLine);
@@ -2158,6 +2171,8 @@ V = Vectorizer = (function() {
         return annotations;
     };
 
+    V.sanitizeText = sanitizeText;
+
     return V;
 
 })();
@@ -2169,7 +2184,7 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '0.9.4',
+    version: '0.9.5',
 
     // `joint.dia` namespace.
     dia: {},
