@@ -350,7 +350,7 @@ module.exports = function(grunt) {
     Object.keys(js.plugins).forEach(function(name) {
 
         config.concat[name] = { files: {} };
-        config.uglify[name] = { files: {} };
+        config.uglify[name] = { files: {}, options: { banner: banner } };
 
         config.concat[name].files['dist/joint.' + name + '.js'] = js.plugins[name];
         config.uglify[name].files['build/min/joint.' + name + '.min.js'] = js.plugins[name];
