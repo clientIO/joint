@@ -105,6 +105,7 @@ Contributors
 - [Roman Bruckner](http://github.com/kumilingus)
 - [Emanuele Palombo](http://github.com/elbowz)
 - [Charles Hill](http://github.com/chill117)
+- [Daniel K.](http://github.com/FredyC)
 
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/DavidDurman/joint/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
