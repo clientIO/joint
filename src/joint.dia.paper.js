@@ -372,7 +372,7 @@ joint.dia.Paper = Backbone.View.extend({
 
         if (_.isFunction(this.options.restrictTranslate)) {
             // A method returning a bounding box
-            restrictedArea = this.options.restrictTranslate.aply(this, arguments);
+            restrictedArea = this.options.restrictTranslate.apply(this, arguments);
         } else if (this.options.restrictTranslate === true) {
             // The paper area
             restrictedArea = this.getArea();
