@@ -175,6 +175,14 @@ joint.connectors.jumpover = (function(_, g) {
                     return ['A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y];
                 } else if (jumpType === 'gap') {
                     return ['M', line.end.x, line.end.y];
+                } else if (jumpType === 'cubic') {
+                    var angle = line.start.theta(line.end),
+                        xOffset = jumpSize * 0.6,
+                        yOffset = jumpSize * 1.35,
+                        controlStartPoint = g.point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle),
+                        controlEndPoint = g.point(line.end.x - xOffset ,line.end.y + yOffset).rotate(line.end, angle);
+
+                    return ['C', controlStartPoint.x, controlStartPoint.y, controlEndPoint.x, controlEndPoint.y, line.end.x, line.end.y];
                 }
             }
             return ['L', line.end.x, line.end.y];
