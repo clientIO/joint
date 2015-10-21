@@ -36,6 +36,9 @@ joint.connectors.jumpover = (function(_, g) {
         if (updateList == null) {
             updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
             jumpOverLinkView.paper.on('cell:pointerup', updateJumpOver);
+            jumpOverLinkView.paper.model.on('reset', function() {
+                updateList = [];
+            });
         }
 
         // add this link to a list so it can be updated when some other link is updated
@@ -236,12 +239,19 @@ joint.connectors.jumpover = (function(_, g) {
             if (linkView == null) {
                 return [];
             }
+            if (linkView === this) {
+                return createLines(
+                    sourcePoint,
+                    targetPoint,
+                    vertices
+                );
+            }
             return createLines(
                 linkView.sourcePoint,
                 linkView.targetPoint,
                 linkView.route
             );
-        });
+        }, this);
 
         var thisLines = linkLines[thisIndex];
 
