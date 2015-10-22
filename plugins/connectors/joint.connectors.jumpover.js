@@ -3,8 +3,8 @@ joint.connectors.jumpover = (function(_, g) {
     // default size of jump if not specified in options
     var JUMP_SIZE = 5;
 
-    // default size of jump if not specified in options
-    var JUMP_TYPES = ['arc', 'gap'];
+    // available jump types
+    var JUMP_TYPES = ['arc', 'gap', 'cubic'];
 
     // takes care of math. error for case when jump is too close to end of line
     var CLOSE_PROXIMITY_PADDING = 1;
@@ -167,14 +167,28 @@ joint.connectors.jumpover = (function(_, g) {
         // make a paths from lines
         var paths = _(lines).map(function(line) {
             if (line.isJump) {
+                var diff;
                 if (jumpType === 'arc') {
-                    var diff = line.start.difference(line.end);
+                    diff = line.start.difference(line.end);
                     // determine rotation of arc based on difference between points
                     var xAxisRotate = Number(diff.x < 0 && diff.y < 0);
-                    // for a jump line we create a arc instead
+                    // for a jump line we create an arc instead
                     return ['A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y];
                 } else if (jumpType === 'gap') {
                     return ['M', line.end.x, line.end.y];
+                } else if (jumpType === 'cubic') {
+                    diff = line.start.difference(line.end);
+                    var angle = line.start.theta(line.end);
+                    var xOffset = jumpSize * 0.6;
+                    var yOffset = jumpSize * 1.35;
+                    // determine rotation of curve based on difference between points
+                    if (diff.x < 0 && diff.y < 0) {
+                        yOffset *= -1;
+                    }
+                    var controlStartPoint = g.point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
+                    var controlEndPoint = g.point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
+                    // create a cubic bezier curve
+                    return ['C', controlStartPoint.x, controlStartPoint.y, controlEndPoint.x, controlEndPoint.y, line.end.x, line.end.y];
                 }
             }
             return ['L', line.end.x, line.end.y];
