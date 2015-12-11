@@ -1,4 +1,4 @@
-/*! JointJS v0.9.5 - JavaScript diagramming library  2015-09-10 
+/*! JointJS v0.9.5 - JavaScript diagramming library  2015-12-11 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -290,6 +290,14 @@ V = Vectorizer = (function() {
 
     VElement.prototype = {
 
+        /**
+         * @param {SVGGElement} toElem
+         * @returns {SVGMatrix}
+         */
+        getTransformToElement: function(toElem) {
+            return toElem.getScreenCTM().inverse().multiply(this.node.getScreenCTM());
+        },
+
         translate: function(tx, ty, opt) {
 
             opt = opt || {};
@@ -392,7 +400,7 @@ V = Vectorizer = (function() {
                 return box;
             }
 
-            var matrix = this.node.getTransformToElement(target || this.node.ownerSVGElement);
+            var matrix = this.getTransformToElement(target || this.node.ownerSVGElement);
 
             return V.transformRect(box, matrix);
         },
@@ -687,7 +695,7 @@ V = Vectorizer = (function() {
             try {
 
                 var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
-                var globalToLocalMatrix = this.node.getTransformToElement(svg).inverse();
+                var globalToLocalMatrix = this.getTransformToElement(svg).inverse();
 
             } catch (e) {
                 // IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
@@ -740,7 +748,7 @@ V = Vectorizer = (function() {
             translateFinal.setTranslate(position.x + (position.x - finalPosition.x), position.y + (position.y - finalPosition.y));
 
             // 4. Apply transformations.
-            var ctm = this.node.getTransformToElement(target);
+            var ctm = this.getTransformToElement(target);
             var transform = svg.createSVGTransform();
             transform.setMatrix(
                 translateFinal.matrix.multiply(
@@ -924,7 +932,7 @@ V = Vectorizer = (function() {
                     parseFloat(this.attr('height'))
                 );
                 // Get the rect transformation matrix with regards to the SVG document.
-                var rectMatrix = this.node.getTransformToElement(target);
+                var rectMatrix = this.getTransformToElement(target);
                 // Decompose the matrix to find the rotation angle.
                 var rectMatrixComponents = V.decomposeMatrix(rectMatrix);
                 // Now we want to rotate the rectangle back so that we
@@ -946,7 +954,7 @@ V = Vectorizer = (function() {
                     var sample = samples[i];
                     // Convert the sample point in the local coordinate system to the global coordinate system.
                     var gp = V.createSVGPoint(sample.x, sample.y);
-                    gp = gp.matrixTransform(this.node.getTransformToElement(target));
+                    gp = gp.matrixTransform(this.getTransformToElement(target));
                     sample = g.point(gp);
                     var centerDistance = sample.distance(center);
                     // Penalize a higher distance to the reference point by 10%.
@@ -1179,6 +1187,11 @@ V = Vectorizer = (function() {
         var maxY = Math.max(corner1.y, corner2.y, corner3.y, corner4.y);
 
         return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+    };
+
+    V.transformPoint = function(p, matrix) {
+
+        return V.createSVGPoint(p.x, p.y).matrixTransform(matrix);
     };
 
     // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to

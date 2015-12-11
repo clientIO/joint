@@ -1,4 +1,4 @@
-/*! JointJS v0.9.5 - JavaScript diagramming library  2015-09-10 
+/*! JointJS v0.9.5 - JavaScript diagramming library  2015-12-11 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -44,7 +44,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 }(this, function(root, Backbone, _, $) {
 
 //      Geometry library.
-//      (c) 2011-2013 client IO
+//      (c) 2011-2015 client IO
 
 var g = (function() {
 
@@ -410,6 +410,21 @@ var g = (function() {
             var y = Math.max(myOrigin.y, rOrigin.y);
 
             return rect(x, y, Math.min(myCorner.x, rCorner.x) - x, Math.min(myCorner.y, rCorner.y) - y);
+        },
+
+        // @return {rect} representing the union of both rectangles.
+        union: function(r) {
+            var myOrigin = this.origin();
+            var myCorner = this.corner();
+            var rOrigin = r.origin();
+            var rCorner = r.corner();
+
+            var originX = Math.min(myOrigin.x, rOrigin.x);
+            var originY = Math.min(myOrigin.y, rOrigin.y);
+            var cornerX = Math.max(myCorner.x, rCorner.x);
+            var cornerY = Math.max(myCorner.y, rCorner.y);
+
+            return rect(originX, originY, cornerX - originX, cornerY - originY);
         },
 
         // @return {string} (left|right|top|bottom) side which is nearest to point
@@ -1076,6 +1091,14 @@ V = Vectorizer = (function() {
 
     VElement.prototype = {
 
+        /**
+         * @param {SVGGElement} toElem
+         * @returns {SVGMatrix}
+         */
+        getTransformToElement: function(toElem) {
+            return toElem.getScreenCTM().inverse().multiply(this.node.getScreenCTM());
+        },
+
         translate: function(tx, ty, opt) {
 
             opt = opt || {};
@@ -1178,7 +1201,7 @@ V = Vectorizer = (function() {
                 return box;
             }
 
-            var matrix = this.node.getTransformToElement(target || this.node.ownerSVGElement);
+            var matrix = this.getTransformToElement(target || this.node.ownerSVGElement);
 
             return V.transformRect(box, matrix);
         },
@@ -1473,7 +1496,7 @@ V = Vectorizer = (function() {
             try {
 
                 var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
-                var globalToLocalMatrix = this.node.getTransformToElement(svg).inverse();
+                var globalToLocalMatrix = this.getTransformToElement(svg).inverse();
 
             } catch (e) {
                 // IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
@@ -1526,7 +1549,7 @@ V = Vectorizer = (function() {
             translateFinal.setTranslate(position.x + (position.x - finalPosition.x), position.y + (position.y - finalPosition.y));
 
             // 4. Apply transformations.
-            var ctm = this.node.getTransformToElement(target);
+            var ctm = this.getTransformToElement(target);
             var transform = svg.createSVGTransform();
             transform.setMatrix(
                 translateFinal.matrix.multiply(
@@ -1710,7 +1733,7 @@ V = Vectorizer = (function() {
                     parseFloat(this.attr('height'))
                 );
                 // Get the rect transformation matrix with regards to the SVG document.
-                var rectMatrix = this.node.getTransformToElement(target);
+                var rectMatrix = this.getTransformToElement(target);
                 // Decompose the matrix to find the rotation angle.
                 var rectMatrixComponents = V.decomposeMatrix(rectMatrix);
                 // Now we want to rotate the rectangle back so that we
@@ -1732,7 +1755,7 @@ V = Vectorizer = (function() {
                     var sample = samples[i];
                     // Convert the sample point in the local coordinate system to the global coordinate system.
                     var gp = V.createSVGPoint(sample.x, sample.y);
-                    gp = gp.matrixTransform(this.node.getTransformToElement(target));
+                    gp = gp.matrixTransform(this.getTransformToElement(target));
                     sample = g.point(gp);
                     var centerDistance = sample.distance(center);
                     // Penalize a higher distance to the reference point by 10%.
@@ -1967,6 +1990,11 @@ V = Vectorizer = (function() {
         return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
     };
 
+    V.transformPoint = function(p, matrix) {
+
+        return V.createSVGPoint(p.x, p.y).matrixTransform(matrix);
+    };
+
     // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
     // an object (`{ fill: 'blue', stroke: 'red' }`).
     V.styleToObject = function(styleString) {
@@ -2178,7 +2206,7 @@ V = Vectorizer = (function() {
 })();
 
 //      JointJS library.
-//      (c) 2011-2013 client IO
+//      (c) 2011-2015 client IO
 
 // Global namespace.
 
@@ -2206,6 +2234,21 @@ var joint = {
 
     // `joint.routers` namespace.
     routers: {},
+
+    // `joint.mvc` namespace.
+    mvc: {
+        views: {}
+    },
+
+    setTheme: function(theme, opt) {
+
+        opt = opt || {};
+
+        _.invoke(joint.mvc.views, 'setTheme', theme, opt);
+
+        // Update the default theme on the view prototype.
+        joint.mvc.View.prototype.options.theme = theme;
+    },
 
     util: {
 
@@ -3355,8 +3398,89 @@ var joint = {
     }
 };
 
+//      JointJS library.
+//      (c) 2011-2015 client IO
+
+joint.mvc.View = Backbone.View.extend({
+
+    options: {
+        theme: 'default'
+    },
+
+    theme: null,
+    themeClassNamePrefix: 'joint-theme-',
+    requireSetThemeOverride: false,
+
+    constructor: function(options) {
+
+        Backbone.View.call(this, options);
+    },
+
+    initialize: function(options) {
+
+        this.requireSetThemeOverride = options && !!options.theme;
+
+        this.options = _.extend({}, joint.mvc.View.prototype.options || {}, this.options || {}, options || {});
+
+        _.bindAll(this, 'setTheme', 'onSetTheme', 'remove', 'onRemove');
+
+        joint.mvc.views[this.cid] = this;
+
+        this.setTheme(this.options.theme);
+        this.init();
+    },
+
+    init: function() {
+        // Intentionally empty.
+        // This method is meant to be overriden.
+    },
+
+    setTheme: function(theme, opt) {
+
+        opt = opt || {};
+
+        // Theme is already set, override is required, and override has not been set.
+        // Don't set the theme.
+        if (this.theme && this.requireSetThemeOverride && !opt.override) return;
+
+        this.onSetTheme(this.theme/* oldTheme */, theme/* newTheme */);
+
+        if (this.theme) {
+
+            this.$el.removeClass(this.themeClassNamePrefix + this.theme);
+        }
+
+        this.$el.addClass(this.themeClassNamePrefix + theme);
+
+        this.theme = theme;
+
+        return this;
+    },
+
+    onSetTheme: function(oldTheme, newTheme) {
+        // Intentionally empty.
+        // This method is meant to be overriden.
+    },
+
+    remove: function() {
+
+        this.onRemove();
+
+        joint.mvc.views[this.cid] = null;
+
+        Backbone.View.prototype.remove.apply(this, arguments);
+
+        return this;
+    },
+
+    onRemove: function() {
+        // Intentionally empty.
+        // This method is meant to be overriden.
+    }
+});
+
 //      JointJS, the JavaScript diagramming library.
-//      (c) 2011-2013 client IO
+//      (c) 2011-2015 client IO
 
 joint.dia.GraphCells = Backbone.Collection.extend({
 
@@ -3372,166 +3496,32 @@ joint.dia.GraphCells = Backbone.Collection.extend({
         if (opt.cellNamespace) {
             this.cellNamespace = opt.cellNamespace;
         }
+
+        this.graph = opt.graph;
     },
 
     model: function(attrs, options) {
 
-        var namespace = options.collection.cellNamespace;
+        var collection = options.collection;
+        var namespace = collection.cellNamespace;
 
         // Find the model class in the namespace or use the default one.
         var ModelClass = (attrs.type === 'link')
             ? joint.dia.Link
             : joint.util.getByPath(namespace, attrs.type, '.') || joint.dia.Element;
 
-        return new ModelClass(attrs, options);
+        var cell = new ModelClass(attrs, options);
+        // Add a reference to the graph. It is necessary to do this here because this is the earliest place
+        // where a new model is created from a plain JS object. For other objects, see `joint.dia.Graph>>_prepareCell()`.
+        cell.graph = collection.graph;
+
+        return cell;
     },
 
     // `comparator` makes it easy to sort cells based on their `z` index.
     comparator: function(model) {
 
         return model.get('z') || 0;
-    },
-
-    // Get all inbound and outbound links connected to the cell `model`.
-    getConnectedLinks: function(model, opt) {
-
-        opt = opt || {};
-
-        if (_.isUndefined(opt.inbound) && _.isUndefined(opt.outbound)) {
-            opt.inbound = opt.outbound = true;
-        }
-
-        var links = this.filter(function(cell) {
-
-            if (!cell.isLink()) return false;
-
-            var source = cell.get('source');
-            var target = cell.get('target');
-
-            return (source && source.id === model.id && opt.outbound) ||
-                (target && target.id === model.id  && opt.inbound);
-        });
-
-        // option 'deep' returns all links that are connected to any of the descendent cell
-        // and are not descendents itself
-        if (opt.deep) {
-
-            var embeddedCells = model.getEmbeddedCells({ deep: true });
-
-            _.each(this.difference(links, embeddedCells), function(cell) {
-
-                if (!cell.isLink()) return;
-
-                if (opt.outbound) {
-
-                    var source = cell.get('source');
-
-                    if (source && source.id && _.find(embeddedCells, { id: source.id })) {
-                        links.push(cell);
-                        return; // prevent a loop link to be pushed twice
-                    }
-                }
-
-                if (opt.inbound) {
-
-                    var target = cell.get('target');
-
-                    if (target && target.id && _.find(embeddedCells, { id: target.id })) {
-                        links.push(cell);
-                    }
-                }
-            });
-        }
-
-        return links;
-    },
-
-    getNeighbors: function(model, opt) {
-
-        opt = opt || {};
-
-        var neighbors = _.transform(this.getConnectedLinks(model, opt), function(res, link) {
-
-            var source = link.get('source');
-            var target = link.get('target');
-            var loop = link.hasLoop(opt);
-
-            // Discard if it is a point, or if the neighbor was already added.
-            if (opt.inbound && _.has(source, 'id') && !res[source.id]) {
-
-                var sourceElement = this.get(source.id);
-
-                if (loop || (sourceElement !== model && (!opt.deep || !sourceElement.isEmbeddedIn(model)))) {
-                    res[source.id] = sourceElement;
-                }
-            }
-
-            // Discard if it is a point, or if the neighbor was already added.
-            if (opt.outbound && _.has(target, 'id') && !res[target.id]) {
-
-                var targetElement = this.get(target.id);
-
-                if (loop || targetElement !== model && (!opt.deep || !targetElement.isEmbeddedIn(model))) {
-                    res[target.id] = targetElement;
-                }
-            }
-
-        }, {}, this);
-
-        return _.values(neighbors);
-    },
-
-    getCommonAncestor: function(/* cells */) {
-
-        var cellsAncestors = _.map(arguments, function(cell) {
-
-            var ancestors = [cell.id];
-            var parentId = cell.get('parent');
-
-            while (parentId) {
-
-                ancestors.push(parentId);
-                parentId = this.get(parentId).get('parent');
-            }
-
-            return ancestors;
-
-        }, this);
-
-        cellsAncestors = _.sortBy(cellsAncestors, 'length');
-
-        var commonAncestor = _.find(cellsAncestors.shift(), function(ancestor) {
-
-            return _.every(cellsAncestors, function(cellAncestors) {
-                return _.contains(cellAncestors, ancestor);
-            });
-        });
-
-        return this.get(commonAncestor);
-    },
-
-    // Return the bounding box of all cells in array provided. If no array
-    // provided returns bounding box of all cells. Links are being ignored.
-    getBBox: function(cells) {
-
-        cells = cells || this.models;
-
-        var origin = { x: Infinity, y: Infinity };
-        var corner = { x: -Infinity, y: -Infinity };
-
-        _.each(cells, function(cell) {
-
-            // Links has no bounding box defined on the model.
-            if (cell.isLink()) return;
-
-            var bbox = cell.getBBox();
-            origin.x = Math.min(origin.x, bbox.x);
-            origin.y = Math.min(origin.y, bbox.y);
-            corner.x = Math.max(corner.x, bbox.x + bbox.width);
-            corner.y = Math.max(corner.y, bbox.y + bbox.height);
-        });
-
-        return g.rect(origin.x, origin.y, corner.x - origin.x, corner.y - origin.y);
     }
 });
 
@@ -3545,16 +3535,127 @@ joint.dia.Graph = Backbone.Model.extend({
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
         // when processing JSON graphs that are in a different than JointJS format.
-        Backbone.Model.prototype.set.call(this, 'cells', new joint.dia.GraphCells([], {
+        var cells = new joint.dia.GraphCells([], {
             model: opt.cellModel,
-            cellNamespace: opt.cellNamespace
-        }));
+            cellNamespace: opt.cellNamespace,
+            graph: this
+        });
+        Backbone.Model.prototype.set.call(this, 'cells', cells);
 
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
-        this.get('cells').on('all', this.trigger, this);
+        cells.on('all', this.trigger, this);
 
-        this.get('cells').on('remove', this._removeCell, this);
+        // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
+        // for fast graph queries. All changes that affect the structure of the graph
+        // must be reflected in the `al` object. This object provides fast answers to
+        // questions such as "what are the neighbours of this node" or "what
+        // are the sibling links of this link".
+
+        // Outgoing edges per node. Note that we use a hash-table for the list
+        // of outgoing edges for a faster lookup.
+        // [node ID] -> Object [edge] -> true
+        this._out = {};
+        // Ingoing edges per node.
+        // [node ID] -> Object [edge] -> true
+        this._in = {};
+        // `_nodes` is useful for quick lookup of all the elements in the graph, without
+        // having to go through the whole cells array.
+        // [node ID] -> true
+        this._nodes = {};
+        // `_edges` is useful for quick lookup of all the links in the graph, without
+        // having to go through the whole cells array.
+        // [edge ID] -> true
+        this._edges = {};
+
+        cells.on('add', this._restructureOnAdd, this);
+        cells.on('remove', this._restructureOnRemove, this);
+        cells.on('reset', this._restructureOnReset, this);
+        cells.on('change:source', this._restructureOnChangeSource, this);
+        cells.on('change:target', this._restructureOnChangeTarget, this);
+
+        cells.on('remove', this._removeCell, this);
+    },
+
+    _restructureOnAdd: function(cell) {
+
+        if (cell.isLink()) {
+            this._edges[cell.id] = true;
+            var source = cell.get('source');
+            var target = cell.get('target');
+            if (source.id) {
+                (this._out[source.id] || (this._out[source.id] = {}))[cell.id] = true;
+            }
+            if (target.id) {
+                (this._in[target.id] || (this._in[target.id] = {}))[cell.id] = true;
+            }
+        } else {
+            this._nodes[cell.id] = true;
+        }
+    },
+    _restructureOnRemove: function(cell) {
+
+        if (cell.isLink()) {
+            delete this._edges[cell.id];
+            var source = cell.get('source');
+            var target = cell.get('target');
+            if (source.id && this._out[source.id] && this._out[source.id][cell.id]) {
+                delete this._out[source.id][cell.id];
+            }
+            if (target.id && this._in[target.id] && this._in[target.id][cell.id]) {
+                delete this._in[target.id][cell.id];
+            }
+        } else {
+            delete this._nodes[cell.id];
+        }
+    },
+    _restructureOnReset: function(cells) {
+
+        // Normalize into an array of cells. The original `cells` is GraphCells Backbone collection.
+        cells = cells.models;
+
+        this._out = {};
+        this._in = {};
+        this._nodes = {};
+        this._edges = {};
+
+        _.each(cells, this._restructureOnAdd, this);
+    },
+    _restructureOnChangeSource: function(link) {
+
+        var prevSource = link.previous('source');
+        if (prevSource.id && this._out[prevSource.id]) {
+            delete this._out[prevSource.id][link.id];
+        }
+        var source = link.get('source');
+        if (source.id) {
+            (this._out[source.id] || (this._out[source.id] = {}))[link.id] = true;
+        }
+    },
+    _restructureOnChangeTarget: function(link) {
+
+        var prevTarget = link.previous('target');
+        if (prevTarget.id && this._in[prevTarget.id]) {
+            delete this._in[prevTarget.id][link.id];
+        }
+        var target = link.get('target');
+        if (target.id) {
+            (this._in[target.id] || (this._in[target.id] = {}))[link.id] = true;
+        }
+    },
+
+    // Return all outbound edges for the node. Return value is an object
+    // of the form: [edge] -> true
+    getOutboundEdges: function(node) {
+
+        return (this._out && this._out[node]) || {};
+    },
+
+    // Return all inbound edges for the node. Return value is an object
+    // of the form: [edge] -> true
+    getInboundEdges: function(node) {
+
+        return (this._in && this._in[node]) || {};
     },
 
     toJSON: function() {
@@ -3630,7 +3731,16 @@ joint.dia.Graph = Backbone.Model.extend({
 
     _prepareCell: function(cell) {
 
-        var attrs = (cell instanceof Backbone.Model) ? cell.attributes : cell;
+        var attrs;
+        if (cell instanceof Backbone.Model) {
+            attrs = cell.attributes;
+            cell.graph = this;
+        } else {
+            // In case we're dealing with a plain JS object, we have to set the reference
+            // to the `graph` right after the actual model is created. This happens in the `model()` function
+            // of `joint.dia.GraphCells`.
+            attrs = cell;
+        }
 
         if (_.isUndefined(attrs.z)) {
             attrs.z = this.maxZIndex() + 1;
@@ -3706,6 +3816,8 @@ joint.dia.Graph = Backbone.Model.extend({
         // then propagated to the graph model. If we didn't remove the cell silently, two `remove` events
         // would be triggered on the graph model.
         this.get('cells').remove(cell, { silent: true });
+
+        delete cell.graph;
     },
 
     // Get a cell by `id`.
@@ -3721,29 +3833,522 @@ joint.dia.Graph = Backbone.Model.extend({
 
     getElements: function() {
 
-        return this.get('cells').filter(function(cell) {
-
-            return cell instanceof joint.dia.Element;
-        });
+        return _.map(this._nodes, function(exists, node) { return this.getCell(node); }, this);
     },
 
     getLinks: function() {
 
-        return this.get('cells').filter(function(cell) {
+        return _.map(this._edges, function(exists, edge) { return this.getCell(edge); }, this);
+    },
 
-            return cell instanceof joint.dia.Link;
-        });
+    getFirstCell: function() {
+
+        return this.get('cells').first();
+    },
+
+    getLastCell: function() {
+
+        return this.get('cells').last();
     },
 
     // Get all inbound and outbound links connected to the cell `model`.
     getConnectedLinks: function(model, opt) {
 
-        return this.get('cells').getConnectedLinks(model, opt);
+        opt = opt || {};
+
+        var inbound = opt.inbound;
+        var outbound = opt.outbound;
+        if (_.isUndefined(inbound) && _.isUndefined(outbound)) {
+            inbound = outbound = true;
+        }
+
+        // The final array of connected link models.
+        var links = [];
+        // Connected edges. This hash table ([edge] -> true) serves only
+        // for a quick lookup to check if we already added a link.
+        var edges = {};
+
+        if (outbound) {
+            _.each(this.getOutboundEdges(model.id), function(exists, edge) {
+                if (!edges[edge]) {
+                    links.push(this.getCell(edge));
+                    edges[edge] = true;
+                }
+            }, this);
+        }
+        if (inbound) {
+            _.each(this.getInboundEdges(model.id), function(exists, edge) {
+                // Skip links that were already added. Those must be self-loop links
+                // because they are both inbound and outbond edges of the same element.
+                if (!edges[edge]) {
+                    links.push(this.getCell(edge));
+                    edges[edge] = true;
+                }
+            }, this);
+        }
+
+        // If 'deep' option is 'true', return all the links that are connected to any of the descendent cells
+        // and are not descendents themselves.
+        if (opt.deep) {
+
+            var embeddedCells = model.getEmbeddedCells({ deep: true });
+            // In the first round, we collect all the embedded edges so that we can exclude
+            // them from the final result.
+            var embeddedEdges = {};
+            _.each(embeddedCells, function(cell) {
+                if (cell.isLink()) {
+                    embeddedEdges[cell.id] = true;
+                }
+            });
+            _.each(embeddedCells, function(cell) {
+                if (cell.isLink()) return;
+                if (outbound) {
+                    _.each(this.getOutboundEdges(cell.id), function(exists, edge) {
+                        if (!edges[edge] && !embeddedEdges[edge]) {
+                            links.push(this.getCell(edge));
+                            edges[edge] = true;
+                        }
+                    }, this);
+                }
+                if (inbound) {
+                    _.each(this.getInboundEdges(cell.id), function(exists, edge) {
+                        if (!edges[edge] && !embeddedEdges[edge]) {
+                            links.push(this.getCell(edge));
+                            edges[edge] = true;
+                        }
+                    }, this);
+                }
+            }, this);
+        }
+
+        return links;
     },
 
     getNeighbors: function(model, opt) {
 
-        return this.get('cells').getNeighbors(model, opt);
+        opt = opt || {};
+
+        var inbound = opt.inbound;
+        var outbound = opt.outbound;
+        if (_.isUndefined(inbound) && _.isUndefined(outbound)) {
+            inbound = outbound = true;
+        }
+
+        var neighbors = _.transform(this.getConnectedLinks(model, opt), function(res, link) {
+
+            var source = link.get('source');
+            var target = link.get('target');
+            var loop = link.hasLoop(opt);
+
+            // Discard if it is a point, or if the neighbor was already added.
+            if (inbound && _.has(source, 'id') && !res[source.id]) {
+
+                var sourceElement = this.getCell(source.id);
+
+                if (loop || (sourceElement && sourceElement !== model && (!opt.deep || !sourceElement.isEmbeddedIn(model)))) {
+                    res[source.id] = sourceElement;
+                }
+            }
+
+            // Discard if it is a point, or if the neighbor was already added.
+            if (outbound && _.has(target, 'id') && !res[target.id]) {
+
+                var targetElement = this.getCell(target.id);
+
+                if (loop || (targetElement && targetElement !== model && (!opt.deep || !targetElement.isEmbeddedIn(model)))) {
+                    res[target.id] = targetElement;
+                }
+            }
+
+        }, {}, this);
+
+        return _.values(neighbors);
+    },
+
+    getCommonAncestor: function(/* cells */) {
+
+        var cellsAncestors = _.map(arguments, function(cell) {
+
+            var ancestors = [cell.id];
+            var parentId = cell.get('parent');
+
+            while (parentId) {
+
+                ancestors.push(parentId);
+                parentId = this.getCell(parentId).get('parent');
+            }
+
+            return ancestors;
+
+        }, this);
+
+        cellsAncestors = _.sortBy(cellsAncestors, 'length');
+
+        var commonAncestor = _.find(cellsAncestors.shift(), function(ancestor) {
+
+            return _.every(cellsAncestors, function(cellAncestors) {
+                return _.contains(cellAncestors, ancestor);
+            });
+        });
+
+        return this.getCell(commonAncestor);
+    },
+
+    // Find the whole branch starting at `element`.
+    // If `opt.deep` is `true`, take into account embedded elements too.
+    // If `opt.breadthFirst` is `true`, use the Breadth-first search algorithm, otherwise use Depth-first search.
+    getSuccessors: function(element, opt) {
+
+        opt = opt || {};
+        var res = [];
+        // Modify the options so that it includes the `outbound` neighbors only. In other words, search forwards.
+        this.search(element, function(el) {
+            if (el !== element) {
+                res.push(el);
+            }
+        }, _.extend({}, opt, { outbound: true }));
+        return res;
+    },
+
+    // Clone `cells` returning an object that maps the original cell ID to the clone. The number
+    // of clones is exactly the same as the `cells.length`.
+    // This function simply clones all the `cells`. However, it also reconstructs
+    // all the `source/target` and `parent/embed` references within the `cells`.
+    // This is the main difference from the `cell.clone()` method. The
+    // `cell.clone()` method works on one single cell only.
+    // For example, for a graph: `A --- L ---> B`, `cloneCells([A, L, B])`
+    // returns `[A2, L2, B2]` resulting to a graph: `A2 --- L2 ---> B2`, i.e.
+    // the source and target of the link `L2` is changed to point to `A2` and `B2`.
+    cloneCells: function(cells) {
+
+        // A map of the form [original cell ID] -> [clone] helping
+        // us to reconstruct references for source/target and parent/embeds.
+        // This is also the returned value.
+        var cloneMap = {};
+        // A map [original cell ID] -> [Array of original embeds].
+        // This mapping caches the `embeds` array of original cells.
+        // This is needed because when using a shallow clone (without `deep` set to `true`),
+        // `embeds` are reset (see joint.dia.Cell >> clone()).
+        var embedsCache = {};
+
+        _.each(cells, function(cell) {
+            if (!cloneMap[cell.id]) {
+                var clone = cell.clone();
+                cloneMap[cell.id] = clone;
+                embedsCache[clone.id] = cell.get('embeds');
+            }
+        });
+
+        _.each(cells, function(cell) {
+
+            var clone = cloneMap[cell.id];
+            // assert(clone exists)
+
+            if (clone.isLink()) {
+                var source = clone.get('source');
+                var target = clone.get('target');
+                if (source.id && cloneMap[source.id]) {
+                    // Source points to an element and the element is among the clones.
+                    // => Update the source of the cloned link.
+                    clone.prop('source/id', cloneMap[source.id].id);
+                }
+                if (target.id && cloneMap[target.id]) {
+                    // Target points to an element and the element is among the clones.
+                    // => Update the target of the cloned link.
+                    clone.prop('target/id', cloneMap[target.id].id);
+                }
+            }
+
+            var parent = clone.get('parent');
+            if (parent && cloneMap[parent]) {
+                clone.set('parent', cloneMap[parent].id);
+            }
+
+            if (embedsCache[clone.id]) {
+                var newEmbeds = [];
+                _.each(embedsCache[clone.id], function(embed) {
+                    if (cloneMap[embed]) {
+                        newEmbeds.push(cloneMap[embed].id);
+                    } else {
+                        newEmbeds.push(embed);
+                    }
+                });
+                clone.set('embeds', newEmbeds);
+            }
+        });
+
+        return cloneMap;
+    },
+
+    // Clone the whole subgraph (including all the connected links whose source/target is in the subgraph).
+    // If `opt.deep` is `true`, also take into account all the embedded cells of all the subgraph cells.
+    // Return a map of the form: [original cell ID] -> [clone].
+    cloneSubgraph: function(cells, opt) {
+
+        var subgraph = this.getSubgraph(cells, opt);
+        return this.cloneCells(subgraph);
+    },
+
+    // Return `cells` and all the connected links that connect cells in the `cells` array.
+    // If `opt.deep` is `true`, return all the cells including all their embedded cells
+    // and all the links that connect any of the returned cells.
+    // For example, for a single shallow element, the result is that very same element.
+    // For two elements connected with a link: `A --- L ---> B`, the result for
+    // `getSubgraph([A, B])` is `[A, L, B]`. The same goes for `getSubgraph([L])`, the result is again `[A, L, B]`.
+    getSubgraph: function(cells, opt) {
+
+        opt = opt || {};
+
+        var subgraph = [];
+        // `cellMap` is used for a quick lookup of existance of a cell in the `cells` array.
+        var cellMap = {};
+        var elements = [];
+        var links = [];
+
+        _.each(cells, function(cell) {
+            if (!cellMap[cell.id]) {
+                subgraph.push(cell);
+                cellMap[cell.id] = cell;
+                if (cell.isLink()) {
+                    links.push(cell);
+                } else {
+                    elements.push(cell);
+                }
+            }
+
+            if (opt.deep) {
+                var embeds = cell.getEmbeddedCells({ deep: true });
+                _.each(embeds, function(embed) {
+                    if (!cellMap[embed.id]) {
+                        subgraph.push(embed);
+                        cellMap[embed.id] = embed;
+                        if (embed.isLink()) {
+                            links.push(embed);
+                        } else {
+                            elements.push(embed);
+                        }
+                    }
+                });
+            }
+        });
+
+        _.each(links, function(link) {
+            // For links, return their source & target (if they are elements - not points).
+            var source = link.get('source');
+            var target = link.get('target');
+            if (source.id && !cellMap[source.id]) {
+                var sourceElement = this.getCell(source.id);
+                subgraph.push(sourceElement);
+                cellMap[sourceElement.id] = sourceElement;
+                elements.push(sourceElement);
+            }
+            if (target.id && !cellMap[target.id]) {
+                var targetElement = this.getCell(target.id);
+                subgraph.push(this.getCell(target.id));
+                cellMap[targetElement.id] = targetElement;
+                elements.push(targetElement);
+            }
+        }, this);
+
+        _.each(elements, function(element) {
+            // For elements, include their connected links if their source/target is in the subgraph;
+            var links = this.getConnectedLinks(element, opt);
+            _.each(links, function(link) {
+                var source = link.get('source');
+                var target = link.get('target');
+                if (!cellMap[link.id] && source.id && cellMap[source.id] && target.id && cellMap[target.id]) {
+                    subgraph.push(link);
+                    cellMap[link.id] = link;
+                }
+            });
+        }, this);
+
+        return subgraph;
+    },
+
+    // Find all the predecessors of `element`. This is a reverse operation of `getSuccessors()`.
+    // If `opt.deep` is `true`, take into account embedded elements too.
+    // If `opt.breadthFirst` is `true`, use the Breadth-first search algorithm, otherwise use Depth-first search.
+    getPredecessors: function(element, opt) {
+
+        opt = opt || {};
+        var res = [];
+        // Modify the options so that it includes the `inbound` neighbors only. In other words, search backwards.
+        this.search(element, function(el) {
+            if (el !== element) {
+                res.push(el);
+            }
+        }, _.extend({}, opt, { inbound: true }));
+        return res;
+    },
+
+    // Perform search on the graph.
+    // If `opt.breadthFirst` is `true`, use the Breadth-first Search algorithm, otherwise use Depth-first search.
+    // By setting `opt.inbound` to `true`, you can reverse the direction of the search.
+    // If `opt.deep` is `true`, take into account embedded elements too.
+    // `iteratee` is a function of the form `function(element) {}`.
+    // If `iteratee` explicitely returns `false`, the searching stops.
+    search: function(element, iteratee, opt) {
+
+        opt = opt || {};
+        if (opt.breadthFirst) {
+            this.bfs(element, iteratee, opt);
+        } else {
+            this.dfs(element, iteratee, opt);
+        }
+    },
+
+    // Breadth-first search.
+    // If `opt.deep` is `true`, take into account embedded elements too.
+    // If `opt.inbound` is `true`, reverse the search direction (it's like reversing all the link directions).
+    // `iteratee` is a function of the form `function(element, distance) {}`.
+    // where `element` is the currently visited element and `distance` is the distance of that element
+    // from the root `element` passed the `bfs()`, i.e. the element we started the search from.
+    // Note that the `distance` is not the shortest or longest distance, it is simply the number of levels
+    // crossed till we visited the `element` for the first time. It is especially useful for tree graphs.
+    // If `iteratee` explicitely returns `false`, the searching stops.
+    bfs: function(element, iteratee, opt) {
+
+        opt = opt || {};
+        var visited = {};
+        var distance = {};
+        var queue = [];
+
+        queue.push(element);
+        distance[element.id] = 0;
+
+        while (queue.length > 0) {
+            var next = queue.shift();
+            if (!visited[next.id]) {
+                visited[next.id] = true;
+                if (iteratee(next, distance[next.id]) === false) return;
+                _.each(this.getNeighbors(next, opt), function(neighbor) {
+                    distance[neighbor.id] = distance[next.id] + 1;
+                    queue.push(neighbor);
+                });
+            }
+        }
+    },
+
+    // Depth-first search.
+    // If `opt.deep` is `true`, take into account embedded elements too.
+    // If `opt.inbound` is `true`, reverse the search direction (it's like reversing all the link directions).
+    // `iteratee` is a function of the form `function(element, distance) {}`.
+    // If `iteratee` explicitely returns `false`, the search stops.
+    dfs: function(element, iteratee, opt, _visited, _distance) {
+
+        opt = opt || {};
+        var visited = _visited || {};
+        var distance = _distance || 0;
+        if (iteratee(element, distance) === false) return;
+        visited[element.id] = true;
+
+        _.each(this.getNeighbors(element, opt), function(neighbor) {
+            if (!visited[neighbor.id]) {
+                this.dfs(neighbor, iteratee, opt, visited, distance + 1);
+            }
+        }, this);
+    },
+
+    // Get all the roots of the graph. Time complexity: O(|V|).
+    getSources: function() {
+
+        var sources = [];
+        _.each(this._nodes, function(exists, node) {
+            if (!this._in[node] || _.isEmpty(this._in[node])) {
+                sources.push(this.getCell(node));
+            }
+        }, this);
+        return sources;
+    },
+
+    // Get all the leafs of the graph. Time complexity: O(|V|).
+    getSinks: function() {
+
+        var sinks = [];
+        _.each(this._nodes, function(exists, node) {
+            if (!this._out[node] || _.isEmpty(this._out[node])) {
+                sinks.push(this.getCell(node));
+            }
+        }, this);
+        return sinks;
+    },
+
+    // Return `true` if `element` is a root. Time complexity: O(1).
+    isSource: function(element) {
+
+        return !this._in[element.id] || _.isEmpty(this._in[element.id]);
+    },
+
+    // Return `true` if `element` is a leaf. Time complexity: O(1).
+    isSink: function(element) {
+
+        return !this._out[element.id] || _.isEmpty(this._out[element.id]);
+    },
+
+    // Return `true` is `elementB` is a successor of `elementA`. Return `false` otherwise.
+    isSuccessor: function(elementA, elementB) {
+
+        var isSuccessor = false;
+        this.search(elementA, function(element) {
+            if (element === elementB && element !== elementA) {
+                isSuccessor = true;
+                return false;
+            }
+        }, { outbound: true });
+        return isSuccessor;
+    },
+
+    // Return `true` is `elementB` is a predecessor of `elementA`. Return `false` otherwise.
+    isPredecessor: function(elementA, elementB) {
+
+        var isPredecessor = false;
+        this.search(elementA, function(element) {
+            if (element === elementB && element !== elementA) {
+                isPredecessor = true;
+                return false;
+            }
+        }, { inbound: true });
+        return isPredecessor;
+    },
+
+    // Return `true` is `elementB` is a neighbor of `elementA`. Return `false` otherwise.
+    // `opt.deep` controls whether to take into account embedded elements as well. See `getNeighbors()`
+    // for more details.
+    // If `opt.outbound` is set to `true`, return `true` only if `elementB` is a successor neighbor.
+    // Similarly, if `opt.inbound` is set to `true`, return `true` only if `elementB` is a predecessor neighbor.
+    isNeighbor: function(elementA, elementB, opt) {
+
+        opt = opt || {};
+
+        var inbound = opt.inbound;
+        var outbound = opt.outbound;
+        if (_.isUndefined(inbound) && _.isUndefined(outbound)) {
+            inbound = outbound = true;
+        }
+
+        var isNeighbor = false;
+
+        _.each(this.getConnectedLinks(elementA, opt), function(link) {
+
+            var source = link.get('source');
+            var target = link.get('target');
+            var loop = link.hasLoop(opt);
+
+            // Discard if it is a point.
+            if (inbound && _.has(source, 'id') && source.id === elementB.id) {
+                isNeighbor = true;
+                return false;
+            }
+
+            // Discard if it is a point, or if the neighbor was already added.
+            if (outbound && _.has(target, 'id') && target.id === elementB.id) {
+                isNeighbor = true;
+                return false;
+            }
+        });
+
+        return isNeighbor;
     },
 
     // Disconnect links connected to the cell `model`.
@@ -3770,10 +4375,14 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     // Find all elements in given area
-    findModelsInArea: function(r) {
+    findModelsInArea: function(rect, opt) {
+
+        opt = _.defaults(opt || {}, { strict: false });
+
+        var method = opt.strict ? 'containsRect' : 'intersect';
 
         return _.filter(this.getElements(), function(el) {
-            return el.getBBox().intersect(r);
+            return rect[method](el.getBBox());
         });
     },
 
@@ -3793,22 +4402,35 @@ joint.dia.Graph = Backbone.Model.extend({
         });
     },
 
-    // Return the bounding box of all `elements`.
-    getBBox: function(/* elements */) {
+    // Return the bounding box of all cells in array provided. If no array
+    // provided returns bounding box of all cells. Links are being ignored.
+    getBBox: function(cells) {
 
-        var collection = this.get('cells');
-        return collection.getBBox.apply(collection, arguments);
+        cells = cells || this.collection.models;
+
+        return _.reduce(cells, function(memo, cell) {
+            if (cell.isLink()) return memo;
+            if (memo) {
+                return memo.union(cell.getBBox());
+            } else {
+                return cell.getBBox();
+            }
+        }, undefined);
     },
 
-    getCommonAncestor: function(/* cells */) {
+    translate: function(dx, dy, opt) {
 
-        var collection = this.get('cells');
-        return collection.getCommonAncestor.apply(collection, arguments);
+        // Don't translate cells that are embedded in any other cell.
+        var cells = _.reject(this.getCells(), function(cell) {
+            return cell.isEmbedded();
+        });
+
+        _.invoke(cells, 'translate', dx, dy, opt);
     }
 });
 
 //      JointJS.
-//      (c) 2011-2013 client IO
+//      (c) 2011-2015 client IO
 
 // joint.dia.Cell base model.
 // --------------------------
@@ -3834,6 +4456,11 @@ joint.dia.Cell = Backbone.Model.extend({
         this.set(attrs, options);
         this.changed = {};
         this.initialize.apply(this, arguments);
+    },
+
+    translate: function(dx, dy, opt) {
+
+        throw new Error('Must define a translate() method.');
     },
 
     toJSON: function() {
@@ -3927,15 +4554,15 @@ joint.dia.Cell = Backbone.Model.extend({
         });
 
         // Remove all the incoming/outgoing links that have source/target port set to any of the removed ports.
-        if (this.collection && !_.isEmpty(removedPorts)) {
+        if (this.graph && !_.isEmpty(removedPorts)) {
 
-            var inboundLinks = this.collection.getConnectedLinks(this, { inbound: true });
+            var inboundLinks = this.graph.getConnectedLinks(this, { inbound: true });
             _.each(inboundLinks, function(link) {
 
                 if (removedPorts[link.get('target').port]) link.remove();
             });
 
-            var outboundLinks = this.collection.getConnectedLinks(this, { outbound: true });
+            var outboundLinks = this.graph.getConnectedLinks(this, { outbound: true });
             _.each(outboundLinks, function(link) {
 
                 if (removedPorts[link.get('source').port]) link.remove();
@@ -3950,17 +4577,17 @@ joint.dia.Cell = Backbone.Model.extend({
 
         opt = opt || {};
 
-        var collection = this.collection;
-
-        if (collection) {
-            collection.trigger('batch:start', { batchName: 'remove' });
+        // Store the graph in a variable because `this.graph` won't' be accessbile after `this.trigger('remove', ...)` down below.
+        var graph = this.graph;
+        if (graph) {
+            graph.trigger('batch:start', { batchName: 'remove' });
         }
 
         // First, unembed this cell from its parent cell if there is one.
         var parentCellId = this.get('parent');
         if (parentCellId) {
 
-            var parentCell = this.collection && this.collection.get(parentCellId);
+            var parentCell = graph && graph.getCell(parentCellId);
             parentCell.unembed(this);
         }
 
@@ -3968,8 +4595,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
         this.trigger('remove', this, this.collection, opt);
 
-        if (collection) {
-            collection.trigger('batch:stop', { batchName: 'remove' });
+        if (graph) {
+            graph.trigger('batch:stop', { batchName: 'remove' });
         }
 
         return this;
@@ -3977,11 +4604,11 @@ joint.dia.Cell = Backbone.Model.extend({
 
     toFront: function(opt) {
 
-        if (this.collection) {
+        if (this.graph) {
 
             opt = opt || {};
 
-            var z = (this.collection.last().get('z') || 0) + 1;
+            var z = (this.graph.getLastCell().get('z') || 0) + 1;
 
             this.trigger('batch:start', { batchName: 'to-front' }).set('z', z, opt);
 
@@ -4000,11 +4627,11 @@ joint.dia.Cell = Backbone.Model.extend({
 
     toBack: function(opt) {
 
-        if (this.collection) {
+        if (this.graph) {
 
             opt = opt || {};
 
-            var z = (this.collection.first().get('z') || 0) - 1;
+            var z = (this.graph.getFirstCell().get('z') || 0) - 1;
 
             this.trigger('batch:start', { batchName: 'to-back' });
 
@@ -4032,7 +4659,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             var embeds = _.clone(this.get('embeds') || []);
 
-            // We keep all element ids after links ids.
+            // We keep all element ids after link ids.
             embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
 
             cell.set('parent', this.id, opt);
@@ -4064,11 +4691,12 @@ joint.dia.Cell = Backbone.Model.extend({
         var ancestors = [];
         var parentId = this.get('parent');
 
-        if (this.collection === undefined)
+        if (!this.graph) {
             return ancestors;
+        }
 
         while (parentId !== undefined) {
-            var parent = this.collection.get(parentId);
+            var parent = this.graph.getCell(parentId);
             if (parent !== undefined) {
                 ancestors.push(parent);
                 parentId = parent.get('parent');
@@ -4088,7 +4716,7 @@ joint.dia.Cell = Backbone.Model.extend({
         // There is no way this element knows about other cells otherwise.
         // This also means that calling e.g. `translate()` on an element with embeds before
         // adding it to a graph does not translate its embeds.
-        if (this.collection) {
+        if (this.graph) {
 
             var cells;
 
@@ -4118,7 +4746,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             } else {
 
-                cells = _.map(this.get('embeds'), this.collection.get, this.collection);
+                cells = _.map(this.get('embeds'), this.graph.getCell, this.graph);
             }
 
             return cells;
@@ -4134,13 +4762,13 @@ joint.dia.Cell = Backbone.Model.extend({
         opt = _.defaults({ deep: true }, opt);
 
         // See getEmbeddedCells().
-        if (this.collection && opt.deep) {
+        if (this.graph && opt.deep) {
 
             while (parentId) {
                 if (parentId === cellId) {
                     return true;
                 }
-                parentId = this.collection.get(parentId).get('parent');
+                parentId = this.graph.getCell(parentId).get('parent');
             }
 
             return false;
@@ -4153,96 +4781,35 @@ joint.dia.Cell = Backbone.Model.extend({
         }
     },
 
+    // Whether or not the cell is embedded in any other cell.
+    isEmbedded: function() {
+
+        return !!this.get('parent');
+    },
+
+    // Isolated cloning. Isolated cloning has two versions: shallow and deep (pass `{ deep: true }` in `opt`).
+    // Shallow cloning simply clones the cell and returns a new cell with different ID.
+    // Deep cloning clones the cell and all its embedded cells recursively.
     clone: function(opt) {
 
         opt = opt || {};
 
-        var clone = Backbone.Model.prototype.clone.apply(this, arguments);
+        if (!opt.deep) {
+            // Shallow cloning.
 
-        // We don't want the clone to have the same ID as the original.
-        clone.set('id', joint.util.uuid(), { silent: true });
-        clone.set('embeds', '');
+            var clone = Backbone.Model.prototype.clone.apply(this, arguments);
+            // We don't want the clone to have the same ID as the original.
+            clone.set('id', joint.util.uuid());
+            // A shallow cloned element does not carry over the original embeds.
+            clone.set('embeds', '');
+            return clone;
 
-        if (!opt.deep) return clone;
+        } else {
+            // Deep cloning.
 
-        // The rest of the `clone()` method deals with embeds. If `deep` option is set to `true`,
-        // the return value is an array of all the embedded clones created.
-
-        var embeds = _.sortBy(this.getEmbeddedCells(), function(cell) {
-            // Sort embeds that links come before elements.
-            return cell instanceof joint.dia.Element;
-        });
-
-        var clones = [clone];
-
-        // This mapping stores cloned links under the `id`s of they originals.
-        // This prevents cloning a link more then once. Consider a link 'self loop' for example.
-        var linkCloneMapping = {};
-
-        _.each(embeds, function(embed) {
-
-            var embedClones = embed.clone({ deep: true });
-
-            // Embed the first clone returned from `clone({ deep: true })` above. The first
-            // cell is always the clone of the cell that called the `clone()` method, i.e. clone of `embed` in this case.
-            clone.embed(embedClones[0]);
-
-            _.each(embedClones, function(embedClone) {
-
-                if (embedClone instanceof joint.dia.Link) {
-
-                    if (embedClone.get('source').id === this.id) {
-
-                        embedClone.prop('source', { id: clone.id });
-                    }
-
-                    if (embedClone.get('target').id === this.id) {
-
-                        embedClone.prop('target', { id: clone.id });
-                    }
-
-                    linkCloneMapping[embed.id] = embedClone;
-
-                    // Skip links. Inbound/outbound links are not relevant for them.
-                    return;
-                }
-
-                clones.push(embedClone);
-
-                // Collect all inbound links, clone them (if not done already) and set their target to the `embedClone.id`.
-                var inboundLinks = this.collection.getConnectedLinks(embed, { inbound: true });
-
-                _.each(inboundLinks, function(link) {
-
-                    var linkClone = linkCloneMapping[link.id] || link.clone();
-
-                    // Make sure we don't clone a link more then once.
-                    linkCloneMapping[link.id] = linkClone;
-
-                    linkClone.prop('target', { id: embedClone.id });
-                });
-
-                // Collect all inbound links, clone them (if not done already) and set their source to the `embedClone.id`.
-                var outboundLinks = this.collection.getConnectedLinks(embed, { outbound: true });
-
-                _.each(outboundLinks, function(link) {
-
-                    var linkClone = linkCloneMapping[link.id] || link.clone();
-
-                    // Make sure we don't clone a link more then once.
-                    linkCloneMapping[link.id] = linkClone;
-
-                    linkClone.prop('source', { id: embedClone.id });
-                });
-
-            }, this);
-
-        }, this);
-
-        // Add link clones to the array of all the new clones.
-        clones = clones.concat(_.values(linkCloneMapping));
-
-        return clones;
+            // For a deep clone, simply call `graph.cloneCells()` with the cell and all its embedded cells.
+            return _.values(joint.dia.Graph.prototype.cloneCells.call(null, [this].concat(this.getEmbeddedCells({ deep: true }))));
+        }
     },
 
     // A convenient way to set nested properties.
@@ -4480,7 +5047,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
 // This is the base view and controller for `joint.dia.ElementView` and `joint.dia.LinkView`.
 
-joint.dia.CellView = Backbone.View.extend({
+joint.dia.CellView = joint.mvc.View.extend({
 
     tagName: 'g',
 
@@ -4491,22 +5058,16 @@ joint.dia.CellView = Backbone.View.extend({
 
     constructor: function(options) {
 
-        this._configure(options);
-        Backbone.View.apply(this, arguments);
-    },
-
-    _configure: function(options) {
-
-        if (this.options) options = _.extend({}, _.result(this, 'options'), options);
-        this.options = options;
         // Make sure a global unique id is assigned to this view. Store this id also to the properties object.
         // The global unique id makes sure that the same view can be rendered on e.g. different machines and
         // still be associated to the same object among all those clients. This is necessary for real-time
         // collaboration mechanism.
-        this.options.id = this.options.id || joint.util.guid(this);
+        options.id = options.id || joint.util.guid(this);
+
+        joint.mvc.View.call(this, options);
     },
 
-    initialize: function() {
+    init: function() {
 
         _.bindAll(this, 'remove', 'update');
 
@@ -4815,11 +5376,20 @@ joint.dia.CellView = Backbone.View.extend({
     contextmenu: function(evt, x, y) {
 
         this.notify('cell:contextmenu', evt, x, y);
+    },
+
+    onSetTheme: function(oldTheme, newTheme) {
+
+        if (oldTheme) {
+            this.vel.removeClass(this.themeClassNamePrefix + oldTheme);
+        }
+
+        this.vel.addClass(this.themeClassNamePrefix + newTheme);
     }
 });
 
 //      JointJS library.
-//      (c) 2011-2013 client IO
+//      (c) 2011-2015 client IO
 
 // joint.dia.Element base model.
 // -----------------------------
@@ -4843,9 +5413,9 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             // Getting the parent's position requires the collection.
             // Cell.get('parent') helds cell id only.
-            if (!this.collection) throw new Error('Element must be part of a collection.');
+            if (!this.graph) throw new Error('Element must be part of a graph.');
 
-            var parent = this.collection.get(this.get('parent'));
+            var parent = this.graph.getCell(this.get('parent'));
             var parentPosition = parent && !parent.isLink()
                 ? parent.get('position')
                 : { x: 0, y: 0 };
@@ -4945,9 +5515,111 @@ joint.dia.Element = joint.dia.Cell.extend({
 
     resize: function(width, height, opt) {
 
-        this.trigger('batch:start', { batchName: 'resize' });
-        this.set('size', { width: width, height: height }, opt);
-        this.trigger('batch:stop', { batchName: 'resize' });
+        opt = opt || {};
+
+        this.trigger('batch:start', _.extend({}, opt, { element: this, batchName: 'resize' }));
+
+        if (opt.direction) {
+
+            var currentSize = this.get('size');
+
+            switch (opt.direction) {
+
+                case 'left':
+                case 'right':
+                    // Don't change height when resizing horizontally.
+                    height = currentSize.height;
+                    break;
+
+                case 'top':
+                case 'bottom':
+                    // Don't change width when resizing vertically.
+                    width = currentSize.width;
+                    break;
+            }
+
+            // Get the angle and clamp its value between 0 and 360 degrees.
+            var angle = g.normalizeAngle(this.get('angle') || 0);
+
+            var quadrant = {
+                'top-right': 0,
+                'right': 0,
+                'top-left': 1,
+                'top': 1,
+                'bottom-left': 2,
+                'left': 2,
+                'bottom-right': 3,
+                'bottom': 3
+            }[opt.direction];
+
+            if (opt.absolute) {
+
+                // We are taking the element's rotation into account
+                quadrant += Math.floor((angle + 45) / 90);
+                quadrant %= 4;
+            }
+
+            // This is a rectangle in size of the unrotated element.
+            var bbox = this.getBBox();
+
+            // Pick the corner point on the element, which meant to stay on its place before and
+            // after the rotation.
+            var fixedPoint = bbox[['bottomLeft', 'corner', 'topRight', 'origin'][quadrant]]();
+
+            // Find  an image of the previous indent point. This is the position, where is the
+            // point actually located on the screen.
+            var imageFixedPoint = g.point(fixedPoint).rotate(bbox.center(), -angle);
+
+            // Every point on the element rotates around a circle with the centre of rotation
+            // in the middle of the element while the whole element is being rotated. That means
+            // that the distance from a point in the corner of the element (supposed its always rect) to
+            // the center of the element doesn't change during the rotation and therefore it equals
+            // to a distance on unrotated element.
+            // We can find the distance as DISTANCE = (ELEMENTWIDTH/2)^2 + (ELEMENTHEIGHT/2)^2)^0.5.
+            var radius = Math.sqrt((width * width) + (height * height)) / 2;
+
+            // Now we are looking for an angle between x-axis and the line starting at image of fixed point
+            // and ending at the center of the element. We call this angle `alpha`.
+
+            // The image of a fixed point is located in n-th quadrant. For each quadrant passed
+            // going anti-clockwise we have to add 90 degrees. Note that the first quadrant has index 0.
+            //
+            // 3 | 2
+            // --c-- Quadrant positions around the element's center `c`
+            // 0 | 1
+            //
+            var alpha = quadrant * Math.PI / 2;
+
+            // Add an angle between the beginning of the current quadrant (line parallel with x-axis or y-axis
+            // going through the center of the element) and line crossing the indent of the fixed point and the center
+            // of the element. This is the angle we need but on the unrotated element.
+            alpha += Math.atan(quadrant % 2 == 0 ? height / width : width / height);
+
+            // Lastly we have to deduct the original angle the element was rotated by and that's it.
+            alpha -= g.toRad(angle);
+
+            // With this angle and distance we can easily calculate the centre of the unrotated element.
+            // Note that fromPolar constructor accepts an angle in radians.
+            var center = g.point.fromPolar(radius, alpha, imageFixedPoint);
+
+            // The top left corner on the unrotated element has to be half a width on the left
+            // and half a height to the top from the center. This will be the origin of rectangle
+            // we were looking for.
+            var origin = g.point(center).offset( width / -2, height / -2);
+
+            // Resize the element (before re-positioning it).
+            this.set('size', { width: width, height: height }, opt);
+
+            // Finally, re-position the element.
+            this.position(origin.x, origin.y, opt);
+
+        } else {
+
+            // Resize the element.
+            this.set('size', { width: width, height: height }, opt);
+        }
+
+        this.trigger('batch:stop', _.extend({}, opt, { element: this, batchName: 'resize' }));
 
         return this;
     },
@@ -4956,11 +5628,9 @@ joint.dia.Element = joint.dia.Cell.extend({
 
         opt = opt || {};
 
-        var collection = this.collection;
-
         // Getting the children's size and position requires the collection.
         // Cell.get('embdes') helds an array of cell ids only.
-        if (!collection) throw new Error('Element must be part of a collection.');
+        if (!this.graph) throw new Error('Element must be part of a graph.');
 
         var embeddedCells = this.getEmbeddedCells();
 
@@ -4975,7 +5645,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             // Compute cell's size and position  based on the children bbox
             // and given padding.
-            var bbox = collection.getBBox(embeddedCells);
+            var bbox = this.graph.getBBox(embeddedCells);
             var padding = joint.util.normalizeSides(opt.padding);
 
             // Apply padding computed above to the bbox.
@@ -5029,7 +5699,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
         opt = opt || {};
 
-        if (opt.deep && this.collection) {
+        if (opt.deep && this.graph) {
 
             // Get all the embedded elements using breadth first algorithm,
             // that doesn't use recursion.
@@ -5037,7 +5707,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             // Add the model itself.
             elements.push(this);
 
-            return this.collection.getBBox(elements);
+            return this.graph.getBBox(elements);
         }
 
         var position = this.get('position');
@@ -5069,7 +5739,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     ],
 
     className: function() {
-        return 'element ' + this.model.get('type').replace('.', ' ', 'g');
+        return 'element ' + this.model.get('type').replace(/\./g, ' ');
     },
 
     initialize: function() {
@@ -5655,12 +6325,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var paper = this.paper;
 
-        // target is a valid magnet start linking
         if (evt.target.getAttribute('magnet') && paper.options.validateMagnet.call(paper, this, evt.target)) {
 
             this.model.trigger('batch:start', { batchName: 'add-link' });
 
             var link = paper.getDefaultLink(this, evt.target);
+
             link.set({
                 source: {
                     id: this.model.id,
@@ -5672,9 +6342,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             paper.model.addCell(link);
 
-            this._linkView = paper.findViewByModel(link);
-            this._linkView.pointerdown(evt, x, y);
-            this._linkView.startArrowheadMove('target');
+            var linkView = this._linkView = paper.findViewByModel(link);
+
+            linkView.pointerdown(evt, x, y);
+            linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' });
 
         } else {
 
@@ -5730,7 +6401,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             this._dx = g.snapToGrid(x, grid);
             this._dy = g.snapToGrid(y, grid);
 
-
             joint.dia.CellView.prototype.pointermove.apply(this, arguments);
             this.notify('element:pointermove', evt, x, y);
         }
@@ -5740,20 +6410,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (this._linkView) {
 
-            var linkView = this._linkView;
-            var linkModel = linkView.model;
-
-            // let the linkview deal with this event
-            linkView.pointerup(evt, x, y);
-
-            // If the link pinning is not allowed and the link is not connected to an element
-            // we remove the link, because the link was never connected to any target element.
-            if (!this.paper.options.linkPinning && !_.has(linkModel.get('target'), 'id')) {
-                linkModel.remove({ ui: true });
-            }
-
-            delete this._linkView;
-
+            // Let the linkview deal with this event.
+            this._linkView.pointerup(evt, x, y);
+            this._linkView = null;
             this.model.trigger('batch:stop', { batchName: 'add-link' });
 
         } else {
@@ -5765,14 +6424,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             this.notify('element:pointerup', evt, x, y);
             joint.dia.CellView.prototype.pointerup.apply(this, arguments);
-
         }
     }
 
 });
 
 //      JointJS diagramming library.
-//      (c) 2011-2013 client IO
+//      (c) 2011-2015 client IO
 
 // joint.dia.Link base model.
 // --------------------------
@@ -5780,10 +6438,10 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     // The default markup for links.
     markup: [
-        '<path class="connection" stroke="black"/>',
-        '<path class="marker-source" fill="black" stroke="black" />',
-        '<path class="marker-target" fill="black" stroke="black" />',
-        '<path class="connection-wrap"/>',
+        '<path class="connection" stroke="black" d="M 0 0 0 0"/>',
+        '<path class="marker-source" fill="black" stroke="black" d="M 0 0 0 0"/>',
+        '<path class="marker-target" fill="black" stroke="black" d="M 0 0 0 0"/>',
+        '<path class="connection-wrap" d="M 0 0 0 0"/>',
         '<g class="labels"/>',
         '<g class="marker-vertices"/>',
         '<g class="marker-arrowheads"/>',
@@ -5801,7 +6459,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         '<g class="link-tool">',
         '<g class="tool-remove" event="remove">',
         '<circle r="11" />',
-        '<path transform="scale(.8) translate(-16, -16)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z"/>',
+        '<path transform="scale(.8) translate(-16, -16)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z" />',
         '<title>Remove link.</title>',
         '</g>',
         '<g class="tool-options" event="link:options">',
@@ -5892,14 +6550,14 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         var newParent;
 
-        if (this.collection) {
+        if (this.graph) {
 
-            var source = this.collection.get(this.get('source').id);
-            var target = this.collection.get(this.get('target').id);
-            var prevParent = this.collection.get(this.get('parent'));
+            var source = this.graph.getCell(this.get('source').id);
+            var target = this.graph.getCell(this.get('target').id);
+            var prevParent = this.graph.getCell(this.get('parent'));
 
             if (source && target) {
-                newParent = this.collection.getCommonAncestor(source, target);
+                newParent = this.graph.getCommonAncestor(source, target);
             }
 
             if (prevParent && (!newParent || newParent.id != prevParent.id)) {
@@ -5927,20 +6585,40 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         var sourceId = this.get('source').id;
         var targetId = this.get('target').id;
-        var loop = sourceId && targetId && sourceId === targetId;
+
+        if (!sourceId || !targetId) {
+            // Link "pinned" to the paper does not have a loop.
+            return false;
+        }
+
+        var loop = sourceId === targetId;
 
         // Note that there in the deep mode a link can have a loop,
         // even if it connects only a parent and its embed.
         // A loop "target equals source" is valid in both shallow and deep mode.
-        if (!loop && opt.deep && this.collection) {
+        if (!loop && opt.deep && this.graph) {
 
-            var sourceElement = this.collection.get(sourceId);
-            var targetElement = this.collection.get(targetId);
+            var sourceElement = this.graph.getCell(sourceId);
+            var targetElement = this.graph.getCell(targetId);
 
             loop = sourceElement.isEmbeddedIn(targetElement) || targetElement.isEmbeddedIn(sourceElement);
         }
 
         return loop;
+    },
+
+    getSourceElement: function() {
+
+        var source = this.get('source');
+
+        return (source && source.id && this.graph && this.graph.getCell(source.id)) || null;
+    },
+
+    getTargetElement: function() {
+
+        var target = this.get('target');
+
+        return (target && target.id && this.graph && this.graph.getCell(target.id)) || null;
     }
 });
 
@@ -5963,6 +6641,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         doubleLinkToolsOffset: 60,
         sampleInterval: 50
     },
+
+    _z: null,
 
     initialize: function(options) {
 
@@ -6293,7 +6973,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.updateToolsPosition();
         this.updateArrowheadMarkers();
 
-        delete this.options.perpendicular;
+        this.options.perpendicular = null;
         // Mark that postponed update has been already executed.
         this.updatePostponed = false;
 
@@ -6764,7 +7444,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var routerFn = _.isFunction(router) ? router : namespace[router.name];
 
         if (!_.isFunction(routerFn)) {
-            throw 'unknown router: ' + router.name;
+            throw new Error('unknown router: "' + router.name + '"');
         }
 
         var newVertices = routerFn.call(this, oldVertices || [], args, this);
@@ -6786,7 +7466,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             if (this.model.get('smooth')) {
                 connector = { name: 'smooth' };
             } else {
-                connector = defaultConnector || { name: 'normal' };
+                connector = defaultConnector || {};
             }
         }
 
@@ -6794,7 +7474,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var args = connector.args || {};
 
         if (!_.isFunction(connectorFn)) {
-            throw 'unknown connector: ' + connector.name;
+            throw new Error('unknown connector: "' + connector.name + '"');
         }
 
         var pathData = connectorFn.call(
@@ -6955,9 +7635,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _afterArrowheadMove: function() {
 
-        if (!_.isUndefined(this._z)) {
+        if (!_.isNull(this._z)) {
             this.model.set('z', this._z, { ui: true });
-            delete this._z;
+            this._z = null;
         }
 
         // Put `pointer-events` back to its original value. See `startArrowheadMove()` for explanation.
@@ -7042,10 +7722,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         });
     },
 
-    startArrowheadMove: function(end) {
+    startArrowheadMove: function(end, opt) {
+        opt = _.defaults(opt || {}, { whenNotAllowed: 'revert' });
         // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
         // move without need to click on the actual arrowhead dom element.
         this._action = 'arrowhead-move';
+        this._whenNotAllowed = opt.whenNotAllowed;
         this._arrowhead = end;
         this._initialEnd = _.clone(this.model.get(end)) || { x: 0, y: 0 };
         this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
@@ -7057,6 +7739,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     can: function(feature) {
 
         var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointerdown') : this.options.interactive;
+        if (interactive === false) return false;
         if (!_.isObject(interactive) || interactive[feature] !== false) return true;
         return false;
     },
@@ -7294,7 +7977,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                             this._magnetUnderPointer = null;
                         }
                     } else {
-                        // Make sure we'll delete previous magnet
+                        // Make sure we'll unset previous magnet.
                         this._magnetUnderPointer = null;
                     }
                 }
@@ -7336,8 +8019,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var viewUnderPointer = this._viewUnderPointer;
                 var magnetUnderPointer = this._magnetUnderPointer;
 
-                delete this._viewUnderPointer;
-                delete this._magnetUnderPointer;
+                this._viewUnderPointer = null;
+                this._magnetUnderPointer = null;
 
                 if (magnetUnderPointer) {
 
@@ -7355,22 +8038,33 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 }
             }
 
-            // If the link pinning is not allowed and the link is not connected to an element
-            // reset the arrowhead to the position before the dragging started.
-            if (!paperOptions.linkPinning && !_.has(this.model.get(arrowhead), 'id')) {
-                this.model.set(arrowhead, this._initialEnd, { ui: true });
+            // If the changed link is not allowed, revert to its previous state.
+            if (!this.paper.linkAllowed(this)) {
+
+                switch (this._whenNotAllowed) {
+
+                    case 'remove':
+                        this.model.remove();
+                        break;
+
+                    case 'revert':
+                    default:
+                        this.model.set(arrowhead, this._initialEnd, { ui: true });
+                        break;
+                }
             }
 
             // Reparent the link if embedding is enabled
             if (paperOptions.embeddingMode && this.model.reparent()) {
                 // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
-                delete this._z;
+                this._z = null;
             }
 
             this._afterArrowheadMove();
         }
 
-        delete this._action;
+        this._action = null;
+        this._whenNotAllowed = null;
 
         this.notify('link:pointerup', evt, x, y);
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);
@@ -7395,10 +8089,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 });
 
 //      JointJS library.
-//      (c) 2011-2013 client IO
+//      (c) 2011-2015 client IO
 
 
-joint.dia.Paper = Backbone.View.extend({
+joint.dia.Paper = joint.mvc.View.extend({
 
     className: 'paper',
 
@@ -7412,6 +8106,16 @@ joint.dia.Paper = Backbone.View.extend({
         elementView: joint.dia.ElementView,
         linkView: joint.dia.LinkView,
         snapLinks: false, // false, true, { radius: value }
+
+        // When set to FALSE, an element may not have more than 1 link with the same source and target element.
+        multiLinks: true,
+
+        // For adding custom guard logic.
+        guard: function(evt, view) {
+
+            // FALSE means the event isn't guarded.
+            return false;
+        },
 
         // Restrict the translation of elements by given bounding box.
         // Option accepts a boolean:
@@ -7508,21 +8212,15 @@ joint.dia.Paper = Backbone.View.extend({
         'contextmenu': 'contextmenu'
     },
 
-    constructor: function(options) {
-
-        this._configure(options);
-        Backbone.View.apply(this, arguments);
-    },
-
-    _configure: function(options) {
-
-        if (this.options) options = _.merge({}, _.result(this, 'options'), options);
-        this.options = options;
-    },
-
-    initialize: function() {
+    init: function() {
 
         _.bindAll(this, 'pointerup');
+
+        // This is a fix for the case where two papers share the same options.
+        // Changing origin.x for one paper would change the value of origin.x for the other.
+        // This prevents that behavior.
+        this.options.origin = _.clone(this.options.origin);
+        this.options.defaultConnector = _.clone(this.options.defaultConnector);
 
         this.svg = V('svg').node;
         this.viewport = V('g').addClass('viewport').node;
@@ -7552,14 +8250,12 @@ joint.dia.Paper = Backbone.View.extend({
         this.on({ 'cell:highlight': this.onCellHighlight, 'cell:unhighlight': this.onCellUnhighlight });
     },
 
-    remove: function() {
+    onRemove: function() {
 
         //clean up all DOM elements/views to prevent memory leaks
         this.removeViews();
 
         $(document).off('mouseup touchend', this.pointerup);
-
-        Backbone.View.prototype.remove.call(this);
     },
 
     setDimensions: function(width, height) {
@@ -7768,7 +8464,7 @@ joint.dia.Paper = Backbone.View.extend({
 
         if (_.isFunction(this.options.restrictTranslate)) {
             // A method returning a bounding box
-            restrictedArea = this.options.restrictTranslate.aply(this, arguments);
+            restrictedArea = this.options.restrictTranslate.apply(this, arguments);
         } else if (this.options.restrictTranslate === true) {
             // The paper area
             restrictedArea = this.getArea();
@@ -8063,14 +8759,16 @@ joint.dia.Paper = Backbone.View.extend({
     },
 
     // Find all views in given area
-    findViewsInArea: function(r) {
+    findViewsInArea: function(rect, opt) {
 
-        r = g.rect(r);
+        opt = _.defaults(opt || {}, { strict: false });
+        rect = g.rect(rect);
 
         var views = _.map(this.model.getElements(), this.findViewByModel, this);
+        var method = opt.strict ? 'containsRect' : 'intersect';
 
         return _.filter(views, function(view) {
-            return view && r.intersect(g.rect(view.vel.bbox(false, this.viewport)));
+            return view && rect[method](g.rect(view.vel.bbox(false, this.viewport)));
         }, this);
     },
 
@@ -8097,9 +8795,7 @@ joint.dia.Paper = Backbone.View.extend({
     // Exmaple: var paperPoint = paper.clientToLocalPoint({ x: evt.clientX, y: evt.clientY });
     clientToLocalPoint: function(p) {
 
-        var svgPoint = this.svg.createSVGPoint();
-        svgPoint.x = p.x;
-        svgPoint.y = p.y;
+        p = g.point(p);
 
         // This is a hack for Firefox! If there wasn't a fake (non-visible) rectangle covering the
         // whole SVG area, `$(paper.svg).offset()` used below won't work.
@@ -8114,13 +8810,73 @@ joint.dia.Paper = Backbone.View.extend({
         var scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
         var scrollLeft = document.body.scrollLeft || document.documentElement.scrollLeft;
 
-        svgPoint.x += scrollLeft - paperOffset.left;
-        svgPoint.y += scrollTop - paperOffset.top;
+        p.offset(scrollLeft - paperOffset.left, scrollTop - paperOffset.top);
 
         // Transform point into the viewport coordinate system.
-        var pointTransformed = svgPoint.matrixTransform(this.viewport.getCTM().inverse());
+        return V.transformPoint(p, this.viewport.getCTM().inverse());
+    },
 
-        return pointTransformed;
+    linkAllowed: function(linkViewOrModel) {
+
+        var link;
+
+        if (linkViewOrModel instanceof joint.dia.Link) {
+            link = linkViewOrModel;
+        } else if (linkViewOrModel instanceof joint.dia.LinkView) {
+            link = linkViewOrModel.model;
+        } else {
+            throw new Error('Must provide link model or view.');
+        }
+
+        if (!this.options.multiLinks) {
+
+            // Do not allow multiple links to have the same source and target.
+
+            var source = link.get('source');
+            var target = link.get('target');
+
+            if (source.id && target.id) {
+
+                var sourceModel = link.getSourceElement();
+
+                if (sourceModel) {
+
+                    var connectedLinks = this.model.getConnectedLinks(sourceModel, {
+                        outbound: true,
+                        inbound: false
+                    });
+
+                    var numSameLinks = _.filter(connectedLinks, function(_link) {
+
+                        var _source = _link.get('source');
+                        var _target = _link.get('target');
+
+                        return _source && _source.id === source.id &&
+                                (!_source.port || (_source.port === source.port)) &&
+                                _target && _target.id === target.id &&
+                                (!_target.port || (_target.port === target.port));
+
+                    }).length;
+
+                    if (numSameLinks > 1) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        if (
+            !this.options.linkPinning &&
+            (
+                !_.has(link.get('source'), 'id') ||
+                !_.has(link.get('target'), 'id')
+            )
+        ) {
+            // Link pinning is not allowed and the link is not connected to the target.
+            return false;
+        }
+
+        return true;
     },
 
     getDefaultLink: function(cellView, magnet) {
@@ -8187,13 +8943,16 @@ joint.dia.Paper = Backbone.View.extend({
                 this.trigger('blank:pointerclick', evt, localPoint.x, localPoint.y);
             }
         }
-
-        this._mousemoved = 0;
     },
 
     // Guard guards the event received. If the event is not interesting, guard returns `true`.
     // Otherwise, it return `false`.
     guard: function(evt, view) {
+
+        if (this.options.guard && this.options.guard(evt, view)) {
+
+            return true;
+        }
 
         if (view && view.model && (view.model instanceof joint.dia.Cell)) {
 
@@ -8231,6 +8990,10 @@ joint.dia.Paper = Backbone.View.extend({
 
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
+
+        evt.preventDefault();
+
+        this._mousemoved = 0;
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
@@ -9747,6 +10510,8 @@ joint.connectors.normal = function(sourcePoint, targetPoint, vertices) {
 
 joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opts) {
 
+    opts = opts || {};
+
     var offset = opts.radius || 10;
 
     var c1, c2, d1, d2, prev, next;
@@ -9809,11 +10574,14 @@ joint.connectors.jumpover = (function(_, g) {
     // default size of jump if not specified in options
     var JUMP_SIZE = 5;
 
-    // default size of jump if not specified in options
-    var JUMP_TYPES = ['arc', 'gap'];
+    // available jump types
+    var JUMP_TYPES = ['arc', 'gap', 'cubic'];
 
     // takes care of math. error for case when jump is too close to end of line
     var CLOSE_PROXIMITY_PADDING = 1;
+
+    // list of connector types not to jump over.
+    var IGNORED_CONNECTORS = ['smooth'];
 
     /**
      * Transform start/end and vertices into series of lines
@@ -9842,6 +10610,9 @@ joint.connectors.jumpover = (function(_, g) {
         if (updateList == null) {
             updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
             jumpOverLinkView.paper.on('cell:pointerup', updateJumpOver);
+            jumpOverLinkView.paper.model.on('reset', function() {
+                updateList = [];
+            });
         }
 
         // add this link to a list so it can be updated when some other link is updated
@@ -9934,13 +10705,11 @@ joint.connectors.jumpover = (function(_, g) {
                 }
             }
 
-            if (resultLines.length > 0) {
-                var startDistance = jumpEnd.distance(resultLines[0].start);
-                if (startDistance < jumpSize * 2 + CLOSE_PROXIMITY_PADDING) {
-                    // if the start of line is too close to jump, draw that line instead of a jump
-                    resultLines.push(lastLine);
-                    return resultLines;
-                }
+            var startDistance = jumpEnd.distance(lastLine.start);
+            if (startDistance < jumpSize * 2 + CLOSE_PROXIMITY_PADDING) {
+                // if the start of line is too close to jump, draw that line instead of a jump
+                resultLines.push(lastLine);
+                return resultLines;
             }
 
             // finally create a jump line
@@ -9970,14 +10739,28 @@ joint.connectors.jumpover = (function(_, g) {
         // make a paths from lines
         var paths = _(lines).map(function(line) {
             if (line.isJump) {
+                var diff;
                 if (jumpType === 'arc') {
-                    var diff = line.start.difference(line.end);
+                    diff = line.start.difference(line.end);
                     // determine rotation of arc based on difference between points
                     var xAxisRotate = Number(diff.x < 0 && diff.y < 0);
-                    // for a jump line we create a arc instead
+                    // for a jump line we create an arc instead
                     return ['A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y];
                 } else if (jumpType === 'gap') {
                     return ['M', line.end.x, line.end.y];
+                } else if (jumpType === 'cubic') {
+                    diff = line.start.difference(line.end);
+                    var angle = line.start.theta(line.end);
+                    var xOffset = jumpSize * 0.6;
+                    var yOffset = jumpSize * 1.35;
+                    // determine rotation of curve based on difference between points
+                    if (diff.x < 0 && diff.y < 0) {
+                        yOffset *= -1;
+                    }
+                    var controlStartPoint = g.point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
+                    var controlEndPoint = g.point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
+                    // create a cubic bezier curve
+                    return ['C', controlStartPoint.x, controlStartPoint.y, controlEndPoint.x, controlEndPoint.y, line.end.x, line.end.y];
                 }
             }
             return ['L', line.end.x, line.end.y];
@@ -10001,6 +10784,7 @@ joint.connectors.jumpover = (function(_, g) {
 
         var jumpSize = opts.size || JUMP_SIZE;
         var jumpType = opts.jump && ('' + opts.jump).toLowerCase();
+        var ignoreConnectors = opts.ignoreConnectors || IGNORED_CONNECTORS;
 
         // grab the first jump type as a default if specified one is invalid
         if (JUMP_TYPES.indexOf(jumpType) === -1) {
@@ -10021,13 +10805,21 @@ joint.connectors.jumpover = (function(_, g) {
 
         var thisModel = this.model;
         var thisIndex = allLinks.indexOf(thisModel);
+        var defaultConnector = paper.options.defaultConnector || {};
 
-        // filter out links that are above this one and  have the same connector type
-        // otherwise there would double hoops for each intersection
+        // not all links are meant to be jumped over.
         var links = allLinks.filter(function(link, idx) {
+
+            var connector = link.get('connector') || defaultConnector;
+
+            // avoid jumping over links with connector type listed in `ignored connectors`.
+            if (_.contains(ignoreConnectors, connector.name)) {
+                return false;
+            }
+            // filter out links that are above this one and  have the same connector type
+            // otherwise there would double hoops for each intersection
             if (idx > thisIndex) {
-                var connector = link.get('connector');
-                return !(connector && connector.name === 'jumpover');
+                return connector.name !== 'jumpover';
             }
             return true;
         });
@@ -10037,19 +10829,27 @@ joint.connectors.jumpover = (function(_, g) {
             return paper.findViewByModel(link);
         });
 
-        // create lines for each link
+        // create lines for this link
+        var thisLines = createLines(
+            sourcePoint,
+            targetPoint,
+            vertices
+        );
+
+        // create lines for all other links
         var linkLines = linkViews.map(function(linkView) {
             if (linkView == null) {
                 return [];
+            }
+            if (linkView === this) {
+                return thisLines;
             }
             return createLines(
                 linkView.sourcePoint,
                 linkView.targetPoint,
                 linkView.route
             );
-        });
-
-        var thisLines = linkLines[thisIndex];
+        }, this);
 
         // transform lines for this link by splitting with jump lines at
         // points of intersection with other links
