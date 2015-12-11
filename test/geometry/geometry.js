@@ -41,3 +41,10 @@ test('rect.intersect', function(assert) {
     assert.ok(g.rect(20,20,100,100).intersect(g.rect(40,40,100,100)).equals(g.rect(40,40,80,80)), 'overlap right and bottom');
     assert.equal(g.rect(20,20,100,100).intersect(g.rect(140,140,20,20)), null, 'no intersection');
 });
+
+test('rect.union', function(assert) {
+
+    assert.equal(g.rect(20,20,50,50).union(g.rect(100,100,50,50)).toString(), g.rect(20,20,130,130).toString(), 'union of distant rectangles');
+    assert.equal(g.rect(20,20,150,150).union(g.rect(50,50,20,20)).toString(), g.rect(20,20,150,150).toString(), 'union of embedded rectangles');
+    assert.equal(g.rect(20,20,150,150).union(g.rect(50,50,200,200)).toString(), g.rect(20,20,230,230).toString(), 'union of intersecting rectangles');
+});

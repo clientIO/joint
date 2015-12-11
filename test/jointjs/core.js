@@ -182,3 +182,41 @@ test('core.util.normalizeSides()', function(assert) {
                      'If called with an object, the existing sides are copied from the given object and the rest is defaulted to 0.');
 
 });
+
+test('joint.setTheme()', function(assert) {
+
+    assert.ok(typeof joint.setTheme === 'function', 'should be a function');
+
+    var theme = 'set-global-theme-test';
+    var view1 = new joint.mvc.View();
+    var view2 = new joint.mvc.View();
+
+    joint.setTheme(theme);
+
+    assert.ok(view1.theme === theme && view2.theme === theme, 'should set the theme for all views');
+    assert.equal(joint.mvc.View.prototype.options.theme, theme, 'should update the default theme on the view prototype');
+
+    var view3 = new joint.mvc.View();
+
+    assert.equal(view3.theme, theme, 'newly created views should use the updated theme');
+
+    var localTheme = 'local-theme';
+
+    var SomeView = joint.mvc.View.extend({
+        options: {
+            theme: localTheme
+        }
+    });
+
+    var view4 = new joint.mvc.View({
+        theme: localTheme
+    });
+
+    joint.setTheme(theme);
+
+    assert.ok(view4.theme === localTheme, 'by default, should not override local theme settings');
+
+    joint.setTheme(theme, { override: true });
+
+    assert.ok(view4.theme === theme, 'when "override" set to true, should override local theme settings');
+});

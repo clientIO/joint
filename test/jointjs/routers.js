@@ -17,6 +17,8 @@ module('routers', {
 
     teardown: function() {
 
+        this.paper.remove();
+
         delete this.graph;
         delete this.paper;
     }
@@ -77,7 +79,7 @@ test('orthogonal routing', function() {
     var l1View = this.paper.findViewByModel(l1);
     var l1PathData = l1View.$('.connection').attr('d');
 
-    equal(l1PathData, 'M 225 90 225 200 150 200 150 90', 'link with one vertex was correctly routed');
+    checkDataPath(l1PathData, 'M 225 90 225 200 150 200 150 90', 'link with one vertex was correctly routed');
 
     // No vertex.
 
@@ -95,7 +97,7 @@ test('orthogonal routing', function() {
     var l2View = this.paper.findViewByModel(l2);
     var l2PathData = l2View.$('.connection').attr('d');
 
-    equal(l2PathData, 'M 90 55 245 55 245 120', 'link with no vertex was correctly routed');
+    checkDataPath(l2PathData, 'M 90 55 245 55 245 120', 'link with no vertex was correctly routed');
 
     // Check for spikes.
 
@@ -114,7 +116,7 @@ test('orthogonal routing', function() {
     var l3View = this.paper.findViewByModel(l3);
     var l3PathData = l3View.$('.connection').attr('d');
 
-    equal(l3PathData, 'M 225 90 225 200 150 200 150 55 350 55', 'no spike (a return path segment) was created');
+    checkDataPath(l3PathData, 'M 225 90 225 200 150 200 150 55 350 55', 'no spike (a return path segment) was created');
 });
 
 test('manhattan routing', function() {
@@ -139,20 +141,20 @@ test('manhattan routing', function() {
 
     var d = v0.$('.connection').attr('d');
 
-    equal(d, "M 140 80 160 80 300 80 300 120 600 120 600 80 620 80", 'Route avoids an obstacle.');
+    checkDataPath(d, "M 140 80 160 80 300 80 300 120 600 120 600 80 620 80", 'Route avoids an obstacle.');
 
     r1.translate(0,50);
 
     d = v0.$('.connection').attr('d');
 
-    equal(d, "M 140 120 160 120 600 120 600 80 620 80",
+    checkDataPath(d, "M 140 120 160 120 600 120 600 80 620 80",
           'Source has been moved. Route recalculated starting from target.');
 
     r3.translate(0,-50);
 
     d = v0.$('.connection').attr('d');
 
-    equal(d, "M 140 120 160 120 600 120 600 20 620 20",
+    checkDataPath(d, "M 140 120 160 120 600 120 600 20 620 20",
           'Target has been moved. Route recalculated starting from source.');
 
 
@@ -166,7 +168,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    equal(d, "M 140 120 180 120 280 120 280 0 580 0 580 20 620 20",
+    checkDataPath(d, "M 140 120 180 120 280 120 280 0 580 0 580 20 620 20",
           "The option paddingBox was passed. The source and target element and obstacles are avoided taken this padding in account.");
 
     throws(function() {
@@ -186,7 +188,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    equal(d, "M 80 80 80 20 680 20 680 20",
+    checkDataPath(d, "M 80 80 80 20 680 20 680 20",
           'The default fallback router made an orthogonal link.');
 
     l0.set({
@@ -199,7 +201,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    equal(d, "M 80 80 80 60 80 20 20 20 20 0 600 0 600 20 620 20",
+    checkDataPath(d, "M 80 80 80 60 80 20 20 20 20 0 600 0 600 20 620 20",
           'A vertex was added. Route correctly recalculated.');
 
     throws(function() {
@@ -228,7 +230,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    equal(d, "M 140 80 160 80 600 80 620 80",
+    checkDataPath(d, "M 140 80 160 80 600 80 620 80",
           "Set excludeTypes parameter to 'basic.Rect' makes routing ignore those shapes.");
 
     r2.remove();
@@ -244,7 +246,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    equal(d, "M 140 80 160 80 800 80 800 100 760 100 760 80 740 80",
+    checkDataPath(d, "M 140 80 160 80 800 80 800 100 760 100 760 80 740 80",
           "Set excludeEnds parameter to 'target' makes routing ignore target element.");
 
     l0.set({
@@ -259,7 +261,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    equal(d, "M 20 80 0 80 0 120 760 120 760 80 740 80",
+    checkDataPath(d, "M 20 80 0 80 0 120 760 120 760 80 740 80",
           "Set startDirections & endDirections parameters makes routing starts and ends from/to the given direction.");
 
 });
@@ -286,7 +288,7 @@ test('metro routing', function() {
 
     var d = v0.$('.connection').attr('d');
 
-    equal(d, "M 140 80 160 80 400 320 440 320 680 560 680 620 680 630",
+    checkDataPath(d, "M 140 80 160 80 400 320 440 320 680 560 680 620 680 630",
           'Route avoids an obstacle.');
 
     l0.set('router', { name: 'metro', args: {
@@ -295,7 +297,7 @@ test('metro routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    equal(d, "M 80 70 81 70 680 670 680 670",
+    checkDataPath(d, "M 80 70 81 70 680 670 680 670",
           'The default fallback router made a metro link.');
 
 });
@@ -313,27 +315,27 @@ test('oneSide routing', function(assert) {
     // Left side
     l.set('router', { name: 'oneSide', args: { padding: 20, side: 'left' }});
     var d = v.$('.connection').attr('d');
-    assert.equal(d, 'M 20 70 0 70 0 370 320 370', 'Route goes only on the left side.');
+    checkDataPath(d, 'M 20 70 0 70 0 370 320 370', 'Route goes only on the left side.');
 
     // Padding option
     l.set('router', { name: 'oneSide', args: { padding: 40, side: 'left' }});
     d = v.$('.connection').attr('d');
-    assert.equal(d, 'M 20 70 -20 70 -20 370 320 370', 'Route respects the padding.');
+    checkDataPath(d, 'M 20 70 -20 70 -20 370 320 370', 'Route respects the padding.');
 
     // Right side
     l.set('router', { name: 'oneSide', args: { padding: 40, side: 'right' }});
     d = v.$('.connection').attr('d');
-    assert.equal(d, 'M 140 70 480 70 480 370 440 370', 'Route goes only on the right side.');
+    checkDataPath(d, 'M 140 70 480 70 480 370 440 370', 'Route goes only on the right side.');
 
     // Top side
     l.set('router', { name: 'oneSide', args: { padding: 40, side: 'top' }});
     d = v.$('.connection').attr('d');
-    assert.equal(d, 'M 80 30 80 -10 380 -10 380 330', 'Route goes only on the top.');
+    checkDataPath(d, 'M 80 30 80 -10 380 -10 380 330', 'Route goes only on the top.');
 
     // Bottom side
     l.set('router', { name: 'oneSide', args: { padding: 40, side: 'bottom' }});
     d = v.$('.connection').attr('d');
-    assert.equal(d, 'M 80 110 80 450 380 450 380 410', 'Route goes only on the bottom');
+    checkDataPath(d, 'M 80 110 80 450 380 450 380 410', 'Route goes only on the bottom');
 
     // Wrong side specified
     assert.throws(function() {

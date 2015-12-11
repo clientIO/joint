@@ -1,8 +1,8 @@
 //      JointJS library.
-//      (c) 2011-2013 client IO
+//      (c) 2011-2015 client IO
 
 
-joint.dia.Paper = Backbone.View.extend({
+joint.dia.Paper = joint.mvc.View.extend({
 
     className: 'paper',
 
@@ -16,6 +16,16 @@ joint.dia.Paper = Backbone.View.extend({
         elementView: joint.dia.ElementView,
         linkView: joint.dia.LinkView,
         snapLinks: false, // false, true, { radius: value }
+
+        // When set to FALSE, an element may not have more than 1 link with the same source and target element.
+        multiLinks: true,
+
+        // For adding custom guard logic.
+        guard: function(evt, view) {
+
+            // FALSE means the event isn't guarded.
+            return false;
+        },
 
         // Restrict the translation of elements by given bounding box.
         // Option accepts a boolean:
@@ -112,21 +122,15 @@ joint.dia.Paper = Backbone.View.extend({
         'contextmenu': 'contextmenu'
     },
 
-    constructor: function(options) {
-
-        this._configure(options);
-        Backbone.View.apply(this, arguments);
-    },
-
-    _configure: function(options) {
-
-        if (this.options) options = _.merge({}, _.result(this, 'options'), options);
-        this.options = options;
-    },
-
-    initialize: function() {
+    init: function() {
 
         _.bindAll(this, 'pointerup');
+
+        // This is a fix for the case where two papers share the same options.
+        // Changing origin.x for one paper would change the value of origin.x for the other.
+        // This prevents that behavior.
+        this.options.origin = _.clone(this.options.origin);
+        this.options.defaultConnector = _.clone(this.options.defaultConnector);
 
         this.svg = V('svg').node;
         this.viewport = V('g').addClass('viewport').node;
@@ -156,14 +160,12 @@ joint.dia.Paper = Backbone.View.extend({
         this.on({ 'cell:highlight': this.onCellHighlight, 'cell:unhighlight': this.onCellUnhighlight });
     },
 
-    remove: function() {
+    onRemove: function() {
 
         //clean up all DOM elements/views to prevent memory leaks
         this.removeViews();
 
         $(document).off('mouseup touchend', this.pointerup);
-
-        Backbone.View.prototype.remove.call(this);
     },
 
     setDimensions: function(width, height) {
@@ -667,14 +669,16 @@ joint.dia.Paper = Backbone.View.extend({
     },
 
     // Find all views in given area
-    findViewsInArea: function(r) {
+    findViewsInArea: function(rect, opt) {
 
-        r = g.rect(r);
+        opt = _.defaults(opt || {}, { strict: false });
+        rect = g.rect(rect);
 
         var views = _.map(this.model.getElements(), this.findViewByModel, this);
+        var method = opt.strict ? 'containsRect' : 'intersect';
 
         return _.filter(views, function(view) {
-            return view && r.intersect(g.rect(view.vel.bbox(false, this.viewport)));
+            return view && rect[method](g.rect(view.vel.bbox(false, this.viewport)));
         }, this);
     },
 
@@ -701,9 +705,7 @@ joint.dia.Paper = Backbone.View.extend({
     // Exmaple: var paperPoint = paper.clientToLocalPoint({ x: evt.clientX, y: evt.clientY });
     clientToLocalPoint: function(p) {
 
-        var svgPoint = this.svg.createSVGPoint();
-        svgPoint.x = p.x;
-        svgPoint.y = p.y;
+        p = g.point(p);
 
         // This is a hack for Firefox! If there wasn't a fake (non-visible) rectangle covering the
         // whole SVG area, `$(paper.svg).offset()` used below won't work.
@@ -718,13 +720,73 @@ joint.dia.Paper = Backbone.View.extend({
         var scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
         var scrollLeft = document.body.scrollLeft || document.documentElement.scrollLeft;
 
-        svgPoint.x += scrollLeft - paperOffset.left;
-        svgPoint.y += scrollTop - paperOffset.top;
+        p.offset(scrollLeft - paperOffset.left, scrollTop - paperOffset.top);
 
         // Transform point into the viewport coordinate system.
-        var pointTransformed = svgPoint.matrixTransform(this.viewport.getCTM().inverse());
+        return V.transformPoint(p, this.viewport.getCTM().inverse());
+    },
 
-        return pointTransformed;
+    linkAllowed: function(linkViewOrModel) {
+
+        var link;
+
+        if (linkViewOrModel instanceof joint.dia.Link) {
+            link = linkViewOrModel;
+        } else if (linkViewOrModel instanceof joint.dia.LinkView) {
+            link = linkViewOrModel.model;
+        } else {
+            throw new Error('Must provide link model or view.');
+        }
+
+        if (!this.options.multiLinks) {
+
+            // Do not allow multiple links to have the same source and target.
+
+            var source = link.get('source');
+            var target = link.get('target');
+
+            if (source.id && target.id) {
+
+                var sourceModel = link.getSourceElement();
+
+                if (sourceModel) {
+
+                    var connectedLinks = this.model.getConnectedLinks(sourceModel, {
+                        outbound: true,
+                        inbound: false
+                    });
+
+                    var numSameLinks = _.filter(connectedLinks, function(_link) {
+
+                        var _source = _link.get('source');
+                        var _target = _link.get('target');
+
+                        return _source && _source.id === source.id &&
+                                (!_source.port || (_source.port === source.port)) &&
+                                _target && _target.id === target.id &&
+                                (!_target.port || (_target.port === target.port));
+
+                    }).length;
+
+                    if (numSameLinks > 1) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        if (
+            !this.options.linkPinning &&
+            (
+                !_.has(link.get('source'), 'id') ||
+                !_.has(link.get('target'), 'id')
+            )
+        ) {
+            // Link pinning is not allowed and the link is not connected to the target.
+            return false;
+        }
+
+        return true;
     },
 
     getDefaultLink: function(cellView, magnet) {
@@ -791,13 +853,16 @@ joint.dia.Paper = Backbone.View.extend({
                 this.trigger('blank:pointerclick', evt, localPoint.x, localPoint.y);
             }
         }
-
-        this._mousemoved = 0;
     },
 
     // Guard guards the event received. If the event is not interesting, guard returns `true`.
     // Otherwise, it return `false`.
     guard: function(evt, view) {
+
+        if (this.options.guard && this.options.guard(evt, view)) {
+
+            return true;
+        }
 
         if (view && view.model && (view.model instanceof joint.dia.Cell)) {
 
@@ -835,6 +900,10 @@ joint.dia.Paper = Backbone.View.extend({
 
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
+
+        evt.preventDefault();
+
+        this._mousemoved = 0;
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 

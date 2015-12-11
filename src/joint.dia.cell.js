@@ -1,5 +1,5 @@
 //      JointJS.
-//      (c) 2011-2013 client IO
+//      (c) 2011-2015 client IO
 
 // joint.dia.Cell base model.
 // --------------------------
@@ -25,6 +25,11 @@ joint.dia.Cell = Backbone.Model.extend({
         this.set(attrs, options);
         this.changed = {};
         this.initialize.apply(this, arguments);
+    },
+
+    translate: function(dx, dy, opt) {
+
+        throw new Error('Must define a translate() method.');
     },
 
     toJSON: function() {
@@ -118,15 +123,15 @@ joint.dia.Cell = Backbone.Model.extend({
         });
 
         // Remove all the incoming/outgoing links that have source/target port set to any of the removed ports.
-        if (this.collection && !_.isEmpty(removedPorts)) {
+        if (this.graph && !_.isEmpty(removedPorts)) {
 
-            var inboundLinks = this.collection.getConnectedLinks(this, { inbound: true });
+            var inboundLinks = this.graph.getConnectedLinks(this, { inbound: true });
             _.each(inboundLinks, function(link) {
 
                 if (removedPorts[link.get('target').port]) link.remove();
             });
 
-            var outboundLinks = this.collection.getConnectedLinks(this, { outbound: true });
+            var outboundLinks = this.graph.getConnectedLinks(this, { outbound: true });
             _.each(outboundLinks, function(link) {
 
                 if (removedPorts[link.get('source').port]) link.remove();
@@ -141,17 +146,17 @@ joint.dia.Cell = Backbone.Model.extend({
 
         opt = opt || {};
 
-        var collection = this.collection;
-
-        if (collection) {
-            collection.trigger('batch:start', { batchName: 'remove' });
+        // Store the graph in a variable because `this.graph` won't' be accessbile after `this.trigger('remove', ...)` down below.
+        var graph = this.graph;
+        if (graph) {
+            graph.trigger('batch:start', { batchName: 'remove' });
         }
 
         // First, unembed this cell from its parent cell if there is one.
         var parentCellId = this.get('parent');
         if (parentCellId) {
 
-            var parentCell = this.collection && this.collection.get(parentCellId);
+            var parentCell = graph && graph.getCell(parentCellId);
             parentCell.unembed(this);
         }
 
@@ -159,8 +164,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
         this.trigger('remove', this, this.collection, opt);
 
-        if (collection) {
-            collection.trigger('batch:stop', { batchName: 'remove' });
+        if (graph) {
+            graph.trigger('batch:stop', { batchName: 'remove' });
         }
 
         return this;
@@ -168,11 +173,11 @@ joint.dia.Cell = Backbone.Model.extend({
 
     toFront: function(opt) {
 
-        if (this.collection) {
+        if (this.graph) {
 
             opt = opt || {};
 
-            var z = (this.collection.last().get('z') || 0) + 1;
+            var z = (this.graph.getLastCell().get('z') || 0) + 1;
 
             this.trigger('batch:start', { batchName: 'to-front' }).set('z', z, opt);
 
@@ -191,11 +196,11 @@ joint.dia.Cell = Backbone.Model.extend({
 
     toBack: function(opt) {
 
-        if (this.collection) {
+        if (this.graph) {
 
             opt = opt || {};
 
-            var z = (this.collection.first().get('z') || 0) - 1;
+            var z = (this.graph.getFirstCell().get('z') || 0) - 1;
 
             this.trigger('batch:start', { batchName: 'to-back' });
 
@@ -223,7 +228,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             var embeds = _.clone(this.get('embeds') || []);
 
-            // We keep all element ids after links ids.
+            // We keep all element ids after link ids.
             embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
 
             cell.set('parent', this.id, opt);
@@ -255,11 +260,12 @@ joint.dia.Cell = Backbone.Model.extend({
         var ancestors = [];
         var parentId = this.get('parent');
 
-        if (this.collection === undefined)
+        if (!this.graph) {
             return ancestors;
+        }
 
         while (parentId !== undefined) {
-            var parent = this.collection.get(parentId);
+            var parent = this.graph.getCell(parentId);
             if (parent !== undefined) {
                 ancestors.push(parent);
                 parentId = parent.get('parent');
@@ -279,7 +285,7 @@ joint.dia.Cell = Backbone.Model.extend({
         // There is no way this element knows about other cells otherwise.
         // This also means that calling e.g. `translate()` on an element with embeds before
         // adding it to a graph does not translate its embeds.
-        if (this.collection) {
+        if (this.graph) {
 
             var cells;
 
@@ -309,7 +315,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             } else {
 
-                cells = _.map(this.get('embeds'), this.collection.get, this.collection);
+                cells = _.map(this.get('embeds'), this.graph.getCell, this.graph);
             }
 
             return cells;
@@ -325,13 +331,13 @@ joint.dia.Cell = Backbone.Model.extend({
         opt = _.defaults({ deep: true }, opt);
 
         // See getEmbeddedCells().
-        if (this.collection && opt.deep) {
+        if (this.graph && opt.deep) {
 
             while (parentId) {
                 if (parentId === cellId) {
                     return true;
                 }
-                parentId = this.collection.get(parentId).get('parent');
+                parentId = this.graph.getCell(parentId).get('parent');
             }
 
             return false;
@@ -344,96 +350,35 @@ joint.dia.Cell = Backbone.Model.extend({
         }
     },
 
+    // Whether or not the cell is embedded in any other cell.
+    isEmbedded: function() {
+
+        return !!this.get('parent');
+    },
+
+    // Isolated cloning. Isolated cloning has two versions: shallow and deep (pass `{ deep: true }` in `opt`).
+    // Shallow cloning simply clones the cell and returns a new cell with different ID.
+    // Deep cloning clones the cell and all its embedded cells recursively.
     clone: function(opt) {
 
         opt = opt || {};
 
-        var clone = Backbone.Model.prototype.clone.apply(this, arguments);
+        if (!opt.deep) {
+            // Shallow cloning.
 
-        // We don't want the clone to have the same ID as the original.
-        clone.set('id', joint.util.uuid(), { silent: true });
-        clone.set('embeds', '');
+            var clone = Backbone.Model.prototype.clone.apply(this, arguments);
+            // We don't want the clone to have the same ID as the original.
+            clone.set('id', joint.util.uuid());
+            // A shallow cloned element does not carry over the original embeds.
+            clone.set('embeds', '');
+            return clone;
 
-        if (!opt.deep) return clone;
+        } else {
+            // Deep cloning.
 
-        // The rest of the `clone()` method deals with embeds. If `deep` option is set to `true`,
-        // the return value is an array of all the embedded clones created.
-
-        var embeds = _.sortBy(this.getEmbeddedCells(), function(cell) {
-            // Sort embeds that links come before elements.
-            return cell instanceof joint.dia.Element;
-        });
-
-        var clones = [clone];
-
-        // This mapping stores cloned links under the `id`s of they originals.
-        // This prevents cloning a link more then once. Consider a link 'self loop' for example.
-        var linkCloneMapping = {};
-
-        _.each(embeds, function(embed) {
-
-            var embedClones = embed.clone({ deep: true });
-
-            // Embed the first clone returned from `clone({ deep: true })` above. The first
-            // cell is always the clone of the cell that called the `clone()` method, i.e. clone of `embed` in this case.
-            clone.embed(embedClones[0]);
-
-            _.each(embedClones, function(embedClone) {
-
-                if (embedClone instanceof joint.dia.Link) {
-
-                    if (embedClone.get('source').id === this.id) {
-
-                        embedClone.prop('source', { id: clone.id });
-                    }
-
-                    if (embedClone.get('target').id === this.id) {
-
-                        embedClone.prop('target', { id: clone.id });
-                    }
-
-                    linkCloneMapping[embed.id] = embedClone;
-
-                    // Skip links. Inbound/outbound links are not relevant for them.
-                    return;
-                }
-
-                clones.push(embedClone);
-
-                // Collect all inbound links, clone them (if not done already) and set their target to the `embedClone.id`.
-                var inboundLinks = this.collection.getConnectedLinks(embed, { inbound: true });
-
-                _.each(inboundLinks, function(link) {
-
-                    var linkClone = linkCloneMapping[link.id] || link.clone();
-
-                    // Make sure we don't clone a link more then once.
-                    linkCloneMapping[link.id] = linkClone;
-
-                    linkClone.prop('target', { id: embedClone.id });
-                });
-
-                // Collect all inbound links, clone them (if not done already) and set their source to the `embedClone.id`.
-                var outboundLinks = this.collection.getConnectedLinks(embed, { outbound: true });
-
-                _.each(outboundLinks, function(link) {
-
-                    var linkClone = linkCloneMapping[link.id] || link.clone();
-
-                    // Make sure we don't clone a link more then once.
-                    linkCloneMapping[link.id] = linkClone;
-
-                    linkClone.prop('source', { id: embedClone.id });
-                });
-
-            }, this);
-
-        }, this);
-
-        // Add link clones to the array of all the new clones.
-        clones = clones.concat(_.values(linkCloneMapping));
-
-        return clones;
+            // For a deep clone, simply call `graph.cloneCells()` with the cell and all its embedded cells.
+            return _.values(joint.dia.Graph.prototype.cloneCells.call(null, [this].concat(this.getEmbeddedCells({ deep: true }))));
+        }
     },
 
     // A convenient way to set nested properties.
@@ -671,7 +616,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
 // This is the base view and controller for `joint.dia.ElementView` and `joint.dia.LinkView`.
 
-joint.dia.CellView = Backbone.View.extend({
+joint.dia.CellView = joint.mvc.View.extend({
 
     tagName: 'g',
 
@@ -682,22 +627,16 @@ joint.dia.CellView = Backbone.View.extend({
 
     constructor: function(options) {
 
-        this._configure(options);
-        Backbone.View.apply(this, arguments);
-    },
-
-    _configure: function(options) {
-
-        if (this.options) options = _.extend({}, _.result(this, 'options'), options);
-        this.options = options;
         // Make sure a global unique id is assigned to this view. Store this id also to the properties object.
         // The global unique id makes sure that the same view can be rendered on e.g. different machines and
         // still be associated to the same object among all those clients. This is necessary for real-time
         // collaboration mechanism.
-        this.options.id = this.options.id || joint.util.guid(this);
+        options.id = options.id || joint.util.guid(this);
+
+        joint.mvc.View.call(this, options);
     },
 
-    initialize: function() {
+    init: function() {
 
         _.bindAll(this, 'remove', 'update');
 
@@ -1006,5 +945,14 @@ joint.dia.CellView = Backbone.View.extend({
     contextmenu: function(evt, x, y) {
 
         this.notify('cell:contextmenu', evt, x, y);
+    },
+
+    onSetTheme: function(oldTheme, newTheme) {
+
+        if (oldTheme) {
+            this.vel.removeClass(this.themeClassNamePrefix + oldTheme);
+        }
+
+        this.vel.addClass(this.themeClassNamePrefix + newTheme);
     }
 });

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <title>JointJS test suite</title>
+        <link rel="stylesheet" href="../../lib/qunit/qunit/qunit.css">
+        <link rel="stylesheet" href="../../dist/joint.css">
+    </head>
+    <body>
+
+        <div id="qunit"></div>
+        <div id="qunit-fixture"></div>
+
+        <script src="../../lib/qunit/qunit/qunit.js"></script>
+        <script src="../../lib/blanket/dist/qunit/blanket.js"></script>
+        <script src="../../lib/sinonjs/sinon.js"></script>
+
+        <script src="../coverage.js"></script>
+        <script src="../utils.js"></script>
+
+        <!-- Dependencies:  -->
+        <script src="../../lib/jquery/jquery.js"></script>
+        <script src="../../lib/lodash/lodash.js"></script>
+        <script src="../../lib/backbone/backbone.js"></script>
+        <script src="../../lib/graphlib/dist/graphlib.core.js"></script>
+        <script src="../../lib/dagre/dist/dagre.core.js"></script>
+        <script src="../../dist/geometry.js"></script>
+        <script src="../../dist/vectorizer.js"></script>
+
+        <script data-cover src="../../src/core.js"></script>
+        <script data-cover src="../../src/joint.mvc.view.js"></script>
+        <script data-cover src="../../src/joint.dia.cell.js"></script>
+        <script data-cover src="../../src/joint.dia.element.js"></script>
+        <script data-cover src="../../src/joint.dia.link.js"></script>
+        <script data-cover src="../../src/joint.dia.graph.js"></script>
+        <script data-cover src="../../src/joint.dia.paper.js"></script>
+        <script data-cover src="../../plugins/routers/joint.routers.manhattan.js"></script>
+        <script data-cover src="../../plugins/routers/joint.routers.metro.js"></script>
+        <script data-cover src="../../plugins/routers/joint.routers.oneSide.js"></script>
+        <script data-cover src="../../plugins/routers/joint.routers.orthogonal.js"></script>
+        <script data-cover src="../../plugins/connectors/joint.connectors.jumpover.js"></script>
+        <script data-cover src="../../plugins/connectors/joint.connectors.normal.js"></script>
+        <script data-cover src="../../plugins/connectors/joint.connectors.rounded.js"></script>
+        <script data-cover src="../../plugins/connectors/joint.connectors.smooth.js"></script>
+        <script data-cover src="../../plugins/joint.shapes.basic.js"></script>
+        <script data-cover src="../../plugins/joint.shapes.chess.js"></script>
+        <script data-cover src="../../plugins/joint.shapes.devs.js"></script>
+        <script data-cover src="../../plugins/joint.shapes.erd.js"></script>
+        <script data-cover src="../../plugins/joint.shapes.fsa.js"></script>
+        <script data-cover src="../../plugins/joint.shapes.logic.js"></script>
+        <script data-cover src="../../plugins/joint.shapes.org.js"></script>
+        <script data-cover src="../../plugins/joint.shapes.pn.js"></script>
+        <script data-cover src="../../plugins/joint.shapes.uml.js"></script>
+
+        <script src="./core.js"></script>
+        <script src="./mvc.view.js"></script>
+        <script src="./basic.js"></script>
+        <script src="./links.js"></script>
+        <script src="./graph.js"></script>
+        <script src="./paper.js"></script>
+        <script src="./routers.js"></script>
+        <script src="./connectors.js"></script>
+        <script src="./embedding.js"></script>
+
+    </body>
+</html>

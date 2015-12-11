@@ -199,3 +199,90 @@ test('find()', function(assert) {
     assert.ok(found.length, 'The array is not empty.');
     assert.ok(found.reduce(function(memo, vel) { return memo && V.isVElement(vel); }, true), 'Items in the array are wrapped in Vectorizer.');
 });
+
+test('V.transfromPoint', function(assert) {
+
+    var p = { x: 1, y: 2 };
+    var t;
+    var group = V('<g/>');
+    
+    V(this.svgContainer).append(group);
+
+    t = V.transformPoint(p, group.node.getCTM());
+    assert.deepEqual({ x: t.x, y: t.y }, { x: 1, y: 2 }, 'transform without transformation returns the point unchanged.');
+
+    group.scale(2,3);
+    t = V.transformPoint(p, group.node.getCTM());
+    assert.deepEqual({ x: t.x, y: t.y }, { x: 2, y: 6 }, 'transform with scale transformation returns correct point.');
+
+    group.attr('transform', 'rotate(90)');
+    t = V.transformPoint(p, group.node.getCTM());
+    assert.deepEqual({ x: t.x, y: t.y }, { x: -2, y: 1 }, 'transform with rotate transformation returns correct point.');
+
+    group.remove();
+});
+
+test('native getTransformToElement vs VElement getTransformToElement - translate', function(assert) {
+    var container = V(this.svgContainer);
+    var group = V('<g/>');
+    var rect = V('<rect/>');
+    var transformNativeResult = {
+        a: 1,
+        b: 0,
+        c: 0,
+        d: 1,
+        e: -10,
+        f: -10
+    };
+
+    container.append(group);
+    container.append(rect);
+
+    rect.translate(10, 10);
+
+    var transformPoly = group.getTransformToElement(rect.node);
+    var matrix = {
+        a: transformPoly.a,
+        b: transformPoly.b,
+        c: transformPoly.c,
+        d: transformPoly.d,
+        e: transformPoly.e,
+        f: transformPoly.f
+    };
+    assert.deepEqual(matrix, transformNativeResult);
+});
+
+test('native getTransformToElement vs VElement getTransformToElement - rotate', function(assert) {
+    var container = V(this.svgContainer);
+    var normalizeFloat = function(value) {
+        var temp = value * 100;
+        return temp > 0 ? Math.floor(temp) : Math.ceil(temp);
+    };
+    var group = V('<g/>');
+    var rect = V('<rect/>');
+    var transformNativeResult = {
+        a: normalizeFloat(0.7071067811865476),
+        b: normalizeFloat(-0.7071067811865475),
+        c: normalizeFloat(0.7071067811865475),
+        d: normalizeFloat(0.7071067811865476),
+        e: normalizeFloat(-0),
+        f: normalizeFloat(0)
+    };
+
+    container.append(group);
+    container.append(rect);
+
+    rect.rotate(45);
+
+
+    var transformPoly = group.getTransformToElement(rect.node);
+    var matrix = {
+        a: normalizeFloat(transformPoly.a),
+        b: normalizeFloat(transformPoly.b),
+        c: normalizeFloat(transformPoly.c),
+        d: normalizeFloat(transformPoly.d),
+        e: normalizeFloat(transformPoly.e),
+        f: normalizeFloat(transformPoly.f)
+    };
+    assert.deepEqual(matrix, transformNativeResult);
+});

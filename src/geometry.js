@@ -1,5 +1,5 @@
 //      Geometry library.
-//      (c) 2011-2013 client IO
+//      (c) 2011-2015 client IO
 
 var g = (function() {
 
@@ -365,6 +365,21 @@ var g = (function() {
             var y = Math.max(myOrigin.y, rOrigin.y);
 
             return rect(x, y, Math.min(myCorner.x, rCorner.x) - x, Math.min(myCorner.y, rCorner.y) - y);
+        },
+
+        // @return {rect} representing the union of both rectangles.
+        union: function(r) {
+            var myOrigin = this.origin();
+            var myCorner = this.corner();
+            var rOrigin = r.origin();
+            var rCorner = r.corner();
+
+            var originX = Math.min(myOrigin.x, rOrigin.x);
+            var originY = Math.min(myOrigin.y, rOrigin.y);
+            var cornerX = Math.max(myCorner.x, rCorner.x);
+            var cornerY = Math.max(myCorner.y, rCorner.y);
+
+            return rect(originX, originY, cornerX - originX, cornerY - originY);
         },
 
         // @return {string} (left|right|top|bottom) side which is nearest to point

@@ -1,5 +1,5 @@
 //      JointJS library.
-//      (c) 2011-2013 client IO
+//      (c) 2011-2015 client IO
 
 // Global namespace.
 
@@ -27,6 +27,21 @@ var joint = {
 
     // `joint.routers` namespace.
     routers: {},
+
+    // `joint.mvc` namespace.
+    mvc: {
+        views: {}
+    },
+
+    setTheme: function(theme, opt) {
+
+        opt = opt || {};
+
+        _.invoke(joint.mvc.views, 'setTheme', theme, opt);
+
+        // Update the default theme on the view prototype.
+        joint.mvc.View.prototype.options.theme = theme;
+    },
 
     util: {
 

@@ -17,6 +17,8 @@ module('links', {
 
     teardown: function() {
 
+        this.paper.remove();
+
         delete this.graph;
         delete this.paper;
     }
@@ -41,7 +43,7 @@ test('construction', function() {
 
     var v0 = this.paper.findViewByModel(l0);
 
-    equal(v0.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data starts at the source right-middle point and ends in the target left-middle point');
+    checkDataPath(v0.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data starts at the source right-middle point and ends in the target left-middle point');
 
     var l1 = new joint.dia.Link({
         source: { id: r1.id },
@@ -152,7 +154,7 @@ test('interaction', function() {
     ok(vr3.el.getAttribute('class').indexOf('highlighted') == -1, 'after moving the pointer to coordinates 400,400 the rectangle is not highlighted anymore');
 
     v0.pointerup();
-    equal(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 300 100 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400,400');
+    checkDataPath(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 300 100 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400,400');
 });
 
 test('labelMove', function() {
@@ -287,20 +289,20 @@ test('disconnect(), connect()', function() {
     ok(link.get('source') instanceof g.point, 'source of the link became a point');
     ok(!(link.get('target') instanceof g.point), 'target of the link is still not a point');
 
-    equal(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data stayed the same after disconnection');
-    equal(linkView.$('.connection-wrap').attr('d'), 'M 140 70 320 70', 'link connection-wrap path data is the same as the .connection path data');
+    checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data stayed the same after disconnection');
+    checkDataPath(linkView.$('.connection-wrap').attr('d'), 'M 140 70 320 70', 'link connection-wrap path data is the same as the .connection path data');
 
     myrect.translate(-10);
 
-    equal(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data stayed the same after the disconnected source moved');
+    checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data stayed the same after the disconnected source moved');
 
     link.set('source', { id: myrect.id });
 
-    equal(linkView.$('.connection').attr('d'), 'M 130 70 320 70', 'link path data updated after the disconnected source became re-connected again');
+    checkDataPath(linkView.$('.connection').attr('d'), 'M 130 70 320 70', 'link path data updated after the disconnected source became re-connected again');
 
     myrect.translate(10);
 
-    equal(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data updated after the just connected source moved');
+    checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data updated after the just connected source moved');
 
     // disconnect:
     link.set('target', linkView.getConnectionPoint('target', link.previous('target'), link.get('source')));
@@ -329,10 +331,8 @@ test('getLinks(), clone()', function() {
     this.graph.addCell(myrect2);
 
     var link = new joint.dia.Link({
-
         source: { id: myrect.id },
-        target: { id: myrect2.id },
-        attrs: { '.connection': { stroke: 'black' } }
+        target: { id: myrect2.id }
     });
     var link2 = link.clone();
     this.graph.addCell(link);
@@ -348,6 +348,31 @@ test('getLinks(), clone()', function() {
 
     deepEqual(_.pluck(this.graph.getConnectedLinks(myrect, { outbound: true }), 'id'), [link2.id], 'getConnectedLinks(outbound) returns only the one link coming out the element');
     deepEqual(_.pluck(this.graph.getConnectedLinks(myrect, { inbound: true }), 'id'), [], 'getConnectedLinks(inbound) returns no link as the element is not source of any link');
+});
+
+test('hasLoop()', function(assert) {
+
+    var myrect = new joint.shapes.basic.Rect;
+    this.graph.addCell(myrect);
+    var link = new joint.dia.Link({ source: { id: myrect.id }, target: { id: myrect.id } });
+    this.graph.addCell(link);
+    assert.equal(link.hasLoop(), true, 'link has a loop');
+
+    var myrect2 = new joint.shapes.basic.Rect;
+    this.graph.addCell(myrect2);
+    var link2 = new joint.dia.Link({ source: { id: myrect2.id }, target: { x: 20, y: 20 } });
+    this.graph.addCell(link2);
+    assert.equal(link2.hasLoop(), false, 'link pinned to the paper does not have a loop');
+    assert.equal(link2.hasLoop({ deep: true }), false, 'link pinned to the paper does not have a loop with deep = true');
+
+    var myrect3 = new joint.shapes.basic.Rect;
+    var myrect3_1 = new joint.shapes.basic.Rect;
+    myrect3.embed(myrect3_1);
+    this.graph.addCells([myrect3, myrect3_1]);
+    var link3 = new joint.dia.Link({ source: { id: myrect3.id }, target: { id: myrect3_1.id } });
+    this.graph.addCell(link3);
+    assert.equal(link3.hasLoop(), false, 'link targetting an embedded element does not have a loop with deep = false');
+    assert.equal(link3.hasLoop({ deep: true }), true, 'link targetting an embedded element does have a loop with deep = true');
 });
 
 test('markers', function() {
@@ -440,16 +465,40 @@ test('vertices', function() {
     var markerSourceBbox = V(linkView.$('.marker-source')[0]).bbox();
 
     deepEqual(
-        { x: markerSourceBbox.x, y: markerSourceBbox.y, width: markerSourceBbox.width, height: markerSourceBbox.height, rotation: V(linkView.$('.marker-source')[0]).rotate().angle },
-        { x: 75, y: 110, width: 10, height: 10, rotation: -270 },
+        {
+            x: markerSourceBbox.x,
+            y: markerSourceBbox.y,
+            width: markerSourceBbox.width,
+            height: markerSourceBbox.height,
+            rotation: g.normalizeAngle(V(linkView.$('.marker-source')[0]).rotate().angle)
+        },
+        {
+            x: 75,
+            y: 110,
+            width: 10,
+            height: 10,
+            rotation: g.normalizeAngle(-270)
+        },
         '.marker-source should point to the bottom edge of the rectangle and should be rotated by -270 degrees'
     );
 
     var markerTargetBbox = V(linkView.$('.marker-target')[0]).bbox();
     
     deepEqual(
-        { x: markerTargetBbox.x, y: markerTargetBbox.y, width: markerTargetBbox.width, height: markerTargetBbox.height, rotation: V(linkView.$('.marker-target')[0]).rotate().angle },
-        { x: 375, y: 110, width: 10, height: 10, rotation: -270 },
+        {
+            x: markerTargetBbox.x,
+            y: markerTargetBbox.y,
+            width: markerTargetBbox.width,
+            height: markerTargetBbox.height,
+            rotation: g.normalizeAngle(V(linkView.$('.marker-target')[0]).rotate().angle)
+        },
+        {
+            x: 375,
+            y: 110,
+            width: 10,
+            height: 10,
+            rotation: g.normalizeAngle(-270)
+        },
         '.marker-target should point to the bottom edge of the rectangle 2 and should be rotated by -270 degrees'
     );
 
@@ -746,6 +795,7 @@ test('defaultConnector', function(assert) {
 
     this.paper.options.defaultConnector = function(s, t, vertices) {
         assert.ok(vertices.length > 0, 'Default connector was used for the model with no connector defined.');
+        return 'M 0 0';
     };
 
     var linkDefaultConnector = new joint.dia.Link({
@@ -762,4 +812,96 @@ test('defaultConnector', function(assert) {
     });
 
     this.graph.addCells([linkDefaultConnector, linkOwnConnector]);
+});
+
+test('getSourceElement', function(assert) {
+
+    var link = new joint.dia.Link({
+        source: { x: 40, y: 40 },
+        target: { x: 100, y: 100 }
+    });
+
+    this.graph.addCell(link);
+
+    assert.equal(typeof link.getSourceElement, 'function', 'should be a function');
+
+    var source;
+
+    source = link.getSourceElement();
+
+    assert.equal(source, null, 'without source element');
+
+    var element = new joint.shapes.basic.Rect({
+        position: { x: 20, y: 20 },
+        size: { width: 60, height: 60 }
+    });
+
+    this.graph.addCell(element);
+
+    link.set('source', { id: element.id });
+
+    source = link.getSourceElement();
+
+    assert.ok(source && source instanceof joint.dia.Element && source.id === element.id, 'with source element');
+
+    var linkNotInGraph = new joint.dia.Link({
+        source: { id: element.get('id') },
+        target: { id: element.get('id') }
+    });
+
+    var thrownError;
+
+    try {
+        linkNotInGraph.getSourceElement();
+    } catch (error) {
+        thrownError = error;
+    }
+
+    assert.ok(typeof thrownError === 'undefined', 'should not throw an error when link not in graph');
+});
+
+test('getTargetElement', function(assert) {
+
+    var link = new joint.dia.Link({
+        source: { x: 40, y: 40 },
+        target: { x: 100, y: 100 }
+    });
+
+    this.graph.addCell(link);
+
+    assert.equal(typeof link.getTargetElement, 'function', 'should be a function');
+
+    var target;
+
+    target = link.getTargetElement();
+
+    assert.equal(target, null, 'without target element');
+
+    var element = new joint.shapes.basic.Rect({
+        position: { x: 20, y: 20 },
+        size: { width: 60, height: 60 }
+    });
+
+    this.graph.addCell(element);
+
+    link.set('target', { id: element.id });
+
+    target = link.getTargetElement();
+
+    assert.ok(target && target instanceof joint.dia.Element && target.id === element.id, 'with target element');
+
+    var linkNotInGraph = new joint.dia.Link({
+        source: { id: element.get('id') },
+        target: { id: element.get('id') }
+    });
+
+    var thrownError;
+
+    try {
+        linkNotInGraph.getTargetElement();
+    } catch (error) {
+        thrownError = error;
+    }
+
+    assert.ok(typeof thrownError === 'undefined', 'should not throw an error when link not in graph');
 });

@@ -8,30 +8,104 @@ function showFixture() {
     });
 }
 
+function mathRoundBbox(bbox) {
+
+    return {
+        x: Math.round(bbox.x),
+        y: Math.round(bbox.y),
+        width: Math.round(bbox.width),
+        height: Math.round(bbox.height)
+    };
+}
 
 function checkBbox(paper, el, x, y, w, h, msg) {
 
     var view = paper.findViewByModel(el);
-    
     var bbox = view.getBBox();
-
-    // Extract coordinates and dimension only in case bbox is e.g. an SVGRect or some other object with
-    // other properties. We need that to be able to use deepEqual() assertion and therefore generate just one assertion
-    // instead of four for every position and dimension.
-    var bboxObject = {
-        
-        x: bbox.x,
-        y: bbox.y,
-        width: bbox.width,
-        height: bbox.height
-    };
+    var bboxObject = mathRoundBbox(bbox);
 
     deepEqual(bboxObject, { x: x, y: y, width: w, height: h }, msg);
+}
+
+function checkBboxApproximately(plusMinus, actualBBox, expectedBBox, message) {
+
+    ok(
+        actualBBox.x >= expectedBBox.x - plusMinus &&
+        actualBBox.x <= expectedBBox.x + plusMinus &&
+        actualBBox.y >= expectedBBox.y - plusMinus &&
+        actualBBox.y <= expectedBBox.y + plusMinus &&
+        actualBBox.width >= expectedBBox.width - plusMinus &&
+        actualBBox.width <= expectedBBox.width + plusMinus &&
+        actualBBox.height >= expectedBBox.height - plusMinus &&
+        actualBBox.height <= expectedBBox.height + plusMinus,
+        message
+    );
+}
+
+function checkDataPath(actualD, expectedD, message) {
+
+    equal(actualD, normalizeDataPath(expectedD), message);
+}
+
+function normalizeDataPath(d) {
+
+    var isPartial = d.substr(0, 1) !== 'M';
+    var prepended = '';
+    var appended = '';
+
+    if (isPartial) {
+
+        // Need to make some temporary fixes so the browser doesn't throw an invalid path error.
+
+        if (d.substr(0, 1) === 'A') {
+
+            // Ensure that there are 7 values present after an 'A'.
+
+            var matches = d.substr(d.indexOf('A')).match(/[, a-z][0-9]/ig);
+            var numValues = matches && matches.length || 0;
+
+            if (numValues < 7) {
+
+                for (var i = 0; i < 7 - numValues; i++) {
+                    appended += ' 0';
+                    d += ' 0';
+                }
+            }
+        }
+
+        prepended += 'M 0 0 ';
+        d = 'M 0 0 ' + d;
+    }
+
+    var normalizedD = V('<path/>').attr('d', d).attr('d');
+
+    if (isPartial) {
+        // Strip away anything that was prepended or appended.
+        normalizedD = normalizedD.substr(prepended.length);
+        normalizedD = normalizedD.substr(0, normalizedD.length - appended.length);
+    }
+
+    return normalizedD;
+}
+
+function checkSvgAttr(name, vel, expectedValue, message) {
+
+    return equal(vel.attr(name), normalizeSvgAttr(name, expectedValue), message);
+}
+
+function normalizeSvgAttr(name, value) {
+
+    return V('<g/>').attr(name, value).attr(name);
 }
 
 function approximately(result, expected, tolerance, message) {
 
     ok(result > (expected - tolerance) && result < expected + tolerance, message);
+}
+
+function isClose(actual, expected, tolerance) {
+
+    return actual <= expected + tolerance && actual >= expected - tolerance;
 }
 
 var asserts = {

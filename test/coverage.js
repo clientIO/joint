@@ -41,8 +41,10 @@
 				buffer += 'SF:' + fileName.substr(origin.length) + '\n';
 
 				for (lineNumber = 0; lineNumber < coverageData.files[fileName].source.length; lineNumber++) {
-					executionCount = coverageData.files[fileName][lineNumber] || 0;
-					buffer += 'DA:' + lineNumber + ',' + executionCount + '\n';
+					if (typeof coverageData.files[fileName][lineNumber] !== 'undefined') {
+						executionCount = coverageData.files[fileName][lineNumber];
+						buffer += 'DA:' + lineNumber + ',' + executionCount + '\n';
+					}
 				}
 
 				buffer += 'end_of_record\n';

@@ -1,5 +1,7 @@
 joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opts) {
 
+    opts = opts || {};
+
     var offset = opts.radius || 10;
 
     var c1, c2, d1, d2, prev, next;

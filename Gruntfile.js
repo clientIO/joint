@@ -9,6 +9,7 @@ module.exports = function(grunt) {
 
         core: [
             'src/core.js',
+            'src/joint.mvc.view.js',
             'src/joint.dia.graph.js',
             'src/joint.dia.cell.js',
             'src/joint.dia.element.js',
@@ -248,8 +249,16 @@ module.exports = function(grunt) {
             }
         },
         qunit: {
-            all: ['test/**/*.html'],
-            joint: ['test/jointjs/*.html'],
+            all: [
+                'test/**/*.html',
+                '!test/**/coverage.html'
+            ],
+            all_coverage: ['test/**/coverage.html'],
+            joint: [
+                'test/jointjs/*.html',
+                '!test/jointjs/coverage.html'
+            ],
+            joint_coverage: ['test/jointjs/coverage.html'],
             geometry: ['test/geometry/*.html'],
             vectorizer: ['test/vectorizer/*.html']
         },
@@ -305,7 +314,7 @@ module.exports = function(grunt) {
         for (name in config.qunit) {
 
             // Resolve the paths for all files referenced in the task.
-            files = grunt.file.expand(config.qunit[name]);
+            files = grunt.file.expand(config.qunit[name + '_coverage'] || config.qunit[name]);
 
             config.qunit[name] = { options: { urls: [] } };
 

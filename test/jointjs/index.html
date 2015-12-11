@@ -4,7 +4,7 @@
 
         <title>JointJS test suite</title>
         <link rel="stylesheet" href="../../lib/qunit/qunit/qunit.css">
-        <link rel="stylesheet" href="../../joint.css">
+        <link rel="stylesheet" href="../../dist/joint.css">
     </head>
     <body>
 
@@ -12,10 +12,8 @@
         <div id="qunit-fixture"></div>
 
         <script src="../../lib/qunit/qunit/qunit.js"></script>
-        <script src="../../lib/blanket/dist/qunit/blanket.js"></script>
         <script src="../../lib/sinonjs/sinon.js"></script>
 
-        <script src="../coverage.js"></script>
         <script src="../utils.js"></script>
 
         <!-- Dependencies:  -->
@@ -27,9 +25,11 @@
 
         <script src="../../dist/joint.js"></script>
 
+        <script src="./mvc.view.js"></script>
         <script src="./core.js"></script>
         <script src="./basic.js"></script>
         <script src="./links.js"></script>
+        <script src="./graph.js"></script>
         <script src="./paper.js"></script>
         <script src="./routers.js"></script>
         <script src="./connectors.js"></script>

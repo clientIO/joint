@@ -17,6 +17,8 @@ module('embedding', {
 
     teardown: function() {
 
+        this.paper.remove();
+
         delete this.graph;
         delete this.paper;
     }

@@ -1,5 +1,5 @@
 //      JointJS diagramming library.
-//      (c) 2011-2013 client IO
+//      (c) 2011-2015 client IO
 
 // joint.dia.Link base model.
 // --------------------------
@@ -7,10 +7,10 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     // The default markup for links.
     markup: [
-        '<path class="connection" stroke="black"/>',
-        '<path class="marker-source" fill="black" stroke="black" />',
-        '<path class="marker-target" fill="black" stroke="black" />',
-        '<path class="connection-wrap"/>',
+        '<path class="connection" stroke="black" d="M 0 0 0 0"/>',
+        '<path class="marker-source" fill="black" stroke="black" d="M 0 0 0 0"/>',
+        '<path class="marker-target" fill="black" stroke="black" d="M 0 0 0 0"/>',
+        '<path class="connection-wrap" d="M 0 0 0 0"/>',
         '<g class="labels"/>',
         '<g class="marker-vertices"/>',
         '<g class="marker-arrowheads"/>',
@@ -28,7 +28,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         '<g class="link-tool">',
         '<g class="tool-remove" event="remove">',
         '<circle r="11" />',
-        '<path transform="scale(.8) translate(-16, -16)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z"/>',
+        '<path transform="scale(.8) translate(-16, -16)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z" />',
         '<title>Remove link.</title>',
         '</g>',
         '<g class="tool-options" event="link:options">',
@@ -119,14 +119,14 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         var newParent;
 
-        if (this.collection) {
+        if (this.graph) {
 
-            var source = this.collection.get(this.get('source').id);
-            var target = this.collection.get(this.get('target').id);
-            var prevParent = this.collection.get(this.get('parent'));
+            var source = this.graph.getCell(this.get('source').id);
+            var target = this.graph.getCell(this.get('target').id);
+            var prevParent = this.graph.getCell(this.get('parent'));
 
             if (source && target) {
-                newParent = this.collection.getCommonAncestor(source, target);
+                newParent = this.graph.getCommonAncestor(source, target);
             }
 
             if (prevParent && (!newParent || newParent.id != prevParent.id)) {
@@ -154,20 +154,40 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         var sourceId = this.get('source').id;
         var targetId = this.get('target').id;
-        var loop = sourceId && targetId && sourceId === targetId;
+
+        if (!sourceId || !targetId) {
+            // Link "pinned" to the paper does not have a loop.
+            return false;
+        }
+
+        var loop = sourceId === targetId;
 
         // Note that there in the deep mode a link can have a loop,
         // even if it connects only a parent and its embed.
         // A loop "target equals source" is valid in both shallow and deep mode.
-        if (!loop && opt.deep && this.collection) {
+        if (!loop && opt.deep && this.graph) {
 
-            var sourceElement = this.collection.get(sourceId);
-            var targetElement = this.collection.get(targetId);
+            var sourceElement = this.graph.getCell(sourceId);
+            var targetElement = this.graph.getCell(targetId);
 
             loop = sourceElement.isEmbeddedIn(targetElement) || targetElement.isEmbeddedIn(sourceElement);
         }
 
         return loop;
+    },
+
+    getSourceElement: function() {
+
+        var source = this.get('source');
+
+        return (source && source.id && this.graph && this.graph.getCell(source.id)) || null;
+    },
+
+    getTargetElement: function() {
+
+        var target = this.get('target');
+
+        return (target && target.id && this.graph && this.graph.getCell(target.id)) || null;
     }
 });
 
@@ -190,6 +210,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         doubleLinkToolsOffset: 60,
         sampleInterval: 50
     },
+
+    _z: null,
 
     initialize: function(options) {
 
@@ -520,7 +542,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.updateToolsPosition();
         this.updateArrowheadMarkers();
 
-        delete this.options.perpendicular;
+        this.options.perpendicular = null;
         // Mark that postponed update has been already executed.
         this.updatePostponed = false;
 
@@ -991,7 +1013,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var routerFn = _.isFunction(router) ? router : namespace[router.name];
 
         if (!_.isFunction(routerFn)) {
-            throw 'unknown router: ' + router.name;
+            throw new Error('unknown router: "' + router.name + '"');
         }
 
         var newVertices = routerFn.call(this, oldVertices || [], args, this);
@@ -1013,7 +1035,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             if (this.model.get('smooth')) {
                 connector = { name: 'smooth' };
             } else {
-                connector = defaultConnector || { name: 'normal' };
+                connector = defaultConnector || {};
             }
         }
 
@@ -1021,7 +1043,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var args = connector.args || {};
 
         if (!_.isFunction(connectorFn)) {
-            throw 'unknown connector: ' + connector.name;
+            throw new Error('unknown connector: "' + connector.name + '"');
         }
 
         var pathData = connectorFn.call(
@@ -1182,9 +1204,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _afterArrowheadMove: function() {
 
-        if (!_.isUndefined(this._z)) {
+        if (!_.isNull(this._z)) {
             this.model.set('z', this._z, { ui: true });
-            delete this._z;
+            this._z = null;
         }
 
         // Put `pointer-events` back to its original value. See `startArrowheadMove()` for explanation.
@@ -1269,10 +1291,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         });
     },
 
-    startArrowheadMove: function(end) {
+    startArrowheadMove: function(end, opt) {
+        opt = _.defaults(opt || {}, { whenNotAllowed: 'revert' });
         // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
         // move without need to click on the actual arrowhead dom element.
         this._action = 'arrowhead-move';
+        this._whenNotAllowed = opt.whenNotAllowed;
         this._arrowhead = end;
         this._initialEnd = _.clone(this.model.get(end)) || { x: 0, y: 0 };
         this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
@@ -1284,6 +1308,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     can: function(feature) {
 
         var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointerdown') : this.options.interactive;
+        if (interactive === false) return false;
         if (!_.isObject(interactive) || interactive[feature] !== false) return true;
         return false;
     },
@@ -1521,7 +1546,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                             this._magnetUnderPointer = null;
                         }
                     } else {
-                        // Make sure we'll delete previous magnet
+                        // Make sure we'll unset previous magnet.
                         this._magnetUnderPointer = null;
                     }
                 }
@@ -1563,8 +1588,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var viewUnderPointer = this._viewUnderPointer;
                 var magnetUnderPointer = this._magnetUnderPointer;
 
-                delete this._viewUnderPointer;
-                delete this._magnetUnderPointer;
+                this._viewUnderPointer = null;
+                this._magnetUnderPointer = null;
 
                 if (magnetUnderPointer) {
 
@@ -1582,22 +1607,33 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 }
             }
 
-            // If the link pinning is not allowed and the link is not connected to an element
-            // reset the arrowhead to the position before the dragging started.
-            if (!paperOptions.linkPinning && !_.has(this.model.get(arrowhead), 'id')) {
-                this.model.set(arrowhead, this._initialEnd, { ui: true });
+            // If the changed link is not allowed, revert to its previous state.
+            if (!this.paper.linkAllowed(this)) {
+
+                switch (this._whenNotAllowed) {
+
+                    case 'remove':
+                        this.model.remove();
+                        break;
+
+                    case 'revert':
+                    default:
+                        this.model.set(arrowhead, this._initialEnd, { ui: true });
+                        break;
+                }
             }
 
             // Reparent the link if embedding is enabled
             if (paperOptions.embeddingMode && this.model.reparent()) {
                 // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
-                delete this._z;
+                this._z = null;
             }
 
             this._afterArrowheadMove();
         }
 
-        delete this._action;
+        this._action = null;
+        this._whenNotAllowed = null;
 
         this.notify('link:pointerup', evt, x, y);
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);

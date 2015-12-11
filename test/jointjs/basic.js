@@ -1,24 +1,54 @@
 module('basic', {
 
-    setup: function() {
+    beforeEach: function() {
 
-        var $fixture = $('#qunit-fixture');
+        this.$fixture = $('#qunit-fixture');
         var $paper = $('<div/>');
-        $fixture.append($paper);
+        this.$fixture.append($paper);
 
         this.graph = new joint.dia.Graph;
         this.paper = new joint.dia.Paper({
-
             el: $paper,
             gridSize: 10,
             model: this.graph
         });
     },
 
-    teardown: function() {
+    afterEach: function() {
+
+        this.paper.remove();
 
         delete this.graph;
         delete this.paper;
+    },
+
+    setupTestNestedGraph: function(graph) {
+
+        // make element
+        function me(id) {
+            return new joint.shapes.basic.Circle({ id: id, name: id }).addTo(graph);
+        }
+
+        // make link
+        function ml(id, a, b) {
+            var source = a.x ? a : { id: a.id };
+            var target = b.x ? b : { id: b.id };
+            return new joint.dia.Link({ id: id, source: source, target: target, name: id }).addTo(graph);
+        }
+
+        var a = me('a');
+        var aa = me('aa');
+        a.embed(aa);
+        var aaa = me('aaa');
+        aa.embed(aaa);
+        var c = me('c');
+        a.embed(c);
+        var d = me('d');
+
+        var l1 = ml('l1', aa, c);
+        var l2 = ml('l2', aa, aaa);
+        aa.embed(l2);
+        var l3 = ml('l3', c, d);
     }
 });
 
@@ -279,19 +309,31 @@ test('resize()', function() {
     var myrect = new joint.shapes.basic.Rect({
         position: { x: 20, y: 30 },
         size: { width: 120, height: 80 },
-        attrs: { text: { text: 'my rectangle' } }
+        attrs: { text: { text: '' } }
     });
 
     this.graph.addCell(myrect);
 
     myrect.resize(120, 80);
-    checkBbox(this.paper, myrect, 20, 30, 120, 80, 'resize([same width], [same height]) should not change bbox');
+    checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 120, height: 80 }, 'resize([same width], [same height]) should not change bbox');
 
     myrect.resize(240, 160);
-    checkBbox(this.paper, myrect, 20, 30, 240, 160, 'resize([2*width], [2*height]) should scale twice preserving top-left corner as it was');
+    checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 240, height: 160 }, 'resize([2*width], [2*height]) should scale twice preserving origin as it was');
 
     myrect.resize(120, 80);
-    checkBbox(this.paper, myrect, 20, 30, 120, 80, 'resize([orig width], [orig height]) should scale back to the original size and position');
+    checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 120, height: 80 }, 'resize([orig width], [orig height]): should scale back to the original size and origin');
+
+    myrect.resize(200, 160, { direction: 'right' });
+    checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 200, height: 80 }, 'resize([new width], [new height], { direction: "right" }) should scale only width, origin should be unchanged');
+
+    myrect.resize(80, 240, { direction: 'bottom' });
+    checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 200, height: 240 }, 'resize([new width], [new height], { direction: "bottom" }) should scale only height, origin should be unchanged');
+
+    myrect.resize(50, 50, { direction: 'bottom-right' });
+    checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 50, height: 50 }, 'resize([new width], [new height], { direction: "bottom-right" }) should scale both width and height, origin should be unchanged');
+
+    myrect.resize(20, 20, { direction: 'top-left' });
+    checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 50, y: 60, width: 20, height: 20 }, 'resize([new width], [new height], { direction: "top-left" }) should scale both width and height, should change position');
 });
 
 test('rotate()', function() {
@@ -581,7 +623,7 @@ test('fitEmbeds()', function(assert) {
 
     assert.throws(function() {
         a.fitEmbeds({ deep: true });
-    }, /collection/, 'Calling method on element that is not part of a collection throws an error.');
+    }, /graph/, 'Calling method on element that is not part of a graph throws an error.');
 
     this.graph.addCells([mainGroup, group1, group2, a, b, c]);
 
@@ -640,8 +682,14 @@ test('clone()', function() {
     this.graph.addCell(l);
     var clones = r1.clone({ deep: true });
 
-    equal(clones.length, 3, 'deep clone returned three clones for a parent element with one child connected with a link');
-    equal(clones[0].id, clones[1].get('parent'), 'clone of the embedded element gets a parent attribute set to the clone of the parent element');
+    equal(clones.length, 2, 'deep clone returned two clones for a parent element with one child not including the link (use graph.cloneSubgraph() if this is desired)');
+    ok((clones[0].id === clones[1].get('parent') || (clones[1].id === clones[0].get('parent'))), 'clone of the embedded element gets a parent attribute set to the clone of the parent element');
+
+    this.graph.clear();
+    this.setupTestNestedGraph(this.graph);
+
+    var clones = this.graph.getCell('a').clone({ deep: true });
+    deepEqual(_.map(clones, function(c) { return c.get('name') }), ['a', 'aa', 'c', 'l2', 'aaa'], 'clone({ deep: true }) returns clones including all embedded cells');
 });
 
 test('embed(), unembed()', function() {
@@ -995,6 +1043,7 @@ test('filter', function() {
 
     var el = new joint.shapes.basic.Rect;
     var el2 = new joint.shapes.basic.Rect;
+
     this.graph.addCells([el, el2]);
 
     var elView = this.paper.findViewByModel(el);
@@ -1016,7 +1065,7 @@ test('filter', function() {
     var filter = $(defs).children()[0];
     
     equal(filter.tagName.toLowerCase(), 'filter', 'one <filter> element got created in <defs>.');
-    equal('url(#' + filter.id + ')', elView.$('rect').attr('filter'), 'filter attribute pointing to the newly created filter with url()');
+    checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the newly created filter with url()');
 
     el2.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 } });
 
@@ -1026,7 +1075,7 @@ test('filter', function() {
     filter = $(defs).children()[0];
 
     equal(filter.tagName.toLowerCase(), 'filter', 'still only one <filter> element is in <defs>.');
-    equal('url(#' + filter.id + ')', el2View.$('rect').attr('filter'), 'filter attribute pointing to the correct gradient with url()');
+    checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the correct gradient with url()');
 
     el.attr('rect/filter', { name: 'blur', args: { x: 5 } });
 
@@ -1037,8 +1086,8 @@ test('filter', function() {
     deepEqual([filter0.tagName.toLowerCase(), filter1.tagName.toLowerCase()], ['filter', 'filter'], 'both elements in <defs> are <filter> elements.');
     notEqual(filter0.id, filter1.id, 'both <filter> elements have different IDs');
 
-    equal('url(#' + filter0.id + ')', el2View.$('rect').attr('filter'), 'filter attribute pointing to the correct gradient with url()');
-    equal('url(#' + filter1.id + ')', elView.$('rect').attr('filter'), 'filter attribute pointing to the correct gradient with url()');
+    checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter0.id + ')', 'filter attribute pointing to the correct gradient with url()');
+    checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter1.id + ')', 'filter attribute pointing to the correct gradient with url()');
 });
 
 asyncTest('transition: sanity', 5, function() {
@@ -1156,30 +1205,6 @@ asyncTest('transition: nested value', function() {
 
 });
 
-test('graph.getCommonAncestor()', function() {
-
-    var r1 = new joint.shapes.basic.Rect;
-    var r2 = new joint.shapes.basic.Rect;
-    var r3 = new joint.shapes.basic.Rect;
-    var r4 = new joint.shapes.basic.Rect;
-    var r5 = new joint.shapes.basic.Rect;
-    var r6 = new joint.shapes.basic.Rect;
-    var r7 = new joint.shapes.basic.Rect;
-
-    r1.embed(r2.embed(r4).embed(r5)).embed(r3.embed(r6));
-
-    this.graph.addCells([r1,r2,r3,r4,r5,r6,r7]);
-
-    ok(!this.graph.getCommonAncestor(), 'r1 embeds r2 and r3. r2 embeds r4 and r5. r3 embeds r6. r1 and r7 have no parents. Calling getCommonAncestor() returns no common ancestor.');
-    equal((this.graph.getCommonAncestor(r2) || {}).id, r2.id, 'Common ancestor for r2 is r2.');
-    equal((this.graph.getCommonAncestor(r2,r3) || {}).id, r1.id, 'Common ancestor for r2 and r3 is r1.');
-    equal((this.graph.getCommonAncestor(r2,r3,r4) || {}).id, r1.id, 'Common ancestor for r2,r3 and r4 is r1');
-    ok(!this.graph.getCommonAncestor(r2,r3,r7), 'There is no common ancestor for r2,r3 and r5');
-    equal((this.graph.getCommonAncestor(r2,r3,r1) || {}).id, r1.id, 'Common ancestor for r2,r3 and r1 is r1');
-    equal((this.graph.getCommonAncestor(r5,r4) || {}).id, r2.id, 'Common ancestor for r5 and r4 is r2');
-    equal((this.graph.getCommonAncestor(r5,r6) || {}).id, r1.id, 'Common ancestor for r5 and r6 is r1');
-});
-
 test('cell.getAncestors()', function() {
 
     var r0 = new joint.shapes.basic.Rect;
@@ -1207,4 +1232,22 @@ test('cellView: element reference wrapped in Vectorizer', function(assert) {
     assert.ok(V.isVElement(view.vel), 'A cellView has attribute "vel" and its value is wrapped in Vectorizer.');
     assert.equal(view.vel.node, view.el, 'Value of attribtue "vel" references to the view group element (view.el).');
 
+});
+
+test('cell.isEmbedded()', function(assert) {
+
+    var rect = new joint.shapes.basic.Rect;
+    var link = new joint.dia.Link;
+    var embeddedRect = new joint.shapes.basic.Rect;
+    var embeddedLink = new joint.dia.Link;
+
+    rect.embed(embeddedRect);
+    rect.embed(embeddedLink);
+
+    this.graph.addCells([rect, link, embeddedRect, embeddedLink]);
+
+    assert.ok(embeddedRect.isEmbedded(), 'should return TRUE for an embedded element');
+    assert.ok(embeddedLink.isEmbedded(), 'should return TRUE for an embedded link');
+    assert.notOk(rect.isEmbedded(), 'should return FALSE for an element that is NOT embedded');
+    assert.notOk(link.isEmbedded(), 'should return FALSE for a link that is NOT embedded');
 });

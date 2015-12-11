@@ -1,5 +1,5 @@
 //      JointJS, the JavaScript diagramming library.
-//      (c) 2011-2013 client IO
+//      (c) 2011-2015 client IO
 
 joint.dia.GraphCells = Backbone.Collection.extend({
 
@@ -15,166 +15,32 @@ joint.dia.GraphCells = Backbone.Collection.extend({
         if (opt.cellNamespace) {
             this.cellNamespace = opt.cellNamespace;
         }
+
+        this.graph = opt.graph;
     },
 
     model: function(attrs, options) {
 
-        var namespace = options.collection.cellNamespace;
+        var collection = options.collection;
+        var namespace = collection.cellNamespace;
 
         // Find the model class in the namespace or use the default one.
         var ModelClass = (attrs.type === 'link')
             ? joint.dia.Link
             : joint.util.getByPath(namespace, attrs.type, '.') || joint.dia.Element;
 
-        return new ModelClass(attrs, options);
+        var cell = new ModelClass(attrs, options);
+        // Add a reference to the graph. It is necessary to do this here because this is the earliest place
+        // where a new model is created from a plain JS object. For other objects, see `joint.dia.Graph>>_prepareCell()`.
+        cell.graph = collection.graph;
+
+        return cell;
     },
 
     // `comparator` makes it easy to sort cells based on their `z` index.
     comparator: function(model) {
 
         return model.get('z') || 0;
-    },
-
-    // Get all inbound and outbound links connected to the cell `model`.
-    getConnectedLinks: function(model, opt) {
-
-        opt = opt || {};
-
-        if (_.isUndefined(opt.inbound) && _.isUndefined(opt.outbound)) {
-            opt.inbound = opt.outbound = true;
-        }
-
-        var links = this.filter(function(cell) {
-
-            if (!cell.isLink()) return false;
-
-            var source = cell.get('source');
-            var target = cell.get('target');
-
-            return (source && source.id === model.id && opt.outbound) ||
-                (target && target.id === model.id  && opt.inbound);
-        });
-
-        // option 'deep' returns all links that are connected to any of the descendent cell
-        // and are not descendents itself
-        if (opt.deep) {
-
-            var embeddedCells = model.getEmbeddedCells({ deep: true });
-
-            _.each(this.difference(links, embeddedCells), function(cell) {
-
-                if (!cell.isLink()) return;
-
-                if (opt.outbound) {
-
-                    var source = cell.get('source');
-
-                    if (source && source.id && _.find(embeddedCells, { id: source.id })) {
-                        links.push(cell);
-                        return; // prevent a loop link to be pushed twice
-                    }
-                }
-
-                if (opt.inbound) {
-
-                    var target = cell.get('target');
-
-                    if (target && target.id && _.find(embeddedCells, { id: target.id })) {
-                        links.push(cell);
-                    }
-                }
-            });
-        }
-
-        return links;
-    },
-
-    getNeighbors: function(model, opt) {
-
-        opt = opt || {};
-
-        var neighbors = _.transform(this.getConnectedLinks(model, opt), function(res, link) {
-
-            var source = link.get('source');
-            var target = link.get('target');
-            var loop = link.hasLoop(opt);
-
-            // Discard if it is a point, or if the neighbor was already added.
-            if (opt.inbound && _.has(source, 'id') && !res[source.id]) {
-
-                var sourceElement = this.get(source.id);
-
-                if (loop || (sourceElement !== model && (!opt.deep || !sourceElement.isEmbeddedIn(model)))) {
-                    res[source.id] = sourceElement;
-                }
-            }
-
-            // Discard if it is a point, or if the neighbor was already added.
-            if (opt.outbound && _.has(target, 'id') && !res[target.id]) {
-
-                var targetElement = this.get(target.id);
-
-                if (loop || targetElement !== model && (!opt.deep || !targetElement.isEmbeddedIn(model))) {
-                    res[target.id] = targetElement;
-                }
-            }
-
-        }, {}, this);
-
-        return _.values(neighbors);
-    },
-
-    getCommonAncestor: function(/* cells */) {
-
-        var cellsAncestors = _.map(arguments, function(cell) {
-
-            var ancestors = [cell.id];
-            var parentId = cell.get('parent');
-
-            while (parentId) {
-
-                ancestors.push(parentId);
-                parentId = this.get(parentId).get('parent');
-            }
-
-            return ancestors;
-
-        }, this);
-
-        cellsAncestors = _.sortBy(cellsAncestors, 'length');
-
-        var commonAncestor = _.find(cellsAncestors.shift(), function(ancestor) {
-
-            return _.every(cellsAncestors, function(cellAncestors) {
-                return _.contains(cellAncestors, ancestor);
-            });
-        });
-
-        return this.get(commonAncestor);
-    },
-
-    // Return the bounding box of all cells in array provided. If no array
-    // provided returns bounding box of all cells. Links are being ignored.
-    getBBox: function(cells) {
-
-        cells = cells || this.models;
-
-        var origin = { x: Infinity, y: Infinity };
-        var corner = { x: -Infinity, y: -Infinity };
-
-        _.each(cells, function(cell) {
-
-            // Links has no bounding box defined on the model.
-            if (cell.isLink()) return;
-
-            var bbox = cell.getBBox();
-            origin.x = Math.min(origin.x, bbox.x);
-            origin.y = Math.min(origin.y, bbox.y);
-            corner.x = Math.max(corner.x, bbox.x + bbox.width);
-            corner.y = Math.max(corner.y, bbox.y + bbox.height);
-        });
-
-        return g.rect(origin.x, origin.y, corner.x - origin.x, corner.y - origin.y);
     }
 });
 
@@ -188,16 +54,127 @@ joint.dia.Graph = Backbone.Model.extend({
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
         // when processing JSON graphs that are in a different than JointJS format.
-        Backbone.Model.prototype.set.call(this, 'cells', new joint.dia.GraphCells([], {
+        var cells = new joint.dia.GraphCells([], {
             model: opt.cellModel,
-            cellNamespace: opt.cellNamespace
-        }));
+            cellNamespace: opt.cellNamespace,
+            graph: this
+        });
+        Backbone.Model.prototype.set.call(this, 'cells', cells);
 
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
-        this.get('cells').on('all', this.trigger, this);
+        cells.on('all', this.trigger, this);
 
-        this.get('cells').on('remove', this._removeCell, this);
+        // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
+        // for fast graph queries. All changes that affect the structure of the graph
+        // must be reflected in the `al` object. This object provides fast answers to
+        // questions such as "what are the neighbours of this node" or "what
+        // are the sibling links of this link".
+
+        // Outgoing edges per node. Note that we use a hash-table for the list
+        // of outgoing edges for a faster lookup.
+        // [node ID] -> Object [edge] -> true
+        this._out = {};
+        // Ingoing edges per node.
+        // [node ID] -> Object [edge] -> true
+        this._in = {};
+        // `_nodes` is useful for quick lookup of all the elements in the graph, without
+        // having to go through the whole cells array.
+        // [node ID] -> true
+        this._nodes = {};
+        // `_edges` is useful for quick lookup of all the links in the graph, without
+        // having to go through the whole cells array.
+        // [edge ID] -> true
+        this._edges = {};
+
+        cells.on('add', this._restructureOnAdd, this);
+        cells.on('remove', this._restructureOnRemove, this);
+        cells.on('reset', this._restructureOnReset, this);
+        cells.on('change:source', this._restructureOnChangeSource, this);
+        cells.on('change:target', this._restructureOnChangeTarget, this);
+
+        cells.on('remove', this._removeCell, this);
+    },
+
+    _restructureOnAdd: function(cell) {
+
+        if (cell.isLink()) {
+            this._edges[cell.id] = true;
+            var source = cell.get('source');
+            var target = cell.get('target');
+            if (source.id) {
+                (this._out[source.id] || (this._out[source.id] = {}))[cell.id] = true;
+            }
+            if (target.id) {
+                (this._in[target.id] || (this._in[target.id] = {}))[cell.id] = true;
+            }
+        } else {
+            this._nodes[cell.id] = true;
+        }
+    },
+    _restructureOnRemove: function(cell) {
+
+        if (cell.isLink()) {
+            delete this._edges[cell.id];
+            var source = cell.get('source');
+            var target = cell.get('target');
+            if (source.id && this._out[source.id] && this._out[source.id][cell.id]) {
+                delete this._out[source.id][cell.id];
+            }
+            if (target.id && this._in[target.id] && this._in[target.id][cell.id]) {
+                delete this._in[target.id][cell.id];
+            }
+        } else {
+            delete this._nodes[cell.id];
+        }
+    },
+    _restructureOnReset: function(cells) {
+
+        // Normalize into an array of cells. The original `cells` is GraphCells Backbone collection.
+        cells = cells.models;
+
+        this._out = {};
+        this._in = {};
+        this._nodes = {};
+        this._edges = {};
+
+        _.each(cells, this._restructureOnAdd, this);
+    },
+    _restructureOnChangeSource: function(link) {
+
+        var prevSource = link.previous('source');
+        if (prevSource.id && this._out[prevSource.id]) {
+            delete this._out[prevSource.id][link.id];
+        }
+        var source = link.get('source');
+        if (source.id) {
+            (this._out[source.id] || (this._out[source.id] = {}))[link.id] = true;
+        }
+    },
+    _restructureOnChangeTarget: function(link) {
+
+        var prevTarget = link.previous('target');
+        if (prevTarget.id && this._in[prevTarget.id]) {
+            delete this._in[prevTarget.id][link.id];
+        }
+        var target = link.get('target');
+        if (target.id) {
+            (this._in[target.id] || (this._in[target.id] = {}))[link.id] = true;
+        }
+    },
+
+    // Return all outbound edges for the node. Return value is an object
+    // of the form: [edge] -> true
+    getOutboundEdges: function(node) {
+
+        return (this._out && this._out[node]) || {};
+    },
+
+    // Return all inbound edges for the node. Return value is an object
+    // of the form: [edge] -> true
+    getInboundEdges: function(node) {
+
+        return (this._in && this._in[node]) || {};
     },
 
     toJSON: function() {
@@ -273,7 +250,16 @@ joint.dia.Graph = Backbone.Model.extend({
 
     _prepareCell: function(cell) {
 
-        var attrs = (cell instanceof Backbone.Model) ? cell.attributes : cell;
+        var attrs;
+        if (cell instanceof Backbone.Model) {
+            attrs = cell.attributes;
+            cell.graph = this;
+        } else {
+            // In case we're dealing with a plain JS object, we have to set the reference
+            // to the `graph` right after the actual model is created. This happens in the `model()` function
+            // of `joint.dia.GraphCells`.
+            attrs = cell;
+        }
 
         if (_.isUndefined(attrs.z)) {
             attrs.z = this.maxZIndex() + 1;
@@ -349,6 +335,8 @@ joint.dia.Graph = Backbone.Model.extend({
         // then propagated to the graph model. If we didn't remove the cell silently, two `remove` events
         // would be triggered on the graph model.
         this.get('cells').remove(cell, { silent: true });
+
+        delete cell.graph;
     },
 
     // Get a cell by `id`.
@@ -364,29 +352,522 @@ joint.dia.Graph = Backbone.Model.extend({
 
     getElements: function() {
 
-        return this.get('cells').filter(function(cell) {
-
-            return cell instanceof joint.dia.Element;
-        });
+        return _.map(this._nodes, function(exists, node) { return this.getCell(node); }, this);
     },
 
     getLinks: function() {
 
-        return this.get('cells').filter(function(cell) {
+        return _.map(this._edges, function(exists, edge) { return this.getCell(edge); }, this);
+    },
 
-            return cell instanceof joint.dia.Link;
-        });
+    getFirstCell: function() {
+
+        return this.get('cells').first();
+    },
+
+    getLastCell: function() {
+
+        return this.get('cells').last();
     },
 
     // Get all inbound and outbound links connected to the cell `model`.
     getConnectedLinks: function(model, opt) {
 
-        return this.get('cells').getConnectedLinks(model, opt);
+        opt = opt || {};
+
+        var inbound = opt.inbound;
+        var outbound = opt.outbound;
+        if (_.isUndefined(inbound) && _.isUndefined(outbound)) {
+            inbound = outbound = true;
+        }
+
+        // The final array of connected link models.
+        var links = [];
+        // Connected edges. This hash table ([edge] -> true) serves only
+        // for a quick lookup to check if we already added a link.
+        var edges = {};
+
+        if (outbound) {
+            _.each(this.getOutboundEdges(model.id), function(exists, edge) {
+                if (!edges[edge]) {
+                    links.push(this.getCell(edge));
+                    edges[edge] = true;
+                }
+            }, this);
+        }
+        if (inbound) {
+            _.each(this.getInboundEdges(model.id), function(exists, edge) {
+                // Skip links that were already added. Those must be self-loop links
+                // because they are both inbound and outbond edges of the same element.
+                if (!edges[edge]) {
+                    links.push(this.getCell(edge));
+                    edges[edge] = true;
+                }
+            }, this);
+        }
+
+        // If 'deep' option is 'true', return all the links that are connected to any of the descendent cells
+        // and are not descendents themselves.
+        if (opt.deep) {
+
+            var embeddedCells = model.getEmbeddedCells({ deep: true });
+            // In the first round, we collect all the embedded edges so that we can exclude
+            // them from the final result.
+            var embeddedEdges = {};
+            _.each(embeddedCells, function(cell) {
+                if (cell.isLink()) {
+                    embeddedEdges[cell.id] = true;
+                }
+            });
+            _.each(embeddedCells, function(cell) {
+                if (cell.isLink()) return;
+                if (outbound) {
+                    _.each(this.getOutboundEdges(cell.id), function(exists, edge) {
+                        if (!edges[edge] && !embeddedEdges[edge]) {
+                            links.push(this.getCell(edge));
+                            edges[edge] = true;
+                        }
+                    }, this);
+                }
+                if (inbound) {
+                    _.each(this.getInboundEdges(cell.id), function(exists, edge) {
+                        if (!edges[edge] && !embeddedEdges[edge]) {
+                            links.push(this.getCell(edge));
+                            edges[edge] = true;
+                        }
+                    }, this);
+                }
+            }, this);
+        }
+
+        return links;
     },
 
     getNeighbors: function(model, opt) {
 
-        return this.get('cells').getNeighbors(model, opt);
+        opt = opt || {};
+
+        var inbound = opt.inbound;
+        var outbound = opt.outbound;
+        if (_.isUndefined(inbound) && _.isUndefined(outbound)) {
+            inbound = outbound = true;
+        }
+
+        var neighbors = _.transform(this.getConnectedLinks(model, opt), function(res, link) {
+
+            var source = link.get('source');
+            var target = link.get('target');
+            var loop = link.hasLoop(opt);
+
+            // Discard if it is a point, or if the neighbor was already added.
+            if (inbound && _.has(source, 'id') && !res[source.id]) {
+
+                var sourceElement = this.getCell(source.id);
+
+                if (loop || (sourceElement && sourceElement !== model && (!opt.deep || !sourceElement.isEmbeddedIn(model)))) {
+                    res[source.id] = sourceElement;
+                }
+            }
+
+            // Discard if it is a point, or if the neighbor was already added.
+            if (outbound && _.has(target, 'id') && !res[target.id]) {
+
+                var targetElement = this.getCell(target.id);
+
+                if (loop || (targetElement && targetElement !== model && (!opt.deep || !targetElement.isEmbeddedIn(model)))) {
+                    res[target.id] = targetElement;
+                }
+            }
+
+        }, {}, this);
+
+        return _.values(neighbors);
+    },
+
+    getCommonAncestor: function(/* cells */) {
+
+        var cellsAncestors = _.map(arguments, function(cell) {
+
+            var ancestors = [cell.id];
+            var parentId = cell.get('parent');
+
+            while (parentId) {
+
+                ancestors.push(parentId);
+                parentId = this.getCell(parentId).get('parent');
+            }
+
+            return ancestors;
+
+        }, this);
+
+        cellsAncestors = _.sortBy(cellsAncestors, 'length');
+
+        var commonAncestor = _.find(cellsAncestors.shift(), function(ancestor) {
+
+            return _.every(cellsAncestors, function(cellAncestors) {
+                return _.contains(cellAncestors, ancestor);
+            });
+        });
+
+        return this.getCell(commonAncestor);
+    },
+
+    // Find the whole branch starting at `element`.
+    // If `opt.deep` is `true`, take into account embedded elements too.
+    // If `opt.breadthFirst` is `true`, use the Breadth-first search algorithm, otherwise use Depth-first search.
+    getSuccessors: function(element, opt) {
+
+        opt = opt || {};
+        var res = [];
+        // Modify the options so that it includes the `outbound` neighbors only. In other words, search forwards.
+        this.search(element, function(el) {
+            if (el !== element) {
+                res.push(el);
+            }
+        }, _.extend({}, opt, { outbound: true }));
+        return res;
+    },
+
+    // Clone `cells` returning an object that maps the original cell ID to the clone. The number
+    // of clones is exactly the same as the `cells.length`.
+    // This function simply clones all the `cells`. However, it also reconstructs
+    // all the `source/target` and `parent/embed` references within the `cells`.
+    // This is the main difference from the `cell.clone()` method. The
+    // `cell.clone()` method works on one single cell only.
+    // For example, for a graph: `A --- L ---> B`, `cloneCells([A, L, B])`
+    // returns `[A2, L2, B2]` resulting to a graph: `A2 --- L2 ---> B2`, i.e.
+    // the source and target of the link `L2` is changed to point to `A2` and `B2`.
+    cloneCells: function(cells) {
+
+        // A map of the form [original cell ID] -> [clone] helping
+        // us to reconstruct references for source/target and parent/embeds.
+        // This is also the returned value.
+        var cloneMap = {};
+        // A map [original cell ID] -> [Array of original embeds].
+        // This mapping caches the `embeds` array of original cells.
+        // This is needed because when using a shallow clone (without `deep` set to `true`),
+        // `embeds` are reset (see joint.dia.Cell >> clone()).
+        var embedsCache = {};
+
+        _.each(cells, function(cell) {
+            if (!cloneMap[cell.id]) {
+                var clone = cell.clone();
+                cloneMap[cell.id] = clone;
+                embedsCache[clone.id] = cell.get('embeds');
+            }
+        });
+
+        _.each(cells, function(cell) {
+
+            var clone = cloneMap[cell.id];
+            // assert(clone exists)
+
+            if (clone.isLink()) {
+                var source = clone.get('source');
+                var target = clone.get('target');
+                if (source.id && cloneMap[source.id]) {
+                    // Source points to an element and the element is among the clones.
+                    // => Update the source of the cloned link.
+                    clone.prop('source/id', cloneMap[source.id].id);
+                }
+                if (target.id && cloneMap[target.id]) {
+                    // Target points to an element and the element is among the clones.
+                    // => Update the target of the cloned link.
+                    clone.prop('target/id', cloneMap[target.id].id);
+                }
+            }
+
+            var parent = clone.get('parent');
+            if (parent && cloneMap[parent]) {
+                clone.set('parent', cloneMap[parent].id);
+            }
+
+            if (embedsCache[clone.id]) {
+                var newEmbeds = [];
+                _.each(embedsCache[clone.id], function(embed) {
+                    if (cloneMap[embed]) {
+                        newEmbeds.push(cloneMap[embed].id);
+                    } else {
+                        newEmbeds.push(embed);
+                    }
+                });
+                clone.set('embeds', newEmbeds);
+            }
+        });
+
+        return cloneMap;
+    },
+
+    // Clone the whole subgraph (including all the connected links whose source/target is in the subgraph).
+    // If `opt.deep` is `true`, also take into account all the embedded cells of all the subgraph cells.
+    // Return a map of the form: [original cell ID] -> [clone].
+    cloneSubgraph: function(cells, opt) {
+
+        var subgraph = this.getSubgraph(cells, opt);
+        return this.cloneCells(subgraph);
+    },
+
+    // Return `cells` and all the connected links that connect cells in the `cells` array.
+    // If `opt.deep` is `true`, return all the cells including all their embedded cells
+    // and all the links that connect any of the returned cells.
+    // For example, for a single shallow element, the result is that very same element.
+    // For two elements connected with a link: `A --- L ---> B`, the result for
+    // `getSubgraph([A, B])` is `[A, L, B]`. The same goes for `getSubgraph([L])`, the result is again `[A, L, B]`.
+    getSubgraph: function(cells, opt) {
+
+        opt = opt || {};
+
+        var subgraph = [];
+        // `cellMap` is used for a quick lookup of existance of a cell in the `cells` array.
+        var cellMap = {};
+        var elements = [];
+        var links = [];
+
+        _.each(cells, function(cell) {
+            if (!cellMap[cell.id]) {
+                subgraph.push(cell);
+                cellMap[cell.id] = cell;
+                if (cell.isLink()) {
+                    links.push(cell);
+                } else {
+                    elements.push(cell);
+                }
+            }
+
+            if (opt.deep) {
+                var embeds = cell.getEmbeddedCells({ deep: true });
+                _.each(embeds, function(embed) {
+                    if (!cellMap[embed.id]) {
+                        subgraph.push(embed);
+                        cellMap[embed.id] = embed;
+                        if (embed.isLink()) {
+                            links.push(embed);
+                        } else {
+                            elements.push(embed);
+                        }
+                    }
+                });
+            }
+        });
+
+        _.each(links, function(link) {
+            // For links, return their source & target (if they are elements - not points).
+            var source = link.get('source');
+            var target = link.get('target');
+            if (source.id && !cellMap[source.id]) {
+                var sourceElement = this.getCell(source.id);
+                subgraph.push(sourceElement);
+                cellMap[sourceElement.id] = sourceElement;
+                elements.push(sourceElement);
+            }
+            if (target.id && !cellMap[target.id]) {
+                var targetElement = this.getCell(target.id);
+                subgraph.push(this.getCell(target.id));
+                cellMap[targetElement.id] = targetElement;
+                elements.push(targetElement);
+            }
+        }, this);
+
+        _.each(elements, function(element) {
+            // For elements, include their connected links if their source/target is in the subgraph;
+            var links = this.getConnectedLinks(element, opt);
+            _.each(links, function(link) {
+                var source = link.get('source');
+                var target = link.get('target');
+                if (!cellMap[link.id] && source.id && cellMap[source.id] && target.id && cellMap[target.id]) {
+                    subgraph.push(link);
+                    cellMap[link.id] = link;
+                }
+            });
+        }, this);
+
+        return subgraph;
+    },
+
+    // Find all the predecessors of `element`. This is a reverse operation of `getSuccessors()`.
+    // If `opt.deep` is `true`, take into account embedded elements too.
+    // If `opt.breadthFirst` is `true`, use the Breadth-first search algorithm, otherwise use Depth-first search.
+    getPredecessors: function(element, opt) {
+
+        opt = opt || {};
+        var res = [];
+        // Modify the options so that it includes the `inbound` neighbors only. In other words, search backwards.
+        this.search(element, function(el) {
+            if (el !== element) {
+                res.push(el);
+            }
+        }, _.extend({}, opt, { inbound: true }));
+        return res;
+    },
+
+    // Perform search on the graph.
+    // If `opt.breadthFirst` is `true`, use the Breadth-first Search algorithm, otherwise use Depth-first search.
+    // By setting `opt.inbound` to `true`, you can reverse the direction of the search.
+    // If `opt.deep` is `true`, take into account embedded elements too.
+    // `iteratee` is a function of the form `function(element) {}`.
+    // If `iteratee` explicitely returns `false`, the searching stops.
+    search: function(element, iteratee, opt) {
+
+        opt = opt || {};
+        if (opt.breadthFirst) {
+            this.bfs(element, iteratee, opt);
+        } else {
+            this.dfs(element, iteratee, opt);
+        }
+    },
+
+    // Breadth-first search.
+    // If `opt.deep` is `true`, take into account embedded elements too.
+    // If `opt.inbound` is `true`, reverse the search direction (it's like reversing all the link directions).
+    // `iteratee` is a function of the form `function(element, distance) {}`.
+    // where `element` is the currently visited element and `distance` is the distance of that element
+    // from the root `element` passed the `bfs()`, i.e. the element we started the search from.
+    // Note that the `distance` is not the shortest or longest distance, it is simply the number of levels
+    // crossed till we visited the `element` for the first time. It is especially useful for tree graphs.
+    // If `iteratee` explicitely returns `false`, the searching stops.
+    bfs: function(element, iteratee, opt) {
+
+        opt = opt || {};
+        var visited = {};
+        var distance = {};
+        var queue = [];
+
+        queue.push(element);
+        distance[element.id] = 0;
+
+        while (queue.length > 0) {
+            var next = queue.shift();
+            if (!visited[next.id]) {
+                visited[next.id] = true;
+                if (iteratee(next, distance[next.id]) === false) return;
+                _.each(this.getNeighbors(next, opt), function(neighbor) {
+                    distance[neighbor.id] = distance[next.id] + 1;
+                    queue.push(neighbor);
+                });
+            }
+        }
+    },
+
+    // Depth-first search.
+    // If `opt.deep` is `true`, take into account embedded elements too.
+    // If `opt.inbound` is `true`, reverse the search direction (it's like reversing all the link directions).
+    // `iteratee` is a function of the form `function(element, distance) {}`.
+    // If `iteratee` explicitely returns `false`, the search stops.
+    dfs: function(element, iteratee, opt, _visited, _distance) {
+
+        opt = opt || {};
+        var visited = _visited || {};
+        var distance = _distance || 0;
+        if (iteratee(element, distance) === false) return;
+        visited[element.id] = true;
+
+        _.each(this.getNeighbors(element, opt), function(neighbor) {
+            if (!visited[neighbor.id]) {
+                this.dfs(neighbor, iteratee, opt, visited, distance + 1);
+            }
+        }, this);
+    },
+
+    // Get all the roots of the graph. Time complexity: O(|V|).
+    getSources: function() {
+
+        var sources = [];
+        _.each(this._nodes, function(exists, node) {
+            if (!this._in[node] || _.isEmpty(this._in[node])) {
+                sources.push(this.getCell(node));
+            }
+        }, this);
+        return sources;
+    },
+
+    // Get all the leafs of the graph. Time complexity: O(|V|).
+    getSinks: function() {
+
+        var sinks = [];
+        _.each(this._nodes, function(exists, node) {
+            if (!this._out[node] || _.isEmpty(this._out[node])) {
+                sinks.push(this.getCell(node));
+            }
+        }, this);
+        return sinks;
+    },
+
+    // Return `true` if `element` is a root. Time complexity: O(1).
+    isSource: function(element) {
+
+        return !this._in[element.id] || _.isEmpty(this._in[element.id]);
+    },
+
+    // Return `true` if `element` is a leaf. Time complexity: O(1).
+    isSink: function(element) {
+
+        return !this._out[element.id] || _.isEmpty(this._out[element.id]);
+    },
+
+    // Return `true` is `elementB` is a successor of `elementA`. Return `false` otherwise.
+    isSuccessor: function(elementA, elementB) {
+
+        var isSuccessor = false;
+        this.search(elementA, function(element) {
+            if (element === elementB && element !== elementA) {
+                isSuccessor = true;
+                return false;
+            }
+        }, { outbound: true });
+        return isSuccessor;
+    },
+
+    // Return `true` is `elementB` is a predecessor of `elementA`. Return `false` otherwise.
+    isPredecessor: function(elementA, elementB) {
+
+        var isPredecessor = false;
+        this.search(elementA, function(element) {
+            if (element === elementB && element !== elementA) {
+                isPredecessor = true;
+                return false;
+            }
+        }, { inbound: true });
+        return isPredecessor;
+    },
+
+    // Return `true` is `elementB` is a neighbor of `elementA`. Return `false` otherwise.
+    // `opt.deep` controls whether to take into account embedded elements as well. See `getNeighbors()`
+    // for more details.
+    // If `opt.outbound` is set to `true`, return `true` only if `elementB` is a successor neighbor.
+    // Similarly, if `opt.inbound` is set to `true`, return `true` only if `elementB` is a predecessor neighbor.
+    isNeighbor: function(elementA, elementB, opt) {
+
+        opt = opt || {};
+
+        var inbound = opt.inbound;
+        var outbound = opt.outbound;
+        if (_.isUndefined(inbound) && _.isUndefined(outbound)) {
+            inbound = outbound = true;
+        }
+
+        var isNeighbor = false;
+
+        _.each(this.getConnectedLinks(elementA, opt), function(link) {
+
+            var source = link.get('source');
+            var target = link.get('target');
+            var loop = link.hasLoop(opt);
+
+            // Discard if it is a point.
+            if (inbound && _.has(source, 'id') && source.id === elementB.id) {
+                isNeighbor = true;
+                return false;
+            }
+
+            // Discard if it is a point, or if the neighbor was already added.
+            if (outbound && _.has(target, 'id') && target.id === elementB.id) {
+                isNeighbor = true;
+                return false;
+            }
+        });
+
+        return isNeighbor;
     },
 
     // Disconnect links connected to the cell `model`.
@@ -413,10 +894,14 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     // Find all elements in given area
-    findModelsInArea: function(r) {
+    findModelsInArea: function(rect, opt) {
+
+        opt = _.defaults(opt || {}, { strict: false });
+
+        var method = opt.strict ? 'containsRect' : 'intersect';
 
         return _.filter(this.getElements(), function(el) {
-            return el.getBBox().intersect(r);
+            return rect[method](el.getBBox());
         });
     },
 
@@ -436,16 +921,29 @@ joint.dia.Graph = Backbone.Model.extend({
         });
     },
 
-    // Return the bounding box of all `elements`.
-    getBBox: function(/* elements */) {
+    // Return the bounding box of all cells in array provided. If no array
+    // provided returns bounding box of all cells. Links are being ignored.
+    getBBox: function(cells) {
 
-        var collection = this.get('cells');
-        return collection.getBBox.apply(collection, arguments);
+        cells = cells || this.collection.models;
+
+        return _.reduce(cells, function(memo, cell) {
+            if (cell.isLink()) return memo;
+            if (memo) {
+                return memo.union(cell.getBBox());
+            } else {
+                return cell.getBBox();
+            }
+        }, undefined);
     },
 
-    getCommonAncestor: function(/* cells */) {
+    translate: function(dx, dy, opt) {
 
-        var collection = this.get('cells');
-        return collection.getCommonAncestor.apply(collection, arguments);
+        // Don't translate cells that are embedded in any other cell.
+        var cells = _.reject(this.getCells(), function(cell) {
+            return cell.isEmbedded();
+        });
+
+        _.invoke(cells, 'translate', dx, dy, opt);
     }
 });

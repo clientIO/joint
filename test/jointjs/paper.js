@@ -1,6 +1,6 @@
 module('paper', {
 
-    setup: function() {
+    beforeEach: function() {
 
         var $fixture = $('#qunit-fixture');
         var $paper = $('<div/>');
@@ -15,14 +15,15 @@ module('paper', {
         });
     },
 
-    teardown: function() {
+    afterEach: function() {
 
-        delete this.graph;
-        delete this.paper;
+        this.paper.remove();
+        this.graph = null;
+        this.paper = null;
     }
 });
 
-test('graph.resetCells()', function() {
+test('paper.resetViews()', function() {
 
     var r1 = new joint.shapes.basic.Rect;
     var r2 = new joint.shapes.basic.Rect;
@@ -33,44 +34,6 @@ test('graph.resetCells()', function() {
 
     equal(this.graph.get('cells').length, 2, 'previous cells were removed from the graph after calling graph.resetCells()');
     equal(this.paper.$('.element').length, 2, 'previous cells were removed from the paper after calling graph.resetCells()');
-});
-
-test('graph.clear()', function(assert) {
-
-    var graph = this.graph;
-    var r1 = new joint.shapes.basic.Rect;
-    var r2 = new joint.shapes.basic.Rect;
-    var r3 = new joint.shapes.basic.Rect;
-    var r4 = new joint.shapes.basic.Rect;
-    var l1 = new joint.shapes.basic.Rect({ source: { id: r1.id }, target: { id: r2.id }});
-    var l2 = new joint.shapes.basic.Rect({ source: { id: r2.id }, target: { id: r3.id }});
-    var l3 = new joint.shapes.basic.Rect({ source: { id: r2.id }, target: { id: r4.id }});
-
-    graph.addCells([r1, r2, l1, r3, l2, r4]);
-    r3.embed(r2);
-    r3.embed(l3);
-
-    graph.clear();
-
-    assert.equal(graph.getCells().length, 0, 'all the links and elements (even embeddes) were removed.');
-    assert.equal(graph.get('cells').length, 0, 'collection length is exactly 0 (Backbone v1.2.1 was showing negative values.)');
-});
-
-test('graph.getCells(), graph.getLinks(), graph.getElements()', function(assert) {
-
-    var graph = this.graph;
-    var r1 = new joint.shapes.basic.Rect({ id: 'r1' });
-    var r2 = new joint.shapes.basic.Rect({ id: 'r2' });
-    var l1 = new joint.dia.Link({ id: 'l1' });
-
-    graph.addCells([r1, r2, l1]);
-
-    assert.deepEqual(_.pluck(graph.getCells(), 'id'), ['r1', 'r2', 'l1'],
-                     'getCells() returns all the cells in the graph.');
-    assert.deepEqual(_.pluck(graph.getLinks(), 'id'), ['l1'],
-                     'getLinks() returns only the link in the graph.');
-    assert.deepEqual(_.pluck(graph.getElements(), 'id'), ['r1', 'r2'],
-                     'getElements() returns only the elements in the graph');
 });
 
 test('graph.fromJSON(), graph.toJSON()', function() {
@@ -107,42 +70,6 @@ test('graph.fromJSON(), graph.toJSON()', function() {
 
     ok(rectView.el.previousSibling === linkView.el, 'link view is before rect element in the DOM');
     ok(linkView.el.previousSibling === circleView.el, 'link view is after circle element in the DOM');
-});
-
-test('graph.fetch()', function(assert) {
-
-    var json = {
-        "cells":[
-            {"type":"basic.Circle","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},
-            {"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},
-            {"type":"basic.Rect","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}
-        ]
-    };
-
-    var ajaxStub = sinon.stub($, 'ajax').yieldsTo('success', json);
-
-    this.graph.url = 'test.url';
-    this.graph.fetch();
-
-    assert.equal(this.graph.getElements().length, 2, 'all the element were fetched.');
-    assert.equal(this.graph.getLinks().length, 1, 'all the links were fetched.');
-
-    ajaxStub.restore();
-});
-
-test('graph.getBBox()', function() {
-
-    var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 } });
-    var r2 = new joint.shapes.basic.Rect({ position: { x: 100, y: 200 }, size: { width: 20, height: 20 } });
-    var r3 = new joint.shapes.basic.Rect({ position: { x: 20, y: 10 }, size: { width: 20, height: 20 } });
-
-    this.graph.resetCells([r1, r2, r3]);
-
-    var bbox = this.graph.getBBox([r1, r2, r3]);
-    equal(bbox.x, 20, 'bbox.x correct');
-    equal(bbox.y, 10, 'bbox.y correct');
-    equal(bbox.width, 100, 'bbox.width correct');
-    equal(bbox.height, 210, 'bbox.height correct');
 });
 
 test('contextmenu', function() {
@@ -187,34 +114,6 @@ test('paper.getArea()', function(assert) {
         _.pick(this.paper.getArea(), 'x', 'y', 'width', 'height'),
         { x: -50, y: -50, width: 500, height: 400 },
         'Paper area returns correct results for scaled and translated viewport.');
-});
-
-test('graph.findModelsUnderElement()', function(assert) {
-
-    var rect = new joint.shapes.basic.Rect({
-        size: { width: 100, height: 100 },
-        position: { x: 100, y: 100 }
-    });
-
-    var under = rect.clone();
-    var away = rect.clone().translate(200,200);
-
-    this.graph.addCells([rect,under,away]);
-
-    assert.deepEqual(this.graph.findModelsUnderElement(away), [], 'There are no models under the element.');
-    assert.deepEqual(this.graph.findModelsUnderElement(rect), [under], 'There is a model under the element.');
-
-    under.translate(50,50);
-
-    assert.deepEqual(this.graph.findModelsUnderElement(rect, { searchBy: 'origin' }), [], 'There is no model under the element if searchBy origin option used.');
-    assert.deepEqual(this.graph.findModelsUnderElement(rect, { searchBy: 'corner' }), [under], 'There is a model under the element if searchBy corner options used.');
-    
-    var embedded = rect.clone().addTo(this.graph);
-    rect.embed(embedded);
-
-    assert.deepEqual(this.graph.findModelsUnderElement(rect), [under], 'There is 1 model under the element found and 1 embedded element is omitted.');
-    assert.deepEqual(this.graph.findModelsUnderElement(under), [rect, embedded], 'There are 2 models under the element. Parent and its embed.');
-    assert.deepEqual(this.graph.findModelsUnderElement(embedded), [rect, under], 'There are 2 models under the element. The element\'s parent and one other element.');
 });
 
 test('paper.options: linkView & elementView', function(assert) {
@@ -309,33 +208,6 @@ test('paper.options: cellViewNamespace', function(assert) {
 
 });
 
-test('graph.options: cellNamespace', function(assert) {
-
-    var elementJSON = { id: 'a', type: 'elements.Element' };
-    var linkJSON = { id: 'b', type: 'link' };
-    var nonExistingJSON = { id: 'c', type: 'elements.NonExisting' };
-
-    var graph = new joint.dia.Graph({}, { cellNamespace: {
-        elements: { Element: joint.shapes.basic.Rect }
-    }});
-
-    graph.addCell(elementJSON);
-    var element = graph.getCell('a');
-    assert.equal(element.constructor, joint.shapes.basic.Rect,
-                 'The class was found in the custom namespace based on the type provided.');
-
-    graph.addCell(linkJSON);
-    var link = graph.getCell('b');
-    assert.equal(link.constructor, joint.dia.Link,
-                 'The default link model is created when type equals "link".');
-
-    graph.addCell(nonExistingJSON);
-    var nonExisting = graph.getCell('c');
-    assert.equal(nonExisting.constructor, joint.dia.Element,
-                 'If there is no class based on the type in the namespace, the default element model is used.');
-
-});
-
 test('paper.options: linkPinning', function(assert) {
 
     assert.expect(5);
@@ -395,108 +267,238 @@ test('paper.options: linkPinning', function(assert) {
     assert.notOk(newLink, 'pinning disabled: when there was a link created from a magnet a dropped into the blank paper area, the link was removed after the drop.');
 });
 
+test('paper.options: guard', function(assert) {
 
-test('graph.getNeighbors()', function(assert) {
+    var element = new joint.shapes.basic.Rect({
+        position: { x: 100, y: 100 },
+        size: { width: 100, height: 100 }
+    });
 
-    var graph = this.graph;
-    var Element = joint.shapes.basic.Rect;
-    var Link = joint.dia.Link;
+    this.graph.addCell(element);
 
-    function neighbors(el, opt) { return _.chain(graph.getNeighbors(el, opt)).pluck('id').sort().value(); }
+    var elementView = this.paper.findViewByModel(element);
+    var paperOffsetX = this.paper.$el.offset().left;
+    var paperOffsetY = this.paper.$el.offset().top;
+    var bboxBefore = element.getBBox();
+    var bboxAfter;
+    var diffX;
+    var diffY;
 
-    var r1 = new Element({ id: 'R1' });
-    var r2 = new Element({ id: 'R2' });
-    var r3 = new Element({ id: 'R3' });
-    var r4 = new Element({ id: 'R4' });
-    var r5 = new Element({ id: 'R5' });
-    var r6 = new Element({ id: 'R6' });
-    var l1 = new Link({ id: 'L1' });
-    var l2 = new Link({ id: 'L2' });
-    var l3 = new Link({ id: 'L3' });
-    var l4 = new Link({ id: 'L4' });
+    simulate.mousedown({
+        el: elementView.$el[0],
+        clientX: paperOffsetX + bboxBefore.x + 10,
+        clientY: paperOffsetY + bboxBefore.y + 10,
+        button: 2
+    });
 
-    graph.addCells([r1, r2, r3, r4, r5, r6, l1, l2]);
-    l1.set('source', { id: 'R1' }).set('target', { id: 'R2' });
-    l2.set('source', { id: 'R2' }).set('target', { id: 'R3' });
+    simulate.mousemove({
+        el: elementView.$el[0],
+        clientX: paperOffsetX + bboxBefore.x + 50,
+        clientY: paperOffsetY + bboxBefore.y + 50,
+        button: 2
+    });
 
-    //
-    // [R1] --L1--> [R2] --L2--> [R3]
-    //
-    // [R4]
-    //
+    bboxAfter = element.getBBox();
+    diffX = Math.abs(bboxAfter.x - bboxBefore.x);
+    diffY = Math.abs(bboxAfter.y - bboxBefore.y);
 
-    assert.deepEqual(neighbors(r4), [], 'Returns an empty array if the element has no neighbors.');
-    assert.deepEqual(neighbors(r1), ['R2'], 'Element has only outbound link. The neighbor was found.');
-    assert.deepEqual(neighbors(r3), ['R2'], 'Element has only inbound link. The neighbor was found.');
-    assert.deepEqual(neighbors(r2), ['R1','R3'], 'Elment has both outbound an inbound links. The neighbors were found.');
+    assert.ok(diffX > 30 && diffY > 30, 'element should have been moved');
 
-    graph.addCells([l3]);
-    l3.set('source', { id: 'R2' }).set('target', { id: 'R4' });
-    //
-    //                     L2--> [R3]
-    //                     |
-    // [R1] --L1--> [R2] --|
-    //                     |
-    //                     L3--> [R4]
-    //
+    // Use guard option to only allow mouse events for left mouse button.
+    this.paper.options.guard = function(evt, view) {
 
-    assert.deepEqual(neighbors(r2, { inbound: true }), ['R1'], 'The inbound links were found.');
-    assert.deepEqual(neighbors(r2, { outbound: true }), ['R3','R4'], 'The outbound links were found.');
+        var isMouseEvent = evt.type.substr(0, 'mouse'.length) === 'mouse';
 
-    graph.addCells([l4]);
-    l1.set('source', { id: 'R1' }).set('target', { id: 'R2' });
-    l2.set('source', { id: 'R2' }).set('target', { id: 'R3' });
-    l3.set('source', { id: 'R2' }).set('target', { id: 'R3' });
-    l4.set('source', { id: 'R1' }).set('target', { id: 'R2' });
-    //
-    // [R1] --L1,L4--> [R2] --L2,L3--> [R3]
-    //
+        if (isMouseEvent && evt.button !== 0) {
 
-    assert.deepEqual(neighbors(r2), ['R1','R3'], 'There are no duplicates in the result.');
+            return true;
+        }
 
-    l1.set('source', { id: 'R1' }).set('target', { id: 'R1' });
-    l2.remove();
-    l3.remove();
-    l4.set('source', { id: 'R1' }).set('target', { id: 'R1' });
-    //  [R1] <--L1,L4
-    //    |       |
-    //     -------
+        return false;
+    };
 
-    assert.deepEqual(neighbors(r1), ['R1'], 'Being a self-neighbor is detected.');
+    simulate.mousedown({
+        el: elementView.$el[0],
+        clientX: paperOffsetX + bboxBefore.x + 10,
+        clientY: paperOffsetY + bboxBefore.y + 10,
+        button: 2
+    });
 
-    graph.addCells([l2,l3]);
-    r1.embed(r2);
-    l1.set('source', { id: 'R1' }).set('target', { id: 'R3' });
-    l2.set('source', { id: 'R5' }).set('target', { id: 'R1' });
-    l3.set('source', { id: 'R2' }).set('target', { id: 'R4' });
-    l4.set('source', { id: 'R6' }).set('target', { id: 'R2' });
-    //
-    // ░░░░░░░░░░░<-L2-- [R5]
-    // ░R1░░░░░░░░--L1-> [R3]
-    // ░░░░▓▓▓▓▓▓▓
-    // ░░░░▓▓▓R2▓▓--L3-> [R4]
-    // ░░░░▓▓▓▓▓▓▓<-L4-- [R6]
+    simulate.mousemove({
+        el: elementView.$el[0],
+        clientX: paperOffsetX + bboxBefore.x + 50,
+        clientY: paperOffsetY + bboxBefore.y + 50,
+        button: 2
+    });
 
-    assert.deepEqual(neighbors(r1), ['R3','R5'], 'Embedded elements are not taken into account by default.');
-    assert.deepEqual(neighbors(r2), ['R4','R6'], 'Parent elements are not taken into account by default.');
-    assert.deepEqual(neighbors(r1, { deep: true }), ['R3','R4','R5','R6'], 'The neighbours of the element and all its embdes were found in the deep mode. But not the embdes themselves.');
-    assert.deepEqual(neighbors(r2, { deep: true }), ['R4','R6'], 'Parent elements are not taken into account in the deep mode.');
-    assert.deepEqual(neighbors(r1, { deep: true, outbound: true }), ['R3','R4'], 'The outbound neighbours of the element and all its embdes were found in the deep mode.');
-    assert.deepEqual(neighbors(r1, { deep: true, inbound: true }), ['R5','R6'], 'The inbound neighbours of the element and all its embdes were found in the deep mode.');
+    bboxBefore = bboxAfter;
+    bboxAfter = element.getBBox();
+    diffX = Math.abs(bboxAfter.x - bboxBefore.x);
+    diffY = Math.abs(bboxAfter.y - bboxBefore.y);
 
-    l1.set('source', { id: 'R1' }).set('target', { id: 'R2' });
-    l2.remove();
-    l3.remove();
-    l4.remove();
-    //
-    // ░░░░░░░░░░░
-    // ░R1░░░░░░░░------
-    // ░░░░▓▓▓▓▓▓▓   L1|
-    // ░░░░▓▓▓R2▓▓<-----
-    // ░░░░▓▓▓▓▓▓▓
-    assert.deepEqual(neighbors(r1), ['R2'], 'A connected embedded elements is found in the shallow mode.');
-    assert.deepEqual(neighbors(r1, { deep: true }), ['R1','R2'], 'All the connected embedded elements are found in the deep mode.');
-    assert.deepEqual(neighbors(r1, { deep: true, inbound: true }), ['R1'], 'All the inbound connected embedded elements are found in the deep mode.');
-    assert.deepEqual(neighbors(r1, { deep: true, outbound: true  }), ['R2'], 'All the outbound connected embedded elements are found in the deep mode.');
+    assert.ok(diffX < 5 && diffY < 5, 'element should not have been moved');
+});
 
+test('getContentBBox()', function(assert) {
+
+    var contentBBox;
+
+    checkBboxApproximately(2/* +- */, this.paper.getContentBBox(), { x: 0, y: 0, width: 0, height: 0 }, 'empty graph, content bbox should be correct');
+
+    var rect1 = new joint.shapes.basic.Rect({
+        position: {
+            x: 20,
+            y: 20
+        },
+        size: {
+            width: 40,
+            height: 40
+        }
+    });
+
+    this.graph.addCell(rect1);
+
+    checkBboxApproximately(2/* +- */, this.paper.getContentBBox(), { x: 20, y: 20, width: 40, height: 40 }, 'one rectangle, content bbox should be correct');
+
+    var rect2 = new joint.shapes.basic.Rect({
+        position: {
+            x: 5,
+            y: 8
+        },
+        size: {
+            width: 25,
+            height: 25
+        }
+    });
+
+    this.graph.addCell(rect2);
+
+    checkBboxApproximately(2/* +- */, this.paper.getContentBBox(), { x: 5, y: 8, width: 55, height: 52 }, 'two rectangles, content bbox should be correct');
+
+    var circle1 = new joint.shapes.basic.Circle({
+        position: {
+            x: 75,
+            y: 5
+        },
+        size: {
+            width: 25,
+            height: 25
+        }
+    });
+
+    this.graph.addCell(circle1);
+
+    checkBboxApproximately(2/* +- */, this.paper.getContentBBox(), { x: 5, y: 5, width: 95, height: 55 }, 'two rectangles + one circle, content bbox should be correct');
+
+    V(this.paper.viewport).scale(2, 2);
+
+    checkBboxApproximately(4/* +- */, this.paper.getContentBBox(), { x: 10, y: 10, width: 190, height: 110 }, 'two rectangles + one circle (scaled by factor of 2), content bbox should be correct');
+});
+
+test('findViewsInArea(rect[, opt])', function(assert) {
+
+    var cells = [
+        new joint.shapes.basic.Rect({
+            position: { x: 20, y: 20 },
+            size: { width: 20, height: 20 }
+        }),
+        new joint.shapes.basic.Rect({
+            position: { x: 80, y: 80 },
+            size: { width: 40, height: 60 }
+        }),
+        new joint.shapes.basic.Rect({
+            position: { x: 120, y: 180 },
+            size: { width: 40, height: 40 }
+        })
+    ];
+
+    this.graph.addCells(cells);
+
+    var viewsInArea;
+
+    viewsInArea = this.paper.findViewsInArea(new g.rect(0, 0, 10, 10));
+
+    assert.equal(viewsInArea.length, 0, 'area with no elements in it');
+
+    viewsInArea = this.paper.findViewsInArea(new g.rect(0, 0, 25, 25));
+
+    assert.equal(viewsInArea.length, 1, 'area with 1 element in it');
+
+    viewsInArea = this.paper.findViewsInArea(new g.rect(0, 0, 300, 300));
+
+    assert.equal(viewsInArea.length, 3, 'area with 3 elements in it');
+
+    viewsInArea = this.paper.findViewsInArea(new g.rect(0, 0, 100, 100), { strict: true });
+
+    assert.equal(viewsInArea.length, 1, '[opt.strict = TRUE] should require elements to be completely within rect');
+});
+
+test('linkAllowed(linkViewOrModel)', function(assert) {
+
+    assert.equal(typeof this.paper.linkAllowed, 'function', 'should be a function');
+
+    var paper = this.paper;
+
+    assert.throws(function() {
+
+        paper.linkAllowed();
+
+    }, new Error('Must provide link model or view.'), 'should throw error when link model/view is missing');
+
+    var rect1 = new joint.shapes.basic.Rect({
+        position: { x: 20, y: 30 },
+        size: { width: 40, height: 40 }
+    });
+
+    var rect2 = new joint.shapes.basic.Rect({
+        position: { x: 80, y: 30 },
+        size: { width: 40, height: 40 }
+    });
+
+    this.graph.addCells([rect1, rect2]);
+
+    // Defaults.
+    this.paper.options.multiLinks = true;
+    this.paper.options.linkPinning = true;
+
+    var link = new joint.dia.Link({
+        source: { x: 300, y: 300 },
+        target: { x: 320, y: 320 }
+    });
+
+    this.graph.addCells([link]);
+
+    var linkView = this.paper.findViewByModel(link);
+
+    assert.ok(this.paper.linkAllowed(link), 'can use link model');
+    assert.ok(this.paper.linkAllowed(linkView), 'can use link view');
+
+    var pinnedLink = new joint.dia.Link({
+        source: { id: rect1.id },
+        target: { x: 200, y: 200 }
+    });
+
+    this.paper.options.linkPinning = false;
+    assert.notOk(this.paper.linkAllowed(pinnedLink), 'pinned link not allowed when link pinning is disabled');
+
+    this.paper.options.linkPinning = true;
+    assert.ok(this.paper.linkAllowed(pinnedLink), 'pinned link allowed when link pinning is enabled');
+
+    var multiLink1 = new joint.dia.Link({
+        source: { id: rect1.id },
+        target: { id: rect2.id }
+    });
+
+    var multiLink2 = new joint.dia.Link({
+        source: { id: rect1.id },
+        target: { id: rect2.id }
+    });
+
+    this.graph.addCells([multiLink1, multiLink2]);
+
+    this.paper.options.multiLinks = false;
+    assert.notOk(this.paper.linkAllowed(multiLink2), 'multi link not allowed when link multi-links is disabled');
+
+    this.paper.options.multiLinks = true;
+    assert.ok(this.paper.linkAllowed(multiLink2), 'multi link allowed when link multi-links is enabled');
 });

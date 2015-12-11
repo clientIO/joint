@@ -17,6 +17,8 @@ module('connectors', {
 
     teardown: function() {
 
+        this.paper.remove();
+
         delete this.graph;
         delete this.paper;
     }
@@ -67,6 +69,7 @@ test('construction', function() {
     var customCalled = 0;
     var l3 = l0.clone().set('connector', function() {
         customCalled += 1;
+        return 'M 0 0';
     });
 
     this.graph.addCell(l3);
