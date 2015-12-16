@@ -488,7 +488,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var cellsAncestors = _.map(arguments, function(cell) {
 
-            var ancestors = [cell.id];
+            var ancestors = [];
             var parentId = cell.get('parent');
 
             while (parentId) {

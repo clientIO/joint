@@ -1,4 +1,4 @@
-/*! JointJS v0.9.5 - JavaScript diagramming library  2015-12-11 
+/*! JointJS v0.9.5 - JavaScript diagramming library  2015-12-17 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -3969,7 +3969,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var cellsAncestors = _.map(arguments, function(cell) {
 
-            var ancestors = [cell.id];
+            var ancestors = [];
             var parentId = cell.get('parent');
 
             while (parentId) {
@@ -5086,7 +5086,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             return this.render();
         }
 
-        return this.update();
+        return this.update(cell, attrs, opt);
     },
 
     // Override the Backbone `_ensureElement()` method in order to create a `<g>` node that wraps
@@ -6530,11 +6530,11 @@ joint.dia.Link = joint.dia.Cell.extend({
         var vertices = this.get('vertices');
 
         if (!source.id) {
-            attrs.source = { x: source.x + tx, y: source.y + ty };
+            attrs.source = { x: (source.x || 0) + tx, y: (source.y || 0) + ty };
         }
 
         if (!target.id) {
-            attrs.target = { x: target.x + tx, y: target.y + ty };
+            attrs.target = { x: (target.x || 0) + tx, y: (target.y || 0) + ty };
         }
 
         if (vertices && vertices.length) {
@@ -6542,6 +6542,12 @@ joint.dia.Link = joint.dia.Cell.extend({
                 return { x: vertex.x + tx, y: vertex.y + ty };
             });
         }
+
+        // enrich the option object
+        opt = opt || {};
+        opt.translateBy = opt.translateBy || this.id;
+        opt.tx = tx;
+        opt.ty = ty;
 
         return this.set(attrs, opt);
     },
@@ -6560,7 +6566,7 @@ joint.dia.Link = joint.dia.Cell.extend({
                 newParent = this.graph.getCommonAncestor(source, target);
             }
 
-            if (prevParent && (!newParent || newParent.id != prevParent.id)) {
+            if (prevParent && (!newParent || newParent.id !== prevParent.id)) {
                 // Unembed the link if source and target has no common ancestor
                 // or common ancestor changed
                 prevParent.unembed(this, opt);
@@ -6619,6 +6625,35 @@ joint.dia.Link = joint.dia.Cell.extend({
         var target = this.get('target');
 
         return (target && target.id && this.graph && this.graph.getCell(target.id)) || null;
+    },
+
+    // Returns the common ancestor for the source element,
+    // target element and the link itself.
+    getRelationshipAncestor: function() {
+
+        var connectionAncestor;
+
+        if (this.graph) {
+
+            var cells = _.compact([
+                this,
+                this.getSourceElement(), // null if source is a point
+                this.getTargetElement() // null if target is a point
+            ]);
+
+            connectionAncestor = this.graph.getCommonAncestor.apply(this.graph, cells);
+        }
+
+        return connectionAncestor || null;
+    },
+
+    // Is source, target and the link itself embedded in a given element?
+    isRelationshipEmbeddedIn: function(element) {
+
+        var elementId = _.isString(element) ? element : element.id;
+        var ancestor = this.getRelationshipAncestor();
+
+        return !!ancestor && (ancestor.id === elementId || ancestor.isEmbeddedIn(elementId));
     }
 });
 
@@ -6680,14 +6715,30 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.listenTo(model, 'change:target', this.onTargetChange);
     },
 
-    onSourceChange: function(cell, source) {
+    onSourceChange: function(cell, source, opt) {
 
-        this.watchSource(cell, source).update();
+        // Start watching the new source model.
+        this.watchSource(cell, source);
+        // This handler is called when the source attribute is changed.
+        // This can happen either when someone reconnects the link (or moves arrowhead),
+        // or when an embedded link is translated by its ancestor.
+        // 1. Always do update.
+        // 2. Do update only if the opposite end ('target') is also a point.
+        if (!opt.translateBy || !this.model.get('target').id) {
+            opt.updateConnectionOnly = true;
+            this.update(this.model, null, opt);
+        }
     },
 
-    onTargetChange: function(cell, target) {
+    onTargetChange: function(cell, target, opt) {
 
-        this.watchTarget(cell, target).update();
+        // Start watching the new target model.
+        this.watchTarget(cell, target);
+        // See `onSourceChange` method.
+        if (!opt.translateBy) {
+            opt.updateConnectionOnly = true;
+            this.update(this.model, null, opt);
+        }
     },
 
     onVerticesChange: function(cell, changed, opt) {
@@ -6698,10 +6749,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // the only link that was translated. If the link was translated via another element which the link
         // is embedded in, this element will be translated as well and that triggers an update.
         // Note that all embeds in a model are sorted - first comes links, then elements.
-        if (!opt.translateBy || opt.translateBy === this.model.id || this.model.hasLoop()) {
-            // Vertices were changed (not as a reaction on translate) or link.translate() was called or
-            // we're dealing with a loop link that is embedded.
-            this.update();
+        if (!opt.translateBy || opt.translateBy === this.model.id) {
+            // Vertices were changed (not as a reaction on translate)
+            // or link.translate() was called or
+            opt.updateConnectionOnly = true;
+            this.update(cell, null, opt);
         }
     },
 
@@ -6727,7 +6779,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // `.connection`, `.connection-wrap`, `.marker-source` and `.marker-target` selectors
         // of elements with special meaning though. Therefore, those classes should be preserved in any
         // special markup passed in `properties.markup`.
-        var children = V(this.model.get('markup') || this.model.markup);
+        var model = this.model;
+        var children = V(model.get('markup') || model.markup);
 
         // custom markup may contain only one children
         if (!_.isArray(children)) children = [children];
@@ -6754,8 +6807,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.renderLabels();
 
         // start watching the ends of the link for changes
-        this.watchSource(this.model, this.model.get('source'))
-            .watchTarget(this.model, this.model.get('target'))
+        this.watchSource(model, model.get('source'))
+            .watchTarget(model, model.get('target'))
             .update();
 
         return this;
@@ -6914,7 +6967,70 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     //---------
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
-    update: function() {
+    update: function(model, attributes, opt) {
+
+        opt = opt || {};
+
+        if (!opt.updateConnectionOnly) {
+            // update SVG attributes defined by 'attrs/'.
+            this.updateAttributes();
+        }
+
+        // update the link path, label position etc.
+        this.updateConnection(opt);
+        this.updateLabelPositions();
+        this.updateToolsPosition();
+        this.updateArrowheadMarkers();
+
+        // Local perpendicular flag (as opposed to one defined on paper).
+        // Could be enabled inside a connector/router. It's valid only
+        // during the update execution.
+        this.options.perpendicular = null;
+        // Mark that postponed update has been already executed.
+        this.updatePostponed = false;
+
+        return this;
+    },
+
+    updateConnection: function(opt) {
+
+        opt = opt || {};
+
+        var model = this.model;
+        var route;
+
+        if (opt.translateBy && model.isRelationshipEmbeddedIn(opt.translateBy)) {
+            // The link is being translated by an ancestor that will
+            // shift source point, target point and all vertices
+            // by an equal distance.
+            var tx = opt.tx || 0;
+            var ty = opt.ty || 0;
+
+            route = this.route =  _.map(this.route, function(point) {
+                // translate point by point by delta translation
+                return g.point(point).offset(tx, ty);
+            });
+
+            // translate source and target connection and marker points.
+            this._translateConnectionPoints(tx, ty);
+
+        } else {
+            // Necessary path finding
+            route = this.route = this.findRoute(model.get('vertices') || [], opt);
+            // finds all the connection points taking new vertices into account
+            this._findConnectionPoints(route);
+        }
+
+        var pathData = this.getPathData(route);
+
+        // The markup needs to contain a `.connection`
+        this._V.connection.attr('d', pathData);
+        this._V.connectionWrap && this._V.connectionWrap.attr('d', pathData);
+
+        this._translateAndAutoOrientArrows(this._V.markerSource, this._V.markerTarget);
+    },
+
+    updateAttributes: function() {
 
         // Update attributes.
         _.each(this.model.get('attrs'), function(attrs, selector) {
@@ -6953,31 +7069,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             this.findBySelector(selector).attr(attrs);
 
         }, this);
-
-        // Path finding
-        var vertices = this.route = this.findRoute(this.model.get('vertices') || []);
-
-        // finds all the connection points taking new vertices into account
-        this._findConnectionPoints(vertices);
-
-        var pathData = this.getPathData(vertices);
-
-        // The markup needs to contain a `.connection`
-        this._V.connection.attr('d', pathData);
-        this._V.connectionWrap && this._V.connectionWrap.attr('d', pathData);
-
-        this._translateAndAutoOrientArrows(this._V.markerSource, this._V.markerTarget);
-
-        //partials updates
-        this.updateLabelPositions();
-        this.updateToolsPosition();
-        this.updateArrowheadMarkers();
-
-        this.options.perpendicular = null;
-        // Mark that postponed update has been already executed.
-        this.updatePostponed = false;
-
-        return this;
     },
 
     _findConnectionPoints: function(vertices) {
@@ -7031,6 +7122,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // make connection points public
         this.sourcePoint = sourcePoint;
         this.targetPoint = targetPoint;
+    },
+
+    _translateConnectionPoints: function(tx, ty) {
+
+        var cache = this._markerCache;
+
+        cache.sourcePoint.offset(tx, ty);
+        cache.targetPoint.offset(tx, ty);
+        this.sourcePoint.offset(tx, ty);
+        this.targetPoint.offset(tx, ty);
     },
 
     updateLabelPositions: function() {
@@ -7213,13 +7314,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     onEndModelChange: function(endType, endModel, opt) {
 
         var doUpdate = !opt.cacheOnly;
-        var end = this.model.get(endType) || {};
+        var model = this.model;
+        var end = model.get(endType) || {};
 
         if (endModel) {
 
             var selector = this.constructor.makeSelector(end);
             var oppositeEndType = endType == 'source' ? 'target' : 'source';
-            var oppositeEnd = this.model.get(oppositeEndType) || {};
+            var oppositeEnd = model.get(oppositeEndType) || {};
             var oppositeSelector = oppositeEnd.id && this.constructor.makeSelector(oppositeEnd);
 
             // Caching end models bounding boxes.
@@ -7258,8 +7360,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
 
             if (opt.handleBy === this.cid && opt.translateBy &&
-                this.model.isEmbeddedIn(endModel) &&
-                !_.isEmpty(this.model.get('vertices'))) {
+                model.isEmbeddedIn(endModel) &&
+                !_.isEmpty(model.get('vertices'))) {
                 // Loop link whose element was translated and that has vertices (that need to be translated with
                 // the parent in which my element is embedded).
                 // If the link is embedded, has a loop and vertices and the end model
@@ -7306,10 +7408,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             this[endType + 'View'] = this[endType + 'Magnet'] = null;
         }
 
-        // keep track which end had been changed very last
-        this.lastEndChange = endType;
-
-        doUpdate && this.update();
+        if (doUpdate) {
+            opt.updateConnectionOnly = true;
+            this.update(model, null, opt);
+        }
     },
 
     _translateAndAutoOrientArrows: function(sourceArrow, targetArrow) {

@@ -198,16 +198,16 @@ test('graph.getCommonAncestor()', function(assert) {
     var r6 = new joint.shapes.basic.Rect;
     var r7 = new joint.shapes.basic.Rect;
 
-    r1.embed(r2.embed(r4).embed(r5)).embed(r3.embed(r6));
-
     this.graph.addCells([r1,r2,r3,r4,r5,r6,r7]);
 
+    r1.embed(r2.embed(r4).embed(r5)).embed(r3.embed(r6));
+
     assert.ok(!this.graph.getCommonAncestor(), 'r1 embeds r2 and r3. r2 embeds r4 and r5. r3 embeds r6. r1 and r7 have no parents. Calling getCommonAncestor() returns no common ancestor.');
-    assert.equal((this.graph.getCommonAncestor(r2) || {}).id, r2.id, 'Common ancestor for r2 is r2.');
+    assert.equal((this.graph.getCommonAncestor(r2) || {}).id, r1.id, 'Common ancestor for r2 is r1.');
     assert.equal((this.graph.getCommonAncestor(r2,r3) || {}).id, r1.id, 'Common ancestor for r2 and r3 is r1.');
     assert.equal((this.graph.getCommonAncestor(r2,r3,r4) || {}).id, r1.id, 'Common ancestor for r2,r3 and r4 is r1');
-    assert.ok(!this.graph.getCommonAncestor(r2,r3,r7), 'There is no common ancestor for r2,r3 and r5');
-    assert.equal((this.graph.getCommonAncestor(r2,r3,r1) || {}).id, r1.id, 'Common ancestor for r2,r3 and r1 is r1');
+    assert.notOk(this.graph.getCommonAncestor(r2,r3,r7), 'There is no common ancestor for r2,r3 and r5');
+    assert.notOk(this.graph.getCommonAncestor(r2,r3,r1), 'There is no common ancestor for r2,r3 and r1');
     assert.equal((this.graph.getCommonAncestor(r5,r4) || {}).id, r2.id, 'Common ancestor for r5 and r4 is r2');
     assert.equal((this.graph.getCommonAncestor(r5,r6) || {}).id, r1.id, 'Common ancestor for r5 and r6 is r1');
 });

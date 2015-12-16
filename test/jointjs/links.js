@@ -282,10 +282,10 @@ test('disconnect(), connect()', function() {
     var linkView = this.paper.findViewByModel(link);
     var myrectView = this.paper.findViewByModel(myrect);
     var myrect2View = this.paper.findViewByModel(myrect2);
-    
+
     // disconnect:
     link.set('source', linkView.getConnectionPoint('source', link.previous('source'), link.get('target')));
-    
+
     ok(link.get('source') instanceof g.point, 'source of the link became a point');
     ok(!(link.get('target') instanceof g.point), 'target of the link is still not a point');
 
@@ -326,7 +326,7 @@ test('getLinks(), clone()', function() {
 
     var myrect = new joint.shapes.basic.Rect;
     var myrect2 = myrect.clone();
-    
+
     this.graph.addCell(myrect);
     this.graph.addCell(myrect2);
 
@@ -384,7 +384,7 @@ test('markers', function() {
     });
     var myrect2 = myrect.clone();
     myrect2.translate(300);
-    
+
     this.graph.addCell(myrect);
     this.graph.addCell(myrect2);
 
@@ -410,7 +410,7 @@ test('markers', function() {
     var linkView = this.paper.findViewByModel(link);
 
     var markerSourceBbox = V(linkView.$('.marker-source')[0]).bbox();
-    
+
     deepEqual(
         { x: markerSourceBbox.x, y: markerSourceBbox.y, width: markerSourceBbox.width, height: markerSourceBbox.height },
         { x: 140, y: 65, width: 10, height: 10 },
@@ -418,7 +418,7 @@ test('markers', function() {
     );
 
     var markerTargetBbox = V(linkView.$('.marker-target')[0]).bbox();
-    
+
     deepEqual(
         { x: markerTargetBbox.x, y: markerTargetBbox.y, width: markerTargetBbox.width, height: markerTargetBbox.height, rotation: V(linkView.$('.marker-target')[0]).rotate().angle },
         { x: 310, y: 65, width: 10, height: 10, rotation: -180 },
@@ -436,7 +436,7 @@ test('vertices', function() {
     });
     var myrect2 = myrect.clone();
     myrect2.translate(300);
-    
+
     this.graph.addCell(myrect);
     this.graph.addCell(myrect2);
 
@@ -483,7 +483,7 @@ test('vertices', function() {
     );
 
     var markerTargetBbox = V(linkView.$('.marker-target')[0]).bbox();
-    
+
     deepEqual(
         {
             x: markerTargetBbox.x,
@@ -523,7 +523,7 @@ test('vertices', function() {
 test('perpendicularLinks', function() {
 
     this.paper.options.perpendicularLinks = true;
-    
+
     var myrect = new joint.shapes.basic.Rect({
         position: { x: 20, y: 30 },
         size: { width: 120, height: 80 },
@@ -531,7 +531,7 @@ test('perpendicularLinks', function() {
     });
     var myrect2 = myrect.clone();
     myrect2.translate(300);
-    
+
     this.graph.addCell(myrect);
     this.graph.addCell(myrect2);
 
@@ -572,7 +572,7 @@ test('perpendicularLinks', function() {
         { x: myrect2.get('position').x, y: 108 },
         '.marker-target should point horizontally to the edge of the target rectangle making the part of the link after the last vertex perpendicular to the target rectangle'
     );
-    
+
 });
 
 test('labels', function() {
@@ -580,7 +580,7 @@ test('labels', function() {
     var myrect = new joint.shapes.basic.Rect;
     var myrect2 = myrect.clone();
     myrect2.translate(300);
-    
+
     this.graph.addCell(myrect);
     this.graph.addCell(myrect2);
 
@@ -619,7 +619,7 @@ test('labels', function() {
     link.label(0, { position: -10 });
 
     label1Bbox = V(linkView.$('.label')[0]).bbox();
-    ok(label1Bbox.x > label2Bbox.x, 'second label is positioned before the first one after changing the first one position');    
+    ok(label1Bbox.x > label2Bbox.x, 'second label is positioned before the first one after changing the first one position');
 });
 
 test('magnets & ports', function() {
@@ -629,13 +629,13 @@ test('magnets & ports', function() {
     myrect2.translate(300);
 
     this.graph.addCells([myrect, myrect2]);
-    
+
     myrect.attr('text', { magnet: true, port: 'port1' });
     myrect2.attr('text', { magnet: true, port: 'port2' });
-    
+
     var myrectView = this.paper.findViewByModel(myrect);
     var myrect2View = this.paper.findViewByModel(myrect2);
-    
+
     simulate.mousedown({ el: myrectView.$('text')[0] });
     simulate.mousemove({ el: myrect2View.$('text')[0] });
     simulate.mouseup({ el: myrect2View.$('text')[0] });
@@ -904,4 +904,227 @@ test('getTargetElement', function(assert) {
     }
 
     assert.ok(typeof thrownError === 'undefined', 'should not throw an error when link not in graph');
+});
+
+test('getRelationshipAncestor()', function(assert) {
+
+    var a = new joint.shapes.basic.Rect({ id: 'a' });
+    var b = new joint.shapes.basic.Rect({ id: 'b' });
+    var c = new joint.shapes.basic.Rect({ id: 'c' });
+    var l = new joint.dia.Link({ id: 'l' });
+
+    this.graph.addCells([a,b,c,l]);
+
+    assert.equal(l.getRelationshipAncestor(), null, 'Link has no parent and connects 2 points. No ancestor found.');
+
+    l.set('source', { id: 'a' });
+    assert.equal(l.getRelationshipAncestor(), null, 'Link has no parent and connects a point and an element. No ancestor found.');
+
+    l.set('target', { id: 'b' });
+    assert.equal(l.getRelationshipAncestor(), null, 'Link has no parent and connects 2 elements. No ancestor found.');
+
+    c.embed(a).embed(b);
+    assert.equal(l.getRelationshipAncestor(), null, 'Source and target are embedded. No ancestor found.');
+
+    c.embed(l);
+    assert.equal(l.getRelationshipAncestor(), c, 'Source, target and link are embedded. Ancestor found.');
+
+    c.unembed(a).unembed(b);
+    assert.equal(l.getRelationshipAncestor(), null, 'Only link is embeded. No ancestor found.');
+});
+
+test('isRelationshipEmbeddedIn()', function(assert) {
+
+    var a = new joint.shapes.basic.Rect({ id: 'a' });
+    var b = new joint.shapes.basic.Rect({ id: 'b' });
+    var c = new joint.shapes.basic.Rect({ id: 'c' });
+    var l = new joint.dia.Link({ id: 'l' });
+
+    this.graph.addCells([a,b,c,l]);
+
+    assert.notOk(l.isRelationshipEmbeddedIn(c), 'Link has no parent and connects 2 points. The relationship is not embedded.');
+
+    c.embed(l);
+    assert.ok(l.isRelationshipEmbeddedIn(c), 'Link is embedded and connects 2 points. The relationship is embedded.');
+
+    l.set('source', { id: 'a' });
+    assert.notOk(l.isRelationshipEmbeddedIn(c), 'Link is embedded and connects a point and an element with no parent. The relationship is not embedded.');
+
+    l.set('target', { id: 'b' });
+    assert.notOk(l.isRelationshipEmbeddedIn(c), 'Link is embedded and connects 2 elements with no parents. The relationship is not embedded.');
+
+    c.embed(a).embed(b);
+    assert.ok(l.isRelationshipEmbeddedIn(c), 'Link is embedded and connects 2 elements also embedded. The relationship is embedded.');
+});
+
+test('update count', function(assert) {
+
+    var a = new joint.shapes.basic.Rect({ id: 'a' });
+    var b = new joint.shapes.basic.Rect({ id: 'b' });
+    var c = new joint.shapes.basic.Rect({ id: 'c' });
+    var l = new joint.dia.Link({ id: 'l' });
+    var l2 = new joint.dia.Link({ id: 'l2' });
+
+    this.graph.addCells([a,b,c,l,l2]);
+    var lv = l.findView(this.paper);
+    var l2v = l2.findView(this.paper);
+
+    sinon.spy(lv, 'update');
+    sinon.spy(lv, 'findRoute');
+    sinon.spy(l2v, 'update');
+
+    l.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: link point to point, link translated');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: link point to point, link translated');
+
+    l.set('source', { id: 'a' });
+    lv.update.reset();
+    a.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: link element to point, link translated');
+
+    // loop
+    l.set('target', { id: 'a' });
+    lv.update.reset();
+    a.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: loop link, source translated');
+
+    // link element-element
+    l.set('target', { id: 'b' });
+    lv.update.reset();
+    a.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: link element-element, source translated');
+
+    l.set('vertices', [{ x: 0, y: 0 }]);
+    lv.update.reset();
+    a.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices, source translated');
+
+    // loop + vertices
+    l.set('target', { id: 'a' });
+    lv.update.reset();
+    a.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: loop link with vertices, source translated.');
+
+    // embeds
+    c.embed(a).embed(b).embed(l);
+    l.set('target', { id: 'b' });
+
+    // source, target and link with vertices are embedded,
+    // translating container
+    lv.findRoute.reset();
+    lv.update.reset();
+    c.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices embedded, container translated');
+    assert.equal(lv.findRoute.callCount, 0, 'findRoute: link element-element with vertices embedded, container translated');
+
+    // translating source
+    lv.findRoute.reset();
+    lv.update.reset();
+    a.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices embedded, source translated');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with vertices embedded, source translated');
+
+    // translating target
+    lv.findRoute.reset();
+    lv.update.reset();
+    b.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices embedded, target translated');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with vertices embedded, target translated');
+
+    // source, target and link are embedded,
+    // translating container
+    l.set('vertices', []);
+    lv.findRoute.reset();
+    lv.update.reset();
+    c.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: link element-element embedded, container translated');
+    assert.equal(lv.findRoute.callCount, 0, 'findRoute: link element-element embedded, container translated');
+
+    // translating source
+    lv.findRoute.reset();
+    lv.update.reset();
+    a.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: link element-element embedded, source translated');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element embedded, source translated');
+
+    // translating target
+    lv.findRoute.reset();
+    lv.update.reset();
+    b.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: link element-element embedded, target translated');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element embedded, target translated');
+
+    // loop link and element are embedded
+    // translating container
+    l.set('target', { id: 'a' });
+    lv.findRoute.reset();
+    lv.update.reset();
+    c.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: loop link embedded, container translated');
+    assert.equal(lv.findRoute.callCount, 0, 'findRoute: loop link embedded, container translated');
+
+    // translating element
+    lv.findRoute.reset();
+    lv.update.reset();
+    a.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: loop link embedded, source translated');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: loop link embedded, source translated');
+
+    // link is not embedded, source and target embedded
+    // translateing container
+    c.unembed(l);
+    l.set('target', { id: 'b' });
+    lv.findRoute.reset();
+    lv.update.reset();
+    c.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends , container translated');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends , container translated');
+
+    // translating source
+    lv.findRoute.reset();
+    lv.update.reset();
+    a.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends , source translated');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends , source translated');
+
+    // translating target
+    lv.findRoute.reset();
+    lv.update.reset();
+    b.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends , source translated');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends , source translated');
+
+    // adding vertex
+    lv.findRoute.reset();
+    lv.update.reset();
+    l.set('vertices', [{ x: 0, y: 0 }]);
+    assert.equal(lv.update.callCount, 1, 'update: vertex added');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: vertex added');
+
+    // changing attr
+    lv.findRoute.reset();
+    lv.update.reset();
+    l.attr('.connection/stroke', 'red');
+    assert.equal(lv.update.callCount, 1, 'update: change attrs');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: change attrs');
+
+    // source resize
+    lv.findRoute.reset();
+    lv.update.reset();
+    a.resize(20,20);
+    assert.equal(lv.update.callCount, 1, 'update: source resized');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: source resized');
+
+    // 2 loop links connected to the same element.
+    l2.set('source', { id: 'a' }).set('target', { id: 'b' });
+    l.set('source', { id: 'a' }).set('target', { id: 'b' });
+    lv.update.reset();
+    l2v.update.reset();
+    a.translate(10,10);
+    assert.equal(lv.update.callCount, 1, 'update: 2 loops link, source translated (first)');
+    assert.equal(l2v.update.callCount, 1, 'update: 2 loops link, source translated (second)');
+
+    lv.update.restore();
+    lv.findRoute.restore();
+    l2v.update.restore();
 });

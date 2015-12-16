@@ -655,7 +655,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             return this.render();
         }
 
-        return this.update();
+        return this.update(cell, attrs, opt);
     },
 
     // Override the Backbone `_ensureElement()` method in order to create a `<g>` node that wraps

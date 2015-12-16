@@ -70,17 +70,16 @@ the whole group of elements. Each plugin can provide its own stylesheet.
 .element * {
    /* The default behavior when scaling an element is not to scale the stroke in order to prevent the ugly effect of stroke with different proportions. */
    vector-effect: non-scaling-stroke;
-   -moz-user-select: none;
    user-drag: none;
 }
 
 
-/* 
+/*
 
 connection-wrap is a <path> element of the joint.dia.Link that follows the .connection <path> of that link.
 In other words, the `d` attribute of the .connection-wrap contains the same data as the `d` attribute of the
 .connection <path>. The advantage of using .connection-wrap is to be able to catch pointer events
-in the neighborhood of the .connection <path>. This is especially handy if the .connection <path> is 
+in the neighborhood of the .connection <path>. This is especially handy if the .connection <path> is
 very thin.
 
 */
@@ -117,7 +116,7 @@ very thin.
    vector-effect: non-scaling-stroke;
 }
 
-/* 
+/*
 
 Vertex markers are `<circle>` elements that appear at connection vertex positions.
 
