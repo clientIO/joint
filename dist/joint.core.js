@@ -1,4 +1,4 @@
-/*! JointJS v0.9.6 - JavaScript diagramming library  2015-12-19 
+/*! JointJS v0.9.7 - JavaScript diagramming library  2015-12-28 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -2212,7 +2212,7 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '0.9.6',
+    version: '0.9.7',
 
     // `joint.dia` namespace.
     dia: {},
