@@ -1,0 +1,171 @@
+19-12-2015 (v0.9.6)
+       * dia.Graph introduces new functions for traversing graphs: dfs(), bfs(), search(), isSuccessor(), isPredecessor(), getPredecessors(), getSuccessors(), isNeighbor(), isSource(), isSink(), getSources(), getSinks(), getSubgraph(), getFirstCell(), getLastCell() and getCells()
+       * new functions for cloning cells dia.Graph.cloneCells(), dia.Graph.cloneSubgraph()
+       * dia.Element.resize() function has been extended with 'direction' option allowing for resizing to any side
+       * new convenient methods for getting source/target elements added to dia.Link: getSourceElement() and getTargetElement()
+       * dia.Paper has a new option 'multiLinks' that when set to false, prevents from creating multiple links between the same elements
+       * dia.Paper has a new option function 'guard' that allows for preventing the paper from handling UI events
+       * dia.Paper.findViewsInArea() has been extended with 'strict' option that when set, returns only views that are contained within the area passed in the argument
+       * Vectorizer adds a new method 'transformPoint()' for a convenient way transform points via SVG transformation matrices
+       * Geometry adds a new function rect.union()
+       * another new utility function added: joint.util.setAttributesBySelector() for setting attributes on DOM elements referenced by a selector
+       * dia.Element and dia.Link has a new function getAncestors() that returs an array of ancestor cells
+       * dia.LinkView enables for setting a custom markup for its secondary tools (enabled via the 'doubleLinkTools' option)
+       * dia.Graph getNeighbors() function extended with 'inbound' and 'outbound' options
+       * dia.Graph has a new translate() method for translating all elements in the graph
+       * routers.manhattan introduces new options 'startDirections', 'endDirections' to control what direction a link can start/end; and 'excludeTypes' to ignore certain element types as obstacles
+       * links are now much faster when used with manhattan router
+       * fixed a critical bug in upcoming Google Chrome which removed the native getTransformToElement() method on SVG elements
+       * other bug fixes and improvements
+08-09-2015 (v0.9.5)
+       * layout.DirectedGraph upgrades Dagre to v0.7.1
+       * layout.DirectedGraph introduces new option 'resizeClusters' to reposition and resize cluster elements (parents of other elements) so that they embody their children
+       * cells get removeProp() method for removing - possibly nested - properties
+       * cells get new addTo() method as a syntactic sugar for adding them to joint.dia.Graph
+       * prop() methods on cells now accepts 'undefined' as a value (instead of behaving like a getter)
+       * remove() method now correctly propagates the options object to all listeners
+       * routers.Manhattan router was improved to cope with hierarchical diagrams with embedded elements and does not consider ancestors of elements as obstacles
+       * routers.Manhattan router got smarter, finding better paths between source and target of a link
+       * new router for links 'oneSide' that always routes links to/from a certain side specified
+       * new 'jumpover' connector type
+       * Vectorizer adds sample() method for interpolating any SVG path with discrete equidistant points
+       * Vectorizer adds convertToPath(), convertToPathData() and findIntersection() functions
+       * Vectorizer adds findAnnotationsAtIndex(), findAnnotationsBetweenIndexes() and shiftAnnotations() helper functions manipulating text annotations (see Vectorizer:text())
+       * Vectorizer now sets 'v-line' class to all text lines rendered with text() and 'v-empty-line' for lines that are empty
+       * Vectorizer find() now returns an array of vectorizer elements, not the DOM NodeList
+       * Vectorizer V() function now throws an error if invalid markup is given to it making wrong shape definitons visible to the programmer
+       * Vectorizer bbox() now does not round values making calculations more precise
+       * Geometry adds rect:equals(), rect:snapToGrid() and rect:intersect() functions
+       * Geometry adds clone() method to all objects
+       * new events in joint.dia.Paper link:pointerdown, link:pointerdown, link:pointermove, link:pointerup, element:pointerdown, element:pointermove, element:pointerup
+       * new events in joint.dia.Paper cell:contextmenu and blank:contextmenu
+       * new maxWidth and maxHeight options in joint.dia.Paper fitToContent() method
+       * joint.dia.Paper adds labelMove option to the 'interactive' object for enabling moving labels via UI
+       * joint.dia.Paper findViewByModel() significantly improved performance
+       * fixes in joint.dia.Paper async rendering
+       * new 'restrictTranslate' option in joint.dia.Paper for restricting movement of elements
+       * joint.dia.Paper introduces new 'cellViewNamespace' option for declaring custom namespace for views (defaults to 'joint.shapes')
+       * joint.dia.Paper 'elementView' and 'linkView' options can be now functions
+       * joint.dia.Paper introduces new 'defaultRouter' and 'defaultConnector' options
+       * joint.dia.Paper introduces new 'linkPinning' option to disable creating links without source/target
+       * joint.dia.Paper now ignores mouse events that are not relevant (events that do not target the internal SVG document or a cell)
+       * joint.dia.Paper remove() make a proper cleanup of all views
+       * fixed using multiple joint.dia.Paper objects on the same page so that they don't share any options
+       * fixed normalization of touch events that now expose stopPropagation() and preventDefault() as all other events do
+       * new method findModelsUnderElement() in joint.dia.Graph for finding elements below another element
+       * joint.dia.Graph fixes the fetch() method
+       * joint.dia.Graph introduces new 'cellNamespace' option for declaring custom namespace for models (defaults to 'joint.shapes')
+       * joint.dia.Graph adds new method getCells()
+       * joint.dia.Graph getNeighbors() method improved and extended with 'deep' option to better support hierarchical diagrams containing embedded elements
+       * joint.dia.Link adds offset property on labels and implements dragging labels off the links
+       * joint.dia.Element adds fitEmbeds() method for resizing the element so that it fits all the embedded elements inside it
+       * joint.dia.ElementView getBBox() now returns the rect object of Geometry library that directly exposes various math functions for rectangles
+       * new joint.util.getElementBBox() function for getting a bounding box of both HTML and SVG elements
+       * new joint.util.normalizSides() function
+       * new joint.util.sortElements() function for sorting DOM elements
+       * add an optional context parameter to joint.util.nextFrame()
+       * new filters joint.filter.outline and joint.filter.highlight
+       * special JointJS attributes ref-x, ref-y, ref-width and ref-height can be specified in percentages
+       * joint.dia.Link routers and connector can be now specified as functions
+       * source code passed through JSCS checker, fixed coding style and indentation
+       * Lodash upgraded to the latest version v3.10.1
+       * Backbone upgraded to v1.2.1
+       * make JointJS compatible with Browserify, Webpack and RequireJS
+       * other fixes and improvements
+03-02-2015 (v0.9.3)
+        * add cell:highlight and cell:unhilight events to dia.Paper for custom highlithing
+        * add isEmbeddedIn() method to dia.Element and dia.Link
+	* introduce "deep" option in toFront() and toBack() methods on cells
+	* introduce validateEmbedding() optional function on dia.Paper
+        * add getCommonAncestor() method to dia.Graph
+        * add reparent() method to dia.Link
+	* add getEmbeddedCells() with "deep", "breadthFirst" options to dia.Element
+        * extend getConnectedLink() method on dia.Graph with "deep" option
+	* add joint.util.breakText() function for auto-breaking text into lines
+        * add getBBox() method to dia.Graph for finding the compound bounding box of more elements
+        * add cell:mouseover and cell:mouseout events to dia.Paper
+	* add isLink() method to cells for a quick check if cell is a link or an element
+	* add new special attributes "ref-width" and "ref-height"
+	* add support for text along paths to Vectorizer and also via cell attrs
+	* add new options parameter to dia.Element:translate()
+	* add new "fitToContent" options "minWidth" and "minHeight" in dia.Paper
+	* expose "defs", "viewport" and "svg" properties on dia.Paper
+        * many other improvements and bug fixes
+16-09-2014 (v0.9.2)
+	* add joint.version property with the JointJS version currently in use
+	* extend interactive option in dia.Paper for finer control over the interactivity of links
+	* add getBBox(elements) method to dia.Graph for returning bounding box of all the elements in the parameter
+        * allow embedding links to elements in order to translate their vertices if the parent moves
+        * introduce translate() method on links for translating all vertices (and source/target if they are points)
+        * add extra parameter in dia.Element rotate() method for rotating around custom origin
+	* introduce linkConnectionPoint() function in dia.Paper options for custom definition of link sticky points
+	* introduce findView() method on cells for easier lookup of paper views
+        * introduce addTo() method on cells for quicker adding cells to the graph
+        * introduce scaleContentToFit() method on dia.Paper
+	* implement sendToken() method on the link view for sending animated tokens along links
+        * add prop() method to elements and links for easier setting of custom data, potentially nested
+        * upgrade Backbone to v1.1.2
+	* allow external function for setting positions and vertices in layout.DirectedGraph plugin
+	* introduce markAvailable option on dia.Paper for highlighting available elements/ports while reconnecting
+	* introduce origin option and setOrigin() on dia.Paper
+	* add basic.Rhombus shape
+	* add new geometry functions: point.bearing, point.reflection, line.bearing, line.pointAt, rect.containsRect, rect.normalize, rect.bbox
+        * other bug fixes and improvements
+13-05-2014 (v0.9.0)
+        * add g.scale.linear(domain, range, value) function to the Geometry library
+        * add joint.util.format.number() for formatting numbers via the Python Format specification mini-language
+        * improve joint.shapes.basic.TextBlock
+	* add ref-width and ref-height JointJS special attributes
+        * add joint.util.breakText() for breaking text to lines based on a desired area
+        * add joint.util.unsetByPath() for deleting nested properties of any object
+        * add joint.dia.Cell.prototype.removeAttr() for deleting presentational attributes from cells
+        * make Geometry and Vectorizer libraries completely standalone
+        * implement pluggable link routing
+        * add manhattan, orthogonal, rounded and metro smart link routing avoiding elements
+        * adjustments to DirectedGraph plugin
+        * add V.rectToPath method to Vectorizer
+        * fix special attributes for multiple selected elements in joint.dia.Element
+        * set a CSS class to links based on their type
+        * drop jquery.sortElements.js plugin
+        * remove elements in batch in joint.dia.Graph.prototype.clear() method
+        * add support for click events to the joint.dia.Paper
+        * other bug fixes and improvements
+21-01-2014 (v0.8.0)
+	* add support for SVG filters
+	* add support for SVG gradients
+	* implement better handling of ports
+	* add validateConnection() as a function to paper options
+	* add defaultLink model to paper otions
+	* improve support for touch devices
+	* add joint.shapes.basic.TextBlock that handles text wrapping via foreignObject
+	* speed up link rendering and updates
+	* other bug fixes and improvements
+03-12-2013 (v0.7.1)
+	* upgrade to jQuery v2.0.3
+	* take into accont minLen property in links in DirectedGraph plugin
+	* return width/height of the layouted graph in DirectedGraph plugin
+	* add centerContent() method to the joint.dia.Paper
+	* emit cell:pointerdblclick and blank:pointerdblclick events when a cell/blank paper is double clicked
+04-11-2013 (v0.7.0)
+	* make JointJS models compatible with NodeJS (npm install jointjs)
+	* add animations (transition(), getTransitions(), stopTransition() in cells)
+	* implement transitions timing functions (linear, quad, cubic, inout, exponential, bounce, reverse, reflect, back, elastic)
+	* implement transitions interpolating functions (number, object, hexColor, unit)
+	* fix graph.toJSON()
+	* fix listening on model events in views
+	* other bug fixes and improvements
+15-10-2013 (v0.6.4)
+	* integrated Dagre v0.3.0 into DirectedGraph plugin
+	* bug fixes and improvements in all the shape plugins
+	* manhattan link routing (set manhattan: true option in the joint.dia.Link constructor)
+	* fix joint.dia.CellView highlight/unhighlight methods
+	* new joint.util.setByPath(), joint.util.getByPath() and joint.util.flattenObject() helper functions
+	* joint.dia.Cell.prototype.attr() can now optionally take a string defining a path separated by `/` character
+	* new joint.dia.Paper.prototype.fitToContent() method to auto-set the paper dimensions in order to fit the content
+	* cubic bezier is drawn even on a link with no vertices when `smooth: true` flag is set
+	* add tool-options markup to the link-tool by default (by default hidden in joint.css)
+	* add (a naive but handy) joint.dia.CellView.prototype.getStrokeBBox() method
+	* add g.normalizeAngle() method to the geometry library
+	* snap elements to grid when they get translated (now real grid snapping - not old relative snapping)
+	* add getBBox() method to the element model
+	* other bug fixes and improvements
