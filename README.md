@@ -47,7 +47,7 @@ Tests
 
 Before running tests, be sure to run a full build:
 ```
-grunt all
+grunt build:all
 ```
 
 To run all tests:
