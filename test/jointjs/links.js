@@ -18,9 +18,8 @@ module('links', {
     teardown: function() {
 
         this.paper.remove();
-
-        delete this.graph;
-        delete this.paper;
+        this.graph = null;
+        this.paper = null;
     }
 });
 

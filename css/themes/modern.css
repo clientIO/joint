@@ -1,0 +1,66 @@
+
+  /*  Links  */
+  .link.joint-theme-modern .connection-wrap {
+     fill: none;
+     stroke: black;
+     stroke-width: 15;
+     stroke-linecap: round;
+     stroke-linejoin: round;
+     opacity: 0;
+     cursor: move;
+  }
+  .link.joint-theme-modern .connection-wrap:hover {
+     opacity: .4;
+     stroke-opacity: .4;
+  }
+  .link.joint-theme-modern .connection {
+     fill: none;
+     stroke-linejoin: round;
+  }
+  .link.joint-theme-modern .link-tools .tool-remove circle {
+     fill: red;
+  }
+  .link.joint-theme-modern .link-tools .tool-remove path {
+     fill: white;
+  }
+
+  /* <circle> element inside .marker-vertex-group <g> element */
+  .link.joint-theme-modern .marker-vertex {
+     fill: #1ABC9C;
+  }
+  .link.joint-theme-modern .marker-vertex:hover {
+     fill: #34495E;
+     stroke: none;
+  }
+
+  .link.joint-theme-modern .marker-arrowhead {
+     fill: #1ABC9C;
+  }
+  .link.joint-theme-modern .marker-arrowhead:hover {
+     fill: #F39C12;
+     stroke: none;
+  }
+
+  /* <circle> element used to remove a vertex */
+  .link.joint-theme-modern .marker-vertex-remove {
+     fill: white;
+  }
+  /*  Links  */
+
+
+  /*  Text  */
+  /* For some reason, CSS `outline` property
+     does not work on `<text>` elements. */
+  .paper.joint-theme-modern text.highlighted {
+      fill: #FF0000;
+  }
+
+  /* `outline` doesn't work in Firefox, Opera and IE9+.
+     The only engine supporting outlines on SVG elements is Webkit. */
+  @media screen and (-webkit-min-device-pixel-ratio:0) {
+      .paper.joint-theme-modern .highlighted {
+          outline: 2px solid #FF0000;
+          opacity: initial;
+      }
+  }
+  /*  Text  */

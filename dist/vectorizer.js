@@ -1,4 +1,4 @@
-/*! JointJS v0.9.7 - JavaScript diagramming library  2015-12-28 
+/*! JointJS v0.9.7 - JavaScript diagramming library  2016-01-18 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1389,7 +1389,9 @@ V = Vectorizer = (function() {
 
         annotations.forEach(function(annotation) {
 
-            if (annotation.start >= index) {
+            if (annotation.start < index && annotation.end >= index) {
+                annotation.end += offset;
+            } else if (annotation.start >= index) {
                 annotation.start += offset;
                 annotation.end += offset;
             }

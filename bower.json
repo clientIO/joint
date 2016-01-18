@@ -11,8 +11,7 @@
   "devDependencies": {
     "qunit": "~1.18.0",
     "blanket": "~1.1.5",
-    "requirejs": "2.1.17",
-    "sinonjs": "~1.14.1"
+    "requirejs": "2.1.17"
   },
   "main": [
     "dist/joint.js",

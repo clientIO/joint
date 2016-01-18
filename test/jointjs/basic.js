@@ -17,9 +17,10 @@ module('basic', {
     afterEach: function() {
 
         this.paper.remove();
-
-        delete this.graph;
-        delete this.paper;
+        this.graph = null;
+        this.paper = null;
+        this.$fixture.empty();
+        this.$fixture = null;
     },
 
     setupTestNestedGraph: function(graph) {
@@ -790,6 +791,49 @@ test('getSelector()', function(assert) {
 
     selector = view.getSelector(svgPort4);
     assert.equal(view.el.querySelector(selector), svgPort4, 'It finds the exact same port no. 4.');
+});
+
+test('ports', function(assert) {
+
+    var model = new joint.shapes.devs.Model({
+        position: {
+            x: 40,
+            y: 40,
+        },
+        size: {
+            width: 80,
+            height: 60,
+        },
+        inPorts: ['1', '2'],
+        outPorts: ['3', '4']
+    });
+
+    this.graph.addCell(model);
+
+    var view = this.paper.findViewByModel(model);
+    var allPorts = model.get('inPorts').concat(model.get('outPorts'));
+
+    _.each(allPorts, function(port) {
+        var $portEl = view.$el.find('[port="' + port + '"]');
+        var foundEl = $portEl.length > 0;
+        assert.equal(foundEl, true, 'port DOM element should exist ("' + port + '")');
+    });
+
+    model.set('inPorts', ['1']);
+    model.set('outPorts', ['4']);
+
+    var removedPorts = ['2', '3'];
+
+    _.each(allPorts, function(port) {
+        var $portEl = view.$el.find('[port="' + port + '"]');
+        var foundEl = $portEl.length > 0;
+        var wasRemoved = _.indexOf(removedPorts, port) !== -1;
+        if (wasRemoved) {
+            assert.equal(foundEl, false, 'port DOM element should not exist ("' + port + '")');
+        } else {
+            assert.equal(foundEl, true, 'port DOM element should exist ("' + port + '")');
+        }
+    });
 });
 
 test('ref-x, ref-y, ref', function() {

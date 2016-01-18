@@ -15,7 +15,7 @@ ctest:
 
 # code styling tests only
 cstest:
-	grunt jscs:
+	grunt jscs
 
 all:
-	grunt all
+	grunt build:all

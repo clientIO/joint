@@ -100,7 +100,10 @@ function normalizeSvgAttr(name, value) {
 
 function approximately(result, expected, tolerance, message) {
 
-    ok(result > (expected - tolerance) && result < expected + tolerance, message);
+    var min = (expected - tolerance);
+    var max = (expected + tolerance);
+
+    ok(result >= min && result <= max, message);
 }
 
 function isClose(actual, expected, tolerance) {

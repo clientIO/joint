@@ -74,49 +74,22 @@ the whole group of elements. Each plugin can provide its own stylesheet.
 }
 
 
-/*
+/* 
 
 connection-wrap is a <path> element of the joint.dia.Link that follows the .connection <path> of that link.
 In other words, the `d` attribute of the .connection-wrap contains the same data as the `d` attribute of the
 .connection <path>. The advantage of using .connection-wrap is to be able to catch pointer events
-in the neighborhood of the .connection <path>. This is especially handy if the .connection <path> is
+in the neighborhood of the .connection <path>. This is especially handy if the .connection <path> is 
 very thin.
 
 */
 
-.connection-wrap {
-   fill: none;
-   stroke: black;
-   stroke-width: 15;
-   stroke-linecap: round;
-   stroke-linejoin: round;
-   opacity: 0;
-   cursor: move;
-}
-.connection-wrap:hover {
-   opacity: .4;
-   stroke-opacity: .4;
-}
-
-
-.connection {
-   /* stroke: black; */
-   /* stroke width cannot be overriden by attribute? */
-   /*   stroke-width: 1; */
-   fill: none;
-   stroke-linejoin: round;
-}
-
 .marker-source, .marker-target {
-/* Cannot be in CSS otherwise it could not be overruled by attributes.
-   fill: black;
-   stroke: black;
-*/
    /* This makes the arrowheads point to the border of objects even though the transform: scale() is applied on them. */
    vector-effect: non-scaling-stroke;
 }
 
-/*
+/* 
 
 Vertex markers are `<circle>` elements that appear at connection vertex positions.
 
@@ -141,40 +114,16 @@ Vertex markers are `<circle>` elements that appear at connection vertex position
 .link-tools .tool-options {
    display: none;       /* by default, we don't display link options tool */
 }
-.link-tools .tool-remove circle {
-   fill: red;
-}
-.link-tools .tool-remove path {
-   fill: white;
-}
 .link:hover .marker-vertices,
 .link:hover .marker-arrowheads,
 .link:hover .link-tools {
    opacity: 1;
 }
 
-/* <circle> element inside .marker-vertex-group <g> element */
-.marker-vertex {
-   fill: #1ABC9C;
-}
-.marker-vertex:hover {
-   fill: #34495E;
-   stroke: none;
-}
-
-.marker-arrowhead {
-   fill: #1ABC9C;
-}
-.marker-arrowhead:hover {
-   fill: #F39C12;
-   stroke: none;
-}
-
 /* <circle> element used to remove a vertex */
 .marker-vertex-remove {
    cursor: pointer;
    opacity: .1;
-   fill: white;
 }
 
 .marker-vertex-group:hover .marker-vertex-remove {
@@ -193,21 +142,6 @@ Vertex markers are `<circle>` elements that appear at connection vertex position
    See joint.dia.cell.js highlight(); */
 .highlighted {
     opacity: 0.7;
-}
-
-/* For some reason, CSS `outline` property
-   does not work on `<text>` elements. */
-text.highlighted {
-    fill: #FF0000;
-}
-
-/* `outline` doesn't work in Firefox, Opera and IE9+.
-   The only engine supporting outlines on SVG elements is Webkit. */
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-    .highlighted {
-        outline: 2px solid #FF0000;
-        opacity: initial;
-    }
 }
 
 /*

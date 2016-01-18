@@ -393,7 +393,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var labels = this.model.get('labels') || [];
         if (!labels.length) return this;
 
-        var labelTemplate = _.template(this.model.get('labelMarkup') || this.model.labelMarkup);
+        var labelTemplate = joint.util.template(this.model.get('labelMarkup') || this.model.labelMarkup);
         // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
@@ -422,7 +422,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             if (!_.isUndefined(textAttributes.text)) {
 
-                V($text[0]).text(textAttributes.text + '');
+                V($text[0]).text(textAttributes.text + '', { annotations: textAttributes.annotations });
             }
 
             // Note that we first need to append the `<text>` element to the DOM in order to
@@ -464,7 +464,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // but are offset a bit so that they don't cover the `marker-arrowhead`.
 
         var $tools = $(this._V.linkTools.node).empty();
-        var toolTemplate = _.template(this.model.get('toolMarkup') || this.model.toolMarkup);
+        var toolTemplate = joint.util.template(this.model.get('toolMarkup') || this.model.toolMarkup);
         var tool = V(toolTemplate());
 
         $tools.append(tool.node);
@@ -478,7 +478,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             var tool2;
             if (this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup) {
-                toolTemplate = _.template(this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup);
+                toolTemplate = joint.util.template(this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup);
                 tool2 = V(toolTemplate());
             } else {
                 tool2 = tool.clone();
@@ -500,7 +500,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // A special markup can be given in the `properties.vertexMarkup` property. This might be handy
         // if default styling (elements) are not desired. This makes it possible to use any
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
-        var markupTemplate = _.template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
+        var markupTemplate = joint.util.template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
 
         _.each(this.model.get('vertices'), function(vertex, idx) {
 
@@ -522,7 +522,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // A special markup can be given in the `properties.vertexMarkup` property. This might be handy
         // if default styling (elements) are not desired. This makes it possible to use any
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
-        var markupTemplate = _.template(this.model.get('arrowheadMarkup') || this.model.arrowheadMarkup);
+        var markupTemplate = joint.util.template(this.model.get('arrowheadMarkup') || this.model.arrowheadMarkup);
 
         this._V.sourceArrowhead = V(markupTemplate({ end: 'source' }));
         this._V.targetArrowhead = V(markupTemplate({ end: 'target' }));

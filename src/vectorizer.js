@@ -1354,7 +1354,9 @@ V = Vectorizer = (function() {
 
         annotations.forEach(function(annotation) {
 
-            if (annotation.start >= index) {
+            if (annotation.start < index && annotation.end >= index) {
+                annotation.end += offset;
+            } else if (annotation.start >= index) {
                 annotation.start += offset;
                 annotation.end += offset;
             }

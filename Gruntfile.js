@@ -46,7 +46,10 @@ module.exports = function(grunt) {
 
     var css = {
 
-        core: ['joint.css'],
+        core: [
+            'css/layout.css',
+            'css/themes/*.css'
+        ],
 
         plugins: {
 
@@ -214,9 +217,6 @@ module.exports = function(grunt) {
                 }
             }
         },
-        copy: {
-
-        },
         cssmin: {
             joint: {
                 files: {
@@ -231,11 +231,14 @@ module.exports = function(grunt) {
                 config: '.jscsrc'
             },
             src: [
-                'src/*.js',
-                'plugins/*.js',
-                'plugins/connectors/*.js',
-                'plugins/routers/*.js',
-                'plugins/layout/DirectedGraph/*.js'
+                // All plugins:
+                'plugins/**/*.js',
+
+                // Ignore third-party dependencies in plugins:
+                '!plugins/**/lib/**/*.js',
+
+                // Core jointjs:
+                'src/**/*.js'
             ]
         },
         mochaTest: {
@@ -261,6 +264,21 @@ module.exports = function(grunt) {
             joint_coverage: ['test/jointjs/coverage.html'],
             geometry: ['test/geometry/*.html'],
             vectorizer: ['test/vectorizer/*.html']
+        },
+        shell: {
+
+            /*
+                Run `bower install` in the context of the given directory.
+            */
+            bowerInstall: {
+                command: function(dir, environment) {
+
+                    var flags = environment && environment === 'production' ? ' --production': '';
+                    var cmd = 'cd ' + dir + ' && bower --allow-root install' + flags;
+
+                    return cmd;
+                }
+            }
         },
         uglify: {
             geometry: {
@@ -358,30 +376,19 @@ module.exports = function(grunt) {
     // Create targets for all the plugins.
     Object.keys(js.plugins).forEach(function(name) {
 
-        config.concat[name] = { files: {} };
-        config.uglify[name] = { files: {}, options: { banner: banner } };
+        config.concat[name] = { files: {}, options: { banner: banner } };
+        config.uglify[name] = { files: {} };
 
-        config.concat[name].files['dist/joint.' + name + '.js'] = js.plugins[name];
         config.uglify[name].files['build/min/joint.' + name + '.min.js'] = js.plugins[name];
-        config.copy[name] = { files: [] };
-
-        config.copy[name].files.push({
-            nonull: true,
-            src: ['build/min/joint.' + name + '.min.js'],
-            dest: 'dist/joint.' + name + '.min.js'
-        });
+        config.concat[name].files['dist/joint.' + name + '.js'] = js.plugins[name];
+        config.concat[name].files['dist/joint.' + name + '.min.js'] = ['build/min/joint.' + name + '.min.js'];
 
         if (css.plugins[name]) {
 
             config.cssmin[name] = { files: {} };
-
-            config.concat[name].files['dist/joint.' + name + '.css'] = css.plugins[name];
             config.cssmin[name].files['build/min/joint.' + name + '.min.css'] = css.plugins[name];
-            config.copy[name].files.push({
-                nonull: true,
-                src: ['build/min/joint.' + name + '.min.css'],
-                dest: 'dist/joint.' + name + '.min.css'
-            });
+            config.concat[name].files['dist/joint.' + name + '.css'] = css.plugins[name];
+            config.concat[name].files['dist/joint.' + name + '.min.css'] = ['build/min/joint.' + name + '.min.css'];
         }
     });
 
@@ -389,7 +396,6 @@ module.exports = function(grunt) {
 
     var allPluginTasks = {
         concat: [],
-        copy: [],
         cssmin: [],
         uglify: []
     };
@@ -410,8 +416,6 @@ module.exports = function(grunt) {
             allPluginTasks.cssmin.push('newer:cssmin:' + name);
         }
 
-        pluginTasks.push('newer:copy:' + name);
-        allPluginTasks.copy.push('newer:copy:' + name);
 
         grunt.registerTask(name, pluginTasks);
     });
@@ -421,15 +425,13 @@ module.exports = function(grunt) {
     }
 
     grunt.registerTask('concat:plugins', allPluginTasks.concat);
-    grunt.registerTask('copy:plugins', allPluginTasks.copy);
     grunt.registerTask('cssmin:plugins', allPluginTasks.cssmin);
     grunt.registerTask('uglify:plugins', allPluginTasks.uglify);
 
     grunt.registerTask('build:plugins', [
         'uglify:plugins',
         'cssmin:plugins',
-        'concat:plugins',
-        'copy:plugins'
+        'concat:plugins'
     ]);
 
     grunt.registerTask('build:joint', [
@@ -443,12 +445,18 @@ module.exports = function(grunt) {
         'newer:concat:joint'
     ]);
 
-    grunt.registerTask('build', ['build:joint']);
-    grunt.registerTask('all', ['build', 'newer:browserify', 'newer:webpack']);
+    grunt.registerTask('build', ['build:joint', 'build:rappid']);
+    grunt.registerTask('build:bundles', ['newer:browserify', 'newer:webpack']);
+    grunt.registerTask('build:all', ['build:joint', 'build:bundles']);
 
     grunt.registerTask('test:server', ['mochaTest:server']);
     grunt.registerTask('test:client', ['qunit:all', 'jscs']);
     grunt.registerTask('test', ['test:server', 'test:client']);
 
-    grunt.registerTask('default', ['build', 'watch']);
+    grunt.registerTask('bowerInstall', [
+        'shell:bowerInstall:.'
+    ]);
+
+    grunt.registerTask('install', ['bowerInstall']);
+    grunt.registerTask('default', ['install', 'build', 'watch']);
 };

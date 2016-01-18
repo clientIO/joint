@@ -220,3 +220,79 @@ test('joint.setTheme()', function(assert) {
 
     assert.ok(view4.theme === theme, 'when "override" set to true, should override local theme settings');
 });
+
+test('core.util.template(html)', function(assert) {
+
+    assert.equal(typeof joint.util.template, 'function', 'should be a function');
+
+    var samples = [
+        {
+            html: '<p>No embedded data in this template.</p>',
+            data: {},
+            expectedOutput: '<p>No embedded data in this template.</p>'
+        },
+        {
+            html: [
+                '<p>Some simple text with a value: <%= someValue %></p>',
+                '<p>Another line with another value: <%= anotherValue %></p>'
+            ].join(''),
+            data: {
+                someValue: 12345,
+                anotherValue: 678
+            },
+            expectedOutput: [
+                '<p>Some simple text with a value: 12345</p>',
+                '<p>Another line with another value: 678</p>'
+            ].join('')
+        },
+        {
+            html: '<p>With a complex data attribute <%= some.value %></p>',
+            data: {
+                some: {
+                    value: 123
+                }
+            },
+            expectedOutput: '<p>With a complex data attribute 123</p>'
+        },
+        {
+            html: '<p>With a more <%= some.value.text %> data attribute</p>',
+            data: {
+                some: {
+                    value: {
+                        text: 'complex'
+                    }
+                }
+            },
+            expectedOutput: '<p>With a more complex data attribute</p>'
+        },
+        {
+            html: '<p>Alternative syntax #${num}</p>',
+            data: {
+                num: 1
+            },
+            expectedOutput: '<p>Alternative syntax #1</p>'
+        },
+        {
+            html: '<p>Alternative syntax #${ num }</p>',
+            data: {
+                num: 2
+            },
+            expectedOutput: '<p>Alternative syntax #2</p>'
+        },
+        {
+            html: '<p>Alternative syntax #{{num}}</p>',
+            data: {
+                num: 3
+            },
+            expectedOutput: '<p>Alternative syntax #3</p>'
+        }
+    ];
+
+    _.each(samples, function(sample) {
+
+        var template = joint.util.template(sample.html);
+        var actualOutput = template(sample.data);
+
+        assert.equal(actualOutput, sample.expectedOutput, 'should return expected output');
+    });
+});

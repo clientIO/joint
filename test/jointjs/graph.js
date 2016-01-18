@@ -7,7 +7,7 @@ module('graph', {
 
     teardown: function() {
 
-        delete this.graph;
+        this.graph = null;
     },
 
     setupTestMixtureGraph: function(graph) {

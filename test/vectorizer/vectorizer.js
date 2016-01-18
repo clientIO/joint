@@ -15,6 +15,9 @@ module('vectorizer', {
     },
 
     teardown: function() {
+
+        this.$fixture.empty();
+        this.$fixture = null;
     },
 
     serialize: function(node) {

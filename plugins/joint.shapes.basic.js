@@ -291,11 +291,11 @@ joint.shapes.basic.PortsModelInterface = {
 
     updatePortsAttrs: function(eventName) {
 
-        // Delete previously set attributes for ports.
-        var currAttrs = this.get('attrs');
-        _.each(this._portSelectors, function(selector) {
-            if (currAttrs[selector]) delete currAttrs[selector];
-        });
+        if (this._portSelectors) {
+
+            var newAttrs = _.omit(this.get('attrs'), this._portSelectors);
+            this.set('attrs', newAttrs, { silent: true });
+        }
 
         // This holds keys to the `attrs` object for all the port specific attribute that
         // we set in this method. This is necessary in order to remove previously set
@@ -365,7 +365,7 @@ joint.shapes.basic.PortsViewInterface = {
         var $inPorts = this.$('.inPorts').empty();
         var $outPorts = this.$('.outPorts').empty();
 
-        var portTemplate = _.template(this.model.portMarkup);
+        var portTemplate = joint.util.template(this.model.portMarkup);
 
         _.each(_.filter(this.model.ports, function(p) { return p.type === 'in'; }), function(port, index) {
 
@@ -504,7 +504,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
         // Create copy of the text attributes
         var textAttrs = _.merge({}, (renderingOnlyAttrs || cell.get('attrs'))['.content']);
 
-        delete textAttrs.text;
+        textAttrs = _.omit(textAttrs, 'text');
 
         // Break the content to fit the element size taking into account the attributes
         // set on the model.

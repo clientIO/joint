@@ -86,7 +86,7 @@ var MyElementWithPorts = joint.shapes.basic.Generic.extend({
            '</g>',
            '</g>'
        ].join(''),
-   
+
        type: 'basic.Generic',
        attrs: {
            '.': { magnet: false },
@@ -109,7 +109,7 @@ var MyElementWithPorts = joint.shapes.basic.Generic.extend({
            '.inPorts circle': { fill: 'PaleGreen' },
            '.outPorts circle': { fill: 'Tomato' }
        }
-       
+
    }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
@@ -124,7 +124,7 @@ var d = new MyElementWithPorts({
         '.port1': { ref: 'rect', 'ref-y': .2 },
         '.port2': { ref: 'rect', 'ref-y': .4 },
         '.port3': { ref: 'rect', 'ref-y': .2, 'ref-dx': 0 },
-        '.port4': { ref: 'rect', 'ref-y': .4, 'ref-dx': 0 }        
+        '.port4': { ref: 'rect', 'ref-y': .4, 'ref-dx': 0 }
     }
 });
 
@@ -162,7 +162,7 @@ rb.on('change:attrs', function(element) {
     var height = lines.length * (fontSize * 1.2);
 
     V(svgDocument).remove();
-    
+
     element.resize(width + 10, height);
 });
 
@@ -171,9 +171,9 @@ rb.on('change:attrs', function(element) {
 joint.shapes.basic.DecoratedRect = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><rect/></g><image/><text/></g>',
-    
+
     defaults: joint.util.deepSupplement({
-    
+
         type: 'basic.DecoratedRect',
         size: { width: 100, height: 60 },
         attrs: {
@@ -181,14 +181,14 @@ joint.shapes.basic.DecoratedRect = joint.shapes.basic.Generic.extend({
             'text': { 'font-size': 14, text: '', 'ref-x': .5, 'ref-y': .5, ref: 'rect', 'y-alignment': 'middle', 'x-alignment': 'middle', fill: 'black' },
             'image': { 'ref-x': 2, 'ref-y': 2, ref: 'rect', width: 16, height: 16 }
         }
-        
+
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
 var decoratedRect = new joint.shapes.basic.DecoratedRect({
     position: { x: 150, y: 80 },
     size: { width: 100, height: 60 },
-    attrs: { 
+    attrs: {
         text: { text: 'My Element' },
         image: { 'xlink:href': 'http://placehold.it/16x16' }
     }
@@ -201,11 +201,11 @@ joint.shapes.basic.Cylinder = joint.shapes.basic.Generic.extend({
     markup: '<g class="rotatable"><g class="scalable"><path/></g><text/></g>',
 
     defaults: joint.util.deepSupplement({
-    
+
         type: 'basic.Cylinder',
         size: { width: 40, height: 40 },
         attrs: {
-            'path': { 
+            'path': {
                 fill: '#FFFFFF', stroke: '#cbd2d7', 'stroke-width': 3,
                 d: [
                     'M 0 10 C 10 5, 30 5, 40 10 C 30 15, 10 15, 0 10',
@@ -216,10 +216,9 @@ joint.shapes.basic.Cylinder = joint.shapes.basic.Generic.extend({
             },
             'text': { fill: '#435460', 'font-size': 14, text: '', 'ref-x': .5, 'ref-y': .7, ref: 'path', 'y-alignment': 'middle', 'text-anchor': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
         }
-        
+
     }, joint.shapes.basic.Generic.prototype.defaults)
 });
-
 
 var cylinder = new joint.shapes.basic.Cylinder({
     position: { x: 200, y: 200 },
@@ -230,3 +229,13 @@ var cylinder = new joint.shapes.basic.Cylinder({
 });
 
 graph.addCell(cylinder);
+
+var c = V('circle', { r: 8, fill: 'red' });
+var cylinderView = cylinder.findView(paper);
+var cylinderPath = cylinderView.vel.findOne('path');
+var cylinderScalable = cylinderView.vel.findOne('.scalable');
+var cylinderScalableCTM = cylinderScalable.node.getCTM().inverse();
+
+c.animateAlongPath({ dur: '4s', repeatCount: 'indefinite' }, cylinderPath.node);
+c.scale(cylinderScalableCTM.a, cylinderScalableCTM.d);
+cylinderScalable.append(c);
