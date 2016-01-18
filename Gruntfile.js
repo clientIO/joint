@@ -213,6 +213,18 @@ module.exports = function(grunt) {
                     'dist/joint.min.css': [].concat(
                         ['build/min/joint.min.css'],
                         allMinifiedCSSPlugins()
+                    ),
+                    'dist/joint.nowrap.js': [].concat(
+                        js.geometry,
+                        js.vectorizer,
+                        js.core,
+                        allJSPlugins()
+                    ),
+                    'dist/joint.nowrap.min.js': [].concat(
+                        ['build/min/geometry.min.js'],
+                        ['build/min/vectorizer.min.js'],
+                        ['build/min/joint.min.js'],
+                        allMinifiedJSPlugins()
                     )
                 }
             }
@@ -445,7 +457,7 @@ module.exports = function(grunt) {
         'newer:concat:joint'
     ]);
 
-    grunt.registerTask('build', ['build:joint', 'build:rappid']);
+    grunt.registerTask('build', ['build:joint']);
     grunt.registerTask('build:bundles', ['newer:browserify', 'newer:webpack']);
     grunt.registerTask('build:all', ['build:joint', 'build:bundles']);
 
