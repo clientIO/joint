@@ -2,16 +2,16 @@
   "name": "jointjs",
   "private": true,
   "dependencies": {
-    "lodash": "3.10.1",
-    "backbone": "1.2.1",
-    "jquery": "2.0.3",
+    "backbone": "1.2.3",
+    "dagre": "0.7.4",
     "graphlib": "1.0.7",
-    "dagre": "0.7.4"
+    "jquery": "2.2.0",
+    "lodash": "3.10.1"
   },
   "devDependencies": {
-    "qunit": "~1.18.0",
-    "blanket": "~1.1.5",
-    "requirejs": "2.1.17"
+    "blanket": "1.1.7",
+    "qunit": "1.20.0",
+    "requirejs": "2.1.22"
   },
   "main": [
     "dist/joint.js",
