@@ -82,3 +82,97 @@ var circleModel = new joint.shapes.devs.CircleModel({
     outPorts: ['b']
 });
 graph.addCell(circleModel);
+
+// All-sides ports shape definition. (https://jsfiddle.net/yzrgvqkt/)
+// ---------------------------------
+
+joint.shapes.myShapes = {};
+joint.shapes.myShapes.Component = joint.shapes.basic.Generic.extend(_.extend({}, joint.shapes.basic.PortsModelInterface, {
+
+    markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><text class="label"/><g class="inPorts"/><g class="outPorts"/></g>',
+    portMarkup: '<g class="port port<%= id %>"><circle class="port-body"/><text class="port-label"/></g>',
+
+    defaults: joint.util.deepSupplement({
+
+        type: 'myShapes.Component',
+        size: { width: 1, height: 1 },
+
+        inPorts: [],
+        outPorts: [],
+
+        attrs: {
+            '.': { magnet: false },
+            '.body': {
+                width: 150, height: 250,
+                stroke: '#000000',
+                fill: '#FFFFFF'
+            },
+            '.port-body': {
+                r: 10,
+                magnet: true,
+                stroke: '#000000'
+            },
+            text: {
+                'pointer-events': 'none'
+            },
+            '.label': { text: 'Component', 'ref-x': .5, 'ref-y': 10, ref: '.body', 'text-anchor': 'middle', fill: '#000000' },
+            '.inPorts .port-label': { 'text-anchor': 'middle', fill: '#00FF00' },
+            '.outPorts .port-label': { 'text-anchor': 'middle', fill: '#FF0000' },
+            '.outPorts .port-body': { fill: '#FF0000' },
+            '.inPorts .port-body': { fill: '#00FF00' }
+        }
+
+    }, joint.shapes.basic.Generic.prototype.defaults),
+
+    getPortAttrs: function(port, index, total, selector, type) {
+
+        var attrs = {};
+        
+        var portClass = 'port' + index;
+        var portSelector = selector + '>.' + portClass;
+        var portLabelSelector = portSelector + '>.port-label';
+        var portBodySelector = portSelector + '>.port-body';
+
+        attrs[portBodySelector] = { port: { id: port.id || _.uniqueId(type) , type: type } };
+
+        var position = {};
+        var labelPosition = {};
+
+        switch (port.position) {
+        case 'top':
+            position = { 'ref-y': 0, 'ref-x': type === 'in' ? 0.3 : 0.6 };
+            labelPosition = { 'x': 15, 'y': -13 };
+            break;
+        case 'bottom':
+            position = { 'ref-dy': 0, 'ref-x': type === 'in' ? 0.3 : 0.6 };
+            labelPosition = { 'x': 15, 'y': 26 };
+            break;
+        case 'left':
+            position = { 'ref-y': type === 'in' ? 0.3 : 0.6, 'ref-x': 0 };
+            labelPosition = { 'dx': -20, 'y': 5 };
+            break;
+        case 'right':
+            position = { 'ref-y': type === 'in' ? 0.3 : 0.6, 'ref-dx': 0 };
+            labelPosition = { 'dx': 20, 'y': 5 };
+            break;
+        }
+
+        attrs[portSelector] = _.extend({ ref: '.body' }, position);
+        attrs[portLabelSelector] = _.extend({ text: port.name }, labelPosition);
+        return attrs;
+    }
+}));
+
+joint.shapes.myShapes.ComponentView = joint.dia.ElementView.extend(joint.shapes.basic.PortsViewInterface);
+
+
+// All-sides ports shape usage.
+// ----------------------------
+
+var myComponent = new joint.shapes.myShapes.Component({
+    position: { x: 100, y: 250 },
+    size: { width: 100, height: 100 },
+    inPorts: [{ name: 'it', position: 'top', id: 'i1' }, { name: 'ir', position: 'right', id: 'i2' }, { name: 'ib', position: 'bottom', id: 'i3' }, { name: 'il', position: 'left', id: 'i4' }],
+    outPorts: [{ name: 'ot', position: 'top', id: 'o1' }, { name: 'or', position: 'right', id: 'o2' }, { name: 'ob', position: 'bottom', id: 'o3' }, { name: 'ol', position: 'left', id: 'o4' }],
+});
+graph.addCell(myComponent);
