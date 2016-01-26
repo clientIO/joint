@@ -1,5 +1,4 @@
-JointJS - JavaScript diagramming library
-========================================
+# JointJS - JavaScript diagramming library
 
 [![Build Status](https://travis-ci.org/clientIO/joint.svg?branch=master)](https://travis-ci.org/clientIO/joint)
 
@@ -9,9 +8,7 @@ importantly, fully interactive diagramming tools and application builders.
 Please see [http://jointjs.com](http://jointjs.com) for more information, demos and documentation.
 
 
-Features
---------
-
+## Features
 
 * basic diagram elements (rect, circle, ellipse, text, image, path)
 * ready-to-use diagram elements of well-known diagrams (ERD, Org chart, FSA, UML, PN, DEVS, ...)
@@ -31,8 +28,7 @@ Features
 * ... a lot more
 
 
-Supported browsers
-------------------
+## Supported browsers
 
 Only the good ones (those that support SVG):
 
@@ -42,8 +38,7 @@ Only the good ones (those that support SVG):
 * IE 9+
 
 
-Tests
------
+## Tests
 
 Before running tests, be sure to run a full build:
 ```
@@ -71,35 +66,27 @@ grunt jscs
 ```
 
 
-Code Coverage
--------------
+## Code Coverage
 
-It is possible to generate code coverage reports using the existing qunit tests. For example, to output the coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) for the joint unit tests:
+It is possible to generate code coverage reports using the existing qunit tests. For example, to output the coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) for all unit tests:
 ```
-grunt qunit:joint --reporter lcov --coverage
-```
-
-And for all unit tests:
-```
-grunt qunit:all --reporter lcov --coverage
+grunt qunit:all_coverage --reporter lcov --coverage
 ```
 
 By default, the output will be saved to `coverage.info` at the root of the project directory. You can change the output file like this:
 ```
-grunt qunit:joint --reporter lcov --output customfilename.info --coverage
+grunt qunit:all_coverage --reporter lcov --output customfilename.info --coverage
 ```
 
 
-License
--------
+## License
 
 JointJS library is licensed under the Mozilla Public License, v. 2.0. Please see the LICENSE file for the full license.
 
 Copyright (c) 2013 client IO
 
 
-Contributors
-------------
+## Contributors
 
 - [David Durman](http://github.com/DavidDurman)
 - [Roman Bruckner](http://github.com/kumilingus)
@@ -107,6 +94,4 @@ Contributors
 - [Charles Hill](http://github.com/chill117)
 - [Daniel K.](http://github.com/FredyC)
 
-
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/DavidDurman/joint/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
