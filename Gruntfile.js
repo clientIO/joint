@@ -5,6 +5,9 @@ module.exports = function(grunt) {
 
     var banner = '/*! <%= pkg.title %> v<%= pkg.version %> - <%= pkg.description %>  <%= grunt.template.today("yyyy-mm-dd") %> \n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n */\n';
 
+    // Ignore webpack in node v5, until webpack is fixed for that version.
+    var ignoreWebpack = process.version.substr(0, 'v5'.length) === 'v5';
+
     var js = {
 
         core: [
@@ -321,6 +324,11 @@ module.exports = function(grunt) {
         }
     };
 
+    if (ignoreWebpack) {
+        config.qunit.all.push('!test/**/webpack.html');
+        config.qunit.joint.push('!test/jointjs/webpack.html');
+    }
+
     function enableCodeCoverage() {
 
         // Replace all qunit configurations with the 'urls' method.
@@ -458,7 +466,12 @@ module.exports = function(grunt) {
     ]);
 
     grunt.registerTask('build', ['build:joint']);
-    grunt.registerTask('build:bundles', ['newer:browserify', 'newer:webpack']);
+    grunt.registerTask('build:bundles', ignoreWebpack ? [
+        'newer:browserify'
+    ] : [
+        'newer:browserify',
+        'newer:webpack'
+    ]);
     grunt.registerTask('build:all', ['build:joint', 'build:bundles']);
 
     grunt.registerTask('test:server', ['mochaTest:server']);
