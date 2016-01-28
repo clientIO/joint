@@ -15,7 +15,7 @@ module.exports = function(grunt) {
             'src/joint.dia.element.js',
             'src/joint.dia.link.js',
             'src/joint.dia.paper.js',
-            'plugins/joint.shapes.basic.js',
+            'plugins/shapes/joint.shapes.basic.js',
             'plugins/routers/joint.routers.orthogonal.js',
             'plugins/routers/joint.routers.manhattan.js',
             'plugins/routers/joint.routers.metro.js',
@@ -31,14 +31,14 @@ module.exports = function(grunt) {
 
         plugins: {
 
-            'shapes.erd': ['plugins/joint.shapes.erd.js'],
-            'shapes.fsa': ['plugins/joint.shapes.fsa.js'],
-            'shapes.org': ['plugins/joint.shapes.org.js'],
-            'shapes.chess': ['plugins/joint.shapes.chess.js'],
-            'shapes.pn': ['plugins/joint.shapes.pn.js'],
-            'shapes.devs': ['plugins/joint.shapes.devs.js'],
-            'shapes.uml': ['plugins/joint.shapes.uml.js'],
-            'shapes.logic': ['plugins/joint.shapes.logic.js'],
+            'shapes.erd': ['plugins/shapes/joint.shapes.erd.js'],
+            'shapes.fsa': ['plugins/shapes/joint.shapes.fsa.js'],
+            'shapes.org': ['plugins/shapes/joint.shapes.org.js'],
+            'shapes.chess': ['plugins/shapes/joint.shapes.chess.js'],
+            'shapes.pn': ['plugins/shapes/joint.shapes.pn.js'],
+            'shapes.devs': ['plugins/shapes/joint.shapes.devs.js'],
+            'shapes.uml': ['plugins/shapes/joint.shapes.uml.js'],
+            'shapes.logic': ['plugins/shapes/joint.shapes.logic.js'],
 
             'layout.DirectedGraph': ['plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js']
         }
