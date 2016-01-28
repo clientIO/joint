@@ -1,4 +1,4 @@
-/*! JointJS v0.9.7 - JavaScript diagramming library  2016-01-18 
+/*! JointJS v0.9.7 - JavaScript diagramming library  2016-01-28 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -667,14 +667,14 @@ V = Vectorizer = (function() {
 
         findParentByClass: function(className, terminator) {
 
-            terminator = terminator || this.node.ownerSVGElement;
-
+            var ownerSVGElement = this.node.ownerSVGElement;
             var node = this.node.parentNode;
 
-            while (node && node !== terminator) {
+            while (node && node !== terminator && node !== ownerSVGElement) {
 
-                if (V(node).hasClass(className)) {
-                    return V(node);
+                var vel = V(node);
+                if (vel.hasClass(className)) {
+                    return vel;
                 }
 
                 node = node.parentNode;

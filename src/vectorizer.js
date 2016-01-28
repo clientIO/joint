@@ -632,14 +632,14 @@ V = Vectorizer = (function() {
 
         findParentByClass: function(className, terminator) {
 
-            terminator = terminator || this.node.ownerSVGElement;
-
+            var ownerSVGElement = this.node.ownerSVGElement;
             var node = this.node.parentNode;
 
-            while (node && node !== terminator) {
+            while (node && node !== terminator && node !== ownerSVGElement) {
 
-                if (V(node).hasClass(className)) {
-                    return V(node);
+                var vel = V(node);
+                if (vel.hasClass(className)) {
+                    return vel;
                 }
 
                 node = node.parentNode;
