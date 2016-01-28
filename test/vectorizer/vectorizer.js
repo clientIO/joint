@@ -11,6 +11,10 @@ module('vectorizer', {
         this.svgText = document.getElementById('svg-text');
         this.svgRectangle = document.getElementById('svg-rectangle');
 
+        this.svgGroup1 = document.getElementById('svg-group-1');
+        this.svgGroup2 = document.getElementById('svg-group-2');
+        this.svgGroup3 = document.getElementById('svg-group-3');
+
         this.$fixture = $('#qunit-fixture');
     },
 
@@ -208,7 +212,7 @@ test('V.transfromPoint', function(assert) {
     var p = { x: 1, y: 2 };
     var t;
     var group = V('<g/>');
-    
+
     V(this.svgContainer).append(group);
 
     t = V.transformPoint(p, group.node.getCTM());
@@ -288,4 +292,31 @@ test('native getTransformToElement vs VElement getTransformToElement - rotate', 
         f: normalizeFloat(transformPoly.f)
     };
     assert.deepEqual(matrix, transformNativeResult);
+});
+
+QUnit.test('findParentByClass', function(assert) {
+
+    assert.equal(
+        V(this.svgGroup3).findParentByClass('group-1').node,
+        this.svgGroup1,
+        'parent exists'
+    );
+    assert.notOk(
+        V(this.svgGroup3).findParentByClass('not-a-parent'),
+        'parent does not exist'
+    );
+    assert.notOk(
+        V(this.svgGroup3).findParentByClass('group-1', this.svgGroup2),
+        'parent exists, terminator on the way down'
+    );
+    assert.equal(
+        V(this.svgGroup3).findParentByClass('group-1', this.svgCircle).node,
+        this.svgGroup1,
+        'parent exists, terminator not on the way down'
+    );
+    assert.notOk(
+        V(this.svgGroup3).findParentByClass('not-a-parent', this.svgCircle),
+        'parent does not exist, terminator not on the way down'
+    );
+
 });

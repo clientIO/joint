@@ -5,6 +5,9 @@ module.exports = function(grunt) {
 
     var banner = '/*! <%= pkg.title %> v<%= pkg.version %> - <%= pkg.description %>  <%= grunt.template.today("yyyy-mm-dd") %> \n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n */\n';
 
+    // Ignore webpack in node v5, until webpack is fixed for that version.
+    var ignoreWebpack = process.version.substr(0, 'v5'.length) === 'v5';
+
     var js = {
 
         core: [
@@ -15,7 +18,7 @@ module.exports = function(grunt) {
             'src/joint.dia.element.js',
             'src/joint.dia.link.js',
             'src/joint.dia.paper.js',
-            'plugins/joint.shapes.basic.js',
+            'plugins/shapes/joint.shapes.basic.js',
             'plugins/routers/joint.routers.orthogonal.js',
             'plugins/routers/joint.routers.manhattan.js',
             'plugins/routers/joint.routers.metro.js',
@@ -31,14 +34,14 @@ module.exports = function(grunt) {
 
         plugins: {
 
-            'shapes.erd': ['plugins/joint.shapes.erd.js'],
-            'shapes.fsa': ['plugins/joint.shapes.fsa.js'],
-            'shapes.org': ['plugins/joint.shapes.org.js'],
-            'shapes.chess': ['plugins/joint.shapes.chess.js'],
-            'shapes.pn': ['plugins/joint.shapes.pn.js'],
-            'shapes.devs': ['plugins/joint.shapes.devs.js'],
-            'shapes.uml': ['plugins/joint.shapes.uml.js'],
-            'shapes.logic': ['plugins/joint.shapes.logic.js'],
+            'shapes.erd': ['plugins/shapes/joint.shapes.erd.js'],
+            'shapes.fsa': ['plugins/shapes/joint.shapes.fsa.js'],
+            'shapes.org': ['plugins/shapes/joint.shapes.org.js'],
+            'shapes.chess': ['plugins/shapes/joint.shapes.chess.js'],
+            'shapes.pn': ['plugins/shapes/joint.shapes.pn.js'],
+            'shapes.devs': ['plugins/shapes/joint.shapes.devs.js'],
+            'shapes.uml': ['plugins/shapes/joint.shapes.uml.js'],
+            'shapes.logic': ['plugins/shapes/joint.shapes.logic.js'],
 
             'layout.DirectedGraph': ['plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js']
         }
@@ -321,6 +324,11 @@ module.exports = function(grunt) {
         }
     };
 
+    if (ignoreWebpack) {
+        config.qunit.all.push('!test/**/webpack.html');
+        config.qunit.joint.push('!test/jointjs/webpack.html');
+    }
+
     function enableCodeCoverage() {
 
         // Replace all qunit configurations with the 'urls' method.
@@ -458,7 +466,12 @@ module.exports = function(grunt) {
     ]);
 
     grunt.registerTask('build', ['build:joint']);
-    grunt.registerTask('build:bundles', ['newer:browserify', 'newer:webpack']);
+    grunt.registerTask('build:bundles', ignoreWebpack ? [
+        'newer:browserify'
+    ] : [
+        'newer:browserify',
+        'newer:webpack'
+    ]);
     grunt.registerTask('build:all', ['build:joint', 'build:bundles']);
 
     grunt.registerTask('test:server', ['mochaTest:server']);
