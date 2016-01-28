@@ -2,7 +2,7 @@ require.config({
     baseUrl: '../../',
     paths: {
         // Dependencies for Joint:
-        'jquery': 'lib/jquery/jquery',
+        'jquery': 'lib/jquery/dist/jquery',
         'backbone': 'lib/backbone/backbone',
         'lodash': 'lib/lodash/lodash'
     },

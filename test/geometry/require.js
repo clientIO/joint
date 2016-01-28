@@ -1,33 +1,41 @@
 require.config({
-    baseUrl: '../../'
+    baseUrl: '../../',
+    paths: {
+        'qunit': 'lib/qunit/qunit/qunit'
+    }
 });
 
-module('RequireJS');
+require(['qunit'], function(QUnit) {
 
-(function() {
+    QUnit.start();
+    QUnit.module('RequireJS');
 
-    var buildFiles = [
-        'dist/geometry',
-        'dist/geometry.min'
-    ];
+    (function() {
 
-    while (buildFiles.length > 0) {
+        var buildFiles = [
+            'dist/geometry',
+            'dist/geometry.min'
+        ];
 
-        (function(buildFile) {
+        while (buildFiles.length > 0) {
 
-            test('sanity checks for distribution file: "' + buildFile + '"', function(assert) {
+            (function(buildFile) {
 
-                var done = assert.async();
+                QUnit.test('sanity checks for distribution file: "' + buildFile + '"', function(assert) {
 
-                require([buildFile], function(g) {
+                    var done = assert.async();
 
-                    assert.ok(typeof g !== 'undefined', 'Should be able to require g module');
-                    assert.ok(typeof g.rect === 'function', 'g.rect() method should exist');
-                    assert.ok(typeof g.point === 'function', 'g.point() method should exist');
-                    done();
+                    require([buildFile], function(g) {
+
+                        assert.ok(typeof g !== 'undefined', 'Should be able to require g module');
+                        assert.ok(typeof g.rect === 'function', 'g.rect() method should exist');
+                        assert.ok(typeof g.point === 'function', 'g.point() method should exist');
+
+                        done();
+                    });
                 });
-            });
-        })( buildFiles.pop() );
-    }
+            })( buildFiles.pop() );
+        }
 
-})();
+    })();
+});

@@ -1,14 +1,17 @@
 require.config({
     baseUrl: '../../',
     paths: {
+        'qunit': 'lib/qunit/qunit/qunit',
+
         // Dependencies for Vectorizer:
         'g': 'src/geometry'
     }
 });
 
-module('RequireJS');
+require(['qunit'], function(QUnit) {
 
-(function() {
+    QUnit.start();
+    QUnit.module('RequireJS');
 
     var buildFiles = [
         'dist/vectorizer',
@@ -19,7 +22,7 @@ module('RequireJS');
 
         (function(buildFile) {
 
-            test('sanity checks for distribution file: "' + buildFile + '"', function(assert) {
+            QUnit.test('sanity checks for distribution file: "' + buildFile + '"', function(assert) {
 
                 var done = assert.async();
 
@@ -39,5 +42,4 @@ module('RequireJS');
             });
         })( buildFiles.pop() );
     }
-
-})();
+});
