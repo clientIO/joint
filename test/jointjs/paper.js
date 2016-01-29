@@ -8,7 +8,6 @@ module('paper', {
 
         this.graph = new joint.dia.Graph;
         this.paper = new joint.dia.Paper({
-
             el: $paper,
             gridSize: 10,
             model: this.graph
@@ -501,4 +500,242 @@ test('linkAllowed(linkViewOrModel)', function(assert) {
 
     this.paper.options.multiLinks = true;
     assert.ok(this.paper.linkAllowed(multiLink2), 'multi link allowed when link multi-links is enabled');
+});
+
+test('setGridSize(gridSize)', function(assert) {
+
+    assert.equal(typeof joint.dia.Paper.prototype.setGridSize, 'function', 'should be a function');
+
+    var newGridSize = 33;
+    this.paper.setGridSize(newGridSize);
+
+    assert.equal(this.paper.options.gridSize, newGridSize, 'should set options.gridSize');
+});
+
+test('drawGrid(opt)', function(assert) {
+
+    var done = assert.async();
+
+    assert.equal(typeof joint.dia.Paper.prototype.drawGrid, 'function', 'should be a function');
+
+    var called = false;
+
+    var TestPaper = joint.dia.Paper.extend({
+        drawGrid: function() {
+            called = true;
+            joint.dia.Paper.prototype.drawGrid.apply(this, arguments);
+        }
+    });
+
+    var paper = new TestPaper({
+        model: new joint.dia.Graph
+    });
+
+    var callerMethods = [
+        {
+            name: 'setGridSize'
+        },
+        {
+            name: 'scale',
+            args: [1]
+        },
+        {
+            name: 'setOrigin',
+            args: [0, 0]
+        }
+    ];
+
+    _.each(callerMethods, function(callerMethod) {
+        called = false;
+        paper[callerMethod.name].apply(paper, callerMethod.args || []);
+        assert.ok(called, 'should be called by ' + callerMethod.name + '()');
+    });
+
+    paper.options.drawGrid = false;
+
+    _.each(callerMethods, function(callerMethod) {
+        called = false;
+        paper[callerMethod.name].apply(paper, callerMethod.args || []);
+        assert.notOk(called, 'when paper.options.drawGrid set to FALSE, should be called by ' + callerMethod.name + '()');
+    });
+
+    paper.options.drawGrid = true;
+
+    var inputsAndOutputs = [
+        {
+            message: 'normal',
+            gridSize: 5,
+            origin: {
+                x: 0,
+                y: 0
+            },
+            scale: {
+                x: 1,
+                y: 1
+            },
+            opt: {
+                color: '#aaa',
+                thickness: 1
+            },
+            imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAGklEQVQIW2NctWrV/7CwMEYGJIDCgYlTKAgAl6cEBngimTIAAAAASUVORK5CYII='
+        },
+        {
+            message: 'using default options',
+            gridSize: 5,
+            origin: {
+                x: 0,
+                y: 0
+            },
+            scale: {
+                x: 1,
+                y: 1
+            },
+            opt: {
+            },
+            imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAGklEQVQIW2NctWrV/7CwMEYGJIDCgYlTKAgAl6cEBngimTIAAAAASUVORK5CYII='
+        },
+        {
+            message: 'custom color',
+            gridSize: 5,
+            origin: {
+                x: 0,
+                y: 0
+            },
+            scale: {
+                x: 1,
+                y: 1
+            },
+            opt: {
+                color: 'purple',
+                thickness: 1
+            },
+            imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAGUlEQVQIW2NsYGj438DQwMiABFA4MHEKBQEwrwMGTWEEKgAAAABJRU5ErkJggg=='
+        },
+        {
+            message: 'custom thickness',
+            gridSize: 5,
+            origin: {
+                x: 0,
+                y: 0
+            },
+            scale: {
+                x: 1,
+                y: 1
+            },
+            opt: {
+                color: '#aaa',
+                thickness: 3
+            },
+            imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAIElEQVQIW2NctWrVfwYoCAsLYwQxGYkXhGlFpsFmoAMAr2UMBnjfcSIAAAAASUVORK5CYII='
+        },
+        {
+            message: 'large, odd gridSize',
+            gridSize: 23,
+            origin: {
+                x: 0,
+                y: 0
+            },
+            scale: {
+                x: 1,
+                y: 1
+            },
+            opt: {
+                color: '#aaa',
+                thickness: 1
+            },
+            imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAXCAYAAADgKtSgAAAANklEQVRIS2NctWrV/7CwMEYGGgCaGApz56jhWGNsNFhGg4X4rDyaWkZTy2hqIT4ERlML8WEFAMyCBBj4/EAnAAAAAElFTkSuQmCC'
+        },
+        {
+            message: 'negative origin',
+            gridSize: 7,
+            origin: {
+                x: -5,
+                y: -8
+            },
+            scale: {
+                x: 1,
+                y: 1
+            },
+            opt: {
+                color: '#aaa',
+                thickness: 1
+            },
+            imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAAGUlEQVQIW2NkwAMYB63kqlWr/oeFhaE4EABJ6wQImIsygAAAAABJRU5ErkJggg=='
+        },
+        {
+            message: 'positive origin',
+            gridSize: 7,
+            origin: {
+                x: 11,
+                y: 7
+            },
+            scale: {
+                x: 1,
+                y: 1
+            },
+            opt: {
+                color: '#aaa',
+                thickness: 1
+            },
+            imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAAHElEQVQIW2NkQAOrVq36HxYWxggSBhO4wKCTBADiCQQIkW6pkwAAAABJRU5ErkJggg=='
+        },
+        {
+            message: 'scaled up',
+            gridSize: 12,
+            origin: {
+                x: 11,
+                y: 7
+            },
+            scale: {
+                x: 2.3,
+                y: 2.3
+            },
+            opt: {
+                color: '#aaa',
+                thickness: 1
+            },
+            imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAbCAYAAACN1PRVAAAARklEQVRIS2NkoCNgpKNdDKOWUSW0R4MRHIyrVq36HxYWRnZokK2RnEgctYycUMPQMxqMo8GINwRGE8hoAhlNIFRJAyM0GAEAYwQc5iT5JwAAAABJRU5ErkJggg=='
+        },
+        {
+            message: 'scaled down',
+            gridSize: 15,
+            origin: {
+                x: 11,
+                y: 7
+            },
+            scale: {
+                x: 0.7,
+                y: 0.7
+            },
+            opt: {
+                color: '#aaa',
+                thickness: 1
+            },
+            imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAIklEQVQYV2NkIBIwEqmOYXgpXLlyZQPI5+Hh4WAaF6C+rwHgUAQLQv9VhAAAAABJRU5ErkJggg=='
+        }
+    ];
+
+    async.each(inputsAndOutputs, function(inputsAndOutput, next) {
+
+        var gridSize = inputsAndOutput.gridSize;
+        var origin = inputsAndOutput.origin;
+        var scale = inputsAndOutput.scale;
+        var opt = inputsAndOutput.opt;
+
+        paper.setGridSize(gridSize);
+        paper.scale(scale.x, scale.y);
+        paper.setOrigin(origin.x, origin.y);
+        paper.drawGrid(opt);
+
+        var actualBackgroundImage = paper.$el.css('background-image');
+        var message = inputsAndOutput.message;
+
+        normalizeImageDataUri(inputsAndOutput.imageDataUri, function(error, normalizedImageDataUri) {
+
+            var expectedBackgroundImage = normalizeCssAttr('background-image', 'url("' + normalizedImageDataUri + '")');
+            assert.equal(actualBackgroundImage, expectedBackgroundImage, message);
+            next();
+        });
+
+    }, done);
 });
