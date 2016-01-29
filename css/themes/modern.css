@@ -1,7 +1,6 @@
 
   /*  Links  */
   .link.joint-theme-modern .connection-wrap {
-     fill: none;
      stroke: black;
      stroke-width: 15;
      stroke-linecap: round;
@@ -14,7 +13,6 @@
      stroke-opacity: .4;
   }
   .link.joint-theme-modern .connection {
-     fill: none;
      stroke-linejoin: round;
   }
   .link.joint-theme-modern .link-tools .tool-remove circle {

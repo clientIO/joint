@@ -90,6 +90,11 @@ Vertex markers are `<circle>` elements that appear at connection vertex position
 
 */
 
+.link .connection-wrap,
+.link .connection {
+   fill: none;
+}
+
 /* <g> element wrapping .marker-vertex-group. */
 .marker-vertices {
    opacity: 0;
