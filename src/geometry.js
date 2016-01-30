@@ -156,6 +156,13 @@ var g = (function() {
             var theta = toRad(point(ref).theta(this));
             return this.offset(cos(theta) * distance, -sin(theta) * distance);
         },
+        // Scale point with origin at point `o`.
+        scale: function(sx, sy, o) {
+            o = (o && point(o)) || point(0, 0);
+            this.x = o.x + sx * (this.x - o.x);
+            this.y = o.y + sy * (this.y - o.y);
+            return this;
+        },
         // Returns change in angle from my previous position (-dx, -dy) to my new position
         // relative to ref point.
         changeInAngle: function(dx, dy, ref) {
@@ -177,6 +184,9 @@ var g = (function() {
         },
         clone: function() {
             return point(this);
+        },
+        toJSON: function() {
+            return { x: this.x, y: this.y };
         }
     };
     // Alternative constructor, from polar coordinates.
@@ -551,6 +561,15 @@ var g = (function() {
             var h = this.width * st + this.height * ct;
             return rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
         },
+        // Scale rectangle with origin at point `o`
+        scale: function(sx, sy, o) {
+            var origin = this.origin().scale(sx, sy, o);
+            this.x = origin.x;
+            this.y = origin.y;
+            this.width *= sx;
+            this.height *= sy;
+            return this;
+        },
         snapToGrid: function(gx, gy) {
             var origin = this.origin().snapToGrid(gx, gy);
             var corner = this.corner().snapToGrid(gx, gy);
@@ -562,6 +581,9 @@ var g = (function() {
         },
         clone: function() {
             return rect(this);
+        },
+        toJSON: function() {
+            return { x: this.x, y: this.y, width: this.width, height: this.height };
         }
     };
 

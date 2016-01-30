@@ -1,6 +1,11 @@
 TBD (v0.9.8)
     * Added paper.drawGrid(opt) - draws grid lines on the paper's DOM element.
     * Added paper.setGridSize(gridSize) - changes the grid size of the paper.
+    * Added point.scale(), rect.scale() - scale point/rect with given origin.
+    * Added point.toJSON(), rect.toJSON() - converts point/rect into JSON object.
+    * Added dia.Element scale(), dia.Link scale() for transforming cells by providing a scale ratio and origin.
+    * Added dia.Graph resize(), resizeCells() for a group resizing
+    * Added dia.Graph getCellsBBox() for getting a group bounding box
 
 19-12-2015 (v0.9.6)
        * dia.Graph introduces new functions for traversing graphs: dfs(), bfs(), search(), isSuccessor(), isPredecessor(), getPredecessors(), getSuccessors(), isNeighbor(), isSource(), isSink(), getSources(), getSinks(), getSubgraph(), getFirstCell(), getLastCell() and getCells()

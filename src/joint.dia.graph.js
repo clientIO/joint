@@ -921,11 +921,15 @@ joint.dia.Graph = Backbone.Model.extend({
         });
     },
 
-    // Return the bounding box of all cells in array provided. If no array
-    // provided returns bounding box of all cells. Links are being ignored.
-    getBBox: function(cells) {
 
-        cells = cells || this.collection.models;
+    // Return bounding box of all elements.
+    getBBox: function(cells) {
+        return this.getCellsBBox(cells || this.getElements());
+    },
+
+    // Return the bounding box of all cells in array provided.
+    // Links are being ignored.
+    getCellsBBox: function(cells) {
 
         return _.reduce(cells, function(memo, cell) {
             if (cell.isLink()) return memo;
@@ -934,7 +938,7 @@ joint.dia.Graph = Backbone.Model.extend({
             } else {
                 return cell.getBBox();
             }
-        }, undefined);
+        }, null);
     },
 
     translate: function(dx, dy, opt) {
@@ -945,5 +949,24 @@ joint.dia.Graph = Backbone.Model.extend({
         });
 
         _.invoke(cells, 'translate', dx, dy, opt);
+    },
+
+    resize: function(width, height, opt) {
+
+        return this.resizeCells(width, height, this.getCells(), opt);
+    },
+
+    resizeCells: function(width, height, cells, opt) {
+
+        // `getBBox` method returns `null` if no elements provided.
+        // i.e. cells can be an array of links
+        var bbox = this.getCellsBBox(cells);
+        if (bbox) {
+            var sx = Math.max(width / bbox.width, 0);
+            var sy = Math.max(height / bbox.height, 0);
+            _.invoke(cells, 'scale', sx, sy, bbox.origin(), opt);
+        }
+
+        return this;
     }
 });

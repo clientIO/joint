@@ -234,6 +234,16 @@ joint.dia.Element = joint.dia.Cell.extend({
         return this;
     },
 
+    scale: function(sx, sy, origin, opt) {
+
+        var scaledBBox = this.getBBox().scale(sx, sy, origin);
+        this.trigger('batch:start', { batchName: 'scale' });
+        this.position(scaledBBox.x, scaledBBox.y, opt);
+        this.resize(scaledBBox.width, scaledBBox.height, opt);
+        this.trigger('batch:stop', { batchName: 'scale' });
+        return this;
+    },
+
     fitEmbeds: function(opt) {
 
         opt = opt || {};
@@ -255,7 +265,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             // Compute cell's size and position  based on the children bbox
             // and given padding.
-            var bbox = this.graph.getBBox(embeddedCells);
+            var bbox = this.graph.getCellsBBox(embeddedCells);
             var padding = joint.util.normalizeSides(opt.padding);
 
             // Apply padding computed above to the bbox.
@@ -317,7 +327,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             // Add the model itself.
             elements.push(this);
 
-            return this.graph.getBBox(elements);
+            return this.graph.getCellsBBox(elements);
         }
 
         var position = this.get('position');
