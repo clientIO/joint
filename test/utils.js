@@ -98,6 +98,34 @@ function normalizeSvgAttr(name, value) {
     return V('<g/>').attr(name, value).attr(name);
 }
 
+function normalizeCssAttr(name, value) {
+
+    var $tmpEl = $('<div/>').appendTo($('body'));
+    var normalizedValue = $tmpEl.css(name, value).css(name);
+    $tmpEl.remove();
+    return normalizedValue;
+}
+
+function normalizeImageDataUri(uri, cb) {
+
+    var image = new Image();
+
+    image.onload = function() {
+
+        var canvas = document.createElement('canvas');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        var context = canvas.getContext('2d');
+        context.drawImage(image, 0, 0, image.width, image.height);
+        var normalized = canvas.toDataURL('image/png');
+        canvas = null;
+        image = null;
+        cb(null, normalized);
+    };
+
+    image.src = uri;
+}
+
 function approximately(result, expected, tolerance, message) {
 
     var min = (expected - tolerance);

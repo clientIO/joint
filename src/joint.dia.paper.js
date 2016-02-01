@@ -12,6 +12,20 @@ joint.dia.Paper = joint.mvc.View.extend({
         height: 600,
         origin: { x: 0, y: 0 }, // x,y coordinates in top-left corner
         gridSize: 1,
+
+        /*
+            Whether or not to draw the grid lines on the paper's DOM element.
+        */
+        drawGrid: true,
+
+        /*
+            Default options used for the drawGrid() method.
+        */
+        drawGridOptions: {
+            color: '#aaa',
+            thickness: 1
+        },
+
         perpendicularLinks: false,
         elementView: joint.dia.ElementView,
         linkView: joint.dia.LinkView,
@@ -126,6 +140,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         _.bindAll(this, 'pointerup');
 
+        this.model = this.options.model || new joint.dia.Graph;
+
         // This is a fix for the case where two papers share the same options.
         // Changing origin.x for one paper would change the value of origin.x for the other.
         // This prevents that behavior.
@@ -141,13 +157,13 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.$el.append(this.svg);
 
-        this.setOrigin();
-        this.setDimensions();
-
         this.listenTo(this.model, 'add', this.onCellAdded);
         this.listenTo(this.model, 'remove', this.removeView);
         this.listenTo(this.model, 'reset', this.resetViews);
         this.listenTo(this.model, 'sort', this.sortViews);
+
+        this.setOrigin();
+        this.setDimensions();
 
         $(document).on('mouseup touchend', this.pointerup);
 
@@ -186,6 +202,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         V(this.viewport).translate(ox, oy, { absolute: true });
 
         this.trigger('translate', ox, oy);
+
+        if (this.options.drawGrid) {
+            this.drawGrid();
+        }
     },
 
     // Expand/shrink the paper to fit the content. Snap the width/height to the grid
@@ -611,6 +631,10 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.trigger('scale', sx, sy, ox, oy);
 
+        if (this.options.drawGrid) {
+            this.drawGrid();
+        }
+
         return this;
     },
 
@@ -972,5 +996,48 @@ joint.dia.Paper = joint.mvc.View.extend({
             if (this.guard(evt, view)) return;
             view.mouseout(evt);
         }
+    },
+
+    setGridSize: function(gridSize) {
+
+        this.options.gridSize = gridSize;
+
+        if (this.options.drawGrid) {
+            this.drawGrid();
+        }
+
+        return this;
+    },
+
+    drawGrid: function(opt) {
+
+        opt = _.defaults(opt || {}, this.options.drawGridOptions);
+
+        var gridSize = this.options.gridSize;
+        var currentScale = V(this.viewport).scale();
+        var scaleX = currentScale.sx;
+        var scaleY = currentScale.sy;
+        var originX = this.options.origin.x;
+        var originY = this.options.origin.y;
+        var gridX = gridSize * scaleX;
+        var gridY = gridSize * scaleY;
+
+        var canvas = document.createElement('canvas');
+
+        canvas.width = gridX;
+        canvas.height = gridY;
+
+        gridX = originX >= 0 ? originX % gridX : gridX + originX % gridX;
+        gridY = originY >= 0 ? originY % gridY : gridY + originY % gridY;
+
+        var context = canvas.getContext('2d');
+        context.beginPath();
+        context.rect(gridX, gridY, opt.thickness, opt.thickness);
+        context.fillStyle = opt.color;
+        context.fill();
+
+        var backgroundImage = canvas.toDataURL('image/png');
+        this.el.style['background-image'] = 'url("' + backgroundImage + '")';
     }
+
 });

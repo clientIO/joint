@@ -4,7 +4,7 @@ var paper = new joint.dia.Paper({
     el: $('#paper'),
     width: 650,
     height: 400,
-    gridSize: 1,
+    gridSize: 20,
     model: graph
 });
 
@@ -195,18 +195,16 @@ $sy.on('input', function() { paper.scale(parseFloat($sx.val()), parseFloat(this.
 $w.on('input', function() { paper.setDimensions(parseInt(this.value, 10), parseInt($h.val(),10)); });
 $h.on('input', function() { paper.setDimensions(parseInt($w.val(), 10), parseInt(this.value, 10)); });
 $grid.on('input', function() {
-    paper.options.gridSize = this.value;
-    paper.$el.css('background-image', 'url("' + getGridBackgroundImage(this.value * $sx.val(), this.value * $sy.val()) + '")');
+    paper.setGridSize(this.value);
 });
 
-$('.range').on('input', function() { $(this).next().val(this.value); });
+$('.range').on('input', function() {
+    $(this).next().val(this.value);
+});
 
 paper.on('scale', function(sx, sy) {
     $sx.val(sx).next().val(sx.toFixed(2));
     $sy.val(sy).next().val(sy.toFixed(2));
-
-    var grid = $grid.val();
-    paper.$el.css('background-image', 'url("' + getGridBackgroundImage(grid * sx, grid * sy) + '")');
 });
 
 paper.on('translate', function(ox, oy) {
@@ -215,9 +213,6 @@ paper.on('translate', function(ox, oy) {
     // translate axis
     svgAxisX.translate(0, oy, { absolute: true });
     svgAxisY.translate(ox, 0, { absolute: true });
-
-    var grid = $grid.val();
-    paper.$el.css('background-image', 'url("' + getGridBackgroundImage(grid * $sx.val(), grid * $sy.val()) + '")');
 });
 
 paper.on('resize', function(width, height) {
@@ -238,27 +233,3 @@ paper.model.on('change', function() {
 
     svgBBox.attr(bbox).addClass('active').hide();
 });
-
-var getGridBackgroundImage = function(gridX, gridY) {
-
-    var canvas = document.createElement('canvas');
-    canvas.width = gridX;
-    canvas.height = gridY;
-
-    if (gridX > 5 && gridY > 5) {
-
-        var ox = $ox.val();
-        var oy = $oy.val();
-
-        gridX = ox >= 0 ? ox % gridX : gridX + ox % gridX;
-        gridY = oy >= 0 ? oy % gridY : gridY + oy % gridY;
-
-        var context = canvas.getContext('2d');
-        context.beginPath();
-        context.rect(gridX, gridY, 2, 2);
-        context.fillStyle = 'rgba(0,0,0,0.3)';
-        context.fill();
-    }
-
-    return canvas.toDataURL('image/png');
-};

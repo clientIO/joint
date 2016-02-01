@@ -1,3 +1,7 @@
+TBD (v0.9.8)
+    * Added paper.drawGrid(opt) - draws grid lines on the paper's DOM element.
+    * Added paper.setGridSize(gridSize) - changes the grid size of the paper.
+
 19-12-2015 (v0.9.6)
        * dia.Graph introduces new functions for traversing graphs: dfs(), bfs(), search(), isSuccessor(), isPredecessor(), getPredecessors(), getSuccessors(), isNeighbor(), isSource(), isSink(), getSources(), getSinks(), getSubgraph(), getFirstCell(), getLastCell() and getCells()
        * new functions for cloning cells dia.Graph.cloneCells(), dia.Graph.cloneSubgraph()

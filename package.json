@@ -52,6 +52,7 @@
     "lodash": "3.10.1"
   },
   "devDependencies": {
+    "async": "1.5.2",
     "express": "4.13.3",
     "grunt": "0.4.5",
     "grunt-browserify": "4.0.1",
