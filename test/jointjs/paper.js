@@ -545,6 +545,8 @@ test('drawGrid(opt)', function(assert) {
         }
     ];
 
+    paper.options.drawGrid = true;
+
     _.each(callerMethods, function(callerMethod) {
         called = false;
         paper[callerMethod.name].apply(paper, callerMethod.args || []);
