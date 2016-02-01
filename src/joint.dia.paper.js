@@ -16,7 +16,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         /*
             Whether or not to draw the grid lines on the paper's DOM element.
         */
-        drawGrid: true,
+        drawGrid: false,
 
         /*
             Default options used for the drawGrid() method.
@@ -1014,6 +1014,12 @@ joint.dia.Paper = joint.mvc.View.extend({
         opt = _.defaults(opt || {}, this.options.drawGridOptions);
 
         var gridSize = this.options.gridSize;
+
+        if (gridSize <= 1) {
+            this.el.style['background-image'] = 'none';
+            return;
+        }
+
         var currentScale = V(this.viewport).scale();
         var scaleX = currentScale.sx;
         var scaleY = currentScale.sy;
