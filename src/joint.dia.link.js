@@ -93,30 +93,46 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     translate: function(tx, ty, opt) {
 
-        var attrs = {};
-        var source = this.get('source');
-        var target = this.get('target');
-        var vertices = this.get('vertices');
-
-        if (!source.id) {
-            attrs.source = { x: (source.x || 0) + tx, y: (source.y || 0) + ty };
-        }
-
-        if (!target.id) {
-            attrs.target = { x: (target.x || 0) + tx, y: (target.y || 0) + ty };
-        }
-
-        if (vertices && vertices.length) {
-            attrs.vertices = _.map(vertices, function(vertex) {
-                return { x: vertex.x + tx, y: vertex.y + ty };
-            });
-        }
-
         // enrich the option object
         opt = opt || {};
         opt.translateBy = opt.translateBy || this.id;
         opt.tx = tx;
         opt.ty = ty;
+
+        return this.applyToPoints(function(p) {
+            return { x: (p.x || 0) + tx, y: (p.y || 0) + ty };
+        }, opt);
+    },
+
+    scale: function(sx, sy, origin, opt) {
+
+        return this.applyToPoints(function(p) {
+            return g.point(p).scale(sx, sy, origin).toJSON();
+        }, opt);
+    },
+
+    applyToPoints: function(fn, opt) {
+
+        if (!_.isFunction(fn)) {
+            throw new TypeError('dia.Link: applyToPoints expects its first parameter to be a function.');
+        }
+
+        var attrs = {};
+
+        var source = this.get('source');
+        if (!source.id) {
+            attrs.source = fn(source);
+        }
+
+        var target = this.get('target');
+        if (!target.id) {
+            attrs.target = fn(target);
+        }
+
+        var vertices = this.get('vertices');
+        if (vertices && vertices.length > 0) {
+            attrs.vertices = _.map(vertices, fn);
+        }
 
         return this.set(attrs, opt);
     },

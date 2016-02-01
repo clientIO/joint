@@ -1,6 +1,6 @@
-module('basic', {
+QUnit.module('basic', function(hooks) {
 
-    beforeEach: function() {
+    hooks.beforeEach(function() {
 
         this.$fixture = $('#qunit-fixture');
         var $paper = $('<div/>');
@@ -12,18 +12,18 @@ module('basic', {
             gridSize: 10,
             model: this.graph
         });
-    },
+    });
 
-    afterEach: function() {
+    hooks.afterEach(function() {
 
         this.paper.remove();
         this.graph = null;
         this.paper = null;
         this.$fixture.empty();
         this.$fixture = null;
-    },
+    });
 
-    setupTestNestedGraph: function(graph) {
+    this.setupTestNestedGraph = function(graph) {
 
         // make element
         function me(id) {
@@ -50,1248 +50,1390 @@ module('basic', {
         var l2 = ml('l2', aa, aaa);
         aa.embed(l2);
         var l3 = ml('l3', c, d);
-    }
-});
+    };
 
-test('construction', function() {
+    QUnit.test('construction', function() {
 
-    var myrect = new joint.shapes.basic.Rect({
-        position: { x: 20, y: 30 },
-        size: { width: 120, height: 80 },
-        attrs: { text: { text: 'my rectangle' } }
+        var myrect = new joint.shapes.basic.Rect({
+            position: { x: 20, y: 30 },
+            size: { width: 120, height: 80 },
+            attrs: { text: { text: 'my rectangle' } }
+        });
+
+        this.graph.addCell(myrect);
+
+        strictEqual(myrect.constructor, joint.shapes.basic.Rect, 'myrect.constructor === joint.shapes.basic.Rect');
+
+        var textEls = this.paper.svg.getElementsByTagName('text');
+        var rectEls = this.paper.svg.getElementsByTagName('rect');
+
+        equal(textEls.length, 1, 'there is exactly one <text> element in the paper');
+        equal(rectEls.length, 1, 'there is exactly one <rect> element in the paper');
+
+        equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
+
     });
 
-    this.graph.addCell(myrect);
+    QUnit.asyncTest('async: resetCells', function() {
 
-    strictEqual(myrect.constructor, joint.shapes.basic.Rect, 'myrect.constructor === joint.shapes.basic.Rect');
+        var r1 = new joint.shapes.basic.Rect({
+            position: { x: 20, y: 30 },
+            size: { width: 120, height: 80 },
+            attrs: { text: { text: 'my rectangle' } }
+        });
+        var r2 = r1.clone();
+        var r3 = r1.clone();
 
-    var textEls = this.paper.svg.getElementsByTagName('text');
-    var rectEls = this.paper.svg.getElementsByTagName('rect');
+        this.paper.options.async = { batchSize: 1 };
+        this.paper.on('render:done', function() {
 
-    equal(textEls.length, 1, 'there is exactly one <text> element in the paper');
-    equal(rectEls.length, 1, 'there is exactly one <rect> element in the paper');
+	          var textEls = this.paper.svg.getElementsByTagName('text');
+	          var rectEls = this.paper.svg.getElementsByTagName('rect');
 
-    equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
-    
-});
+	          equal(textEls.length, 3, 'there is exactly 3 <text> elements in the paper');
+	          equal(rectEls.length, 3, 'there is exactly 3 <rect> elements in the paper');
 
-asyncTest('async: resetCells', function() {
+	          equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
 
-    var r1 = new joint.shapes.basic.Rect({
-        position: { x: 20, y: 30 },
-        size: { width: 120, height: 80 },
-        attrs: { text: { text: 'my rectangle' } }
-    });
-    var r2 = r1.clone();
-    var r3 = r1.clone();
+	          start();
 
-    this.paper.options.async = { batchSize: 1 };
-    this.paper.on('render:done', function() {
-	
-	var textEls = this.paper.svg.getElementsByTagName('text');
-	var rectEls = this.paper.svg.getElementsByTagName('rect');
+        }, this);
 
-	equal(textEls.length, 3, 'there is exactly 3 <text> elements in the paper');
-	equal(rectEls.length, 3, 'there is exactly 3 <rect> elements in the paper');
-
-	equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
-
-	start();
-
-    }, this);
-
-    this.graph.resetCells([r1, r2, r3]);
-});
-
-asyncTest('async: addCells', function() {
-
-    var r1 = new joint.shapes.basic.Rect({
-        position: { x: 20, y: 30 },
-        size: { width: 120, height: 80 },
-        attrs: { text: { text: 'my rectangle' } }
-    });
-    var r2 = r1.clone();
-    var r3 = r1.clone();
-    var r4 = r1.clone();
-    var r5 = r1.clone();
-
-    this.graph.addCells([r1, r2]);
-
-    this.paper.options.async = { batchSize: 1 };
-    this.paper.on('render:done', function() {
-
-	var textEls = this.paper.svg.getElementsByTagName('text');
-	var rectEls = this.paper.svg.getElementsByTagName('rect');
-
-	equal(textEls.length, 5, 'there is exactly 5 <text> elements in the paper');
-	equal(rectEls.length, 5, 'there is exactly 5 <rect> elements in the paper');
-
-	equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
-
-	start();
-
-    }, this);
-
-    this.graph.addCells([r3, r4, r5]);
-});
-
-test('getBBox()', function() {
-
-    var myrect = new joint.shapes.basic.Rect({
-        position: { x: 20, y: 30 },
-        size: { width: 120, height: 80 },
-        attrs: { text: { text: 'my rectangle' } }
+        this.graph.resetCells([r1, r2, r3]);
     });
 
-    this.graph.addCell(myrect);
+    QUnit.asyncTest('async: addCells', function() {
 
-    var view = this.paper.findViewByModel(myrect);
-    var bbox = view.getBBox();
+        var r1 = new joint.shapes.basic.Rect({
+            position: { x: 20, y: 30 },
+            size: { width: 120, height: 80 },
+            attrs: { text: { text: 'my rectangle' } }
+        });
+        var r2 = r1.clone();
+        var r3 = r1.clone();
+        var r4 = r1.clone();
+        var r5 = r1.clone();
 
-    equal(bbox.x, 20, 'bbox.x is correct');
-    equal(bbox.y, 30, 'bbox.y is correct');
-    equal(bbox.width, 120, 'bbox.width is correct');
-    equal(bbox.height, 80, 'bbox.height is correct');
+        this.graph.addCells([r1, r2]);
 
-    myrect.attr('text', { ref: 'rect', 'ref-y': 100 });
+        this.paper.options.async = { batchSize: 1 };
+        this.paper.on('render:done', function() {
 
-    bbox = view.getBBox({ useModelGeometry: false });
+	          var textEls = this.paper.svg.getElementsByTagName('text');
+	          var rectEls = this.paper.svg.getElementsByTagName('rect');
 
-    ok(bbox.height > 80, 'Translating text outside the rect: bbox.width grew.');
-    equal(bbox.x, 20, 'bbox.x is correct');
-    equal(bbox.y, 30, 'bbox.y is correct');
-    equal(bbox.width, 120, 'bbox.width is correct');
+	          equal(textEls.length, 5, 'there is exactly 5 <text> elements in the paper');
+	          equal(rectEls.length, 5, 'there is exactly 5 <rect> elements in the paper');
 
-    bbox = view.getBBox({ useModelGeometry: true });
+	          equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
 
-    equal(bbox.x, 20, 'Using model geometry: bbox.x is correct');
-    equal(bbox.y, 30, 'bbox.y is correct');
-    equal(bbox.width, 120, 'bbox.width is correct');
-    equal(bbox.height, 80, 'bbox.height is correct');
+	          start();
 
-});
+        }, this);
 
-test('z index', function() {
-
-    var r1 = new joint.shapes.basic.Rect;
-    var r2 = new joint.shapes.basic.Rect;
-    var r3 = new joint.shapes.basic.Rect;
-
-    this.graph.addCell(r1);
-    this.graph.addCell(r2);
-    this.graph.addCell(r3);
-
-    ok(r1.get('z') < r2.get('z'), 'z index of the first added cell is lower than that of the second one');
-    ok(r2.get('z') < r3.get('z'), 'z index of the second added cell is lower than that of the third one');
-
-    // Test removing/adding new cells to cover https://github.com/clientIO/JointJS_plus/issues/21.
-    r1.remove();
-    var r4 = new joint.shapes.basic.Rect;
-    this.graph.addCell(r4);
-    ok(r2.get('z') < r3.get('z'), 'z index of the second added cell is lower than that of the third one');
-    ok(r3.get('z') < r4.get('z'), 'z index of the third added cell is lower than that of the fourth, newly added, one');
-});
-
-test('position()', function() {
-
-    var r1 = new joint.shapes.basic.Rect({
-        position: { x: 100, y: 100 },
-        size: { width: 120, height: 80 },
-        attrs: { text: { text: 'my rectangle' }}
+        this.graph.addCells([r3, r4, r5]);
     });
 
-    this.graph.addCell(r1);
+    QUnit.test('getBBox()', function() {
 
-    var pos = r1.position();
-    checkBbox(this.paper, r1, pos.x, pos.y, 120, 80, 'getter "position()" returns the elements position.');
+        var myrect = new joint.shapes.basic.Rect({
+            position: { x: 20, y: 30 },
+            size: { width: 120, height: 80 },
+            attrs: { text: { text: 'my rectangle' } }
+        });
 
-    r1.position(200,200);
-    checkBbox(this.paper, r1, 200, 200, 120, 80, 'setter "position(a,b)" should move element to the given position.');
-     
-    // parentRelative option
+        this.graph.addCell(myrect);
 
-    var r2 = new joint.shapes.basic.Rect({
-        position: { x: 10, y: 10 },
-        size: { width: 30, height: 30 }
+        var view = this.paper.findViewByModel(myrect);
+        var bbox = view.getBBox();
+
+        equal(bbox.x, 20, 'bbox.x is correct');
+        equal(bbox.y, 30, 'bbox.y is correct');
+        equal(bbox.width, 120, 'bbox.width is correct');
+        equal(bbox.height, 80, 'bbox.height is correct');
+
+        myrect.attr('text', { ref: 'rect', 'ref-y': 100 });
+
+        bbox = view.getBBox({ useModelGeometry: false });
+
+        ok(bbox.height > 80, 'Translating text outside the rect: bbox.width grew.');
+        equal(bbox.x, 20, 'bbox.x is correct');
+        equal(bbox.y, 30, 'bbox.y is correct');
+        equal(bbox.width, 120, 'bbox.width is correct');
+
+        bbox = view.getBBox({ useModelGeometry: true });
+
+        equal(bbox.x, 20, 'Using model geometry: bbox.x is correct');
+        equal(bbox.y, 30, 'bbox.y is correct');
+        equal(bbox.width, 120, 'bbox.width is correct');
+        equal(bbox.height, 80, 'bbox.height is correct');
+
     });
 
-    throws(function() {
-        r2.position(100,100, { parentRelative: true });
-    }, 'getter throws an error if "parentRelative" option passed and the element is not part of any collection.');
+    QUnit.test('z index', function() {
 
-    throws(function() {
-        r2.position({ parentRelative: true });
-    }, 'getter throws an error if "parentRelative" option passed and the element is not part of any collection.');
+        var r1 = new joint.shapes.basic.Rect;
+        var r2 = new joint.shapes.basic.Rect;
+        var r3 = new joint.shapes.basic.Rect;
 
-    this.graph.addCell(r2);
+        this.graph.addCell(r1);
+        this.graph.addCell(r2);
+        this.graph.addCell(r3);
 
-    deepEqual(r2.position({ parentRelative: true }), r2.position(), 'getter with "parentRelative" option works in same way as getter without this option for an unembed element.');    
+        ok(r1.get('z') < r2.get('z'), 'z index of the first added cell is lower than that of the second one');
+        ok(r2.get('z') < r3.get('z'), 'z index of the second added cell is lower than that of the third one');
 
-    r1.embed(r2);
-
-    r2.position(10,10, { parentRelative: true });
-    checkBbox(this.paper, r2, 210, 210, 30, 30, 'setter "position(a,b)" with "parentRelative" option should move element to the position relative to its parent.');
-
-    pos = r2.position({ parentRelative: true });
-    deepEqual(pos.toString(), "10@10", 'getter with "parentRelative" option returns position relative to the element parent.');
-    
-});
-
-test('translate()', function() {
-
-    var myrect = new joint.shapes.basic.Rect({
-        position: { x: 20, y: 30 },
-        size: { width: 120, height: 80 },
-        attrs: { text: { text: 'my rectangle' } }
+        // Test removing/adding new cells to cover https://github.com/clientIO/JointJS_plus/issues/21.
+        r1.remove();
+        var r4 = new joint.shapes.basic.Rect;
+        this.graph.addCell(r4);
+        ok(r2.get('z') < r3.get('z'), 'z index of the second added cell is lower than that of the third one');
+        ok(r3.get('z') < r4.get('z'), 'z index of the third added cell is lower than that of the fourth, newly added, one');
     });
 
-    this.graph.addCell(myrect);
+    QUnit.test('position()', function() {
 
-    myrect.translate(50);
-    checkBbox(this.paper, myrect, 70, 30, 120, 80, 'translate(50) should translate by 50px in x direction only');
+        var r1 = new joint.shapes.basic.Rect({
+            position: { x: 100, y: 100 },
+            size: { width: 120, height: 80 },
+            attrs: { text: { text: 'my rectangle' }}
+        });
 
-    myrect.translate(0, 20);
-    checkBbox(this.paper, myrect, 70, 50, 120, 80, 'translate(0, 20) should translate by 20px in y direction only');
+        this.graph.addCell(r1);
 
-    myrect.translate(10, 10);
-    checkBbox(this.paper, myrect, 80, 60, 120, 80, 'translate(10, 10) should translate by 10px in both x and y directions');
+        var pos = r1.position();
+        checkBbox(this.paper, r1, pos.x, pos.y, 120, 80, 'getter "position()" returns the elements position.');
 
-    myrect.translate(-10, -10);
-    checkBbox(this.paper, myrect, 70, 50, 120, 80, 'translate(-10, -10) should translate back by 10px in both x and y directions');
-});
+        r1.position(200,200);
+        checkBbox(this.paper, r1, 200, 200, 120, 80, 'setter "position(a,b)" should move element to the given position.');
 
-test('translate() with restrictedArea option', function(assert) {
+        // parentRelative option
 
-    var rect = new joint.shapes.basic.Rect({
-        position: { x: 20, y: 30 },
-        size: { width: 120, height: 80 }
+        var r2 = new joint.shapes.basic.Rect({
+            position: { x: 10, y: 10 },
+            size: { width: 30, height: 30 }
+        });
+
+        throws(function() {
+            r2.position(100,100, { parentRelative: true });
+        }, 'getter throws an error if "parentRelative" option passed and the element is not part of any collection.');
+
+        throws(function() {
+            r2.position({ parentRelative: true });
+        }, 'getter throws an error if "parentRelative" option passed and the element is not part of any collection.');
+
+        this.graph.addCell(r2);
+
+        deepEqual(r2.position({ parentRelative: true }), r2.position(), 'getter with "parentRelative" option works in same way as getter without this option for an unembed element.');
+
+        r1.embed(r2);
+
+        r2.position(10,10, { parentRelative: true });
+        checkBbox(this.paper, r2, 210, 210, 30, 30, 'setter "position(a,b)" with "parentRelative" option should move element to the position relative to its parent.');
+
+        pos = r2.position({ parentRelative: true });
+        deepEqual(pos.toString(), "10@10", 'getter with "parentRelative" option returns position relative to the element parent.');
+
     });
 
-    var embed = new joint.shapes.basic.Rect({
-        position: { x: 100, y: 70 },
-        size: { width: 120, height: 80 }
+    QUnit.test('translate()', function() {
+
+        var myrect = new joint.shapes.basic.Rect({
+            position: { x: 20, y: 30 },
+            size: { width: 120, height: 80 },
+            attrs: { text: { text: 'my rectangle' } }
+        });
+
+        this.graph.addCell(myrect);
+
+        myrect.translate(50);
+        checkBbox(this.paper, myrect, 70, 30, 120, 80, 'translate(50) should translate by 50px in x direction only');
+
+        myrect.translate(0, 20);
+        checkBbox(this.paper, myrect, 70, 50, 120, 80, 'translate(0, 20) should translate by 20px in y direction only');
+
+        myrect.translate(10, 10);
+        checkBbox(this.paper, myrect, 80, 60, 120, 80, 'translate(10, 10) should translate by 10px in both x and y directions');
+
+        myrect.translate(-10, -10);
+        checkBbox(this.paper, myrect, 70, 50, 120, 80, 'translate(-10, -10) should translate back by 10px in both x and y directions');
     });
 
-    this.graph.addCell(rect);
+    QUnit.test('translate() with restrictedArea option', function(assert) {
 
-    rect.translate(1000, 0, { restrictedArea: { x: 0, y: 0, height: 1000, width: 150 }});
-    assert.equal(rect.prop('position/x'), 30, 'restrictedArea is respected when the element is translated to the left.');
+        var rect = new joint.shapes.basic.Rect({
+            position: { x: 20, y: 30 },
+            size: { width: 120, height: 80 }
+        });
 
-    rect.translate(0, 1000, { restrictedArea: { x: 0, y: 0, height: 150, width: 1000 }});
-    assert.equal(rect.prop('position/y'), 70, 'restrictedArea is respected when the element is translated to the bottom.');
+        var embed = new joint.shapes.basic.Rect({
+            position: { x: 100, y: 70 },
+            size: { width: 120, height: 80 }
+        });
 
-    rect.translate(-1000, 0, { restrictedArea: { x: 10, y: 0, height: 1000, width: 1000 }});
-    assert.equal(rect.prop('position/x'), 10, 'restrictedArea is respected when the element is translated to the right.');
+        this.graph.addCell(rect);
 
-    rect.translate(0, -1000, { restrictedArea: { x: 0, y: 10, height: 1000, width: 1000 }});
-    assert.equal(rect.prop('position/y'), 10, 'restrictedArea is respected when the element is translated to the top.');
+        rect.translate(1000, 0, { restrictedArea: { x: 0, y: 0, height: 1000, width: 150 }});
+        assert.equal(rect.prop('position/x'), 30, 'restrictedArea is respected when the element is translated to the left.');
 
-    rect.position(50, 50).embed(embed);
-    this.graph.addCell(embed);
+        rect.translate(0, 1000, { restrictedArea: { x: 0, y: 0, height: 150, width: 1000 }});
+        assert.equal(rect.prop('position/y'), 70, 'restrictedArea is respected when the element is translated to the bottom.');
 
-    rect.translate(1000, 0, { restrictedArea: { x: 0, y: 0, height: 1000, width: 500 }});
-    assert.equal(rect.prop('position/x'), 330, 'restrictedArea is respected when the element and its embeds are translated to the left.');
+        rect.translate(-1000, 0, { restrictedArea: { x: 10, y: 0, height: 1000, width: 1000 }});
+        assert.equal(rect.prop('position/x'), 10, 'restrictedArea is respected when the element is translated to the right.');
 
-    rect.translate(0, 1000, { restrictedArea: { x: 0, y: 0, height: 500, width: 1000 }});
-    assert.equal(rect.prop('position/y'), 400, 'restrictedArea is respected when the element and its embeds are translated to the bottom.');
+        rect.translate(0, -1000, { restrictedArea: { x: 0, y: 10, height: 1000, width: 1000 }});
+        assert.equal(rect.prop('position/y'), 10, 'restrictedArea is respected when the element is translated to the top.');
 
-    rect.position(50, 50);
-    embed.position(20,20);
+        rect.position(50, 50).embed(embed);
+        this.graph.addCell(embed);
 
-    rect.translate(-1000, 0, { restrictedArea: { x: 10, y: 0, height: 1000, width: 1000 }});
-    assert.equal(rect.prop('position/x'), 40, 'restrictedArea is respected when the element and its embeds are translated to the right.');
+        rect.translate(1000, 0, { restrictedArea: { x: 0, y: 0, height: 1000, width: 500 }});
+        assert.equal(rect.prop('position/x'), 330, 'restrictedArea is respected when the element and its embeds are translated to the left.');
 
-    rect.translate(0, -1000, { restrictedArea: { x: 0, y: 10, height: 1000, width: 1000 }});
-    assert.equal(rect.prop('position/y'), 40, 'restrictedArea is respected when the element and its embeds are translated to the top.');
-});
+        rect.translate(0, 1000, { restrictedArea: { x: 0, y: 0, height: 500, width: 1000 }});
+        assert.equal(rect.prop('position/y'), 400, 'restrictedArea is respected when the element and its embeds are translated to the bottom.');
 
-test('resize()', function() {
+        rect.position(50, 50);
+        embed.position(20,20);
 
-    var myrect = new joint.shapes.basic.Rect({
-        position: { x: 20, y: 30 },
-        size: { width: 120, height: 80 },
-        attrs: { text: { text: '' } }
+        rect.translate(-1000, 0, { restrictedArea: { x: 10, y: 0, height: 1000, width: 1000 }});
+        assert.equal(rect.prop('position/x'), 40, 'restrictedArea is respected when the element and its embeds are translated to the right.');
+
+        rect.translate(0, -1000, { restrictedArea: { x: 0, y: 10, height: 1000, width: 1000 }});
+        assert.equal(rect.prop('position/y'), 40, 'restrictedArea is respected when the element and its embeds are translated to the top.');
     });
 
-    this.graph.addCell(myrect);
+    QUnit.test('resize()', function() {
 
-    myrect.resize(120, 80);
-    checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 120, height: 80 }, 'resize([same width], [same height]) should not change bbox');
+        var myrect = new joint.shapes.basic.Rect({
+            position: { x: 20, y: 30 },
+            size: { width: 120, height: 80 },
+            attrs: { text: { text: '' } }
+        });
 
-    myrect.resize(240, 160);
-    checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 240, height: 160 }, 'resize([2*width], [2*height]) should scale twice preserving origin as it was');
+        this.graph.addCell(myrect);
 
-    myrect.resize(120, 80);
-    checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 120, height: 80 }, 'resize([orig width], [orig height]): should scale back to the original size and origin');
+        myrect.resize(120, 80);
+        checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 120, height: 80 }, 'resize([same width], [same height]) should not change bbox');
 
-    myrect.resize(200, 160, { direction: 'right' });
-    checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 200, height: 80 }, 'resize([new width], [new height], { direction: "right" }) should scale only width, origin should be unchanged');
+        myrect.resize(240, 160);
+        checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 240, height: 160 }, 'resize([2*width], [2*height]) should scale twice preserving origin as it was');
 
-    myrect.resize(80, 240, { direction: 'bottom' });
-    checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 200, height: 240 }, 'resize([new width], [new height], { direction: "bottom" }) should scale only height, origin should be unchanged');
+        myrect.resize(120, 80);
+        checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 120, height: 80 }, 'resize([orig width], [orig height]): should scale back to the original size and origin');
 
-    myrect.resize(50, 50, { direction: 'bottom-right' });
-    checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 50, height: 50 }, 'resize([new width], [new height], { direction: "bottom-right" }) should scale both width and height, origin should be unchanged');
+        myrect.resize(200, 160, { direction: 'right' });
+        checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 200, height: 80 }, 'resize([new width], [new height], { direction: "right" }) should scale only width, origin should be unchanged');
 
-    myrect.resize(20, 20, { direction: 'top-left' });
-    checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 50, y: 60, width: 20, height: 20 }, 'resize([new width], [new height], { direction: "top-left" }) should scale both width and height, should change position');
-});
+        myrect.resize(80, 240, { direction: 'bottom' });
+        checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 200, height: 240 }, 'resize([new width], [new height], { direction: "bottom" }) should scale only height, origin should be unchanged');
 
-test('rotate()', function() {
+        myrect.resize(50, 50, { direction: 'bottom-right' });
+        checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 50, height: 50 }, 'resize([new width], [new height], { direction: "bottom-right" }) should scale both width and height, origin should be unchanged');
 
-    var myrect = new joint.shapes.basic.Rect({
-        position: { x: 20, y: 30 },
-        size: { width: 120, height: 80 },
-        attrs: { text: { text: 'my rectangle' } }
+        myrect.resize(20, 20, { direction: 'top-left' });
+        checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 50, y: 60, width: 20, height: 20 }, 'resize([new width], [new height], { direction: "top-left" }) should scale both width and height, should change position');
     });
 
-    this.graph.addCell(myrect);
+    QUnit.test('rotate()', function() {
 
-    myrect.rotate(90);
-    checkBbox(this.paper, myrect, 40, 10, 80, 120, 'rotate(90) should rotate the object by 90 degrees around its center');
+        var myrect = new joint.shapes.basic.Rect({
+            position: { x: 20, y: 30 },
+            size: { width: 120, height: 80 },
+            attrs: { text: { text: 'my rectangle' } }
+        });
 
-    myrect.rotate(-90);
-    checkBbox(this.paper, myrect, 20, 30, 120, 80, 'rotate(-90) should rotate the object back to its original angle');
+        this.graph.addCell(myrect);
 
-    // Rotation around an origin.
-    myrect.rotate(180, false, { x: 140, y: 70 });
-    checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) should rotate the object around the middle of its right edge');
-    
-    myrect.rotate(180, true, { x: 140, y: 70 });    
-    checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) with absolute flag should not rotate the object as it is already rotated');
-});
+        myrect.rotate(90);
+        checkBbox(this.paper, myrect, 40, 10, 80, 120, 'rotate(90) should rotate the object by 90 degrees around its center');
 
+        myrect.rotate(-90);
+        checkBbox(this.paper, myrect, 20, 30, 120, 80, 'rotate(-90) should rotate the object back to its original angle');
 
-test('object reconstruction after several transformations', function() {
+        // Rotation around an origin.
+        myrect.rotate(180, false, { x: 140, y: 70 });
+        checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) should rotate the object around the middle of its right edge');
 
-    var r1 = new joint.shapes.basic.Rect({
-        size: { width: 120, height: 80 },
-        attrs: { text: { text: 'my rectangle' } }
-    });
-    this.graph.addCell(r1);
-
-    r1.resize(150, 60);
-    r1.rotate(45);
-    r1.translate(20, 30);
-    r1.rotate(15);
-    r1.resize(20, 30);
-    r1.rotate(45, true);
-    r1.rotate(-15);
-
-    var r2 = r1.clone();
-    this.graph.addCell(r2);
-
-    var r1View = this.paper.findViewByModel(r1);
-    var r2View = this.paper.findViewByModel(r2);
-
-    var r1Bbox = g.rect(r1View.getBBox()).round();
-    var r2Bbox = g.rect(r2View.getBBox()).round();
-    
-    deepEqual(
-        { x: r1Bbox.x, y: r1Bbox.y, width: r1Bbox.width, height: r1Bbox.height },
-        { x: r2Bbox.x, y: r2Bbox.y, width: r2Bbox.width, height: r2Bbox.height },
-        'bounding box of the clone of an element that has been severely transformed is the same as of the original element'
-    );
-});
-
-test('attr()', function() {
-
-    var el = new joint.shapes.basic.Generic({
-        position: { x: 20, y: 30 },
-        markup: '<rect class="big"/><rect class="small"/>',
-        attrs: {
-            '.big': { width: 100, height: 50, fill: 'gray' },
-            '.small': { width: 10, height: 10, fill: 'red' }
-        }
+        myrect.rotate(180, true, { x: 140, y: 70 });
+        checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) with absolute flag should not rotate the object as it is already rotated');
     });
 
-    this.graph.addCell(el);
 
-    var elView = this.paper.findViewByModel(el);
+    QUnit.test('object reconstruction after several transformations', function() {
 
-    equal(elView.$('.big').attr('opacity'), undefined, 'No opacity is set on the element');
+        var r1 = new joint.shapes.basic.Rect({
+            size: { width: 120, height: 80 },
+            attrs: { text: { text: 'my rectangle' } }
+        });
+        this.graph.addCell(r1);
 
-    el.attr({ '.big': { opacity: .5 } });
-    
-    equal(elView.$('.big').attr('opacity'), .5, '.5 opacity was correctly set by attr()');
-    
-});
+        r1.resize(150, 60);
+        r1.rotate(45);
+        r1.translate(20, 30);
+        r1.rotate(15);
+        r1.resize(20, 30);
+        r1.rotate(45, true);
+        r1.rotate(-15);
 
-test('removeAttr()', function() {
+        var r2 = r1.clone();
+        this.graph.addCell(r2);
 
-    var el = new joint.shapes.basic.Generic({
-        position: { x: 20, y: 30 },
-        markup: '<rect class="big"/><rect class="small"/>',
-        attrs: {
-            '.big': { width: 100, height: 50, fill: 'gray', stroke: 'pink' },
-            '.small': { width: 10, height: 10, fill: 'red' }
-        }
+        var r1View = this.paper.findViewByModel(r1);
+        var r2View = this.paper.findViewByModel(r2);
+
+        var r1Bbox = g.rect(r1View.getBBox()).round();
+        var r2Bbox = g.rect(r2View.getBBox()).round();
+
+        deepEqual(
+            { x: r1Bbox.x, y: r1Bbox.y, width: r1Bbox.width, height: r1Bbox.height },
+            { x: r2Bbox.x, y: r2Bbox.y, width: r2Bbox.width, height: r2Bbox.height },
+            'bounding box of the clone of an element that has been severely transformed is the same as of the original element'
+        );
     });
 
-    this.graph.addCell(el);
+    QUnit.test('attr()', function() {
 
-    var elView = this.paper.findViewByModel(el);
+        var el = new joint.shapes.basic.Generic({
+            position: { x: 20, y: 30 },
+            markup: '<rect class="big"/><rect class="small"/>',
+            attrs: {
+                '.big': { width: 100, height: 50, fill: 'gray' },
+                '.small': { width: 10, height: 10, fill: 'red' }
+            }
+        });
 
-    equal(elView.$('.big').attr('stroke'), 'pink', 'A stroke is set on the element');
+        this.graph.addCell(el);
 
-    el.removeAttr('.big/stroke');
+        var elView = this.paper.findViewByModel(el);
 
-    equal(elView.$('.big').attr('stroke'), undefined, 'The stroke was correctly unset from the element by removeAttr()');
+        equal(elView.$('.big').attr('opacity'), undefined, 'No opacity is set on the element');
 
-    var link = new joint.dia.Link({
-        source: { x: 100, y: 100 },
-        target: { x: 200, y: 200 },
-        attrs: {
-            '.connection': { width: 100, height: 50, fill: 'gray', 'stroke-width': 2 }
-        }
+        el.attr({ '.big': { opacity: .5 } });
+
+        equal(elView.$('.big').attr('opacity'), .5, '.5 opacity was correctly set by attr()');
+
     });
 
-    this.graph.addCell(link);
+    QUnit.test('removeAttr()', function() {
 
-    var linkView = this.paper.findViewByModel(link);
+        var el = new joint.shapes.basic.Generic({
+            position: { x: 20, y: 30 },
+            markup: '<rect class="big"/><rect class="small"/>',
+            attrs: {
+                '.big': { width: 100, height: 50, fill: 'gray', stroke: 'pink' },
+                '.small': { width: 10, height: 10, fill: 'red' }
+            }
+        });
 
-    equal(linkView.$('.connection').attr('stroke-width'), '2', 'A stroke is set on the link');
+        this.graph.addCell(el);
 
-    link.removeAttr('.connection/stroke-width');
+        var elView = this.paper.findViewByModel(el);
 
-    equal(linkView.$('.connection').attr('stroke-width'), undefined, 'The stroke was correctly unset from the link by removeAttr()');
+        equal(elView.$('.big').attr('stroke'), 'pink', 'A stroke is set on the element');
 
-});
+        el.removeAttr('.big/stroke');
 
+        equal(elView.$('.big').attr('stroke'), undefined, 'The stroke was correctly unset from the element by removeAttr()');
 
-test('prop()', function() {
+        var link = new joint.dia.Link({
+            source: { x: 100, y: 100 },
+            target: { x: 200, y: 200 },
+            attrs: {
+                '.connection': { width: 100, height: 50, fill: 'gray', 'stroke-width': 2 }
+            }
+        });
 
-    var el = new joint.shapes.basic.Rect({
-	flat: 5,
-	object: { nested: { value: 'foo' }, nested2: { value: 'bar' } },
-	array: [[5], [{ value: ['bar'] }]],
-        a: { b: { c: 1 }}
+        this.graph.addCell(link);
+
+        var linkView = this.paper.findViewByModel(link);
+
+        equal(linkView.$('.connection').attr('stroke-width'), '2', 'A stroke is set on the link');
+
+        link.removeAttr('.connection/stroke-width');
+
+        equal(linkView.$('.connection').attr('stroke-width'), undefined, 'The stroke was correctly unset from the link by removeAttr()');
+
     });
 
-    equal(el.prop('flat'), 5, 'flat value returned in getter');
-    equal(el.prop('object/nested/value'), 'foo', 'nested object value returned in getter');
-    deepEqual(el.prop('array/0'), [5], 'nested array returned in getter');
-    equal(el.prop('array/0/0'), 5, 'value in nested array returned in getter');
-    deepEqual(el.prop('array/1/0/value'), ['bar'], 'object in nested array returned in getter');
-    equal(el.prop('array/1/0/value/0'), 'bar', 'value in nested object in nested array returned in getter');
 
-    el.prop('array/1/0/value/0', 'baz');
-    equal(el.prop('array/1/0/value/0'), 'baz', 'value in nested object in nested array set correctly');
-    ok(_.isArray(el.prop('array/1/0/value')), 'type of the nested array was preserved');
-    ok(_.isObject(el.prop('array/1/0')), 'type of the nested object was preserved');
-    ok(_.isArray(el.prop('array/1')), 'type of the nested array was preserved');
-    ok(_.isArray(el.prop('array')), 'type of the top level array was preserved');
+    QUnit.test('prop()', function() {
 
-    el.prop('array/1/0/value', { s: 'baz' });
-    deepEqual(el.prop('array/1/0/value'), { s: 'baz' }, 'value in nested object in nested array set correctly');
-    ok(_.isObject(el.prop('array/1/0/value')), 'type of the object was changed');
+        var el = new joint.shapes.basic.Rect({
+	          flat: 5,
+	          object: { nested: { value: 'foo' }, nested2: { value: 'bar' } },
+	          array: [[5], [{ value: ['bar'] }]],
+            a: { b: { c: 1 }}
+        });
 
-    el.prop('array/2', 10);
-    ok(_.isArray(el.prop('array')), 'type of the top level array was preserved after adding new item');
-    equal(el.prop('array/2'), '10', 'value of the newly added array item is correct');
+        equal(el.prop('flat'), 5, 'flat value returned in getter');
+        equal(el.prop('object/nested/value'), 'foo', 'nested object value returned in getter');
+        deepEqual(el.prop('array/0'), [5], 'nested array returned in getter');
+        equal(el.prop('array/0/0'), 5, 'value in nested array returned in getter');
+        deepEqual(el.prop('array/1/0/value'), ['bar'], 'object in nested array returned in getter');
+        equal(el.prop('array/1/0/value/0'), 'bar', 'value in nested object in nested array returned in getter');
 
-    el.prop({ array: [['foo']] });
-    ok(_.isArray(el.prop('array')), 'type of the top level array was preserved after changing an item');
-    equal(el.prop('array/0/0'), 'foo', 'value of the newly added array item is correct');    
-    ok(_.isArray(el.prop('array/0')), 'type of the nested array is correct');
+        el.prop('array/1/0/value/0', 'baz');
+        equal(el.prop('array/1/0/value/0'), 'baz', 'value in nested object in nested array set correctly');
+        ok(_.isArray(el.prop('array/1/0/value')), 'type of the nested array was preserved');
+        ok(_.isObject(el.prop('array/1/0')), 'type of the nested object was preserved');
+        ok(_.isArray(el.prop('array/1')), 'type of the nested array was preserved');
+        ok(_.isArray(el.prop('array')), 'type of the top level array was preserved');
 
-    var called = false;
-    el.once('change:array', function(cell, changed, opt) {
-	ok(opt.flag, 'options object was correctly passed in path syntax of prop');
-	called = true;
-    });
-    el.prop('array/0', 'something', { flag: true });
-    ok(called, 'on change callback with options passed was called');
+        el.prop('array/1/0/value', { s: 'baz' });
+        deepEqual(el.prop('array/1/0/value'), { s: 'baz' }, 'value in nested object in nested array set correctly');
+        ok(_.isObject(el.prop('array/1/0/value')), 'type of the object was changed');
 
-    called = false;
-    el.once('change:array', function(cell, changed, opt) {
-	ok(opt.flag, 'options object was correctly passed in object syntax of prop');
-	called = true;
-    });
-    el.prop({ array: ['something else'] }, { flag: true });
-    ok(called, 'on change callback with options passed was called');
+        el.prop('array/2', 10);
+        ok(_.isArray(el.prop('array')), 'type of the top level array was preserved after adding new item');
+        equal(el.prop('array/2'), '10', 'value of the newly added array item is correct');
 
-    el.prop('object/nested', 'baz');
-    deepEqual(el.prop('object/nested2'), { value: 'bar' }, 'value in untouched nested object was preserved');    
-    equal(el.prop('object/nested'), 'baz', 'value in nested object was changed');
+        el.prop({ array: [['foo']] });
+        ok(_.isArray(el.prop('array')), 'type of the top level array was preserved after changing an item');
+        equal(el.prop('array/0/0'), 'foo', 'value of the newly added array item is correct');
+        ok(_.isArray(el.prop('array/0')), 'type of the nested array is correct');
 
-    el.prop('a/b', { d: 2 }, { rewrite: true });
-    deepEqual(el.prop('a/b'), { d: 2 }, 'rewrite mode doesn\'t merge values');
-});
+        var called = false;
+        el.once('change:array', function(cell, changed, opt) {
+	          ok(opt.flag, 'options object was correctly passed in path syntax of prop');
+	          called = true;
+        });
+        el.prop('array/0', 'something', { flag: true });
+        ok(called, 'on change callback with options passed was called');
 
-test('removeProp()', function() {
+        called = false;
+        el.once('change:array', function(cell, changed, opt) {
+	          ok(opt.flag, 'options object was correctly passed in object syntax of prop');
+	          called = true;
+        });
+        el.prop({ array: ['something else'] }, { flag: true });
+        ok(called, 'on change callback with options passed was called');
 
-    expect(4);
+        el.prop('object/nested', 'baz');
+        deepEqual(el.prop('object/nested2'), { value: 'bar' }, 'value in untouched nested object was preserved');
+        equal(el.prop('object/nested'), 'baz', 'value in nested object was changed');
 
-    var el = new joint.dia.Cell({
-	flat: 6,
-        nested: { a: 4, b: 5 }
-    });
-
-    el.removeProp('NonExisting');
-
-    deepEqual(el.attributes, {
-        id: el.id,
-	flat: 6,
-        nested: { a: 4, b: 5 }
-    }, 'Removing a non-existing property won\'t affect the model\'s attributes.');
-
-    el.removeProp('flat');
-
-    ok(!el.has('flat'), 'A flat property was unset from the model.');
-
-    el.removeProp('nested/a');
-
-    deepEqual(el.get('nested'), { b: 5 }, 'A nested property was unset from the model.');
-
-    el.on('change', function(cell, opt) {
-        ok(opt.OPT_PRESENT, 'Options are propagated to the underlying model method.');
+        el.prop('a/b', { d: 2 }, { rewrite: true });
+        deepEqual(el.prop('a/b'), { d: 2 }, 'rewrite mode doesn\'t merge values');
     });
 
-    el.removeProp('nested/b', { OPT_PRESENT: true });
-});
+    QUnit.test('removeProp()', function() {
 
-test('toBack(), toFront()', function() {
+        expect(4);
 
-    var r1 = new joint.shapes.basic.Rect;
-    var r2 = new joint.shapes.basic.Rect;
+        var el = new joint.dia.Cell({
+	          flat: 6,
+            nested: { a: 4, b: 5 }
+        });
 
-    this.graph.addCell(r1);
-    this.graph.addCell(r2);
+        el.removeProp('NonExisting');
 
-    var r1View = this.paper.findViewByModel(r1);
-    var r2View = this.paper.findViewByModel(r2);
-    
-    notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element is before r2 element in the DOM');
+        deepEqual(el.attributes, {
+            id: el.id,
+	          flat: 6,
+            nested: { a: 4, b: 5 }
+        }, 'Removing a non-existing property won\'t affect the model\'s attributes.');
 
-    r1.toFront();
+        el.removeProp('flat');
 
-    equal(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved after r2 element in the DOM after toFront()');
+        ok(!el.has('flat'), 'A flat property was unset from the model.');
 
-    r1.toBack();
+        el.removeProp('nested/a');
 
-    notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved back before r2 element in the DOM after toBack()');
-});
+        deepEqual(el.get('nested'), { b: 5 }, 'A nested property was unset from the model.');
 
-test('toBack(), toFront() with { deep: true } option', function() {
+        el.on('change', function(cell, opt) {
+            ok(opt.OPT_PRESENT, 'Options are propagated to the underlying model method.');
+        });
 
-    var a1 = new joint.shapes.basic.Rect;
-    var a2 = new joint.shapes.basic.Rect;
-    var a3 = new joint.shapes.basic.Rect;
-    var a4 = new joint.shapes.basic.Rect;
-
-    a1.embed(a2).embed(a3.embed(a4));
-
-    var b1 = new joint.shapes.basic.Rect;
-    var b2 = new joint.shapes.basic.Rect;
-
-    this.graph.addCells([b1, a1, a2, a3, a4, b2]);
-
-    var a1View = this.paper.findViewByModel(a1);
-    var a2View = this.paper.findViewByModel(a2);
-    var a3View = this.paper.findViewByModel(a3);
-    var a4View = this.paper.findViewByModel(a4);
-    var b1View = this.paper.findViewByModel(b1);
-    var b2View = this.paper.findViewByModel(b2);
-    
-    equal(b2View.$el.nextAll('.basic.Rect').length, 0, 'element b2 after a1 element in the DOM');
-    equal(b1View.$el.prevAll('.basic.Rect').length, 0, 'element b1 before a1 element in the DOM');
-
-    a1.toFront({ deep: true });
-
-    equal(_.unique(a1View.$el.prevAll('.basic.Rect').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1,b2 element in the DOM after toFront()');
-    ok(a4View.$el.prev('.basic.Rect')[0] == a3View.el || a4View.$el.prev('.basic.Rect')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
-    ok(a2View.$el.prev('.basic.Rect')[0] == a1View.el || a3View.$el.prev('.basic.Rect')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
-
-    a1.toBack({ deep: true });
-
-    equal(a1View.$el.prevAll('.basic.Rect').length, 0, 'a1 element moved back before a2,a3,a4,b1,b2 elements in the DOM after toBack()');
-    ok(a4View.$el.prev('.basic.Rect')[0] == a3View.el || a4View.$el.prev('.basic.Rect')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
-    ok(a2View.$el.prev('.basic.Rect')[0] == a1View.el || a3View.$el.prev('.basic.Rect')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
-
-});
-
-test('fitEmbeds()', function(assert) {
-
-    var mainGroup = new joint.shapes.basic.Rect;
-    var group1 = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 }});
-    var group2 = new joint.shapes.basic.Rect({ position: { x: 1000, y: 1000 }, size: { width: 10, height: 10 }});
-    var a = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 20, height: 20 }});
-    var b = new joint.shapes.basic.Rect({ position: { x: 200, y: 100 }, size: { width: 20, height: 20 }});
-    var c = new joint.shapes.basic.Rect({ position: { x: 150, y: 200 }, size: { width: 20, height: 20 }});
-
-    mainGroup.embed(group2.embed(c)).embed(group1.embed(a).embed(b));
-
-    assert.throws(function() {
-        a.fitEmbeds({ deep: true });
-    }, /graph/, 'Calling method on element that is not part of a graph throws an error.');
-
-    this.graph.addCells([mainGroup, group1, group2, a, b, c]);
-
-    a.fitEmbeds();
-    assert.deepEqual(a.getBBox(), g.rect(100, 100, 20, 20), 'Calling method on element that has no embeds has no effect.');
-
-    mainGroup.fitEmbeds({ deep: false });
-    assert.deepEqual(mainGroup.getBBox(), g.rect(0, 0, 1010, 1010), 'Shallow call takes embeds only one level deep into account.');
-
-    mainGroup.fitEmbeds({ deep: true });
-    assert.deepEqual(mainGroup.getBBox(), g.rect(100, 100, 120, 120), 'Deep call takes all descendant embeds into account.');
-    assert.deepEqual(group1.getBBox(), g.rect(100, 100, 120, 20), 'After the call the first group fits its embeds.');
-    assert.deepEqual(group2.getBBox(), g.rect(150, 200, 20, 20), 'So the second group.');
-
-    mainGroup.fitEmbeds({ deep: true, padding: 10 });
-    assert.deepEqual(mainGroup.getBBox(), g.rect(80, 80, 160, 160), 'Using padding options is expanding the groups.');
-});
-
-
-test('clone()', function() {
-
-    var r1 = new joint.shapes.basic.Rect({
-        position: { x: 20, y: 30 },
-        size: { width: 120, height: 80 },
-        attrs: { text: { text: 'my rectangle' } }
+        el.removeProp('nested/b', { OPT_PRESENT: true });
     });
 
-    this.graph.addCell(r1);
+    QUnit.test('toBack(), toFront()', function() {
 
-    var r2 = r1.clone();
-    this.graph.addCell(r2);
+        var r1 = new joint.shapes.basic.Rect;
+        var r2 = new joint.shapes.basic.Rect;
 
-    var textEls = this.paper.svg.getElementsByTagName('text');
-    var rectEls = this.paper.svg.getElementsByTagName('rect');
+        this.graph.addCell(r1);
+        this.graph.addCell(r2);
 
-    equal(textEls.length, 2, 'there are exactly two <text> elements in the paper');
-    equal(rectEls.length, 2, 'there are exactly two <rect> elements in the paper');
+        var r1View = this.paper.findViewByModel(r1);
+        var r2View = this.paper.findViewByModel(r2);
 
-    equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
-    equal(textEls[1].textContent, V.sanitizeText('my rectangle'), 'text element of the cloned element has a proper content');
+        notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element is before r2 element in the DOM');
 
-    checkBbox(this.paper, r2, 20, 30, 120, 80, 'cloned element is at the exact same position as the original element');
+        r1.toFront();
 
-    // Check correct offset of the element when translate() is called before appending the element to the paper.
-    // This is critical as in this situation, render() is called after translate() and should therefore
-    // reset the transformation attribute of the element.
-    var r3 = r1.clone();
-    r3.translate(50);
-    this.graph.addCell(r3);
-    checkBbox(this.paper, r3, 70, 30, 120, 80, 'cloned element is offset by 50px to the right of the original element if translate() was called before appending it to the paper');
+        equal(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved after r2 element in the DOM after toFront()');
 
-    // Deep clone.
+        r1.toBack();
 
-    r1.embed(r2);
-    var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id } });
-    this.graph.addCell(l);
-    var clones = r1.clone({ deep: true });
-
-    equal(clones.length, 2, 'deep clone returned two clones for a parent element with one child not including the link (use graph.cloneSubgraph() if this is desired)');
-    ok((clones[0].id === clones[1].get('parent') || (clones[1].id === clones[0].get('parent'))), 'clone of the embedded element gets a parent attribute set to the clone of the parent element');
-
-    this.graph.clear();
-    this.setupTestNestedGraph(this.graph);
-
-    var clones = this.graph.getCell('a').clone({ deep: true });
-    deepEqual(_.map(clones, function(c) { return c.get('name') }), ['a', 'aa', 'c', 'l2', 'aaa'], 'clone({ deep: true }) returns clones including all embedded cells');
-});
-
-test('embed(), unembed()', function() {
-
-    var r1 = new joint.shapes.basic.Rect({
-        position: { x: 20, y: 30 },
-        size: { width: 120, height: 80 },
-        attrs: { text: { text: 'my rectangle' } }
+        notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved back before r2 element in the DOM after toBack()');
     });
 
-    this.graph.addCell(r1);
+    QUnit.test('toBack(), toFront() with { deep: true } option', function() {
 
-    var r2 = r1.clone();
-    this.graph.addCell(r2);
+        var a1 = new joint.shapes.basic.Rect;
+        var a2 = new joint.shapes.basic.Rect;
+        var a3 = new joint.shapes.basic.Rect;
+        var a4 = new joint.shapes.basic.Rect;
 
-    r1.embed(r2);
+        a1.embed(a2).embed(a3.embed(a4));
 
-    r1.translate(50);
-    
-    checkBbox(this.paper, r1, 70, 30, 120, 80, 'translate(50) should translate the parent element by 50px');
-    checkBbox(this.paper, r2, 70, 30, 120, 80, 'embedded element should translate the same as the parent element');
-    equal(r2.get('parent'), r1.id, 'embedded element gains the parent attribute pointing to its parent cell');
+        var b1 = new joint.shapes.basic.Rect;
+        var b2 = new joint.shapes.basic.Rect;
 
-    r1.unembed(r2);
+        this.graph.addCells([b1, a1, a2, a3, a4, b2]);
 
-    r1.translate(-50);
-    checkBbox(this.paper, r1, 20, 30, 120, 80, 'translate(-50) should translate the parent element by -50px');
-    checkBbox(this.paper, r2, 70, 30, 120, 80, 'unembedded element should stay at the same position when its old parent got translated');
-    equal(r2.get('parent'), undefined, 'embedded element gets its parent attribute pointing to its parent cell removed');
+        var a1View = this.paper.findViewByModel(a1);
+        var a2View = this.paper.findViewByModel(a2);
+        var a3View = this.paper.findViewByModel(a3);
+        var a4View = this.paper.findViewByModel(a4);
+        var b1View = this.paper.findViewByModel(b1);
+        var b2View = this.paper.findViewByModel(b2);
 
-    r1.embed(r2);
-    r2.remove();
-    deepEqual(r1.get('embeds'), [], 'embedded element got removed from the embeds array of its parent when the embedded element remove() was called.');
-});
+        equal(b2View.$el.nextAll('.basic.Rect').length, 0, 'element b2 after a1 element in the DOM');
+        equal(b1View.$el.prevAll('.basic.Rect').length, 0, 'element b1 before a1 element in the DOM');
 
-test('isEmbeddedIn()', function() {
+        a1.toFront({ deep: true });
 
-    var r1 = new joint.shapes.basic.Rect;
-    var r2 = r1.clone();
-    var r3 = r1.clone();
+        equal(_.unique(a1View.$el.prevAll('.basic.Rect').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1,b2 element in the DOM after toFront()');
+        ok(a4View.$el.prev('.basic.Rect')[0] == a3View.el || a4View.$el.prev('.basic.Rect')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
+        ok(a2View.$el.prev('.basic.Rect')[0] == a1View.el || a3View.$el.prev('.basic.Rect')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
 
-    r1.embed(r2);
-    r2.embed(r3);
+        a1.toBack({ deep: true });
 
-    this.graph.addCells([r1,r2,r3]);
+        equal(a1View.$el.prevAll('.basic.Rect').length, 0, 'a1 element moved back before a2,a3,a4,b1,b2 elements in the DOM after toBack()');
+        ok(a4View.$el.prev('.basic.Rect')[0] == a3View.el || a4View.$el.prev('.basic.Rect')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
+        ok(a2View.$el.prev('.basic.Rect')[0] == a1View.el || a3View.$el.prev('.basic.Rect')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
 
-    ok(!r1.isEmbeddedIn(r1), 'We have 3 elements. r3 is embedded in r2, r2 is embedded in r1. | r1 is not child of r1. ');
-    ok(r2.isEmbeddedIn(r1), 'r2 is descendent of r1');
-    ok(r3.isEmbeddedIn(r1), 'r3 is descendent of r1');
-    ok(r3.isEmbeddedIn(r1, { deep: false }), 'r3 is not direct child of r1 (option { deep: false })');
-    ok(!r1.isEmbeddedIn(r3), 'r1 is not descendent of r3');
-});
-
-test('findMagnet()', function() {
-
-    var r1 = new joint.shapes.basic.Rect({
-        attrs: { text: { text: 'my\nrectangle' } }
     });
 
-    this.graph.addCell(r1);
+    QUnit.test('fitEmbeds()', function(assert) {
 
-    var r1View = this.paper.findViewByModel(r1);
+        var mainGroup = new joint.shapes.basic.Rect;
+        var group1 = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 }});
+        var group2 = new joint.shapes.basic.Rect({ position: { x: 1000, y: 1000 }, size: { width: 10, height: 10 }});
+        var a = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 20, height: 20 }});
+        var b = new joint.shapes.basic.Rect({ position: { x: 200, y: 100 }, size: { width: 20, height: 20 }});
+        var c = new joint.shapes.basic.Rect({ position: { x: 150, y: 200 }, size: { width: 20, height: 20 }});
 
-    var magnet = r1View.findMagnet('tspan');
-    equal(magnet, r1View.el, 'should return the root element of the view if there is no subelement with magnet attribute set to true');
+        mainGroup.embed(group2.embed(c)).embed(group1.embed(a).embed(b));
 
-    r1.attr({ text: { magnet: true } });
-    magnet = r1View.findMagnet('tspan');
-    equal(magnet, r1View.$('text')[0], 'should return the text element that has the magnet attribute set to true even though we passed the child <tspan> in the selector');
-});
+        assert.throws(function() {
+            a.fitEmbeds({ deep: true });
+        }, /graph/, 'Calling method on element that is not part of a graph throws an error.');
 
-test('getSelector()', function(assert) {
+        this.graph.addCells([mainGroup, group1, group2, a, b, c]);
 
-    var model = new joint.shapes.devs.Model({ inPorts: ['1','2'], outPorts: ['3','4'] });
+        a.fitEmbeds();
+        assert.deepEqual(a.getBBox(), g.rect(100, 100, 20, 20), 'Calling method on element that has no embeds has no effect.');
 
-    // See issue #130 (https://github.com/DavidDurman/joint/issues/130)
-    this.graph.addCell([model.clone(), model.clone(), model.clone(), model]);
+        mainGroup.fitEmbeds({ deep: false });
+        assert.deepEqual(mainGroup.getBBox(), g.rect(0, 0, 1010, 1010), 'Shallow call takes embeds only one level deep into account.');
 
-    var view = model.findView(this.paper);
-    var svgText = view.el.querySelector('.label');
-    var svgPort1 = view.el.querySelector('[port="1"]');
-    var svgPort2 = view.el.querySelector('[port="2"]');
-    var svgPort3 = view.el.querySelector('[port="3"]');
-    var svgPort4 = view.el.querySelector('[port="4"]');
-    var selector;
+        mainGroup.fitEmbeds({ deep: true });
+        assert.deepEqual(mainGroup.getBBox(), g.rect(100, 100, 120, 120), 'Deep call takes all descendant embeds into account.');
+        assert.deepEqual(group1.getBBox(), g.rect(100, 100, 120, 20), 'After the call the first group fits its embeds.');
+        assert.deepEqual(group2.getBBox(), g.rect(150, 200, 20, 20), 'So the second group.');
 
-    selector = view.getSelector(svgText);
-    assert.equal(view.el.querySelector(selector), svgText, 'Applying the selector returned from getSelector() should point to the selected element. It finds the exact same text node.');
-
-    selector = view.getSelector(svgPort1);
-    assert.equal(view.el.querySelector(selector), svgPort1, 'It finds the exact same port no. 1.');
-
-    selector = view.getSelector(svgPort2);
-    assert.equal(view.el.querySelector(selector), svgPort2, 'It finds the exact same port no. 2.');
-
-    selector = view.getSelector(svgPort3);
-    assert.equal(view.el.querySelector(selector), svgPort3, 'It finds the exact same port no. 3.');
-
-    selector = view.getSelector(svgPort4);
-    assert.equal(view.el.querySelector(selector), svgPort4, 'It finds the exact same port no. 4.');
-});
-
-test('ports', function(assert) {
-
-    var model = new joint.shapes.devs.Model({
-        position: {
-            x: 40,
-            y: 40,
-        },
-        size: {
-            width: 80,
-            height: 60,
-        },
-        inPorts: ['1', '2'],
-        outPorts: ['3', '4']
+        mainGroup.fitEmbeds({ deep: true, padding: 10 });
+        assert.deepEqual(mainGroup.getBBox(), g.rect(80, 80, 160, 160), 'Using padding options is expanding the groups.');
     });
 
-    this.graph.addCell(model);
 
-    var view = this.paper.findViewByModel(model);
-    var allPorts = model.get('inPorts').concat(model.get('outPorts'));
+    QUnit.test('clone()', function() {
 
-    _.each(allPorts, function(port) {
-        var $portEl = view.$el.find('[port="' + port + '"]');
-        var foundEl = $portEl.length > 0;
-        assert.equal(foundEl, true, 'port DOM element should exist ("' + port + '")');
+        var r1 = new joint.shapes.basic.Rect({
+            position: { x: 20, y: 30 },
+            size: { width: 120, height: 80 },
+            attrs: { text: { text: 'my rectangle' } }
+        });
+
+        this.graph.addCell(r1);
+
+        var r2 = r1.clone();
+        this.graph.addCell(r2);
+
+        var textEls = this.paper.svg.getElementsByTagName('text');
+        var rectEls = this.paper.svg.getElementsByTagName('rect');
+
+        equal(textEls.length, 2, 'there are exactly two <text> elements in the paper');
+        equal(rectEls.length, 2, 'there are exactly two <rect> elements in the paper');
+
+        equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
+        equal(textEls[1].textContent, V.sanitizeText('my rectangle'), 'text element of the cloned element has a proper content');
+
+        checkBbox(this.paper, r2, 20, 30, 120, 80, 'cloned element is at the exact same position as the original element');
+
+        // Check correct offset of the element when translate() is called before appending the element to the paper.
+        // This is critical as in this situation, render() is called after translate() and should therefore
+        // reset the transformation attribute of the element.
+        var r3 = r1.clone();
+        r3.translate(50);
+        this.graph.addCell(r3);
+        checkBbox(this.paper, r3, 70, 30, 120, 80, 'cloned element is offset by 50px to the right of the original element if translate() was called before appending it to the paper');
+
+        // Deep clone.
+
+        r1.embed(r2);
+        var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id } });
+        this.graph.addCell(l);
+        var clones = r1.clone({ deep: true });
+
+        equal(clones.length, 2, 'deep clone returned two clones for a parent element with one child not including the link (use graph.cloneSubgraph() if this is desired)');
+        ok((clones[0].id === clones[1].get('parent') || (clones[1].id === clones[0].get('parent'))), 'clone of the embedded element gets a parent attribute set to the clone of the parent element');
+
+        this.graph.clear();
+        this.setupTestNestedGraph(this.graph);
+
+        var clones = this.graph.getCell('a').clone({ deep: true });
+        deepEqual(_.map(clones, function(c) { return c.get('name') }), ['a', 'aa', 'c', 'l2', 'aaa'], 'clone({ deep: true }) returns clones including all embedded cells');
     });
 
-    model.set('inPorts', ['1']);
-    model.set('outPorts', ['4']);
+    QUnit.test('embed(), unembed()', function() {
 
-    var removedPorts = ['2', '3'];
+        var r1 = new joint.shapes.basic.Rect({
+            position: { x: 20, y: 30 },
+            size: { width: 120, height: 80 },
+            attrs: { text: { text: 'my rectangle' } }
+        });
 
-    _.each(allPorts, function(port) {
-        var $portEl = view.$el.find('[port="' + port + '"]');
-        var foundEl = $portEl.length > 0;
-        var wasRemoved = _.indexOf(removedPorts, port) !== -1;
-        if (wasRemoved) {
-            assert.equal(foundEl, false, 'port DOM element should not exist ("' + port + '")');
-        } else {
+        this.graph.addCell(r1);
+
+        var r2 = r1.clone();
+        this.graph.addCell(r2);
+
+        r1.embed(r2);
+
+        r1.translate(50);
+
+        checkBbox(this.paper, r1, 70, 30, 120, 80, 'translate(50) should translate the parent element by 50px');
+        checkBbox(this.paper, r2, 70, 30, 120, 80, 'embedded element should translate the same as the parent element');
+        equal(r2.get('parent'), r1.id, 'embedded element gains the parent attribute pointing to its parent cell');
+
+        r1.unembed(r2);
+
+        r1.translate(-50);
+        checkBbox(this.paper, r1, 20, 30, 120, 80, 'translate(-50) should translate the parent element by -50px');
+        checkBbox(this.paper, r2, 70, 30, 120, 80, 'unembedded element should stay at the same position when its old parent got translated');
+        equal(r2.get('parent'), undefined, 'embedded element gets its parent attribute pointing to its parent cell removed');
+
+        r1.embed(r2);
+        r2.remove();
+        deepEqual(r1.get('embeds'), [], 'embedded element got removed from the embeds array of its parent when the embedded element remove() was called.');
+    });
+
+    QUnit.test('isEmbeddedIn()', function() {
+
+        var r1 = new joint.shapes.basic.Rect;
+        var r2 = r1.clone();
+        var r3 = r1.clone();
+
+        r1.embed(r2);
+        r2.embed(r3);
+
+        this.graph.addCells([r1,r2,r3]);
+
+        ok(!r1.isEmbeddedIn(r1), 'We have 3 elements. r3 is embedded in r2, r2 is embedded in r1. | r1 is not child of r1. ');
+        ok(r2.isEmbeddedIn(r1), 'r2 is descendent of r1');
+        ok(r3.isEmbeddedIn(r1), 'r3 is descendent of r1');
+        ok(r3.isEmbeddedIn(r1, { deep: false }), 'r3 is not direct child of r1 (option { deep: false })');
+        ok(!r1.isEmbeddedIn(r3), 'r1 is not descendent of r3');
+    });
+
+    QUnit.test('findMagnet()', function() {
+
+        var r1 = new joint.shapes.basic.Rect({
+            attrs: { text: { text: 'my\nrectangle' } }
+        });
+
+        this.graph.addCell(r1);
+
+        var r1View = this.paper.findViewByModel(r1);
+
+        var magnet = r1View.findMagnet('tspan');
+        equal(magnet, r1View.el, 'should return the root element of the view if there is no subelement with magnet attribute set to true');
+
+        r1.attr({ text: { magnet: true } });
+        magnet = r1View.findMagnet('tspan');
+        equal(magnet, r1View.$('text')[0], 'should return the text element that has the magnet attribute set to true even though we passed the child <tspan> in the selector');
+    });
+
+    QUnit.test('getSelector()', function(assert) {
+
+        var model = new joint.shapes.devs.Model({ inPorts: ['1','2'], outPorts: ['3','4'] });
+
+        // See issue #130 (https://github.com/DavidDurman/joint/issues/130)
+        this.graph.addCell([model.clone(), model.clone(), model.clone(), model]);
+
+        var view = model.findView(this.paper);
+        var svgText = view.el.querySelector('.label');
+        var svgPort1 = view.el.querySelector('[port="1"]');
+        var svgPort2 = view.el.querySelector('[port="2"]');
+        var svgPort3 = view.el.querySelector('[port="3"]');
+        var svgPort4 = view.el.querySelector('[port="4"]');
+        var selector;
+
+        selector = view.getSelector(svgText);
+        assert.equal(view.el.querySelector(selector), svgText, 'Applying the selector returned from getSelector() should point to the selected element. It finds the exact same text node.');
+
+        selector = view.getSelector(svgPort1);
+        assert.equal(view.el.querySelector(selector), svgPort1, 'It finds the exact same port no. 1.');
+
+        selector = view.getSelector(svgPort2);
+        assert.equal(view.el.querySelector(selector), svgPort2, 'It finds the exact same port no. 2.');
+
+        selector = view.getSelector(svgPort3);
+        assert.equal(view.el.querySelector(selector), svgPort3, 'It finds the exact same port no. 3.');
+
+        selector = view.getSelector(svgPort4);
+        assert.equal(view.el.querySelector(selector), svgPort4, 'It finds the exact same port no. 4.');
+    });
+
+    QUnit.test('ports', function(assert) {
+
+        var model = new joint.shapes.devs.Model({
+            position: {
+                x: 40,
+                y: 40,
+            },
+            size: {
+                width: 80,
+                height: 60,
+            },
+            inPorts: ['1', '2'],
+            outPorts: ['3', '4']
+        });
+
+        this.graph.addCell(model);
+
+        var view = this.paper.findViewByModel(model);
+        var allPorts = model.get('inPorts').concat(model.get('outPorts'));
+
+        _.each(allPorts, function(port) {
+            var $portEl = view.$el.find('[port="' + port + '"]');
+            var foundEl = $portEl.length > 0;
             assert.equal(foundEl, true, 'port DOM element should exist ("' + port + '")');
-        }
-    });
-});
+        });
 
-test('ref-x, ref-y, ref', function() {
+        model.set('inPorts', ['1']);
+        model.set('outPorts', ['4']);
 
-    var el = new joint.shapes.basic.Generic({
-        markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
-        size: { width: 100, height: 50 },
-        attrs: {
-            '.big': { width: 100, height: 50, fill: 'gray' },
-            '.small': { width: 10, height: 10, 'ref-x': 20, 'ref-y': 10, fill: 'red' },
-            '.smaller': { width: 5, height: 5, 'ref-x': 20, 'ref-y': 10, ref: '.small', fill: 'black' }
-        }
-    });
+        var removedPorts = ['2', '3'];
 
-    this.graph.addCell(el);
-
-    var elView = this.paper.findViewByModel(el);
-
-    // Range [1, x]
-    
-    var smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
-    
-    deepEqual(
-        { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
-        { x: 20, y: 10, width: 10, height: 10 },
-        'ref-x: 20, ref-y: 10 attributes should offset the element by 20px in x axis and 10px in y axis'
-    );
-
-    // Range [0, 1]
-    
-    el.attr({ '.small': { 'ref-x': .5, 'ref-y': .5 } });
-    
-    smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
-    
-    deepEqual(
-        { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
-        { x: 50, y: 25, width: 10, height: 10 },
-        'ref-x: .5, ref-y: .5 attributes should position the element in the center, i.e. at [50, 25] coordinate'
-    );
-
-    // Percentage
-
-    el.attr({ '.small': { 'ref-x': '50%', 'ref-y': '50%' } });
-
-    smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
-
-    deepEqual(
-        { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
-        { x: 50, y: 25, width: 10, height: 10 },
-        'ref-x: "50%", ref-y: "50%" attributes should position the element in the center, i.e. at [50, 25] coordinate'
-    );
-
-    // Range [-x, 0]
-
-    el.attr({ '.small': { 'ref-x': -10, 'ref-y': -15 } });
-    
-    smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
-    
-    deepEqual(
-        { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
-        { x: -10, y: -15, width: 10, height: 10 },
-        'ref-x: -10, ref-y: -15 attributes should offset the element from the left by 10px and from the top  by 15px'
-    );
-
-    var smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
-
-    deepEqual(
-        { x: smallerRectBbox.x, y: smallerRectBbox.y, width: smallerRectBbox.width, height: smallerRectBbox.height },
-        { x: smallRectBbox.x + 20, y: smallRectBbox.y + 10, width: 5, height: 5 },
-        'ref-x: 20, ref-y: 10 and ref set to .small should offset the element by 20px in x axis and 10px in y axis with respect to the x-y coordinate of the .small element'
-    );
-
-    throws(function() {
-        el.attr({ '.small': { 'ref': '.not-existing-reference' } });
-    }, /dia.ElementView/, 'Use of an invalid reference throws an error.');
-});
-
-test('ref-dx, ref-dy, ref', function() {
-
-    var el = new joint.shapes.basic.Generic({
-        markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
-        size: { width: 100, height: 50 },
-        attrs: {
-            '.big': { width: 100, height: 50, fill: 'gray' },
-            '.small': { width: 10, height: 10, 'ref-dx': 20, 'ref-dy': 10, fill: 'red' },
-            '.smaller': { width: 5, height: 5, 'ref-dx': 10, 'ref-dy': 10, ref: '.small', fill: 'black' }
-        }
+        _.each(allPorts, function(port) {
+            var $portEl = view.$el.find('[port="' + port + '"]');
+            var foundEl = $portEl.length > 0;
+            var wasRemoved = _.indexOf(removedPorts, port) !== -1;
+            if (wasRemoved) {
+                assert.equal(foundEl, false, 'port DOM element should not exist ("' + port + '")');
+            } else {
+                assert.equal(foundEl, true, 'port DOM element should exist ("' + port + '")');
+            }
+        });
     });
 
-    this.graph.addCell(el);
+    QUnit.test('ref-x, ref-y, ref', function() {
 
-    var elView = this.paper.findViewByModel(el);
+        var el = new joint.shapes.basic.Generic({
+            markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
+            size: { width: 100, height: 50 },
+            attrs: {
+                '.big': { width: 100, height: 50, fill: 'gray' },
+                '.small': { width: 10, height: 10, 'ref-x': 20, 'ref-y': 10, fill: 'red' },
+                '.smaller': { width: 5, height: 5, 'ref-x': 20, 'ref-y': 10, ref: '.small', fill: 'black' }
+            }
+        });
 
-    var smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
-    
-    deepEqual(
-        { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
-        { x: 120, y: 60, width: 10, height: 10 },
-        'ref-dx: 20, ref-dy: 10 attributes should offset the element by 20px in x axis and 10px in y axis with respect to the right-bottom coordinate of the ref element'
-    );
+        this.graph.addCell(el);
 
-    var smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
+        var elView = this.paper.findViewByModel(el);
 
-    deepEqual(
-        { x: smallerRectBbox.x, y: smallerRectBbox.y, width: smallerRectBbox.width, height: smallerRectBbox.height },
-        { x: smallRectBbox.x + smallRectBbox.width + 10, y: smallRectBbox.y + smallRectBbox.height + 10, width: 5, height: 5 },
-        'ref-dx: 10, ref-dy: 10 with ref set to .small should offset the element by 10px in x axis and 10px in y axis with respect to the right-bottom coordinate of the .small element'
-    );
-});
+        // Range [1, x]
 
-test('ref-width, ref-height', function() {
+        var smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
-    var el = new joint.shapes.basic.Generic({
-        markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
-        size: { width: 100, height: 50 },
-        attrs: {
-            '.big': { width: 100, height: 50, fill: 'gray' },
-            '.small': { 'ref-width': .5, 'ref-height': .4, ref: '.big', fill: 'red' },
-            '.smaller': { 'ref-width': 10, 'ref-height': -10, ref: '.small', fill: 'black' }
-        }
+        deepEqual(
+            { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
+            { x: 20, y: 10, width: 10, height: 10 },
+            'ref-x: 20, ref-y: 10 attributes should offset the element by 20px in x axis and 10px in y axis'
+        );
+
+        // Range [0, 1]
+
+        el.attr({ '.small': { 'ref-x': .5, 'ref-y': .5 } });
+
+        smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
+
+        deepEqual(
+            { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
+            { x: 50, y: 25, width: 10, height: 10 },
+            'ref-x: .5, ref-y: .5 attributes should position the element in the center, i.e. at [50, 25] coordinate'
+        );
+
+        // Percentage
+
+        el.attr({ '.small': { 'ref-x': '50%', 'ref-y': '50%' } });
+
+        smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
+
+        deepEqual(
+            { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
+            { x: 50, y: 25, width: 10, height: 10 },
+            'ref-x: "50%", ref-y: "50%" attributes should position the element in the center, i.e. at [50, 25] coordinate'
+        );
+
+        // Range [-x, 0]
+
+        el.attr({ '.small': { 'ref-x': -10, 'ref-y': -15 } });
+
+        smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
+
+        deepEqual(
+            { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
+            { x: -10, y: -15, width: 10, height: 10 },
+            'ref-x: -10, ref-y: -15 attributes should offset the element from the left by 10px and from the top  by 15px'
+        );
+
+        var smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
+
+        deepEqual(
+            { x: smallerRectBbox.x, y: smallerRectBbox.y, width: smallerRectBbox.width, height: smallerRectBbox.height },
+            { x: smallRectBbox.x + 20, y: smallRectBbox.y + 10, width: 5, height: 5 },
+            'ref-x: 20, ref-y: 10 and ref set to .small should offset the element by 20px in x axis and 10px in y axis with respect to the x-y coordinate of the .small element'
+        );
+
+        throws(function() {
+            el.attr({ '.small': { 'ref': '.not-existing-reference' } });
+        }, /dia.ElementView/, 'Use of an invalid reference throws an error.');
     });
 
-    this.graph.addCell(el);
+    QUnit.test('ref-dx, ref-dy, ref', function() {
 
-    var elView = this.paper.findViewByModel(el);
+        var el = new joint.shapes.basic.Generic({
+            markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
+            size: { width: 100, height: 50 },
+            attrs: {
+                '.big': { width: 100, height: 50, fill: 'gray' },
+                '.small': { width: 10, height: 10, 'ref-dx': 20, 'ref-dy': 10, fill: 'red' },
+                '.smaller': { width: 5, height: 5, 'ref-dx': 10, 'ref-dy': 10, ref: '.small', fill: 'black' }
+            }
+        });
 
-    var smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
+        this.graph.addCell(el);
 
-    // Range [0, 1]
+        var elView = this.paper.findViewByModel(el);
 
-    deepEqual(
-        { width: smallRectBbox.width, height: smallRectBbox.height },
-        { width: 50, height: 20 },
-        'ref-width: .5, ref-height: .4 attributes should set the element size to 50x20.'
-    );
+        var smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
-    var smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
+        deepEqual(
+            { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
+            { x: 120, y: 60, width: 10, height: 10 },
+            'ref-dx: 20, ref-dy: 10 attributes should offset the element by 20px in x axis and 10px in y axis with respect to the right-bottom coordinate of the ref element'
+        );
 
-    // Percentage
+        var smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
 
-    el.attr({ '.small': { 'ref-width': '50%', 'ref-height': '40%' } });
-
-    deepEqual(
-        { width: smallRectBbox.width, height: smallRectBbox.height },
-        { width: 50, height: 20 },
-        'ref-width: "50%", ref-height: "40%" attributes should set the element size to 50x20.'
-    );
-
-    smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
-
-    // Range [-x, 0] && [1, x]
-
-    deepEqual(
-        { width: smallerRectBbox.width, height: smallerRectBbox.height },
-        { width: 60, height: 10 },
-        'ref-width: 10, ref-height: -10 attributes referenced to the previous element should set the element size to 60x10.'
-    );
-
-    // Margin value 1
-
-    el.attr({ '.small': { 'ref-width': 1, 'ref-height': 1 } });
-
-    smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
-
-    deepEqual(
-        { width: smallRectBbox.width, height: smallRectBbox.height },
-        { width: 100, height: 50 },
-        'ref-width: 1, ref-height: 1 attributes element should set the exact referenced element size 100x50.'
-    );
-
-    el.attr({ '.small': { 'ref-width': 0 } });
-
-    smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
-
-     ok(smallRectBbox.width === 0, 'ref-width: 0 attribute element should set its width to 0.');
-
-});
-
-test('x-alignment, y-alignment', function() {
-
-    var el = new joint.shapes.basic.Generic({
-        markup: '<rect class="big"/><rect class="small"/>',
-        size: { width: 100, height: 50 },
-        attrs: {
-            '.big': { width: 100, height: 50, fill: 'gray' },
-            '.small': { width: 20, height: 20, 'ref-x': .5, 'ref-y': .5, 'y-alignment': 'middle', 'x-alignment': 'middle', fill: 'red' }
-        }
+        deepEqual(
+            { x: smallerRectBbox.x, y: smallerRectBbox.y, width: smallerRectBbox.width, height: smallerRectBbox.height },
+            { x: smallRectBbox.x + smallRectBbox.width + 10, y: smallRectBbox.y + smallRectBbox.height + 10, width: 5, height: 5 },
+            'ref-dx: 10, ref-dy: 10 with ref set to .small should offset the element by 10px in x axis and 10px in y axis with respect to the right-bottom coordinate of the .small element'
+        );
     });
 
-    this.graph.addCell(el);
+    QUnit.test('ref-width, ref-height', function() {
 
-    var elView = this.paper.findViewByModel(el);
+        var el = new joint.shapes.basic.Generic({
+            markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
+            size: { width: 100, height: 50 },
+            attrs: {
+                '.big': { width: 100, height: 50, fill: 'gray' },
+                '.small': { 'ref-width': .5, 'ref-height': .4, ref: '.big', fill: 'red' },
+                '.smaller': { 'ref-width': 10, 'ref-height': -10, ref: '.small', fill: 'black' }
+            }
+        });
 
-    var smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
-    
-    deepEqual(
-        { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
-        { x: 40, y: 15, width: 20, height: 20 },
-        'ref-x: .5, ref-y: .5, x-alignment: middle, y-alignment: middle aligns the element center with the root center'
-    );
-});
+        this.graph.addCell(el);
 
-test('gradient', function() {
+        var elView = this.paper.findViewByModel(el);
 
-    var el = new joint.shapes.basic.Rect;
-    this.graph.addCell(el);
+        var smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
-    var elView = this.paper.findViewByModel(el);
+        // Range [0, 1]
 
-    var defs = this.paper.svg.querySelector('defs');
-    var defsChildrenCount = $(defs).children().length;
-    equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
-    
-    el.attr('rect/fill', {
-        type: 'linearGradient',
-        stops: [
-            { offset: '0%', color: 'red' },
-            { offset: '20%', color: 'blue' }
-        ]
+        deepEqual(
+            { width: smallRectBbox.width, height: smallRectBbox.height },
+            { width: 50, height: 20 },
+            'ref-width: .5, ref-height: .4 attributes should set the element size to 50x20.'
+        );
+
+        var smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
+
+        // Percentage
+
+        el.attr({ '.small': { 'ref-width': '50%', 'ref-height': '40%' } });
+
+        deepEqual(
+            { width: smallRectBbox.width, height: smallRectBbox.height },
+            { width: 50, height: 20 },
+            'ref-width: "50%", ref-height: "40%" attributes should set the element size to 50x20.'
+        );
+
+        smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
+
+        // Range [-x, 0] && [1, x]
+
+        deepEqual(
+            { width: smallerRectBbox.width, height: smallerRectBbox.height },
+            { width: 60, height: 10 },
+            'ref-width: 10, ref-height: -10 attributes referenced to the previous element should set the element size to 60x10.'
+        );
+
+        // Margin value 1
+
+        el.attr({ '.small': { 'ref-width': 1, 'ref-height': 1 } });
+
+        smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
+
+        deepEqual(
+            { width: smallRectBbox.width, height: smallRectBbox.height },
+            { width: 100, height: 50 },
+            'ref-width: 1, ref-height: 1 attributes element should set the exact referenced element size 100x50.'
+        );
+
+        el.attr({ '.small': { 'ref-width': 0 } });
+
+        smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
+
+        ok(smallRectBbox.width === 0, 'ref-width: 0 attribute element should set its width to 0.');
+
     });
 
-    // PhantomJS fails to lookup linearGradient with `querySelectorAll()` (also with jQuery).
-    // Therefore, we use the following trick to check whether the element is in DOM.
-    defsChildrenCount = $(defs).children().length;
-    equal(defsChildrenCount, 1, 'one element got created in <defs>.');
+    QUnit.test('x-alignment, y-alignment', function() {
 
-    var linearGradient = $(defs).children()[0];
-    
-    equal(linearGradient.tagName.toLowerCase(), 'lineargradient', 'one <linearGradient> element got created in <defs>.');
-    equal('url(#' + linearGradient.id + ')', elView.$('rect').attr('fill'), 'fill attribute pointing to the newly created gradient with url()');
+        var el = new joint.shapes.basic.Generic({
+            markup: '<rect class="big"/><rect class="small"/>',
+            size: { width: 100, height: 50 },
+            attrs: {
+                '.big': { width: 100, height: 50, fill: 'gray' },
+                '.small': { width: 20, height: 20, 'ref-x': .5, 'ref-y': .5, 'y-alignment': 'middle', 'x-alignment': 'middle', fill: 'red' }
+            }
+        });
 
-    el.attr('rect/stroke', {
-        type: 'linearGradient',
-        stops: [
-            { offset: '0%', color: 'red' },
-            { offset: '20%', color: 'blue' }
-        ]
+        this.graph.addCell(el);
+
+        var elView = this.paper.findViewByModel(el);
+
+        var smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
+
+        deepEqual(
+            { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
+            { x: 40, y: 15, width: 20, height: 20 },
+            'ref-x: .5, ref-y: .5, x-alignment: middle, y-alignment: middle aligns the element center with the root center'
+        );
     });
 
-    defsChildrenCount = $(defs).children().length;
+    QUnit.test('gradient', function() {
 
-    equal(defsChildrenCount, 1, 'one element is in <defs>.');
+        var el = new joint.shapes.basic.Rect;
+        this.graph.addCell(el);
 
-    linearGradient = $(defs).children()[0];
+        var elView = this.paper.findViewByModel(el);
 
-    equal(linearGradient.tagName.toLowerCase(), 'lineargradient', 'still only one <linearGradient> element is in <defs>.');
-    equal('url(#' + linearGradient.id + ')', elView.$('rect').attr('stroke'), 'stroke attribute pointing to the correct gradient with url()');
-});
+        var defs = this.paper.svg.querySelector('defs');
+        var defsChildrenCount = $(defs).children().length;
+        equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
 
-test('filter', function() {
+        el.attr('rect/fill', {
+            type: 'linearGradient',
+            stops: [
+                { offset: '0%', color: 'red' },
+                { offset: '20%', color: 'blue' }
+            ]
+        });
 
-    var el = new joint.shapes.basic.Rect;
-    var el2 = new joint.shapes.basic.Rect;
+        // PhantomJS fails to lookup linearGradient with `querySelectorAll()` (also with jQuery).
+        // Therefore, we use the following trick to check whether the element is in DOM.
+        defsChildrenCount = $(defs).children().length;
+        equal(defsChildrenCount, 1, 'one element got created in <defs>.');
 
-    this.graph.addCells([el, el2]);
+        var linearGradient = $(defs).children()[0];
 
-    var elView = this.paper.findViewByModel(el);
-    var el2View = this.paper.findViewByModel(el2);
+        equal(linearGradient.tagName.toLowerCase(), 'lineargradient', 'one <linearGradient> element got created in <defs>.');
+        equal('url(#' + linearGradient.id + ')', elView.$('rect').attr('fill'), 'fill attribute pointing to the newly created gradient with url()');
 
-    var defs = this.paper.svg.querySelector('defs');
-    
-    var defsChildrenCount = $(defs).children().length;
-    equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
+        el.attr('rect/stroke', {
+            type: 'linearGradient',
+            stops: [
+                { offset: '0%', color: 'red' },
+                { offset: '20%', color: 'blue' }
+            ]
+        });
 
-    el.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 } });
+        defsChildrenCount = $(defs).children().length;
 
-    // PhantomJS fails to lookup linearGradient with `querySelectorAll()` (also with jQuery).
-    // Therefore, we use the following trick to check whether the element is in DOM.
+        equal(defsChildrenCount, 1, 'one element is in <defs>.');
 
-    defsChildrenCount = $(defs).children().length;
-    equal(defsChildrenCount, 1, 'one element got created in <defs>.');
+        linearGradient = $(defs).children()[0];
 
-    var filter = $(defs).children()[0];
-    
-    equal(filter.tagName.toLowerCase(), 'filter', 'one <filter> element got created in <defs>.');
-    checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the newly created filter with url()');
-
-    el2.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 } });
-
-    defsChildrenCount = $(defs).children().length;
-    equal(defsChildrenCount, 1, 'one element still in <defs>.');
-
-    filter = $(defs).children()[0];
-
-    equal(filter.tagName.toLowerCase(), 'filter', 'still only one <filter> element is in <defs>.');
-    checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the correct gradient with url()');
-
-    el.attr('rect/filter', { name: 'blur', args: { x: 5 } });
-
-    defsChildrenCount = $(defs).children().length;
-    equal(defsChildrenCount, 2, 'now two elements are in <defs>.');
-    var filter0 = $(defs).children()[0];
-    var filter1 = $(defs).children()[1];
-    deepEqual([filter0.tagName.toLowerCase(), filter1.tagName.toLowerCase()], ['filter', 'filter'], 'both elements in <defs> are <filter> elements.');
-    notEqual(filter0.id, filter1.id, 'both <filter> elements have different IDs');
-
-    checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter0.id + ')', 'filter attribute pointing to the correct gradient with url()');
-    checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter1.id + ')', 'filter attribute pointing to the correct gradient with url()');
-});
-
-asyncTest('transition: sanity', 5, function() {
-
-    var p0 = true, p1 = true, p2 = true;
-
-    var el = new joint.shapes.basic.Rect({
-	property: 1
+        equal(linearGradient.tagName.toLowerCase(), 'lineargradient', 'still only one <linearGradient> element is in <defs>.');
+        equal('url(#' + linearGradient.id + ')', elView.$('rect').attr('stroke'), 'stroke attribute pointing to the correct gradient with url()');
     });
 
-    this.graph.addCell(el);
+    QUnit.test('filter', function() {
 
-    el.transition('property', 3, {
-	valueFunction: function(a, b) {
+        var el = new joint.shapes.basic.Rect;
+        var el2 = new joint.shapes.basic.Rect;
 
-	    equal(a, 2, 'The method passes the current value to a valueFunction as start.');
-	    equal(b, 3, 'The method passes the requested value to a valueFunction as end.');
+        this.graph.addCells([el, el2]);
 
-	    return function(t) {
+        var elView = this.paper.findViewByModel(el);
+        var el2View = this.paper.findViewByModel(el2);
 
-		if (t < .1 && p0) {
-		    ok(true, 'Transition starts.');
-		    p0 = false;
-		};
+        var defs = this.paper.svg.querySelector('defs');
 
-		if (t > .1 && t < .9 && p1) {
-		    ok(true, 'Transition runs.');
-		    p1 = false;
-		}
+        var defsChildrenCount = $(defs).children().length;
+        equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
 
-		if (t > .9 && p2) {
-		    ok(true, 'Transition ends.');
-		    p2 = false;
-		    start();
-		}
+        el.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 } });
 
-		return 0;
-	    }
-	}
+        // PhantomJS fails to lookup linearGradient with `querySelectorAll()` (also with jQuery).
+        // Therefore, we use the following trick to check whether the element is in DOM.
+
+        defsChildrenCount = $(defs).children().length;
+        equal(defsChildrenCount, 1, 'one element got created in <defs>.');
+
+        var filter = $(defs).children()[0];
+
+        equal(filter.tagName.toLowerCase(), 'filter', 'one <filter> element got created in <defs>.');
+        checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the newly created filter with url()');
+
+        el2.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 } });
+
+        defsChildrenCount = $(defs).children().length;
+        equal(defsChildrenCount, 1, 'one element still in <defs>.');
+
+        filter = $(defs).children()[0];
+
+        equal(filter.tagName.toLowerCase(), 'filter', 'still only one <filter> element is in <defs>.');
+        checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the correct gradient with url()');
+
+        el.attr('rect/filter', { name: 'blur', args: { x: 5 } });
+
+        defsChildrenCount = $(defs).children().length;
+        equal(defsChildrenCount, 2, 'now two elements are in <defs>.');
+        var filter0 = $(defs).children()[0];
+        var filter1 = $(defs).children()[1];
+        deepEqual([filter0.tagName.toLowerCase(), filter1.tagName.toLowerCase()], ['filter', 'filter'], 'both elements in <defs> are <filter> elements.');
+        notEqual(filter0.id, filter1.id, 'both <filter> elements have different IDs');
+
+        checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter0.id + ')', 'filter attribute pointing to the correct gradient with url()');
+        checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter1.id + ')', 'filter attribute pointing to the correct gradient with url()');
     });
 
-    el.set('property', 2);
-});
+    QUnit.asyncTest('transition: sanity', 5, function() {
 
-asyncTest('transition: primitive value', function() {
+        var p0 = true, p1 = true, p2 = true;
 
-    var el = new joint.shapes.basic.Rect({
-	timer: -1
+        var el = new joint.shapes.basic.Rect({
+	          property: 1
+        });
+
+        this.graph.addCell(el);
+
+        el.transition('property', 3, {
+	          valueFunction: function(a, b) {
+
+	              equal(a, 2, 'The method passes the current value to a valueFunction as start.');
+	              equal(b, 3, 'The method passes the requested value to a valueFunction as end.');
+
+	              return function(t) {
+
+		                if (t < .1 && p0) {
+		                    ok(true, 'Transition starts.');
+		                    p0 = false;
+		                };
+
+		                if (t > .1 && t < .9 && p1) {
+		                    ok(true, 'Transition runs.');
+		                    p1 = false;
+		                }
+
+		                if (t > .9 && p2) {
+		                    ok(true, 'Transition ends.');
+		                    p2 = false;
+		                    start();
+		                }
+
+		                return 0;
+	              }
+	          }
+        });
+
+        el.set('property', 2);
     });
 
-    this.graph.addCell(el);
+    QUnit.asyncTest('transition: primitive value', function() {
 
-    var timerArray = [];
+        var el = new joint.shapes.basic.Rect({
+	          timer: -1
+        });
 
-    el.transition('timer', 100, {
-	delay: 100,
-	duration: 100,
-	valueFunction: function(a, b) { return function(t) { return t; }}
+        this.graph.addCell(el);
+
+        var timerArray = [];
+
+        el.transition('timer', 100, {
+	          delay: 100,
+	          duration: 100,
+	          valueFunction: function(a, b) { return function(t) { return t; }}
+        });
+
+        el.on('change:timer', function(cell, changed) { timerArray.push(changed); });
+
+        setTimeout(function() {
+
+	          var timerMedian = timerArray[Math.floor(timerArray.length / 2)];
+
+	          equal(el.get('timer'), 1, 'The transition sets the primitive property.');
+
+	          deepEqual(timerArray.sort(), timerArray, 'The transition changes the primitive property gradually, ');
+
+	          ok(0 < timerMedian && timerMedian < 1, 'The transition median value is between min and max.');
+
+	          start();
+
+        }, 300);
+
     });
 
-    el.on('change:timer', function(cell, changed) { timerArray.push(changed); });
+    QUnit.asyncTest('transition: nested value', function() {
 
-    setTimeout(function() {
+        var el = new joint.shapes.basic.Rect({
+	          nested: {
+	              timer: -1,
+	              other: 'nochange'
+	          }
+        });
 
-	var timerMedian = timerArray[Math.floor(timerArray.length / 2)];
+        this.graph.addCell(el);
 
-	equal(el.get('timer'), 1, 'The transition sets the primitive property.');
+        var timerArray = [];
 
-	deepEqual(timerArray.sort(), timerArray, 'The transition changes the primitive property gradually, ');
+        el.transition('nested/timer', 100, {
+	          delay: 100,
+	          duration: 100,
+	          valueFunction: function(a, b) { return function(t) { return t; }}
+        });
 
-	ok(0 < timerMedian && timerMedian < 1, 'The transition median value is between min and max.');
+        el.on('change:nested', function(cell, changed) { timerArray.push(changed.timer); });
 
-	start();
+        setTimeout(function() {
 
-    }, 300);
+	          var timerMedian = timerArray[Math.floor(timerArray.length / 2)];
 
-});
+	          equal(el.get('nested').timer, 1, 'The transition sets the nested property.');
 
-asyncTest('transition: nested value', function() {
+	          equal(el.get('nested').other, 'nochange', "The transition affects no other property.");
 
-    var el = new joint.shapes.basic.Rect({
-	nested: {
-	    timer: -1,
-	    other: 'nochange'
-	}
+	          deepEqual(timerArray.sort(), timerArray, 'The transition changes the nested property gradually, ');
+
+	          ok(0 < timerMedian && timerMedian < 1, 'The transition median value is between min and max.');
+
+	          start();
+
+        }, 300);
+
     });
 
-    this.graph.addCell(el);
+    QUnit.test('cell.getAncestors()', function() {
 
-    var timerArray = [];
+        var r0 = new joint.shapes.basic.Rect;
+        var r1 = new joint.shapes.basic.Rect;
+        var r2 = new joint.shapes.basic.Rect;
+        var r3 = new joint.shapes.basic.Rect;
+        var r4 = new joint.shapes.basic.Rect;
+        var r5 = new joint.shapes.basic.Rect;
 
-    el.transition('nested/timer', 100, {
-	delay: 100,
-	duration: 100,
-	valueFunction: function(a, b) { return function(t) { return t; }}
+        r1.embed(r2.embed(r4).embed(r5));
+
+        this.graph.addCells([r1,r2,r3,r4,r5]);
+
+        deepEqual(r0.getAncestors(), [], 'A cell that is not part of a collection has no ancestors.');
+        deepEqual(r1.getAncestors(), [], 'A cell with no parent has no ancestors.');
+        deepEqual(_.pluck(r2.getAncestors(), 'id'), [r1.id], 'A cell embedded in a parent with no ancestor has exactly one ancestor.');
+        deepEqual(_.pluck(r5.getAncestors(), 'id'), [r2.id, r1.id], 'If a cell has more than one ancestor, the ancesotrs are sorted from the parent to the most distant ancestor.');
     });
 
-    el.on('change:nested', function(cell, changed) { timerArray.push(changed.timer); });
+    QUnit.test('cellView: element reference wrapped in Vectorizer', function(assert) {
 
-    setTimeout(function() {
+        var element = new joint.shapes.basic.Rect;
+        var view = element.addTo(this.graph).findView(this.paper);
 
-	var timerMedian = timerArray[Math.floor(timerArray.length / 2)];
+        assert.ok(V.isVElement(view.vel), 'A cellView has attribute "vel" and its value is wrapped in Vectorizer.');
+        assert.equal(view.vel.node, view.el, 'Value of attribtue "vel" references to the view group element (view.el).');
 
-	equal(el.get('nested').timer, 1, 'The transition sets the nested property.');
+    });
 
-	equal(el.get('nested').other, 'nochange', "The transition affects no other property.");
+    QUnit.test('cell.isEmbedded()', function(assert) {
 
-	deepEqual(timerArray.sort(), timerArray, 'The transition changes the nested property gradually, ');
+        var rect = new joint.shapes.basic.Rect;
+        var link = new joint.dia.Link;
+        var embeddedRect = new joint.shapes.basic.Rect;
+        var embeddedLink = new joint.dia.Link;
 
-	ok(0 < timerMedian && timerMedian < 1, 'The transition median value is between min and max.');
+        rect.embed(embeddedRect);
+        rect.embed(embeddedLink);
 
-	start();
+        this.graph.addCells([rect, link, embeddedRect, embeddedLink]);
 
-    }, 300);
+        assert.ok(embeddedRect.isEmbedded(), 'should return TRUE for an embedded element');
+        assert.ok(embeddedLink.isEmbedded(), 'should return TRUE for an embedded link');
+        assert.notOk(rect.isEmbedded(), 'should return FALSE for an element that is NOT embedded');
+        assert.notOk(link.isEmbedded(), 'should return FALSE for a link that is NOT embedded');
+    });
 
-});
+    QUnit.module('Link.applyToPoints()', function(hooks) {
 
-test('cell.getAncestors()', function() {
+        var fn = function(p) {
+            return g.point(p).difference({ x: 10, y: 10 }).toJSON();
+        };
 
-    var r0 = new joint.shapes.basic.Rect;
-    var r1 = new joint.shapes.basic.Rect;
-    var r2 = new joint.shapes.basic.Rect;
-    var r3 = new joint.shapes.basic.Rect;
-    var r4 = new joint.shapes.basic.Rect;
-    var r5 = new joint.shapes.basic.Rect;
+        hooks.beforeEach(function() {
+            this.link = new joint.dia.Link({
+                source: { x: 100, y: 100 },
+                target: { x: 200, y: 200 },
+                vertices: []
+            });
+        });
 
-    r1.embed(r2.embed(r4).embed(r5));
+        QUnit.test('parameters', function(assert) {
+            var l = this.link;
+            assert.throws(function() { l.applyToPoints(null); });
+        });
 
-    this.graph.addCells([r1,r2,r3,r4,r5]);
+        QUnit.test('point-point + no vertices', function(assert) {
+            var l = this.link.applyToPoints(fn);
+            assert.deepEqual(l.get('source'), { x: 90, y: 90 });
+            assert.deepEqual(l.get('target'), { x: 190, y: 190 });
+            assert.deepEqual(l.get('vertices'), []);
+        });
 
-    deepEqual(r0.getAncestors(), [], 'A cell that is not part of a collection has no ancestors.');
-    deepEqual(r1.getAncestors(), [], 'A cell with no parent has no ancestors.');
-    deepEqual(_.pluck(r2.getAncestors(), 'id'), [r1.id], 'A cell embedded in a parent with no ancestor has exactly one ancestor.');
-    deepEqual(_.pluck(r5.getAncestors(), 'id'), [r2.id, r1.id], 'If a cell has more than one ancestor, the ancesotrs are sorted from the parent to the most distant ancestor.');
-});
+        QUnit.test('point-point + vertices', function(assert) {
+            var l = this.link
+                    .set('vertices', [{ x: 10, y: 10 }])
+                    .applyToPoints(fn);
+            assert.deepEqual(l.get('source'), { x: 90, y: 90 });
+            assert.deepEqual(l.get('target'), { x: 190, y: 190 });
+            assert.deepEqual(l.get('vertices'), [{ x: 0, y: 0}]);
+        });
 
-test('cellView: element reference wrapped in Vectorizer', function(assert) {
+        QUnit.test('element-element + no vertices', function(assert) {
+            var l = this.link
+                    .set('source', { id: 'a' })
+                    .set('target', { id: 'b'})
+                    .applyToPoints(fn);
+            assert.deepEqual(l.get('source'), { id: 'a' });
+            assert.deepEqual(l.get('target'), { id: 'b' });
+            assert.deepEqual(l.get('vertices'), []);
+        });
 
-    var element = new joint.shapes.basic.Rect;
-    var view = element.addTo(this.graph).findView(this.paper);
+        QUnit.test('element-element + vertices', function(assert) {
+            var l = this.link
+                    .set('source', { id: 'a' })
+                    .set('target', { id: 'b'})
+                    .set('vertices', [{ x: 10, y: 10 }])
+                    .applyToPoints(fn);
+            assert.deepEqual(l.get('source'), { id: 'a' });
+            assert.deepEqual(l.get('target'), { id: 'b' });
+            assert.deepEqual(l.get('vertices'), [{ x: 0, y: 0 }]);
+        });
 
-    assert.ok(V.isVElement(view.vel), 'A cellView has attribute "vel" and its value is wrapped in Vectorizer.');
-    assert.equal(view.vel.node, view.el, 'Value of attribtue "vel" references to the view group element (view.el).');
+        QUnit.test('event option', function(assert) {
+            var l = this.link;
+            l.on('change', function(link, opt) {
+                assert.ok(opt.linkOption);
+            });
+            l.applyToPoints(fn, { linkOption: true });
+        });
+    });
 
-});
+    QUnit.module('Link.scale()', function(hooks) {
 
-test('cell.isEmbedded()', function(assert) {
+        hooks.beforeEach(function() {
+            this.link = new joint.dia.Link({
+                source: { x: 100, y: 100 },
+                target: { x: 200, y: 200 },
+                vertices: [{x: 100, y: 200 }]
+            });
+        });
 
-    var rect = new joint.shapes.basic.Rect;
-    var link = new joint.dia.Link;
-    var embeddedRect = new joint.shapes.basic.Rect;
-    var embeddedLink = new joint.dia.Link;
+        QUnit.test('no origin', function(assert) {
+            var l = this.link.scale(2,3);
 
-    rect.embed(embeddedRect);
-    rect.embed(embeddedLink);
+            assert.equal(l.get('vertices').length, 1);
+            assert.equal(g.point(l.get('vertices')[0]).toString(), g.point(200,600).toString());
+            assert.equal(g.point(l.get('source')).toString(), g.point(200,300).toString());
+            assert.equal(g.point(l.get('target')).toString(), g.point(400,600).toString());
+        });
 
-    this.graph.addCells([rect, link, embeddedRect, embeddedLink]);
+        QUnit.test('with custom origin', function(assert) {
+            var l = this.link.scale(2,3, g.point(100,100));
 
-    assert.ok(embeddedRect.isEmbedded(), 'should return TRUE for an embedded element');
-    assert.ok(embeddedLink.isEmbedded(), 'should return TRUE for an embedded link');
-    assert.notOk(rect.isEmbedded(), 'should return FALSE for an element that is NOT embedded');
-    assert.notOk(link.isEmbedded(), 'should return FALSE for a link that is NOT embedded');
+            assert.equal(l.get('vertices').length, 1);
+            assert.equal(g.point(l.get('vertices')[0]).toString(), g.point(100,400).toString());
+            assert.equal(g.point(l.get('source')).toString(), g.point(100,100).toString());
+            assert.equal(g.point(l.get('target')).toString(), g.point(300,400).toString());
+        });
+
+        QUnit.test('when connected to elements', function(assert) {
+            var l = this.link
+                    .set('source', { id: 'a' })
+                    .set('target', { id: 'b'})
+                    .scale(2,3);
+
+            assert.equal(l.get('vertices').length, 1);
+            assert.equal(g.point(l.get('vertices')[0]).toString(), g.point(200,600).toString());
+            assert.deepEqual(l.get('source'), { id: 'a' });
+            assert.deepEqual(l.get('target'), { id: 'b' });
+        });
+
+        QUnit.test('event option', function(assert) {
+            var l = this.link;
+            l.on('change', function(link, opt) {
+                assert.ok(opt.linkOption);
+            });
+            l.scale(2,2, null, { linkOption: true });
+        });
+    });
+
+    QUnit.module('Element.scale()', function(hooks) {
+
+        hooks.beforeEach(function() {
+            this.element = new joint.dia.Element({
+                size: { width: 100, height: 100 },
+                position: { x: 100, y: 100 }
+            });
+        });
+
+        QUnit.test('no origin', function(assert) {
+            var el = this.element.scale(2,3);
+            assert.equal(el.getBBox().toString(), g.rect(200,300,200,300).toString());
+        });
+
+        QUnit.test('with custom origin', function(assert) {
+            var el = this.element.scale(2,3, g.point(100,100));
+            assert.equal(el.getBBox().toString(), g.rect(100,100,200,300).toString());
+        });
+
+        QUnit.test('event option', function(assert) {
+            var el = this.element;
+            el.on('change', function(link, opt) {
+                assert.ok(opt.elementOption);
+            });
+            el.scale(2,2, null, { elementOption: true });
+        });
+    });
 });
