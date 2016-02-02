@@ -5,7 +5,8 @@ var paper = new joint.dia.Paper({
     width: 650,
     height: 400,
     gridSize: 20,
-    model: graph
+    model: graph,
+    drawGrid: true
 });
 
 var rect = new joint.shapes.basic.Rect({
