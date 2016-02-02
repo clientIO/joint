@@ -1,21 +1,39 @@
 {
   "name": "jointjs",
-  "private": true,
-  "dependencies": {
-    "backbone": "1.2.3",
-    "dagre": "0.7.4",
-    "graphlib": "1.0.7",
-    "jquery": "2.2.0",
-    "lodash": "3.10.1"
-  },
-  "devDependencies": {
-    "blanket": "1.1.7",
-    "qunit": "1.20.0",
-    "requirejs": "2.1.22"
-  },
+  "description": "JavaScript diagramming library",
   "main": [
     "dist/joint.js",
     "dist/joint.css"
   ],
-  "license": "MPL-2.0"
+  "moduleType": [
+    "globals",
+    "amd",
+    "node"
+  ],
+  "license": "MPL-2.0",
+  "authors": [
+    {
+      "name": "David Durman",
+      "email": "daviddurman@gmail.com"
+    },
+    {
+      "name": "Roman Bruckner",
+      "email": "bruckner.roman@gmail.com"
+    },
+    {
+      "name": "Emanuele Palombo",
+      "email": "emanuele@client.io"
+    },
+    {
+      "name": "Charles Hill",
+      "email": "chill@degreesofzero.com"
+    }
+  ],
+  "dependencies": {
+  },
+  "devDependencies": {
+    "blanket": "1.1.7",
+    "qunit": "1.21.0",
+    "requirejs": "2.1.22"
+  }
 }
