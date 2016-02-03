@@ -942,6 +942,11 @@ joint.dia.CellView = joint.mvc.View.extend({
         this.notify('cell:mouseout', evt);
     },
 
+    mousewheel: function(evt, x, y, delta) {
+
+        this.notify('cell:mousewheel', evt, x, y, delta);
+    },
+
     contextmenu: function(evt, x, y) {
 
         this.notify('cell:contextmenu', evt, x, y);

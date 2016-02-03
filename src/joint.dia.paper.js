@@ -133,7 +133,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         'mouseover .link': 'cellMouseover',
         'mouseout .element': 'cellMouseout',
         'mouseout .link': 'cellMouseout',
-        'contextmenu': 'contextmenu'
+        'contextmenu': 'contextmenu',
+        'mousewheel': 'mousewheel',
+        'DOMMouseScroll': 'mousewheel'
     },
 
     init: function() {
@@ -975,6 +977,26 @@ joint.dia.Paper = joint.mvc.View.extend({
         } else {
 
             this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
+        }
+    },
+
+    mousewheel: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        var originalEvent = evt.originalEvent;
+        var localPoint = this.snapToGrid({ x: originalEvent.clientX, y: originalEvent.clientY });
+        var delta = Math.max(-1, Math.min(1, (originalEvent.wheelDelta || -originalEvent.detail)));
+
+        if (view) {
+
+            view.mousewheel(evt, localPoint.x, localPoint.y, delta);
+
+        } else {
+
+            this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, delta);
         }
     },
 
