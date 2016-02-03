@@ -43,7 +43,7 @@
   "bugs": {
     "url": "https://github.com/clientIO/joint/issues"
   },
-  "license": "MPL 2.0",
+  "license": "MPL-2.0",
   "dependencies": {
     "backbone": "1.2.3",
     "dagre": "0.7.4",
