@@ -6,6 +6,7 @@ TBD (v0.9.8)
     * Added dia.Element scale(), dia.Link scale() for transforming cells by providing a scale ratio and origin.
     * Added dia.Graph resize(), resizeCells() for a group resizing
     * Added dia.Graph getCellsBBox() for getting a group bounding box
+    * Added env namespace with env.test(name) and env.addTest(name, fn) methods.
 
 19-12-2015 (v0.9.6)
        * dia.Graph introduces new functions for traversing graphs: dfs(), bfs(), search(), isSuccessor(), isPredecessor(), getPredecessors(), getSuccessors(), isNeighbor(), isSource(), isSink(), getSources(), getSinks(), getSubgraph(), getFirstCell(), getLastCell() and getCells()

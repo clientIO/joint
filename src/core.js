@@ -43,6 +43,32 @@ var joint = {
         joint.mvc.View.prototype.options.theme = theme;
     },
 
+    // `joint.env` namespace.
+    env: {
+
+        _tests: {
+
+            svgforeignobject: function() {
+                return !!document.createElementNS &&
+              /SVGForeignObject/.test(({}).toString.call(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')));
+            }
+        },
+
+        addTest: function(name, fn) {
+
+            return joint.env._tests[name] = fn;
+        },
+
+        test: function(name) {
+
+            if (!joint.env._tests[name]) {
+                throw new Error('Test not defined ("' + name + '"). Use `joint.env.addTest(name, fn) to add a new test.`');
+            }
+
+            return joint.env._tests[name]();
+        }
+    },
+
     util: {
 
         // Return a simple hash code from a string. See http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/.
