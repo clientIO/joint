@@ -27,12 +27,20 @@ QUnit.module('joint.env', function(hooks) {
 			'should throw error if test does not exist'
 		);
 
-		var called = false;
+		var numCalls = 0;
+
 		joint.env._tests['custom1'] = function() {
-			called = true;
+			numCalls++;
 			return true;
 		};
 
-		assert.ok(joint.env.test('custom1') && called, 'should run a test function');
+		assert.ok(joint.env.test('custom1') && numCalls === 1, 'should run the test function');
+		assert.ok(joint.env.test('custom1') && numCalls === 1, 'should only run the test function once');
+
+		joint.env._tests['throws_error'] = function() {
+			throw new Error('Testing thrown error');
+		};
+
+		assert.notOk(joint.env.test('throws_error'), 'should catch thrown error and return false');
 	});
 });

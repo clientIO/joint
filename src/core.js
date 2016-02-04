@@ -46,6 +46,8 @@ var joint = {
     // `joint.env` namespace.
     env: {
 
+        _results: {},
+
         _tests: {
 
             svgforeignobject: function() {
@@ -61,11 +63,28 @@ var joint = {
 
         test: function(name) {
 
-            if (!joint.env._tests[name]) {
+            var fn = joint.env._tests[name];
+
+            if (!fn) {
                 throw new Error('Test not defined ("' + name + '"). Use `joint.env.addTest(name, fn) to add a new test.`');
             }
 
-            return joint.env._tests[name]();
+            var result = joint.env._results[name];
+
+            if (typeof result !== 'undefined') {
+                return result;
+            }
+
+            try {
+                result = fn();
+            } catch (error) {
+                result = false;
+            }
+
+            // Cache the test result.
+            joint.env._results[name] = result;
+
+            return result;
         }
     },
 
