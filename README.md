@@ -70,12 +70,6 @@ This will install all npm and bower dependencies as well as run a full build.
 
 ### Tests
 
-Before running tests, be sure to run the following:
-```
-npm install
-```
-This will ensure that you have all NPM and bower dependencies, and will run a full build.
-
 To run all tests:
 ```
 grunt test
