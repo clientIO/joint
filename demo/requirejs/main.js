@@ -14,7 +14,7 @@ require.config({
     }
 });
 
-require(['jquery', 'dist/joint'], function($, joint) {
+require(['jquery', 'build/joint'], function($, joint) {
 
     var $paper = $('<div/>').appendTo($('#app'));
 

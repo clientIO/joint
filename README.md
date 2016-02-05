@@ -38,12 +38,43 @@ Only the good ones (those that support SVG):
 * IE 9+
 
 
-## Tests
+## Development Environment
 
-Before running tests, be sure to run a full build:
+If you want to work on JointJS locally, use the following guidelines to get started.
+
+### Dependencies
+
+Make sure you have the following dependencies installed on your system:
+* [Node.js](https://nodejs.org/)
+* [grunt-cli](http://gruntjs.com/using-the-cli)
+* [bower](http://bower.io/)
+* git
+
+### Setup
+
+Clone this git repository:
 ```
-grunt build:all
+git clone https://github.com/clientIO/joint.git
 ```
+
+Change into the joint directory:
+```
+cd joint
+```
+
+Run installation
+```
+npm install
+```
+This will install all npm and bower dependencies as well as run a full build.
+
+### Tests
+
+Before running tests, be sure to run the following:
+```
+npm install
+```
+This will ensure that you have all NPM and bower dependencies, and will run a full build.
 
 To run all tests:
 ```
@@ -62,11 +93,10 @@ grunt test:client
 
 To run code style checks:
 ```
-grunt jscs
+grunt test:code-style
 ```
 
-
-## Code Coverage
+### Code Coverage
 
 It is possible to generate code coverage reports using the existing qunit tests. For example, to output the coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) for all unit tests:
 ```
@@ -76,6 +106,13 @@ grunt qunit:all_coverage --reporter lcov --coverage
 By default, the output will be saved to `coverage.info` at the root of the project directory. You can change the output file like this:
 ```
 grunt qunit:all_coverage --reporter lcov --output customfilename.info --coverage
+```
+
+### Building Distribution Files
+
+The `dist` directory contains pre-built distribution files. To re-build them, run the following:
+```
+grunt dist
 ```
 
 
