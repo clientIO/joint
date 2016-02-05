@@ -37,13 +37,7 @@ test('paper.resetViews()', function() {
 
 test('graph.fromJSON(), graph.toJSON()', function() {
 
-    var json = {
-        "cells":[
-            {"type":"basic.Circle","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},
-            {"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},
-            {"type":"basic.Rect","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}
-        ]
-    };
+    var json = JSON.parse('{"cells":[{"type":"basic.Circle","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"basic.Rect","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}');
 
     this.graph.fromJSON(json);
 
@@ -60,7 +54,7 @@ test('graph.fromJSON(), graph.toJSON()', function() {
 
     this.graph.fromJSON(this.graph.toJSON());
     equal(this.graph.get('cells').length, 3, 'all the cells were reconstructed from JSON');
-    
+
     // Check that the link is before the last cell in the DOM. This check is there because
     // paper might have resorted the cells so that links are always AFTER elements.
     linkView = this.paper.findViewByModel('b4289c08-07ea-49d2-8dde-e67eb2f2a06a');
@@ -83,15 +77,14 @@ test('contextmenu', function() {
 
     var r1View = this.paper.findViewByModel(r1);
     r1View.$el.trigger('contextmenu');
-    ok(cellContextmenuCallback.called, 'cell:contextmenu triggered');    
-
+    ok(cellContextmenuCallback.called, 'cell:contextmenu triggered');
     this.paper.$el.trigger('contextmenu');
-    ok(blankContextmenuCallback.called, 'blank:contextmenu triggered');    
+    ok(blankContextmenuCallback.called, 'blank:contextmenu triggered');
 });
 
 test('paper.getArea()', function(assert) {
 
-    this.paper.setOrigin(0,0);
+    this.paper.setOrigin(0, 0);
     this.paper.setDimensions(1000, 800);
 
     assert.ok(this.paper.getArea() instanceof g.rect, 'Paper area is a geometry rectangle.');
@@ -100,14 +93,14 @@ test('paper.getArea()', function(assert) {
         { x: 0, y: 0, width: 1000, height: 800 },
         'Paper area returns correct results for unscaled, untranslated viewport.');
 
-    this.paper.setOrigin(100,100);
+    this.paper.setOrigin(100, 100);
 
     assert.deepEqual(
         _.pick(this.paper.getArea(), 'x', 'y', 'width', 'height'),
         { x: -100, y: -100, width: 1000, height: 800 },
         'Paper area returns correct results for unscaled, but translated viewport.');
 
-    V(this.paper.viewport).scale(2,2);
+    V(this.paper.viewport).scale(2, 2);
 
     assert.deepEqual(
         _.pick(this.paper.getArea(), 'x', 'y', 'width', 'height'),
@@ -226,30 +219,30 @@ test('paper.options: linkPinning', function(assert) {
 
     this.paper.options.linkPinning = false;
     linkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
-    linkView.pointermove({ target: this.paper.el, type: 'mousemove' }, 50 , 50);
-    linkView.pointerup({ target: this.paper.el, type: 'mouseup' }, 50 , 50);
+    linkView.pointermove({ target: this.paper.el, type: 'mousemove' }, 50, 50);
+    linkView.pointerup({ target: this.paper.el, type: 'mouseup' }, 50, 50);
 
     assert.deepEqual(link.get('target'), { id: target.id }, 'pinning disabled: when the arrowhead is dragged&dropped to the blank paper area, the arrowhead is return to its original position.');
 
     this.paper.options.linkPinning = true;
     linkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
-    linkView.pointermove({ target: this.paper.el, type: 'mousemove' }, 50 , 50);
-    linkView.pointerup({ target: this.paper.el, type: 'mouseup' }, 50 , 50);
+    linkView.pointermove({ target: this.paper.el, type: 'mousemove' }, 50, 50);
+    linkView.pointerup({ target: this.paper.el, type: 'mouseup' }, 50, 50);
 
     assert.deepEqual(link.get('target'), { x: 50, y: 50 }, 'pinning enabled: when the arrowhead is dragged&dropped to the blank paper area, the arrowhead is set to a point.');
 
     this.paper.options.linkPinning = false;
     linkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
-    linkView.pointermove({ target: targetView.el, type: 'mousemove' }, 450 , 150);
-    linkView.pointerup({ target: targetView.el, type: 'mouseup' }, 450 , 150);
+    linkView.pointermove({ target: targetView.el, type: 'mousemove' }, 450, 150);
+    linkView.pointerup({ target: targetView.el, type: 'mouseup' }, 450, 150);
 
     assert.deepEqual(link.get('target'), { id: 'target' }, 'pinning disabled: it\'s still possible to connect link to elements.');
 
     this.paper.options.linkPinning = true;
     source.attr('.', { magnet: true });
     sourceView.pointerdown({ target: sourceView.el, type: 'mousedown' }, 150, 150);
-    sourceView.pointermove({ target: this.paper.el, type: 'mousemove' }, 150 , 400);
-    sourceView.pointerup({ target: this.paper.el, type: 'mouseup' }, 150 , 400);
+    sourceView.pointermove({ target: this.paper.el, type: 'mousemove' }, 150, 400);
+    sourceView.pointerup({ target: this.paper.el, type: 'mouseup' }, 150, 400);
 
     newLink = _.reject(this.graph.getLinks(), { id: 'link' })[0];
     if (newLink) {
@@ -259,8 +252,8 @@ test('paper.options: linkPinning', function(assert) {
 
     this.paper.options.linkPinning = false;
     sourceView.pointerdown({ target: sourceView.el, type: 'mousedown' }, 150, 150);
-    sourceView.pointermove({ target: this.paper.el, type: 'mousemove' }, 150 , 400);
-    sourceView.pointerup({ target: this.paper.el, type: 'mouseup' }, 150 , 400);
+    sourceView.pointermove({ target: this.paper.el, type: 'mousemove' }, 150, 400);
+    sourceView.pointerup({ target: this.paper.el, type: 'mouseup' }, 150, 400);
 
     newLink = _.reject(this.graph.getLinks(), { id: 'link' })[0];
     assert.notOk(newLink, 'pinning disabled: when there was a link created from a magnet a dropped into the blank paper area, the link was removed after the drop.');

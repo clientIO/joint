@@ -129,7 +129,7 @@ test('text', function() {
     equal(V(t.find('tspan')[1]).attr('annotations'), '0', 'annotation indices added as an attribute');
     equal(V(t.find('tspan')[2]).attr('annotations'), '0,1', 'annotation indices added as an attribute');
     equal(V(t.find('tspan')[3]).attr('annotations'), '1', 'annotation indices added as an attribute');
-})
+});
 
 test('annotateString', function() {
 
@@ -182,18 +182,18 @@ test('annotateString', function() {
         ],
         'annotation indices included'
     );
-})
+});
 
 test('styleToObject', function() {
 
     deepEqual(V.styleToObject('fill=red; stroke=blue'), { fill: 'red', stroke: 'blue' }, 'style string parsed properly');
-})
+});
 
 test('mergeAttrs', function() {
 
     deepEqual(
         V.mergeAttrs({ x: 5, y: 10, style: 'fill=red; stroke=blue' }, { y: 20, style: { stroke: 'orange' } }),
-        { x: 5, y: 20, style: { fill: 'red', stroke: 'orange'  } },
+        { x: 5, y: 20, style: { fill: 'red', stroke: 'orange' } },
         'style string parsed properly'
     );
 });
@@ -218,7 +218,7 @@ test('V.transfromPoint', function(assert) {
     t = V.transformPoint(p, group.node.getCTM());
     assert.deepEqual({ x: t.x, y: t.y }, { x: 1, y: 2 }, 'transform without transformation returns the point unchanged.');
 
-    group.scale(2,3);
+    group.scale(2, 3);
     t = V.transformPoint(p, group.node.getCTM());
     assert.deepEqual({ x: t.x, y: t.y }, { x: 2, y: 6 }, 'transform with scale transformation returns correct point.');
 
@@ -281,7 +281,6 @@ test('native getTransformToElement vs VElement getTransformToElement - rotate', 
 
     rect.rotate(45);
 
-
     var transformPoly = group.getTransformToElement(rect.node);
     var matrix = {
         a: normalizeFloat(transformPoly.a),
@@ -318,5 +317,4 @@ QUnit.test('findParentByClass', function(assert) {
         V(this.svgGroup3).findParentByClass('not-a-parent', this.svgCircle),
         'parent does not exist, terminator not on the way down'
     );
-
 });

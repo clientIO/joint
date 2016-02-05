@@ -6,7 +6,6 @@ describe('Sanity check', function() {
 
     describe('require', function() {
 
-        
         it('should return an object', function() {
             joint.should.have.type('object');
             joint.should.not.be.empty;
@@ -20,7 +19,6 @@ describe('Sanity check', function() {
         });
     });
 });
-
 
 describe('Graph', function() {
 
@@ -50,13 +48,11 @@ describe('Graph', function() {
     });
 });
 
-
-
 describe('shapes', function() {
 
     describe('basic', function() {
         it('should contain all the shapes', function() {
-            
+
             ['Rect', 'Text', 'Circle', 'Image', 'Path'].forEach(function(type) {
                 (new joint.shapes.basic[type]()).should.not.be.empty;
             });
@@ -65,7 +61,7 @@ describe('shapes', function() {
 
     describe('erd', function() {
         it('should contain all the shapes', function() {
-            
+
             ['Entity', 'WeakEntity', 'Relationship', 'IdentifyingRelationship', 'Attribute', 'Multivalued', 'Derived', 'Key', 'Normal', 'ISA', 'Line'].forEach(function(type) {
                 (new joint.shapes.erd[type]()).should.not.be.empty;
             });
@@ -74,7 +70,7 @@ describe('shapes', function() {
 
     describe('pn', function() {
         it('should contain all the shapes', function() {
-            
+
             ['Place', 'Transition', 'Link'].forEach(function(type) {
                 (new joint.shapes.pn[type]()).should.not.be.empty;
             });
@@ -83,7 +79,7 @@ describe('shapes', function() {
 
     describe('fsa', function() {
         it('should contain all the shapes', function() {
-            
+
             ['State', 'StartState', 'EndState', 'Arrow'].forEach(function(type) {
                 (new joint.shapes.fsa[type]()).should.not.be.empty;
             });
@@ -92,7 +88,7 @@ describe('shapes', function() {
 
     describe('uml', function() {
         it('should contain all the shapes', function() {
-            
+
             ['Class', 'Abstract', 'Interface', 'Generalization', 'Aggregation', 'Composition', 'Association', 'State', 'StartState', 'EndState', 'Transition'].forEach(function(type) {
                 (new joint.shapes.uml[type]()).should.not.be.empty;
             });
@@ -101,7 +97,7 @@ describe('shapes', function() {
 
     describe('devs', function() {
         it('should contain all the shapes', function() {
-            
+
             ['Model', 'Atomic', 'Coupled', 'Link'].forEach(function(type) {
                 (new joint.shapes.devs[type]()).should.not.be.empty;
             });
@@ -110,7 +106,7 @@ describe('shapes', function() {
 
     describe('org', function() {
         it('should contain all the shapes', function() {
-            
+
             ['Member', 'Arrow'].forEach(function(type) {
                 (new joint.shapes.org[type]()).should.not.be.empty;
             });
@@ -120,7 +116,7 @@ describe('shapes', function() {
     describe('logic', function() {
         it('should contain all the shapes', function() {
 
-            ['Or', 'And', 'Not','Nor', 'Nand', 'Xor', 'Xnor'].forEach(function(type) {
+            ['Or', 'And', 'Not', 'Nor', 'Nand', 'Xor', 'Xnor'].forEach(function(type) {
                 (new joint.shapes.logic[type]()).should.not.be.empty;
             });
         });

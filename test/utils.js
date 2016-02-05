@@ -1,7 +1,7 @@
 // QUnit move the fixture out of the viewport area by setting its position: absolute; top: -10000px; left: -10000px;
 // This helper make it possible to show the fixture quickly for debugging purposes.
 function showFixture() {
-    
+
     $('#qunit-fixture').css({
 
         position: 'static'
@@ -154,7 +154,7 @@ function isHandlerRegistered(el, event, handler) {
 
     var handlers = jQuery._data(document, 'events');
     if (!handlers) return false;
-    
+
     var eventHandlers = handlers[event];
     if (!eventHandlers) return false;
 
@@ -172,7 +172,7 @@ function isHandlerRegistered(el, event, handler) {
 var simulate = {
 
     mouseevent: function(opt) {
-        
+
         var evt = document.createEvent('MouseEvents');
         evt.initMouseEvent(
             opt.type, /*canBubble*/ true, /*cancelable*/ true, /*view*/ window, /*click count*/1,
@@ -209,7 +209,7 @@ var simulate = {
         opt.type = 'mouseover';
         return this.mouseevent(opt);
     },
-    
+
     mouseout: function(opt) {
 
         opt.type = 'mouseout';

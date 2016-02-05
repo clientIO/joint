@@ -116,7 +116,6 @@ QUnit.module('graph', function(hooks) {
         var l3 = ml('l3', c, d);
     };
 
-
     QUnit.test('storing reference on models', function(assert) {
 
         var fromInstance = new joint.shapes.basic.Rect({ id: 'a' });
@@ -157,9 +156,9 @@ QUnit.module('graph', function(hooks) {
         var r2 = new joint.shapes.basic.Rect;
         var r3 = new joint.shapes.basic.Rect;
         var r4 = new joint.shapes.basic.Rect;
-        var l1 = new joint.shapes.basic.Rect({ source: { id: r1.id }, target: { id: r2.id }});
-        var l2 = new joint.shapes.basic.Rect({ source: { id: r2.id }, target: { id: r3.id }});
-        var l3 = new joint.shapes.basic.Rect({ source: { id: r2.id }, target: { id: r4.id }});
+        var l1 = new joint.shapes.basic.Rect({ source: { id: r1.id }, target: { id: r2.id } });
+        var l2 = new joint.shapes.basic.Rect({ source: { id: r2.id }, target: { id: r3.id } });
+        var l3 = new joint.shapes.basic.Rect({ source: { id: r2.id }, target: { id: r4.id } });
 
         graph.addCells([r1, r2, l1, r3, l2, r4]);
         r3.embed(r2);
@@ -198,18 +197,18 @@ QUnit.module('graph', function(hooks) {
         var r6 = new joint.shapes.basic.Rect;
         var r7 = new joint.shapes.basic.Rect;
 
-        this.graph.addCells([r1,r2,r3,r4,r5,r6,r7]);
+        this.graph.addCells([r1, r2, r3, r4, r5, r6, r7]);
 
         r1.embed(r2.embed(r4).embed(r5)).embed(r3.embed(r6));
 
         assert.ok(!this.graph.getCommonAncestor(), 'r1 embeds r2 and r3. r2 embeds r4 and r5. r3 embeds r6. r1 and r7 have no parents. Calling getCommonAncestor() returns no common ancestor.');
         assert.equal((this.graph.getCommonAncestor(r2) || {}).id, r1.id, 'Common ancestor for r2 is r1.');
-        assert.equal((this.graph.getCommonAncestor(r2,r3) || {}).id, r1.id, 'Common ancestor for r2 and r3 is r1.');
-        assert.equal((this.graph.getCommonAncestor(r2,r3,r4) || {}).id, r1.id, 'Common ancestor for r2,r3 and r4 is r1');
-        assert.notOk(this.graph.getCommonAncestor(r2,r3,r7), 'There is no common ancestor for r2,r3 and r5');
-        assert.notOk(this.graph.getCommonAncestor(r2,r3,r1), 'There is no common ancestor for r2,r3 and r1');
-        assert.equal((this.graph.getCommonAncestor(r5,r4) || {}).id, r2.id, 'Common ancestor for r5 and r4 is r2');
-        assert.equal((this.graph.getCommonAncestor(r5,r6) || {}).id, r1.id, 'Common ancestor for r5 and r6 is r1');
+        assert.equal((this.graph.getCommonAncestor(r2, r3) || {}).id, r1.id, 'Common ancestor for r2 and r3 is r1.');
+        assert.equal((this.graph.getCommonAncestor(r2, r3, r4) || {}).id, r1.id, 'Common ancestor for r2, r3 and r4 is r1');
+        assert.notOk(this.graph.getCommonAncestor(r2, r3, r7), 'There is no common ancestor for r2, r3 and r5');
+        assert.notOk(this.graph.getCommonAncestor(r2, r3, r1), 'There is no common ancestor for r2, r3 and r1');
+        assert.equal((this.graph.getCommonAncestor(r5, r4) || {}).id, r2.id, 'Common ancestor for r5 and r4 is r2');
+        assert.equal((this.graph.getCommonAncestor(r5, r6) || {}).id, r1.id, 'Common ancestor for r5 and r6 is r1');
     });
 
     QUnit.test('graph.getConnectedLinks()', function(assert) {
@@ -333,7 +332,7 @@ QUnit.module('graph', function(hooks) {
         this.setupTestTreeGraph(graph);
 
         var clones = graph.cloneCells([graph.getCell('d')].concat(graph.getSuccessors(graph.getCell('d'))));
-        assert.deepEqual(_.map(clones, function(c) { return c.get('name') }), ['d', 'k', 'l', 'm'], 'cloneCells() returns cloned elements without connected links');
+        assert.deepEqual(_.map(clones, function(c) { return c.get('name'); }), ['d', 'k', 'l', 'm'], 'cloneCells() returns cloned elements without connected links');
         assert.ok(_.isObject(clones), 'returned clone map is an object');
         assert.equal(clones['d'].get('name'), 'd', 'returned clone map maps original ID to the clone');
         assert.notEqual(clones['d'].id, 'd', 'returned clone map maps original ID to the clone');
@@ -345,7 +344,7 @@ QUnit.module('graph', function(hooks) {
         this.setupTestTreeGraph(graph);
 
         var clones = graph.cloneSubgraph([graph.getCell('d')].concat(graph.getSuccessors(graph.getCell('d'))));
-        assert.deepEqual(_.map(clones, function(c) { return c.get('name') }), ['d', 'k', 'l', 'm', 'l10', 'l11', 'l12'], 'cloneSubgraph() returns cloned elements including connected links');
+        assert.deepEqual(_.map(clones, function(c) {return c.get('name'); }), ['d', 'k', 'l', 'm', 'l10', 'l11', 'l12'], 'cloneSubgraph() returns cloned elements including connected links');
     });
 
     QUnit.test('graph.getSubgraph()', function(assert) {
@@ -368,13 +367,7 @@ QUnit.module('graph', function(hooks) {
 
     QUnit.test('graph.fromJSON(), graph.toJSON()', function() {
 
-        var json = {
-            "cells":[
-                {"type":"basic.Circle","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},
-                {"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},
-                {"type":"basic.Rect","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}
-            ]
-        };
+        var json = JSON.parse('{"cells":[{"type":"basic.Circle","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"basic.Rect","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}');
 
         this.graph.fromJSON(json);
         equal(this.graph.get('cells').length, 3, 'all the cells were reconstructed from JSON');
@@ -384,13 +377,7 @@ QUnit.module('graph', function(hooks) {
 
     QUnit.test('graph.fetch()', function(assert) {
 
-        var json = {
-            "cells":[
-                {"type":"basic.Circle","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},
-                {"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},
-                {"type":"basic.Rect","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}
-            ]
-        };
+        var json = JSON.parse('{"cells":[{"type":"basic.Circle","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"basic.Rect","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}');
 
         var ajaxStub = sinon.stub($, 'ajax').yieldsTo('success', json);
 
@@ -432,14 +419,14 @@ QUnit.module('graph', function(hooks) {
         });
 
         var under = rect.clone();
-        var away = rect.clone().translate(200,200);
+        var away = rect.clone().translate(200, 200);
 
-        this.graph.addCells([rect,under,away]);
+        this.graph.addCells([rect, under, away]);
 
         assert.deepEqual(this.graph.findModelsUnderElement(away), [], 'There are no models under the element.');
         assert.deepEqual(this.graph.findModelsUnderElement(rect), [under], 'There is a model under the element.');
 
-        under.translate(50,50);
+        under.translate(50, 50);
 
         assert.deepEqual(this.graph.findModelsUnderElement(rect, { searchBy: 'origin' }), [], 'There is no model under the element if searchBy origin option used.');
         assert.deepEqual(this.graph.findModelsUnderElement(rect, { searchBy: 'corner' }), [under], 'There is a model under the element if searchBy corner options used.');
@@ -458,9 +445,11 @@ QUnit.module('graph', function(hooks) {
         var linkJSON = { id: 'b', type: 'link' };
         var nonExistingJSON = { id: 'c', type: 'elements.NonExisting' };
 
-        var graph = new joint.dia.Graph({}, { cellNamespace: {
-            elements: { Element: joint.shapes.basic.Rect }
-        }});
+        var graph = new joint.dia.Graph({}, {
+            cellNamespace: {
+                elements: { Element: joint.shapes.basic.Rect }
+            }
+        });
 
         graph.addCell(elementJSON);
         var element = graph.getCell('a');
@@ -511,7 +500,7 @@ QUnit.module('graph', function(hooks) {
         assert.deepEqual(neighbors(r4), [], 'Returns an empty array if the element has no neighbors.');
         assert.deepEqual(neighbors(r1), ['R2'], 'Element has only outbound link. The neighbor was found.');
         assert.deepEqual(neighbors(r3), ['R2'], 'Element has only inbound link. The neighbor was found.');
-        assert.deepEqual(neighbors(r2), ['R1','R3'], 'Element has both outbound an inbound links. The neighbors were found.');
+        assert.deepEqual(neighbors(r2), ['R1', 'R3'], 'Element has both outbound an inbound links. The neighbors were found.');
         assert.equal(graph.isNeighbor(r2, r3), true, 'isNeighbor() returns true if the element in the second argument is a neighbor of the element in the first argument');
         assert.equal(graph.isNeighbor(r3, r2), true, 'isNeighbor() returns true if the element in the second argument is a neighbor of the element in the first argument');
         assert.equal(graph.isNeighbor(r1, r3), false, 'isNeighbor() returns true if the element in the second argument is not a neighbor of the element in the first argument');
@@ -532,7 +521,7 @@ QUnit.module('graph', function(hooks) {
         //
 
         assert.deepEqual(neighbors(r2, { inbound: true }), ['R1'], 'The inbound links were found.');
-        assert.deepEqual(neighbors(r2, { outbound: true }), ['R3','R4'], 'The outbound links were found.');
+        assert.deepEqual(neighbors(r2, { outbound: true }), ['R3', 'R4'], 'The outbound links were found.');
 
         graph.addCells([l4]);
         l1.set('source', { id: 'R1' }).set('target', { id: 'R2' });
@@ -540,23 +529,23 @@ QUnit.module('graph', function(hooks) {
         l3.set('source', { id: 'R2' }).set('target', { id: 'R3' });
         l4.set('source', { id: 'R1' }).set('target', { id: 'R2' });
         //
-        // [R1] --L1,L4--> [R2] --L2,L3--> [R3]
+        // [R1] --L1, L4--> [R2] --L2, L3--> [R3]
         //
 
-        assert.deepEqual(neighbors(r2), ['R1','R3'], 'There are no duplicates in the result.');
+        assert.deepEqual(neighbors(r2), ['R1', 'R3'], 'There are no duplicates in the result.');
 
         l1.set('source', { id: 'R1' }).set('target', { id: 'R1' });
         l2.remove();
         l3.remove();
         l4.set('source', { id: 'R1' }).set('target', { id: 'R1' });
-        //  [R1] <--L1,L4
+        //  [R1] <--L1, L4
         //    |       |
         //     -------
 
         assert.deepEqual(neighbors(r1), ['R1'], 'Being a self-neighbor is detected.');
         assert.equal(graph.isNeighbor(r1, r1), true, 'Being a self-neighbor is detected in isNeighbor().');
 
-        graph.addCells([l2,l3]);
+        graph.addCells([l2, l3]);
         r1.embed(r2);
         l1.set('source', { id: 'R1' }).set('target', { id: 'R3' });
         l2.set('source', { id: 'R5' }).set('target', { id: 'R1' });
@@ -569,12 +558,12 @@ QUnit.module('graph', function(hooks) {
         // ░░░░▓▓▓R2▓▓--L3-> [R4]
         // ░░░░▓▓▓▓▓▓▓<-L4-- [R6]
 
-        assert.deepEqual(neighbors(r1), ['R3','R5'], 'Embedded elements are not taken into account by default.');
-        assert.deepEqual(neighbors(r2), ['R4','R6'], 'Parent elements are not taken into account by default.');
-        assert.deepEqual(neighbors(r1, { deep: true }), ['R3','R4','R5','R6'], 'The neighbours of the element and all its embdes were found in the deep mode. But not the embdes themselves.');
-        assert.deepEqual(neighbors(r2, { deep: true }), ['R4','R6'], 'Parent elements are not taken into account in the deep mode.');
-        assert.deepEqual(neighbors(r1, { deep: true, outbound: true }), ['R3','R4'], 'The outbound neighbours of the element and all its embdes were found in the deep mode.');
-        assert.deepEqual(neighbors(r1, { deep: true, inbound: true }), ['R5','R6'], 'The inbound neighbours of the element and all its embdes were found in the deep mode.');
+        assert.deepEqual(neighbors(r1), ['R3', 'R5'], 'Embedded elements are not taken into account by default.');
+        assert.deepEqual(neighbors(r2), ['R4', 'R6'], 'Parent elements are not taken into account by default.');
+        assert.deepEqual(neighbors(r1, { deep: true }), ['R3', 'R4', 'R5', 'R6'], 'The neighbours of the element and all its embdes were found in the deep mode. But not the embdes themselves.');
+        assert.deepEqual(neighbors(r2, { deep: true }), ['R4', 'R6'], 'Parent elements are not taken into account in the deep mode.');
+        assert.deepEqual(neighbors(r1, { deep: true, outbound: true }), ['R3', 'R4'], 'The outbound neighbours of the element and all its embdes were found in the deep mode.');
+        assert.deepEqual(neighbors(r1, { deep: true, inbound: true }), ['R5', 'R6'], 'The inbound neighbours of the element and all its embdes were found in the deep mode.');
         assert.equal(graph.isNeighbor(r1, r4, { deep: true }), true, 'isNeighbor() with deep true takes into account embedded elements');
         assert.equal(graph.isNeighbor(r1, r4, { deep: true, inbound: true }), false, 'isNeighbor() with inbound true and deep true takes into account embedded elements');
 
@@ -589,9 +578,9 @@ QUnit.module('graph', function(hooks) {
         // ░░░░▓▓▓R2▓▓<-----
         // ░░░░▓▓▓▓▓▓▓
         assert.deepEqual(neighbors(r1), ['R2'], 'A connected embedded elements is found in the shallow mode.');
-        assert.deepEqual(neighbors(r1, { deep: true }), ['R1','R2'], 'All the connected embedded elements are found in the deep mode.');
+        assert.deepEqual(neighbors(r1, { deep: true }), ['R1', 'R2'], 'All the connected embedded elements are found in the deep mode.');
         assert.deepEqual(neighbors(r1, { deep: true, inbound: true }), ['R1'], 'All the inbound connected embedded elements are found in the deep mode.');
-        assert.deepEqual(neighbors(r1, { deep: true, outbound: true  }), ['R2'], 'All the outbound connected embedded elements are found in the deep mode.');
+        assert.deepEqual(neighbors(r1, { deep: true, outbound: true }), ['R2'], 'All the outbound connected embedded elements are found in the deep mode.');
 
     });
 
@@ -658,8 +647,7 @@ QUnit.module('graph', function(hooks) {
             source: { id: 'rect1' },
             target: { id: 'rect2' },
             vertices: [
-                { x: 60, y: 30 },
-                // { x: 55, y: 25 }
+                { x: 60, y: 30 }
             ]
         });
 
@@ -757,12 +745,12 @@ QUnit.module('graph', function(hooks) {
         hooks.beforeEach(function() {
             var graph = this.graph;
 
-            var el = new joint.shapes.basic.Rect({ size: { width: 100, height: 50 }});
+            var el = new joint.shapes.basic.Rect({ size: { width: 100, height: 50 } });
             var l = new joint.dia.Link();
 
-            this.ea = el.clone().set('id', 'a').position(100,100).addTo(graph);
-            this.eb = el.clone().set('id', 'b').position(300,100).addTo(graph);
-            this.ec = el.clone().set('id', 'c').position(200,300).addTo(graph);
+            this.ea = el.clone().set('id', 'a').position(100, 100).addTo(graph);
+            this.eb = el.clone().set('id', 'b').position(300, 100).addTo(graph);
+            this.ec = el.clone().set('id', 'c').position(200, 300).addTo(graph);
 
             this.l1 = l.clone().set({
                 source: { id: 'a' },
@@ -779,15 +767,15 @@ QUnit.module('graph', function(hooks) {
         QUnit.test('increase size', function(assert) {
             var graph = this.graph;
             graph.resize(600, 500);
-            assert.equal(graph.getBBox().toString(), g.rect(100,100,600,500).toString());
-            assert.equal(g.point(this.l2.get('vertices')[0]).toString(), g.point(500,500).toString());
+            assert.equal(graph.getBBox().toString(), g.rect(100, 100, 600, 500).toString());
+            assert.equal(g.point(this.l2.get('vertices')[0]).toString(), g.point(500, 500).toString());
         });
 
         QUnit.test('decrease size', function(assert) {
             var graph = this.graph;
             graph.resize(60, 50);
-            assert.equal(graph.getBBox().toString(), g.rect(100,100,60,50).toString());
-            assert.equal(g.point(this.l2.get('vertices')[0]).toString(), g.point(140,140).toString());
+            assert.equal(graph.getBBox().toString(), g.rect(100, 100, 60, 50).toString());
+            assert.equal(g.point(this.l2.get('vertices')[0]).toString(), g.point(140, 140).toString());
         });
     });
 
@@ -796,12 +784,12 @@ QUnit.module('graph', function(hooks) {
         hooks.beforeEach(function() {
             var graph = this.graph;
 
-            var el = new joint.shapes.basic.Rect({ size: { width: 100, height: 50 }});
+            var el = new joint.shapes.basic.Rect({ size: { width: 100, height: 50 } });
             var l = new joint.dia.Link();
 
-            this.ea = el.clone().set('id', 'a').position(100,100).addTo(graph);
-            this.eb = el.clone().set('id', 'b').position(300,100).addTo(graph);
-            this.ec = el.clone().set('id', 'c').position(200,300).addTo(graph);
+            this.ea = el.clone().set('id', 'a').position(100, 100).addTo(graph);
+            this.eb = el.clone().set('id', 'b').position(300, 100).addTo(graph);
+            this.ec = el.clone().set('id', 'c').position(200, 300).addTo(graph);
 
             this.l1 = l.clone().set({
                 source: { id: 'a' },
@@ -817,31 +805,31 @@ QUnit.module('graph', function(hooks) {
 
         QUnit.test('no cells provided', function(assert) {
             var graph = this.graph;
-            graph.resizeCells(300,400, []);
-            assert.equal(graph.getBBox().toString(), g.rect(100,100,300,250).toString());
-            assert.equal(g.point(this.l2.get('vertices')[0]).toString(), g.point(300,300).toString());
+            graph.resizeCells(300, 400, []);
+            assert.equal(graph.getBBox().toString(), g.rect(100, 100, 300, 250).toString());
+            assert.equal(g.point(this.l2.get('vertices')[0]).toString(), g.point(300, 300).toString());
         });
 
         QUnit.test('elements and links provided', function(assert) {
             var graph = this.graph;
             graph.resizeCells(100, 100, [this.ea, this.eb, this.ec, this.l1, this.l2]);
-            assert.equal(graph.getBBox().toString(), g.rect(100,100,100,100).toString());
-            graph.resizeCells(300,400, graph.getCells());
-            assert.equal(graph.getBBox().toString(), g.rect(100,100,300,400).toString());
-            assert.equal(g.point(this.l2.get('vertices')[0]).toString(), g.point(300,420).toString());
+            assert.equal(graph.getBBox().toString(), g.rect(100, 100, 100, 100).toString());
+            graph.resizeCells(300, 400, graph.getCells());
+            assert.equal(graph.getBBox().toString(), g.rect(100, 100, 300, 400).toString());
+            assert.equal(g.point(this.l2.get('vertices')[0]).toString(), g.point(300, 420).toString());
         });
 
         QUnit.test('only elements provided', function(assert) {
             var graph = this.graph;
             graph.resizeCells(100, 100, [this.ea, this.eb]);
-            assert.equal(graph.getBBox().toString(), g.rect(100,100,200,250).toString());
-            assert.equal(graph.getCellsBBox([this.ea, this.eb]).toString(), g.rect(100,100,100,100).toString());
+            assert.equal(graph.getBBox().toString(), g.rect(100, 100, 200, 250).toString());
+            assert.equal(graph.getCellsBBox([this.ea, this.eb]).toString(), g.rect(100, 100, 100, 100).toString());
         });
 
         QUnit.test('only links provided', function(assert) {
             var graph = this.graph;
             graph.resizeCells(100, 100, [this.l1, this.l2]);
-            assert.equal(graph.getBBox().toString(), g.rect(100,100,300,250).toString());
+            assert.equal(graph.getBBox().toString(), g.rect(100, 100, 300, 250).toString());
         });
 
         QUnit.test('event options', function(assert) {

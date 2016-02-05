@@ -1,23 +1,13 @@
-module('core', {
-
-    setup: function() {
-
-    },
-
-    teardown: function() {
-
-    }
-
-});
+module('core');
 
 test('core.util.interpolate', function() {
 
     var values = [0, .25, .5, .75, 1];
 
-    var numberInterpolation = joint.util.interpolate.number(0,100);
-    var objectInterpolation = joint.util.interpolate.object({ x: 100, y: 200 },{ x: 200, y: 0 });
-    var hexColorInterpolation = joint.util.interpolate.hexColor('#FFFFFF','#00FF77');
-    var unitInterpolation = joint.util.interpolate.unit('1em','0.50em');
+    var numberInterpolation = joint.util.interpolate.number(0, 100);
+    var objectInterpolation = joint.util.interpolate.object({ x: 100, y: 200 }, { x: 200, y: 0 });
+    var hexColorInterpolation = joint.util.interpolate.hexColor('#FFFFFF', '#00FF77');
+    var unitInterpolation = joint.util.interpolate.unit('1em', '0.50em');
 
     var numberArray = _.map(values, numberInterpolation);
     var objectArray = _.map(values, objectInterpolation);
@@ -25,22 +15,21 @@ test('core.util.interpolate', function() {
     var unitArray = _.map(values, unitInterpolation);
 
     deepEqual(numberArray, [
-	0, 25, 50, 75, 100
+        0, 25, 50, 75, 100
     ], 'Numbers interpolated.');
 
     deepEqual(objectArray, [
-	{ x: 100, y: 200 }, { x: 125, y: 150 }, { x: 150, y: 100 }, { x: 175, y: 50 }, { x: 200,    y: 0 }
+        { x: 100, y: 200 }, { x: 125, y: 150 }, { x: 150, y: 100 }, { x: 175, y: 50 }, { x: 200,    y: 0 }
     ], 'Objects interpolated.');
 
     deepEqual(hexColorArray, [
-	"#ffffff", "#bfffdd", "#7fffbb", "#3fff99", "#00ff77"
+        '#ffffff', '#bfffdd', '#7fffbb', '#3fff99', '#00ff77'
     ], 'String hex colors interpolated.');
 
     deepEqual(unitArray, [
-	"1.00em", "0.88em", "0.75em", "0.63em", "0.50em"
+        '1.00em', '0.88em', '0.75em', '0.63em', '0.50em'
     ], 'Numbers with units interpolated.');
-
-})
+});
 
 test('core.util.format.number', function() {
 
@@ -65,42 +54,41 @@ test('core.util.format.number', function() {
 
         equal(joint.util.format.number(input[0], input[1]), output, 'number(' + input[0] + ', ' + input[1] + ') = ' + output);
     });
-})
+});
 
 test('core.util.breakText', function() {
 
     // tests can't compare exact results as they may vary in different browsers
 
-    var text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
+    var text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 
-    equal(joint.util.breakText("", { width: 100 }),
-          "",
-          "An empty text was correctly broken.");
+    equal(joint.util.breakText('', { width: 100 }),
+          '',
+          'An empty text was correctly broken.');
 
     equal(joint.util.breakText(text, { width: 0, height: 0 }),
-          "",
-          "A text was correctly broken when zero width and height provided.");
+          '',
+          'A text was correctly broken when zero width and height provided.');
 
     ok(_.contains(joint.util.breakText(text, { width: 100 }), '\n'),
-       "A text was broken when width A specified.");
+       'A text was broken when width A specified.');
 
     ok(_.contains(joint.util.breakText(text, { width: 15 }), '\n'),
-          "A text was broken when width B specified.");
+          'A text was broken when width B specified.');
 
     var brokenText = joint.util.breakText(text, { width: 100, height: 50 });
 
     ok(_.contains(brokenText, 'Lorem') && !_.contains(brokenText, 'elit.'),
-       "A text was trimmed when width & height specified.");
+       'A text was trimmed when width & height specified.');
 
-    brokenText = joint.util.breakText(text, { width: 100, height: 50 }, { 'font-size': '18px' })
+    brokenText = joint.util.breakText(text, { width: 100, height: 50 }, { 'font-size': '18px' });
 
     ok(_.contains(brokenText, '\n') || !_.contains(brokenText, 'elit.'),
-       "A text was broken when style specified.");
+       'A text was broken when style specified.');
 
     throws(function() {
         joint.util.breakText(text, { width: 100, height: 50 }, { 'font-size': 18 }, { svgDocument: 'not-svg' });
-    }, /appendChild|undefined/, "A custom svgDocument provided was recognized.");
-
+    }, /appendChild|undefined/, 'A custom svgDocument provided was recognized.');
 });
 
 test('core.util.getByPath()', function() {
@@ -132,7 +120,6 @@ test('core.util.getByPath()', function() {
     deepEqual(joint.util.getByPath(obj, 'h/1/none'), undefined, 'non-existing property of nth item of an array is undefined');
     equal(joint.util.getByPath(obj, 'h/2/i/j'), 6, 'nested property of nth item of an array is number');
     equal(joint.util.getByPath(obj, 'h.2.i.j', '.'), 6, 'same but this time with a custom delimiter');
-
 });
 
 test('core.util.setByPath()', function() {
@@ -140,9 +127,9 @@ test('core.util.setByPath()', function() {
     deepEqual(joint.util.setByPath({}, 'property', 1), { property: 1 }, 'non-existing property in an obj set as a number');
     deepEqual(joint.util.setByPath({ property: 2 }, 'property', 3), { property: 3 }, 'existing property in an obj set as a number');
     deepEqual(joint.util.setByPath([], '0', 4), [4], 'add an item to an empty array');
-    deepEqual(joint.util.setByPath([5,6], '1', 7), [5,7], 'change an item in an array');
-    deepEqual(joint.util.setByPath({}, 'first/second/third', 8), { first: { second: { third: 8 }}}, 'populate an empty object with nested objects');
-    deepEqual(joint.util.setByPath({}, 'first.second.third', 9, '.'), { first: { second: { third: 9 }}}, 'same but this time with a custom delimiter');
+    deepEqual(joint.util.setByPath([5, 6], '1', 7), [5, 7], 'change an item in an array');
+    deepEqual(joint.util.setByPath({}, 'first/second/third', 8), { first: { second: { third: 8 } } }, 'populate an empty object with nested objects');
+    deepEqual(joint.util.setByPath({}, 'first.second.third', 9, '.'), { first: { second: { third: 9 } } }, 'same but this time with a custom delimiter');
     deepEqual(joint.util.setByPath([null], '0/property', 10), [{ property: 10 }], 'replace null item with an object');
 });
 
@@ -158,16 +145,15 @@ test('core.util.unsetByPath()', function() {
 
     joint.util.unsetByPath(obj, 'b/c', '/');
 
-    deepEqual(obj, { a: 1, b: { d: 3 }}, "A nested attribute was removed.");
+    deepEqual(obj, { a: 1, b: { d: 3 } }, 'A nested attribute was removed.');
 
     joint.util.unsetByPath(obj, 'b');
 
-    deepEqual(obj, { a: 1 }, "A primitive attribute was removed.");
+    deepEqual(obj, { a: 1 }, 'A primitive attribute was removed.');
 
     joint.util.unsetByPath(obj, 'c/d');
 
-    deepEqual(obj, { a: 1 }, "Attempt to delete non-existing attribute doesn't affect object.");
-
+    deepEqual(obj, { a: 1 }, 'Attempt to delete non-existing attribute doesn\'t affect object.');
 });
 
 test('core.util.normalizeSides()', function(assert) {
@@ -180,7 +166,6 @@ test('core.util.normalizeSides()', function(assert) {
 
     assert.deepEqual(joint.util.normalizeSides({ left: 5 }), { top: 0, left: 5, right: 0, bottom: 0 },
                      'If called with an object, the existing sides are copied from the given object and the rest is defaulted to 0.');
-
 });
 
 test('joint.setTheme()', function(assert) {

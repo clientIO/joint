@@ -253,7 +253,10 @@ module.exports = function(grunt) {
                 '!plugins/**/lib/**/*.js',
 
                 // Core jointjs:
-                'src/**/*.js'
+                'src/**/*.js',
+
+                // Tests:
+                'test/**/*.js'
             ]
         },
         mochaTest: {
