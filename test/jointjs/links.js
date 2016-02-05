@@ -25,10 +25,10 @@ module('links', {
 
 test('construction', function() {
 
-    var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+    var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
     var r2 = r1.clone().translate(300);
 
-    this.graph.addCell([r1,r2]);
+    this.graph.addCell([r1, r2]);
 
     var l0 = new joint.dia.Link({
         source: { id: r1.id },
@@ -68,7 +68,7 @@ test('construction', function() {
     this.graph.addCell(l2);
     var v2 = this.paper.findViewByModel(l2);
 
-    ok(v2, 'link with custom markup (2 children) is rendered.')
+    ok(v2, 'link with custom markup (2 children) is rendered.');
 
     var l3 = new joint.dia.Link({
         source: { id: r1.id },
@@ -99,11 +99,11 @@ test('interaction', function() {
 
     expect(6);
 
-    var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+    var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
     var r2 = r1.clone().translate(300);
     var r3 = r2.clone().translate(300);
 
-    this.graph.addCell([r1,r2, r3]);
+    this.graph.addCell([r1, r2, r3]);
 
     var vr1 = this.paper.findViewByModel(r1);
     var vr2 = this.paper.findViewByModel(r2);
@@ -129,16 +129,16 @@ test('interaction', function() {
 
     // adding vertices
 
-    v0.pointerdown({ target: v0.el.querySelector('.connection')}, 200, 70);
+    v0.pointerdown({ target: v0.el.querySelector('.connection') }, 200, 70);
     v0.pointerup();
-    deepEqual(l0.get('vertices'), [{x: 200, y: 70}], 'vertex added after click the connection.');
+    deepEqual(l0.get('vertices'), [{ x: 200, y: 70 }], 'vertex added after click the connection.');
 
     var firstVertexRemoveArea = v0.el.querySelector('.marker-vertex-remove-area');
 
     v0.pointerdown({ target: v0.el.querySelector('.connection-wrap') }, 300, 70);
     v0.pointermove({}, 300, 100);
     v0.pointerup();
-    deepEqual(l0.get('vertices'), [{x: 200, y: 70}, {x: 300, y: 100}], 'vertex added and translated after click the connection wrapper and mousemove.');
+    deepEqual(l0.get('vertices'), [{ x: 200, y: 70 }, { x: 300, y: 100 }], 'vertex added and translated after click the connection wrapper and mousemove.');
 
     v0.pointerdown({ target: firstVertexRemoveArea });
     v0.pointerup();
@@ -150,20 +150,20 @@ test('interaction', function() {
     ok(vr3.el.getAttribute('class').indexOf('highlighted') >= 0, 'moving pointer over the rectangle makes the rectangle highlighted');
 
     v0.pointermove({ target: this.paper.el, type: 'mousemove' }, 400, 400);
-    ok(vr3.el.getAttribute('class').indexOf('highlighted') == -1, 'after moving the pointer to coordinates 400,400 the rectangle is not highlighted anymore');
+    ok(vr3.el.getAttribute('class').indexOf('highlighted') == -1, 'after moving the pointer to coordinates 400, 400 the rectangle is not highlighted anymore');
 
     v0.pointerup();
-    checkDataPath(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 300 100 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400,400');
+    checkDataPath(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 300 100 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400, 400');
 });
 
 test('labelMove', function() {
 
     expect(2);
 
-    var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 50, height: 50 }});
+    var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 50, height: 50 } });
     var r2 = r1.clone().translate(250);
 
-    this.graph.addCell([r1,r2]);
+    this.graph.addCell([r1, r2]);
 
     var vr1 = this.paper.findViewByModel(r1);
     var vr2 = this.paper.findViewByModel(r2);
@@ -208,15 +208,14 @@ test('defaultLink', function() {
 
     ok(link instanceof joint.dia.Link, 'sanity: defaultLink is a function');
 
-
-    var myLink = joint.dia.Link.extend({
+    var MyLink = joint.dia.Link.extend({
         isMyLink: true
     });
 
     var model = new joint.shapes.basic.Rect({
         position: { x: 100, y: 100 },
         size: { width: 100, height: 100 },
-        attrs: { rect: { magnet: true, port: 'myPort' }}
+        attrs: { rect: { magnet: true, port: 'myPort' } }
     });
 
     this.graph.addCell(model);
@@ -238,7 +237,7 @@ test('defaultLink', function() {
 
     });
 
-    this.paper.options.defaultLink = new myLink();
+    this.paper.options.defaultLink = new MyLink();
 
     simulate.mousedown({ el: rect });
 
@@ -248,7 +247,7 @@ test('defaultLink', function() {
 
         ok(cellView === view && magnet === rect, 'We set defaultLink to a function. It was executed with correct parameters.');
 
-        return new myLink();
+        return new MyLink();
     };
 
     simulate.mousedown({ el: rect });
@@ -320,7 +319,6 @@ test('disconnect(), connect()', function() {
     ok(!(link.get('target') instanceof g.point), 'target of the link is still not a point');
 });
 
-
 test('getLinks(), clone()', function() {
 
     var myrect = new joint.shapes.basic.Rect;
@@ -365,10 +363,10 @@ test('hasLoop()', function(assert) {
     assert.equal(link2.hasLoop({ deep: true }), false, 'link pinned to the paper does not have a loop with deep = true');
 
     var myrect3 = new joint.shapes.basic.Rect;
-    var myrect3_1 = new joint.shapes.basic.Rect;
-    myrect3.embed(myrect3_1);
-    this.graph.addCells([myrect3, myrect3_1]);
-    var link3 = new joint.dia.Link({ source: { id: myrect3.id }, target: { id: myrect3_1.id } });
+    var myrect3a = new joint.shapes.basic.Rect;
+    myrect3.embed(myrect3a);
+    this.graph.addCells([myrect3, myrect3a]);
+    var link3 = new joint.dia.Link({ source: { id: myrect3.id }, target: { id: myrect3a.id } });
     this.graph.addCell(link3);
     assert.equal(link3.hasLoop(), false, 'link targetting an embedded element does not have a loop with deep = false');
     assert.equal(link3.hasLoop({ deep: true }), true, 'link targetting an embedded element does have a loop with deep = true');
@@ -424,7 +422,6 @@ test('markers', function() {
         '.marker-target should point to the right edge of the rectangle 2 and should be rotated by -180 degrees'
     );
 });
-
 
 test('vertices', function() {
 
@@ -518,7 +515,6 @@ test('vertices', function() {
     );
 });
 
-
 test('perpendicularLinks', function() {
 
     this.paper.options.perpendicularLinks = true;
@@ -588,9 +584,9 @@ test('labels', function() {
         source: { id: myrect.id },
         target: { id: myrect2.id },
         labels: [
-            { position: 10, attrs: { text: { text: '1..n' } }},
-            { position: .5, attrs: { text: { text: 'Foo', fill: 'white', 'font-family': 'sans-serif' }, rect: { stroke: '#F39C12', 'stroke-width': 20, rx: 5, ry: 5 } }},
-            { position: -10, attrs: { text: { text: '*' } }}
+            { position: 10, attrs: { text: { text: '1..n' } } },
+            { position: .5, attrs: { text: { text: 'Foo', fill: 'white', 'font-family': 'sans-serif' }, rect: { stroke: '#F39C12', 'stroke-width': 20, rx: 5, ry: 5 } } },
+            { position: -10, attrs: { text: { text: '*' } } }
         ]
     });
 
@@ -654,8 +650,8 @@ test('magnets & ports', function() {
 test('snap links', function() {
 
     var link = new joint.dia.Link({
-        source: {x: 0, y: 0},
-        target: {x: 0, y: 0}
+        source: { x: 0, y: 0 },
+        target: { x: 0, y: 0 }
     });
 
     var myrect = new joint.shapes.basic.Rect({
@@ -667,29 +663,29 @@ test('snap links', function() {
     var v = this.paper.findViewByModel(link);
     var t = v.el.querySelector('.marker-arrowhead[end=target]');
 
-// link target was out of the radius and therefore was not snapped to the element
+    // link target was out of the radius and therefore was not snapped to the element
 
     this.paper.options.snapLinks = { radius: 5 };
 
-    v.pointerdown({ target: t }, 0 ,0);
-    v.pointermove({ target: this.paper.el }, 90 , 90);
-    v.pointerup({ target: this.paper.el }, 90 , 90);
+    v.pointerdown({ target: t }, 0, 0);
+    v.pointermove({ target: this.paper.el }, 90, 90);
+    v.pointerup({ target: this.paper.el }, 90, 90);
 
     deepEqual(link.get('target'), {
         x: 90, y: 90
     }, 'link target was out of the radius and therefore was not snapped to the element');
 
-// link target was snapped to the element
+    // link target was snapped to the element
 
     this.paper.options.snapLinks = { radius: 50 };
 
-    v.pointerdown({ target: t }, 0 ,0);
-    v.pointermove({ target: this.paper.el }, 90 , 90);
-    v.pointerup({ target: this.paper.el }, 90 , 90);
+    v.pointerdown({ target: t }, 0, 0);
+    v.pointermove({ target: this.paper.el }, 90, 90);
+    v.pointerup({ target: this.paper.el }, 90, 90);
 
     ok(link.get('target').id === myrect.id, 'link target was snapped to the element');
 
-// link target was snapped to the port
+    // link target was snapped to the port
 
     // getBoundingClientRect returns negative values for top and left when paper not visible
     this.paper.options.snapLinks = { radius: Number.MAX_VALUE };
@@ -697,32 +693,32 @@ test('snap links', function() {
     myrect.attr('.', { magnet: false });
     myrect.attr('text', { magnet: true, port: 'port' });
 
-    this.paper.options.validateConnection = function() { return true; }
+    this.paper.options.validateConnection = function() { return true; };
 
-    v.pointerdown({ target: t }, 0 ,0);
-    v.pointermove({ target: this.paper.el }, 90 , 90);
-    v.pointerup({ target: this.paper.el }, 90 , 90);
+    v.pointerdown({ target: t }, 0, 0);
+    v.pointermove({ target: this.paper.el }, 90, 90);
+    v.pointerup({ target: this.paper.el }, 90, 90);
 
     ok(link.get('target').port === 'port', 'link target was snapped to the port');
 
-// the validation is taken into account when snapping to port
+    // the validation is taken into account when snapping to port
 
-    this.paper.options.validateConnection = function() { return false; }
+    this.paper.options.validateConnection = function() { return false; };
 
-    v.pointerdown({ target: t }, 0 ,0);
-    v.pointermove({ target: this.paper.el }, 90 , 90);
-    v.pointerup({ target: this.paper.el }, 90 , 90);
+    v.pointerdown({ target: t }, 0, 0);
+    v.pointermove({ target: this.paper.el }, 90, 90);
+    v.pointerup({ target: this.paper.el }, 90, 90);
 
     deepEqual(link.get('target'), {
         x: 90, y: 90
     }, 'the validation is taken into account when snapping to port');
-})
+});
 
-test('mark available', function(){
+test('mark available', function() {
 
     var link = new joint.dia.Link({
-        source: {x: 0, y: 0},
-        target: {x: 0, y: 0}
+        source: { x: 0, y: 0 },
+        target: { x: 0, y: 0 }
     });
 
     var myrect1 = new joint.shapes.basic.Rect({
@@ -745,7 +741,7 @@ test('mark available', function(){
 
     this.paper.options.markAvailable = true;
 
-    v.pointerdown({ target: t }, 0 ,0);
+    v.pointerdown({ target: t }, 0, 0);
 
     var availableMagnets = this.paper.el.querySelectorAll('.available-magnet');
     var availableCells = this.paper.el.querySelectorAll('.available-cell');
@@ -755,7 +751,7 @@ test('mark available', function(){
     equal(availableCells.length, 2,
           '2 cells got marked when dragging an arrowhead started.');
 
-    v.pointerup({ target: this.paper.el }, 90 , 90);
+    v.pointerup({ target: this.paper.el }, 90, 90);
 
     var availableMagnets = this.paper.el.querySelectorAll('.available-magnet');
     var availableCells = this.paper.el.querySelectorAll('.available-cell');
@@ -775,7 +771,7 @@ test('defaultRouter', function(assert) {
     var linkDefaultRouter = new joint.dia.Link({
         source: { x: 0, y: 0 },
         target: { x: 0, y: 0 },
-        vertices: [{ x: 50, y: 50}]
+        vertices: [{ x: 50, y: 50 }]
     });
 
     var linkOwnRouter = new joint.dia.Link({
@@ -800,7 +796,7 @@ test('defaultConnector', function(assert) {
     var linkDefaultConnector = new joint.dia.Link({
         source: { x: 0, y: 0 },
         target: { x: 0, y: 0 },
-        vertices: [{ x: 50, y: 50}]
+        vertices: [{ x: 50, y: 50 }]
     });
 
     var linkOwnConnector = new joint.dia.Link({
@@ -912,7 +908,7 @@ test('getRelationshipAncestor()', function(assert) {
     var c = new joint.shapes.basic.Rect({ id: 'c' });
     var l = new joint.dia.Link({ id: 'l' });
 
-    this.graph.addCells([a,b,c,l]);
+    this.graph.addCells([a, b, c, l]);
 
     assert.equal(l.getRelationshipAncestor(), null, 'Link has no parent and connects 2 points. No ancestor found.');
 
@@ -939,7 +935,7 @@ test('isRelationshipEmbeddedIn()', function(assert) {
     var c = new joint.shapes.basic.Rect({ id: 'c' });
     var l = new joint.dia.Link({ id: 'l' });
 
-    this.graph.addCells([a,b,c,l]);
+    this.graph.addCells([a, b, c, l]);
 
     assert.notOk(l.isRelationshipEmbeddedIn(c), 'Link has no parent and connects 2 points. The relationship is not embedded.');
 
@@ -964,7 +960,7 @@ test('update count', function(assert) {
     var l = new joint.dia.Link({ id: 'l' });
     var l2 = new joint.dia.Link({ id: 'l2' });
 
-    this.graph.addCells([a,b,c,l,l2]);
+    this.graph.addCells([a, b, c, l, l2]);
     var lv = l.findView(this.paper);
     var l2v = l2.findView(this.paper);
 
@@ -972,36 +968,36 @@ test('update count', function(assert) {
     sinon.spy(lv, 'findRoute');
     sinon.spy(l2v, 'update');
 
-    l.translate(10,10);
+    l.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: link point to point, link translated');
     assert.equal(lv.findRoute.callCount, 1, 'findRoute: link point to point, link translated');
 
     l.set('source', { id: 'a' });
     lv.update.reset();
-    a.translate(10,10);
+    a.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: link element to point, link translated');
 
     // loop
     l.set('target', { id: 'a' });
     lv.update.reset();
-    a.translate(10,10);
+    a.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: loop link, source translated');
 
     // link element-element
     l.set('target', { id: 'b' });
     lv.update.reset();
-    a.translate(10,10);
+    a.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: link element-element, source translated');
 
     l.set('vertices', [{ x: 0, y: 0 }]);
     lv.update.reset();
-    a.translate(10,10);
+    a.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices, source translated');
 
     // loop + vertices
     l.set('target', { id: 'a' });
     lv.update.reset();
-    a.translate(10,10);
+    a.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: loop link with vertices, source translated.');
 
     // embeds
@@ -1012,21 +1008,21 @@ test('update count', function(assert) {
     // translating container
     lv.findRoute.reset();
     lv.update.reset();
-    c.translate(10,10);
+    c.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices embedded, container translated');
     assert.equal(lv.findRoute.callCount, 0, 'findRoute: link element-element with vertices embedded, container translated');
 
     // translating source
     lv.findRoute.reset();
     lv.update.reset();
-    a.translate(10,10);
+    a.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices embedded, source translated');
     assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with vertices embedded, source translated');
 
     // translating target
     lv.findRoute.reset();
     lv.update.reset();
-    b.translate(10,10);
+    b.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices embedded, target translated');
     assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with vertices embedded, target translated');
 
@@ -1035,21 +1031,21 @@ test('update count', function(assert) {
     l.set('vertices', []);
     lv.findRoute.reset();
     lv.update.reset();
-    c.translate(10,10);
+    c.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: link element-element embedded, container translated');
     assert.equal(lv.findRoute.callCount, 0, 'findRoute: link element-element embedded, container translated');
 
     // translating source
     lv.findRoute.reset();
     lv.update.reset();
-    a.translate(10,10);
+    a.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: link element-element embedded, source translated');
     assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element embedded, source translated');
 
     // translating target
     lv.findRoute.reset();
     lv.update.reset();
-    b.translate(10,10);
+    b.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: link element-element embedded, target translated');
     assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element embedded, target translated');
 
@@ -1058,14 +1054,14 @@ test('update count', function(assert) {
     l.set('target', { id: 'a' });
     lv.findRoute.reset();
     lv.update.reset();
-    c.translate(10,10);
+    c.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: loop link embedded, container translated');
     assert.equal(lv.findRoute.callCount, 0, 'findRoute: loop link embedded, container translated');
 
     // translating element
     lv.findRoute.reset();
     lv.update.reset();
-    a.translate(10,10);
+    a.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: loop link embedded, source translated');
     assert.equal(lv.findRoute.callCount, 1, 'findRoute: loop link embedded, source translated');
 
@@ -1075,23 +1071,23 @@ test('update count', function(assert) {
     l.set('target', { id: 'b' });
     lv.findRoute.reset();
     lv.update.reset();
-    c.translate(10,10);
-    assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends , container translated');
-    assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends , container translated');
+    c.translate(10, 10);
+    assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends, container translated');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends, container translated');
 
     // translating source
     lv.findRoute.reset();
     lv.update.reset();
-    a.translate(10,10);
-    assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends , source translated');
-    assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends , source translated');
+    a.translate(10, 10);
+    assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends, source translated');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends, source translated');
 
     // translating target
     lv.findRoute.reset();
     lv.update.reset();
-    b.translate(10,10);
-    assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends , source translated');
-    assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends , source translated');
+    b.translate(10, 10);
+    assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends, source translated');
+    assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends, source translated');
 
     // adding vertex
     lv.findRoute.reset();
@@ -1110,7 +1106,7 @@ test('update count', function(assert) {
     // source resize
     lv.findRoute.reset();
     lv.update.reset();
-    a.resize(20,20);
+    a.resize(20, 20);
     assert.equal(lv.update.callCount, 1, 'update: source resized');
     assert.equal(lv.findRoute.callCount, 1, 'findRoute: source resized');
 
@@ -1119,7 +1115,7 @@ test('update count', function(assert) {
     l.set('source', { id: 'a' }).set('target', { id: 'b' });
     lv.update.reset();
     l2v.update.reset();
-    a.translate(10,10);
+    a.translate(10, 10);
     assert.equal(lv.update.callCount, 1, 'update: 2 loops link, source translated (first)');
     assert.equal(l2v.update.callCount, 1, 'update: 2 loops link, source translated (second)');
 

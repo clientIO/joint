@@ -1,74 +1,74 @@
 (function() {
 
-	if (typeof QUnit === 'undefined') {
-		throw new Error('QUnit has not been loaded yet.');
-	}
+    if (typeof QUnit === 'undefined') {
+        throw new Error('QUnit has not been loaded yet.');
+    }
 
-	var urlParams;
+    var urlParams;
 
-	(window.onpopstate = function() {
+    (window.onpopstate = function() {
 
-		var match;
-		var pl  = /\+/g;// Regex for replacing addition symbol with a space
-		var search = /([^&=]+)=?([^&]*)/g;
-		var decode = function(s) {
-			return decodeURIComponent(s.replace(pl, ' '));
-		};
-		var query = window.location.search.substring(1);
+        var match;
+        var pl  = /\+/g;// Regex for replacing addition symbol with a space
+        var search = /([^&=]+)=?([^&]*)/g;
+        var decode = function(s) {
+            return decodeURIComponent(s.replace(pl, ' '));
+        };
+        var query = window.location.search.substring(1);
 
-		urlParams = {};
+        urlParams = {};
 
-		while (match = search.exec(query)) {
-			urlParams[decode(match[1])] = decode(match[2]);
-		}
+        while (match = search.exec(query)) {
+            urlParams[decode(match[1])] = decode(match[2]);
+        }
 
-	})();
+    })();
 
-	var origin = window.location.protocol + '//' + window.location.host;
+    var origin = window.location.protocol + '//' + window.location.host;
 
-	var reporters = {
+    var reporters = {
 
-		// For lcov formatting information:
-		// http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php
-		lcov: function(coverageData) {
+        // For lcov formatting information:
+        // http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php
+        lcov: function(coverageData) {
 
-			buffer || (buffer = '');
+            buffer || (buffer = '');
 
-			var fileName, lineNumber, executionCount;
+            var fileName, lineNumber, executionCount;
 
-			for (fileName in coverageData.files) {
+            for (fileName in coverageData.files) {
 
-				buffer += 'SF:' + fileName.substr(origin.length) + '\n';
+                buffer += 'SF:' + fileName.substr(origin.length) + '\n';
 
-				for (lineNumber = 0; lineNumber < coverageData.files[fileName].source.length; lineNumber++) {
-					if (typeof coverageData.files[fileName][lineNumber] !== 'undefined') {
-						executionCount = coverageData.files[fileName][lineNumber];
-						buffer += 'DA:' + lineNumber + ',' + executionCount + '\n';
-					}
-				}
+                for (lineNumber = 0; lineNumber < coverageData.files[fileName].source.length; lineNumber++) {
+                    if (typeof coverageData.files[fileName][lineNumber] !== 'undefined') {
+                        executionCount = coverageData.files[fileName][lineNumber];
+                        buffer += 'DA:' + lineNumber + ',' + executionCount + '\n';
+                    }
+                }
 
-				buffer += 'end_of_record\n';
-			}
-		}
-	};
+                buffer += 'end_of_record\n';
+            }
+        }
+    };
 
-	var coverage = urlParams['coverage'];
-	var reporter = urlParams['reporter'];
+    var coverage = urlParams['coverage'];
+    var reporter = urlParams['reporter'];
 
-	if (coverage === 'true' && reporter) {
+    if (coverage === 'true' && reporter) {
 
-		if (!reporters[reporter]) {
-			throw new Error('Reporter does not exist: "' + reporter + '"');
-		}
+        if (!reporters[reporter]) {
+            throw new Error('Reporter does not exist: "' + reporter + '"');
+        }
 
-		var buffer;
+        var buffer;
 
-		blanket.options('reporter', reporters[reporter]);
+        blanket.options('reporter', reporters[reporter]);
 
-		QUnit.done(function() {
+        QUnit.done(function() {
 
-			alert(JSON.stringify(['qunit.report', buffer]));
-		});
-	}
+            alert(JSON.stringify(['qunit.report', buffer]));
+        });
+    }
 
 })();

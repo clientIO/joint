@@ -71,7 +71,6 @@ QUnit.module('basic', function(hooks) {
         equal(rectEls.length, 1, 'there is exactly one <rect> element in the paper');
 
         equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
-
     });
 
     QUnit.asyncTest('async: resetCells', function() {
@@ -87,15 +86,15 @@ QUnit.module('basic', function(hooks) {
         this.paper.options.async = { batchSize: 1 };
         this.paper.on('render:done', function() {
 
-	          var textEls = this.paper.svg.getElementsByTagName('text');
-	          var rectEls = this.paper.svg.getElementsByTagName('rect');
+            var textEls = this.paper.svg.getElementsByTagName('text');
+            var rectEls = this.paper.svg.getElementsByTagName('rect');
 
-	          equal(textEls.length, 3, 'there is exactly 3 <text> elements in the paper');
-	          equal(rectEls.length, 3, 'there is exactly 3 <rect> elements in the paper');
+            equal(textEls.length, 3, 'there is exactly 3 <text> elements in the paper');
+            equal(rectEls.length, 3, 'there is exactly 3 <rect> elements in the paper');
 
-	          equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
+            equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
 
-	          start();
+            start();
 
         }, this);
 
@@ -119,15 +118,15 @@ QUnit.module('basic', function(hooks) {
         this.paper.options.async = { batchSize: 1 };
         this.paper.on('render:done', function() {
 
-	          var textEls = this.paper.svg.getElementsByTagName('text');
-	          var rectEls = this.paper.svg.getElementsByTagName('rect');
+            var textEls = this.paper.svg.getElementsByTagName('text');
+            var rectEls = this.paper.svg.getElementsByTagName('rect');
 
-	          equal(textEls.length, 5, 'there is exactly 5 <text> elements in the paper');
-	          equal(rectEls.length, 5, 'there is exactly 5 <rect> elements in the paper');
+            equal(textEls.length, 5, 'there is exactly 5 <text> elements in the paper');
+            equal(rectEls.length, 5, 'there is exactly 5 <rect> elements in the paper');
 
-	          equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
+            equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
 
-	          start();
+            start();
 
         }, this);
 
@@ -196,7 +195,7 @@ QUnit.module('basic', function(hooks) {
         var r1 = new joint.shapes.basic.Rect({
             position: { x: 100, y: 100 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' }}
+            attrs: { text: { text: 'my rectangle' } }
         });
 
         this.graph.addCell(r1);
@@ -204,8 +203,8 @@ QUnit.module('basic', function(hooks) {
         var pos = r1.position();
         checkBbox(this.paper, r1, pos.x, pos.y, 120, 80, 'getter "position()" returns the elements position.');
 
-        r1.position(200,200);
-        checkBbox(this.paper, r1, 200, 200, 120, 80, 'setter "position(a,b)" should move element to the given position.');
+        r1.position(200, 200);
+        checkBbox(this.paper, r1, 200, 200, 120, 80, 'setter "position(a, b)" should move element to the given position.');
 
         // parentRelative option
 
@@ -215,7 +214,7 @@ QUnit.module('basic', function(hooks) {
         });
 
         throws(function() {
-            r2.position(100,100, { parentRelative: true });
+            r2.position(100, 100, { parentRelative: true });
         }, 'getter throws an error if "parentRelative" option passed and the element is not part of any collection.');
 
         throws(function() {
@@ -228,11 +227,11 @@ QUnit.module('basic', function(hooks) {
 
         r1.embed(r2);
 
-        r2.position(10,10, { parentRelative: true });
-        checkBbox(this.paper, r2, 210, 210, 30, 30, 'setter "position(a,b)" with "parentRelative" option should move element to the position relative to its parent.');
+        r2.position(10, 10, { parentRelative: true });
+        checkBbox(this.paper, r2, 210, 210, 30, 30, 'setter "position(a, b)" with "parentRelative" option should move element to the position relative to its parent.');
 
         pos = r2.position({ parentRelative: true });
-        deepEqual(pos.toString(), "10@10", 'getter with "parentRelative" option returns position relative to the element parent.');
+        deepEqual(pos.toString(), '10@10', 'getter with "parentRelative" option returns position relative to the element parent.');
 
     });
 
@@ -273,34 +272,34 @@ QUnit.module('basic', function(hooks) {
 
         this.graph.addCell(rect);
 
-        rect.translate(1000, 0, { restrictedArea: { x: 0, y: 0, height: 1000, width: 150 }});
+        rect.translate(1000, 0, { restrictedArea: { x: 0, y: 0, height: 1000, width: 150 } });
         assert.equal(rect.prop('position/x'), 30, 'restrictedArea is respected when the element is translated to the left.');
 
-        rect.translate(0, 1000, { restrictedArea: { x: 0, y: 0, height: 150, width: 1000 }});
+        rect.translate(0, 1000, { restrictedArea: { x: 0, y: 0, height: 150, width: 1000 } });
         assert.equal(rect.prop('position/y'), 70, 'restrictedArea is respected when the element is translated to the bottom.');
 
-        rect.translate(-1000, 0, { restrictedArea: { x: 10, y: 0, height: 1000, width: 1000 }});
+        rect.translate(-1000, 0, { restrictedArea: { x: 10, y: 0, height: 1000, width: 1000 } });
         assert.equal(rect.prop('position/x'), 10, 'restrictedArea is respected when the element is translated to the right.');
 
-        rect.translate(0, -1000, { restrictedArea: { x: 0, y: 10, height: 1000, width: 1000 }});
+        rect.translate(0, -1000, { restrictedArea: { x: 0, y: 10, height: 1000, width: 1000 } });
         assert.equal(rect.prop('position/y'), 10, 'restrictedArea is respected when the element is translated to the top.');
 
         rect.position(50, 50).embed(embed);
         this.graph.addCell(embed);
 
-        rect.translate(1000, 0, { restrictedArea: { x: 0, y: 0, height: 1000, width: 500 }});
+        rect.translate(1000, 0, { restrictedArea: { x: 0, y: 0, height: 1000, width: 500 } });
         assert.equal(rect.prop('position/x'), 330, 'restrictedArea is respected when the element and its embeds are translated to the left.');
 
-        rect.translate(0, 1000, { restrictedArea: { x: 0, y: 0, height: 500, width: 1000 }});
+        rect.translate(0, 1000, { restrictedArea: { x: 0, y: 0, height: 500, width: 1000 } });
         assert.equal(rect.prop('position/y'), 400, 'restrictedArea is respected when the element and its embeds are translated to the bottom.');
 
         rect.position(50, 50);
-        embed.position(20,20);
+        embed.position(20, 20);
 
-        rect.translate(-1000, 0, { restrictedArea: { x: 10, y: 0, height: 1000, width: 1000 }});
+        rect.translate(-1000, 0, { restrictedArea: { x: 10, y: 0, height: 1000, width: 1000 } });
         assert.equal(rect.prop('position/x'), 40, 'restrictedArea is respected when the element and its embeds are translated to the right.');
 
-        rect.translate(0, -1000, { restrictedArea: { x: 0, y: 10, height: 1000, width: 1000 }});
+        rect.translate(0, -1000, { restrictedArea: { x: 0, y: 10, height: 1000, width: 1000 } });
         assert.equal(rect.prop('position/y'), 40, 'restrictedArea is respected when the element and its embeds are translated to the top.');
     });
 
@@ -359,7 +358,6 @@ QUnit.module('basic', function(hooks) {
         myrect.rotate(180, true, { x: 140, y: 70 });
         checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) with absolute flag should not rotate the object as it is already rotated');
     });
-
 
     QUnit.test('object reconstruction after several transformations', function() {
 
@@ -457,14 +455,13 @@ QUnit.module('basic', function(hooks) {
 
     });
 
-
     QUnit.test('prop()', function() {
 
         var el = new joint.shapes.basic.Rect({
-	          flat: 5,
-	          object: { nested: { value: 'foo' }, nested2: { value: 'bar' } },
-	          array: [[5], [{ value: ['bar'] }]],
-            a: { b: { c: 1 }}
+            flat: 5,
+            object: { nested: { value: 'foo' }, nested2: { value: 'bar' } },
+            array: [[5], [{ value: ['bar'] }]],
+            a: { b: { c: 1 } }
         });
 
         equal(el.prop('flat'), 5, 'flat value returned in getter');
@@ -496,16 +493,16 @@ QUnit.module('basic', function(hooks) {
 
         var called = false;
         el.once('change:array', function(cell, changed, opt) {
-	          ok(opt.flag, 'options object was correctly passed in path syntax of prop');
-	          called = true;
+            ok(opt.flag, 'options object was correctly passed in path syntax of prop');
+            called = true;
         });
         el.prop('array/0', 'something', { flag: true });
         ok(called, 'on change callback with options passed was called');
 
         called = false;
         el.once('change:array', function(cell, changed, opt) {
-	          ok(opt.flag, 'options object was correctly passed in object syntax of prop');
-	          called = true;
+            ok(opt.flag, 'options object was correctly passed in object syntax of prop');
+            called = true;
         });
         el.prop({ array: ['something else'] }, { flag: true });
         ok(called, 'on change callback with options passed was called');
@@ -523,7 +520,7 @@ QUnit.module('basic', function(hooks) {
         expect(4);
 
         var el = new joint.dia.Cell({
-	          flat: 6,
+            flat: 6,
             nested: { a: 4, b: 5 }
         });
 
@@ -531,7 +528,7 @@ QUnit.module('basic', function(hooks) {
 
         deepEqual(el.attributes, {
             id: el.id,
-	          flat: 6,
+            flat: 6,
             nested: { a: 4, b: 5 }
         }, 'Removing a non-existing property won\'t affect the model\'s attributes.');
 
@@ -598,13 +595,13 @@ QUnit.module('basic', function(hooks) {
 
         a1.toFront({ deep: true });
 
-        equal(_.unique(a1View.$el.prevAll('.basic.Rect').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1,b2 element in the DOM after toFront()');
+        equal(_.unique(a1View.$el.prevAll('.basic.Rect').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1, b2 element in the DOM after toFront()');
         ok(a4View.$el.prev('.basic.Rect')[0] == a3View.el || a4View.$el.prev('.basic.Rect')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
         ok(a2View.$el.prev('.basic.Rect')[0] == a1View.el || a3View.$el.prev('.basic.Rect')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
 
         a1.toBack({ deep: true });
 
-        equal(a1View.$el.prevAll('.basic.Rect').length, 0, 'a1 element moved back before a2,a3,a4,b1,b2 elements in the DOM after toBack()');
+        equal(a1View.$el.prevAll('.basic.Rect').length, 0, 'a1 element moved back before a2, a3, a4, b1, b2 elements in the DOM after toBack()');
         ok(a4View.$el.prev('.basic.Rect')[0] == a3View.el || a4View.$el.prev('.basic.Rect')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
         ok(a2View.$el.prev('.basic.Rect')[0] == a1View.el || a3View.$el.prev('.basic.Rect')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
 
@@ -613,11 +610,11 @@ QUnit.module('basic', function(hooks) {
     QUnit.test('fitEmbeds()', function(assert) {
 
         var mainGroup = new joint.shapes.basic.Rect;
-        var group1 = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 }});
-        var group2 = new joint.shapes.basic.Rect({ position: { x: 1000, y: 1000 }, size: { width: 10, height: 10 }});
-        var a = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 20, height: 20 }});
-        var b = new joint.shapes.basic.Rect({ position: { x: 200, y: 100 }, size: { width: 20, height: 20 }});
-        var c = new joint.shapes.basic.Rect({ position: { x: 150, y: 200 }, size: { width: 20, height: 20 }});
+        var group1 = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 } });
+        var group2 = new joint.shapes.basic.Rect({ position: { x: 1000, y: 1000 }, size: { width: 10, height: 10 } });
+        var a = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 20, height: 20 } });
+        var b = new joint.shapes.basic.Rect({ position: { x: 200, y: 100 }, size: { width: 20, height: 20 } });
+        var c = new joint.shapes.basic.Rect({ position: { x: 150, y: 200 }, size: { width: 20, height: 20 } });
 
         mainGroup.embed(group2.embed(c)).embed(group1.embed(a).embed(b));
 
@@ -641,7 +638,6 @@ QUnit.module('basic', function(hooks) {
         mainGroup.fitEmbeds({ deep: true, padding: 10 });
         assert.deepEqual(mainGroup.getBBox(), g.rect(80, 80, 160, 160), 'Using padding options is expanding the groups.');
     });
-
 
     QUnit.test('clone()', function() {
 
@@ -689,7 +685,7 @@ QUnit.module('basic', function(hooks) {
         this.setupTestNestedGraph(this.graph);
 
         var clones = this.graph.getCell('a').clone({ deep: true });
-        deepEqual(_.map(clones, function(c) { return c.get('name') }), ['a', 'aa', 'c', 'l2', 'aaa'], 'clone({ deep: true }) returns clones including all embedded cells');
+        deepEqual(_.map(clones, function(c) { return c.get('name'); }), ['a', 'aa', 'c', 'l2', 'aaa'], 'clone({ deep: true }) returns clones including all embedded cells');
     });
 
     QUnit.test('embed(), unembed()', function() {
@@ -734,7 +730,7 @@ QUnit.module('basic', function(hooks) {
         r1.embed(r2);
         r2.embed(r3);
 
-        this.graph.addCells([r1,r2,r3]);
+        this.graph.addCells([r1, r2, r3]);
 
         ok(!r1.isEmbeddedIn(r1), 'We have 3 elements. r3 is embedded in r2, r2 is embedded in r1. | r1 is not child of r1. ');
         ok(r2.isEmbeddedIn(r1), 'r2 is descendent of r1');
@@ -763,7 +759,7 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('getSelector()', function(assert) {
 
-        var model = new joint.shapes.devs.Model({ inPorts: ['1','2'], outPorts: ['3','4'] });
+        var model = new joint.shapes.devs.Model({ inPorts: ['1', '2'], outPorts: ['3', '4'] });
 
         // See issue #130 (https://github.com/DavidDurman/joint/issues/130)
         this.graph.addCell([model.clone(), model.clone(), model.clone(), model]);
@@ -797,11 +793,11 @@ QUnit.module('basic', function(hooks) {
         var model = new joint.shapes.devs.Model({
             position: {
                 x: 40,
-                y: 40,
+                y: 40
             },
             size: {
                 width: 80,
-                height: 60,
+                height: 60
             },
             inPorts: ['1', '2'],
             outPorts: ['3', '4']
@@ -1135,41 +1131,43 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.asyncTest('transition: sanity', 5, function() {
 
-        var p0 = true, p1 = true, p2 = true;
+        var p0 = true;
+        var p1 = true;
+        var p2 = true;
 
         var el = new joint.shapes.basic.Rect({
-	          property: 1
+            property: 1
         });
 
         this.graph.addCell(el);
 
         el.transition('property', 3, {
-	          valueFunction: function(a, b) {
+            valueFunction: function(a, b) {
 
-	              equal(a, 2, 'The method passes the current value to a valueFunction as start.');
-	              equal(b, 3, 'The method passes the requested value to a valueFunction as end.');
+                equal(a, 2, 'The method passes the current value to a valueFunction as start.');
+                equal(b, 3, 'The method passes the requested value to a valueFunction as end.');
 
-	              return function(t) {
+                return function(t) {
 
-		                if (t < .1 && p0) {
-		                    ok(true, 'Transition starts.');
-		                    p0 = false;
-		                };
+                    if (t < .1 && p0) {
+                        ok(true, 'Transition starts.');
+                        p0 = false;
+                    };
 
-		                if (t > .1 && t < .9 && p1) {
-		                    ok(true, 'Transition runs.');
-		                    p1 = false;
-		                }
+                    if (t > .1 && t < .9 && p1) {
+                        ok(true, 'Transition runs.');
+                        p1 = false;
+                    }
 
-		                if (t > .9 && p2) {
-		                    ok(true, 'Transition ends.');
-		                    p2 = false;
-		                    start();
-		                }
+                    if (t > .9 && p2) {
+                        ok(true, 'Transition ends.');
+                        p2 = false;
+                        start();
+                    }
 
-		                return 0;
-	              }
-	          }
+                    return 0;
+                };
+            }
         });
 
         el.set('property', 2);
@@ -1178,7 +1176,7 @@ QUnit.module('basic', function(hooks) {
     QUnit.asyncTest('transition: primitive value', function() {
 
         var el = new joint.shapes.basic.Rect({
-	          timer: -1
+            timer: -1
         });
 
         this.graph.addCell(el);
@@ -1186,36 +1184,35 @@ QUnit.module('basic', function(hooks) {
         var timerArray = [];
 
         el.transition('timer', 100, {
-	          delay: 100,
-	          duration: 100,
-	          valueFunction: function(a, b) { return function(t) { return t; }}
+            delay: 100,
+            duration: 100,
+            valueFunction: function(a, b) { return function(t) { return t; }; }
         });
 
         el.on('change:timer', function(cell, changed) { timerArray.push(changed); });
 
         setTimeout(function() {
 
-	          var timerMedian = timerArray[Math.floor(timerArray.length / 2)];
+            var timerMedian = timerArray[Math.floor(timerArray.length / 2)];
 
-	          equal(el.get('timer'), 1, 'The transition sets the primitive property.');
+            equal(el.get('timer'), 1, 'The transition sets the primitive property.');
 
-	          deepEqual(timerArray.sort(), timerArray, 'The transition changes the primitive property gradually, ');
+            deepEqual(timerArray.sort(), timerArray, 'The transition changes the primitive property gradually, ');
 
-	          ok(0 < timerMedian && timerMedian < 1, 'The transition median value is between min and max.');
+            ok(0 < timerMedian && timerMedian < 1, 'The transition median value is between min and max.');
 
-	          start();
+            start();
 
         }, 300);
-
     });
 
     QUnit.asyncTest('transition: nested value', function() {
 
         var el = new joint.shapes.basic.Rect({
-	          nested: {
-	              timer: -1,
-	              other: 'nochange'
-	          }
+            nested: {
+                timer: -1,
+                other: 'nochange'
+            }
         });
 
         this.graph.addCell(el);
@@ -1223,29 +1220,32 @@ QUnit.module('basic', function(hooks) {
         var timerArray = [];
 
         el.transition('nested/timer', 100, {
-	          delay: 100,
-	          duration: 100,
-	          valueFunction: function(a, b) { return function(t) { return t; }}
+            delay: 100,
+            duration: 100,
+            valueFunction: function(a, b) {
+                return function(t) {
+                    return t;
+                };
+            }
         });
 
         el.on('change:nested', function(cell, changed) { timerArray.push(changed.timer); });
 
         setTimeout(function() {
 
-	          var timerMedian = timerArray[Math.floor(timerArray.length / 2)];
+            var timerMedian = timerArray[Math.floor(timerArray.length / 2)];
 
-	          equal(el.get('nested').timer, 1, 'The transition sets the nested property.');
+            equal(el.get('nested').timer, 1, 'The transition sets the nested property.');
 
-	          equal(el.get('nested').other, 'nochange', "The transition affects no other property.");
+            equal(el.get('nested').other, 'nochange', 'The transition affects no other property.');
 
-	          deepEqual(timerArray.sort(), timerArray, 'The transition changes the nested property gradually, ');
+            deepEqual(timerArray.sort(), timerArray, 'The transition changes the nested property gradually, ');
 
-	          ok(0 < timerMedian && timerMedian < 1, 'The transition median value is between min and max.');
+            ok(0 < timerMedian && timerMedian < 1, 'The transition median value is between min and max.');
 
-	          start();
+            start();
 
         }, 300);
-
     });
 
     QUnit.test('cell.getAncestors()', function() {
@@ -1259,7 +1259,7 @@ QUnit.module('basic', function(hooks) {
 
         r1.embed(r2.embed(r4).embed(r5));
 
-        this.graph.addCells([r1,r2,r3,r4,r5]);
+        this.graph.addCells([r1, r2, r3, r4, r5]);
 
         deepEqual(r0.getAncestors(), [], 'A cell that is not part of a collection has no ancestors.');
         deepEqual(r1.getAncestors(), [], 'A cell with no parent has no ancestors.');
@@ -1327,13 +1327,13 @@ QUnit.module('basic', function(hooks) {
                     .applyToPoints(fn);
             assert.deepEqual(l.get('source'), { x: 90, y: 90 });
             assert.deepEqual(l.get('target'), { x: 190, y: 190 });
-            assert.deepEqual(l.get('vertices'), [{ x: 0, y: 0}]);
+            assert.deepEqual(l.get('vertices'), [{ x: 0, y: 0 }]);
         });
 
         QUnit.test('element-element + no vertices', function(assert) {
             var l = this.link
                     .set('source', { id: 'a' })
-                    .set('target', { id: 'b'})
+                    .set('target', { id: 'b' })
                     .applyToPoints(fn);
             assert.deepEqual(l.get('source'), { id: 'a' });
             assert.deepEqual(l.get('target'), { id: 'b' });
@@ -1343,7 +1343,7 @@ QUnit.module('basic', function(hooks) {
         QUnit.test('element-element + vertices', function(assert) {
             var l = this.link
                     .set('source', { id: 'a' })
-                    .set('target', { id: 'b'})
+                    .set('target', { id: 'b' })
                     .set('vertices', [{ x: 10, y: 10 }])
                     .applyToPoints(fn);
             assert.deepEqual(l.get('source'), { id: 'a' });
@@ -1366,36 +1366,36 @@ QUnit.module('basic', function(hooks) {
             this.link = new joint.dia.Link({
                 source: { x: 100, y: 100 },
                 target: { x: 200, y: 200 },
-                vertices: [{x: 100, y: 200 }]
+                vertices: [{ x: 100, y: 200 }]
             });
         });
 
         QUnit.test('no origin', function(assert) {
-            var l = this.link.scale(2,3);
+            var l = this.link.scale(2, 3);
 
             assert.equal(l.get('vertices').length, 1);
-            assert.equal(g.point(l.get('vertices')[0]).toString(), g.point(200,600).toString());
-            assert.equal(g.point(l.get('source')).toString(), g.point(200,300).toString());
-            assert.equal(g.point(l.get('target')).toString(), g.point(400,600).toString());
+            assert.equal(g.point(l.get('vertices')[0]).toString(), g.point(200, 600).toString());
+            assert.equal(g.point(l.get('source')).toString(), g.point(200, 300).toString());
+            assert.equal(g.point(l.get('target')).toString(), g.point(400, 600).toString());
         });
 
         QUnit.test('with custom origin', function(assert) {
-            var l = this.link.scale(2,3, g.point(100,100));
+            var l = this.link.scale(2, 3, g.point(100, 100));
 
             assert.equal(l.get('vertices').length, 1);
-            assert.equal(g.point(l.get('vertices')[0]).toString(), g.point(100,400).toString());
-            assert.equal(g.point(l.get('source')).toString(), g.point(100,100).toString());
-            assert.equal(g.point(l.get('target')).toString(), g.point(300,400).toString());
+            assert.equal(g.point(l.get('vertices')[0]).toString(), g.point(100, 400).toString());
+            assert.equal(g.point(l.get('source')).toString(), g.point(100, 100).toString());
+            assert.equal(g.point(l.get('target')).toString(), g.point(300, 400).toString());
         });
 
         QUnit.test('when connected to elements', function(assert) {
             var l = this.link
                     .set('source', { id: 'a' })
-                    .set('target', { id: 'b'})
-                    .scale(2,3);
+                    .set('target', { id: 'b' })
+                    .scale(2, 3);
 
             assert.equal(l.get('vertices').length, 1);
-            assert.equal(g.point(l.get('vertices')[0]).toString(), g.point(200,600).toString());
+            assert.equal(g.point(l.get('vertices')[0]).toString(), g.point(200, 600).toString());
             assert.deepEqual(l.get('source'), { id: 'a' });
             assert.deepEqual(l.get('target'), { id: 'b' });
         });
@@ -1405,7 +1405,7 @@ QUnit.module('basic', function(hooks) {
             l.on('change', function(link, opt) {
                 assert.ok(opt.linkOption);
             });
-            l.scale(2,2, null, { linkOption: true });
+            l.scale(2, 2, null, { linkOption: true });
         });
     });
 
@@ -1419,13 +1419,13 @@ QUnit.module('basic', function(hooks) {
         });
 
         QUnit.test('no origin', function(assert) {
-            var el = this.element.scale(2,3);
-            assert.equal(el.getBBox().toString(), g.rect(200,300,200,300).toString());
+            var el = this.element.scale(2, 3);
+            assert.equal(el.getBBox().toString(), g.rect(200, 300, 200, 300).toString());
         });
 
         QUnit.test('with custom origin', function(assert) {
-            var el = this.element.scale(2,3, g.point(100,100));
-            assert.equal(el.getBBox().toString(), g.rect(100,100,200,300).toString());
+            var el = this.element.scale(2, 3, g.point(100, 100));
+            assert.equal(el.getBBox().toString(), g.rect(100, 100, 200, 300).toString());
         });
 
         QUnit.test('event option', function(assert) {
@@ -1433,7 +1433,7 @@ QUnit.module('basic', function(hooks) {
             el.on('change', function(link, opt) {
                 assert.ok(opt.elementOption);
             });
-            el.scale(2,2, null, { elementOption: true });
+            el.scale(2, 2, null, { elementOption: true });
         });
     });
 });
