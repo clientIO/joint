@@ -13,6 +13,8 @@ require(['qunit'], function(QUnit) {
     (function() {
 
         var buildFiles = [
+            'build/geometry',
+            'build/geometry.min',
             'dist/geometry',
             'dist/geometry.min'
         ];

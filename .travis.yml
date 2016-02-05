@@ -12,5 +12,4 @@ before_install:
 install: npm install
 
 before_script:
-  - rm -r dist
-  - grunt build:all
+  - grunt dist

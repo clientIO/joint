@@ -1,9 +1,14 @@
+'use strict';
+
+var _ = require('lodash');
+
 module.exports = function(grunt) {
 
     require('time-grunt')(grunt);
     require('load-grunt-tasks')(grunt);
 
-    var banner = '/*! <%= pkg.title %> v<%= pkg.version %> - <%= pkg.description %>  <%= grunt.template.today("yyyy-mm-dd") %> \n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n */\n';
+    var pkg = grunt.file.readJSON('package.json');
+    var banner = _.template('/*! <%= pkg.title %> v<%= pkg.version %> - <%= pkg.description %>  <%= grunt.template.today("yyyy-mm-dd") %> \n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n */\n')({ pkg: pkg, grunt: grunt });
 
     // Ignore webpack in node v5, until webpack is fixed for that version.
     var ignoreWebpack = process.version.substr(0, 'v5'.length) === 'v5';
@@ -103,16 +108,16 @@ module.exports = function(grunt) {
 
     var config = {
 
-        pkg: grunt.file.readJSON('package.json'),
+        pkg: pkg,
 
         webpack: {
             joint: {
                 files: {
-                   './dist/joint.webpack-bundle.js' : './dist/joint.min.js'
+                   './build/joint.webpack-bundle.js' : './build/joint.min.js'
                 },
-                entry: './dist/joint.min.js',
+                entry: './build/joint.min.js',
                 output: {
-                    path: './dist/',
+                    path: './build/',
                     filename: 'joint.webpack-bundle.js',
                     library: 'joint'
                 },
@@ -127,7 +132,7 @@ module.exports = function(grunt) {
         browserify: {
             joint: {
                 files: {
-                    'dist/joint.browserify-bundle.js': 'dist/joint.min.js'
+                    'build/joint.browserify-bundle.js': 'build/joint.min.js'
                 },
                 options: {
                     browserifyOptions: {
@@ -136,99 +141,116 @@ module.exports = function(grunt) {
                 }
             }
         },
+        clean: {
+            dist: ['dist']
+        },
         concat: {
-            options: {
-                banner: banner,
-                process: {
-                    delimiters: 'square'
-                }
-            },
             geometry: {
                 files: {
-                    'dist/geometry.js': [].concat(
-                        ['build/wrappers/geometry.head.js'],
+                    'build/geometry.js': [].concat(
+                        ['wrappers/geometry.head.js'],
                         js.geometry,
-                        ['build/wrappers/geometry.foot.js']
+                        ['wrappers/geometry.foot.js']
                     ),
-                    'dist/geometry.min.js': [].concat(
-                        ['build/wrappers/geometry.head.js'],
+                    'build/geometry.min.js': [].concat(
+                        ['wrappers/geometry.head.js'],
                         ['build/min/geometry.min.js'],
-                        ['build/wrappers/geometry.foot.js']
+                        ['wrappers/geometry.foot.js']
                     )
                 }
             },
             vectorizer: {
                 files: {
-                    'dist/vectorizer.js': [].concat(
-                        ['build/wrappers/vectorizer.head.js'],
+                    'build/vectorizer.js': [].concat(
+                        ['wrappers/vectorizer.head.js'],
                         js.vectorizer,
-                        ['build/wrappers/vectorizer.foot.js']
+                        ['wrappers/vectorizer.foot.js']
                     ),
-                    'dist/vectorizer.min.js': [].concat(
-                        ['build/wrappers/vectorizer.head.js'],
+                    'build/vectorizer.min.js': [].concat(
+                        ['wrappers/vectorizer.head.js'],
                         ['build/min/vectorizer.min.js'],
-                        ['build/wrappers/vectorizer.foot.js']
+                        ['wrappers/vectorizer.foot.js']
                     )
                 }
             },
             joint: {
                 files: {
-                    'dist/joint.core.js': [].concat(
-                        ['build/wrappers/joint.head.js'],
+                    'build/joint.core.js': [].concat(
+                        ['wrappers/joint.head.js'],
                         js.geometry,
                         js.vectorizer,
                         js.core,
-                        ['build/wrappers/joint.foot.js']
+                        ['wrappers/joint.foot.js']
                     ),
-                    'dist/joint.core.min.js': [].concat(
-                        ['build/wrappers/joint.head.js'],
+                    'build/joint.core.min.js': [].concat(
+                        ['wrappers/joint.head.js'],
                         ['build/min/geometry.min.js'],
                         ['build/min/vectorizer.min.js'],
                         ['build/min/joint.min.js'],
-                        ['build/wrappers/joint.foot.js']
+                        ['wrappers/joint.foot.js']
                     ),
-                    'dist/joint.core.css': [].concat(
+                    'build/joint.core.css': [].concat(
                         css.core
                     ),
-                    'dist/joint.core.min.css': [].concat(
+                    'build/joint.core.min.css': [].concat(
                         ['build/min/joint.min.css']
                     ),
-                    'dist/joint.js': [].concat(
-                        ['build/wrappers/joint.head.js'],
+                    'build/joint.js': [].concat(
+                        ['wrappers/joint.head.js'],
                         js.geometry,
                         js.vectorizer,
                         js.core,
                         allJSPlugins(),
-                        ['build/wrappers/joint.foot.js']
+                        ['wrappers/joint.foot.js']
                     ),
-                    'dist/joint.min.js': [].concat(
-                        ['build/wrappers/joint.head.js'],
+                    'build/joint.min.js': [].concat(
+                        ['wrappers/joint.head.js'],
                         ['build/min/geometry.min.js'],
                         ['build/min/vectorizer.min.js'],
                         ['build/min/joint.min.js'],
                         allMinifiedJSPlugins(),
-                        ['build/wrappers/joint.foot.js']
+                        ['wrappers/joint.foot.js']
                     ),
-                    'dist/joint.css': [].concat(
+                    'build/joint.css': [].concat(
                         css.core,
                         allCSSPlugins()
                     ),
-                    'dist/joint.min.css': [].concat(
+                    'build/joint.min.css': [].concat(
                         ['build/min/joint.min.css'],
                         allMinifiedCSSPlugins()
                     ),
-                    'dist/joint.nowrap.js': [].concat(
+                    'build/joint.nowrap.js': [].concat(
                         js.geometry,
                         js.vectorizer,
                         js.core,
                         allJSPlugins()
                     ),
-                    'dist/joint.nowrap.min.js': [].concat(
+                    'build/joint.nowrap.min.js': [].concat(
                         ['build/min/geometry.min.js'],
                         ['build/min/vectorizer.min.js'],
                         ['build/min/joint.min.js'],
                         allMinifiedJSPlugins()
                     )
+                }
+            }
+        },
+        copy: {
+            dist: {
+                files: [{
+                    nonull: true,
+                    expand: true,
+                    cwd: 'build/',
+                    src: [
+                        '*',
+                        '!min'
+                    ],
+                    dest: 'dist/'
+                }],
+                options: {
+                    process: function(content) {
+                        // Add JointJS banner to all distribution files.
+                        return banner + content;
+                    }
                 }
             }
         },
@@ -399,19 +421,19 @@ module.exports = function(grunt) {
     // Create targets for all the plugins.
     Object.keys(js.plugins).forEach(function(name) {
 
-        config.concat[name] = { files: {}, options: { banner: banner } };
+        config.concat[name] = { files: {} };
         config.uglify[name] = { files: {} };
 
         config.uglify[name].files['build/min/joint.' + name + '.min.js'] = js.plugins[name];
-        config.concat[name].files['dist/joint.' + name + '.js'] = js.plugins[name];
-        config.concat[name].files['dist/joint.' + name + '.min.js'] = ['build/min/joint.' + name + '.min.js'];
+        config.concat[name].files['build/joint.' + name + '.js'] = js.plugins[name];
+        config.concat[name].files['build/joint.' + name + '.min.js'] = ['build/min/joint.' + name + '.min.js'];
 
         if (css.plugins[name]) {
 
             config.cssmin[name] = { files: {} };
             config.cssmin[name].files['build/min/joint.' + name + '.min.css'] = css.plugins[name];
-            config.concat[name].files['dist/joint.' + name + '.css'] = css.plugins[name];
-            config.concat[name].files['dist/joint.' + name + '.min.css'] = ['build/min/joint.' + name + '.min.css'];
+            config.concat[name].files['build/joint.' + name + '.css'] = css.plugins[name];
+            config.concat[name].files['build/joint.' + name + '.min.css'] = ['build/min/joint.' + name + '.min.css'];
         }
     });
 
@@ -469,22 +491,34 @@ module.exports = function(grunt) {
     ]);
 
     grunt.registerTask('build', ['build:joint']);
+
     grunt.registerTask('build:bundles', ignoreWebpack ? [
         'newer:browserify'
     ] : [
         'newer:browserify',
         'newer:webpack'
     ]);
-    grunt.registerTask('build:all', ['build:joint', 'build:bundles']);
+
+    grunt.registerTask('build:all', [
+        'build:joint',
+        'build:bundles'
+    ]);
+
+    grunt.registerTask('dist', [
+        'build:all',
+        'clean:dist',
+        'copy:dist'
+    ]);
 
     grunt.registerTask('test:server', ['mochaTest:server']);
-    grunt.registerTask('test:client', ['qunit:all', 'jscs']);
-    grunt.registerTask('test', ['test:server', 'test:client']);
+    grunt.registerTask('test:client', ['qunit:all']);
+    grunt.registerTask('test:code-style', ['jscs']);
+    grunt.registerTask('test', ['test:server', 'test:client', 'test:code-style']);
 
     grunt.registerTask('bowerInstall', [
         'shell:bowerInstall:.'
     ]);
 
-    grunt.registerTask('install', ['bowerInstall']);
+    grunt.registerTask('install', ['bowerInstall', 'build:all']);
     grunt.registerTask('default', ['install', 'build', 'watch']);
 };

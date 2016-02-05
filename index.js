@@ -1,1 +1,1 @@
-module.exports = require('./dist/joint');
+module.exports = require('./build/joint');

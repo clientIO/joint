@@ -14,6 +14,8 @@ require(['qunit'], function(QUnit) {
     QUnit.module('RequireJS');
 
     var buildFiles = [
+        'build/vectorizer',
+        'build/vectorizer.min',
         'dist/vectorizer',
         'dist/vectorizer.min'
     ];
