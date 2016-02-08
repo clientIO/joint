@@ -380,18 +380,12 @@ joint.shapes.basic.PortsViewInterface = {
 
 joint.shapes.basic.TextBlock = joint.shapes.basic.Generic.extend({
 
-    markup: ['<g class="rotatable"><g class="scalable"><rect/></g><switch>',
-
-             // if foreignObject supported
-
-             '<foreignObject requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" class="fobj">',
-             '<body xmlns="http://www.w3.org/1999/xhtml"><div/></body>',
-             '</foreignObject>',
-
-             // else foreignObject is not supported (fallback for IE)
-             '<text class="content"/>',
-
-             '</switch></g>'].join(''),
+    markup: [
+        '<g class="rotatable">',
+        '<g class="scalable"><rect/></g>',
+        joint.env.test('svgforeignobject') ? '<foreignObject class="fobj"><body xmlns="http://www.w3.org/1999/xhtml"><div class="content"/></body></foreignObject>' : '<text class="content"/>',
+        '</g>'
+    ].join(''),
 
     defaults: joint.util.deepSupplement({
 
@@ -426,35 +420,58 @@ joint.shapes.basic.TextBlock = joint.shapes.basic.Generic.extend({
 
     initialize: function() {
 
-        if (typeof SVGForeignObjectElement !== 'undefined') {
-
-            // foreignObject supported
-            this.setForeignObjectSize(this, this.get('size'));
-            this.setDivContent(this, this.get('content'));
-            this.listenTo(this, 'change:size', this.setForeignObjectSize);
-            this.listenTo(this, 'change:content', this.setDivContent);
-
-        }
-
+        this.listenTo(this, 'change:size', this.updateSize);
+        this.listenTo(this, 'change:content', this.updateContent);
+        this.updateSize(this, this.get('size'));
+        this.updateContent(this, this.get('content'));
         joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
     },
 
-    setForeignObjectSize: function(cell, size) {
+    updateSize: function(cell, size) {
 
         // Selector `foreignObject' doesn't work accross all browsers, we'r using class selector instead.
         // We have to clone size as we don't want attributes.div.style to be same object as attributes.size.
-        cell.attr({
+        this.attr({
             '.fobj': _.clone(size),
-            div: { style: _.clone(size) }
+            div: {
+                style: _.clone(size)
+            }
         });
     },
 
-    setDivContent: function(cell, content) {
+    updateContent: function(cell, content) {
 
-        // Append the content to div as html.
-        cell.attr({ div : {
-            html: content
-        }});
+        if (joint.env.test('svgforeignobject')) {
+
+            // Content element is a <div> element.
+            this.attr({
+                '.content': {
+                    html: content
+                }
+            });
+
+        } else {
+
+            // Content element is a <text> element.
+            // SVG elements don't have innerHTML attribute.
+            this.attr({
+                '.content': {
+                    text: content
+                }
+            });
+        }
+    },
+
+    // Here for backwards compatibility:
+    setForeignObjectSize: function() {
+
+        this.updateSize.apply(this, arguments);
+    },
+
+    // Here for backwards compatibility:
+    setDivContent: function() {
+
+        this.updateContent.apply(this, arguments);
     }
 
 });
@@ -467,8 +484,9 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
 
         joint.dia.ElementView.prototype.initialize.apply(this, arguments);
 
-        if (typeof SVGForeignObjectElement === 'undefined') {
+        if (joint.env.test('svgforeignobject')) {
 
+            // Keep this for backwards compatibility:
             this.noSVGForeignObjectElement = true;
 
             this.listenTo(this.model, 'change:content', function(cell) {
@@ -480,7 +498,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
 
     update: function(cell, renderingOnlyAttrs) {
 
-        if (this.noSVGForeignObjectElement) {
+        if (joint.env.test('svgforeignobject')) {
 
             var model = this.model;
 
