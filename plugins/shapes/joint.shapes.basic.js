@@ -484,10 +484,10 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
 
         joint.dia.ElementView.prototype.initialize.apply(this, arguments);
 
-        if (joint.env.test('svgforeignobject')) {
+        // Keep this for backwards compatibility:
+        this.noSVGForeignObjectElement = !joint.env.test('svgforeignobject');
 
-            // Keep this for backwards compatibility:
-            this.noSVGForeignObjectElement = true;
+        if (!joint.env.test('svgforeignobject')) {
 
             this.listenTo(this.model, 'change:content', function(cell) {
                 // avoiding pass of extra paramters
