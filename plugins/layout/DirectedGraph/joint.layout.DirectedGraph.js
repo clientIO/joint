@@ -119,6 +119,9 @@ joint.layout.DirectedGraph = {
         // executes the layout
         dagre.layout(glGraph, { debugTiming: !!opt.debugTiming });
 
+        // wrap all graph changes into a batch
+        graph.trigger('batch:start', { batchName: 'layout' });
+
         // Update the graph
         graph.fromGraphLib(glGraph, {
             importNode: function(v, gl) {
@@ -164,6 +167,8 @@ joint.layout.DirectedGraph = {
                 .invoke('fitEmbeds', { padding: opt.clusterPadding })
                 .value();
         }
+
+        graph.trigger('batch:stop', { batchName: 'layout' });
 
         // Return an object with height and width of the graph.
         return glGraph.graph();
