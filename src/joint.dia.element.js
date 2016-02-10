@@ -708,7 +708,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
 
             // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
-            // `y-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
+            // `x-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
             if (xAlignment === 'middle') {
 
                 tx -= velBBox.width / 2;
