@@ -7,9 +7,20 @@ joint.dia.GraphCells = Backbone.Collection.extend({
 
     initialize: function(models, opt) {
 
+        //In order to avoid multiple sort during toFront and toBack deep operations
+        //The change:z event is disabled during batch:start and reactivated when all the batches have stopped
+        var activeBatches = 0;
+        this.on('batch:start', function (e) { if ((e.batchName === 'to-front') || (e.batchName === 'to-back')) { ++activeBatches; }});
+        this.on('batch:stop', function (e) {
+            if (activeBatches > 0 && ((e.batchName === 'to-front') || (e.batchName === 'to-back'))) {
+                this.sort();
+                --activeBatches;
+            }
+        }, this);
+    
         // Backbone automatically doesn't trigger re-sort if models attributes are changed later when
         // they're already in the collection. Therefore, we're triggering sort manually here.
-        this.on('change:z', this.sort, this);
+        this.on('change:z', function () { return activeBatches === 0 && this.sort(); }, this);
 
         // Set the optional namespace where all model classes are defined.
         if (opt.cellNamespace) {
