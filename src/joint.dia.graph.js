@@ -17,7 +17,6 @@ joint.dia.GraphCells = Backbone.Collection.extend({
                 --activeBatches;
             }
         }, this);
-    
         // Backbone automatically doesn't trigger re-sort if models attributes are changed later when
         // they're already in the collection. Therefore, we're triggering sort manually here.
         this.on('change:z', function() { return activeBatches === 0 && this.sort(); }, this);
