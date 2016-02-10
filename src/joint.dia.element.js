@@ -693,9 +693,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             var velBBox = vel.bbox(false, this.paper.viewport);
 
             // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
+            // `y-alignment` when set to `bottom` uses the y coordinate as referenced to the bottom of the bbox.
             if (yAlignment === 'middle') {
 
                 ty -= velBBox.height / 2;
+
+            } else if (yAlignment === 'bottom') {
+
+                ty -= velBBox.height;
 
             } else if (isFinite(yAlignment)) {
 
@@ -703,9 +708,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
 
             // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
+            // `x-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
             if (xAlignment === 'middle') {
 
                 tx -= velBBox.width / 2;
+
+            } else if (xAlignment === 'right') {
+
+                tx -= velBBox.width;
 
             } else if (isFinite(xAlignment)) {
 
