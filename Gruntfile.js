@@ -1,14 +1,14 @@
 'use strict';
 
-var _ = require('lodash');
-
 module.exports = function(grunt) {
 
     require('time-grunt')(grunt);
     require('load-grunt-tasks')(grunt);
 
+    grunt.template.addDelimiters('square', '[%', '%]');
+
     var pkg = grunt.file.readJSON('package.json');
-    var banner = _.template('/*! <%= pkg.title %> v<%= pkg.version %> - <%= pkg.description %>  <%= grunt.template.today("yyyy-mm-dd") %> \n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n */\n')({ pkg: pkg, grunt: grunt });
+    var banner = grunt.template.process('/*! <%= pkg.title %> v<%= pkg.version %> - <%= pkg.description %>  <%= grunt.template.today("yyyy-mm-dd") %> \n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n */\n', { data: { pkg: pkg }, delimiter: 'default' });
 
     // Ignore webpack in node v5, until webpack is fixed for that version.
     var ignoreWebpack = process.version.substr(0, 'v5'.length) === 'v5';
@@ -104,8 +104,6 @@ module.exports = function(grunt) {
         return files;
     }
 
-    grunt.template.addDelimiters('square', '[%', '%]');
-
     var config = {
 
         pkg: pkg,
@@ -174,6 +172,14 @@ module.exports = function(grunt) {
                 }
             },
             joint: {
+                options: {
+                    process: {
+                        options: {
+                            data: pkg,
+                        },
+                        delimiters: 'square'
+                    }
+                },
                 files: {
                     'build/joint.core.js': [].concat(
                         ['wrappers/joint.head.js'],
