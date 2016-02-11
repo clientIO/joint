@@ -142,12 +142,16 @@ joint.layout.DirectedGraph = {
 
                 var link = this.getCell(edgeObj.name);
                 var glEdge = gl.edge(edgeObj);
+                var points = glEdge.points || [];
 
                 if (opt.setLinkVertices) {
                     if (opt.setVertices) {
-                        opt.setVertices(link, glEdge.points);
+                        opt.setVertices(link, points);
                     } else {
-                        link.set('vertices', glEdge.points);
+                        // Remove the first and last point from points array.
+                        // Those are source/target element connection points
+                        // ie. they lies on the edge of connected elements.
+                        link.set('vertices', points.slice(1, points.length - 1));
                     }
                 }
             }
