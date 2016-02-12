@@ -41,6 +41,9 @@ joint.dia.Paper = joint.mvc.View.extend({
             return false;
         },
 
+        // Prevent the default context menu from being displayed.
+        preventContextMenu: true,
+
         // Restrict the translation of elements by given bounding box.
         // Option accepts a boolean:
         //  true - the translation is restricted to the paper area
@@ -905,6 +908,11 @@ joint.dia.Paper = joint.mvc.View.extend({
     contextmenu: function(evt) {
 
         evt = joint.util.normalizeEvent(evt);
+
+        if (this.options.preventContextMenu) {
+            evt.preventDefault();
+        }
+
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
 
