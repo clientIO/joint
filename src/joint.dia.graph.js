@@ -7,20 +7,6 @@ joint.dia.GraphCells = Backbone.Collection.extend({
 
     initialize: function(models, opt) {
 
-        //In order to avoid multiple sort during toFront and toBack deep operations
-        //The change:z event is disabled during batch:start and reactivated when all the batches have stopped
-        var activeBatches = 0;
-        this.on('batch:start', function(e) { if ((e.batchName === 'to-front') || (e.batchName === 'to-back')) { ++activeBatches; }});
-        this.on('batch:stop', function(e) {
-            if (activeBatches > 0 && ((e.batchName === 'to-front') || (e.batchName === 'to-back'))) {
-                this.sort();
-                --activeBatches;
-            }
-        }, this);
-        // Backbone automatically doesn't trigger re-sort if models attributes are changed later when
-        // they're already in the collection. Therefore, we're triggering sort manually here.
-        this.on('change:z', function() { return activeBatches === 0 && this.sort(); }, this);
-
         // Set the optional namespace where all model classes are defined.
         if (opt.cellNamespace) {
             this.cellNamespace = opt.cellNamespace;
@@ -57,6 +43,8 @@ joint.dia.GraphCells = Backbone.Collection.extend({
 
 joint.dia.Graph = Backbone.Model.extend({
 
+    _batches: {},
+
     initialize: function(attrs, opt) {
 
         opt = opt || {};
@@ -74,6 +62,21 @@ joint.dia.Graph = Backbone.Model.extend({
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
         cells.on('all', this.trigger, this);
+
+        this.on('batch:start', this._batchStarted, this);
+        this.on('batch:stop', this._batchStopped, this);
+        // Backbone automatically doesn't trigger re-sort if models attributes are changed later when
+        // they're already in the collection. Therefore, we're triggering sort manually here.
+        this.on('change:z', function(e) {
+            if (!(this.hasActiveBatch('to-front') || this.hasActiveBatch('to-back'))) {
+                cells.sort();
+            }
+        }, this);
+        this.on('batch:stop', function(e) {
+            if ((e.batchName === 'to-front' || e.batchName === 'to-back') && !this.hasActiveBatch(e.batchName)) {
+                cells.sort();
+            }
+        }, this);
 
         // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
@@ -104,6 +107,20 @@ joint.dia.Graph = Backbone.Model.extend({
         cells.on('change:target', this._restructureOnChangeTarget, this);
 
         cells.on('remove', this._removeCell, this);
+    },
+
+    _batchStarted : function(opt) {
+
+        opt = opt || {};
+
+        this._batches[opt.batchName] = (this._batches[opt.batchName] || 0) + 1;
+    },
+
+    _batchStopped : function(opt) {
+
+        opt = opt || {};
+
+        this._batches[opt.batchName] = (this._batches[opt.batchName] || 0) - 1;
     },
 
     _restructureOnAdd: function(cell) {
@@ -236,7 +253,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         if (collection.length === 0) return this;
 
-        this.trigger('batch:start', { batchName: 'clear' });
+        this.startBatch('clear', opt);
 
         // The elements come after the links.
         var cells = collection.sortBy(function(cell) {
@@ -253,7 +270,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         } while (cells.length > 0);
 
-        this.trigger('batch:stop', { batchName: 'clear' });
+        this.stopBatch('clear');
 
         return this;
     },
@@ -978,5 +995,21 @@ joint.dia.Graph = Backbone.Model.extend({
         }
 
         return this;
+    },
+
+    startBatch: function(name, opt) {
+        return this.trigger('batch:start', _.extend({}, opt, { batchName: name }));
+    },
+
+    stopBatch: function(name, opt) {
+        return this.trigger('batch:stop', _.extend({}, opt, { batchName: name }));
+    },
+
+    hasActiveBatch: function(name) {
+        if (name) {
+            return this._batches[name];
+        } else {
+            return _.any(this._batches, function(batches) { return batches > 0; });
+        }
     }
 });

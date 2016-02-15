@@ -120,7 +120,7 @@ joint.layout.DirectedGraph = {
         dagre.layout(glGraph, { debugTiming: !!opt.debugTiming });
 
         // wrap all graph changes into a batch
-        graph.trigger('batch:start', { batchName: 'layout' });
+        graph.startBatch('layout');
 
         // Update the graph
         graph.fromGraphLib(glGraph, {
@@ -172,7 +172,7 @@ joint.layout.DirectedGraph = {
                 .value();
         }
 
-        graph.trigger('batch:stop', { batchName: 'layout' });
+        graph.stopBatch('layout');
 
         // Return an object with height and width of the graph.
         return glGraph.graph();
