@@ -145,12 +145,28 @@ test('interaction', function() {
 
     // arrowheadmove
 
+    var highlighted = false;
+
+    this.paper.on('cell:highlight', function(cellView, el) {
+
+        if (el[0] === vr3.el[0]) {
+            highlighted = true;
+        }
+    });
+
+    this.paper.on('cell:unhighlight', function(cellView, el) {
+
+        if (el[0] === vr3.el[0]) {
+            highlighted = false;
+        }
+    });
+
     v0.pointerdown({ target: v0.el.querySelector('.marker-arrowhead[end="target"]') });
     v0.pointermove({ target: vr3.el, type: 'mousemove' }, 630, 40);
-    ok(vr3.el.getAttribute('class').indexOf('highlighted') >= 0, 'moving pointer over the rectangle makes the rectangle highlighted');
+    ok(highlighted, 'moving pointer over the rectangle makes the rectangle highlighted');
 
     v0.pointermove({ target: this.paper.el, type: 'mousemove' }, 400, 400);
-    ok(vr3.el.getAttribute('class').indexOf('highlighted') == -1, 'after moving the pointer to coordinates 400, 400 the rectangle is not highlighted anymore');
+    notOk(highlighted, 'after moving the pointer to coordinates 400, 400 the rectangle is not highlighted anymore');
 
     v0.pointerup();
     checkDataPath(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 300 100 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400, 400');
