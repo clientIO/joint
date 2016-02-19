@@ -14,16 +14,14 @@ require(['qunit'], function(QUnit) {
 
         var buildFiles = [
             'build/geometry',
-            'build/geometry.min',
-            'dist/geometry',
-            'dist/geometry.min'
+            'build/geometry.min'
         ];
 
         while (buildFiles.length > 0) {
 
             (function(buildFile) {
 
-                QUnit.test('sanity checks for distribution file: "' + buildFile + '"', function(assert) {
+                QUnit.test('sanity checks for build file: "' + buildFile + '"', function(assert) {
 
                     var done = assert.async();
 
