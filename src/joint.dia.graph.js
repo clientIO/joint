@@ -954,20 +954,20 @@ joint.dia.Graph = Backbone.Model.extend({
 
 
     // Return bounding box of all elements.
-    getBBox: function(cells) {
-        return this.getCellsBBox(cells || this.getElements());
+    getBBox: function(cells, opt) {
+        return this.getCellsBBox(cells || this.getElements(), opt);
     },
 
     // Return the bounding box of all cells in array provided.
     // Links are being ignored.
-    getCellsBBox: function(cells) {
+    getCellsBBox: function(cells, opt) {
 
         return _.reduce(cells, function(memo, cell) {
             if (cell.isLink()) return memo;
             if (memo) {
-                return memo.union(cell.getBBox());
+                return memo.union(cell.getBBox(opt));
             } else {
-                return cell.getBBox();
+                return cell.getBBox(opt);
             }
         }, null);
     },
