@@ -149,7 +149,7 @@ joint.dia.Cell = Backbone.Model.extend({
         // Store the graph in a variable because `this.graph` won't' be accessbile after `this.trigger('remove', ...)` down below.
         var graph = this.graph;
         if (graph) {
-            graph.trigger('batch:start', { batchName: 'remove' });
+            graph.startBatch('remove');
         }
 
         // First, unembed this cell from its parent cell if there is one.
@@ -165,7 +165,7 @@ joint.dia.Cell = Backbone.Model.extend({
         this.trigger('remove', this, this.collection, opt);
 
         if (graph) {
-            graph.trigger('batch:stop', { batchName: 'remove' });
+            graph.stopBatch('remove');
         }
 
         return this;
@@ -179,7 +179,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             var z = (this.graph.getLastCell().get('z') || 0) + 1;
 
-            this.trigger('batch:start', { batchName: 'to-front' }).set('z', z, opt);
+            this.startBatch('to-front').set('z', z, opt);
 
             if (opt.deep) {
 
@@ -188,7 +188,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             }
 
-            this.trigger('batch:stop', { batchName: 'to-front' });
+            this.stopBatch('to-front');
         }
 
         return this;
@@ -202,7 +202,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             var z = (this.graph.getFirstCell().get('z') || 0) - 1;
 
-            this.trigger('batch:start', { batchName: 'to-back' });
+            this.startBatch('to-back');
 
             if (opt.deep) {
 
@@ -210,7 +210,7 @@ joint.dia.Cell = Backbone.Model.extend({
                 _.eachRight(cells, function(cell) { cell.set('z', z--, opt); });
             }
 
-            this.set('z', z, opt).trigger('batch:stop', { batchName: 'to-back' });
+            this.set('z', z, opt).stopBatch('to-back');
         }
 
         return this;
@@ -224,7 +224,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         } else {
 
-            this.trigger('batch:start', { batchName: 'embed' });
+            this.startBatch('embed');
 
             var embeds = _.clone(this.get('embeds') || []);
 
@@ -234,7 +234,7 @@ joint.dia.Cell = Backbone.Model.extend({
             cell.set('parent', this.id, opt);
             this.set('embeds', _.uniq(embeds), opt);
 
-            this.trigger('batch:stop', { batchName: 'embed' });
+            this.stopBatch('embed');
         }
 
         return this;
@@ -242,12 +242,12 @@ joint.dia.Cell = Backbone.Model.extend({
 
     unembed: function(cell, opt) {
 
-        this.trigger('batch:start', { batchName: 'unembed' });
+        this.startBatch('unembed');
 
         cell.unset('parent', opt);
         this.set('embeds', _.without(this.get('embeds'), cell.id), opt);
 
-        this.trigger('batch:stop', { batchName: 'unembed' });
+        this.stopBatch('unembed');
 
         return this;
     },
@@ -608,6 +608,16 @@ joint.dia.Cell = Backbone.Model.extend({
     isLink: function() {
 
         return false;
+    },
+
+    startBatch: function(name, opt) {
+        if (this.graph) { this.graph.startBatch(name, _.extend({}, opt, { cell: this })); }
+        return this;
+    },
+
+    stopBatch: function(name, opt) {
+        if (this.graph) { this.graph.stopBatch(name, _.extend({}, opt, { cell: this })); }
+        return this;
     }
 });
 
@@ -907,9 +917,9 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     pointerdown: function(evt, x, y) {
 
-        if (this.model.collection) {
-            this.model.trigger('batch:start', { batchName: 'pointer' });
-            this._collection = this.model.collection;
+        if (this.model.graph) {
+            this.model.startBatch('pointer');
+            this._graph = this.model.graph;
         }
 
         this.notify('cell:pointerdown', evt, x, y);
@@ -924,11 +934,11 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         this.notify('cell:pointerup', evt, x, y);
 
-        if (this._collection) {
+        if (this._graph) {
             // we don't want to trigger event on model as model doesn't
             // need to be member of collection anymore (remove)
-            this._collection.trigger('batch:stop', { batchName: 'pointer' });
-            delete this._collection;
+            this._graph.stopBatch('pointer', { cell: this.model });
+            delete this._graph;
         }
     },
 

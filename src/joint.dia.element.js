@@ -127,7 +127,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
         opt = opt || {};
 
-        this.trigger('batch:start', _.extend({}, opt, { element: this, batchName: 'resize' }));
+        this.startBatch('resize', opt);
 
         if (opt.direction) {
 
@@ -229,7 +229,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             this.set('size', { width: width, height: height }, opt);
         }
 
-        this.trigger('batch:stop', _.extend({}, opt, { element: this, batchName: 'resize' }));
+        this.stopBatch('resize');
 
         return this;
     },
@@ -237,10 +237,10 @@ joint.dia.Element = joint.dia.Cell.extend({
     scale: function(sx, sy, origin, opt) {
 
         var scaledBBox = this.getBBox().scale(sx, sy, origin);
-        this.trigger('batch:start', { batchName: 'scale' });
+        this.startBatch('scale', opt);
         this.position(scaledBBox.x, scaledBBox.y, opt);
         this.resize(scaledBBox.width, scaledBBox.height, opt);
-        this.trigger('batch:stop', { batchName: 'scale' });
+        this.stopBatch('scale');
         return this;
     },
 
@@ -256,7 +256,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
         if (embeddedCells.length > 0) {
 
-            this.trigger('batch:start', { batchName: 'fit-embeds' });
+            this.startBatch('fit-embeds', opt);
 
             if (opt.deep) {
                 // Recursively apply fitEmbeds on all embeds first.
@@ -282,7 +282,7 @@ joint.dia.Element = joint.dia.Cell.extend({
                 size: { width: bbox.width, height: bbox.height }
             }, opt);
 
-            this.trigger('batch:stop', { batchName: 'fit-embeds' });
+            this.stopBatch('fit-embeds');
         }
 
         return this;
@@ -302,10 +302,10 @@ joint.dia.Element = joint.dia.Cell.extend({
             center.rotate(origin, this.get('angle') - angle);
             var dx = center.x - size.width / 2 - position.x;
             var dy = center.y - size.height / 2 - position.y;
-            this.trigger('batch:start', { batchName: 'rotate' });
+            this.startBatch('rotate', { angle: angle, absolute: absolute, origin: origin });
             this.translate(dx, dy);
             this.rotate(angle, absolute);
-            this.trigger('batch:stop', { batchName: 'rotate' });
+            this.stopBatch('rotate');
 
         } else {
 
@@ -861,6 +861,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var model = opt.model || this.model;
         var paper = opt.paper || this.paper;
 
+        model.startBatch('to-front', opt);
+
         // Bring the model to the front with all his embeds.
         model.toFront({ deep: true, ui: true });
 
@@ -868,6 +870,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // to any of the element descendant. If we bring to front only embedded elements,
         // links connected to them would stay in the background.
         _.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'toFront', { ui: true });
+
+        model.stopBatch('to-front');
 
         // Before we start looking for suitable parent we remove the current one.
         var parentId = model.get('parent');
@@ -957,7 +961,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (evt.target.getAttribute('magnet') && paper.options.validateMagnet.call(paper, this, evt.target)) {
 
-            this.model.trigger('batch:start', { batchName: 'add-link' });
+            this.model.startBatch('add-link');
 
             var link = paper.getDefaultLink(this, evt.target);
 
@@ -1043,7 +1047,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             // Let the linkview deal with this event.
             this._linkView.pointerup(evt, x, y);
             this._linkView = null;
-            this.model.trigger('batch:stop', { batchName: 'add-link' });
+            this.model.stopBatch('add-link');
 
         } else {
 
