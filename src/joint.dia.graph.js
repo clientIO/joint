@@ -319,13 +319,17 @@ joint.dia.Graph = Backbone.Model.extend({
 
     addCells: function(cells, options) {
 
-        options = options || {};
-        options.position = cells.length;
+        if (cells.length) {
+            options = options || {};
+            options.position = cells.length;
 
-        _.each(cells, function(cell) {
-            options.position--;
-            this.addCell(cell, options);
-        }, this);
+            this.startBatch('add');
+            _.each(cells, function(cell) {
+                options.position--;
+                this.addCell(cell, options);
+            }, this);
+            this.stopBatch('add');
+        }
 
         return this;
     },

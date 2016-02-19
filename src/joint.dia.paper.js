@@ -162,10 +162,19 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.$el.append(this.svg);
 
-        this.listenTo(this.model, 'add', this.onCellAdded);
-        this.listenTo(this.model, 'remove', this.removeView);
-        this.listenTo(this.model, 'reset', this.resetViews);
-        this.listenTo(this.model, 'sort', this.sortViews);
+        this.model.on('add', this.onCellAdded, this);
+        this.model.on('remove', this.removeView, this);
+        this.model.on('reset', this.resetViews, this);
+        this.model.on('sort', function() {
+            if (!this.model.hasActiveBatch('add')) {
+                this.sortViews();
+            }
+        }, this);
+        this.model.on('batch:stop', function(e) {
+            if (e.batchName === 'add' && !this.model.hasActiveBatch('add')) {
+                this.sortViews();
+            }
+        }, this);
 
         this.setOrigin();
         this.setDimensions();
