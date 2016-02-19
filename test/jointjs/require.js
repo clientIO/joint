@@ -25,11 +25,7 @@ require(['qunit'], function(QUnit) {
         'build/joint.core',
         'build/joint.core.min',
         'build/joint',
-        'build/joint.min',
-        'dist/joint.core',
-        'dist/joint.core.min',
-        'dist/joint',
-        'dist/joint.min'
+        'build/joint.min'
     ];
 
     QUnit.test('require joint build files', function(assert) {

@@ -15,16 +15,14 @@ require(['qunit'], function(QUnit) {
 
     var buildFiles = [
         'build/vectorizer',
-        'build/vectorizer.min',
-        'dist/vectorizer',
-        'dist/vectorizer.min'
+        'build/vectorizer.min'
     ];
 
     while (buildFiles.length > 0) {
 
         (function(buildFile) {
 
-            QUnit.test('sanity checks for distribution file: "' + buildFile + '"', function(assert) {
+            QUnit.test('sanity checks for build file: "' + buildFile + '"', function(assert) {
 
                 var done = assert.async();
 
