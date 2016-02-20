@@ -63,20 +63,10 @@ joint.dia.Graph = Backbone.Model.extend({
         // to the outside world.
         cells.on('all', this.trigger, this);
 
-        this.on('batch:start', this._batchStarted, this);
-        this.on('batch:stop', this._batchStopped, this);
         // Backbone automatically doesn't trigger re-sort if models attributes are changed later when
         // they're already in the collection. Therefore, we're triggering sort manually here.
-        this.on('change:z', function(e) {
-            if (!(this.hasActiveBatch('to-front') || this.hasActiveBatch('to-back'))) {
-                cells.sort();
-            }
-        }, this);
-        this.on('batch:stop', function(e) {
-            if ((e.batchName === 'to-front' || e.batchName === 'to-back') && !this.hasActiveBatch(e.batchName)) {
-                cells.sort();
-            }
-        }, this);
+        this.on('change:z', this._sortOnChangeZ, this);
+        this.on('batch:stop', this._onBatchStop, this);
 
         // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
@@ -109,18 +99,19 @@ joint.dia.Graph = Backbone.Model.extend({
         cells.on('remove', this._removeCell, this);
     },
 
-    _batchStarted : function(opt) {
+    _sortOnChangeZ: function() {
 
-        opt = opt || {};
-
-        this._batches[opt.batchName] = (this._batches[opt.batchName] || 0) + 1;
+        if (!this.hasActiveBatch('to-front') && !this.hasActiveBatch('to-back')) {
+            this.get('cells').sort();
+        }
     },
 
-    _batchStopped : function(opt) {
+    _onBatchStop: function(data) {
 
-        opt = opt || {};
-
-        this._batches[opt.batchName] = (this._batches[opt.batchName] || 0) - 1;
+        var batchName = data && data.batchName;
+        if ((batchName === 'to-front' || batchName === 'to-back') && !this.hasActiveBatch(batchName)) {
+            this.get('cells').sort();
+        }
     },
 
     _restructureOnAdd: function(cell) {
@@ -997,12 +988,20 @@ joint.dia.Graph = Backbone.Model.extend({
         return this;
     },
 
-    startBatch: function(name, opt) {
-        return this.trigger('batch:start', _.extend({}, opt, { batchName: name }));
+    startBatch: function(name, data) {
+
+        data = data || {};
+        this._batches[name] = (this._batches[name] || 0) + 1;
+
+        return this.trigger('batch:start', _.extend({}, data, { batchName: name }));
     },
 
-    stopBatch: function(name, opt) {
-        return this.trigger('batch:stop', _.extend({}, opt, { batchName: name }));
+    stopBatch: function(name, data) {
+
+        data = data || {};
+        this._batches[name] = (this._batches[name] || 0) - 1;
+
+        return this.trigger('batch:stop', _.extend({}, data, { batchName: name }));
     },
 
     hasActiveBatch: function(name) {

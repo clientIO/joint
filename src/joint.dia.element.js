@@ -229,7 +229,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             this.set('size', { width: width, height: height }, opt);
         }
 
-        this.stopBatch('resize');
+        this.stopBatch('resize', opt);
 
         return this;
     },
