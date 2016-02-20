@@ -22,6 +22,47 @@ module('paper', {
     }
 });
 
+test('paper.addCell() number of sortViews()', function() {
+
+    var spy = sinon.spy(this.paper, 'sortViews');
+
+    var r1 = new joint.shapes.basic.Rect;
+    var r2 = new joint.shapes.basic.Rect;
+    var r3 = new joint.shapes.basic.Rect;
+
+    this.graph.addCell(r1);
+
+    equal(spy.callCount, 1, 'sort the views one time per each addCell()');
+
+    this.graph.addCell(r2);
+
+    equal(spy.callCount, 2, 'sort the views one time per each addCell()');
+
+    this.graph.addCell(r3);
+
+    equal(spy.callCount, 3, 'sort the views one time per each addCell()');
+
+});
+
+test('paper.addCells() number of sortViews()', function() {
+
+    var spy = sinon.spy(this.paper, 'sortViews');
+
+    var r1 = new joint.shapes.basic.Rect;
+    var r2 = new joint.shapes.basic.Rect;
+    var r3 = new joint.shapes.basic.Rect;
+    var r4 = new joint.shapes.basic.Rect;
+
+    this.graph.addCells([r1, r2]);
+
+    equal(spy.callCount, 1, 'sort the views one time per each addCells()');
+
+    this.graph.addCells([r3, r4]);
+
+    equal(spy.callCount, 2, 'sort the views one time per each addCells()');
+
+});
+
 test('paper.resetViews()', function() {
 
     var r1 = new joint.shapes.basic.Rect;

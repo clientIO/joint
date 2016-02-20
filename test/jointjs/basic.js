@@ -577,6 +577,8 @@ QUnit.module('basic', function(hooks) {
         this.graph.addCell(r1);
         this.graph.addCell(r2);
 
+        var spy = sinon.spy(this.paper, 'sortViews');
+
         var r1View = this.paper.findViewByModel(r1);
         var r2View = this.paper.findViewByModel(r2);
 
@@ -585,20 +587,25 @@ QUnit.module('basic', function(hooks) {
         r1.startBatch('to-front');
         r1.toFront();
 
+        equal(spy.callCount, 0, 'paper not sorted');
         notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element not moved after r2 element in the DOM after toFront() bacause a batch is running');
 
         r1.stopBatch('to-front');
 
+        equal(spy.callCount, 1, 'paper sorted exactly once');
         equal(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved after r2 element in the DOM after stopBatch()');
 
         r1.startBatch('to-back');
         r1.toBack();
 
+        equal(spy.callCount, 1, 'paper not sorted');
         equal(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element not moved back before r2 element in the DOM after toBack() because a batch is running');
 
         r1.stopBatch('to-back');
 
+        equal(spy.callCount, 2, 'paper sorted exactly once');
         notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved back before r2 element in the DOM after stopBatch()');
+
     });
 
     QUnit.test('toBack(), toFront() with { deep: true } option', function() {
