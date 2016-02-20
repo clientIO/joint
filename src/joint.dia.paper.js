@@ -165,16 +165,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.model.on('add', this.onCellAdded, this);
         this.model.on('remove', this.removeView, this);
         this.model.on('reset', this.resetViews, this);
-        this.model.on('sort', function() {
-            if (!this.model.hasActiveBatch('add')) {
-                this.sortViews();
-            }
-        }, this);
-        this.model.on('batch:stop', function(e) {
-            if (e.batchName === 'add' && !this.model.hasActiveBatch('add')) {
-                this.sortViews();
-            }
-        }, this);
+        this.model.on('sort', this._onSort, this);
+        this.model.on('batch:stop', this._onBatchStop, this);
 
         this.setOrigin();
         this.setDimensions();
@@ -188,6 +180,19 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // default cell highlighting
         this.on({ 'cell:highlight': this.onCellHighlight, 'cell:unhighlight': this.onCellUnhighlight });
+    },
+
+    _onSort: function() {
+        if (!this.model.hasActiveBatch('add')) {
+            this.sortViews();
+        }
+    },
+
+    _onBatchStop: function(data) {
+        var name = data && data.batchName;
+        if (name === 'add' && !this.model.hasActiveBatch('add')) {
+            this.sortViews();
+        }
     },
 
     onRemove: function() {
