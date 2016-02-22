@@ -1264,6 +1264,32 @@ var joint = {
                     return !_.isUndefined(value) ? value : '';
                 });
             };
+        },
+
+        /**
+         * @param {Element=} el Element, which content is intent to display in full-screen mode, 'document.body' is default.
+         */
+        toggleFullScreen: function(el) {
+
+            el = el || document.body;
+
+            function prefixedResult(el, prop) {
+
+                var prefixes = ['webkit', 'moz', 'ms', 'o', ''];
+                for (var i = 0; i < prefixes.length; i++) {
+                    var prefix = prefixes[i];
+                    var propName = prefix ? (prefix + prop) : (prop.substr(0, 1).toLowerCase() + prop.substr(1));
+                    if (!_.isUndefined(el[propName])) {
+                        return _.isFunction(el[propName]) ? el[propName]() : el[propName];
+                    }
+                }
+            }
+
+            if (prefixedResult(document, 'FullScreen') || prefixedResult(document, 'IsFullScreen')) {
+                prefixedResult(document, 'CancelFullScreen');
+            } else {
+                prefixedResult(el, 'RequestFullScreen');
+            }
         }
     }
 };
