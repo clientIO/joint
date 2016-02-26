@@ -1,4 +1,17 @@
 
+  /*  Highlighting  */
+  .joint-highlight-stroke.joint-theme-modern {
+    stroke: #feb663;
+    stroke-width: 3px;
+    vector-effect: non-scaling-stroke;
+    fill: none;
+  }
+  .joint-highlight-opacity {
+    opacity: 0.3;
+  }
+  /*  Highlighting  */
+
+
   /*  Links  */
   .link.joint-theme-modern .connection-wrap {
      stroke: black;

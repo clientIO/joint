@@ -25,6 +25,9 @@ var joint = {
     // `joint.connectors` namespace.
     connectors: {},
 
+    // `joint.highlighters` namespace.
+    highlighters: {},
+
     // `joint.routers` namespace.
     routers: {},
 

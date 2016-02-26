@@ -24,6 +24,7 @@ path:not([d]) {
 
 */
 
+
 /* .magnet is an element that can be either source or a target of a link */
 /*
 .magnet {
@@ -83,6 +84,13 @@ very thin.
    /* This makes the arrowheads point to the border of objects even though the transform: scale() is applied on them. */
    vector-effect: non-scaling-stroke;
 }
+
+
+/*  Highlighting  */
+.joint-highlight-stroke {
+  pointer-events: 'none'
+}
+/*  Highlighting  */
 
 /* 
 
