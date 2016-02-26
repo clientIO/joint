@@ -207,7 +207,7 @@ test('find()', function(assert) {
     assert.ok(found.reduce(function(memo, vel) { return memo && V.isVElement(vel); }, true), 'Items in the array are wrapped in Vectorizer.');
 });
 
-test('V.transfromPoint', function(assert) {
+test('V.transformPoint', function(assert) {
 
     var p = { x: 1, y: 2 };
     var t;
@@ -365,6 +365,6 @@ QUnit.test('transform()', function(assert) {
         d: 2,
         e: 20,
         f: 20
-    }), 'transfrom() as a getter - element not in the DOM');
+    }), 'transform() as a getter - element not in the DOM');
 
 });

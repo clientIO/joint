@@ -70,12 +70,12 @@ the whole group of elements. Each plugin can provide its own stylesheet.
 }
 
 
-/* 
+/*
 
 connection-wrap is a <path> element of the joint.dia.Link that follows the .connection <path> of that link.
 In other words, the `d` attribute of the .connection-wrap contains the same data as the `d` attribute of the
 .connection <path>. The advantage of using .connection-wrap is to be able to catch pointer events
-in the neighborhood of the .connection <path>. This is especially handy if the .connection <path> is 
+in the neighborhood of the .connection <path>. This is especially handy if the .connection <path> is
 very thin.
 
 */
@@ -92,7 +92,7 @@ very thin.
 }
 /*  Highlighting  */
 
-/* 
+/*
 
 Vertex markers are `<circle>` elements that appear at connection vertex positions.
 
@@ -144,12 +144,6 @@ Vertex markers are `<circle>` elements that appear at connection vertex position
 }
 .marker-vertex-group:hover .marker-vertex-remove-area {
    opacity: 1;
-}
-
-/* Cell highlighting - e.g a cell underneath the dragged link get highlighted.
-   See joint.dia.cell.js highlight(); */
-.highlighted {
-    opacity: 0.7;
 }
 
 /*

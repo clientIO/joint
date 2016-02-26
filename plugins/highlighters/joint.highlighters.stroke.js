@@ -26,40 +26,34 @@ joint.highlighters.stroke = {
 
             // Failed to get path data from magnet element.
             // Draw a rectangle around the entire cell view instead.
-            magnetBBox = g.rect(magnetBBox);
             pathData = V.rectToPath(_.extend({}, opt, magnetBBox));
         }
 
-        var svg = V('svg').node;
-        var appendToEl = cellView.vel;
         var highlightVel = V('path').attr({
             d: pathData,
-            class: 'joint-highlight-stroke'
+            'class': 'joint-highlight-stroke',
+            'pointer-events': 'none'
         });
-        var invertedCellViewMatrix = appendToEl.node.getCTM().inverse();
-        var invertedCellViewTransform = svg.createSVGTransformFromMatrix(invertedCellViewMatrix);
-        highlightVel.node.transform.baseVal.appendItem(invertedCellViewTransform);
 
-        var matrix = magnetEl.getCTM();
-        var transform = svg.createSVGTransformFromMatrix(matrix);
-        highlightVel.node.transform.baseVal.appendItem(transform);
+        highlightVel.transform(cellView.el.getCTM().inverse());
+        highlightVel.transform(magnetEl.getCTM());
 
-        if (opt.padding) {
+        var padding = opt.padding;
+        if (padding) {
 
             // Add padding to the highlight element.
             var cx = magnetBBox.x + (magnetBBox.width / 2);
             var cy = magnetBBox.y + (magnetBBox.height / 2);
-            var sx = (magnetBBox.width + opt.padding) / magnetBBox.width;
-            var sy = (magnetBBox.height + opt.padding) / magnetBBox.height;
-            var paddingMatrix = svg.createSVGMatrix();
-            paddingMatrix.a = sx;
-            paddingMatrix.b = 0;
-            paddingMatrix.c = 0;
-            paddingMatrix.d = sy;
-            paddingMatrix.e = cx - sx * cx;
-            paddingMatrix.f = cy - sy * cy;
-            var paddingTransform = svg.createSVGTransformFromMatrix(paddingMatrix);
-            highlightVel.node.transform.baseVal.appendItem(paddingTransform);
+            var sx = (magnetBBox.width + padding) / magnetBBox.width;
+            var sy = (magnetBBox.height + padding) / magnetBBox.height;
+            highlightVel.transform({
+                a: sx,
+                b: 0,
+                c: 0,
+                d: sy,
+                e: cx - sx * cx,
+                f: cy - sy * cy
+            });
         }
 
         // This will handle the joint-theme-* class name for us.
@@ -72,7 +66,7 @@ joint.highlighters.stroke = {
         // Remove the highlight view when the cell is removed from the graph.
         highlightView.listenTo(cellView.model, 'remove', highlightView.remove);
 
-        appendToEl.append(highlightVel);
+        cellView.vel.append(highlightVel);
     },
 
     unhighlight: function(cellView, magnetEl, opt) {

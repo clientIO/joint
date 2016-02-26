@@ -270,7 +270,7 @@ V = Vectorizer = (function() {
         transform: function(matrix) {
 
             if (typeof matrix === 'undefined') {
-                return  (this.node.parentNode)
+                return (this.node.parentNode)
                     ? this.getTransformToElement(this.node.parentNode)
                     : this.node.getScreenCTM();
             }
