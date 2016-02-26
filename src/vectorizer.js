@@ -263,6 +263,23 @@ V = Vectorizer = (function() {
             return toElem.getScreenCTM().inverse().multiply(this.node.getScreenCTM());
         },
 
+        /**
+         * @param {SVGMatrix} matrix
+         * @returns {VElement, SVGMatrix} Setter / Getter
+         */
+        transform: function(matrix) {
+
+            if (typeof matrix === 'undefined') {
+                return  (this.node.parentNode)
+                    ? this.getTransformToElement(this.node.parentNode)
+                    : this.node.getScreenCTM();
+            }
+
+            var svgTransform = V.createSVGTransform(matrix);
+            this.node.transform.baseVal.appendItem(svgTransform);
+            return this;
+        },
+
         translate: function(tx, ty, opt) {
 
             opt = opt || {};
@@ -1113,7 +1130,14 @@ V = Vectorizer = (function() {
         return svgMatrix;
     };
 
-    V.createSVGTransform = function() {
+    V.createSVGTransform = function(matrix) {
+
+        if (typeof matrix !== 'undefined') {
+            if (!(matrix instanceof SVGMatrix)) {
+                matrix = V.createSVGMatrix(matrix);
+            }
+            return svgDocument.createSVGTransformFromMatrix(matrix);
+        }
 
         return svgDocument.createSVGTransform();
     };

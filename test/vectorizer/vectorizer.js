@@ -318,3 +318,53 @@ QUnit.test('findParentByClass', function(assert) {
         'parent does not exist, terminator not on the way down'
     );
 });
+
+QUnit.test('transform()', function(assert) {
+
+    var vel = V('rect');
+
+    V(this.svgContainer).append(vel);
+
+    assert.deepEqual(vel.transform(), V.createSVGMatrix({
+        a: 1,
+        b: 0,
+        c: 0,
+        d: 1,
+        e: 0,
+        f: 0
+    }), 'transform() as a getter');
+
+    vel.transform({ a: 2, b: 0, c: 0, d: 2, e: 0, f: 0 });
+
+    assert.deepEqual(vel.transform(), V.createSVGMatrix({
+        a: 2,
+        b: 0,
+        c: 0,
+        d: 2,
+        e: 0,
+        f: 0
+    }), 'Single transformation');
+
+    vel.transform({ a: 1, b: 0, c: 0, d: 1, e: 10, f: 10 });
+
+    assert.deepEqual(vel.transform(), V.createSVGMatrix({
+        a: 2,
+        b: 0,
+        c: 0,
+        d: 2,
+        e: 20,
+        f: 20
+    }), 'Multiple transformations');
+
+    vel.remove();
+
+    assert.deepEqual(vel.transform(), V.createSVGMatrix({
+        a: 2,
+        b: 0,
+        c: 0,
+        d: 2,
+        e: 20,
+        f: 20
+    }), 'transfrom() as a getter - element not in the DOM');
+
+});
