@@ -437,8 +437,18 @@ var joint = {
             var textSpan = textElement.firstChild;
             var textNode = document.createTextNode('');
 
-            textSpan.appendChild(textNode);
+            // Prevent flickering
+            textElement.style.opacity = 0;
+            // Prevent FF from throwing an uncaught exception when `getBBox()`
+            // called on element that is not in the render tree (is not measurable).
+            // <tspan>.getComputedTextLength() returns always 0 in this case.
+            // Note that the `textElement` resp. `textSpan` can become hidden
+            // when it's appended to the DOM and a `display: none` CSS stylesheet
+            // rule gets applied.
+            textElement.style.display = 'block';
+            textSpan.style.display = 'block';
 
+            textSpan.appendChild(textNode);
             svgDocument.appendChild(textElement);
 
             if (!opt.svgDocument) {
