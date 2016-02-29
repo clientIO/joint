@@ -207,7 +207,7 @@ test('find()', function(assert) {
     assert.ok(found.reduce(function(memo, vel) { return memo && V.isVElement(vel); }, true), 'Items in the array are wrapped in Vectorizer.');
 });
 
-test('V.transfromPoint', function(assert) {
+test('V.transformPoint', function(assert) {
 
     var p = { x: 1, y: 2 };
     var t;
@@ -317,4 +317,54 @@ QUnit.test('findParentByClass', function(assert) {
         V(this.svgGroup3).findParentByClass('not-a-parent', this.svgCircle),
         'parent does not exist, terminator not on the way down'
     );
+});
+
+QUnit.test('transform()', function(assert) {
+
+    var vel = V('rect');
+
+    V(this.svgContainer).append(vel);
+
+    assert.deepEqual(vel.transform(), V.createSVGMatrix({
+        a: 1,
+        b: 0,
+        c: 0,
+        d: 1,
+        e: 0,
+        f: 0
+    }), 'transform() as a getter');
+
+    vel.transform({ a: 2, b: 0, c: 0, d: 2, e: 0, f: 0 });
+
+    assert.deepEqual(vel.transform(), V.createSVGMatrix({
+        a: 2,
+        b: 0,
+        c: 0,
+        d: 2,
+        e: 0,
+        f: 0
+    }), 'Single transformation');
+
+    vel.transform({ a: 1, b: 0, c: 0, d: 1, e: 10, f: 10 });
+
+    assert.deepEqual(vel.transform(), V.createSVGMatrix({
+        a: 2,
+        b: 0,
+        c: 0,
+        d: 2,
+        e: 20,
+        f: 20
+    }), 'Multiple transformations');
+
+    vel.remove();
+
+    assert.deepEqual(vel.transform(), V.createSVGMatrix({
+        a: 2,
+        b: 0,
+        c: 0,
+        d: 2,
+        e: 20,
+        f: 20
+    }), 'transform() as a getter - element not in the DOM');
+
 });
