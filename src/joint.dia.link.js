@@ -744,9 +744,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var distance = _.isObject(position) ? position.distance : position;
                 var offset = _.isObject(position) ? position.offset : { x: 0, y: 0 };
 
-                distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
-                distance = (distance < 0) ? connectionLength + distance : distance;
-                distance = (distance > 1) ? distance : connectionLength * distance;
+                if (!_.isNaN(distance)) {
+                    distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
+                    distance = (distance < 0) ? connectionLength + distance : distance;
+                    distance = (distance > 1) ? distance : connectionLength * distance;
+                } else {
+                    distance = connectionLength / 2;
+                }
 
                 var labelCoordinates = connectionElement.getPointAtLength(distance);
 
