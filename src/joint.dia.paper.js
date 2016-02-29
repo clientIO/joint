@@ -139,8 +139,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         'dblclick': 'mousedblclick',
         'click': 'mouseclick',
         'touchstart': 'pointerdown',
-        'mousemove': 'pointermove',
+        'touchend': 'mouseclick',
         'touchmove': 'pointermove',
+        'mousemove': 'pointermove',
         'mouseover .element': 'cellMouseover',
         'mouseover .link': 'cellMouseover',
         'mouseout .element': 'cellMouseout',
@@ -398,14 +399,12 @@ joint.dia.Paper = joint.mvc.View.extend({
         // for non-default origin we need to take the viewport translation into account
         var viewportCTM = this.viewport.getCTM();
 
-        var bbox = g.rect({
+        return g.rect({
             x: crect.left - screenCTM.e + viewportCTM.e,
             y: crect.top - screenCTM.f + viewportCTM.f,
             width: crect.width,
             height: crect.height
         });
-
-        return bbox;
     },
 
     // Returns a geometry rectangle represeting the entire
@@ -528,7 +527,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Make sure links are always added AFTER elements.
         // They wouldn't find their sources/targets in the DOM otherwise.
-        cells.sort(function(a, b) { return a instanceof joint.dia.Link ? 1 : -1; });
+        cells.sort(function(a) { return a instanceof joint.dia.Link ? 1 : -1; });
 
         return cells;
     },
