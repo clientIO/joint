@@ -81,7 +81,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // A router that is used by links with no router defined on the model.
         // e.g. { name: 'oneSide', args: { padding: 10 }} or a function
-        defaultRouter: null,
+        defaultRouter: { name: 'normal' },
 
         /* CONNECTING */
 

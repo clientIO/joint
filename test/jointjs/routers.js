@@ -58,6 +58,26 @@ test('construction', function() {
 
 });
 
+test('normal routing', function() {
+
+    var r1 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 } });
+    var r2 = new joint.shapes.basic.Rect({ position: { x: 125, y: 60 }, size: { width: 50, height: 30 } });
+
+    var link = new joint.dia.Link({
+        source: { id: r1.id },
+        target: { id: r2.id },
+        router: { name: 'normal' },
+        vertices: [{ x: 150, y: 200 }]
+    });
+
+    this.graph.addCells([r1, r2, link]);
+
+    var linkView = this.paper.findViewByModel(link);
+    var pathData = linkView.$('.connection').attr('d');
+
+    checkDataPath(pathData, 'M 216 90 150 200 150 90', 'link was correctly routed');
+});
+
 test('orthogonal routing', function() {
 
     // One vertex.
