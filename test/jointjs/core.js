@@ -60,34 +60,34 @@ test('core.util.breakText', function() {
 
     // tests can't compare exact results as they may vary in different browsers
 
+    // This ensures that the tests will be more deterministic.
+    // For example, some browsers might have a different default font size/family.
+    var styles = {
+        'font-size': '12px',
+        'font-family': 'Courer New'
+    };
+
     var text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 
-    equal(joint.util.breakText('', { width: 100 }),
-          '',
-          'An empty text was correctly broken.');
+    equal(joint.util.breakText('', { width: 100 }, styles), '', 'An empty text was correctly broken.');
 
-    equal(joint.util.breakText(text, { width: 0, height: 0 }),
-          '',
-          'A text was correctly broken when zero width and height provided.');
+    equal(joint.util.breakText(text, { width: 0, height: 0 }, styles), '', 'A text was correctly broken when zero width and height provided.');
 
-    ok(_.contains(joint.util.breakText(text, { width: 100 }), '\n'),
+    ok(_.contains(joint.util.breakText(text, { width: 100 }, styles), '\n'),
        'A text was broken when width A specified.');
 
-    ok(_.contains(joint.util.breakText(text, { width: 15 }), '\n'),
-          'A text was broken when width B specified.');
+    ok(_.contains(joint.util.breakText(text, { width: 15 }, styles), '\n'), 'A text was broken when width B specified.');
 
-    var brokenText = joint.util.breakText(text, { width: 100, height: 50 });
+    var brokenText = joint.util.breakText(text, { width: 100, height: 50 }, styles);
 
-    ok(_.contains(brokenText, 'Lorem') && !_.contains(brokenText, 'elit.'),
-       'A text was trimmed when width & height specified.');
+    ok(_.contains(brokenText, 'Lorem') && !_.contains(brokenText, 'elit.'), 'A text was trimmed when width & height specified.');
 
-    brokenText = joint.util.breakText(text, { width: 100, height: 50 }, { 'font-size': '18px' });
+    brokenText = joint.util.breakText(text, { width: 100, height: 50 }, _.extend({}, styles, { 'font-size': '18px' }));
 
-    ok(_.contains(brokenText, '\n') || !_.contains(brokenText, 'elit.'),
-       'A text was broken when style specified.');
+    ok(_.contains(brokenText, '\n') || !_.contains(brokenText, 'elit.'), 'A text was broken when style specified.');
 
     throws(function() {
-        joint.util.breakText(text, { width: 100, height: 50 }, { 'font-size': 18 }, { svgDocument: 'not-svg' });
+        joint.util.breakText(text, { width: 100, height: 50 }, _.extend({}, styles, { 'font-size': '18px' }), { svgDocument: 'not-svg' });
     }, /appendChild|undefined/, 'A custom svgDocument provided was recognized.');
 });
 
