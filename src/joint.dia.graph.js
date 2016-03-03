@@ -279,10 +279,6 @@ joint.dia.Graph = Backbone.Model.extend({
             attrs = cell;
         }
 
-        if (_.isUndefined(attrs.z)) {
-            attrs.z = this.maxZIndex() + 1;
-        }
-
         if (!_.isString(attrs.type)) {
             throw new TypeError('dia.Graph: cell type must be a string.');
         }
@@ -301,6 +297,17 @@ joint.dia.Graph = Backbone.Model.extend({
         if (_.isArray(cell)) {
 
             return this.addCells(cell, options);
+        }
+
+        if (cell instanceof Backbone.Model) {
+
+            if (!cell.has('z')) {
+                cell.set('z', this.maxZIndex() + 1);
+            }
+
+        } else if (_.isUndefined(cell.z)) {
+
+            cell.z = this.maxZIndex() + 1;
         }
 
         this.get('cells').add(this._prepareCell(cell), options || {});

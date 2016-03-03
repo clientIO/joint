@@ -365,16 +365,6 @@ QUnit.module('graph', function(hooks) {
         assert.deepEqual(_.pluck(subgraph, 'id'), ['a', 'aa', 'c', 'l2', 'aaa', 'l1'], 'getSubgraph() returns all the embedded elements and all the links that connect these elements');
     });
 
-    QUnit.test('graph.fromJSON(), graph.toJSON()', function() {
-
-        var json = JSON.parse('{"cells":[{"type":"basic.Circle","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"basic.Rect","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}');
-
-        this.graph.fromJSON(json);
-        equal(this.graph.get('cells').length, 3, 'all the cells were reconstructed from JSON');
-        this.graph.fromJSON(this.graph.toJSON());
-        equal(this.graph.get('cells').length, 3, 'all the cells were reconstructed from JSON');
-    });
-
     QUnit.test('graph.fetch()', function(assert) {
 
         var json = JSON.parse('{"cells":[{"type":"basic.Circle","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"basic.Rect","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}');
@@ -838,6 +828,67 @@ QUnit.module('graph', function(hooks) {
                 assert.ok(opt.resizeOption);
             });
             graph.resize(100, 100, { resizeOption: true });
+        });
+    });
+
+    QUnit.module('graph.fromJSON()', function() {
+
+        var json = JSON.parse('{"cells":[{"type":"basic.Circle","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"basic.Rect","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}');
+
+        QUnit.test('should reconstruct graph data from JSON object', function(assert) {
+
+            this.graph.fromJSON(json);
+
+            var cells = this.graph.get('cells').models;
+
+            assert.ok(_.isArray(cells));
+            assert.equal(cells.length, 3);
+
+            _.each(cells, function(cell) {
+                assert.ok(cell instanceof joint.dia.Cell);
+            });
+        });
+
+        QUnit.test('z attribute should inherit correctly', function(assert) {
+
+            joint.shapes.basic.Custom = joint.shapes.basic.Rect.extend({
+                defaults: {
+                    z: 47
+                }
+            });
+
+            this.graph.fromJSON({
+                cells: [
+                    {
+                        id: 'some-cell',
+                        type: 'basic.Custom'
+                    }
+                ]
+            });
+
+            assert.equal(this.graph.getCell('some-cell').get('z'), joint.shapes.basic.Custom.prototype.defaults.z, '');
+
+            // Clean-up.
+            delete joint.shapes.basic.Custom;
+        });
+    });
+
+    QUnit.module('graph.toJSON()', function(hooks) {
+
+        var json = JSON.parse('{"cells":[{"type":"basic.Circle","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"basic.Rect","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}');
+
+        hooks.beforeEach(function() {
+
+            this.graph.fromJSON(json);
+        });
+
+        QUnit.test('should return graph data as JSON object', function(assert) {
+
+            var json = this.graph.toJSON();
+
+            assert.ok(_.isObject(json));
+            assert.ok(_.isArray(json.cells));
+            assert.equal(json.cells.length, 3);
         });
     });
 });
