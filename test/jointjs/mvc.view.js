@@ -18,8 +18,10 @@ test('constructor', function(assert) {
     assert.ok(typeof joint.mvc.View === 'function', 'should be a function');
 
     var setThemeCalled = false;
+    var className = 'class-name1 class-name2';
 
     var SomeView = joint.mvc.View.extend({
+        className: className,
         setTheme: function() {
             setThemeCalled = true;
         }
@@ -27,8 +29,11 @@ test('constructor', function(assert) {
 
     var view = new SomeView();
 
-    assert.ok(setThemeCalled, 'should have executed setTheme() method');
+    _.each(className.split(' '), function(_className) {
+        assert.ok(view.$el.hasClass(_className), 'has expected class name(s)');
+    });
 
+    assert.ok(setThemeCalled, 'should have executed setTheme() method');
     assert.ok(_.keys(joint.mvc.views).length === 1, 'should add the instantiated view to the `joint.views` object');
 });
 

@@ -27,7 +27,15 @@ joint.mvc.View = Backbone.View.extend({
         joint.mvc.views[this.cid] = this;
 
         this.setTheme(this.options.theme);
+        this._ensureElClassName();
         this.init();
+    },
+
+    _ensureElClassName: function() {
+
+        var className = _.result(this, 'className');
+
+        this.$el.addClass(className);
     },
 
     init: function() {
