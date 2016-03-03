@@ -22,8 +22,13 @@ QUnit.module('geometry', function() {
 
         assert.notOk(g.rect(50, 50, 100, 100).containsRect(g.rect(20, 20, 200, 200)), 'not inside when surround');
         assert.notOk(g.rect(50, 50, 100, 100).containsRect(g.rect(40, 40, 100, 100)), 'not inside when overlap left and top');
+        assert.notOk(g.rect(50, 50, 100, 100).containsRect(g.rect(60, 60, 100, 40)), 'not inside when overlap left');
         assert.notOk(g.rect(50, 50, 100, 100).containsRect(g.rect(60, 60, 100, 100)), 'not inside when overlap right and bottom');
+        assert.notOk(g.rect(50, 50, 100, 100).containsRect(g.rect(60, 60, 40, 100)), 'not inside when overlap bottom');
+        assert.notOk(g.rect(50, 50, 100, 100).containsRect(g.rect(75, 75, 0, 0)), 'not inside when argument rect has zero width/height');
+        assert.notOk(g.rect(50, 50, 0, 0).containsRect(g.rect(50, 50, 0, 0)), 'not inside when both rects have zero width/height');
         assert.ok(g.rect(50, 50, 100, 100).containsRect(g.rect(60, 60, 80, 80)), 'inside');
+        assert.ok(g.rect(50, 50, 100, 100).containsRect(g.rect(50, 50, 100, 100)), 'inside when equal');
     });
 
     QUnit.test('rect.equals', function(assert) {
