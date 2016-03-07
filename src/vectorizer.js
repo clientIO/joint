@@ -41,12 +41,10 @@ V = Vectorizer = (function() {
     }
 
     function isObject(o) {
-        return o === Object(o);
+        return o && (typeof o === 'object');
     }
 
-    function isArray(o) {
-        return Object.prototype.toString.call(o) == '[object Array]';
-    }
+    var isArray = Array.isArray;
 
     // Create an SVG document element.
     // If `content` is passed, it will be used as the SVG content of the `<svg>` root element.
