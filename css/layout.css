@@ -88,7 +88,9 @@ very thin.
 
 /*  Highlighting  */
 .joint-highlight-stroke {
-  pointer-events: 'none'
+    pointer-events: 'none';
+    vector-effect: non-scaling-stroke;
+    fill: none;
 }
 /*  Highlighting  */
 
