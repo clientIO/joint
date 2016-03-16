@@ -862,20 +862,20 @@ V = Vectorizer = (function() {
             var tagName = this.node.tagName.toUpperCase();
 
             switch (tagName) {
-            case 'PATH':
-                return this.attr('d');
-            case 'LINE':
-                return convertLineToPathData(this.node);
-            case 'POLYGON':
-                return convertPolygonToPathData(this.node);
-            case 'POLYLINE':
-                return convertPolylineToPathData(this.node);
-            case 'ELLIPSE':
-                return convertEllipseToPathData(this.node);
-            case 'CIRCLE':
-                return convertCircleToPathData(this.node);
-            case 'RECT':
-                return convertRectToPathData(this.node);
+                case 'PATH':
+                    return this.attr('d');
+                case 'LINE':
+                    return convertLineToPathData(this.node);
+                case 'POLYGON':
+                    return convertPolygonToPathData(this.node);
+                case 'POLYLINE':
+                    return convertPolylineToPathData(this.node);
+                case 'ELLIPSE':
+                    return convertEllipseToPathData(this.node);
+                case 'CIRCLE':
+                    return convertCircleToPathData(this.node);
+                case 'RECT':
+                    return convertRectToPathData(this.node);
             }
 
             throw new Error(tagName + ' cannot be converted to PATH.');
@@ -894,10 +894,10 @@ V = Vectorizer = (function() {
             target = target || svg;
             var bbox = g.rect(this.bbox(false, target));
             var center = bbox.center();
-            var spot = bbox.intersectionWithLineFromCenterToPoint(ref);
 
-            if (!spot) return undefined;
+            if (!bbox.intersectionWithLineFromCenterToPoint(ref)) return undefined;
 
+            var spot;
             var tagName = this.node.localName.toUpperCase();
 
             // Little speed up optimalization for `<rect>` element. We do not do conversion
@@ -929,19 +929,22 @@ V = Vectorizer = (function() {
                 var minDistance = Infinity;
                 var closestSamples = [];
 
-                for (var i = 0, len = samples.length; i < len; i++) {
+                var i, sample, gp, centerDistance, refDistance, distance;
 
-                    var sample = samples[i];
+                for (i = 0; i < samples.length; i++) {
+
+                    sample = samples[i];
                     // Convert the sample point in the local coordinate system to the global coordinate system.
-                    var gp = V.createSVGPoint(sample.x, sample.y);
+                    gp = V.createSVGPoint(sample.x, sample.y);
                     gp = gp.matrixTransform(this.getTransformToElement(target));
                     sample = g.point(gp);
-                    var centerDistance = sample.distance(center);
+                    centerDistance = sample.distance(center);
                     // Penalize a higher distance to the reference point by 10%.
                     // This gives better results. This is due to
                     // inaccuracies introduced by rounding errors and getPointAtLength() returns.
-                    var refDistance = sample.distance(ref) * 1.1;
-                    var distance = centerDistance + refDistance;
+                    refDistance = sample.distance(ref) * 1.1;
+                    distance = centerDistance + refDistance;
+
                     if (distance < minDistance) {
                         minDistance = distance;
                         closestSamples = [{ sample: sample, refDistance: refDistance }];
@@ -949,8 +952,14 @@ V = Vectorizer = (function() {
                         closestSamples.push({ sample: sample, refDistance: refDistance });
                     }
                 }
-                closestSamples.sort(function(a, b) { return a.refDistance - b.refDistance; });
-                spot = closestSamples[0].sample;
+
+                closestSamples.sort(function(a, b) {
+                    return a.refDistance - b.refDistance;
+                });
+
+                if (closestSamples[0]) {
+                    spot = closestSamples[0].sample;
+                }
             }
 
             return spot;
@@ -970,30 +979,44 @@ V = Vectorizer = (function() {
     function convertPolygonToPathData(polygon) {
 
         polygon = createElement(polygon);
-        var points = polygon.node.points;
 
-        var d = [];
-        var p;
-        for (var i = 0; i < points.length; i++) {
-            p = points[i];
-            d.push(i === 0 ? 'M' : 'L', p.x, p.y);
-        }
-        d.push('Z');
-        return d.join(' ');
+        var points = getPointsFromSvgNode(polygon.node);
+
+        if (!(points.length > 0)) return null;
+
+        return svgPointsToPath(points);
     }
 
     function convertPolylineToPathData(polyline) {
 
-        polyline = createElement(polyline);
-        var points = polyline.node.points;
+        var points = getPointsFromSvgNode(polyline.node);
 
-        var d = [];
-        var p;
-        for (var i = 0; i < points.length; i++) {
-            p = points[i];
-            d.push(i === 0 ? 'M' : 'L', p.x, p.y);
+        if (!(points.length > 0)) return null;
+
+        return svgPointsToPath(points);
+    }
+
+    function svgPointsToPath(points) {
+
+        var i;
+
+        for (i = 0; i < points.length; i++) {
+            points[i] = points[i].x + ' ' + points[i].y;
         }
-        return d.join(' ');
+
+        return 'M ' + points.join(' L') + ' Z';
+    }
+
+    function getPointsFromSvgNode(node) {
+
+        var points = [];
+        var i;
+
+        for (i = 0; i < node.points.numberOfItems; i++) {
+            points.push(node.points.getItem(i));
+        }
+
+        return points;
     }
 
     var KAPPA = 0.5522847498307935;
