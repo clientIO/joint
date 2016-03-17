@@ -164,6 +164,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         // This prevents that behavior.
         this.options.origin = _.clone(this.options.origin);
         this.options.defaultConnector = _.clone(this.options.defaultConnector);
+        // Return default highlighting options into the user specified options.
+        _.defaults(this.options.highlighting, this.constructor.prototype.options.highlighting);
         this.options.highlighting = _.cloneDeep(this.options.highlighting);
 
         this.svg = V('svg').node;
