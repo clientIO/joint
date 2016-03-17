@@ -370,7 +370,11 @@ joint.dia.Cell = Backbone.Model.extend({
             // We don't want the clone to have the same ID as the original.
             clone.set('id', joint.util.uuid());
             // A shallow cloned element does not carry over the original embeds.
-            clone.set('embeds', '');
+            clone.unset('embeds');
+            // And can not be embedded in any cell
+            // as the clone is not part of the graph.
+            clone.unset('parent');
+
             return clone;
 
         } else {

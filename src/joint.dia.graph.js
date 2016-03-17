@@ -569,23 +569,14 @@ joint.dia.Graph = Backbone.Model.extend({
     // the source and target of the link `L2` is changed to point to `A2` and `B2`.
     cloneCells: function(cells) {
 
+        cells = _.unique(cells);
+
         // A map of the form [original cell ID] -> [clone] helping
         // us to reconstruct references for source/target and parent/embeds.
         // This is also the returned value.
-        var cloneMap = {};
-        // A map [original cell ID] -> [Array of original embeds].
-        // This mapping caches the `embeds` array of original cells.
-        // This is needed because when using a shallow clone (without `deep` set to `true`),
-        // `embeds` are reset (see joint.dia.Cell >> clone()).
-        var embedsCache = {};
-
-        _.each(cells, function(cell) {
-            if (!cloneMap[cell.id]) {
-                var clone = cell.clone();
-                cloneMap[cell.id] = clone;
-                embedsCache[clone.id] = cell.get('embeds');
-            }
-        });
+        var cloneMap = _.transform(cells, function(map, cell) {
+            map[cell.id] = cell.clone();
+        }, {});
 
         _.each(cells, function(cell) {
 
@@ -607,21 +598,24 @@ joint.dia.Graph = Backbone.Model.extend({
                 }
             }
 
-            var parent = clone.get('parent');
+            // Find the parent of the original cell
+            var parent = cell.get('parent');
             if (parent && cloneMap[parent]) {
                 clone.set('parent', cloneMap[parent].id);
             }
 
-            if (embedsCache[clone.id]) {
-                var newEmbeds = [];
-                _.each(embedsCache[clone.id], function(embed) {
-                    if (cloneMap[embed]) {
-                        newEmbeds.push(cloneMap[embed].id);
-                    } else {
-                        newEmbeds.push(embed);
-                    }
-                });
-                clone.set('embeds', newEmbeds);
+            // Find the embeds of the original cell
+            var embeds = _.reduce(cell.get('embeds'), function(newEmbeds, embed) {
+                // Embedded cells that are not being cloned can not be carried
+                // over with other embedded cells.
+                if (cloneMap[embed]) {
+                    newEmbeds.push(cloneMap[embed].id);
+                }
+                return newEmbeds;
+            }, []);
+
+            if (!_.isEmpty(embeds)) {
+                clone.set('embeds', embeds);
             }
         });
 

@@ -678,7 +678,7 @@ QUnit.module('basic', function(hooks) {
         assert.deepEqual(mainGroup.getBBox(), g.rect(80, 80, 160, 160), 'Using padding options is expanding the groups.');
     });
 
-    QUnit.test('clone()', function() {
+    QUnit.test('clone()', function(assert) {
 
         var r1 = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
@@ -710,14 +710,28 @@ QUnit.module('basic', function(hooks) {
         this.graph.addCell(r3);
         checkBbox(this.paper, r3, 70, 30, 120, 80, 'cloned element is offset by 50px to the right of the original element if translate() was called before appending it to the paper');
 
+        // Shallow clone of embedded elements
+        r1.embed(r2);
+        r2.embed(r3);
+
+        var clone = r2.clone();
+        assert.notOk(
+            clone.get('parent'),
+            'Shallow clone of embedded element has no parent.'
+        );
+
+        assert.ok(
+            _.isEmpty(clone.get('embeds')),
+            'Shallow clone of embedded element that is also a parent has no embeds.'
+        );
+
         // Deep clone.
 
-        r1.embed(r2);
         var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id } });
         this.graph.addCell(l);
         var clones = r1.clone({ deep: true });
 
-        equal(clones.length, 2, 'deep clone returned two clones for a parent element with one child not including the link (use graph.cloneSubgraph() if this is desired)');
+        equal(clones.length, 3, 'deep clone returned two clones for a parent element with one child not including the link (use graph.cloneSubgraph() if this is desired)');
         ok((clones[0].id === clones[1].get('parent') || (clones[1].id === clones[0].get('parent'))), 'clone of the embedded element gets a parent attribute set to the clone of the parent element');
 
         this.graph.clear();
