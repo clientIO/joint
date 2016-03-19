@@ -719,35 +719,35 @@ test('drawGrid(opt)', function(assert) {
             message: 'scaled up',
             gridSize: 12,
             origin: {
-                x: 11,
-                y: 7
+                x: 0,
+                y: 0
             },
             scale: {
-                x: 2.3,
-                y: 2.3
+                x: 2,
+                y: 2
             },
             opt: {
                 color: '#aaa',
                 thickness: 1
             },
-            imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAbCAYAAACN1PRVAAAARklEQVRIS2NkoCNgpKNdDKOWUSW0R4MRHIyrVq36HxYWRnZokK2RnEgctYycUMPQMxqMo8GINwRGE8hoAhlNIFRJAyM0GAEAYwQc5iT5JwAAAABJRU5ErkJggg=='
+            imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAARUlEQVRIS2NctWrVfwYGBoawsDBGEE1twEhzC6jtYnTzaBIsyJaMWkAwCkeDaDSICIYAQQWjqWg0iAiGAEEFo6loBAQRAJa9CBnOM9wvAAAAAElFTkSuQmCC'
         },
         {
             message: 'scaled down',
-            gridSize: 15,
+            gridSize: 20,
             origin: {
-                x: 11,
-                y: 7
+                x: 0,
+                y: 0
             },
             scale: {
-                x: 0.7,
-                y: 0.7
+                x: 0.5,
+                y: 0.5
             },
             opt: {
                 color: '#aaa',
-                thickness: 1
+                thickness: 2
             },
-            imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAIklEQVQYV2NkIBIwEqmOYXgpXLlyZQPI5+Hh4WAaF6C+rwHgUAQLQv9VhAAAAABJRU5ErkJggg=='
+            imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAIElEQVQYV2NctWrV/7CwMEYGAoCgApj+UYV4Q5Lo4AEAZLcECwWKMoMAAAAASUVORK5CYII='
         }
     ];
 
