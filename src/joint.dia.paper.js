@@ -40,6 +40,18 @@ joint.dia.Paper = joint.mvc.View.extend({
                 options: {
                     padding: 3
                 }
+            },
+            magnetAvailability: {
+                name: 'addClass',
+                options: {
+                    className: 'available-magnet'
+                }
+            },
+            elementAvailability: {
+                name: 'addClass',
+                options: {
+                    className: 'available-cell'
+                }
             }
         },
 
@@ -123,7 +135,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         clickThreshold: 0,
 
         // The namespace, where all the cell views are defined.
-        cellViewNamespace: joint.shapes
+        cellViewNamespace: joint.shapes,
+
+        // The namespace, where all the cell views are defined.
+        highlighterNamespace: joint.highlighters
     },
 
     events: {
@@ -847,10 +862,11 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     // Cell highlighting
     // -----------------
-
-    onCellHighlight: function(cellView, magnetEl, opt) {
+    resolveHighlighter: function(opt) {
 
         opt = opt || {};
+        var highlighterDef = opt.highlighter;
+        var paperOpt = this.options;
 
         /*
             Expecting opt.highlighter to have the following structure:
@@ -861,66 +877,75 @@ joint.dia.Paper = joint.mvc.View.extend({
                 }
             }
         */
-        if (_.isUndefined(opt.highlighter)) {
+        if (_.isUndefined(highlighterDef)) {
 
-            if (opt.embedding) {
-                opt.highlighter = this.options.highlighting['embedding'];
-            } else if (opt.connecting) {
-                opt.highlighter = this.options.highlighting['connecting'];
-            }
+            // check for built-in types
+            var type = _.chain(opt)
+                    .pick('embedding', 'connecting', 'magnetAvailability', 'elementAvailability')
+                    .keys().first().value();
 
-            if (_.isUndefined(opt.highlighter)) {
-                opt.highlighter = this.options.highlighting['default'];
-            }
+            highlighterDef = (type && paperOpt.highlighting[type]) || paperOpt.highlighting['default'];
         }
 
         // Do nothing if opt.highlighter is falsey.
         // This allows the case to not highlight cell(s) in certain cases.
         // For example, if you want to NOT highlight when embedding elements.
-        if (!opt.highlighter) return;
+        if (!highlighterDef) return false;
 
-        opt = _.defaults(opt || {}, opt.highlighter.options);
+        var name = highlighterDef.name;
+        var highlighter = paperOpt.highlighterNamespace[name];
 
-        var name = opt.highlighter.name;
-        var highlighter = joint.highlighters[name];
-
+        // Highlighter validation
         if (!highlighter) {
             throw new Error('Unknown highlighter ("' + name + '")');
         }
-
         if (typeof highlighter.highlight !== 'function') {
             throw new Error('Highlighter ("' + name + '") is missing required highlight() method');
         }
-
         if (typeof highlighter.unhighlight !== 'function') {
             throw new Error('Highlighter ("' + name + '") is missing required unhighlight() method');
         }
 
-        highlighter.highlight(cellView, magnetEl, _.clone(opt));
-
-        this._highlights[magnetEl.id] = {
-            cellView: cellView,
-            magnetEl: magnetEl,
-            opt: opt,
-            highlighter: highlighter
+        return {
+            highlighter: highlighter,
+            options: highlighterDef.options,
+            name: name
         };
     },
 
-    onCellUnhighlight: function(cellView, magnetEl) {
+    onCellHighlight: function(cellView, magnetEl, opt) {
 
-        if (this._highlights[magnetEl.id]) {
+        opt = this.resolveHighlighter(opt);
+        if (!opt) return;
 
-            var highlight = this._highlights[magnetEl.id];
+        var key = opt.name + magnetEl.id + JSON.stringify(opt.options);
+        if (!this._highlights[key]) {
+
+            var highlighter = opt.highlighter;
+            highlighter.highlight(cellView, magnetEl, _.clone(opt.options));
+
+            this._highlights[key] = {
+                cellView: cellView,
+                magnetEl: magnetEl,
+                opt: opt.options,
+                highlighter: highlighter
+            };
+        }
+    },
+
+    onCellUnhighlight: function(cellView, magnetEl, opt) {
+
+        opt = this.resolveHighlighter(opt);
+        if (!opt) return;
+
+        var key = opt.name + magnetEl.id + JSON.stringify(opt.options);
+        var highlight = this._highlights[key];
+        if (highlight) {
 
             // Use the cellView and magnetEl that were used by the highlighter.highlight() method.
-            cellView = highlight.cellView;
-            magnetEl = highlight.magnetEl;
+            highlight.highlighter.unhighlight(highlight.cellView, highlight.magnetEl, highlight.opt);
 
-            var opt = highlight.opt;
-            var highlighter = highlight.highlighter;
-
-            highlighter.unhighlight(cellView, magnetEl, opt);
-            this._highlights[magnetEl.id] = null;
+            this._highlights[key] = null;
         }
     },
 

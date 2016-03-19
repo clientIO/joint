@@ -6,6 +6,7 @@ var paper = new joint.dia.Paper({
     height: 400,
     gridSize: 20,
     model: graph,
+    markAvailable: true,
     linkConnectionPoint: joint.util.shapePerimeterConnectionPoint
 });
 
