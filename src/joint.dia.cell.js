@@ -609,6 +609,11 @@ joint.dia.Cell = Backbone.Model.extend({
         return paper.findViewByModel(this);
     },
 
+    isElement: function() {
+
+        return false;
+    },
+
     isLink: function() {
 
         return false;

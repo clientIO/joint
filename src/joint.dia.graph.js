@@ -95,7 +95,6 @@ joint.dia.Graph = Backbone.Model.extend({
         cells.on('reset', this._restructureOnReset, this);
         cells.on('change:source', this._restructureOnChangeSource, this);
         cells.on('change:target', this._restructureOnChangeTarget, this);
-
         cells.on('remove', this._removeCell, this);
     },
 
@@ -130,6 +129,7 @@ joint.dia.Graph = Backbone.Model.extend({
             this._nodes[cell.id] = true;
         }
     },
+
     _restructureOnRemove: function(cell) {
 
         if (cell.isLink()) {
@@ -146,6 +146,7 @@ joint.dia.Graph = Backbone.Model.extend({
             delete this._nodes[cell.id];
         }
     },
+
     _restructureOnReset: function(cells) {
 
         // Normalize into an array of cells. The original `cells` is GraphCells Backbone collection.
@@ -158,6 +159,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         _.each(cells, this._restructureOnAdd, this);
     },
+
     _restructureOnChangeSource: function(link) {
 
         var prevSource = link.previous('source');
@@ -169,6 +171,7 @@ joint.dia.Graph = Backbone.Model.extend({
             (this._out[source.id] || (this._out[source.id] = {}))[link.id] = true;
         }
     },
+
     _restructureOnChangeTarget: function(link) {
 
         var prevTarget = link.previous('target');
@@ -315,16 +318,16 @@ joint.dia.Graph = Backbone.Model.extend({
         return this;
     },
 
-    addCells: function(cells, options) {
+    addCells: function(cells, opt) {
 
         if (cells.length) {
-            options = options || {};
-            options.position = cells.length;
+
+            opt.position = cells.length;
 
             this.startBatch('add');
             _.each(cells, function(cell) {
-                options.position--;
-                this.addCell(cell, options);
+                opt.position--;
+                this.addCell(cell, opt);
             }, this);
             this.stopBatch('add');
         }
@@ -338,6 +341,18 @@ joint.dia.Graph = Backbone.Model.extend({
     resetCells: function(cells, opt) {
 
         this.get('cells').reset(_.map(cells, this._prepareCell, this), opt);
+
+        return this;
+    },
+
+    removeCells: function(cells, opt) {
+
+        if (cells.length) {
+
+            this.startBatch('remove');
+            _.invoke(cells, 'remove');
+            this.stopBatch('remove');
+        }
 
         return this;
     },
@@ -1017,3 +1032,5 @@ joint.dia.Graph = Backbone.Model.extend({
         }
     }
 });
+
+joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'removeCells'], 'cells');

@@ -65,6 +65,11 @@ joint.dia.Link = joint.dia.Cell.extend({
         target: {}
     },
 
+    isLink: function() {
+
+        return true;
+    },
+
     disconnect: function() {
 
         return this.set({ source: g.point(0, 0), target: g.point(0, 0) });
@@ -163,11 +168,6 @@ joint.dia.Link = joint.dia.Cell.extend({
         }
 
         return newParent;
-    },
-
-    isLink: function() {
-
-        return true;
     },
 
     hasLoop: function(opt) {

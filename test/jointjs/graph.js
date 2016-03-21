@@ -116,6 +116,235 @@ QUnit.module('graph', function(hooks) {
         var l3 = ml('l3', c, d);
     };
 
+    QUnit.module('resetCells()', function(hooks) {
+
+        var cells;
+
+        hooks.beforeEach(function() {
+
+            this.graph = new joint.dia.Graph;
+
+            cells = [
+                new joint.shapes.basic.Rect,
+                new joint.shapes.basic.Rect,
+                new joint.shapes.basic.Rect
+            ];
+        });
+
+        QUnit.test('should return graph', function(assert) {
+
+            var returned = this.graph.resetCells(cells);
+
+            assert.deepEqual(returned, this.graph);
+        });
+
+        QUnit.test('resetCells(cell, cell ..)', function(assert) {
+
+            var args = [].concat(cells);
+
+            this.graph.resetCells.apply(this.graph, args);
+
+            assert.equal(this.graph.getCells().length, cells.length);
+        });
+
+        QUnit.test('resetCells(cell, cell .., opt)', function(assert) {
+
+            var opt = {
+                some: 'option'
+            };
+
+            var args = [].concat(cells).concat(opt);
+
+            this.graph.resetCells.apply(this.graph, args);
+
+            assert.equal(this.graph.getCells().length, cells.length);
+        });
+
+        QUnit.test('resetCells(cells)', function(assert) {
+
+            var args = [cells];
+
+            this.graph.resetCells.apply(this.graph, args);
+
+            assert.equal(this.graph.getCells().length, cells.length);
+        });
+
+        QUnit.test('resetCells(cells, opt)', function(assert) {
+
+            var opt = {
+                some: 'option'
+            };
+
+            var args = [cells, opt];
+
+            this.graph.resetCells.apply(this.graph, args);
+
+            assert.equal(this.graph.getCells().length, cells.length);
+        });
+
+        QUnit.test('should replace all cells', function(assert) {
+
+            this.graph.addCells(cells);
+
+            var newCells = [
+                new joint.shapes.basic.Rect,
+                new joint.shapes.basic.Rect
+            ];
+
+            this.graph.resetCells(newCells);
+
+            var cellsAfter = this.graph.getCells();
+
+            var allNewCellsExist = _.every(newCells, function(cell) {
+                return !!_.findWhere(cellsAfter, { id: cell.id });
+            });
+
+            var noOldCellsExist = _.every(cells, function(cell) {
+                return !_.findWhere(cellsAfter, { id: cell.id });
+            });
+
+            assert.ok(allNewCellsExist && noOldCellsExist);
+        });
+    });
+
+    QUnit.module('addCells()', function(hooks) {
+
+        var cells;
+
+        hooks.beforeEach(function() {
+
+            this.graph.resetCells([]);
+
+            cells = [
+                new joint.shapes.basic.Rect,
+                new joint.shapes.basic.Rect,
+                new joint.shapes.basic.Rect
+            ];
+        });
+
+        QUnit.test('should return graph', function(assert) {
+
+            var returned = this.graph.addCells(cells);
+
+            assert.deepEqual(returned, this.graph);
+        });
+
+        QUnit.test('addCells(cell, cell ..)', function(assert) {
+
+            var args = [].concat(cells);
+
+            this.graph.addCells.apply(this.graph, args);
+
+            assert.equal(this.graph.getCells().length, cells.length);
+        });
+
+        QUnit.test('addCells(cell, cell .., opt)', function(assert) {
+
+            var opt = {
+                some: 'option'
+            };
+
+            var args = [].concat(cells).concat(opt);
+
+            this.graph.addCells.apply(this.graph, args);
+
+            assert.equal(this.graph.getCells().length, cells.length);
+        });
+
+        QUnit.test('addCells(cells)', function(assert) {
+
+            var args = [cells];
+
+            this.graph.addCells.apply(this.graph, args);
+
+            assert.equal(this.graph.getCells().length, cells.length);
+        });
+
+        QUnit.test('addCells(cells, opt)', function(assert) {
+
+            var opt = {
+                some: 'option'
+            };
+
+            var args = [cells, opt];
+
+            this.graph.addCells.apply(this.graph, args);
+
+            assert.equal(this.graph.getCells().length, cells.length);
+        });
+    });
+
+    QUnit.module('removeCells()', function(hooks) {
+
+        var cells;
+
+        hooks.beforeEach(function() {
+
+            cells = [
+                new joint.shapes.basic.Rect,
+                new joint.shapes.basic.Rect,
+                new joint.shapes.basic.Rect
+            ];
+
+            this.graph.resetCells(cells);
+        });
+
+        QUnit.test('should return graph', function(assert) {
+
+            var returned = this.graph.removeCells(cells);
+
+            assert.deepEqual(returned, this.graph);
+        });
+
+        QUnit.test('removeCells(cell, cell ..)', function(assert) {
+
+            var cellsToRemove = cells.slice(0, cells.length - 1);
+            var args = [].concat(cellsToRemove);
+
+            this.graph.removeCells.apply(this.graph, args);
+
+            assert.equal(this.graph.getCells().length, cells.length - cellsToRemove.length);
+        });
+
+        QUnit.test('removeCells(cell, cell .., opt)', function(assert) {
+
+            var cellsToRemove = cells.slice(0, cells.length);
+            var opt = {
+                some: 'option'
+            };
+
+            var args = [].concat(cellsToRemove).concat(opt);
+
+            this.graph.removeCells.apply(this.graph, args);
+
+            assert.equal(this.graph.getCells().length, cells.length - cellsToRemove.length);
+        });
+
+        QUnit.test('removeCells(cells)', function(assert) {
+
+            var cellsToRemove = cells.slice(0, cells.length - 1);
+            var args = [cellsToRemove];
+
+            this.graph.removeCells.apply(this.graph, args);
+
+            assert.equal(this.graph.getCells().length, cells.length - cellsToRemove.length);
+        });
+
+        QUnit.test('removeCells(cells, opt)', function(assert) {
+
+            var cellsToRemove = cells.slice(0, cells.length - 1);
+            var opt = {
+                some: 'option'
+            };
+
+            var args = [cellsToRemove, opt];
+
+            this.graph.removeCells.apply(this.graph, args);
+
+            assert.equal(this.graph.getCells().length, cells.length - cellsToRemove.length);
+        });
+    });
+
     QUnit.test('storing reference on models', function(assert) {
 
         var fromInstance = new joint.shapes.basic.Rect({ id: 'a' });
@@ -135,18 +364,6 @@ QUnit.module('graph', function(hooks) {
             this.graph,
             'The graph reference was stored on the model when created from a plain JS object.'
         );
-    });
-
-    QUnit.test('graph.resetCells()', function() {
-
-        var r1 = new joint.shapes.basic.Rect;
-        var r2 = new joint.shapes.basic.Rect;
-        var r3 = new joint.shapes.basic.Rect;
-
-        this.graph.addCell(r1);
-        this.graph.resetCells([r2, r3]);
-
-        equal(this.graph.get('cells').length, 2, 'previous cells were removed from the graph after calling graph.resetCells()');
     });
 
     QUnit.test('graph.clear()', function(assert) {

@@ -12,6 +12,11 @@ joint.dia.Element = joint.dia.Cell.extend({
         angle: 0
     },
 
+    isElement: function() {
+
+        return true;
+    },
+
     position: function(x, y, opt) {
 
         var isSetter = _.isNumber(y);
