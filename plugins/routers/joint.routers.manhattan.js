@@ -314,7 +314,7 @@ joint.routers.manhattan = (function(g, _) {
             startCenter = start.center();
         } else {
             startCenter = start.clone().snapToGrid(step);
-            startPoints = [start];
+            startPoints = [startCenter];
         }
 
         // set of points we want the pathfinding to finish at
@@ -323,7 +323,7 @@ joint.routers.manhattan = (function(g, _) {
             endCenter = end.center();
         } else {
             endCenter = end.clone().snapToGrid(step);
-            endPoints = [end];
+            endPoints = [endCenter];
         }
 
         // take into account only accessible end points

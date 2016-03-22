@@ -233,6 +233,15 @@ test('manhattan routing', function() {
     checkDataPath(d, 'M 80 80 80 60 80 20 20 20 20 0 600 0 600 20 620 20',
           'A vertex was added. Route correctly recalculated.');
 
+    l0.set({
+        vertices: [{ x: 21, y: 21 }]
+    });
+
+    d = v0.$('.connection').attr('d');
+
+    checkDataPath(d, 'M 80 80 80 60 80 20 20 20 20 0 600 0 600 20 620 20',
+          'A vertex was moved (not snapped to the grid now). Route correctly recalculated.');
+
     throws(function() {
 
         l0.set({
