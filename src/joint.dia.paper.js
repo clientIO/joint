@@ -15,16 +15,9 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         /*
             Whether or not to draw the grid lines on the paper's DOM element.
-        */
+            e.g drawGrid: true, drawGrid: { color: 'red', thickness: 2 }
+         */
         drawGrid: false,
-
-        /*
-            Default options used for the drawGrid() method.
-        */
-        drawGridOptions: {
-            color: '#aaa',
-            thickness: 1
-        },
 
         perpendicularLinks: false,
         elementView: joint.dia.ElementView,
@@ -1136,12 +1129,16 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     drawGrid: function(opt) {
 
-        opt = _.defaults(opt || {}, this.options.drawGridOptions);
+        opt = opt || {};
+        _.defaults(opt, this.options.drawGrid, {
+            color: '#aaa',
+            thickness: 1
+        });
 
         var gridSize = this.options.gridSize;
 
         if (gridSize <= 1) {
-            this.el.style['background-image'] = 'none';
+            this.el.style.backgroundImage = 'none';
             return;
         }
 
@@ -1163,12 +1160,12 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var context = canvas.getContext('2d');
         context.beginPath();
-        context.rect(gridX, gridY, opt.thickness, opt.thickness);
+        context.rect(gridX, gridY, opt.thickness * scaleX, opt.thickness * scaleY);
         context.fillStyle = opt.color;
         context.fill();
 
         var backgroundImage = canvas.toDataURL('image/png');
-        this.el.style['background-image'] = 'url("' + backgroundImage + '")';
+        this.el.style.backgroundImage = 'url("' + backgroundImage + '")';
     }
 
 });
