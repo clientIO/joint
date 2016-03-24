@@ -1501,7 +1501,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     if (targetParentEvent === 'remove') {
                         this.model.remove();
                     } else {
-                        this.paper.trigger(targetParentEvent, evt, this, x, y);
+                        this.notify(targetParentEvent, evt, x, y);
                     }
 
                 } else {
