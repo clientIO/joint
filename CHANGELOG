@@ -12,6 +12,10 @@ TBD (v0.10.0)
     * Added highlighters namespace with two highlighters (stroke and opacity). Highlighting now done automatically when: embedding an element, connecting a link to a port or element.
     * Added Vectorizer transform() method to apply SVG matrix to SVG element
     * Vectorizer createSVGTrasform() accepts optionally an SVG matrix
+    * Added dia.Cell.isElement()
+    * Added dia.Graph.removeCells()
+    * Can now use dia.Graph.addCells(), dia.Graph.removeCells(), and dia.Graph.resetCells() with the same method signature. For example: dia.Graph.addCells(cell, cell) dia.Graph.addCells(cell, cell, opt) dia.Graph.addCells([cell, cell]) dia.Graph.addCells([cell, cell], opt) are all valid usage.
+
 19-12-2015 (v0.9.6)
        * dia.Graph introduces new functions for traversing graphs: dfs(), bfs(), search(), isSuccessor(), isPredecessor(), getPredecessors(), getSuccessors(), isNeighbor(), isSource(), isSink(), getSources(), getSinks(), getSubgraph(), getFirstCell(), getLastCell() and getCells()
        * new functions for cloning cells dia.Graph.cloneCells(), dia.Graph.cloneSubgraph()

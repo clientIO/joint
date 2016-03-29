@@ -1303,6 +1303,59 @@ var joint = {
             } else {
                 prefixedResult(el, 'RequestFullScreen');
             }
+        },
+
+        wrapWith: function(object, methods, wrapper) {
+
+            if (_.isString(wrapper)) {
+
+                if (!joint.util.wrappers[wrapper]) {
+                    throw new Error('Unknown wrapper: "' + wrapper + '"');
+                }
+
+                wrapper = joint.util.wrappers[wrapper];
+            }
+
+            if (!_.isFunction(wrapper)) {
+                throw new Error('Wrapper must be a function.');
+            }
+
+            _.each(methods, function(method) {
+                object[method] = wrapper(object[method]);
+            });
+        },
+
+        wrappers: {
+
+            /*
+                Prepares a function with the following usage:
+
+                    fn([cell, cell, cell], opt);
+                    fn([cell, cell, cell]);
+                    fn(cell, cell, cell, opt);
+                    fn(cell, cell, cell);
+            */
+            cells: function(fn) {
+
+                return function() {
+
+                    var args = Array.prototype.slice.call(arguments);
+                    var cells = args.length > 0 && _.first(args) || [];
+                    var opt = args.length > 1 && _.last(args) || {};
+
+                    if (!_.isArray(cells)) {
+
+                        if (opt instanceof joint.dia.Cell) {
+                            cells = args;
+                            opt = {};
+                        } else {
+                            cells = _.initial(args);
+                        }
+                    }
+
+                    return fn.call(this, cells, opt);
+                };
+            }
         }
     }
 };
