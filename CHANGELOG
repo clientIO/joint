@@ -1,4 +1,5 @@
 TBD (v0.10.0)
+    * Changed the link tool event signature (e.g. `link:options`) to be the same as the rest of the cell events.
     * Added paper.drawGrid(opt) - draws grid lines on the paper's DOM element.
     * Added paper.setGridSize(gridSize) - changes the grid size of the paper.
     * Added point.scale(), rect.scale() - scale point/rect with given origin.
