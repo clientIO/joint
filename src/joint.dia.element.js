@@ -641,6 +641,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 tx = bbox.x + bbox.width + refDx;
             }
         }
+
         if (isFinite(refDy)) {
 
             if (scalable) {
@@ -675,9 +676,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 tx = bbox.x + refX;
             }
         }
+
         if (isFinite(refY)) {
 
-            if (refXPercentage || refY > 0 && refY < 1) {
+            if (refYPercentage || refY > 0 && refY < 1) {
 
                 ty = bbox.y + bbox.height * refY;
 
