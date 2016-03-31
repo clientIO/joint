@@ -677,6 +677,18 @@ joint.dia.CellView = joint.mvc.View.extend({
         return this.update(cell, attrs, opt);
     },
 
+    // Return `true` if cell link is allowed to perform a certain UI `feature`.
+    // Example: `can('vertexMove')`, `can('labelMove')`.
+    can: function(feature) {
+
+        var interactive = _.isFunction(this.options.interactive)
+                            ? this.options.interactive(this)
+                            : this.options.interactive;
+
+        return (_.isObject(interactive) && interactive[feature] !== false) ||
+                (_.isBoolean(interactive) && interactive !== false);
+    },
+
     // Override the Backbone `_ensureElement()` method in order to create a `<g>` node that wraps
     // all the nodes of the Cell view.
     _ensureElement: function() {

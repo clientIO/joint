@@ -1425,16 +1425,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this._beforeArrowheadMove();
     },
 
-    // Return `true` if the link is allowed to perform a certain UI `feature`.
-    // Example: `can('vertexMove')`, `can('labelMove')`.
-    can: function(feature) {
-
-        var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointerdown') : this.options.interactive;
-        if (interactive === false) return false;
-        if (!_.isObject(interactive) || interactive[feature] !== false) return true;
-        return false;
-    },
-
     pointerdown: function(evt, x, y) {
 
         joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
@@ -1446,7 +1436,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // if are simulating pointerdown on a link during a magnet click, skip link interactions
         if (evt.target.getAttribute('magnet') != null) return;
 
-        var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointerdown') : this.options.interactive;
+        var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this) : this.options.interactive;
         if (interactive === false) return;
 
         var className = evt.target.getAttribute('class');

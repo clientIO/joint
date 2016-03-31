@@ -1,4 +1,6 @@
-QUnit.module('cells', function(hooks) {
+'use strict';
+
+QUnit.module('cell', function(hooks) {
 
     QUnit.module('isElement()', function(hooks) {
 
