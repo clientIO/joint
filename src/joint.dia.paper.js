@@ -534,8 +534,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     resetViews: function(cellsCollection, opt) {
 
-        $(this.viewport).empty();
-
         // clearing views removes any event listeners
         this.removeViews();
 

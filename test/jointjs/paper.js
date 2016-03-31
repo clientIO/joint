@@ -69,11 +69,16 @@ test('paper.resetViews()', function() {
     var r2 = new joint.shapes.basic.Rect;
     var r3 = new joint.shapes.basic.Rect;
 
+    var viewport = V(this.paper.viewport);
+
+    viewport.append(V('rect').addClass('not-a-cell'));
+
     this.graph.addCell(r1);
     this.graph.resetCells([r2, r3]);
 
     equal(this.graph.get('cells').length, 2, 'previous cells were removed from the graph after calling graph.resetCells()');
     equal(this.paper.$('.element').length, 2, 'previous cells were removed from the paper after calling graph.resetCells()');
+    equal(viewport.find('.not-a-cell').length, 1, 'should not remove non-cell DOM elements from viewport');
 });
 
 test('graph.fromJSON(), graph.toJSON()', function() {
