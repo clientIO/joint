@@ -966,7 +966,11 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var paper = this.paper;
 
-        if (evt.target.getAttribute('magnet') && paper.options.validateMagnet.call(paper, this, evt.target)) {
+        if (
+            evt.target.getAttribute('magnet') &&
+            this.can('addLinkFromMagnet') &&
+            paper.options.validateMagnet.call(paper, this, evt.target)
+        ) {
 
             this.model.startBatch('add-link');
 
@@ -1010,11 +1014,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         } else {
 
             var grid = this.paper.options.gridSize;
-            var interactive = _.isFunction(this.options.interactive)
-                ? this.options.interactive(this, 'pointermove')
-                : this.options.interactive;
 
-            if (interactive !== false) {
+            if (this.can('elementMove')) {
 
                 var position = this.model.get('position');
 
