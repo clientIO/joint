@@ -11,6 +11,8 @@ var Vectorizer;
 
 V = Vectorizer = (function() {
 
+    'use strict';
+
     var hasSvg = typeof window === 'object' &&
                 !!(
                     window.SVGAngle ||
@@ -69,6 +71,7 @@ V = Vectorizer = (function() {
 
                     // Map child nodes to `V`s.
                     var arrayOfVels = [];
+                    var i, len;
 
                     for (i = 0, len = svgDoc.childNodes.length; i < len; i++) {
 
@@ -433,6 +436,15 @@ V = Vectorizer = (function() {
         return this;
     };
 
+    V.prototype.empty = function() {
+
+        while (this.node.firstChild) {
+            this.node.removeChild(this.node.firstChild);
+        }
+
+        return this;
+    };
+
     V.prototype.setAttributes = function(attrs) {
 
         var key;
@@ -481,7 +493,7 @@ V = Vectorizer = (function() {
 
     V.prototype.clone = function() {
 
-        var clone = V(this.node.cloneNode(true));
+        var clone = V(this.node.cloneNode(true/* deep */));
         // Note that clone inherits also ID. Therefore, we need to change it here.
         clone.node.id = V.uniqueId();
         return clone;
@@ -1167,8 +1179,8 @@ V = Vectorizer = (function() {
 
         annotations = annotations || [];
         opt = opt || {};
-        offset = opt.offset || 0;
 
+        var offset = opt.offset || 0;
         var compacted = [];
         var batch;
         var ret = [];
@@ -1180,6 +1192,7 @@ V = Vectorizer = (function() {
             item = ret[i] = t[i];
 
             for (var j = 0; j < annotations.length; j++) {
+
                 var annotation = annotations[j];
                 var start = annotation.start + offset;
                 var end = annotation.end + offset;
