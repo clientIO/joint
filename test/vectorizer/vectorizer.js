@@ -202,7 +202,7 @@ test('find()', function(assert) {
 
     var found = V(this.svgContainer).find('circle');
 
-    assert.ok(Array.isArray(found), 'The result of is an array');
+    assert.ok(Array.isArray(found), 'The result is an array.');
     assert.ok(found.length, 'The array is not empty.');
     assert.ok(found.reduce(function(memo, vel) { return memo && V.isVElement(vel); }, true), 'Items in the array are wrapped in Vectorizer.');
 });
