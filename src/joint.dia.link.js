@@ -1379,28 +1379,32 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _markAvailableMagnets: function() {
 
-        var elements = this.paper.model.getElements();
-        var validate = this.paper.options.validateConnection;
+        function isMagnetAvailable(view, magnet) {
+            var paper = view.paper;
+            var validate = paper.options.validateConnection;
+            return validate.apply(paper, this._validateConnectionArgs(view, magnet));
+        }
 
-        _.chain(elements).map(this.paper.findViewByModel, this.paper).each(function(view) {
+        var paper = this.paper;
+        var elements = paper.model.getElements();
+        this._marked = {};
 
-            var isElementAvailable = view.el.getAttribute('magnet') !== 'false' &&
-                validate.apply(this.paper, this._validateConnectionArgs(view, null));
+        _.chain(elements).map(paper.findViewByModel, paper).each(function(view) {
 
-            var availableMagnets = _.filter(view.el.querySelectorAll('[magnet]'), function(magnet) {
-                return validate.apply(this.paper, this._validateConnectionArgs(view, magnet));
-            }, this);
-
-            if (isElementAvailable) {
-                V(view.el).addClass('available-magnet');
+            var magnets = Array.prototype.slice.call(view.el.querySelectorAll('[magnet]'));
+            if (view.el.getAttribute('magnet') !== 'false') {
+                // Element wrapping group is also a magnet
+                magnets.push(view.el);
             }
 
-            _.each(availableMagnets, function(magnet) {
-                V(magnet).addClass('available-magnet');
-            });
+            var availableMagnets = _.filter(magnets, _.partial(isMagnetAvailable, view), this);
+            if (availableMagnets.length > 0) {
+                // highlight all available magnets
+                _.each(availableMagnets, _.partial(view.highlight, _, { magnetAvailability: true }), view);
+                // highlight the entire view
+                view.highlight(null, { elementAvailability: true });
 
-            if (isElementAvailable || availableMagnets.length) {
-                V(view.el).addClass('available-cell');
+                this._marked[view.model.id] = availableMagnets;
             }
 
         }, this).value();
@@ -1408,9 +1412,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _unmarkAvailableMagnets: function() {
 
-        _.each(this.paper.el.querySelectorAll('.available-cell, .available-magnet'), function(magnet) {
-            V(magnet).removeClass('available-magnet').removeClass('available-cell');
-        });
+        _.each(this._marked, function(markedMagnets, id) {
+            var view = this.paper.findViewByModel(id);
+            if (view) {
+                _.each(markedMagnets, _.partial(view.unhighlight, _, { magnetAvailability: true }), view);
+                view.unhighlight(null, { elementAvailability: true });
+            }
+        }, this);
+
+        this._marked = null;
     },
 
     startArrowheadMove: function(end, opt) {
@@ -1566,7 +1576,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var r = this.paper.options.snapLinks.radius || 50;
                 var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
 
-                this._closestView && this._closestView.unhighlight(this._closestEnd.selector, { connecting: true, snapping: true });
+                if (this._closestView) {
+                    this._closestView.unhighlight(this._closestEnd.selector, {
+                        connecting: true,
+                        snapping: true
+                    });
+                }
                 this._closestView = this._closestEnd = null;
 
                 var distance;
@@ -1622,7 +1637,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 }, this);
 
-                this._closestView && this._closestView.highlight(this._closestEnd.selector, { connecting: true, snapping: true });
+                if (this._closestView) {
+                    this._closestView.highlight(this._closestEnd.selector, {
+                        connecting: true,
+                        snapping: true
+                    });
+                }
 
                 this.model.set(this._arrowhead, this._closestEnd || { x: x, y: y }, { ui: true });
 
@@ -1638,7 +1658,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 if (this._targetEvent !== target) {
                     // Unhighlight the previous view under pointer if there was one.
-                    this._magnetUnderPointer && this._viewUnderPointer.unhighlight(this._magnetUnderPointer, { connecting: true });
+                    if (this._magnetUnderPointer) {
+                        this._viewUnderPointer.unhighlight(this._magnetUnderPointer, {
+                            connecting: true
+                        });
+                    }
+
                     this._viewUnderPointer = this.paper.findView(target);
                     if (this._viewUnderPointer) {
                         // If we found a view that is under the pointer, we need to find the closest
@@ -1652,7 +1677,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                             // If there was no magnet found, do not highlight anything and assume there
                             // is no view under pointer we're interested in reconnecting to.
                             // This can only happen if the overall element has the attribute `'.': { magnet: false }`.
-                            this._magnetUnderPointer && this._viewUnderPointer.highlight(this._magnetUnderPointer, { connecting: true });
+                            if (this._magnetUnderPointer) {
+                                this._viewUnderPointer.highlight(this._magnetUnderPointer, {
+                                    connecting: true
+                                });
+                            }
                         } else {
                             // This type of connection is not valid. Disregard this magnet.
                             this._magnetUnderPointer = null;
@@ -1691,8 +1720,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             if (paperOptions.snapLinks) {
 
-                // Finish off link snapping. Everything except view unhighlighting was already done on pointermove.
-                this._closestView && this._closestView.unhighlight(this._closestEnd.selector, { connecting: true, snapping: true });
+                // Finish off link snapping.
+                // Everything except view unhighlighting was already done on pointermove.
+                if (this._closestView) {
+                    this._closestView.unhighlight(this._closestEnd.selector, {
+                        connecting: true,
+                        snapping: true
+                    });
+                }
                 this._closestView = this._closestEnd = null;
 
             } else {
