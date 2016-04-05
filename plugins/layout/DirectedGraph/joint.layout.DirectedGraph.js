@@ -106,11 +106,19 @@ joint.layout.DirectedGraph = {
         var glLabel = {};
 
         // Dagre layout accepts options as lower case.
+        // Direction for rank nodes. Can be TB, BT, LR, or RL
         if (opt.rankDir) glLabel.rankdir = opt.rankDir;
+        // Alignment for rank nodes. Can be UL, UR, DL, or DR
+        if (opt.align) glLabel.align = opt.align;
+        // Number of pixels that separate nodes horizontally in the layout.
         if (opt.nodeSep) glLabel.nodesep = opt.nodeSep;
+        // Number of pixels that separate edges horizontally in the layout.
         if (opt.edgeSep) glLabel.edgesep = opt.edgeSep;
+        // Number of pixels between each rank in the layout.
         if (opt.rankSep) glLabel.ranksep = opt.rankSep;
+        // Number of pixels to use as a margin around the left and right of the graph.
         if (opt.marginX) glLabel.marginx = opt.marginX;
+        // Number of pixels to use as a margin around the top and bottom of the graph.
         if (opt.marginY) glLabel.marginy = opt.marginY;
 
         // Set the option object for the graph label

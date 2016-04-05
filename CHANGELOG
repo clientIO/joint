@@ -15,6 +15,7 @@ TBD (v0.10.0)
     * Added dia.Cell.isElement()
     * Added dia.Graph.removeCells()
     * Can now use dia.Graph.addCells(), dia.Graph.removeCells(), and dia.Graph.resetCells() with the same method signature. For example: dia.Graph.addCells(cell, cell) dia.Graph.addCells(cell, cell, opt) dia.Graph.addCells([cell, cell]) dia.Graph.addCells([cell, cell], opt) are all valid usage.
+    * Added layout.DirectedGraph.layout() `align` option for rank nodes alignment.
 
 19-12-2015 (v0.9.6)
        * dia.Graph introduces new functions for traversing graphs: dfs(), bfs(), search(), isSuccessor(), isPredecessor(), getPredecessors(), getSuccessors(), isNeighbor(), isSource(), isSink(), getSources(), getSinks(), getSubgraph(), getFirstCell(), getLastCell() and getCells()
