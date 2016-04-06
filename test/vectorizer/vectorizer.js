@@ -1,370 +1,419 @@
-module('vectorizer', {
+'use strict';
 
-    setup: function() {
+QUnit.module('vectorizer', function(hooks) {
 
-        this.svgContainer = document.getElementById('svg-container');
-        this.svgPath = document.getElementById('svg-path');
-        this.svgGroup = document.getElementById('svg-group');
-        this.svgCircle = document.getElementById('svg-circle');
-        this.svgEllipse = document.getElementById('svg-ellipse');
-        this.svgPolygon = document.getElementById('svg-polygon');
-        this.svgText = document.getElementById('svg-text');
-        this.svgRectangle = document.getElementById('svg-rectangle');
+    var $fixture = $('#qunit-fixture');
 
-        this.svgGroup1 = document.getElementById('svg-group-1');
-        this.svgGroup2 = document.getElementById('svg-group-2');
-        this.svgGroup3 = document.getElementById('svg-group-3');
+    var svgContainer = document.getElementById('svg-container');
+    var svgPath = document.getElementById('svg-path');
+    var svgGroup = document.getElementById('svg-group');
+    var svgCircle = document.getElementById('svg-circle');
+    var svgEllipse = document.getElementById('svg-ellipse');
+    var svgPolygon = document.getElementById('svg-polygon');
+    var svgText = document.getElementById('svg-text');
+    var svgRectangle = document.getElementById('svg-rectangle');
+    var svgGroup1 = document.getElementById('svg-group-1');
+    var svgGroup2 = document.getElementById('svg-group-2');
+    var svgGroup3 = document.getElementById('svg-group-3');
 
-        this.$fixture = $('#qunit-fixture');
-    },
+    hooks.afterEach = function() {
 
-    teardown: function() {
+        $fixture.empty();
+    };
 
-        this.$fixture.empty();
-        this.$fixture = null;
-    },
-
-    serialize: function(node) {
+    function serializeNode(node) {
 
         var str = (new XMLSerializer()).serializeToString(node);
-        //str = str.replace('xmlns=\"http://www.w3.org/2000/svg\"', '');
         return str;
     }
-});
 
-test('constuctor', function(assert) {
+    QUnit.test('constuctor', function(assert) {
 
-    var vRect = V('rect');
+        var vRect = V('rect');
 
-    assert.ok(V.isVElement(vRect), 'Constructor produces a vectorizer element, when a string was provided.');
-    assert.ok(vRect.node instanceof SVGElement, 'The vectorizer element has the attribute "node" that references to an SVGElement.');
-    assert.ok(V.isVElement(V(vRect)), 'Constructor produces a vectorizer element, when a vectorizer element was provided.');
-    assert.ok(V(vRect).node instanceof SVGElement, 'The vectorizer element has again the attribute "node" that references to an SVGElement.');
-});
+        assert.ok(V.isVElement(vRect), 'Constructor produces a vectorizer element, when a string was provided.');
+        assert.ok(vRect.node instanceof SVGElement, 'The vectorizer element has the attribute "node" that references to an SVGElement.');
+        assert.ok(V.isVElement(V(vRect)), 'Constructor produces a vectorizer element, when a vectorizer element was provided.');
+        assert.ok(V(vRect).node instanceof SVGElement, 'The vectorizer element has again the attribute "node" that references to an SVGElement.');
+    });
 
-test('V(\'<invalid markup>\')', function(assert) {
+    QUnit.test('V(\'<invalid markup>\')', function(assert) {
 
-    var error;
-
-    try {
-        V('<invalid markup>');
-    } catch (e) {
-        error = e;
-    }
-
-    assert.ok(typeof error !== 'undefined', 'Should throw an error when given invalid markup.');
-});
-
-test('V(\'<valid markup>\')', function(assert) {
-
-    var error;
-
-    try {
-        V('<rect width="100%" height="100%" fill="red" />');
-    } catch (e) {
-        error = e;
-    }
-
-    assert.ok(typeof error === 'undefined', 'Should not throw an error when given valid markup.');
-});
-
-test('index()', function(assert) {
-
-    // svg container
-    assert.equal(V(this.svgContainer).index(), 0, 'SVG container contains 5 various nodes and 1 comment. Container itself has index 0.');
-    // nodes in an svg container
-    assert.equal(V(this.svgPath).index(), 0, 'The first node has index 0.');
-    assert.equal(V(this.svgGroup).index(), 1, 'The second node has index 1.');
-    assert.equal(V(this.svgPolygon).index(), 2, 'The third node has index 2.');
-    assert.equal(V(this.svgText).index(), 3, 'The fourth node has index 3.');
-    assert.equal(V(this.svgRectangle).index(), 4, 'The fifth node has index 4.');
-    // nodes in a group
-    assert.equal(V(this.svgEllipse).index(), 0, 'The first node in the group has index 0.');
-    assert.equal(V(this.svgCircle).index(), 1, 'The second node in the group has index 1.');
-
-});
-
-test('text', function() {
-
-    var svg = V('svg');
-    svg.attr('width', 600);
-    svg.attr('height', 800);
-    this.$fixture.append(svg.node);
-
-    var t = V('text', { x: 250, dy: 100, fill: 'black' });
-    t.text('abc');
-
-    equal(t.node.childNodes.length, 1, 'There is only one child node which is a v-line node.');
-    equal(t.node.childNodes[0].childNodes.length, 1, 'There is only one child of that v-line node which is a text node.');
-    equal(this.serialize(t.node.childNodes[0].childNodes[0]), 'abc', 'Generated text is ok for a single line and no annotations.');
-    equal(t.attr('fill'), 'black', 'fill attribute set');
-    equal(t.attr('x'), '250', 'x attribute set');
-    equal(t.attr('dy'), '100', 'dy attribute set');
-
-    t.text('abc\ndef');
-
-    equal(t.node.childNodes.length, 2, 'There are two child nodes one for each line.');
-
-    t.text('abcdefgh', { annotations: [
-        { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
-        { start: 2, end: 5, attrs: { fill: 'blue' } }
-    ] });
-
-    equal(t.find('.v-line').length, 1, 'One .v-line element rendered');
-
-    equal(t.find('tspan').length, 4, '4 tspans rendered in total');
-
-    t.text('abcd\nefgh', { annotations: [
-        { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
-        { start: 2, end: 5, attrs: { fill: 'blue' } }
-    ] });
-
-    equal(t.find('.v-line').length, 2, 'Two .v-line elements rendered');
-    equal(t.find('tspan').length, 5, '5 tspans rendered in total');
-
-    t.text('abcdefgh', { includeAnnotationIndices: true, annotations: [
-        { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
-        { start: 2, end: 5, attrs: { fill: 'blue' } }
-    ] });
-    equal(V(t.find('tspan')[1]).attr('annotations'), '0', 'annotation indices added as an attribute');
-    equal(V(t.find('tspan')[2]).attr('annotations'), '0,1', 'annotation indices added as an attribute');
-    equal(V(t.find('tspan')[3]).attr('annotations'), '1', 'annotation indices added as an attribute');
-});
-
-test('annotateString', function() {
-
-    var annotations = V.annotateString('This is a text that goes on multiple lines.', [
-        { start: 2, end: 5, attrs: { fill: 'red' } },
-        { start: 4, end: 8, attrs: { fill: 'blue' } }
-    ]);
-
-    deepEqual(
-        annotations,
-        [
-            'Th',
-            { t: 'is', attrs: { fill: 'red' } },
-            { t: ' is ', attrs: { fill: 'blue' } },
-            'a text that goes on multiple lines.'
-        ],
-        'String cut into pieces and attributed according to the spans.'
-    );
-
-    annotations = V.annotateString('abcdefgh', [
-        { start: 1, end: 3, attrs: { 'class': 'one' } },
-        { start: 2, end: 5, attrs: { 'class': 'two', fill: 'blue' } }
-    ]);
-
-    deepEqual(
-        annotations,
-        [
-            'a',
-            { t: 'b', attrs: { 'class': 'one' } },
-            { t: 'c', attrs: { 'class': 'one two', fill: 'blue' } },
-            { t: 'de', attrs: { 'class': 'two', fill: 'blue' } },
-            'fgh'
-        ],
-        'String cut into pieces and attributed according to the annotations including concatenated classes.'
-    );
-
-    annotations = V.annotateString('abcdefgh', [
-        { start: 1, end: 3, attrs: { 'class': 'one' } },
-        { start: 2, end: 5, attrs: { 'class': 'two', fill: 'blue' } }
-    ], { includeAnnotationIndices: true });
-
-    deepEqual(
-        annotations,
-        [
-            'a',
-            { t: 'b', attrs: { 'class': 'one' }, annotations: [0] },
-            { t: 'c', attrs: { 'class': 'one two', fill: 'blue' }, annotations: [0, 1] },
-            { t: 'de', attrs: { 'class': 'two', fill: 'blue' }, annotations: [1] },
-            'fgh'
-        ],
-        'annotation indices included'
-    );
-});
-
-test('styleToObject', function() {
-
-    deepEqual(V.styleToObject('fill=red; stroke=blue'), { fill: 'red', stroke: 'blue' }, 'style string parsed properly');
-});
-
-test('mergeAttrs', function() {
-
-    deepEqual(
-        V.mergeAttrs({ x: 5, y: 10, style: 'fill=red; stroke=blue' }, { y: 20, style: { stroke: 'orange' } }),
-        { x: 5, y: 20, style: { fill: 'red', stroke: 'orange' } },
-        'style string parsed properly'
-    );
-});
-
-test('find()', function(assert) {
-
-    var found = V(this.svgContainer).find('circle');
-
-    assert.ok(Array.isArray(found), 'The result of is an array');
-    assert.ok(found.length, 'The array is not empty.');
-    assert.ok(found.reduce(function(memo, vel) { return memo && V.isVElement(vel); }, true), 'Items in the array are wrapped in Vectorizer.');
-});
-
-test('V.transformPoint', function(assert) {
-
-    var p = { x: 1, y: 2 };
-    var t;
-    var group = V('<g/>');
-
-    V(this.svgContainer).append(group);
-
-    t = V.transformPoint(p, group.node.getCTM());
-    assert.deepEqual({ x: t.x, y: t.y }, { x: 1, y: 2 }, 'transform without transformation returns the point unchanged.');
-
-    group.scale(2, 3);
-    t = V.transformPoint(p, group.node.getCTM());
-    assert.deepEqual({ x: t.x, y: t.y }, { x: 2, y: 6 }, 'transform with scale transformation returns correct point.');
-
-    group.attr('transform', 'rotate(90)');
-    t = V.transformPoint(p, group.node.getCTM());
-    assert.deepEqual({ x: t.x, y: t.y }, { x: -2, y: 1 }, 'transform with rotate transformation returns correct point.');
-
-    group.remove();
-});
-
-test('native getTransformToElement vs VElement getTransformToElement - translate', function(assert) {
-    var container = V(this.svgContainer);
-    var group = V('<g/>');
-    var rect = V('<rect/>');
-    var transformNativeResult = {
-        a: 1,
-        b: 0,
-        c: 0,
-        d: 1,
-        e: -10,
-        f: -10
-    };
-
-    container.append(group);
-    container.append(rect);
-
-    rect.translate(10, 10);
-
-    var transformPoly = group.getTransformToElement(rect.node);
-    var matrix = {
-        a: transformPoly.a,
-        b: transformPoly.b,
-        c: transformPoly.c,
-        d: transformPoly.d,
-        e: transformPoly.e,
-        f: transformPoly.f
-    };
-    assert.deepEqual(matrix, transformNativeResult);
-});
-
-test('native getTransformToElement vs VElement getTransformToElement - rotate', function(assert) {
-    var container = V(this.svgContainer);
-    var normalizeFloat = function(value) {
-        var temp = value * 100;
-        return temp > 0 ? Math.floor(temp) : Math.ceil(temp);
-    };
-    var group = V('<g/>');
-    var rect = V('<rect/>');
-    var transformNativeResult = {
-        a: normalizeFloat(0.7071067811865476),
-        b: normalizeFloat(-0.7071067811865475),
-        c: normalizeFloat(0.7071067811865475),
-        d: normalizeFloat(0.7071067811865476),
-        e: normalizeFloat(-0),
-        f: normalizeFloat(0)
-    };
-
-    container.append(group);
-    container.append(rect);
-
-    rect.rotate(45);
-
-    var transformPoly = group.getTransformToElement(rect.node);
-    var matrix = {
-        a: normalizeFloat(transformPoly.a),
-        b: normalizeFloat(transformPoly.b),
-        c: normalizeFloat(transformPoly.c),
-        d: normalizeFloat(transformPoly.d),
-        e: normalizeFloat(transformPoly.e),
-        f: normalizeFloat(transformPoly.f)
-    };
-    assert.deepEqual(matrix, transformNativeResult);
-});
-
-QUnit.test('findParentByClass', function(assert) {
-
-    assert.equal(
-        V(this.svgGroup3).findParentByClass('group-1').node,
-        this.svgGroup1,
-        'parent exists'
-    );
-    assert.notOk(
-        V(this.svgGroup3).findParentByClass('not-a-parent'),
-        'parent does not exist'
-    );
-    assert.notOk(
-        V(this.svgGroup3).findParentByClass('group-1', this.svgGroup2),
-        'parent exists, terminator on the way down'
-    );
-    assert.equal(
-        V(this.svgGroup3).findParentByClass('group-1', this.svgCircle).node,
-        this.svgGroup1,
-        'parent exists, terminator not on the way down'
-    );
-    assert.notOk(
-        V(this.svgGroup3).findParentByClass('not-a-parent', this.svgCircle),
-        'parent does not exist, terminator not on the way down'
-    );
-});
-
-QUnit.test('transform()', function(assert) {
-
-    var vel = V('rect');
-
-    V(this.svgContainer).append(vel);
-
-    assert.deepEqual(vel.transform(), V.createSVGMatrix({
-        a: 1,
-        b: 0,
-        c: 0,
-        d: 1,
-        e: 0,
-        f: 0
-    }), 'transform() as a getter');
-
-    vel.transform({ a: 2, b: 0, c: 0, d: 2, e: 0, f: 0 });
-
-    assert.deepEqual(vel.transform(), V.createSVGMatrix({
-        a: 2,
-        b: 0,
-        c: 0,
-        d: 2,
-        e: 0,
-        f: 0
-    }), 'Single transformation');
-
-    vel.transform({ a: 1, b: 0, c: 0, d: 1, e: 10, f: 10 });
-
-    assert.deepEqual(vel.transform(), V.createSVGMatrix({
-        a: 2,
-        b: 0,
-        c: 0,
-        d: 2,
-        e: 20,
-        f: 20
-    }), 'Multiple transformations');
-
-    vel.remove();
-
-    assert.deepEqual(vel.transform(), V.createSVGMatrix({
-        a: 2,
-        b: 0,
-        c: 0,
-        d: 2,
-        e: 20,
-        f: 20
-    }), 'transform() as a getter - element not in the DOM');
-
+        var error;
+
+        try {
+            V('<invalid markup>');
+        } catch (e) {
+            error = e;
+        }
+
+        assert.ok(typeof error !== 'undefined', 'Should throw an error when given invalid markup.');
+    });
+
+    QUnit.test('V(\'<valid markup>\')', function(assert) {
+
+        var error;
+
+        try {
+            V('<rect width="100%" height="100%" fill="red" />');
+        } catch (e) {
+            error = e;
+        }
+
+        assert.ok(typeof error === 'undefined', 'Should not throw an error when given valid markup.');
+    });
+
+    QUnit.test('index()', function(assert) {
+
+        // svg container
+        assert.equal(V(svgContainer).index(), 0, 'SVG container contains 5 various nodes and 1 comment. Container itself has index 0.');
+        // nodes in an svg container
+        assert.equal(V(svgPath).index(), 0, 'The first node has index 0.');
+        assert.equal(V(svgGroup).index(), 1, 'The second node has index 1.');
+        assert.equal(V(svgPolygon).index(), 2, 'The third node has index 2.');
+        assert.equal(V(svgText).index(), 3, 'The fourth node has index 3.');
+        assert.equal(V(svgRectangle).index(), 4, 'The fifth node has index 4.');
+        // nodes in a group
+        assert.equal(V(svgEllipse).index(), 0, 'The first node in the group has index 0.');
+        assert.equal(V(svgCircle).index(), 1, 'The second node in the group has index 1.');
+    });
+
+    QUnit.test('text', function(assert) {
+
+        var svg = V('svg');
+        svg.attr('width', 600);
+        svg.attr('height', 800);
+        $fixture.append(svg.node);
+
+        var t = V('text', { x: 250, dy: 100, fill: 'black' });
+        t.text('abc');
+
+        assert.equal(t.node.childNodes.length, 1, 'There is only one child node which is a v-line node.');
+        assert.equal(t.node.childNodes[0].childNodes.length, 1, 'There is only one child of that v-line node which is a text node.');
+        assert.equal(serializeNode(t.node.childNodes[0].childNodes[0]), 'abc', 'Generated text is ok for a single line and no annotations.');
+        assert.equal(t.attr('fill'), 'black', 'fill attribute set');
+        assert.equal(t.attr('x'), '250', 'x attribute set');
+        assert.equal(t.attr('dy'), '100', 'dy attribute set');
+
+        t.text('abc\ndef');
+
+        assert.equal(t.node.childNodes.length, 2, 'There are two child nodes one for each line.');
+
+        t.text('abcdefgh', { annotations: [
+            { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
+            { start: 2, end: 5, attrs: { fill: 'blue' } }
+        ] });
+
+        assert.equal(t.find('.v-line').length, 1, 'One .v-line element rendered');
+
+        assert.equal(t.find('tspan').length, 4, '4 tspans rendered in total');
+
+        t.text('abcd\nefgh', { annotations: [
+            { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
+            { start: 2, end: 5, attrs: { fill: 'blue' } }
+        ] });
+
+        assert.equal(t.find('.v-line').length, 2, 'Two .v-line elements rendered');
+        assert.equal(t.find('tspan').length, 5, '5 tspans rendered in total');
+
+        t.text('abcdefgh', { includeAnnotationIndices: true, annotations: [
+            { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
+            { start: 2, end: 5, attrs: { fill: 'blue' } }
+        ] });
+        assert.equal(V(t.find('tspan')[1]).attr('annotations'), '0', 'annotation indices added as an attribute');
+        assert.equal(V(t.find('tspan')[2]).attr('annotations'), '0,1', 'annotation indices added as an attribute');
+        assert.equal(V(t.find('tspan')[3]).attr('annotations'), '1', 'annotation indices added as an attribute');
+    });
+
+    QUnit.test('annotateString', function(assert) {
+
+        var annotations = V.annotateString('This is a text that goes on multiple lines.', [
+            { start: 2, end: 5, attrs: { fill: 'red' } },
+            { start: 4, end: 8, attrs: { fill: 'blue' } }
+        ]);
+
+        assert.deepEqual(
+            annotations,
+            [
+                'Th',
+                { t: 'is', attrs: { fill: 'red' } },
+                { t: ' is ', attrs: { fill: 'blue' } },
+                'a text that goes on multiple lines.'
+            ],
+            'String cut into pieces and attributed according to the spans.'
+        );
+
+        annotations = V.annotateString('abcdefgh', [
+            { start: 1, end: 3, attrs: { 'class': 'one' } },
+            { start: 2, end: 5, attrs: { 'class': 'two', fill: 'blue' } }
+        ]);
+
+        assert.deepEqual(
+            annotations,
+            [
+                'a',
+                { t: 'b', attrs: { 'class': 'one' } },
+                { t: 'c', attrs: { 'class': 'one two', fill: 'blue' } },
+                { t: 'de', attrs: { 'class': 'two', fill: 'blue' } },
+                'fgh'
+            ],
+            'String cut into pieces and attributed according to the annotations including concatenated classes.'
+        );
+
+        annotations = V.annotateString('abcdefgh', [
+            { start: 1, end: 3, attrs: { 'class': 'one' } },
+            { start: 2, end: 5, attrs: { 'class': 'two', fill: 'blue' } }
+        ], { includeAnnotationIndices: true });
+
+        assert.deepEqual(
+            annotations,
+            [
+                'a',
+                { t: 'b', attrs: { 'class': 'one' }, annotations: [0] },
+                { t: 'c', attrs: { 'class': 'one two', fill: 'blue' }, annotations: [0, 1] },
+                { t: 'de', attrs: { 'class': 'two', fill: 'blue' }, annotations: [1] },
+                'fgh'
+            ],
+            'annotation indices included'
+        );
+    });
+
+    QUnit.test('styleToObject', function(assert) {
+
+        assert.deepEqual(V.styleToObject('fill=red; stroke=blue'), { fill: 'red', stroke: 'blue' }, 'style string parsed properly');
+    });
+
+    QUnit.test('mergeAttrs', function(assert) {
+
+        assert.deepEqual(
+            V.mergeAttrs({ x: 5, y: 10, style: 'fill=red; stroke=blue' }, { y: 20, style: { stroke: 'orange' } }),
+            { x: 5, y: 20, style: { fill: 'red', stroke: 'orange' } },
+            'style string parsed properly'
+        );
+    });
+
+    QUnit.test('find()', function(assert) {
+
+        var found = V(svgContainer).find('circle');
+
+        assert.ok(Array.isArray(found), 'The result is an array.');
+        assert.ok(found.length, 'The array is not empty.');
+        assert.ok(found.reduce(function(memo, vel) { return memo && V.isVElement(vel); }, true), 'Items in the array are wrapped in Vectorizer.');
+    });
+
+    QUnit.test('V.transformPoint', function(assert) {
+
+        var p = { x: 1, y: 2 };
+        var t;
+        var group = V('<g/>');
+
+        V(svgContainer).append(group);
+
+        t = V.transformPoint(p, group.node.getCTM());
+        assert.deepEqual({ x: t.x, y: t.y }, { x: 1, y: 2 }, 'transform without transformation returns the point unchanged.');
+
+        group.scale(2, 3);
+        t = V.transformPoint(p, group.node.getCTM());
+        assert.deepEqual({ x: t.x, y: t.y }, { x: 2, y: 6 }, 'transform with scale transformation returns correct point.');
+
+        group.attr('transform', 'rotate(90)');
+        t = V.transformPoint(p, group.node.getCTM());
+        assert.deepEqual({ x: t.x, y: t.y }, { x: -2, y: 1 }, 'transform with rotate transformation returns correct point.');
+
+        group.remove();
+    });
+
+    QUnit.test('native getTransformToElement vs VElement getTransformToElement - translate', function(assert) {
+
+        var container = V(svgContainer);
+        var group = V('<g/>');
+        var rect = V('<rect/>');
+        var transformNativeResult = {
+            a: 1,
+            b: 0,
+            c: 0,
+            d: 1,
+            e: -10,
+            f: -10
+        };
+
+        container.append(group);
+        container.append(rect);
+
+        rect.translate(10, 10);
+
+        var transformPoly = group.getTransformToElement(rect.node);
+        var matrix = {
+            a: transformPoly.a,
+            b: transformPoly.b,
+            c: transformPoly.c,
+            d: transformPoly.d,
+            e: transformPoly.e,
+            f: transformPoly.f
+        };
+        assert.deepEqual(matrix, transformNativeResult);
+    });
+
+    QUnit.test('native getTransformToElement vs VElement getTransformToElement - rotate', function(assert) {
+
+        var container = V(svgContainer);
+        var normalizeFloat = function(value) {
+            var temp = value * 100;
+            return temp > 0 ? Math.floor(temp) : Math.ceil(temp);
+        };
+        var group = V('<g/>');
+        var rect = V('<rect/>');
+        var transformNativeResult = {
+            a: normalizeFloat(0.7071067811865476),
+            b: normalizeFloat(-0.7071067811865475),
+            c: normalizeFloat(0.7071067811865475),
+            d: normalizeFloat(0.7071067811865476),
+            e: normalizeFloat(-0),
+            f: normalizeFloat(0)
+        };
+
+        container.append(group);
+        container.append(rect);
+
+        rect.rotate(45);
+
+        var transformPoly = group.getTransformToElement(rect.node);
+        var matrix = {
+            a: normalizeFloat(transformPoly.a),
+            b: normalizeFloat(transformPoly.b),
+            c: normalizeFloat(transformPoly.c),
+            d: normalizeFloat(transformPoly.d),
+            e: normalizeFloat(transformPoly.e),
+            f: normalizeFloat(transformPoly.f)
+        };
+        assert.deepEqual(matrix, transformNativeResult);
+    });
+
+    QUnit.test('findParentByClass', function(assert) {
+
+        assert.equal(
+            V(svgGroup3).findParentByClass('group-1').node,
+            svgGroup1,
+            'parent exists'
+        );
+        assert.notOk(
+            V(svgGroup3).findParentByClass('not-a-parent'),
+            'parent does not exist'
+        );
+        assert.notOk(
+            V(svgGroup3).findParentByClass('group-1', svgGroup2),
+            'parent exists, terminator on the way down'
+        );
+        assert.equal(
+            V(svgGroup3).findParentByClass('group-1', svgCircle).node,
+            svgGroup1,
+            'parent exists, terminator not on the way down'
+        );
+        assert.notOk(
+            V(svgGroup3).findParentByClass('not-a-parent', svgCircle),
+            'parent does not exist, terminator not on the way down'
+        );
+    });
+
+    QUnit.module('transform()', function(hooks) {
+
+        var vel;
+
+        hooks.beforeEach(function() {
+
+            vel = V('rect');
+            V(svgContainer).append(vel);
+        });
+
+        hooks.afterEach(function() {
+
+            vel.remove();
+        });
+
+        QUnit.test('as a getter', function(assert) {
+
+            assert.deepEqual(vel.transform(), V.createSVGMatrix({
+                a: 1,
+                b: 0,
+                c: 0,
+                d: 1,
+                e: 0,
+                f: 0
+            }));
+        });
+
+        QUnit.test('single transformation', function(assert) {
+
+            vel.transform({ a: 2, b: 0, c: 0, d: 2, e: 0, f: 0 });
+
+            assert.deepEqual(vel.transform(), V.createSVGMatrix({
+                a: 2,
+                b: 0,
+                c: 0,
+                d: 2,
+                e: 0,
+                f: 0
+            }));
+        });
+
+        QUnit.test('multiple transformations', function(assert) {
+
+            vel.transform({ a: 2, b: 0, c: 0, d: 2, e: 0, f: 0 });
+            vel.transform({ a: 1, b: 0, c: 0, d: 1, e: 10, f: 10 });
+
+            assert.deepEqual(vel.transform(), V.createSVGMatrix({
+                a: 2,
+                b: 0,
+                c: 0,
+                d: 2,
+                e: 20,
+                f: 20
+            }));
+        });
+
+        QUnit.test('as a getter (element not in the DOM)', function(assert) {
+
+            vel.transform({ a: 2, b: 0, c: 0, d: 2, e: 0, f: 0 });
+            vel.transform({ a: 1, b: 0, c: 0, d: 1, e: 10, f: 10 });
+            vel.remove();
+
+            assert.deepEqual(vel.transform(), V.createSVGMatrix({
+                a: 2,
+                b: 0,
+                c: 0,
+                d: 2,
+                e: 20,
+                f: 20
+            }));
+        });
+    });
+
+    QUnit.module('empty()', function(hooks) {
+
+        var vel;
+
+        hooks.beforeEach(function() {
+
+            vel = V('g');
+            V(svgContainer).append(vel);
+        });
+
+        hooks.afterEach(function() {
+
+            vel.remove();
+        });
+
+        QUnit.test('should remove all child nodes', function(assert) {
+
+            vel.append([
+                V('rect'),
+                V('polygon'),
+                V('circle')
+            ]);
+
+            assert.equal(vel.node.childNodes.length, 3);
+            vel.empty();
+            assert.equal(vel.node.childNodes.length, 0);
+        });
+    });
 });
