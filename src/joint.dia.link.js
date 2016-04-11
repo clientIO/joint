@@ -1446,9 +1446,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // if are simulating pointerdown on a link during a magnet click, skip link interactions
         if (evt.target.getAttribute('magnet') != null) return;
 
-        var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this) : this.options.interactive;
-        if (interactive === false) return;
-
         var className = evt.target.getAttribute('class');
         var parentClassName = evt.target.parentNode.getAttribute('class');
         var labelNode;
@@ -1496,14 +1493,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 var targetParentEvent = evt.target.parentNode.getAttribute('event');
                 if (targetParentEvent) {
-
-                    // `remove` event is built-in. Other custom events are triggered on the paper.
-                    if (targetParentEvent === 'remove') {
-                        this.model.remove();
-                    } else {
-                        this.notify(targetParentEvent, evt, x, y);
+                    if (this.can('useLinkTools')) {
+                        // `remove` event is built-in. Other custom events are triggered on the paper.
+                        if (targetParentEvent === 'remove') {
+                            this.model.remove();
+                        } else {
+                            this.notify(targetParentEvent, evt, x, y);
+                        }
                     }
-
                 } else {
                     if (this.can('vertexAdd')) {
 
