@@ -90,17 +90,15 @@ To run code style checks:
 grunt test:code-style
 ```
 
+
 ### Code Coverage
 
-It is possible to generate code coverage reports using the existing qunit tests. For example, to output the coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) for all unit tests:
+To output a code coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) for all unit tests:
 ```
-grunt qunit:all_coverage --reporter lcov --coverage
+grunt test:coverage --reporter="lcov"
 ```
+The output will be saved to a new file named `coverage.info` at the root of the project directory.
 
-By default, the output will be saved to `coverage.info` at the root of the project directory. You can change the output file like this:
-```
-grunt qunit:all_coverage --reporter lcov --output customfilename.info --coverage
-```
 
 ### Building Distribution Files
 

@@ -307,12 +307,13 @@ module.exports = function(grunt) {
                 'test/**/*.html',
                 '!test/**/coverage.html'
             ],
-            all_coverage: ['test/**/coverage.html'],
+            all_coverage: [
+                'test/**/coverage.html'
+            ],
             joint: [
                 'test/jointjs/*.html',
                 '!test/jointjs/coverage.html'
             ],
-            joint_coverage: ['test/jointjs/coverage.html'],
             geometry: ['test/geometry/*.html'],
             vectorizer: ['test/vectorizer/*.html']
         },
@@ -360,68 +361,74 @@ module.exports = function(grunt) {
         }
     };
 
-    function enableCodeCoverage() {
+    var isTestCoverageTask = grunt.cli.tasks.indexOf('test:coverage') !== -1;
 
-        // Replace all qunit configurations with the 'urls' method.
-        // Append all URLs with ?coverage=true&grunt
-        // This will run all qunit tests with test coverage enabled and report results back to grunt.
+    if (isTestCoverageTask) {
 
-        var reporter = grunt.option('reporter') || 'lcov';
+        (function() {
 
-        // Serve up the test files via an express app.
-        var express = require('express');
-        var serveStatic = require('serve-static');
-        var app = express();
-        var host = 'localhost';
-        var port = 3000;
+            // Replace all qunit configurations with the 'urls' method.
+            // Append all URLs with ?coverage=true&grunt
+            // This will run all qunit tests with test coverage enabled and report results back to grunt.
 
-        app.use('/', serveStatic(__dirname));
-        app.listen(port, host);
+            var reporter = grunt.option('reporter') || 'lcov';
 
-        var name, files;
+            // Serve up the test files via an express app.
+            var express = require('express');
+            var fs = require('fs');
+            var serveStatic = require('serve-static');
+            var app = express();
+            var host = 'localhost';
+            var port = 3000;
 
-        for (name in config.qunit) {
+            app.use('/', serveStatic(__dirname));
+            app.listen(port, host);
 
-            // Resolve the paths for all files referenced in the task.
-            files = grunt.file.expand(config.qunit[name + '_coverage'] || config.qunit[name]);
+            var name, files;
 
-            config.qunit[name] = { options: { urls: [] } };
+            for (name in config.qunit) {
 
-            files.forEach(function(file) {
+                // Resolve the paths for all files referenced in the task.
+                files = grunt.file.expand(config.qunit[name]);
 
-                var url = 'http://' + host + ':' + port + '/' + file + '?coverage=true&reporter=' + reporter;
+                // Overwrite QUnit task config with URLs method.
+                config.qunit[name] = { options: { urls: [] } };
 
-                config.qunit[name].options.urls.push(url);
-            });
-        }
+                files.forEach(function(file) {
 
-        var reporterToFileExtension = {
-            lcov: 'info'
-        };
+                    var url = 'http://' + host + ':' + port + '/' + file + '?coverage=true&reporter=' + reporter;
 
-        var reports = [];
-
-        grunt.event.on('qunit.report', function(data) {
-
-            reports.push(data);
-        });
-
-        var fs = require('fs');
-
-        process.on('exit', function() {
-
-            var ext = reporterToFileExtension[reporter];
-            var outputFile = grunt.option('output') || 'coverage' + (ext ? '.' + ext : '');
-            var data;
-
-            switch (reporter) {
-                case 'lcov':
-                    data = reports.join('\n');
-                break;
+                    config.qunit[name].options.urls.push(url);
+                });
             }
 
-            fs.writeFileSync(outputFile, data);
-        });
+            var reporterToFileExtension = {
+                lcov: 'info'
+            };
+
+            var reports = [];
+
+            grunt.event.on('qunit.report', function(data) {
+
+                reports.push(data);
+            });
+
+            process.on('exit', function() {
+
+                var ext = reporterToFileExtension[reporter];
+                var outputFile = grunt.option('output') || 'coverage' + (ext ? '.' + ext : '');
+                var data;
+
+                switch (reporter) {
+                    case 'lcov':
+                        data = reports.join('\n');
+                    break;
+                }
+
+                fs.writeFileSync(outputFile, data);
+            });
+
+        })();
     }
 
     // Create targets for all the plugins.
@@ -471,10 +478,6 @@ module.exports = function(grunt) {
         grunt.registerTask(name, pluginTasks);
     });
 
-    if (grunt.option('coverage')) {
-        enableCodeCoverage();
-    }
-
     grunt.registerTask('concat:plugins', allPluginTasks.concat);
     grunt.registerTask('cssmin:plugins', allPluginTasks.cssmin);
     grunt.registerTask('uglify:plugins', allPluginTasks.uglify);
@@ -518,6 +521,10 @@ module.exports = function(grunt) {
     grunt.registerTask('test:client', ['qunit:all']);
     grunt.registerTask('test:code-style', ['jscs']);
     grunt.registerTask('test', ['test:server', 'test:client', 'test:code-style']);
+
+    grunt.registerTask('test:coverage', [
+        'qunit:all_coverage'
+    ]);
 
     grunt.registerTask('bowerInstall', [
         'shell:bowerInstall:.'
