@@ -255,6 +255,16 @@ module.exports = function(grunt) {
                 }
             }
         },
+        csslint: {
+            options: {
+                csslintrc: '.csslintrc'
+            },
+            src: [
+                'css/**/*.css',
+                'plugins/**/*.css',
+                '!plugins/**/lib/*.css'
+            ]
+        },
         cssmin: {
             joint: {
                 files: {
