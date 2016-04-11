@@ -2,6 +2,10 @@
 
 module.exports = function(grunt) {
 
+    var cheerio = require('cheerio');
+    var Handlebars = require('handlebars');
+    var Prism = require('prismjs');
+
     require('time-grunt')(grunt);
     require('load-grunt-tasks')(grunt);
 
@@ -137,6 +141,47 @@ module.exports = function(grunt) {
         clean: {
             dist: ['dist']
         },
+        compileDocs: {
+            all: {
+                options: {
+                    template: 'docs/templates/api.html',
+                    compileTemplate: Handlebars.compile,
+                    sortItems: 'js-api'
+                },
+                files: [
+                    {
+                        meta: {
+                            title: 'Geometry API',
+                            searchPlaceholder: 'i.e. point'
+                        },
+                        intro: 'docs/src/geometry/intro.md',
+                        processItems: processItem.bind(undefined, 'docs/src/geometry/api/'),
+                        dest: 'build/docs/geometry.html',
+                        src: 'docs/src/geometry/api/**/*.{md,html}'
+                    },
+                    {
+                        meta: {
+                            title: 'Joint API',
+                            searchPlaceholder: 'i.e. graph'
+                        },
+                        intro: 'docs/src/joint/intro.html',
+                        processItems: processItem.bind(undefined, 'docs/src/joint/api/'),
+                        dest: 'build/docs/joint.html',
+                        src: 'docs/src/joint/api/**/*.{md,html}'
+                    },
+                    {
+                        meta: {
+                            title: 'Vectorizer API',
+                            searchPlaceholder: 'i.e. addClass'
+                        },
+                        intro: 'docs/src/vectorizer/intro.html',
+                        processItems: processItem.bind(undefined, 'docs/src/vectorizer/api/'),
+                        dest: 'build/docs/vectorizer.html',
+                        src: 'docs/src/vectorizer/api/**/*.{md,html}'
+                    }
+                ]
+            }
+        },
         concat: {
             geometry: {
                 files: {
@@ -253,6 +298,33 @@ module.exports = function(grunt) {
                         return banner + content;
                     }
                 }
+            },
+            docs: {
+                files: [
+                    {
+                        expand: true,
+                        cwd: 'docs/',
+                        src: [
+                            'css/**/*',
+                            'js/**/*',
+                            'images/**/*'
+                        ],
+                        dest: 'build/docs/'
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        cwd: 'node_modules/open-sans-fontface/',
+                        src: [
+                            'fonts/**/*.{ttf,eot,svg,woff,woff2}'
+                        ],
+                        dest: 'build/docs/fonts/OpenSans/'
+                    },
+                    {
+                        src: 'node_modules/prismjs/themes/prism.css',
+                        dest: 'build/docs/css/prism.css'
+                    }
+                ]
             }
         },
         csslint: {
@@ -332,6 +404,13 @@ module.exports = function(grunt) {
                 }
             }
         },
+        syntaxHighlighting: {
+            docs: {
+                src: [
+                    'build/docs/*.html'
+                ]
+            }
+        },
         uglify: {
             geometry: {
                 src: js.geometry,
@@ -347,6 +426,12 @@ module.exports = function(grunt) {
             }
         },
         watch: {
+            docs: {
+                files: [
+                    'docs/**/*'
+                ],
+                tasks: ['build:docs']
+            },
             joint: {
                 files: [].concat(
                     js.geometry,
@@ -375,7 +460,6 @@ module.exports = function(grunt) {
 
             // Serve up the test files via an express app.
             var express = require('express');
-            var fs = require('fs');
             var serveStatic = require('serve-static');
             var app = express();
             var host = 'localhost';
@@ -425,10 +509,41 @@ module.exports = function(grunt) {
                     break;
                 }
 
-                fs.writeFileSync(outputFile, data);
+                grunt.file.write(outputFile, data);
             });
 
         })();
+    }
+
+    (function registerPartials(partials) {
+
+        partials = grunt.file.expand(partials);
+
+        partials.forEach(function(partial) {
+            var name = partial.split('/').pop().split('.').shift();
+            var html = grunt.file.read(partial);
+            Handlebars.registerPartial(name, html);
+        });
+
+    })('docs/templates/partials/*.html');
+
+    Handlebars.registerHelper('depth', function() {
+        return Math.min(6, this.key.split('.').length + 1);
+    });
+
+    Handlebars.registerHelper('label', function() {
+        return this.key.substr(this.key.lastIndexOf('.') + 1);
+    });
+
+    function processItem(baseDir, item) {
+
+        item.key = docFilePathToKey(item.file, baseDir);
+        return item;
+    }
+
+    function docFilePathToKey(filePath, baseDir) {
+
+        return filePath.substr(baseDir.length).split('.').shift().replace(/\//g, '.');
     }
 
     // Create targets for all the plugins.
@@ -478,6 +593,50 @@ module.exports = function(grunt) {
         grunt.registerTask(name, pluginTasks);
     });
 
+    grunt.registerMultiTask('syntaxHighlighting', function() {
+
+        this.files.forEach(function(file) {
+
+            var files = grunt.file.expand(file.src);
+
+            files.forEach(function(file) {
+
+                var content = grunt.file.read(file);
+
+                var $ = cheerio.load(content, {
+                    normalizeWhitespace: false,
+                    decodeEntities: false
+                });
+
+                var highlighted = false;
+
+                $('code:not(.highlighted)').each(function() {
+
+                    var lang = ($(this).attr('data-lang') || 'javascript').toLowerCase();
+
+                    if (lang) {
+                        var code = decodeHtmlEntities($(this).text());
+                        var highlightedCode = Prism.highlight(code, Prism.languages[lang]);
+                        $(this).html(highlightedCode);
+                        $(this).addClass('highlighted');
+                        highlighted = true;
+                    }
+                });
+
+                if (highlighted) {
+                    grunt.file.write(file, $.html());
+                    grunt.log.writeln('File ' + file['cyan'] + ' highlighted.');
+                }
+            });
+        });
+    });
+
+    function decodeHtmlEntities(str) {
+
+        var $ = cheerio.load('<div></div>');
+        return $('div').html(str).text();
+    }
+
     grunt.registerTask('concat:plugins', allPluginTasks.concat);
     grunt.registerTask('cssmin:plugins', allPluginTasks.cssmin);
     grunt.registerTask('uglify:plugins', allPluginTasks.uglify);
@@ -506,9 +665,16 @@ module.exports = function(grunt) {
         'newer:webpack'
     ]);
 
+    grunt.registerTask('build:docs', [
+        'compileDocs:all',
+        'syntaxHighlighting:docs',
+        'newer:copy:docs'
+    ]);
+
     grunt.registerTask('build:all', [
         'build:joint',
-        'build:bundles'
+        'build:bundles',
+        'build:docs'
     ]);
 
     grunt.registerTask('dist', [

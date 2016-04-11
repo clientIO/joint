@@ -1,0 +1,8 @@
+<pre class="docs-method-signature"><code>element.position(x, y, [opt])</code></pre><p>Set the element position to <code>x</code> and <code>y</code> coordinates. This is almost equivalent to
+          <code>element.set('position', { x: x, y: y }, opt)</code>. However, this method provides some additional functionality.
+          If you set <code>opt.parentRelative</code> flag to <code>true</code>, the <code>x</code> and <code>y</code>
+          coordinates will be treated relatively to the parent element of this element. If <code>position()</code> is called
+          without arguments, it returns the current position. If <code>position({ parentRealtive: true })</code> is called
+          without <code>x</code> and <code>y</code> coordinates and with the <code>parentRelative</code>flag set to <code>true</code>,
+          the method returns the current position of the element relative to its parent.
+        </p>

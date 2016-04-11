@@ -1,0 +1,8 @@
+<pre class="docs-method-signature"><code>joint.util.normalizeSides(box)</code></pre>
+
+<p>Return a new object of the form <code>{ top: Number, bottom: Number, left: Number, right: Number }</code>. The value for each of the side is determined by the argument <code>box</code>. If <code>box</code> is a number, all for sides will have this number. If it is an object with some/all of the <code>right</code>, <code>left</code>, <code>top</code>, <code>bottom</code> properties, these properties will be used. If any of the properties is missing, they will be set to <code>0</code> for the related side in the resulting object.</p>
+
+<pre><code>joint.util.normalizeSides(5) // { top: 5, left: 5, right: 5, bottom: 5 }
+joint.util.normalizeSides({ left: 5 }) // { top: 0, left: 5, right: 0, bottom: 0 }</code></pre>
+
+<p>JointJS and Rappid use this method internally whenever there is an option object that can be specified either by a number or a (possibly incomplete) object with sides (for example, the <code>padding</code> option).</p>

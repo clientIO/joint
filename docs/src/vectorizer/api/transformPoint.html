@@ -1,0 +1,8 @@
+
+<pre class="docs-method-signature"><code>V.transformPoint(p, matrix)</code></pre>
+<p>Transform a point specified by <code>p</code> (an object with <code>x</code> and <code>y</code> coordinates) by an SVG transformation represented by <code>matrix</code>.
+  This is a convenient shortcut to calling:</p>
+<pre><code>var p = mySVGDocument.createSVGPoint();
+p.x = x;
+p.y = y;
+p.matrixTransform(matrix)</code></pre>

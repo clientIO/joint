@@ -1,0 +1,13 @@
+<pre class="docs-method-signature"><code>graph.cloneCells(cells)</code></pre><p>Clone all the cells (elements and/or links) from the <code>cells</code> array and return an
+                  object that maps the original cell ID to the clone (i.e. an object of the form <code>{ [original cell ID]: [clone] }</code>).
+                  The reason why this object is returned instead of an array of clones is that it is very useful to know which object the clone
+                  was created for.
+                  <br>
+                  The number of clones returned equals <code>cells.length</code>. This function does not simply
+                  clone all the cells but it also reconstructs all the source/target and parent/embed references
+                  within <code>cells</code>. This is very useful. For example, for a graph <code>A --- L ---&gt; B</code>, 
+                  <code>cloneCells([A, L, B])</code> returns <code>{ A.id: A2, L.id: L2, B.id: B2 }</code> resulting
+                  in a graph <code>A2 --- L2 ---&gt; B2</code>, i.e. the source and target of the link <code>L2</code>
+                  is changed to point to <code>A2</code> and <code>B2</code> (in contrast to just looping over <code>cells</code>
+                  and calling <code>cell.clone()</code> on each item).
+                </p>

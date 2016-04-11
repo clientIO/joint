@@ -1,0 +1,9 @@
+<pre class="docs-method-signature"><code>link.transition(path, value [, options])</code></pre><p>Allows to change the link's property gradually over a period of time. This is a method analogous to <a href="#dia.Element.prototype.transition">transition</a> method of <code>Joint.dia.Element</code>.</p>
+
+<pre><code>link.transition('target', { x: 250, y: 250 }, {
+    delay: 100,
+    duration: 500,
+    timingFunction: joint.util.timing.bounce,
+    valueFunction: joint.util.interpolate.object
+});
+// will start changing the link target coordinates in 100ms, for period of 500ms and performing a bounce effect.</code></pre>

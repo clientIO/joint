@@ -1,0 +1,19 @@
+<p><b>joint.dia.Paper</b> is the view for the <code>joint.dia.Graph</code> model. It inherits from the <a href="http://backbonejs.org/#View">Backbone View</a>. When a paper is associated with a graph, the paper makes sure that all the cells added to the graph are automatically rendered.</p>
+
+<pre><code>var graph = new joint.dia.Graph
+var paper = new joint.dia.Paper({
+    el: $('#paper'),
+    width: 600,
+    height: 400,
+    gridSize: 10,
+    model: graph
+});
+
+var rect = new joint.shapes.basic.Rect({
+    position: { x: 50, y: 70 },
+    size: { width: 100, height: 40 }
+});
+
+graph.addCell(rect);</code></pre>
+
+<p>Paper automatically handles this change and renders the rectangle to the SVG document that it internally holds.</p>

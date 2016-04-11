@@ -1,0 +1,7 @@
+<pre class="docs-method-signature"><code>graph.cloneSubgraph(cells [, opt])</code></pre><p>Clone the whole subgraph, including all the connected links whose source/target is in the subgraph.
+                  This is equivalent to calling <code>graph.cloneCells(graph.getSubgraph(cells))</code>.
+                  <br>
+                  If <code>opt.deep</code> is <code>true</code>, take into account embedded cells of the subgraph cells.
+                  <br>                  
+                  Return an object of the form <code>{ [original cell ID]: [clone] }</code>.
+                </p>

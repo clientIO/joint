@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta http-equiv="x-ua-compatible" content="IE=Edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="css/prism.css">
+    <link rel="stylesheet" type="text/css" href="css/api.css">
+    <title>{{title}}</title>
+</head>
+<body>
+
+    <div class="docs-main">
+        <nav class="docs-nav">
+            <input class="docs-nav-search" type="text" placeholder="{{searchPlaceholder}}">
+            {{> navItems}}
+        </nav>
+        <section class="docs-content">
+            <h1 class="docs-header">{{title}}</h1>
+{{{ intro }}}
+            <div class="docs-items">
+                {{{ index }}}
+{{> contentItems}}
+            </div>
+        </section>
+    </div>
+
+    <script src="js/api.js"></script>
+
+</body>
+</html>

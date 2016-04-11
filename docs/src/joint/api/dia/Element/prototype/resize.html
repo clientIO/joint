@@ -1,0 +1,16 @@
+<pre class="docs-method-signature"><code>element.resize(width, height [, opt])</code></pre><p>Resize an element in place so that the <a href="http://jointjs.com/tutorial#custom-elements">&quot;scalable&quot; group</a> has width <code>width</code> and height <code>height</code>. In place in this case means
+            that the top-left corner of the element stays at the same position after resizing. In other words,
+          the element is streched to the bottom/right (by default). To change the direction of resizing, set
+          <code>opt.direction</code> to one of <code>'left'</code>, <code>'right'</code>, <code>'top'</code>, <code>'bottom'</code>,
+          <code>'top-right'</code>, <code>'top-left'</code>, <code>'bottom-left'</code> or <code>'bottom-right'</code> (the default).
+        </p><p>There is a difference between a classical scale and 
+            <a href="#dia.Element.prototype.resize">resize</a> operations. <code>resize</code> doesn't actually scale the whole SVG <code>&lt;g&gt;</code> element grouping
+            all its subelements. It only scales subelements of the <code data-lang="svg">&lt;g class&quot;scalable&quot;/&gt;</code> group. This is very
+            useful and brings a lot of flexibility in defining which subelements should be scaled and which not. Imagine a simple
+            rectangle element with text inside. Usually, when we resize the whole element, we expect the rectangle to 
+            get scaled while the text should stay the same size, only its position should be adjusted so that the text stays
+            in the center of the rectangle. This can be easilly achieved by adding the <code>&lt;rect/&gt;</code> element to the <code data-lang="svg">&lt;g class&quot;scalable&quot;/&gt;</code> group 
+            in the markup and positioning the text 
+            subelement relatively to the <code>&lt;rect /&gt;</code> element: <code data-lang="svg">&lt;text ref-x=&quot;.5&quot; ref-y=&quot;.5&quot; ref=&quot;rect&quot; /&gt;</code>.
+            Note that neither of <code>ref-x, ref-y and ref</code> attributes is an SVG standard attribute. These are special 
+            attributes introduced by JointJS. More on these in the section on <a href="#SpecialAttributes">Special attributes</a>.</p>

@@ -1,0 +1,8 @@
+<pre class="docs-method-signature"><code>element.toFront([opt])</code></pre><p>Move the element so it is on top of all other cells (element/links).
+        If <code>opt.deep</code> is <code>true</code>, all the embedded cells of this
+        element will get higher <code>z</code> index than that of this element in a Breadth-first search (BFS) fashion. This
+        is especially useful in hierarchical diagrams where if you want to send an element to the front, you don't want
+        its children (embedded cells) to be hidden behind that element.</p><p>All elements have a <code>z</code> property defining their z-level in the graph. This <code>z</code> property
+            can even be set directly by <code>element.set('z', 123)</code>. This change will be automatically handled by the <code>joint.dia.Paper</code>
+            object associated with the <code>joint.dia.Graph</code> object this element is part of and all the SVG elements will get resorted so that
+            their position in the DOM reflects the <code>z</code> level.</p>

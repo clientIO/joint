@@ -1,0 +1,31 @@
+<pre class="docs-method-signature"><code>link.attr(attrs)</code></pre>
+
+<p>Set SVG attributes on subelements. This is a method analogous to <a href="#dia.Element.prototype.attr">attr</a> method of <code>Joint.dia.Element</code>.  The keys of the <code>attrs</code> object are CSS selectors matching the SVG element the link consists of. The values are objects containing SVG attributes and their values. <code>attrs</code> object will be mixined with <code>attrs</code> property of the <code>link</code> model. This is a convenient way of rewriting only some of the attributes of the SVG elements. For overwritting all attributes of all SVG elements, use <code>link.set('attrs', attrs)</code>. Here it is important to mention how the markup of a link looks like:</p>
+
+<pre><code data-lang="svg">&lt;path class=&quot;connection&quot;/&gt;
+&lt;path class=&quot;marker-source&quot;/&gt;
+&lt;path class=&quot;marker-target&quot;/&gt;
+&lt;path class=&quot;connection-wrap&quot;/&gt;
+&lt;g class=&quot;labels&quot; /&gt;
+&lt;g class=&quot;marker-vertices&quot;/&gt;
+&lt;g class=&quot;marker-arrowheads&quot;/&gt;
+&lt;g class=&quot;link-tools&quot; /&gt;</code></pre>
+
+<p>As you can see, the link consists of a couple of SVG path elements and couple of SVG group elements:</p>
+
+<ul>
+    <li><code>.connection</code> is the actual line of the link.</li>
+    <li><code>.connection-wrap</code> is an SVG path element that covers the <code>.connection</code> element and is usually thicker so that the link is able to 
+        handle pointer events (mousedown, mousemove, mouseup) that didn't target the thin <code>.connection</code> path exactly. This makes it easy
+        to &quot;grab&quot; the link even though the mouse cursor didn't point exactly at the (usually thin) <code>.connection</code> path element.</li>
+    <li><code>.marker-source</code> and <code>.marker-target</code> are the arrowheads of the link.</li>
+</ul>
+
+<pre><code>link.attr({
+    '.connection': { stroke: 'blue' },
+    '.marker-source': { fill: 'red', d: 'M 10 0 L 0 5 L 10 10 z' },
+    '.marker-target': { fill: 'yellow', d: 'M 10 0 L 0 5 L 10 10 z' }
+});</code></pre>
+
+<p>An alternative call using a string path and a value:</p>
+<pre><code>link.attr('.marker-source/fill', 'green');</code></pre>

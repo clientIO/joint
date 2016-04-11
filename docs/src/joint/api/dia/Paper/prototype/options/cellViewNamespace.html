@@ -1,0 +1,7 @@
+<code>cellViewNamespace</code> - this option can be used to change the default behavior of JointJS which by default reads cell view definitions from the <code>joint.shapes</code> namespace.
+                              For example, if a cell is of type <code>'myshapes.MyElement'</code>, then the paper looks up <code>joint.shapes.myshapes.MyElementView</code>
+                              object type when rendering the cell onto the screen. If <code>cellViewNamespace</code> is set,
+                              the paper will read the view definition from the <code>myShapesNamespace.myshapes.MyElementView</code> object instead. This is useful in situations where you - for any reason - don't want to 
+                              use the <code>joint.shapes</code> namespace for defining your own custom shapes. This option is often used in combination with
+                              <code>cellNamespace</code> option on the <a href="#dia.Graph.constructor"><code>joint.dia.Graph</code></a> object.
+                

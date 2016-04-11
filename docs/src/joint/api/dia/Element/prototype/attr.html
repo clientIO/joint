@@ -1,0 +1,13 @@
+<pre class="docs-method-signature"><code>element.attr(attrs)</code></pre>
+
+<p>Set SVG attributes (and JointJS special attributes) on subelements. <code>attr</code> can either be an object or string representing a path to a nested attribute. If it is an object, the keys of the <code>attrs</code> object are CSS selectors matching the subelements. The values are objects containing SVG attributes and their values. <code>attrs</code> object will be mixined with <code>attrs</code> property of the <code>element</code> model. This is a convenient way of rewriting only some of the attributes of the subelements. For overwritting all attributes of all subelements, use <code>element.set(attrs)</code>.</p>
+
+<pre><code>element.attr({
+    rect: { fill: 'blue' },
+    text: { fill: 'white', 'font-size': 15 },
+    '.myrect2': { fill: 'red' }
+});</code></pre>
+
+<p>An alternative call using a string path and a value:</p>
+
+<pre><code>element.attr('text/font-size', 12);</code></pre>

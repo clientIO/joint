@@ -1,0 +1,11 @@
+<pre class="docs-method-signature"><code>graph.fromJSON(json, [options])</code></pre>
+
+<p>Load the graph from a JSON object (not string).</p>
+
+<pre><code>var jsonString = JSON.stringify(graph)
+// ... send jsonString to the server, 
+// store it to the localStorage or do whatever you want
+// ... later on
+graph.fromJSON(JSON.parse(jsonString))</code></pre>
+
+<p><code>options</code> object can optionally contain additional data that is passed over to the event listeners of the graph changes.</p>

@@ -1,0 +1,22 @@
+
+<p><b>joint.dia.Element</b> is the basic model for diagram elements. It's a <a href="http://backbonejs.org/#Model">Backbone model</a> with couple of additional important properties. The first one to mention is a unique identifier for the element. Each element has a unique ID that is stored in the <b><code>id</code></b> property. This <code>id</code> has a form of pseudo-generated <a href="http://en.wikipedia.org/wiki/Universally_unique_identifier">UUID</a>. Other properties can be put into three groups:</p>
+
+<h3>Geometry</h3>
+<p>Coordinates of an element are stored in the <b><code>position</code></b> property that is an object with <b><code>x</code></b> and <b><code>y</code></b> keys. <code>position</code> can be accessed or set directly using the regular Backbone <code>set()</code>/<code>get()</code> methods or through the <a href="#dia.Element.prototype.translate">translate</a> method.</p>
+<p>Rotation angle is stored in the <b><code>angle</code></b> property. This angle is in degrees and the rotation origin is always considered to be the center of the element. <code>angle</code> can be also accessed or set directly using the regular Backbone <code>set()</code>/<code>get()</code> methods or through the <a href="#dia.Element.prototype.rotate">rotate</a> method.</p>
+<p>Size of an element is stored in the <b><code>size</code></b> property that is an object with <b><code>width</code></b> and <b><code>height</code></b> keys. Again, <code>size</code> can be accessed or set directly using the regular Backbone <code>set()</code>/<code>get()</code> methods or through the <a href="#dia.Element.prototype.resize">resize</a> method.</p>
+
+<h3>Presentation</h3>
+<p>Another important property is <b><code>attrs</code></b> which is an object with keys representing <b>selectors</b> that match subelements and values which are SVG attributes that will be set on the subelements. One can find a list of <b>SVG attributes</b> and their descriptions e.g. on <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute">MDN</a>.</p>
+<p>It is important to note that each <code>joint.dia.Element</code> defines an SVG markup which is then used by <code>joint.dia.ElementView</code> to render the element to the paper. For instance, the <code>joint.shapes.basic.Rect</code> element (that inherits from <code>joint.dia.Element</code>) defines its markup as follows:</p>
+
+<pre><code data-lang="svg">&lt;g class=&quot;rotatable&quot;&gt;&lt;g class=&quot;scalable&quot;&gt;&lt;rect/&gt;&lt;/g&gt;&lt;text/&gt;&lt;/g&gt;</code></pre>
+
+<p>Therefore, in order to set a red fill color for the rectangle subelement, the <code>attrs</code> object should contain:</p>
+<pre><code>rect: { fill: 'red' }</code></pre>
+
+<p>Again, it is not recommended to change the <code>attrs</code> object directly. Instead, use the <a href="#dia.Element.prototype.attr">attr</a> method.</p>
+<p>The <b><code>z</code></b> property specifies the stack order of the element in the SVG DOM. An element with a higher <code>z</code> level is in front of an element with a lower <code>z</code> level. (This also stands for links which have the exact same property.)</p>
+
+<h3>Nesting</h3>
+<p>The last two properties of elements are <b><code>embeds</code></b> and <b><code>parent</code></b>. These two are related to elements that contain or are contained withing other elements forming a hierarchical structure. <b><code>embeds</code></b> is a list of cell <code>id</code>'s that are embedded inside the element. <b><code>parent</code></b> is an <code>id</code> of the parent element of the embedded one. When a parent element is translated, all its children get translated too.</p>

@@ -1,0 +1,5 @@
+<pre class="docs-method-signature"><code>elementView.getBBox([opt])</code></pre><p>Return a bounding box for an element view. If <code>opt.useModelGeometry</code> option is set to <code>true</code>, the resulting bounding box will be calculated
+          based on the element model dimensions (so that SVG sub elements <q>sticking out</q> of the element will be excluded). The difference from
+          <a href="#dia.Element.prototype.getBBox">dia.Element.prototype.getBBox</a> is that in this case, the bounding box will be adjusted based on the
+          <code>joint.dia.Paper</code> translate and scale.
+        </p>

@@ -1,0 +1,25 @@
+<pre class="docs-method-signature"><code>link.label(index, properties)</code></pre>
+
+<p>Set <code>properties</code> on a label indexed by <code>index</code>. A link can have multiple labels each having different position and attributes.</p><code>labels</code></p>
+
+<pre><code>{
+        position: &lt;number&gt;,
+        attrs: { &lt;selector&gt;: &lt;SVG attributes&gt; }
+}</code></pre>
+
+<p>Where <code>position</code> is the position of the label with regard to the link <code>.connection</code> SVG path. If the <code>position</code> is in <code>[0,1]</code> interval then the position of the label is considered to be defined as a percentage of the total length of the <code>.connection</code> path. E.g. position <code>0.5</code> puts the label to the middle of the link. If the position is <code>&gt;1</code> then the label will be put <code>position</code> pixels starting from the beginning of the <code>.connection</code> path. <code>position &lt;0</code> puts the label <code>Math.abs(position)</code> pixels starting from the end of the <code>.connection</code> path.</p><p><code>attrs</code> is again an object with CSS selectors as keys and SVG attributes as values. The label markup is defined as follows:</p>
+
+<pre><code data-lang="svg">&lt;g class=&quot;label&quot;&gt;
+&lt;rect /&gt;
+&lt;text /&gt;
+&lt;/g&gt;</code></pre>
+
+<p>Where <code data-lang="svg">&lt;rect&gt;</code> is a box below the label.</p>
+
+<pre><code>link.label(0, {
+    position: .5,
+    attrs: {
+        rect: { fill: 'white' },
+        text: { fill: 'blue', text: 'my label' }
+    }
+});</code></pre>

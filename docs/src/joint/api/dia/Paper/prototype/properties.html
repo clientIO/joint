@@ -1,0 +1,10 @@
+<p>The following list contains properties exposed by the paper object:</p>
+
+<ul>
+    <li><code>svg</code> - a reference to the SVG document object the paper uses to render all the graphics.</li>
+    <li><code>viewport</code> - a reference to the SVG group <code data-lang="svg">&lt;g&gt;</code> element the paper wraps all the rendered elements and links into. Paper transformations
+    such as scale is performed on this element.</li>
+    <li><code>defs</code> - a reference to the <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs">SVG &lt;defs&gt; element</a> used to define SVG elements for later reuse. This is also a good place to put SVG masks, patterns, filters and gradients.</li>
+</ul>
+
+<p>Normally, you do not need to access these properties directly but in some (advanced) situations, it is handy to have access to them.</p>

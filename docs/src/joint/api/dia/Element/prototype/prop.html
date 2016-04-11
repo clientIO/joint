@@ -1,0 +1,10 @@
+<pre class="docs-method-signature"><code>element.prop(properties)</code></pre>
+
+<p>Set properties, possibly nested, on the element model. This is an equivalent of the <a href="#dia.Element.prototype.attr">attr()</a> method but this time for custom data properties.</p>
+
+<pre><code>element.prop('name/first', 'John')
+element.prop('name/first')  // 'John'
+element.prop({ name: { first: 'John' } })
+// Nested arrays are supported too:
+element.prop('mylist/0/data/0/value', 50)
+element.prop({ mylist: [ { data: [ { value: 50 } ] } ] })</code></pre>
