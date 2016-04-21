@@ -85,12 +85,20 @@ very thin.
    vector-effect: non-scaling-stroke;
 }
 
+/* Paper */
+.paper {
+    position: relative;
+}
+/* Paper */
 
 /*  Highlighting  */
 .joint-highlight-stroke {
     pointer-events: 'none';
     vector-effect: non-scaling-stroke;
     fill: none;
+}
+.joint-highlight-opacity {
+    opacity: 0.3;
 }
 /*  Highlighting  */
 
