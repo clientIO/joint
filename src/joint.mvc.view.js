@@ -4,12 +4,10 @@
 joint.mvc.View = Backbone.View.extend({
 
     options: {},
-
-    theme: null,
+    theme: 'default',
     themeClassNamePrefix: 'joint-theme-',
     requireSetThemeOverride: false,
 
-    _defaultThemeValue: 'default',
     constructor: function(options) {
 
         Backbone.View.call(this, options);
@@ -19,13 +17,13 @@ joint.mvc.View = Backbone.View.extend({
 
         this.requireSetThemeOverride = options && !!options.theme;
 
-        this.options = _.extend({}, joint.mvc.View.prototype.options || {}, this.options || {}, options || {});
+        this.options = _.extend({}, this.options, options);
 
         _.bindAll(this, 'setTheme', 'onSetTheme', 'remove', 'onRemove');
 
         joint.mvc.views[this.cid] = this;
 
-        this.setTheme(this.options.theme || this._defaultThemeValue);
+        this.setTheme(this.options.theme || this.theme, { override: true });
         this._ensureElClassName();
         this.init();
     },
@@ -48,9 +46,11 @@ joint.mvc.View = Backbone.View.extend({
 
         // Theme is already set, override is required, and override has not been set.
         // Don't set the theme.
-        if (this.theme && this.requireSetThemeOverride && !opt.override) return;
+        if (this.requireSetThemeOverride && !opt.override) return;
 
-        this.onSetTheme(this.theme/* oldTheme */, theme/* newTheme */);
+        if (this.theme !== theme) {
+            this.onSetTheme(this.theme/* oldTheme */, theme/* newTheme */);
+        }
 
         if (this.theme) {
 

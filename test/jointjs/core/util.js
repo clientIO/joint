@@ -181,7 +181,7 @@ QUnit.module('util', function(hooks) {
         joint.setTheme(theme);
 
         assert.ok(view1.theme === theme && view2.theme === theme, 'should set the theme for all views');
-        assert.equal(joint.mvc.View.prototype._defaultThemeValue, theme, 'should update the default theme on the view prototype');
+        assert.equal(joint.mvc.View.prototype.theme, theme, 'should update the default theme on the view prototype');
 
         var view3 = new joint.mvc.View();
 
