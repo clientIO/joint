@@ -1,0 +1,12 @@
+<p>The following list contains events that you can react on:</p>
+
+<ul>
+    <li><code>change</code> - generic event triggered for any change in the graph</li>
+    <li><code>add</code> - triggered when a new cell is added to the graph</li>
+    <li><code>remove</code> - triggered when a cell is removed from the graph</li>
+    <li>Moreover, all the events that are triggered on elements or links are propagated to the graph as well.</li>
+</ul>
+
+<pre><code>graph.on('add', function(cell) { 
+    alert('New cell with id ' + cell.id + ' added to the graph.') 
+})</code></pre>

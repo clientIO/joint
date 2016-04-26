@@ -1,0 +1,6 @@
+
+<pre class="docs-method-signature"><code>V(svg)</code></pre>
+<p>Return a Vectorizer object. If <code>svg</code> parameter is a string, construct SVG DOM elements from the string markup. If <code>svg</code> is an SVG DOM element, just wrap that element by the Vectorizer object and return it. You can think of this function as of the <a href="http://api.jquery.com/jQuery/">jQuery $</a> function except that the <code>V</code> function does not accept selectors. The Vectorizer object contains a reference to the original SVG DOM element in its <b><code>node</code></b> property.</p>
+
+<pre><code>var vel = V('&lt;g&gt;&lt;rect/&gt;&lt;text/&gt;&lt;/g&gt;');
+console.log(vel.node);</code></pre>

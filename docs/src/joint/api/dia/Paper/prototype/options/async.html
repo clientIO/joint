@@ -1,0 +1,9 @@
+<code>async</code> - when enabled, the paper renders cells added to the graph through <a href="#dia.Graph.prototype.resetCells"><code>graph.resetCells()</code></a> or <a href="#dia.Graph.prototype.addCells"><code>graph.addCells()</code></a> asynchronously. 
+                  This is very useful when you want to add a large number of cells into the graph. The rendering performance boost is significant and doesn't block the UI.
+                  The option accepts either <code>true</code> in which case default values are used or an object of the form
+                  <code>{ batchSize: &lt;value&gt; }</code> where you can specify the number of cells rendered in each animation frame (default is 50). Normally, the default <code>batchSize</code> works great
+                  but you might want to experiment with different values in case you encounter performance issues.
+                  It is important to note that when asynchronous rendering is used, some of the cell views might not yet
+                  be in the paper when you try to access them via the <a href="#dia.Paper.prototype.findViewByModel"><code>paper.findViewByModel()</code></a>, <a href="#dia.Element.prototype.findView"><code>element.findView()</code></a> or <a href="#dia.Link.prototype.findView"><code>link.findView()</code></a> methods. 
+                  What you should do in case you use async rendering is to wait for when the paper triggers the <a href="#dia.Paper.prototype.events"><code>render:done</code></a> event.
+                

@@ -1,0 +1,16 @@
+<p>The following list contains events that you can react on:</p>
+
+<ul>
+    <li><code>change</code> - generic event triggered for any change on the element</li>
+    <li><code>change:position</code> - triggered when the element changes its position</li>
+    <li><code>change:angle</code> - triggered when the element gets rotated</li>
+    <li><code>change:size</code> - triggered when the element gets resized</li>
+    <li><code>change:attrs</code> - triggered when the element changes its attributes</li>
+    <li><code>change:embeds</code> - triggered when other cells were embedded into the element</li>
+    <li><code>change:parent</code> - triggered when the element got embedded into another element</li>
+    <li><code>change:z</code> - triggered when the element is moved in the z-level (<a href="#dia.Element.prototype.toFront">toFront</a> and <a href="#dia.Element.prototype.toBack">toBack</a>)</li>
+	<li><code>transition:start</code> - triggered when a transition starts.</li>
+    <li><code>transition:end</code> - triggered when a transiton ends.</li>
+</ul>
+
+<pre><code>element.on('change:position', function() { alert('element moved') })</code></pre>

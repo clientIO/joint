@@ -1,0 +1,15 @@
+<p>
+                    <b>joint.dia.Graph</b> is the model holding all the cells (elements and links) of the diagram. It's a <a href="http://backbonejs.org/#Model">Backbone model</a>.
+                    The collection of all the cells is stored in the property <b><code>cells</code></b>.
+                </p><p>
+                  The graph is a powerful data model behind all JointJS diagrams. It not only provides an efficient storage
+                  for directed graphs but also offers useful algorithms for traversing the graphs.
+                </p><p>
+                  Additionally, the graph accepts an option object in its constructor function that can contain the <code>cellNamespace</code> option.
+                    This option can be used to change the default behavior of JointJS which by default reads cell model definitions from the <code>joint.shapes</code> namespace.
+                    For example, if a cell is of type <code>'myshapes.MyElement'</code>, then the graph looks up <code>joint.shapes.myshapes.MyElement</code>
+                    model when deserializing a graph from the JSON format. If the graph is instantiated as e.g. <code>var graph = new joint.dia.Graph({}, { cellNamespace: myShapesNamespace })</code>, then
+                    the graph will read the model definition from the <code>myShapesNamespace.myshapes.MyElement</code> object instead. This is useful in situations where you don't want to - for any reason -
+                  use the <code>joint.shapes</code> namespace for defining your own custom shapes. This option is often used in combination with the
+                  <code>cellNamespaceView</code> option on the <a href="#dia.Paper.prototype.options.cellViewNamespace">joint.dia.Paper</a> object.
+                </p>

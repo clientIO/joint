@@ -1,0 +1,25 @@
+<p>Add a new vertex (an object with <code>x</code> and <code>y</code> properties) to the link. Normally, vertices are set through the <code>vertices</code> property of link models. However,
+      sometimes it is useful to add a new vertex to the link and let the link determine to what index such a vertex should be added
+      in the <code>vertices</code> array. For that, it must be the link view that does that. The link view tries to add
+      the vertex to different indices in the <code>vertices</code> array, renders the connection SVG path and checks if
+      the path length changed <q>significantly</q>. If it did, it tries another index. If not, the found index is most likely
+      to be the one we want our new vertext to be added to. For instance, let's say you want to add a new vertex on double click instead of
+      the default click event. You can create your paper in the following way:</p>
+      <pre><code>var paper = new joint.dia.Paper({
+    // ...
+    linkView: joint.dia.LinkView.extend({
+        pointerdblclick: function(evt, x, y) {
+            if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
+                this.addVertex({ x: x, y: y });
+            }
+        }
+    }),
+    interactive: function(cellView) {
+        if (cellView.model instanceof joint.dia.Link) {
+            // Disable the default vertex add functionality on pointerdown.
+            return { vertexAdd: false };
+        }
+        return true;
+    }
+    // ...
+});</code></pre>

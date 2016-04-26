@@ -1,0 +1,10 @@
+    <ul class="docs-nav-items">
+        {{#each items}}
+        <li class="docs-nav-item">
+            <a class="docs-nav-item-link" href="#{{key}}">{{#label}}{{/label}}</a>
+            {{#if items}}
+                {{> navItems}}
+            {{/if}}
+        </li>
+        {{/each}}
+    </ul>

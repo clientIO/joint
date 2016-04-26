@@ -1,0 +1,41 @@
+
+<pre class="docs-method-signature"><code>vel.text(content [, opt])</code></pre>
+<p>Set the text <code>content</code> of the element. This only makes sense for the 
+    &lt;text&gt; element. This method can deal with multi-line text in case the <code>content</code>
+    string contains the new line characters (<code>\n</code>). <code>opt.lineHeight</code> can be optionally used
+    to set the line height of the text. It defaults to <code>'1em'</code>. The <code>opt.lineHeight</code> can
+  also be set to <code>'auto'</code> in which case it is left on Vectorizer to set the best possible line height. 
+  This is useful if you annotate the text making it a rich-text (see below) and you don't want to set the
+  line height to a fixed value for all the lines.
+  <code>opt.textPath</code> can
+    be either string or an object. If it is a string, it specifies a path the text should go along. If it is
+    an object, then it should contain a <code>d</code> property that specifies the path the text should go along and
+    optinally other attributes that will be set on the automatically created <code data-lang="svg">&lt;textPath&gt;</code> SVG element
+    such as <code>startOffset</code>.</p>
+
+<pre><code>t.text('my text\neven multiline')
+t.text('my text\nwith custom line height', { lineHeight: '2em' })
+t.text('text that goes along a path', { textPath: 'M 0 100 Q 30 10 100 0' })
+t.text('another text that goes along a path', { textPath: { d: 'M 0 100 Q 30 10 100 0', startOffset: 50 } })</code></pre>
+
+<p>If <code>opt.annotations</code> array is set, the text will be annotated by the attributes defined in the
+annotations array. This means that you can easily render a rich-text. Each annotation in the annotations array
+is an object of the form <code>{ start: Number, end: Number, attrs: Object }</code> where
+<code>start</code> (inclusive) and <code>end</code> (exclusive) define the range of the text <code>content</code> where
+the <code>attrs</code> SVG Attributes will be applied. If there are overlapping annotations, they will be 
+smartly merged (classes concatenated, attributes merged, <code>style</code> can be always defined either as a string
+or an object).</p>
+
+<pre><code>var text = V('text', { x: 250, y: 150, fill: 'black' });
+text.text('This is a rich text.\nThis text goes to multiple lines.', { lineHeight: 'auto', annotations: [
+{ start: 5, end: 10, attrs: { fill: 'red', 'font-size': 30, rotate: '20' } },
+{ start: 7, end: 15, attrs: { fill: 'blue' } },
+{ start: 20, end: 30, attrs: { fill: 'blue', 'class': 'text-link', style: 'text-decoration: underline' } }
+]});
+svg.append(text);</code></pre>
+
+<p>If <code>opt.includeAnnotationIndices</code> is set to <code>true</code>, each <code>&lt;tspan&gt;</code>
+will contain the <code>'annotations'</code> attribute with comma separated indices of annotations that applied
+to that piece of text. Vectorizer provides some useful functions for working with annotations. Those are
+<a href="#findAnnotationsAtIndex">V.findAnnotationsAtIndex()</a>, <a href="#findAnnotationsBetweenIndexes">V.findAnnotationsBetweenIndexes()</a>
+<a href="#shiftAnnotations">V.shiftAnnotations()</a> and <a href="#annotateString">V.annotateString()</a>.</p>

@@ -1,0 +1,6 @@
+<pre class="docs-method-signature"><code>joint.util.breakText(text, size [, attrs, opt])</code></pre>
+
+<p>Break the <code>text</code> into lines so that the text fits into the bounding box defined by <code>size.width</code> and, optionally, <code>size.height</code>. <code>attrs</code> is an object with SVG attributes that will be set on the SVG text before measuring it (such as <code>font-weight</code>, <code>font</code>, ...). If <code>opt.svgDocument</code> is specified, that SVG document will be used to append the internally created SVG text element used for measurements (by default, an SVG document is created automatically for you). This function creates a temporary SVG &lt;text&gt; element with the attributes provided and continuously measures its width and height trying to fit as many words as possible on each line. When the text overflows the <code>size.height</code>, it is cut. The return value is a string with automatically added newline characters (\n) so that the text fits into the bounding box specified. Useful for implementing auto-wrapping of text in JointJS shapes.</p>
+
+<pre><code>joint.util.breakText('this is quite a long text', { width: 50 })
+// 'this is\nquite a\nlong\ntext'</code></pre>

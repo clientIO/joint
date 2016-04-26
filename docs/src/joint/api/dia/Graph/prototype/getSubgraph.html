@@ -1,0 +1,9 @@
+<pre class="docs-method-signature"><code>graph.getSubgraph(cells [, opt])</code></pre><p>Return an array of cells that result from finding elements/links that are connected to any of the cells in the <code>cells</code> array.
+                  This function loops over <code>cells</code> and if the current cell is a link, it collects its source/target elements; if it is an element,
+                  it collects its incoming and outgoing links if both the link ends (source/target) are in the <code>cells</code> array.
+                  For example, for a single element, the result is that very same element.
+                  For two elements connected with a link: <code>A --- L ---&gt; B</code>, the result of <code>getSubgraph([A, B])</code>
+                  is <code>[A, L, B]</code> and the result of <code>getSubgraph([L])</code> is also <code>[A, L, B]</code>.
+                  <br>
+                  If <code>opt.deep</code> is <code>true</code> take into account all the embedded cells too when finding neighboring links/elements.
+                </p>

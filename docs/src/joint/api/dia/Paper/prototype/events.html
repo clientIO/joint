@@ -1,0 +1,31 @@
+<p>The following list contains events that you can react on in the paper:</p>
+<ul>
+    <li><code>cell:pointerdown</code> - triggered when a pointer is pressed on a cell. Takes <code>cellView</code>, <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
+    <li><code>cell:pointermove</code> - triggered when a pointer is moved on a paper and <code>cell:pointerdown</code> was previously handled. Takes <code>cellView</code>, <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
+    <li><code>cell:pointerup</code> - triggered when a pointer is released on a paper and <code>cell:pointerdown</code> was previously handled. Takes <code>cellView</code> and, <code>evt</code> as arguments.</li>
+    <li><code>cell:pointerdblclick</code> - triggered when the user double-clicks a cell. Takes <code>cellView</code>, <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
+    <li><code>cell:pointerclick</code> - triggered when the user clicks a cell. Takes <code>cellView</code>, <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
+    <li><code>cell:mouseover</code> - triggered when the user enters the cell view area. Takes <code>cellView</code> and <code>evt</code> as arguments.</li>
+    <li><code>cell:mouseout</code> - triggered when the user leaves the cell view area. Takes <code>cellView</code> and <code>evt</code> as arguments.</li>
+    <li><code>blank:pointerdown</code> - triggered when a pointer is pressed on a blank area on the paper. Takes <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
+    <li><code>blank:pointerdblclick</code> - triggered when the user double-clicks a blank area on the paper. Takes <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
+    <li><code>blank:pointerclick</code> - triggered when the user clicks a blank area on the paper. Takes <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
+    <li><code>cell:contextmenu</code> - triggered when the user right-clicks a cell in the paper. Takes <code>cellView</code>, <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
+    <li><code>blank:contextmenu</code> - triggered when the user right-clicks a blank area in the paper. Takes <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
+    <li><code>render:done</code> - triggered when the paper has finished rendering all the cell views in case <a href="#dia.Paper.constructor">async</a> rendering is enabled.</li>
+    <li><code>cell:highlight</code> - triggered when <code>highlight()</code> method is called on either an element or a link. Note that this method is also called automatically when the user is reconnecting a link and the connection is valid (<code>validateConnection()</code> returns <code>true</code>) or
+      if <code>embeddingMode</code> is enabled on the paper and the dragging element is above another element it could be dropped into (<code>validateEmbedding()</code> returns <code>true</code>).
+      The handler for this event has the following signature: <code>function(cellView, el)</code>. The handler defaults to
+      <code>function(cellView, el) { V(el).addClass('highlighted') }</code>. In other words, the <code>'higlighted'</code> CSS class is added
+      and so you can style the highlighted element in CSS. If you want to use a different method for highlighting cells, 
+      call <code>paper.off('cell:highlight')</code> first to unregister the default handler and then <code>paper.on('cell:highlight', myHandler)</code>
+      to register your own.
+    </li>
+    <li><code>cell:unhighlight</code> - triggered when <code>unhighlight()</code> method is called on either an element or a link. See above
+      the comments for <code>cell:highlight</code> event for further details.</li>
+</ul>
+
+<pre><code>paper.on('blank:pointerdown', function(evt, x, y) { 
+    alert('pointerdown on a blank area in the paper.')
+})</code></pre>
+

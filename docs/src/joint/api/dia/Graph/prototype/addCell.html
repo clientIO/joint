@@ -1,0 +1,13 @@
+<pre class="docs-method-signature"><code>graph.addCell(cell)</code></pre>
+
+<p>Add a new cell to the graph. If <code>cell</code> is an array, all the cells in the array will be added to the graph.</p>
+
+<pre><code>var rect = new joint.shapes.basic.Rect({ 
+    position: { x: 100, y: 100 },
+    size: { width: 70, height: 30 },
+    attrs: { text: { text: 'my rectangle' } }
+})
+var rect2 = rect.clone()
+var link = new joint.dia.Link({ source: { id: rect.id }, target: { id: rect2.id }  });
+var graph = new joint.dia.Graph
+graph.addCell(rect).addCell(rect2).addCell(link)</code></pre>

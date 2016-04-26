@@ -1,0 +1,6 @@
+<code>restrictTranslate</code> - restrict the translation (movement) of elements by a given bouding box. If set to <code>true</code>, the user will not be able to move elements outside the boundary of the paper area. It's set to <code>false</code> by default. This option also accepts a function with signature <code>function(elementView)</code> in which case it must return a bounding box (an object of the form <code>{ x: Number, y: Number, width: Number, height: Number }</code>) that defines the area in which the element represented by <code>elementView</code> can be moved. For example, to restrict translatoin of embedded elements by the bounding box defined by their parent element, you can do:</p>
+
+<pre><code>restrictTranslate: function(elementView) {
+    var parentId = elementView.model.get('parent');
+    return parentId &amp;&amp; this.model.getCell(parentId).getBBox();
+}</code></pre>

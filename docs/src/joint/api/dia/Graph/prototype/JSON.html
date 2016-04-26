@@ -1,0 +1,29 @@
+<p>The JointJS graph JSON representation has the following format:</p>
+<pre><code data-lang="javascript">
+{
+    cells: [
+        { // Element
+            id: [string],
+            type: [string: type of shape],
+            attrs: { [attrs] },
+            position: { x: [number], y: [number] },
+            angle: [deg],
+            size: { width: [number], height: [number] },
+            z: [number],
+            embeds: [array: IDs of embedded cells],
+            parent: [string: ID of parent if embedded]
+            ... and some other, maybe custom, data properties
+        },
+        { // Link
+            id: [string],
+            type: [string: type of link, default: 'link'],
+            attrs: { [attrs] },
+            vertices: [{ x: [number], y: [number] }, ...],
+            source: { id: [string], selector: [optional CSS selector], port: [optional port identifier] },
+            target: { id: [string], selector: [optional CSS selector], port: [optional port identifier] },
+            labels: [{ position: [float], attrs: {...} }, ...]
+            z: [number],
+            ... and some other, maybe custom, data properties 
+        }
+    ]
+}</code></pre>

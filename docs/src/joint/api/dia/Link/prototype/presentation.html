@@ -1,0 +1,65 @@
+<p>The shape of the link is determined by the <b><code>vertices</code></b>, <b><code>connector</code></b> and <b><code>router</code></b> properties.</p><p>The <code>vertices</code> array contains a list of points which are the points which the link should cross.</p>
+
+<pre><code>link.get('vertices')
+link.set('vertices', [{ x: 100, y: 120 }, { x: 150, y: 60 }])</code></pre>
+
+<p>A <code>router</code> takes an array of vertices defined on the model and transforms them to an array of points (<b>route</b>) that the link should go through. The difference between vertices and the route is that vertices are user-defined whilst route is computed.</p>
+
+<p>There are three built-in routers (manhattan, metro and orthogonal) to your disposal. The first two are so called &quot;smart routers&quot; and they automatically avoid elements that are in their way.</p>
+
+<p>The <code>orthogonal</code> and <code>manhattan</code> routers generate points that can be connected by vertical and horizontal line segments only. The <code>metro</code> router generates points that can be connected also with diagonal line segments.</p>
+
+<pre><code>link.set('router', { name: 'manhattan' });
+link.set('router', { name: 'metro' });
+link.set('router', { name: 'orthogonal' });</code></pre>
+
+<p>To keep backwards compatible it's possible to set the <code>manhattan</code> property to <code>true</code> in order to enable the orthogonal routing.</p>
+
+<pre><code>// old approach
+link.set('manhattan', true)</code></pre>
+
+<p>The <code>manhattan</code> router has some additional useful options that determine how the algorithm behaves. These options can be passed into the <code>args</code> property and are:</p>
+
+<ul>
+  <li><code>excludeTypes</code> - an array of element types that should not be considered obstacles </li>
+  <li><code>excludeEnds</code> - either <code>'source'</code> or <code>'target'</code> string that tells the algorithm that the element at that specified end of the link should not be considered an obstacle </li>
+  <li><code>startDirections</code> - an array of sides of the link source element that the link can start from. The default is all the sides <code>['left', 'right', 'top', 'bottom']</code>. Change this in situations where
+    you want the link to e.g. always start at the bottom of the source element (the value would be <code>['bottom']</code>)</li>
+  <li><code>endDirections</code> - an array of sides of the link target element that the link can stick to. The default is all the sides <code>['left', 'right', 'top', 'bottom']</code></li>
+</ul>
+
+<p>Example:</p>
+<pre><code>link.set('router', {
+    name: 'manhattan',
+    args: {
+        startDirections: ['top'],
+        endDirections: ['bottom'],
+        excludeTypes: ['myNamespace.MyCommentElement']
+    }
+});</code></pre>
+
+<p>New routers can be defined in the <code>joint.routers.[name of your router]</code> namespace or passed directly as functions to the <code>router</code> property of your links. The router is a function of the form <code>function(vertices, args, linkView)</code> and must return an array of vertices that the link should go through.</p>
+
+<p>A <code>connector</code> takes points returned by a router and generate SVG path commands so the link can be rendered. There are three connectors (normal, smooth and rounded) to your disposal.</p><p>The <code>normal</code> connector connects points with straight lines. The <code>rounded</code> connector does the same but it smooths all the edges. The <code>smooth</code> connector interpolates the points using a cubic bezier curve.</p>
+
+<pre><code>link.set('connector', { name: 'normal' });
+link.set('connector', { name: 'smooth' });</code></pre>
+
+</p>
+
+<p>The curve of edges can be specified by <code>radius</code> argument passed to the <code>rounded</code> connector.</p>
+
+<pre><code>link.set('connector', { name: 'rounded', args: { radius: 10 }});</code></pre>
+
+<p>To keep backwards compatible it's possible to set the <code>smooth</code> property to <code>true</code> in order to enable smooth connector.</p>
+
+<pre><code>// old approach
+link.set('smooth', true)</code></pre>
+
+<p>Note that code responsible for routing and rendering links is completely pluggable so the family of routers and connectors can be easily extended.</p>
+
+<p>New connectors can be defined (similarly to routers) in the <code>joint.connectors.[name of your connector]</code> namespace or passed directly as functions to the <code>connector</code> property of your links. The connector is a function of the form <code>function(sourcePoint, targetPoint, vertices, args, linkView)</code> and must return a string representing the <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d">SVG path data</a> that will be used to render the link.</p>
+
+<p>Styling of the link is contained in the <b><code>attrs</code></b> property which has exactly the same structure as the <b><code>attrs</code></b> property of elements. Please refer to the <a href="#dia.Element.constructor">joint.dia.Element</a> section and  <a href="#dia.Link.constructor">joint.dia.Link</a> sections of this page for more information on this.</p>
+
+<p>Links also have the <b><code>z</code></b> property which is the z-level of the link. <code>z</code> property has exactly the same meaning as the <code>z</code> property of elements.</p>

@@ -108,6 +108,16 @@ grunt dist
 ```
 
 
+## Documentation
+
+The source for the JointJS documentation (plus geometry and Vectorizer libraries) are included in this repository; see the `docs` directory. The documentation can be built into stand-alone HTML documents like this:
+```
+grunt build:docs
+```
+The output of the above command can be found at `build/docs`.
+
+
+
 ## License
 
 JointJS library is licensed under the Mozilla Public License, v. 2.0. Please see the LICENSE file for the full license.

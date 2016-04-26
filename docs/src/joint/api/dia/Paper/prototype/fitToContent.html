@@ -1,0 +1,15 @@
+<pre class="docs-method-signature"><code>paper.fitToContent([opt])</code></pre><p>Expand/shrink the paper to fit the content inside it. Snap the resulting width/height to the grid defined by <code>opt.gridWidth</code> / <code>opt.gridHeight</code>.
+                  <code>opt.padding</code> adds to the resulting width/height of the paper. The <code>opt.padding</code> can eithr be a number in which case it represents the padding
+                  on all the sides or it can be an object of the form <code>{ top: Number, right: Number, bottom: Number, left: Number }</code>. By default the method fits the paper to a content with positive coordinates only and sets the origin to (0,0) for the resulting paper.
+                  To change this behaviour use the <code>allowNewOrigin: ['negative'|'positive'|'any']</code> option.
+                  Set <code>allowNewOrigin</code> to <code>'negative'</code> to account for content with negative coordinates.
+                  Set <code>allowNewOrigin</code> to <code>'positive'</code> to allow origin to be set to the top-left coordinate of the content. 
+                  Set <code>allowNewOrigin</code> to <code>'any'</code> to apply both. This method might internally trigger the <code>&quot;resize&quot;</code> and <code>&quot;translate&quot;</code> events that can be handled by listening on the paper object (<code>paper.on('resize', myHandler)</code>).
+                  <code>opt.minWidth</code> and <code>opt.minHeight</code> define the minium width and height of the paper
+                  and <code>opt.maxWidth</code> and <code>opt.maxHeight</code> define the maximum width and height of the paper
+                  after fitting it to the content.
+                  <br>
+                  You can try many of these options interactively in the <a href="http://jointjs.com/demos/paper">paper demo</a>.
+                </p><p><i>Depracated usage:&#xA0;&#xA0;<code>paper.fitToContent(gridWidth, gridHeight, padding, opt)</code></i></p><p>
+
+                </p>
