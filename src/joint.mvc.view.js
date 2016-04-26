@@ -3,13 +3,11 @@
 
 joint.mvc.View = Backbone.View.extend({
 
-    options: {
-        theme: 'default'
-    },
-
+    options: {},
     theme: null,
     themeClassNamePrefix: 'joint-theme-',
     requireSetThemeOverride: false,
+    defaultTheme: 'default',
 
     constructor: function(options) {
 
@@ -20,13 +18,13 @@ joint.mvc.View = Backbone.View.extend({
 
         this.requireSetThemeOverride = options && !!options.theme;
 
-        this.options = _.extend({}, joint.mvc.View.prototype.options || {}, this.options || {}, options || {});
+        this.options = _.extend({}, this.options, options);
 
         _.bindAll(this, 'setTheme', 'onSetTheme', 'remove', 'onRemove');
 
         joint.mvc.views[this.cid] = this;
 
-        this.setTheme(this.options.theme);
+        this.setTheme(this.options.theme || this.defaultTheme);
         this._ensureElClassName();
         this.init();
     },

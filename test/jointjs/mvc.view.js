@@ -81,7 +81,7 @@ test('init()', function(assert) {
 test('setTheme(theme)', function(assert) {
 
     var theme = 'some-theme';
-    var defaultTheme = joint.mvc.View.prototype.options.theme;
+    var defaultTheme = joint.mvc.View.prototype.defaultTheme;
     var SomeView = joint.mvc.View.extend();
     var view = new SomeView();
 
@@ -89,6 +89,7 @@ test('setTheme(theme)', function(assert) {
 
     var themeClassName = SomeView.prototype.themeClassNamePrefix + theme;
 
+    assert.notEqual(defaultTheme, undefined, 'default theme is set');
     assert.equal(view.theme, theme, 'should correctly set the theme for the view');
     assert.ok(view.$el.hasClass(themeClassName) && !view.$el.hasClass(defaultTheme), 'view.$el should have correct theme class name');
 });
