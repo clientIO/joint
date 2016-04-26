@@ -81,7 +81,7 @@ test('init()', function(assert) {
 test('setTheme(theme)', function(assert) {
 
     var theme = 'some-theme';
-    var defaultTheme = joint.mvc.View.prototype.theme;
+    var defaultTheme = joint.mvc.View.prototype.defaultTheme;
     var SomeView = joint.mvc.View.extend();
     var view = new SomeView();
 
