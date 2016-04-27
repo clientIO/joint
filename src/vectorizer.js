@@ -932,7 +932,7 @@ V = Vectorizer = (function() {
             // Attribute names can be namespaced. E.g. `image` elements
             // have a `xlink:href` attribute to set the source of the image.
             var combinedKey = name.split(':');
-            el.setAttributeNS(ns[combinedKey[0]], combinedKey[1], value);
+            el.setAttributeNS(ns[combinedKey[0]], name, value);
 
         } else if (name === 'id') {
             el.id = value;
