@@ -132,5 +132,6 @@ Copyright (c) 2013 client IO
 - [Emanuele Palombo](http://github.com/elbowz)
 - [Charles Hill](http://github.com/chill117)
 - [Daniel K.](http://github.com/FredyC)
+- [Vladimir Talas](http://github.com/vtalas)
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/DavidDurman/joint/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
