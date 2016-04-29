@@ -31,6 +31,7 @@ V = Vectorizer = (function() {
     // XML namespaces.
     var ns = {
         xmlns: 'http://www.w3.org/2000/svg',
+        xml: 'http://www.w3.org/XML/1998/namespace',
         xlink: 'http://www.w3.org/1999/xlink'
     };
 
@@ -246,7 +247,6 @@ V = Vectorizer = (function() {
         content = V.sanitizeText(content);
         opt = opt || {};
         var lines = content.split('\n');
-        var i = 0;
         var tspan;
 
         // `alignment-baseline` does not work in Firefox.
@@ -266,7 +266,7 @@ V = Vectorizer = (function() {
         this.attr('display', content ? null : 'none');
 
         // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
-        this.node.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
+        this.attr('xml:space', 'preserve');
 
         // Easy way to erase all `<tspan>` children;
         this.node.textContent = '';
@@ -392,6 +392,26 @@ V = Vectorizer = (function() {
         return this;
     };
 
+    /**
+     * @public
+     * @param {string} name
+     * @returns {Vectorizer}
+     */
+    V.prototype.removeAttr = function(name) {
+
+        var qualifiedName = V.qualifyAttr(name);
+        var el = this.node;
+
+        if (qualifiedName.ns) {
+            if (el.hasAttributeNS(qualifiedName.ns, qualifiedName.local)) {
+                el.removeAttributeNS(qualifiedName.ns, qualifiedName.local);
+            }
+        } else if (el.hasAttribute(name)) {
+            el.removeAttribute(name);
+        }
+        return this;
+    };
+
     V.prototype.attr = function(name, value) {
 
         if (V.isUndefined(name)) {
@@ -415,13 +435,13 @@ V = Vectorizer = (function() {
 
             for (var attrName in name) {
                 if (name.hasOwnProperty(attrName)) {
-                    V.setAttribute(this.node, attrName, name[attrName]);
+                    this.setAttribute(attrName, name[attrName]);
                 }
             }
 
         } else {
 
-            V.setAttribute(this.node, name, value);
+            this.setAttribute(name, value);
         }
 
         return this;
@@ -447,10 +467,10 @@ V = Vectorizer = (function() {
 
     V.prototype.setAttributes = function(attrs) {
 
-        var key;
-
-        for (key in attrs) {
-            V.setAttribute(this.node, key, attrs[key]);
+        for (var key in attrs) {
+            if (attrs.hasOwnProperty(key)) {
+                this.setAttribute(key, attrs[key]);
+            }
         }
 
         return this;
@@ -856,6 +876,36 @@ V = Vectorizer = (function() {
         return spot;
     };
 
+    /**
+     * @private
+     * @param {string} name
+     * @param {string} value
+     * @returns {Vectorizer}
+     */
+    V.prototype.setAttribute = function(name, value) {
+
+        var el = this.node;
+
+        if (value === null) {
+            this.removeAttr(name);
+            return this;
+        }
+
+        var qualifiedName = V.qualifyAttr(name);
+
+        if (qualifiedName.ns) {
+            // Attribute names can be namespaced. E.g. `image` elements
+            // have a `xlink:href` attribute to set the source of the image.
+            el.setAttributeNS(qualifiedName.ns, name, value);
+        } else if (name === 'id') {
+            el.id = value;
+        } else {
+            el.setAttribute(name, value);
+        }
+
+        return this;
+    };
+
     // Create an SVG document element.
     // If `content` is passed, it will be used as the SVG content of the `<svg>` root element.
     V.createSvgDocument = function(content) {
@@ -926,19 +976,24 @@ V = Vectorizer = (function() {
         return xml;
     };
 
-    V.setAttribute = function(el, name, value) {
+    /**
+     * @param {string} name
+     * @returns {{ns: string|null, local: string}} namespace and attribute name
+     */
+    V.qualifyAttr = function(name) {
 
-        if (name.indexOf(':') > -1) {
-            // Attribute names can be namespaced. E.g. `image` elements
-            // have a `xlink:href` attribute to set the source of the image.
+        if (name.indexOf(':') !== -1) {
             var combinedKey = name.split(':');
-            el.setAttributeNS(ns[combinedKey[0]], name, value);
-
-        } else if (name === 'id') {
-            el.id = value;
-        } else {
-            el.setAttribute(name, value);
+            return {
+                ns: ns[combinedKey[0]],
+                local: combinedKey[1]
+            };
         }
+
+        return {
+            ns: null,
+            local: name
+        };
     };
 
     V.parseTransformString = function(transform) {
