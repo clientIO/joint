@@ -260,14 +260,13 @@ V = Vectorizer = (function() {
             this.attr('y', '0.8em');
         }
 
-        if (!content) {
-            this.removeAttr('display');
-        }
+        // An empty text gets rendered into the DOM in webkit-based browsers.
+        // In order to unify this behaviour across all browsers
+        // we rather hide the text element when it's empty.
+        this.attr('display', content ? null : 'none');
 
         // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
         this.attr('xml:space', 'preserve');
-
-        this.node.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
 
         // Easy way to erase all `<tspan>` children;
         this.node.textContent = '';
@@ -403,8 +402,10 @@ V = Vectorizer = (function() {
         var qualifiedName = V.qualifyAttr(name);
         var el = this.node;
 
-        if (qualifiedName.ns && el.hasAttributeNS(qualifiedName.ns, qualifiedName.local)) {
-            el.removeAttributeNS(qualifiedName.ns, qualifiedName.local);
+        if (qualifiedName.ns) {
+            if (el.hasAttributeNS(qualifiedName.ns, qualifiedName.local)) {
+                el.removeAttributeNS(qualifiedName.ns, qualifiedName.local);
+            }
         } else if (el.hasAttribute(name)) {
             el.removeAttribute(name);
         }
@@ -466,10 +467,10 @@ V = Vectorizer = (function() {
 
     V.prototype.setAttributes = function(attrs) {
 
-        var key;
-
-        for (key in attrs) {
-            this.setAttribute(key, attrs[key]);
+        for (var key in attrs) {
+            if (attrs.hasOwnProperty(key)) {
+                this.setAttribute(key, attrs[key]);
+            }
         }
 
         return this;
@@ -879,6 +880,7 @@ V = Vectorizer = (function() {
      * @private
      * @param {string} name
      * @param {string} value
+     * @returns {Vectorizer}
      */
     V.prototype.setAttribute = function(name, value) {
 
@@ -886,7 +888,7 @@ V = Vectorizer = (function() {
 
         if (value === null) {
             this.removeAttr(name);
-            return;
+            return this;
         }
 
         var qualifiedName = V.qualifyAttr(name);
@@ -897,9 +899,11 @@ V = Vectorizer = (function() {
             el.setAttributeNS(qualifiedName.ns, name, value);
         } else if (name === 'id') {
             el.id = value;
-        } else{
+        } else {
             el.setAttribute(name, value);
         }
+
+        return this;
     };
 
     // Create an SVG document element.
