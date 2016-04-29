@@ -246,7 +246,6 @@ V = Vectorizer = (function() {
         content = V.sanitizeText(content);
         opt = opt || {};
         var lines = content.split('\n');
-        var i = 0;
         var tspan;
 
         // `alignment-baseline` does not work in Firefox.
@@ -260,10 +259,9 @@ V = Vectorizer = (function() {
             this.attr('y', '0.8em');
         }
 
-        // An empty text gets rendered into the DOM in webkit-based browsers.
-        // In order to unify this behaviour across all browsers
-        // we rather hide the text element when it's empty.
-        this.attr('display', content ? null : 'none');
+        if (!content) {
+            this.removeAttr('display');
+        }
 
         // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
         this.node.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
@@ -387,6 +385,30 @@ V = Vectorizer = (function() {
             V(textNode).append(vLine);
 
             offset += line.length + 1;      // + 1 = newline character.
+        }
+
+        return this;
+    };
+
+    /**
+     * @public
+     * @param {string} name
+     * @returns {Vectorizer}
+     */
+    V.prototype.removeAttr = function(name) {
+
+        var xName = V.qualifyAttr(name);
+
+        if (xName.ns) {
+
+            if (this.node.hasAttributeNS(xName.ns, xName.local)) {
+                this.node.removeAttributeNS(xName.ns, xName.local);
+                return this;
+            }
+        }
+
+        if (this.node.hasAttribute(name)) {
+            this.node.removeAttribute(name);
         }
 
         return this;
@@ -926,18 +948,32 @@ V = Vectorizer = (function() {
         return xml;
     };
 
+    /**
+     * @param {string} name
+     * @returns {Object{ns: string, local: string}} namespace and attribute name
+     */
+    V.qualifyAttr = function(name) {
+
+        if (name.indexOf(':') !== -1) {
+            var combinedKey = name.split(':');
+            return {
+                ns: ns[combinedKey[0]],
+                local: combinedKey[1]
+            };
+        }
+        return name;
+    };
+
     V.setAttribute = function(el, name, value) {
 
-        if (name.indexOf(':') > -1) {
+        var xName = V.qualifyAttr(name);
+
+        if (xName.ns) {
             // Attribute names can be namespaced. E.g. `image` elements
             // have a `xlink:href` attribute to set the source of the image.
-            var combinedKey = name.split(':');
-            el.setAttributeNS(ns[combinedKey[0]], name, value);
-
-        } else if (name === 'id') {
-            el.id = value;
+            el.setAttributeNS(xName.ns, name, value);
         } else {
-            el.setAttribute(name, value);
+            name === 'id' ? el.id = value : el.setAttribute(name, value);
         }
     };
 
