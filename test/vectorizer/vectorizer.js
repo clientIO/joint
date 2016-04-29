@@ -451,6 +451,18 @@ QUnit.module('vectorizer', function(hooks) {
                 assert.ok(text.indexOf('xlink:href') > 0, 'message');
             });
 
+            QUnit.test('value "null" removes attr', function(assert) {
+
+                var element = V('a').attr('xlink:href', 'www.seznam.cz');
+                this.svg.append(element);
+
+                element.attr('xlink:href', null);
+
+                var text = svgToString(this.svg);
+
+                assert.ok(text.indexOf('xlink:href') === -1, 'attribute should be removed');
+            });
+
             QUnit.test('special attr', function(assert) {
 
                 var element = V('a').attr('id', 'x');

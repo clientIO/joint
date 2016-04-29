@@ -31,6 +31,7 @@ V = Vectorizer = (function() {
     // XML namespaces.
     var ns = {
         xmlns: 'http://www.w3.org/2000/svg',
+        xml: 'http://www.w3.org/XML/1998/namespace',
         xlink: 'http://www.w3.org/1999/xlink'
     };
 
@@ -264,6 +265,8 @@ V = Vectorizer = (function() {
         }
 
         // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
+        this.attr('xml:space', 'preserve');
+
         this.node.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
 
         // Easy way to erase all `<tspan>` children;
@@ -397,20 +400,14 @@ V = Vectorizer = (function() {
      */
     V.prototype.removeAttr = function(name) {
 
-        var xName = V.qualifyAttr(name);
+        var qualifiedName = V.qualifyAttr(name);
+        var el = this.node;
 
-        if (xName.ns) {
-
-            if (this.node.hasAttributeNS(xName.ns, xName.local)) {
-                this.node.removeAttributeNS(xName.ns, xName.local);
-                return this;
-            }
+        if (qualifiedName.ns && el.hasAttributeNS(qualifiedName.ns, qualifiedName.local)) {
+            el.removeAttributeNS(qualifiedName.ns, qualifiedName.local);
+        } else if (el.hasAttribute(name)) {
+            el.removeAttribute(name);
         }
-
-        if (this.node.hasAttribute(name)) {
-            this.node.removeAttribute(name);
-        }
-
         return this;
     };
 
@@ -437,13 +434,13 @@ V = Vectorizer = (function() {
 
             for (var attrName in name) {
                 if (name.hasOwnProperty(attrName)) {
-                    V.setAttribute(this.node, attrName, name[attrName]);
+                    this.setAttribute(attrName, name[attrName]);
                 }
             }
 
         } else {
 
-            V.setAttribute(this.node, name, value);
+            this.setAttribute(name, value);
         }
 
         return this;
@@ -472,7 +469,7 @@ V = Vectorizer = (function() {
         var key;
 
         for (key in attrs) {
-            V.setAttribute(this.node, key, attrs[key]);
+            this.setAttribute(key, attrs[key]);
         }
 
         return this;
@@ -878,6 +875,33 @@ V = Vectorizer = (function() {
         return spot;
     };
 
+    /**
+     * @private
+     * @param {string} name
+     * @param {string} value
+     */
+    V.prototype.setAttribute = function(name, value) {
+
+        var el = this.node;
+
+        if (value === null) {
+            this.removeAttr(name);
+            return;
+        }
+
+        var qualifiedName = V.qualifyAttr(name);
+
+        if (qualifiedName.ns) {
+            // Attribute names can be namespaced. E.g. `image` elements
+            // have a `xlink:href` attribute to set the source of the image.
+            el.setAttributeNS(qualifiedName.ns, name, value);
+        } else if (name === 'id') {
+            el.id = value;
+        } else{
+            el.setAttribute(name, value);
+        }
+    };
+
     // Create an SVG document element.
     // If `content` is passed, it will be used as the SVG content of the `<svg>` root element.
     V.createSvgDocument = function(content) {
@@ -950,7 +974,7 @@ V = Vectorizer = (function() {
 
     /**
      * @param {string} name
-     * @returns {Object{ns: string, local: string}} namespace and attribute name
+     * @returns {{ns: string|null, local: string}} namespace and attribute name
      */
     V.qualifyAttr = function(name) {
 
@@ -961,20 +985,11 @@ V = Vectorizer = (function() {
                 local: combinedKey[1]
             };
         }
-        return name;
-    };
 
-    V.setAttribute = function(el, name, value) {
-
-        var xName = V.qualifyAttr(name);
-
-        if (xName.ns) {
-            // Attribute names can be namespaced. E.g. `image` elements
-            // have a `xlink:href` attribute to set the source of the image.
-            el.setAttributeNS(xName.ns, name, value);
-        } else {
-            name === 'id' ? el.id = value : el.setAttribute(name, value);
-        }
+        return {
+            ns: null,
+            local: name
+        };
     };
 
     V.parseTransformString = function(transform) {
