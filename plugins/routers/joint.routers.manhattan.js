@@ -225,17 +225,24 @@ joint.routers.manhattan = (function(g, _) {
         return item;
     };
 
+    function normalizePoint(point) {
+        return g.point(
+            point.x === 0 ? 0 : Math.abs(point.x) / point.x,
+            point.y === 0 ? 0 : Math.abs(point.y) / point.y
+        );
+    }
+
     // reconstructs a route by concating points with their parents
-    function reconstructRoute(parents, point) {
+    function reconstructRoute(parents, point, startCenter, endCenter) {
 
         var route = [];
-        var prevDiff = { x: 0, y: 0 };
+        var prevDiff = normalizePoint(endCenter.difference(point));
         var current = point;
         var parent;
 
         while ((parent = parents[current])) {
 
-            var diff = parent.difference(current);
+            var diff = normalizePoint(current.difference(parent));
 
             if (!diff.equals(prevDiff)) {
 
@@ -246,7 +253,10 @@ joint.routers.manhattan = (function(g, _) {
             current = parent;
         }
 
-        route.unshift(current);
+        var startDiff = normalizePoint(g.point(current).difference(startCenter));
+        if (!startDiff.equals(prevDiff)) {
+            route.unshift(current);
+        }
 
         return route;
     }
@@ -311,7 +321,7 @@ joint.routers.manhattan = (function(g, _) {
         // set of points we start pathfinding from
         if (start instanceof g.rect) {
             startPoints = getRectPoints(start, opt.startDirections, opt);
-            startCenter = start.center();
+            startCenter = start.center().snapToGrid(step);
         } else {
             startCenter = start.clone().snapToGrid(step);
             startPoints = [startCenter];
@@ -320,7 +330,7 @@ joint.routers.manhattan = (function(g, _) {
         // set of points we want the pathfinding to finish at
         if (end instanceof g.rect) {
             endPoints = getRectPoints(end, opt.endDirections, opt);
-            endCenter = end.center();
+            endCenter = end.center().snapToGrid(step);
         } else {
             endCenter = end.clone().snapToGrid(step);
             endPoints = [endCenter];
@@ -372,7 +382,7 @@ joint.routers.manhattan = (function(g, _) {
                     dirChange = getDirectionChange(currentDirAngle, getDirectionAngle(currentPoint, endCenter, dirLen));
                     if (currentPoint.equals(endCenter) || dirChange < 180) {
                         opt.previousDirAngle = currentDirAngle;
-                        return reconstructRoute(parents, currentPoint);
+                        return reconstructRoute(parents, currentPoint, startCenter, endCenter);
                     }
                 }
 
