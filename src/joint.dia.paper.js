@@ -1189,6 +1189,23 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var backgroundImage = canvas.toDataURL('image/png');
         this.el.style.backgroundImage = 'url("' + backgroundImage + '")';
-    }
+    },
 
+    setInteractivity: function(value) {
+        var cells = this.model.getCells();
+
+        this.options.interactive = value;
+
+        var interactivity = value;
+        if (!_.isFunction(interactivity)) {
+            interactivity = function() {
+                return value;
+            };
+        }
+
+        _.each(cells, function(cell) {
+            var cellView = this.findViewByModel(cell);
+            cellView.setInteractivity(interactivity(cellView));
+        }, this);
+    }
 });

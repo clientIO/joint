@@ -990,5 +990,10 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
 
         this.vel.addClass(this.themeClassNamePrefix + newTheme);
+    },
+
+    setInteractivity: function(value) {
+
+        this.options.interactive = value;
     }
 });
