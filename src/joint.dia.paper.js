@@ -1189,6 +1189,12 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var backgroundImage = canvas.toDataURL('image/png');
         this.el.style.backgroundImage = 'url("' + backgroundImage + '")';
-    }
+    },
 
+    setInteractivity: function(value) {
+
+        this.options.interactive = value;
+
+        _.invoke(this._views, 'setInteractivity', value);
+    }
 });
