@@ -185,11 +185,11 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.$el.append(this.svg);
 
-        this.model.on('add', this.onCellAdded, this);
-        this.model.on('remove', this.removeView, this);
-        this.model.on('reset', this.resetViews, this);
-        this.model.on('sort', this._onSort, this);
-        this.model.on('batch:stop', this._onBatchStop, this);
+        this.listenTo(this.model, 'add', this.onCellAdded);
+        this.listenTo(this.model, 'remove', this.removeView);
+        this.listenTo(this.model, 'reset', this.resetViews);
+        this.listenTo(this.model, 'sort', this._onSort);
+        this.listenTo(this.model, 'batch:stop', this._onBatchStop);
 
         this.setOrigin();
         this.setDimensions();
