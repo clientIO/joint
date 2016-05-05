@@ -1195,8 +1195,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.options.interactive = value;
 
-        _.each(this._views, function(view) {
-            view.setInteractivity(value);
-        }, this);
+        _.invoke(this._views, 'setInteractivity', value);
     }
 });
