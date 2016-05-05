@@ -49,8 +49,6 @@ joint.mvc.View = Backbone.View.extend({
         // Don't set the theme.
         if (this.theme && this.requireSetThemeOverride && !opt.override) return;
 
-        this.onSetTheme(this.theme/* oldTheme */, theme/* newTheme */);
-
         if (this.theme) {
 
             this.$el.removeClass(this.themeClassNamePrefix + this.theme);
@@ -58,6 +56,7 @@ joint.mvc.View = Backbone.View.extend({
 
         this.$el.addClass(this.themeClassNamePrefix + theme);
 
+        this.onSetTheme(this.theme/* oldTheme */, theme/* newTheme */);
         this.theme = theme;
 
         return this;
