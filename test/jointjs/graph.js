@@ -791,42 +791,66 @@ QUnit.module('graph', function(hooks) {
 
     });
 
-    QUnit.test('findModelsInArea(rect[, opt])', function(assert) {
+    QUnit.module('findModelsInArea(rect[, opt])', function(hooks) {
 
-        var cells = [
-            new joint.shapes.basic.Rect({
-                position: { x: 20, y: 20 },
-                size: { width: 20, height: 20 }
-            }),
-            new joint.shapes.basic.Rect({
-                position: { x: 80, y: 80 },
-                size: { width: 40, height: 60 }
-            }),
-            new joint.shapes.basic.Rect({
-                position: { x: 120, y: 180 },
-                size: { width: 40, height: 40 }
-            })
-        ];
+        var cells, graph;
 
-        this.graph.addCells(cells);
+        hooks.beforeEach(function() {
 
-        var modelsInArea;
+            graph = new joint.dia.Graph;
 
-        modelsInArea = this.graph.findModelsInArea(new g.rect(0, 0, 10, 10));
+            cells = [
+                new joint.shapes.basic.Rect({
+                    position: { x: 20, y: 20 },
+                    size: { width: 20, height: 20 }
+                }),
+                new joint.shapes.basic.Rect({
+                    position: { x: 80, y: 80 },
+                    size: { width: 40, height: 60 }
+                }),
+                new joint.shapes.basic.Rect({
+                    position: { x: 120, y: 180 },
+                    size: { width: 40, height: 40 }
+                })
+            ];
 
-        assert.equal(modelsInArea.length, 0, 'area with no elements in it');
+            this.graph.addCells(cells);
+        });
 
-        modelsInArea = this.graph.findModelsInArea(new g.rect(0, 0, 25, 25));
+        QUnit.test('rect is instance of g.rect', function(assert) {
 
-        assert.equal(modelsInArea.length, 1, 'area with 1 element in it');
+            var modelsInArea;
 
-        modelsInArea = this.graph.findModelsInArea(new g.rect(0, 0, 300, 300));
+            modelsInArea = this.graph.findModelsInArea(new g.rect(0, 0, 10, 10));
 
-        assert.equal(modelsInArea.length, 3, 'area with 3 elements in it');
+            assert.equal(modelsInArea.length, 0, 'area with no elements in it');
 
-        modelsInArea = this.graph.findModelsInArea(new g.rect(0, 0, 100, 100), { strict: true });
+            modelsInArea = this.graph.findModelsInArea(new g.rect(0, 0, 25, 25));
 
-        assert.equal(modelsInArea.length, 1, '[opt.strict = TRUE] should require elements to be completely within rect');
+            assert.equal(modelsInArea.length, 1, 'area with 1 element in it');
+
+            modelsInArea = this.graph.findModelsInArea(new g.rect(0, 0, 300, 300));
+
+            assert.equal(modelsInArea.length, 3, 'area with 3 elements in it');
+
+            modelsInArea = this.graph.findModelsInArea(new g.rect(0, 0, 100, 100), { strict: true });
+
+            assert.equal(modelsInArea.length, 1, '[opt.strict = TRUE] should require elements to be completely within rect');
+        });
+
+        QUnit.test('rect is object', function(assert) {
+
+            var modelsInArea;
+
+            modelsInArea = this.graph.findModelsInArea({
+                x: 0,
+                y: 0,
+                width: 10,
+                height: 10
+            });
+
+            assert.equal(modelsInArea.length, 0, 'area with no elements in it');
+        });
     });
 
     QUnit.test('translate(dx, dy, opt)', function(assert) {

@@ -934,6 +934,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Find all elements in given area
     findModelsInArea: function(rect, opt) {
 
+        rect = g.rect(rect);
         opt = _.defaults(opt || {}, { strict: false });
 
         var method = opt.strict ? 'containsRect' : 'intersect';
