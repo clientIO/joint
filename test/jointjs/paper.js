@@ -855,9 +855,7 @@ QUnit.module('paper', function(hooks) {
         QUnit.test('set by function', function(assert) {
 
             this.paper.setInteractivity(function(cellView) {
-                return function() {
-                    return { manipulate: cellView.model.isLink() };
-                };
+                return { manipulate: cellView.model.isLink() };
             });
 
             var cells = this.graph.getCells();

@@ -1192,20 +1192,11 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     setInteractivity: function(value) {
-        var cells = this.model.getCells();
 
         this.options.interactive = value;
 
-        var interactivity = value;
-        if (!_.isFunction(interactivity)) {
-            interactivity = function() {
-                return value;
-            };
-        }
-
-        _.each(cells, function(cell) {
-            var cellView = this.findViewByModel(cell);
-            cellView.setInteractivity(interactivity(cellView));
+        _.each(this._views, function(view) {
+            view.setInteractivity(value);
         }, this);
     }
 });
