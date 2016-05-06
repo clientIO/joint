@@ -2,93 +2,167 @@
 
 (function() {
 
-	document.addEventListener('DOMContentLoaded', function(evt) {
+    var iframes;
 
-		// DOM ready.
+    document.addEventListener('DOMContentLoaded', function(evt) {
 
-		removeClassFromEl(document.getElementsByTagName('html')[0], 'no-js');
+        // DOM ready.
 
-		(function navSearchInit() {
+        removeClassFromEl(document.getElementsByTagName('html')[0], 'no-js');
 
-			var input = document.querySelector('.docs-nav-search');
-			var items = document.querySelectorAll('.docs-nav-item');
+        initializeNavSearch();
 
-			var doSearch = debounce(search, 400);
+        iframes = document.querySelectorAll('iframe');
+        loadVisibleIFrames();
+        window.addEventListener('scroll', debounce(loadVisibleIFrames, 400));
+    });
 
-			input.addEventListener('keyup', doSearch);
-			input.addEventListener('change', doSearch);
+    function loadVisibleIFrames() {
 
-			function search() {
+        var visibleIFrames = getVisibleIFrames();
+        var iframe, dataSrc;
 
-				hideAllItems();
-				showItemsThatMatch(input.value);
-			}
+        while ((iframe = visibleIFrames.shift())) {
+            if (!iframeIsLoaded(iframe)) {
+                loadIFrame(iframe);
+            }
+        }
+    }
 
-			function hideAllItems() {
+    function loadIFrame(iframe) {
 
-				for (var i = 0; i < items.length; i++) {
-					addClassToEl(items[i], 'hidden');
-				}
-			}
+        // Don't load again, if already loading.
+        if (elHasClass(iframe, 'loading')) return;
 
-			function showItemsThatMatch(value) {
+        iframe.onload = function() {
 
-				var matchingItems = getItemsThatMatch(value);
+            iframe.contentWindow.document.body.style.overflow = 'hidden';
 
-				for (var i = 0; i < matchingItems.length; i++) {
-					removeClassFromEl(matchingItems[i], 'hidden');
-				}
-			}
+            // Set the height of the iframe element equal to the height of its contents.
+            this.style.height = this.contentWindow.document.body.offsetHeight + 'px';
 
-			function getItemsThatMatch(value) {
+            removeClassFromEl(iframe, 'loading');
+            addClassToEl(iframe, 'loaded');
+        };
 
-				var matchingItems = [];
-				var item, content;
+        addClassToEl(iframe, 'loading');
+        iframe.src = iframe.getAttribute('data-src');
+    }
 
-				for (var i = 0; i < items.length; i++) {
-					item = items[i];
-					content = typeof item.textContent !== 'undefined' ? item.textContent : item.innerHTML;
-					if (content.toLowerCase().indexOf(value.toLowerCase()) !== -1) {
-						matchingItems.push(item);
-					}
-				}
+    function iframeIsLoaded(iframe) {
 
-				return matchingItems;
-			}
+        return iframe.src != 'about:blank';
+    }
 
-		})();
-	});
+    function getVisibleIFrames() {
 
-	function debounce(fn, wait) {
+        var visibleIFrames = [];
+        var i, position;
 
-		var timeout;
+        for (i = 0; i < iframes.length; i++) {
+            if (isElementInViewport(iframes[i])) {
+                visibleIFrames.push(iframes[i]);
+            }
+        }
 
-		return function() {
-			clearTimeout(timeout);
-			timeout = setTimeout(fn, wait);
-		};
-	}
+        return visibleIFrames;
+    }
 
-	function addClassToEl(el, className) {
+    function initializeNavSearch() {
 
-		var classes = el.className.split(' ');
-		var index = classes.indexOf(className);
+        var input = document.querySelector('.docs-nav-search');
+        var items = document.querySelectorAll('.docs-nav-item');
+        var doSearch = debounce(search, 400);
 
-		if (index === -1) {
-			classes.push(className);
-			el.className = classes.join(' ');
-		}
-	}
+        input.addEventListener('keyup', doSearch);
+        input.addEventListener('change', doSearch);
 
-	function removeClassFromEl(el, className) {
+        function search() {
 
-		var classes = el.className.split(' ');
-		var index = classes.indexOf(className);
+            hideAllItems();
+            showItemsThatMatch(input.value);
+        }
 
-		if (index !== -1) {
-			classes.splice(index, 1);
-			el.className = classes.join(' ');
-		}
-	}
+        function hideAllItems() {
+
+            for (var i = 0; i < items.length; i++) {
+                addClassToEl(items[i], 'hidden');
+            }
+        }
+
+        function showItemsThatMatch(value) {
+
+            var matchingItems = getItemsThatMatch(value);
+
+            for (var i = 0; i < matchingItems.length; i++) {
+                removeClassFromEl(matchingItems[i], 'hidden');
+            }
+        }
+
+        function getItemsThatMatch(value) {
+
+            var matchingItems = [];
+            var item, content;
+
+            for (var i = 0; i < items.length; i++) {
+                item = items[i];
+                content = typeof item.textContent !== 'undefined' ? item.textContent : item.innerHTML;
+                if (content.toLowerCase().indexOf(value.toLowerCase()) !== -1) {
+                    matchingItems.push(item);
+                }
+            }
+
+            return matchingItems;
+        }
+    }
+
+    function debounce(fn, wait) {
+
+        var timeout;
+
+        return function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(fn, wait);
+        };
+    }
+
+    function elHasClass(el, className) {
+
+        return el.className.split(' ').indexOf(className) !== -1;
+    }
+
+    function addClassToEl(el, className) {
+
+        var classes = el.className.split(' ');
+        var index = classes.indexOf(className);
+
+        if (index === -1) {
+            classes.push(className);
+            el.className = classes.join(' ');
+        }
+    }
+
+    function removeClassFromEl(el, className) {
+
+        var classes = el.className.split(' ');
+        var index = classes.indexOf(className);
+
+        if (index !== -1) {
+            classes.splice(index, 1);
+            el.className = classes.join(' ');
+        }
+    }
+
+    function isElementInViewport(el) {
+
+        var rect = el.getBoundingClientRect();
+
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
+    }
 
 })();

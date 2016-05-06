@@ -144,7 +144,7 @@ body {
 	overflow-y: auto;
 	overflow-x: hidden;
 	background-color: #072740;
-	background-image: url('../images/joint/vertical_navigation_background.jpg');
+	background-image: url('../images/vertical_navigation_background.jpg');
 	background-position: top left;
 	background-repeat: no-repeat;
 }
@@ -287,6 +287,23 @@ body {
 .docs-content td:first-child {
 	text-align: left;
 }
+.docs-content iframe {
+	width: 100%;
+	height: 1px;
+	visibility: hidden;
+	overflow: visible;
+	border: none;
+}
+.docs-content iframe.loading {
+	height: 400px;
+}
+.docs-content iframe.loaded {
+	height: 400px;
+	visibility: visible;
+}
+html.no-js .docs-content iframe {
+	display: none;
+}
 .docs-items > .docs-item {
 	border-top: 1px solid #eee;
 	margin-top: 30px;
@@ -297,3 +314,19 @@ body {
 		background: transparent;
 	}
 	/*  PrismJS  */
+
+
+	/*  Custom  */
+	.images {
+		margin-top: 30px;
+	}
+	.image {
+		display: block;
+		width: auto;
+		max-width: 80%;
+		margin: 0 auto;
+	}
+	.image + .image {
+		margin-top: 30px;
+	}
+	/*  Custom  */
