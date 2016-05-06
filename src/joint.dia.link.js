@@ -1777,11 +1777,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var currentEnd = this.model.prop(arrowhead) || {};
 
             if (initialEnd.id && currentEnd.id !== initialEnd.id) {
-                this.notify('link:disconnect', arrowhead, this.paper.getModelById(initialEnd.id));
+                this.notify('link:disconnect', evt, arrowhead, this.paper.getModelById(initialEnd.id));
             }
 
             if (currentEnd.id && currentEnd.id !== initialEnd.id) {
-                this.notify('link:connect', arrowhead);
+                this.notify('link:connect', evt, arrowhead, this.paper.getModelById(currentEnd.id));
             }
 
             this._afterArrowheadMove();
