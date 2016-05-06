@@ -1773,6 +1773,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 this._z = null;
             }
 
+            var current = this.model.prop(arrowhead) || {};
+
+            if (this._initialEnd.id && current.id !== this._initialEnd.id) {
+                this.notify('link:disconnect', arrowhead, this.paper.getModelById(this._initialEnd.id), { ui: true });
+            }
+
+            if (current.id && current.id !== this._initialEnd.id) {
+                this.notify('link:connect', arrowhead, { ui: true });
+            }
+
             this._afterArrowheadMove();
         }
 
