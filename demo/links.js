@@ -34,6 +34,14 @@ paper.on('link:pointerdown', function(evt, linkView, x, y) {
     console.log('link:pointerdown');
 });
 
+paper.on('link:disconnect', function(linkView, type, disconnectedFrom) {
+    console.log('link:disconnect', type, disconnectedFrom);
+});
+
+paper.on('link:connect', function(linkView, type) {
+    console.log('link:connect', type);
+});
+
 $('#perpendicularLinks').on('change', function() {
 
     paper.options.perpendicularLinks = $(this).is(':checked') ? true : false;

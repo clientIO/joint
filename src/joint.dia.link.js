@@ -1714,6 +1714,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             var paperOptions = this.paper.options;
             var arrowhead = this._arrowhead;
+            var initialEnd = this._initialEnd;
 
             if (paperOptions.snapLinks) {
 
@@ -1762,7 +1763,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                     case 'revert':
                     default:
-                        this.model.set(arrowhead, this._initialEnd, { ui: true });
+                        this.model.set(arrowhead, initialEnd, { ui: true });
                         break;
                 }
             }
@@ -1773,14 +1774,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 this._z = null;
             }
 
-            var current = this.model.prop(arrowhead) || {};
+            var currentEnd = this.model.prop(arrowhead) || {};
 
-            if (this._initialEnd.id && current.id !== this._initialEnd.id) {
-                this.notify('link:disconnect', arrowhead, this.paper.getModelById(this._initialEnd.id), { ui: true });
+            if (initialEnd.id && currentEnd.id !== initialEnd.id) {
+                this.notify('link:disconnect', arrowhead, this.paper.getModelById(initialEnd.id));
             }
 
-            if (current.id && current.id !== this._initialEnd.id) {
-                this.notify('link:connect', arrowhead, { ui: true });
+            if (currentEnd.id && currentEnd.id !== initialEnd.id) {
+                this.notify('link:connect', arrowhead);
             }
 
             this._afterArrowheadMove();
