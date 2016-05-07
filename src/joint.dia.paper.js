@@ -1066,10 +1066,10 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointermove: function(evt) {
 
-        evt.preventDefault();
-        evt = joint.util.normalizeEvent(evt);
-
         if (this.sourceView) {
+
+            evt.preventDefault();
+            evt = joint.util.normalizeEvent(evt);
 
             // Mouse moved counter.
             this._mousemoved++;
