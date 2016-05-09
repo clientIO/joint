@@ -240,7 +240,16 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         return !!ancestor && (ancestor.id === elementId || ancestor.isEmbeddedIn(elementId));
     }
-});
+},
+    {
+        linkConnectionChanged: function(previousEnd, currentEnd) {
+
+            var portChanged = previousEnd.port && previousEnd.port !== currentEnd.port ||
+                currentEnd.port && previousEnd.port !== currentEnd.port;
+
+            return previousEnd.id !== currentEnd.id || portChanged;
+        }
+    });
 
 
 // joint.dia.Link base view and controller.
@@ -1424,12 +1433,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     },
 
     startArrowheadMove: function(end, opt) {
+
         opt = _.defaults(opt || {}, { whenNotAllowed: 'revert' });
         // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
         // move without need to click on the actual arrowhead dom element.
         this._action = 'arrowhead-move';
         this._whenNotAllowed = opt.whenNotAllowed;
         this._arrowhead = end;
+        this._initialMagnet = this[end + 'Magnet'] || (this[end + 'View'] ? this[end + 'View'].el : null);
         this._initialEnd = _.clone(this.model.get(end)) || { x: 0, y: 0 };
         this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
         this._beforeArrowheadMove();
@@ -1715,6 +1726,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var paperOptions = this.paper.options;
             var arrowhead = this._arrowhead;
             var initialEnd = this._initialEnd;
+            var magnetUnderPointer;
 
             if (paperOptions.snapLinks) {
 
@@ -1725,13 +1737,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                         connecting: true,
                         snapping: true
                     });
+
+                    magnetUnderPointer = this._closestView.findMagnet(this._closestEnd.selector);
                 }
+
                 this._closestView = this._closestEnd = null;
 
             } else {
 
                 var viewUnderPointer = this._viewUnderPointer;
-                var magnetUnderPointer = this._magnetUnderPointer;
+                magnetUnderPointer = this._magnetUnderPointer;
 
                 this._viewUnderPointer = null;
                 this._magnetUnderPointer = null;
@@ -1775,13 +1790,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
 
             var currentEnd = this.model.prop(arrowhead) || {};
+            var changed = joint.dia.Link.linkConnectionChanged(initialEnd, currentEnd);
 
-            if (currentEnd.id !== initialEnd.id) {
-                if (initialEnd.id) {
-                    this.notify('link:disconnect', evt, arrowhead, this.paper.getModelById(initialEnd.id));
+            if (changed) {
+
+                if (initialEnd.id || initialEnd.port) {
+                    this.notify('link:disconnect', evt, arrowhead, this.paper.findViewByModel(initialEnd.id), this._initialMagnet);
                 }
-                if (currentEnd.id) {
-                    this.notify('link:connect', evt, arrowhead, this.paper.getModelById(currentEnd.id));
+                if (currentEnd.id || currentEnd.port) {
+                    this.notify('link:connect', evt, arrowhead, this.paper.findViewByModel(currentEnd.id), magnetUnderPointer);
                 }
             }
 

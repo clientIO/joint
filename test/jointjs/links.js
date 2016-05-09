@@ -1168,4 +1168,39 @@ QUnit.module('links', function(hooks) {
         lv.findRoute.restore();
         l2v.update.restore();
     });
+
+    QUnit.module('detect link source/target/port changed', function(hooks) {
+
+        QUnit.test('link changed', function(assert) {
+            var previousLinkSource = { id: 'a' };
+            var currentLinkSource = { id: 'b' };
+
+            var changed = joint.dia.Link.linkConnectionChanged(previousLinkSource, currentLinkSource);
+            assert.ok(changed);
+        });
+
+        QUnit.test('link attached', function(assert) {
+            var previousLinkSource = { x: 0, y: 0 };
+            var currentLinkSource = { id: 'b' };
+
+            var changed = joint.dia.Link.linkConnectionChanged(previousLinkSource, currentLinkSource);
+            assert.ok(changed);
+        });
+
+        QUnit.test('port attached', function(assert) {
+            var previousLinkSource = { id: 'a' };
+            var currentLinkSource = { id: 'a', port: 'in' };
+
+            var changed = joint.dia.Link.linkConnectionChanged(previousLinkSource, currentLinkSource);
+            assert.ok(changed);
+        });
+
+        QUnit.test('not valid port change', function(assert) {
+            var previousLinkSource = { id: 'a', port: null };
+            var currentLinkSource = { id: 'a', port: undefined };
+
+            var changed = joint.dia.Link.linkConnectionChanged(previousLinkSource, currentLinkSource);
+            assert.notOk(changed);
+        });
+    });
 });

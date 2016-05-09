@@ -284,7 +284,6 @@ QUnit.module('paper', function(hooks) {
             this.paper.on('link:connect', connectSpy);
         });
 
-
         QUnit.test('disconnect from element', function(assert) {
 
             var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
@@ -385,6 +384,60 @@ QUnit.module('paper', function(hooks) {
 
             assert.notOk(disconnectSpy.called, 'message');
             assert.notOk(connectSpy.called, 'message');
+        });
+    });
+
+    QUnit.module('connect/disconnect to ports event ', function(hooks) {
+
+        var disconnectSpy;
+        var connectSpy;
+
+        hooks.beforeEach(function() {
+            this.modelWithPorts = new joint.shapes.devs.Model({
+                position: { x: 500, y: 250 },
+                size: { width: 100, height: 100 },
+                inPorts: ['in1', 'in2'],
+                outPorts: ['out']
+            });
+
+            disconnectSpy = sinon.spy();
+            connectSpy = sinon.spy();
+            this.paper.on('link:disconnect', disconnectSpy);
+            this.paper.on('link:connect', connectSpy);
+        });
+
+        QUnit.test('connect to port', function(assert) {
+
+            var link = new joint.dia.Link({ id: 'link' });
+
+            this.graph.addCells([this.modelWithPorts, link]);
+            var linkView = link.findView(this.paper);
+            var arrowhead = linkView.el.querySelector('.marker-arrowhead[end=source]');
+            var port = this.paper.findViewByModel(this.modelWithPorts).el.querySelector('.port-body[port="in1"]');
+
+            linkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
+            linkView.pointermove({ target: port, type: 'mousemove' }, 0, 0);
+            linkView.pointerup({ target: port, type: 'mouseup' }, 0, 0);
+
+            assert.ok(connectSpy.calledOnce);
+            assert.notOk(disconnectSpy.called);
+        });
+
+        QUnit.test('reconnect port', function(assert) {
+
+            var link = new joint.dia.Link({ id: 'link', source: { id: this.modelWithPorts, port: 'in1' } });
+
+            this.graph.addCells([this.modelWithPorts, link]);
+            var linkView = link.findView(this.paper);
+            var arrowhead = linkView.el.querySelector('.marker-arrowhead[end=source]');
+            var portElement = this.paper.findViewByModel(this.modelWithPorts).el.querySelector('.port-body[port="in2"]');
+
+            linkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
+            linkView.pointermove({ target: portElement, type: 'mousemove' }, 0, 0);
+            linkView.pointerup({ target: portElement, type: 'mouseup' }, 0, 0);
+
+            assert.ok(connectSpy.calledOnce);
+            assert.ok(disconnectSpy.calledOnce);
         });
     });
 
