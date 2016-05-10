@@ -30,6 +30,7 @@ test('constructor', function(assert) {
     var view = new SomeView();
 
     _.each(className.split(' '), function(_className) {
+        _className = joint.util.addClassNamePrefix(_className);
         assert.ok(view.$el.hasClass(_className), 'has expected class name(s)');
     });
 
@@ -120,4 +121,19 @@ test('onRender()', function(assert) {
     called = false;
     view.render();
     assert.ok(called, 'should be called when render() is called');
+});
+
+test('classNamePrefix', function(assert) {
+
+    var className = 'custom-class-name';
+
+    var SomeView = joint.mvc.View.extend({
+        className: className
+    });
+
+    var view = new SomeView();
+    var defaultTheme = joint.mvc.View.prototype.defaultTheme;
+    var themeClassName = SomeView.prototype.themeClassNamePrefix + defaultTheme;
+
+    assert.equal(view.$el.attr('class'), themeClassName + ' ' + joint.util.addClassNamePrefix(className));
 });

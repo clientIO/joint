@@ -106,7 +106,6 @@ joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
     }
 });
 
-
 joint.shapes.pn.Transition = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><rect class="root"/></g></g><text class="label"/>',

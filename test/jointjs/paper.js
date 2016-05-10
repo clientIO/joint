@@ -73,10 +73,14 @@ QUnit.module('paper', function(hooks) {
         viewport.append(V('rect').addClass('not-a-cell'));
 
         this.graph.addCell(r1);
+
+        var r1View = this.paper.findViewByModel(r1);
+        var $r1 = r1View.$el;
+
         this.graph.resetCells([r2, r3]);
 
         assert.equal(this.graph.get('cells').length, 2, 'previous cells were removed from the graph after calling graph.resetCells()');
-        assert.equal(this.paper.$('.element').length, 2, 'previous cells were removed from the paper after calling graph.resetCells()');
+        assert.ok(!$r1 || !$.contains(this.paper.$el[0], $r1[0]), 'previous cells were removed from the paper after calling graph.resetCells()');
         assert.equal(viewport.find('.not-a-cell').length, 1, 'should not remove non-cell DOM elements from viewport');
     });
 

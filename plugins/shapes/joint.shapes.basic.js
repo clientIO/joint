@@ -371,6 +371,7 @@ joint.shapes.basic.PortsViewInterface = {
 
             $inPorts.append(V(portTemplate({ id: index, port: port })).node);
         });
+
         _.each(_.filter(this.model.ports, function(p) { return p.type === 'out'; }), function(port, index) {
 
             $outPorts.append(V(portTemplate({ id: index, port: port })).node);

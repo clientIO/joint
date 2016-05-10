@@ -639,6 +639,21 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     tagName: 'g',
 
+    className: function() {
+
+        var classNames = ['cell'];
+        var type = this.model.get('type');
+
+        if (type) {
+
+            _.each(type.toLowerCase().split('.'), function(value, index, list) {
+                classNames.push('type-' + list.slice(0, index + 1).join('-'));
+            });
+        }
+
+        return classNames.join(' ');
+    },
+
     attributes: function() {
 
         return { 'model-id': this.model.id };
@@ -661,6 +676,9 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);
+
+        // Add the cell's type to the view's element as a data attribute.
+        this.$el.attr('data-type', this.model.get('type'));
 
         this.listenTo(this.model, 'change:attrs', this.onChangeAttrs);
     },
@@ -906,14 +924,21 @@ joint.dia.CellView = joint.mvc.View.extend({
             return prevSelector;
         }
 
-        var nthChild = V(el).index() + 1;
-        var selector = el.tagName + ':nth-child(' + nthChild + ')';
+        var selector;
 
-        if (prevSelector) {
-            selector += ' > ' + prevSelector;
+        if (el) {
+
+            var nthChild = V(el).index() + 1;
+            var selector = el.tagName + ':nth-child(' + nthChild + ')';
+
+            if (prevSelector) {
+                selector += ' > ' + prevSelector;
+            }
+
+            selector = this.getSelector(el.parentNode, selector);
         }
 
-        return this.getSelector(el.parentNode, selector);
+        return selector;
     },
 
     // Interaction. The controller part.
@@ -981,15 +1006,6 @@ joint.dia.CellView = joint.mvc.View.extend({
     contextmenu: function(evt, x, y) {
 
         this.notify('cell:contextmenu', evt, x, y);
-    },
-
-    onSetTheme: function(oldTheme, newTheme) {
-
-        if (oldTheme) {
-            this.vel.removeClass(this.themeClassNamePrefix + oldTheme);
-        }
-
-        this.vel.addClass(this.themeClassNamePrefix + newTheme);
     },
 
     setInteractivity: function(value) {

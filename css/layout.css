@@ -7,7 +7,7 @@ Important note: Presentation attributes have a lower precedence over CSS style r
 
 
 /* .viewport is a <g> node wrapping all diagram elements in the paper */
-.viewport {
+.joint-viewport {
    -webkit-user-select: none;
    -moz-user-select: none;
    user-select: none;
@@ -25,28 +25,11 @@ path:not([d]) {
 */
 
 
-/* .magnet is an element that can be either source or a target of a link */
-/*
-.magnet {
-   fill: black;
-   fill-opacity: 0;
-   stroke: black;
-   stroke-width: 15;
-   stroke-opacity: 0;
-   pointer-events: visibleStroke;
-   cursor: crosshair;
-   vector-effect: non-scaling-stroke;
-}
-
-.magnet:hover {
-   stroke-opacity: .5;
-}
-*/
-
-[magnet=true]:not(.element) {
+/* magnet is an element that can be either source or a target of a link */
+[magnet=true]:not(.joint-element) {
    cursor: crosshair;
 }
-[magnet=true]:not(.element):hover {
+[magnet=true]:not(.joint-element):hover {
    opacity: .7;
 }
 
@@ -58,12 +41,12 @@ the whole group of elements. Each plugin can provide its own stylesheet.
 
 */
 
-.element {
+.joint-element {
    /* Give the user a hint that he can drag&drop the element. */
    cursor: move;
 }
 
-.element * {
+.joint-element * {
    /* The default behavior when scaling an element is not to scale the stroke in order to prevent the ugly effect of stroke with different proportions. */
    vector-effect: non-scaling-stroke;
    user-drag: none;
@@ -80,13 +63,14 @@ very thin.
 
 */
 
-.marker-source, .marker-target {
+.marker-source,
+.marker-target {
    /* This makes the arrowheads point to the border of objects even though the transform: scale() is applied on them. */
    vector-effect: non-scaling-stroke;
 }
 
 /* Paper */
-.paper {
+.joint-paper {
     position: relative;
 }
 /* Paper */
@@ -108,8 +92,8 @@ Vertex markers are `<circle>` elements that appear at connection vertex position
 
 */
 
-.link .connection-wrap,
-.link .connection {
+.joint-link .connection-wrap,
+.joint-link .connection {
    fill: none;
 }
 
@@ -132,9 +116,9 @@ Vertex markers are `<circle>` elements that appear at connection vertex position
 .link-tools .tool-options {
    display: none;       /* by default, we don't display link options tool */
 }
-.link:hover .marker-vertices,
-.link:hover .marker-arrowheads,
-.link:hover .link-tools {
+.joint-link:hover .marker-vertices,
+.joint-link:hover .marker-arrowheads,
+.joint-link:hover .link-tools {
    opacity: 1;
 }
 
@@ -164,14 +148,14 @@ Do not allow adding new vertices: .connection-wrap { pointer-events: none; }
 */
 
 /* foreignObject inside the elements (i.e joint.shapes.basic.TextBlock) */
-.element .fobj {
+.joint-element .fobj {
     overflow: hidden;
 }
-.element .fobj body {
+.joint-element .fobj body {
     background-color: transparent;
     margin: 0px;
 }
-.element .fobj div {
+.joint-element .fobj div {
     text-align: center;
     vertical-align: middle;
     display: table-cell;

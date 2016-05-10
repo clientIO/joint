@@ -1,7 +1,6 @@
 //      JointJS library.
 //      (c) 2011-2015 client IO
 
-
 joint.dia.Paper = joint.mvc.View.extend({
 
     className: 'paper',
@@ -177,7 +176,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.options.highlighting = _.cloneDeep(this.options.highlighting);
 
         this.svg = V('svg').node;
-        this.viewport = V('g').addClass('viewport').node;
+        this.viewport = V('g').addClass(joint.util.addClassNamePrefix('viewport')).node;
         this.defs = V('defs').node;
 
         // Append `<defs>` element to the SVG document. This is useful for filters and gradients.

@@ -1,6 +1,6 @@
 joint.highlighters.addClass = {
 
-    className: 'highlighted',
+    className: joint.util.addClassNamePrefix('highlighted'),
 
     highlight: function(cellView, magnetEl, opt) {
         var className = opt.className || this.className;
