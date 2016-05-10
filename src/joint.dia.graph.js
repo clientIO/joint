@@ -350,7 +350,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (cells.length) {
 
             this.startBatch('remove');
-            _.invoke(cells, 'remove');
+            _.invoke(cells, 'remove', opt);
             this.stopBatch('remove');
         }
 
