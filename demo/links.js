@@ -9,11 +9,11 @@ var paper = new joint.dia.Paper({
     perpendicularLinks: false,
     model: graph,
     linkView: joint.dia.LinkView.extend({
-	pointerdblclick: function(evt, x, y) {
-	    if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
-		this.addVertex({ x: x, y: y });
-	    }
-	},
+        pointerdblclick: function(evt, x, y) {
+            if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
+                this.addVertex({ x: x, y: y });
+            }
+        },
         options: _.extend({}, joint.dia.LinkView.prototype.options, {
             doubleLinkTools: true,
             linkToolsOffset: 40,
@@ -21,20 +21,25 @@ var paper = new joint.dia.Paper({
         })
     }),
     interactive: function(cellView) {
-	if (cellView.model.get('vertexOnDblClick')) {
-	    return {
-		//arrowheadMove: false
-		// vertexMove: false,
-		vertexAdd: false,
-		//    vertexRemove: false,
-	    };
-	}
-	return true;
+        if (cellView.model.get('vertexOnDblClick')) {
+            return {
+                vertexAdd: false
+            };
+        }
+        return true;
     }
 });
 
 paper.on('link:pointerdown', function(evt, linkView, x, y) {
     console.log('link:pointerdown');
+});
+
+paper.on('link:disconnect', function(linkView, type, evt, disconnectedFrom, magnetElement) {
+    console.log('link:disconnect', type, disconnectedFrom, magnetElement);
+});
+
+paper.on('link:connect', function(linkView, evt, type, connectedTo, magnetElement) {
+    console.log('link:connect', type, connectedTo, magnetElement);
 });
 
 $('#perpendicularLinks').on('change', function() {
@@ -216,7 +221,7 @@ var link5 = new joint.dia.Link({
         '<path class="connection-wrap"/>',
         '<g class="marker-vertices"/>'
     ].join(''),
-    
+
     vertexMarkup: [
         '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
         '<image class="marker-vertex" idx="<%= idx %>" xlink:href="http://jointjs.com/images/logo.png" width="25" height="25" transform="translate(-12.5, -12.5)"/>',
@@ -246,9 +251,15 @@ var link6 = new joint.dia.Link({
     source: { id: r12.id },
     target: { id: r11.id },
     labels: [
-        { position: 10, attrs: { text: { text: '1..n' } }},
-        { position: { distance: .5, offset: { x: 20, y: 20 } }, attrs: { text: { text: 'Foo', fill: 'white', 'font-family': 'sans-serif' }, rect: { stroke: '#F39C12', 'stroke-width': 20, rx: 5, ry: 5 } }},
-        { position: -10, attrs: { text: { text: '*' } }}
+        { position: 10, attrs: { text: { text: '1..n' } } },
+        {
+            position: { distance: .5, offset: { x: 20, y: 20 } },
+            attrs: {
+                text: { text: 'Foo', fill: 'white', 'font-family': 'sans-serif' },
+                rect: { stroke: '#F39C12', 'stroke-width': 20, rx: 5, ry: 5 }
+            }
+        },
+        { position: -10, attrs: { text: { text: '*' } } }
     ],
     attrs: {
         '.marker-source': {
@@ -309,11 +320,11 @@ paper.on('link:options', function(evt, linkView, x, y) {
 
 
 /*
-// Uncomment just for fun.
-var c = V('circle', { r: 8, fill: 'red' });
-c.animateAlongPath({ dur: '4s', repeatCount: 'indefinite' }, paper.findViewByModel(link5).$('.connection')[0]);
-V(paper.svg).append(c);
-*/
+ // Uncomment just for fun.
+ var c = V('circle', { r: 8, fill: 'red' });
+ c.animateAlongPath({ dur: '4s', repeatCount: 'indefinite' }, paper.findViewByModel(link5).$('.connection')[0]);
+ V(paper.svg).append(c);
+ */
 
 
 // Manhattan routing.
@@ -332,7 +343,7 @@ r16.translate(200, 0);
 var link8 = new joint.dia.Link({
     source: { id: r15.id },
     target: { id: r16.id },
-    vertices: [{x: 700, y: 900}],
+    vertices: [{ x: 700, y: 900 }],
     router: { name: 'metro' }
 });
 
@@ -344,7 +355,6 @@ var link9 = new joint.dia.Link({
 });
 
 graph.addCell([link8, link9]);
-
 
 
 // Manhattan routing.
@@ -363,15 +373,15 @@ r18.translate(200, 0);
 var link10 = new joint.dia.Link({
     source: { id: r17.id },
     target: { id: r18.id },
-    vertices: [{x: 400, y: 1000}, {x: 600, y: 1000}],
+    vertices: [{ x: 400, y: 1000 }, { x: 600, y: 1000 }],
     attrs: {
-	'.connection': {
-	    'marker-mid': 'url(#circle-marker)'
-	}
+        '.connection': {
+            'marker-mid': 'url(#circle-marker)'
+        }
     }
 });
 var link11 = link10.clone();
-link11.set('vertices', [{x: 400, y: 1100}, {x: 600, y: 1100}]);
+link11.set('vertices', [{ x: 400, y: 1100 }, { x: 600, y: 1100 }]);
 link11.attr('.connection/marker-mid', 'url(#diamond-marker)');
 graph.addCell(link11);
 
@@ -397,6 +407,6 @@ r20.translate(200, 0);
 var link12 = new joint.dia.Link({
     source: { id: r19.id },
     target: { id: r20.id },
-    router: { name: 'oneSide', args: { side: 'bottom' }}
+    router: { name: 'oneSide', args: { side: 'bottom' } }
 });
 graph.addCell(link12);

@@ -245,6 +245,202 @@ QUnit.module('paper', function(hooks) {
 
     });
 
+    QUnit.module('connect/disconnect event', function(hooks) {
+
+        var connectedLinkView;
+        var soloLinkView;
+        var disconnectSpy;
+        var connectSpy;
+        var graphCells = [];
+
+        hooks.beforeEach(function() {
+            var source = new joint.shapes.basic.Rect({
+                id: 'source',
+                position: { x: 100, y: 100 },
+                size: { width: 100, height: 100 }
+            });
+            var target = new joint.shapes.basic.Rect({
+                id: 'target',
+                position: { x: 400, y: 100 },
+                size: { width: 100, height: 100 }
+            });
+            var solo = new joint.shapes.basic.Rect({
+                id: 'solo',
+                position: { x: 400, y: 400 },
+                size: { width: 100, height: 100 }
+            });
+            var link = new joint.dia.Link({ id: 'link', source: { id: source.id }, target: { id: target.id } });
+            var soloLink = new joint.dia.Link({ id: 'link2', source: { id: source.id }, target: { x: 300, y: 300 } });
+
+            graphCells = [source, target, solo, link, soloLink];
+            this.graph.addCells(graphCells);
+
+            connectedLinkView = link.findView(this.paper);
+            soloLinkView = soloLink.findView(this.paper);
+
+            disconnectSpy = sinon.spy();
+            connectSpy = sinon.spy();
+            this.paper.on('link:disconnect', disconnectSpy);
+            this.paper.on('link:connect', connectSpy);
+        });
+
+        QUnit.test('disconnect from element', function(assert) {
+
+            var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
+
+            connectedLinkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
+            connectedLinkView.pointermove({ target: this.paper.el, type: 'mousemove' }, 0, 0);
+            connectedLinkView.pointerup({ target: this.paper.el, type: 'mouseup' }, 0, 0);
+
+            assert.notOk(connectSpy.called);
+            assert.ok(disconnectSpy.calledOnce);
+        });
+
+        QUnit.test('disconnect from element, connect to new one', function(assert) {
+
+            var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
+            var soloView = graphCells[2].findView(this.paper);
+
+            connectedLinkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
+            connectedLinkView.pointermove({ target: soloView.el, type: 'mousemove' }, 450, 450);
+            connectedLinkView.pointerup({ target: soloView.el, type: 'mouseup' }, 450, 450);
+
+            assert.ok(connectSpy.calledOnce, 'connect to solo');
+            assert.ok(disconnectSpy.calledOnce, 'disconnect from source');
+        });
+
+        QUnit.test('disconnect from element, connect to same one - nothing changed', function(assert) {
+
+            var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
+            var targetView = graphCells[1].findView(this.paper);
+
+            connectedLinkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
+            connectedLinkView.pointermove({ target: targetView.el, type: 'mousemove' }, 450, 450);
+            connectedLinkView.pointerup({ target: targetView.el, type: 'mouseup' }, 450, 150);
+
+            assert.notOk(connectSpy.called, 'connect should not be called');
+            assert.notOk(disconnectSpy.called, 'disconnect should not be called');
+        });
+
+        QUnit.module('snapLinks enabled', function(hooks) {
+
+            QUnit.test('test name', function(assert) {
+
+                var arrowhead = soloLinkView.el.querySelector('.marker-arrowhead[end=target]');
+                var targetView = graphCells[1].findView(this.paper);
+                var soloView = graphCells[2].findView(this.paper);
+
+                soloLinkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
+                soloLinkView.pointermove({ target: soloView.el, type: 'mousemove' }, 450, 450);
+                soloLinkView.pointermove({ target: targetView.el, type: 'mousemove' }, 450, 150);
+                soloLinkView.pointerup({ target: targetView.el, type: 'mouseup' }, 450, 450);
+
+                assert.ok(connectSpy.calledOnce, 'connect should be called once');
+                assert.notOk(disconnectSpy.called, 'disconnect should not be called');
+            });
+        });
+
+
+        QUnit.module('linkPinning', function(hooks) {
+
+            QUnit.test('enabled - disconnect link with no new target element', function(assert) {
+
+                this.paper.options.linkPinning = true;
+
+                var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
+
+                connectedLinkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
+                connectedLinkView.pointermove({ target: this.paper.el, type: 'mousemove' }, 50, 50);
+                connectedLinkView.pointerup({ target: this.paper.el, type: 'mouseup' }, 50, 50);
+
+                assert.ok(disconnectSpy.called);
+                assert.notOk(connectSpy.called);
+            });
+
+            QUnit.test('disabled - disconnect link with no new target element', function(assert) {
+
+                this.paper.options.linkPinning = true;
+
+                var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
+
+                connectedLinkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
+                connectedLinkView.pointermove({ target: this.paper.el, type: 'mousemove' }, 50, 50);
+                connectedLinkView.pointerup({ target: this.paper.el, type: 'mouseup' }, 50, 50);
+
+                assert.ok(disconnectSpy.called);
+                assert.notOk(connectSpy.called);
+            });
+        });
+
+        QUnit.test('disconnect when link pinning disabled', function(assert) {
+
+            this.paper.options.linkPinning = false;
+
+            var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
+
+            connectedLinkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
+            connectedLinkView.pointermove({ target: this.paper.el, type: 'mousemove' }, 50, 50);
+            connectedLinkView.pointerup({ target: this.paper.el, type: 'mouseup' }, 50, 50);
+
+            assert.notOk(disconnectSpy.called, 'message');
+            assert.notOk(connectSpy.called, 'message');
+        });
+    });
+
+    QUnit.module('connect/disconnect to ports event ', function(hooks) {
+
+        var disconnectSpy;
+        var connectSpy;
+
+        hooks.beforeEach(function() {
+            this.modelWithPorts = new joint.shapes.devs.Model({
+                position: { x: 500, y: 250 },
+                size: { width: 100, height: 100 },
+                inPorts: ['in1', 'in2'],
+                outPorts: ['out']
+            });
+
+            disconnectSpy = sinon.spy();
+            connectSpy = sinon.spy();
+            this.paper.on('link:disconnect', disconnectSpy);
+            this.paper.on('link:connect', connectSpy);
+        });
+
+        QUnit.test('connect to port', function(assert) {
+
+            var link = new joint.dia.Link({ id: 'link' });
+
+            this.graph.addCells([this.modelWithPorts, link]);
+            var linkView = link.findView(this.paper);
+            var arrowhead = linkView.el.querySelector('.marker-arrowhead[end=source]');
+            var port = this.paper.findViewByModel(this.modelWithPorts).el.querySelector('.port-body[port="in1"]');
+
+            linkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
+            linkView.pointermove({ target: port, type: 'mousemove' }, 0, 0);
+            linkView.pointerup({ target: port, type: 'mouseup' }, 0, 0);
+
+            assert.ok(connectSpy.calledOnce);
+            assert.notOk(disconnectSpy.called);
+        });
+
+        QUnit.test('reconnect port', function(assert) {
+
+            var link = new joint.dia.Link({ id: 'link', source: { id: this.modelWithPorts, port: 'in1' } });
+
+            this.graph.addCells([this.modelWithPorts, link]);
+            var linkView = link.findView(this.paper);
+            var arrowhead = linkView.el.querySelector('.marker-arrowhead[end=source]');
+            var portElement = this.paper.findViewByModel(this.modelWithPorts).el.querySelector('.port-body[port="in2"]');
+
+            linkView.pointerdown({ target: arrowhead, type: 'mousedown' }, 0, 0);
+            linkView.pointermove({ target: portElement, type: 'mousemove' }, 0, 0);
+            linkView.pointerup({ target: portElement, type: 'mouseup' }, 0, 0);
+
+            assert.ok(connectSpy.calledOnce);
+            assert.ok(disconnectSpy.calledOnce);
+        });
+    });
+
     QUnit.test('paper.options: linkPinning', function(assert) {
 
         assert.expect(5);
