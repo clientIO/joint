@@ -18,7 +18,7 @@ TBD (v0.10.0)
     * Can now use dia.Graph.addCells(), dia.Graph.removeCells(), and dia.Graph.resetCells() with the same method signature. For example: dia.Graph.addCells(cell, cell) dia.Graph.addCells(cell, cell, opt) dia.Graph.addCells([cell, cell]) dia.Graph.addCells([cell, cell], opt) are all valid usage.
     * Added layout.DirectedGraph.layout() `align` option for rank nodes alignment.
     * Added paper.setInteractivity() for changing interactivity.
-    * Added link:connected, link:disconnected events triggered by paper when source/target/port on link is changed
+    * Added link:connect, link:disconnect paper events for easier link source/target change detection
 
 19-12-2015 (v0.9.6)
        * dia.Graph introduces new functions for traversing graphs: dfs(), bfs(), search(), isSuccessor(), isPredecessor(), getPredecessors(), getSuccessors(), isNeighbor(), isSource(), isSink(), getSources(), getSinks(), getSubgraph(), getFirstCell(), getLastCell() and getCells()

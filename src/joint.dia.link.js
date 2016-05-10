@@ -242,12 +242,10 @@ joint.dia.Link = joint.dia.Cell.extend({
     }
 },
     {
-        linkConnectionChanged: function(previousEnd, currentEnd) {
+        endsEqual: function(a, b) {
 
-            var portChanged = previousEnd.port && previousEnd.port !== currentEnd.port ||
-                currentEnd.port && previousEnd.port !== currentEnd.port;
-
-            return previousEnd.id !== currentEnd.id || portChanged;
+            var portsEqual = a.port === b.port || !a.port && !b.port;
+            return a.id === b.id && portsEqual;
         }
     });
 
@@ -1348,6 +1346,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (this.paper.options.markAvailable) {
             this._unmarkAvailableMagnets();
         }
+
+        this._initialMagnet = null;
+        this._initialEnd = null;
+        this._validateConnectionArgs = null;
     },
 
     _createValidateConnectionArgs: function(arrowhead) {
@@ -1723,7 +1725,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         } else if (this._action === 'arrowhead-move') {
 
-            var paperOptions = this.paper.options;
+            var paper = this.paper;
+            var paperOptions = paper.options;
             var arrowhead = this._arrowhead;
             var initialEnd = this._initialEnd;
             var magnetUnderPointer;
@@ -1768,7 +1771,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
 
             // If the changed link is not allowed, revert to its previous state.
-            if (!this.paper.linkAllowed(this)) {
+            if (!paper.linkAllowed(this)) {
 
                 switch (this._whenNotAllowed) {
 
@@ -1790,15 +1793,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
 
             var currentEnd = this.model.prop(arrowhead) || {};
-            var changed = joint.dia.Link.linkConnectionChanged(initialEnd, currentEnd);
+            var endChanged = !joint.dia.Link.endsEqual(initialEnd, currentEnd);
 
-            if (changed) {
+            if (endChanged) {
 
-                if (initialEnd.id || initialEnd.port) {
-                    this.notify('link:disconnect', evt, arrowhead, this.paper.findViewByModel(initialEnd.id), this._initialMagnet);
+                if (initialEnd.id) {
+                    this.notify('link:disconnect', evt, paper.findViewByModel(initialEnd.id), this._initialMagnet, arrowhead);
                 }
-                if (currentEnd.id || currentEnd.port) {
-                    this.notify('link:connect', evt, arrowhead, this.paper.findViewByModel(currentEnd.id), magnetUnderPointer);
+                if (currentEnd.id) {
+                    this.notify('link:connect', evt, paper.findViewByModel(currentEnd.id), magnetUnderPointer, arrowhead);
                 }
             }
 
@@ -1806,7 +1809,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         this._action = null;
-        this._whenNotAllowed = null;
 
         this.notify('link:pointerup', evt, x, y);
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);
