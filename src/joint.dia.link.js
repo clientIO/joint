@@ -1346,10 +1346,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (this.paper.options.markAvailable) {
             this._unmarkAvailableMagnets();
         }
-
-        this._initialMagnet = null;
-        this._initialEnd = null;
-        this._validateConnectionArgs = null;
     },
 
     _createValidateConnectionArgs: function(arrowhead) {
@@ -1809,6 +1805,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         this._action = null;
+        this._whenNotAllowed = null;
+        this._initialMagnet = null;
+        this._initialEnd = null;
+        this._validateConnectionArgs = null;
 
         this.notify('link:pointerup', evt, x, y);
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);
