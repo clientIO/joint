@@ -412,6 +412,9 @@ module.exports = function(grunt) {
             }
         },
         uglify: {
+            options: {
+                ASCIIOnly: true
+            },
             geometry: {
                 src: js.geometry,
                 dest: 'build/min/geometry.min.js'
