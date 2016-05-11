@@ -2,7 +2,7 @@ joint.routers.metro = (function() {
 
     if (!_.isFunction(joint.routers.manhattan)) {
 
-        throw('Metro requires the manhattan router.');
+        throw new Error('Metro requires the manhattan router.');
     }
 
     var config = {

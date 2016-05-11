@@ -1,4 +1,4 @@
-joint.routers.manhattan = (function(g, _) {
+joint.routers.manhattan = (function(g, _, joint) {
 
     'use strict';
 
@@ -73,18 +73,19 @@ joint.routers.manhattan = (function(g, _) {
             };
         },
 
+        // * Deprecated *
         // a simple route used in situations, when main routing method fails
         // (exceed loops, inaccessible).
-        fallbackRoute: function(from, to, opts) {
-
+        /* i.e.
+          function(from, to, opts) {
             // Find an orthogonal route ignoring obstacles.
-
             var point = ((opts.previousDirAngle || 0) % 180 === 0)
                     ? g.point(from.x, to.y)
                     : g.point(to.x, from.y);
-
             return [point, to];
-        },
+          },
+        */
+        fallbackRoute: _.constant(null),
 
         // if a function is provided, it's used to route the link while dragging an end
         // i.e. function(from, to, opts) { return []; }
@@ -392,7 +393,9 @@ joint.routers.manhattan = (function(g, _) {
                     dir = dirs[i];
                     dirChange = getDirectionChange(currentDirAngle, dir.angle);
                     // if the direction changed rapidly don't use this point
-                    if (dirChange > opt.maxAllowedDirectionChange) {
+                    // Note that check is relevant only for points with previousDirAngle i.e.
+                    // any direction is allowed for starting points
+                    if (previousDirAngle && dirChange > opt.maxAllowedDirectionChange) {
                         continue;
                     }
 
@@ -433,11 +436,10 @@ joint.routers.manhattan = (function(g, _) {
 
         _.each(opt.directions, function(direction) {
 
-            var point1 = new g.point(0, 0);
-            var point2 = new g.point(direction.offsetX, direction.offsetY);
-            var angle = g.normalizeAngle(point1.theta(point2));
+            var point1 = g.point(0, 0);
+            var point2 = g.point(direction.offsetX, direction.offsetY);
 
-            direction.angle = angle;
+            direction.angle = g.normalizeAngle(point1.theta(point2));
         });
     }
 
@@ -486,6 +488,15 @@ joint.routers.manhattan = (function(g, _) {
             // if partial route has not been calculated yet use the main routing method to find one
             partialRoute = partialRoute || findRoute(from, to, map, opt);
 
+            if (partialRoute === null) {
+                // The partial route could not be found.
+                // use orthogonal (do not avoid elements) route instead.
+                if (!_.isFunction(joint.routers.orthogonal)) {
+                    throw new Error('Manhattan requires the orthogonal router.');
+                }
+                return joint.routers.orthogonal(vertices, opt, this);
+            };
+
             var leadPoint = _.first(partialRoute);
 
             if (leadPoint && leadPoint.equals(tailPoint)) {
@@ -507,4 +518,4 @@ joint.routers.manhattan = (function(g, _) {
         return router.call(linkView, vertices, _.extend({}, config, opt));
     };
 
-})(g, _);
+})(g, _, joint);
