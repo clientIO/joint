@@ -22,6 +22,7 @@ module.exports = function(grunt) {
             'src/joint.dia.graph.js',
             'src/joint.dia.cell.js',
             'src/joint.dia.element.js',
+            'src/ports.js',
             'src/joint.dia.link.js',
             'src/joint.dia.paper.js',
             'plugins/shapes/joint.shapes.basic.js',
@@ -30,7 +31,8 @@ module.exports = function(grunt) {
             'plugins/connectors/joint.connectors.rounded.js',
             'plugins/connectors/joint.connectors.smooth.js',
             'plugins/connectors/joint.connectors.jumpover.js',
-            'plugins/highlighters/*.js'
+            'plugins/highlighters/*.js',
+            'plugins/layout/ports/*.js'
         ],
 
         geometry: ['src/geometry.js'],
@@ -698,9 +700,8 @@ module.exports = function(grunt) {
     grunt.registerTask('build:joint', [
         'build:plugins',
         'newer:uglify:deps',
-        'newer:uglify:geometry',
-        'newer:uglify:vectorizer',
-        'newer:uglify:joint',
+        // 'newer:uglify:vectorizer',
+        // 'newer:uglify:joint',
         'newer:cssmin:joint',
         'newer:concat:geometry',
         'newer:concat:vectorizer',

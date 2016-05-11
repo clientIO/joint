@@ -12,6 +12,19 @@ joint.dia.Element = joint.dia.Cell.extend({
         angle: 0
     },
 
+    initialize: function() {
+
+        this._initializePorts();
+        joint.dia.Cell.prototype.initialize.apply(this, arguments);
+    },
+
+    /**
+     * @abstract
+     */
+    _initializePorts: function() {
+
+    },
+
     isElement: function() {
 
         return true;
@@ -220,7 +233,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             // The top left corner on the unrotated element has to be half a width on the left
             // and half a height to the top from the center. This will be the origin of rectangle
             // we were looking for.
-            var origin = g.point(center).offset( width / -2, height / -2);
+            var origin = g.point(center).offset(width / -2, height / -2);
 
             // Resize the element (before re-positioning it).
             this.set('size', { width: width, height: height }, opt);
@@ -275,8 +288,8 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             // Apply padding computed above to the bbox.
             bbox.moveAndExpand({
-                x: - padding.left,
-                y: - padding.top,
+                x: -padding.left,
+                y: -padding.top,
                 width: padding.right + padding.left,
                 height: padding.bottom + padding.top
             });
@@ -345,6 +358,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 // joint.dia.Element base view and controller.
 // -------------------------------------------
 
+
 joint.dia.ElementView = joint.dia.CellView.extend({
 
     SPECIAL_ATTRIBUTES: [
@@ -381,10 +395,95 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.listenTo(this.model, 'change:position', this.translate);
         this.listenTo(this.model, 'change:size', this.resize);
         this.listenTo(this.model, 'change:angle', this.rotate);
+
+        this._initializePorts();
+    },
+
+    /**
+     * @abstract
+     */
+    _initializePorts: function() {
+
+    },
+
+    updateAttr: function($selected, attrs) {
+
+        // Special attributes are treated by JointJS, not by SVG.
+        var specialAttributes = this.SPECIAL_ATTRIBUTES.slice();
+
+        // If the `filter` attribute is an object, it is in the special JointJS filter format and so
+        // it becomes a special attribute and is treated separately.
+        if (_.isObject(attrs.filter)) {
+
+            specialAttributes.push('filter');
+            this.applyFilter($selected, attrs.filter);
+        }
+
+        // If the `fill` or `stroke` attribute is an object, it is in the special JointJS gradient format and so
+        // it becomes a special attribute and is treated separately.
+        if (_.isObject(attrs.fill)) {
+
+            specialAttributes.push('fill');
+            this.applyGradient($selected, 'fill', attrs.fill);
+        }
+        if (_.isObject(attrs.stroke)) {
+
+            specialAttributes.push('stroke');
+            this.applyGradient($selected, 'stroke', attrs.stroke);
+        }
+
+        // Make special case for `text` attribute. So that we can set text content of the `<text>` element
+        // via the `attrs` object as well.
+        // Note that it's important to set text before applying the rest of the final attributes.
+        // Vectorizer `text()` method sets on the element its own attributes and it has to be possible
+        // to rewrite them, if needed. (i.e display: 'none')
+        if (!_.isUndefined(attrs.text)) {
+
+            $selected.each(function() {
+
+                V(this).text(attrs.text + '', {
+                    lineHeight: attrs.lineHeight,
+                    textPath: attrs.textPath,
+                    annotations: attrs.annotations
+                });
+            });
+            specialAttributes.push('lineHeight', 'textPath', 'annotations');
+        }
+
+        // Set regular attributes on the `$selected` subelement. Note that we cannot use the jQuery attr()
+        // method as some of the attributes might be namespaced (e.g. xlink:href) which fails with jQuery attr().
+        var finalAttributes = _.omit(attrs, specialAttributes);
+
+        $selected.each(function() {
+
+            V(this).attr(finalAttributes);
+        });
+
+        // `port` attribute contains the `id` of the port that the underlying magnet represents.
+        if (attrs.port) {
+            $selected.attr('port', _.isUndefined(attrs.port.id) ? attrs.port : attrs.port.id);
+        }
+
+        // `style` attribute is special in the sense that it sets the CSS style of the subelement.
+        if (attrs.style) {
+
+            $selected.css(attrs.style);
+        }
+
+        if (!_.isUndefined(attrs.html)) {
+
+            $selected.each(function() {
+
+                $(this).html(attrs.html + '');
+            });
+        }
+
     },
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
     update: function(cell, renderingOnlyAttrs) {
+
+        this._removePorts();
 
         var allAttrs = this.model.get('attrs');
 
@@ -401,77 +500,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             // Elements that should be updated.
             var $selected = this.findBySelector(selector);
+
             // No element matched by the `selector` was found. We're done then.
             if ($selected.length === 0) return;
 
             nodesBySelector[selector] = $selected;
 
-            // Special attributes are treated by JointJS, not by SVG.
-            var specialAttributes = this.SPECIAL_ATTRIBUTES.slice();
-
-            // If the `filter` attribute is an object, it is in the special JointJS filter format and so
-            // it becomes a special attribute and is treated separately.
-            if (_.isObject(attrs.filter)) {
-
-                specialAttributes.push('filter');
-                this.applyFilter($selected, attrs.filter);
-            }
-
-            // If the `fill` or `stroke` attribute is an object, it is in the special JointJS gradient format and so
-            // it becomes a special attribute and is treated separately.
-            if (_.isObject(attrs.fill)) {
-
-                specialAttributes.push('fill');
-                this.applyGradient($selected, 'fill', attrs.fill);
-            }
-            if (_.isObject(attrs.stroke)) {
-
-                specialAttributes.push('stroke');
-                this.applyGradient($selected, 'stroke', attrs.stroke);
-            }
-
-            // Make special case for `text` attribute. So that we can set text content of the `<text>` element
-            // via the `attrs` object as well.
-            // Note that it's important to set text before applying the rest of the final attributes.
-            // Vectorizer `text()` method sets on the element its own attributes and it has to be possible
-            // to rewrite them, if needed. (i.e display: 'none')
-            if (!_.isUndefined(attrs.text)) {
-
-                $selected.each(function() {
-
-                    V(this).text(attrs.text + '', { lineHeight: attrs.lineHeight, textPath: attrs.textPath, annotations: attrs.annotations });
-                });
-                specialAttributes.push('lineHeight', 'textPath', 'annotations');
-            }
-
-            // Set regular attributes on the `$selected` subelement. Note that we cannot use the jQuery attr()
-            // method as some of the attributes might be namespaced (e.g. xlink:href) which fails with jQuery attr().
-            var finalAttributes = _.omit(attrs, specialAttributes);
-
-            $selected.each(function() {
-
-                V(this).attr(finalAttributes);
-            });
-
-            // `port` attribute contains the `id` of the port that the underlying magnet represents.
-            if (attrs.port) {
-
-                $selected.attr('port', _.isUndefined(attrs.port.id) ? attrs.port : attrs.port.id);
-            }
-
-            // `style` attribute is special in the sense that it sets the CSS style of the subelement.
-            if (attrs.style) {
-
-                $selected.css(attrs.style);
-            }
-
-            if (!_.isUndefined(attrs.html)) {
-
-                $selected.each(function() {
-
-                    $(this).html(attrs.html + '');
-                });
-            }
+            this.updateAttr($selected, attrs);
 
             // Special `ref-x` and `ref-y` attributes make it possible to set both absolute or
             // relative positioning of subelements.
@@ -483,7 +518,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 !_.isUndefined(attrs['y-alignment']) ||
                 !_.isUndefined(attrs['ref-width']) ||
                 !_.isUndefined(attrs['ref-height'])
-               ) {
+            ) {
 
                 _.each($selected, function(el, index, list) {
                     var $el = $(el);
@@ -515,7 +550,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             var renderingOnlyElAttrs = renderingOnlyAttrs[$el.selector];
             var elAttrs = renderingOnlyElAttrs
                 ? _.merge({}, allAttrs[$el.selector], renderingOnlyElAttrs)
-            : allAttrs[$el.selector];
+                : allAttrs[$el.selector];
 
             this.positionRelative(V($el[0]), bbox, elAttrs, nodesBySelector);
 
@@ -525,6 +560,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             rotatable.attr('transform', rotation || '');
         }
+
+        this._renderPorts();
     },
 
     positionRelative: function(vel, bbox, attributes, nodesBySelector) {
@@ -716,7 +753,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             } else if (isFinite(yAlignment)) {
 
-                ty += (yAlignment > -1 && yAlignment < 1) ?  velBBox.height * yAlignment : yAlignment;
+                ty += (yAlignment > -1 && yAlignment < 1) ? velBBox.height * yAlignment : yAlignment;
             }
 
             // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
@@ -731,7 +768,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             } else if (isFinite(xAlignment)) {
 
-                tx += (xAlignment > -1 && xAlignment < 1) ?  velBBox.width * xAlignment : xAlignment;
+                tx += (xAlignment > -1 && xAlignment < 1) ? velBBox.width * xAlignment : xAlignment;
             }
         }
 
@@ -1071,5 +1108,4 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             joint.dia.CellView.prototype.pointerup.apply(this, arguments);
         }
     }
-
 });
