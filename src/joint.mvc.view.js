@@ -41,6 +41,19 @@ joint.mvc.View = Backbone.View.extend({
         // This method is meant to be overriden.
     },
 
+    render: function() {
+
+        // This method is meant to be overriden.
+        // But be sure to always call the onRender() method in your custom render method.
+
+        this.onRender();
+    },
+
+    onRender: function() {
+        // Intentionally empty.
+        // This method is meant to be overriden.
+    },
+
     setTheme: function(theme, opt) {
 
         opt = opt || {};
