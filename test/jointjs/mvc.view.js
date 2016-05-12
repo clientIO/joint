@@ -97,6 +97,10 @@ test('setTheme(theme)', function(assert) {
 test('render()', function(assert) {
 
     assert.ok(typeof joint.mvc.View.prototype.render === 'function', 'should be a function');
+
+    var view = new joint.mvc.View();
+
+    assert.equal(view.render(), view, 'should return itself');
 });
 
 test('onRender()', function(assert) {

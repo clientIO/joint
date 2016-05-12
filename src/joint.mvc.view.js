@@ -47,6 +47,7 @@ joint.mvc.View = Backbone.View.extend({
         // But be sure to always call the onRender() method in your custom render method.
 
         this.onRender();
+        return this;
     },
 
     onRender: function() {
