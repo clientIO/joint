@@ -159,20 +159,20 @@ test('manhattan routing', function() {
 
     var d = v0.$('.connection').attr('d');
 
-    checkDataPath(d, 'M 140 80 160 80 300 80 300 120 600 120 600 80 620 80', 'Route avoids an obstacle.');
+    checkDataPath(d, 'M 140 80 300 80 300 120 600 120 600 80 620 80', 'Route avoids an obstacle.');
 
     r1.translate(0, 50);
 
     d = v0.$('.connection').attr('d');
 
-    checkDataPath(d, 'M 140 120 160 120 600 120 600 80 620 80',
+    checkDataPath(d, 'M 140 120 600 120 600 80 620 80',
           'Source has been moved. Route recalculated starting from target.');
 
     r3.translate(0, -50);
 
     d = v0.$('.connection').attr('d');
 
-    checkDataPath(d, 'M 140 120 160 120 600 120 600 20 620 20',
+    checkDataPath(d, 'M 140 120 600 120 600 20 620 20',
           'Target has been moved. Route recalculated starting from source.');
 
     l0.set({
@@ -188,7 +188,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    checkDataPath(d, 'M 140 120 180 120 280 120 280 0 580 0 580 20 620 20',
+    checkDataPath(d, 'M 140 120 280 120 280 0 580 0 580 20 620 20',
           'The option paddingBox was passed. The source and target element and obstacles are avoided taken this padding in account.');
 
     throws(function() {
@@ -214,7 +214,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    checkDataPath(d, 'M 80 80 80 20 680 20 680 20',
+    checkDataPath(d, 'M 140 120 680 120 680 60',
           'The default fallback router made an orthogonal link.');
 
     l0.set({
@@ -230,7 +230,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    checkDataPath(d, 'M 80 80 80 60 80 20 20 20 20 0 600 0 600 20 620 20',
+    checkDataPath(d, 'M 80 80 80 20 20 20 20 0 600 0 600 20 620 20',
           'A vertex was added. Route correctly recalculated.');
 
     l0.set({
@@ -239,7 +239,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    checkDataPath(d, 'M 80 80 80 60 80 20 20 20 20 0 600 0 600 20 620 20',
+    checkDataPath(d, 'M 80 80 80 20 20 20 20 0 600 0 600 20 620 20',
           'A vertex was moved (not snapped to the grid now). Route correctly recalculated.');
 
     throws(function() {
@@ -274,7 +274,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    checkDataPath(d, 'M 140 80 160 80 600 80 620 80',
+    checkDataPath(d, 'M 140 70 620 70',
           'Set excludeTypes parameter to "basic.Rect" makes routing ignore those shapes.');
 
     r2.remove();
@@ -293,7 +293,7 @@ test('manhattan routing', function() {
 
     d = v0.$('.connection').attr('d');
 
-    checkDataPath(d, 'M 140 80 160 80 800 80 800 100 760 100 760 80 740 80',
+    checkDataPath(d, 'M 140 80 800 80 800 100 760 100 760 80 740 80',
           'Set excludeEnds parameter to "target" makes routing ignore target element.');
 
     l0.set({
@@ -341,7 +341,7 @@ test('metro routing', function() {
 
     var d = v0.$('.connection').attr('d');
 
-    checkDataPath(d, 'M 140 80 160 80 400 320 440 320 680 560 680 620 680 630',
+    checkDataPath(d, 'M 140 80 160 80 400 320 440 320 680 560 680 630',
           'Route avoids an obstacle.');
 
     l0.set('router', {
