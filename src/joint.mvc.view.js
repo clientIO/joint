@@ -97,7 +97,7 @@ joint.mvc.View = Backbone.View.extend({
 
         protoProps = protoProps || {};
 
-        var render = protoProps.render || null;
+        var render = protoProps.render || this.prototype.render || null;
 
         protoProps.render = function() {
 
@@ -113,7 +113,7 @@ joint.mvc.View = Backbone.View.extend({
             return this;
         };
 
-        return joint.mvc.View._extend(protoProps, staticProps);
+        return joint.mvc.View._extend.call(this, protoProps, staticProps);
     };
 
 })();
