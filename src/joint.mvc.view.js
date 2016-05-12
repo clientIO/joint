@@ -41,15 +41,6 @@ joint.mvc.View = Backbone.View.extend({
         // This method is meant to be overriden.
     },
 
-    render: function() {
-
-        // This method is meant to be overriden.
-        // But be sure to always call the onRender() method in your custom render method.
-
-        this.onRender();
-        return this;
-    },
-
     onRender: function() {
         // Intentionally empty.
         // This method is meant to be overriden.
@@ -97,3 +88,32 @@ joint.mvc.View = Backbone.View.extend({
         // This method is meant to be overriden.
     }
 });
+
+(function() {
+
+    joint.mvc.View._extend = joint.mvc.View.extend;
+
+    joint.mvc.View.extend = function(protoProps, staticProps) {
+
+        protoProps = protoProps || {};
+
+        var render = protoProps.render || null;
+
+        protoProps.render = function() {
+
+            if (render) {
+                // Call the original render method.
+                render.apply(this, arguments);
+            }
+
+            // Should always call onRender() method.
+            this.onRender();
+
+            // Should always return itself.
+            return this;
+        };
+
+        return joint.mvc.View._extend(protoProps, staticProps);
+    };
+
+})();
