@@ -93,3 +93,27 @@ test('setTheme(theme)', function(assert) {
     assert.equal(view.theme, theme, 'should correctly set the theme for the view');
     assert.ok(view.$el.hasClass(themeClassName) && !view.$el.hasClass(defaultTheme), 'view.$el should have correct theme class name');
 });
+
+test('render()', function(assert) {
+
+    assert.ok(typeof joint.mvc.View.prototype.render === 'function', 'should be a function');
+});
+
+test('onRender()', function(assert) {
+
+    assert.ok(typeof joint.mvc.View.prototype.onRender === 'function', 'should be a function');
+
+    var called;
+
+    var SomeView = joint.mvc.View.extend({
+        onRender: function() {
+            called = true;
+        }
+    });
+
+    var view = new SomeView();
+
+    called = false;
+    view.render();
+    assert.ok(called, 'should be called when render() is called');
+});
