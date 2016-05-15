@@ -41,18 +41,19 @@ var g = (function() {
     function point(x, y) {
         if (!(this instanceof point))
             return new point(x, y);
-        var xy;
-        if (y === undefined && Object(x) !== x) {
-            xy = x.split(x.indexOf('@') === -1 ? ' ' : '@');
-            this.x = parseInt(xy[0], 10);
-            this.y = parseInt(xy[1], 10);
+        if (typeof x === 'string') {
+            var xy = x.split(x.indexOf('@') === -1 ? ' ' : '@');
+            x = parseInt(xy[0], 10);
+            y = parseInt(xy[1], 10);
         } else if (Object(x) === x) {
-            this.x = x.x;
-            this.y = x.y;
+            y = x.y;
+            x = x.x;
         } else {
-            this.x = x;
-            this.y = y;
+            x = x;
+            y = y;
         }
+        this.x = x === undefined ? 0 : x;
+        this.y = y === undefined ? 0 : y;
     }
 
     point.prototype = {
@@ -321,17 +322,22 @@ var g = (function() {
     function rect(x, y, w, h) {
         if (!(this instanceof rect))
             return new rect(x, y, w, h);
-        if (y === undefined) {
+        if ((Object(x) === x)) {
             y = x.y;
             w = x.width;
             h = x.height;
             x = x.x;
         }
-        this.x = x;
-        this.y = y;
-        this.width = w;
-        this.height = h;
+        this.x = x === undefined ? 0 : x;
+        this.y = y === undefined ? 0 : y;
+        this.width = w === undefined ? 0 : w;
+        this.height = h === undefined ? 0 : h;
     }
+
+    rect.fromEllipse = function(e) {
+        e = ellipse(e);
+        return rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
+    };
 
     rect.prototype = {
         toString: function() {
@@ -358,6 +364,19 @@ var g = (function() {
         center: function() {
             return point(this.x + this.width / 2, this.y + this.height / 2);
         },
+        topMiddle: function() {
+            return point(this.x + this.width / 2, this.y);
+        },
+        bottomMiddle: function() {
+            return point(this.x + this.width / 2, this.y + this.height);
+        },
+        leftMiddle: function() {
+            return point(this.x , this.y + this.height / 2);
+        },
+        rightMiddle: function() {
+            return point(this.x + this.width, this.y + this.height / 2);
+        },
+
         // @return {rect} if rectangles intersect, {null} if not.
         intersect: function(r) {
             var myOrigin = this.origin();
@@ -578,6 +597,9 @@ var g = (function() {
     function ellipse(c, a, b) {
         if (!(this instanceof ellipse))
             return new ellipse(c, a, b);
+        if (c instanceof ellipse) {
+            return new ellipse(point(c), c.a, c.b);
+        }
         c = point(c);
         this.x = c.x;
         this.y = c.y;
@@ -585,12 +607,21 @@ var g = (function() {
         this.b = b;
     }
 
+    ellipse.fromRect = function(r) {
+        r = rect(r);
+        return ellipse(r.center(), r.width / 2, r.height / 2);
+    };
+
     ellipse.prototype = {
         toString: function() {
             return point(this.x, this.y).toString() + ' ' + this.a + ' ' + this.b;
         },
         bbox: function() {
             return rect(this.x - this.a, this.y - this.b, 2 * this.a, 2 * this.b);
+        },
+        equals: function(e) {
+            e = ellipse(e);
+            return e.x === this.x && e.y === this.y && e.a === this.a && e.b === this.b;
         },
         // Find point on me where line from my center to
         // point p intersects my boundary.

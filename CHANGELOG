@@ -19,6 +19,8 @@ TBD (v0.10.0)
     * Added layout.DirectedGraph.layout() `align` option for rank nodes alignment.
     * Added paper.setInteractivity() for changing interactivity.
     * Added link:connect, link:disconnect paper events for easier link source/target change detection
+    * Added leftMiddle(), rightMiddle(), topMiddle(), bottomMiddle() to geometry for finding middle points of rect sides.
+    * Added ellipse.fromRect(), rect.fromEllipse() to geometry for rect-ellipse interchangeability.
 
 19-12-2015 (v0.9.6)
        * dia.Graph introduces new functions for traversing graphs: dfs(), bfs(), search(), isSuccessor(), isPredecessor(), getPredecessors(), getSuccessors(), isNeighbor(), isSource(), isSink(), getSources(), getSinks(), getSubgraph(), getFirstCell(), getLastCell() and getCells()
