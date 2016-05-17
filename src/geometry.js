@@ -48,9 +48,6 @@ var g = (function() {
         } else if (Object(x) === x) {
             y = x.y;
             x = x.x;
-        } else {
-            x = x;
-            y = y;
         }
         this.x = x === undefined ? 0 : x;
         this.y = y === undefined ? 0 : y;
