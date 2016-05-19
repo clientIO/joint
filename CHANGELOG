@@ -11,7 +11,8 @@ TBD (v0.10.0)
     * Added env namespace with env.test(name) and env.addTest(name, fn) methods
     * Added highlighters namespace with two highlighters (stroke and opacity). Highlighting now done automatically when: embedding an element, connecting a link to a port or element.
     * Added Vectorizer transform() method to apply SVG matrix to SVG element
-    * Added Vectorizer empty() method
+    * Added Vectorizer empty(), before() method
+    * Vectorizer prepend() method accepts single or multiple nodes
     * Vectorizer createSVGTrasform() accepts optionally an SVG matrix
     * Added dia.Cell.isElement()
     * Added dia.Graph.removeCells()

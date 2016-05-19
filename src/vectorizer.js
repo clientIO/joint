@@ -482,11 +482,8 @@ V = Vectorizer = (function() {
             els = [els];
         }
 
-        var i, len, el;
-
-        for (i = 0, len = els.length; i < len; i++) {
-            el = els[i];
-            this.node.appendChild(V.isV(el) ? el.node : (el.nodeName && el || el[0]));
+        for (var i = 0, len = els.length; i < len; i++) {
+            this.node.appendChild(V.toNode(els[i]));
         }
 
         return this;
@@ -495,6 +492,31 @@ V = Vectorizer = (function() {
     V.prototype.prepend = function(el) {
 
         this.node.insertBefore(V.isV(el) ? el.node : el, this.node.firstChild);
+
+        return this;
+    };
+
+    V.prototype.prepend = function(els) {
+
+        var child = this.node.firstChild;
+        return child ? V(child).before(els) : this.append(els);
+    };
+
+    V.prototype.before = function(els) {
+
+        var node = this.node;
+        var parent = node.parentNode;
+
+        if (parent) {
+
+            if (!V.isArray(els)) {
+                els = [els];
+            }
+
+            for (var i = 0, len = els.length; i < len; i++) {
+                parent.insertBefore(V.toNode(els[i]), node);
+            }
+        }
 
         return this;
     };
@@ -1520,6 +1542,10 @@ V = Vectorizer = (function() {
             'h', -(r.width - 2 * topRx),
             'a', topRx, topRy, 0, 0, 0, -topRx, topRy
         ].join(' ');
+    };
+
+    V.toNode = function(el) {
+        return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
     };
 
     return V;
