@@ -11,8 +11,7 @@
   "scripts": {
     "test": "grunt test"
   },
-  "private": true,
-  "version": "0.9.7",
+  "version": "0.9.7-rappid.4",
   "homepage": "http://jointjs.com",
   "author": {
     "name": "client IO",

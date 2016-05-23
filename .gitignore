@@ -1,5 +1,5 @@
-build/
-node_modules/
-lib/*/*
+build
+lib
+node_modules
 coverage.info
 npm-debug.log
