@@ -1,0 +1,14 @@
+<ul>
+    <li><code>change</code> - generic event triggered for any change on the link</li>
+    <li><code>change:source</code> - triggered when the link changes its source</li>
+    <li><code>change:target</code> - triggered when the link changes its target</li>
+    <li><code>change:attrs</code> - triggered when the link changes its attributes</li>
+    <li><code>change:smooth</code> - triggered when the link toggled interpolation </li>
+    <li><code>change:manhattan</code> - triggered when the link toggled orthogonal routing</li>
+    <li><code>change:vertices</code> - triggered when the link changes its vertices array </li>
+    <li><code>change:z</code> - triggered when the link is moved in the z-level (<a href="#dia.Link.prototype.toFront">toFront</a> and <a href="#dia.Link.prototype.toBack">toBack</a>)</li>
+    <li><code>transition:start</code> - triggered when a transition starts.</li>
+    <li><code>transition:end</code> - triggered when a transiton ends.</li>
+</ul>
+
+<pre><code>link.on('change:source', function() { alert('source of the link changed') })</code></pre>
