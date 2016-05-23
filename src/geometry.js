@@ -41,16 +41,18 @@ var g = (function() {
     function point(x, y) {
         if (!(this instanceof point))
             return new point(x, y);
-        if (typeof x === 'string') {
-            var xy = x.split(x.indexOf('@') === -1 ? ' ' : '@');
-            x = parseInt(xy[0], 10);
-            y = parseInt(xy[1], 10);
+        var xy;
+        if (y === undefined && Object(x) !== x) {
+            xy = x.split(x.indexOf('@') === -1 ? ' ' : '@');
+            this.x = parseInt(xy[0], 10);
+            this.y = parseInt(xy[1], 10);
         } else if (Object(x) === x) {
-            y = x.y;
-            x = x.x;
+            this.x = x.x;
+            this.y = x.y;
+        } else {
+            this.x = x;
+            this.y = y;
         }
-        this.x = x === undefined ? 0 : x;
-        this.y = y === undefined ? 0 : y;
     }
 
     point.prototype = {
@@ -154,13 +156,6 @@ var g = (function() {
             var theta = toRad(point(ref).theta(this));
             return this.offset(cos(theta) * distance, -sin(theta) * distance);
         },
-        // Scale point with origin at point `o`.
-        scale: function(sx, sy, o) {
-            o = (o && point(o)) || point(0, 0);
-            this.x = o.x + sx * (this.x - o.x);
-            this.y = o.y + sy * (this.y - o.y);
-            return this;
-        },
         // Returns change in angle from my previous position (-dx, -dy) to my new position
         // relative to ref point.
         changeInAngle: function(dx, dy, ref) {
@@ -182,9 +177,6 @@ var g = (function() {
         },
         clone: function() {
             return point(this);
-        },
-        toJSON: function() {
-            return { x: this.x, y: this.y };
         }
     };
     // Alternative constructor, from polar coordinates.
@@ -319,22 +311,17 @@ var g = (function() {
     function rect(x, y, w, h) {
         if (!(this instanceof rect))
             return new rect(x, y, w, h);
-        if ((Object(x) === x)) {
+        if (y === undefined) {
             y = x.y;
             w = x.width;
             h = x.height;
             x = x.x;
         }
-        this.x = x === undefined ? 0 : x;
-        this.y = y === undefined ? 0 : y;
-        this.width = w === undefined ? 0 : w;
-        this.height = h === undefined ? 0 : h;
+        this.x = x;
+        this.y = y;
+        this.width = w;
+        this.height = h;
     }
-
-    rect.fromEllipse = function(e) {
-        e = ellipse(e);
-        return rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
-    };
 
     rect.prototype = {
         toString: function() {
@@ -361,19 +348,6 @@ var g = (function() {
         center: function() {
             return point(this.x + this.width / 2, this.y + this.height / 2);
         },
-        topMiddle: function() {
-            return point(this.x + this.width / 2, this.y);
-        },
-        bottomMiddle: function() {
-            return point(this.x + this.width / 2, this.y + this.height);
-        },
-        leftMiddle: function() {
-            return point(this.x , this.y + this.height / 2);
-        },
-        rightMiddle: function() {
-            return point(this.x + this.width, this.y + this.height / 2);
-        },
-
         // @return {rect} if rectangles intersect, {null} if not.
         intersect: function(r) {
             var myOrigin = this.origin();
@@ -442,35 +416,49 @@ var g = (function() {
             }
             return false;
         },
-
+        // Algorithm ported from java.awt.Rectangle from OpenJDK.
         // @return {bool} true if rectangle `r` is inside me.
         containsRect: function(r) {
-
-            var r0 = rect(this).normalize();
-            var r1 = rect(r).normalize();
-            var w0 = r0.width;
-            var h0 = r0.height;
-            var w1 = r1.width;
-            var h1 = r1.height;
-
-            if (!w0 || !h0 || !w1 || !h1) {
-                // At least one of the dimensions is 0
+            var nr = rect(r).normalize();
+            var W = nr.width;
+            var H = nr.height;
+            var X = nr.x;
+            var Y = nr.y;
+            var w = this.width;
+            var h = this.height;
+            if ((w | h | W | H) < 0) {
+                // At least one of the dimensions is negative...
                 return false;
             }
-
-            var x0 = r0.x;
-            var y0 = r0.y;
-            var x1 = r1.x;
-            var y1 = r1.y;
-
-            w1 += x1;
-            w0 += x0;
-            h1 += y1;
-            h0 += y0;
-
-            return x0 <= x1 && w1 <= w0 && y0 <= y1 && h1 <= h0;
+            // Note: if any dimension is zero, tests below must return false...
+            var x = this.x;
+            var y = this.y;
+            if (X < x || Y < y) {
+                return false;
+            }
+            w += x;
+            W += X;
+            if (W <= X) {
+                // X+W overflowed or W was zero, return false if...
+                // either original w or W was zero or
+                // x+w did not overflow or
+                // the overflowed x+w is smaller than the overflowed X+W
+                if (w >= x || W > w) return false;
+            } else {
+                // X+W did not overflow and W was not zero, return false if...
+                // original w was zero or
+                // x+w did not overflow and x+w is smaller than X+W
+                if (w >= x && W > w) return false;
+            }
+            h += y;
+            H += Y;
+            if (H <= Y) {
+                if (h >= y || H > h) return false;
+            } else {
+                if (h >= y && H > h) return false;
+            }
+            return true;
         },
-
         // @return {point} a point on my boundary nearest to p
         // @see Squeak Smalltalk, Rectangle>>pointNearestTo:
         pointNearestToPoint: function(p) {
@@ -563,15 +551,6 @@ var g = (function() {
             var h = this.width * st + this.height * ct;
             return rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
         },
-        // Scale rectangle with origin at point `o`
-        scale: function(sx, sy, o) {
-            var origin = this.origin().scale(sx, sy, o);
-            this.x = origin.x;
-            this.y = origin.y;
-            this.width *= sx;
-            this.height *= sy;
-            return this;
-        },
         snapToGrid: function(gx, gy) {
             var origin = this.origin().snapToGrid(gx, gy);
             var corner = this.corner().snapToGrid(gx, gy);
@@ -583,9 +562,6 @@ var g = (function() {
         },
         clone: function() {
             return rect(this);
-        },
-        toJSON: function() {
-            return { x: this.x, y: this.y, width: this.width, height: this.height };
         }
     };
 
@@ -594,9 +570,6 @@ var g = (function() {
     function ellipse(c, a, b) {
         if (!(this instanceof ellipse))
             return new ellipse(c, a, b);
-        if (c instanceof ellipse) {
-            return new ellipse(point(c), c.a, c.b);
-        }
         c = point(c);
         this.x = c.x;
         this.y = c.y;
@@ -604,21 +577,12 @@ var g = (function() {
         this.b = b;
     }
 
-    ellipse.fromRect = function(r) {
-        r = rect(r);
-        return ellipse(r.center(), r.width / 2, r.height / 2);
-    };
-
     ellipse.prototype = {
         toString: function() {
             return point(this.x, this.y).toString() + ' ' + this.a + ' ' + this.b;
         },
         bbox: function() {
             return rect(this.x - this.a, this.y - this.b, 2 * this.a, 2 * this.b);
-        },
-        equals: function(e) {
-            e = ellipse(e);
-            return e.x === this.x && e.y === this.y && e.a === this.a && e.b === this.b;
         },
         // Find point on me where line from my center to
         // point p intersects my boundary.

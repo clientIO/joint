@@ -1,9 +1,10 @@
 {
   "name": "jointjs",
   "description": "JavaScript diagramming library",
+  "private": true,
   "main": [
-    "dist/joint.js",
-    "dist/joint.css"
+    "build/joint.js",
+    "build/joint.css"
   ],
   "moduleType": [
     "globals",

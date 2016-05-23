@@ -65,11 +65,6 @@ joint.dia.Link = joint.dia.Cell.extend({
         target: {}
     },
 
-    isLink: function() {
-
-        return true;
-    },
-
     disconnect: function() {
 
         return this.set({ source: g.point(0, 0), target: g.point(0, 0) });
@@ -98,46 +93,30 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     translate: function(tx, ty, opt) {
 
+        var attrs = {};
+        var source = this.get('source');
+        var target = this.get('target');
+        var vertices = this.get('vertices');
+
+        if (!source.id) {
+            attrs.source = { x: (source.x || 0) + tx, y: (source.y || 0) + ty };
+        }
+
+        if (!target.id) {
+            attrs.target = { x: (target.x || 0) + tx, y: (target.y || 0) + ty };
+        }
+
+        if (vertices && vertices.length) {
+            attrs.vertices = _.map(vertices, function(vertex) {
+                return { x: vertex.x + tx, y: vertex.y + ty };
+            });
+        }
+
         // enrich the option object
         opt = opt || {};
         opt.translateBy = opt.translateBy || this.id;
         opt.tx = tx;
         opt.ty = ty;
-
-        return this.applyToPoints(function(p) {
-            return { x: (p.x || 0) + tx, y: (p.y || 0) + ty };
-        }, opt);
-    },
-
-    scale: function(sx, sy, origin, opt) {
-
-        return this.applyToPoints(function(p) {
-            return g.point(p).scale(sx, sy, origin).toJSON();
-        }, opt);
-    },
-
-    applyToPoints: function(fn, opt) {
-
-        if (!_.isFunction(fn)) {
-            throw new TypeError('dia.Link: applyToPoints expects its first parameter to be a function.');
-        }
-
-        var attrs = {};
-
-        var source = this.get('source');
-        if (!source.id) {
-            attrs.source = fn(source);
-        }
-
-        var target = this.get('target');
-        if (!target.id) {
-            attrs.target = fn(target);
-        }
-
-        var vertices = this.get('vertices');
-        if (vertices && vertices.length > 0) {
-            attrs.vertices = _.map(vertices, fn);
-        }
 
         return this.set(attrs, opt);
     },
@@ -168,6 +147,11 @@ joint.dia.Link = joint.dia.Cell.extend({
         }
 
         return newParent;
+    },
+
+    isLink: function() {
+
+        return true;
     },
 
     hasLoop: function(opt) {
@@ -240,14 +224,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         return !!ancestor && (ancestor.id === elementId || ancestor.isEmbeddedIn(elementId));
     }
-},
-    {
-        endsEqual: function(a, b) {
-
-            var portsEqual = a.port === b.port || !a.port && !b.port;
-            return a.id === b.id && portsEqual;
-        }
-    });
+});
 
 
 // joint.dia.Link base view and controller.
@@ -416,7 +393,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var labels = this.model.get('labels') || [];
         if (!labels.length) return this;
 
-        var labelTemplate = joint.util.template(this.model.get('labelMarkup') || this.model.labelMarkup);
+        var labelTemplate = _.template(this.model.get('labelMarkup') || this.model.labelMarkup);
         // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
@@ -487,7 +464,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // but are offset a bit so that they don't cover the `marker-arrowhead`.
 
         var $tools = $(this._V.linkTools.node).empty();
-        var toolTemplate = joint.util.template(this.model.get('toolMarkup') || this.model.toolMarkup);
+        var toolTemplate = _.template(this.model.get('toolMarkup') || this.model.toolMarkup);
         var tool = V(toolTemplate());
 
         $tools.append(tool.node);
@@ -501,7 +478,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             var tool2;
             if (this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup) {
-                toolTemplate = joint.util.template(this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup);
+                toolTemplate = _.template(this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup);
                 tool2 = V(toolTemplate());
             } else {
                 tool2 = tool.clone();
@@ -523,7 +500,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // A special markup can be given in the `properties.vertexMarkup` property. This might be handy
         // if default styling (elements) are not desired. This makes it possible to use any
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
-        var markupTemplate = joint.util.template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
+        var markupTemplate = _.template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
 
         _.each(this.model.get('vertices'), function(vertex, idx) {
 
@@ -545,7 +522,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // A special markup can be given in the `properties.vertexMarkup` property. This might be handy
         // if default styling (elements) are not desired. This makes it possible to use any
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
-        var markupTemplate = joint.util.template(this.model.get('arrowheadMarkup') || this.model.arrowheadMarkup);
+        var markupTemplate = _.template(this.model.get('arrowheadMarkup') || this.model.arrowheadMarkup);
 
         this._V.sourceArrowhead = V(markupTemplate({ end: 'source' }));
         this._V.targetArrowhead = V(markupTemplate({ end: 'target' }));
@@ -751,13 +728,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var distance = _.isObject(position) ? position.distance : position;
                 var offset = _.isObject(position) ? position.offset : { x: 0, y: 0 };
 
-                if (!_.isNaN(distance)) {
-                    distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
-                    distance = (distance < 0) ? connectionLength + distance : distance;
-                    distance = (distance > 1) ? distance : connectionLength * distance;
-                } else {
-                    distance = connectionLength / 2;
-                }
+                distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
+                distance = (distance < 0) ? connectionLength + distance : distance;
+                distance = (distance > 1) ? distance : connectionLength * distance;
 
                 var labelCoordinates = connectionElement.getPointAtLength(distance);
 
@@ -1386,32 +1359,28 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _markAvailableMagnets: function() {
 
-        function isMagnetAvailable(view, magnet) {
-            var paper = view.paper;
-            var validate = paper.options.validateConnection;
-            return validate.apply(paper, this._validateConnectionArgs(view, magnet));
-        }
+        var elements = this.paper.model.getElements();
+        var validate = this.paper.options.validateConnection;
 
-        var paper = this.paper;
-        var elements = paper.model.getElements();
-        this._marked = {};
+        _.chain(elements).map(this.paper.findViewByModel, this.paper).each(function(view) {
 
-        _.chain(elements).map(paper.findViewByModel, paper).each(function(view) {
+            var isElementAvailable = view.el.getAttribute('magnet') !== 'false' &&
+                validate.apply(this.paper, this._validateConnectionArgs(view, null));
 
-            var magnets = Array.prototype.slice.call(view.el.querySelectorAll('[magnet]'));
-            if (view.el.getAttribute('magnet') !== 'false') {
-                // Element wrapping group is also a magnet
-                magnets.push(view.el);
+            var availableMagnets = _.filter(view.el.querySelectorAll('[magnet]'), function(magnet) {
+                return validate.apply(this.paper, this._validateConnectionArgs(view, magnet));
+            }, this);
+
+            if (isElementAvailable) {
+                V(view.el).addClass('available-magnet');
             }
 
-            var availableMagnets = _.filter(magnets, _.partial(isMagnetAvailable, view), this);
-            if (availableMagnets.length > 0) {
-                // highlight all available magnets
-                _.each(availableMagnets, _.partial(view.highlight, _, { magnetAvailability: true }), view);
-                // highlight the entire view
-                view.highlight(null, { elementAvailability: true });
+            _.each(availableMagnets, function(magnet) {
+                V(magnet).addClass('available-magnet');
+            });
 
-                this._marked[view.model.id] = availableMagnets;
+            if (isElementAvailable || availableMagnets.length) {
+                V(view.el).addClass('available-cell');
             }
 
         }, this).value();
@@ -1419,29 +1388,31 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _unmarkAvailableMagnets: function() {
 
-        _.each(this._marked, function(markedMagnets, id) {
-            var view = this.paper.findViewByModel(id);
-            if (view) {
-                _.each(markedMagnets, _.partial(view.unhighlight, _, { magnetAvailability: true }), view);
-                view.unhighlight(null, { elementAvailability: true });
-            }
-        }, this);
-
-        this._marked = null;
+        _.each(this.paper.el.querySelectorAll('.available-cell, .available-magnet'), function(magnet) {
+            V(magnet).removeClass('available-magnet').removeClass('available-cell');
+        });
     },
 
     startArrowheadMove: function(end, opt) {
-
         opt = _.defaults(opt || {}, { whenNotAllowed: 'revert' });
         // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
         // move without need to click on the actual arrowhead dom element.
         this._action = 'arrowhead-move';
         this._whenNotAllowed = opt.whenNotAllowed;
         this._arrowhead = end;
-        this._initialMagnet = this[end + 'Magnet'] || (this[end + 'View'] ? this[end + 'View'].el : null);
         this._initialEnd = _.clone(this.model.get(end)) || { x: 0, y: 0 };
         this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
         this._beforeArrowheadMove();
+    },
+
+    // Return `true` if the link is allowed to perform a certain UI `feature`.
+    // Example: `can('vertexMove')`, `can('labelMove')`.
+    can: function(feature) {
+
+        var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointerdown') : this.options.interactive;
+        if (interactive === false) return false;
+        if (!_.isObject(interactive) || interactive[feature] !== false) return true;
+        return false;
     },
 
     pointerdown: function(evt, x, y) {
@@ -1454,6 +1425,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // if are simulating pointerdown on a link during a magnet click, skip link interactions
         if (evt.target.getAttribute('magnet') != null) return;
+
+        var interactive = _.isFunction(this.options.interactive) ? this.options.interactive(this, 'pointerdown') : this.options.interactive;
+        if (interactive === false) return;
 
         var className = evt.target.getAttribute('class');
         var parentClassName = evt.target.parentNode.getAttribute('class');
@@ -1502,14 +1476,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 var targetParentEvent = evt.target.parentNode.getAttribute('event');
                 if (targetParentEvent) {
-                    if (this.can('useLinkTools')) {
-                        // `remove` event is built-in. Other custom events are triggered on the paper.
-                        if (targetParentEvent === 'remove') {
-                            this.model.remove();
-                        } else {
-                            this.notify(targetParentEvent, evt, x, y);
-                        }
+
+                    // `remove` event is built-in. Other custom events are triggered on the paper.
+                    if (targetParentEvent === 'remove') {
+                        this.model.remove();
+                    } else {
+                        this.paper.trigger(targetParentEvent, evt, this, x, y);
                     }
+
                 } else {
                     if (this.can('vertexAdd')) {
 
@@ -1582,12 +1556,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var r = this.paper.options.snapLinks.radius || 50;
                 var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
 
-                if (this._closestView) {
-                    this._closestView.unhighlight(this._closestEnd.selector, {
-                        connecting: true,
-                        snapping: true
-                    });
-                }
+                this._closestView && this._closestView.unhighlight(this._closestEnd.selector, { connecting: true, snapping: true });
                 this._closestView = this._closestEnd = null;
 
                 var distance;
@@ -1643,12 +1612,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 }, this);
 
-                if (this._closestView) {
-                    this._closestView.highlight(this._closestEnd.selector, {
-                        connecting: true,
-                        snapping: true
-                    });
-                }
+                this._closestView && this._closestView.highlight(this._closestEnd.selector, { connecting: true, snapping: true });
 
                 this.model.set(this._arrowhead, this._closestEnd || { x: x, y: y }, { ui: true });
 
@@ -1664,12 +1628,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 if (this._targetEvent !== target) {
                     // Unhighlight the previous view under pointer if there was one.
-                    if (this._magnetUnderPointer) {
-                        this._viewUnderPointer.unhighlight(this._magnetUnderPointer, {
-                            connecting: true
-                        });
-                    }
-
+                    this._magnetUnderPointer && this._viewUnderPointer.unhighlight(this._magnetUnderPointer, { connecting: true });
                     this._viewUnderPointer = this.paper.findView(target);
                     if (this._viewUnderPointer) {
                         // If we found a view that is under the pointer, we need to find the closest
@@ -1683,11 +1642,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                             // If there was no magnet found, do not highlight anything and assume there
                             // is no view under pointer we're interested in reconnecting to.
                             // This can only happen if the overall element has the attribute `'.': { magnet: false }`.
-                            if (this._magnetUnderPointer) {
-                                this._viewUnderPointer.highlight(this._magnetUnderPointer, {
-                                    connecting: true
-                                });
-                            }
+                            this._magnetUnderPointer && this._viewUnderPointer.highlight(this._magnetUnderPointer, { connecting: true });
                         } else {
                             // This type of connection is not valid. Disregard this magnet.
                             this._magnetUnderPointer = null;
@@ -1721,31 +1676,19 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         } else if (this._action === 'arrowhead-move') {
 
-            var paper = this.paper;
-            var paperOptions = paper.options;
+            var paperOptions = this.paper.options;
             var arrowhead = this._arrowhead;
-            var initialEnd = this._initialEnd;
-            var magnetUnderPointer;
 
             if (paperOptions.snapLinks) {
 
-                // Finish off link snapping.
-                // Everything except view unhighlighting was already done on pointermove.
-                if (this._closestView) {
-                    this._closestView.unhighlight(this._closestEnd.selector, {
-                        connecting: true,
-                        snapping: true
-                    });
-
-                    magnetUnderPointer = this._closestView.findMagnet(this._closestEnd.selector);
-                }
-
+                // Finish off link snapping. Everything except view unhighlighting was already done on pointermove.
+                this._closestView && this._closestView.unhighlight(this._closestEnd.selector, { connecting: true, snapping: true });
                 this._closestView = this._closestEnd = null;
 
             } else {
 
                 var viewUnderPointer = this._viewUnderPointer;
-                magnetUnderPointer = this._magnetUnderPointer;
+                var magnetUnderPointer = this._magnetUnderPointer;
 
                 this._viewUnderPointer = null;
                 this._magnetUnderPointer = null;
@@ -1767,7 +1710,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
 
             // If the changed link is not allowed, revert to its previous state.
-            if (!paper.linkAllowed(this)) {
+            if (!this.paper.linkAllowed(this)) {
 
                 switch (this._whenNotAllowed) {
 
@@ -1777,7 +1720,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                     case 'revert':
                     default:
-                        this.model.set(arrowhead, initialEnd, { ui: true });
+                        this.model.set(arrowhead, this._initialEnd, { ui: true });
                         break;
                 }
             }
@@ -1788,27 +1731,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 this._z = null;
             }
 
-            var currentEnd = this.model.prop(arrowhead) || {};
-            var endChanged = !joint.dia.Link.endsEqual(initialEnd, currentEnd);
-
-            if (endChanged) {
-
-                if (initialEnd.id) {
-                    this.notify('link:disconnect', evt, paper.findViewByModel(initialEnd.id), this._initialMagnet, arrowhead);
-                }
-                if (currentEnd.id) {
-                    this.notify('link:connect', evt, paper.findViewByModel(currentEnd.id), magnetUnderPointer, arrowhead);
-                }
-            }
-
             this._afterArrowheadMove();
         }
 
         this._action = null;
         this._whenNotAllowed = null;
-        this._initialMagnet = null;
-        this._initialEnd = null;
-        this._validateConnectionArgs = null;
 
         this.notify('link:pointerup', evt, x, y);
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);

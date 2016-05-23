@@ -1,7 +1,7 @@
 // QUnit move the fixture out of the viewport area by setting its position: absolute; top: -10000px; left: -10000px;
 // This helper make it possible to show the fixture quickly for debugging purposes.
 function showFixture() {
-
+    
     $('#qunit-fixture').css({
 
         position: 'static'
@@ -98,40 +98,9 @@ function normalizeSvgAttr(name, value) {
     return V('<g/>').attr(name, value).attr(name);
 }
 
-function normalizeCssAttr(name, value) {
-
-    var $tmpEl = $('<div/>').appendTo($('body'));
-    var normalizedValue = $tmpEl.css(name, value).css(name);
-    $tmpEl.remove();
-    return normalizedValue;
-}
-
-function normalizeImageDataUri(uri, cb) {
-
-    var image = new Image();
-
-    image.onload = function() {
-
-        var canvas = document.createElement('canvas');
-        canvas.width = image.width;
-        canvas.height = image.height;
-        var context = canvas.getContext('2d');
-        context.drawImage(image, 0, 0, image.width, image.height);
-        var normalized = canvas.toDataURL('image/png');
-        canvas = null;
-        image = null;
-        cb(null, normalized);
-    };
-
-    image.src = uri;
-}
-
 function approximately(result, expected, tolerance, message) {
 
-    var min = (expected - tolerance);
-    var max = (expected + tolerance);
-
-    ok(result >= min && result <= max, message);
+    ok(result > (expected - tolerance) && result < expected + tolerance, message);
 }
 
 function isClose(actual, expected, tolerance) {
@@ -154,7 +123,7 @@ function isHandlerRegistered(el, event, handler) {
 
     var handlers = jQuery._data(document, 'events');
     if (!handlers) return false;
-
+    
     var eventHandlers = handlers[event];
     if (!eventHandlers) return false;
 
@@ -172,7 +141,7 @@ function isHandlerRegistered(el, event, handler) {
 var simulate = {
 
     mouseevent: function(opt) {
-
+        
         var evt = document.createEvent('MouseEvents');
         evt.initMouseEvent(
             opt.type, /*canBubble*/ true, /*cancelable*/ true, /*view*/ window, /*click count*/1,
@@ -209,7 +178,7 @@ var simulate = {
         opt.type = 'mouseover';
         return this.mouseevent(opt);
     },
-
+    
     mouseout: function(opt) {
 
         opt.type = 'mouseout';

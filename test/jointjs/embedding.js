@@ -18,8 +18,9 @@ module('embedding', {
     teardown: function() {
 
         this.paper.remove();
-        this.graph = null;
-        this.paper = null;
+
+        delete this.graph;
+        delete this.paper;
     }
 });
 
@@ -27,8 +28,8 @@ test('sanity', function() {
 
     var r1 = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 100, height: 100 } });
     var r2 = new joint.shapes.basic.Rect({ position: { x: 500, y: 500 }, size: { width: 100, height: 100 } });
-
-    this.graph.addCells([r1, r2]);
+ 
+    this.graph.addCells([r1,r2]);
 
     var v1 = r1.findView(this.paper);
     var v2 = r2.findView(this.paper);
@@ -63,10 +64,10 @@ test('passing UI flag', function() {
 
     var r1 = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 100, height: 100 } });
     var r2 = new joint.shapes.basic.Rect({ position: { x: 500, y: 500 }, size: { width: 100, height: 100 } });
-    var r3 = new joint.shapes.basic.Rect({ position: { x: 600, y: 600 }, size: { width: 100, height: 100 } });
-    var l23 = new joint.dia.Link({ source: { id: r2.id }, target: { id: r3.id } });
-    var l22 = new joint.dia.Link({ source: { id: r2.id }, target: { id: r2.id } });
-    this.graph.addCells([r1, r2, r3, l23, l22]);
+    var r3 = new joint.shapes.basic.Rect({ position: { x: 600, y: 600 }, size: { width: 100, height: 100 } }); 
+    var l23 = new joint.dia.Link({ source: { id: r2.id }, target: { id: r3.id }});
+    var l22 = new joint.dia.Link({ source: { id: r2.id }, target: { id: r2.id }});
+    this.graph.addCells([r1,r2,r3,l23,l22]);
 
     var v2 = r2.findView(this.paper);
 
@@ -84,15 +85,15 @@ test('passing UI flag', function() {
     v2.pointermove({ target: v2.el }, 100, 100);
     v2.pointerup({ target: v2.el }, 100, 100);
 
-    deepEqual([embedsCounter, parentCounter, zCounter], [2, 2, 3], 'UI flags present (2 embedded, 2 reparented, 3 changed z-indexes).');
+    deepEqual([embedsCounter, parentCounter, zCounter], [2,2,3], 'UI flags present (2 embedded, 2 reparented, 3 changed z-indexes).');
 });
 
 test('findParentBy option', function() {
 
     var r1 = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 100, height: 100 } });
     var r2 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 } });
-
-    this.graph.addCells([r1, r2]);
+ 
+    this.graph.addCells([r1,r2]);
 
     var v1 = r1.findView(this.paper);
     var v2 = r2.findView(this.paper);
@@ -132,18 +133,18 @@ test('highlighting & unhighlighting', function() {
 
     var r1 = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 1000, height: 1000 } });
     var r2 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 } });
-
-    this.graph.addCells([r1, r2]);
+ 
+    this.graph.addCells([r1,r2]);
 
     var v2 = r2.findView(this.paper);
 
     this.paper.on('cell:highlight', function(cellView, el, opt) {
-        equal(cellView.model.id, r1.id, 'Highlight event triggered for correct element.');
+        equal(cellView.model.id,r1.id, 'Highlight event triggered for correct element.');
         ok(opt.embedding, 'And embedding flag is present.');
     });
 
     this.paper.on('cell:unhighlight', function(cellView, el, opt) {
-        equal(cellView.model.id, r1.id, 'Unhighlight event triggered for correct element.');
+        equal(cellView.model.id,r1.id, 'Unhighlight event triggered for correct element.');
         ok(opt.embedding, 'And embedding flag is present.');
     });
 
@@ -159,7 +160,7 @@ test('frontParentOnly option', function() {
     var r2 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 } });
     var r3 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 } });
 
-    this.graph.addCells([r1, r2, r3]);
+    this.graph.addCells([r1,r2,r3]);
 
     var v3 = r3.findView(this.paper);
 

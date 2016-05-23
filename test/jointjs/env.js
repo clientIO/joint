@@ -23,7 +23,7 @@ QUnit.module('joint.env', function(hooks) {
             function() {
                 joint.env.test('does_not_exist');
             },
-            new Error('Test not defined ("does_not_exist"). Use `joint.env.addTest(name, fn) to add a new test.`'),
+            new Error('Test not defined ("does_not_exist"). Use `joint.env.addTest(name, fn)` to add a new test.'),
             'should throw error if test does not exist'
         );
 

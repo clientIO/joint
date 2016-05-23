@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf8">
+
+        <title>Directed graph rendering - big graph</title>
+
+        <link rel="stylesheet" type="text/css" href="../../../../build/rappid.css">
+
+        <style>
+            #paper {
+                border: 1px solid gray;
+                float: left;
+                position: relative;
+                width: 800px;
+                height: 600px;
+                overflow: scroll;
+            }
+            .element.basic.Rect circle {
+                /* Webkit */
+                -webkit-svg-shadow: 2px 2px 5px gray;
+                /* FF */
+                filter: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='dropshadow' width='150%' height='150%'><feGaussianBlur in='SourceAlpha' stdDeviation='4'/><feOffset dx='3' dy='3' result='offsetblur'/><feFlood flood-color='gray' /><feComposite in2='offsetblur' operator='in' /><feMerge><feMergeNode /><feMergeNode in='SourceGraphic' /></feMerge></filter></svg>#dropshadow");
+                fill: #3498DB;
+            }
+
+            .link:hover path {
+                stroke: green;
+                stroke-width: 4px;
+            }
+        </style>
+    </head>
+    <body>
+        <h3>GEXF file format visualizer</h3>
+        <label>Zoom</label>
+        <input type="range" min="0.05" max="2" step="0.05" value="1" onchange="zoomlevel.value=this.value; paper.scale(this.value);">
+        <output id="zoomlevel">1</output>
+        <input type="file" id="gexfFile">
+        <br>
+
+        <div id="paper"></div>
+
+        <!-- Dependencies: -->
+        <script src="../../../../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../../../../node_modules/lodash/index.js"></script>
+        <script src="../../../../node_modules/backbone/backbone.js"></script>
+        <script src="../../../../node_modules/graphlib/dist/graphlib.core.js"></script>
+        <script src="../../../../node_modules/dagre/dist/dagre.core.js"></script>
+
+        <script src="../../../../build/rappid.js"></script>
+
+        <script src="./lightViews.js"></script>
+        <script src="./gexf.js"></script>
+
+    </body>
+</html>

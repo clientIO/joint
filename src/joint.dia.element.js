@@ -12,11 +12,6 @@ joint.dia.Element = joint.dia.Cell.extend({
         angle: 0
     },
 
-    isElement: function() {
-
-        return true;
-    },
-
     position: function(x, y, opt) {
 
         var isSetter = _.isNumber(y);
@@ -132,7 +127,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
         opt = opt || {};
 
-        this.startBatch('resize', opt);
+        this.trigger('batch:start', _.extend({}, opt, { element: this, batchName: 'resize' }));
 
         if (opt.direction) {
 
@@ -234,18 +229,8 @@ joint.dia.Element = joint.dia.Cell.extend({
             this.set('size', { width: width, height: height }, opt);
         }
 
-        this.stopBatch('resize', opt);
+        this.trigger('batch:stop', _.extend({}, opt, { element: this, batchName: 'resize' }));
 
-        return this;
-    },
-
-    scale: function(sx, sy, origin, opt) {
-
-        var scaledBBox = this.getBBox().scale(sx, sy, origin);
-        this.startBatch('scale', opt);
-        this.position(scaledBBox.x, scaledBBox.y, opt);
-        this.resize(scaledBBox.width, scaledBBox.height, opt);
-        this.stopBatch('scale');
         return this;
     },
 
@@ -261,7 +246,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
         if (embeddedCells.length > 0) {
 
-            this.startBatch('fit-embeds', opt);
+            this.trigger('batch:start', { batchName: 'fit-embeds' });
 
             if (opt.deep) {
                 // Recursively apply fitEmbeds on all embeds first.
@@ -270,7 +255,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             // Compute cell's size and position  based on the children bbox
             // and given padding.
-            var bbox = this.graph.getCellsBBox(embeddedCells);
+            var bbox = this.graph.getBBox(embeddedCells);
             var padding = joint.util.normalizeSides(opt.padding);
 
             // Apply padding computed above to the bbox.
@@ -287,7 +272,7 @@ joint.dia.Element = joint.dia.Cell.extend({
                 size: { width: bbox.width, height: bbox.height }
             }, opt);
 
-            this.stopBatch('fit-embeds');
+            this.trigger('batch:stop', { batchName: 'fit-embeds' });
         }
 
         return this;
@@ -307,10 +292,10 @@ joint.dia.Element = joint.dia.Cell.extend({
             center.rotate(origin, this.get('angle') - angle);
             var dx = center.x - size.width / 2 - position.x;
             var dy = center.y - size.height / 2 - position.y;
-            this.startBatch('rotate', { angle: angle, absolute: absolute, origin: origin });
+            this.trigger('batch:start', { batchName: 'rotate' });
             this.translate(dx, dy);
             this.rotate(angle, absolute);
-            this.stopBatch('rotate');
+            this.trigger('batch:stop', { batchName: 'rotate' });
 
         } else {
 
@@ -332,7 +317,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             // Add the model itself.
             elements.push(this);
 
-            return this.graph.getCellsBBox(elements);
+            return this.graph.getBBox(elements);
         }
 
         var position = this.get('position');
@@ -641,7 +626,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 tx = bbox.x + bbox.width + refDx;
             }
         }
-
         if (isFinite(refDy)) {
 
             if (scalable) {
@@ -676,10 +660,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 tx = bbox.x + refX;
             }
         }
-
         if (isFinite(refY)) {
 
-            if (refYPercentage || refY > 0 && refY < 1) {
+            if (refXPercentage || refY > 0 && refY < 1) {
 
                 ty = bbox.y + bbox.height * refY;
 
@@ -700,14 +683,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             var velBBox = vel.bbox(false, this.paper.viewport);
 
             // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
-            // `y-alignment` when set to `bottom` uses the y coordinate as referenced to the bottom of the bbox.
             if (yAlignment === 'middle') {
 
                 ty -= velBBox.height / 2;
-
-            } else if (yAlignment === 'bottom') {
-
-                ty -= velBBox.height;
 
             } else if (isFinite(yAlignment)) {
 
@@ -715,14 +693,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
 
             // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
-            // `x-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
             if (xAlignment === 'middle') {
 
                 tx -= velBBox.width / 2;
-
-            } else if (xAlignment === 'right') {
-
-                tx -= velBBox.width;
 
             } else if (isFinite(xAlignment)) {
 
@@ -868,8 +841,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var model = opt.model || this.model;
         var paper = opt.paper || this.paper;
 
-        model.startBatch('to-front', opt);
-
         // Bring the model to the front with all his embeds.
         model.toFront({ deep: true, ui: true });
 
@@ -877,8 +848,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // to any of the element descendant. If we bring to front only embedded elements,
         // links connected to them would stay in the background.
         _.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'toFront', { ui: true });
-
-        model.stopBatch('to-front');
 
         // Before we start looking for suitable parent we remove the current one.
         var parentId = model.get('parent');
@@ -966,13 +935,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var paper = this.paper;
 
-        if (
-            evt.target.getAttribute('magnet') &&
-            this.can('addLinkFromMagnet') &&
-            paper.options.validateMagnet.call(paper, this, evt.target)
-        ) {
+        if (evt.target.getAttribute('magnet') && paper.options.validateMagnet.call(paper, this, evt.target)) {
 
-            this.model.startBatch('add-link');
+            this.model.trigger('batch:start', { batchName: 'add-link' });
 
             var link = paper.getDefaultLink(this, evt.target);
 
@@ -1014,8 +979,11 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         } else {
 
             var grid = this.paper.options.gridSize;
+            var interactive = _.isFunction(this.options.interactive)
+                ? this.options.interactive(this, 'pointermove')
+                : this.options.interactive;
 
-            if (this.can('elementMove')) {
+            if (interactive !== false) {
 
                 var position = this.model.get('position');
 
@@ -1055,7 +1023,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             // Let the linkview deal with this event.
             this._linkView.pointerup(evt, x, y);
             this._linkView = null;
-            this.model.stopBatch('add-link');
+            this.model.trigger('batch:stop', { batchName: 'add-link' });
 
         } else {
 
