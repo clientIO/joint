@@ -8,10 +8,11 @@
     "graph",
     "visualization"
   ],
+  "private": true,
   "scripts": {
     "test": "grunt test"
   },
-  "version": "0.9.7-rappid.4",
+  "version": "0.9.7-rappid.6",
   "homepage": "http://jointjs.com",
   "author": {
     "name": "client IO",
