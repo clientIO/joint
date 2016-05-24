@@ -6,14 +6,14 @@
 }
 
 /*  Highlighting  */
-.joint-highlight-stroke.joint-theme-light {
+.joint-highlight-stroke.joint-theme-material {
     stroke: #ecf0f8;
     stroke-width: 3px;
 }
 /*  Highlighting  */
 
 /*  Links  */
-.link.joint-theme-light .connection-wrap {
+.link.joint-theme-material .connection-wrap {
     stroke: #000000;
     stroke-width: 15;
     stroke-linecap: round;
@@ -21,42 +21,42 @@
     opacity: 0;
     cursor: move;
 }
-.link.joint-theme-light .connection-wrap:hover {
+.link.joint-theme-material .connection-wrap:hover {
     opacity: .4;
     stroke-opacity: .4;
 }
-.link.joint-theme-light .connection {
+.link.joint-theme-material .connection {
     stroke-linejoin: round;
 }
-.link.joint-theme-light .link-tools .tool-remove circle {
+.link.joint-theme-material .link-tools .tool-remove circle {
     fill: #C64242;
 }
-.link.joint-theme-light .link-tools .tool-remove path {
+.link.joint-theme-material .link-tools .tool-remove path {
     fill: #FFFFFF;
 }
 
 /* <circle> element inside .marker-vertex-group <g> element */
-.link.joint-theme-light .marker-vertex {
+.link.joint-theme-material .marker-vertex {
     fill: #d0d8e8;
 }
-.link.joint-theme-light .marker-vertex:hover {
+.link.joint-theme-material .marker-vertex:hover {
     fill: #5fa9ee;
     stroke: none;
 }
 
-.link.joint-theme-light .marker-arrowhead {
+.link.joint-theme-material .marker-arrowhead {
     fill: #d0d8e8;
 }
-.link.joint-theme-light .marker-arrowhead:hover {
+.link.joint-theme-material .marker-arrowhead:hover {
     fill: #5fa9ee;
     stroke: none;
 }
 
 /* <circle> element used to remove a vertex */
-.link.joint-theme-light .marker-vertex-remove-area {
+.link.joint-theme-material .marker-vertex-remove-area {
     fill: #5fa9ee;
 }
-.link.joint-theme-light .marker-vertex-remove {
+.link.joint-theme-material .marker-vertex-remove {
     fill: white;
 }
 /*  Links  */
