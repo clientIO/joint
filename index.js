@@ -2,16 +2,21 @@
 
 var fs = require('fs');
 
-var filePath = ['./build/joint.js', './dist/joint.js'].find(function(filePath) {
+var possiblePaths = ['./build/joint.js', './dist/joint.js'];
+var filePath;
+
+while ((filePath = possiblePaths.shift())) {
 
     try {
-        fs.accessSync(__dirname + '/' + filePath, fs.F_OK);
+        fs.statSync(__dirname + '/' + filePath);
     } catch (error) {
-        return false;
+        // Try another path.
+        continue;
     }
 
-    return true;
-});
+    // Found a path that exists.
+    break;
+}
 
 if (!filePath) {
     throw new Error('JointJS build file not found.');
