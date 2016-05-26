@@ -1150,10 +1150,15 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this;
     },
 
+    clearGrid: function() {
+
+        this.el.style.backgroundImage = 'none';
+        return this;
+    },
+
     drawGrid: function(opt) {
 
-        opt = opt || {};
-        _.defaults(opt, this.options.drawGrid, {
+        opt = _.defaults(opt || {}, this.options.drawGrid, {
             color: '#aaa',
             thickness: 1
         });
@@ -1161,8 +1166,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var gridSize = this.options.gridSize;
 
         if (gridSize <= 1) {
-            this.el.style.backgroundImage = 'none';
-            return;
+            return this.clearGrid();
         }
 
         var currentScale = V(this.viewport).scale();
@@ -1189,6 +1193,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var backgroundImage = canvas.toDataURL('image/png');
         this.el.style.backgroundImage = 'url("' + backgroundImage + '")';
+
+        return this;
     },
 
     setInteractivity: function(value) {
