@@ -1,0 +1,8 @@
+<pre class="docs-method-signature"><code>link.isElement()</code></pre>
+
+<p>Always returns <code>false</code>. The reason the method is here is that both <code>joint.dia.Element</code> and <code>joint.dia.Link</code> inherit from <code>joint.dia.Cell</code>. This method is useful if you don't know what the cell is. Calling <code>el.Element()</code> is equivalent to <code>el instanceof joint.dia.Element</code>. Example:</p>
+
+<pre><code>var cell = graph.getCell(myId)
+if (cell.isElement()) {
+    // Do something if the cell is an element.
+}</code></pre>

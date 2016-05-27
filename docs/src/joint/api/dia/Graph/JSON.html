@@ -1,0 +1,28 @@
+<p>The JointJS graph JSON representation has the following format:</p>
+<pre><code data-lang="javascript">{
+    cells: [// Array of cells (ie. links and elements).
+        {
+            id: '3d90f661-fe5f-45dc-a938-bca137691eeb',// Some randomly generated UUID.
+            type: 'basic.Rect',
+            attrs: {
+                'stroke': '#000'
+            },
+            position: {
+                x: 0,
+                y: 50
+            },
+            angle: 90,
+            size: {
+                width: 100,
+                height: 50
+            },
+            z: 2,
+            embeds: [
+                '0c6bf4f1-d5db-4058-9e85-f2d6c74a7a30',
+                'cdbfe073-b160-4e8f-a9a0-22853f29cc06'
+            ],
+            parent: '31f348fe-f5c6-4438-964e-9fc9273c02cb'
+            // ... and some other, maybe custom, data properties
+        }
+    ]
+}</code></pre>

@@ -1,3 +1,5 @@
-<pre class="docs-method-signature"><code>graph.getBBox(elements)</code></pre><p>Return the bounding box of all the elements combined. Example:</p>
-                  <pre><code>var bbox = graph.getBBox(graph.getElements())
+
+<pre class="docs-method-signature"><code>graph.getBBox(cells[, opt])</code></pre>
+<p>Returns the bounding box that surrounds all the given cells. Links are ignored. An example:</p>
+<pre><code>var bbox = graph.getBBox(graph.getElements());
 // { x: Number, y: Number, width: Number, height: Number }</code></pre>
