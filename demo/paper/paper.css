@@ -133,19 +133,19 @@ input[type="number"] {
     stroke-opacity: 0.5;
 }
 
-.element.Rect rect {
+.joint-element.joint-type-basic-rect rect {
     fill: #2ecc71;
     stroke: #27ae60;
     stroke-width: 1px;
 }
 
-.element.Circle circle {
+.joint-element.joint-type-basic-circle circle {
     fill: #e74c3c;
     stroke: #c0392b;
     stroke-width: 1px;
 }
 
-.element.Rhombus path {
+.joint-element.joint-type-basic-rhombus path {
     fill: #f1c40f;
     stroke: #f39c12;
     stroke-width: 1px;

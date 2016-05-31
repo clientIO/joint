@@ -629,20 +629,20 @@ QUnit.module('basic', function(hooks) {
         var b1View = this.paper.findViewByModel(b1);
         var b2View = this.paper.findViewByModel(b2);
 
-        equal(b2View.$el.nextAll('.basic.Rect').length, 0, 'element b2 after a1 element in the DOM');
-        equal(b1View.$el.prevAll('.basic.Rect').length, 0, 'element b1 before a1 element in the DOM');
+        equal(b2View.$el.nextAll('[data-type="basic.Rect"]').length, 0, 'element b2 after a1 element in the DOM');
+        equal(b1View.$el.prevAll('[data-type="basic.Rect"]').length, 0, 'element b1 before a1 element in the DOM');
 
         a1.toFront({ deep: true });
 
-        equal(_.unique(a1View.$el.prevAll('.basic.Rect').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1, b2 element in the DOM after toFront()');
-        ok(a4View.$el.prev('.basic.Rect')[0] == a3View.el || a4View.$el.prev('.basic.Rect')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
-        ok(a2View.$el.prev('.basic.Rect')[0] == a1View.el || a3View.$el.prev('.basic.Rect')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
+        equal(_.unique(a1View.$el.prevAll('[data-type="basic.Rect"]').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1, b2 element in the DOM after toFront()');
+        ok(a4View.$el.prev('[data-type="basic.Rect"]')[0] == a3View.el || a4View.$el.prev('[data-type="basic.Rect"]')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
+        ok(a2View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el || a3View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
 
         a1.toBack({ deep: true });
 
-        equal(a1View.$el.prevAll('.basic.Rect').length, 0, 'a1 element moved back before a2, a3, a4, b1, b2 elements in the DOM after toBack()');
-        ok(a4View.$el.prev('.basic.Rect')[0] == a3View.el || a4View.$el.prev('.basic.Rect')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
-        ok(a2View.$el.prev('.basic.Rect')[0] == a1View.el || a3View.$el.prev('.basic.Rect')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
+        equal(a1View.$el.prevAll('[data-type="basic.Rect"]').length, 0, 'a1 element moved back before a2, a3, a4, b1, b2 elements in the DOM after toBack()');
+        ok(a4View.$el.prev('[data-type="basic.Rect"]')[0] == a3View.el || a4View.$el.prev('[data-type="basic.Rect"]')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
+        ok(a2View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el || a3View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
 
     });
 

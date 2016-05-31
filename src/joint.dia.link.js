@@ -256,7 +256,12 @@ joint.dia.Link = joint.dia.Cell.extend({
 joint.dia.LinkView = joint.dia.CellView.extend({
 
     className: function() {
-        return _.unique(this.model.get('type').split('.').concat('link')).join(' ');
+
+        var classNames = joint.dia.CellView.prototype.className.apply(this).split(' ');
+
+        classNames.push('link');
+
+        return classNames.join(' ');
     },
 
     options: {
@@ -372,7 +377,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // of elements with special meaning though. Therefore, those classes should be preserved in any
         // special markup passed in `properties.markup`.
         var model = this.model;
-        var children = V(model.get('markup') || model.markup);
+        var markup = model.get('markup') || model.markup;
+        var children = V(markup);
 
         // custom markup may contain only one children
         if (!_.isArray(children)) children = [children];
@@ -380,8 +386,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Cache all children elements for quicker access.
         this._V = {}; // vectorized markup;
         _.each(children, function(child) {
-            var c = child.attr('class');
-            c && (this._V[$.camelCase(c)] = child);
+
+            var className = child.attr('class');
+
+            if (className) {
+                // Strip the joint class name prefix, if there is one.
+                className = joint.util.removeClassNamePrefix(className);
+                this._V[$.camelCase(className)] = child;
+            }
+
         }, this);
 
         // Only the connection path is mandatory
@@ -1455,8 +1468,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // if are simulating pointerdown on a link during a magnet click, skip link interactions
         if (evt.target.getAttribute('magnet') != null) return;
 
-        var className = evt.target.getAttribute('class');
-        var parentClassName = evt.target.parentNode.getAttribute('class');
+        var className = joint.util.removeClassNamePrefix(evt.target.getAttribute('class'));
+        var parentClassName = joint.util.removeClassNamePrefix(evt.target.parentNode.getAttribute('class'));
         var labelNode;
         if (parentClassName === 'label') {
             className = parentClassName;

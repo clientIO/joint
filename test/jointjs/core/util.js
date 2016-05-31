@@ -208,79 +208,159 @@ QUnit.module('util', function(hooks) {
         assert.ok(view4.theme === theme, 'when "override" set to true, should override local theme settings');
     });
 
-    QUnit.test('util.template(html)', function(assert) {
+    QUnit.module('template(html)', function(hooks) {
 
-        assert.equal(typeof joint.util.template, 'function', 'should be a function');
+        QUnit.test('should be a function', function(assert) {
 
-        var samples = [
-            {
-                html: '<p>No embedded data in this template.</p>',
-                data: {},
-                expectedOutput: '<p>No embedded data in this template.</p>'
-            },
-            {
-                html: [
-                    '<p>Some simple text with a value: <%= someValue %></p>',
-                    '<p>Another line with another value: <%= anotherValue %></p>'
-                ].join(''),
-                data: {
-                    someValue: 12345,
-                    anotherValue: 678
+            assert.equal(typeof joint.util.template, 'function');
+        });
+
+        QUnit.test('should correctly render the sample HTML templates', function(assert) {
+
+            var samples = [
+                {
+                    html: '<p>No embedded data in this template.</p>',
+                    data: {},
+                    expectedOutput: '<p>No embedded data in this template.</p>'
                 },
-                expectedOutput: [
-                    '<p>Some simple text with a value: 12345</p>',
-                    '<p>Another line with another value: 678</p>'
-                ].join('')
-            },
-            {
-                html: '<p>With a complex data attribute <%= some.value %></p>',
-                data: {
-                    some: {
-                        value: 123
-                    }
+                {
+                    html: '<p>no data!</p>',
+                    data: null,
+                    expectedOutput: '<p>no data!</p>'
                 },
-                expectedOutput: '<p>With a complex data attribute 123</p>'
-            },
-            {
-                html: '<p>With a more <%= some.value.text %> data attribute</p>',
-                data: {
-                    some: {
-                        value: {
-                            text: 'complex'
+                {
+                    html: [
+                        '<p>Some simple text with a value: <%= someValue %></p>',
+                        '<p>Another line with another value: <%= anotherValue %></p>'
+                    ].join(''),
+                    data: {
+                        someValue: 12345,
+                        anotherValue: 678
+                    },
+                    expectedOutput: [
+                        '<p>Some simple text with a value: 12345</p>',
+                        '<p>Another line with another value: 678</p>'
+                    ].join('')
+                },
+                {
+                    html: '<p>With a complex data attribute <%= some.value %></p>',
+                    data: {
+                        some: {
+                            value: 123
                         }
-                    }
+                    },
+                    expectedOutput: '<p>With a complex data attribute 123</p>'
                 },
-                expectedOutput: '<p>With a more complex data attribute</p>'
-            },
-            {
-                html: '<p>Alternative syntax #${num}</p>',
-                data: {
-                    num: 1
+                {
+                    html: '<p>With a more <%= some.value.text %> data attribute</p>',
+                    data: {
+                        some: {
+                            value: {
+                                text: 'complex'
+                            }
+                        }
+                    },
+                    expectedOutput: '<p>With a more complex data attribute</p>'
                 },
-                expectedOutput: '<p>Alternative syntax #1</p>'
-            },
-            {
-                html: '<p>Alternative syntax #${ num }</p>',
-                data: {
-                    num: 2
+                {
+                    html: '<p>Alternative syntax #${num}</p>',
+                    data: {
+                        num: 1
+                    },
+                    expectedOutput: '<p>Alternative syntax #1</p>'
                 },
-                expectedOutput: '<p>Alternative syntax #2</p>'
-            },
-            {
-                html: '<p>Alternative syntax #{{num}}</p>',
-                data: {
-                    num: 3
+                {
+                    html: '<p>Alternative syntax #${ num }</p>',
+                    data: {
+                        num: 2
+                    },
+                    expectedOutput: '<p>Alternative syntax #2</p>'
                 },
-                expectedOutput: '<p>Alternative syntax #3</p>'
-            }
-        ];
+                {
+                    html: '<p>Alternative syntax #{{num}}</p>',
+                    data: {
+                        num: 3
+                    },
+                    expectedOutput: '<p>Alternative syntax #3</p>'
+                }
+            ];
 
-        _.each(samples, function(sample) {
+            _.each(samples, function(sample) {
 
-            var template = joint.util.template(sample.html);
-            var actualOutput = template(sample.data);
+                var template = joint.util.template(sample.html);
+                var actualOutput = template(sample.data);
 
-            assert.equal(actualOutput, sample.expectedOutput, 'should return expected output');
+                assert.equal(actualOutput, sample.expectedOutput, 'should return expected output');
+            });
+        });
+    });
+
+    QUnit.module('addClassNamePrefix', function(hooks) {
+
+        QUnit.test('should be a function', function(assert) {
+
+            assert.equal(typeof joint.util.addClassNamePrefix, 'function');
+        });
+
+        QUnit.test('falsey value provided', function(assert) {
+
+            assert.equal(joint.util.addClassNamePrefix(null), null);
+            assert.equal(joint.util.addClassNamePrefix(undefined), undefined);
+            assert.equal(joint.util.addClassNamePrefix(0), 0);
+            assert.equal(joint.util.addClassNamePrefix(''), '');
+            assert.ok(_.isNaN(joint.util.addClassNamePrefix(NaN)));
+        });
+
+        QUnit.test('non-string value provided', function(assert) {
+
+            assert.equal(joint.util.addClassNamePrefix(1), joint.config.classNamePrefix + '1');
+        });
+
+        QUnit.test('one class name', function(assert) {
+
+            assert.equal(joint.util.addClassNamePrefix('some-class'), joint.config.classNamePrefix + 'some-class');
+        });
+
+        QUnit.test('multiple class names', function(assert) {
+
+            assert.equal(joint.util.addClassNamePrefix('some-class some-other-class'), joint.config.classNamePrefix + 'some-class ' + joint.config.classNamePrefix + 'some-other-class');
+        });
+    });
+
+    QUnit.module('removeClassNamePrefix', function(hooks) {
+
+        QUnit.test('should be a function', function(assert) {
+
+            assert.equal(typeof joint.util.removeClassNamePrefix, 'function');
+        });
+
+        QUnit.test('falsey value provided', function(assert) {
+
+            assert.equal(joint.util.removeClassNamePrefix(null), null);
+            assert.equal(joint.util.removeClassNamePrefix(undefined), undefined);
+            assert.equal(joint.util.removeClassNamePrefix(0), 0);
+            assert.equal(joint.util.removeClassNamePrefix(''), '');
+            assert.ok(_.isNaN(joint.util.removeClassNamePrefix(NaN)));
+        });
+
+        QUnit.test('non-string value provided', function(assert) {
+
+            assert.equal(joint.util.removeClassNamePrefix(1), '1');
+        });
+
+        QUnit.test('one prefixed class name', function(assert) {
+
+            assert.equal(joint.util.removeClassNamePrefix(joint.config.classNamePrefix + 'some-class'), 'some-class');
+        });
+
+        QUnit.test('multiple prefixed class names', function(assert) {
+
+            assert.equal(joint.util.removeClassNamePrefix(joint.config.classNamePrefix + 'some-class ' + joint.config.classNamePrefix + 'some-other-class'), 'some-class some-other-class');
+        });
+
+        QUnit.test('mix of prefixed and non-prefixed class names', function(assert) {
+
+            assert.equal(joint.util.removeClassNamePrefix(joint.config.classNamePrefix + 'some-class without-prefix'), 'some-class without-prefix');
         });
     });
 

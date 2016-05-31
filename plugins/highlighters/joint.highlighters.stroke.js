@@ -31,7 +31,6 @@ joint.highlighters.stroke = {
 
         var highlightVel = V('path').attr({
             d: pathData,
-            'class': 'joint-highlight-stroke',
             'pointer-events': 'none'
         });
 
@@ -56,8 +55,9 @@ joint.highlighters.stroke = {
             });
         }
 
-        // This will handle the joint-theme-* class name for us.
+        // joint.mvc.View will handle the theme class name and joint class name prefix.
         var highlightView = this._views[magnetEl.id] = new joint.mvc.View({
+            className: 'highlight-stroke',
             // This is necessary because we're passing in a vectorizer element (not jQuery).
             el: highlightVel.node,
             $el: highlightVel

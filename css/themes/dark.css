@@ -1,5 +1,5 @@
 /* Paper */
-.paper.joint-theme-dark {
+.joint-paper.joint-theme-dark {
     background-color: #18191b;
 }
 /* Paper */
@@ -14,7 +14,7 @@
 
 
 /*  Links  */
-.link.joint-theme-dark .connection-wrap {
+.joint-link.joint-theme-dark .connection-wrap {
     stroke: #8F8FF3;
     stroke-width: 15;
     stroke-linecap: round;
@@ -22,43 +22,43 @@
     opacity: 0;
     cursor: move;
 }
-.link.joint-theme-dark .connection-wrap:hover {
+.joint-link.joint-theme-dark .connection-wrap:hover {
     opacity: .4;
     stroke-opacity: .4;
 }
-.link.joint-theme-dark .connection {
+.joint-link.joint-theme-dark .connection {
     stroke-linejoin: round;
 }
-.link.joint-theme-dark .link-tools .tool-remove circle {
+.joint-link.joint-theme-dark .link-tools .tool-remove circle {
     fill: #F33636;
 }
-.link.joint-theme-dark .link-tools .tool-remove path {
+.joint-link.joint-theme-dark .link-tools .tool-remove path {
     fill: white;
 }
-.link.joint-theme-dark .link-tools [event="link:options"] circle {
+.joint-link.joint-theme-dark .link-tools [event="link:options"] circle {
     fill: green;
 }
 /* <circle> element inside .marker-vertex-group <g> element */
-.link.joint-theme-dark .marker-vertex {
+.joint-link.joint-theme-dark .marker-vertex {
     fill: #5652DB;
 }
-.link.joint-theme-dark .marker-vertex:hover {
+.joint-link.joint-theme-dark .marker-vertex:hover {
     fill: #8E8CE1;
     stroke: none;
 }
-.link.joint-theme-dark .marker-arrowhead {
+.joint-link.joint-theme-dark .marker-arrowhead {
     fill: #5652DB;
 }
-.link.joint-theme-dark .marker-arrowhead:hover {
+.joint-link.joint-theme-dark .marker-arrowhead:hover {
     fill: #8E8CE1;
     stroke: none;
 }
 /* <circle> element used to remove a vertex */
-.link.joint-theme-dark .marker-vertex-remove-area {
+.joint-link.joint-theme-dark .marker-vertex-remove-area {
     fill: green;
     stroke: darkgreen;
 }
-.link.joint-theme-dark .marker-vertex-remove {
+.joint-link.joint-theme-dark .marker-vertex-remove {
     fill: white;
     stroke: white;
 }

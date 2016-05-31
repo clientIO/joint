@@ -5,9 +5,9 @@ joint.mvc.View = Backbone.View.extend({
 
     options: {},
     theme: null,
-    themeClassNamePrefix: 'joint-theme-',
+    themeClassNamePrefix: joint.util.addClassNamePrefix('theme-'),
     requireSetThemeOverride: false,
-    defaultTheme: 'default',
+    defaultTheme: joint.config.defaultTheme,
 
     constructor: function(options) {
 
@@ -32,8 +32,10 @@ joint.mvc.View = Backbone.View.extend({
     _ensureElClassName: function() {
 
         var className = _.result(this, 'className');
+        var prefixedClassName = joint.util.addClassNamePrefix(className);
 
-        this.$el.addClass(className);
+        this.$el.removeClass(className);
+        this.$el.addClass(prefixedClassName);
     },
 
     init: function() {
@@ -54,15 +56,32 @@ joint.mvc.View = Backbone.View.extend({
         // Don't set the theme.
         if (this.theme && this.requireSetThemeOverride && !opt.override) return;
 
-        if (this.theme) {
-
-            this.$el.removeClass(this.themeClassNamePrefix + this.theme);
-        }
-
-        this.$el.addClass(this.themeClassNamePrefix + theme);
-
+        this.removeThemeClassName();
+        this.addThemeClassName(theme);
         this.onSetTheme(this.theme/* oldTheme */, theme/* newTheme */);
         this.theme = theme;
+
+        return this;
+    },
+
+    addThemeClassName: function(theme) {
+
+        theme = theme || this.theme;
+
+        var className = this.themeClassNamePrefix + theme;
+
+        this.$el.addClass(className);
+
+        return this;
+    },
+
+    removeThemeClassName: function(theme) {
+
+        theme = theme || this.theme;
+
+        var className = this.themeClassNamePrefix + theme;
+
+        this.$el.removeClass(className);
 
         return this;
     },

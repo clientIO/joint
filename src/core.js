@@ -7,6 +7,13 @@ var joint = {
 
     version: '[%= pkg.version %]',
 
+    config: {
+        // The class name prefix config is for advanced use only.
+        // Be aware that if you change the prefix, the JointJS CSS will no longer function properly.
+        classNamePrefix: 'joint-',
+        defaultTheme: 'default'
+    },
+
     // `joint.dia` namespace.
     dia: {},
 
@@ -317,17 +324,17 @@ var joint = {
             return evt;
         },
 
-        nextFrame:(function() {
+        nextFrame: (function() {
 
             var raf;
 
             if (typeof window !== 'undefined') {
 
-                raf = window.requestAnimationFrame     ||
-		    window.webkitRequestAnimationFrame ||
-	            window.mozRequestAnimationFrame    ||
-		    window.oRequestAnimationFrame      ||
-		    window.msRequestAnimationFrame;
+                raf = window.requestAnimationFrame ||
+                        window.webkitRequestAnimationFrame ||
+                        window.mozRequestAnimationFrame ||
+                        window.oRequestAnimationFrame ||
+                        window.msRequestAnimationFrame;
             }
 
             if (!raf) {
@@ -361,15 +368,15 @@ var joint = {
 
             if (client) {
 
-                caf = window.cancelAnimationFrame            ||
-		    window.webkitCancelAnimationFrame        ||
-	            window.webkitCancelRequestAnimationFrame ||
-		    window.msCancelAnimationFrame            ||
-	            window.msCancelRequestAnimationFrame     ||
-		    window.oCancelAnimationFrame             ||
-	            window.oCancelRequestAnimationFrame      ||
-	            window.mozCancelAnimationFrame           ||
-		    window.mozCancelRequestAnimationFrame;
+                caf = window.cancelAnimationFrame ||
+                        window.webkitCancelAnimationFrame ||
+                        window.webkitCancelRequestAnimationFrame ||
+                        window.msCancelAnimationFrame ||
+                        window.msCancelRequestAnimationFrame ||
+                        window.oCancelAnimationFrame ||
+                        window.oCancelRequestAnimationFrame ||
+                        window.mozCancelAnimationFrame ||
+                        window.mozCancelRequestAnimationFrame;
             }
 
             caf = caf || clearTimeout;
@@ -1260,6 +1267,8 @@ var joint = {
 
             return function(data) {
 
+                data = data || {};
+
                 return html.replace(regex, function(match) {
 
                     var args = Array.prototype.slice.call(arguments);
@@ -1303,6 +1312,36 @@ var joint = {
             } else {
                 prefixedResult(el, 'RequestFullScreen');
             }
+        },
+
+        addClassNamePrefix: function(className) {
+
+            if (!className) return className;
+
+            return _.map(className.toString().split(' '), function(_className) {
+
+                if (_className.substr(0, joint.config.classNamePrefix.length) !== joint.config.classNamePrefix) {
+                    _className = joint.config.classNamePrefix + _className;
+                }
+
+                return _className;
+
+            }).join(' ');
+        },
+
+        removeClassNamePrefix: function(className) {
+
+            if (!className) return className;
+
+            return _.map(className.toString().split(' '), function(_className) {
+
+                if (_className.substr(0, joint.config.classNamePrefix.length) === joint.config.classNamePrefix) {
+                    _className = _className.substr(joint.config.classNamePrefix.length);
+                }
+
+                return _className;
+
+            }).join(' ');
         },
 
         wrapWith: function(object, methods, wrapper) {

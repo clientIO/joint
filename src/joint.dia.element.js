@@ -364,7 +364,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     ],
 
     className: function() {
-        return 'element ' + this.model.get('type').replace(/\./g, ' ');
+
+        var classNames = joint.dia.CellView.prototype.className.apply(this).split(' ');
+
+        classNames.push('element');
+
+        return classNames.join(' ');
     },
 
     initialize: function() {
@@ -474,8 +479,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 !_.isUndefined(attrs['ref-y']) ||
                 !_.isUndefined(attrs['ref-dx']) ||
                 !_.isUndefined(attrs['ref-dy']) ||
-		!_.isUndefined(attrs['x-alignment']) ||
-		!_.isUndefined(attrs['y-alignment']) ||
+                !_.isUndefined(attrs['x-alignment']) ||
+                !_.isUndefined(attrs['y-alignment']) ||
                 !_.isUndefined(attrs['ref-width']) ||
                 !_.isUndefined(attrs['ref-height'])
                ) {
@@ -741,7 +746,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (markup) {
 
-            var nodes = V(markup);
+            var svg = joint.util.template(markup)();
+            var nodes = V(svg);
 
             this.vel.append(nodes);
 
@@ -756,12 +762,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.$el.empty();
 
         this.renderMarkup();
-
         this.rotatableNode = this.vel.findOne('.rotatable');
         this.scalableNode = this.vel.findOne('.scalable');
-
         this.update();
-
         this.resize();
         this.rotate();
         this.translate();
