@@ -1,4 +1,4 @@
-TBD (v0.9.8)
+31-05-2016 (v0.9.9)
   * JointJS:
     * Added env namespace with env.test(name) and env.addTest(name, fn) methods
     * Added highlighters namespace with two highlighters (stroke and opacity). Highlighting now done automatically when: embedding an element, connecting a link to a port or element.

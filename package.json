@@ -11,7 +11,7 @@
   "scripts": {
     "test": "grunt test"
   },
-  "version": "0.9.7",
+  "version": "0.9.9",
   "homepage": "http://jointjs.com",
   "author": {
     "name": "client IO",
@@ -76,8 +76,8 @@
     "mocha": "2.5.3",
     "open-sans-fontface": "https://github.com/clientIO/open-sans/archive/1.4.2.tar.gz",
     "prismjs": "1.5.0",
-    "serve-static": "1.10.2",
-    "should": "8.4.0",
+    "serve-static": "1.10.3",
+    "should": "9.0.0",
     "sinon": "1.17.4",
     "time-grunt": "1.3.0",
     "webpack": "1.13.1",
