@@ -9,7 +9,6 @@
     "visualization"
   ],
   "scripts": {
-    "postinstall": "node ./scripts/postinstall.js",
     "test": "grunt test"
   },
   "version": "0.9.7",

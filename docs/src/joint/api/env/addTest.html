@@ -1,0 +1,12 @@
+<pre class="docs-method-signature"><code>env.addTest(name, fn)</code></pre>
+
+<p>Add a custom feature-detection test where <code>name</code> is a string which uniquely identifies your feature test and <code>fn</code> is a function that returns <code>true</code> if the browser supports the feature, and <code>false</code> if it does not.</p>
+
+<pre><code>joint.env.addTest('customTest', function() {
+	// Just as an example, we will always return true here.
+	return true;
+});
+
+if (joint.env.test('customTest')) {
+    // Feature is supported.
+}</code></pre>

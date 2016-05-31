@@ -1,29 +1,37 @@
-TBD (v0.10.0)
-
 TBD (v0.9.8)
-  * Changed the link tool event signature (e.g. `link:options`) to be the same as the rest of the cell events.
-  * Added paper.drawGrid(opt) - draws grid lines on the paper's DOM element.
-  * Added paper.setGridSize(gridSize) - changes the grid size of the paper.
-  * Added point.scale(), rect.scale() - scale point/rect with given origin.
-  * Added point.toJSON(), rect.toJSON() - converts point/rect into JSON object.
-  * Added dia.Element scale(), dia.Link scale() for transforming cells by providing a scale ratio and origin.
-  * Added dia.Graph resize(), resizeCells() for a group resizing
-  * Added dia.Graph getCellsBBox() for getting a group bounding box
-  * Added blank:mousewheel and cell:mousewheel events to paper
-  * Added env namespace with env.test(name) and env.addTest(name, fn) methods
-  * Added highlighters namespace with two highlighters (stroke and opacity). Highlighting now done automatically when: embedding an element, connecting a link to a port or element.
-  * Added Vectorizer transform() method to apply SVG matrix to SVG element
-  * Added Vectorizer empty(), before() method
-  * Vectorizer prepend() method accepts single or multiple nodes
-  * Vectorizer createSVGTrasform() accepts optionally an SVG matrix
-  * Added dia.Cell.isElement()
-  * Added dia.Graph.removeCells()
-  * Can now use dia.Graph.addCells(), dia.Graph.removeCells(), and dia.Graph.resetCells() with the same method signature. For example: dia.Graph.addCells(cell, cell) dia.Graph.addCells(cell, cell, opt) dia.Graph.addCells([cell, cell]) dia.Graph.addCells([cell, cell], opt) are all valid usage.
-  * Added layout.DirectedGraph.layout() `align` option for rank nodes alignment.
-  * Added paper.setInteractivity() for changing interactivity.
-  * Added link:connect, link:disconnect paper events for easier link source/target change detection
-  * Added leftMiddle(), rightMiddle(), topMiddle(), bottomMiddle() to geometry for finding middle points of rect sides.
-  * Added ellipse.fromRect(), rect.fromEllipse() to geometry for rect-ellipse interchangeability.
+  * JointJS:
+    * Added env namespace with env.test(name) and env.addTest(name, fn) methods
+    * Added highlighters namespace with two highlighters (stroke and opacity). Highlighting now done automatically when: embedding an element, connecting a link to a port or element.
+    * dia.Paper:
+      * Added paper.drawGrid(opt) - draws grid lines on the paper's DOM element.
+      * Added paper.setGridSize(gridSize) - changes the grid size of the paper.
+      * Added paper.setInteractivity() for changing interactivity.
+      * Added blank:mousewheel and cell:mousewheel events to paper
+      * Added link:connect, link:disconnect paper events for easier link source/target change detection
+      * Changed the link tool event signature (e.g. `link:options`) to be the same as the rest of the cell events.
+    * dia.Cell:
+      * Added isElement() and isLink() methods
+    * dia.Element:
+      * Added scale() for transforming element by providing a scale ratio and origin.
+    * dia.Link:
+      * Added scale() for transforming link by providing a scale ratio and origin.
+    * dia.Graph:
+      * Added resize(), resizeCells() for a group resizing
+      * Added getCellsBBox() for getting a group bounding box
+      * Added removeCells()
+      * Can now use addCells(), removeCells(), and resetCells() with the same method signature. For example: addCells(cell, cell) addCells(cell, cell, opt) addCells([cell, cell]) addCells([cell, cell], opt) are all valid usage.
+    * layout.DirectedGraph:
+      * Added layout() `align` option for rank nodes alignment.
+  * Vectorizer:
+    * Added transform() method to apply SVG matrix to SVG element
+    * Added empty(), before() method
+    * prepend() method now accepts single or multiple nodes
+    * createSVGTransform() now accepts optionally an SVG matrix
+  * Geometry:
+    * Added point.scale(), rect.scale() - scale point/rect with given origin.
+    * Added point.toJSON(), rect.toJSON() - converts point/rect into JSON object.
+    * Added leftMiddle(), rightMiddle(), topMiddle(), bottomMiddle() for finding middle points of rect sides.
+    * Added ellipse.fromRect(), rect.fromEllipse() for rect-ellipse interchangeability.
 
 19-12-2015 (v0.9.6/v0.9.7)
   * dia.Graph introduces new functions for traversing graphs: dfs(), bfs(), search(), isSuccessor(), isPredecessor(), getPredecessors(), getSuccessors(), isNeighbor(), isSource(), isSink(), getSources(), getSinks(), getSubgraph(), getFirstCell(), getLastCell() and getCells()

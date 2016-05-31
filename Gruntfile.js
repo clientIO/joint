@@ -288,6 +288,7 @@ module.exports = function(grunt) {
                     cwd: 'build/',
                     src: [
                         '*',
+                        '!docs',
                         '!min'
                     ],
                     dest: 'dist/'
@@ -306,10 +307,46 @@ module.exports = function(grunt) {
                         cwd: 'docs/',
                         src: [
                             'css/**/*',
+                            'demo/**/*',
                             'js/**/*',
                             'images/**/*'
                         ],
                         dest: 'build/docs/'
+                    },
+                    {
+                        nonull: true,
+                        src: 'node_modules/backbone/backbone-min.js',
+                        dest: 'build/docs/js/lib/backbone.min.js'
+                    },
+                    {
+                        nonull: true,
+                        src: 'node_modules/dagre/dist/dagre.min.js',
+                        dest: 'build/docs/js/lib/dagre.min.js'
+                    },
+                    {
+                        nonull: true,
+                        src: 'node_modules/graphlib/dist/graphlib.min.js',
+                        dest: 'build/docs/js/lib/graphlib.min.js'
+                    },
+                    {
+                        nonull: true,
+                        src: 'node_modules/jquery/dist/jquery.min.js',
+                        dest: 'build/docs/js/lib/jquery.min.js'
+                    },
+                    {
+                        nonull: true,
+                        src: 'build/min/lodash.min.js',
+                        dest: 'build/docs/js/lib/lodash.min.js'
+                    },
+                    {
+                        nonull: true,
+                        src: 'build/joint.min.js',
+                        dest: 'build/docs/js/lib/joint.min.js'
+                    },
+                    {
+                        nonull: true,
+                        src: 'build/joint.min.css',
+                        dest: 'build/docs/css/lib/joint.min.css'
                     },
                     {
                         expand: true,
@@ -414,6 +451,11 @@ module.exports = function(grunt) {
         uglify: {
             options: {
                 ASCIIOnly: true
+            },
+            deps: {
+                files: {
+                    'build/min/lodash.min.js': 'node_modules/lodash/index.js'
+                }
             },
             geometry: {
                 src: js.geometry,
@@ -652,6 +694,7 @@ module.exports = function(grunt) {
 
     grunt.registerTask('build:joint', [
         'build:plugins',
+        'newer:uglify:deps',
         'newer:uglify:geometry',
         'newer:uglify:vectorizer',
         'newer:uglify:joint',

@@ -489,13 +489,6 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.prepend = function(el) {
-
-        this.node.insertBefore(V.isV(el) ? el.node : el, this.node.firstChild);
-
-        return this;
-    };
-
     V.prototype.prepend = function(els) {
 
         var child = this.node.firstChild;

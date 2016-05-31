@@ -1,0 +1,97 @@
+<p>Automatic layout of directed graphs. This plugin uses the open-source (MIT license) <a href="https://github.com/cpettitt/dagre">Dagre</a> library internally. It provides a wrapper so that you can call the layout directly on JointJS graphs.</p>
+
+<p><strong>Note</strong> that you must include both the <a href="https://github.com/cpettitt/dagre">Dagre</a> and <a href="https://github.com/cpettitt/graphlib">Graphlib</a> libraries as dependencies if you wish to use the layout.DirectedGraph plugin.</p>
+
+<h3>Usage</h3>
+
+<p><code>joint.layout.DirectedGraph</code> plugin exposes the <code>joint.layout.DirectedGraph.layout(graph, opt)</code> function.
+    The first parameter <code>graph</code> is the graph we want to layout. The second parameter <code>options</code> is an
+    object that contains various options for configuring the layout.
+</p>
+
+<pre><code>var res = joint.layout.DirectedGraph.layout(graph, {
+    nodeSep: 50,
+    edgeSep: 80,
+    rankDir: "TB"
+});
+console.log(res.width, res.height);</code></pre>
+
+<iframe src="about:blank" data-src="demo/layout/DirectedGraph"></iframe>
+<p>A full blog post explaining this example in more detail can be found <a href="http://www.daviddurman.com/automatic-graph-layout-with-jointjs-and-dagre.html">here</a>.</p>
+
+
+<h4>Example with clusters</h4>
+
+<iframe src="about:blank" data-src="demo/layout/DirectedGraph/clusters.html"></iframe>
+
+
+<h3>Configuration</h3>
+
+<p>The following table lists options that you can pass to the <code>joint.layout.DirectedGraph.layout(graph, opt)</code> function:</p>
+
+<table>
+    <tr><th>nodeSep</th><td>a number of pixels representing the separation between adjacent nodes in the same rank</td></tr>
+    <tr><th>edgeSep</th><td>a number of pixels representing the separation between adjacent edges in the same rank</td></tr>
+    <tr><th>rankSep</th><td>a number of pixels representing the separation between ranks</td></tr>
+    <tr><th>rankDir</th><td>direction of the layout (one of <code>"TB"</code> (top-to-bottom) / <code>"BT"</code> (bottom-to-top) / <code>"LR"</code> (left-to-right) / <code>"RL"</code> (right-to-left))</td></tr>
+    <tr><th>marginX</th><td>number of pixels to use as a margin around the left and right of the graph.</td></tr>
+    <tr><th>marginY</th><td>number of pixels to use as a margin around the top and bottom of the graph.</td></tr>
+    <tr><th>resizeClusters</th><td>set to <code>false</code> if you don't want parent elements to stretch in order to fit all their embedded children. Default is <code>true</code>.</td></tr>
+    <tr><th>setPosition(element, position)</th><td>a function that will be used to set the position of elements at the end of the layout. This is useful
+    if you don't want to use the default <code>element.set('position', position)</code> but want to set the position in an animated fashion via <a href="#dia.Element.prototype.transition">transitions</a>.</td></tr>
+    <tr><th>setLinkVertices(link, vertices)</th><td>a function that will be used to set the vertices of links at the end of the layout. This is useful
+    if you don't want to use the default <code>link.set('vertices', vertices)</code> but want to set the vertices in an animated fashion via <a href="#dia.Link.prototype.transition">transitions</a>.</td></tr>
+</table>
+
+<p>Additionally, the layout engine takes into account some properties on elements/links to fine tune the layout further. These are:</p>
+
+<table>
+  <tr>
+    <th>minLen <em>Link specific</em></th>
+    <td>The number of ranks to keep between the source and target of the link.</td>
+  </tr>
+</table>
+
+<p>The <code>layout()</code> function returns an object that contains <code>width</code> and <code>height</code>
+of the resulting graph.</p>
+
+
+<h3>API</h3>
+
+<p>The <code>layout.DirectedGraph</code> plugins extends the <code>joint.dia.Graph</code> type with functions
+that make it easy to convert graphs to and from the <a href="https://github.com/cpettitt/graphlib">Graphlib</a> graph format.
+This allows you to easily use many of the <a href="https://github.com/cpettitt/graphlib/wiki/API-Reference">graph algorithms</a> provided by this library.</p>
+
+<table>
+  <tr><th><p>toGraphLib()</th><td>Convert the JointJS <code>joint.dia.Graph</code> object to the Graphlib graph object.</p>
+      <pre><code>var graph = new joint.dia.Graph;
+// ... populated the graph with elements connected with links
+graphlib.alg.isAcyclic(graph.toGraphLib())      // true if the graph is acyclic</code></pre>
+  </td></tr>
+  <tr><th><p>fromGraphLib(glGraph, opt)</th><td>Convert the Graphlib graph representation to JointJS <code>joint.dia.Graph</code> object.
+      <code>opt.importNode</code> and <code>opt.importEdge</code> are functions that accept a Graphlib node and edge objects and should return
+      JointJS element/link.</p>
+      <pre><code>var g = new graphlib.Graph();
+g.setNode(1);
+g.setNode(2);
+g.setNode(3);
+g.setEdge(1, 2);
+g.setEdge(2, 3);
+
+var graph = new joint.dia.Graph;
+graph.fromGraphLib(g, {
+    importNode: function(node) {
+        return new joint.shapes.basic.Rect({
+            position: { x: node.x, y: node.y },
+            size: { width: node.width, height: node.height }
+        });
+    },
+    importEdge: function(edge) {
+        return new joint.dia.Link({
+            source: { id: edge.v },
+            target: { id: edge.w }
+        });
+    }
+});</code></pre>
+  </td></tr>
+</table>

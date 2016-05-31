@@ -963,6 +963,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
     // Return bounding box of all elements.
     getBBox: function(cells, opt) {
+
         return this.getCellsBBox(cells || this.getElements(), opt);
     },
 
