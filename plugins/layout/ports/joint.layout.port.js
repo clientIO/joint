@@ -23,6 +23,11 @@
                     .rotate(center, startAngle + stepFn(index, ports.length))
                     .scale(ratio, 1, center);
 
+            // `dx`,`dy` per port offset option
+            if (port.dx || port.dy) {
+                p2.offset(port.dx || 0, port.dy || 0);
+            }
+
             // `dr` delta radius option
             if (port.dr) {
                 p2.move(center, port.dr);
@@ -60,16 +65,13 @@
             });
         },
 
-        /*
-         TODO: Make this work. Group option missing
-         line: function(ports, elBBox, opt, cellview) {
+        line: function(ports, elBBox) {
 
-            var start = argPoint(elBBox, opt.start);
-            var end = argPoint(elBBox, opt.end);
+            var start = argPoint(elBBox, ports[0].start || elBBox.origin());
+            var end = argPoint(elBBox, ports[0].end || elBBox.corner());
 
             return lineLayout(ports, start, end);
         },
-        */
 
         left: function(ports, elBBox) {
             return lineLayout(ports, elBBox.origin(), elBBox.bottomLeft());
@@ -89,10 +91,8 @@
 
         ellipse: function(ports, elBBox) {
 
-            // TODO: startAngle via group option
-            var startAngle = 0;
-            // TODO: start point defined via group options
-            var stepAngle =  360 / ports.length;
+            var startAngle = ports[0].startAngle || 0;
+            var stepAngle = ports[0].step || 360 / ports.length;
 
             return ellipseLayout(ports, elBBox, startAngle, function(index) {
                 return index * stepAngle;
@@ -101,10 +101,8 @@
 
         ellipse2: function(ports, elBBox, opt) {
 
-            // TODO: startAngle via group option
-            var startAngle = 0;
-            // TODO: stepAngle via group option
-            var stepAngle = 20;
+            var startAngle = ports[0].startAngle || 0;
+            var stepAngle = ports[0].step || 360 / ports.length;
 
             return ellipseLayout(ports, elBBox, startAngle, function(index, count) {
                 return (index + 0.5 - count / 2) * stepAngle;
