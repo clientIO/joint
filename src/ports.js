@@ -261,13 +261,14 @@
         portMarkup: '<circle class="base-port" r="10" fill="#000000"/>',
         portLabelMarkup: '<text class="label"/>',
 
+        /** @type {Object<string, {portElement: V, portLabelElement: V}>} */
+        _portElementsCache: {},
+
         /**
          * @private
          */
         _initializePorts: function() {
 
-            /** @type {Object<string, {portElement: V, portLabelElement: V}>} */
-            this._portElementsCache = {};
             this.listenTo(this.model, 'change:ports', function() {
 
                 this._refreshPorts();
