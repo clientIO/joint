@@ -120,10 +120,10 @@ joint.dia.Element = joint.dia.Cell.extend({
         } else {
 
             this.set('position', translatedPosition, opt);
-
-            // Recursively call `translate()` on all the embeds cells.
-            _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
         }
+
+        // Recursively call `translate()` on all the embeds cells.
+        _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
 
         return this;
     },
