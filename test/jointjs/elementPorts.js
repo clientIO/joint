@@ -337,13 +337,18 @@ QUnit.module('element ports', function() {
             var data = {
                 groups: {
                     'a': {
-                        label: { position: 'right' }
+                        label: {
+                            position: {
+                                name: 'right',
+                                args: { ty: 20 }
+                            }
+                        }
                     }, 'b': {}
                 },
                 items: [
-                    { id: 'pa1', group: 'a', label: { position: { name: 'top', args: { dx: 11 } } } },
+                    { id: 'pa1', group: 'a', label: { position: { name: 'top', args: { tx: 11 } } } },
                     { id: 'pa2', group: 'a' },
-                    { id: 'pb1', group: 'b', label: { position: { args: { dx: 11 } } } },
+                    { id: 'pb1', group: 'b', label: { position: { args: { tx: 11 } } } },
                     { id: 'pb2', group: 'b' }
                 ]
             };
@@ -354,12 +359,13 @@ QUnit.module('element ports', function() {
             var portData = shape.portData;
 
             assert.equal(portData.getPort('pa1').label.position.name, 'top', 'override group settings');
-            assert.equal(portData.getPort('pa1').label.position.args.dx, 11);
+            assert.equal(portData.getPort('pa1').label.position.args.tx, 11);
+            assert.equal(portData.getPort('pa1').label.position.args.ty, 20);
 
             assert.equal(portData.getPort('pa2').label.position.name, 'right', 'gets settings from group');
 
             assert.equal(portData.getPort('pb1').label.position.name, 'left', 'default settings, extra args');
-            assert.equal(portData.getPort('pb1').label.position.args.dx, 11);
+            assert.equal(portData.getPort('pb1').label.position.args.tx, 11);
 
             assert.equal(portData.getPort('pb2').label.position.name, 'left', 'defaults - no settings on group, either on port label');
         });

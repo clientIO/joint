@@ -165,7 +165,7 @@
             return labelAttributes(opt, { tx: -15, y: '.3em', anchor: 'end' });
         },
 
-        rigth: function(portPosition, elBBox, opt) {
+        right: function(portPosition, elBBox, opt) {
             return labelAttributes(opt, { tx: 15, y: '.3em', anchor: 'start' });
         },
 

@@ -43,8 +43,10 @@ var g2 = new joint.shapes.basic.Rect({
                 }
             },
             'reds': {
-                position: function(port, index, ports) {
-                    return { x: index * 20 + 20, y: 0 };
+                position: function(ports, elBbox, opt) {
+                    return _.map(ports, function(port, index) {
+                        return g.point({ x: index * 20 + 20, y: 0 });
+                    });
                 },
                 attrs: {
                     circle: {
@@ -90,6 +92,10 @@ $('<b/>').text('Click on Rectangle to toggle port positions alignment').appendTo
 
 var portPosition = 0;
 paper2.on('element:pointerdown', function(cellView, e) {
+
+    if (!cellView.model.hasPorts()) {
+        return ;
+    }
 
     var positions = _.keys(joint.layout.Port);
 
@@ -176,6 +182,10 @@ $('<b/>').text('Click on ellipse to toggle label position alignment').appendTo('
 var labelPos = 0;
 paper3.on('element:pointerdown', function(cellView, e) {
 
+    if (!cellView.model.hasPorts()) {
+        return ;
+    }
+
     var positions = _.keys(joint.layout.Label);
     var pos = positions[(labelPos) % positions.length];
 
@@ -187,7 +197,6 @@ paper3.on('element:pointerdown', function(cellView, e) {
 
 
 // IV.
-
 $('<h2/>').text('Z index').appendTo('body');
 var paper4 = createPaper();
 $('<b/>').text('Click on Rectangle to increment z-index of massive port').appendTo('body');
@@ -201,16 +210,19 @@ _.times(10, function(index) {
     g4.addPort({ id: index + '', attrs: { circle: { r: 15, magnet: true, stroke: '#ffffff' } } });
 });
 
-paper4.model.addCell(g4);
 g4.addPort({
     z: 2,
     args: {
         dy: -140,
-        dx: -20
+        dx: 0
     },
     label: {
         position: {
-            name: 'top'
+            name: 'right',
+            args: {
+                tx: 50,
+                ty: -10
+            }
         }
     },
     attrs: {
@@ -226,7 +238,13 @@ g4.addPort({
     markup: '<rect/>'
 });
 
+paper4.model.addCell(g4);
+
 paper4.on('element:pointerdown', function(cellView) {
+
+    if (!cellView.model.hasPorts()) {
+        return ;
+    }
 
     var portIndex = 10;
     var z = parseInt(cellView.model.prop('ports/items/' + portIndex + '/z'), 10) || 0;

@@ -153,7 +153,7 @@ joint.shapes.devs.CircleModel = joint.shapes.basic.Circle.extend({
                             dy: -5,
                             dr: 0,
                             step: 30,
-                            startAngle: 45
+                            startAngle: 90
                         }
                     },
                     attrs: {
