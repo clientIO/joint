@@ -380,7 +380,10 @@ V = Vectorizer = (function() {
                 // character and make it invisible, making the following lines correctly
                 // relatively positioned. `dy=1em` won't work with empty lines otherwise.
                 vLine.addClass('v-empty-line');
-                vLine.node.style.opacity = 0;
+                // 'opacity' needs to be specified with fill, stroke. Opacity without specification
+                // is not applied in Firefox
+                vLine.node.style.fillOpacity = 0;
+                vLine.node.style.strokeOpacity = 0;
                 vLine.node.textContent = '-';
             }
 
