@@ -269,7 +269,7 @@
         portContainerMarkup: '<g class="port"/>',
         portMarkup: '<circle class="base-port" r="10" fill="#000000"/>',
         portLabelMarkup: '<text class="label"/>',
-        /** @type {Object<string, {portElement: V, portLabelElement: V}>} */
+        /** @type {Object<string, {portElement: Vectorizer, portLabelElement: Vectorizer}>} */
         _portElementsCache: null,
 
         /**
@@ -410,9 +410,19 @@
                 return;
             }
 
+            this._updateAllAttrs(element.portElement.node, allAttrs);
+        },
+
+        /**
+         * @param {Element} element
+         * @param {Object} allAttrs
+         * @private
+         */
+        _updateAllAttrs: function(element, allAttrs) {
+
             _.each(allAttrs, function(attrs, selector) {
 
-                var $selected = selector === '.' ? $(element.portElement.node) : $(element.portElement.node).find(selector);
+                var $selected = selector === '.' ? $(element) : $(element).find(selector);
                 this.updateAttr($selected, attrs);
 
             }, this);
@@ -437,31 +447,38 @@
             _.each(offsets, function(offset, index) {
 
                 var port = this.model.portData.getPort(ports[index].id);
-                this._layoutPort(port, offset, elBBox);
+                var cached = this._portElementsCache[port.id] || {};
+
+                this.applyPortTransform(cached.portElement, offset);
+
+                var namespace = joint.layout.Label;
+                var labelPosition = port.label.position.name;
+                if (namespace[labelPosition]) {
+                    this.applyPortTransform(cached.portLabelElement, namespace[labelPosition](g.point(offset), elBBox, port.label.position.args));
+                }
             }, this);
         },
 
         /**
-         * @param {Port} port
-         * @param {{x:number, y:number}}portPosition
-         * @param {g.rect} elBBox
-         * @private
+         * @param {Vectorizer} element
+         * @param {{x:number, y:number, angle: number, attrs: Object}} transformData
+         * @constructor
          */
-        _layoutPort: function(port, portPosition, elBBox) {
+        applyPortTransform: function(element, transformData) {
 
-            var cached = this._portElementsCache[port.id] || {};
-
-            if (cached.portElement) {
-                cached.portElement.translate(portPosition.x, portPosition.y, { absolute: true });
+            if (!element) {
+                return;
             }
 
-            if (cached.portLabelElement) {
-                var namespace = joint.layout.Label;
-                var labelPosition = port.label.position.name;
-                if (namespace[labelPosition]) {
-                    cached.portLabelElement.attr(namespace[labelPosition](g.point(portPosition), elBBox, port.label.position.args));
-                }
+            if (transformData.x || transformData.y) {
+                element.translate(transformData.x, transformData.y, { absolute: true });
             }
+
+            if (transformData.angle) {
+                element.rotate(transformData.angle, undefined, undefined, { absolute: true });
+            }
+
+            this._updateAllAttrs(element.node, transformData.attrs || {});
         },
 
         /**

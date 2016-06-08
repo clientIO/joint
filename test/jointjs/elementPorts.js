@@ -370,4 +370,60 @@ QUnit.module('element ports', function() {
             assert.equal(portData.getPort('pb2').label.position.name, 'left', 'defaults - no settings on group, either on port label');
         });
     });
+
+
+    QUnit.module('port layouts ', function(hooks) {
+
+        QUnit.test('layout port position', function(assert) {
+
+            joint.layout.Port.custom = function(ports, elBBox, opt) {
+                return ports.map(function(port, index) {
+                    return { x: 1 + index, y: 2 + index, angle: 10 + index };
+                });
+            };
+
+            var data = {
+                groups: {
+                    'a': { position: 'custom' }
+                },
+                items: [
+                    { id: 'pa1', group: 'a' },
+                    { id: 'pa2', group: 'a' }
+                ]
+            };
+
+            var shape = create(data);
+            var view = new joint.dia.ElementView({ model: shape }).render();
+            var ports = view.$el.find('.port');
+            assert.equal(ports.eq(0).attr('transform'), 'translate(1,2) rotate(10)');
+        });
+
+        QUnit.test('layout labels', function(assert) {
+
+            joint.layout.Label.custom = function() {
+                return { x: 1, y: 2, angle: 3, attrs: { '.': { y: '1em', 'text-anchor': 'start' } } };
+            };
+
+            var data = {
+                groups: {
+                    'a': { label: { position: 'custom' } }
+                },
+                items: [
+                    { id: 'pa1', group: 'a' },
+                    { id: 'pa2', group: 'a' }
+                ]
+            };
+
+            var shape = create(data);
+            var view = new joint.dia.ElementView({ model: shape }).render();
+
+            var ports = view.$el.find('.port');
+
+            var portLabel = ports.eq(0).find('text');
+
+            assert.equal(portLabel.attr('transform'), 'translate(1,2) rotate(3)');
+            assert.equal(portLabel.attr('y'), '1em');
+            assert.equal(portLabel.attr('text-anchor'), 'start');
+        });
+    });
 });

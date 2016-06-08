@@ -2,25 +2,16 @@
 
     function labelAttributes(opt1, opt2) {
 
-        var opt = _.defaults({}, opt1, opt2, {
-            tx: 0,
-            ty: 0,
+        return _.defaults({}, opt1, opt2, {
+            x: 0,
+            y: 0,
             angle: 0,
-            anchor: 'start',
-            y: '0'
+            attrs: {
+                'text-anchor': 'start',
+                y: '0'
+            }
         });
 
-        var round = Math.round;
-        var transformation = 'translate(' + round(opt.tx) + ',' + round(opt.ty) + ')';
-        if (opt.angle) {
-            transformation += ' rotate(' + round(opt.angle) + ')';
-        }
-
-        return {
-            'transform': transformation,
-            'text-anchor': opt.anchor,
-            'y': opt.y
-        };
     }
 
     function outsideLayout(angle, autoOrient, opt) {
@@ -63,12 +54,15 @@
             }
         }
 
+        var round = Math.round;
         return labelAttributes({
-            tx: tx,
-            ty: ty,
-            y: y,
+            x: round(tx),
+            y: round(ty),
             angle: orientAngle,
-            anchor: textAnchor
+            attrs: {
+                y: y,
+                'text-anchor': textAnchor
+            }
         });
     }
 
@@ -112,12 +106,15 @@
             }
         }
 
+        var round = Math.round;
         return labelAttributes({
-            tx: tx,
-            ty: ty,
-            y: y,
+            x: round(tx),
+            y: round(ty),
             angle: orientAngle,
-            anchor: textAnchor
+            attrs: {
+                y: y,
+                'text-anchor': textAnchor
+            }
         });
     }
 
@@ -148,12 +145,15 @@
             textAnchor = 'end';
         }
 
+        var round = Math.round;
         return labelAttributes({
-            tx: offset.x,
-            ty: offset.y,
-            y: y,
+            x: (offset.x),
+            y: round(offset.y),
             angle: autoOrient ? orientAngle : 0,
-            anchor: textAnchor
+            attrs: {
+                y: y,
+                'text-anchor': textAnchor
+            }
         });
     }
 
@@ -162,19 +162,19 @@
         manual: _.rearg(labelAttributes, 2),
 
         left: function(portPosition, elBBox, opt) {
-            return labelAttributes(opt, { tx: -15, y: '.3em', anchor: 'end' });
+            return labelAttributes(opt, { x: -15, attrs: { '.': { y: '.3em', 'text-anchor': 'end' } } });
         },
 
         right: function(portPosition, elBBox, opt) {
-            return labelAttributes(opt, { tx: 15, y: '.3em', anchor: 'start' });
+            return labelAttributes(opt, { x: 15, attrs: { '.': { y: '.3em', 'text-anchor': 'start' } } });
         },
 
         top: function(portPosition, elBBox, opt) {
-            return labelAttributes(opt, { ty: -15, anchor: 'middle' });
+            return labelAttributes(opt, { y: -15, attrs: { '.': { 'text-anchor': 'middle' } } });
         },
 
         bottom: function(portPosition, elBBox, opt) {
-            return labelAttributes(opt, { ty: 15, y: '.6em', anchor: 'middle' });
+            return labelAttributes(opt, { y: 15, attrs: { '.': { y: '.6em', 'text-anchor': 'middle' } } });
         },
 
         outsideOriented: function(portPosition, elBBox, opt) {

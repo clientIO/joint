@@ -406,6 +406,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     },
 
+    /**
+     * @param {jQuery} $selected
+     * @param {Object} attrs
+     */
     updateAttr: function($selected, attrs) {
 
         // Special attributes are treated by JointJS, not by SVG.

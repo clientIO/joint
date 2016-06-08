@@ -94,7 +94,7 @@ var portPosition = 0;
 paper2.on('element:pointerdown', function(cellView, e) {
 
     if (!cellView.model.hasPorts()) {
-        return ;
+        return;
     }
 
     var positions = _.keys(joint.layout.Port);
@@ -124,7 +124,7 @@ var g3 = new joint.shapes.basic.Circle({
             'a': {
                 position: {
                     name: 'ellipse',
-                    args: { dr: 0 }
+                    args: { dr: 0, dx: 0, dy: 0 }
                 },
                 label: {
                     position: 'left',
@@ -166,12 +166,26 @@ g3.addPort({
             stroke: 'red',
             width: 100,
             height: 20
+        },
+        '.label-text': {
+            y: '0.9em', x: '0.5em', 'text-anchor': 'start', fill: '#FFFFFF'
         }
-
     },
     label: {
-        position: { name: 'top', args: { tx: 15, ty: -10, anchor: 'start' } },
-        markup: '<g><rect class="label-rect"/><text/></g>'
+        position: {
+            name: 'top',
+            args: {
+                x: 15,
+                y: -10,
+                angle: -10
+                //TODO this works as well, overrides .label-rect, .label-text attrs
+                // attrs: {
+                    // text: { y: '0.9em', x: '0.5em', 'text-anchor': 'start' },
+                    // rect: { fill: 'red' }
+                // }
+            }
+        },
+        markup: '<g><rect class="label-rect"/><text class="label-text"/></g>'
     },
     group: 'a'
 });
@@ -183,7 +197,7 @@ var labelPos = 0;
 paper3.on('element:pointerdown', function(cellView, e) {
 
     if (!cellView.model.hasPorts()) {
-        return ;
+        return;
     }
 
     var positions = _.keys(joint.layout.Label);
@@ -194,7 +208,6 @@ paper3.on('element:pointerdown', function(cellView, e) {
     g3.prop('ports/groups/a/label/position', pos);
     labelPos++;
 });
-
 
 // IV.
 $('<h2/>').text('Z index').appendTo('body');
@@ -243,7 +256,7 @@ paper4.model.addCell(g4);
 paper4.on('element:pointerdown', function(cellView) {
 
     if (!cellView.model.hasPorts()) {
-        return ;
+        return;
     }
 
     var portIndex = 10;
