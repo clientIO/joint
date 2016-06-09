@@ -445,6 +445,16 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             $selected.each(function() {
 
+                if (!_.isUndefined(attrs.x)) {
+                    V(this).attr('x', attrs.x);
+                    specialAttributes.push('x');
+                }
+
+                if (!_.isUndefined(attrs.y)) {
+                    V(this).attr('y', attrs.y);
+                    specialAttributes.push('y');
+                }
+
                 V(this).text(attrs.text + '', {
                     lineHeight: attrs.lineHeight,
                     textPath: attrs.textPath,
