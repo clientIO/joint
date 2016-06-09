@@ -20,8 +20,8 @@
         return _.map(ports, function(port, index, ports) {
 
             var p2 = p1.clone()
-                    .rotate(center, startAngle + stepFn(index, ports.length))
-                    .scale(ratio, 1, center);
+                .rotate(center, startAngle + stepFn(index, ports.length))
+                .scale(ratio, 1, center);
 
             // `dx`,`dy` per port offset option
             if (port.dx || port.dy) {
@@ -83,8 +83,8 @@
          */
         line: function(ports, elBBox, opt) {
 
-            var start = argPoint(elBBox, ports[0].start || elBBox.origin());
-            var end = argPoint(elBBox, ports[0].end || elBBox.corner());
+            var start = argPoint(elBBox, opt.position.args.start || elBBox.origin());
+            var end = argPoint(elBBox, opt.position.args.end || elBBox.corner());
 
             return lineLayout(ports, start, end);
         },

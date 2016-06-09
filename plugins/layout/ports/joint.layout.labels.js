@@ -2,32 +2,36 @@
 
     function labelAttributes(opt1, opt2) {
 
-        return _.defaults({}, opt1, opt2, {
+        return _.defaultsDeep({}, opt1, opt2, {
             x: 0,
             y: 0,
             angle: 0,
             attrs: {
-                'text-anchor': 'start',
-                y: '0'
+                '.': {
+                    y: '0',
+                    'text-anchor': 'start'
+                }
             }
         });
 
     }
 
-    function outsideLayout(angle, autoOrient, opt) {
+    function outsideLayout(portPosition, elBBox, autoOrient, opt) {
 
         opt = _.defaults({}, opt, { offset: 15 });
+        var angle = elBBox.center().theta(portPosition);
+        var x = getBBoxAngles(elBBox);
 
         var tx, ty, y, textAnchor;
         var offset = opt.offset;
         var orientAngle = 0;
 
-        if (angle < 45 || angle > 315) {
+        if (angle < x[1] || angle > x[2]) {
             y = '.3em';
             tx = offset;
             ty = 0;
             textAnchor = 'start';
-        } else if (angle < 135) {
+        } else if (angle < x[0]) {
             y = '0';
             tx = 0;
             ty = -offset;
@@ -37,7 +41,7 @@
             } else {
                 textAnchor = 'middle';
             }
-        } else if (angle < 225) {
+        } else if (angle < x[3]) {
             y = '.3em';
             tx = -offset;
             ty = 0;
@@ -60,26 +64,43 @@
             y: round(ty),
             angle: orientAngle,
             attrs: {
-                y: y,
-                'text-anchor': textAnchor
+                '.': {
+                    y: y,
+                    'text-anchor': textAnchor
+                }
             }
         });
     }
 
-    function insideLayout(angle, autoOrient, opt) {
+    function getBBoxAngles(elBBox) {
 
+        var center = elBBox.center();
+
+        var tl = center.theta(elBBox.origin());
+        var bl = center.theta(elBBox.bottomLeft());
+        var br = center.theta(elBBox.corner());
+        var tr = center.theta(elBBox.topRight());
+
+        return [tl, tr, br, bl];
+    }
+
+    function insideLayout(portPosition, elBBox, autoOrient, opt) {
+
+        var angle = elBBox.center().theta(portPosition);
         opt = _.defaults({}, opt, { offset: 15 });
 
         var tx, ty, y, textAnchor;
         var offset = opt.offset;
         var orientAngle = 0;
 
-        if (angle < 45 || angle > 315) {
+        var bBoxAngles = getBBoxAngles(elBBox);
+
+        if (angle < bBoxAngles[1] || angle > bBoxAngles[2]) {
             y = '.3em';
             tx = -offset;
             ty = 0;
             textAnchor = 'end';
-        } else if (angle < 135) {
+        } else if (angle < bBoxAngles[0]) {
             y = '.6em';
             tx = 0;
             ty = offset;
@@ -89,7 +110,7 @@
             } else {
                 textAnchor = 'middle';
             }
-        } else if (angle < 225) {
+        } else if (angle < bBoxAngles[3]) {
             y = '.3em';
             tx = offset;
             ty = 0;
@@ -112,14 +133,17 @@
             y: round(ty),
             angle: orientAngle,
             attrs: {
-                y: y,
-                'text-anchor': textAnchor
+                '.': {
+                    y: y,
+                    'text-anchor': textAnchor
+                }
             }
         });
     }
 
     function radialLayout(portCenterOffset, autoOrient, opt) {
 
+        //TODO v.talas opravit offset
         opt = _.defaults({}, opt, { offset: 20 });
 
         var origin = g.point(0, 0);
@@ -147,12 +171,14 @@
 
         var round = Math.round;
         return labelAttributes({
-            x: (offset.x),
+            x: round(offset.x),
             y: round(offset.y),
             angle: autoOrient ? orientAngle : 0,
             attrs: {
-                y: y,
-                'text-anchor': textAnchor
+                '.': {
+                    y: y,
+                    'text-anchor': textAnchor
+                }
             }
         });
     }
@@ -178,19 +204,19 @@
         },
 
         outsideOriented: function(portPosition, elBBox, opt) {
-            return outsideLayout(elBBox.center().theta(portPosition), true, opt);
+            return outsideLayout(portPosition, elBBox, true, opt);
         },
 
         outside: function(portPosition, elBBox, opt) {
-            return outsideLayout(elBBox.center().theta(portPosition), false, opt);
+            return outsideLayout(portPosition, elBBox, false, opt);
         },
 
         insideOriented: function(portPosition, elBBox, opt) {
-            return insideLayout(elBBox.center().theta(portPosition), true, opt);
+            return insideLayout(portPosition, elBBox, true, opt);
         },
 
         inside: function(portPosition, elBBox, opt) {
-            return insideLayout(elBBox.center().theta(portPosition), false, opt);
+            return insideLayout(portPosition, elBBox, false, opt);
         },
 
         radial: function(portPosition, elBBox, opt) {

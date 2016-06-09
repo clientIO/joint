@@ -454,7 +454,8 @@
                 var namespace = joint.layout.Label;
                 var labelPosition = port.label.position.name;
                 if (namespace[labelPosition]) {
-                    this.applyPortTransform(cached.portLabelElement, namespace[labelPosition](g.point(offset), elBBox, port.label.position.args));
+                    var labelTrans = namespace[labelPosition](g.point(offset), elBBox, port.label.position.args);
+                    this.applyPortTransform(cached.portLabelElement, labelTrans, -(offset.angle || 0));
                 }
             }, this);
         },
@@ -462,22 +463,17 @@
         /**
          * @param {Vectorizer} element
          * @param {{x:number, y:number, angle: number, attrs: Object}} transformData
+         * @param {number=} initialAngle
          * @constructor
          */
-        applyPortTransform: function(element, transformData) {
+        applyPortTransform: function(element, transformData, initialAngle) {
 
-            if (!element) {
-                return;
-            }
+            var matrix = V.createSVGMatrix()
+                .rotate(initialAngle || 0)
+                .translate(transformData.x || 0, transformData.y || 0)
+                .rotate(transformData.angle || 0);
 
-            if (transformData.x || transformData.y) {
-                element.translate(transformData.x, transformData.y, { absolute: true });
-            }
-
-            if (transformData.angle) {
-                element.rotate(transformData.angle, undefined, undefined, { absolute: true });
-            }
-
+            element.transform(matrix, { absolute: true });
             this._updateAllAttrs(element.node, transformData.attrs || {});
         },
 
