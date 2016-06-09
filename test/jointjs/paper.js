@@ -1023,7 +1023,7 @@ QUnit.module('paper', function(hooks) {
             paper.setOrigin(origin.x, origin.y);
             paper.drawGrid(opt);
 
-            var actualBackgroundImage = paper.$el.css('background-image');
+            var actualBackgroundImage = paper.$grid.css('background-image');
             var message = inputsAndOutput.message;
 
             normalizeImageDataUri(inputsAndOutput.imageDataUri, function(error, normalizedImageDataUri) {
