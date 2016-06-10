@@ -209,6 +209,24 @@ var g = (function() {
             return Ellipse(this);
         },
 
+        tangentTheta: function(T) {
+
+            var x0 = T.x;
+            var y0 = T.y;
+            var a = this.a;
+            var b = this.b;
+            var center = this.bbox().center();
+            var m = center.x;
+            var n = center.y;
+
+            var refPointDeltaY = x0 < center.x ? a * 2 : -a * 2;
+            var y = center.y + refPointDeltaY;
+
+            var x = (a * a / (x0 - m)) - (a * a * (y0 - n) * (y - n)) / (b * b * (x0 - m)) + m;
+
+            return g.point(x, y).theta(T);
+        },
+
         equals: function(ellipse) {
 
             ellipse = Ellipse(ellipse);
