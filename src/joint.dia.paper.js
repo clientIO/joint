@@ -177,16 +177,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         _.defaults(this.options.highlighting, this.constructor.prototype.options.highlighting);
         this.options.highlighting = _.cloneDeep(this.options.highlighting);
 
-        this.svg = V('svg').node;
-        this.viewport = V('g').addClass(joint.util.addClassNamePrefix('viewport')).node;
-        this.defs = V('defs').node;
-
-        this.$grid = $('<div/>').addClass(joint.util.addClassNamePrefix('paper-grid'));
-
-        // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
-        V(this.svg).append([this.viewport, this.defs]);
-
-        this.$el.append(this.$grid, this.svg);
+        this.render();
 
         this.listenTo(this.model, 'add', this.onCellAdded);
         this.listenTo(this.model, 'remove', this.removeView);
@@ -205,6 +196,42 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.on('cell:highlight', this.onCellHighlight, this);
         this.on('cell:unhighlight', this.onCellUnhighlight, this);
+
+        this.on('scale translate', this.update);
+    },
+
+    render: function() {
+
+        this.$el.empty();
+
+        this.svg = V('svg').attr({ width: '100%', height: '100%' }).node;
+        this.viewport = V('g').addClass(joint.util.addClassNamePrefix('viewport')).node;
+        this.defs = V('defs').node;
+
+        // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
+        V(this.svg).append([this.viewport, this.defs]);
+
+        this.$background = $('<div/>').addClass(joint.util.addClassNamePrefix('paper-background'));
+        this.$grid = $('<div/>').addClass(joint.util.addClassNamePrefix('paper-grid'));
+
+        if (this.options.background) {
+            this.drawBackground(this.options.background);
+        }
+
+        this.$el.append(this.$background, this.$grid, this.svg);
+
+        return this;
+    },
+
+    update: function() {
+
+        if (this.options.drawGrid) {
+            this.drawGrid();
+        }
+
+        if (this._background) {
+            this.updateBackgroundImage(this._background);
+        }
     },
 
     // For storing the current transformation matrix (CTM) of the paper's viewport.
@@ -271,7 +298,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         width = this.options.width = width || this.options.width;
         height = this.options.height = height || this.options.height;
 
-        V(this.svg).attr({ width: width, height: height });
+        this.$el.css({ width: width, height: height });
 
         this.trigger('resize', width, height);
     },
@@ -709,13 +736,6 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.matrix(ctm);
 
         this.trigger('scale', sx, sy, ox, oy);
-
-        if (this.options.drawGrid) {
-            this.drawGrid();
-        }
-        if (this.options.background) {
-            this.drawBackground(this.options.background);
-        }
 
         return this;
     },
@@ -1308,162 +1328,94 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this;
     },
 
-    updateBackgroundImage: function(img, opt) {
+    updateBackgroundImage: function(opt) {
 
-        // Clear the background image if no image provided
-        if (!(img instanceof HTMLImageElement)) {
-            this.$el.css('backgroundImage', '');
-            return;
-        }
+        opt = opt || {};
 
-        opt = _.defaults(opt || {}, {
-            repeat: 'no-repeat',
-            position: 'center',
-            size: 'auto auto',
-            opacity: 1
-        });
-
-        var backgroundRepeat = opt.repeat;
-        var backgroundPosition = opt.position;
-        var backgroundSize = opt.size;
-        var backgroundOpacity = opt.opacity;
-        var backgroundAttributes = {};
+        var backgroundPosition = opt.position || 'center';
+        var backgroundSize = opt.size || 'auto auto';
 
         var currentScale = V(this.viewport).scale();
         var currentTranslate = V(this.viewport).translate();
-
-        var imgWidth, imgHeight;
-        if (_.isObject(backgroundSize)) {
-            imgWidth = backgroundSize.width || img.width;
-            imgHeight = backgroundSize.height || img.height;
-        } else {
-            imgWidth = img.width;
-            imgHeight = img.height;
-        }
-
-        imgWidth *= currentScale.sx;
-        imgHeight *= currentScale.sy;
-
-        var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
-
-        switch (backgroundRepeat) {
-
-            // d b
-            // q p
-            case 'flip-xy':
-
-                canvas.width = 2 * imgWidth;
-                canvas.height = 2 * imgHeight;
-                // Note that setting size of the canvas would reset the globalAlpha if set prior the resizing.
-                ctx.globalAlpha = backgroundOpacity;
-
-                // top-left image
-                ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-                // xy-flipped bottom-right image
-                ctx.setTransform(-1, 0, 0, -1, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-                // x-flipped top-right image
-                ctx.setTransform(-1, 0, 0, 1, canvas.width, 0);
-                ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-                // y-flipped bottom-left image
-                ctx.setTransform(1, 0, 0, -1, 0, canvas.height);
-                ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-                break;
-
-           // d b
-           // d b
-            case 'flip-x':
-
-                canvas.width = imgWidth * 2;
-                canvas.height = imgHeight;
-                ctx.globalAlpha = backgroundOpacity;
-                // left image
-                ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-                // flipped right image
-                ctx.translate(2 * imgWidth, 0);
-                ctx.scale(-1, 1);
-                ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-                break;
-
-            // d d
-            // q q
-            case 'flip-y':
-
-                canvas.width = imgWidth;
-                canvas.height = imgHeight * 2;
-                ctx.globalAlpha = backgroundOpacity;
-
-                // top image
-                ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-                // flipped bottom image
-                ctx.translate(0, 2 * imgHeight);
-                ctx.scale(1, -1);
-                ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-                break;
-
-            //   d
-            // d
-            case 'watermark':
-
-                var canvasSize = Math.max(imgWidth * 3, imgHeight * 3);
-
-                canvas.width = canvasSize;
-                canvas.height = canvasSize;
-                ctx.globalAlpha = backgroundOpacity;
-
-                var angle = -30;
-                var radians = g.toRad(angle);
-                var dy = Math.abs(Math.sin(radians) * imgWidth);
-                var rotatedImgBBox = g.rect(0, 0, imgWidth, imgHeight).bbox(angle);
-
-                // top-right image
-                ctx.save();
-                ctx.translate(canvasSize - rotatedImgBBox.width, dy);
-                ctx.rotate(radians);
-                ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-                // bottom-left image
-                ctx.restore();
-                ctx.translate(0, canvasSize - rotatedImgBBox.height + dy);
-                ctx.rotate(radians);
-                ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-                break;
-
-            default:
-
-                // no-repeat', 'round', 'space', 'repeat', 'repeat-x', 'repeat-y'
-                backgroundAttributes.backgroundRepeat = backgroundRepeat;
-
-                canvas.width = imgWidth;
-                canvas.height = imgHeight;
-                ctx.globalAlpha = backgroundOpacity;
-                ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-                break;
-        }
-
-        // backgroundRepeat
-        backgroundAttributes.backgroundRepeat = backgroundAttributes.backgroundRepeat || 'repeat';
-
-        // backgroundImage
-        backgroundAttributes.backgroundImage = 'url(' + canvas.toDataURL('image/png') + ')';
 
         // backgroundPosition
         if (_.isObject(backgroundPosition)) {
             var x = currentTranslate.tx + (currentScale.sx * (backgroundPosition.x || 0));
             var y = currentTranslate.ty + (currentScale.sy * (backgroundPosition.y || 0));
-            backgroundAttributes.backgroundPosition = x + 'px ' + y + 'px';
-        } else {
-            backgroundAttributes.backgroundPosition = backgroundPosition;
+            backgroundPosition = x + 'px ' + y + 'px';
         }
 
         // backgroundSize
-        if (_.isString(backgroundSize)) {
-            backgroundAttributes.backgroundSize = backgroundSize;
-        } else {
-            backgroundAttributes.backgroundSize = canvas.width + 'px ' + canvas.height + 'px';
+        if (_.isObject(backgroundSize)) {
+            backgroundSize = g.rect(backgroundSize).scale(currentScale.sx, currentScale.sy);
+            backgroundSize = backgroundSize.width + 'px ' + backgroundSize.height + 'px';
         }
 
-        this.$el.css(backgroundAttributes);
+        this.$background.css({
+            backgroundSize: backgroundSize,
+            backgroundPosition: backgroundPosition
+        });
+    },
+
+    drawBackgroundImage: function(img, opt) {
+
+        // Clear the background image if no image provided
+        if (!(img instanceof HTMLImageElement)) {
+            this.$background.css('backgroundImage', '');
+            return;
+        }
+
+        opt = opt || {};
+
+        var backgroundImage;
+        var backgroundSize = opt.size;
+        var backgroundRepeat = opt.repeat || 'no-repeat';
+        var backgroundOpacity = opt.opacity || 1;
+        var backgroundQuality = Math.abs(opt.quality) || 1;
+
+        switch (backgroundRepeat) {
+            case 'flip-x':
+            case 'flip-y':
+            case 'flip-xy':
+            case 'watermark':
+                img.width *= backgroundQuality;
+                img.height *= backgroundQuality;
+                var canvas = this.constructor.canvas[_.camelCase(backgroundRepeat)](img);
+                backgroundImage = canvas.toDataURL('image/png');
+                backgroundRepeat = 'repeat';
+                if (_.isObject(backgroundSize)) {
+                    // recalculate the tile size if an object passed in
+                    backgroundSize.width *= canvas.width / img.width;
+                    backgroundSize.height *= canvas.height / img.height;
+                } else if (_.isUndefined(backgroundSize)) {
+                    // calcule the tile size if no provided
+                    opt.size = {
+                        width: canvas.width / backgroundQuality,
+                        height: canvas.height / backgroundQuality
+                    };
+                }
+                break;
+            default:
+                // no-repeat', 'round', 'space', 'repeat', 'repeat-x', 'repeat-y'
+                backgroundImage = img.src;
+                backgroundRepeat = backgroundRepeat;
+                if (_.isUndefined(backgroundSize)) {
+                    // pass the image size for  the backgroundSize if no size provided
+                    opt.size = {
+                        width: img.width,
+                        height: img.height
+                    };
+                }
+                break;
+        }
+
+        this.$background.css({
+            opacity: backgroundOpacity,
+            backgroundRepeat: backgroundRepeat,
+            backgroundImage: 'url(' + backgroundImage + ')'
+        });
+
+        this.updateBackgroundImage(opt);
     },
 
     updateBackgroundColor: function(color) {
@@ -1478,11 +1430,13 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.updateBackgroundColor(opt.color);
 
         if (opt.image) {
+            opt = this._background = _.cloneDeep(opt);
             var img = document.createElement('img');
-            img.onload = _.bind(this.updateBackgroundImage, this, img, opt);
+            img.onload = _.bind(this.drawBackgroundImage, this, img, opt);
             img.src = opt.image;
         } else {
-            this.updateBackgroundImage(null);
+            this.drawBackgroundImage(null);
+            this._background = null;
         }
 
         return this;
@@ -1494,4 +1448,112 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         _.invoke(this._views, 'setInteractivity', value);
     }
+}, {
+
+    canvas: {
+
+        flipXy: function(img) {
+            // d b
+            // q p
+
+            var canvas = document.createElement('canvas');
+            var imgWidth = img.width;
+            var imgHeight = img.height;
+
+            canvas.width = 2 * imgWidth;
+            canvas.height = 2 * imgHeight;
+
+            var ctx = canvas.getContext('2d');
+            // top-left image
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+            // xy-flipped bottom-right image
+            ctx.setTransform(-1, 0, 0, -1, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+            // x-flipped top-right image
+            ctx.setTransform(-1, 0, 0, 1, canvas.width, 0);
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+            // y-flipped bottom-left image
+            ctx.setTransform(1, 0, 0, -1, 0, canvas.height);
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+            return canvas;
+        },
+
+        flipX: function(img) {
+            // d b
+            // d b
+
+            var canvas = document.createElement('canvas');
+            var imgWidth = img.width;
+            var imgHeight = img.height;
+
+            canvas.width = imgWidth * 2;
+            canvas.height = imgHeight;
+
+            var ctx = canvas.getContext('2d');
+            // left image
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+            // flipped right image
+            ctx.translate(2 * imgWidth, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+            return canvas;
+        },
+
+        flipY: function(img) {
+            // d d
+            // q q
+
+            var canvas = document.createElement('canvas');
+            var imgWidth = img.width;
+            var imgHeight = img.height;
+
+            canvas.width = imgWidth;
+            canvas.height = imgHeight * 2;
+
+            var ctx = canvas.getContext('2d');
+            // top image
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+            // flipped bottom image
+            ctx.translate(0, 2 * imgHeight);
+            ctx.scale(1, -1);
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+            return canvas;
+        },
+
+        watermark: function(img) {
+            //   d
+            // d
+
+            var canvas = document.createElement('canvas');
+            var imgWidth = img.width;
+            var imgHeight = img.height;
+            var canvasSize = Math.max(imgWidth * 3, imgHeight * 3);
+
+            canvas.width = canvasSize;
+            canvas.height = canvasSize;
+
+            var angle = -30;
+            var radians = g.toRad(angle);
+            var dy = Math.abs(Math.sin(radians) * imgWidth);
+            var rotatedImgBBox = g.rect(0, 0, imgWidth, imgHeight).bbox(angle);
+
+            var ctx = canvas.getContext('2d');
+            // top-right image
+            ctx.save();
+            ctx.translate(canvasSize / 2, dy);
+            ctx.rotate(radians);
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+            // bottom-left image
+            ctx.restore();
+            ctx.translate(0, canvasSize - rotatedImgBBox.height + dy);
+            ctx.rotate(radians);
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+            return canvas;
+        }
+    }
+
 });
