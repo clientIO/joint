@@ -17,11 +17,16 @@
         var ratio = elBBox.width / elBBox.height;
         var p1 = g.point(elBBox.width / 2, 0);
 
+        var ellipse = g.Ellipse.fromRect(elBBox);
+
         return _.map(ports, function(port, index, ports) {
 
+            var angle = startAngle + stepFn(index, ports.length);
             var p2 = p1.clone()
-                .rotate(center, startAngle + stepFn(index, ports.length))
+                .rotate(center, angle)
                 .scale(ratio, 1, center);
+
+            var theta = port.compensateRotation ? -ellipse.tangentTheta(p2) : 0;
 
             // `dx`,`dy` per port offset option
             if (port.dx || port.dy) {
@@ -33,7 +38,9 @@
                 p2.move(center, port.dr);
             }
 
-            return p2.round();
+            var transform = p2.toJSON();
+            transform.angle = theta;
+            return transform;
         });
     }
 

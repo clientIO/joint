@@ -324,8 +324,6 @@ var g5 = new joint.shapes.basic.Rect({
                             x: index * 100,
                             y: -20,
                             angle: index * 50 + 10,
-                            // cx: 10,
-                            // cy: 10,
                             attrs: { '.': { x: '0.8em', y: '0.9em' }, /*rect: { x: -10, y: -10 }*/ }
                         };
                     });
@@ -338,12 +336,9 @@ var g5 = new joint.shapes.basic.Rect({
                     },
                     '.dot': {
                         fill: '#ff0000',
-                        // cx: -10,
-                        // cy: -10,
                         r: 3
                     },
                     text: {
-                        text: 'dsafdsadsadsad',
                         fill: '#000000'
                     }
                 },
@@ -373,27 +368,3 @@ paper5.on('element:pointerdown', function(cellView, e) {
     g5.prop('ports/groups/a/label/position', pos);
     labelPos5++;
 });
-
-/**
- * HELPERS
- */
-function createPaper() {
-    var graph = new joint.dia.Graph;
-
-    return new joint.dia.Paper({
-        el: $('<div/>').appendTo(document.body),
-        width: 800,
-        height: 300,
-        gridSize: 1,
-        perpendicularLinks: false,
-        model: graph,
-        linkView: joint.dia.LinkView.extend({
-            options: _.extend({}, joint.dia.LinkView.prototype.options, {
-                doubleLinkTools: true,
-                linkToolsOffset: 40,
-                doubleLinkToolsOffset: 60
-            })
-        })
-    });
-}
-
