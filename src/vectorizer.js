@@ -129,7 +129,7 @@ V = Vectorizer = (function() {
         }
 
         var transformList = this.node.transform.baseVal;
-        if (opt || opt.absolute) {
+        if (opt && opt.absolute) {
             transformList.clear();
         }
 
