@@ -233,48 +233,7 @@ QUnit.module('element ports', function() {
         });
     });
 
-    QUnit.module('port grouping', function() {
-
-        QUnit.test('resolve position args', function(assert) {
-
-            var data = {
-                groups: {
-                    'a': {
-                        position: {
-                            name: 'right',
-                            args: { dx: -10 }
-                        }
-                    }, 'b': {
-                        position: 'top'
-                    }
-                },
-                items: [
-                    {
-                        id: 'pa',
-                        args: { dy: 20 },
-                        group: 'a'
-                    },
-                    {
-                        id: 'pb',
-                        args: { dy: 20 },
-                        group: 'b'
-                    }
-                ]
-            };
-
-            var shape = create(data);
-            var view = new joint.dia.ElementView({ model: shape }).render();
-
-            var portData = shape.portData;
-
-            assert.equal(portData.getPort('pa').position.name, 'right');
-            assert.equal(portData.getPort('pa').position.args.dy, 20);
-            assert.equal(portData.getPort('pa').position.args.dx, -10);
-
-            assert.equal(portData.getPort('pb').position.name, 'top');
-            assert.equal(portData.getPort('pb').position.args.dy, 20);
-        });
-
+    QUnit.module('z - index', function(hooks) {
         QUnit.test('elements order with z-index', function(assert) {
 
             var data = {
@@ -330,6 +289,49 @@ QUnit.module('element ports', function() {
             assert.equal(nodes.eq(2).find('[port]').attr('port'), 'a');
             assert.equal(nodes.eq(3).find('[port]').attr('port'), 'b');
             assert.equal(nodes.eq(4).find('[port]').attr('port'), 'c');
+        });
+    });
+
+    QUnit.module('port grouping', function() {
+
+        QUnit.test('resolve position args', function(assert) {
+
+            var data = {
+                groups: {
+                    'a': {
+                        position: {
+                            name: 'right',
+                            args: { dx: -10 }
+                        }
+                    }, 'b': {
+                        position: 'top'
+                    }
+                },
+                items: [
+                    {
+                        id: 'pa',
+                        args: { dy: 20 },
+                        group: 'a'
+                    },
+                    {
+                        id: 'pb',
+                        args: { dy: 20 },
+                        group: 'b'
+                    }
+                ]
+            };
+
+            var shape = create(data);
+            var view = new joint.dia.ElementView({ model: shape }).render();
+
+            var portData = shape.portData;
+
+            assert.equal(portData.getPort('pa').position.name, 'right');
+            assert.equal(portData.getPort('pa').position.args.dy, 20);
+            assert.equal(portData.getPort('pa').position.args.dx, -10);
+
+            assert.equal(portData.getPort('pb').position.name, 'top');
+            assert.equal(portData.getPort('pb').position.args.dy, 20);
         });
 
         QUnit.test('resolve port labels', function(assert) {
