@@ -12,7 +12,7 @@ module.exports = function(grunt) {
     grunt.template.addDelimiters('square', '[%', '%]');
 
     var pkg = grunt.file.readJSON('package.json');
-    var banner = grunt.template.process('/*! <%= pkg.title %> v<%= pkg.version %> - <%= pkg.description %>  <%= grunt.template.today("yyyy-mm-dd") %> \n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n */\n', { data: { pkg: pkg }, delimiter: 'default' });
+    var banner = grunt.template.process('/*! <%= pkg.title %> v<%= pkg.version %> (<%= grunt.template.today("yyyy-mm-dd") %>) - <%= pkg.description %>\n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n*/\n', { data: { pkg: pkg }, delimiter: 'default' });
 
     var js = {
 
@@ -111,9 +111,9 @@ module.exports = function(grunt) {
         webpack: {
             joint: {
                 files: {
-                   './build/joint.webpack-bundle.js' : './build/joint.js'
+                   './build/joint.webpack-bundle.js' : './build/joint.min.js'
                 },
-                entry: './index.js',
+                entry: './build/joint.min.js',
                 output: {
                     path: './build/',
                     filename: 'joint.webpack-bundle.js',
@@ -130,7 +130,7 @@ module.exports = function(grunt) {
         browserify: {
             joint: {
                 files: {
-                    'build/joint.browserify-bundle.js': 'index.js'
+                    'build/joint.browserify-bundle.js': 'build/joint.min.js'
                 },
                 options: {
                     browserifyOptions: {
@@ -140,6 +140,7 @@ module.exports = function(grunt) {
             }
         },
         clean: {
+            build: ['build'],
             dist: ['dist']
         },
         compileDocs: {
@@ -289,7 +290,10 @@ module.exports = function(grunt) {
                     cwd: 'build/',
                     src: [
                         '*',
-                        '!min'
+                        '!docs',
+                        '!min',
+                        '!joint.browserify-bundle.js',
+                        '!joint.webpack-bundle.js'
                     ],
                     dest: 'dist/'
                 }],
@@ -660,8 +664,9 @@ module.exports = function(grunt) {
     ]);
 
     grunt.registerTask('dist', [
-        'build:all',
         'clean:dist',
+        'clean:build',
+        'build:all',
         'copy:dist'
     ]);
 

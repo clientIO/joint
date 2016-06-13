@@ -10,10 +10,12 @@
   ],
   "private": true,
   "scripts": {
-    "test": "grunt test"
+    "test": "grunt test",
+    "prepublish": "grunt dist && grunt test"
   },
   "version": "0.9.7-rappid.7",
-  "main": "./dist/joint.js",
+  "main": "./dist/joint.min.js",
+  "style": "./dist/joint.min.css",
   "homepage": "http://jointjs.com",
   "author": {
     "name": "client IO",
