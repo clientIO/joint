@@ -1288,42 +1288,25 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     drawGrid: function(opt) {
 
-        opt = _.defaults(opt || {}, this.options.drawGrid, {
-            color: '#aaa',
-            thickness: 1
-        });
+        opt = _.defaults({}, opt, this.options.drawGrid);
 
         var gridSize = this.options.gridSize;
-
         if (gridSize <= 1) {
             return this.clearGrid();
         }
 
-        var currentScale = this.scale();
-        var currentTranslate = this.translate();
-        var scaleX = currentScale.sx;
-        var scaleY = currentScale.sy;
-        var originX = currentTranslate.tx;
-        var originY = currentTranslate.ty;
-        var gridX = gridSize * scaleX;
-        var gridY = gridSize * scaleY;
+        var ctm = this.matrix();
+        var canvas = this.constructor.canvas.grid({
+            sx: ctm.a,
+            sy: ctm.d,
+            ox: ctm.e,
+            oy: ctm.f,
+            size: gridSize,
+            color: opt.color,
+            thickness: opt.thickness
+        });
 
-        var canvas = document.createElement('canvas');
-
-        canvas.width = gridX;
-        canvas.height = gridY;
-
-        gridX = originX >= 0 ? originX % gridX : gridX + originX % gridX;
-        gridY = originY >= 0 ? originY % gridY : gridY + originY % gridY;
-
-        var context = canvas.getContext('2d');
-        context.beginPath();
-        context.rect(gridX, gridY, opt.thickness * scaleX, opt.thickness * scaleY);
-        context.fillStyle = opt.color;
-        context.fill();
-
-        var backgroundImage = canvas.toDataURL('image/png');
-        this.$grid.css('backgroundImage', 'url(' + backgroundImage + ')');
+        this.$grid.css('backgroundImage', 'url(' + canvas.toDataURL('image/png') + ')');
 
         return this;
     },
@@ -1335,8 +1318,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         var backgroundPosition = opt.position || 'center';
         var backgroundSize = opt.size || 'auto auto';
 
-        var currentScale = V(this.viewport).scale();
-        var currentTranslate = V(this.viewport).translate();
+        var currentScale = this.scale();
+        var currentTranslate = this.translate();
 
         // backgroundPosition
         if (_.isObject(backgroundPosition)) {
@@ -1551,6 +1534,37 @@ joint.dia.Paper = joint.mvc.View.extend({
             ctx.translate(0, canvasSize - rotatedImgBBox.height + dy);
             ctx.rotate(radians);
             ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+            return canvas;
+        },
+
+        grid: function(opt) {
+
+            opt = opt || {};
+
+            var size = opt.size;
+            var ox = opt.ox || 0;
+            var oy = opt.oy || 0;
+            var sx = opt.sx || 1;
+            var sy = opt.sy || 1;
+            var thickness = opt.thickness || 1;
+            var color = opt.color || '#aaa';
+
+            var canvas = document.createElement('canvas');
+
+            var width = canvas.width = size * sx;
+            var x = ox % width;
+            if (x < 0) x += width;
+
+            var height = canvas.height = size * sy;
+            var y = oy % height;
+            if (y < 0) y += height;
+
+            var context = canvas.getContext('2d');
+            context.beginPath();
+            context.rect(x, y, thickness * sx, thickness * sy);
+            context.fillStyle = color;
+            context.fill();
 
             return canvas;
         }
