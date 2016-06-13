@@ -1,10 +1,10 @@
-/*! JointJS v0.9.9 - JavaScript diagramming library  2016-05-31 
+/*! JointJS v0.9.10 (2016-06-13) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
- */
+*/
 (function(root, factory) {
 
     if (typeof define === 'function' && define.amd) {
@@ -1387,7 +1387,10 @@ V = Vectorizer = (function() {
                 // character and make it invisible, making the following lines correctly
                 // relatively positioned. `dy=1em` won't work with empty lines otherwise.
                 vLine.addClass('v-empty-line');
-                vLine.node.style.opacity = 0;
+                // 'opacity' needs to be specified with fill, stroke. Opacity without specification
+                // is not applied in Firefox
+                vLine.node.style.fillOpacity = 0;
+                vLine.node.style.strokeOpacity = 0;
                 vLine.node.textContent = '-';
             }
 
@@ -2559,7 +2562,14 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '0.9.8',
+    version: '0.9.10',
+
+    config: {
+        // The class name prefix config is for advanced use only.
+        // Be aware that if you change the prefix, the JointJS CSS will no longer function properly.
+        classNamePrefix: 'joint-',
+        defaultTheme: 'default'
+    },
 
     // `joint.dia` namespace.
     dia: {},
@@ -2871,17 +2881,17 @@ var joint = {
             return evt;
         },
 
-        nextFrame:(function() {
+        nextFrame: (function() {
 
             var raf;
 
             if (typeof window !== 'undefined') {
 
-                raf = window.requestAnimationFrame     ||
-		    window.webkitRequestAnimationFrame ||
-	            window.mozRequestAnimationFrame    ||
-		    window.oRequestAnimationFrame      ||
-		    window.msRequestAnimationFrame;
+                raf = window.requestAnimationFrame ||
+                        window.webkitRequestAnimationFrame ||
+                        window.mozRequestAnimationFrame ||
+                        window.oRequestAnimationFrame ||
+                        window.msRequestAnimationFrame;
             }
 
             if (!raf) {
@@ -2915,15 +2925,15 @@ var joint = {
 
             if (client) {
 
-                caf = window.cancelAnimationFrame            ||
-		    window.webkitCancelAnimationFrame        ||
-	            window.webkitCancelRequestAnimationFrame ||
-		    window.msCancelAnimationFrame            ||
-	            window.msCancelRequestAnimationFrame     ||
-		    window.oCancelAnimationFrame             ||
-	            window.oCancelRequestAnimationFrame      ||
-	            window.mozCancelAnimationFrame           ||
-		    window.mozCancelRequestAnimationFrame;
+                caf = window.cancelAnimationFrame ||
+                        window.webkitCancelAnimationFrame ||
+                        window.webkitCancelRequestAnimationFrame ||
+                        window.msCancelAnimationFrame ||
+                        window.msCancelRequestAnimationFrame ||
+                        window.oCancelAnimationFrame ||
+                        window.oCancelRequestAnimationFrame ||
+                        window.mozCancelAnimationFrame ||
+                        window.mozCancelRequestAnimationFrame;
             }
 
             caf = caf || clearTimeout;
@@ -3814,6 +3824,8 @@ var joint = {
 
             return function(data) {
 
+                data = data || {};
+
                 return html.replace(regex, function(match) {
 
                     var args = Array.prototype.slice.call(arguments);
@@ -3857,6 +3869,36 @@ var joint = {
             } else {
                 prefixedResult(el, 'RequestFullScreen');
             }
+        },
+
+        addClassNamePrefix: function(className) {
+
+            if (!className) return className;
+
+            return _.map(className.toString().split(' '), function(_className) {
+
+                if (_className.substr(0, joint.config.classNamePrefix.length) !== joint.config.classNamePrefix) {
+                    _className = joint.config.classNamePrefix + _className;
+                }
+
+                return _className;
+
+            }).join(' ');
+        },
+
+        removeClassNamePrefix: function(className) {
+
+            if (!className) return className;
+
+            return _.map(className.toString().split(' '), function(_className) {
+
+                if (_className.substr(0, joint.config.classNamePrefix.length) === joint.config.classNamePrefix) {
+                    _className = _className.substr(joint.config.classNamePrefix.length);
+                }
+
+                return _className;
+
+            }).join(' ');
         },
 
         wrapWith: function(object, methods, wrapper) {
@@ -3921,9 +3963,9 @@ joint.mvc.View = Backbone.View.extend({
 
     options: {},
     theme: null,
-    themeClassNamePrefix: 'joint-theme-',
+    themeClassNamePrefix: joint.util.addClassNamePrefix('theme-'),
     requireSetThemeOverride: false,
-    defaultTheme: 'default',
+    defaultTheme: joint.config.defaultTheme,
 
     constructor: function(options) {
 
@@ -3948,8 +3990,10 @@ joint.mvc.View = Backbone.View.extend({
     _ensureElClassName: function() {
 
         var className = _.result(this, 'className');
+        var prefixedClassName = joint.util.addClassNamePrefix(className);
 
-        this.$el.addClass(className);
+        this.$el.removeClass(className);
+        this.$el.addClass(prefixedClassName);
     },
 
     init: function() {
@@ -3970,15 +4014,32 @@ joint.mvc.View = Backbone.View.extend({
         // Don't set the theme.
         if (this.theme && this.requireSetThemeOverride && !opt.override) return;
 
-        if (this.theme) {
-
-            this.$el.removeClass(this.themeClassNamePrefix + this.theme);
-        }
-
-        this.$el.addClass(this.themeClassNamePrefix + theme);
-
+        this.removeThemeClassName();
+        this.addThemeClassName(theme);
         this.onSetTheme(this.theme/* oldTheme */, theme/* newTheme */);
         this.theme = theme;
+
+        return this;
+    },
+
+    addThemeClassName: function(theme) {
+
+        theme = theme || this.theme;
+
+        var className = this.themeClassNamePrefix + theme;
+
+        this.$el.addClass(className);
+
+        return this;
+    },
+
+    removeThemeClassName: function(theme) {
+
+        theme = theme || this.theme;
+
+        var className = this.themeClassNamePrefix + theme;
+
+        this.$el.removeClass(className);
 
         return this;
     },
@@ -5714,6 +5775,21 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     tagName: 'g',
 
+    className: function() {
+
+        var classNames = ['cell'];
+        var type = this.model.get('type');
+
+        if (type) {
+
+            _.each(type.toLowerCase().split('.'), function(value, index, list) {
+                classNames.push('type-' + list.slice(0, index + 1).join('-'));
+            });
+        }
+
+        return classNames.join(' ');
+    },
+
     attributes: function() {
 
         return { 'model-id': this.model.id };
@@ -5736,6 +5812,9 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);
+
+        // Add the cell's type to the view's element as a data attribute.
+        this.$el.attr('data-type', this.model.get('type'));
 
         this.listenTo(this.model, 'change:attrs', this.onChangeAttrs);
     },
@@ -5981,14 +6060,21 @@ joint.dia.CellView = joint.mvc.View.extend({
             return prevSelector;
         }
 
-        var nthChild = V(el).index() + 1;
-        var selector = el.tagName + ':nth-child(' + nthChild + ')';
+        var selector;
 
-        if (prevSelector) {
-            selector += ' > ' + prevSelector;
+        if (el) {
+
+            var nthChild = V(el).index() + 1;
+            var selector = el.tagName + ':nth-child(' + nthChild + ')';
+
+            if (prevSelector) {
+                selector += ' > ' + prevSelector;
+            }
+
+            selector = this.getSelector(el.parentNode, selector);
         }
 
-        return this.getSelector(el.parentNode, selector);
+        return selector;
     },
 
     // Interaction. The controller part.
@@ -6056,15 +6142,6 @@ joint.dia.CellView = joint.mvc.View.extend({
     contextmenu: function(evt, x, y) {
 
         this.notify('cell:contextmenu', evt, x, y);
-    },
-
-    onSetTheme: function(oldTheme, newTheme) {
-
-        if (oldTheme) {
-            this.vel.removeClass(this.themeClassNamePrefix + oldTheme);
-        }
-
-        this.vel.addClass(this.themeClassNamePrefix + newTheme);
     },
 
     setInteractivity: function(value) {
@@ -6195,10 +6272,10 @@ joint.dia.Element = joint.dia.Cell.extend({
         } else {
 
             this.set('position', translatedPosition, opt);
-
-            // Recursively call `translate()` on all the embeds cells.
-            _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
         }
+
+        // Recursively call `translate()` on all the embeds cells.
+        _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
 
         return this;
     },
@@ -6439,7 +6516,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     ],
 
     className: function() {
-        return 'element ' + this.model.get('type').replace(/\./g, ' ');
+
+        var classNames = joint.dia.CellView.prototype.className.apply(this).split(' ');
+
+        classNames.push('element');
+
+        return classNames.join(' ');
     },
 
     initialize: function() {
@@ -6549,8 +6631,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 !_.isUndefined(attrs['ref-y']) ||
                 !_.isUndefined(attrs['ref-dx']) ||
                 !_.isUndefined(attrs['ref-dy']) ||
-		!_.isUndefined(attrs['x-alignment']) ||
-		!_.isUndefined(attrs['y-alignment']) ||
+                !_.isUndefined(attrs['x-alignment']) ||
+                !_.isUndefined(attrs['y-alignment']) ||
                 !_.isUndefined(attrs['ref-width']) ||
                 !_.isUndefined(attrs['ref-height'])
                ) {
@@ -6816,7 +6898,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (markup) {
 
-            var nodes = V(markup);
+            var svg = joint.util.template(markup)();
+            var nodes = V(svg);
 
             this.vel.append(nodes);
 
@@ -6831,12 +6914,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.$el.empty();
 
         this.renderMarkup();
-
         this.rotatableNode = this.vel.findOne('.rotatable');
         this.scalableNode = this.vel.findOne('.scalable');
-
         this.update();
-
         this.resize();
         this.rotate();
         this.translate();
@@ -7404,7 +7484,12 @@ joint.dia.Link = joint.dia.Cell.extend({
 joint.dia.LinkView = joint.dia.CellView.extend({
 
     className: function() {
-        return _.unique(this.model.get('type').split('.').concat('link')).join(' ');
+
+        var classNames = joint.dia.CellView.prototype.className.apply(this).split(' ');
+
+        classNames.push('link');
+
+        return classNames.join(' ');
     },
 
     options: {
@@ -7520,7 +7605,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // of elements with special meaning though. Therefore, those classes should be preserved in any
         // special markup passed in `properties.markup`.
         var model = this.model;
-        var children = V(model.get('markup') || model.markup);
+        var markup = model.get('markup') || model.markup;
+        var children = V(markup);
 
         // custom markup may contain only one children
         if (!_.isArray(children)) children = [children];
@@ -7528,8 +7614,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Cache all children elements for quicker access.
         this._V = {}; // vectorized markup;
         _.each(children, function(child) {
-            var c = child.attr('class');
-            c && (this._V[$.camelCase(c)] = child);
+
+            var className = child.attr('class');
+
+            if (className) {
+                // Strip the joint class name prefix, if there is one.
+                className = joint.util.removeClassNamePrefix(className);
+                this._V[$.camelCase(className)] = child;
+            }
+
         }, this);
 
         // Only the connection path is mandatory
@@ -8603,8 +8696,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // if are simulating pointerdown on a link during a magnet click, skip link interactions
         if (evt.target.getAttribute('magnet') != null) return;
 
-        var className = evt.target.getAttribute('class');
-        var parentClassName = evt.target.parentNode.getAttribute('class');
+        var className = joint.util.removeClassNamePrefix(evt.target.getAttribute('class'));
+        var parentClassName = joint.util.removeClassNamePrefix(evt.target.parentNode.getAttribute('class'));
         var labelNode;
         if (parentClassName === 'label') {
             className = parentClassName;
@@ -8983,7 +9076,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 //      JointJS library.
 //      (c) 2011-2015 client IO
 
-
 joint.dia.Paper = joint.mvc.View.extend({
 
     className: 'paper',
@@ -9159,7 +9251,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.options.highlighting = _.cloneDeep(this.options.highlighting);
 
         this.svg = V('svg').node;
-        this.viewport = V('g').addClass('viewport').node;
+        this.viewport = V('g').addClass(joint.util.addClassNamePrefix('viewport')).node;
         this.defs = V('defs').node;
 
         // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
@@ -10560,6 +10652,7 @@ joint.shapes.basic.PortsViewInterface = {
 
             $inPorts.append(V(portTemplate({ id: index, port: port })).node);
         });
+
         _.each(_.filter(this.model.ports, function(p) { return p.type === 'out'; }), function(port, index) {
 
             $outPorts.append(V(portTemplate({ id: index, port: port })).node);
@@ -12045,7 +12138,7 @@ joint.connectors.jumpover = (function(_, g) {
 
 joint.highlighters.addClass = {
 
-    className: 'highlighted',
+    className: joint.util.addClassNamePrefix('highlighted'),
 
     highlight: function(cellView, magnetEl, opt) {
         var className = opt.className || this.className;
@@ -12062,12 +12155,12 @@ joint.highlighters.opacity = {
 
     highlight: function(cellView, magnetEl, opt) {
 
-        V(magnetEl).addClass('joint-highlight-opacity');
+        V(magnetEl).addClass(joint.util.addClassNamePrefix('highlight-opacity'));
     },
 
     unhighlight: function(cellView, magnetEl, opt) {
 
-        V(magnetEl).removeClass('joint-highlight-opacity');
+        V(magnetEl).removeClass(joint.util.addClassNamePrefix('highlight-opacity'));
     }
 };
 
@@ -12104,7 +12197,6 @@ joint.highlighters.stroke = {
 
         var highlightVel = V('path').attr({
             d: pathData,
-            'class': 'joint-highlight-stroke',
             'pointer-events': 'none'
         });
 
@@ -12129,8 +12221,9 @@ joint.highlighters.stroke = {
             });
         }
 
-        // This will handle the joint-theme-* class name for us.
+        // joint.mvc.View will handle the theme class name and joint class name prefix.
         var highlightView = this._views[magnetEl.id] = new joint.mvc.View({
+            className: 'highlight-stroke',
             // This is necessary because we're passing in a vectorizer element (not jQuery).
             el: highlightVel.node,
             $el: highlightVel
@@ -12738,7 +12831,6 @@ joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
     }
 });
 
-
 joint.shapes.pn.Transition = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><rect class="root"/></g></g><text class="label"/>',
@@ -12791,29 +12883,43 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend(_.extend({}, joint.s
 
         type: 'devs.Model',
         size: { width: 1, height: 1 },
-
         inPorts: [],
         outPorts: [],
-
         attrs: {
             '.': { magnet: false },
+            text: {
+                'pointer-events': 'none'
+            },
             '.body': {
-                width: 150, height: 250,
-                stroke: '#000000'
+                width: 150,
+                height: 250,
+                stroke: '#000'
             },
             '.port-body': {
                 r: 10,
                 magnet: true,
-                stroke: '#000000'
+                stroke: '#000'
             },
-            text: {
-                'pointer-events': 'none'
+            '.label': {
+                text: 'Model',
+                'ref-x': .5,
+                'ref-y': 10,
+                ref: '.body',
+                'text-anchor': 'middle',
+                fill: '#000'
             },
-            '.label': { text: 'Model', 'ref-x': .5, 'ref-y': 10, ref: '.body', 'text-anchor': 'middle', fill: '#000000' },
-            '.inPorts .port-label': { x:-15, dy: 4, 'text-anchor': 'end', fill: '#000000' },
-            '.outPorts .port-label':{ x: 15, dy: 4, fill: '#000000' }
+            '.inPorts .port-label': {
+                x: -15,
+                dy: 4,
+                'text-anchor': 'end',
+                fill: '#000'
+            },
+            '.outPorts .port-label': {
+                x: 15,
+                dy: 4,
+                fill: '#000'
+            }
         }
-
     }, joint.shapes.basic.Generic.prototype.defaults),
 
     getPortAttrs: function(portName, index, total, selector, type) {
@@ -12825,47 +12931,71 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend(_.extend({}, joint.s
         var portLabelSelector = portSelector + '>.port-label';
         var portBodySelector = portSelector + '>.port-body';
 
-        attrs[portLabelSelector] = { text: portName };
-        attrs[portBodySelector] = { port: { id: portName || _.uniqueId(type) , type: type } };
-        attrs[portSelector] = { ref: '.body', 'ref-y': (index + 0.5) * (1 / total) };
+        attrs[portLabelSelector] = {
+            text: portName
+        };
 
-        if (selector === '.outPorts') { attrs[portSelector]['ref-dx'] = 0; }
+        attrs[portBodySelector] = {
+            port: {
+                id: portName || _.uniqueId(type),
+                type: type
+            }
+        };
+
+        attrs[portSelector] = {
+            ref: '.body',
+            'ref-y': (index + 0.5) * (1 / total)
+        };
+
+        if (selector === '.outPorts') {
+            attrs[portSelector]['ref-dx'] = 0;
+        }
 
         return attrs;
     }
 }));
 
-
 joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
 
     defaults: joint.util.deepSupplement({
-
         type: 'devs.Atomic',
         size: { width: 80, height: 80 },
         attrs: {
-            '.body': { fill: 'salmon' },
-            '.label': { text: 'Atomic' },
-            '.inPorts .port-body': { fill: 'PaleGreen' },
-            '.outPorts .port-body': { fill: 'Tomato' }
+            '.body': {
+                fill: 'salmon'
+            },
+            '.label': {
+                text: 'Atomic'
+            },
+            '.inPorts .port-body': {
+                fill: 'PaleGreen'
+            },
+            '.outPorts .port-body': {
+                fill: 'Tomato'
+            }
         }
-
     }, joint.shapes.devs.Model.prototype.defaults)
-
 });
 
 joint.shapes.devs.Coupled = joint.shapes.devs.Model.extend({
 
     defaults: joint.util.deepSupplement({
-
         type: 'devs.Coupled',
         size: { width: 200, height: 300 },
         attrs: {
-            '.body': { fill: 'seaGreen' },
-            '.label': { text: 'Coupled' },
-            '.inPorts .port-body': { fill: 'PaleGreen' },
-            '.outPorts .port-body': { fill: 'Tomato' }
+            '.body': {
+                fill: 'seaGreen'
+            },
+            '.label': {
+                text: 'Coupled'
+            },
+            '.inPorts .port-body': {
+                fill: 'PaleGreen'
+            },
+            '.outPorts .port-body': {
+                fill: 'Tomato'
+            }
         }
-
     }, joint.shapes.devs.Model.prototype.defaults)
 });
 
@@ -12873,7 +13003,11 @@ joint.shapes.devs.Link = joint.dia.Link.extend({
 
     defaults: {
         type: 'devs.Link',
-        attrs: { '.connection' : { 'stroke-width' :  2 }}
+        attrs: {
+            '.connection': {
+                'stroke-width': 2
+            }
+        }
     }
 });
 
@@ -13657,9 +13791,9 @@ joint.dia.Graph.prototype.fromGraphLib = function(glGraph, opt) {
 };
 
 
-	joint.g = g;
-	joint.V = joint.Vectorizer = V;
+    joint.g = g;
+    joint.V = joint.Vectorizer = V;
 
-	return joint;
+    return joint;
 
 }));

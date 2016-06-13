@@ -1,10 +1,10 @@
-/*! JointJS v0.9.9 - JavaScript diagramming library  2016-05-31 
+/*! JointJS v0.9.10 (2016-06-13) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
- */
+*/
 joint.shapes.uml = {};
 
 joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({

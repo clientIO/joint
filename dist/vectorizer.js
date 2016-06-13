@@ -1,10 +1,10 @@
-/*! JointJS v0.9.9 - JavaScript diagramming library  2016-05-31 
+/*! JointJS v0.9.10 (2016-06-13) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
- */
+*/
 (function(root, factory) {
 
     if (typeof define === 'function' && define.amd) {
@@ -415,7 +415,10 @@ V = Vectorizer = (function() {
                 // character and make it invisible, making the following lines correctly
                 // relatively positioned. `dy=1em` won't work with empty lines otherwise.
                 vLine.addClass('v-empty-line');
-                vLine.node.style.opacity = 0;
+                // 'opacity' needs to be specified with fill, stroke. Opacity without specification
+                // is not applied in Firefox
+                vLine.node.style.fillOpacity = 0;
+                vLine.node.style.strokeOpacity = 0;
                 vLine.node.textContent = '-';
             }
 
