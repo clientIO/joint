@@ -1,3 +1,6 @@
+13-06-2016 (v0.9.10)
+  * Fixes for webpack, browserify
+
 31-05-2016 (v0.9.9)
   * JointJS:
     * Added env namespace with env.test(name) and env.addTest(name, fn) methods
