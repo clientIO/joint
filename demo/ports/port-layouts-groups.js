@@ -6,6 +6,7 @@ var g2 = new joint.shapes.basic.Rect({
     attrs: {
         text: { text: 'left' }
     },
+    portMarkup: '<rect width="20" height="20" fill="black"/>',
     ports: {
         groups: {
             'blacks': {
@@ -26,6 +27,10 @@ var g2 = new joint.shapes.basic.Rect({
                     });
                 },
                 attrs: {
+                    rect: {
+                        fill: 'red',
+                        width: 11
+                    },
                     circle: {
                         fill: 'red',
                         r: 10,
@@ -41,6 +46,9 @@ var g2 = new joint.shapes.basic.Rect({
                         'stroke-width': 3,
                         r: 20,
                         magnet: true
+                    },
+                    rect: {
+                        fill: 'green'
                     }
                 },
                 position: 'absolute'
@@ -52,13 +60,13 @@ var g2 = new joint.shapes.basic.Rect({
 paper2.model.addCell(g2);
 g2.addPort({ group: 'blacks', id: 'b1' });
 g2.addPort({ group: 'blacks', id: 'b2' });
-g2.addPort({ group: 'blacks' });
+g2.addPort({ group: 'blacks', args: { angle: 45, dx: 0, dy: -5 }, attrs: { rect: { fill: 'gray' } } });
 g2.addPort({ group: 'blacks' });
 g2.addPort({ group: 'blacks' });
 g2.addPort({ group: 'blacks' });
 
 g2.addPort({ group: 'greens', args: { x: '70%', y: '60%' } });
-g2.addPort({ group: 'greens', args: { x: '90%', y: '60%' } });
+g2.addPort({ group: 'greens', args: { x: '90%', y: '60%', angle: 45 } });
 
 g2.addPort({ group: 'reds' });
 //override group settings
@@ -68,7 +76,7 @@ g2.addPort({ group: 'reds' });
 $('<b/>').text('Click on Rectangle to toggle port positions alignment').appendTo('body');
 
 var portPosition = 0;
-paper2.on('element:pointerdown', function(cellView, e) {
+paper2.on('cell:pointerclick', function(cellView, e) {
 
     if (!cellView.model.hasPorts()) {
         return;

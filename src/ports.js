@@ -442,9 +442,9 @@
                 position = 'left';
             }
 
-            var offsets = namespace[position](_.pluck(ports, 'position.args'), elBBox, group);
+            var portTrans = namespace[position](_.pluck(ports, 'position.args'), elBBox, group.position.args);
 
-            _.each(offsets, function(offset, index) {
+            _.each(portTrans, function(offset, index) {
 
                 var port = this.model.portData.getPort(ports[index].id);
                 var cached = this._portElementsCache[port.id] || {};
@@ -462,7 +462,7 @@
 
         /**
          * @param {Vectorizer} element
-         * @param {{x:number, y:number, angle: number, attrs: Object}} transformData
+         * @param {{dx:number, dy:number, angle: number, attrs: Object}} transformData
          * @param {number=} initialAngle
          * @constructor
          */

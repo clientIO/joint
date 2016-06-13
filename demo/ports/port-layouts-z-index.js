@@ -14,10 +14,12 @@ _.times(10, function(index) {
 g4.addPort({
     z: 2,
     // position args
-    args: {
-        dy: -70,
-        dx: 20
-        // angle: 10
+    position: {
+        args: {
+            y: -70,
+            x: 20,
+            angle: 10
+        }
     },
     label: {
         position: {

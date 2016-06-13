@@ -209,10 +209,10 @@ var g = (function() {
             return Ellipse(this);
         },
 
-        tangentTheta: function(T) {
+        tangentTheta: function(p) {
 
-            var x0 = T.x;
-            var y0 = T.y;
+            var x0 = p.x;
+            var y0 = p.y;
             var a = this.a;
             var b = this.b;
             var center = this.bbox().center();
@@ -224,7 +224,7 @@ var g = (function() {
 
             var x = (a * a / (x0 - m)) - (a * a * (y0 - n) * (y - n)) / (b * b * (x0 - m)) + m;
 
-            return g.point(x, y).theta(T);
+            return g.point(x, y).theta(p);
         },
 
         equals: function(ellipse) {

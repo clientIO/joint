@@ -1,5 +1,14 @@
 (function(_, g, joint) {
 
+    function aa(point, angle, opt) {
+
+        var trans = point.toJSON();
+
+        trans.angle = angle || 0;
+
+        return _.defaults({}, opt, trans);
+    }
+
     function lineLayout(ports, p1, p2) {
         return _.map(ports, function(port, index, ports) {
             var p = this.pointAt(((index + 0.5) / ports.length));
@@ -7,7 +16,8 @@
             if (port.dx || port.dy) {
                 p.offset(port.dx || 0, port.dy || 0);
             }
-            return p.round();
+
+            return aa(p.round(), 0, port);
         }, g.line(p1, p2));
     }
 
@@ -38,9 +48,7 @@
                 p2.move(center, port.dr);
             }
 
-            var transform = p2.toJSON();
-            transform.angle = theta;
-            return transform;
+            return aa(p2.round(), theta, port);
         });
     }
 
@@ -69,6 +77,7 @@
          * @returns {Array<g.Point>}
          */
         absolute: function(ports, elBBox, opt) {
+            //TODO v.talas angle
             return _.map(ports, _.partial(argPoint, elBBox));
         },
 
@@ -79,7 +88,7 @@
          * @returns {Array<g.Point>}
          */
         fn: function(ports, elBBox, opt) {
-            return opt.position.args.fn(ports, elBBox, opt);
+            return opt.fn(ports, elBBox, opt);
         },
 
         /**
@@ -90,8 +99,8 @@
          */
         line: function(ports, elBBox, opt) {
 
-            var start = argPoint(elBBox, opt.position.args.start || elBBox.origin());
-            var end = argPoint(elBBox, opt.position.args.end || elBBox.corner());
+            var start = argPoint(elBBox, opt.start || elBBox.origin());
+            var end = argPoint(elBBox, opt.end || elBBox.corner());
 
             return lineLayout(ports, start, end);
         },
@@ -144,8 +153,8 @@
          */
         ellipseSpread: function(ports, elBBox, opt) {
 
-            var startAngle = opt.position.args.startAngle || 0;
-            var stepAngle = opt.position.args.step || 360 / ports.length;
+            var startAngle = opt.startAngle || 0;
+            var stepAngle = opt.step || 360 / ports.length;
 
             return ellipseLayout(ports, elBBox, startAngle, function(index) {
                 return index * stepAngle;
@@ -160,8 +169,8 @@
          */
         ellipse: function(ports, elBBox, opt) {
 
-            var startAngle = opt.position.args.startAngle || 0;
-            var stepAngle = opt.position.args.step || 360 / ports.length;
+            var startAngle = opt.startAngle || 0;
+            var stepAngle = opt.step || 360 / ports.length;
 
             return ellipseLayout(ports, elBBox, startAngle, function(index, count) {
                 return (index + 0.5 - count / 2) * stepAngle;

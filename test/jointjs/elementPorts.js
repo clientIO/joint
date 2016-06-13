@@ -301,8 +301,15 @@ QUnit.module('element ports', function() {
                     'a': {
                         position: {
                             name: 'right',
-                            args: { dx: -10 }
+                            args: { x: 10, y: 11, angle: 12 }
+                        },
+                        label: {
+                            position: {
+                                name: 'lefts',
+                                args: { x: 10, y: 20, angle: 30 }
+                            }
                         }
+
                     }, 'b': {
                         position: 'top'
                     }
@@ -373,8 +380,59 @@ QUnit.module('element ports', function() {
         });
     });
 
+    QUnit.module('port layout', function(hooks) {
 
-    QUnit.module('port layouts ', function(hooks) {
+        QUnit.test('straight line layouts', function(assert) {
+            var elBBox = g.rect(0, 0, 100, 100);
+
+            var trans = joint.layout.Port.left([
+                {},
+                {},
+                { dx: 20, dy: -15 },
+                { y: 100, x: 100, angle: 45 }
+            ], elBBox, {});
+
+            var delta = trans[1].y - trans[0].y;
+
+            assert.equal(trans[0].y + delta, trans[1].y);
+            assert.equal(trans[0].x, 0);
+            assert.equal(trans[0].angle, 0);
+
+            assert.equal(trans[2].x, 20);
+            assert.equal(trans[2].y, trans[1].y + delta - 15, 'offset y should be applied');
+            assert.equal(trans[2].angle, 0);
+
+            assert.equal(trans[3].angle, 45);
+            assert.equal(trans[3].y, 100, 'override y position');
+            assert.equal(trans[3].x, 100, 'override y position');
+        });
+
+        QUnit.test('circular layouts', function(assert) {
+
+            var elBBox = g.rect(0, 0, 100, 100);
+
+            var trans = joint.layout.Port.ellipseSpread([
+                {},
+                { dr: 3, compensateRotation: true },
+                { dx: 1, dy: 2, dr: 3 },
+                { x: 100, y: 101, angle: 10 }
+            ], elBBox, {});
+
+            assert.equal(Math.round(trans[1].angle), -90, 'rotation compensation applied');
+            assert.equal(trans[1].x, 0 - 3, 'dr is applied');
+            assert.equal(trans[1].y, 50);
+
+            // middle bottom
+            assert.equal(trans[2].x, 50 + 1, 'dx is applied');
+            assert.equal(trans[2].y, 100 + 2 + 3, 'dy, dr are applied');
+
+            assert.equal(trans[3].x, 100, 'x position overridden');
+            assert.equal(trans[3].y, 101, 'y position overridden');
+            assert.equal(trans[3].angle, 10, 'y position overridden');
+        });
+    });
+
+    QUnit.module('port layouts xxxxxx', function(hooks) {
 
         QUnit.test('layout port position', function(assert) {
 

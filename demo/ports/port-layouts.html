@@ -6,7 +6,7 @@
 
     <title>Port layouts demo</title>
 
-    <link rel="stylesheet" type="text/css" href="../../build/joint.css" />
+    <link rel="stylesheet" type="text/css" href="../../build/joint.css"/>
 
     <style>
         .joint-paper {
@@ -49,13 +49,114 @@
         });
     }
 </script>
+<code>
+    <pre>
+    var portsDefinition = {
+        groups:{
+            'OnSide': {
+                position: {
+                    name : 'left|right|top|bottom',
+                    args: {
+                        x: 10,          //
+                        y: 10,          //
+                        angle: 30,      //
+                        dx: 1,          // default 0
+                        dy: 1,          // default 0
+                    }
+                },
+            },
+
+            'Line': {
+                position: {
+                    name : 'line',
+                    args: {
+                        x: 10,          //
+                        y: 10,          //
+                        angle: 30,      //
+                        start: 10|'10%'
+                        end: 10|'10%',
+                        dx: 1,          // default 0
+                        dy: 1,          // default 0
+                    }
+                },
+            },
+
+            'Absolute': {
+                position: {
+                    name: 'absolute',
+                    args: {
+                        x: 10|'10%'
+                        y: 10|'10%',
+                        angle: 45
+                    }
+                }
+            },
+
+            'EllipseLayouts': {
+                position: {
+                    name: 'ellipse|ellipseSpread',
+                    args: {
+                        dx: 1,               // default 0
+                        dy: 1,               // default 0
+                        dr: 1,               // default 0
+                        startAngle: 10,      // default 0
+                        step: 10             // default 360 / portsCount,
+                        compensateRotation: false
+                    }
+                }
+            }
+        }
+    }
+        </pre>
+</code>
+
+<code>
+    <pre>
+        var ports = {
+            groups: 'kjsdlkfjds' : {
+                label: {
+                    position: 'left|right|bottom|top',
+                    args: {
+                        x: 11,
+                        y: 22,
+                        angle: 45,
+                        attrs: {
+                            '.': {
+                                y: 15,
+                                'text-anchor': 'start'
+                            }
+                        }
+                    }
+                }
+            },
+            groups: 'aaa' : {
+                label: {
+                    position: 'inside|outside|insideOriented|outsideOriented',
+                    args: {
+                        offset: 999
+                    }
+                }
+            },
+            groups: 'aaa' : {
+                label: {
+                    position: 'radial|radialOriented',
+                    args: {
+                        offset: 999
+                    }
+                }
+            }
+        }
+
+
+    </pre>
+</code>
+
 
 <script src="./port-layouts-defaults.js"></script>
 <script src="./port-layouts-groups.js"></script>
 <script src="./port-layouts-labels.js"></script>
 <script src="./port-layouts-z-index.js"></script>
 <script src="./port-layouts-rotation-comp.js"></script>
-
 
 </body>
 </html>
