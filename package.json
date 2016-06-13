@@ -9,10 +9,12 @@
     "visualization"
   ],
   "scripts": {
-    "test": "grunt test"
+    "test": "grunt test",
+    "prepublish": "grunt dist && grunt test"
   },
   "version": "0.9.10",
-  "main": "./dist/joint.js",
+  "main": "./dist/joint.min.js",
+  "style": "./dist/joint.min.css",
   "homepage": "http://jointjs.com",
   "author": {
     "name": "client IO",
@@ -44,7 +46,6 @@
     "url": "https://github.com/clientIO/joint/issues"
   },
   "license": "MPL-2.0",
-  "style": "dist/joint.min.css",
   "dependencies": {
     "backbone": "1.3.3",
     "dagre": "0.7.4",
