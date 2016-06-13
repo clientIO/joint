@@ -10,8 +10,7 @@
   ],
   "private": true,
   "scripts": {
-    "test": "grunt test",
-    "prepublish": "grunt dist && grunt test"
+    "test": "grunt test"
   },
   "version": "0.9.7-rappid.7",
   "main": "./dist/joint.min.js",
