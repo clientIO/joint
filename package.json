@@ -9,8 +9,7 @@
     "visualization"
   ],
   "scripts": {
-    "test": "grunt test",
-    "prepublish": "grunt dist && grunt test"
+    "test": "grunt test"
   },
   "version": "0.9.10",
   "main": "./dist/joint.min.js",
