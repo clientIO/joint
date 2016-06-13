@@ -1,12 +1,14 @@
+'use strict';
+
 var should = require('should');
 
-var joint = require('../../index');
+// Test against the latest JointJS build file.
+var joint = require('../../build/joint');
 
 describe('Sanity check', function() {
 
     describe('require', function() {
 
-        
         it('should return an object', function() {
             joint.should.have.type('object');
             joint.should.not.be.empty;
@@ -20,7 +22,6 @@ describe('Sanity check', function() {
         });
     });
 });
-
 
 describe('Graph', function() {
 

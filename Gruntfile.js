@@ -111,9 +111,9 @@ module.exports = function(grunt) {
         webpack: {
             joint: {
                 files: {
-                   './build/joint.webpack-bundle.js' : './build/joint.min.js'
+                   './build/joint.webpack-bundle.js' : './build/joint.js'
                 },
-                entry: './build/joint.min.js',
+                entry: './index.js',
                 output: {
                     path: './build/',
                     filename: 'joint.webpack-bundle.js',
@@ -130,7 +130,7 @@ module.exports = function(grunt) {
         browserify: {
             joint: {
                 files: {
-                    'build/joint.browserify-bundle.js': 'build/joint.min.js'
+                    'build/joint.browserify-bundle.js': 'index.js'
                 },
                 options: {
                     browserifyOptions: {

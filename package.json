@@ -12,7 +12,8 @@
   "scripts": {
     "test": "grunt test"
   },
-  "version": "0.9.7-rappid.6",
+  "version": "0.9.7-rappid.7",
+  "main": "./dist/joint.js",
   "homepage": "http://jointjs.com",
   "author": {
     "name": "client IO",
