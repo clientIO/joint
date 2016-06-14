@@ -31,8 +31,11 @@ if [ "$ANSWER" = "y" ]; then
 	if [ $? -eq 0 ]; then
 		echo "${nl}All tests passed. Continuing with publishing.";
 
+		# Commit changes to dist directory.
+		git add dist && git commit dist -m "Release v$version";
+
 		# Create git tag.
-		git tag -a "v$version" -m "Release v$version" && git push upstream v$version;
+		git tag -a "v$version" -m "Release v$version" && git push upstream && git push upstream v$version;
 
 		if [ $? -eq 0 ]; then
 			# Finally publish to npm.
