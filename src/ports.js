@@ -134,6 +134,10 @@
             }, this);
         },
 
+        /**
+         * remove links tied wiht just removed element
+         * @private
+         */
         _processRemovedPort: function() {
 
             var current = this.get('ports') || {};
@@ -171,7 +175,7 @@
 
         hasPorts: function() {
 
-            return this.getPorts().length > 0;
+            return this.prop('ports/items').length > 0;
         },
 
         getPorts: function() {
@@ -181,14 +185,14 @@
 
         getPort: function(id) {
 
-            return _.find(this.getPorts(), function(port) {
+            return _.cloneDeep(_.find(this.prop('ports/items'), function(port) {
                 return port.id && port.id === id;
-            });
+            }));
         },
 
         getPortIndex: function(id) {
 
-            return _.findIndex(this.getPorts(), function(port) {
+            return _.findIndex(this.prop('ports/items'), function(port) {
                 return port.id && port.id === id;
             });
         },
@@ -226,7 +230,7 @@
         addPorts: function(ports, opt) {
 
             if (ports.length) {
-                this.prop('ports/items', this.getPorts().concat(ports), opt);
+                this.prop('ports/items', _.clone(this.prop('ports/items')).concat(ports), opt);
             }
 
             return this;
@@ -235,7 +239,7 @@
         removePort: function(port, opt) {
 
             opt = opt || {};
-            var ports = this.getPorts();
+            var ports = _.clone(this.prop('ports/items'));
 
             var index = _.isString(port) ? _.findIndex(ports, this.getPort(port)) : _.findIndex(ports, port);
 
@@ -313,7 +317,7 @@
 
             var ports = _.groupBy(this.model.portData.getPorts(), 'z');
 
-            _.eachRight(_.keys(ports), function(groupName) {
+            _.eachRight(ports, function(groupPorts, groupName) {
                 this._appendPorts(ports[groupName], parseInt(groupName, 10));
             }, this);
 
@@ -329,21 +333,27 @@
 
             var containerElement = this.rotatableNode || this.vel;
             var childNodes = containerElement.node.childNodes;
-
-            var getPortElement = function(port) {
-                if (this._portElementsCache[port.id]) {
-                    return this._portElementsCache[port.id].portElement;
-                }
-                return this._createPortElement(port);
-            };
-
-            var portElements = _.map(ports, getPortElement, this);
+            var portElements = _.map(ports, this._getPortElement, this);
 
             if (childNodes[z]) {
                 V(childNodes[z]).before(portElements);
             } else {
                 containerElement.append(portElements);
             }
+        },
+
+        /**
+         * Try to get element from cache,
+         * @param port
+         * @returns {*}
+         * @private
+         */
+        _getPortElement: function(port) {
+
+            if (this._portElementsCache[port.id]) {
+                return this._portElementsCache[port.id].portElement;
+            }
+            return this._createPortElement(port);
         },
 
         /**
@@ -442,7 +452,7 @@
                 position = 'left';
             }
 
-            var portTrans = namespace[position](_.pluck(ports, 'position.args'), elBBox, group.position.args);
+            var portTrans = namespace[position](_.pluck(ports, 'position.args'), elBBox, group.position.args || {});
 
             _.each(portTrans, function(offset, index) {
 
