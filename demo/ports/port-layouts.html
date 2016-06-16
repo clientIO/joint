@@ -49,7 +49,17 @@
         });
     }
 </script>
-<code>
+
+<script src="./port-layouts-defaults.js"></script>
+<script src="./port-layouts-groups.js"></script>
+<script src="./port-layouts-labels.js"></script>
+<script src="./port-layouts-z-index.js"></script>
+<script src="./port-layouts-rotation-comp.js"></script>
+
+<hr/>
+<div>
+    <h2>Port position definition </h2>
+    <code>
     <pre>
     var portsDefinition = {
         groups:{
@@ -57,9 +67,9 @@
                 position: {
                     name : 'left|right|top|bottom',
                     args: {
-                        x: 10,          //
-                        y: 10,          //
-                        angle: 30,      //
+                        x: 10,
+                        y: 10,
+                        angle: 30,
                         dx: 1,          // default 0
                         dy: 1,          // default 0
                     }
@@ -92,6 +102,20 @@
                 }
             },
 
+            // Custom layout using function
+            'Function': {
+                /**
+                 * @param {Array&lt;Object&gt;} ports
+                 * @param {g.Rect} elBBox
+                 * @param {Object} opt Group options
+                 * @returns {Array&lt;g.Point&gt;}
+                */
+                position: function(ports, elBBox, opt) {
+                    // example
+                    return g.point({ x: index * 20 + 20, y: 0 });
+                }
+            },
+
             'EllipseLayouts': {
                 position: {
                     name: 'ellipse|ellipseSpread',
@@ -108,55 +132,76 @@
         }
     }
         </pre>
-</code>
-
-<code>
+    </code>
+</div>
+<h2>Port label definition </h2>
+<div>
+    <code>
     <pre>
         var ports = {
-            groups: 'kjsdlkfjds' : {
+            groups: {
+            'Sides' : {
                 label: {
-                    position: 'left|right|bottom|top',
-                    args: {
-                        x: 11,
-                        y: 22,
-                        angle: 45,
-                        attrs: {
-                            '.': {
-                                y: 15,
-                                'text-anchor': 'start'
+                    position: {
+                        name : 'left|right|bottom|top',
+                        args: {
+                            x: number,
+                            y: number,
+                            angle: 0,
+                            attrs: {
+                                 // standard attrs
                             }
                         }
                     }
                 }
             },
-            groups: 'aaa' : {
+            'InsideOutside' : {
                 label: {
-                    position: 'inside|outside|insideOriented|outsideOriented',
-                    args: {
-                        offset: 999
+                    position: {
+                        name :'inside|outside|insideOriented|outsideOriented',
+                        args: {
+                            offset: 0,
+
+                            x: number,
+                            y: number,
+                            angle: 0,
+                            attrs: {
+                                // standard attrs
+                            }
                     }
                 }
             },
-            groups: 'aaa' : {
+            'Radial' : {
                 label: {
-                    position: 'radial|radialOriented',
-                    args: {
-                        offset: 999
+                    position: {
+                        name :'radial|radialOriented',
+                        args: {
+                            offset: 0
+                        }
+                    }
+                }
+            },
+            // values in args are used directly in transformation, undefined values are supplied with defaults.
+            'Manual': {
+                label: {
+                    position: {
+                        name: 'manual',
+                        args: {
+                            x: 0,
+                            y: 0,
+                            angle: 0
+                        }
                     }
                 }
             }
         }
+    }
 
 
     </pre>
-</code>
+    </code>
+</div>
 
-
-<script src="./port-layouts-defaults.js"></script>
-<script src="./port-layouts-groups.js"></script>
-<script src="./port-layouts-labels.js"></script>
-<script src="./port-layouts-z-index.js"></script>
-<script src="./port-layouts-rotation-comp.js"></script>
 
 </body>
 </html>

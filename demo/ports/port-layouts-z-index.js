@@ -1,5 +1,8 @@
 $('<h2/>').text('Z index').appendTo('body');
 var paper4 = createPaper();
+paper4.options.validateMagnet = function() {
+	return false;
+}
 $('<b/>').text('Click on Rectangle to increment z-index of massive port').appendTo('body');
 
 var g4 = new joint.shapes.basic.Rect({
@@ -8,18 +11,16 @@ var g4 = new joint.shapes.basic.Rect({
 });
 
 _.times(10, function(index) {
-    g4.addPort({ id: index + '', attrs: { circle: { r: 15, magnet: true, stroke: '#ffffff' } } });
+    g4.addPort({ id: index + '', attrs: { circle: { r: 15, magnet: false, stroke: '#ffffff' } } });
 });
 
 g4.addPort({
     z: 2,
     // position args
-    position: {
-        args: {
-            y: -70,
-            x: 20,
-            angle: 10
-        }
+    args: {
+        y: 70,
+        x: 20,
+        angle: 0
     },
     label: {
         position: {
@@ -35,7 +36,7 @@ g4.addPort({
         ellipse: {
             fill: '#ff0000',
             stroke: '#000000',
-            magnet: true,
+            magnet: false,
             ry: 70,
             rx: 30
         },

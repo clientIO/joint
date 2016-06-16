@@ -6,7 +6,7 @@ var g6 = new joint.shapes.basic.Circle({
     size: { width: 500, height: 300 },
     ellipse: { fill: 'gray', stroke: 'red', rx: 150, ry: 100, cx: 150, cy: 100 },
     attrs: {
-        text: {text : 'compensateRotation: true'}
+        text: { text: 'compensateRotation: true' }
     },
     ports: {
         groups: {
@@ -22,7 +22,9 @@ var g6 = new joint.shapes.basic.Circle({
                     rect: {
                         stroke: '#000000',
                         width: 20,
-                        height: 20
+                        height: 20,
+                        x: -10,
+                        y: -10
                     },
                     '.dot': {
                         fill: '#ff0000',
@@ -39,7 +41,7 @@ var g6 = new joint.shapes.basic.Circle({
 });
 
 _.times(36, function(index) {
-    g6.addPort({ group: 'a', id: index + '', attrs: { text: { text: 'L' + index } } });
+    g6.addPort({ group: 'a', id: index + '', attrs: { text: { text: index } } });
 });
 
 paper6.model.addCell(g6);

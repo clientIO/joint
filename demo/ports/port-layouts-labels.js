@@ -5,7 +5,7 @@ var g3 = new joint.shapes.basic.Circle({
     size: { width: 200, height: 100 },
     ellipse: { fill: 'gray', stroke: 'red', rx: 150, ry: 100, cx: 150, cy: 100 },
     attrs: {
-        text: { text: 'left' }
+        text: { text: 'outsideOriented' }
     },
     ports: {
         groups: {
@@ -22,15 +22,18 @@ var g3 = new joint.shapes.basic.Circle({
                     }
                 },
                 label: {
-                    position: 'left',
-                    args: {}
+                    position: {
+                        name: 'outsideOriented',
+                        args: {
+                            // offset: 15,
+                            // x: 0,
+                            // y: 0,
+                            attrs: {}
+                        }
+                    }
                 },
                 attrs: {
-                    circle: {
-                        fill: '#ffffff',
-                        stroke: '#000000',
-                        r: 10
-                    },
+                    circle: { fill: '#ffffff', stroke: '#000000', r: 10, magnet: true },
                     text: { fill: 'green' }
                 }
             }
@@ -40,7 +43,7 @@ var g3 = new joint.shapes.basic.Circle({
 
 
 _.times(10, function(index) {
-    g3.addPort({ attrs: { text: { text: 'label ' + index }, circle: { magnet: true } }, group: 'a' });
+    g3.addPort({ attrs: { text: { text: 'L ' + index } }, group: 'a' });
 });
 
 g3.addPort({
@@ -54,7 +57,7 @@ g3.addPort({
     label: {
         position: {
             name: 'right',
-            args: { angle: 30 }
+            args: { angle: 30, offset: 22 }
         },
         markup: '<g><rect class="label-rect"/><text class="label-text"/></g>'
     }
@@ -71,9 +74,9 @@ var g33 = new joint.shapes.basic.Rect({
             'a': {
                 position: {
                     name: 'top',
-                    args: { dr: 0, dx: 0, dy: 0 }
+                    args: { dr: 0, dx: 0, dy: -9 }
                 },
-                label: { position: 'outsideOriented' },
+                label: { position: { name: 'left', args: { offset: 12 } } },
                 attrs: {
                     circle: { fill: '#ffffff', stroke: '#000000', r: 10 },
                     text: { fill: 'green' }
@@ -84,22 +87,24 @@ var g33 = new joint.shapes.basic.Rect({
 });
 
 _.times(3, function(index) {
-    g33.addPort({ attrs: { text: { text: 'label ' + index }, circle: { magnet: true } }, group: 'a' });
+    g33.addPort({ attrs: { text: { text: 'L' + index }, circle: { magnet: true } }, group: 'a' });
 });
 
 g33.addPort({
     group: 'a',
     attrs: {
         circle: { stroke: 'red', 'stroke-width': 2, magnet: true },
-        '.label-rect': { stroke: 'red', fill: '#ff0000', width: 100, height: 20 },
+        '.label-rect': { stroke: 'red', fill: '#ff0000', width: 150, height: 20 },
         '.label-text': { x: '0.5em', y: '0.9em' },
-        'text': { x: '0.5em', text: 'custom label', y: '0.9em', 'text-anchor': 'start', fill: '#ffffff' }
+        'text': { x: '0.5em', text: 'custom label - manual', y: '0.9em', 'text-anchor': 'start', fill: '#ffffff' }
     },
     label: {
         position: {
-            name: 'right',
+            name: 'left',
             args: {
-                angle: 30
+                angle: 10,
+                x: 15,
+                y: -10
                 // this works as well, overrides .label-rect, .label-text attrs for current port
                 // attrs: {
                 // text: { y: '0.9em', x: '0.5em', 'text-anchor': 'start' },
@@ -116,18 +121,33 @@ paper3.model.addCell(g33);
 
 $('<b/>').text('Click on ellipse to toggle label position alignment').appendTo('body');
 
-var labelPos = 0;
+var labelPos = {
+    'basic.Rect': 0,
+    'basic.Circle': 0
+};
+
 paper3.on('cell:pointerclick', function(cellView, e) {
 
     if (!cellView.model.hasPorts()) {
         return;
     }
 
-    var positions = _.keys(joint.layout.Label);
-    var pos = positions[(labelPos) % positions.length];
+    var positions;
+    var type = cellView.model.get('type');
+
+    if (type === 'basic.Rect') {
+        positions = ['left', 'right', 'top', 'bottom', 'outsideOriented', 'outside', 'insideOriented', 'inside'];
+    }
+
+    if (type === 'basic.Circle') {
+        positions = ['outsideOriented', 'outside', 'radial', 'radialOriented'];
+
+    }
+
+    var pos = positions[(labelPos[type]) % positions.length];
 
     cellView.model.prop('attrs/text/text', pos);
 
-    cellView.model.prop('ports/groups/a/label/position', pos);
-    labelPos++;
+    cellView.model.prop('ports/groups/a/label/position/name', pos);
+    labelPos[type]++;
 });
