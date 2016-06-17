@@ -1,6 +1,6 @@
 (function(_, g, joint) {
 
-    function aa(point, angle, opt) {
+    function portTransformAttrs(point, angle, opt) {
 
         var trans = point.toJSON();
 
@@ -17,7 +17,7 @@
                 p.offset(port.dx || 0, port.dy || 0);
             }
 
-            return aa(p.round(), 0, port);
+            return portTransformAttrs(p.round(), 0, port);
         }, g.line(p1, p2));
     }
 
@@ -48,7 +48,7 @@
                 p2.move(center, port.dr);
             }
 
-            return aa(p2.round(), theta, port);
+            return portTransformAttrs(p2.round(), theta, port);
         });
     }
 

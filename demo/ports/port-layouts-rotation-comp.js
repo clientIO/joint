@@ -28,7 +28,7 @@ var g6 = new joint.shapes.basic.Circle({
                     },
                     '.dot': {
                         fill: '#ff0000',
-                        r: 3
+                        r: 2
                     },
                     text: {
                         fill: '#000000'
