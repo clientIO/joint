@@ -209,7 +209,9 @@ var g = (function() {
             return Ellipse(this);
         },
 
-        tangentTheta: function(p, i) {
+        tangentTheta: function(p) {
+
+            var refPointDelta = 30;
 
             var x0 = p.x;
             var y0 = p.y;
@@ -224,13 +226,13 @@ var g = (function() {
 
             var y, x;
             if (q1 || q3) {
-                y = x0 > center.x ? y0 - 30 : y0 + 30;
+                y = x0 > center.x ? y0 - refPointDelta : y0 + refPointDelta;
                 x = (a * a / (x0 - m)) - (a * a * (y0 - n) * (y - n)) / (b * b * (x0 - m)) + m;
-                return g.point(x, y).theta(p);
+            } else {
+                x = y0 > center.y ? x0 + refPointDelta : x0 - refPointDelta;
+                y = ( b * b / (y0 - n)) - (b * b * (x0 - m) * (x - m)) / (a * a * (y0 - n)) + n;
             }
 
-            x = y0 > center.y ? x0 + 30 : x0 - 30;
-            y = ( b * b / (y0 - n)) - (b * b * (x0 - m) * (x - m)) / (a * a * (y0 - n)) + n;
             return g.point(x, y).theta(p);
 
         },

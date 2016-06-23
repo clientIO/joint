@@ -47,7 +47,7 @@ g4.addPort({
 
 paper4.model.addCell(g4);
 
-paper4.on('cell:pointerclick', function(cellView) {
+paper4.on('element:pointerclick', function(cellView) {
 
     if (!cellView.model.hasPorts()) {
         return;

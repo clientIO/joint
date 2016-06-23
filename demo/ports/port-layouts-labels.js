@@ -126,7 +126,7 @@ var labelPos = {
     'basic.Circle': 0
 };
 
-paper3.on('cell:pointerclick', function(cellView, e) {
+paper3.on('element:pointerclick', function(cellView, e) {
 
     if (!cellView.model.hasPorts()) {
         return;

@@ -230,7 +230,7 @@
         addPorts: function(ports, opt) {
 
             if (ports.length) {
-                this.prop('ports/items', _.clone(this.prop('ports/items')).concat(ports), opt);
+                this.prop('ports/items', (_.clone(this.prop('ports/items')) || []).concat(ports), opt);
             }
 
             return this;

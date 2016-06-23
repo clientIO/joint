@@ -22,7 +22,7 @@ joint.dia.Element = joint.dia.Cell.extend({
      * @abstract
      */
     _initializePorts: function() {
-
+        // implemented in ports.js
     },
 
     isElement: function() {
@@ -376,6 +376,21 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         'y-alignment',
         'port'
     ],
+
+    /**
+     * @abstract
+     */
+    _removePorts: function() {
+        // implemented in ports.js
+    },
+
+    /**
+     *
+     * @abstract
+     */
+    _renderPorts: function() {
+        // implemented in ports.js
+    },
 
     className: function() {
 
