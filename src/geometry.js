@@ -209,6 +209,33 @@ var g = (function() {
             return Ellipse(this);
         },
 
+        /**
+         * @param {g.Point} point
+         * @param {{suppressRounding: boolean}} [opt]
+         * @returns {number} result < 1 - inside ellipse, result == 1 - on ellipse boundary, result > 1 - outside
+         */
+        whereIs: function(point, opt) {
+
+            var x0 = point.x;
+            var y0 = point.y;
+            var a = this.a;
+            var b = this.b;
+            var x = this.x;
+            var y = this.y;
+
+            var res = ((x0 - x) * (x0 - x)) / (a * a ) + ((y0 - y) * (y0 - y)) / (b * b);
+
+            return opt && opt.suppressRounding ? res : Math.round(res);
+        },
+
+        /**
+         * @returns {g.Point}
+         */
+        center: function() {
+
+            return Point(this.x, this.y);
+        },
+
         tangentTheta: function(p) {
 
             var refPointDelta = 30;

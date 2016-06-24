@@ -2,6 +2,28 @@
 
 QUnit.module('ellipse', function() {
 
+    var boundaryOnAngle = function(ellipse, angle) {
+        var a = ellipse.a;
+        var b = ellipse.b;
+
+        var rad = angle * Math.PI / 180;
+
+        return g.Point(ellipse.x + a * Math.cos(rad), ellipse.y + b * Math.sin(rad)).round();
+    };
+
+    QUnit.test('validate helper boundaryOnAngle', function(assert) {
+
+        var a = 150;
+        var b = 50;
+        var c = g.Point(0, 0);
+        var ellipse = g.Ellipse(c, a, b);
+
+        assert.propEqual(boundaryOnAngle(ellipse, 0), g.Point(150, 0));
+        assert.propEqual(boundaryOnAngle(ellipse, 90), (g.Point(0, 50)));
+        assert.propEqual(boundaryOnAngle(ellipse, 180), (g.Point(-150, 0)));
+        assert.propEqual(boundaryOnAngle(ellipse, 270), (g.Point(0, -50)));
+    });
+
     QUnit.module('constructor', function() {
 
         QUnit.test('creates a new Ellipse object', function(assert) {
@@ -29,28 +51,6 @@ QUnit.module('ellipse', function() {
     });
 
     QUnit.module('tangentTheta', function(hooks) {
-
-        var boundaryOnAngle = function(ellipse, angle) {
-            var a = ellipse.a;
-            var b = ellipse.b;
-
-            var rad = angle * Math.PI / 180;
-
-            return g.Point(ellipse.x + a * Math.cos(rad), ellipse.y + b * Math.sin(rad)).round();
-        };
-
-        QUnit.test('validate helper boundaryOnAngle', function(assert) {
-
-            var a = 150;
-            var b = 50;
-            var c = g.Point(0, 0);
-            var ellipse = g.Ellipse(c, a, b);
-
-            assert.propEqual(boundaryOnAngle(ellipse, 0), g.Point(150, 0));
-            assert.propEqual(boundaryOnAngle(ellipse, 90), (g.Point(0, 50)));
-            assert.propEqual(boundaryOnAngle(ellipse, 180), (g.Point(-150, 0)));
-            assert.propEqual(boundaryOnAngle(ellipse, 270), (g.Point(0, -50)));
-        });
 
         var radiusTangentAngle = function(ellipse, angle) {
 
@@ -89,6 +89,29 @@ QUnit.module('ellipse', function() {
 
             checkTangentThetaOnEllipse(g.Ellipse(g.Point(11, 22), 50, 100), 'wide ellipse');
             checkTangentThetaOnEllipse(g.Ellipse(g.Point(11, 22), 100, 50), 'tall ellipse');
+        });
+
+    });
+
+    QUnit.module('Where is point in space with ellipse', function(hooks) {
+
+        QUnit.test('whereIs', function(assert) {
+
+            var tolerance = 0.009;
+            var opt = { suppressRounding: true };
+            var ellipse = g.Ellipse(g.Point(111, 111), 150, 150);
+
+            var r1 = ellipse.whereIs(ellipse.center(), opt);
+            assert.ok(r1 < 1 && r1 >= 0);
+
+            assert.ok(ellipse.whereIs(ellipse.center().offset(500, 500), opt) > 1);
+
+            for (var angle = 0; angle < 360; angle += 1) {
+
+                var b = boundaryOnAngle(ellipse, angle);
+                var x = ellipse.whereIs(b, { suppressRounding: true });
+                assert.ok(x - 1 < tolerance && x - 1 > -tolerance, 'point on angle: ' + angle + ' result:' + x);
+            }
         });
     });
 
