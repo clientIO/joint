@@ -62,6 +62,26 @@ QUnit.module('paper', function(hooks) {
 
     });
 
+    QUnit.test('async paper.addCells() should not throw on non-flat array', function(assert) {
+
+        assert.expect(2);
+        var done = assert.async();
+
+        var a = new joint.shapes.basic.Rect;
+        var b = new joint.shapes.basic.Rect;
+        var c = new joint.shapes.basic.Rect;
+
+        this.paper.options.async = { batchSize: 1 };
+
+        this.paper.on('render:done', function() {
+            assert.equal(this.graph.getCells().length, 3);
+            assert.equal(this.paper.findViewsInArea(g.rect(-10, -10, 500, 500)).length, 3);
+            done();
+        }, this);
+
+        this.paper.model.addCells([[a], [b, [c]]]);
+    });
+
     QUnit.test('paper.resetViews()', function(assert) {
 
         var r1 = new joint.shapes.basic.Rect;

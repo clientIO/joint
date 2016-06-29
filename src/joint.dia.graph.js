@@ -322,6 +322,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         if (cells.length) {
 
+            cells = _.flattenDeep(cells);
             opt.position = cells.length;
 
             this.startBatch('add');
