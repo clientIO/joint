@@ -236,10 +236,23 @@ var g = (function() {
             return Point(this.x, this.y);
         },
 
+        /** Compute angle between tangent and x axis
+         * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries, otherwise error is thrown.
+         * @returns {number} angle between tangent and x axis
+         */
         tangentTheta: function(p) {
 
-            var refPointDelta = 30;
+            var pointPosition = this.whereIs(p);
 
+            if (pointPosition > 1) {
+                throw new Error('Point is outside - tangent does not exist')
+            }
+
+            if (pointPosition < 1) {
+                throw new Error('Point is inside - tangent does not exist')
+            }
+
+            var refPointDelta = 30;
             var x0 = p.x;
             var y0 = p.y;
             var a = this.a;

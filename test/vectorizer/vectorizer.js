@@ -398,12 +398,9 @@ QUnit.module('vectorizer', function(hooks) {
         QUnit.test('opt to clear transformation list', function(assert) {
 
             vel.transform({ a: 2, b: 0, c: 0, d: 2, e: 0, f: 0 });
-            vel.transform({ a: 2, b: 2, c: 2, d: 2, e: 2, f: 2 });
-
-            assert.equal(vel.node.transform.baseVal.length, 2, '2 transformations should be applied');
-
             vel.transform({ a: 1, b: 1, c: 1, d: 1, e: 1, f: 1 }, { absolute: true });
-            assert.equal(vel.node.transform.baseVal.length, 1, 'clear all and apply a new one');
+
+            vel.remove();
 
             assert.deepEqual(vel.transform(), V.createSVGMatrix({
                 a: 1,
@@ -412,7 +409,7 @@ QUnit.module('vectorizer', function(hooks) {
                 d: 1,
                 e: 1,
                 f: 1
-            }));
+            }), 'should clean transformation list before applying 2nd transformation');
         });
     });
 
