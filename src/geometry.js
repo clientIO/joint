@@ -245,11 +245,11 @@ var g = (function() {
             var pointPosition = this.whereIs(p);
 
             if (pointPosition > 1) {
-                throw new Error('Point is outside - tangent does not exist')
+                throw new Error('Point is outside - tangent does not exist');
             }
 
             if (pointPosition < 1) {
-                throw new Error('Point is inside - tangent does not exist')
+                throw new Error('Point is inside - tangent does not exist');
             }
 
             var refPointDelta = 30;
