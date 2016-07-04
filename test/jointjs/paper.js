@@ -61,7 +61,7 @@ test('graph.fromJSON(), graph.toJSON()', function() {
 
     this.graph.fromJSON(this.graph.toJSON());
     equal(this.graph.get('cells').length, 3, 'all the cells were reconstructed from JSON');
-    
+
     // Check that the link is before the last cell in the DOM. This check is there because
     // paper might have resorted the cells so that links are always AFTER elements.
     linkView = this.paper.findViewByModel('b4289c08-07ea-49d2-8dde-e67eb2f2a06a');
@@ -84,10 +84,10 @@ test('contextmenu', function() {
 
     var r1View = this.paper.findViewByModel(r1);
     r1View.$el.trigger('contextmenu');
-    ok(cellContextmenuCallback.called, 'cell:contextmenu triggered');    
+    ok(cellContextmenuCallback.called, 'cell:contextmenu triggered');
 
     this.paper.$el.trigger('contextmenu');
-    ok(blankContextmenuCallback.called, 'blank:contextmenu triggered');    
+    ok(blankContextmenuCallback.called, 'blank:contextmenu triggered');
 });
 
 test('paper.getArea()', function(assert) {
@@ -501,4 +501,24 @@ test('linkAllowed(linkViewOrModel)', function(assert) {
 
     this.paper.options.multiLinks = true;
     assert.ok(this.paper.linkAllowed(multiLink2), 'multi link allowed when link multi-links is enabled');
+});
+
+QUnit.test('async paper.addCells() should not throw on non-flat array', function(assert) {
+
+    assert.expect(2);
+    var done = assert.async();
+
+    var a = new joint.shapes.basic.Rect;
+    var b = new joint.shapes.basic.Rect;
+    var c = new joint.shapes.basic.Rect;
+
+    this.paper.options.async = { batchSize: 1 };
+
+    this.paper.on('render:done', function() {
+        assert.equal(this.graph.getCells().length, 3);
+        assert.equal(this.paper.findViewsInArea(g.rect(-10, -10, 500, 500)).length, 3);
+        done();
+    }, this);
+
+    this.paper.model.addCells([[a], [b, [c]]]);
 });
