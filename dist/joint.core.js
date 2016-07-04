@@ -1,10 +1,10 @@
-/*! JointJS v0.9.7-rappid.4 - JavaScript diagramming library  2016-05-24 
+/*! JointJS v0.9.7-rappid.7 (2016-07-04) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
- */
+*/
 (function(root, factory) {
 
     if (typeof define === 'function' && define.amd) {
@@ -1216,7 +1216,10 @@ V = Vectorizer = (function() {
                 // character and make it invisible, making the following lines correctly
                 // relatively positioned. `dy=1em` won't work with empty lines otherwise.
                 vLine.addClass('v-empty-line');
-                vLine.node.style.opacity = 0;
+                // 'opacity' needs to be specified with fill, stroke. Opacity without specification
+                // is not applied in Firefox
+                vLine.node.style.fillOpacity = 0;
+                vLine.node.style.strokeOpacity = 0;
                 vLine.node.textContent = '-';
             }
 
@@ -2376,7 +2379,7 @@ var joint = {
     dagre: typeof dagre !== 'undefined' ? dagre : null,
     graphlib: typeof graphlib !== 'undefined' ? graphlib : null,
 
-    version: '0.9.7-rappid.3',
+    version: '0.9.7-rappid.7',
 
     // `joint.dia` namespace.
     dia: {},
@@ -3947,6 +3950,8 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     addCells: function(cells, options) {
+
+        cells = _.flattenDeep(cells);
 
         options = options || {};
         options.position = cells.length;
@@ -5672,10 +5677,10 @@ joint.dia.Element = joint.dia.Cell.extend({
         } else {
 
             this.set('position', translatedPosition, opt);
-
-            // Recursively call `translate()` on all the embeds cells.
-            _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
         }
+
+        // Recursively call `translate()` on all the embeds cells.
+        _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
 
         return this;
     },

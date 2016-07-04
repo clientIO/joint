@@ -1,10 +1,10 @@
-/*! JointJS v0.9.7-rappid.4 - JavaScript diagramming library  2016-05-24 
+/*! JointJS v0.9.7-rappid.7 (2016-07-04) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
- */
+*/
 (function(root, factory) {
 
     if (typeof define === 'function' && define.amd) {
