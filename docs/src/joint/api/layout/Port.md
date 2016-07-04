@@ -1,7 +1,7 @@
 
 Port layouts are functions whose consume array of ports and result is array of port positions, relative to shape bounding box. Port position `{ x:1, y:2 }` means the port origin is on position `[1, 2]` from shape's origin.
 
-Port layout can be defined only on `group` level, default layout is `left`. You can pass some additional arguments into layout function, defined in optional argument `args`.
+Port layout can be defined only on `group` level. You can pass some additional arguments into layout function, defined in optional argument `args`. Also `args` is the only way how to adjust port layout from the port definition perspective.
 
 ```javascript
 var rect = joint.shapes.basic.Rect({
@@ -9,11 +9,18 @@ var rect = joint.shapes.basic.Rect({
     ports: {
         groups: {
             'a': {
-                position: positionLayoutDefinition
+                position: {
+                    name: 'layoutType',
+                    args: {},
+                }
             }
         },
         items: [
-            { group: 'a' }, // initialize 'rect' with port in group 'a'
+            // initialize 'rect' with port in group 'a'
+            {
+                group: 'a',
+                args: {} // overrides `args` from the group level definition. `layoutType` cannot be overidden from here.
+            },
             // ... other ports
         ]
     }
@@ -25,7 +32,7 @@ rect.addPort({ group:'a' })
 
 ```
 
-`positionLayoutDefinition` could be defined as follows:
+Pre defined layouts:
 
 #### left | right | top | bottom
 
