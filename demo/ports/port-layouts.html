@@ -112,7 +112,9 @@
                 */
                 position: function(ports, elBBox, opt) {
                     // example
-                    return g.point({ x: index * 20 + 20, y: 0 });
+                    return _.map(ports, function(port, index) {
+                        return g.point({ x: index * 20 + 20, y: 0 });
+                    });
                 }
             },
 

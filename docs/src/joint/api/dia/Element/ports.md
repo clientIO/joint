@@ -25,7 +25,7 @@ All properties described below are optional, everything has own default, so the 
         label: {
             // position: 'string' - also valid
             position: {
-                name: 'string', // label layout name. Layouts are defined in `joint.layout.Label` namespace,
+                name: 'string', // label layout name. Layouts are defined in `joint.layout.PortLabel` namespace,
                 args: {}, // arguments for port layout function, properties depends on type of layout
             },
             markup: '<text class="label-text"/>' // custom port label markup
@@ -49,7 +49,7 @@ All properties described below are optional, everything has own default, so the 
         label: {
             // position: 'string' - also valid
             position: {
-                name: 'string', // label layout name. Layouts are defined in `joint.layout.Label` namespace,
+                name: 'string', // label layout name. Layouts are defined in `joint.layout.PortLabel` namespace,
                 args: {} // arguments for port label layout function, vary depending on the type of layout
             },
             markup: '<text class="label-text"/>' // custom port label markup
@@ -100,4 +100,4 @@ or, it can be set an default port markup/port label markup for whole shape:
 
 ##### Port position
 
-Port position and port label position are calculated using layout functions. You can use pre-defined ones or you can write your own as well. For more information about layouts, visit [layout.Port](#layout.Port) and [joint.layout.Label](#joint.layout.Label).
+Port position and port label position are calculated using layout functions. You can use pre-defined ones or you can write your own as well. For more information about layouts, visit [layout.Port](#layout.Port) and [joint.layout.PortLabel](#joint.layout.PortLabel).

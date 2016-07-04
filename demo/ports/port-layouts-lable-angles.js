@@ -52,7 +52,7 @@ paper5.on('element:pointerdown', function(cellView, e) {
         return;
     }
 
-    var positions = _.keys(joint.layout.Label);
+    var positions = _.keys(joint.layout.PortLabel);
     var pos = positions[(labelPos5) % positions.length];
 
     cellView.model.prop('attrs/text/text', pos);

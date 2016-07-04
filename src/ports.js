@@ -461,7 +461,7 @@
 
                 this.applyPortTransform(cached.portElement, offset);
 
-                var namespace = joint.layout.Label;
+                var namespace = joint.layout.PortLabel;
                 var labelPosition = port.label.position.name;
                 if (namespace[labelPosition]) {
                     var labelTrans = namespace[labelPosition](g.point(offset), elBBox, port.label.position.args);

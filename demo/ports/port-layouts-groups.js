@@ -109,7 +109,7 @@ var portPosition = {
     'basic.Circle': 1
 };
 
-paper2.on('element:pointerclick', function(cellView, e) {
+paper2.on('cell:pointerclick', function(cellView, e) {
 
     if (!cellView.model.hasPorts()) {
         return;

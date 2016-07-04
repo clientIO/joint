@@ -183,7 +183,7 @@
         });
     }
 
-    joint.layout.Label = {
+    joint.layout.PortLabel = {
 
         manual: _.rearg(labelAttributes, 2),
 
