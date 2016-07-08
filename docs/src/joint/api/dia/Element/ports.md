@@ -87,7 +87,7 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
     <td><b>&nbsp;label.position</b></td>
     <td><i>string | Object</i></td>
     <td>
-        port label position configuration. Could be `string` to set port layout definition with default
+        port label position configuration. Could be `string` to set port layout type directly with default
         settings or `Object` where is possible to set layout type and options.
     </td>
 </tr>
@@ -162,9 +162,9 @@ All properties described above are optional and everything has own default, so t
 
 <tr>
     <td><b>position</b></td>
-    <td><i>string | Object</i></td>
+    <td style="min-width:100px"><i>string | Object</i></td>
     <td> 
-        port position configuration. Could be `string` to set port layout definition with default
+        port position configuration. Could be `string` to set port layout type directly with default
         settings or `Object` where is possible to set layout type and options.
     </td></td>
 </tr>
@@ -206,7 +206,7 @@ All properties described above are optional and everything has own default, so t
     <td><ul><li><b>label.position</b></li></ul></td>
     <td><i>string | Object</i></td>
     <td>
-        port label position configuration. Could be `string` to set port layout definition with default
+        port label position configuration. Could be `string` to set port layout type directly with default
         settings or `Object` where is possible to set layout type and options.
     </td>
 </tr>
