@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+
+    <title>Port layouts demo</title>
+
+    <link rel="stylesheet" type="text/css" href="../../build/joint.css"/>
+
+    <style>
+        .joint-paper {
+            border: 1px solid gray;
+            width: 800px
+        }
+    </style>
+</head>
+<body>
+
+
+<!-- Dependencies: -->
+<script src="../../node_modules/jquery/dist/jquery.js"></script>
+<script src="../../node_modules/lodash/index.js"></script>
+<script src="../../node_modules/backbone/backbone.js"></script>
+
+<script src="../../build/joint.js"></script>
+
+<script>
+    /**
+     * HELPERS
+     */
+    function createPaper() {
+        var graph = new joint.dia.Graph;
+
+        return new joint.dia.Paper({
+            el: $('<div/>').appendTo(document.body),
+            width: 800,
+            height: 400,
+            gridSize: 1,
+            perpendicularLinks: false,
+            model: graph,
+            linkView: joint.dia.LinkView.extend({
+                options: _.extend({}, joint.dia.LinkView.prototype.options, {
+                    doubleLinkTools: true,
+                    linkToolsOffset: 40,
+                    doubleLinkToolsOffset: 60
+                })
+            })
+        });
+    }
+</script>
+
+<script src="./port-layouts-defaults.js"></script>
+
+<h2>Port layouts - 'blacks, 'reds', 'greens'</h2>
+<script src="./port-layouts.js"></script>
+
+<script src="./port-layouts-labels.js"></script>
+<script src="./port-layouts-z-index.js"></script>
+<script src="./port-layouts-rotation-comp.js"></script>
+
+<hr/>
+<div>
+    <h2>Port position definition </h2>
+    <code>
+    <pre>
+    var portsDefinition = {
+        groups:{
+            'OnSide': {
+                position: {
+                    name : 'left|right|top|bottom',
+                    args: {
+                        x: 10,
+                        y: 10,
+                        angle: 30,
+                        dx: 1,          // default 0
+                        dy: 1,          // default 0
+                    }
+                },
+            },
+
+            'Line': {
+                position: {
+                    name : 'line',
+                    args: {
+                        x: 10,          //
+                        y: 10,          //
+                        angle: 30,      //
+                        start: 10|'10%'
+                        end: 10|'10%',
+                        dx: 1,          // default 0
+                        dy: 1,          // default 0
+                    }
+                },
+            },
+
+            'Absolute': {
+                position: {
+                    name: 'absolute',
+                    args: {
+                        x: 10|'10%'
+                        y: 10|'10%',
+                        angle: 45
+                    }
+                }
+            },
+
+            // Custom layout using function
+            'Function': {
+                /**
+                 * @param {Array&lt;Object&gt;} ports
+                 * @param {g.Rect} elBBox
+                 * @param {Object} opt Group options
+                 * @returns {Array&lt;g.Point&gt;}
+                */
+                position: function(ports, elBBox, opt) {
+                    // example
+                    return _.map(ports, function(port, index) {
+                        return g.point({ x: index * 20 + 20, y: 0 });
+                    });
+                }
+            },
+
+            'EllipseLayouts': {
+                position: {
+                    name: 'ellipse|ellipseSpread',
+                    args: {
+                        dx: 1,               // default 0
+                        dy: 1,               // default 0
+                        dr: 1,               // default 0
+                        startAngle: 10,      // default 0
+                        step: 10             // default 360 / portsCount,
+                        compensateRotation: false
+                    }
+                }
+            }
+        }
+    }
+        </pre>
+    </code>
+</div>
+<h2>Port label definition </h2>
+<div>
+    <code>
+    <pre>
+        var ports = {
+            groups: {
+            'Sides' : {
+                label: {
+                    position: {
+                        name : 'left|right|bottom|top',
+                        args: {
+                            x: number,
+                            y: number,
+                            angle: 0,
+                            attrs: {
+                                 // standard attrs
+                            }
+                        }
+                    }
+                }
+            },
+            'InsideOutside' : {
+                label: {
+                    position: {
+                        name :'inside|outside|insideOriented|outsideOriented',
+                        args: {
+                            offset: 0,
+
+                            x: number,
+                            y: number,
+                            angle: 0,
+                            attrs: {
+                                // standard attrs
+                            }
+                    }
+                }
+            },
+            'Radial' : {
+                label: {
+                    position: {
+                        name :'radial|radialOriented',
+                        args: {
+                            offset: 0
+                        }
+                    }
+                }
+            },
+            // values in args are used directly in transformation, undefined values are supplied with defaults.
+            'Manual': {
+                label: {
+                    position: {
+                        name: 'manual',
+                        args: {
+                            x: 0,
+                            y: 0,
+                            angle: 0
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    </pre>
+    </code>
+</div>
+
+
+</body>
+</html>

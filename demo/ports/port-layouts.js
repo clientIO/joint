@@ -1,7 +1,6 @@
-$('<h2/>').text('Port groups - \'blacks\', \'reds\', \'greens\'').appendTo('body');
 var paper2 = createPaper();
 var g2Rect = new joint.shapes.basic.Rect({
-    position: { x: 130, y: 30 },
+    position: { x: 90, y: 100 },
     size: { width: 300, height: 150 },
     attrs: {
         text: { text: 'left' }
@@ -11,7 +10,7 @@ var g2Rect = new joint.shapes.basic.Rect({
         groups: {
             'blacks': {
                 attrs: {
-                    circle: { fill: '#000000', stroke: 'darkGray', 'stroke-width': 2, r: 12, magnet: true }
+                    circle: { fill: '#222138', stroke: '#6a6c8a', 'stroke-width': 2, r: 12, magnet: true }
                 }
             },
             'reds': {
@@ -27,16 +26,16 @@ var g2Rect = new joint.shapes.basic.Rect({
                 label: { position: { name: 'manual', args: { attrs: { '.': { y: 40, 'text-anchor': 'middle' } } } } },
 
                 attrs: {
-                    rect: { fill: 'red', width: 11 },
-                    text: { fill: 'red' },
-                    circle: { fill: 'red', r: 5, magnet: true }
+                    rect: { fill: '#fe854f', width: 11 },
+                    text: { fill: '#fe854f' },
+                    circle: { fill: '#fe854f', r: 5, magnet: true }
                 }
             },
             'greens': {
                 attrs: {
-                    circle: { fill: 'transparent', stroke: 'green', 'stroke-width': 3, r: 10, magnet: true },
-                    rect: { fill: 'green' },
-                    text: { fill: 'green' }
+                    circle: { fill: 'transparent', stroke: '#31d0c6', 'stroke-width': 3, r: 10, magnet: true },
+                        rect: { fill: '#31d0c6' },
+                    text: { fill: '#31d0c6' }
                 },
                 position: 'absolute',
 
@@ -58,9 +57,9 @@ var g2Rect = new joint.shapes.basic.Rect({
 });
 
 var g2Circle = new joint.shapes.basic.Circle({
-    position: { x: 500, y: 30 },
+    position: { x: 500, y: 50 },
     size: { width: 200, height: 100 },
-    ellipse: { fill: 'gray', stroke: 'red', rx: 150, ry: 100, cx: 150, cy: 100 },
+    ellipse: { rx: 150, ry: 100, cx: 150, cy: 100 },
     attrs: {
         text: { text: 'ellipse' }
     },
@@ -69,7 +68,7 @@ var g2Circle = new joint.shapes.basic.Circle({
             'blacks': {
                 position: 'ellipse',
                 attrs: {
-                    circle: { fill: '#000000', stroke: 'darkGray', 'stroke-width': 2, r: 12, magnet: true }
+                    circle: { fill: '#222138', stroke: '#6a6c8a', 'stroke-width': 2, r: 12, magnet: true }
                 }
             }
         }
@@ -101,8 +100,8 @@ _.times(8, function() {
 paper2.model.addCell(g2Circle);
 paper2.model.addCell(g2Rect);
 
-
 $('<b/>').text('Click on Rectangle or Ellipse to toggle port positions alignment').appendTo('body');
+$('<div/>').html('&nbsp;').appendTo('body');
 
 var portPosition = {
     'basic.Rect': 1,

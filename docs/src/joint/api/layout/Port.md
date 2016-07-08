@@ -1,5 +1,5 @@
 
-Port layouts are functions whose consume array of ports and result is array of port positions, relative to shape bounding box. Port position `{ x:1, y:2 }` means the port origin is on position `[1, 2]` from shape's origin.
+Port layouts are functions whose consume array of ports and result is array of port positions. Positions are relative to shape bounding box. For Example port position `{ x:1, y:2 }` means the port origin is on position `[1, 2]` from shape's origin.
 
 Port layout can be defined only on `group` level. You can pass some additional arguments into layout function, defined in optional argument `args`. Also `args` is the only way how to adjust port layout from the port definition perspective.
 
@@ -32,7 +32,7 @@ rect.addPort({ group:'a' })
 
 ```
 
-Pre defined layouts:
+### Pre-defined layouts:
 
 #### left | right | top | bottom
 
@@ -106,4 +106,9 @@ Best for `circle`, `ellipse`
     }
 }
 ```
+
+
+### Port layouts demo
+
+<iframe src="about:blank" data-src="../../demo/ports/port-layouts.html"></iframe>
 
