@@ -2,7 +2,7 @@
 
 You can easily add ports to any shape, either pass ports definitions as an `option` in constructor or you
     are able to get/add/remove ports afterwards, using API defined on `joint.dia.Element`. One way or another
-    you need to specify ports correctly, available settings is described in [Port interface ](#portinterface) section.
+    you need to specify ports correctly, available settings is described in [Port configuration ](#portinterface) section.
 
 ##### Port API on `joint.dia.Element`
 
@@ -11,53 +11,125 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
 * [`removePort`]((#dia.Element.prototype.removePort)
 * [`getPort`](#dia.Element.prototype.getPort) / [`getPorts`](#dia.Element.prototype.getPorts)
 
-##### <a name="portinterface"></a> Ports Interface
 
-All properties described below are optional, everything has own default, so the `element.addPorts([{}, {}])` is completely valid usage.
+##### <a name="portinterface"></a> Port configuration
 
 ```javascript
-
     // Single port definition
     var port = {
-        id: 'string', // port id - automatically generated if is not provided, otherwise must be unique in context of shape
-        group: 'string', // group name
-        args: {}, // arguments for port layout function, properties depends on type of layout
+        id: 'abc',
+        group: 'a',
+        args: {},
         label: {
-            // position: 'string' - also valid
             position: {
-                name: 'string', // label layout name. Layouts are defined in `joint.layout.PortLabel` namespace,
-                args: {}, // arguments for port layout function, properties depends on type of layout
+                name: 'top',
+                args: {}
             },
-            markup: '<text class="label-text"/>' // custom port label markup
+            markup: '<text class="label-text"/>'
         },
-        attrs: {}, // jointjs style attribute definition
-        markup: '<rect>' // custom port markup
+        attrs: {},
+        markup: '<rect/>'
     }
 
-    element.addPort(port);
+    // a.) add port in constructor.
+    var rect = new joint.shapes.basic.Rect({
+        // ...
+        ports: {
+            groups: {},
+            items: [ port ]
+        }
+    });
+
+    // b.) or add port using API
+    rect.addPort(port);
 
 ```
+
+<table>
+<tr>
+    <td><b>id</b></td>
+    <td><i>string</i></td>
+    <td> port id - automatically generated if is not provided, otherwise must be unique in context of shape - two ports with same port id is not allowed
+    </td>
+</tr>
+
+<tr>
+    <td><b>group</b></td>
+    <td><i>string</i></td>
+    <td> group name, more info in [groups](#groupssection) section</td>
+</tr>
+<tr>
+    <td><b>args</b></td>
+    <td><i>Object</i></td>
+    <td> arguments for port layout function, properties depends on type of layout.</td>
+</tr>
+<tr>
+    <td><b>attrs</b></td>
+    <td><i>Object</i></td>
+    <td> jointjs style attribute definition. Same as `attr` on [`Element`](#dia.Element.prototype.attr)</td>
+</tr>
+<tr>
+    <td><b>markup</b></td>
+    <td><i>string</i></td>
+    <td>
+        Custom port markup. Multiple roots are not allowed. `<g><rect class="outer"/><rect class="inner"/></g>`
+    </td>
+</tr>
+<tr>
+    <td><b>label</b></td>
+    <td><i>Object</i></td>
+    <td>
+        Port layout configuration. Position of label or custom markup could be set here.
+    </td>
+</tr>
+
+<tr>
+    <td><b>&nbsp;label.position</b></td>
+    <td><i>string | Object</i></td>
+    <td>
+        port label position configuration. Could be `string` to set port layout definition with default
+        settings or `Object` where is possible to set layout type and options.
+    </td>
+</tr>
+<tr>
+    <td><b>&nbsp;&nbsp;label.position.name</b></td>
+    <td><i>string</i></td>
+    <td>
+        stands for the layout type, match the layout implementation in `joint.layout.PortLabel` namespace:
+        `name:'left'` is implemented as `joint.layout.PortLabel.left`
+    </td>
+</tr>
+<tr>
+    <td><b>&nbsp;&nbsp;label.position.args</b></td>
+    <td><i>Object</i></td>
+    <td>
+        `args` - additional arguments for the layout function. Depends on the layout type. Info about possible
+        arguments could be found in section [`layout.PortLabel`](#layout.PortLabel)
+    </td>
+</tr>
+<tr>
+    <td><b>&nbsp;label.markup</b></td>
+    <td><i>string</i></td>
+    <td>
+        Custom port label markup. Multiple roots are not allowed. `<g><text class="header"/><text/></g>`
+    </td>
+</tr>
+
+
+</table>
+
+All properties described above are optional and everything has own default, so the `element.addPorts([{}, {}])` is valid usage: it adds 2 ports with default settings.
+
+
+
+#### Port groups configuration <a name="groupssection"></a>
+
 `group` attribute comes to play when you're not ok with default port alignment, it's also handy if you need to define multiple ports with similar properties. `group` define defaults for ports belonging to the group, but there is no restriction if you need to overwrite it on particular port. Option which could not be overwritten is port layout type. 'group' sets the layout type and 'args' are the only way how to port could affect layout.
+
 ```javascript
 
-    var groupA = {
-        // position: 'string' - also valid
-        position: {
-            name: 'string', // layout name. Layouts are defined in `joint.layout.Port` namespace,
-            args: {}, // arguments for port layout function, properties depends on type of layout
-        },
-        label: {
-            // position: 'string' - also valid
-            position: {
-                name: 'string', // label layout name. Layouts are defined in `joint.layout.PortLabel` namespace,
-                args: {} // arguments for port label layout function, vary depending on the type of layout
-            },
-            markup: '<text class="label-text"/>' // custom port label markup
-        },
-        attrs: {}, // jointjs style attribute definition
-        markup: '<rect>' // custom port markup
-    };
-
+   // Define ports and port groups in element constructor.
+   var groupA;
    var rect = new joint.shapes.basic.Rect({
         // ...
         ports: {
@@ -70,10 +142,102 @@ All properties described below are optional, everything has own default, so the 
         }
     });
 
+    groupA = {
+            position: {
+                name: 'string', // layout name
+                args: {}, // arguments for port layout function, properties depends on type of layout
+            },
+            label: {
+                // ....
+            },
+            attrs: {},
+            markup: '<rect>'
+        };
+
 ```
 
+
+<table>
+
+
+<tr>
+    <td><b>position</b></td>
+    <td><i>string | Object</i></td>
+    <td> 
+        port position configuration. Could be `string` to set port layout definition with default
+        settings or `Object` where is possible to set layout type and options.
+    </td></td>
+</tr>
+<tr>
+    <td><ul><li><b>position.name</b></li></ul></td>
+    <td><i>string</i></td>
+    <td>
+        stands for the layout type, match the layout implementation in `joint.layout.Port` namespace:
+        `name:'left'` is implemented as `joint.layout.Port.left`
+     </td>
+</tr>
+<tr>
+    <td><ul><li><b>position.args</b></li></ul></td>
+    <td><i>Object</i></td>
+    <td> arguments for port layout function, properties depends on type of layout. Information about possible
+        arguments could be found in section [`layout.Port`](#layout.Port)</td>
+</tr>
+<tr>
+    <td><b>attrs</b></td>
+    <td><i>Object</i></td>
+    <td> jointjs style attribute definition. Same as `attr` on [`Element`](#dia.Element.prototype.attr)</td>
+</tr>
+<tr>
+    <td><b>markup</b></td>
+    <td><i>string</i></td>
+    <td>
+        Custom port markup. Multiple roots are not allowed. `<g><rect class="outer"/><rect class="inner"/></g>`
+    </td>
+</tr>
+<tr>
+    <td><b>label</b></td>
+    <td><i>Object</i></td>
+    <td>
+        Port layout configuration. Position of label or custom markup could be set here.
+    </td>
+</tr>
+
+<tr>
+    <td><ul><li><b>label.position</b></li></ul></td>
+    <td><i>string | Object</i></td>
+    <td>
+        port label position configuration. Could be `string` to set port layout definition with default
+        settings or `Object` where is possible to set layout type and options.
+    </td>
+</tr>
+<tr>
+    <td><ul style="list-style-type:none"><li><b>label.position.name</b></li></ul></td>
+    <td><i>string</i></td>
+    <td>
+        stands for the layout type, match the layout implementation in `joint.layout.PortLabel` namespace:
+        `name:'left'` is implemented as `joint.layout.PortLabel.left`
+    </td>
+</tr>
+<tr>
+    <td><ul style="list-style-type:none"><li><b>label.position.args</b></li></ul></td>
+    <td><i>Object</i></td>
+    <td>
+        `args` - additional arguments for the layout function. Depends on the layout type. Information about possible
+        arguments could be found in section [`layout.PortLabel`](#layout.PortLabel)
+    </td>
+</tr>
+<tr>
+    <td><ul><li><b>label.markup</b></li></ul></td>
+    <td><i>string</i></td>
+    <td>
+        Custom port label markup. Multiple roots are not allowed. `<g><text class="header"/><text/></g>`
+    </td>
+</tr>
+</table>
+
 ##### Custom markup
-You can set custom markup for the port as well for port label by defining it separately for every single port
+
+Both port and port label can have custom markup.
 
 ```javascript
 
@@ -97,7 +261,3 @@ or, it can be set an default port markup/port label markup for whole shape:
     });
 
 ```
-
-##### Port position
-
-Port position and port label position are calculated using layout functions. You can use pre-defined ones or you can write your own as well. For more information about layouts, visit [layout.Port](#layout.Port) and [joint.layout.PortLabel](#joint.layout.PortLabel).
