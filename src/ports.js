@@ -2,7 +2,7 @@
 
     var PortData = function(data) {
 
-        this.ports = {};
+        this.ports = [];
         this.groups = this._getNormalizedGroups(data);
 
         this._init(data);
@@ -15,7 +15,9 @@
         },
 
         getPort: function(id) {
-            return this.ports[id];
+            return _.find(this.ports, function(p) {
+                return p.id === id;
+            });
         },
 
         getGroup: function(name) {
@@ -24,7 +26,7 @@
 
         addPort: function(port) {
             port = this._evaluatePort(port);
-            this.ports[port.id] = port;
+            this.ports.push(port);
         },
 
         _init: function(data) {
@@ -315,28 +317,55 @@
          */
         _renderPorts: function() {
 
-            var ports = _.groupBy(this.model.portData.getPorts(), 'z');
+            // references to rendered elements without z-index
+            var elementReferences = [];
+            var elem = this._getContainerElement();
+            _.each(elem.node.childNodes, function(n) {
+                elementReferences.push(n);
+            });
 
-            _.eachRight(ports, function(groupPorts, groupName) {
-                this._appendPorts(ports[groupName], parseInt(groupName, 10));
+            var ports = _.groupBy(this.model.portData.getPorts(), 'z');
+            var withoutZKey = 'undefined';
+
+            // render non-z first
+            _.each(ports[withoutZKey], function(port) {
+                var px = this._getPortElement(port);
+                elem.append(px);
+                elementReferences.push(px);
+            }, this);
+
+            _.each(ports, function(groupPorts, groupName) {
+                if (groupName !== withoutZKey) {
+                    var z = parseInt(groupName, 10);
+                    this._appendPorts(ports[groupName], z, elementReferences);
+                }
             }, this);
 
             this._updatePorts();
         },
 
         /**
-         * @param {Array<Port>}ports
-         * @param {number} z
+         * @returns {V}
          * @private
          */
-        _appendPorts: function(ports, z) {
+        _getContainerElement: function() {
 
-            var containerElement = this.rotatableNode || this.vel;
-            var childNodes = containerElement.node.childNodes;
+            return this.rotatableNode || this.vel;
+        },
+
+        /**
+         * @param {Array<Port>}ports
+         * @param {number} z
+         * @param refs
+         * @private
+         */
+        _appendPorts: function(ports, z, refs) {
+
+            var containerElement = this._getContainerElement();
             var portElements = _.map(ports, this._getPortElement, this);
 
-            if (childNodes[z]) {
-                V(childNodes[z]).before(portElements);
+            if (refs[z] || z < 0) {
+                V(refs[Math.max(z, 0)]).before(portElements);
             } else {
                 containerElement.append(portElements);
             }
@@ -472,7 +501,7 @@
 
         /**
          * @param {Vectorizer} element
-         * @param {{dx:number, dy:number, angle: number, attrs: Object}} transformData
+         * @param {{dx:number, dy:number, angle: number, attrs: Object, x:number: y:number}} transformData
          * @param {number=} initialAngle
          * @constructor
          */

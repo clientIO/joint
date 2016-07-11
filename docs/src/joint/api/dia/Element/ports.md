@@ -72,14 +72,14 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
     <td><b>markup</b></td>
     <td><i>string</i></td>
     <td>
-        Custom port markup. Multiple roots are not allowed. `<g><rect class="outer"/><rect class="inner"/></g>`
+        custom port markup. Multiple roots are not allowed. `<g><rect class="outer"/><rect class="inner"/></g>`
     </td>
 </tr>
 <tr>
     <td><b>label</b></td>
     <td><i>Object</i></td>
     <td>
-        Port layout configuration. Position of label or custom markup could be set here.
+        port layout configuration. Position of label or custom markup could be set here.
     </td>
 </tr>
 
@@ -103,7 +103,7 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
     <td><b>&nbsp;&nbsp;label.position.args</b></td>
     <td><i>Object</i></td>
     <td>
-        `args` - additional arguments for the layout function. Depends on the layout type. Info about possible
+        additional arguments for the layout function. Depends on the layout type. Info about possible
         arguments could be found in section [`layout.PortLabel`](#layout.PortLabel)
     </td>
 </tr>
@@ -116,11 +116,10 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
 </tr>
 <tr>
     <td><b>z</b></td>
-    <td valign="top"><i>nubmer</i></td>
-    <td> alternative to HTML `z-index`.
-
+    <td><i>nubmer</i></td>
+    <td>
+    alternative to HTML `z-index`. `z` sets the position of port in list of inner elements within the port.
     <iframe src="about:blank" data-src="../../demo/ports/port-z-index.html"></iframe>
-
     </td>
 </tr>
 

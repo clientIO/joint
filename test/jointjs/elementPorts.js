@@ -234,17 +234,22 @@ QUnit.module('element ports', function() {
     });
 
     QUnit.module('z - index', function(hooks) {
+
         QUnit.test('elements order with z-index', function(assert) {
 
             var data = {
                 items: [
-                    { z: 2, id: '2-0' },
-                    { z: 0, id: '0-0' },
-                    { z: 1, id: '1-0' },
+                    { z: 7, id: '7' },
+                    { z: 6, id: '6' },
+                    { z: 5, id: '5' },
+                    { z: 4, id: '4' },
+                    { id: 'x' },
+                    { z: 3, id: '3' },
+                    { z: 2, id: '2' },
+                    { z: 1, id: '1' },
                     { z: 0, id: '0-1' },
-                    { z: 1, id: '1-1' },
                     { z: 0, id: '0-2' },
-                    { id: 'x' }
+                    { z: 0, id: '0-3' }
                 ]
             };
 
@@ -253,19 +258,61 @@ QUnit.module('element ports', function() {
 
             var nodes = view.$el.find('.rotatable').children();
 
-            assert.equal(nodes.eq(0).find('[port]').attr('port'), '0-0', 'z index 0, 0nth node');
-            assert.equal(nodes.eq(1).find('[port]').attr('port'), '0-1');
-            assert.equal(nodes.eq(2).find('[port]').attr('port'), '0-2');
+            // var result = [];
+            // _.each(nodes, function(n) {
+            //     result.push($(n).find('[port]').attr('port'));
+            // });
+            // console.log(result);
 
-            assert.ok(nodes.eq(3).hasClass('scalable'));
+            var i = 0;
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), '0-1', 'z index 0, 0nth node');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), '0-2');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), '0-3');
+            assert.ok(nodes.eq(i++).hasClass('scalable'));
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), '1');
+            assert.equal(nodes.eq(i++)[0].tagName, 'text');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), '2');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), 'x');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), '3');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), '4');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), '5');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), '6');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), '7');
+        });
 
-            assert.equal(nodes.eq(4).find('[port]').attr('port'), '1-0');
-            assert.equal(nodes.eq(5).find('[port]').attr('port'), '1-1');
+        QUnit.test('elements order with z-index and without', function(assert) {
 
-            assert.equal(nodes.eq(6)[0].tagName, 'text');
+            var data = {
+                items: [
+                    { id: '111' },
+                    { id: '1' },
+                    { id: '2' },
+                    { id: '0001' },
+                    { z: 'sdsdsd', id: 'z20' },
+                    { z: 20, id: 'z30' }
+                ]
+            };
 
-            assert.equal(nodes.eq(7).find('[port]').attr('port'), '2-0');
-            assert.equal(nodes.eq(8).find('[port]').attr('port'), 'x');
+            var shape = create(data);
+            var view = new joint.dia.ElementView({ model: shape }).render();
+
+            var nodes = view.$el.find('.rotatable').children();
+
+            // var result = [];
+            // _.each(nodes, function(n) {
+            //     result.push($(n).find('[port]').attr('port'));
+            // });
+            // console.log(result);
+
+            var i = 0;
+            assert.ok(nodes.eq(i++).hasClass('scalable'));
+            assert.equal(nodes.eq(i++)[0].tagName, 'text');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), '111');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), '1');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), '2');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), '0001');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), 'z20');
+            assert.equal(nodes.eq(i++).find('[port]').attr('port'), 'z30');
         });
 
         QUnit.test('elements order - no z-index defined', function(assert) {
