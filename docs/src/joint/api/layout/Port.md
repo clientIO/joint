@@ -1,5 +1,5 @@
 
-Port layouts are functions whose consume array of ports and result is array of port positions. Positions are relative to shape bounding box. For Example port position `{ x:1, y:2 }` means the port origin is on position `[1, 2]` from shape's origin.
+Port layouts are functions whose consume array of ports and result is array of port positions. Positions are relative to shape bounding box. For example port position `{ x:1, y:2 }` means the port origin is at position `[1, 2]` from shape's origin.
 
 Port layout can be defined only on `group` level. You can pass some additional arguments into layout function, defined in optional argument `args`. Also `args` is the only way how to adjust port layout from the port definition perspective.
 
@@ -79,6 +79,7 @@ Custom layout function, should return array of port positions.
 */
 function(ports, elBBox, opt) {
 
+    // ports on sinusoid
     return _.map(ports, function(port, index) {
 
         var step = -Math.PI / 8;
@@ -107,6 +108,9 @@ Best for `circle`, `ellipse`
 }
 ```
 
+set `compensateRotation:true` when you need to have ports in same angle as shape's boundary.
+
+<iframe src="about:blank" data-src="../../demo/ports/port-layouts-comp.html"></iframe>
 
 ### Port layouts demo
 

@@ -1,12 +1,11 @@
-$('<h2/>').text('Port rotation compensation').appendTo('body');
 var paper6 = createPaper();
 
 var g6 = new joint.shapes.basic.Circle({
     position: { x: 50, y: 50 },
     size: { width: 500, height: 300 },
-    ellipse: { fill: 'gray', stroke: 'red', rx: 150, ry: 100, cx: 150, cy: 100 },
     attrs: {
-        text: { text: 'compensateRotation: true' }
+        text: { text: 'compensateRotation: true', fill: '#6a6c8a' },
+        circle: { stroke: '#31d0c6', 'stroke-width': 2 }
     },
     ports: {
         groups: {
@@ -20,18 +19,19 @@ var g6 = new joint.shapes.basic.Circle({
                 },
                 attrs: {
                     rect: {
-                        stroke: '#000000',
+                        stroke: '#31d0c6',
+                        'stroke-width': 2,
                         width: 20,
                         height: 20,
                         x: -10,
                         y: -10
                     },
                     '.dot': {
-                        fill: '#ff0000',
+                        fill: '#fe854f',
                         r: 2
                     },
                     text: {
-                        fill: '#000000'
+                        fill: '#6a6c8a'
                     }
                 },
                 markup: '<g><rect/><circle class="dot"/></g>'
@@ -45,7 +45,7 @@ _.times(36, function(index) {
 });
 
 paper6.model.addCell(g6);
-paper6.on('element:pointerclick', function(cellView, e) {
+paper6.on('cell:pointerclick', function(cellView, e) {
 
     if (!cellView.model.hasPorts()) {
         return;
@@ -79,4 +79,5 @@ $('<button/>').text('+').appendTo('body').on('click', function() {
     g6.resize(size.width, size.height + 50);
 });
 $('<b/>').text(' adjust height ').appendTo('body');
+$('<div/>').html('&nbsp;').appendTo('body');
 

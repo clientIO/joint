@@ -3,14 +3,15 @@ var g2Rect = new joint.shapes.basic.Rect({
     position: { x: 90, y: 100 },
     size: { width: 300, height: 150 },
     attrs: {
-        text: { text: 'left' }
+        text: { text: 'left', fill: '#6a6c8a' },
+        rect: { stroke: '#31d0c6', 'stroke-width': 2 }
     },
     // portMarkup: '<rect width="20" height="20" fill="black"/>',
     ports: {
         groups: {
             'blacks': {
                 attrs: {
-                    circle: { fill: '#222138', stroke: '#6a6c8a', 'stroke-width': 2, r: 12, magnet: true }
+                    circle: { fill: '#ffffff', stroke: '#31d0c6', 'stroke-width': 2, r: 12, magnet: true }
                 }
             },
             'reds': {
@@ -34,7 +35,7 @@ var g2Rect = new joint.shapes.basic.Rect({
             'greens': {
                 attrs: {
                     circle: { fill: 'transparent', stroke: '#31d0c6', 'stroke-width': 3, r: 10, magnet: true },
-                        rect: { fill: '#31d0c6' },
+                    rect: { fill: '#31d0c6' },
                     text: { fill: '#31d0c6' }
                 },
                 position: 'absolute',
@@ -61,21 +62,22 @@ var g2Circle = new joint.shapes.basic.Circle({
     size: { width: 200, height: 100 },
     ellipse: { rx: 150, ry: 100, cx: 150, cy: 100 },
     attrs: {
-        text: { text: 'ellipse' }
+        text: { text: 'ellipse', fill: '#6a6c8a' },
+        circle: { stroke: '#31d0c6', 'stroke-width': 2 }
     },
     ports: {
         groups: {
             'blacks': {
                 position: 'ellipse',
                 attrs: {
-                    circle: { fill: '#222138', stroke: '#6a6c8a', 'stroke-width': 2, r: 12, magnet: true }
+                    circle: { fill: '#ffffff', stroke: '#31d0c6', 'stroke-width': 2, r: 12, magnet: true }
                 }
             }
         }
     }
 });
 
-_.times(6, function() {
+_.times(4, function() {
     g2Rect.addPort({ group: 'blacks' });
 });
 _.times(24, function() {

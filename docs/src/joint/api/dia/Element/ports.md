@@ -114,6 +114,15 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
         Custom port label markup. Multiple roots are not allowed. `<g><text class="header"/><text/></g>`
     </td>
 </tr>
+<tr>
+    <td><b>z</b></td>
+    <td valign="top"><i>nubmer</i></td>
+    <td> alternative to HTML `z-index`.
+
+    <iframe src="about:blank" data-src="../../demo/ports/port-z-index.html"></iframe>
+
+    </td>
+</tr>
 
 
 </table>
