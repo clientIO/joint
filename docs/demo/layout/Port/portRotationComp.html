@@ -6,7 +6,7 @@
 
     <title>Port layouts demo</title>
 
-    <link rel="stylesheet" type="text/css" href="../../build/joint.css"/>
+    <link rel="stylesheet" type="text/css" href="../../../css/lib/joint.min.css"/>
 
     <style>
         .joint-paper {
@@ -22,11 +22,11 @@
 
 
 <!-- Dependencies: -->
-<script src="../../node_modules/jquery/dist/jquery.js"></script>
-<script src="../../node_modules/lodash/index.js"></script>
-<script src="../../node_modules/backbone/backbone.js"></script>
+<script src="../../../js/lib/jquery.min.js"></script>
+<script src="../../../js/lib/lodash.min.js"></script>
+<script src="../../../js/lib/backbone.min.js"></script>
 
-<script src="../../build/joint.js"></script>
+<script src="../../../js/lib/joint.min.js"></script>
 
 <script>
     /**
@@ -38,7 +38,7 @@
         return new joint.dia.Paper({
             el: $('<div/>').appendTo(document.body),
             width: 800,
-            height: 400,
+            height: 450,
             gridSize: 1,
             perpendicularLinks: false,
             model: graph,
@@ -53,7 +53,7 @@
     }
 </script>
 
-<script src="./port-layouts.js"></script>
+<script src="./js/portRotationComp.js"></script>
 
 </body>
 </html>

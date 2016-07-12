@@ -61,7 +61,7 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
 <tr>
     <td><b>args</b></td>
     <td><i>Object</i></td>
-    <td> arguments for port layout function, properties depends on type of layout.</td>
+    <td> arguments for the port layout function, properties depends on type of the layout. More information about `args` properties could be found in [`layout.Port`](#layout.Port)</td>
 </tr>
 <tr>
     <td><b>attrs</b></td>
@@ -72,23 +72,23 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
     <td><b>markup</b></td>
     <td><i>string</i></td>
     <td>
-        custom port markup. Multiple roots are not allowed. `<g><rect class="outer"/><rect class="inner"/></g>`
+        custom port markup. Multiple roots are not allowed. `<g><rect class="outer"/><rect class"inner"/></g>`
     </td>
 </tr>
 <tr>
     <td><b>label</b></td>
-    <td><i>Object</i></td>
+    <td><i>object</i></td>
     <td>
-        port layout configuration. Position of label or custom markup could be set here.
+        port layout configuration. Position of label or custom markup could be set here. More info about port label layouts could be found in section [`layout.PortLabel`](#layout.PortLabel)
     </td>
 </tr>
 
 <tr>
     <td><b>&nbsp;label.position</b></td>
-    <td><i>string | Object</i></td>
+    <td><i>string | object</i></td>
     <td>
         port label position configuration. Could be `string` to set port layout type directly with default
-        settings or `Object` where is possible to set layout type and options.
+        settings or `object` where is possible to set layout type and options.
     </td>
 </tr>
 <tr>
@@ -101,7 +101,7 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
 </tr>
 <tr>
     <td><b>&nbsp;&nbsp;label.position.args</b></td>
-    <td><i>Object</i></td>
+    <td><i>object</i></td>
     <td>
         additional arguments for the layout function. Depends on the layout type. Info about possible
         arguments could be found in section [`layout.PortLabel`](#layout.PortLabel)
@@ -116,10 +116,14 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
 </tr>
 <tr>
     <td><b>z</b></td>
-    <td><i>nubmer</i></td>
+    <td><i>number | string</i></td>
     <td>
     alternative to HTML `z-index`. `z` sets the position of port in list of inner elements within the port.
-    <iframe src="about:blank" data-src="../../demo/ports/port-z-index.html"></iframe>
+    <iframe src="about:blank" data-src="./demo/dia/Element/portZIndex.html"></iframe>
+    How it works: shape most likely consists of 1 or more elements, `<rect/>`, `<rect/><text/><circle/>` etc. First element in shape has `z = 1`, additional elements has `z` incremented by 1. Then there are ports without `z` (`z:undefined` or `z:'auto'`), these are placed right after shapes 'core' elements. In this structure are being placed ports with `z` defined.
+
+    For example: shape: `<rect/><text/>` ports: `[{z:'auto'}, {z:0}, {z:1}, {z:3}]` will be rendered as (naive svg notation) `<port z="0"/><rect/><port z="1"><text/><port z="auto"><port z="3">`
+
     </td>
 </tr>
 
@@ -127,7 +131,6 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
 </table>
 
 All properties described above are optional and everything has own default, so the `element.addPorts([{}, {}])` is valid usage: it adds 2 ports with default settings.
-
 
 
 #### Port groups configuration <a name="groupssection"></a>
@@ -170,10 +173,10 @@ All properties described above are optional and everything has own default, so t
 
 <tr>
     <td><b>position</b></td>
-    <td style="min-width:100px"><i>string | Object</i></td>
+    <td style="min-width:100px"><i>string | object</i></td>
     <td> 
         port position configuration. Could be `string` to set port layout type directly with default
-        settings or `Object` where is possible to set layout type and options.
+        settings or `object` where is possible to set layout type and options.
     </td></td>
 </tr>
 <tr>
@@ -186,13 +189,13 @@ All properties described above are optional and everything has own default, so t
 </tr>
 <tr>
     <td><ul><li><b>position.args</b></li></ul></td>
-    <td><i>Object</i></td>
+    <td><i>object</i></td>
     <td> arguments for port layout function, properties depends on type of layout. Information about possible
         arguments could be found in section [`layout.Port`](#layout.Port)</td>
 </tr>
 <tr>
     <td><b>attrs</b></td>
-    <td><i>Object</i></td>
+    <td><i>object</i></td>
     <td> jointjs style attribute definition. Same as `attr` on [`Element`](#dia.Element.prototype.attr)</td>
 </tr>
 <tr>
@@ -204,18 +207,18 @@ All properties described above are optional and everything has own default, so t
 </tr>
 <tr>
     <td><b>label</b></td>
-    <td><i>Object</i></td>
+    <td><i>object</i></td>
     <td>
-        Port layout configuration. Position of label or custom markup could be set here.
+        Port layout configuration. Position of label or custom markup could be set here. More info about port label layouts could be found in section [`layout.PortLabel`](#layout.PortLabel)
     </td>
 </tr>
 
 <tr>
     <td><ul><li><b>label.position</b></li></ul></td>
-    <td><i>string | Object</i></td>
+    <td><i>string | object</i></td>
     <td>
         port label position configuration. Could be `string` to set port layout type directly with default
-        settings or `Object` where is possible to set layout type and options.
+        settings or `object` where is possible to set layout type and options.
     </td>
 </tr>
 <tr>
@@ -228,7 +231,7 @@ All properties described above are optional and everything has own default, so t
 </tr>
 <tr>
     <td><ul style="list-style-type:none"><li><b>label.position.args</b></li></ul></td>
-    <td><i>Object</i></td>
+    <td><i>object</i></td>
     <td>
         `args` - additional arguments for the layout function. Depends on the layout type. Information about possible
         arguments could be found in section [`layout.PortLabel`](#layout.PortLabel)

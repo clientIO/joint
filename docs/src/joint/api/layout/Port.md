@@ -72,9 +72,9 @@ Custom layout function, should return array of port positions.
 
 ```javascript
 /**
- * @param {Array<Object>} ports
+ * @param {Array<object>} ports
  * @param {g.Rect} elBBox shape's bounding box
- * @param {Object} opt Group options
+ * @param {object} opt Group options
  * @returns {Array<g.Point>}
 */
 function(ports, elBBox, opt) {
@@ -110,9 +110,9 @@ Best for `circle`, `ellipse`
 
 set `compensateRotation:true` when you need to have ports in same angle as shape's boundary.
 
-<iframe src="about:blank" data-src="../../demo/ports/port-layouts-comp.html"></iframe>
+<iframe src="about:blank" data-src="demo/layout/Port/portRotationComp.html"></iframe>
 
 ### Port layouts demo
 
-<iframe src="about:blank" data-src="../../demo/ports/port-layouts.html"></iframe>
+<iframe src="about:blank" data-src="demo/layout/Port/port.html"></iframe>
 

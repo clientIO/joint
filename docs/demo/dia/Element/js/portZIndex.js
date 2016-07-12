@@ -42,16 +42,14 @@ var addPort = function(z) {
     });
 };
 
+addPort('auto');
 addPort(0);
 addPort(1);
-addPort(6);
-addPort(8);
-addPort(10);
+addPort(3);
 
 paper4.model.addCell(g4);
 
 paper4.on('cell:pointerclick cell:contextmenu', function(cellView, e) {
-
 
     if (!cellView.model.hasPorts()) {
         return;
