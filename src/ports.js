@@ -51,8 +51,20 @@
             evaluated.attrs = _.merge({}, group.attrs, evaluated.attrs);
             evaluated.position = _.merge(this._createPositionNode(), group.position, { args: evaluated.args });
             evaluated.label = _.merge({}, group.label, this._getLabel(evaluated));
+            evaluated.z = this._getZIndex(evaluated.z, group.z);
 
             return evaluated;
+        },
+
+        _getZIndex: function(data, group) {
+
+            if (_.isNumber(data)) {
+                return data;
+            }
+            if (_.isNumber(group) || group === 'auto') {
+                return group;
+            }
+            return 'auto';
         },
 
         _createPositionNode: function() {
@@ -325,13 +337,13 @@
             });
 
             var ports = _.groupBy(this.model.portData.getPorts(), 'z');
-            var withoutZKey = 'undefined';
+            var withoutZKey = 'auto';
 
             // render non-z first
             _.each(ports[withoutZKey], function(port) {
-                var px = this._getPortElement(port);
-                elem.append(px);
-                elementReferences.push(px);
+                var portElement = this._getPortElement(port);
+                elem.append(portElement);
+                elementReferences.push(portElement);
             }, this);
 
             _.each(ports, function(groupPorts, groupName) {

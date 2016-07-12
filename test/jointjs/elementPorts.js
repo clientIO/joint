@@ -235,6 +235,30 @@ QUnit.module('element ports', function() {
 
     QUnit.module('z - index', function(hooks) {
 
+        QUnit.module('evaluate from definition', function(hooks) {
+
+            QUnit.test('test name', function(assert) {
+
+                var shape = create({
+                    groups: { 'a': { z: 0 } }
+                });
+
+                shape.addPorts([
+                    { z: 0 },
+                    { z: 'auto' },
+                    { z: undefined },
+                    { group: 'a' }
+                ]);
+
+                var ports = shape.portData.getPorts();
+
+                assert.equal(ports[0].z, 0);
+                assert.equal(ports[1].z, 'auto');
+                assert.equal(ports[2].z, 'auto');
+                assert.equal(ports[3].z, 0);
+            });
+        });
+
         QUnit.test('elements order with z-index', function(assert) {
 
             var data = {
@@ -288,8 +312,8 @@ QUnit.module('element ports', function() {
                     { id: '1' },
                     { id: '2' },
                     { id: '0001' },
-                    { z: 'sdsdsd', id: 'z20' },
-                    { z: 20, id: 'z30' }
+                    { z: 20, id: 'z20' },
+                    { z: 30, id: 'z30' }
                 ]
             };
 
