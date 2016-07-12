@@ -47,7 +47,7 @@ _.times(36, function(index) {
 paper6.model.addCell(g6);
 paper6.on('cell:pointerclick', function(cellView, e) {
 
-    if (!cellView.model.hasPorts()) {
+    if (cellView.model.isLink() || !cellView.model.hasPorts()) {
         return;
     }
 

@@ -129,7 +129,7 @@ var labelPos = {
 
 paper3.on('cell:pointerclick', function(cellView, e) {
 
-    if (!cellView.model.hasPorts()) {
+    if (cellView.model.isLink() || !cellView.model.hasPorts()) {
         return;
     }
 

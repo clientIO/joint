@@ -82,11 +82,7 @@ Best for circles or ellipses
 
 ### Port label layout demo
 
-<iframe src="about:blank" data-src="../../demo/ports/port-label-layouts.html"></iframe>
-
-### Custom port label layout
-
-Label layout functions are implemented in `joint.layout.PortLabel` namespace. You can define your on layouting function.
+<iframe src="about:blank" data-src="./demo/layout/PortLabel/portLabel.html"></iframe>
 
 
 

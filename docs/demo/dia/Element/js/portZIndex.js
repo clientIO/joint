@@ -51,7 +51,7 @@ paper4.model.addCell(g4);
 
 paper4.on('cell:pointerclick cell:contextmenu', function(cellView, e) {
 
-    if (!cellView.model.hasPorts()) {
+    if (cellView.model.isLink() || !cellView.model.hasPorts()) {
         return;
     }
 

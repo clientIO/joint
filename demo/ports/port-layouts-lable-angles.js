@@ -48,7 +48,7 @@ paper5.model.addCell(g5);
 var labelPos5 = 0;
 paper5.on('element:pointerdown', function(cellView, e) {
 
-    if (!cellView.model.hasPorts()) {
+    if (cellView.model.isLink() || !cellView.model.hasPorts()) {
         return;
     }
 

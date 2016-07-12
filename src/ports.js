@@ -187,16 +187,26 @@
             }
         },
 
+        /**
+         * @returns {boolean}
+         */
         hasPorts: function() {
 
             return this.prop('ports/items').length > 0;
         },
 
+        /**
+         * @returns {Array<object>}
+         */
         getPorts: function() {
 
             return _.cloneDeep(this.prop('ports/items')) || [];
         },
 
+        /**
+         * @param {string} id
+         * @returns {object}
+         */
         getPort: function(id) {
 
             return _.cloneDeep(_.find(this.prop('ports/items'), function(port) {
@@ -204,6 +214,10 @@
             }));
         },
 
+        /**
+         * @param {string} id
+         * @returns {number} port index
+         */
         getPortIndex: function(id) {
 
             return _.findIndex(this.prop('ports/items'), function(port) {
@@ -211,6 +225,11 @@
             });
         },
 
+        /**
+         * @param {object} port
+         * @param {object} opt
+         * @returns {joint.dia.Element}
+         */
         addPort: function(port, opt) {
 
             var ports = _.clone(this.prop('ports/items')) || [];

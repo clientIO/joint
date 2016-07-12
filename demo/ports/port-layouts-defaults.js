@@ -9,12 +9,15 @@ $('<button/>').text('remove port').appendTo('body').on('click', function() {
 });
 var g1 = new joint.shapes.basic.Rect({
     position: { x: 130, y: 30 },
-    size: { width: 100, height: 150 }
+    size: { width: 100, height: 150 },
+    attrs: {
+        rect: { stroke: '#31d0c6', 'stroke-width': 2 }
+    }
 });
 graph1.addCell(g1);
-g1.addPort({ attrs: { circle: { magnet: true } } });
-g1.addPort({ attrs: { circle: { magnet: true } } });
-g1.addPort({ attrs: { circle: { magnet: true } } });
+g1.addPort({ attrs: { circle: { magnet: true, stroke: '#31d0c6', 'stroke-width': 2, fill: '#ffffff' } } });
+g1.addPort({ attrs: { circle: { magnet: true, stroke: '#31d0c6', 'stroke-width': 2, fill: '#ffffff' } } });
+g1.addPort({ attrs: { circle: { magnet: true, stroke: '#31d0c6', 'stroke-width': 2, fill: '#ffffff' } } });
 new joint.shapes.basic.Circle({
     position: { x: 20, y: 150 },
     id: 'target',

@@ -8,9 +8,8 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
 
 * [`hasPorts`](#dia.Element.prototype.hasPorts)
 * [`addPort`](#dia.Element.prototype.addPort) / [`addPorts`](#dia.Element.prototype.addPorts)
-* [`removePort`]((#dia.Element.prototype.removePort)
+* [`removePort`](#dia.Element.prototype.removePort)
 * [`getPort`](#dia.Element.prototype.getPort) / [`getPorts`](#dia.Element.prototype.getPorts)
-
 
 ##### <a name="portinterface"></a> Port configuration
 
@@ -49,7 +48,7 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
 <tr>
     <td><b>id</b></td>
     <td><i>string</i></td>
-    <td> port id - automatically generated if is not provided, otherwise must be unique in context of shape - two ports with same port id is not allowed
+    <td> It is automatically generated if no `id` provided. IDs must be unique in the context of a single shape - two ports with the same port id are therefore not allowed (`Element: found id duplicities in ports.` error is thrown)
     </td>
 </tr>
 
@@ -61,7 +60,7 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
 <tr>
     <td><b>args</b></td>
     <td><i>Object</i></td>
-    <td> arguments for the port layout function, properties depends on type of the layout. More information about `args` properties could be found in [`layout.Port`](#layout.Port)</td>
+    <td> arguments for the port layout function, properties depends on the type of layout. More information about `args` properties could be found in [`layout.Port`](#layout.Port)</td>
 </tr>
 <tr>
     <td><b>attrs</b></td>
@@ -118,9 +117,9 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
     <td><b>z</b></td>
     <td><i>number | string</i></td>
     <td>
-    alternative to HTML `z-index`. `z` sets the position of port in list of inner elements within the port.
+    alternative to HTML `z-index`. `z` sets the position of a port in the list of elements within the element.
     <iframe src="about:blank" data-src="./demo/dia/Element/portZIndex.html"></iframe>
-    How it works: shape most likely consists of 1 or more elements, `<rect/>`, `<rect/><text/><circle/>` etc. First element in shape has `z = 1`, additional elements has `z` incremented by 1. Then there are ports without `z` (`z:undefined` or `z:'auto'`), these are placed right after shapes 'core' elements. In this structure are being placed ports with `z` defined.
+    How it works: a shape most likely consists of 1 or more elements, `<rect/>`, `<rect/><text/><circle/>` etc. First element in shape has `z = 1`, additional elements has `z` incremented by 1. Then there are ports without `z` (`z:undefined` or `z:'auto'`), these are placed right after shapes 'core' elements. In this structure are being placed ports with `z` defined.
 
     For example: shape: `<rect/><text/>` ports: `[{z:'auto'}, {z:0}, {z:1}, {z:3}]` will be rendered as (naive svg notation) `<port z="0"/><rect/><port z="1"><text/><port z="auto"><port z="3">`
 
@@ -135,7 +134,7 @@ All properties described above are optional and everything has own default, so t
 
 #### Port groups configuration <a name="groupssection"></a>
 
-`group` attribute comes to play when you're not ok with default port alignment, it's also handy if you need to define multiple ports with similar properties. `group` define defaults for ports belonging to the group, but there is no restriction if you need to overwrite it on particular port. Option which could not be overwritten is port layout type. 'group' sets the layout type and 'args' are the only way how to port could affect layout.
+`group` attribute comes to play when you're not ok with default port alignment, it's also handy if you need to define multiple ports with similar properties. `group` defines defaults for ports belonging to the group, but there is no restriction if you need to overwrite it on particular port. Only option which could not be overwritten is a type of port layout. 'group' sets the layout type and 'args' are the only way how to port could affect layout.
 
 ```javascript
 
@@ -218,7 +217,7 @@ All properties described above are optional and everything has own default, so t
     <td><i>string | object</i></td>
     <td>
         port label position configuration. Could be `string` to set port layout type directly with default
-        settings or `object` where is possible to set layout type and options.
+        settings or `object` where it is possible to set layout type and options.
     </td>
 </tr>
 <tr>

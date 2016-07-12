@@ -112,7 +112,7 @@ var portPosition = {
 
 paper2.on('cell:pointerclick', function(cellView, e) {
 
-    if (!cellView.model.hasPorts()) {
+    if (cellView.model.isLink() || !cellView.model.hasPorts()) {
         return;
     }
 
@@ -120,7 +120,7 @@ paper2.on('cell:pointerclick', function(cellView, e) {
     var type = cellView.model.get('type');
 
     if (type === 'basic.Rect') {
-        positions = ['line', 'left', 'right', 'top', 'bottom'];
+        positions = ['left', 'right', 'top', 'bottom', 'line'];
     }
 
     if (type === 'basic.Circle') {
