@@ -62,7 +62,7 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
     <td> Arguments for the port layout function. Available properties depends on the type of layout. More information could be found in [`layout.Port`](#layout.Port).</td>
 </tr>
 <tr>
-    <td><b>attrs</b></td>s
+    <td><b>attrs</b></td>
     <td><i>object</i></td>
     <td>JointJS style attribute definition. The same notation as the `attrs` property on [`Element`](#joint.dia.Element.presentation).</td>
 </tr>
@@ -121,21 +121,21 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
     <td><i>string</i></td>
     <td>
         Custom port label markup. Multiple roots are not allowed. It defaults to `<text class="label"/>`.
-
     </td>
 </tr>
 <tr>
     <td><b>z</b></td>
     <td><i>number&nbsp;|&nbsp;string</i></td>
     <td>
-    Alternative to HTML `z-index`. `z` sets the position of a port in the list of DOM elements within an `ElementView`.
-    <iframe src="about:blank" data-src="./demo/dia/Element/portZIndex.html"></iframe>
-    Shapes most likely consist of 1 or more DOM elements, `<rect/>`, `<rect/><text/><circle/>` etc.
+        <p> Alternative to HTML `z-index`. `z` sets the position of a port in the list of DOM elements within an
+            `ElementView`.
+        </p>
+        <iframe src="about:blank" data-src="./demo/dia/Element/portZIndex.html"></iframe>
+
+<p>Shapes most likely consist of 1 or more DOM elements, `<rect/>`, `<rect/><text/><circle/>` etc.
     Ports are placed into the element `rotatable` group (if there is no `rotatable` group in the shape's markup, then the main group element `elementView.el` is used for the port container). Ports with `z:'auto'` are located right after the last element in the `rotatable` group. Ports with `z` defined as a number are placed before a DOM element at the position (index within the children of the container, where only the original markup elements and ports with `z:'auto'` are taken into account) equals to `z`.
-
-
+    </p>
         <p>For instance an element with the following markup `<g class="rotatable"><g class="scalable"><rect/></g><text/></g>` will be rendered like this:</p>
-
 
 <pre><code>&lt;g model-id="element1"&gt;
     &lt;g class="rotatable"&gt;
@@ -166,12 +166,9 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
 
     </td>
 </tr>
-
-
 </table>
 
 All properties described above are optional and everything has own default. E.g. `element.addPorts([{}, {}])` will add 2 ports with default settings.
-
 
 #### Port groups configuration <a name="groupssection"></a>
 
@@ -211,7 +208,7 @@ All properties described above are optional and everything has own default. E.g.
 <tr>
     <td><b>position</b></td>
     <td><i>string | object</i></td>
-    <td> 
+    <td>
         Port position configuration. Could be `string` to set port layout type directly with default
         settings or `object` where is possible to set layout type and options.
     </td>
