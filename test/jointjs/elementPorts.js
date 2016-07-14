@@ -489,8 +489,8 @@ QUnit.module('element ports', function() {
                 { x: 100, y: 101, angle: 10 }
             ], elBBox, {});
 
-            assert.equal(Math.round(trans[1].angle), -90, 'rotation compensation applied');
-            assert.equal(trans[1].x, 0 - 3, 'dr is applied');
+            assert.equal(Math.round(trans[1].angle), -270, 'rotation compensation applied');
+            assert.equal(trans[1].x, 100 + 3, 'dr is applied');
             assert.equal(trans[1].y, 50);
 
             // middle bottom
