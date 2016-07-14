@@ -25,7 +25,7 @@
 
         var center = elBBox.center();
         var ratio = elBBox.width / elBBox.height;
-        var p1 = g.point(elBBox.width / 2, 0);
+        var p1 = elBBox.topMiddle();
 
         var ellipse = g.Ellipse.fromRect(elBBox);
 
@@ -33,7 +33,7 @@
 
             var angle = startAngle + stepFn(index, ports.length);
             var p2 = p1.clone()
-                .rotate(center, angle)
+                .rotate(center, -angle)
                 .scale(ratio, 1, center);
 
             var theta = port.compensateRotation ? -ellipse.tangentTheta(p2) : 0;
@@ -170,7 +170,7 @@
         ellipse: function(ports, elBBox, opt) {
 
             var startAngle = opt.startAngle || 0;
-            var stepAngle = opt.step || 360 / ports.length;
+            var stepAngle = opt.step || 20;
 
             return ellipseLayout(ports, elBBox, startAngle, function(index, count) {
                 return (index + 0.5 - count / 2) * stepAngle;

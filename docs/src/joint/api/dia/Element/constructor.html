@@ -6,7 +6,7 @@
 <p>Rotation angle is stored in the <b><code>angle</code></b> property. This angle is in degrees and the rotation origin is always considered to be the center of the element. <code>angle</code> can be also accessed or set directly using the regular Backbone <code>set()</code>/<code>get()</code> methods or through the <a href="#dia.Element.prototype.rotate">rotate</a> method.</p>
 <p>Size of an element is stored in the <b><code>size</code></b> property that is an object with <b><code>width</code></b> and <b><code>height</code></b> keys. Again, <code>size</code> can be accessed or set directly using the regular Backbone <code>set()</code>/<code>get()</code> methods or through the <a href="#dia.Element.prototype.resize">resize</a> method.</p>
 
-<h3>Presentation</h3>
+<h3 id="joint.dia.Element.presentation">Presentation</h3>
 <p>Another important property is <b><code>attrs</code></b> which is an object with keys representing <b>selectors</b> that match subelements and values which are SVG attributes that will be set on the subelements. One can find a list of <b>SVG attributes</b> and their descriptions e.g. on <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute">MDN</a>.</p>
 <p>It is important to note that each <code>joint.dia.Element</code> defines an SVG markup which is then used by <code>joint.dia.ElementView</code> to render the element to the paper. For instance, the <code>joint.shapes.basic.Rect</code> element (that inherits from <code>joint.dia.Element</code>) defines its markup as follows:</p>
 

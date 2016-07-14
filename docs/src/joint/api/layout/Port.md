@@ -1,7 +1,7 @@
 
-Port layouts are functions whose consume array of ports and result is array of port positions. Positions are relative to shape bounding box. For example port position `{ x:1, y:2 }` means the port origin is at position `[1, 2]` from shape's origin.
+Port layouts are functions that accept an array of port's `args` and return an array of port positions. Positions are relative to the element model bounding box. For example if we have an element at position `{ x:10, y:20 }` with a relative port position `{ x:1, y:2 }`, the absolute port position will be `{ x:11, y:22 }`.
 
-Port layout can be defined only on `group` level. You can pass some additional arguments into layout function, defined in optional argument `args`. Also `args` is the only way how to adjust port layout from the port definition perspective.
+Port layout can be defined only at the `group` level. Optionally you can pass some additional arguments into the layout function via `args`. The `args` is the only way how to adjust port layout from the port definition perspective.
 
 ```javascript
 var rect = joint.shapes.basic.Rect({
@@ -19,7 +19,7 @@ var rect = joint.shapes.basic.Rect({
             // initialize 'rect' with port in group 'a'
             {
                 group: 'a',
-                args: {} // overrides `args` from the group level definition. `layoutType` cannot be overidden from here.
+                args: {} // overrides `args` from the group level definition.
             },
             // ... other ports
         ]
@@ -36,7 +36,7 @@ rect.addPort({ group:'a' })
 
 #### left | right | top | bottom
 
-Best for `rect`
+Simple layout suitable for rectangular shapes. It evenly spreads ports along a single side.
 
 ```javascript
 {
@@ -54,6 +54,8 @@ Best for `rect`
 
 #### absolute
 
+It lay a port out at the given position (defined as a `x`, `y` coordinates or percentage of the element dimensions).
+
 ```javascript
 {
     name: 'absolute',
@@ -66,33 +68,9 @@ Best for `rect`
 
 ```
 
-#### function
-
-Custom layout function, should return array of port positions.
-
-```javascript
-/**
- * @param {Array<object>} ports
- * @param {g.Rect} elBBox shape's bounding box
- * @param {object} opt Group options
- * @returns {Array<g.Point>}
-*/
-function(ports, elBBox, opt) {
-
-    // ports on sinusoid
-    return _.map(ports, function(port, index) {
-
-        var step = -Math.PI / 8;
-        var y = Math.sin(index * step) * 50;
-        return g.point({ x: index * 12, y: y + elBBox.height });
-    });
-}
-
-```
-
 #### ellipse | ellipseSpread
 
-Best for `circle`, `ellipse`
+Suitable for circular shapes. `ellipseSpreads` evenly spreads ports along an ellipse. `ellipse` spreads ports from the point at `startAngle` leaving gaps between ports equal to `step`.
 
 ```javascript
 {
@@ -107,10 +85,32 @@ Best for `circle`, `ellipse`
     }
 }
 ```
-
-set `compensateRotation:true` when you need to have ports in same angle as shape's boundary.
+set `compensateRotation:true` when you need to have ports in the same angle as an ellipse tangent at the port position.
 
 <iframe src="about:blank" data-src="demo/layout/Port/portRotationComp.html"></iframe>
+
+### Custom layout
+
+An alternative for built-in layouts is providing a function directly, where the function returns an array of port positions.
+
+```javascript
+/**
+* @param {Array<object>} ports
+* @param {g.Rect} elBBox shape's bounding box
+* @param {object} opt Group options
+* @returns {Array<g.Point>}
+*/
+function(ports, elBBox, opt) {
+
+    // ports on sinusoid
+    return _.map(ports, function(port, index) {
+
+        var step = -Math.PI / 8;
+        var y = Math.sin(index * step) * 50;
+        return g.point({ x: index * 12, y: y + elBBox.height });
+    });
+}
+```
 
 ### Port layouts demo
 

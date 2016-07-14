@@ -1,8 +1,7 @@
 ### Ports
 
 You can easily add ports to any shape, either pass ports definitions as an `option` in constructor or you
-    are able to get/add/remove ports afterwards, using API defined on `joint.dia.Element`. One way or another
-    you need to specify ports correctly, available settings is described in [Port configuration ](#portinterface) section.
+    are able to get/add/remove ports through the API, which is defined on `joint.dia.Element`. For more information about configuration go to [Port configuration](#portinterface) section.
 
 ##### Port API on `joint.dia.Element`
 
@@ -48,80 +47,122 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
 <tr>
     <td><b>id</b></td>
     <td><i>string</i></td>
-    <td> It is automatically generated if no `id` provided. IDs must be unique in the context of a single shape - two ports with the same port id are therefore not allowed (`Element: found id duplicities in ports.` error is thrown)
+    <td> It is automatically generated if no `id` provided. IDs must be unique in the context of a single shape - two ports with the same port id are therefore not allowed (`Element: found id duplicities in ports.` error is thrown).
     </td>
 </tr>
 
 <tr>
     <td><b>group</b></td>
     <td><i>string</i></td>
-    <td> group name, more info in [groups](#groupssection) section</td>
+    <td> Group name, more info in [groups](#groupssection) section.</td>
 </tr>
 <tr>
     <td><b>args</b></td>
-    <td><i>Object</i></td>
-    <td> arguments for the port layout function, properties depends on the type of layout. More information about `args` properties could be found in [`layout.Port`](#layout.Port)</td>
+    <td><i>object</i></td>
+    <td> Arguments for the port layout function. Available properties depends on the type of layout. More information could be found in [`layout.Port`](#layout.Port).</td>
 </tr>
 <tr>
-    <td><b>attrs</b></td>
-    <td><i>Object</i></td>
-    <td> jointjs style attribute definition. Same as `attr` on [`Element`](#dia.Element.prototype.attr)</td>
+    <td><b>attrs</b></td>s
+    <td><i>object</i></td>
+    <td>JointJS style attribute definition. Same notation as the `attrs` property on [`Element`](#joint.dia.Element.presentation).</td>
 </tr>
 <tr>
     <td><b>markup</b></td>
     <td><i>string</i></td>
     <td>
-        custom port markup. Multiple roots are not allowed. `<g><rect class="outer"/><rect class"inner"/></g>`
+        Custom port markup. Multiple roots are not allowed. Valid notation would be `<g><rect class="outer"/><rect class"inner"/></g>`. It defaults to `<circle class="base-port" r="10" fill="#000000"/>`.
     </td>
 </tr>
 <tr>
     <td><b>label</b></td>
     <td><i>object</i></td>
     <td>
-        port layout configuration. Position of label or custom markup could be set here. More info about port label layouts could be found in section [`layout.PortLabel`](#layout.PortLabel)
+        Port label layout configuration. E.g. label position, label markup. More information about port label layouts could be found in [`layout.PortLabel`](#layout.PortLabel) section.
     </td>
 </tr>
 
 <tr>
-    <td><b>&nbsp;label.position</b></td>
-    <td><i>string | object</i></td>
+    <td><ul><li><b>label.position</b></li></ul></td>
+    <td><i>string&nbsp;|&nbsp;object</i></td>
     <td>
-        port label position configuration. Could be `string` to set port layout type directly with default
-        settings or `object` where is possible to set layout type and options.
+        Port label position configuration. It could be a `string` for setting the port layout type directly with default
+        settings or an `object` where it's possible to set the layout type and options.
+        <pre><code>{ position: 'left'}
+
+// or ...
+
+{
+    position: {
+        name: 'left',
+        args: {
+            dx: 10
+        }
+    }
+}</code></pre>
     </td>
 </tr>
 <tr>
-    <td><b>&nbsp;&nbsp;label.position.name</b></td>
+    <td><ul style="margin-left: 20px;list-style: circle"><li><b>label.position.name</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        stands for the layout type, match the layout implementation in `joint.layout.PortLabel` namespace:
-        `name:'left'` is implemented as `joint.layout.PortLabel.left`
+        Stands for the layout type, match the layout method name defined in `joint.layout.PortLabel` namespace:
+        `name:'left'` is implemented as `joint.layout.PortLabel.left`.
     </td>
 </tr>
 <tr>
-    <td><b>&nbsp;&nbsp;label.position.args</b></td>
+    <td><ul style="margin-left: 20px;list-style: circle"><li><b>label.position.args</b></li></ul></td>
     <td><i>object</i></td>
     <td>
-        additional arguments for the layout function. Depends on the layout type. Info about possible
-        arguments could be found in section [`layout.PortLabel`](#layout.PortLabel)
+        Additional arguments for the layout method. Available properties depends on the layout type. More information could be found in [`layout.PortLabel`](#layout.PortLabel) section.
     </td>
 </tr>
 <tr>
-    <td><b>&nbsp;label.markup</b></td>
+    <td><ul><li><b>label.markup</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        Custom port label markup. Multiple roots are not allowed. `<g><text class="header"/><text/></g>`
+        Custom port label markup. Multiple roots are not allowed. It defaults to `<text class="label"/>`.
+
     </td>
 </tr>
 <tr>
     <td><b>z</b></td>
-    <td><i>number | string</i></td>
+    <td><i>number&nbsp;|&nbsp;string</i></td>
     <td>
-    alternative to HTML `z-index`. `z` sets the position of a port in the list of elements within the element.
+    Alternative to HTML `z-index`. `z` sets the position of a port in the list of DOM elements within an `ElementView`.
     <iframe src="about:blank" data-src="./demo/dia/Element/portZIndex.html"></iframe>
-    How it works: a shape most likely consists of 1 or more elements, `<rect/>`, `<rect/><text/><circle/>` etc. First element in shape has `z = 1`, additional elements has `z` incremented by 1. Then there are ports without `z` (`z:undefined` or `z:'auto'`), these are placed right after shapes 'core' elements. In this structure are being placed ports with `z` defined.
+    Shapes most likely consist of 1 or more DOM elements, `<rect/>`, `<rect/><text/><circle/>` etc.
+    Ports are placed into the element `rotatable` group (if there is no `rotatable` group in the shape's markup, then the main group element `elementView.el` is used for the port container). Ports with `z:'auto'` are located right after the last element in the `rotatable` group. Ports with `z` defined as a number are placed before a DOM element at the position (index within the children of the container, where only the original markup elements and ports with `z:'auto'` are taken into account) equals to `z`.
 
-    For example: shape: `<rect/><text/>` ports: `[{z:'auto'}, {z:0}, {z:1}, {z:3}]` will be rendered as (naive svg notation) `<port z="0"/><rect/><port z="1"><text/><port z="auto"><port z="3">`
+
+        <p>For instance an element with the following markup `<g class="rotatable"><g class="scalable"><rect/></g><text/></g>` will be rendered like this:</p>
+
+
+<pre><code>&lt;g model-id="element1"&gt;
+    &lt;g class="rotatable"&gt;
+        &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 0 --&gt;
+        &lt;g class="scalable"&gt;&lt;rect/&gt;&lt;/g&gt;
+        &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 1 --&gt;
+        &lt;text/&gt;
+        &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 2 --&gt;
+    &lt;/g&gt;
+&lt;/g&gt;
+</code></pre>
+
+<p>Another example with simplified markup `<circle/><text/>` can look as follows:</p>
+
+<pre><code>&lt;g model-id="element2"&gt;
+    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 0 --&gt;
+    &lt;circle/&gt;
+    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 1 --&gt;
+    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- another z: 1 --&gt;
+    &lt;text/&gt;
+    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 2 --&gt;
+    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 'auto' --&gt;
+    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 3 --&gt;
+    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 'auto' --&gt;
+    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 10 --&gt;
+&lt;/g&gt;
+</code></pre>
 
     </td>
 </tr>
@@ -129,12 +170,12 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
 
 </table>
 
-All properties described above are optional and everything has own default, so the `element.addPorts([{}, {}])` is valid usage: it adds 2 ports with default settings.
+All properties described above are optional and everything has own default. E.g. `element.addPorts([{}, {}])` will add 2 ports with default settings.
 
 
 #### Port groups configuration <a name="groupssection"></a>
 
-`group` attribute comes to play when you're not ok with default port alignment, it's also handy if you need to define multiple ports with similar properties. `group` defines defaults for ports belonging to the group, but there is no restriction if you need to overwrite it on particular port. Only option which could not be overwritten is a type of port layout. 'group' sets the layout type and 'args' are the only way how to port could affect layout.
+`group` attribute comes to play when you're not happy with the default port alignment. It's also handy when you need to define multiple ports with similar properties. `group` defines defaults for ports belonging to the group. Any `group` property can be overwritten by a port in this group except the type of layout - `position`. 'group' defines the layout and port 'args' are the only way how a port can affect it.
 
 ```javascript
 
@@ -144,9 +185,9 @@ All properties described above are optional and everything has own default, so t
         // ...
         ports: {
             groups: {
-                'groupA': groupA,
-                //'groupB': ...,
-                //'groupX': ...,
+                'group1': groupA,
+                // 'group2': ...,
+                // 'group3': ...,
             },
             items: []
         }
@@ -166,23 +207,20 @@ All properties described above are optional and everything has own default, so t
 
 ```
 
-
 <table>
-
-
 <tr>
     <td><b>position</b></td>
-    <td style="min-width:100px"><i>string | object</i></td>
+    <td><i>string | object</i></td>
     <td> 
-        port position configuration. Could be `string` to set port layout type directly with default
+        Port position configuration. Could be `string` to set port layout type directly with default
         settings or `object` where is possible to set layout type and options.
-    </td></td>
+    </td>
 </tr>
 <tr>
     <td><ul><li><b>position.name</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        stands for the layout type, match the layout implementation in `joint.layout.Port` namespace:
+        Stands for the layout type, match the layout implementation in `joint.layout.Port` namespace:
         `name:'left'` is implemented as `joint.layout.Port.left`
      </td>
 </tr>
@@ -195,7 +233,7 @@ All properties described above are optional and everything has own default, so t
 <tr>
     <td><b>attrs</b></td>
     <td><i>object</i></td>
-    <td> jointjs style attribute definition. Same as `attr` on [`Element`](#dia.Element.prototype.attr)</td>
+    <td> JointJS style attribute definition. It has same as `attrs` on [`Element`](#dia.Element.prototype.attr)</td>
 </tr>
 <tr>
     <td><b>markup</b></td>
@@ -221,7 +259,7 @@ All properties described above are optional and everything has own default, so t
     </td>
 </tr>
 <tr>
-    <td><ul style="list-style-type:none"><li><b>label.position.name</b></li></ul></td>
+    <td><ul style="margin-left:20px;list-style-type:circle"><li><b>label.position.name</b></li></ul></td>
     <td><i>string</i></td>
     <td>
         stands for the layout type, match the layout implementation in `joint.layout.PortLabel` namespace:
@@ -229,7 +267,7 @@ All properties described above are optional and everything has own default, so t
     </td>
 </tr>
 <tr>
-    <td><ul style="list-style-type:none"><li><b>label.position.args</b></li></ul></td>
+    <td><ul style="margin-left:20px;list-style-type:circle"><li><b>label.position.args</b></li></ul></td>
     <td><i>object</i></td>
     <td>
         `args` - additional arguments for the layout function. Depends on the layout type. Information about possible
@@ -260,7 +298,7 @@ Both port and port label can have custom markup.
 
 ```
 
-or, it can be set an default port markup/port label markup for whole shape:
+or, it can be set as an default port markup/port label markup on an element model:
 
 ```javascript
 
