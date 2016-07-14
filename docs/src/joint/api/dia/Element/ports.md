@@ -1,7 +1,6 @@
 ### Ports
 
-You can easily add ports to any shape, either pass ports definitions as an `option` in constructor or you
-    are able to get/add/remove ports through the API, which is defined on `joint.dia.Element`. For more information about configuration go to [Port configuration](#portinterface) section.
+It's easy to add ports to arbitrary shapes in JointJS. This can be done either by passing a ports definition as an `option` in the constructor or using the ports API to get/add/remove single or multiple ports. For more information on how to define ports please see [Port configuration](#portinterface) section.
 
 ##### Port API on `joint.dia.Element`
 
