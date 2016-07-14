@@ -1,3 +1,3 @@
 <pre class="docs-method-signature"><code>element.getPorts()</code></pre>
 
-Gets all ports on the shape,  returns `[]` if there are not any ports.
+Returns an array of all ports on the element. If there is no port an empty array is returned.
