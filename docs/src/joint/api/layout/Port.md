@@ -36,7 +36,7 @@ rect.addPort({ group:'a' })
 
 #### left | right | top | bottom
 
-Simple layout suitable for rectangular shapes. It evenly spreads ports along a single side.
+A simple layout suitable for rectangular shapes. It evenly spreads ports along a single side.
 
 ```javascript
 {
@@ -70,7 +70,7 @@ It lay a port out at the given position (defined as a `x`, `y` coordinates or pe
 
 #### ellipse | ellipseSpread
 
-Suitable for circular shapes. `ellipseSpreads` evenly spreads ports along an ellipse. `ellipse` spreads ports from the point at `startAngle` leaving gaps between ports equal to `step`.
+Suitable for circular shapes. The `ellipseSpreads` evenly spreads ports along an ellipse. The `ellipse` spreads ports from the point at `startAngle` leaving gaps between ports equal to `step`.
 
 ```javascript
 {

@@ -54,7 +54,7 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
 <tr>
     <td><b>group</b></td>
     <td><i>string</i></td>
-    <td> Group name, more info in [groups](#groupssection) section.</td>
+    <td>Group name, more info in [groups](#groupssection) section.</td>
 </tr>
 <tr>
     <td><b>args</b></td>
@@ -64,7 +64,7 @@ You can easily add ports to any shape, either pass ports definitions as an `opti
 <tr>
     <td><b>attrs</b></td>s
     <td><i>object</i></td>
-    <td>JointJS style attribute definition. Same notation as the `attrs` property on [`Element`](#joint.dia.Element.presentation).</td>
+    <td>JointJS style attribute definition. The same notation as the `attrs` property on [`Element`](#joint.dia.Element.presentation).</td>
 </tr>
 <tr>
     <td><b>markup</b></td>
@@ -220,65 +220,76 @@ All properties described above are optional and everything has own default. E.g.
     <td><ul><li><b>position.name</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        Stands for the layout type, match the layout implementation in `joint.layout.Port` namespace:
-        `name:'left'` is implemented as `joint.layout.Port.left`
-     </td>
+        Stands for the layout type, match the layout method name defined in `joint.layout.Port` namespace:
+        `name:'left'` is implemented as `joint.layout.Port.left`.
+    </td>
 </tr>
 <tr>
     <td><ul><li><b>position.args</b></li></ul></td>
     <td><i>object</i></td>
-    <td> arguments for port layout function, properties depends on type of layout. Information about possible
-        arguments could be found in section [`layout.Port`](#layout.Port)</td>
+    <td> Arguments for the port layout function. Available properties depends on the type of layout. More information could be found in [`layout.Port`](#layout.Port).</td>
 </tr>
 <tr>
     <td><b>attrs</b></td>
     <td><i>object</i></td>
-    <td> JointJS style attribute definition. It has same as `attrs` on [`Element`](#dia.Element.prototype.attr)</td>
+    <td>JointJS style attribute definition. The same notation as the `attrs` property on [`Element`](#joint.dia.Element.presentation).</td>
 </tr>
 <tr>
     <td><b>markup</b></td>
     <td><i>string</i></td>
     <td>
-        Custom port markup. Multiple roots are not allowed. `<g><rect class="outer"/><rect class="inner"/></g>`
+        Custom port markup. Multiple roots are not allowed. Valid notation would be `<g><rect class="outer"/><rect class"inner"/></g>`. It defaults to `<circle class="base-port" r="10" fill="#000000"/>`.
     </td>
 </tr>
 <tr>
     <td><b>label</b></td>
     <td><i>object</i></td>
     <td>
-        Port layout configuration. Position of label or custom markup could be set here. More info about port label layouts could be found in section [`layout.PortLabel`](#layout.PortLabel)
+        Port label layout configuration. E.g. label position, label markup. More information about port label layouts could be found in [`layout.PortLabel`](#layout.PortLabel) section.
     </td>
 </tr>
 
 <tr>
     <td><ul><li><b>label.position</b></li></ul></td>
-    <td><i>string | object</i></td>
+    <td><i>string&nbsp;|&nbsp;object</i></td>
     <td>
-        port label position configuration. Could be `string` to set port layout type directly with default
-        settings or `object` where it is possible to set layout type and options.
-    </td>
-</tr>
+        Port label position configuration. It could be a `string` for setting the port layout type directly with default
+        settings or an `object` where it's possible to set the layout type and options.
+        <pre><code>{ position: 'left'}
+
+// or ...
+
+{
+    position: {
+        name: 'left',
+        args: {
+            dx: 10
+        }
+    }
+}</code></pre>
+        </td>
+    </tr>
+
 <tr>
-    <td><ul style="margin-left:20px;list-style-type:circle"><li><b>label.position.name</b></li></ul></td>
+    <td><ul style="margin-left: 20px;list-style: circle"><li><b>label.position.name</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        stands for the layout type, match the layout implementation in `joint.layout.PortLabel` namespace:
-        `name:'left'` is implemented as `joint.layout.PortLabel.left`
+        Stands for the layout type, match the layout method name defined in `joint.layout.PortLabel` namespace:
+        `name:'left'` is implemented as `joint.layout.PortLabel.left`.
     </td>
 </tr>
 <tr>
-    <td><ul style="margin-left:20px;list-style-type:circle"><li><b>label.position.args</b></li></ul></td>
+    <td><ul style="margin-left: 20px;list-style: circle"><li><b>label.position.args</b></li></ul></td>
     <td><i>object</i></td>
     <td>
-        `args` - additional arguments for the layout function. Depends on the layout type. Information about possible
-        arguments could be found in section [`layout.PortLabel`](#layout.PortLabel)
+        Additional arguments for the layout method. Available properties depends on the layout type. More information could be found in [`layout.PortLabel`](#layout.PortLabel) section.
     </td>
 </tr>
 <tr>
     <td><ul><li><b>label.markup</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        Custom port label markup. Multiple roots are not allowed. `<g><text class="header"/><text/></g>`
+        Custom port label markup. Multiple roots are not allowed. It defaults to `<text class="label"/>`.
     </td>
 </tr>
 </table>

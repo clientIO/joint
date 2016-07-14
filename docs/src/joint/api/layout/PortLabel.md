@@ -1,11 +1,11 @@
 
-Port label layout functions are for calculating port label position, relative to port position. For example port label position at { x:1, y:2 } means the port label origin is at position [1, 2] from port's origin.
+Port label layout functions calculate port label positions relatively to port positions.
 
-### Pre-defined port label layputs
+### Pre-defined port label layouts
 
 #### On Sides
 
-Best for rectangle shapes.
+Simple label layout suitable for rectangular shapes. It places the label on arbitrary side of a port.
 
 ```javascript
 label: {
@@ -15,15 +15,15 @@ label: {
             x: number,
             y: number,
             angle: 0,
-            attrs: {
-                 // standard attrs
-            }
+            attrs: {}
         }
     }
 }
 ```
 
-#### Inside/Outside of the shape
+#### Inside/Outside
+
+Places the label inside or outside of a rectangular shape. Where 'oriented' versions rotate the text towards the element center.
 
 ```javascript
 
@@ -45,40 +45,37 @@ label: {
 
 #### Radial
 
-Best for circles or ellipses
+
+Places the label outside of a circular shape. Where the 'oriented' version rotates the text towards the element center.
 
 ```javascript
-'Radial' : {
-    label: {
-        position: {
-            name :'radial|radialOriented',
-            args: {
-                offset: 0
-            }
+label: {
+    position: {
+        name :'radial|radialOriented',
+        args: {
+            offset: 0
         }
     }
-},
+}
 ```
 
 #### Manual placement
 
+It allows to set a label position directly.
+
 ```javascript
-// values in args are used directly, undefined values are supplied with defaults.
-'Manual': {
-    label: {
-        position: {
-            name: 'manual',
-            args: {
-                x: 0,
-                y: 0,
-                angle: 0
-            }
+label: {
+    position: {
+        name: 'manual',
+        args: {
+            x: 0,
+            y: 0,
+            angle: 0
         }
     }
 }
 
 ```
-
 
 ### Port label layout demo
 

@@ -17,7 +17,7 @@ var g3 = new joint.shapes.basic.Circle({
                         dy: 0,
                         compensateRotation: true,
                         // step: 20,
-                        startAngle: 0
+                        startAngle: 90
                     }
                 },
                 label: {
