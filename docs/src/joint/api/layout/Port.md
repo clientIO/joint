@@ -95,15 +95,15 @@ An alternative for built-in layouts is providing a function directly, where the 
 
 ```javascript
 /**
-* @param {Array<object>} ports
+* @param {Array<object>} portsArgs
 * @param {g.Rect} elBBox shape's bounding box
 * @param {object} opt Group options
 * @returns {Array<g.Point>}
 */
-function(ports, elBBox, opt) {
+function(portsArgs, elBBox, opt) {
 
     // ports on sinusoid
-    return _.map(ports, function(port, index) {
+    return _.map(portsArgs, function(portArgs, index) {
 
         var step = -Math.PI / 8;
         var y = Math.sin(index * step) * 50;
