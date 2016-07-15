@@ -211,10 +211,9 @@ var g = (function() {
 
         /**
          * @param {g.Point} point
-         * @param {{suppressRounding: boolean}} [opt]
          * @returns {number} result < 1 - inside ellipse, result == 1 - on ellipse boundary, result > 1 - outside
          */
-        normalizedDistance: function(point, opt) {
+        normalizedDistance: function(point) {
 
             var x0 = point.x;
             var y0 = point.y;
@@ -223,36 +222,16 @@ var g = (function() {
             var x = this.x;
             var y = this.y;
 
-            var res = ((x0 - x) * (x0 - x)) / (a * a ) + ((y0 - y) * (y0 - y)) / (b * b);
-
-            return opt && opt.suppressRounding ? res : Math.round(res);
+            return ((x0 - x) * (x0 - x)) / (a * a ) + ((y0 - y) * (y0 - y)) / (b * b);
         },
 
         /**
-         * @param {g.Point} point
+         * @param {g.Point} p
          * @returns {boolean}
          */
-        isOnBoundary: function(point) {
+        containsPoint: function(p) {
 
-            return this.normalizedDistance(point) === 1;
-        },
-
-           /**
-         * @param {g.Point} point
-         * @returns {boolean}
-         */
-        isOutside: function(point) {
-
-            return this.normalizedDistance(point) > 1;
-        },
-
-        /**
-         * @param {g.Point} point
-         * @returns {boolean}
-         */
-        isInside: function(point) {
-
-            return this.normalizedDistance(point) > 1;
+            return this.normalizedDistance(p) <= 1;
         },
 
         /**
@@ -264,20 +243,10 @@ var g = (function() {
         },
 
         /** Compute angle between tangent and x axis
-         * @param {g.Point} p Point ofs tangency, it has to be on ellipse boundaries, otherwise error is thrown.
+         * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries, otherwise error is thrown.
          * @returns {number} angle between tangent and x axis
          */
         tangentTheta: function(p) {
-
-            var pointPosition = this.normalizedDistance(p);
-
-            if (pointPosition > 1) {
-                throw new Error('Point is outside - tangent does not exist');
-            }
-
-            if (pointPosition < 1) {
-                throw new Error('Point is inside - tangent does not exist');
-            }
 
             var refPointDelta = 30;
             var x0 = p.x;

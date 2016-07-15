@@ -98,18 +98,17 @@ QUnit.module('ellipse', function() {
         QUnit.test('normalizedDistance', function(assert) {
 
             var tolerance = 0.009;
-            var opt = { suppressRounding: true };
             var ellipse = g.Ellipse(g.Point(111, 111), 150, 150);
 
-            var r1 = ellipse.normalizedDistance(ellipse.center(), opt);
+            var r1 = ellipse.normalizedDistance(ellipse.center());
             assert.ok(r1 < 1 && r1 >= 0);
 
-            assert.ok(ellipse.normalizedDistance(ellipse.center().offset(500, 500), opt) > 1);
+            assert.ok(ellipse.normalizedDistance(ellipse.center().offset(500, 500)) > 1);
 
             for (var angle = 0; angle < 360; angle += 1) {
 
                 var b = boundaryOnAngle(ellipse, angle);
-                var x = ellipse.normalizedDistance(b, { suppressRounding: true });
+                var x = ellipse.normalizedDistance(b);
                 assert.ok(x - 1 < tolerance && x - 1 > -tolerance, 'point on angle: ' + angle + ' result:' + x);
             }
         });
