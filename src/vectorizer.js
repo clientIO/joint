@@ -117,9 +117,10 @@ V = Vectorizer = (function() {
 
     /**
      * @param {SVGMatrix} matrix
-     * @returns {V, SVGMatrix} Setter / Getter
+     * @param {Object=} opt
+     * @returns {Vectorizer|SVGMatrix} Setter / Getter
      */
-    V.prototype.transform = function(matrix) {
+    V.prototype.transform = function(matrix, opt) {
 
         if (V.isUndefined(matrix)) {
             return (this.node.parentNode)
@@ -127,8 +128,13 @@ V = Vectorizer = (function() {
                 : this.node.getScreenCTM();
         }
 
+        var transformList = this.node.transform.baseVal;
+        if (opt && opt.absolute) {
+            transformList.clear();
+        }
+
         var svgTransform = V.createSVGTransform(matrix);
-        this.node.transform.baseVal.appendItem(svgTransform);
+        transformList.appendItem(svgTransform);
         return this;
     };
 

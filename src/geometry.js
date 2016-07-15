@@ -209,6 +209,70 @@ var g = (function() {
             return Ellipse(this);
         },
 
+        /**
+         * @param {g.Point} point
+         * @returns {number} result < 1 - inside ellipse, result == 1 - on ellipse boundary, result > 1 - outside
+         */
+        normalizedDistance: function(point) {
+
+            var x0 = point.x;
+            var y0 = point.y;
+            var a = this.a;
+            var b = this.b;
+            var x = this.x;
+            var y = this.y;
+
+            return ((x0 - x) * (x0 - x)) / (a * a ) + ((y0 - y) * (y0 - y)) / (b * b);
+        },
+
+        /**
+         * @param {g.Point} p
+         * @returns {boolean}
+         */
+        containsPoint: function(p) {
+
+            return this.normalizedDistance(p) <= 1;
+        },
+
+        /**
+         * @returns {g.Point}
+         */
+        center: function() {
+
+            return Point(this.x, this.y);
+        },
+
+        /** Compute angle between tangent and x axis
+         * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries.
+         * @returns {number} angle between tangent and x axis
+         */
+        tangentTheta: function(p) {
+
+            var refPointDelta = 30;
+            var x0 = p.x;
+            var y0 = p.y;
+            var a = this.a;
+            var b = this.b;
+            var center = this.bbox().center();
+            var m = center.x;
+            var n = center.y;
+
+            var q1 = x0 > center.x + a / 2;
+            var q3 = x0 < center.x - a / 2;
+
+            var y, x;
+            if (q1 || q3) {
+                y = x0 > center.x ? y0 - refPointDelta : y0 + refPointDelta;
+                x = (a * a / (x0 - m)) - (a * a * (y0 - n) * (y - n)) / (b * b * (x0 - m)) + m;
+            } else {
+                x = y0 > center.y ? x0 + refPointDelta : x0 - refPointDelta;
+                y = ( b * b / (y0 - n)) - (b * b * (x0 - m) * (x - m)) / (a * a * (y0 - n)) + n;
+            }
+
+            return g.point(x, y).theta(p);
+
+        },
+
         equals: function(ellipse) {
 
             ellipse = Ellipse(ellipse);

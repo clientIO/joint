@@ -90,6 +90,9 @@ joint.dia.Cell = Backbone.Model.extend({
         this.on('change:attrs', this.processPorts, this);
     },
 
+    /**
+     * @deprecated
+     */
     processPorts: function() {
 
         // Whenever `attrs` changes, we extract ports from the `attrs` object and store it

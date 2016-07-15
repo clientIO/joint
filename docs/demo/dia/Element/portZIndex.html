@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+
+    <title>Port layouts demo</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../css/lib/joint.min.css"/>
+
+    <style>
+        .joint-paper {
+            border: 1px solid gray;
+            width: 800px
+        }
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+
+<!-- Dependencies: -->
+<script src="../../../js/lib/jquery.min.js"></script>
+<script src="../../../js/lib/lodash.min.js"></script>
+<script src="../../../js/lib/backbone.min.js"></script>
+
+<script src="../../../js/lib/joint.min.js"></script>
+
+<script>
+    /**
+     * HELPERS
+     */
+    function createPaper() {
+        var graph = new joint.dia.Graph;
+
+        return new joint.dia.Paper({
+            el: $('<div/>').appendTo(document.body),
+            width: 800,
+            height: 200,
+            gridSize: 1,
+            perpendicularLinks: false,
+            model: graph,
+            linkView: joint.dia.LinkView.extend({
+                options: _.extend({}, joint.dia.LinkView.prototype.options, {
+                    doubleLinkTools: true,
+                    linkToolsOffset: 40,
+                    doubleLinkToolsOffset: 60
+                })
+            })
+        });
+    }
+</script>
+
+<script src="./js/portZIndex.js"></script>
+
+</body>
+</html>
