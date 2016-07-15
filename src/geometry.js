@@ -243,7 +243,7 @@ var g = (function() {
         },
 
         /** Compute angle between tangent and x axis
-         * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries, otherwise error is thrown.
+         * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries.
          * @returns {number} angle between tangent and x axis
          */
         tangentTheta: function(p) {
