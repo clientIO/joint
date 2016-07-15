@@ -214,7 +214,7 @@ var g = (function() {
          * @param {{suppressRounding: boolean}} [opt]
          * @returns {number} result < 1 - inside ellipse, result == 1 - on ellipse boundary, result > 1 - outside
          */
-        whereIs: function(point, opt) {
+        locate: function(point, opt) {
 
             var x0 = point.x;
             var y0 = point.y;
@@ -229,6 +229,33 @@ var g = (function() {
         },
 
         /**
+         * @param {g.Point} point
+         * @returns {boolean}
+         */
+        isOnBoundary: function(point) {
+
+            return this.locate(point) === 1;
+        },
+
+           /**
+         * @param {g.Point} point
+         * @returns {boolean}
+         */
+        isOutside: function(point) {
+
+            return this.locate(point) > 1;
+        },
+
+        /**
+         * @param {g.Point} point
+         * @returns {boolean}
+         */
+        isInside: function(point) {
+
+            return this.locate(point) > 1;
+        },
+
+        /**
          * @returns {g.Point}
          */
         center: function() {
@@ -237,12 +264,12 @@ var g = (function() {
         },
 
         /** Compute angle between tangent and x axis
-         * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries, otherwise error is thrown.
+         * @param {g.Point} p Point ofs tangency, it has to be on ellipse boundaries, otherwise error is thrown.
          * @returns {number} angle between tangent and x axis
          */
         tangentTheta: function(p) {
 
-            var pointPosition = this.whereIs(p);
+            var pointPosition = this.locate(p);
 
             if (pointPosition > 1) {
                 throw new Error('Point is outside - tangent does not exist');

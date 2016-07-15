@@ -95,21 +95,21 @@ QUnit.module('ellipse', function() {
 
     QUnit.module('Where is point in space with ellipse', function(hooks) {
 
-        QUnit.test('whereIs', function(assert) {
+        QUnit.test('locate', function(assert) {
 
             var tolerance = 0.009;
             var opt = { suppressRounding: true };
             var ellipse = g.Ellipse(g.Point(111, 111), 150, 150);
 
-            var r1 = ellipse.whereIs(ellipse.center(), opt);
+            var r1 = ellipse.locate(ellipse.center(), opt);
             assert.ok(r1 < 1 && r1 >= 0);
 
-            assert.ok(ellipse.whereIs(ellipse.center().offset(500, 500), opt) > 1);
+            assert.ok(ellipse.locate(ellipse.center().offset(500, 500), opt) > 1);
 
             for (var angle = 0; angle < 360; angle += 1) {
 
                 var b = boundaryOnAngle(ellipse, angle);
-                var x = ellipse.whereIs(b, { suppressRounding: true });
+                var x = ellipse.locate(b, { suppressRounding: true });
                 assert.ok(x - 1 < tolerance && x - 1 > -tolerance, 'point on angle: ' + angle + ' result:' + x);
             }
         });
