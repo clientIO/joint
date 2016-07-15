@@ -1,3 +1,5 @@
 
 <pre class="docs-method-signature"><code>ellipse.normalizedDistance(p)</code></pre>
-<p>Return normalized distance of given point <code>p</code> from center. Return value <code>== 1</code> means the point lays on the ellipse boundary, point is outside for value <code> > 1</code> and <code>< 1</code> is for point inside the ellipse.</p>
+Returns a normalized distance from the ellipse center to a point <code>p</code>.
+
+Returns a number <code>n</code> ( <code>n < 1</code> for points inside the ellipse, <code>n = 1</code> for points laying at the ellipse boundary and <code>n > 1</code> for points outside the ellipse).
