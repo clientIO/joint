@@ -214,7 +214,7 @@ var g = (function() {
          * @param {{suppressRounding: boolean}} [opt]
          * @returns {number} result < 1 - inside ellipse, result == 1 - on ellipse boundary, result > 1 - outside
          */
-        locate: function(point, opt) {
+        normalizedDistance: function(point, opt) {
 
             var x0 = point.x;
             var y0 = point.y;
@@ -234,7 +234,7 @@ var g = (function() {
          */
         isOnBoundary: function(point) {
 
-            return this.locate(point) === 1;
+            return this.normalizedDistance(point) === 1;
         },
 
            /**
@@ -243,7 +243,7 @@ var g = (function() {
          */
         isOutside: function(point) {
 
-            return this.locate(point) > 1;
+            return this.normalizedDistance(point) > 1;
         },
 
         /**
@@ -252,7 +252,7 @@ var g = (function() {
          */
         isInside: function(point) {
 
-            return this.locate(point) > 1;
+            return this.normalizedDistance(point) > 1;
         },
 
         /**
@@ -269,7 +269,7 @@ var g = (function() {
          */
         tangentTheta: function(p) {
 
-            var pointPosition = this.locate(p);
+            var pointPosition = this.normalizedDistance(p);
 
             if (pointPosition > 1) {
                 throw new Error('Point is outside - tangent does not exist');
