@@ -330,3 +330,7 @@ html.no-js .docs-content iframe {
 		margin-top: 30px;
 	}
 	/*  Custom  */
+
+.docs-items blockquote {
+	margin: 0;
+}

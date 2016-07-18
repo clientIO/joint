@@ -4,7 +4,7 @@ Port layouts are functions that accept an array of port's `args` and return an a
 Port layout can be defined only at the `group` level. Optionally you can pass some additional arguments into the layout function via `args`. The `args` is the only way how to adjust port layout from the port definition perspective.
 
 ```javascript
-var rect = joint.shapes.basic.Rect({
+var rect = new joint.shapes.basic.Rect({
     // ...
     ports: {
         groups: {
@@ -28,7 +28,7 @@ var rect = joint.shapes.basic.Rect({
 
 // ....
 // add another port to group 'a'.
-rect.addPort({ group:'a' })
+rect.addPort({ group:'a' });
 
 ```
 

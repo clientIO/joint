@@ -232,8 +232,14 @@
          */
         addPort: function(port, opt) {
 
+            port = port || {};
+
+            if (!_.isObject(port) || _.isArray(port)) {
+                throw new Error('Element: addPort requires an object.');
+            }
+
             var ports = _.clone(this.prop('ports/items')) || [];
-            ports.push(port || {});
+            ports.push(port);
             this.prop('ports/items', ports, opt);
 
             return this;
