@@ -232,8 +232,6 @@
          */
         addPort: function(port, opt) {
 
-            port = port || {};
-
             if (!_.isObject(port) || _.isArray(port)) {
                 throw new Error('Element: addPort requires an object.');
             }
@@ -309,9 +307,9 @@
 
     _.extend(joint.dia.ElementView.prototype, {
 
-        portContainerMarkup: '<g class="port"/>',
-        portMarkup: '<circle class="base-port" r="10" fill="#000000"/>',
-        portLabelMarkup: '<text class="label"/>',
+        portContainerMarkup: '<g class="joint-port"/>',
+        portMarkup: '<circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/>',
+        portLabelMarkup: '<text class="joint-port-label" fill="#000000"/>',
         /** @type {Object<string, {portElement: Vectorizer, portLabelElement: Vectorizer}>} */
         _portElementsCache: null,
 

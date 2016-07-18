@@ -174,7 +174,7 @@ QUnit.module('element ports', function() {
 
             assert.ok(renderPortSpy.calledTwice);
 
-            assert.equal(shapeView.$el.find('.port').length, 2);
+            assert.equal(shapeView.$el.find('.joint-port').length, 2);
 
             var fst = shapeView.$el.find('.firstport');
             var rect = fst.find('rect');
@@ -185,7 +185,7 @@ QUnit.module('element ports', function() {
             assert.equal(text.attr('fill'), 'blue');
             assert.equal(text.text(), 'aaa');
 
-            var snd = shapeView.$el.find('.port').eq(1);
+            var snd = shapeView.$el.find('.joint-port').eq(1);
             var sndPortShape = snd.children().eq(0);
             assert.equal(snd.length, 1);
             assert.equal(sndPortShape[0].tagName.toLowerCase(), $(shape.portMarkup)[0].tagName.toLowerCase());
@@ -205,7 +205,7 @@ QUnit.module('element ports', function() {
 
             shapeView.render();
 
-            assert.equal(shapeView.$el.find('.port').length, 2, 'port wraps');
+            assert.equal(shapeView.$el.find('.joint-port').length, 2, 'port wraps');
 
             assert.equal(shapeView.$el.find('.custom-port-markup').length, 1);
             assert.equal(shapeView.$el.find('.custom-port-markup').prop('tagName'), 'circle');
@@ -227,9 +227,9 @@ QUnit.module('element ports', function() {
 
             view.render();
 
-            assert.equal(view.vel.find('.port').length, 2);
+            assert.equal(view.vel.find('.joint-port').length, 2);
             view._removePorts();
-            assert.equal(view.vel.find('.port').length, 0, 'ports elements removed');
+            assert.equal(view.vel.find('.joint-port').length, 0, 'ports elements removed');
         });
     });
 

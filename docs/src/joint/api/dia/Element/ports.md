@@ -80,7 +80,7 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
     <rect class="inner" width="15" height="15" fill="blue" x="10"/>
 </g>`</pre>
 </blockquote>
-        <p>It defaults to `<circle class="base-port" r="10" fill="#000000"/>`.</p>
+        <p>It defaults to `<circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/>`.</p>
     </td>
 </tr>
 <tr>
@@ -130,7 +130,7 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
     <td><ul><li><b>label.markup</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        Custom port label markup. Multiple roots are not allowed. It defaults to `<text class="label"/>`.
+        Custom port label markup. Multiple roots are not allowed. It defaults to `<text class="joint-port-label" fill="#000000"/>`.
     </td>
 </tr>
 <tr>
@@ -254,7 +254,7 @@ All properties described above are optional and everything has own default. E.g.
 <blockquote><pre>`<g>
     <rect class="outer" width="15" height="15" fill="red"/>
     <rect class="inner" width="15" height="15" fill="red" x="10"/>
-</g>`</pre></blockquote>. It defaults to `<circle class="base-port" r="10" fill="#000000"/>
+</g>`</pre></blockquote>. It defaults to `<circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/>
     </td>
 </tr>
 <tr>
@@ -305,7 +305,7 @@ All properties described above are optional and everything has own default. E.g.
     <td><ul><li><b>label.markup</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        Custom port label markup. Multiple roots are not allowed. It defaults to `<text class="label"/>`.
+        Custom port label markup. Multiple roots are not allowed. It defaults to `<text class="joint-port-label" fill="#000000"/>`.
     </td>
 </tr>
 </table>
