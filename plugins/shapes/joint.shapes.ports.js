@@ -3,8 +3,23 @@ joint.shapes.ports = {};
 
 joint.shapes.ports.Model = joint.shapes.basic.Generic.extend({
 
+    markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><text/></g>',
+    
     defaults: joint.util.deepSupplement({
     type: 'ports.Model',
+    size: { width: 1, height: 1 },
+    attrs: {
+        text: {
+            'pointer-events': 'none',
+            text: 'Model',
+            'ref-x': .5,
+            'ref-y': 10,
+            ref: '.body',
+            'font-size': 18,
+            'text-anchor': 'middle',
+            fill: '#000'
+        }
+    },
     ports: {
         groups: {
             'in': {
@@ -80,9 +95,11 @@ joint.shapes.ports.Atomic = joint.shapes.ports.Model.extend({
         type: 'ports.Atomic',
         position: { x: 250, y: 250 },
         size: { width: 180, height: 80 },
-        markup: '<rect/>',
         attrs: {
-            rect: { stroke: '#31d0c6', 'stroke-width': 2, fill: '#ffffff',  width: 180, height: 80 }
+            text: {
+                text: 'Atomic'
+            },
+            rect: { stroke: '#31d0c6', 'stroke-width': 6, fill: '#ffffff',  width: 180, height: 80 }
         }
     }, joint.shapes.ports.Model.prototype.defaults)
 });
