@@ -46,6 +46,7 @@ module.exports = function(grunt) {
             'shapes.chess': ['plugins/shapes/joint.shapes.chess.js'],
             'shapes.pn': ['plugins/shapes/joint.shapes.pn.js'],
             'shapes.devs': ['plugins/shapes/joint.shapes.devs.js'],
+            'shapes.ports': ['plugins/shapes/joint.shapes.ports.js'],
             'shapes.uml': ['plugins/shapes/joint.shapes.uml.js'],
             'shapes.logic': ['plugins/shapes/joint.shapes.logic.js'],
 
