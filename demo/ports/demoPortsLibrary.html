@@ -9,20 +9,73 @@
     <link rel="stylesheet" type="text/css" href="../../build/joint.css"/>
 
     <style>
-        .joint-paper {
-            border: 1px solid gray;
-            width: 800px;
+        .joint-type-devs text {
+            text-transform: uppercase;
+            font-weight: 800;
         }
 
-        .output-port:hover {
+        .joint-type-devs .body {
+            fill: #ffffff;
+            stroke: #31d0c6;
+            stroke-width: 6px;
+        }
+
+        .joint-type-devs .label {
+            fill: #31d0c6;
+            font-size: 16px;
+        }
+        .joint-type-devs .output-port,
+        .joint-type-devs .input-port {
+            stroke: #ffffff;
+            stroke-width: 3px;
+        }
+        .joint-type-devs .output-port:hover,
+        .joint-type-devs .input-port:hover {
             opacity: 1;
             fill: #ff7e5d;
         }
 
-        .output-port,
-        .input-port {
-            stroke: #ffffff;
-            stroke-width: 3px;
+        .joint-type-devs .port .label {
+            fill: #7c68fc;
+        }
+
+        .joint-type-devs.joint-type-devs-atomic .body {
+            stroke: #feb663;
+        }
+
+        .joint-type-devs.joint-type-devs-atomic .label {
+            fill: #feb663;
+        }
+
+        /* links */
+
+        .link .connection {
+            stroke: #4B4F6A;
+            stroke-width: 4px;
+        }
+
+        .link .marker-arrowhead, .link .marker-vertex {
+            fill: #31D0C6;
+        }
+        .link .marker-arrowhead:hover {
+            fill: #F39C12;
+        }
+
+        .link-tools .tool-remove circle {
+            fill: #fe854f;
+        }
+
+        /* highlighting */
+
+        .joint-type-devs.highlighted-parent .body {
+            stroke: #fe854f;
+            transition: stroke 1s;
+        }
+
+        .joint-type-devs.highlighted-parent .label {
+            fill: #fe854f;
+            transition: fill 1s;
+            text-decoration: underline;
         }
     </style>
 </head>

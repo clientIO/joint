@@ -5,7 +5,7 @@ joint.shapes.devs = {};
 
 joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
-    markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><text/></g>',
+    markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><text class="label"/></g>',
 
     defaults: joint.util.deepSupplement({
     type: 'ports.Model',
@@ -53,7 +53,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                     },
                     circle: {
                         fill: 'Tomato',
-                        r: '7',
+                        r: '10',
                         magnet: true
                     }
                 },
@@ -96,7 +96,7 @@ joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
             text: {
                 text: 'Atomic'
             },
-            rect: { stroke: '#31d0c6', 'stroke-width': 6, fill: '#ffffff',  width: 80, height: 80 }
+            rect: { stroke: '#31d0c6', 'stroke-width': 6, fill: '#ffffff',  width: 800, height: 800 }
         }
     }, joint.shapes.devs.Model.prototype.defaults)
 });
@@ -110,15 +110,10 @@ joint.shapes.devs.Coupled = joint.shapes.devs.Model.extend({
             '.body': {
                 fill: 'seaGreen'
             },
-            '.label': {
+            text: {
                 text: 'Coupled'
             },
-            '.inPorts .port-body': {
-                fill: 'PaleGreen'
-            },
-            '.outPorts .port-body': {
-                fill: 'Tomato'
-            }
+            rect: { stroke: '#31d0c6', 'stroke-width': 6, fill: '#ffffff',  width: 800, height: 800 }
         }
     }, joint.shapes.devs.Model.prototype.defaults)
 });
