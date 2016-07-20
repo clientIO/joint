@@ -25,7 +25,7 @@ var paper = new joint.dia.Paper({
     }
 });
 
-var rect = new joint.shapes.ports.Atomic({
+var rect = new joint.shapes.devs.Atomic({
     position: { x: 60, y: 60 }
 });
 graph.addCell(rect);
@@ -33,7 +33,7 @@ graph.addCell(rect);
 rect.set('inPorts', ['in 1', 'in 2']);
 rect.set('outPorts', ['out 1']);
 
-var rect2 = new joint.shapes.ports.Atomic({
+var rect2 = new joint.shapes.devs.Atomic({
     position: { x: 160, y: 160 }
 });
 graph.addCell(rect2);
@@ -41,12 +41,12 @@ graph.addCell(rect2);
 rect2.set('inPorts', ['in3', 'in4']);
 rect2.set('outPorts', ['out 1', 'out 2', 'out 3']);
 
-var connect = function(source, sourcePort, target, targetPort) {
+var connect = function(source, sourceSelector, target, targetSelector) {
     var link = new joint.shapes.devs.Link({
-        source: { id: source.id, selector: source.getPortSelector(sourcePort) },
-        target: { id: target.id, selector: target.getPortSelector(targetPort) }
+        source: { id: source.id, selector: '[port="'+sourceSelector +'"]' },
+        target: { id: target.id, selector: '[port="'+targetSelector +'"]' }
     });
     link.addTo(graph).reparent();
 };
 
-connect(rect,'out 1',rect2,'in 3');
+connect(rect,'out 1',rect2,'in3');
