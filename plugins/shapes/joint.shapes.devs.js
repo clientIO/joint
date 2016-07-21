@@ -73,17 +73,18 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     },
 
     updatePortItems: function (model, changed, opt) {
-        this.prop('ports/items', this.createPortItemsByGroup('inPorts').concat(this.createPortItemsByGroup('outPorts')), _.extend({rewrite: true}, opt));
+        var inPortItems = this.createPortItems('in', this.get('inPorts'));
+        var outPortItems = this.createPortItems('out', this.get('outPorts'));
+
+        this.prop('ports/items', inPortItems.concat(outPortItems), _.extend({rewrite: true}, opt));
     },
 
     createPortItem: function(group, port) {
         return {id: port, group: group, attrs: {text: {text: port}}};
     },
 
-    createPortItemsByGroup: function(group) {
-        var ports = this.get(group);
-        var groupName = group === 'inPorts' ? 'in' : 'out';
-        return _.map(ports, _.bind(this.createPortItem, {}, groupName));
+    createPortItems: function(group, ports) {
+        return _.map(ports, _.bind(this.createPortItem, this, group));
     }
 });
 
