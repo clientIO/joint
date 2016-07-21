@@ -34,7 +34,7 @@ Simple label layout suitable for rectangular shapes. It places the label on arbi
                 <tr>
                     <td><b>angle</b></td>
                     <td>number</td>
-                    <td>The port rotation angle.</td>
+                    <td>The port label rotation angle.</td>
                 </tr>
                 <tr>
                     <td><b>attrs</b></td>
@@ -182,7 +182,7 @@ It allows to set a label position directly.
                 <tr>
                     <td><b>angle</b></td>
                     <td>number</td>
-                    <td>The port rotation angle.</td>
+                    <td>The port label rotation angle.</td>
                 </tr>
                 <tr>
                     <td><b>attrs</b></td>

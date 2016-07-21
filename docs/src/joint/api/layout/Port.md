@@ -34,19 +34,62 @@ rect.addPort({ group:'a' });
 
 ### Pre-defined layouts:
 
-#### left | right | top | bottom
+#### On sides
+
+<table>
+    <tr>
+        <td><b>name</b></td>
+        <td><i>string</i></td>
+        <td>
+            Can be either `left`, `right`, `top`, `bottom`.
+        </td>
+    </tr>
+    <tr>
+        <td><b>args</b></td>
+        <td><i>object</i></td>
+        <td>
+            <table>
+                <tr>
+                    <td><b>x</b></td>
+                    <td>number</td>
+                    <td>Overrides the `x` value calculated by the layout function</td>
+                </tr>
+                <tr>
+                    <td><b>y</b></td>
+                    <td>number</td>
+                    <td>Overrides the `y` value calculated by the layout function</td>
+                </tr>
+                <tr>
+                    <td><b>dx</b></td>
+                    <td>number</td>
+                    <td>Added to the `x` value calculated by the layout function</td>
+                </tr>
+                <tr>
+                    <td><b>dy</b></td>
+                    <td>number</td>
+                    <td>Added to the `y` value calculated by the layout function</td>
+                </tr>
+                <tr>
+                    <td><b>angle</b></td>
+                    <td>number</td>
+                    <td>The port rotation angle.</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 
 A simple layout suitable for rectangular shapes. It evenly spreads ports along a single side.
 
 ```javascript
 {
-    name: 'left|top|bottom|right',
+    name: 'left',
     args: {
-        x: 10,          // override layout result x
-        y: 10,          // override layout result y
-        angle: 30,      // port rotation angle
-        dx: 1,          // default 0 - added to layout result x
-        dy: 1           // default 0 - added to layout result y
+        x: 10,
+        y: 10,
+        angle: 30,
+        dx: 1,
+        dy: 1
     }
 }
 
@@ -56,36 +99,129 @@ A simple layout suitable for rectangular shapes. It evenly spreads ports along a
 
 It lay a port out at the given position (defined as a `x`, `y` coordinates or percentage of the element dimensions).
 
+<table>
+    <tr>
+        <td><b>name</b></td>
+        <td><i>string</i></td>
+        <td>
+            `absolute`.
+        </td>
+    </tr>
+    <tr>
+        <td><b>args</b></td>
+        <td><i>object</i></td>
+        <td>
+            <table>
+                <tr>
+                    <td><b>x</b></td>
+                    <td>number | string</td>
+                    <td>Sets the port's `x` coordinate. Can be defined as a percentage string ('50%') or as a number</td>
+                </tr>
+                <tr>
+                    <td><b>y</b></td>
+                    <td>number | string</td>
+                    <td>Sets the port's `y` coordinate. Can be defined as a percentage string ('50%') or as a number</td>
+                </tr>
+                <tr>
+                    <td><b>angle</b></td>
+                    <td>number</td>
+                    <td>The port rotation angle.</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
 ```javascript
 {
     name: 'absolute',
     args: {
-        x: 10 | '10%'
-        y: 10 | '10%',
-        angle: 45       // port rotation angle
+        x: '10%'
+        y: 10,
+        angle: 45
     }
 }
 
 ```
 
-#### ellipse | ellipseSpread
+#### Radial
 
 Suitable for circular shapes. The `ellipseSpreads` evenly spreads ports along an ellipse. The `ellipse` spreads ports from the point at `startAngle` leaving gaps between ports equal to `step`.
 
+<table>
+    <tr>
+        <td><b>name</b></td>
+        <td><i>string</i></td>
+        <td>
+            Can be either `ellipse`, `ellipseSpread`.
+        </td>
+    </tr>
+    <tr>
+        <td><b>args</b></td>
+        <td><i>object</i></td>
+        <td>
+            <table>
+                <tr>
+                    <td><b>x</b></td>
+                    <td>number</td>
+                    <td>Overrides the `x` value calculated by the layout function</td>
+                </tr>
+                <tr>
+                    <td><b>y</b></td>
+                    <td>number</td>
+                    <td>Overrides the `y` value calculated by the layout function</td>
+                </tr>
+                <tr>
+                    <td><b>dx</b></td>
+                    <td>number</td>
+                    <td>Added to the `x` value calculated by the layout function</td>
+                </tr>
+                <tr>
+                    <td><b>dy</b></td>
+                    <td>number</td>
+                    <td>Added to the `y` value calculated by the layout function</td>
+                </tr>
+                <tr>
+                    <td><b>dr</b></td>
+                    <td>number</td>
+                    <td>Added to the port delta rotation</td>
+                </tr>
+                <tr>
+                    <td><b>startAngle</b></td>
+                    <td>number</td>
+                    <td>Default value is `0`.</td>
+                </tr>
+                <tr>
+                    <td><b>step</b></td>
+                    <td>number</td>
+                    <td>
+                        Default `360 / portsCount` for the `ellipseSpread`, `20` for the `ellipse`
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>startAngle</b></td>
+                    <td>boolean</td>
+                    <td>set `compensateRotation:true` when you need to have ports in the same angle as an ellipse tangent at the port position.</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
 ```javascript
 {
-    name: 'ellipse|ellipseSpread',
+    name: 'ellipseSpread',
     args: {
-        dx: 1,               // default 0 - added to layout result x
-        dy: 1,               // default 0 - added to layout result y
-        dr: 1,               // default 0 - added to to port delta rotation
-        startAngle: 10,      // default 0
-        step: 10,             // default 360 / portsCount,
+        dx: 1,
+        dy: 1,
+        dr: 1,
+        startAngle: 10,
+        step: 10,
         compensateRotation: false
     }
 }
 ```
-set `compensateRotation:true` when you need to have ports in the same angle as an ellipse tangent at the port position.
+
 
 <iframe src="about:blank" data-src="demo/layout/Port/portRotationComp.html"></iframe>
 
