@@ -5,7 +5,7 @@ joint.shapes.devs = {};
 
 joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
-    markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><text class="label"/></g>',
+    markup: '<g class="rotatable"><rect class="body"/><text class="label" /></g>',
 
     defaults: joint.util.deepSupplement({
     type: 'ports.Model',
@@ -100,7 +100,13 @@ joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
             text: {
                 text: 'Atomic'
             },
-            rect: { stroke: '#31d0c6', 'stroke-width': 6, fill: '#ffffff',  width: 800, height: 800 }
+            rect: {
+                fill: '#ffffff',
+                stroke: '#31d0c6',
+                'stroke-width': 6,
+                'ref-width': '100%',
+                'ref-height': '100%'
+            }
         }
     }, joint.shapes.devs.Model.prototype.defaults)
 });
@@ -117,7 +123,13 @@ joint.shapes.devs.Coupled = joint.shapes.devs.Model.extend({
             text: {
                 text: 'Coupled'
             },
-            rect: { stroke: '#31d0c6', 'stroke-width': 6, fill: '#ffffff',  width: 800, height: 800 }
+            rect: {
+                fill: '#ffffff',
+                stroke: '#31d0c6',
+                'stroke-width': 6,
+                'ref-width':'100%',
+                'ref-height': '100%'
+            }
         }
     }, joint.shapes.devs.Model.prototype.defaults)
 });
