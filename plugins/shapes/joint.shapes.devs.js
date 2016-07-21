@@ -5,13 +5,13 @@ joint.shapes.devs = {};
 
 joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
-    markup: '<g class="rotatable"><rect class="body"/><text class="label" /></g>',
+    markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
 
     defaults: joint.util.deepSupplement({
     type: 'ports.Model',
     size: { width: 1, height: 1 },
     attrs: {
-        text: {
+        '.label': {
             'pointer-events': 'none',
             text: 'Model',
             'ref-x': .5,
@@ -20,6 +20,10 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
             'font-size': 18,
             'text-anchor': 'middle',
             fill: '#000'
+        },
+        '.body': {
+            'ref-width': '100%',
+            'ref-height': '100%'
         }
     },
     ports: {
@@ -29,7 +33,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                     name: 'left',
                     args: {}
                 },
-                markup: '<circle class="input-port" />',
+                markup: '<circle class="input-port"/>',
                 attrs: {
                     text: {
                         fill: 'black'
@@ -46,7 +50,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                     name: 'right',
                     args: {}
                 },
-                markup: '<circle class="output-port" />',
+                markup: '<circle class="output-port"/>',
                 attrs: {
                     text: {
                         fill: 'blue'
@@ -66,21 +70,21 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
         }
     }}, joint.shapes.basic.Generic.prototype.defaults),
 
-    initialize: function () {
-            joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
-            this.on('change:inPorts change:outPorts', this.updatePortItems, this);
-            this.updatePortItems(this);
+    initialize: function() {
+        joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
+        this.on('change:inPorts change:outPorts', this.updatePortItems, this);
+        this.updatePortItems();
     },
 
-    updatePortItems: function (model, changed, opt) {
+    updatePortItems: function(model, changed, opt) {
         var inPortItems = this.createPortItems('in', this.get('inPorts'));
         var outPortItems = this.createPortItems('out', this.get('outPorts'));
 
-        this.prop('ports/items', inPortItems.concat(outPortItems), _.extend({rewrite: true}, opt));
+        this.prop('ports/items', inPortItems.concat(outPortItems), _.extend({ rewrite: true }, opt));
     },
 
     createPortItem: function(group, port) {
-        return {id: port, group: group, attrs: {text: {text: port}}};
+        return { id: port, group: group, attrs: { text: { text: port }}};
     },
 
     createPortItems: function(group, ports) {
@@ -94,18 +98,8 @@ joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
         type: 'devs.Atomic',
         size: { width: 80, height: 80 },
         attrs: {
-            '.body': {
-                fill: 'salmon'
-            },
-            text: {
+            '.label': {
                 text: 'Atomic'
-            },
-            rect: {
-                fill: '#ffffff',
-                stroke: '#31d0c6',
-                'stroke-width': 6,
-                'ref-width': '100%',
-                'ref-height': '100%'
             }
         }
     }, joint.shapes.devs.Model.prototype.defaults)
@@ -117,18 +111,8 @@ joint.shapes.devs.Coupled = joint.shapes.devs.Model.extend({
         type: 'devs.Coupled',
         size: { width: 200, height: 300 },
         attrs: {
-            '.body': {
-                fill: 'seaGreen'
-            },
-            text: {
+            '.label': {
                 text: 'Coupled'
-            },
-            rect: {
-                fill: '#ffffff',
-                stroke: '#31d0c6',
-                'stroke-width': 6,
-                'ref-width':'100%',
-                'ref-height': '100%'
             }
         }
     }, joint.shapes.devs.Model.prototype.defaults)

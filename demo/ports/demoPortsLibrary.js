@@ -1,7 +1,7 @@
 var graph = new joint.dia.Graph;
 
 var paper = new joint.dia.Paper({
-    el: $('#paper'),
+    el: document.getElementById('paper'),
     width: 800,
     height: 600,
     gridSize: 1,
@@ -19,8 +19,8 @@ var paper = new joint.dia.Paper({
 
 var connect = function(source, sourceSelector, target, targetSelector) {
     var link = new joint.shapes.devs.Link({
-        source: { id: source.id, selector: '[port="'+sourceSelector +'"]' },
-        target: { id: target.id, selector: '[port="'+targetSelector +'"]' }
+        source: { id: source.id, selector: '[port="' + sourceSelector + '"]' },
+        target: { id: target.id, selector: '[port="' + targetSelector + '"]' }
     });
     link.addTo(graph).reparent();
 };
@@ -31,12 +31,12 @@ var c1 = new joint.shapes.devs.Coupled({
 });
 
 c1.set('inPorts', ['in']);
-c1.set('outPorts', ['out 1','out 2']);
+c1.set('outPorts', ['out 1', 'out 2']);
 
 var a1 = new joint.shapes.devs.Atomic({
     position: { x: 360, y: 360 },
     inPorts: ['xy'],
-    outPorts: ['x','y']
+    outPorts: ['x', 'y']
 });
 
 var a2 = new joint.shapes.devs.Atomic({
@@ -47,22 +47,22 @@ var a2 = new joint.shapes.devs.Atomic({
 var a3 = new joint.shapes.devs.Atomic({
     position: { x: 650, y: 150 },
     size: { width: 100, height: 300 },
-    inPorts: ['a','b']
+    inPorts: ['a', 'b']
 });
 
 graph.addCells([c1, a1, a2, a3]);
 
 c1.embed(a1);
 
-connect(a2,'out',c1,'in');
-connect(c1,'in',a1,'xy');
-connect(a1,'x',c1,'out 1');
-connect(a1,'y',c1,'out 2');
-connect(c1,'out 1',a3,'a');
-connect(c1,'out 2',a3,'b');
+connect(a2, 'out', c1, 'in');
+connect(c1, 'in', a1, 'xy');
+connect(a1, 'x', c1, 'out 1');
+connect(a1, 'y', c1, 'out 2');
+connect(c1, 'out 1', a3, 'a');
+connect(c1, 'out 2', a3, 'b');
 
 /* rounded corners */
 
-_.each([c1,a1,a2,a3], function(element) {
+_.each([c1, a1, a2, a3], function(element) {
     element.attr({ '.body': { 'rx': 6, 'ry': 6 }});
 });
