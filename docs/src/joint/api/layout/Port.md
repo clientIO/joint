@@ -80,7 +80,7 @@ Suitable for circular shapes. The `ellipseSpreads` evenly spreads ports along an
         dy: 1,               // default 0 - added to layout result y
         dr: 1,               // default 0 - added to to port delta rotation
         startAngle: 10,      // default 0
-        step: 10             // default 360 / portsCount,
+        step: 10,             // default 360 / portsCount,
         compensateRotation: false
     }
 }
