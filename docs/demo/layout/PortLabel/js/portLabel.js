@@ -24,9 +24,7 @@ var g3 = new joint.shapes.basic.Circle({
                     position: {
                         name: 'outsideOriented',
                         args: {
-                            // offset: 15,
-                            // x: 0,
-                            // y: 0,
+                            offset: 15,
                             attrs: {}
                         }
                     }
@@ -100,11 +98,12 @@ g33.addPort({
     },
     label: {
         position: {
-            name: 'left',
+            name: 'manual',
             args: {
                 angle: 10,
                 x: 15,
                 y: -10
+
                 // this works as well, overrides .label-rect, .label-text attrs for current port
                 // attrs: {
                 // text: { y: '0.9em', x: '0.5em', 'text-anchor': 'start' },

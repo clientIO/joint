@@ -227,7 +227,7 @@
 
         /**
          * @param {object} port
-         * @param {object} opt
+         * @param {object} [opt]
          * @returns {joint.dia.Element}
          */
         addPort: function(port, opt) {

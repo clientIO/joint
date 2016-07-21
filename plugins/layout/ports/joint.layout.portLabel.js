@@ -143,7 +143,6 @@
 
     function radialLayout(portCenterOffset, autoOrient, opt) {
 
-        //TODO v.talas opravit offset
         opt = _.defaults({}, opt, { offset: 20 });
 
         var origin = g.point(0, 0);
