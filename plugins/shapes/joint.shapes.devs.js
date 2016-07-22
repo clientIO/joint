@@ -9,14 +9,14 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     defaults: joint.util.deepSupplement({
 
         type: 'ports.Model',
-        size: { width: 1, height: 1 },
+        size: { width: 80, height: 80 },
         attrs: {
+            '.': { magnet: false },
             '.label': {
                 'pointer-events': 'none',
                 text: 'Model',
                 'ref-x': .5,
                 'ref-y': 10,
-                ref: '.body',
                 'font-size': 18,
                 'text-anchor': 'middle',
                 fill: '#000'
@@ -40,7 +40,8 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                         },
                         circle: {
                             fill: 'PaleGreen',
-                            r: '10'
+                            r: '10',
+                            magnet: true
                         }
                     },
                     label: {
@@ -143,7 +144,3 @@ joint.shapes.devs.Link = joint.dia.Link.extend({
         }
     }
 });
-
-joint.shapes.devs.ModelView = joint.dia.ElementView.extend(joint.shapes.basic.PortsViewInterface);
-joint.shapes.devs.AtomicView = joint.shapes.devs.ModelView;
-joint.shapes.devs.CoupledView = joint.shapes.devs.ModelView;
