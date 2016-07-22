@@ -161,6 +161,7 @@ It allows to set a label position directly.
         <td><b>name</b></td>
         <td><i>string</i></td>
         <td>
+            `manual`
         </td>
     </tr>
     <tr>

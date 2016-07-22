@@ -98,7 +98,7 @@ A simple layout suitable for rectangular shapes. It evenly spreads ports along a
 
 #### Line
 
-A layout which evenly spreads ports along a line defined by the `start` and the `end` point.
+A layout which evenly spreads ports along a line defined by a `start` and en `end` point.
 
 <table>
     <tr>
