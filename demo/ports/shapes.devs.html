@@ -4,7 +4,7 @@
     <meta charset="utf8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 
-    <title>Input output ports</title>
+    <title>DISCRETE EVENT SYSTEM SPECIFICATION</title>
 
     <link rel="stylesheet" type="text/css" href="../../build/joint.css"/>
 
@@ -24,11 +24,13 @@
             fill: #31d0c6;
             font-size: 16px;
         }
+
         .joint-type-devs .output-port,
         .joint-type-devs .input-port {
             stroke: #ffffff;
             stroke-width: 3px;
         }
+
         .joint-type-devs .output-port:hover,
         .joint-type-devs .input-port:hover {
             opacity: 1;
@@ -49,15 +51,16 @@
 
         /* links */
 
-        .link .connection {
+        .joint-link .connection {
             stroke: #4B4F6A;
             stroke-width: 4px;
         }
 
-        .link .marker-arrowhead, .link .marker-vertex {
+        .joint-link .marker-arrowhead, .joint-link .marker-vertex {
             fill: #31D0C6;
         }
-        .link .marker-arrowhead:hover {
+
+        .joint-link .marker-arrowhead:hover {
             fill: #F39C12;
         }
 
@@ -65,6 +68,24 @@
             fill: #fe854f;
         }
 
+        /* highlighting */
+
+        .highlighted-parent .body {
+            stroke: #fe854f;
+            transition: stroke 1s;
+        }
+
+        .highlighted-parent .label {
+            fill: #fe854f;
+            transition: fill 1s;
+            text-decoration: underline;
+        }
+
+        .joint-type-devs .joint-highlight-stroke {
+            stroke: #ff7e5d;
+            stroke-width: 6px;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -78,7 +99,7 @@
 
 <script src="../../build/joint.js"></script>
 
-<script src="./demoPortsLibrary.js"></script>
+<script src="./shapes.devs.js"></script>
 
 </body>
 </html>
