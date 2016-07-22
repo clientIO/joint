@@ -12,9 +12,7 @@ var g2Rect = new joint.shapes.basic.Rect({
             'blacks': {
                 position: {
                     name: 'top',
-                    args: {
-                        y: -40,
-                    }
+                    args: { }
                 },
                 attrs: {
                     circle: { fill: '#ffffff', stroke: '#31d0c6', 'stroke-width': 2, r: 12, magnet: true }
@@ -76,10 +74,7 @@ var g2Circle = new joint.shapes.basic.Circle({
             'blacks': {
                 position: {
                     name: 'ellipse',
-                    args: {
-                        x: 20,
-                        dr: -20
-                    }
+                    args: {}
                 },
                 attrs: {
                     circle: { fill: '#ffffff', stroke: '#31d0c6', 'stroke-width': 2, r: 12, magnet: true }

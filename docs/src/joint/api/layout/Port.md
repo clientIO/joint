@@ -36,6 +36,8 @@ rect.addPort({ group:'a' });
 
 #### On sides
 
+A simple layout suitable for rectangular shapes. It evenly spreads ports along a single side.
+
 <table>
     <tr>
         <td><b>name</b></td>
@@ -79,7 +81,6 @@ rect.addPort({ group:'a' });
     </tr>
 </table>
 
-A simple layout suitable for rectangular shapes. It evenly spreads ports along a single side.
 
 ```javascript
 {
@@ -95,7 +96,51 @@ A simple layout suitable for rectangular shapes. It evenly spreads ports along a
 
 ```
 
-#### absolute
+#### Line
+
+A layout which evenly spreads ports along a line defined by the `start` and the `end` point.
+
+<table>
+    <tr>
+        <td><b>name</b></td>
+        <td><i>string</i></td>
+        <td>
+            `line`
+        </td>
+    </tr>
+    <tr>
+        <td><b>args</b></td>
+        <td><i>object</i></td>
+        <td>
+            <table>
+                <tr>
+                    <td><b>start</b></td>
+                    <td>{ x:number, y:number }</td>
+                    <td>The line starting point</td>
+                </tr>
+                <tr>
+                    <td><b>end</b></td>
+                    <td>{ x:number, y:number }</td>
+                    <td>The line end point</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+
+```javascript
+{
+    name: 'line',
+    args: {
+        start: { x: 10, y: 10 },
+        end: { x: 20, y: 50 }
+    }
+}
+
+```
+
+#### Absolute
 
 It lay a port out at the given position (defined as a `x`, `y` coordinates or percentage of the element dimensions).
 
@@ -104,7 +149,7 @@ It lay a port out at the given position (defined as a `x`, `y` coordinates or pe
         <td><b>name</b></td>
         <td><i>string</i></td>
         <td>
-            `absolute`.
+            `absolute`
         </td>
     </tr>
     <tr>

@@ -116,7 +116,7 @@ Places the label outside of a circular shape. Where the 'oriented' version rotat
         <td><b>name</b></td>
         <td><i>string</i></td>
         <td>
-            Can be either `inside`, `outside`, `insideOriented`, `outsideOriented`.
+            Can be either `radial`, `radialOriented`.
         </td>
     </tr>
     <tr>
@@ -161,7 +161,6 @@ It allows to set a label position directly.
         <td><b>name</b></td>
         <td><i>string</i></td>
         <td>
-            Can be either `inside`, `outside`, `insideOriented`, `outsideOriented`.
         </td>
     </tr>
     <tr>
