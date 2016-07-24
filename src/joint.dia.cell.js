@@ -820,27 +820,28 @@ joint.dia.CellView = joint.mvc.View.extend({
     findMagnet: function(el) {
 
         var $el = this.$(el);
+        var $rootEl = this.$el;
 
-        if ($el.length === 0 || $el[0] === this.el) {
+        if ($el.length === 0) {
+            $el = $rootEl;
+        }
 
-            // If the overall cell has set `magnet === false`, then return `undefined` to
-            // announce there is no magnet found for this cell.
-            // This is especially useful to set on cells that have 'ports'. In this case,
-            // only the ports have set `magnet === true` and the overall element has `magnet === false`.
-            var attrs = this.model.get('attrs') || {};
-            if (attrs['.'] && attrs['.']['magnet'] === false) {
-                return undefined;
+        do {
+
+            var magnet = $el.attr('magnet');
+            if ((magnet || $el.is($rootEl)) && magnet !== 'false') {
+                return $el[0];
             }
 
-            return this.el;
-        }
+            $el = $el.parent();
 
-        if ($el.attr('magnet')) {
+        } while ($el.length > 0);
 
-            return $el[0];
-        }
-
-        return this.findMagnet($el.parent());
+        // If the overall cell has set `magnet === false`, then return `undefined` to
+        // announce there is no magnet found for this cell.
+        // This is especially useful to set on cells that have 'ports'. In this case,
+        // only the ports have set `magnet === true` and the overall element has `magnet === false`.
+        return undefined;
     },
 
     // `selector` is a CSS selector or `'.'`. `filter` must be in the special JointJS filter format:
