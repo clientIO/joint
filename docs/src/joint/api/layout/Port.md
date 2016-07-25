@@ -181,7 +181,7 @@ It lay a port out at the given position (defined as a `x`, `y` coordinates or pe
 {
     name: 'absolute',
     args: {
-        x: '10%'
+        x: '10%',
         y: 10,
         angle: 45
     }
