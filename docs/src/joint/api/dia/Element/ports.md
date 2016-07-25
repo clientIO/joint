@@ -254,7 +254,7 @@ All properties described above are optional and everything has own default. E.g.
 <blockquote><pre>`<g>
     <rect class="outer" width="15" height="15" fill="red"/>
     <rect class="inner" width="15" height="15" fill="red" x="10"/>
-</g>`</pre></blockquote>. It defaults to `<circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/>
+</g>`</pre></blockquote>. It defaults to `<circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/>`
     </td>
 </tr>
 <tr>
