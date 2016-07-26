@@ -792,7 +792,7 @@ QUnit.module('basic', function(hooks) {
         ok(!r1.isEmbeddedIn(r3), 'r1 is not descendent of r3');
     });
 
-    QUnit.test('findMagnet()', function() {
+    QUnit.test('findMagnet()', function(assert) {
 
         var r1 = new joint.shapes.basic.Rect({
             attrs: { text: { text: 'my\nrectangle' } }
@@ -803,11 +803,21 @@ QUnit.module('basic', function(hooks) {
         var r1View = this.paper.findViewByModel(r1);
 
         var magnet = r1View.findMagnet('tspan');
-        equal(magnet, r1View.el, 'should return the root element of the view if there is no subelement with magnet attribute set to true');
+        assert.equal(magnet, r1View.el, 'should return the root element of the view if there is no subelement with magnet attribute set to true');
 
         r1.attr({ text: { magnet: true } });
         magnet = r1View.findMagnet('tspan');
-        equal(magnet, r1View.$('text')[0], 'should return the text element that has the magnet attribute set to true even though we passed the child <tspan> in the selector');
+        assert.equal(magnet, r1View.$('text')[0], 'should return the text element that has the magnet attribute set to true even though we passed the child <tspan> in the selector');
+
+
+        r1.attr({
+            text: { magnet: false },
+            '.': { magnet: false }
+        });
+
+        magnet = r1View.findMagnet('tspan');
+        assert.equal(magnet, undefined, 'should return `undefined` when magnet set to false on both the text and the root element');
+
     });
 
     QUnit.test('getSelector()', function(assert) {

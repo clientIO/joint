@@ -528,7 +528,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         _.each(renderingOnlyAttrs || allAttrs, function(attrs, selector) {
 
             // Elements that should be updated.
-            var $selected = this.findBySelector(selector);
+            var $selected = (selector === '.')
+                    ? this.$el
+                    : this.findBySelector(selector);
 
             // No element matched by the `selector` was found. We're done then.
             if ($selected.length === 0) return;
