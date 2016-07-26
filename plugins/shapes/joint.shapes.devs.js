@@ -1,11 +1,12 @@
 //      JointJS library.
-//      (c) 2011-2013 client IO
+//      (c) 2011-2016 client IO
 
 joint.shapes.devs = {};
 
 joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
+    portMarkup: '<g class="port port<%= id %>"><circle class="port-body"/><text class="port-label"/></g>',
     defaults: joint.util.deepSupplement({
 
         type: 'ports.Model',
@@ -33,14 +34,14 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                         name: 'left',
                         args: {}
                     },
-                    markup: '<circle class="input-port"/>',
+                    markup: '<circle class="port-body"/>',
                     attrs: {
                         text: {
                             fill: 'black'
                         },
                         circle: {
                             fill: 'PaleGreen',
-                            r: '10',
+                            r: 10,
                             magnet: true
                         }
                     },
@@ -58,14 +59,14 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                         name: 'right',
                         args: {}
                     },
-                    markup: '<circle class="output-port"/>',
+                    markup: '<circle class="port-body"/>',
                     attrs: {
                         text: {
                             fill: 'blue'
                         },
                         circle: {
                             fill: 'Tomato',
-                            r: '10',
+                            r: 10,
                             magnet: true
                         }
                     },
@@ -81,6 +82,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
             }
         }
     }, joint.shapes.basic.Generic.prototype.defaults),
+
     initialize: function() {
 
         joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
@@ -88,6 +90,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
         this.on('change:inPorts change:outPorts', this.updatePortItems, this);
         this.updatePortItems();
     },
+
     updatePortItems: function(model, changed, opt) {
 
         var inPortItems = this.createPortItems('in', this.get('inPorts'));
@@ -95,10 +98,12 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
         this.prop('ports/items', inPortItems.concat(outPortItems), _.extend({ rewrite: true }, opt));
     },
+
     createPortItem: function(group, port) {
 
         return { id: port, group: group, attrs: { text: { text: port }}};
     },
+
     createPortItems: function(group, ports) {
 
         return _.map(ports, _.bind(this.createPortItem, this, group));

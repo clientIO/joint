@@ -24,10 +24,12 @@ var paper = new joint.dia.Paper({
             }
         }
     },
+
     validateEmbedding: function(childView, parentView) {
 
         return parentView.model instanceof joint.shapes.devs.Coupled;
     },
+
     validateConnection: function(sourceView, sourceMagnet, targetView, targetMagnet) {
 
         return sourceMagnet != targetMagnet;
