@@ -103,8 +103,10 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
         if (_.isObject(port)) {
 
-            port.group = group;
-            return port;
+            var portItem = _.clone(port);
+
+            portItem.group = group;
+            return portItem;
         }
 
         return { id: port, group: group, attrs: { text: { text: port }}};
