@@ -14,7 +14,6 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
         attrs: {
             '.': { magnet: false },
             '.label': {
-                'pointer-events': 'none',
                 text: 'Model',
                 'ref-x': .5,
                 'ref-y': 10,
@@ -37,10 +36,10 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                     markup: '<circle class="port-body"/>',
                     attrs: {
                         text: {
-                            fill: 'black'
+                            fill: '#000'
                         },
                         circle: {
-                            fill: 'PaleGreen',
+                            fill: '#000',
                             r: 10,
                             magnet: true
                         }
@@ -62,10 +61,10 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                     markup: '<circle class="port-body"/>',
                     attrs: {
                         text: {
-                            fill: 'blue'
+                            fill: '#000'
                         },
                         circle: {
-                            fill: 'Tomato',
+                            fill: '#000',
                             r: 10,
                             magnet: true
                         }
@@ -103,7 +102,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
         if (_.isObject(port)) {
 
-            var portItem = _.clone(port);
+            var portItem = _.cloneDeep(port);
 
             portItem.group = group;
             return portItem;
