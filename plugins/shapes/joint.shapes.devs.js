@@ -101,6 +101,12 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
     createPortItem: function(group, port) {
 
+        if (_.isObject(port)) {
+
+            port.group = group;
+            return port;
+        }
+
         return { id: port, group: group, attrs: { text: { text: port }}};
     },
 
