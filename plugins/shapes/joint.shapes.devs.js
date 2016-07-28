@@ -6,6 +6,7 @@ joint.shapes.devs = {};
 joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
+    portMarkup: '<circle class="port-body"/>',
     portLabelMarkup: '<text class="port-label"/>',
     defaults: joint.util.deepSupplement({
 
@@ -34,7 +35,6 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                         name: 'left',
                         args: {}
                     },
-                    markup: '<circle class="port-body"/>',
                     attrs: {
                         '.port-label': {
                             fill: '#000'
@@ -60,7 +60,6 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                         name: 'right',
                         args: {}
                     },
-                    markup: '<circle class="port-body"/>',
                     attrs: {
                         '.port-label': {
                             fill: '#000'
@@ -102,14 +101,6 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     },
 
     createPortItem: function(group, port) {
-
-        if (_.isObject(port)) {
-
-            var portItem = _.cloneDeep(port);
-
-            portItem.group = group;
-            return portItem;
-        }
 
         return { id: port, group: group, attrs: { text: { text: port }}};
     },
