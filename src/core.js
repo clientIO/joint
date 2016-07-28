@@ -1077,16 +1077,28 @@ var joint = {
                 }
 
                 switch (type) {
-                    case 'n': comma = true; type = 'g'; break;
-                    case '%': scale = 100; suffix = '%'; type = 'f'; break;
-                    case 'p': scale = 100; suffix = '%'; type = 'r'; break;
+                    case 'n':
+                        comma = true; type = 'g';
+                        break;
+                    case '%':
+                        scale = 100; suffix = '%'; type = 'f';
+                        break;
+                    case 'p':
+                        scale = 100; suffix = '%'; type = 'r';
+                        break;
                     case 'b':
                     case 'o':
                     case 'x':
-                    case 'X': if (symbol === '#') prefix = '0' + type.toLowerCase();
+                    case 'X':
+                        if (symbol === '#') prefix = '0' + type.toLowerCase();
+                        break;
                     case 'c':
-                    case 'd': integer = true; precision = 0; break;
-                    case 's': scale = -1; type = 'r'; break;
+                    case 'd':
+                        integer = true; precision = 0;
+                        break;
+                    case 's':
+                        scale = -1; type = 'r';
+                        break;
                 }
 
                 if (symbol === '$') {

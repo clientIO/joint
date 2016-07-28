@@ -13,15 +13,13 @@ var g = (function() {
     var sqrt = math.sqrt;
     var mmin = math.min;
     var mmax = math.max;
-    var atan = math.atan;
     var atan2 = math.atan2;
-    var acos = math.acos;
     var round = math.round;
     var floor = math.floor;
     var PI = math.PI;
     var random = math.random;
 
-    var bezier = g.bezier = {
+    g.bezier = {
 
         // Cubic Bezier curve path through points.
         // Ported from C# implementation by Oleg V. Polikarpotchkin and Peter Lee (http://www.codeproject.com/KB/graphics/BezierSpline.aspx).
@@ -898,7 +896,7 @@ var g = (function() {
         // Scale rectangle with origin.
         scale: function(sx, sy, origin) {
 
-            var origin = this.origin().scale(sx, sy, origin);
+            origin = this.origin().scale(sx, sy, origin);
             this.x = origin.x;
             this.y = origin.y;
             this.width *= sx;
@@ -986,7 +984,7 @@ var g = (function() {
         return (angle % 360) + (angle < 0 ? 360 : 0);
     };
 
-    var scale = g.scale = {
+    g.scale = {
 
         // Return the `value` from the `domain` interval scaled to the `range` interval.
         linear: function(domain, range, value) {

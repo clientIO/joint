@@ -74,7 +74,7 @@ test('init()', function(assert) {
         }
     });
 
-    var view = new SomeView();
+    new SomeView();
 
     assert.ok(called, 'should be executed when a new view is created');
 });

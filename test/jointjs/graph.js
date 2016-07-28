@@ -19,17 +19,17 @@ QUnit.module('graph', function(hooks) {
         var e = new joint.shapes.basic.Rect({ id: 'e' }).addTo(graph);
         var f = new joint.shapes.basic.Rect({ id: 'f' }).addTo(graph);
         var g = new joint.shapes.basic.Rect({ id: 'g' }).addTo(graph);
-        var h = new joint.shapes.basic.Rect({ id: 'h' }).addTo(graph);
+        new joint.shapes.basic.Rect({ id: 'h' }).addTo(graph);
 
-        var l1 = new joint.dia.Link({ id: 'l1', source: { id: a.id }, target: { id: b.id } }).addTo(graph);
-        var l2 = new joint.dia.Link({ id: 'l2', source: { id: a.id }, target: { id: c.id } }).addTo(graph);
-        var l3 = new joint.dia.Link({ id: 'l3', source: { id: a.id }, target: { id: d.id } }).addTo(graph);
-        var l4 = new joint.dia.Link({ id: 'l4', source: { id: d.id }, target: { id: e.id } }).addTo(graph);
-        var l5 = new joint.dia.Link({ id: 'l5', source: { id: e.id }, target: { id: b.id } }).addTo(graph);
-        var l6 = new joint.dia.Link({ id: 'l6', source: { id: e.id }, target: { id: a.id } }).addTo(graph);
-        var l7 = new joint.dia.Link({ id: 'l7', source: { id: f.id }, target: { x: 50, y: 50 } }).addTo(graph);
-        var l8 = new joint.dia.Link({ id: 'l8', source: { x: 100, y: 100 }, target: { id: g.id } }).addTo(graph);
-        var l9 = new joint.dia.Link({ id: 'l8', source: { x: 200, y: 200 }, target: { x: 300, y: 300 } }).addTo(graph);
+        new joint.dia.Link({ id: 'l1', source: { id: a.id }, target: { id: b.id } }).addTo(graph);
+        new joint.dia.Link({ id: 'l2', source: { id: a.id }, target: { id: c.id } }).addTo(graph);
+        new joint.dia.Link({ id: 'l3', source: { id: a.id }, target: { id: d.id } }).addTo(graph);
+        new joint.dia.Link({ id: 'l4', source: { id: d.id }, target: { id: e.id } }).addTo(graph);
+        new joint.dia.Link({ id: 'l5', source: { id: e.id }, target: { id: b.id } }).addTo(graph);
+        new joint.dia.Link({ id: 'l6', source: { id: e.id }, target: { id: a.id } }).addTo(graph);
+        new joint.dia.Link({ id: 'l7', source: { id: f.id }, target: { x: 50, y: 50 } }).addTo(graph);
+        new joint.dia.Link({ id: 'l8', source: { x: 100, y: 100 }, target: { id: g.id } }).addTo(graph);
+        new joint.dia.Link({ id: 'l8', source: { x: 200, y: 200 }, target: { x: 300, y: 300 } }).addTo(graph);
 
         // Add hierarchy.
         var aa = new joint.shapes.basic.Rect({ id: 'aa' }).addTo(graph);
@@ -37,9 +37,9 @@ QUnit.module('graph', function(hooks) {
         var aaa = new joint.shapes.basic.Rect({ id: 'aaa' }).addTo(graph);
         aa.embed(aaa);
         var top = new joint.shapes.basic.Rect({ id: 'top' }).addTo(graph);
-        var l10 = new joint.dia.Link({ id: 'l10', source: { id: top.id }, target: { id: aa.id } }).addTo(graph);
-        var l11 = new joint.dia.Link({ id: 'l11', source: { id: top.id }, target: { id: aaa.id } }).addTo(graph);
-        var l12 = new joint.dia.Link({ id: 'l12', source: { id: aaa.id }, target: { id: top.id } }).addTo(graph);
+        new joint.dia.Link({ id: 'l10', source: { id: top.id }, target: { id: aa.id } }).addTo(graph);
+        new joint.dia.Link({ id: 'l11', source: { id: top.id }, target: { id: aaa.id } }).addTo(graph);
+        new joint.dia.Link({ id: 'l12', source: { id: aaa.id }, target: { id: top.id } }).addTo(graph);
         var l13 = new joint.dia.Link({ id: 'l13', source: { id: aaa.id }, target: { id: aaa.id } }).addTo(graph);
         aaa.embed(l13);
     };
@@ -63,28 +63,28 @@ QUnit.module('graph', function(hooks) {
         var i = me('i'); var j = me('j'); var k = me('k'); var l = me('l');
         var m = me('m'); var n = me('n'); var o = me('o'); var p = me('p');
 
-        var l1 = ml('l1', a, b);
-        var l2 = ml('l2', a, c);
-        var l3 = ml('l3', a, d);
+        ml('l1', a, b);
+        ml('l2', a, c);
+        ml('l3', a, d);
 
-        var l4 = ml('l4', b, e);
-        var l5 = ml('l5', b, f);
-        var l6 = ml('l6', b, g);
+        ml('l4', b, e);
+        ml('l5', b, f);
+        ml('l6', b, g);
 
-        var l7 = ml('l7', c, h);
-        var l8 = ml('l8', c, i);
-        var l9 = ml('l9', c, j);
+        ml('l7', c, h);
+        ml('l8', c, i);
+        ml('l9', c, j);
 
-        var l10 = ml('l10', d, k);
-        var l11 = ml('l11', d, l);
-        var l12 = ml('l12', d, m);
+        ml('l10', d, k);
+        ml('l11', d, l);
+        ml('l12', d, m);
 
-        var l13 = ml('l13', e, n);
-        var l14 = ml('l14', f, o);
-        var l15 = ml('l15', g, p);
+        ml('l13', e, n);
+        ml('l14', f, o);
+        ml('l15', g, p);
 
-        var l16 = ml('l16', h, b);
-        var l17 = ml('l17', b, c);
+        ml('l16', h, b);
+        ml('l17', b, c);
     };
 
     this.setupTestNestedGraph = function(graph) {
@@ -110,10 +110,10 @@ QUnit.module('graph', function(hooks) {
         a.embed(c);
         var d = me('d');
 
-        var l1 = ml('l1', aa, c);
+        ml('l1', aa, c);
         var l2 = ml('l2', aa, aaa);
         aa.embed(l2);
-        var l3 = ml('l3', c, d);
+        ml('l3', c, d);
     };
 
     QUnit.module('resetCells()', function(hooks) {
@@ -470,8 +470,8 @@ QUnit.module('graph', function(hooks) {
         // Test for remove - and if emptiness of the internal _in/_out is checked.
         graph.clear();
 
-        var el1 = new joint.shapes.basic.Rect({ id: 'el1' }).addTo(graph);
-        var el2 = new joint.shapes.basic.Rect({ id: 'el2' }).addTo(graph);
+        new joint.shapes.basic.Rect({ id: 'el1' }).addTo(graph);
+        new joint.shapes.basic.Rect({ id: 'el2' }).addTo(graph);
         var l1 = new joint.dia.Link({ id: 'l1', source: { id: 'el1' }, target: { id: 'el2' } }).addTo(graph);
 
         var sinks = graph.getSinks();
@@ -523,20 +523,21 @@ QUnit.module('graph', function(hooks) {
     QUnit.test('graph.bfs(), graph.dfs()', function(assert) {
 
         var graph = this.graph;
+        var bfs, dfs;
 
         this.setupTestTreeGraph(graph);
 
-        var bfs = [];
+        bfs = [];
         graph.bfs(graph.getCell('c'), function(element, distance) { bfs.push([element.id, distance]); }, { outbound: true });
-        var dfs = [];
+        dfs = [];
         graph.dfs(graph.getCell('c'), function(element, distance) { dfs.push([element.id, distance]); }, { outbound: true });
 
         assert.deepEqual(bfs, [['c', 0], ['h', 1], ['i', 1], ['j', 1], ['b', 2], ['e', 3], ['f', 3], ['g', 3], ['n', 4], ['o', 4], ['p', 4]], 'bfs() returns elements in a correct order with correct distance');
         assert.deepEqual(dfs, [['c', 0], ['h', 1], ['b', 2], ['e', 3], ['n', 4], ['f', 3], ['o', 4], ['g', 3], ['p', 4], ['i', 1], ['j', 1]], 'dfs() returns elements in a correct order with correct distance');
 
-        var bfs = [];
+        bfs = [];
         graph.bfs(graph.getCell('c'), function(element, distance) { if (distance > 1) return false; bfs.push([element.id, distance]); }, { outbound: true });
-        var dfs = [];
+        dfs = [];
         graph.dfs(graph.getCell('c'), function(element, distance) { if (element.id === 'b') return false; dfs.push([element.id, distance]); }, { outbound: true });
 
         assert.deepEqual(bfs, [['c', 0], ['h', 1], ['i', 1], ['j', 1]], 'bfs() correctly stopped when iteratee returned false');
@@ -793,11 +794,9 @@ QUnit.module('graph', function(hooks) {
 
     QUnit.module('findModelsInArea(rect[, opt])', function(hooks) {
 
-        var cells, graph;
+        var cells;
 
         hooks.beforeEach(function() {
-
-            graph = new joint.dia.Graph;
 
             cells = [
                 new joint.shapes.basic.Rect({

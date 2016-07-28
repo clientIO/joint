@@ -263,7 +263,7 @@ joint.routers.orthogonal = (function() {
         }
 
         return orthogonalVertices;
-    };
+    }
 
     return findOrthogonalRoute;
 

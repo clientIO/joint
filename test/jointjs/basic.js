@@ -46,10 +46,10 @@ QUnit.module('basic', function(hooks) {
         a.embed(c);
         var d = me('d');
 
-        var l1 = ml('l1', aa, c);
+        ml('l1', aa, c);
         var l2 = ml('l2', aa, aaa);
         aa.embed(l2);
-        var l3 = ml('l3', c, d);
+        ml('l3', c, d);
     };
 
     QUnit.test('construction', function() {
@@ -737,7 +737,7 @@ QUnit.module('basic', function(hooks) {
         this.graph.clear();
         this.setupTestNestedGraph(this.graph);
 
-        var clones = this.graph.getCell('a').clone({ deep: true });
+        clones = this.graph.getCell('a').clone({ deep: true });
         deepEqual(_.map(clones, function(c) { return c.get('name'); }), ['a', 'aa', 'c', 'l2', 'aaa'], 'clone({ deep: true }) returns clones including all embedded cells');
     });
 
@@ -1215,7 +1215,7 @@ QUnit.module('basic', function(hooks) {
                     if (t < .1 && p0) {
                         ok(true, 'Transition starts.');
                         p0 = false;
-                    };
+                    }
 
                     if (t > .1 && t < .9 && p1) {
                         ok(true, 'Transition runs.');

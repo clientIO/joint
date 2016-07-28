@@ -388,10 +388,7 @@ module.exports = function(grunt) {
                 }
             }
         },
-        jscs: {
-            options: {
-                config: '.jscsrc'
-            },
+        eslint: {
             src: [
                 // All plugins:
                 'plugins/**/*.js',
@@ -404,7 +401,10 @@ module.exports = function(grunt) {
 
                 // Tests:
                 'test/**/*.js'
-            ]
+            ],
+            options: {
+                configFile: '.eslintrc.js'
+            }
         },
         mochaTest: {
             server: {
@@ -737,7 +737,7 @@ module.exports = function(grunt) {
 
     grunt.registerTask('test:server', ['mochaTest:server']);
     grunt.registerTask('test:client', ['qunit:all']);
-    grunt.registerTask('test:code-style', ['jscs']);
+    grunt.registerTask('test:code-style', ['eslint']);
     grunt.registerTask('test', ['test:server', 'test:client', 'test:code-style']);
 
     grunt.registerTask('test:coverage', [

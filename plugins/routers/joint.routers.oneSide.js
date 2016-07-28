@@ -16,7 +16,7 @@ joint.routers.oneSide = function(vertices, opt, linkView) {
     var sourcePoint = sourceBBox.center();
     var targetPoint = targetBBox.center();
 
-    var coordinate, coordinateValue, dimension, direction;
+    var coordinate, dimension, direction;
 
     switch (side) {
         case 'bottom':

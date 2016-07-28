@@ -4,10 +4,10 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
 
     markup: [
         '<g class="rotatable">',
-          '<g class="scalable">',
-            '<rect class="uml-class-name-rect"/><rect class="uml-class-attrs-rect"/><rect class="uml-class-methods-rect"/>',
-          '</g>',
-          '<text class="uml-class-name-text"/><text class="uml-class-attrs-text"/><text class="uml-class-methods-text"/>',
+        '<g class="scalable">',
+        '<rect class="uml-class-name-rect"/><rect class="uml-class-attrs-rect"/><rect class="uml-class-methods-rect"/>',
+        '</g>',
+        '<text class="uml-class-name-text"/><text class="uml-class-attrs-text"/><text class="uml-class-methods-text"/>',
         '</g>'
     ].join(''),
 
@@ -175,12 +175,12 @@ joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
 
     markup: [
         '<g class="rotatable">',
-          '<g class="scalable">',
-            '<rect class="uml-state-body"/>',
-          '</g>',
-          '<path class="uml-state-separator"/>',
-          '<text class="uml-state-name"/>',
-          '<text class="uml-state-events"/>',
+        '<g class="scalable">',
+        '<rect class="uml-state-body"/>',
+        '</g>',
+        '<path class="uml-state-separator"/>',
+        '<text class="uml-state-name"/>',
+        '<text class="uml-state-events"/>',
         '</g>'
     ].join(''),
 

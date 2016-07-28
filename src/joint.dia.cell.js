@@ -16,7 +16,7 @@ joint.dia.Cell = Backbone.Model.extend({
         this.attributes = {};
         if (options && options.collection) this.collection = options.collection;
         if (options && options.parse) attrs = this.parse(attrs, options) || {};
-        if (defaults = _.result(this, 'defaults')) {
+        if ((defaults = _.result(this, 'defaults'))) {
             //<custom code>
             // Replaced the call to _.defaults with _.merge.
             attrs = _.merge({}, defaults, attrs);
@@ -531,7 +531,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         var setter = _.bind(function(runtime) {
 
-            var id, progress, propertyValue, status;
+            var id, progress, propertyValue;
 
             firstFrameTime = firstFrameTime || runtime;
             runtime -= firstFrameTime;
@@ -933,7 +933,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         if (el) {
 
             var nthChild = V(el).index() + 1;
-            var selector = el.tagName + ':nth-child(' + nthChild + ')';
+            selector = el.tagName + ':nth-child(' + nthChild + ')';
 
             if (prevSelector) {
                 selector += ' > ' + prevSelector;
