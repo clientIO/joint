@@ -11,6 +11,7 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
 * [`addPort`](#dia.Element.prototype.addPort) / [`addPorts`](#dia.Element.prototype.addPorts)
 * [`removePort`](#dia.Element.prototype.removePort)
 * [`getPort`](#dia.Element.prototype.getPort) / [`getPorts`](#dia.Element.prototype.getPorts)
+* [`portProp`](#dia.Element.prototype.portProp)
 
 ##### <a name="portinterface"></a> Port configuration
 

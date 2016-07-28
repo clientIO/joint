@@ -502,4 +502,40 @@ QUnit.module('element ports', function() {
             assert.equal(trans[3].angle, 10, 'y position overridden');
         });
     });
+
+    QUnit.module('portProp', function() {
+
+        QUnit.test('set port properties', function(assert) {
+
+            var shape = create({
+                items: [
+                    { id: 'one', attrs: { '.body': { fill: 'red' } } }
+                ]
+            });
+
+            shape.portProp('one', 'attrs/.body/fill-opacity', 1);
+            assert.equal(shape.prop('ports/items/0/attrs/.body/fill-opacity'), 1);
+
+            shape.portProp('one', '/attrs/.body/fill-opacity', 2);
+            assert.equal(shape.prop('ports/items/0/attrs/.body/fill-opacity'), 2, 'slash should not make the difference');
+
+            shape.portProp('one', 'attrs/.body', { fill: 'newcolor' });
+            assert.equal(shape.prop('ports/items/0/attrs/.body/fill'), 'newcolor');
+
+            shape.portProp('one', 'attrs/.body', {});
+            assert.equal(shape.prop('ports/items/0/attrs/.body/fill'), 'newcolor');
+        });
+
+        QUnit.test('get port properties', function(assert) {
+
+            var shape = create({
+                items: [
+                    { id: 'one', attrs: { '.body': { fill: 'red' } } }
+                ]
+            });
+
+            var prop = shape.portProp('one', 'attrs/.body');
+            assert.equal(prop.fill, 'red');
+        });
+    });
 });

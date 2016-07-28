@@ -239,6 +239,35 @@
             return this;
         },
 
+        /**
+         * @param {string} portId
+         * @param {string} path
+         * @param {*=} value
+         * @param {object=} opt
+         * @returns {joint.dia.Element}
+         */
+        portProp: function(portId, path, value, opt) {
+
+            var index = this.getPortIndex(portId);
+
+            if (index === -1) {
+                throw new Error('Element: unable to find port with id ' + portId);
+            }
+
+            if (!_.startsWith(path, '/')) {
+                path = '/' + path;
+            }
+
+            var portPath = ['ports/items/', index, path].join('');
+
+            if (_.isUndefined(value)) {
+                return this.prop(_.trimRight(portPath, '/'));
+            }
+
+            return this.prop(portPath, value, opt);
+        },
+
+
         _validatePorts: function() {
 
             var portsAttr = this.get('ports') || {};
@@ -330,6 +359,7 @@
          * @property {Object} label
          * @property {Object} attrs
          * @property {string} markup
+         * @property {string} group
          */
 
         /**
@@ -454,6 +484,7 @@
             }
 
             portContentElement.attr('port', port.id);
+            portContentElement.attr('data-group', port.group);
 
             var portElement = V(this.portContainerMarkup)
                 .append(portContentElement)
