@@ -23,7 +23,8 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
             },
             '.body': {
                 'ref-width': '100%',
-                'ref-height': '100%'
+                'ref-height': '100%',
+                stroke: '#000'
             }
         },
         ports: {
@@ -35,11 +36,12 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                     },
                     markup: '<circle class="port-body"/>',
                     attrs: {
-                        text: {
+                        '.port-label': {
                             fill: '#000'
                         },
-                        circle: {
-                            fill: '#000',
+                        '.port-body': {
+                            fill: '#fff',
+                            stroke: '#000',
                             r: 10,
                             magnet: true
                         }
@@ -60,11 +62,12 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                     },
                     markup: '<circle class="port-body"/>',
                     attrs: {
-                        text: {
+                        '.port-label': {
                             fill: '#000'
                         },
-                        circle: {
-                            fill: '#000',
+                        '.port-body': {
+                            fill: '#fff',
+                            stroke: '#000',
                             r: 10,
                             magnet: true
                         }
