@@ -403,13 +403,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     initialize: function() {
 
-        _.bindAll(this, 'translate', 'resize', 'rotate');
-
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
 
-        this.listenTo(this.model, 'change:position', this.translate);
-        this.listenTo(this.model, 'change:size', this.resize);
-        this.listenTo(this.model, 'change:angle', this.rotate);
+        var model = this.model;
+
+        this.listenTo(model, 'change:position', this.translate);
+        this.listenTo(model, 'change:size', this.resize);
+        this.listenTo(model, 'change:angle', this.rotate);
+        this.listenTo(model, 'change:markup', this.render);
 
         this._initializePorts();
     },
@@ -859,9 +860,18 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var scalable = this.scalableNode;
         if (!scalable) {
-            // If there is no scalable elements, than there is nothing to resize.
+
+            if (angle !== 0) {
+                // update the origin of the rotation
+                this.rotate();
+            }
+            // update the ref attributes
+            this.update();
+
+            // If there is no scalable elements, than there is nothing to scale.
             return;
         }
+
         var scalableBbox = scalable.bbox(true);
         // Make sure `scalableBbox.width` and `scalableBbox.height` are not zero which can happen if the element does not have any content. By making
         // the width/height 1, we prevent HTML errors of the type `scale(Infinity, Infinity)`.
