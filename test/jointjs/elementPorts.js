@@ -400,7 +400,7 @@ QUnit.module('element ports', function() {
             };
 
             var shape = create(data);
-            var view = new joint.dia.ElementView({ model: shape }).render();
+            new joint.dia.ElementView({ model: shape }).render();
 
             var portData = shape.portData;
 
@@ -434,7 +434,7 @@ QUnit.module('element ports', function() {
             };
 
             var shape = create(data);
-            var view = new joint.dia.ElementView({ model: shape }).render();
+            new joint.dia.ElementView({ model: shape }).render();
 
             var portData = shape.portData;
 

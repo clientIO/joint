@@ -94,7 +94,6 @@ test('findParentBy option', function() {
 
     this.graph.addCells([r1, r2]);
 
-    var v1 = r1.findView(this.paper);
     var v2 = r2.findView(this.paper);
 
     this.paper.options.findParentBy = 'bbox';

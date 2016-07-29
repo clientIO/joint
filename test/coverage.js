@@ -18,7 +18,7 @@
 
         urlParams = {};
 
-        while (match = search.exec(query)) {
+        while ((match = search.exec(query))) {
             urlParams[decode(match[1])] = decode(match[2]);
         }
 

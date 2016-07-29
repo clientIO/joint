@@ -11,11 +11,11 @@ stest:
 
 # client-side tests only
 ctest:
-	grunt qunit:all
+	grunt test:client
 
 # code styling tests only
 cstest:
-	grunt jscs
+	grunt test:code-style
 
 all:
 	grunt build:all

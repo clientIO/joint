@@ -118,7 +118,7 @@ joint.routers.manhattan = (function(g, _, joint) {
         var source = graph.getCell(link.get('source').id);
         if (source) {
             excludedAncestors = _.union(excludedAncestors, _.map(source.getAncestors(), 'id'));
-        };
+        }
 
         var target = graph.getCell(link.get('target').id);
         if (target) {
@@ -284,7 +284,7 @@ joint.routers.manhattan = (function(g, _, joint) {
         }).value();
 
         return startPoints;
-    };
+    }
 
     // returns a direction index from start point to end point
     function getDirectionAngle(start, end, dirLen) {
@@ -307,7 +307,7 @@ joint.routers.manhattan = (function(g, _, joint) {
         for (var i = 0, len = endPoints.length; i < len; i++) {
             var cost = from.manhattanDistance(endPoints[i]);
             if (cost < min) min = cost;
-        };
+        }
 
         return min;
     }
@@ -415,8 +415,8 @@ joint.routers.manhattan = (function(g, _, joint) {
                         parents[neighborKey] = currentPoint;
                         costs[neighborKey] = costFromStart;
                         openSet.add(neighborKey, costFromStart + estimateCost(neighborPoint, endPoints));
-                    };
-                };
+                    }
+                }
 
                 loopsRemain--;
             }
@@ -495,7 +495,7 @@ joint.routers.manhattan = (function(g, _, joint) {
                     throw new Error('Manhattan requires the orthogonal router.');
                 }
                 return joint.routers.orthogonal(vertices, opt, this);
-            };
+            }
 
             var leadPoint = _.first(partialRoute);
 
@@ -507,7 +507,7 @@ joint.routers.manhattan = (function(g, _, joint) {
             tailPoint = _.last(partialRoute) || tailPoint;
 
             Array.prototype.push.apply(newVertices, partialRoute);
-        };
+        }
 
         return newVertices;
     }

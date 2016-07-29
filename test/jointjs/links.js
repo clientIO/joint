@@ -135,7 +135,6 @@ QUnit.module('links', function(hooks) {
         this.graph.addCell([r1, r2, r3]);
 
         var vr1 = this.paper.findViewByModel(r1);
-        var vr2 = this.paper.findViewByModel(r2);
         var vr3 = this.paper.findViewByModel(r3);
 
         var l0 = new joint.dia.Link({
@@ -209,9 +208,6 @@ QUnit.module('links', function(hooks) {
         var r2 = r1.clone().translate(250);
 
         this.graph.addCell([r1, r2]);
-
-        var vr1 = this.paper.findViewByModel(r1);
-        var vr2 = this.paper.findViewByModel(r2);
 
         var l0 = new joint.dia.Link({
             source: { id: r1.id },
@@ -323,8 +319,6 @@ QUnit.module('links', function(hooks) {
         this.graph.addCell(link);
 
         var linkView = this.paper.findViewByModel(link);
-        var myrectView = this.paper.findViewByModel(myrect);
-        var myrect2View = this.paper.findViewByModel(myrect2);
 
         // disconnect:
         link.set('source', linkView.getConnectionPoint('source', link.previous('source'), link.get('target')));
@@ -798,8 +792,8 @@ QUnit.module('links', function(hooks) {
 
         v.pointerup({ target: this.paper.el }, 90, 90);
 
-        var availableMagnets = this.paper.el.querySelectorAll('.available-magnet');
-        var availableCells = this.paper.el.querySelectorAll('.available-cell');
+        availableMagnets = this.paper.el.querySelectorAll('.available-magnet');
+        availableCells = this.paper.el.querySelectorAll('.available-cell');
 
         equal(availableMagnets.length + availableCells.length, 0,
               'When dragging an arrowhed stopped all magnets and cells were unmarked.');

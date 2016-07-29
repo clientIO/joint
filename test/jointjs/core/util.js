@@ -189,7 +189,7 @@ QUnit.module('util', function(hooks) {
 
         var localTheme = 'local-theme';
 
-        var SomeView = joint.mvc.View.extend({
+        joint.mvc.View.extend({
             options: {
                 theme: localTheme
             }

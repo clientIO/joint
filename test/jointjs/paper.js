@@ -612,8 +612,6 @@ QUnit.module('paper', function(hooks) {
 
     QUnit.test('getContentBBox()', function(assert) {
 
-        var contentBBox;
-
         checkBboxApproximately(2/* +- */, this.paper.getContentBBox(), {
             x: 0,
             y: 0,
