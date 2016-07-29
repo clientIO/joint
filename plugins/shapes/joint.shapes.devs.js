@@ -8,12 +8,19 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
     portMarkup: '<circle class="port-body"/>',
     portLabelMarkup: '<text class="port-label"/>',
+    inPorts: [],
+    outPorts: [],
     defaults: joint.util.deepSupplement({
 
-        type: 'ports.Model',
-        size: { width: 80, height: 80 },
+        type: 'devs.Model',
+        size: {
+            width: 80,
+            height: 80
+        },
         attrs: {
-            '.': { magnet: false },
+            '.': {
+                magnet: false
+            },
             '.label': {
                 text: 'Model',
                 'ref-x': .5,
@@ -32,8 +39,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
             groups: {
                 'in': {
                     position: {
-                        name: 'left',
-                        args: {}
+                        name: 'left'
                     },
                     attrs: {
                         '.port-label': {
@@ -57,8 +63,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                 },
                 'out': {
                     position: {
-                        name: 'right',
-                        args: {}
+                        name: 'right'
                     },
                     attrs: {
                         '.port-label': {
@@ -94,15 +99,27 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
     updatePortItems: function(model, changed, opt) {
 
-        var inPortItems = this.createPortItems('in', this.get('inPorts'));
-        var outPortItems = this.createPortItems('out', this.get('outPorts'));
+        // Make sure all ports are uniq.
+        var inPorts = _.uniq(this.get('inPorts'));
+        var outPorts = _.difference(this.get('outPorts'), inPorts);
+
+        var inPortItems = this.createPortItems('in', inPorts);
+        var outPortItems = this.createPortItems('out', outPorts);
 
         this.prop('ports/items', inPortItems.concat(outPortItems), _.extend({ rewrite: true }, opt));
     },
 
     createPortItem: function(group, port) {
 
-        return { id: port, group: group, attrs: { text: { text: port }}};
+        return {
+            id: port,
+            group: group,
+            attrs: {
+                '.port-label': {
+                    text: port
+                }
+            }
+        };
     },
 
     createPortItems: function(group, ports) {
@@ -116,7 +133,10 @@ joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
     defaults: joint.util.deepSupplement({
 
         type: 'devs.Atomic',
-        size: { width: 80, height: 80 },
+        size: {
+            width: 80,
+            height: 80
+        },
         attrs: {
             '.label': {
                 text: 'Atomic'
@@ -130,7 +150,10 @@ joint.shapes.devs.Coupled = joint.shapes.devs.Model.extend({
     defaults: joint.util.deepSupplement({
 
         type: 'devs.Coupled',
-        size: { width: 200, height: 300 },
+        size: {
+            width: 200,
+            height: 300
+        },
         attrs: {
             '.label': {
                 text: 'Coupled'

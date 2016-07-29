@@ -39,8 +39,14 @@ var paper = new joint.dia.Paper({
 var connect = function(source, sourcePort, target, targetPort) {
 
     var link = new joint.shapes.devs.Link({
-        source: { id: source.id, port: sourcePort },
-        target: { id: target.id, port: targetPort }
+        source: {
+            id: source.id,
+            port: sourcePort
+        },
+        target: {
+            id: target.id,
+            port: targetPort
+        }
     });
 
     link.addTo(graph).reparent();
@@ -48,8 +54,14 @@ var connect = function(source, sourcePort, target, targetPort) {
 
 var c1 = new joint.shapes.devs.Coupled({
 
-    position: { x: 230, y: 150 },
-    size: { width: 300, height: 300 }
+    position: {
+        x: 230,
+        y: 150
+    },
+    size: {
+        width: 300,
+        height: 300
+    }
 });
 
 c1.set('inPorts', ['in']);
@@ -57,21 +69,33 @@ c1.set('outPorts', ['out 1', 'out 2']);
 
 var a1 = new joint.shapes.devs.Atomic({
 
-    position: { x: 360, y: 360 },
+    position: {
+        x: 360,
+        y: 360
+    },
     inPorts: ['xy'],
     outPorts: ['x', 'y']
 });
 
 var a2 = new joint.shapes.devs.Atomic({
 
-    position: { x: 50, y: 260 },
+    position: {
+        x: 50,
+        y: 260
+    },
     outPorts: ['out']
 });
 
 var a3 = new joint.shapes.devs.Atomic({
 
-    position: { x: 650, y: 150 },
-    size: { width: 100, height: 300 },
+    position: {
+        x: 650,
+        y: 150
+    },
+    size: {
+        width: 100,
+        height: 300
+    },
     inPorts: ['a', 'b']
 });
 
@@ -90,5 +114,10 @@ connect(c1, 'out 2', a3, 'b');
 
 _.each([c1, a1, a2, a3], function(element) {
 
-    element.attr({ '.body': { 'rx': 6, 'ry': 6 }});
+    element.attr({
+        '.body': {
+            'rx': 6,
+            'ry': 6
+        }
+    });
 });
