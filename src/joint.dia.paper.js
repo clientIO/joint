@@ -1379,9 +1379,9 @@ joint.dia.Paper = joint.mvc.View.extend({
                 }
                 break;
             default:
+                // backgroundRepeat:
                 // no-repeat', 'round', 'space', 'repeat', 'repeat-x', 'repeat-y'
                 backgroundImage = img.src;
-                backgroundRepeat = backgroundRepeat;
                 if (_.isUndefined(backgroundSize)) {
                     // pass the image size for  the backgroundSize if no size provided
                     opt.size = {
