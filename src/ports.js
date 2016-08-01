@@ -196,6 +196,15 @@
         },
 
         /**
+         * @param {string} id
+         * @returns {boolean}
+         */
+        hasPort: function(id) {
+
+            return this.getPortIndex(id) !== -1;
+        },
+
+        /**
          * @returns {Array<object>}
          */
         getPorts: function() {
@@ -241,7 +250,7 @@
 
         /**
          * @param {string} portId
-         * @param {string} path
+         * @param {string|object} path
          * @param {*=} value
          * @param {object=} opt
          * @returns {joint.dia.Element}
@@ -254,17 +263,20 @@
                 throw new Error('Element: unable to find port with id ' + portId);
             }
 
-            if (!_.startsWith(path, '/')) {
-                path = '/' + path;
+            var args;
+            if (_.isString(path)) {
+
+                args = Array.prototype.slice.call(arguments, 1);
+                // Get/set an attribute by a special path syntax that delimits
+                // nested objects by the colon character.
+                args[0] = ['ports/items/', index, '/', path].join('');
+
+            } else {
+
+                args = ['ports/items/' + index, path, value];
             }
 
-            var portPath = ['ports/items/', index, path].join('');
-
-            if (_.isUndefined(value)) {
-                return this.prop(_.trimRight(portPath, '/'));
-            }
-
-            return this.prop(portPath, value, opt);
+            return this.prop.apply(this, args);
         },
 
 

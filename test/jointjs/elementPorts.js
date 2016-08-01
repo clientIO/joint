@@ -516,14 +516,15 @@ QUnit.module('element ports', function() {
             shape.portProp('one', 'attrs/.body/fill-opacity', 1);
             assert.equal(shape.prop('ports/items/0/attrs/.body/fill-opacity'), 1);
 
-            shape.portProp('one', '/attrs/.body/fill-opacity', 2);
-            assert.equal(shape.prop('ports/items/0/attrs/.body/fill-opacity'), 2, 'slash should not make the difference');
-
             shape.portProp('one', 'attrs/.body', { fill: 'newcolor' });
             assert.equal(shape.prop('ports/items/0/attrs/.body/fill'), 'newcolor');
 
             shape.portProp('one', 'attrs/.body', {});
             assert.equal(shape.prop('ports/items/0/attrs/.body/fill'), 'newcolor');
+
+            shape.portProp('one', { attrs: { '.body': { fill: 'black', x: 1 } } });
+            assert.equal(shape.prop('ports/items/0/attrs/.body/fill'), 'black');
+            assert.equal(shape.prop('ports/items/0/attrs/.body/x'), 1);
         });
 
         QUnit.test('get port properties', function(assert) {
