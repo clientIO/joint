@@ -236,13 +236,17 @@
 
         /**
          * @param {object} port
-         * @param {object} opt
+         * @param {object} [opt]
          * @returns {joint.dia.Element}
          */
         addPort: function(port, opt) {
 
+            if (!_.isObject(port) || _.isArray(port)) {
+                throw new Error('Element: addPort requires an object.');
+            }
+
             var ports = _.clone(this.prop('ports/items')) || [];
-            ports.push(port || {});
+            ports.push(port);
             this.prop('ports/items', ports, opt);
 
             return this;
@@ -344,9 +348,9 @@
 
     _.extend(joint.dia.ElementView.prototype, {
 
-        portContainerMarkup: '<g class="port"/>',
-        portMarkup: '<circle class="base-port" r="10" fill="#000000"/>',
-        portLabelMarkup: '<text class="label"/>',
+        portContainerMarkup: '<g class="joint-port"/>',
+        portMarkup: '<circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/>',
+        portLabelMarkup: '<text class="joint-port-label" fill="#000000"/>',
         /** @type {Object<string, {portElement: Vectorizer, portLabelElement: Vectorizer}>} */
         _portElementsCache: null,
 

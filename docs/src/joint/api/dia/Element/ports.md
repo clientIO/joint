@@ -7,7 +7,7 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
 
 ##### Port API on `joint.dia.Element`
 
-* [`hasPorts`](#dia.Element.prototype.hasPorts)
+* [`hasPort`](#dia.Element.prototype.hasPort) / [`hasPorts`](#dia.Element.prototype.hasPorts)
 * [`addPort`](#dia.Element.prototype.addPort) / [`addPorts`](#dia.Element.prototype.addPorts)
 * [`removePort`](#dia.Element.prototype.removePort)
 * [`getPort`](#dia.Element.prototype.getPort) / [`getPorts`](#dia.Element.prototype.getPorts)
@@ -16,6 +16,7 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
 ##### <a name="portinterface"></a> Port configuration
 
 ```javascript
+
     // Single port definition
     var port = {
         id: 'abc',
@@ -26,22 +27,23 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
                 name: 'top',
                 args: {}
             },
-            markup: '<text class="label-text"/>'
+            markup: '<text class="label-text" fill="blue"/>'
         },
-        attrs: {},
-        markup: '<rect/>'
-    }
+        attrs: { text: { text: 'port1' } },
+        markup: '<rect width="10" height="10" stroke="red"/>'
+    };
 
-    // a.) add port in constructor.
+    // a.) add a port in constructor.
     var rect = new joint.shapes.basic.Rect({
-        // ...
+        position: { x: 50, y: 50 },
+        size: { width: 90, height: 90 },
         ports: {
             groups: {},
             items: [ port ]
         }
     });
 
-    // b.) or add port using API
+    // b.) or add a single port using API
     rect.addPort(port);
 
 ```
@@ -73,7 +75,13 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
     <td><b>markup</b></td>
     <td><i>string</i></td>
     <td>
-        Custom port markup. Multiple roots are not allowed. Valid notation would be `<g><rect class="outer"/><rect class"inner"/></g>`. It defaults to `<circle class="base-port" r="10" fill="#000000"/>`.
+        Custom port markup. Multiple roots are not allowed. Valid notation would be:
+<blockquote><pre>`<g>
+    <rect class="outer" width="15" height="15" fill="red"/>
+    <rect class="inner" width="15" height="15" fill="blue" x="10"/>
+</g>`</pre>
+</blockquote>
+        <p>It defaults to `<circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/>`.</p>
     </td>
 </tr>
 <tr>
@@ -123,7 +131,7 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
     <td><ul><li><b>label.markup</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        Custom port label markup. Multiple roots are not allowed. It defaults to `<text class="label"/>`.
+        Custom port label markup. Multiple roots are not allowed. It defaults to `<text class="joint-port-label" fill="#000000"/>`.
     </td>
 </tr>
 <tr>
@@ -138,7 +146,12 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
 <p>Shapes most likely consist of 1 or more DOM elements, `<rect/>`, `<rect/><text/><circle/>` etc.
     Ports are placed into the element `rotatable` group (if there is no `rotatable` group in the shape's markup, then the main group element `elementView.el` is used for the port container). Ports with `z:'auto'` are located right after the last element in the `rotatable` group. Ports with `z` defined as a number are placed before a DOM element at the position (index within the children of the container, where only the original markup elements and ports with `z:'auto'` are taken into account) equals to `z`.
     </p>
-        <p>For instance an element with the following markup `<g class="rotatable"><g class="scalable"><rect/></g><text/></g>` will be rendered like this:</p>
+
+        <p>For instance an element with the following markup
+    <blockquote><pre>`<g class="rotatable">
+    <g class="scalable"><rect/></g>
+    <text/>
+</g>`</pre></blockquote> will be rendered like this:</p>
 
 <pre><code>&lt;g model-id="element1"&gt;
     &lt;g class="rotatable"&gt;
@@ -202,7 +215,7 @@ All properties described above are optional and everything has own default. E.g.
                 // ....
             },
             attrs: {},
-            markup: '<rect>'
+            markup: '<rect width="10" height="10" stroke="red"/>'
         };
 
 ```
@@ -238,7 +251,11 @@ All properties described above are optional and everything has own default. E.g.
     <td><b>markup</b></td>
     <td><i>string</i></td>
     <td>
-        Custom port markup. Multiple roots are not allowed. Valid notation would be `<g><rect class="outer"/><rect class"inner"/></g>`. It defaults to `<circle class="base-port" r="10" fill="#000000"/>`.
+        Custom port markup. Multiple roots are not allowed. Valid notation would be:
+<blockquote><pre>`<g>
+    <rect class="outer" width="15" height="15" fill="red"/>
+    <rect class="inner" width="15" height="15" fill="red" x="10"/>
+</g>`</pre></blockquote>. It defaults to `<circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/>`
     </td>
 </tr>
 <tr>
@@ -289,7 +306,7 @@ All properties described above are optional and everything has own default. E.g.
     <td><ul><li><b>label.markup</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        Custom port label markup. Multiple roots are not allowed. It defaults to `<text class="label"/>`.
+        Custom port label markup. Multiple roots are not allowed. It defaults to `<text class="joint-port-label" fill="#000000"/>`.
     </td>
 </tr>
 </table>
@@ -304,8 +321,8 @@ Both port and port label can have custom markup.
         // ...
     });
 
-    rect.addPort({ markup: '<rect/>' })
-    rect.addPort({ markup: '<rect fill="red"/>', label: { markup: '<text/>' }})
+    rect.addPort({ markup: '<rect width="10" height="10" fill="blue"/>' })
+    rect.addPort({ markup: '<rect width="15" height="15" fill="red"/>', label: { markup: '<text fill="#000000"/>' }})
 
 ```
 
