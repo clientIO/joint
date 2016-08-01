@@ -495,8 +495,10 @@
                 throw new Error('ElementView: Invalid port markup - multiple roots.');
             }
 
-            portContentElement.attr('port', port.id);
-            portContentElement.attr('data-group', port.group);
+            portContentElement.attr({
+                'port': port.id,
+                'port-group': port.group
+            });
 
             var portElement = V(this.portContainerMarkup)
                 .append(portContentElement)
