@@ -955,8 +955,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Bring the model to the front with all his embeds.
         model.toFront({ deep: true, ui: true });
 
-        // Note that at this point cells in the collection are not sorted by z index yet (it running in the batch, see
-        // the dia.Graph._sortOnChangeZ), so we can't assume that last cell in collection has the highest z.
+        // Note that at this point cells in the collection are not sorted by z index (it's running in the batch, see
+        // the dia.Graph._sortOnChangeZ), so we can't assume that the last cell in the collection has the highest z.
         var maxZ = graph.get('cells').max('z').get('z') + 1;
         var connectedLinks = graph.getConnectedLinks(model, { deep: true });
 
