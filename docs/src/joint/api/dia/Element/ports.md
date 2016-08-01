@@ -7,7 +7,7 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
 
 ##### Port API on `joint.dia.Element`
 
-* [`hasPorts`](#dia.Element.prototype.hasPorts)
+* [`hasPort`](#dia.Element.prototype.hasPort) / [`hasPorts`](#dia.Element.prototype.hasPorts)
 * [`addPort`](#dia.Element.prototype.addPort) / [`addPorts`](#dia.Element.prototype.addPorts)
 * [`removePort`](#dia.Element.prototype.removePort)
 * [`getPort`](#dia.Element.prototype.getPort) / [`getPorts`](#dia.Element.prototype.getPorts)
