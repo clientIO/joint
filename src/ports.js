@@ -196,6 +196,15 @@
         },
 
         /**
+         * @param {string} id
+         * @returns {boolean}
+         */
+        hasPort: function(id) {
+
+            return this.getPortIndex(id) !== -1;
+        },
+
+        /**
          * @returns {Array<object>}
          */
         getPorts: function() {
@@ -238,6 +247,38 @@
 
             return this;
         },
+
+        /**
+         * @param {string} portId
+         * @param {string|object} path
+         * @param {*=} value
+         * @param {object=} opt
+         * @returns {joint.dia.Element}
+         */
+        portProp: function(portId, path, value, opt) {
+
+            var index = this.getPortIndex(portId);
+
+            if (index === -1) {
+                throw new Error('Element: unable to find port with id ' + portId);
+            }
+
+            var args;
+            if (_.isString(path)) {
+
+                args = Array.prototype.slice.call(arguments, 1);
+                // Get/set an attribute by a special path syntax that delimits
+                // nested objects by the colon character.
+                args[0] = ['ports/items/', index, '/', path].join('');
+
+            } else {
+
+                args = ['ports/items/' + index, path, value];
+            }
+
+            return this.prop.apply(this, args);
+        },
+
 
         _validatePorts: function() {
 
@@ -330,6 +371,7 @@
          * @property {Object} label
          * @property {Object} attrs
          * @property {string} markup
+         * @property {string} group
          */
 
         /**
@@ -453,7 +495,10 @@
                 throw new Error('ElementView: Invalid port markup - multiple roots.');
             }
 
-            portContentElement.attr('port', port.id);
+            portContentElement.attr({
+                'port': port.id,
+                'port-group': port.group
+            });
 
             var portElement = V(this.portContainerMarkup)
                 .append(portContentElement)
