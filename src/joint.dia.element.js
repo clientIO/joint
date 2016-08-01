@@ -948,22 +948,26 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var model = opt.model || this.model;
         var paper = opt.paper || this.paper;
+        var graph = paper.model;
 
         model.startBatch('to-front', opt);
 
         // Bring the model to the front with all his embeds.
         model.toFront({ deep: true, ui: true });
 
+        var maxZ = graph.get('cells').max('z').get('z') + 1;
+        var connectedLinks = graph.getConnectedLinks(model, { deep: true });
+
         // Move to front also all the inbound and outbound links that are connected
         // to any of the element descendant. If we bring to front only embedded elements,
         // links connected to them would stay in the background.
-        _.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'toFront', { ui: true });
+        _.invoke(connectedLinks, 'set', 'z', maxZ, { ui: true });
 
         model.stopBatch('to-front');
 
         // Before we start looking for suitable parent we remove the current one.
         var parentId = model.get('parent');
-        parentId && paper.model.getCell(parentId).unembed(model, { ui: true });
+        parentId && graph.getCell(parentId).unembed(model, { ui: true });
     },
 
     processEmbedding: function(opt) {
