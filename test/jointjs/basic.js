@@ -314,25 +314,60 @@ QUnit.module('basic', function(hooks) {
         this.graph.addCell(myrect);
 
         myrect.resize(120, 80);
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 120, height: 80 }, 'resize([same width], [same height]) should not change bbox');
+        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+            x: 20,
+            y: 30,
+            width: 120,
+            height: 80
+        }, 'resize([same width], [same height]) should not change bbox');
 
         myrect.resize(240, 160);
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 240, height: 160 }, 'resize([2*width], [2*height]) should scale twice preserving origin as it was');
+        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+            x: 20,
+            y: 30,
+            width: 240,
+            height: 160
+        }, 'resize([2*width], [2*height]) should scale twice preserving origin as it was');
 
         myrect.resize(120, 80);
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 120, height: 80 }, 'resize([orig width], [orig height]): should scale back to the original size and origin');
+        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+            x: 20,
+            y: 30,
+            width: 120,
+            height: 80
+        }, 'resize([orig width], [orig height]): should scale back to the original size and origin');
 
         myrect.resize(200, 160, { direction: 'right' });
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 200, height: 80 }, 'resize([new width], [new height], { direction: "right" }) should scale only width, origin should be unchanged');
+        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+            x: 20,
+            y: 30,
+            width: 200,
+            height: 80
+        }, 'resize([new width], [new height], { direction: "right" }) should scale only width, origin should be unchanged');
 
         myrect.resize(80, 240, { direction: 'bottom' });
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 200, height: 240 }, 'resize([new width], [new height], { direction: "bottom" }) should scale only height, origin should be unchanged');
+        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+            x: 20,
+            y: 30,
+            width: 200,
+            height: 240
+        }, 'resize([new width], [new height], { direction: "bottom" }) should scale only height, origin should be unchanged');
 
         myrect.resize(50, 50, { direction: 'bottom-right' });
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 20, y: 30, width: 50, height: 50 }, 'resize([new width], [new height], { direction: "bottom-right" }) should scale both width and height, origin should be unchanged');
+        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+            x: 20,
+            y: 30,
+            width: 50,
+            height: 50
+        }, 'resize([new width], [new height], { direction: "bottom-right" }) should scale both width and height, origin should be unchanged');
 
         myrect.resize(20, 20, { direction: 'top-left' });
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), { x: 50, y: 60, width: 20, height: 20 }, 'resize([new width], [new height], { direction: "top-left" }) should scale both width and height, should change position');
+        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+            x: 50,
+            y: 60,
+            width: 20,
+            height: 20
+        }, 'resize([new width], [new height], { direction: "top-left" }) should scale both width and height, should change position');
     });
 
     QUnit.test('rotate()', function() {
@@ -738,7 +773,9 @@ QUnit.module('basic', function(hooks) {
         this.setupTestNestedGraph(this.graph);
 
         clones = this.graph.getCell('a').clone({ deep: true });
-        deepEqual(_.map(clones, function(c) { return c.get('name'); }), ['a', 'aa', 'c', 'l2', 'aaa'], 'clone({ deep: true }) returns clones including all embedded cells');
+        deepEqual(_.map(clones, function(c) {
+            return c.get('name');
+        }), ['a', 'aa', 'c', 'l2', 'aaa'], 'clone({ deep: true }) returns clones including all embedded cells');
     });
 
     QUnit.test('embed(), unembed()', function() {
@@ -959,7 +996,12 @@ QUnit.module('basic', function(hooks) {
         var smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
 
         deepEqual(
-            { x: smallerRectBbox.x, y: smallerRectBbox.y, width: smallerRectBbox.width, height: smallerRectBbox.height },
+            {
+                x: smallerRectBbox.x,
+                y: smallerRectBbox.y,
+                width: smallerRectBbox.width,
+                height: smallerRectBbox.height
+            },
             { x: smallRectBbox.x + 20, y: smallRectBbox.y + 10, width: 5, height: 5 },
             'ref-x: 20, ref-y: 10 and ref set to .small should offset the element by 20px in x axis and 10px in y axis with respect to the x-y coordinate of the .small element'
         );
@@ -996,8 +1038,18 @@ QUnit.module('basic', function(hooks) {
         var smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
 
         deepEqual(
-            { x: smallerRectBbox.x, y: smallerRectBbox.y, width: smallerRectBbox.width, height: smallerRectBbox.height },
-            { x: smallRectBbox.x + smallRectBbox.width + 10, y: smallRectBbox.y + smallRectBbox.height + 10, width: 5, height: 5 },
+            {
+                x: smallerRectBbox.x,
+                y: smallerRectBbox.y,
+                width: smallerRectBbox.width,
+                height: smallerRectBbox.height
+            },
+            {
+                x: smallRectBbox.x + smallRectBbox.width + 10,
+                y: smallRectBbox.y + smallRectBbox.height + 10,
+                width: 5,
+                height: 5
+            },
             'ref-dx: 10, ref-dy: 10 with ref set to .small should offset the element by 10px in x axis and 10px in y axis with respect to the right-bottom coordinate of the .small element'
         );
     });
@@ -1077,7 +1129,15 @@ QUnit.module('basic', function(hooks) {
             size: { width: 100, height: 50 },
             attrs: {
                 '.big': { width: 100, height: 50, fill: 'gray' },
-                '.small': { width: 20, height: 20, 'ref-x': .5, 'ref-y': .5, 'y-alignment': 'middle', 'x-alignment': 'middle', fill: 'red' }
+                '.small': {
+                    width: 20,
+                    height: 20,
+                    'ref-x': .5,
+                    'ref-y': .5,
+                    'y-alignment': 'middle',
+                    'x-alignment': 'middle',
+                    fill: 'red'
+                }
             }
         });
 
@@ -1249,10 +1309,16 @@ QUnit.module('basic', function(hooks) {
         el.transition('timer', 100, {
             delay: 100,
             duration: 100,
-            valueFunction: function(a, b) { return function(t) { return t; }; }
+            valueFunction: function(a, b) {
+                return function(t) {
+                    return t;
+                };
+            }
         });
 
-        el.on('change:timer', function(cell, changed) { timerArray.push(changed); });
+        el.on('change:timer', function(cell, changed) {
+            timerArray.push(changed);
+        });
 
         setTimeout(function() {
 
@@ -1292,7 +1358,9 @@ QUnit.module('basic', function(hooks) {
             }
         });
 
-        el.on('change:nested', function(cell, changed) { timerArray.push(changed.timer); });
+        el.on('change:nested', function(cell, changed) {
+            timerArray.push(changed.timer);
+        });
 
         setTimeout(function() {
 
@@ -1374,7 +1442,9 @@ QUnit.module('basic', function(hooks) {
 
         QUnit.test('parameters', function(assert) {
             var l = this.link;
-            assert.throws(function() { l.applyToPoints(null); });
+            assert.throws(function() {
+                l.applyToPoints(null);
+            });
         });
 
         QUnit.test('point-point + no vertices', function(assert) {
@@ -1386,8 +1456,8 @@ QUnit.module('basic', function(hooks) {
 
         QUnit.test('point-point + vertices', function(assert) {
             var l = this.link
-                    .set('vertices', [{ x: 10, y: 10 }])
-                    .applyToPoints(fn);
+                .set('vertices', [{ x: 10, y: 10 }])
+                .applyToPoints(fn);
             assert.deepEqual(l.get('source'), { x: 90, y: 90 });
             assert.deepEqual(l.get('target'), { x: 190, y: 190 });
             assert.deepEqual(l.get('vertices'), [{ x: 0, y: 0 }]);
@@ -1395,9 +1465,9 @@ QUnit.module('basic', function(hooks) {
 
         QUnit.test('element-element + no vertices', function(assert) {
             var l = this.link
-                    .set('source', { id: 'a' })
-                    .set('target', { id: 'b' })
-                    .applyToPoints(fn);
+                .set('source', { id: 'a' })
+                .set('target', { id: 'b' })
+                .applyToPoints(fn);
             assert.deepEqual(l.get('source'), { id: 'a' });
             assert.deepEqual(l.get('target'), { id: 'b' });
             assert.deepEqual(l.get('vertices'), []);
@@ -1405,10 +1475,10 @@ QUnit.module('basic', function(hooks) {
 
         QUnit.test('element-element + vertices', function(assert) {
             var l = this.link
-                    .set('source', { id: 'a' })
-                    .set('target', { id: 'b' })
-                    .set('vertices', [{ x: 10, y: 10 }])
-                    .applyToPoints(fn);
+                .set('source', { id: 'a' })
+                .set('target', { id: 'b' })
+                .set('vertices', [{ x: 10, y: 10 }])
+                .applyToPoints(fn);
             assert.deepEqual(l.get('source'), { id: 'a' });
             assert.deepEqual(l.get('target'), { id: 'b' });
             assert.deepEqual(l.get('vertices'), [{ x: 0, y: 0 }]);
@@ -1453,9 +1523,9 @@ QUnit.module('basic', function(hooks) {
 
         QUnit.test('when connected to elements', function(assert) {
             var l = this.link
-                    .set('source', { id: 'a' })
-                    .set('target', { id: 'b' })
-                    .scale(2, 3);
+                .set('source', { id: 'a' })
+                .set('target', { id: 'b' })
+                .scale(2, 3);
 
             assert.equal(l.get('vertices').length, 1);
             assert.equal(g.point(l.get('vertices')[0]).toString(), g.point(200, 600).toString());
