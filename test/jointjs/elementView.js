@@ -72,7 +72,7 @@ QUnit.module('elementView', function(hooks) {
 
     QUnit.module('highlighting - addClass', function() {
 
-        QUnit.test('test name', function(assert) {
+        QUnit.test('highlight unhighlight - default class name', function(assert) {
 
             elementView.highlight(null, { highlighter: { name: 'addClass' }});
             assert.ok(elementView.$el.hasClass(joint.highlighters.addClass.className));
@@ -81,7 +81,7 @@ QUnit.module('elementView', function(hooks) {
             assert.notOk(elementView.$el.hasClass(joint.highlighters.addClass.className));
         });
 
-        QUnit.test('test name', function(assert) {
+        QUnit.test('highlight unhighlight - with defined class name', function(assert) {
 
             elementView.highlight(null, { highlighter: { name: 'addClass', options: { className: 'xx' }}});
             assert.ok(elementView.$el.hasClass('xx'));
