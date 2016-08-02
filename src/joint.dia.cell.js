@@ -798,7 +798,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         // set partial flag if the highlighted element is not the entire view.
         opt = opt || {};
-        opt.partial = el != this.el;
+        opt.partial = (el !== this.el);
 
         this.notify('cell:highlight', el, opt);
         return this;
