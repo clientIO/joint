@@ -1,0 +1,96 @@
+<p>The devs plugin provides you objects with predefined input and output ports and ready to use example with ports.
+The plugin consists of basic rectangle objects (Atomic, Coupled) and connection objects (Link).
+
+</p>
+
+<p>Devs demo:</p>
+
+<iframe src="about:blank" data-src="./demo/devs/shapes.devs.html"></iframe>
+
+<h3>joint.shapes.devs.Atomic</h3>
+
+The Atomic is inherited rectangle object with in and out ports.
+
+<p>The Atomic attributes:</p>
+
+<table>
+    <tr>
+      <th>inPorts</th>
+      <td>array of strings with in ports</td>
+    </tr>
+    <tr>
+      <th>outPorts</th>
+      <td>array of strings with out ports</td>
+    </tr>
+</table>
+
+<p>Usage:</p>
+
+<pre><code>var atomic = new joint.shapes.devs.Atomic({
+
+    position: {
+        x: 100,
+        y: 100
+    },
+    inPorts: ['in 1', 'in 2'],
+    outPorts: ['out 1', 'out 2']
+});
+</code></pre>
+
+The inPorts and the outPorts is possible also set in this way:
+
+<pre><code>atomic.set('inPorts', ['in 1', 'in 2']);
+atomic.set('outPorts', ['out 1', 'out 2']);
+</code></pre>
+
+The Atomic object is possible add to graph with <a href='#dia.Graph.prototype.addCell'>addCell</a>
+ or <a href='#dia.Graph.prototype.addCells'>addCells</a> functions.
+ 
+<p>Usage:</p>
+
+<pre><code>graph.addCells([atomic, coupled]);</code></pre>
+
+<h3>joint.shapes.devs.Coupled</h3>
+The Coupled is inherited rectangle object with in and out ports. The difference between Atomic and Coupled is only in default color and size.
+
+<p>Usage:</p>
+
+<pre><code>var coupled = new joint.shapes.devs.Coupled({
+
+    position: {
+        x: 100,
+        y: 100
+    },
+    inPorts: ['in'],
+    outPorts: ['out']
+});
+</code></pre>
+
+<p>Usage <a href='#dia.Element.prototype.embed'>embed</a> that put the atomic to the coupled object.:</p>
+
+<pre><code>coupled.embed(atomic);</code></pre>
+
+<p>Usage <a href='#dia.Element.prototype.fitEmbeds'>fitEmbeds</a> that it fits all the embedded elements inside it.:</p>
+
+<pre><code>coupled.fitEmbeds();</code></pre>
+
+<h3>joint.shapes.devs.Link</h3>
+<p>The devs.Link as the only one inherits from <code>joint.dia.Link</code>.</p>
+
+<p>Usage:</p>
+
+<pre><code>var link = new joint.shapes.devs.Link({
+    source: {
+        id: sourcePortId,
+        port: sourcePort
+    },
+    target: {
+        id: targetPortId,
+        port: targetPort
+    }
+});
+</code></pre>
+
+<p>Usage <a href='#dia.Link.prototype.addTo'>addTo</a> that put link to graph.</p>
+
+<pre><code>link.addTo(graph).reparent();</code></pre>
