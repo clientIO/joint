@@ -125,6 +125,42 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     createPortItems: function(group, ports) {
 
         return _.map(ports, _.bind(this.createPortItem, this, group));
+    },
+
+    addPort: function(port, group) {
+
+        var ports = _.clone(this.get(group));
+
+        ports.push(port);
+        this.set(group, ports);
+    },
+
+    addOutPort: function(port) {
+
+        this.addPort(port, 'outPorts');
+    },
+
+    addInPort: function(port) {
+
+        this.addPort(port, 'inPorts');
+    },
+
+    removePort: function(port, group) {
+
+        var ports = _.clone(this.get(group));
+
+        _.pull(ports, port);
+        this.set(group, ports);
+    },
+
+    removeOutPort: function(port) {
+
+        this.removePort(port, 'outPorts');
+    },
+
+    removeInPort: function(port) {
+
+        this.removePort(port, 'inPorts');
     }
 });
 

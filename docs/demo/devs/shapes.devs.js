@@ -4,7 +4,7 @@ var paper = new joint.dia.Paper({
 
     el: document.getElementById('paper'),
     width: 800,
-    height: 600,
+    height: 400,
     gridSize: 1,
     model: graph,
     snapLinks: true,
@@ -56,7 +56,7 @@ var c1 = new joint.shapes.devs.Coupled({
 
     position: {
         x: 230,
-        y: 150
+        y: 50
     },
     size: {
         width: 300,
@@ -71,7 +71,7 @@ var a1 = new joint.shapes.devs.Atomic({
 
     position: {
         x: 360,
-        y: 360
+        y: 260
     },
     inPorts: ['xy'],
     outPorts: ['x', 'y']
@@ -81,7 +81,7 @@ var a2 = new joint.shapes.devs.Atomic({
 
     position: {
         x: 50,
-        y: 260
+        y: 160
     },
     outPorts: ['out']
 });
@@ -90,7 +90,7 @@ var a3 = new joint.shapes.devs.Atomic({
 
     position: {
         x: 650,
-        y: 150
+        y: 50
     },
     size: {
         width: 100,
