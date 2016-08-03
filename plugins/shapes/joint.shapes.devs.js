@@ -148,6 +148,16 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     _removeGroupPort: function(port, group, opt) {
 
         return this.set(group, _.without(this.get(group), port), opt);
+    },
+
+    removeOutPort: function(port, opt) {
+
+        return this._removeGroupPort(port, 'outPorts', opt);
+    },
+
+    removeInPort: function(port, opt) {
+
+        return this._removeGroupPort(port, 'inPorts', opt);
     }
 });
 
