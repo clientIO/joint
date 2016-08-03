@@ -101,7 +101,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
         // Make sure all ports are uniq.
         var inPorts = _.uniq(this.get('inPorts'));
-        var outPorts = _.difference(this.get('outPorts'), inPorts);
+        var outPorts = _.difference(_.uniq(this.get('outPorts')), inPorts);
 
         var inPortItems = this.createPortItems('in', inPorts);
         var outPortItems = this.createPortItems('out', outPorts);
@@ -127,40 +127,27 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
         return _.map(ports, _.bind(this.createPortItem, this, group));
     },
 
-    addPort: function(port, group) {
+    _addGroupPort: function(port, group, opt) {
 
         var ports = _.clone(this.get(group));
 
         ports.push(port);
-        this.set(group, ports);
+        return this.set(group, ports, opt);
     },
 
-    addOutPort: function(port) {
+    addOutPort: function(port, opt) {
 
-        this.addPort(port, 'outPorts');
+        return this._addGroupPort(port, 'outPorts', opt);
     },
 
-    addInPort: function(port) {
+    addInPort: function(port, opt) {
 
-        this.addPort(port, 'inPorts');
+        return this._addGroupPort(port, 'inPorts', opt);
     },
 
-    removePort: function(port, group) {
+    _removeGroupPort: function(port, group, opt) {
 
-        var ports = _.clone(this.get(group));
-
-        _.pull(ports, port);
-        this.set(group, ports);
-    },
-
-    removeOutPort: function(port) {
-
-        this.removePort(port, 'outPorts');
-    },
-
-    removeInPort: function(port) {
-
-        this.removePort(port, 'inPorts');
+        return this.set(group, _.without(this.get(group), port), opt);
     }
 });
 
