@@ -1,96 +1,68 @@
-<p>The devs plugin provides you objects with predefined input and output ports and ready to use example with ports.
-The plugin consists of basic rectangle objects (Atomic, Coupled) and connection objects (Link).
+<p>The Devs plugin provides you with ready-to-use shapes with predefined input & output port groups and simplified API.</p>
 
-</p>
+<h3>joint.shapes.devs.Model</h3>
 
-<p>Devs demo:</p>
-
-<iframe src="about:blank" data-src="./demo/devs/shapes.devs.html"></iframe>
-
-<h3>joint.shapes.devs.Atomic</h3>
-
-The Atomic is inherited rectangle object with in and out ports.
-
-<p>The Atomic attributes:</p>
+The Model shape implements simple API on top of the JointJS built-in ports. It splits ports into two semantic groups (`in` and `out`) and adds convenient methods for adding and removing ports.
 
 <table>
     <tr>
       <th>inPorts</th>
-      <td>array of strings with in ports</td>
+      <td>an array of all input ports</td>
     </tr>
     <tr>
       <th>outPorts</th>
-      <td>array of strings with out ports</td>
+      <td>an array of all output ports</td>
     </tr>
 </table>
 
-<p>Usage:</p>
-
-<pre><code>var atomic = new joint.shapes.devs.Atomic({
-
-    position: {
-        x: 100,
-        y: 100
-    },
-    inPorts: ['in 1', 'in 2'],
-    outPorts: ['out 1', 'out 2']
-});
-</code></pre>
-
-The inPorts and the outPorts is possible also set:
-
-<pre><code>atomic.set('inPorts', ['in 1', 'in 2']);
-atomic.set('outPorts', ['out 1', 'out 2']);
-</code></pre>
-
-The Atomic object is possible add to graph with <a href='#dia.Graph.prototype.addCell'>addCell</a>
- or <a href='#dia.Graph.prototype.addCells'>addCells</a> functions.
- 
-<p>Usage:</p>
-
-<pre><code>graph.addCells([atomic1, atomic2]);</code></pre>
-
-<h3>joint.shapes.devs.Coupled</h3>
-The Coupled is inherited rectangle object with in and out ports. The difference between Atomic and Coupled is only in default color and size.
-
-<p>Usage:</p>
-
-<pre><code>var coupled = new joint.shapes.devs.Coupled({
-
-    position: {
-        x: 100,
-        y: 100
-    },
-    inPorts: ['in'],
-    outPorts: ['out']
-});
-</code></pre>
-
-<p>Usage <a href='#dia.Element.prototype.embed'>embed</a> that put the atomic to the coupled object.:</p>
-
-<pre><code>coupled.embed(atomic);</code></pre>
-
-<p>Usage <a href='#dia.Element.prototype.fitEmbeds'>fitEmbeds</a> that it fits all the embedded elements inside it.:</p>
-
-<pre><code>coupled.fitEmbeds();</code></pre>
 
 <h3>joint.shapes.devs.Link</h3>
-<p>The devs.Link as the only one inherits from <code>joint.dia.Link</code>.</p>
 
-<p>Usage:</p>
+<p>The `devs.Link` extends the <code>joint.dia.Link</code> and change the link appearance.</p>
 
-<pre><code>var link = new joint.shapes.devs.Link({
+
+<h4>Example usage</h4>
+
+<pre><code>var shape = new joint.shapes.devs.Model({
+    position: {
+        x: 100,
+        y: 100
+    },
+    inPorts: ['in1', 'in2'],
+    outPorts: ['out1', 'out2']
+});
+
+shape.addTo(graph);
+
+// adding/removing ports dynamically 
+shape.addInPort('in3');
+shape.removeOutPort('out1').addOutPort('out3');
+
+var link = new joint.shapes.devs.Link({
     source: {
-        id: sourcePortId,
-        port: sourcePort
+        id: shape.id,
+        port: 'out3'
     },
     target: {
-        id: targetPortId,
-        port: targetPort
+        x: 200,
+        y: 300
     }
 });
+
+link.addTo(graph);
 </code></pre>
 
-<p>Usage <a href='#dia.Link.prototype.addTo'>addTo</a> that put link to graph.</p>
+<h4>Hierarchical diagrams</h4>
 
-<pre><code>link.addTo(graph).reparent();</code></pre>
+There are two more shapes designed for hierarchical diagrams as part of the plugin - `devs.Atomic` and `devs.Coupled`. They inherit from the `devs.Model` and differ only in the color and size. The purpose of these shapes is to enable you to implement a custom logic in your application based on their type.
+For instance a `devs.Coupled` can embed `devs.Atomic`'s but not the other way round as shown in the demo below.</p>
+
+<p>When working with hierchical diagrams there is a few methods, that might come in handy.</p>
+
+<p><a href="#dia.Element.prototype.embed"><code>coupled.embed(atomic)</code></a> that can put the `atomic` shape into the `coupled`.</p>
+
+<p><a href="#dia.Element.prototype.fitEmbeds"><code>coupled.fitEmbeds()</code></a> that resizes the `coupled` shape, so it visually contains all shapes emedded in.</p>
+
+</p><a href="#dia.Link.prototype.reparent"><code>link.reparent()</code></a> that finds the best parent for the `link` based on the source and target element.</p>
+
+<iframe src="about:blank" data-src="./demo/devs/shapes.devs.html"></iframe>
