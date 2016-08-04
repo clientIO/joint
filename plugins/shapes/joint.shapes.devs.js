@@ -1,6 +1,3 @@
-//      JointJS library.
-//      (c) 2011-2016 client IO
-
 joint.shapes.devs = {};
 
 joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
@@ -99,7 +96,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
     updatePortItems: function(model, changed, opt) {
 
-        // Make sure all ports are uniq.
+        // Make sure all ports are unique.
         var inPorts = _.uniq(this.get('inPorts'));
         var outPorts = _.difference(_.uniq(this.get('outPorts')), inPorts);
 
@@ -129,10 +126,8 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
     _addGroupPort: function(port, group, opt) {
 
-        var ports = _.clone(this.get(group));
-
-        ports.push(port);
-        return this.set(group, ports, opt);
+        var ports = this.get(group);
+        return this.set(group, _.isArray(ports) ? ports.concat(port) : [port], opt);
     },
 
     addOutPort: function(port, opt) {
