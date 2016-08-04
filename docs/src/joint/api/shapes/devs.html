@@ -24,17 +24,13 @@
 <pre class="docs-method-signature"><code>element.addOutPort(port, [opt])</code></pre>
 <p>Add a single port into the `outPorts` array, where `port` is a name of the port.</p>
 
-<h5 id="shapes.devs.Model.createPortItem">shapes.devs.Model.createPortItem</h5>
-<pre class="docs-method-signature"><code>element.createPortItem(group, port)</code></pre>
-<p>Return <a href="#portinterface">port configuration</a> item. The createPortItem is for user customization.</p>
-
 <h5 id="shapes.devs.Model.changeInGroup">shapes.devs.Model.changeInGroup</h5>
 <pre class="docs-method-signature"><code>element.changeInGroup(properties, [opt])</code></pre>
-<p>change or add in group attributes, where `properties` is a object with new <a href="#portinterface">port configuration</a></p>
+<p>Change the settings for the input ports, where `properties` is an object with a <a href="#portinterface">group configuration</a>. It extends the previous settings with the new configuration by default. Pass <code>{ rewrite: true }</code> via <code>opt</code> to invalidate the previous settings.</p>
 
 <h5 id="shapes.devs.Model.changeOutGroup">shapes.devs.Model.changeOutGroup</h5>
 <pre class="docs-method-signature"><code>element.changeOutGroup(properties, [opt])</code></pre>
-<p>change or add out group attributes, where `properties` is a object with new <a href="#portinterface">port configuration</a></p>
+<p>Change the settings for the output ports, where `properties` is an object with a <a href="#portinterface">group configuration</a>. It extends the previous settings with the new configuration by default. Pass <code>{ rewrite: true }</code> via <code>opt</code> to invalidate the previous settings.</p>
 
 <h5 id="shapes.devs.Model.removeInPort">shapes.devs.Model.removeInPort</h5>
 <pre class="docs-method-signature"><code>element.removeInPort(port, [opt])</code></pre>
@@ -76,8 +72,12 @@ var link = new joint.shapes.devs.Link({
         y: 300
     }
 });
-
 link.addTo(graph);
+
+// moving the input ports from `left` to `top`
+shape.changeInGroup({ position: 'top' });
+// moving the output ports 'right' to 'bottom'
+shape.changeOutGroup({ position: 'bottom' });
 </code></pre>
 
 <h4>Hierarchical diagrams</h4>
