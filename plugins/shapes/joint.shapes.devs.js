@@ -1,6 +1,3 @@
-//      JointJS library.
-//      (c) 2011-2016 client IO
-
 joint.shapes.devs = {};
 
 joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
@@ -99,9 +96,9 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
     updatePortItems: function(model, changed, opt) {
 
-        // Make sure all ports are uniq.
+        // Make sure all ports are unique.
         var inPorts = _.uniq(this.get('inPorts'));
-        var outPorts = _.difference(this.get('outPorts'), inPorts);
+        var outPorts = _.difference(_.uniq(this.get('outPorts')), inPorts);
 
         var inPortItems = this.createPortItems('in', inPorts);
         var outPortItems = this.createPortItems('out', outPorts);
@@ -125,6 +122,52 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     createPortItems: function(group, ports) {
 
         return _.map(ports, _.bind(this.createPortItem, this, group));
+    },
+
+    _addGroupPort: function(port, group, opt) {
+
+        var ports = this.get(group);
+        return this.set(group, _.isArray(ports) ? ports.concat(port) : [port], opt);
+    },
+
+    addOutPort: function(port, opt) {
+
+        return this._addGroupPort(port, 'outPorts', opt);
+    },
+
+    addInPort: function(port, opt) {
+
+        return this._addGroupPort(port, 'inPorts', opt);
+    },
+
+    _removeGroupPort: function(port, group, opt) {
+
+        return this.set(group, _.without(this.get(group), port), opt);
+    },
+
+    removeOutPort: function(port, opt) {
+
+        return this._removeGroupPort(port, 'outPorts', opt);
+    },
+
+    removeInPort: function(port, opt) {
+
+        return this._removeGroupPort(port, 'inPorts', opt);
+    },
+
+    _changeGroup: function(group, properties, opt) {
+        
+        return this.prop('ports/groups/' + group, _.isObject(properties) ? properties : {}, opt);
+    },
+    
+    changeInGroup: function(properties, opt) {
+
+        return this._changeGroup('in', properties, opt);
+    },
+
+    changeOutGroup: function(properties, opt) {
+
+        return this._changeGroup('out', properties, opt);
     }
 });
 
