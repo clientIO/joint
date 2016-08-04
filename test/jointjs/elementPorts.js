@@ -70,7 +70,7 @@ QUnit.module('element ports', function() {
 
             shape.on('all', eventSpy);
             shape.removePort(shape.getPort('aaa'));
-            assert.ok(eventSpy.calledTwice);
+            assert.ok(eventSpy.calledTwice, 'called twice');
             assert.equal(shape.getPorts().length, 1);
             assert.equal(shape.getPorts()[0].id, 'xxx');
         });
@@ -85,6 +85,30 @@ QUnit.module('element ports', function() {
             assert.ok(eventSpy.calledTwice);
             assert.equal(shape.getPorts().length, 1);
             assert.equal(shape.getPorts()[0].id, 'xxx');
+        });
+
+        QUnit.test('remove port - invalid reference - should not remove any port', function(assert) {
+
+            var shape = create({ items: [{ id: 'aaa', 'group_id': 'in' }, { id: 'xxx', 'group_id': 'in' }] });
+
+            shape.removePort();
+            assert.equal(shape.getPorts().length, 2);
+
+            shape.removePort('ssdfdsf');
+            assert.equal(shape.getPorts().length, 2);
+        });
+
+        QUnit.test('getPortIndex', function(assert) {
+
+            var ports = [true, { id: 'aaa', 'group_id': 'in' }, { id: 'xxx', 'group_id': 'in' }, { x: 'whatever' }];
+            var shape = create({ items: ports });
+
+            assert.equal(shape.getPortIndex('xxx'), 2);
+            assert.equal(shape.getPortIndex(ports[1]), 1);
+            assert.equal(shape.getPortIndex(), -1);
+            assert.equal(shape.getPortIndex(null), -1);
+            assert.equal(shape.getPortIndex(undefined), -1);
+            assert.equal(shape.getPortIndex(''), -1);
         });
 
         QUnit.test('initialized with no ports', function(assert) {

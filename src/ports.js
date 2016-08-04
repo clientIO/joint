@@ -224,13 +224,16 @@
         },
 
         /**
-         * @param {string} id
+         * @param {string|Port} port port id or port
          * @returns {number} port index
          */
-        getPortIndex: function(id) {
+        getPortIndex: function(port) {
 
-            return _.findIndex(this.prop('ports/items'), function(port) {
-                return port.id && port.id === id;
+            var p = port || {};
+            var id = _.isString(p) ? p : p ? p.id : null;
+
+            return _.findIndex(this.prop('ports/items'), function(item) {
+                return item.id && item.id === id;
             });
         },
 
@@ -316,15 +319,15 @@
 
         removePort: function(port, opt) {
 
-            opt = opt || {};
+            var options = opt || {};
             var ports = _.clone(this.prop('ports/items'));
 
-            var index = _.isString(port) ? _.findIndex(ports, this.getPort(port)) : _.findIndex(ports, port);
+            var index = this.getPortIndex(port);
 
             if (index !== -1) {
                 ports.splice(index, 1);
-                opt.rewrite = true;
-                this.prop('ports/items', ports, opt);
+                options.rewrite = true;
+                this.prop('ports/items', ports, options);
             }
 
             return this;
