@@ -100,6 +100,7 @@ QUnit.module('element ports', function() {
 
         QUnit.test('getPortIndex', function(assert) {
 
+            var idObject = { };
             var ports = [
                 true,
                 { id: 'aaa', 'group_id': 'in' },
@@ -108,7 +109,8 @@ QUnit.module('element ports', function() {
                 { id: '' },
                 { id: 0 },
                 { id: false },
-                { id: true }
+                { id: true },
+                { id: idObject }
             ];
             var shape = create({ items: ports });
 
@@ -121,6 +123,7 @@ QUnit.module('element ports', function() {
             assert.equal(shape.getPortIndex(0), 5);
             assert.equal(shape.getPortIndex(false), 6);
             assert.equal(shape.getPortIndex(true), 7);
+            assert.equal(shape.getPortIndex(idObject), -1);
         });
 
         QUnit.test('initialized with no ports', function(assert) {

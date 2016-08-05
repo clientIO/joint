@@ -231,7 +231,7 @@
 
             var id = _.isObject(port) ? port.id : port;
 
-            if (!this._isValidId(id)) {
+            if (!this._isValidPortId(id)) {
                 return -1;
             }
 
@@ -297,7 +297,7 @@
             var ports = portsAttr.items || [];
 
             _.each(ports, function(p) {
-                if (!this._isValidId(p.id)) {
+                if (!this._isValidPortId(p.id)) {
                     p.id = joint.util.uuid();
                 }
             }, this);
@@ -314,9 +314,9 @@
          * @returns {boolean}
          * @private
          */
-        _isValidId: function(id) {
+        _isValidPortId: function(id) {
 
-            return !_.isNull(id) && !_.isUndefined(id);
+            return !_.isNull(id) && !_.isUndefined(id) && !_.isObject(id);
         },
 
         addPorts: function(ports, opt) {
