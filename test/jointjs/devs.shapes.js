@@ -1,12 +1,20 @@
-QUnit.module('devs.shapes plugin', function() {
+'use strict';
 
-    var atomic = new joint.shapes.devs.Atomic({
+QUnit.module('devs.shapes plugin', function(hooks) {
 
-        inPorts: ['xy'],
-        outPorts: ['x', 'y']
+    var atomic;
+    var coupled;
+
+    hooks.beforeEach(function() {
+
+        atomic = new joint.shapes.devs.Atomic({
+
+            inPorts: ['xy'],
+            outPorts: ['x', 'y']
+        });
+
+        coupled = new joint.shapes.devs.Coupled();
     });
-
-    var coupled = new joint.shapes.devs.Coupled();
 
     QUnit.module('devs.Model operations', function() {
 
@@ -98,6 +106,25 @@ QUnit.module('devs.shapes plugin', function() {
             atomic.changeOutGroup(null).changeOutGroup(undefined);
             assert.deepEqual(atomic.prop('ports/groups/in'), propIn);
             assert.deepEqual(atomic.prop('ports/groups/out'), propOut);
+        });
+
+        QUnit.test('add ports with duplicate names', function(assert) {
+
+            coupled.addOutPort('out')
+                   .addOutPort('out')
+                   .addInPort('in')
+                   .addInPort('out')
+                   .addInPort('in');
+
+            assert.equal(coupled.getPorts().length, 2);
+            assert.deepEqual(coupled.get('inPorts'), ['in', 'out', 'in']);
+            assert.deepEqual(coupled.get('outPorts'), ['out', 'out']);
+
+            coupled.removeOutPort('out');
+
+            assert.equal(coupled.getPorts().length, 2);
+            assert.deepEqual(coupled.get('inPorts'), ['in', 'out', 'in']);
+            assert.deepEqual(coupled.get('outPorts'), []);
         });
     });
 });
