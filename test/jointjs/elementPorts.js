@@ -94,13 +94,22 @@ QUnit.module('element ports', function() {
             shape.removePort();
             assert.equal(shape.getPorts().length, 2);
 
-            shape.removePort('ssdfdsf');
+            shape.removePort('non-existing-port');
             assert.equal(shape.getPorts().length, 2);
         });
 
         QUnit.test('getPortIndex', function(assert) {
 
-            var ports = [true, { id: 'aaa', 'group_id': 'in' }, { id: 'xxx', 'group_id': 'in' }, { x: 'whatever' }];
+            var ports = [
+                true,
+                { id: 'aaa', 'group_id': 'in' },
+                { id: 'xxx', 'group_id': 'in' },
+                { x: 'whatever' },
+                { id: '' },
+                { id: 0 },
+                { id: false },
+                { id: true }
+            ];
             var shape = create({ items: ports });
 
             assert.equal(shape.getPortIndex('xxx'), 2);
@@ -108,7 +117,10 @@ QUnit.module('element ports', function() {
             assert.equal(shape.getPortIndex(), -1);
             assert.equal(shape.getPortIndex(null), -1);
             assert.equal(shape.getPortIndex(undefined), -1);
-            assert.equal(shape.getPortIndex(''), -1);
+            assert.equal(shape.getPortIndex(''), 4);
+            assert.equal(shape.getPortIndex(0), 5);
+            assert.equal(shape.getPortIndex(false), 6);
+            assert.equal(shape.getPortIndex(true), 7);
         });
 
         QUnit.test('initialized with no ports', function(assert) {

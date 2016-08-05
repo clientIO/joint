@@ -229,12 +229,13 @@
          */
         getPortIndex: function(port) {
 
-            var p = port || {};
-            var id = _.isString(p) ? p : p ? p.id : null;
+            var id = _.isObject(port) ? port.id : port;
 
-            return _.findIndex(this.prop('ports/items'), function(item) {
-                return item.id && item.id === id;
-            });
+            if (!this._isValidId(id)) {
+                return -1;
+            }
+
+            return _.findIndex(this.prop('ports/items'), { id: id });
         },
 
         /**
@@ -296,7 +297,7 @@
             var ports = portsAttr.items || [];
 
             _.each(ports, function(p) {
-                if (!p.id) {
+                if (!this._isValidId(p.id)) {
                     p.id = joint.util.uuid();
                 }
             }, this);
@@ -306,6 +307,16 @@
             }
 
             return errorMessages;
+        },
+
+        /**
+         * @param {string} id port id
+         * @returns {boolean}
+         * @private
+         */
+        _isValidId: function(id) {
+
+            return !_.isNull(id) && !_.isUndefined(id);
         },
 
         addPorts: function(ports, opt) {
