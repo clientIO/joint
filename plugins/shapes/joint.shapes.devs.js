@@ -5,11 +5,11 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
     portMarkup: '<circle class="port-body"/>',
     portLabelMarkup: '<text class="port-label"/>',
-    inPorts: [],
-    outPorts: [],
     defaults: joint.util.deepSupplement({
 
         type: 'devs.Model',
+        inPorts: [],
+        outPorts: [],
         size: {
             width: 80,
             height: 80
