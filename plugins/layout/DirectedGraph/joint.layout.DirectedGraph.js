@@ -56,6 +56,8 @@ joint.layout.DirectedGraph = {
         });
 
         var glLabel = {};
+        var marginX = opt.marginX || 0;
+        var marginY = opt.marginY || 0;
 
         // Dagre layout accepts options as lower case.
         // Direction for rank nodes. Can be TB, BT, LR, or RL
@@ -69,9 +71,9 @@ joint.layout.DirectedGraph = {
         // Number of pixels between each rank in the layout.
         if (opt.rankSep) glLabel.ranksep = opt.rankSep;
         // Number of pixels to use as a margin around the left and right of the graph.
-        if (opt.marginX) glLabel.marginx = opt.marginX;
+        if (marginX) glLabel.marginx = marginX;
         // Number of pixels to use as a margin around the top and bottom of the graph.
-        if (opt.marginY) glLabel.marginy = opt.marginY;
+        if (marginY) glLabel.marginy = marginY;
 
         // Set the option object for the graph label.
         glGraph.setGraph(glLabel);
@@ -134,8 +136,15 @@ joint.layout.DirectedGraph = {
 
         graph.stopBatch('layout');
 
-        // Return an object with height and width of the graph.
-        return glGraph.graph();
+        // Width and height of the graph extended by margins.
+        var glSize = glGraph.graph();
+        // Return the bounding box of the graph after the layout.
+        return g.Rect(
+            marginX,
+            marginY,
+            Math.abs(glSize.width - 2 * marginX),
+            Math.abs(glSize.height - 2 * marginY)
+        );
     },
 
     fromGraphLib: function(glGraph, opt) {
@@ -144,7 +153,7 @@ joint.layout.DirectedGraph = {
 
         var importNode = opt.importNode || _.noop;
         var importEdge = opt.importEdge || _.noop;
-        var graph = this instanceof joint.dia.Graph ? this : new joint.dia.Graph;
+        var graph = (this instanceof joint.dia.Graph) ? this : new joint.dia.Graph;
 
         // Import all nodes.
         glGraph.nodes().forEach(function(node) {

@@ -121,5 +121,48 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
             assert.deepEqual(_.pick(elements[2].position(), 'x', 'y'), { x: 300, y: 20 });
             assert.deepEqual(_.pick(elements[3].position(), 'x', 'y'), { x: 400, y: 50 });
         });
+
+        QUnit.test('should return a rectangle representing the graph bounding box', function(assert) {
+
+            var bbox;
+
+            var elements = [
+                new joint.shapes.basic.Rect({ size: { width: 60, height: 100 }}),
+                new joint.shapes.basic.Rect({ size: { width: 40, height: 80 }}),
+                new joint.shapes.basic.Rect({ size: { width: 20, height: 30 }}),
+                new joint.shapes.basic.Rect({ size: { width: 30, height: 20 }})
+            ];
+
+            var links = [
+                new joint.dia.Link({ source: { id: elements[0].id }, target: { id: elements[1].id }}),
+                new joint.dia.Link({ source: { id: elements[1].id }, target: { id: elements[3].id }})
+            ];
+
+            graph.resetCells(elements.concat(links));
+
+            bbox = joint.layout.DirectedGraph.layout(graph);
+
+            assert.ok(bbox instanceof g.Rect);
+            assert.deepEqual(bbox.toJSON(), graph.getBBox().toJSON());
+
+            bbox = joint.layout.DirectedGraph.layout(graph, {
+                marginX: 50,
+                marginY: 100
+            });
+            assert.deepEqual(bbox.toJSON(), graph.getBBox().toJSON());
+
+            bbox = joint.layout.DirectedGraph.layout(graph, {
+                marginX: -50,
+                marginY: -100
+            });
+            assert.deepEqual(bbox.toJSON(), graph.getBBox().toJSON());
+
+            bbox = joint.layout.DirectedGraph.layout(graph, {
+                marginX: -500,
+                marginY: -1000
+            });
+            assert.deepEqual(bbox.toJSON(), graph.getBBox().toJSON());
+
+        });
     });
 });
