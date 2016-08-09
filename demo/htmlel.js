@@ -13,7 +13,7 @@ var paper = new joint.dia.Paper({
 
 joint.shapes.html = {};
 joint.shapes.html.Element = joint.shapes.basic.Rect.extend({
-    defaults: joint.util.deepSupplement({ type: 'html.Element' }, joint.shapes.basic.Rect.prototype.defaults)
+    defaults: _.defaultsDeep({ type: 'html.Element' }, joint.shapes.basic.Rect.prototype.defaults)
 });
 
 // Create a custom view for that element that displays an HTML div above it.

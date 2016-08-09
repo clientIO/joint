@@ -26,7 +26,7 @@ joint.shapes.basic.Arrow = joint.dia.Element.extend({
 
     markup: '<g class="rotatable"><g class="scalable"></g><path/><text/></g>',
     
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
     
         type: 'basic.Arrow',
         size: { width: 100, height: 50 },

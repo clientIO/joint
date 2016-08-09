@@ -15,7 +15,7 @@ joint.shapes.custom = {};
 joint.shapes.custom.ElementLink = joint.shapes.basic.Rect.extend({
     // Note the `<a>` SVG element surrounding the rest of the markup.
     markup: '<a><g class="rotatable"><g class="scalable"><rect/></g><text/></g></a>',
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
         type: 'custom.ElementLink'
     }, joint.shapes.basic.Rect.prototype.defaults)
 });
@@ -23,7 +23,7 @@ joint.shapes.custom.ElementLink = joint.shapes.basic.Rect.extend({
 joint.shapes.custom.ElementLabelLink = joint.shapes.basic.Rect.extend({
     // Note the `<a>` SVG element surrounding the rest of the markup.
     markup: '<g class="rotatable"><g class="scalable"><rect/></g><a><text/></a></g>',
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
         type: 'custom.ElementLabelLink'
     }, joint.shapes.basic.Rect.prototype.defaults)
 });

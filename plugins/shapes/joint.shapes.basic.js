@@ -5,7 +5,7 @@ joint.shapes.basic = {};
 
 joint.shapes.basic.Generic = joint.dia.Element.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'basic.Generic',
         attrs: {
@@ -19,7 +19,7 @@ joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><rect/></g><text/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'basic.Rect',
         attrs: {
@@ -58,7 +58,7 @@ joint.shapes.basic.Text = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><text/></g></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'basic.Text',
         attrs: {
@@ -75,7 +75,7 @@ joint.shapes.basic.Circle = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><circle/></g><text/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'basic.Circle',
         size: { width: 60, height: 60 },
@@ -105,7 +105,7 @@ joint.shapes.basic.Ellipse = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><ellipse/></g><text/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'basic.Ellipse',
         size: { width: 60, height: 40 },
@@ -136,7 +136,7 @@ joint.shapes.basic.Polygon = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><polygon/></g><text/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'basic.Polygon',
         size: { width: 60, height: 40 },
@@ -163,7 +163,7 @@ joint.shapes.basic.Polyline = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><polyline/></g><text/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'basic.Polyline',
         size: { width: 60, height: 40 },
@@ -190,7 +190,7 @@ joint.shapes.basic.Image = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><image/></g><text/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'basic.Image',
         attrs: {
@@ -212,7 +212,7 @@ joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><path/></g><text/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'basic.Path',
         size: { width: 60, height: 60 },
@@ -237,7 +237,7 @@ joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
 
 joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'basic.Rhombus',
         attrs: {
@@ -388,7 +388,7 @@ joint.shapes.basic.TextBlock = joint.shapes.basic.Generic.extend({
         '</g>'
     ].join(''),
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'basic.TextBlock',
 

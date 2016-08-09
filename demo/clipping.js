@@ -19,7 +19,7 @@ joint.shapes.fsa.MyState = joint.shapes.fsa.State.extend({
         '</g><text/></g>'
     ].join(''),
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
         type: 'fsa.MyState',
         size: { width: 60, height: 60 },
         attrs: {

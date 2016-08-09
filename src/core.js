@@ -283,10 +283,7 @@ var joint = {
         // property function's call method.
         supplement: function() {
 
-            this.mixin.supplement = true;
-            var ret = this.mixin.apply(this, arguments);
-            this.mixin.supplement = false;
-            return ret;
+            return _.defaults.apply(this, arguments);
         },
 
         // Same as `mixin()` but deep version.
@@ -301,10 +298,7 @@ var joint = {
         // Same as `supplement()` but deep version.
         deepSupplement: function() {
 
-            this.mixin.deep = this.mixin.supplement = true;
-            var ret = this.mixin.apply(this, arguments);
-            this.mixin.deep = this.mixin.supplement = false;
-            return ret;
+            return _.defaultsDeep.apply(this, arguments);
         },
 
         normalizeEvent: function(evt) {
