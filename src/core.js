@@ -233,47 +233,7 @@ var joint = {
         // arguments. Inherited properties are ignored.
         mixin: function() {
 
-            var target = arguments[0];
-
-            for (var i = 1, l = arguments.length; i < l; i++) {
-
-                var extension = arguments[i];
-
-                // Only functions and objects can be mixined.
-
-                if ((Object(extension) !== extension) &&
-                    !_.isFunction(extension) &&
-                    (extension === null || extension === undefined)) {
-
-                    continue;
-                }
-
-                _.each(extension, function(copy, key) {
-
-                    if (this.mixin.deep && (Object(copy) === copy)) {
-
-                        if (!target[key]) {
-
-                            target[key] = _.isArray(copy) ? [] : {};
-                        }
-
-                        this.mixin(target[key], copy);
-                        return;
-                    }
-
-                    if (target[key] !== copy) {
-
-                        if (!this.mixin.supplement || !target.hasOwnProperty(key)) {
-
-                            target[key] = copy;
-                        }
-
-                    }
-
-                }, this);
-            }
-
-            return target;
+            return _.assign.apply(this, arguments);
         },
 
         // Copy all properties to the first argument from the following
@@ -289,10 +249,7 @@ var joint = {
         // Same as `mixin()` but deep version.
         deepMixin: function() {
 
-            this.mixin.deep = true;
-            var ret = this.mixin.apply(this, arguments);
-            this.mixin.deep = false;
-            return ret;
+            return _.merge.apply(this, arguments);
         },
 
         // Same as `supplement()` but deep version.
