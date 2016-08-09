@@ -41,7 +41,7 @@ QUnit.module('devs.shapes plugin', function(hooks) {
         QUnit.test('removeOutPort', function(assert) {
 
             var outPorts = _.clone(atomic.get('outPorts'));
-            var inPorts =  _.clone(atomic.get('inPorts'));
+            var inPorts = _.clone(atomic.get('inPorts'));
 
             atomic.removeOutPort(outPorts.shift());
             assert.equal(atomic.getPorts().length, outPorts.length + inPorts.length);
@@ -97,7 +97,7 @@ QUnit.module('devs.shapes plugin', function(hooks) {
             var propIn = _.cloneDeep(atomic.prop('ports/groups/in'));
             var propOut = _.cloneDeep(atomic.prop('ports/groups/out'));
 
-            propOut.position.name = 'bottom';            
+            propOut.position.name = 'bottom';
             atomic.changeOutGroup({ position: 'bottom' });
 
             assert.deepEqual(atomic.prop('ports/groups/in'), propIn);
@@ -111,10 +111,10 @@ QUnit.module('devs.shapes plugin', function(hooks) {
         QUnit.test('add ports with duplicate names', function(assert) {
 
             coupled.addOutPort('out')
-                   .addOutPort('out')
-                   .addInPort('in')
-                   .addInPort('out')
-                   .addInPort('in');
+                .addOutPort('out')
+                .addInPort('in')
+                .addInPort('out')
+                .addInPort('in');
 
             assert.equal(coupled.getPorts().length, 2);
             assert.deepEqual(coupled.get('inPorts'), ['in', 'out', 'in']);
