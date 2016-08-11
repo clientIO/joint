@@ -4,17 +4,18 @@
 
 <h3>Usage</h3>
 
-<p><code>joint.layout.DirectedGraph</code> plugin exposes the <code>joint.layout.DirectedGraph.layout(graph, opt)</code> function.
-    The first parameter <code>graph</code> is the graph we want to layout. The second parameter <code>options</code> is an
+<p><code>joint.layout.DirectedGraph</code> plugin exposes the <code>joint.layout.DirectedGraph.layout(graphOrElements, opt)</code> function.
+    The first parameter <code>graphOrElements</code> is the <code>joint.dia.Graph</code> or an array of <code>joint.dia.Elements</code> we want to layout. The second parameter <code>options</code> is an
     object that contains various options for configuring the layout.
 </p>
 
-<pre><code>var res = joint.layout.DirectedGraph.layout(graph, {
+<pre><code>var graphBBox = joint.layout.DirectedGraph.layout(graph, {
     nodeSep: 50,
     edgeSep: 80,
     rankDir: "TB"
 });
-console.log(res.width, res.height);</code></pre>
+console.log('x:', graphBBox.x, 'y:', graphBBox.y)
+console.log('width:', graphBBox.width, 'height:', graphBBox.height);</code></pre>
 
 <iframe src="about:blank" data-src="demo/layout/DirectedGraph"></iframe>
 <p>A full blog post explaining this example in more detail can be found <a href="http://www.daviddurman.com/automatic-graph-layout-with-jointjs-and-dagre.html">here</a>.</p>
@@ -37,6 +38,7 @@ console.log(res.width, res.height);</code></pre>
     <tr><th>marginX</th><td>number of pixels to use as a margin around the left and right of the graph.</td></tr>
     <tr><th>marginY</th><td>number of pixels to use as a margin around the top and bottom of the graph.</td></tr>
     <tr><th>resizeClusters</th><td>set to <code>false</code> if you don't want parent elements to stretch in order to fit all their embedded children. Default is <code>true</code>.</td></tr>
+    <tr><th>clusterPadding</th><td>A gap between the parent element and the boundary of its embedded children. It could be a number or an object e.g. <code>{ left: 10, right: 10, top: 30, bottom: 10 }</code>. It defaults to <code>10</code>.</td></tr>
     <tr><th>setPosition(element, position)</th><td>a function that will be used to set the position of elements at the end of the layout. This is useful
     if you don't want to use the default <code>element.set('position', position)</code> but want to set the position in an animated fashion via <a href="#dia.Element.prototype.transition">transitions</a>.</td></tr>
     <tr><th>setLinkVertices(link, vertices)</th><td>a function that will be used to set the vertices of links at the end of the layout. This is useful
