@@ -54,7 +54,6 @@ QUnit.module('elementView', function(hooks) {
             });
         });
 
-
         QUnit.test('rotated elementView should update the size when model is resized', function(assert) {
 
             elementView.model.rotate(90).resize(100, 200).translate(100, 100);
@@ -65,29 +64,6 @@ QUnit.module('elementView', function(hooks) {
                 width: 200,
                 height: 100
             });
-        });
-
-    });
-
-
-    QUnit.module('highlighting - addClass', function() {
-
-        QUnit.test('highlight unhighlight - default class name', function(assert) {
-
-            elementView.highlight(null, { highlighter: { name: 'addClass' }});
-            assert.ok(elementView.$el.hasClass(joint.highlighters.addClass.className));
-
-            elementView.unhighlight(null, { highlighter: { name: 'addClass' }});
-            assert.notOk(elementView.$el.hasClass(joint.highlighters.addClass.className));
-        });
-
-        QUnit.test('highlight unhighlight - with defined class name', function(assert) {
-
-            elementView.highlight(null, { highlighter: { name: 'addClass', options: { className: 'xx' }}});
-            assert.ok(elementView.$el.hasClass('xx'));
-
-            elementView.unhighlight(null, { highlighter: { name: 'addClass', options: { className: 'xx' }}});
-            assert.notOk(elementView.$el.hasClass('xx'));
         });
     });
 });
