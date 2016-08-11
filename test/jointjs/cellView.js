@@ -2,6 +2,7 @@
 
 QUnit.module('cellView', function(hooks) {
 
+    var paper;
     var cellView;
 
     hooks.beforeEach(function() {
@@ -9,7 +10,7 @@ QUnit.module('cellView', function(hooks) {
         // !! TODO !!
         // Should be able to create a CellView instance without the graph or paper.
 
-        var paper = new joint.dia.Paper({
+        paper = new joint.dia.Paper({
             model: new joint.dia.Graph
         });
 
@@ -66,6 +67,43 @@ QUnit.module('cellView', function(hooks) {
 
             assert.notOk(cellView.can('someFeature'));
             assert.ok(called);
+        });
+    });
+
+    QUnit.module('highlighting', function() {
+
+        QUnit.test('default highlighter', function(assert) {
+
+            paper.options.highlighting['default'] = { name: 'addClass' };
+            cellView.highlight();
+            assert.ok(cellView.$el.hasClass(joint.highlighters.addClass.className));
+        });
+
+        QUnit.test('highlighter specified by name only', function(assert) {
+
+            cellView.highlight(null, { highlighter: 'addClass' });
+            assert.ok(cellView.$el.hasClass(joint.highlighters.addClass.className));
+        });
+
+        QUnit.module('addClass', function() {
+
+            QUnit.test('default class name', function(assert) {
+
+                cellView.highlight(null, { highlighter: { name: 'addClass' }});
+                assert.ok(cellView.$el.hasClass(joint.highlighters.addClass.className));
+
+                cellView.unhighlight(null, { highlighter: { name: 'addClass' }});
+                assert.notOk(cellView.$el.hasClass(joint.highlighters.addClass.className));
+            });
+
+            QUnit.test('with defined class name', function(assert) {
+
+                cellView.highlight(null, { highlighter: { name: 'addClass', options: { className: 'xx' }}});
+                assert.ok(cellView.$el.hasClass('xx'));
+
+                cellView.unhighlight(null, { highlighter: { name: 'addClass', options: { className: 'xx' }}});
+                assert.notOk(cellView.$el.hasClass('xx'));
+            });
         });
     });
 });

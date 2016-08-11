@@ -891,6 +891,13 @@ joint.dia.Paper = joint.mvc.View.extend({
         // For example, if you want to NOT highlight when embedding elements.
         if (!highlighterDef) return false;
 
+        // Allow specifying a highlighter by name.
+        if (_.isString(highlighterDef)) {
+            highlighterDef = {
+                name: highlighterDef
+            };
+        }
+
         var name = highlighterDef.name;
         var highlighter = paperOpt.highlighterNamespace[name];
 
@@ -907,7 +914,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         return {
             highlighter: highlighter,
-            options: highlighterDef.options,
+            options: highlighterDef.options || {},
             name: name
         };
     },
