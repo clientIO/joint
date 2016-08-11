@@ -70,7 +70,7 @@ graph.addCell(tbl);
 
 var MyElementWithPorts = joint.shapes.basic.Generic.extend({
 
-   defaults: joint.util.deepSupplement({
+   defaults: _.defaultsDeep({
 
        markup: [
            '<g class="rotatable">',
@@ -173,7 +173,7 @@ joint.shapes.basic.DecoratedRect = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><rect/></g><image/><text/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'basic.DecoratedRect',
         size: { width: 100, height: 60 },
@@ -201,7 +201,7 @@ joint.shapes.basic.Cylinder = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><path/></g><text/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'basic.Cylinder',
         size: { width: 40, height: 40 },

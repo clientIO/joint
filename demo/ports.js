@@ -58,7 +58,7 @@ joint.shapes.devs.MyImageModel = joint.shapes.basic.Rect.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><image/><text class="label"/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'devs.MyImageModel',
         size: { width: 80, height: 80 },
@@ -136,7 +136,7 @@ joint.shapes.devs.CircleModel = joint.shapes.basic.Circle.extend({
     markup: '<g class="rotatable"><g class="scalable"><circle class="body"/></g><text class="label"/></g>',
     portMarkup: '<rect/>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'devs.CircleModel',
         attrs: {
@@ -220,7 +220,7 @@ joint.shapes.myShapes.Component = joint.shapes.basic.Rect.extend({
     portMarkup: '<circle r="10" fill="#ff0000" stroke="#000000"/>',
     portLabelMarkup: '<text fill="#ff0000" />',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'myShapes.Component',
         size: { width: 1, height: 1 },

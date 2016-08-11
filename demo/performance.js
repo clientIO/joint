@@ -43,7 +43,7 @@ joint.shapes.basic.ConveyorElement = joint.dia.Element.extend({
 
     PADDING: 2,
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'basic.ConveyorElement',
         hasPallet: false

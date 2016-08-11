@@ -12,7 +12,7 @@ var paper = new joint.dia.Paper({
 
 joint.shapes.devs.StartFinish = joint.shapes.devs.Model.extend({
     markup: '<g class="rotatable"><g class="scalable"><rect/></g><image/><text class="label"/><g class="inPorts"/><g class="outPorts"/></g>',
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
        type: 'devs.StartFinish',
        attrs: {
            rect: {
@@ -51,7 +51,7 @@ joint.shapes.devs.StartFinishView = joint.shapes.devs.ModelView;
 
 joint.shapes.devs.Operation = joint.shapes.devs.Model.extend({
    markup: '<g class="rotatable"><g class="scalable"><path/></g><image/><text class="label"/><g class="inPorts"/><g class="outPorts"/></g>',
-   defaults: joint.util.deepSupplement({
+   defaults: _.defaultsDeep({
 
        type: 'devs.Operation',
        size: { width: 50, height: 25 },

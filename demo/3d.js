@@ -11,7 +11,7 @@ var paper = new joint.dia.Paper({
 
 joint.shapes.basic.Cube = joint.shapes.basic.Generic.extend({
 
-   defaults: joint.util.deepSupplement({
+   defaults: _.defaultsDeep({
 
        type: 'basic.Cube',
 
