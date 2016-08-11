@@ -51,10 +51,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                     },
                     label: {
                         position: {
-                            name: 'left',
-                            args: {
-                                y: 10
-                            }
+                            name: 'left'
                         }
                     }
                 },
@@ -75,10 +72,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
                     },
                     label: {
                         position: {
-                            name: 'right',
-                            args: {
-                                y: 10
-                            }
+                            name: 'right'
                         }
                     }
                 }
@@ -184,6 +178,28 @@ joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
             '.label': {
                 text: 'Atomic'
             }
+        },
+        ports: {
+            groups: {
+                'in': {
+                    label: {
+                        position: {
+                            args: {
+                                y: 10
+                            }
+                        }
+                    }
+                },
+                'out': {
+                    label: {
+                        position: {
+                            args: {
+                                y: 10
+                            }
+                        }
+                    }
+                }
+            }
         }
     }, joint.shapes.devs.Model.prototype.defaults)
 });
@@ -200,6 +216,28 @@ joint.shapes.devs.Coupled = joint.shapes.devs.Model.extend({
         attrs: {
             '.label': {
                 text: 'Coupled'
+            }
+        },
+        ports: {
+            groups: {
+                'in': {
+                    label: {
+                        position: {
+                            args: {
+                                y: 10
+                            }
+                        }
+                    }
+                },
+                'out': {
+                    label: {
+                        position: {
+                            args: {
+                                y: 10
+                            }
+                        }
+                    }
+                }
             }
         }
     }, joint.shapes.devs.Model.prototype.defaults)
