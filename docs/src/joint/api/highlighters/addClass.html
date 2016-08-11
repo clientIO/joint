@@ -1,0 +1,16 @@
+<p>Toggles a class name on the cell view's <code>$el</code>.</p>
+
+<p>Available options:</p>
+<ul>
+    <li><b>className</b> - the class name to toggle on the cell's <code>$el</code></li>
+</ul>
+
+<p>Example usage:</p>
+<pre><code>cellView.highlight(null/* defaults to cellView.el */, {
+    highlighter: {
+        name: 'addClass',
+        options: {
+            className: 'some-custom-class'
+        }
+    }
+});</code></pre>

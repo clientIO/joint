@@ -588,6 +588,13 @@ module.exports = function(grunt) {
     function processItem(baseDir, item) {
 
         item.key = docFilePathToKey(item.file, baseDir);
+        item.title = item.key;
+
+        var titleParts = item.title.split('.');
+        if (titleParts[titleParts.length - 1] === 'intro') {
+            item.title = titleParts.slice(0, titleParts.length - 1).join('.');
+        }
+
         return item;
     }
 

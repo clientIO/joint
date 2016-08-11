@@ -1,5 +1,4 @@
-
-<p><b>joint.dia.Element</b> is the basic model for diagram elements. It's a <a href="http://backbonejs.org/#Model">Backbone model</a> with couple of additional important properties. The first one to mention is a unique identifier for the element. Each element has a unique ID that is stored in the <b><code>id</code></b> property. This <code>id</code> has a form of pseudo-generated <a href="http://en.wikipedia.org/wiki/Universally_unique_identifier">UUID</a>. Other properties can be put into three groups:</p>
+<p>The model for diagram elements. It inherits from <a href="#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to elements. These properties can be put into three groups:</p>
 
 <h3>Geometry</h3>
 <p>Coordinates of an element are stored in the <b><code>position</code></b> property that is an object with <b><code>x</code></b> and <b><code>y</code></b> keys. <code>position</code> can be accessed or set directly using the regular Backbone <code>set()</code>/<code>get()</code> methods or through the <a href="#dia.Element.prototype.translate">translate</a> method.</p>

@@ -1,0 +1,12 @@
+<p>Changes the opacity of the cell view's <code>$el</code>.</p>
+
+<p>When a cell is highlighted with the opacity highlighter, its <code>$el</code> is given the <code data-lang="css">.joint-highlight-opacity</code> class. To customize the look of this highlighted state, you can add custom CSS rules that affect this class name.</p>
+
+<p>This highlighter does not currently have any options.</p>
+
+<p>Example usage:</p>
+<pre><code>cellView.highlight(null/* defaults to cellView.el */, {
+    highlighter: {
+        name: 'opacity'
+    }
+});</code></pre>

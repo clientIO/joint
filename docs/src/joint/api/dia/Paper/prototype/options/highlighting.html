@@ -1,0 +1,28 @@
+<p><code>highlighting</code> - Configure which highlighter to use (and with which options) for each type of interaction.</p>
+
+<h5>List of highlighting interactions</h5>
+<ul>
+    <li><b>default</b> - the default highlighter to use (and options) when none is specified</li>
+    <li><b>connecting</b> - when a valid link connection can be made to an element</li>
+    <li><b>embedding</b> - when a cell is dragged over another cell in embedding mode</li>
+    <li><b>magnetAvailability</b> - when showing all magnets to which a valid connection can be made</li>
+    <li><b>elementAvailability</b> - when showing all elements to which a valid connection can be made</li>
+</ul>
+
+<p>Example usage:</p>
+<pre><code>new joint.dia.Paper({
+    highlighting: {
+        'default': {
+            name: 'stroke',
+            options: {
+                padding: 3
+            }
+        },
+        connecting: {
+            name: 'addClass',
+            options: {
+                className: 'highlight-connecting'
+            }
+        }
+    }
+})</code></pre>

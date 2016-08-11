@@ -1,0 +1,30 @@
+<p>Highlighters can be used to provide visual emphasis to an element; during user interactions for example.</p>
+
+<iframe src="about:blank" data-src="demo/highlighters/stroke.html"></iframe>
+
+<p>In the above demo, we listen to the paper for the <code>cell:pointerclick</code> event, then highlight the cell that was clicked.</p>
+
+<pre><code>paper.on('cell:pointerclick', function(cellView) {
+    cellView.highlight();
+});</code></pre>
+
+<p>As you can see it is possible to highlight a cell as follows:</p>
+<pre><code>cellView.highlight();</code></pre>
+
+<p>Unhighlighting a cell is simple too:</p>
+<pre><code>cellView.unhighlight();</code></pre>
+
+<p>To highlight a cell using a specific highlighter (and options):</p>
+<pre><code>cellView.highlight(null/* defaults to cellView.el */, {
+    highlighter: {
+        name: 'stroke',
+        options: {
+            width: 3
+        }
+    }
+});</code></pre>
+
+<p>Or you can specify just the highlighter's name (its default options will be used):</p>
+<pre><code>cellView.highlight(null/* defaults to cellView.el */, {
+    highlighter: 'stroke'
+});</code></pre>
