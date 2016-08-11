@@ -127,11 +127,10 @@ Copyright (c) 2013 client IO
 
 ## Contributors
 
-- [David Durman](http://github.com/DavidDurman)
-- [Roman Bruckner](http://github.com/kumilingus)
-- [Emanuele Palombo](http://github.com/elbowz)
-- [Charles Hill](http://github.com/chill117)
-- [Daniel K.](http://github.com/FredyC)
-- [Vladimir Talas](http://github.com/vtalas)
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/DavidDurman/joint/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+- [David Durman](https://github.com/DavidDurman)
+- [Roman Bruckner](https://github.com/kumilingus)
+- [Emanuele Palombo](https://github.com/elbowz)
+- [Charles Hill](https://github.com/chill117)
+- [Daniel K.](https://github.com/FredyC)
+- [Vladimir Talas](https://github.com/vtalas)
+- [Petr Skala](https://github.com/pskala)
