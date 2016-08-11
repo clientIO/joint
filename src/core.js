@@ -231,32 +231,20 @@ var joint = {
         // Copy all the properties to the first argument from the following arguments.
         // All the properties will be overwritten by the properties from the following
         // arguments. Inherited properties are ignored.
-        mixin: function() {
-
-            return _.assign.apply(this, arguments);
-        },
+        mixin: _.assign,
 
         // Copy all properties to the first argument from the following
         // arguments only in case if they don't exists in the first argument.
         // All the function propererties in the first argument will get
         // additional property base pointing to the extenders same named
         // property function's call method.
-        supplement: function() {
-
-            return _.defaults.apply(this, arguments);
-        },
+        supplement: _.defaults,
 
         // Same as `mixin()` but deep version.
-        deepMixin: function() {
-
-            return _.merge.apply(this, arguments);
-        },
+        deepMixin: _.mixin,
 
         // Same as `supplement()` but deep version.
-        deepSupplement: function() {
-
-            return _.defaultsDeep.apply(this, arguments);
-        },
+        deepSupplement: _.defaultsDeep,
 
         normalizeEvent: function(evt) {
 
