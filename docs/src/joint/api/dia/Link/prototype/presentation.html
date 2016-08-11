@@ -5,11 +5,12 @@ link.set('vertices', [{ x: 100, y: 120 }, { x: 150, y: 60 }])</code></pre>
 
 <p>A <code>router</code> takes an array of vertices defined on the model and transforms them to an array of points (<b>route</b>) that the link should go through. The difference between vertices and the route is that vertices are user-defined whilst route is computed.</p>
 
-<p>There are three built-in routers (manhattan, metro and orthogonal) to your disposal. The first two are so called &quot;smart routers&quot; and they automatically avoid elements that are in their way.</p>
+<p>There are four  built-in routers (manhattan, metro, orthogonal and oneSide) to your disposal. The first two are so called &quot;smart routers&quot; and they automatically avoid elements that are in their way.</p>
 
-<p>The <code>orthogonal</code> and <code>manhattan</code> routers generate points that can be connected by vertical and horizontal line segments only. The <code>metro</code> router generates points that can be connected also with diagonal line segments.</p>
+<p>The <code>orthogonal</code>, <code>manhattan</code> and <code>oneSide</code> routers generate points that can be connected by vertical and horizontal line segments only. The <code>metro</code> router generates points that can be connected also with diagonal line segments.</p>
 
 <pre><code>link.set('router', { name: 'manhattan' });
+link.set('router', { name: 'oneSide' }});
 link.set('router', { name: 'metro' });
 link.set('router', { name: 'orthogonal' });</code></pre>
 
@@ -38,9 +39,24 @@ link.set('manhattan', true)</code></pre>
     }
 });</code></pre>
 
+<p id="joint.routers.oneSide">The <code>oneSide</code> routes the link in a given direction, creating exactly three orthogonal segments. It accepts the following options.<p>
+<ul>
+  <li><code>side</code> - the direction of the route. Either <code>'left'</code>, <code>'right'</code>, <code>'top'</code> or <code>'bottom'</code> <i>(default)</i>.</li>
+  <li><code>padding</code> - a minimal gap between a connection point and the first/last vertex. It defaults to <code>40</code>.</li>
+</ul>
+
+<p>Example:</p>
+<pre><code>link.set('router', {
+    name: oneSide',
+    args: {
+        side: 'top',
+        padding: 30
+    }
+});</code></pre>
+
 <p>New routers can be defined in the <code>joint.routers.[name of your router]</code> namespace or passed directly as functions to the <code>router</code> property of your links. The router is a function of the form <code>function(vertices, args, linkView)</code> and must return an array of vertices that the link should go through.</p>
 
-<p>A <code>connector</code> takes points returned by a router and generate SVG path commands so the link can be rendered. There are three connectors (normal, smooth and rounded) to your disposal.</p><p>The <code>normal</code> connector connects points with straight lines. The <code>rounded</code> connector does the same but it smooths all the edges. The <code>smooth</code> connector interpolates the points using a cubic bezier curve.</p>
+<p>A <code>connector</code> takes points returned by a router and generate SVG path commands so the link can be rendered. There are four connectors (normal, smooth, rounded and jumpover) to your disposal.</p><p>The <code>normal</code> connector connects points with straight lines. The <code>rounded</code> connector does the same but it smooths all the edges. The <code>smooth</code> connector interpolates the points using a cubic bezier curve.</p>
 
 <pre><code>link.set('connector', { name: 'normal' });
 link.set('connector', { name: 'smooth' });</code></pre>
@@ -50,6 +66,15 @@ link.set('connector', { name: 'smooth' });</code></pre>
 <p>The curve of edges can be specified by <code>radius</code> argument passed to the <code>rounded</code> connector.</p>
 
 <pre><code>link.set('connector', { name: 'rounded', args: { radius: 10 }});</code></pre>
+
+<p id="joint.connectors.jumpover">The <code>jumpover</code> connector draws straight lines with small arcs at positions, where a link crosses an another. It accepts the following options.</p>
+
+<ul>
+  <li><code>size</code> - the size of the jump. It defaults to <code>5</code>.</li>
+  <li><code>type</code> - the style of the jump. Either <code>'arc'</code> <i>(default)</i>, <code>'cubic'</code> <i>(similar to arc, but uses normalized path data commands only)</i> or <code>'gap'</code>.</li>
+</ul>
+
+<pre><code>link.set('connector', { name: 'jumpover', args: { type: 'gap' }});</code></pre>
 
 <p>To keep backwards compatible it's possible to set the <code>smooth</code> property to <code>true</code> in order to enable smooth connector.</p>
 
