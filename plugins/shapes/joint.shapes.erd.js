@@ -7,7 +7,7 @@ joint.shapes.erd.Entity = joint.dia.Element.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'erd.Entity',
         size: { width: 150, height: 60 },
@@ -34,7 +34,7 @@ joint.shapes.erd.Entity = joint.dia.Element.extend({
 
 joint.shapes.erd.WeakEntity = joint.shapes.erd.Entity.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'erd.WeakEntity',
 
@@ -50,7 +50,7 @@ joint.shapes.erd.Relationship = joint.dia.Element.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'erd.Relationship',
         size: { width: 80, height: 80 },
@@ -77,7 +77,7 @@ joint.shapes.erd.Relationship = joint.dia.Element.extend({
 
 joint.shapes.erd.IdentifyingRelationship = joint.shapes.erd.Relationship.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'erd.IdentifyingRelationship',
 
@@ -93,7 +93,7 @@ joint.shapes.erd.Attribute = joint.dia.Element.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><ellipse class="outer"/><ellipse class="inner"/></g><text/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'erd.Attribute',
         size: { width: 100, height: 50 },
@@ -124,7 +124,7 @@ joint.shapes.erd.Attribute = joint.dia.Element.extend({
 
 joint.shapes.erd.Multivalued = joint.shapes.erd.Attribute.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'erd.Multivalued',
 
@@ -137,7 +137,7 @@ joint.shapes.erd.Multivalued = joint.shapes.erd.Attribute.extend({
 
 joint.shapes.erd.Derived = joint.shapes.erd.Attribute.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'erd.Derived',
 
@@ -151,7 +151,7 @@ joint.shapes.erd.Derived = joint.shapes.erd.Attribute.extend({
 
 joint.shapes.erd.Key = joint.shapes.erd.Attribute.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'erd.Key',
 
@@ -164,7 +164,7 @@ joint.shapes.erd.Key = joint.shapes.erd.Attribute.extend({
 
 joint.shapes.erd.Normal = joint.shapes.erd.Attribute.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'erd.Normal',
 
@@ -177,7 +177,7 @@ joint.shapes.erd.ISA = joint.dia.Element.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><polygon/></g><text/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'erd.ISA',
         size: { width: 100, height: 50 },

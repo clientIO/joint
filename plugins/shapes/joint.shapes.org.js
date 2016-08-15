@@ -7,7 +7,7 @@ joint.shapes.org.Member = joint.dia.Element.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><rect class="card"/><image/></g><text class="rank"/><text class="name"/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'org.Member',
         size: { width: 180, height: 70 },
