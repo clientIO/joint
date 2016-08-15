@@ -2,10 +2,11 @@
 
     var PortData = function(data) {
 
+        var clonedData = _.cloneDeep(data);
         this.ports = [];
-        this.groups = this._getNormalizedGroups(data);
+        this.groups = this._getNormalizedGroups(clonedData);
 
-        this._init(data);
+        this._init(clonedData);
     };
 
     PortData.prototype = {
@@ -25,6 +26,7 @@
         },
 
         addPort: function(port) {
+
             port = this._evaluatePort(port);
             this.ports.push(port);
         },
