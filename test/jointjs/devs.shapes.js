@@ -81,8 +81,8 @@ QUnit.module('devs.shapes plugin', function(hooks) {
             var propIn = _.cloneDeep(atomic.prop('ports/groups/in'));
             var propOut = _.cloneDeep(atomic.prop('ports/groups/out'));
 
+            propIn.position = 'top';
             atomic.changeInGroup({ position: 'top' });
-            propIn.position.name = 'top';
 
             assert.deepEqual(atomic.prop('ports/groups/in'), propIn);
             assert.deepEqual(atomic.prop('ports/groups/out'), propOut);
@@ -97,7 +97,7 @@ QUnit.module('devs.shapes plugin', function(hooks) {
             var propIn = _.cloneDeep(atomic.prop('ports/groups/in'));
             var propOut = _.cloneDeep(atomic.prop('ports/groups/out'));
 
-            propOut.position.name = 'bottom';
+            propOut.position = 'bottom';
             atomic.changeOutGroup({ position: 'bottom' });
 
             assert.deepEqual(atomic.prop('ports/groups/in'), propIn);
