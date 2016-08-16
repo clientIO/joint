@@ -582,17 +582,17 @@ module.exports = function(grunt) {
     });
 
     Handlebars.registerHelper('label', function() {
-        return this.key.substr(this.key.lastIndexOf('.') + 1);
+        return this.key.indexOf('.') === -1 ? this.key : this.key.substr(this.key.lastIndexOf('.') + 1);
     });
 
     function processItem(baseDir, item) {
 
         item.key = docFilePathToKey(item.file, baseDir);
-        item.title = item.key;
+        item.isIntro = item.key.substr(item.key.lastIndexOf('.') + 1) === 'intro';
 
-        var titleParts = item.title.split('.');
-        if (titleParts[titleParts.length - 1] === 'intro') {
-            item.title = titleParts.slice(0, titleParts.length - 1).join('.');
+        item.title = item.key;
+        if (item.isIntro) {
+            item.title = item.title.substr(0, item.title.lastIndexOf('.'));
         }
 
         return item;

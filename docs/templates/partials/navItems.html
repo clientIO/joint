@@ -1,7 +1,9 @@
     <ul class="docs-nav-items">
         {{#each items}}
         <li class="docs-nav-item">
-            <a class="docs-nav-item-link" href="#{{key}}">{{#label}}{{/label}}</a>
+            {{#unless isIntro}}
+            <a class="docs-nav-item-link" href="#{{key}}">{{label}}</a>
+            {{/unless}}
             {{#if items}}
                 {{> navItems}}
             {{/if}}
