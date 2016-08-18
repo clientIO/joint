@@ -1,3 +1,10 @@
+/* Paper */
+.joint-paper.joint-theme-default {
+    background-color: white;
+    border: 1px solid lightgray;
+}
+/* Paper */
+
 /*  Highlighting  */
 .joint-highlight-stroke.joint-theme-default {
     stroke: #FF0000;
