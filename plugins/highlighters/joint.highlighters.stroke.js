@@ -3,7 +3,11 @@ joint.highlighters.stroke = {
     defaultOptions: {
         padding: 3,
         rx: 0,
-        ry: 0
+        ry: 0,
+        attrs: {
+            'stroke-width': 3,
+            stroke: '#FEB663'
+        }
     },
 
     _views: {},
@@ -36,8 +40,10 @@ joint.highlighters.stroke = {
 
         var highlightVel = V('path').attr({
             d: pathData,
-            'pointer-events': 'none'
-        });
+            'pointer-events': 'none',
+            'vector-effect': 'non-scaling-stroke',
+            'fill': 'none'
+        }).attr(options.attrs);
 
         highlightVel.transform(cellView.el.getCTM().inverse());
         highlightVel.transform(magnetEl.getCTM());

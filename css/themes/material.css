@@ -5,13 +5,6 @@
     font-style: normal;
 }
 
-/*  Highlighting  */
-.joint-highlight-stroke.joint-theme-material {
-    stroke: #ecf0f8;
-    stroke-width: 3px;
-}
-/*  Highlighting  */
-
 /*  Links  */
 .joint-link.joint-theme-material .connection-wrap {
     stroke: #000000;
