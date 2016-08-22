@@ -5,6 +5,7 @@
     <li><b>padding</b> - the space between the stroke and the element</li>
     <li><b>rx</b> - the stroke's border radius on the x-axis</li>
     <li><b>ry</b> - the stroke's border radius on the y-axis</li>
+    <li><b>attrs</b> - an object with SVG attributes to be set on the highlighter element</li>
 </ul>
 
 <p>Example usage:</p>
@@ -14,7 +15,11 @@
         options: {
             padding: 10,
             rx: 5,
-            ry: 5
+            ry: 5,
+            attrs: {
+                'stroke-width': 3,
+                stroke: '#FF0000'
+            }
         }
     }
 });</code></pre>

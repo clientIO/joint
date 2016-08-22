@@ -4,15 +4,6 @@
 }
 /* Paper */
 
-/*  Highlighting  */
-.joint-highlight-stroke.joint-theme-dark {
-    stroke: #BF8441;
-    stroke-width: 3px;
-    fill: none;
-}
-/*  Highlighting  */
-
-
 /*  Links  */
 .joint-link.joint-theme-dark .connection-wrap {
     stroke: #8F8FF3;

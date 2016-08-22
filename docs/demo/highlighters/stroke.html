@@ -25,10 +25,6 @@
             background-repeat: repeat;
             box-shadow: 0 0 3px #888;
         }
-        .joint-highlight-stroke.joint-theme-default {
-            stroke: #C390D4;
-            stroke-width: 3px;
-        }
     </style>
 </head>
 <body>
@@ -80,7 +76,11 @@
                         options: {
                             padding: 5,
                             rx: 3,
-                            ry: 3
+                            ry: 3,
+                            attrs: {
+                                'stroke-width': 3,
+                                stroke: '#C390D4'
+                            }
                         }
                     }
                 }
