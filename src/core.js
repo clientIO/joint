@@ -569,6 +569,11 @@ var joint = {
             // fallback to old browsers
             var canvas = document.createElement('canvas');
             var img = document.createElement('img');
+            var isRemote = _.startsWith(url, 'http://');
+
+            if (isRemote) {
+                img.crossOrigin = 'anonymous';
+            }
 
             img.crossOrigin = 'anonymous';
 
@@ -587,7 +592,15 @@ var joint = {
                     var suffix = (url.split('.').pop()) || 'png';
                     // A little correction for JPEGs. There is no image/jpg mime type but image/jpeg.
                     var type = 'image/' + (suffix === 'jpg') ? 'jpeg' : suffix;
-                    var dataUri = canvas.toDataURL(type);
+                    var dataUri;
+
+                    if (isRemote && localStorage !== undefined) {
+                        // handle cross origin images (https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_enabled_image)
+                        localStorage.setItem('imageData', canvas.toDataURL(type));
+                        dataUri = localStorage.getItem('savedImageData');
+                    } else {
+                        dataUri = canvas.toDataURL();
+                    }
 
                 } catch (e) {
 
