@@ -2,11 +2,12 @@ TBD (v0.10.0)
   * All joint views now use the `joint-` class name prefix for their class names.
   * joint.util.deepSupplement, joint.util.supplement, joint.util.mixin, joint.util.deepMixin marked as `deprecated`. Use lodash _.defaultsDeep, _.defaults, _.assign, _.mixin instead
   * layout.DirectedGraph - returns a bbox
-  * dia.ElementView - fix resizing for elements without scalable group, re-render element when markup change
-  * dia.Element - simplify ports - ports can be added to any shape
-    * introduced API for manipulating with ports
-    * layout.Port - set of port layout functions - pre-defined positions of ports
-    * joint.layout.PortLabel - set of port label layout functions - pre-defined positions of port labels
+  * dia.LinkView - unify `link:options` event signature with the rest of events (breaking change)
+  * dia.ElementView - fix resizing without scalable group, re-render element when markup change
+  * dia.Element - make it easy to add ports to an arbitrary element, introduced API for ports manipulation
+  * shapes.devs.Model - uses new port API internally. shapes.basic.PortsViewInterface, shapes.basic.PortsInterface are marked as `deprecated`
+  * layout.Port - various layouts for positioning ports
+  * layout.PortLabel - various layouts for positioning labels relatively to ports
 
 
 13-06-2016 (v0.9.10)
