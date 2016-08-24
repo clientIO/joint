@@ -20,7 +20,7 @@
     function loadVisibleIFrames() {
 
         var visibleIFrames = getVisibleIFrames();
-        var iframe, dataSrc;
+        var iframe;
 
         while ((iframe = visibleIFrames.shift())) {
             if (!iframeIsLoaded(iframe)) {
@@ -30,6 +30,8 @@
     }
 
     function loadIFrame(iframe) {
+
+        var loadingElem;
 
         // Don't load again, if already loading.
         if (elHasClass(iframe, 'loading')) return;
@@ -42,10 +44,19 @@
             this.style.height = this.contentWindow.document.body.offsetHeight + 'px';
 
             removeClassFromEl(iframe, 'loading');
-            addClassToEl(iframe, 'loaded');
+            loadingElem = document.getElementsByClassName("loadIFrame");
+            for(var i = loadingElem.length - 1; i >= 0; i--) {
+                if(loadingElem[i] && loadingElem[i].parentElement) {
+                    loadingElem[i].parentElement.removeChild(loadingElem[i]);
+                }
+            }
         };
 
         addClassToEl(iframe, 'loading');
+        loadingElem = document.createElement("div");
+        loadingElem.className = "loadIFrame";
+        loadingElem.appendChild(document.createElement("div"));
+        iframe.parentNode.insertBefore(loadingElem, iframe);
         iframe.src = iframe.getAttribute('data-src');
     }
 
@@ -57,7 +68,7 @@
     function getVisibleIFrames() {
 
         var visibleIFrames = [];
-        var i, position;
+        var i;
 
         for (i = 0; i < iframes.length; i++) {
             if (isElementInViewport(iframes[i])) {
@@ -156,12 +167,11 @@
     function isElementInViewport(el) {
 
         var rect = el.getBoundingClientRect();
+        var innerHeight = (window.innerHeight || document.documentElement.clientHeight) + rect.height;
 
         return (
-            rect.top >= 0 &&
-            rect.left >= 0 &&
-            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+            rect.top >= -rect.height &&
+            rect.bottom <= innerHeight
         );
     }
 
