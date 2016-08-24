@@ -538,13 +538,39 @@ var joint = {
                 return setTimeout(function() { callback(null, url); }, 0);
             }
 
+            // IE >= 10
+            if (window.FormData && window.FileReader && window.Blob && window.ArrayBuffer) {
+
+                var xhr = new XMLHttpRequest();
+
+                xhr.open('GET', url, true);
+                xhr.addEventListener('error', function() {
+                    callback(new Error('Failed to load image ' + url));
+                });
+                xhr.addEventListener('load', function() {
+
+                    if (xhr.status === 200) {
+                        var reader = new window.FileReader();
+                        reader.readAsDataURL(xhr.response);
+                        reader.onloadend = function() {
+                            var dataUri = reader.result;
+                            callback(null, dataUri);
+                        };
+                    } else {
+                        callback(new Error('Failed to load image ' + url));
+                    }
+                });
+
+                xhr.responseType = 'blob';
+                xhr.send();
+                return;
+            }
+
+            // fallback to old browsers
             var canvas = document.createElement('canvas');
             var img = document.createElement('img');
-            var isRemote = _.startsWith(url, 'http://');
 
-            if (isRemote) {
-                img.crossOrigin = 'anonymous';
-            }
+            img.crossOrigin = 'anonymous';
 
             img.onload = function() {
 
@@ -561,15 +587,7 @@ var joint = {
                     var suffix = (url.split('.').pop()) || 'png';
                     // A little correction for JPEGs. There is no image/jpg mime type but image/jpeg.
                     var type = 'image/' + (suffix === 'jpg') ? 'jpeg' : suffix;
-                    var dataUri;
-
-                    if (isRemote && localStorage !== undefined) {
-                        // handle cross origin images (https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_enabled_image)
-                        localStorage.setItem('imageData', canvas.toDataURL(type));
-                        dataUri = localStorage.getItem('savedImageData');
-                    } else {
-                        dataUri = canvas.toDataURL();
-                    }
+                    var dataUri = canvas.toDataURL(type);
 
                 } catch (e) {
 
@@ -592,12 +610,18 @@ var joint = {
                 callback(null, dataUri);
             };
 
+
             img.ononerror = function() {
 
-                callback(new Error('Failed to load image.'));
+                callback(new Error('Failed to load image ' + url));
             };
 
             img.src = url;
+            // make sure the load event fires for cached images too
+            if (img.complete || img.complete === undefined) {
+                img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+                img.src = url;
+            }
         },
 
         getElementBBox: function(el) {
