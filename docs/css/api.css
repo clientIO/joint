@@ -289,7 +289,6 @@ body {
 }
 .docs-content iframe {
 	width: 100%;
-        height: 400px;
 	overflow: visible;
 	border: none;
 }
