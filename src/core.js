@@ -538,8 +538,39 @@ var joint = {
                 return setTimeout(function() { callback(null, url); }, 0);
             }
 
+            // IE >= 10
+            if (window.FormData && window.FileReader && window.Blob && window.ArrayBuffer) {
+
+                var xhr = new XMLHttpRequest();
+
+                xhr.open('GET', url, true);
+                xhr.addEventListener('error', function() {
+                    callback(new Error('Failed to load image ' + url));
+                });
+                xhr.addEventListener('load', function() {
+
+                    if (xhr.status === 200) {
+                        var reader = new window.FileReader();
+                        reader.readAsDataURL(xhr.response);
+                        reader.onloadend = function() {
+                            var dataUri = reader.result;
+                            callback(null, dataUri);
+                        };
+                    } else {
+                        callback(new Error('Failed to load image ' + url));
+                    }
+                });
+
+                xhr.responseType = 'blob';
+                xhr.send();
+                return;
+            }
+
+            // fallback to old browsers
             var canvas = document.createElement('canvas');
             var img = document.createElement('img');
+
+            img.crossOrigin = 'anonymous';
 
             img.onload = function() {
 
@@ -579,12 +610,18 @@ var joint = {
                 callback(null, dataUri);
             };
 
+
             img.ononerror = function() {
 
-                callback(new Error('Failed to load image.'));
+                callback(new Error('Failed to load image ' + url));
             };
 
             img.src = url;
+            // make sure the load event fires for cached images too
+            if (img.complete || img.complete === undefined) {
+                img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+                img.src = url;
+            }
         },
 
         getElementBBox: function(el) {
