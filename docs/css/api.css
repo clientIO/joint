@@ -296,21 +296,17 @@ body {
         background: none;
         position: relative;
 }
-.loadIFrame:before {
-        content: 'Demo loading...';
+.loadIFrame > p {
         position: absolute;
-        color: #59ebff;
-        top: 33px;
-        left: 60px;
+        color: #8986f5;
 }
 .loadIFrame > div {
         position: absolute;
         display: block;
         width: 50px;
         height: 50px;
-        top: 20px;
         border-radius: 30px;
-        box-shadow: 0 2px 0 0 #59ebff;
+        box-shadow: 0 2px 0 0 #8986f5;
         -ms-animation: uil-ring-anim 1s linear infinite;
         -moz-animation: uil-ring-anim 1s linear infinite;
         -webkit-animation: uil-ring-anim 1s linear infinite;

@@ -141,7 +141,7 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
         <p> Alternative to HTML `z-index`. `z` sets the position of a port in the list of DOM elements within an
             `ElementView`.
         </p>
-        <iframe src="about:blank" data-src="./demo/dia/Element/portZIndex.html" style="height: 224px;"></iframe>
+        <iframe src="about:blank" data-src="./demo/dia/Element/portZIndex.html" style="height: 224px; width: 803px;"></iframe>
 
 <p>Shapes most likely consist of 1 or more DOM elements, `<rect/>`, `<rect/><text/><circle/>` etc.
     Ports are placed into the element `rotatable` group (if there is no `rotatable` group in the shape's markup, then the main group element `elementView.el` is used for the port container). Ports with `z:'auto'` are located right after the last element in the `rotatable` group. Ports with `z` defined as a number are placed before a DOM element at the position (index within the children of the container, where only the original markup elements and ports with `z:'auto'` are taken into account) equals to `z`.

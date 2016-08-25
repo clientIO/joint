@@ -268,7 +268,7 @@ Suitable for circular shapes. The `ellipseSpreads` evenly spreads ports along an
 ```
 
 
-<iframe src="about:blank" data-src="demo/layout/Port/portRotationComp.html" style="height: 534px;"></iframe>
+<iframe src="about:blank" data-src="demo/layout/Port/portRotationComp.html" style="height: 534px; width: 803px;"></iframe>
 
 ### Custom layout
 
@@ -295,4 +295,4 @@ function(portsArgs, elBBox, opt) {
 
 ### Port layouts demo
 
-<iframe src="about:blank" data-src="demo/layout/Port/port.html" style="height: 442px;"></iframe>
+<iframe src="about:blank" data-src="demo/layout/Port/port.html" style="height: 442px; width: 803px;"></iframe>

@@ -212,7 +212,7 @@ label: {
 
 ### Port label layout demo
 
-<iframe src="about:blank" data-src="./demo/layout/PortLabel/portLabel.html" style="height: 442px;"></iframe>
+<iframe src="about:blank" data-src="./demo/layout/PortLabel/portLabel.html" style="height: 442px; width: 803px;"></iframe>
 
 
 

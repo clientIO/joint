@@ -31,7 +31,7 @@
 
     function loadIFrame(iframe) {
 
-        var loadingElem;
+        var loadingElem, loadingElemChild, loadingTextElemChild, top, left;
 
         // Don't load again, if already loading.
         if (elHasClass(iframe, 'loading')) return;
@@ -55,7 +55,17 @@
         addClassToEl(iframe, 'loading');
         loadingElem = document.createElement("div");
         loadingElem.className = "loadIFrame";
-        loadingElem.appendChild(document.createElement("div"));
+        loadingElemChild = document.createElement("div");
+        loadingTextElemChild = document.createElement("p");
+        top = parseInt(iframe.style.height) / 2 - 22;
+        left = parseInt(iframe.style.width) / 2 - 80;
+        loadingElemChild.style.top =  top + 'px';
+        loadingElemChild.style.left = left + 'px';
+        loadingTextElemChild.style.top =  top + 'px';
+        loadingTextElemChild.style.left = left + 60 + 'px';
+        loadingTextElemChild.innerHTML = 'Demo loading...';
+        loadingElem.appendChild(loadingElemChild);
+        loadingElem.appendChild(loadingTextElemChild);
         iframe.parentNode.insertBefore(loadingElem, iframe);
         iframe.src = iframe.getAttribute('data-src');
     }
