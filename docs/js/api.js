@@ -32,6 +32,9 @@
     function loadIFrame(iframe) {
 
         var loadingElem, loadingElemChild, loadingTextElemChild, top, left;
+        var loadingSize = 50;
+        var loadingHeightMiddle = loadingSize / 2; // animation circle height
+        var loadingWidthMiddle = ( loadingSize + 110) / 2; // animation + text 'demo loading'
 
         // Don't load again, if already loading.
         if (elHasClass(iframe, 'loading')) return;
@@ -57,12 +60,17 @@
         loadingElem.className = "loadIFrame";
         loadingElemChild = document.createElement("div");
         loadingTextElemChild = document.createElement("p");
-        top = parseInt(iframe.style.height) / 2 - 22;
-        left = parseInt(iframe.style.width) / 2 - 80;
+        top = parseInt(iframe.style.height) / 2 - loadingHeightMiddle;
+        if (iframe.style.width) {
+            left = parseInt(iframe.style.width);
+        } else {
+            left = parseInt(iframe.offsetWidth);
+        }
+        left = left / 2 - loadingWidthMiddle;
         loadingElemChild.style.top =  top + 'px';
         loadingElemChild.style.left = left + 'px';
         loadingTextElemChild.style.top =  top + 'px';
-        loadingTextElemChild.style.left = left + 60 + 'px';
+        loadingTextElemChild.style.left = left + loadingSize + 10 + 'px';
         loadingTextElemChild.innerHTML = 'Demo loading...';
         loadingElem.appendChild(loadingElemChild);
         loadingElem.appendChild(loadingTextElemChild);
