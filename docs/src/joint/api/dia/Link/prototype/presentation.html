@@ -39,6 +39,52 @@ link.set('manhattan', true)</code></pre>
     }
 });</code></pre>
 
+<p>Complete list of options for <code>manhattan</code>:</p>
+
+<table>
+    <tr>
+        <th>startDirection</th>
+        <td><i>Array&lt;string&gt;</i></td>
+        <td>Possible starting directions from an element. Default is <code>['left', 'right', 'top', 'bottom']</code>.</td>
+    </tr>
+    <tr>
+        <th>endDirection</th>
+        <td><i>Array&lt;string&gt;</i></td>
+        <td>Possible ending directions to an element. Default is <code>['left', 'right', 'top', 'bottom']</code>.</td>
+    </tr>
+    <tr>
+        <th>excludeTypes</th>
+        <td><i>Array&lt;string&gt;</i></td>
+        <td>Should be any element with a certain type not to be consider as an obstacle.</td>
+    </tr>
+    <tr>
+        <th>step</th>
+        <td><i>number</i></td>
+        <td>Size of the step to find a route. Lower number -> higher complexity. <code>manhattan</code> performs the best when `step` has the same value as <code>dia.Paper.option.gridSize</code>.</td>
+    </tr>
+    <tr>
+        <th>perpendicular</th>
+        <td><i>boolean</i></td>
+        <td>Use of the perpendicular linkView option to connect center of element with first vertex.</td>
+    </tr>
+    <tr>
+        <th>maximumLoops</th>
+        <td><i>number</i></td>
+        <td>If number of route finding loops exceed the maximum, stops searching and returns fallback route. Higher number -> higher complexity.</td>
+    </tr>
+    <tr>
+        <th>excludeEnds</th>
+        <td><i>Array&lt;string&gt;</i></td>
+        <td>Should be source or target not to be consider as an obstacle.</td>
+    </tr>
+    <tr>
+        <th>maxAllowedDirectionChange</th>
+        <td><i>number</i></td>
+        <td>Maximum change of the direction.</td>
+    </tr>
+</table>
+
+
 <p id="joint.routers.oneSide">The <code>oneSide</code> routes the link in a given direction, creating exactly three orthogonal segments. It accepts the following options.<p>
 <ul>
   <li><code>side</code> - the direction of the route. Either <code>'left'</code>, <code>'right'</code>, <code>'top'</code> or <code>'bottom'</code> <i>(default)</i>.</li>
@@ -60,8 +106,6 @@ link.set('manhattan', true)</code></pre>
 
 <pre><code>link.set('connector', { name: 'normal' });
 link.set('connector', { name: 'smooth' });</code></pre>
-
-</p>
 
 <p>The curve of edges can be specified by <code>radius</code> argument passed to the <code>rounded</code> connector.</p>
 
