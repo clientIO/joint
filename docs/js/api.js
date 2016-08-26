@@ -47,7 +47,7 @@
             this.style.height = this.contentWindow.document.body.offsetHeight + 'px';
 
             removeClassFromEl(iframe, 'loading');
-            loadingElem = document.getElementsByClassName("loadIFrame");
+            loadingElem = document.getElementsByClassName('loadIFrame');
             for(var i = loadingElem.length - 1; i >= 0; i--) {
                 if(loadingElem[i] && loadingElem[i].parentElement) {
                     loadingElem[i].parentElement.removeChild(loadingElem[i]);
@@ -56,10 +56,10 @@
         };
 
         addClassToEl(iframe, 'loading');
-        loadingElem = document.createElement("div");
-        loadingElem.className = "loadIFrame";
-        loadingElemChild = document.createElement("div");
-        loadingTextElemChild = document.createElement("p");
+        loadingElem = document.createElement('div');
+        loadingElem.className = 'loadIFrame';
+        loadingElemChild = document.createElement('div');
+        loadingTextElemChild = document.createElement('p');
         top = parseInt(iframe.style.height) / 2 - loadingHeightMiddle;
         if (iframe.style.width) {
             left = parseInt(iframe.style.width);
@@ -71,7 +71,7 @@
         loadingElemChild.style.left = left + 'px';
         loadingTextElemChild.style.top =  top + 'px';
         loadingTextElemChild.style.left = left + loadingSize + 10 + 'px';
-        loadingTextElemChild.innerHTML = 'Demo loading...';
+        loadingTextElemChild.innerHTML = 'loading demo...';
         loadingElem.appendChild(loadingElemChild);
         loadingElem.appendChild(loadingTextElemChild);
         iframe.parentNode.insertBefore(loadingElem, iframe);
