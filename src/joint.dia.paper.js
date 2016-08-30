@@ -149,10 +149,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         'touchend': 'mouseclick',
         'touchmove': 'pointermove',
         'mousemove': 'pointermove',
-        'mouseover .element': 'cellMouseover',
-        'mouseover .link': 'cellMouseover',
-        'mouseout .element': 'cellMouseout',
-        'mouseout .link': 'cellMouseout',
+        'mouseover .joint-cell': 'cellMouseover',
+        'mouseout .joint-cell': 'cellMouseout',
         'contextmenu': 'contextmenu',
         'mousewheel': 'mousewheel',
         'DOMMouseScroll': 'mousewheel'
