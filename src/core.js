@@ -592,7 +592,7 @@ var joint = {
                 }
             };
 
-            if (options.serverCallsAvailable) {
+            if (options.allowCrossOrigin) {
 
                 var xhr = new XMLHttpRequest();
 
