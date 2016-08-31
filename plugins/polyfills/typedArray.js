@@ -1,6 +1,6 @@
 (function() {
 
-    if (window.Uint8Array) {
+    if (typeof Uint8Array !== 'undefined' || typeof window === 'undefined') {
         return;
     }
 

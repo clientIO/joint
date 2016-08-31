@@ -545,12 +545,19 @@ var joint = {
             var modernHandler = function(xhr, callback) {
 
                 if (xhr.status === 200) {
+
                     var reader = new FileReader();
-                    reader.readAsDataURL(xhr.response);
-                    reader.onloadend = function() {
-                        var dataUri = reader.result;
+
+                    reader.onload = function(evt) {
+                        var dataUri = evt.target.result;
                         callback(null, dataUri);
                     };
+
+                    reader.onerror = function() {
+                        callback(new Error('Failed to load image ' + url));
+                    };
+
+                    reader.readAsDataURL(xhr.response);
                 } else {
                     callback(new Error('Failed to load image ' + url));
                 }

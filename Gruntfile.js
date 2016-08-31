@@ -240,6 +240,7 @@ module.exports = function(grunt) {
                     ),
                     'build/joint.core.min.js': [].concat(
                         ['wrappers/joint.head.js'],
+                        ['build/min/polyfills.min.js'],
                         ['build/min/geometry.min.js'],
                         ['build/min/vectorizer.min.js'],
                         ['build/min/joint.min.js'],
@@ -262,6 +263,7 @@ module.exports = function(grunt) {
                     ),
                     'build/joint.min.js': [].concat(
                         ['wrappers/joint.head.js'],
+                        ['build/min/polyfills.min.js'],
                         ['build/min/geometry.min.js'],
                         ['build/min/vectorizer.min.js'],
                         ['build/min/joint.min.js'],
@@ -284,6 +286,7 @@ module.exports = function(grunt) {
                         allJSPlugins()
                     ),
                     'build/joint.nowrap.min.js': [].concat(
+                        ['build/min/polyfills.min.js'],
                         ['build/min/geometry.min.js'],
                         ['build/min/vectorizer.min.js'],
                         ['build/min/joint.min.js'],
@@ -476,8 +479,12 @@ module.exports = function(grunt) {
                 dest: 'build/min/geometry.min.js'
             },
             joint: {
-                src: js.core.concat(js.polyfills),
+                src: js.core,
                 dest: 'build/min/joint.min.js'
+            },
+            polyfills: {
+                src: js.polyfills,
+                dest: 'build/min/polyfills.min.js'
             },
             vectorizer: {
                 src: js.vectorizer,
