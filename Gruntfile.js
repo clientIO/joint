@@ -38,6 +38,12 @@ module.exports = function(grunt) {
         geometry: ['src/geometry.js'],
         vectorizer: ['src/vectorizer.js'],
 
+        polyfills: [
+            'plugins/polyfills/base64.js',
+            'plugins/polyfills/typedArray.js',
+            'plugins/polyfills/xhrResponse.js'
+        ],
+
         plugins: {
 
             'shapes.erd': ['plugins/shapes/joint.shapes.erd.js'],
@@ -218,7 +224,7 @@ module.exports = function(grunt) {
                 options: {
                     process: {
                         options: {
-                            data: pkg,
+                            data: pkg
                         },
                         delimiters: 'square'
                     }
@@ -226,6 +232,7 @@ module.exports = function(grunt) {
                 files: {
                     'build/joint.core.js': [].concat(
                         ['wrappers/joint.head.js'],
+                        js.polyfills,
                         js.geometry,
                         js.vectorizer,
                         js.core,
@@ -246,6 +253,7 @@ module.exports = function(grunt) {
                     ),
                     'build/joint.js': [].concat(
                         ['wrappers/joint.head.js'],
+                        js.polyfills,
                         js.geometry,
                         js.vectorizer,
                         js.core,
@@ -269,6 +277,7 @@ module.exports = function(grunt) {
                         allMinifiedCSSPlugins()
                     ),
                     'build/joint.nowrap.js': [].concat(
+                        js.polyfills,
                         js.geometry,
                         js.vectorizer,
                         js.core,
@@ -467,7 +476,7 @@ module.exports = function(grunt) {
                 dest: 'build/min/geometry.min.js'
             },
             joint: {
-                src: js.core,
+                src: js.core.concat(js.polyfills),
                 dest: 'build/min/joint.min.js'
             },
             vectorizer: {
@@ -484,6 +493,7 @@ module.exports = function(grunt) {
             },
             joint: {
                 files: [].concat(
+                    js.polyfills,
                     js.geometry,
                     js.vectorizer,
                     js.core,

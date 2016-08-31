@@ -541,6 +541,50 @@ var joint = {
                 }, 0);
             }
 
+            // chrome IE10 IE11
+            var modernHandler = function(xhr, callback) {
+
+                if (xhr.status === 200) {
+                    var reader = new FileReader();
+                    reader.readAsDataURL(xhr.response);
+                    reader.onloadend = function() {
+                        var dataUri = reader.result;
+                        callback(null, dataUri);
+                    };
+                } else {
+                    callback(new Error('Failed to load image ' + url));
+                }
+
+            };
+
+            var legacyHandler = function(xhr, callback) {
+
+                var Uint8ToString = function(u8a) {
+                    var CHUNK_SZ = 0x8000;
+                    var c = [];
+                    for (var i = 0; i < u8a.length; i += CHUNK_SZ) {
+                        c.push(String.fromCharCode.apply(null, u8a.subarray(i, i + CHUNK_SZ)));
+                    }
+                    return c.join('');
+                };
+
+
+                if (xhr.status === 200) {
+
+                    var bytes = new Uint8Array(xhr.response);
+
+                    var suffix = (url.split('.').pop()) || 'png';
+                    var map = {
+                        'svg': 'svg+xml'
+                    };
+                    var meta = 'data:image/' + (map[suffix] || suffix) + ';base64,';
+                    var b64encoded = meta + btoa(Uint8ToString(bytes));
+                    callback(null, b64encoded);
+                } else {
+                    callback(new Error('Failed to load image ' + url));
+                }
+            };
+
             if (options.serverCallsAvailable) {
 
                 var xhr = new XMLHttpRequest();
@@ -550,37 +594,16 @@ var joint = {
                     callback(new Error('Failed to load image ' + url));
                 });
 
+                xhr.responseType = window.FileReader ? 'blob' : 'arraybuffer';
 
                 xhr.addEventListener('load', function() {
-
-                    if (xhr.status === 200) {
-
-                        var bytes = new Uint8Array(xhr.response);
-
-                        var suffix = (url.split('.').pop()) || 'png';
-                        var map = {
-                            'svg': 'svg+xml'
-                        };
-
-                        function Uint8ToString(u8a) {
-                            var CHUNK_SZ = 0x8000;
-                            var c = [];
-                            for (var i = 0; i < u8a.length; i += CHUNK_SZ) {
-                                c.push(String.fromCharCode.apply(null, u8a.subarray(i, i + CHUNK_SZ)));
-                            }
-                            return c.join('');
-                        }
-
-                        var meta = 'data:image/' + (map[suffix] || suffix) + ';base64,';
-                        var b64encoded = meta + btoa(Uint8ToString(bytes));
-                        callback(null, b64encoded);
-
+                    if (window.FileReader) {
+                        modernHandler(xhr, callback);
                     } else {
-                        callback(new Error('Failed to load image ' + url));
+                        legacyHandler(xhr, callback);
                     }
                 });
 
-                xhr.responseType = 'arraybuffer';
                 xhr.send();
 
             } else {
@@ -607,8 +630,6 @@ var joint = {
                         // A little correction for JPEGs. There is no image/jpg mime type but image/jpeg.
                         var type = 'image/' + ((suffix === 'jpg') ? 'jpeg' : suffix);
                         var dataUri = canvas.toDataURL(type);
-
-                        console.log(type, dataUri);
 
                     } catch (e) {
 
