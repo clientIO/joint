@@ -3,6 +3,10 @@
  */
 (function() {
 
+    if (typeof XMLHttpRequest === 'undefined') {
+        return;
+    }
+
     if ('response' in XMLHttpRequest.prototype ||
         'mozResponseArrayBuffer' in XMLHttpRequest.prototype ||
         'mozResponse' in XMLHttpRequest.prototype ||
