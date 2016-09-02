@@ -535,93 +535,80 @@ var joint = {
                 // and so we can bypass this error.
 
                 // Keep the async nature of the function.
-                return setTimeout(function() { callback(null, url); }, 0);
+                return setTimeout(function() {
+                    callback(null, url);
+                }, 0);
             }
 
-            // IE >= 10
-            if (window.FormData && window.FileReader && window.Blob && window.ArrayBuffer) {
+            // chrome IE10 IE11
+            var modernHandler = function(xhr, callback) {
 
-                var xhr = new XMLHttpRequest();
+                if (xhr.status === 200) {
 
-                xhr.open('GET', url, true);
-                xhr.addEventListener('error', function() {
-                    callback(new Error('Failed to load image ' + url));
-                });
-                xhr.addEventListener('load', function() {
+                    var reader = new FileReader();
 
-                    if (xhr.status === 200) {
-                        var reader = new window.FileReader();
-                        reader.readAsDataURL(xhr.response);
-                        reader.onloadend = function() {
-                            var dataUri = reader.result;
-                            callback(null, dataUri);
-                        };
-                    } else {
+                    reader.onload = function(evt) {
+                        var dataUri = evt.target.result;
+                        callback(null, dataUri);
+                    };
+
+                    reader.onerror = function() {
                         callback(new Error('Failed to load image ' + url));
-                    }
-                });
+                    };
 
-                xhr.responseType = 'blob';
-                xhr.send();
-                return;
-            }
-
-            // fallback to old browsers
-            var canvas = document.createElement('canvas');
-            var img = document.createElement('img');
-
-            img.crossOrigin = 'anonymous';
-
-            img.onload = function() {
-
-                var ctx = canvas.getContext('2d');
-
-                canvas.width = img.width;
-                canvas.height = img.height;
-
-                ctx.drawImage(img, 0, 0);
-
-                try {
-
-                    // Guess the type of the image from the url suffix.
-                    var suffix = (url.split('.').pop()) || 'png';
-                    // A little correction for JPEGs. There is no image/jpg mime type but image/jpeg.
-                    var type = 'image/' + (suffix === 'jpg') ? 'jpeg' : suffix;
-                    var dataUri = canvas.toDataURL(type);
-
-                } catch (e) {
-
-                    if (/\.svg$/.test(url)) {
-                        // IE throws a security error if we try to render an SVG into the canvas.
-                        // Luckily for us, we don't need canvas at all to convert
-                        // SVG to data uri. We can just use AJAX to load the SVG string
-                        // and construct the data uri ourselves.
-                        var xhr = window.XMLHttpRequest ? new XMLHttpRequest : new ActiveXObject('Microsoft.XMLHTTP');
-                        xhr.open('GET', url, false);
-                        xhr.send(null);
-                        var svg = xhr.responseText;
-
-                        return callback(null, 'data:image/svg+xml,' + encodeURIComponent(svg));
-                    }
-
-                    console.error(img.src, 'fails to convert', e);
+                    reader.readAsDataURL(xhr.response);
+                } else {
+                    callback(new Error('Failed to load image ' + url));
                 }
 
-                callback(null, dataUri);
             };
 
+            var legacyHandler = function(xhr, callback) {
 
-            img.ononerror = function() {
+                var Uint8ToString = function(u8a) {
+                    var CHUNK_SZ = 0x8000;
+                    var c = [];
+                    for (var i = 0; i < u8a.length; i += CHUNK_SZ) {
+                        c.push(String.fromCharCode.apply(null, u8a.subarray(i, i + CHUNK_SZ)));
+                    }
+                    return c.join('');
+                };
 
+
+                if (xhr.status === 200) {
+
+                    var bytes = new Uint8Array(xhr.response);
+
+                    var suffix = (url.split('.').pop()) || 'png';
+                    var map = {
+                        'svg': 'svg+xml'
+                    };
+                    var meta = 'data:image/' + (map[suffix] || suffix) + ';base64,';
+                    var b64encoded = meta + btoa(Uint8ToString(bytes));
+                    callback(null, b64encoded);
+                } else {
+                    callback(new Error('Failed to load image ' + url));
+                }
+            };
+
+            var xhr = new XMLHttpRequest();
+
+            xhr.open('GET', url, true);
+            xhr.addEventListener('error', function() {
                 callback(new Error('Failed to load image ' + url));
-            };
+            });
 
-            img.src = url;
-            // make sure the load event fires for cached images too
-            if (img.complete || img.complete === undefined) {
-                img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
-                img.src = url;
-            }
+            xhr.responseType = window.FileReader ? 'blob' : 'arraybuffer';
+
+            xhr.addEventListener('load', function() {
+                if (window.FileReader) {
+                    modernHandler(xhr, callback);
+                } else {
+                    legacyHandler(xhr, callback);
+                }
+            });
+
+            xhr.send();
         },
 
         getElementBBox: function(el) {
