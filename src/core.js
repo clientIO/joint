@@ -609,8 +609,7 @@ var joint = {
             });
 
             xhr.send();
-        }
-    },
+        },
 
         getElementBBox: function(el) {
 
