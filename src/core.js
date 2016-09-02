@@ -523,9 +523,8 @@ var joint = {
             return lines.join('\n');
         },
 
-        imageToDataUri: function(url, callback, opt) {
+        imageToDataUri: function(url, callback) {
 
-            var options = opt || {};
             if (!url || url.substr(0, 'data:'.length) === 'data:') {
                 // No need to convert to data uri if it is already in data uri.
 
@@ -592,87 +591,26 @@ var joint = {
                 }
             };
 
-            if (options.allowCrossOrigin) {
+            var xhr = new XMLHttpRequest();
 
-                var xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.addEventListener('error', function() {
+                callback(new Error('Failed to load image ' + url));
+            });
 
-                xhr.open('GET', url, true);
-                xhr.addEventListener('error', function() {
-                    callback(new Error('Failed to load image ' + url));
-                });
+            xhr.responseType = window.FileReader ? 'blob' : 'arraybuffer';
 
-                xhr.responseType = window.FileReader ? 'blob' : 'arraybuffer';
-
-                xhr.addEventListener('load', function() {
-                    if (window.FileReader) {
-                        modernHandler(xhr, callback);
-                    } else {
-                        legacyHandler(xhr, callback);
-                    }
-                });
-
-                xhr.send();
-
-            } else {
-
-                var canvas = document.createElement('canvas');
-                var img = document.createElement('img');
-
-                img.crossOrigin = 'anonymous';
-
-                // Guess the type of the image from the url suffix.
-                var suffix = (url.split('.').pop()) || 'png';
-
-                img.onload = function() {
-
-                    var ctx = canvas.getContext('2d');
-
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-
-                    ctx.drawImage(img, 0, 0);
-
-                    try {
-
-                        // A little correction for JPEGs. There is no image/jpg mime type but image/jpeg.
-                        var type = 'image/' + ((suffix === 'jpg') ? 'jpeg' : suffix);
-                        var dataUri = canvas.toDataURL(type);
-
-                    } catch (e) {
-
-                        if (/\.svg$/.test(url)) {
-                            // IE throws a security error if we try to render an SVG into the canvas.
-                            // Luckily for us, we don't need canvas at all to convert
-                            // SVG to data uri. We can just use AJAX to load the SVG string
-                            // and construct the data uri ourselves.
-                            var xhr = window.XMLHttpRequest ? new XMLHttpRequest : new ActiveXObject('Microsoft.XMLHTTP');
-                            xhr.open('GET', url, false);
-                            xhr.send(null);
-                            var svg = xhr.responseText;
-
-                            return callback(null, 'data:image/svg+xml,' + encodeURIComponent(svg));
-                        }
-
-                        console.error(img.src, 'fails to convert', e);
-                    }
-
-                    callback(null, dataUri);
-                };
-
-
-                img.ononerror = function() {
-
-                    callback(new Error('Failed to load image ' + url));
-                };
-
-                img.src = url;
-                // make sure the load event fires for cached images too
-                if (img.complete || img.complete === undefined) {
-                    img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
-                    img.src = url;
+            xhr.addEventListener('load', function() {
+                if (window.FileReader) {
+                    modernHandler(xhr, callback);
+                } else {
+                    legacyHandler(xhr, callback);
                 }
-            }
-        },
+            });
+
+            xhr.send();
+        }
+    },
 
         getElementBBox: function(el) {
 
