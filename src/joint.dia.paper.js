@@ -1004,16 +1004,18 @@ joint.dia.Paper = joint.mvc.View.extend({
     guard: function(evt, view) {
 
         if (this.options.guard && this.options.guard(evt, view)) {
-
             return true;
         }
 
+        if (evt.data && !_.isUndefined(evt.data.guarded)) {
+            return evt.data.guarded;
+        }
+
         if (view && view.model && (view.model instanceof joint.dia.Cell)) {
-
             return false;
+        }
 
-        } else if (this.svg === evt.target || this.el === evt.target || $.contains(this.svg, evt.target)) {
-
+        if (this.svg === evt.target || this.el === evt.target || $.contains(this.svg, evt.target)) {
             return false;
         }
 
