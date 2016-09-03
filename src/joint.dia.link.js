@@ -1213,7 +1213,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (!selectorOrPoint.id) {
 
             // If the source is a point, we don't need a reference point to find the sticky point of connection.
-            spot = g.point(selectorOrPoint);
+            spot = g.Point(selectorOrPoint);
 
         } else {
 
@@ -1223,14 +1223,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             // in order to follow paper viewport transformations (scale/rotate).
             // `_sourceBbox` (`_targetBbox`) comes from `_sourceBboxUpdate` (`_sourceBboxUpdate`)
             // method, it exists since first render and are automatically updated
-            var spotBbox = end === 'source' ? this.sourceBBox : this.targetBBox;
+            var spotBBox = g.Rect(end === 'source' ? this.sourceBBox : this.targetBBox);
 
             var reference;
 
             if (!referenceSelectorOrPoint.id) {
 
                 // Reference was passed as a point, therefore, we're ready to find the sticky point of connection on the source element.
-                reference = g.point(referenceSelectorOrPoint);
+                reference = g.Point(referenceSelectorOrPoint);
 
             } else {
 
@@ -1238,48 +1238,49 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // element boundary closest to the source element.
                 // Get the bounding box of the spot relative to the paper viewport. This is necessary
                 // in order to follow paper viewport transformations (scale/rotate).
-                var referenceBbox = end === 'source' ? this.targetBBox : this.sourceBBox;
+                var referenceBBox = g.Rect(end === 'source' ? this.targetBBox : this.sourceBBox);
 
-                reference = g.rect(referenceBbox).intersectionWithLineFromCenterToPoint(g.rect(spotBbox).center());
-                reference = reference || g.rect(referenceBbox).center();
+                reference = referenceBBox.intersectionWithLineFromCenterToPoint(spotBBox.center());
+                reference = reference || referenceBBox.center();
             }
 
+            var paperOptions = this.paper.options;
             // If `perpendicularLinks` flag is set on the paper and there are vertices
             // on the link, then try to find a connection point that makes the link perpendicular
             // even though the link won't point to the center of the targeted object.
-            if (this.paper.options.perpendicularLinks || this.options.perpendicular) {
+            if (paperOptions.perpendicularLinks || this.options.perpendicular) {
 
-                var horizontalLineRect = g.rect(0, reference.y, this.paper.options.width, 1);
-                var verticalLineRect = g.rect(reference.x, 0, 1, this.paper.options.height);
                 var nearestSide;
+                var spotOrigin = spotBBox.origin();
+                var spotCorner = spotBBox.corner();
 
-                if (horizontalLineRect.intersect(g.rect(spotBbox))) {
+                if (spotOrigin.y <= reference.y && reference.y <= spotCorner.y) {
 
-                    nearestSide = g.rect(spotBbox).sideNearestToPoint(reference);
+                    nearestSide = spotBBox.sideNearestToPoint(reference);
                     switch (nearestSide) {
                         case 'left':
-                            spot = g.point(spotBbox.x, reference.y);
+                            spot = g.Point(spotOrigin.x, reference.y);
                             break;
                         case 'right':
-                            spot = g.point(spotBbox.x + spotBbox.width, reference.y);
+                            spot = g.Point(spotCorner.x, reference.y);
                             break;
                         default:
-                            spot = g.rect(spotBbox).center();
+                            spot = spotBBox.center();
                             break;
                     }
 
-                } else if (verticalLineRect.intersect(g.rect(spotBbox))) {
+                } else if (spotOrigin.x <= reference.x && reference.x <= spotCorner.x) {
 
-                    nearestSide = g.rect(spotBbox).sideNearestToPoint(reference);
+                    nearestSide = spotBBox.sideNearestToPoint(reference);
                     switch (nearestSide) {
                         case 'top':
-                            spot = g.point(reference.x, spotBbox.y);
+                            spot = g.Point(reference.x, spotOrigin.y);
                             break;
                         case 'bottom':
-                            spot = g.point(reference.x, spotBbox.y + spotBbox.height);
+                            spot = g.Point(reference.x, spotCorner.y);
                             break;
                         default:
-                            spot = g.rect(spotBbox).center();
+                            spot = spotBBox.center();
                             break;
                     }
 
@@ -1288,22 +1289,21 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     // If there is no intersection horizontally or vertically with the object bounding box,
                     // then we fall back to the regular situation finding straight line (not perpendicular)
                     // between the object and the reference point.
-
-                    spot = g.rect(spotBbox).intersectionWithLineFromCenterToPoint(reference);
-                    spot = spot || g.rect(spotBbox).center();
+                    spot = spotBBox.intersectionWithLineFromCenterToPoint(reference);
+                    spot = spot || spotBBox.center();
                 }
 
-            } else if (this.paper.options.linkConnectionPoint) {
+            } else if (paperOptions.linkConnectionPoint) {
 
                 var view = end === 'target' ? this.targetView : this.sourceView;
                 var magnet = end === 'target' ? this.targetMagnet : this.sourceMagnet;
 
-                spot = this.paper.options.linkConnectionPoint(this, view, magnet, reference);
+                spot = paperOptions.linkConnectionPoint(this, view, magnet, reference);
 
             } else {
 
-                spot = g.rect(spotBbox).intersectionWithLineFromCenterToPoint(reference);
-                spot = spot || g.rect(spotBbox).center();
+                spot = spotBBox.intersectionWithLineFromCenterToPoint(reference);
+                spot = spot || spotBBox.center();
             }
         }
 
