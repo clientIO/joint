@@ -1,5 +1,8 @@
 'use strict';
 
+var phantomjs = require('phantomjs-prebuilt');
+var selenium = require('selenium-standalone');
+
 module.exports = function(grunt) {
 
     var cheerio = require('cheerio');
@@ -407,6 +410,16 @@ module.exports = function(grunt) {
             }
         },
         mochaTest: {
+            e2e: {
+                src: [
+                    'test/e2e/*.js'
+                ],
+                options: {
+                    reporter: 'spec',
+                    timeout: 120000,
+                    clearRequireCache: true
+                }
+            },
             server: {
                 src: [
                     'test/*-nodejs/*'
@@ -493,6 +506,9 @@ module.exports = function(grunt) {
                 ),
                 tasks: ['build']
             }
+        },
+        env: {
+
         }
     };
 
@@ -757,4 +773,149 @@ module.exports = function(grunt) {
 
     grunt.registerTask('install', ['bowerInstall', 'build:all']);
     grunt.registerTask('default', ['install', 'build', 'watch']);
+
+    /*
+        List of Available Platforms on Sauce Labs:
+        https://saucelabs.com/platforms
+    */
+    var e2eBrowsers = {
+        'chrome': {
+            'browserName': 'chrome',
+            'name': 'Chrome'
+        },
+        'chrome-linux': {
+            'browserName': 'chrome',
+            'platform': 'linux',
+            'name': 'Chrome on Linux'
+        },
+        'chrome-windows7': {
+            'browserName': 'chrome',
+            'platform': 'windows',
+            'name': 'Chrome on Windows 7'
+        },
+        'chrome-mac': {
+            'browserName': 'chrome',
+            'platform': 'mac',
+            'name': 'Chrome on Mac'
+        },
+        'firefox': {
+            'browserName': 'firefox',
+            'name': 'Firefox'
+        },
+        'firefox-linux': {
+            'browserName': 'firefox',
+            'platform': 'linux',
+            'name': 'Firefox on Linux'
+        },
+        'firefox-mac': {
+            'browserName': 'firefox',
+            'platform': 'mac',
+            'name': 'Firefox on Mac'
+        },
+        'phantomjs': {
+            'browserName': 'phantomjs',
+            'name': 'PhantomJS'
+        },
+        'phantomjs-2.x': {
+            'browserName': 'phantomjs',
+            // Set the path to the PhantomJS 2.x binary.
+            // Can be in different places depending upon the current environment.
+            // For example, if phantomjs is on the current user's PATH (with the correct version).
+            'phantomjs.binary.path': phantomjs.path,
+            'name': 'PhantomJS 2.x'
+        }
+    };
+
+    Object.keys(e2eBrowsers).forEach(function(key) {
+
+        var browser = e2eBrowsers[key];
+
+        config.env[key] = {
+            E2E_DESIRED: JSON.stringify(browser)
+        };
+    });
+
+    Object.keys(e2eBrowsers).forEach(function(key) {
+        grunt.registerTask('test:e2e:' + key, [
+            'env:' + key,
+            'mochaTest:e2e'
+        ]);
+    });
+
+    grunt.registerTask('test:e2e', ['mochaTest:e2e']);
+
+    grunt.registerTask('test:e2e:all', [
+        'test:e2e:chrome-linux',
+        'test:e2e:chrome-windows7',
+        'test:e2e:chrome-mac',
+        'test:e2e:firefox-linux',
+        'test:e2e:firefox-mac'
+    ]);
+    
+    grunt.registerTask('selenium', function(action) {
+
+        var done = this.async();
+
+        switch (action) {
+
+            case 'install':
+                return installSelenium(done);
+
+            case 'start':
+                return installSelenium(function(error) {
+                    if (error) return done(error);
+                    startSelenium(done);
+                });
+
+            case 'stop':
+                return stopSelenium(done);
+
+            // For backwards compatibility (`grunt selenium`).
+            // This task starts the local selenium server and then waits.
+            default:
+                return installSelenium(function(error) {
+                    if (error) return done(error);
+                    startSelenium(function(error) {
+                        if (error) return done(error);
+                        grunt.log.writeln('Selenium started');
+                        grunt.log.writeln('Exit this process ' + '[CTRL+C]'['white'].bold + ' to stop selenium');
+                        // Never call done.
+                        // This allows selenium to continue running until the grunt process is killed.
+                    });
+                });
+        }
+    });
+
+    var seleniumInstalled = (function() {
+
+        return grunt.file.exists(__dirname + '/node_modules/selenium-standalone/.selenium/selenium-server');
+
+    }());
+
+    var seleniumChildProcess;
+
+    function startSelenium(cb) {
+        grunt.log.writeln('Starting selenium..');
+        selenium.start(function(error, child) {
+            if (error) return cb(error);
+            seleniumChildProcess = child;
+            cb();
+        });
+    }
+
+    function stopSelenium(cb) {
+        if (seleniumChildProcess) seleniumChildProcess.kill();
+        cb();
+    }
+
+    function installSelenium(cb) {
+        if (seleniumInstalled) return cb();
+        grunt.log.writeln('Installing selenium..');
+        seleniumInstalled = true;
+        selenium.install(cb);
+    }
+    process.on('exit', function() {
+        // Kill selenium server process if it is running.
+        if (seleniumChildProcess) seleniumChildProcess.kill();
+    });
 };

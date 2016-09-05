@@ -1,0 +1,16 @@
+.router-switch {
+    width: 100px;
+    margin: 4px;
+    background: #68ddd5;
+    color: #484e68;
+    outline: none;
+    font-size: 12px;
+    border: none;
+    padding: 4px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.router-switch:hover {
+    background: #fdc685;
+    color: #fff;
+}

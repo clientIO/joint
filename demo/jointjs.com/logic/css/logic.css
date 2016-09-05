@@ -1,0 +1,116 @@
+.connection {
+    stroke: #999;
+}
+
+.connection-wrap {
+    stroke-linecap: butt;
+    transition: all 0.5s linear 0.2s;
+}
+
+.connection-wrap:hover {
+    stroke: black;
+    stroke-width: 9px;
+    transition: all 0s;
+}
+
+.link-tools .tool-remove circle {
+    fill: white;
+    stroke: #ccc;
+    stroke-width: 1px;
+    stroke-opacity: .5;
+}
+
+.link-tools .tool-remove:hover circle {
+    fill: #e74c3c;
+    stroke: #c0392b;
+}
+
+.link-tools .tool-remove path {
+    stroke: #ccc;
+}
+
+.link-tools .tool-remove circle {
+    transition: fill 1s;
+}
+
+.link-tools .tool-remove:hover path {
+    stroke: none;
+}
+
+.marker-arrowhead, .marker-vertex {
+    fill: #fff;
+    stroke: #7f8c8d;
+    stroke-opacity: 0.4;
+    stroke-width: 2px;
+}
+
+.marker-arrowhead:hover,  .marker-vertex:hover {
+    fill: #ecf0f1;
+    stroke: #bdc3c7;
+}
+
+.marker-vertex-remove-area {
+    fill: white;
+    stroke: #ccc;
+    stroke-opacity: .5;
+}
+
+.marker-vertex-remove-group:hover .marker-vertex-remove-area {
+    transition: fill 1s;
+    fill: #e74c3c;
+    stroke: #c0392b;
+}
+
+.marker-vertex-remove {
+    stroke: #eee;
+}
+
+.marker-vertex-remove-group:hover .marker-vertex-remove {
+    stroke: none;
+}
+
+.joint-element .highlighted {
+    outline: none;
+    fill: #ecf0f1;
+    stroke: #bdc3c7;
+    cursor: crosshair;
+}
+
+.joint-element .body {
+    fill: #68DDD5;
+    stroke: #44CCC3;
+    stroke-opacity: 0.5;
+    transition: all 0.2s;
+}
+
+.joint-element circle {
+    fill: #fff;
+    stroke: #7f8c8d;
+    stroke-opacity: 0.5;
+    stroke-width: 2px;
+}
+
+.joint-element text {
+    fill: #fff;
+}
+
+.joint-link.live > .connection {
+    stroke: #7c68fc;
+    stroke-width: 3px;
+}
+
+.live .connection-wrap {
+    stroke: #7C68FD;
+}
+
+.joint-element.live .body {
+    fill: #FEB662;
+    stroke: #CF9452;
+}
+
+.joint-element.live text {
+    fill: #ffffff;
+}
+.wire {
+    stroke: #4B4F6A;
+}

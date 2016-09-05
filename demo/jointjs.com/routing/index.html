@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+
+        <title>Smart Routing</title>
+
+        <link rel="stylesheet" type="text/css" href="../../../build/joint.css" />
+        <link rel="stylesheet" type="text/css" href="css/routing.css" />
+    </head>
+    <body>
+
+        <article>
+            <h2>Smart Routing</h2>
+            <h3>Try to drag elements and see how the link avoids the obstacles. </h3>
+        </article>
+
+        <div>
+            <button class="router-switch" data-connector="normal">Normal /<br> None</button>
+            <button class="router-switch" data-connector="rounded">Rounded /<br> None</button>
+            <button class="router-switch" data-connector="smooth">Smooth /<br> None</button>
+            <button class="router-switch" data-router="orthogonal" data-connector="normal">Normal /<br> Orthogonal</button>
+            <button class="router-switch" data-router="orthogonal" data-connector="rounded">Rounded /<br> Orthogonal</button>
+            <button class="router-switch" data-router="manhattan" data-connector="normal">Normal /<br> Manhattan</button>
+            <button class="router-switch" data-router="manhattan" data-connector="rounded">Rounded /<br> Manhattan</button>
+            <button class="router-switch" data-router="metro" data-connector="normal">Normal /<br> Metro</button>
+            <button class="router-switch" data-router="metro" data-connector="rounded">Rounded /<br> Metro</button>
+        </div>
+
+        <div id="paper"></div>
+
+        <script src="../../../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../../../node_modules/lodash/index.js"></script>
+        <script src="../../../node_modules/backbone/backbone.js"></script>
+
+        <script src="../../../build/joint.js"></script>
+        <script src="src/routing.js"></script>
+
+    </body>
+</html>

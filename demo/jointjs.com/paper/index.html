@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+
+        <title>Paper attributes</title>
+
+        <link rel="stylesheet" type="text/css" href="../../../build/joint.css" />
+        <link rel="stylesheet" type="text/css" href="css/paper.css" />
+    </head>
+    <body>
+
+        <article>  
+            <h2>Paper attributes</h2>
+        </article>
+
+        <div id="paper"></div>
+
+        <div class="left">
+            <div class="panel panel-primary">
+                <div class="panel-heading"><a href="/api#joint.dia.Paper:options">Attributes</a></div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="ox" data-tooltip="Position of zero x-coordinate of the paper in pixels">Origin x</label>
+                            <input id="ox" name="ox" type="range" value="0" min="-200" max="200" autocomplete="off"/>
+                            <output for="ox">0</output>
+                        </div>
+                        <div class="form-group">
+                            <label for="oy" data-tooltip="Position of zero y-coordinate of the paper in pixels">Origin y</label>
+                            <input id="oy" type="range" value="0" min="-200" max="200" autocomplete="off"/>
+                            <output for="oy">0</output>
+                        </div>
+                        <div class="form-group">
+                            <label for="sx" data-tooltip="Scale factor for x axis">Scale x</label>
+                            <input id="sx" type="range" value="1.00" step="0.1" min="0.1" max="3" autocomplete="off"/>
+                            <output for="sx">1.00</output>
+                        </div>
+                        <div class="form-group">
+                            <label for="sy" data-tooltip="Scale factor for y axis">Scale y</label>
+                            <input id="sy" type="range" value="1.00" step="0.1" min="0.1" max="3" autocomplete="off"/>
+                            <output for="sy">1.00</output>
+                        </div>
+                        <div class="form-group">
+                            <label for="width" data-tooltip="Width of the paper in pixels">Width</label>
+                            <input id="width" class="form-control" type="range" value="650" min="100" max="1200" autocomplete="off"/>
+                            <output for="width">650</output>
+                        </div>
+                        <div class="form-group">
+                            <label for="height" data-tooltip="Height of the paper in pixels">Height</label>
+                            <input id="height" class="form-control" type="range" value="400" min="100" max="1200" autocomplete="off"/>
+                            <output for="height">400</output>
+                        </div>
+                        <div class="form-group">
+                            <label for="grid" data-tooltip="Size of the grid in pixels">Grid size</label>
+                            <input id="grid" class="range" type="range" value="1" min="1" max="50" autocomplete="off"/>
+                            <output for="grid">1</output>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel panel-primary">
+                <div class="panel-heading"><a href="/api#joint.dia.Paper:getContentBBox">Content bounding box</a></div>
+                <div class="panel-body">
+                    <label for="bbox-x">x</label>
+                    <span class="output" id="bbox-x">0.0</span>
+                    <label for="bbox-y">y</label>
+                    <span class="output" id="bbox-y">0.0</span>
+                    <label for="bbox-width">width</label>
+                    <span class="output" id="bbox-width">0.0</span>
+                    <label for="bbox-height">height</label>
+                    <span class="output" id="bbox-height">0.0</span>
+                </div>
+            </div>
+        </div>
+        <div class="right">
+
+            <div id="fit-to-content" class="panel panel-primary">
+                <div class="panel-heading"><a href="/api#joint.dia.Paper:fitToContent">Fit to content</a></div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label for="ftc-padding" data-tooltip="Add padding to the resulting width & height of the paper">Padding</label>
+                        <input id="ftc-padding" class="range" type="range" value="0" min="0" max="100" autocomplete="off"/>
+                        <output for="ftc-padding">0</output>
+                    </div>
+                    <div class="form-group">
+                        <label for="ftc-grid-width" data-tooltip="Snap the resulting width to the grid">Grid width</label>
+                        <input id="ftc-grid-width"  class="range" type="range" value="1" min="0" max="100" autocomplete="off"/>
+                        <output for="ftc-grid-width">1</output>
+                    </div>
+                    <div class="form-group">
+                        <label for="ftc-grid-height" data-tooltip="Snap the resulting height to the grid">Grid height</label>
+                        <input id="ftc-grid-height" class="range" type="range" value="1" min="0" max="100" autocomplete="off"/>
+                        <output for="ftc-grid-height">1</output>
+                    </div>
+                    <div class="checkbox">
+                        <label for="ftc-new-origin" data-tooltip="<ul><li><b>don't allow</b> - ignore top-left corner of a paper content and set the origin to {x:0,y:0}</li><li><b>negative</b> - fit top-left corner of a paper content if it has negative coordinates</li><li><b>positive</b> - fit top-left corner of a paper content if it has positive coordinates</li><li><b>any</b> - fit top-left and bottom-right corners of a paper content</li></ul>">Allow new origin</label>
+                        <select id="ftc-new-origin" type="checkbox" autocomplete="off">
+                            <option value="">Don't allow</option>
+                            <option value="negative">Negative</option>
+                            <option value="positive">Positive</option>
+                            <option value="any" selected>Any</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="scale-to-fit" class="panel panel-primary">
+                <div class="panel-heading"><a href="/api#joint.dia.Paper:scaleContentToFit">Scale content to fit</a></div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label for="stf-padding" data-tooltip="Add an additional padding in the resulting, scaled, paper content">Padding</label>
+                        <input id="stf-padding" class="range" type="range" value="0" min="0" max="100" autocomplete="off"/>
+                        <output for="stf-padding">0.0</output>
+                    </div>
+                    <div class="form-group">
+                        <label for="stf-min-scale" data-tooltip="Set the minimum allowed scale factor">Min scale</label>
+                        <input id="stf-min-scale" class="range" type="range" value="0.1" step="0.1" min="0.1" max="1.00" autocomplete="off"/>
+                        <output for="stf-min-scale">0.1</output>
+                    </div>
+                    <div class="form-group">
+                        <label for="stf-max-scale" data-tooltip="Set the maximum allowed scale factor">Max scale</label>
+                        <input id="stf-max-scale" class="range" type="range" value="3.0" step="0.1" min="1" max="3" autocomplete="off"/>
+                        <output for="stf-max-scale">3.0</output>
+                    </div>
+                    <div class="form-group">
+                        <label for="stf-scale-grid" data-tooltip="Set the rounding factor for the resulting scale">Scale grid</label>
+                        <input id="stf-scale-grid" class="range" type="range" value="0.0" step="0.1" min="0" max="0.3" autocomplete="off"/>
+                        <output for="stf-scale-grid">0.0</output>
+                    </div>
+                    <div class="checkbox">
+                        <label for="stf-ratio" data-tooltip="Enable/disable preservation of aspect ratio of the scaled paper content">
+                            <input id="stf-ratio" type="checkbox" checked autocomplete="off"/>Preserve aspect ratio
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="../../../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../../../node_modules/lodash/index.js"></script>
+        <script src="../../../node_modules/backbone/backbone.js"></script>
+
+        <script src="../../../build/joint.js"></script>
+        <script src="src/paper.js"></script>
+
+    </body>
+</html>
