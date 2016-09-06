@@ -436,23 +436,3 @@ graph.on('change', function() {
 });
 
 updateBBox();
-
-$('[data-tooltip]').each(function() {
-
-    var $label = $(this);
-
-    var options = {
-        target: $label,
-        content: $label.data('tooltip')
-    };
-
-    if ($label.closest('.left').length > 0) {
-        options.left = '.left';
-        options.direction = 'left';
-    } else {
-        options.right = '.right';
-        options.direction = 'right';
-    }
-
-    new joint.ui.Tooltip(options);
-});

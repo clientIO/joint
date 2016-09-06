@@ -158,7 +158,35 @@ var e2eHelpers = module.exports = {
                                 .then(function(transform) {
                                     return transform;
                                 });
-                }
+                },
+                changeRange: function (selector, posRangeX, newPosRangeX) {
+
+                        var retObj = {
+                            transform: '',
+                            width: '',
+                            height: ''
+                        };
+
+                        return this
+                                .waitForExist(selector)
+                                .moveToObject(selector, posRangeX/* x-offset */, 10/* y-offset */)
+                                .buttonDown()
+                                .moveToObject(selector, newPosRangeX/* x-offset */, 10/* y-offset */)
+                                .buttonUp()
+                                .getAttribute('#paper .joint-viewport', 'transform')
+                                .then(function (transform) {
+                                    retObj.transform = transform;
+                                })
+                                .getAttribute('#paper svg', 'width')
+                                .then(function (width) {
+                                    retObj.width = width;
+                                })
+                                .getAttribute('#paper svg', 'height')
+                                .then(function (height) {
+                                    retObj.height = height;
+                                    return retObj;
+                                });
+                    }
 	}
 };
 

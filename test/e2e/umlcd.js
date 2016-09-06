@@ -1,28 +1,29 @@
 /* 
- * e2e test for LOGIC CIRCUITS demo: http://jointjs.com/demos/joint-type-logic
+ * e2e test for UNIFIED MODELING LANGUAGE demo: http://jointjs.com/demos/umlcd
  */
 
 'use strict';
 
 var expect = require('chai').expect;
+
 var e2eHelpers = require('../e2eHelpers');
 var config = e2eHelpers.config;
 
-describe('Logic Circuits', function () {
+describe('Unified Modeling Language - The Class Diagram', function () {
 
     var client;
     var url;
 
     before(function (done) {
 
-        url = e2eHelpers.staticUrl('/demo/jointjs.com/logic/index.html');
+        url = e2eHelpers.staticUrl('/demo/jointjs.com/umlcd/index.html');
         client = e2eHelpers.client(done);
     });
 
     it('should be visible', function (done) {
 
         client.url(url)
-                .waitForExist('#paper .joint-type-logic.joint-type-logic-repeater')
+                .waitForExist('#paper .joint-type-uml.joint-type-uml-interface')
                 .then(function (exists) {
                     expect(exists).to.equal(true);
                     done();
@@ -35,9 +36,9 @@ describe('Logic Circuits', function () {
         it('should be movable', function (done) {
 
             client.url(url)
-                    .moveElement('#paper .joint-type-logic.joint-type-logic-input')
+                    .moveElement('#paper .joint-type-uml.joint-type-uml-class')
                     .then(function (transform) {
-                        expect(transform).to.equal("translate(10,5)");
+                        expect(transform[0]).to.equal("translate(20,10)");
                         done();
                     });
 
@@ -50,7 +51,7 @@ describe('Logic Circuits', function () {
         it('should be visible', function (done) {
 
             client.url(url)
-                    .waitForExist('#paper .joint-type-logic.joint-link path.connection')
+                    .waitForExist('#paper .joint-type-uml.joint-type-uml-implementation.joint-link path.connection')
                     .then(function (exists) {
                         expect(exists).to.equal(true);
                         done();
@@ -61,8 +62,8 @@ describe('Logic Circuits', function () {
         it('should be removable', function (done) {
 
             client.url(url)
-                    .click('#j_11 .tool-remove')
-                    .waitForNotExist('#j_11')
+                    .click('#paper .joint-type-uml.joint-type-uml-implementation.joint-link .tool-remove')
+                    .waitForNotExist('#paper .joint-type-uml.joint-type-uml-implementation.joint-link')
                     .then(function (exists) {
                         expect(exists).to.equal(true);
                         done();

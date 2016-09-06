@@ -96,7 +96,7 @@ output,
 @media screen and (max-width: 1240px) {
     .right, .left { 
         position: absolute;
-        top: 100%;
+        top: 500px;
     }
 }
 
