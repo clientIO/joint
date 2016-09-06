@@ -9,6 +9,7 @@
     "visualization"
   ],
   "scripts": {
+    "postinstall": "grunt install",
     "test": "grunt test"
   },
   "version": "0.9.10",
