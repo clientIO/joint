@@ -36,7 +36,7 @@ describe('Chess', function () {
         client.url(url)
                 .getAttribute('#board g[transform="translate(150,300)"]', 'model-id') // PawnWhite d2
                 .then(function (modelId) {
-                        this
+                    this
                             .moveElement('#board g[model-id="' + modelId + '"]', 150 + 30, 200 + 20) // d4
                             .then(function (transform) {
                                 expect(transform).to.equal("translate(150,200)");
@@ -51,7 +51,7 @@ describe('Chess', function () {
         client.url(url)
                 .getAttribute('#board g[transform="translate(150,300)"]', 'model-id') // PawnWhite d2
                 .then(function (modelId) {
-                        this
+                    this
                             .moveElement('#board g[model-id="' + modelId + '"]', 150 + 30, 200 + 20) // d4
                             .pause(100)
                             .getText('#message')
