@@ -1015,14 +1015,23 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (newCandidateView && newCandidateView != prevCandidateView) {
             // A new candidate view found. Highlight the new one.
-            prevCandidateView && prevCandidateView.unhighlight(null, { embedding: true });
+            this.clearEmbedding();
             this._candidateEmbedView = newCandidateView.highlight(null, { embedding: true });
         }
 
         if (!newCandidateView && prevCandidateView) {
             // No candidate view found. Unhighlight the previous candidate.
-            prevCandidateView.unhighlight(null, { embedding: true });
-            delete this._candidateEmbedView;
+            this.clearEmbedding();
+        }
+    },
+
+    clearEmbedding: function() {
+
+        var candidateView = this._candidateEmbedView;
+        if (candidateView) {
+            // No candidate view found. Unhighlight the previous candidate.
+            candidateView.unhighlight(null, { embedding: true });
+            this._candidateEmbedView = null;
         }
     },
 
