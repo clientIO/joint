@@ -11,6 +11,7 @@
         removeClassFromEl(document.getElementsByTagName('html')[0], 'no-js');
 
         initializeNavSearch();
+        initializeNavCollapsible();
 
         iframes = document.querySelectorAll('iframe');
         loadVisibleIFrames();
@@ -95,6 +96,27 @@
         }
 
         return visibleIFrames;
+    }
+
+    function initializeNavCollapsible() {
+
+        var input = document.querySelectorAll('.docs-nav>.docs-nav-items>.docs-nav-item>.docs-nav-item-link');
+
+        for (var i = 0; i < input.length; i++) {
+            input[i].addEventListener('click', toggleOpen);
+        }
+
+        function toggleOpen() {
+
+            var className = this.parentNode.className;
+
+            if (className.indexOf('open') !== -1) {
+                this.parentNode.className = this.parentNode.className.replace('open', '');
+
+            } else{
+                this.parentNode.className += ' open';
+            }
+        }
     }
 
     function initializeNavSearch() {

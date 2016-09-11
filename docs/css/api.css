@@ -185,7 +185,11 @@ body {
 .docs-nav-item + .docs-nav-item {
 	margin-top: 4px;
 }
+.docs-nav-items .open .docs-nav-items {
+	display: block;
+}
 .docs-nav-items .docs-nav-items {
+	display: none;
 	font-size: 0.9rem;
 	border-left: 2px solid rgba(105, 108, 138, 0.15);
 	margin-left: 16px;
