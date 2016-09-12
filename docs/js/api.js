@@ -11,6 +11,7 @@
         removeClassFromEl(document.getElementsByTagName('html')[0], 'no-js');
 
         initializeNavSearch();
+        initializeNavCollapsible();
 
         iframes = document.querySelectorAll('iframe');
         loadVisibleIFrames();
@@ -97,18 +98,60 @@
         return visibleIFrames;
     }
 
+    function getFstLevelElementsLinks() {
+
+        return document.querySelectorAll('.docs-nav>.docs-nav-items>.docs-nav-item>.docs-nav-item-link');
+    }
+
+    function getFstLevelElements() {
+
+        return document.querySelectorAll('.docs-nav>.docs-nav-items>.docs-nav-item');
+    }
+
+    function initializeNavCollapsible() {
+
+        var input = getFstLevelElementsLinks();
+
+        for (var i = 0; i < input.length; i++) {
+            input[i].addEventListener('click', toggleOpen);
+        }
+
+        function toggleOpen() {
+
+            var className = this.parentNode.className;
+
+            if (className.indexOf('open') !== -1) {
+                removeClassFromEl(this.parentNode, 'open');
+            } else{
+                addClassToEl(this.parentNode, 'open');
+            }
+        }
+    }
+
     function initializeNavSearch() {
 
         var input = document.querySelector('.docs-nav-search');
         var items = document.querySelectorAll('.docs-nav-item');
+        var clear = document.querySelector('.docs-nav-search-clear');
         var doSearch = debounce(search, 400);
 
         input.addEventListener('keyup', doSearch);
         input.addEventListener('change', doSearch);
+        clear.addEventListener('click', clearSearch);
+
+        function clearSearch() {
+            input.value = '';
+            closeAll();
+            showAllItems();
+        }
 
         function search() {
 
+            if (input.value === '') {
+                return ;
+            }
             hideAllItems();
+            closeAll();
             showItemsThatMatch(input.value);
         }
 
@@ -119,12 +162,32 @@
             }
         }
 
+        function showAllItems() {
+
+            for (var i = 0; i < items.length; i++) {
+                removeClassFromEl(items[i], 'hidden');
+            }
+        }
+
+        function closeAll() {
+
+            var elements = getFstLevelElements();
+            for (var i = 0; i < elements.length; i++) {
+                removeClassFromEl(elements[i], 'open');
+            }
+        }
+
         function showItemsThatMatch(value) {
 
             var matchingItems = getItemsThatMatch(value);
+            var parents = getFstLevelElements();
 
             for (var i = 0; i < matchingItems.length; i++) {
                 removeClassFromEl(matchingItems[i], 'hidden');
+            }
+
+            for (i = 0; i < parents.length; i++) {
+                addClassToEl(parents[i], 'open');
             }
         }
 
