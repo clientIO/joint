@@ -139,8 +139,6 @@
         input.addEventListener('change', doSearch);
         clear.addEventListener('click', clearSearch);
 
-        console.log(clear);
-
         function clearSearch() {
             input.value = '';
             closeAll();
