@@ -45,6 +45,7 @@
   },
   "devDependencies": {
     "async": "2.0.1",
+    "chai": "3.5.0",
     "cheerio": "0.20.0",
     "express": "4.14.0",
     "grunt": "1.0.1",
@@ -67,11 +68,14 @@
     "load-grunt-tasks": "3.5.0",
     "mocha": "2.5.3",
     "open-sans-fontface": "https://github.com/clientIO/open-sans/archive/1.4.2.tar.gz",
+    "phantomjs-prebuilt": "2.1.7",
     "prismjs": "1.5.1",
+    "selenium-standalone": "5.1.0",
     "serve-static": "1.11.1",
     "should": "11.0.0",
     "sinon": "1.17.5",
     "time-grunt": "1.4.0",
+    "webdriverio": "4.0.8",
     "webpack": "1.13.1",
     "webpack-dev-server": "1.14.1"
   }

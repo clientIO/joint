@@ -1,0 +1,173 @@
+.content-container {
+    margin: 0 0 50px 0;
+}
+.content-sidebar {
+    display: none;
+}
+#paper {
+    background: #FFF;
+    width: auto;
+    display: inline-flex;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+    border-top: 1px solid #eee;
+}
+.left {
+    position: fixed;
+    width: 300px;
+    left: 18px;
+    top: 0px;
+}
+.right {
+    position: fixed;
+    right: 20px;
+    width: 300px;
+    top: 0px;
+}
+.panel {
+    margin: 10px;
+    border-radius: 4px;
+    box-shadow: 2px 2px 3px rgba(0,0,0,0.2);
+    font-size: 11px;
+    border-left: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+}
+.panel-body {
+    padding: 10px;
+    background: white;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+.panel-heading {
+    background: #6a6c8a;
+    padding: 4px;
+    line-height: 30px;
+    text-align: center;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+.panel-heading a {
+    color: #eeeeee;
+}
+.form-group {
+    padding: 5px 0;
+    text-align: left;
+}
+.form-group label {
+    display: inline-block;
+    width: 70px;
+}
+.form-group input {
+    margin-left: 10px;
+}
+.form-group input[type="range"] {
+    width: 110px;
+    padding: 0;
+}
+output,
+.output {
+    background: #ecf0f1;
+    color: #333333;
+    padding: 5px;
+    border-radius: 10px;
+}
+.tooltip {
+    background: #2c3e50;
+    border: 1px solid #eeeeee;
+    color: #eeeeee;
+}
+.tooltip &.left:after {
+    border-right-color: #2c3e50;
+}
+.tooltip &.right:after {
+    border-left-color: #2c3e50;
+}
+.tooltip &.left:before {
+    border-right-color: #eeeeee;
+ }
+.tooltip &.right:before {
+    border-left-color: #eeeeee;
+}
+.paper-demo .checkbox input[type='checkbox'] {
+  margin-right: 5px;
+}
+@media screen and (max-width: 1240px) {
+    .right, .left { 
+        position: absolute;
+        top: 500px;
+    }
+}
+
+/* jointjs elements */
+
+.joint-element.joint-type-basic-path path {
+    fill: #6a6c8a;
+    stroke-width: 0px;
+}
+
+.joint-element.joint-type-basic-path:hover path {
+    fill: #FEC582;
+}
+
+.joint-element.joint-type-basic-path text {
+    fill: #FFF;
+    font-size: 12px;
+    font-weight: lighter;
+}
+
+.joint-link .connection {
+    stroke: #6a6c8a;
+    stroke-width: 2px;
+}
+
+.joint-link * {
+    pointer-events: none;
+}
+
+/* svg */
+
+.bbox {
+    stroke: #16a085;
+    stroke-width: 2;
+    stroke-opacity: 0;
+    fill: none;
+    transition-property: stroke-opacity;
+    transition-duration: 0.5s;
+    pointer-events: none;
+}
+
+.axis {
+    stroke: #95a5a6;
+    stroke-dasharray: 2,4;
+    stroke-width: 1;
+    pointer-events: none;
+}
+
+.padding {
+    stroke: #1abc9c;
+    stroke-opacity: 0;
+    transition-property: stroke-opacity;
+    transition-duration: 1s;
+    pointer-events: none;
+}
+
+.grid {
+    stroke: #16a085;
+    stroke-width: 0.5;
+    stroke-opacity: 0;
+    transition-property: stroke-opacity;
+    transition-duration: 1s;
+    pointer-events: none;
+}
+
+.active {
+    stroke-opacity: 0.5;
+}
+
+.padding.active, .bbox.active {
+    stroke-opacity: 0.2;
+}
+
+/* IE can't handle paths without the `d` attribute for bounding box calculation */
+.marker-source, .marker-target {
+    display:none;
+}
