@@ -150,12 +150,12 @@ body {
 }
 .docs-nav-search {
 	display: block;
-	width: 100%;
+	width: 220px;
 	color: #666;
 	background-color: #e6eaf1;
 	border: none;
 	outline: none;
-	margin: 0;
+	margin: 10px;
 	padding: 8px;
 }
 .docs-nav-items {
@@ -166,7 +166,7 @@ body {
 .docs-nav-item.hidden {
 	display: none;
 }
-.docs-nav-item-link {
+.docs-nav>.docs-nav-items>.docs-nav-item>.docs-nav-item-link {
 	display: block;
 	width: 100%;
 	color: #31d0c6;
@@ -177,10 +177,33 @@ body {
 	box-sizing: border-box;
 	padding: 8px 16px;
 	margin: 0;
+    border: none;
+    font-weight: normal;
 }
-.docs-nav-item-link:hover {
+.docs-nav>.docs-nav-items>.docs-nav-item>.docs-nav-item-link:hover {
 	background-color: rgba(105, 108, 138, 0.25);
+    border: none;
 }
+
+.docs-nav-item-link {
+    background: transparent;
+    color: #c6c7e2;
+    font-size: 12px;
+    display: block;
+    margin: 0;
+    padding: 6px 6px 6px 27px;
+    border-left: 3px solid transparent;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.docs-nav-item-link:hover {
+    color: #feb663;
+    border-color: #feb663;
+    text-decoration: none;
+    /*background-color: rgba(105, 108, 138, 0.15);*/
+}
+
 .docs-nav-item-link + .docs-nav-items,
 .docs-nav-item + .docs-nav-item {
 	margin-top: 4px;
@@ -406,4 +429,17 @@ html.no-js .docs-content iframe {
 
 .docs-items blockquote {
 	margin: 0;
+}
+
+.docs-nav-search-clear:hover {
+	cursor: pointer;
+	opacity:0.9;
+}
+
+.docs-nav-search-clear {
+	position: absolute;
+	width: 20px;
+	left: 222px;
+	top: 16px;
+	opacity: 0.2;
 }
