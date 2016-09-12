@@ -15,7 +15,7 @@ describe('Logic Circuits', function () {
 
     before(function (done) {
 
-        url = e2eHelpers.staticUrl('/demo/jointjs.com/logic/index.html');
+        url = e2eHelpers.staticUrl('/demo/logic/index.html');
         client = e2eHelpers.client(done);
     });
 

@@ -15,7 +15,7 @@ describe('ER Diagrams', function () {
 
     before(function (done) {
 
-        url = e2eHelpers.staticUrl('/demo/jointjs.com/erd/index.html');
+        url = e2eHelpers.staticUrl('/demo/erd/index.html');
         client = e2eHelpers.client(done);
     });
 

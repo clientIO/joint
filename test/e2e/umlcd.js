@@ -16,7 +16,7 @@ describe('Unified Modeling Language - The Class Diagram', function () {
 
     before(function (done) {
 
-        url = e2eHelpers.staticUrl('/demo/jointjs.com/umlcd/index.html');
+        url = e2eHelpers.staticUrl('/demo/umlcd/index.html');
         client = e2eHelpers.client(done);
     });
 
