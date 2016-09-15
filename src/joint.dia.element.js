@@ -771,7 +771,17 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (!_.isUndefined(yAlignment) || !_.isUndefined(xAlignment)) {
 
-            var velBBox = vel.bbox(false, this.paper.viewport);
+            var velBBox = vel.bbox(true /* without transformations */);
+            // Componsate the size with the bounding box origin offset.
+            velBBox.height += velBBox.y;
+            velBBox.width += velBBox.x;
+            velBBox.x = velBBox.y = 0;
+
+            if (scalable) {
+                scale = scale || scalable.scale();
+                velBBox.width *= scale.sx;
+                velBBox.height *= scale.sy;
+            }
 
             // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
             // `y-alignment` when set to `bottom` uses the y coordinate as referenced to the bottom of the bbox.
