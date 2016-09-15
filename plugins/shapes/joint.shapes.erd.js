@@ -1,6 +1,3 @@
-//      JointJS library.
-//      (c) 2011-2013 client IO
-
 joint.shapes.erd = {};
 
 joint.shapes.erd.Entity = joint.dia.Element.extend({
@@ -24,8 +21,8 @@ joint.shapes.erd.Entity = joint.dia.Element.extend({
             text: {
                 text: 'Entity',
                 'font-family': 'Arial', 'font-size': 14,
-                ref: '.outer', 'ref-x': .5, 'ref-y': .5,
-                'x-alignment': 'middle', 'y-alignment': 'middle'
+                'ref-x': .5, 'ref-y': .5,
+                'y-alignment': 'middle', 'text-anchor': 'middle'
             }
         }
 
@@ -67,8 +64,8 @@ joint.shapes.erd.Relationship = joint.dia.Element.extend({
             text: {
                 text: 'Relationship',
                 'font-family': 'Arial', 'font-size': 12,
-                ref: '.', 'ref-x': .5, 'ref-y': .5,
-                'x-alignment': 'middle', 'y-alignment': 'middle'
+                'ref-x': .5, 'ref-y': .5,
+                'y-alignment': 'middle', 'text-anchor': 'middle'
             }
         }
 
@@ -113,8 +110,8 @@ joint.shapes.erd.Attribute = joint.dia.Element.extend({
             },
             text: {
                 'font-family': 'Arial', 'font-size': 14,
-                ref: '.', 'ref-x': .5, 'ref-y': .5,
-                'x-alignment': 'middle', 'y-alignment': 'middle'
+                'ref-x': .5, 'ref-y': .5,
+                'y-alignment': 'middle', 'text-anchor': 'middle'
             }
         }
 
@@ -190,8 +187,8 @@ joint.shapes.erd.ISA = joint.dia.Element.extend({
             },
             text: {
                 text: 'ISA', 'font-size': 18,
-                ref: 'polygon', 'ref-x': .5, 'ref-y': .3,
-                'x-alignment': 'middle', 'y-alignment': 'middle'
+                'ref-x': .5, 'ref-y': .3,
+                'y-alignment': 'middle', 'text-anchor': 'middle'
             }
         }
 
