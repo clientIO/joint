@@ -771,7 +771,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (!_.isUndefined(yAlignment) || !_.isUndefined(xAlignment)) {
 
-            var velBBox = vel.bbox(true /* without transformations */);
+            // Get the boundind box with the tranformations applied by the the
+            // element itself only.
+            var velBBox = vel.bbox(false, vel.node.parentNode);
             // Componsate the size with the bounding box origin offset.
             velBBox.height += velBBox.y;
             velBBox.width += velBBox.x;
