@@ -5,6 +5,7 @@ body {
     margin: 0 auto;
     border-style: none;
     width: 400px;
+    position: relative;
 }
 .board-bg {
     border-spacing: 0;
