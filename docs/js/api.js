@@ -16,6 +16,8 @@
         iframes = document.querySelectorAll('iframe');
         loadVisibleIFrames();
         window.addEventListener('scroll', debounce(loadVisibleIFrames, 400));
+
+        openSections();
     });
 
     function loadVisibleIFrames() {
@@ -27,6 +29,15 @@
             if (!iframeIsLoaded(iframe)) {
                 loadIFrame(iframe);
             }
+        }
+    }
+
+    function openSections() {
+
+        var prototypeSection = document.querySelector('[href="#prototype"]');
+
+        if (prototypeSection) {
+            addClassToEl(prototypeSection.parentNode, 'open');
         }
     }
 
