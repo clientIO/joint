@@ -143,8 +143,7 @@ body {
 	z-index: 40;
 	overflow-y: auto;
 	overflow-x: hidden;
-	background-color: #072740;
-	background-image: url('../images/vertical_navigation_background.jpg');
+	background-color: #6764A7;
 	background-position: top left;
 	background-repeat: no-repeat;
 }
@@ -169,11 +168,10 @@ body {
 .docs-nav>.docs-nav-items>.docs-nav-item>.docs-nav-item-link {
 	display: block;
 	width: 100%;
-	color: #31d0c6;
 	font-size: 0.9em;
 	text-decoration: none;
 	letter-spacing: .5px;
-	background-color: rgba(105, 108, 138, 0.15);
+	background-color: rgba(14, 20, 84, 0.15);
 	box-sizing: border-box;
 	padding: 8px 16px;
 	margin: 0;
@@ -181,13 +179,13 @@ body {
     font-weight: normal;
 }
 .docs-nav>.docs-nav-items>.docs-nav-item>.docs-nav-item-link:hover {
-	background-color: rgba(105, 108, 138, 0.25);
     border: none;
+	background-color: #3B368B;
 }
 
 .docs-nav-item-link {
     background: transparent;
-    color: #c6c7e2;
+    color: #f6f6f6;
     font-size: 12px;
     display: block;
     margin: 0;
@@ -206,7 +204,7 @@ body {
 
 .docs-nav-item-link + .docs-nav-items,
 .docs-nav-item + .docs-nav-item {
-	margin-top: 4px;
+	margin-top: 1px;
 }
 .docs-nav-items .open .docs-nav-items {
 	display: block;
