@@ -10,22 +10,23 @@
 </head>
 <body>
 
-    <div class="docs-main">
-        <nav class="docs-nav">
-            <input class="docs-nav-search" type="text" placeholder="{{searchPlaceholder}}">
-            {{> navItems}}
-        </nav>
-        <section class="docs-content">
-            <h1 class="docs-header">{{title}}</h1>
-{{{ intro }}}
-            <div class="docs-items">
-                {{{ index }}}
+<div class="docs-main">
+    <nav class="docs-nav">
+        <input class="docs-nav-search" type="text" placeholder="{{searchPlaceholder}}">
+        <img class="docs-nav-search-clear" src="./images/clear.png" title="Clear Search" />
+        {{> navItems}}
+    </nav>
+    <section class="docs-content">
+        <h1 class="docs-header">{{title}}</h1>
+        {{{ intro }}}
+        <div class="docs-items">
+            {{{ index }}}
 {{> contentItems}}
-            </div>
-        </section>
-    </div>
+        </div>
+    </section>
+</div>
 
-    <script src="js/api.js"></script>
+<script src="js/api.js"></script>
 
 </body>
 </html>
