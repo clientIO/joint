@@ -1,213 +1,264 @@
 @font-face {
-	font-family: 'OpenSans';
-	font-style: normal;
-	font-weight: 700;
-	src: url('../fonts/OpenSans/OpenSans-Bold.eot');
-	src: local('OpenSans-Bold'),
-		 url('../fonts/OpenSans/OpenSans-Bold.eot?#iefix') format('embedded-opentype'),
-		 url('../fonts/OpenSans/OpenSans-Bold.woff2') format('woff2'),
-		 url('../fonts/OpenSans/OpenSans-Bold.woff') format('woff'),
-		 url('../fonts/OpenSans/OpenSans-Bold.ttf') format('truetype'),
-		 url('../fonts/OpenSans/OpenSans-Bold.svg#OpenSans-Bold') format('svg');
+    font-family: 'OpenSans';
+    font-style: normal;
+    font-weight: 700;
+    src: url('../fonts/OpenSans/OpenSans-Bold.eot');
+    src: local('OpenSans-Bold'),
+    url('../fonts/OpenSans/OpenSans-Bold.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/OpenSans/OpenSans-Bold.woff2') format('woff2'),
+    url('../fonts/OpenSans/OpenSans-Bold.woff') format('woff'),
+    url('../fonts/OpenSans/OpenSans-Bold.ttf') format('truetype'),
+    url('../fonts/OpenSans/OpenSans-Bold.svg#OpenSans-Bold') format('svg');
 }
+
 @font-face {
-	font-family: 'OpenSans';
-	font-style: italic;
-	font-weight: 700;
-	src: url('../fonts/OpenSans/OpenSans-BoldItalic.eot');
-	src: local('OpenSans-BoldItalic'),
-		 url('../fonts/OpenSans/OpenSans-BoldItalic.eot?#iefix') format('embedded-opentype'),
-		 url('../fonts/OpenSans/OpenSans-BoldItalic.woff2') format('woff2'),
-		 url('../fonts/OpenSans/OpenSans-BoldItalic.woff') format('woff'),
-		 url('../fonts/OpenSans/OpenSans-BoldItalic.ttf') format('truetype'),
-		 url('../fonts/OpenSans/OpenSans-BoldItalic.svg#OpenSans-BoldItalic') format('svg');
+    font-family: 'OpenSans';
+    font-style: italic;
+    font-weight: 700;
+    src: url('../fonts/OpenSans/OpenSans-BoldItalic.eot');
+    src: local('OpenSans-BoldItalic'),
+    url('../fonts/OpenSans/OpenSans-BoldItalic.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/OpenSans/OpenSans-BoldItalic.woff2') format('woff2'),
+    url('../fonts/OpenSans/OpenSans-BoldItalic.woff') format('woff'),
+    url('../fonts/OpenSans/OpenSans-BoldItalic.ttf') format('truetype'),
+    url('../fonts/OpenSans/OpenSans-BoldItalic.svg#OpenSans-BoldItalic') format('svg');
 }
+
 @font-face {
-	font-family: 'OpenSans';
-	font-style: normal;
-	font-weight: 900;
-	src: url('../fonts/OpenSans/OpenSans-ExtraBold.eot');
-	src: local('OpenSans-Extrabold'),
-		 url('../fonts/OpenSans/OpenSans-ExtraBold.eot?#iefix') format('embedded-opentype'),
-		 url('../fonts/OpenSans/OpenSans-ExtraBold.woff2') format('woff2'),
-		 url('../fonts/OpenSans/OpenSans-ExtraBold.woff') format('woff'),
-		 url('../fonts/OpenSans/OpenSans-ExtraBold.ttf') format('truetype'),
-		 url('../fonts/OpenSans/OpenSans-ExtraBold.svg#OpenSans-Extrabold') format('svg');
+    font-family: 'OpenSans';
+    font-style: normal;
+    font-weight: 900;
+    src: url('../fonts/OpenSans/OpenSans-ExtraBold.eot');
+    src: local('OpenSans-Extrabold'),
+    url('../fonts/OpenSans/OpenSans-ExtraBold.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/OpenSans/OpenSans-ExtraBold.woff2') format('woff2'),
+    url('../fonts/OpenSans/OpenSans-ExtraBold.woff') format('woff'),
+    url('../fonts/OpenSans/OpenSans-ExtraBold.ttf') format('truetype'),
+    url('../fonts/OpenSans/OpenSans-ExtraBold.svg#OpenSans-Extrabold') format('svg');
 }
+
 @font-face {
-	font-family: 'OpenSans';
-	font-style: italic;
-	font-weight: 900;
-	src: url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.eot');
-	src: local('OpenSans-ExtraboldItalic'),
-		 url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.eot?#iefix') format('embedded-opentype'),
-		 url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.woff2') format('woff2'),
-		 url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.woff') format('woff'),
-		 url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.ttf') format('truetype'),
-		 url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.svg#OpenSans-ExtraboldItalic') format('svg');
+    font-family: 'OpenSans';
+    font-style: italic;
+    font-weight: 900;
+    src: url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.eot');
+    src: local('OpenSans-ExtraboldItalic'),
+    url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.woff2') format('woff2'),
+    url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.woff') format('woff'),
+    url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.ttf') format('truetype'),
+    url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.svg#OpenSans-ExtraboldItalic') format('svg');
 }
+
 @font-face {
-	font-family: 'OpenSans';
-	font-style: italic;
-	font-weight: 400;
-	src: url('../fonts/OpenSans/OpenSans-Italic.eot');
-	src: local('OpenSans-Italic'),
-		 url('../fonts/OpenSans/OpenSans-Italic.eot?#iefix') format('embedded-opentype'),
-		 url('../fonts/OpenSans/OpenSans-Italic.woff2') format('woff2'),
-		 url('../fonts/OpenSans/OpenSans-Italic.woff') format('woff'),
-		 url('../fonts/OpenSans/OpenSans-Italic.ttf') format('truetype'),
-		 url('../fonts/OpenSans/OpenSans-Italic.svg#OpenSans-Italic') format('svg');
+    font-family: 'OpenSans';
+    font-style: italic;
+    font-weight: 400;
+    src: url('../fonts/OpenSans/OpenSans-Italic.eot');
+    src: local('OpenSans-Italic'),
+    url('../fonts/OpenSans/OpenSans-Italic.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/OpenSans/OpenSans-Italic.woff2') format('woff2'),
+    url('../fonts/OpenSans/OpenSans-Italic.woff') format('woff'),
+    url('../fonts/OpenSans/OpenSans-Italic.ttf') format('truetype'),
+    url('../fonts/OpenSans/OpenSans-Italic.svg#OpenSans-Italic') format('svg');
 }
+
 @font-face {
-	font-family: 'OpenSans';
-	font-style: normal;
-	font-weight: 200;
-	src: url('../fonts/OpenSans/OpenSans-Light.eot');
-	src: local('OpenSans-Light'),
-		 url('../fonts/OpenSans/OpenSans-Light.eot?#iefix') format('embedded-opentype'),
-		 url('../fonts/OpenSans/OpenSans-Light.woff2') format('woff2'),
-		 url('../fonts/OpenSans/OpenSans-Light.woff') format('woff'),
-		 url('../fonts/OpenSans/OpenSans-Light.ttf') format('truetype'),
-		 url('../fonts/OpenSans/OpenSans-Light.svg#OpenSans-Light') format('svg');
+    font-family: 'OpenSans';
+    font-style: normal;
+    font-weight: 200;
+    src: url('../fonts/OpenSans/OpenSans-Light.eot');
+    src: local('OpenSans-Light'),
+    url('../fonts/OpenSans/OpenSans-Light.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/OpenSans/OpenSans-Light.woff2') format('woff2'),
+    url('../fonts/OpenSans/OpenSans-Light.woff') format('woff'),
+    url('../fonts/OpenSans/OpenSans-Light.ttf') format('truetype'),
+    url('../fonts/OpenSans/OpenSans-Light.svg#OpenSans-Light') format('svg');
 }
+
 @font-face {
-	font-family: 'OpenSans';
-	font-style: italic;
-	font-weight: 200;
-	src: url('../fonts/OpenSans/OpenSans-LightItalic.eot');
-	src: local('OpenSansLight-Italic'),
-		 url('../fonts/OpenSans/OpenSans-LightItalic.eot?#iefix') format('embedded-opentype'),
-		 url('../fonts/OpenSans/OpenSans-LightItalic.woff2') format('woff2'),
-		 url('../fonts/OpenSans/OpenSans-LightItalic.woff') format('woff'),
-		 url('../fonts/OpenSans/OpenSans-LightItalic.ttf') format('truetype'),
-		 url('../fonts/OpenSans/OpenSans-LightItalic.svg#OpenSansLight-Italic') format('svg');
+    font-family: 'OpenSans';
+    font-style: italic;
+    font-weight: 200;
+    src: url('../fonts/OpenSans/OpenSans-LightItalic.eot');
+    src: local('OpenSansLight-Italic'),
+    url('../fonts/OpenSans/OpenSans-LightItalic.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/OpenSans/OpenSans-LightItalic.woff2') format('woff2'),
+    url('../fonts/OpenSans/OpenSans-LightItalic.woff') format('woff'),
+    url('../fonts/OpenSans/OpenSans-LightItalic.ttf') format('truetype'),
+    url('../fonts/OpenSans/OpenSans-LightItalic.svg#OpenSansLight-Italic') format('svg');
 }
+
 @font-face {
-	font-family: 'OpenSans';
-	font-style: normal;
-	font-weight: 400;
-	src: url('../fonts/OpenSans/OpenSans-Regular.eot');
-	src: local('OpenSans'),
-		 url('../fonts/OpenSans/OpenSans-Regular.eot?#iefix') format('embedded-opentype'),
-		 url('../fonts/OpenSans/OpenSans-Regular.woff2') format('woff2'),
-		 url('../fonts/OpenSans/OpenSans-Regular.woff') format('woff'),
-		 url('../fonts/OpenSans/OpenSans-Regular.ttf') format('truetype'),
-		 url('../fonts/OpenSans/OpenSans-Regular.svg#OpenSans') format('svg');
+    font-family: 'OpenSans';
+    font-style: normal;
+    font-weight: 400;
+    src: url('../fonts/OpenSans/OpenSans-Regular.eot');
+    src: local('OpenSans'),
+    url('../fonts/OpenSans/OpenSans-Regular.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/OpenSans/OpenSans-Regular.woff2') format('woff2'),
+    url('../fonts/OpenSans/OpenSans-Regular.woff') format('woff'),
+    url('../fonts/OpenSans/OpenSans-Regular.ttf') format('truetype'),
+    url('../fonts/OpenSans/OpenSans-Regular.svg#OpenSans') format('svg');
 }
+
 @font-face {
-	font-family: 'OpenSans';
-	font-style: normal;
-	font-weight: 600;
-	src: url('../fonts/OpenSans/OpenSans-Semibold.eot');
-	src: local('OpenSans-Semibold'),
-		 url('../fonts/OpenSans/OpenSans-Semibold.eot?#iefix') format('embedded-opentype'),
-		 url('../fonts/OpenSans/OpenSans-Semibold.woff2') format('woff2'),
-		 url('../fonts/OpenSans/OpenSans-Semibold.woff') format('woff'),
-		 url('../fonts/OpenSans/OpenSans-Semibold.ttf') format('truetype'),
-		 url('../fonts/OpenSans/OpenSans-Semibold.svg#OpenSans-Semibold') format('svg');
+    font-family: 'OpenSans';
+    font-style: normal;
+    font-weight: 600;
+    src: url('../fonts/OpenSans/OpenSans-Semibold.eot');
+    src: local('OpenSans-Semibold'),
+    url('../fonts/OpenSans/OpenSans-Semibold.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/OpenSans/OpenSans-Semibold.woff2') format('woff2'),
+    url('../fonts/OpenSans/OpenSans-Semibold.woff') format('woff'),
+    url('../fonts/OpenSans/OpenSans-Semibold.ttf') format('truetype'),
+    url('../fonts/OpenSans/OpenSans-Semibold.svg#OpenSans-Semibold') format('svg');
 }
+
 @font-face {
-	font-family: 'OpenSans';
-	font-style: italic;
-	font-weight: 600;
-	src: url('../fonts/OpenSans/OpenSans-SemiboldItalic.eot');
-	src: local('OpenSans-SemiboldItalic'),
-		 url('../fonts/OpenSans/OpenSans-SemiboldItalic.eot?#iefix') format('embedded-opentype'),
-		 url('../fonts/OpenSans/OpenSans-SemiboldItalic.woff2') format('woff2'),
-		 url('../fonts/OpenSans/OpenSans-SemiboldItalic.woff') format('woff'),
-		 url('../fonts/OpenSans/OpenSans-SemiboldItalic.ttf') format('truetype'),
-		 url('../fonts/OpenSans/OpenSans-SemiboldItalic.svg#OpenSans-SemiboldItalic') format('svg');
+    font-family: 'OpenSans';
+    font-style: italic;
+    font-weight: 600;
+    src: url('../fonts/OpenSans/OpenSans-SemiboldItalic.eot');
+    src: local('OpenSans-SemiboldItalic'),
+    url('../fonts/OpenSans/OpenSans-SemiboldItalic.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/OpenSans/OpenSans-SemiboldItalic.woff2') format('woff2'),
+    url('../fonts/OpenSans/OpenSans-SemiboldItalic.woff') format('woff'),
+    url('../fonts/OpenSans/OpenSans-SemiboldItalic.ttf') format('truetype'),
+    url('../fonts/OpenSans/OpenSans-SemiboldItalic.svg#OpenSans-SemiboldItalic') format('svg');
 }
+
 html, body {
-	padding: 0;
-	margin: 0;
+    padding: 0;
+    margin: 0;
 }
+
 body {
-	font-family: 'OpenSans', sans-serif, arial;
-	font-weight: 200;
-	background: #f6f6f6;
+    font-family: 'OpenSans', sans-serif, arial;
+    font-weight: 200;
+    background: #f6f6f6;
 }
+
 .docs-main {
-	position: relative;
-	z-index: 20;
-	display: inline-block;
-	vertical-align: top;
-	width: 100%;
+    position: relative;
+    z-index: 20;
+    display: inline-block;
+    vertical-align: top;
+    width: 100%;
 }
+
 .docs-nav {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 286px;
-	height: 100%;
-	z-index: 40;
-	overflow-y: auto;
-	overflow-x: hidden;
-	background-color: #072740;
-	background-image: url('../images/vertical_navigation_background.jpg');
-	background-position: top left;
-	background-repeat: no-repeat;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 286px;
+    height: 100%;
+    z-index: 40;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: #6764A7;
+    background-position: top left;
+    background-repeat: no-repeat;
 }
+
 .docs-nav-search {
-	display: block;
-	width: 100%;
-	color: #666;
-	background-color: #e6eaf1;
-	border: none;
-	outline: none;
-	margin: 0;
-	padding: 8px;
+    display: block;
+    width: 220px;
+    color: #666;
+    background-color: #e6eaf1;
+    border: none;
+    outline: none;
+    margin: 10px;
+    padding: 8px;
 }
+
 .docs-nav-items {
-	list-style: none;
-	margin: 0;
-	padding: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
+
 .docs-nav-item.hidden {
-	display: none;
+    display: none;
 }
+
+.docs-nav > .docs-nav-items > .docs-nav-item > .docs-nav-item-link {
+    display: block;
+    width: 100%;
+    font-size: 0.9em;
+    text-decoration: none;
+    letter-spacing: .5px;
+    background-color: rgba(14, 20, 84, 0.15);
+    box-sizing: border-box;
+    padding: 8px 16px;
+    margin: 0;
+    border: none;
+    font-weight: normal;
+}
+
+.docs-nav > .docs-nav-items > .docs-nav-item > .docs-nav-item-link:hover {
+    border: none;
+    background-color: #3B368B;
+}
+
 .docs-nav-item-link {
-	display: block;
-	width: 100%;
-	color: #31d0c6;
-	font-size: 0.9em;
-	text-decoration: none;
-	letter-spacing: .5px;
-	background-color: rgba(105, 108, 138, 0.15);
-	box-sizing: border-box;
-	padding: 8px 16px;
-	margin: 0;
+    background: transparent;
+    color: #f6f6f6;
+    font-size: 12px;
+    display: block;
+    margin: 0;
+    padding: 6px 6px 6px 27px;
+    border-left: 3px solid transparent;
+    text-decoration: none;
+    font-weight: bold;
 }
+
 .docs-nav-item-link:hover {
-	background-color: rgba(105, 108, 138, 0.25);
+    color: #feb663;
+    border-color: #feb663;
+    text-decoration: none;
+    /*background-color: rgba(105, 108, 138, 0.15);*/
 }
+
 .docs-nav-item-link + .docs-nav-items,
 .docs-nav-item + .docs-nav-item {
-	margin-top: 4px;
+    margin-top: 1px;
 }
+
+.docs-nav-items .open .docs-nav-items {
+    display: block;
+}
+
 .docs-nav-items .docs-nav-items {
-	font-size: 0.9rem;
-	border-left: 2px solid rgba(105, 108, 138, 0.15);
-	margin-left: 16px;
+    display: none;
+    font-size: 0.9rem;
+    border-left: 2px solid rgba(105, 108, 138, 0.15);
+    margin-left: 16px;
 }
+
 .docs-nav-items .docs-nav-items .docs-nav-item-link {
-	background-color: transparent;
+    background-color: transparent;
 }
+
 .docs-nav-items .docs-nav-items .docs-nav-item-link:hover {
-	background-color: rgba(105, 108, 138, 0.15);
+    background-color: rgba(105, 108, 138, 0.15);
 }
+
 .docs-content {
-	width: 100%;
-	box-sizing: border-box;
-	padding: 0 35px 15px 321px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 35px 15px 321px;
 }
+
 .docs-content a {
-	color: #3c4260;
-	text-decoration: underline;
+    color: #3c4260;
+    text-decoration: underline;
 }
+
 .docs-content a:hover {
-	color: #31d0c6;
+    color: #31d0c6;
 }
+
 .docs-content p,
 .docs-content h1,
 .docs-content h2,
@@ -215,118 +266,238 @@ body {
 .docs-content h4,
 .docs-content h5,
 .docs-content pre {
-	line-height: 150%;
+    line-height: 150%;
 }
-.docs-content h1 { font-size: 2.1em; }
-.docs-content h2 { font-size: 1.5em; }
-.docs-content h3 { font-size: 1.2em; }
+
+.docs-content h1 {
+    font-size: 2.1em;
+}
+
+.docs-content h2 {
+    font-size: 1.5em;
+}
+
+.docs-content h3 {
+    font-size: 1.2em;
+}
+
 .docs-content h4,
 .docs-content h5,
-.docs-content h6 { font-size: 1em; }
+.docs-content h6 {
+    font-size: 1em;
+}
+
 .docs-content p {
-	font-size: 1em;
+    font-size: 1em;
 }
+
 .docs-content code {
-	position: relative;
-	top: -2px;
-	display: inline;
-	font-family: 'Courier New';
-	font-size: 0.8em;
-	background: #efefef;
-	border: 1px solid #cfcfcf;
-	border-radius: 3px;
-	padding: 3px;
+    position: relative;
+    top: -2px;
+    display: inline;
+    font-family: 'Courier New';
+    font-size: 0.8em;
+    background: #efefef;
+    border: 1px solid #cfcfcf;
+    border-radius: 3px;
+    padding: 3px;
 }
+
 .docs-content pre {
-	max-width: 100%;
-	color: #444;
-	font-family: 'Courier New';
-	font-size: 0.9em;
-	background: #efefef;
-	border: 1px solid #cfcfcf;
-	border-radius: 5px;
-	overflow-x: auto;
-	padding: 10px;
+    max-width: 100%;
+    color: #444;
+    font-family: 'Courier New';
+    font-size: 0.9em;
+    background: #efefef;
+    border: 1px solid #cfcfcf;
+    border-radius: 5px;
+    overflow-x: auto;
+    padding: 10px;
 }
+
 .docs-content pre code {
-	top: 0;
-	display: block;
-	width: 100%;
-	height: 100%;
-	font-size: inherit;
-	background: transparent;
-	border: none;
-	border-radius: 0;
-	margin: 0;
-	padding: 0;
+    top: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    font-size: inherit;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    padding: 0;
 }
+
 .docs-content pre.docs-method-signature {
-	position: relative;
-	top: -5px;
-	color: #111;
-	font-size: 1.1em;
-	background: transparent;
-	border: none;
-	margin-top: 0;
-	padding: 0;
+    position: relative;
+    top: -5px;
+    color: #111;
+    font-size: 1.1em;
+    background: transparent;
+    border: none;
+    margin-top: 0;
+    padding: 0;
 }
+
 .docs-content li + li {
-	margin-top: 5px;
+    margin-top: 5px;
 }
+
 .docs-content table {
-	border-collapse: collapse;
-	border-spacing: 0;
+    border-collapse: collapse;
+    border-spacing: 0;
 }
+
 .docs-content th,
 .docs-content td {
-	background: #fefefe;
-	border: 1px solid #e6e6e6;
-	padding: 16px;
+    background: #fefefe;
+    border: 1px solid #e6e6e6;
+    padding: 16px;
 }
+
 .docs-content th:first-child,
 .docs-content td:first-child {
-	text-align: left;
+    text-align: left;
 }
+
 .docs-content iframe {
-	width: 100%;
-	height: 1px;
-	visibility: hidden;
-	overflow: visible;
-	border: none;
+    width: 100%;
+    overflow: visible;
+    border: none;
 }
-.docs-content iframe.loading {
-	height: 400px;
+
+.loadIFrame {
+    background: none;
+    position: relative;
 }
-.docs-content iframe.loaded {
-	height: 400px;
-	visibility: visible;
+
+.loadIFrame > p {
+    position: absolute;
+    color: #8986f5;
 }
+
+.loadIFrame > div {
+    position: absolute;
+    display: block;
+    width: 50px;
+    height: 50px;
+    border-radius: 30px;
+    box-shadow: 0 2px 0 0 #8986f5;
+    -ms-animation: uil-ring-anim 1s linear infinite;
+    -moz-animation: uil-ring-anim 1s linear infinite;
+    -webkit-animation: uil-ring-anim 1s linear infinite;
+    -o-animation: uil-ring-anim 1s linear infinite;
+    animation: uil-ring-anim 1s linear infinite;
+}
+
+@-webkit-keyframes uil-ring-anim {
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+@-moz-keyframes uil-ring-anim {
+    0% {
+        -moz-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -moz-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+@-ms-keyframes uil-ring-anim {
+    0% {
+        -ms-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -ms-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+@-o-keyframes uil-ring-anim {
+    0% {
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -o-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes uil-ring-anim {
+    0% {
+        -ms-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -ms-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+        -webkit-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
 html.no-js .docs-content iframe {
-	display: none;
+    display: none;
 }
+
 .docs-items > .docs-item {
-	border-top: 1px solid #eee;
-	margin-top: 30px;
+    border-top: 1px solid #eee;
+    margin-top: 30px;
 }
 
-	/*  PrismJS - syntax highlighting  */
-	.token.operator, .token.entity, .token.url, .language-css .token.string, .style .token.string {
-		background: transparent;
-	}
-	/*  PrismJS  */
+/*  PrismJS - syntax highlighting  */
+.token.operator, .token.entity, .token.url, .language-css .token.string, .style .token.string {
+    background: transparent;
+}
 
+/*  PrismJS  */
 
-	/*  Custom  */
-	.images {
-		margin-top: 30px;
-	}
-	.image {
-		display: block;
-		width: auto;
-		max-width: 80%;
-		margin: 0 auto;
-	}
-	.image + .image {
-		margin-top: 30px;
-	}
-	/*  Custom  */
+/*  Custom  */
+.images {
+    margin-top: 30px;
+}
+
+.image {
+    display: block;
+    width: auto;
+    max-width: 80%;
+    margin: 0 auto;
+}
+
+.image + .image {
+    margin-top: 30px;
+}
+
+/*  Custom  */
+
+.docs-items blockquote {
+    margin: 0;
+}
+
+.docs-nav-search-clear:hover {
+    cursor: pointer;
+    opacity: 0.9;
+}
+
+.docs-nav-search-clear {
+    position: absolute;
+    width: 20px;
+    left: 222px;
+    top: 16px;
+    opacity: 0.2;
+}
