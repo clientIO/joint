@@ -773,11 +773,15 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             // Get the boundind box with the tranformations applied by the the
             // element itself only.
-            var velBBox = vel.bbox(false, vel.node.parentNode);
-            // Componsate the size with the bounding box origin offset.
-            velBBox.height += velBBox.y;
-            velBBox.width += velBBox.x;
-            velBBox.x = velBBox.y = 0;
+            var node = vel.node;
+            var velBBox = vel.bbox(false, node.parentNode);
+
+            // Compensate the size with the bounding box origin offset for text elements.
+            var nodeName = node.nodeName.toUpperCase();
+            if (nodeName === 'TEXT' || nodeName === 'TSPAN') {
+                velBBox.height += velBBox.y;
+                velBBox.width += velBBox.x;
+            }
 
             if (scalable) {
                 scale = scale || scalable.scale();
