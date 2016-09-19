@@ -43,7 +43,7 @@
         }
 
         if (gSection) {
-            addClassToEl(prototypeSection.parentNode, 'open');
+            addClassToEl(gSection.parentNode, 'open');
         }
     }
 
