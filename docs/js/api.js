@@ -15,9 +15,9 @@
 
         iframes = document.querySelectorAll('iframe');
         loadVisibleIFrames();
-        window.addEventListener('scroll', debounce(loadVisibleIFrames, 400));
 
-        openSections();
+        var scrollable = document.querySelector('.docs-content') || window;
+        scrollable.addEventListener('scroll', debounce(loadVisibleIFrames, 400));
     });
 
     function loadVisibleIFrames() {
@@ -29,15 +29,6 @@
             if (!iframeIsLoaded(iframe)) {
                 loadIFrame(iframe);
             }
-        }
-    }
-
-    function openSections() {
-
-        var prototypeSection = document.querySelector('[href="#prototype"]');
-
-        if (prototypeSection) {
-            addClassToEl(prototypeSection.parentNode, 'open');
         }
     }
 
