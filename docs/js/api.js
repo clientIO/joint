@@ -37,13 +37,13 @@
 
         var prototypeSection = document.querySelector('[href="#prototype"]');
         var gSection = document.querySelector('[href="#g"]');
-
+        
         if (prototypeSection) {
             addClassToEl(prototypeSection.parentNode, 'open');
         }
 
         if (gSection) {
-            addClassToEl(prototypeSection.parentNode, 'open');
+            addClassToEl(gSection.parentNode, 'open');
         }
     }
 
