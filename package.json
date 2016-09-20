@@ -11,7 +11,7 @@
   "scripts": {
     "test": "grunt test"
   },
-  "version": "0.9.10",
+  "version": "1.0.0",
   "main": "./dist/joint.min.js",
   "style": "./dist/joint.min.css",
   "homepage": "http://jointjs.com",
