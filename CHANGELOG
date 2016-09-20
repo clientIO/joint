@@ -10,6 +10,7 @@
   * dia.LinkView - fix perpendicular links outside the pahper area
   * dia.ElementView - fix resizing without scalable group, re-render element when markup change
   * dia.ElementView - improve x-alignment and y-alignment for text
+  * other bug fixes and improvements
 
 13-06-2016 (v0.9.10)
 * Fixes for webpack, browserify
