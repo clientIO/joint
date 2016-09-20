@@ -16,8 +16,9 @@
         iframes = document.querySelectorAll('iframe');
         loadVisibleIFrames();
 
-        var scrollable = document.querySelector('.docs-content') || window;
-        scrollable.addEventListener('scroll', debounce(loadVisibleIFrames, 400));
+        document.querySelector('.docs-content').addEventListener('scroll', debounce(loadVisibleIFrames, 400));
+        window.addEventListener('scroll', debounce(loadVisibleIFrames, 400));
+
         openSections();
     });
 
