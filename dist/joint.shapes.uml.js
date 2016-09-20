@@ -1,4 +1,4 @@
-/*! JointJS v0.9.10 (2016-06-13) - JavaScript diagramming library
+/*! JointJS v1.0.0 (2016-09-20) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -11,14 +11,14 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
 
     markup: [
         '<g class="rotatable">',
-          '<g class="scalable">',
-            '<rect class="uml-class-name-rect"/><rect class="uml-class-attrs-rect"/><rect class="uml-class-methods-rect"/>',
-          '</g>',
-          '<text class="uml-class-name-text"/><text class="uml-class-attrs-text"/><text class="uml-class-methods-text"/>',
+        '<g class="scalable">',
+        '<rect class="uml-class-name-rect"/><rect class="uml-class-attrs-rect"/><rect class="uml-class-methods-rect"/>',
+        '</g>',
+        '<text class="uml-class-name-text"/><text class="uml-class-attrs-text"/><text class="uml-class-methods-text"/>',
         '</g>'
     ].join(''),
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'uml.Class',
 
@@ -107,7 +107,7 @@ joint.shapes.uml.ClassView = joint.dia.ElementView.extend({
 
 joint.shapes.uml.Abstract = joint.shapes.uml.Class.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
         type: 'uml.Abstract',
         attrs: {
             '.uml-class-name-rect': { fill : '#e74c3c' },
@@ -125,7 +125,7 @@ joint.shapes.uml.AbstractView = joint.shapes.uml.ClassView;
 
 joint.shapes.uml.Interface = joint.shapes.uml.Class.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
         type: 'uml.Interface',
         attrs: {
             '.uml-class-name-rect': { fill : '#f1c40f' },
@@ -182,16 +182,16 @@ joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
 
     markup: [
         '<g class="rotatable">',
-          '<g class="scalable">',
-            '<rect class="uml-state-body"/>',
-          '</g>',
-          '<path class="uml-state-separator"/>',
-          '<text class="uml-state-name"/>',
-          '<text class="uml-state-events"/>',
+        '<g class="scalable">',
+        '<rect class="uml-state-body"/>',
+        '</g>',
+        '<path class="uml-state-separator"/>',
+        '<text class="uml-state-name"/>',
+        '<text class="uml-state-events"/>',
         '</g>'
     ].join(''),
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'uml.State',
 
@@ -257,7 +257,7 @@ joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
 
 joint.shapes.uml.StartState = joint.shapes.basic.Circle.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'uml.StartState',
         attrs: { circle: { 'fill': '#34495e', 'stroke': '#2c3e50', 'stroke-width': 2, 'rx': 1 }}
@@ -270,7 +270,7 @@ joint.shapes.uml.EndState = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'uml.EndState',
         size: { width: 20, height: 20 },
