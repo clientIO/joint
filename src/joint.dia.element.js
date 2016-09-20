@@ -325,7 +325,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             // won't propagate to the `rotate` method. This is important because of
             // LinkView update optimalization.
             this.translate(dx, dy, _.clone(opt));
-            this.rotate(angle, absolute, null, _.clone(opt));
+            this.rotate(angle, absolute, null, opt);
             this.stopBatch('rotate');
 
         } else {
