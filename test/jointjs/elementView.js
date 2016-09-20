@@ -65,5 +65,23 @@ QUnit.module('elementView', function(hooks) {
                 height: 100
             });
         });
+
+        QUnit.test('resizing a rotated element with options passed will trigger all subsequent events with this option.', function(assert) {
+
+            assert.expect(5);
+
+            elementView.model.set({
+                markup: '<g class="rotatable"><g class="scalable"><rect class="body"/><text class="label"/></g></g>'
+            });
+
+            elementView.model.resize(100, 100).translate(100, 100).rotate(45);
+
+            paper.model.on('all', function(eventName) {
+                var options = _.last(arguments);
+                assert.ok(options.passed, eventName);
+            });
+
+            elementView.model.resize(200, 300, { passed: true });
+        });
     });
 });
