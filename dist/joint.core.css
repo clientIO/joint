@@ -1,4 +1,4 @@
-/*! JointJS v0.9.10 (2016-06-13) - JavaScript diagramming library
+/*! JointJS v1.0.0 (2016-09-20) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -83,11 +83,6 @@ very thin.
 /* Paper */
 
 /*  Highlighting  */
-.joint-highlight-stroke {
-    pointer-events: 'none';
-    vector-effect: non-scaling-stroke;
-    fill: none;
-}
 .joint-highlight-opacity {
     opacity: 0.3;
 }
@@ -175,15 +170,6 @@ Do not allow adding new vertices: .connection-wrap { pointer-events: none; }
 }
 /* Paper */
 
-/*  Highlighting  */
-.joint-highlight-stroke.joint-theme-dark {
-    stroke: #BF8441;
-    stroke-width: 3px;
-    fill: none;
-}
-/*  Highlighting  */
-
-
 /*  Links  */
 .joint-link.joint-theme-dark .connection-wrap {
     stroke: #8F8FF3;
@@ -234,12 +220,11 @@ Do not allow adding new vertices: .connection-wrap { pointer-events: none; }
     stroke: white;
 }
 /*  Links  */
-/*  Highlighting  */
-.joint-highlight-stroke.joint-theme-default {
-    stroke: #FF0000;
-    stroke-width: 3px;
+/* Paper */
+.joint-paper.joint-theme-default {
+    background-color: #FFFFFF;
 }
-/*  Highlighting  */
+/* Paper */
 
 /*  Links  */
 .joint-link.joint-theme-default .connection-wrap {
@@ -294,13 +279,6 @@ Do not allow adding new vertices: .connection-wrap { pointer-events: none; }
     font-style: normal;
 }
 
-/*  Highlighting  */
-.joint-highlight-stroke.joint-theme-material {
-    stroke: #ecf0f8;
-    stroke-width: 3px;
-}
-/*  Highlighting  */
-
 /*  Links  */
 .joint-link.joint-theme-material .connection-wrap {
     stroke: #000000;
@@ -349,13 +327,6 @@ Do not allow adding new vertices: .connection-wrap { pointer-events: none; }
     fill: white;
 }
 /*  Links  */
-
-/*  Highlighting  */
-.joint-highlight-stroke.joint-theme-modern {
-    stroke: #FEB663;
-    stroke-width: 3px;
-}
-/*  Highlighting  */
 
 /*  Links  */
 .joint-link.joint-theme-modern .connection-wrap {

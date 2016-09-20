@@ -1,113 +1,195 @@
-/*! JointJS v0.9.10 (2016-06-13) - JavaScript diagramming library
+/*! JointJS v1.0.0 (2016-09-20) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
-//      JointJS library.
-//      (c) 2011-2013 client IO
-
 joint.shapes.devs = {};
 
-joint.shapes.devs.Model = joint.shapes.basic.Generic.extend(_.extend({}, joint.shapes.basic.PortsModelInterface, {
+joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
-    markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><text class="label"/><g class="inPorts"/><g class="outPorts"/></g>',
-    portMarkup: '<g class="port port<%= id %>"><circle class="port-body"/><text class="port-label"/></g>',
-
-    defaults: joint.util.deepSupplement({
+    markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
+    portMarkup: '<circle class="port-body"/>',
+    portLabelMarkup: '<text class="port-label"/>',
+    defaults: _.defaultsDeep({
 
         type: 'devs.Model',
-        size: { width: 1, height: 1 },
         inPorts: [],
         outPorts: [],
+        size: {
+            width: 80,
+            height: 80
+        },
         attrs: {
-            '.': { magnet: false },
-            text: {
-                'pointer-events': 'none'
-            },
-            '.body': {
-                width: 150,
-                height: 250,
-                stroke: '#000'
-            },
-            '.port-body': {
-                r: 10,
-                magnet: true,
-                stroke: '#000'
+            '.': {
+                magnet: false
             },
             '.label': {
                 text: 'Model',
                 'ref-x': .5,
                 'ref-y': 10,
-                ref: '.body',
+                'font-size': 18,
                 'text-anchor': 'middle',
                 fill: '#000'
             },
-            '.inPorts .port-label': {
-                x: -15,
-                dy: 4,
-                'text-anchor': 'end',
-                fill: '#000'
-            },
-            '.outPorts .port-label': {
-                x: 15,
-                dy: 4,
-                fill: '#000'
+            '.body': {
+                'ref-width': '100%',
+                'ref-height': '100%',
+                stroke: '#000'
+            }
+        },
+        ports: {
+            groups: {
+                'in': {
+                    position: {
+                        name: 'left'
+                    },
+                    attrs: {
+                        '.port-label': {
+                            fill: '#000'
+                        },
+                        '.port-body': {
+                            fill: '#fff',
+                            stroke: '#000',
+                            r: 10,
+                            magnet: true
+                        }
+                    },
+                    label: {
+                        position: {
+                            name: 'left',
+                            args: {
+                                y: 10
+                            }
+                        }
+                    }
+                },
+                'out': {
+                    position: {
+                        name: 'right'
+                    },
+                    attrs: {
+                        '.port-label': {
+                            fill: '#000'
+                        },
+                        '.port-body': {
+                            fill: '#fff',
+                            stroke: '#000',
+                            r: 10,
+                            magnet: true
+                        }
+                    },
+                    label: {
+                        position: {
+                            name: 'right',
+                            args: {
+                                y: 10
+                            }
+                        }
+                    }
+                }
             }
         }
     }, joint.shapes.basic.Generic.prototype.defaults),
 
-    getPortAttrs: function(portName, index, total, selector, type) {
+    initialize: function() {
 
-        var attrs = {};
+        joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
 
-        var portClass = 'port' + index;
-        var portSelector = selector + '>.' + portClass;
-        var portLabelSelector = portSelector + '>.port-label';
-        var portBodySelector = portSelector + '>.port-body';
+        this.on('change:inPorts change:outPorts', this.updatePortItems, this);
+        this.updatePortItems();
+    },
 
-        attrs[portLabelSelector] = {
-            text: portName
-        };
+    updatePortItems: function(model, changed, opt) {
 
-        attrs[portBodySelector] = {
-            port: {
-                id: portName || _.uniqueId(type),
-                type: type
+        // Make sure all ports are unique.
+        var inPorts = _.uniq(this.get('inPorts'));
+        var outPorts = _.difference(_.uniq(this.get('outPorts')), inPorts);
+
+        var inPortItems = this.createPortItems('in', inPorts);
+        var outPortItems = this.createPortItems('out', outPorts);
+
+        this.prop('ports/items', inPortItems.concat(outPortItems), _.extend({ rewrite: true }, opt));
+    },
+
+    createPortItem: function(group, port) {
+
+        return {
+            id: port,
+            group: group,
+            attrs: {
+                '.port-label': {
+                    text: port
+                }
             }
         };
+    },
 
-        attrs[portSelector] = {
-            ref: '.body',
-            'ref-y': (index + 0.5) * (1 / total)
-        };
+    createPortItems: function(group, ports) {
 
-        if (selector === '.outPorts') {
-            attrs[portSelector]['ref-dx'] = 0;
-        }
+        return _.map(ports, _.bind(this.createPortItem, this, group));
+    },
 
-        return attrs;
+    _addGroupPort: function(port, group, opt) {
+
+        var ports = this.get(group);
+        return this.set(group, _.isArray(ports) ? ports.concat(port) : [port], opt);
+    },
+
+    addOutPort: function(port, opt) {
+
+        return this._addGroupPort(port, 'outPorts', opt);
+    },
+
+    addInPort: function(port, opt) {
+
+        return this._addGroupPort(port, 'inPorts', opt);
+    },
+
+    _removeGroupPort: function(port, group, opt) {
+
+        return this.set(group, _.without(this.get(group), port), opt);
+    },
+
+    removeOutPort: function(port, opt) {
+
+        return this._removeGroupPort(port, 'outPorts', opt);
+    },
+
+    removeInPort: function(port, opt) {
+
+        return this._removeGroupPort(port, 'inPorts', opt);
+    },
+
+    _changeGroup: function(group, properties, opt) {
+        
+        return this.prop('ports/groups/' + group, _.isObject(properties) ? properties : {}, opt);
+    },
+    
+    changeInGroup: function(properties, opt) {
+
+        return this._changeGroup('in', properties, opt);
+    },
+
+    changeOutGroup: function(properties, opt) {
+
+        return this._changeGroup('out', properties, opt);
     }
-}));
+});
 
 joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
+
         type: 'devs.Atomic',
-        size: { width: 80, height: 80 },
+        size: {
+            width: 80,
+            height: 80
+        },
         attrs: {
-            '.body': {
-                fill: 'salmon'
-            },
             '.label': {
                 text: 'Atomic'
-            },
-            '.inPorts .port-body': {
-                fill: 'PaleGreen'
-            },
-            '.outPorts .port-body': {
-                fill: 'Tomato'
             }
         }
     }, joint.shapes.devs.Model.prototype.defaults)
@@ -115,21 +197,16 @@ joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
 
 joint.shapes.devs.Coupled = joint.shapes.devs.Model.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
+
         type: 'devs.Coupled',
-        size: { width: 200, height: 300 },
+        size: {
+            width: 200,
+            height: 300
+        },
         attrs: {
-            '.body': {
-                fill: 'seaGreen'
-            },
             '.label': {
                 text: 'Coupled'
-            },
-            '.inPorts .port-body': {
-                fill: 'PaleGreen'
-            },
-            '.outPorts .port-body': {
-                fill: 'Tomato'
             }
         }
     }, joint.shapes.devs.Model.prototype.defaults)
@@ -146,7 +223,3 @@ joint.shapes.devs.Link = joint.dia.Link.extend({
         }
     }
 });
-
-joint.shapes.devs.ModelView = joint.dia.ElementView.extend(joint.shapes.basic.PortsViewInterface);
-joint.shapes.devs.AtomicView = joint.shapes.devs.ModelView;
-joint.shapes.devs.CoupledView = joint.shapes.devs.ModelView;

@@ -1,4 +1,4 @@
-/*! JointJS v0.9.10 (2016-06-13) - JavaScript diagramming library
+/*! JointJS v1.0.0 (2016-09-20) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -8,7 +8,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 joint.shapes.fsa = {};
 
 joint.shapes.fsa.State = joint.shapes.basic.Circle.extend({
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
         type: 'fsa.State',
         attrs: {
             circle: { 'stroke-width': 3 },
@@ -21,7 +21,7 @@ joint.shapes.fsa.StartState = joint.dia.Element.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><circle/></g></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'fsa.StartState',
         size: { width: 20, height: 20 },
@@ -40,7 +40,7 @@ joint.shapes.fsa.EndState = joint.dia.Element.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'fsa.EndState',
         size: { width: 20, height: 20 },
@@ -64,7 +64,7 @@ joint.shapes.fsa.EndState = joint.dia.Element.extend({
 
 joint.shapes.fsa.Arrow = joint.dia.Link.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
         type: 'fsa.Arrow',
         attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }},
         smooth: true

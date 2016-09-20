@@ -1,4 +1,4 @@
-/*! JointJS v0.9.10 (2016-06-13) - JavaScript diagramming library
+/*! JointJS v1.0.0 (2016-09-20) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -14,7 +14,7 @@ joint.shapes.pn.Place = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'pn.Place',
         size: { width: 50, height: 50 },
@@ -117,7 +117,7 @@ joint.shapes.pn.Transition = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><rect class="root"/></g></g><text class="label"/>',
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'pn.Transition',
         size: { width: 12, height: 50 },
@@ -143,7 +143,7 @@ joint.shapes.pn.Transition = joint.shapes.basic.Generic.extend({
 
 joint.shapes.pn.Link = joint.dia.Link.extend({
 
-    defaults: joint.util.deepSupplement({
+    defaults: _.defaultsDeep({
 
         type: 'pn.Link',
         attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
