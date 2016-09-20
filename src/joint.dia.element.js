@@ -310,7 +310,7 @@ joint.dia.Element = joint.dia.Cell.extend({
     // If `origin` is not provided, it is considered to be the center of the element.
     // If `absolute` is `true`, the `angle` is considered is abslute, i.e. it is not
     // the difference from the previous angle.
-    rotate: function(angle, absolute, origin) {
+    rotate: function(angle, absolute, origin, opt) {
 
         if (origin) {
 
@@ -321,13 +321,16 @@ joint.dia.Element = joint.dia.Cell.extend({
             var dx = center.x - size.width / 2 - position.x;
             var dy = center.y - size.height / 2 - position.y;
             this.startBatch('rotate', { angle: angle, absolute: absolute, origin: origin });
-            this.translate(dx, dy);
-            this.rotate(angle, absolute);
+            // Cloning the options here so the flags added by the `translate` method
+            // won't propagate to the `rotate` method. This is important because of
+            // LinkView update optimalization.
+            this.translate(dx, dy, _.clone(opt));
+            this.rotate(angle, absolute, null, opt);
             this.stopBatch('rotate');
 
         } else {
 
-            this.set('angle', absolute ? angle : (this.get('angle') + angle) % 360);
+            this.set('angle', absolute ? angle : (this.get('angle') + angle) % 360, opt);
         }
 
         return this;
@@ -869,10 +872,11 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.vel.scale(sx, sy);
     },
 
-    resize: function() {
+    resize: function(cell, changed, opt) {
 
-        var size = this.model.get('size') || { width: 1, height: 1 };
-        var angle = this.model.get('angle') || 0;
+        var model = this.model;
+        var size = model.get('size') || { width: 1, height: 1 };
+        var angle = model.get('angle') || 0;
 
         var scalable = this.scalableNode;
         if (!scalable) {
@@ -910,7 +914,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             var rotatableBbox = scalable.bbox(false, this.paper.viewport);
 
             // Store new x, y and perform rotate() again against the new rotation origin.
-            this.model.set('position', { x: rotatableBbox.x, y: rotatableBbox.y });
+            model.set('position', { x: rotatableBbox.x, y: rotatableBbox.y }, opt);
             this.rotate();
         }
 
@@ -940,8 +944,11 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var ox = size.width / 2;
         var oy = size.height / 2;
 
-
-        rotatable.attr('transform', 'rotate(' + angle + ',' + ox + ',' + oy + ')');
+        if (angle !== 0) {
+            rotatable.attr('transform', 'rotate(' + angle + ',' + ox + ',' + oy + ')');
+        } else {
+            rotatable.removeAttr('transform');
+        }
     },
 
     getBBox: function(opt) {
