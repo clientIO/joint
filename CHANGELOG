@@ -1,4 +1,4 @@
-TBD (v0.10.0)
+20-09-2016 (v1.0.0)
   * All joint views now use the `joint-` class name prefix for their class names.
   * dia.Element - make it easy to add ports to an arbitrary element, introduced API for ports manipulation
   * shapes.devs.Model - uses new port API internally. shapes.basic.PortsViewInterface, shapes.basic.PortsInterface are marked as `deprecated`
