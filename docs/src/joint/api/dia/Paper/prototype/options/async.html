@@ -5,5 +5,5 @@
                   but you might want to experiment with different values in case you encounter performance issues.
                   It is important to note that when asynchronous rendering is used, some of the cell views might not yet
                   be in the paper when you try to access them via the <a href="#dia.Paper.prototype.findViewByModel"><code>paper.findViewByModel()</code></a>, <a href="#dia.Element.prototype.findView"><code>element.findView()</code></a> or <a href="#dia.Link.prototype.findView"><code>link.findView()</code></a> methods. 
-                  What you should do in case you use async rendering is to wait for when the paper triggers the <a href="#dia.Paper.prototype.events"><code>render:done</code></a> event.
+                  What you should do in case you use async rendering is to wait for when the paper triggers the <a href="#dia.Paper.events"><code>render:done</code></a> event.
                 
