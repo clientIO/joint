@@ -12,7 +12,8 @@
 
         initializeNavSearch();
         initializeNavCollapsible();
-
+        initializeNavToggle();
+        
         iframes = document.querySelectorAll('iframe');
         loadVisibleIFrames();
 
@@ -126,6 +127,22 @@
         return document.querySelectorAll('.docs-nav>.docs-nav-items>.docs-nav-item');
     }
 
+    function initializeNavToggle() {
+
+        document.querySelector('.docs-nav').addEventListener('click', function(e) {
+
+            var target = e.target;
+
+            if (target.tagName.toLowerCase() === 'nav') {
+                if (elHasClass(target, 'open')) {
+                    removeClassFromEl(target, 'open');
+                } else {
+                    addClassToEl(target, 'open');
+                }
+            }
+        });
+    }
+    
     function initializeNavCollapsible() {
 
         var input = getFstLevelElementsLinks();
