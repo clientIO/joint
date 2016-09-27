@@ -314,9 +314,9 @@ body {
     display: inline-block;
 }
 
-.docs-content h3.docs-item-header {
+.docs-content .docs-item-header {
     text-decoration: underline;
-    font-size: 1.5em;
+    font-size: 1.2em;
 }
 
 .docs-content p {
