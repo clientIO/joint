@@ -4,7 +4,6 @@
 // A tiny library for making your life easier when dealing with SVG.
 // The only Vectorizer dependency is the Geometry library.
 
-// Copyright © 2012 - 2015 client IO (http://client.io)
 
 var V;
 var Vectorizer;

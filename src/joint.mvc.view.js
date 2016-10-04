@@ -1,5 +1,3 @@
-//      JointJS library.
-//      (c) 2011-2015 client IO
 
 joint.mvc.View = Backbone.View.extend({
 
