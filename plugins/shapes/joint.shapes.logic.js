@@ -1,5 +1,3 @@
-//      JointJS library.
-//      (c) 2011-2013 client IO
 
 joint.shapes.logic = {};
 

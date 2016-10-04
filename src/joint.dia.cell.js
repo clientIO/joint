@@ -1,5 +1,3 @@
-//      JointJS.
-//      (c) 2011-2015 client IO
 
 // joint.dia.Cell base model.
 // --------------------------

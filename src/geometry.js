@@ -1,5 +1,5 @@
+
 //      Geometry library.
-//      (c) 2011-2015 client IO
 
 var g = (function() {
 
