@@ -149,6 +149,7 @@ Do not allow adding new vertices: .connection-wrap { pointer-events: none; }
 .joint-element .fobj body {
     background-color: transparent;
     margin: 0px;
+    position: static;
 }
 .joint-element .fobj div {
     text-align: center;
