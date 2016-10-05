@@ -5,6 +5,10 @@
     "dist/joint.js",
     "dist/joint.css"
   ],
+  "ignore": [
+    "*",
+    "!dist/**"
+  ],
   "moduleType": [
     "globals",
     "amd",
