@@ -7,9 +7,7 @@
   ],
   "ignore": [
     "*",
-    "!dist/*",
-    "!plugins/*",
-    "!wrappers/*"
+    "!dist/**",
   ],
   "moduleType": [
     "globals",
