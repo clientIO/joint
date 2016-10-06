@@ -301,6 +301,8 @@ function scaleToFit() {
         preserveAspectRatio: $stfRatio.is(':checked')
     });
 
+    paper.viewport.getBoundingClientRect();
+
     if (padding) {
 
         var svgPaddingRight = svgHorizontal.clone().addClass('padding')
