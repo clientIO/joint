@@ -382,7 +382,7 @@ joint.dia.Cell = Backbone.Model.extend({
             // Deep cloning.
 
             // For a deep clone, simply call `graph.cloneCells()` with the cell and all its embedded cells.
-            return _.values(joint.dia.Graph.prototype.cloneCells.call(null, [this].concat(this.getEmbeddedCells({ deep: true }))));
+            return _.values(joint.dia.Graph.cloneCells([this].concat(this.getEmbeddedCells({ deep: true }))));
         }
     },
 
@@ -1013,5 +1013,6 @@ joint.dia.CellView = joint.mvc.View.extend({
     setInteractivity: function(value) {
 
         this.options.interactive = value;
+        return this;
     }
 });

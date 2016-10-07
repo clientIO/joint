@@ -1134,14 +1134,16 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             if (this.can('elementMove')) {
 
-                var position = this.model.get('position');
+                var model = this.paper.model.getCellGroup(this.model) || this.model;
+
+                var position = model.position();
 
                 // Make sure the new element's position always snaps to the current grid after
                 // translate as the previous one could be calculated with a different grid size.
                 var tx = g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - this._dx, grid);
                 var ty = g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - this._dy, grid);
 
-                this.model.translate(tx, ty, { restrictedArea: this.restrictedArea, ui: true });
+                model.translate(tx, ty, { restrictedArea: this.restrictedArea, ui: true });
 
                 if (this.paper.options.embeddingMode) {
 

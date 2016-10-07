@@ -55,6 +55,7 @@ joint.dia.Graph = Backbone.Model.extend({
             cellNamespace: opt.cellNamespace,
             graph: this
         });
+
         Backbone.Model.prototype.set.call(this, 'cells', cells);
 
         // Make all the events fired in the `cells` collection available.
@@ -978,7 +979,40 @@ joint.dia.Graph = Backbone.Model.extend({
         } else {
             return _.any(this._batches, function(batches) { return batches > 0; });
         }
+    },
+
+    // Groups
+
+    addGroup: function(group, opt) {
+
+        var groups = _.clone(this.get('groups'));
+        if (!_.contains(groups, group)) {
+            this.set('groups', (groups || []).concat(group), opt);
+        }
+
+        return this;
+    },
+
+    removeGroup: function(group, opt) {
+
+        var groups = _.clone(this.get('groups'));
+        this.set('groups', _.without(groups, group), opt);
+
+        return this;
+    },
+
+    getGroups: function() {
+
+        return this.get('groups');
+    },
+
+    getCellGroup: function(cell) {
+
+        return _.find(this.getGroups(), function(group) {
+            return group.hasCell(cell);
+        });
     }
+
 }, {
 
     resizeCells: function(width, height, cells, opt) {
@@ -989,8 +1023,13 @@ joint.dia.Graph = Backbone.Model.extend({
         if (bbox) {
             var sx = Math.max(width / bbox.width, 0);
             var sy = Math.max(height / bbox.height, 0);
-            _.invoke(cells, 'scale', sx, sy, bbox.origin(), opt);
+            this.scaleCells(sx, sy, bbox.origin(), cells, opt);
         }
+    },
+
+    scaleCells: function(sx, sy, origin, cells, opt) {
+
+        _.invoke(cells, 'scale', sx, sy, origin, opt);
     },
 
     rotateCells: function(angle, origin, cells, opt) {

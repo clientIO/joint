@@ -1,16 +1,58 @@
 (function(joint, _, Backbone) {
 
+    // TODO:
+    // - missing batches
+    // - restrictTranslate paper option
+    // - command manager (set attribute)
+    // - hasCell --> has ?
     var graphUtils = joint.dia.Graph;
 
     joint.dia.Group = joint.dia.Cell.extend({
+
+        defaults: {
+            cells: []
+        },
 
         initialize: function() {
             joint.dia.Cell.prototype.initialize.apply(this, arguments);
             // ?
         },
 
+        position: function(x, y, opt) {
+
+            var isSetter = _.isNumber(x);
+
+            if (!isSetter) {
+                return this.getBBox().origin();
+            }
+
+            // TODO: setter
+        },
+
+        // TODO: add to element
+        size: function() {
+
+        },
+
+        // TODO: add to element
+        angle: function() {
+
+        },
+
+        addCell: function(cell, opt) {
+            if (!this.hasCell(cell)) {
+                this.set('cells', this.get('cells').concat(cell), opt);
+            }
+            return this;
+        },
+
         getCells: function() {
             return this.get('cells');
+        },
+
+        hasCell: function(cell) {
+
+            return _.contains(this.getCells(), cell);
         },
 
         getBBox: function(opt) {
@@ -32,6 +74,12 @@
             var rotateOpt = _.defaults({ absolute: !!absolute }, opt);
             var rotateOrigin = origin || this.getBBox().center();
             graphUtils.rotateCells(angle, rotateOrigin, this.getCells(), rotateOpt);
+            return this;
+        },
+
+        scale: function(sx, sy, origin, opt) {
+
+            graphUtils.scaleCells(sx, sy, origin, this.getCells(), opt);
             return this;
         },
 
@@ -71,10 +119,17 @@
 
             clone.set({
                 id: joint.util.uuid(),
-                cells: graphUtils.cloneCells(this.getCells())
+                cells: _.toArray(graphUtils.cloneCells(this.getCells()))
             });
 
             return (opt && opt.deep) ? [clone] : clone;
+        },
+
+
+        addTo: function(graph, opt) {
+            graph.addCells(this.getCells(), opt);
+            graph.addGroup(this, opt);
+            return this;
         },
 
         // Embeds
@@ -97,12 +152,10 @@
             return [];
         },
 
-        addTo: function(graph, opt) {
-            this.graph.addCells(this.getCells(), opt);
-            this.graph.addGroup(this, opt);
-            return this;
-        },
+        fitEmbeds: function() {
 
+            /// ?????? implement or not
+        },
         // Ports
 
         processPorts: function() {
