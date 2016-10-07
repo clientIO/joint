@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="canonical" href="http://www.jointjs.com/" />
+        <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
+        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
+
+        <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="lib/prism/themes/prism.css">
+
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/index.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+
+        <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <script type="text/javascript" src="../build/joint.min.js"></script>
+        <script src="lib/prism/prism.js"></script>
+        <script src="js/tutorial.js"></script>
+
+        <title>JointJS - JavaScript diagramming library - Getting started.</title>
+
+    </head>
+    <body class="language-javascript tutorial-page">
+
+        <script>
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
+            };
+        </script>
+
+        <main class="content layout_sidebar">
+            <nav class="sidebar-container">
+
+                <ul>
+                    <li><a href="/tutorial">Introduction</a>
+                        <ul>
+                            <li><a href="#hello-world">Hello World!</a></li>
+                            <li><a href="#event-handling">Event handling</a></li>
+                            <li><a href="#multiple-papers">Multiple papers</a></li>
+                            <li><a href="#element-styling">Element styling</a></li>
+                            <li><a href="#link-styling">Link styling</a></li>
+                            <li><a href="#custom-elements">Creating custom elements</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#tutorials">Tutorials</a>
+                        <ul>
+                            <li><a href="#constraint-move-to-circle">Constraint movement to circle</a></li>
+                            <li><a href="#html-elements">HTML inside JointJS elements</a></li>
+                            <li><a href="#hyperlinks">Hyperlinks inside elements</a></li>
+                            <li><a href="#hierarchy">Tips on hierarchical diagrams</a></li>
+                            <li><a href="#filters-gradients">Filters and Gradients</a></li>
+                            <li><a href="#ports">Working with Ports</a></li>
+                            <li><a href="#multiple-links-between-elements">Multiple links between elements</a></li>
+                            <li><a href="#connecting-by-dropping">Connecting by dropping</a></li>
+                            <li><a href="#requirejs">Integration with RequireJS</a></li>
+                            <li><a href="#links-patterns">Links and patterns</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+
+            <section class="demos-container tutorials">
+
+                <h1>Tutorials</h1>
+
+                <div class="tutorial">
+
+                    <h2>Getting started</h2>
+
+                    <p><strong>JointJS diagramming library</strong> lets you create fully interactive diagramming tools for all
+                        modern browsers.
+                        JointJS is not only a drawing library but its MVC (more MV) architecture separates graph, element and link
+                        models from
+                        their rendering. This makes it easy to plug JointJS to your backend application. Moreover, JointJS is built
+                        with <a href="http://backbonejs.org">Backbone</a> MVC library, so if you
+                        know Backbone, you'll feel like at home with JointJS. The same goes for a lot of constructs you'll see in
+                        JointJS. JointJS is not trying to reinvent the wheel for technologies that are
+                        common to web developers. Things that you learn with JointJS will be helpful to you elsewhere.
+                        JointJS is based on <a href="http://jquery.com" target="_blank">jQuery</a>, <a href="http://underscorejs.org" target="_blank">Underscore</a>,
+                        <a href="http://backbonejs.org">Backbone</a> and <a
+                            href="http://www.w3.org/Graphics/SVG/IG/resources/svgprimer.html">SVG</a>.</p>
+
+                    <p>Diagrams consist of elements connected with links. A diagram in JointJS is represented by a model <code>joint.dia.Graph</code>.
+                        This model then collects cells (a term representing both elements and links). A cell could therefore be
+                        either an element (<code>joint.dia.Element</code> or its inheritants) or
+                        a link (<code>joint.dia.Link</code>). In JointJS (starting from version 0.6), you manipulate models, not
+                        views.</p>
+
+                    <img src="images/arch.png" alt="JointJS high-level architecture" width="700"/>
+
+                    <p>JointJS provides you with basic diagram elements but also with ready-to-use elements of some well-known
+                        diagrams (ERD, Org chart, FSA, UML, PN, DEVS, ...). New plugins
+                        can be written pretty easily (later on this).</p>
+
+                    <p>To be able to see something on the screen, the graph model must be attached to the
+                        <code>joint.dia.Paper</code> view.</p>
+
+                </div><!--end tutorial-->
+
+                <div id="hello-world" class="tutorial">
+
+                    <h2>Hello world!</h2>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;link rel="stylesheet" href="joint.css" /&gt;
+    &lt;script src="jquery.js"&gt;&lt;/script&gt;
+    &lt;script src="lodash.js"&gt;&lt;/script&gt;
+    &lt;script src="backbone.js"&gt;&lt;/script&gt;
+    &lt;script src="joint.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div id="myholder"&gt;&lt;/div&gt;
+  &lt;script type="text/javascript"&gt;
+
+    var graph = new joint.dia.Graph;
+
+    var paper = new joint.dia.Paper({
+        el: $('#myholder'),
+        width: 600,
+        height: 200,
+        model: graph,
+        gridSize: 1
+    });
+
+    var rect = new joint.shapes.basic.Rect({
+        position: { x: 100, y: 30 },
+        size: { width: 100, height: 30 },
+        attrs: { rect: { fill: 'blue' }, text: { text: 'my box', fill: 'white' } }
+    });
+
+    var rect2 = rect.clone();
+    rect2.translate(300);
+
+    var link = new joint.dia.Link({
+        source: { id: rect.id },
+        target: { id: rect2.id }
+    });
+
+    graph.addCells([rect, rect2, link]);
+
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                    <div class="paper" id="paper-basic"></div>
+
+                </div><!--end tutorial-->
+
+                <div id="event-handling" class="tutorial">
+
+                    <h2>Event handling</h2>
+
+                    <p>As mentioned, JointJS library is based on the Backbone MVC library. So let's try some Backbone stuff now. For
+                        instance, let's see all the events
+                        triggered by any model in the graph:
+<pre><code>graph.on('all', function(eventName, cell) {
+    console.log(arguments);
+});</code></pre>
+                    To see the triggered events, open the browser console and make some changes to the paper above: Move the
+                    rectangles around,
+                    create a new vertex by dragging the link, remove a vertex, disconnect the link by dragging the highlighted
+                    arrowhead, remove the link, ...
+
+                    <p>You can also react on a specific event on a particular model:
+<pre><code>rect.on('change:position', function(element) {
+    console.log(element.id, ':', element.get('position'));
+});</code></pre>
+
+                    Please see the <a href="/api">API reference</a> for a list of events that you can react on for models (<code>joint.dia.Element</code>,
+                    <code>joint.dia.Link</code> and <code>joint.dia.Graph</code>) and views (<code>joint.dia.Paper</code>).
+
+                </div><!--end tutorial-->
+
+                <div id="multiple-papers" class="tutorial">
+
+                    <h2>More papers for the same graph</h2>
+                    <p>Now when you learned that a <code>joint.dia.Paper</code> is a view for the <code>joint.dia.Graph</code>
+                        model, you can imagine that the same model can have
+                        multiple views. That's right. Let's use the same application as the Hello World! above and let's add another
+                        paper, scaled and non-interactive, that serves as a small
+                        overview of the graph.
+                    </p>
+<pre><code>var paperSmall = new joint.dia.Paper({
+    el: $('#myholder-small'),
+    width: 600,
+    height: 100,
+    model: graph,
+    gridSize: 1
+});
+paperSmall.scale(.5);
+paperSmall.$el.css('pointer-events', 'none');</code></pre>
+
+                    <div class="paper" id="paper-multiple-papers"></div>
+                    <div class="paper" id="paper-multiple-papers-small"></div>
+                    <p>
+                        Try to interact with the first, bigger, paper. You should see all the changes reflected in the other,
+                        smaller, paper.
+                    </p>
+
+                </div><!--end tutorial-->
+
+                <div id="element-styling" class="tutorial">
+
+                    <h2>Element styling</h2>
+
+                    <p>In the previous examples, we've seen some boring rectangles with not very eye-catchy look. Now let's see how
+                        we can improve that.
+                        In JointJS, only SVG standard is the limit on what you can do with your elements. For styling elements, you
+                        need to have a basic
+                        understanding on how the element is structured in terms of its underlying SVG DOM subtree. For instance, our
+                        <code>joint.shapes.basic.Rect</code>
+                        element consists of this SVG structure (TIP: inspect your diagram with the Developer Tools of your favourite
+                        browser):
+<pre><code>&lt;g class="element basic Rect"&gt;
+    &lt;g class="rotatable"&gt;
+        &lt;g class="scalable"&gt;
+            &lt;rect /&gt;
+        &lt;/g&gt;
+        &lt;text /&gt;
+    &lt;/g&gt;
+&lt;/g&gt;</code></pre>
+
+                    Having known this, the first thing that might have popped on your mind is: Hey, I can style my elements in CSS.
+                    The answer is yes, you're absolutely right!
+                    It's perfectly fine to style your elements in CSS. Just keep in mind that you're styling SVG, not HTML. In that
+                    case, if you're completely new to SVG,
+                    you might want to take a look at e.g.: <a
+                        href="https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Fills_and_Strokes">Fills and Strokes
+                        tutorial on MDN</a>.
+                    If you use external CSS for styling your elements, all your elements will have the same style. Also note that,
+                    by SVG specification,
+                    CSS properties have higher precedence over SVG element attributes (which I find a bit counter-intuitive). That
+                    means that
+                    whatever you define in your external stylesheet cannot be overruled by setting element specific attributes with
+                    the method below.
+                    <p>A better approach is using the <a href="/api#dia.Element.prototype.attr">attr</a> method of <code>joint.dia.Element</code>.
+<pre><code>rect.attr({
+    rect: { fill: '#2C3E50', rx: 5, ry: 5, 'stroke-width': 2, stroke: 'black' },
+    text: {
+        text: 'my label', fill: '#3498DB',
+        'font-size': 18, 'font-weight': 'bold', 'font-variant': 'small-caps', 'text-transform': 'capitalize'
+    }
+});</code></pre>
+
+                    <div class="paper" id="paper-element-styling"></div>
+                    <p class="note">
+                        I left the styling of the other rectangles in this example out of this text. If you want to look at it
+                        anyway,
+                        inspect this page, find the <code>tutorial.js</code> script and search the function
+                        <code>elementStyling()</code>.
+                    </p>
+                    <p>
+                        As you can see, the <code>element.attr()</code> method takes one object as its argument. The <em>keys</em>
+                        of the object
+                        is CSS selectors matching the SVG DOM elements that our element consists of. The selectors in this example
+                        our
+                        quite simple but you can imagine it might get more complicated for other elements or even your own, custom,
+                        elements.
+                        A more complicated selector might look like: <code>'.section2 .port1 text'</code>.
+                    </p>
+                    <p>
+                        The <em>values</em> of the object passed represent a flat object (with one exception and that is the <code>style</code>
+                        attribute) with SVG/CSS attributes that
+                        will be used to style that element.
+                    </p>
+
+                    <p>For additional styling options using filters and gradients, please see the <a
+                            href="#filters-gradients">Filters and Gradients</a> tutorial.</p>
+
+                </div><!--end tutorial-->
+
+                <div id="link-styling" class="tutorial">
+
+                    <h2>Link styling</h2>
+
+                    <p>Now when we know how to style elements, let's have a look on how to style links. You might be surprised but
+                        the way links are styled is exactly the same as with styling elements. Again, we need to know the SVG
+                        structure of links and then use either external CSS or
+                        the <a href="/api#dia.Link.prototype.attr">attr</a> method of <code>joint.dia.Link</code> (which is actually the
+                        same as of <code>joint.dia.Element</code>).
+                        The SVG structure of links is the following:
+<pre><code>&lt;path class="connection"/&gt;
+&lt;path class="marker-source"/&gt;
+&lt;path class="marker-target"/&gt;
+&lt;path class="connection-wrap"/&gt;
+&lt;g class="labels" /&gt;
+&lt;g class="marker-vertices"/&gt;
+&lt;g class="marker-arrowheads"/&gt;
+&lt;g class="link-tools" /&gt;</code></pre>
+                    Let's see an example:
+<pre><code>link.attr({
+    '.connection': { stroke: 'blue' },
+    '.marker-source': { fill: 'red', d: 'M 10 0 L 0 5 L 10 10 z' },
+    '.marker-target': { fill: 'yellow', d: 'M 10 0 L 0 5 L 10 10 z' }
+});</code></pre>
+
+                    <div class="paper" id="paper-link-styling"></div>
+                    <p class="note">
+                        I left the styling of the other links in this example out of this text. If you want to look at it anyway,
+                        inspect this page, find the tutorial.js script and search the function linkStyling().
+                    </p>
+                    <p>
+                        Setting vertices on a link is as simple as:
+                    </p>
+                    <pre><code>link.set('vertices', [{ x: 300, y: 60 }, { x: 400, y: 60 }, { x: 400, y: 20 }])</code></pre>
+                    <p>
+                        If you prefer the link to not be sharply broken at the vertices but instead interpolated by a curve,
+                        set the <code>smooth</code> attribute:
+                    </p>
+                    <pre><code>link.set('smooth', true)</code></pre>
+
+                </div><!--end tutorial-->
+
+                <div id="custom-elements" class="tutorial">
+
+                    <h2>Creating custom elements</h2>
+
+                    <p>JointJS has built-in elements for basic shapes. These shapes are all in the <code>joint.shapes.basic</code>
+                        namespace and consist of <code>joint.shapes.basic.Rect</code>, <code>joint.shapes.basic.Circle</code>,
+                        <code>joint.shapes.basic.Text</code> and <code>joint.shapes.basic.Image</code>. Additionally,
+                        JointJS has plugins that contain shapes and links for elements of some well-known diagrams. Though there
+                        is plenty of shapes to choose from, you might be missing one and want to create your own.</p>
+                    <p>Creating new shapes is quite simple though you need some basic knowledge of SVG elements. The most important
+                        SVG elements you should know about
+                        are <code>rect</code>, <code>text</code>, <code>circle</code>, <code>ellipse</code>, <code>image</code> and
+                        <code>path</code>. Their thorough description
+                        together with examples can be found e.g. on <a
+                            href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element">MDN</a>. Combining these, you can
+                        make
+                        basically any 2D shape you like.</p>
+                    <p> As it was mentioned, custom elements are created by combining SVG tags. Many times, it is useful to position
+                        one
+                        element relatively to another. Imagine a basic situation where you want to have a rectangle element and a
+                        text element that should always be in the center of the rectangle.
+                        Unfortunately, SVG does not provide a facility to do that. Therefore, JointJS introduces
+                        <a href="/api#SpecialAttributes">special attributes</a> that are helpful for positioning elements relatively
+                        to each other. For an example, let's explore how the
+                        <code>joint.shapes.basic.Rect</code> element is defined:
+<pre><code>joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
+    markup: '&lt;g class="rotatable"&gt;&lt;g class="scalable"&gt;&lt;rect/&gt;&lt;/g&gt;&lt;text/&gt;&lt;/g&gt;',
+
+    defaults: joint.util.deepSupplement({
+        type: 'basic.Rect',
+        attrs: {
+            'rect': { fill: 'white', stroke: 'black', 'follow-scale': true, width: 80, height: 40 },
+            'text': { 'font-size': 14, 'ref-x': .5, 'ref-y': .5, ref: 'rect', 'y-alignment': 'middle', 'x-alignment': 'middle' }
+        }
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});</code></pre>
+
+                    As you can see, the SVG tags are stored in a property <code>markup</code>. This property contains an SVG
+                    template for the <code>joint.shapes.basic.Rect</code> element.
+                    There are two important SVG groups in the markup that JointJS understands. The first one is the one with the
+                    class <code>"rotatable"</code>. All elements
+                    in this group will get rotated when the <a href="/api#dia.Element.prototype.rotate">joint.dia.Element.rotate()</a>
+                    method is called.
+                    The other group is <code>"scalable"</code>. All elements in this group will get scaled when
+                    the <a href="/api#dia.Element.prototype.resize">joint.dia.Element.resize()</a> method is called.
+
+                    <p>
+                        All the positioning and presentation definitions are then stored as usual in the <code>attrs</code> object.
+                        Notice
+                        the special attributes <code>ref-x</code>, <code>ref-y</code>, <code>ref</code>, <code>x-alignment</code>
+                        and <code>y-alignment</code>.
+                        <code>ref-x</code> and <code>ref-y</code> determine the position of the <code>text</code> SVG element
+                        relative to
+                        an element referenced to by the selector stored in the <code>ref</code> attribute. In our case, the <code>text</code>
+                        element is positioned 50% in the x-axis and 50% in the y-axis relative to the <code>rect</code> element,
+                        i.e. in the center of the rectangle.
+                        <code>x-alignment === 'middle'</code> and <code>y-alignment === 'middle'</code> causes the text to center
+                        itself around its x-axis and y-axis. If we didn't do that,
+                        only the left-corner of the text element would be in the center of the rectangle but not the whole text.
+                    </p>
+                    <p>
+                        Notice that in this case, we don't want the text to scale, only the rectangle (that's why the text is not
+                        inside the "scalable" group in the markup). But because we set the
+                        relative positioning attributes on the text, the text will move in order to put itself to the center of the
+                        rectangle
+                        even though the center moved due to the scale operation on the rectangle. Isn't this nice?
+                    </p>
+                    <p>SVG + JointJS relative positioning attributes make it easy to create custom elements in a declarative
+                        fashion. It just
+                        needs a little bit of practice and try-fail loops.</p>
+
+
+                    <p><em>Browse through the menu on the left to see some common techniques that you might find useful in your
+                            applications.</em></p>
+
+                </div><!--end tutorial-->
+
+                <div id="constraint-move-to-circle" class="tutorial">
+
+
+                    <h2 id="contraint-move-to-circle">Constraint movement to circle/ellipse/rectangle</h2>
+
+                    <p>Some applications might need to constrain an element dragging to ellipse, circle or even rectangle
+                        shapes.
+                        This post shows you how this can be achieved via a custom view for your element and with the help of the
+                        handy geometry library
+                        that is part of JointJS.
+                    </p>
+
+                    <div id="paper-constraint-move-to-circle"></div>
+
+                    <h3>Creating a custom constraint view</h3>
+
+                    <p>First we need to create a custom view that overrides the <code>pointerdown()</code> and
+                        <code>pointermove()</code> methods. These methods make sure that the <code>x</code> and <code>y</code>
+                        coordinates passed to the default <code>pointerdown()</code> and <code>pointermove()</code>
+                        methods are located on the boundary of our ellipse object. To compute the points on the boundary
+                        of our ellipse, we simply take advantage of the <code>ellipse.prototype.intersectionWithLineFromCenterToPoint()</code>
+                        function. [A complete documentation to the geometry library of JointJS can be found on <a
+                            href="http://www.daviddurman.com/hidden-gold-of-jointjs-the-geometry-library.html">my blog</a>]
+                    </p>
+
+<pre><code>// This is the ellipse that will be used as a constraint for our element dragging.
+var constraint = g.ellipse(g.point(200, 150), 100, 80);
+
+var ConstraintElementView = joint.dia.ElementView.extend({
+
+    pointerdown: function(evt, x, y) {
+        var position = this.model.get('position');
+        var size = this.model.get('size');
+        var center = g.rect(position.x, position.y, size.width, size.height).center();
+        var intersection = constraint.intersectionWithLineFromCenterToPoint(center);
+        joint.dia.ElementView.prototype.pointerdown.apply(this, [evt, intersection.x, intersection.y]);
+    },
+    pointermove: function(evt, x, y) {
+        var intersection = constraint.intersectionWithLineFromCenterToPoint(g.point(x, y));
+        joint.dia.ElementView.prototype.pointermove.apply(this, [evt, intersection.x, intersection.y]);
+    }
+});</code></pre>
+
+                    <h3>Creating a paper and forcing it to use our custom view</h3>
+
+                    <p>Now we can just create a graph and paper as usual and tell the paper to use
+                        our custom view for all the element models. [Note that if you need a custom view
+                        for just one type of model (not all the models added to the paper), you can do that
+                        be defining a view for a specific type. An example of this can be found in the <a
+                            href="https://groups.google.com/forum/#!topic/jointjs/TigaktJ4wFM">forum page</a>.]</p>
+
+<pre><code>var graph = new joint.dia.Graph;
+
+var paper = new joint.dia.Paper({
+    el: $('#paper'),
+    width: 650,
+    height: 400,
+    gridSize: 1,
+    model: graph,
+    elementView: ConstraintElementView
+});</code></pre>
+
+                    <h3>Finalizing the example by adding elements to the graph and drawing our constraint ellipse</h3>
+
+                    <p>We're almost there! Now we just add a circle element to the paper which will be the one
+                        whose dragging we just constraint. We also draw our ellipse so that it is visible in the paper.
+                        Here we'll use the built-in Vectorizer library that makes life easier when dealing with SVG.
+                    </p>
+
+<pre><code>var earth = new joint.shapes.basic.Circle({
+    position: constraint.intersectionWithLineFromCenterToPoint(g.point(100, 100)).offset(-10, -10),
+    size: { width: 20, height: 20 },
+    attrs: { text: { text: 'earth' }, circle: { fill: '#2ECC71' } },
+    name: 'earth'
+});
+graph.addCell(earth);
+
+var orbit = V('&lt;ellipse/&gt;');
+orbit.attr({
+    cx: constraint.x, cy: constraint.y, rx: constraint.a, ry: constraint.b
+});
+V(paper.viewport).append(orbit);</code></pre>
+
+                    <p>That's it! One can use the exact same technique to constrain dragging to a rectangular area.
+                        The full source code to the demo is available here:</p>
+                    <a href="js/blog/circle-constraint.js">circle-constraint.js</a>
+
+                    <script type="text/javascript" src="js/blog/circle-constraint.js"></script>
+
+                </div>
+
+                <div id="html-elements" class="tutorial">
+
+                    <h2>Using HTML in JointJS elements</h2>
+
+                    <p>Many times, you might want to use HTML inputs or other HTML elements inside your JointJS graphs. This
+                        tutorial describes a way of doing this. The technique used in this tutorial is creating a custom
+                        view that renders your HTML and takes care of the interaction with the HTML. A different approach might
+                        be to use the <a
+                            href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject">foreignObject</a> and
+                        embed it in the <code>markup</code> of your JointJS elements.
+                        This technique is however problematic due to a poor browser support. (However, this seems to be the right
+                        way
+                        of combining HTML with SVG in JointJS in the future.)</p>
+
+                    <p>The good news is that if you setup your custom HTML view properly, you can take advantage
+                        of many of the features JointJS has to offer.</p>
+
+                    <div id="paper-html-elements"></div>
+
+                    <p>The code below shows how you can create a custom JointJS view that renders HTML (including
+                        functional inputs). The trick is to update the HTML element position and dimension so that it follows
+                        the underlying JointJS element. Additionally, we observe changes on the embedded inputs and update
+                        the JointJS model accordingly. This also works the other way round, if the model changes, we
+                        reflect the changes in the HTML.</p>
+
+                    <link rel="stylesheet" type="text/css" href="css/blog/html-elements.css"/>
+                    <script type="text/javascript" src="js/blog/html-elements.js"></script>
+
+                    <h3>JavaScript code</h3>
+                    <pre data-src="js/blog/html-elements.js" style="height: 2100px"></pre>
+                    <h3>CSS stylesheet</h3>
+                    <pre data-src="css/blog/html-elements.css" style="height: 1600px"></pre>
+                </div>
+
+                <div id="hyperlinks" class="tutorial">
+                    <h2>Using Hyperlinks in JointJS elements</h2>
+
+                    <p>This tutorial shows you how to create JointJS elements that contains links pointing to external sites.
+                        The only thing you have to do is to create a shape that contains the SVG <a
+                            href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a">a</a>
+                        element in the markup. Then you can just use the <code>xlink:href</code> attribute to set the target
+                        resource URL.
+                        Also note that you can use the <code>xlink:show</code> attribute to tell whether the content the link points
+                        to should be
+                        displayed in a new window, or replace the content of the existing window. Possible values for the <code>xlink:show</code>
+                        attribute are <code>"new"</code> and <code>"replace"</code>.
+                    </p>
+
+                    <div id="paper-hyperlinks"></div>
+
+                    <script type="text/javascript" src="js/blog/hyperlinks.js"></script>
+
+                    <pre data-src="js/blog/hyperlinks.js" style="height: 1100px"></pre>
+
+                </div>
+                <div id="hierarchy" class="tutorial">
+
+                    <h2>Tips on hierarchical diagrams</h2>
+
+                    <p>
+                        JointJS provides a facility to create hierarchy in your diagrams. The API is simple and
+                        contains three methods and two properties dealing with parent-child relationships between elements.
+                        The methods are <a href="http://jointjs.com/api#dia.Element.prototype.embed">embed()</a>,
+                        <a href="http://jointjs.com/api#dia.Element.prototype.unembed">unembed()</a> and
+                        <a href="http://jointjs.com/api#dia.Element.prototype.getEmbeddedCells">getEmbeddedCells()</a>.
+                        The properties are <code>embeds</code> and <code>parent</code> (Please refer to the <strong>Nesting</strong>
+                        section
+                        of the <a href="http://jointjs.com/api#dia.Element">joint.dia.Element</a> model reference).
+                    </p>
+
+                    <p>This tutorial shows how to take advantage of these methods in order to implement three functionalities
+                        common to parent-child relationships: <a href="#parent-restriction"><strong>child movement restriction to
+                                the parent area</strong></a>,
+                        <a href="#parent-expand"><strong>expanding parent area to cover its children</strong></a> and <a
+                            href="#reparenting"><strong>reparenting</strong></a>.
+                    </p>
+
+                    <h3 id="parent-restriction">Restricting child movement to the parent area</h3>
+
+                    <p>The goal is to restrict the movement of an element embedded in a parent in order disallow
+                        the user to drag the element outside the parent element area.
+                    <p>
+                    <p>The trick here is to detect when the child element bounding box gets outside the bounding box
+                        of the parent and revert the child position if that happens.</p>
+
+                    <p class="note">Try to move the child element outside the parent element area.</p>
+
+                    <div id="paper-parent-restriction"></div>
+                    <script type="text/javascript" src="js/blog/hierarchy-parent-restriction.js"></script>
+                    <pre data-src="js/blog/hierarchy-parent-restriction.js"></pre>
+
+                    <h3 id="parent-expand">Expanding parent area to cover its children</h3>
+
+                    <p>This section shows how to make the parent element automatically resizable so that it coveres
+                        its children.</p>
+
+                    <p>Again, we'll react on the <code>change:position</code> event on the graph but this time we resize the parent
+                        element based on the position and size of its children. We also store the original position and size of the
+                        parent element so that we can shrink the parent element back if the child element we manipulate
+                        fits into the original parent element area.</p>
+
+                    <p class="note">Try to move the child element outside the parent element area and see how the
+                        parent element automatically expands/shirnks.</p>
+
+                    <div id="paper-parent-expand"></div>
+                    <script type="text/javascript" src="js/blog/hierarchy-parent-expand.js"></script>
+                    <pre data-src="js/blog/hierarchy-parent-expand.js" style="height: 1700px"></pre>
+
+
+                    <h3 id="reparenting">Reparenting</h3>
+
+                    <p>Another useful technique when dealing with parent-child relationships is being able to drop an element
+                        above another element and let the element below become a new parent of the dropped element. This way
+                        we alow the user to change the parentage via the UI.</p>
+
+                    <p>First, we register a handler for the <code>cell:pointerdown</code> event on the paper that is triggered
+                        whenever a mousedown (touchstart) above a cell is emitted. This is where the dragging begins. In this
+                        handler,
+                        we unembed the dragged element if it was a child of a parent. Note that we also show the dragged element
+                        above all the other cells (<code>toFront()</code>) so that we always see it in the front while dragging.
+                        Second, we register a handler for the <code>cell:pointerup</code> event which is triggered when we
+                        drop the dragged element. In this handler, we find all the cells that are below the center of the
+                        dragged element. In this example, we pick the first one that is not the dragged element itself
+                        and make it a new parent of the dragged element. If you have more than one level of hierarchy in
+                        your application, you might want to find an element the most in the front (by looking at the <code>z</code>
+                        property) instead. We left this out of this example for simplicity.</p>
+
+                    <p class="note">Try to move the <i>El B</i> over <i>El A</i>, then move the <i>El A</i>. You should see
+                        the <i>El B</i> moves as well as it became a child of <i>El A</i>.</p>
+
+                    <div id="paper-reparenting"></div>
+                    <script type="text/javascript" src="js/blog/hierarchy-reparenting.js"></script>
+                    <pre data-src="js/blog/hierarchy-reparenting.js" style="height: 1100px"></pre>
+
+                </div>
+
+                <div id="filters-gradients" class="tutorial">
+                    <h2>Using Filters and Gradients in elements and links</h2>
+
+                    <p>This is a short introduction to using <a href="#filters">filters</a> and <a href="#gradients">gradients</a>
+                        to style your JointJS shapes and links.
+                        JointJS uses standard SVG filters and gradients, only instead of writing the SVG markup code, you
+                        define your filters and gradients with plain JavaSript objects. JointJS then generates all the necessary
+                        SVG elements for you.</p>
+
+                    <h3 id="filters">Filters</h3>
+
+                    <p>
+                        The way you can define filters is described in the <a href="/api#SpecialAttributes.filter">Special
+                            Attributes</a>
+                        section of the API reference. Filters can be applied on any SVG graphics and container element (ellipse,
+                        circle, path,
+                        text, g, ...) using the <code>filter</code> attribute. If you set this attribute to a string, the behaviour
+                        will be left unchanged. For example, by setting the <code>filter</code> attribute to this string: <code>"url(#myfilter)"</code>,
+                        the browser will try to find an element with ID <code>"myfilter"</code>, which can be the SVG <code>&lt;filter&gt;</code>
+                        element and apply that filter on the graphics element. However, if you set the <code>filter</code> attribute
+                        to
+                        a JavaScript object, JointJS will treat such an object as a JointJS-specific filter definition. This filter
+                        definition has the following form:
+
+<pre><code>{
+    name: &lt;name of the filter&gt;,
+    args: &lt;filter arguments&gt;
+}</code></pre>
+                    where <code>name</code> is the name of the filter, <code>args</code> is an object containing filter parameters
+                    (dependent on the filter used).
+                    The full list of built-in filters and their parameters can be found in the <a
+                        href="/api#SpecialAttributes.filter">API reference</a>. The following
+                    demo shows all the filters in action. As you can see in the demo, you can define filters for links as well.
+
+                    <div id="paper-filters"></div>
+                    <script type="text/javascript" src="js/blog/filters.js"></script>
+                    <pre data-src="js/blog/filters.js" style="height: 1640px"></pre>
+
+                    <h3 id="gradients">Gradients</h3>
+
+                    Gradients are again described in the <a href="/api#SpecialAttributes.fill">Special Attributes</a>
+                    section of the API reference. Gradients can be applied either on the <code>fill</code> or the
+                    <code>stroke</code>
+                    attribute of graphics elements. Again, if these attributes are set as strings, the behaviour will
+                    be left unchanged and JointJS just sets those strings as values for the respective attributes. Therefore, if you
+                    set e.g. <code>fill</code> to "#ff0000", the fill color of the selected graphics element will be red. However,
+                    if you set the <code>fill</code> attribute to a JavaScript object, JointJS will assume that it is a color
+                    gradient that you want to set. JointJS uses the following special definition for gradients:
+
+<pre><code>{
+    type: &lt;type of gradient&gt;,
+    stops: &lt;stop colors&gt;,
+    attrs: &lt;additional attributes&gt;
+}</code></pre>
+
+                    where <code>type</code> is either <code>'linearGradient'</code> or <code>'radialGradient'</code>,
+                    <code>attrs</code> is an object containing additional SVG attributes for the SVG gradient element
+                    and <code>stops</code> is an array of the ramps of color on the gradient. Each stop object is of the form:
+
+<pre><code>{
+    offset: &lt;offset&gt;,
+    color: &lt;color&gt;,
+    opacity: &lt;opacity&gt;
+}</code></pre>
+
+                    where <code>offset</code> is a string representing the offset of the gradient stop, <code>color</code> indicates
+                    what
+                    color to use at that gradient stop and <code>opacity</code> is a number in the [0..1] range representing the
+                    transparency of the stop color.
+                    <p>
+                        The following demo shows both linear and radial gradients in action. Note the last element and the use of
+                        the
+                        additional gradient attributes (<code>attrs</code>) which allows you to define the direction of the
+                        gradient.
+                    </p>
+
+                    <div id="paper-gradients"></div>
+                    <script type="text/javascript" src="js/blog/gradients.js"></script>
+                    <pre data-src="js/blog/gradients.js" style="height: 1350px"></pre>
+                </div>
+
+                <div id="ports" class="tutorial">
+
+                    <h2>Working with Ports</h2>
+
+                    <p>Many diagramming applications deal with elements with ports. Ports are usually displayed
+                        as circles inside diagram elements and are used not only as "sticky" points for connected links but they
+                        also further structure the linking information. It is common that certain elements have lists of input and
+                        output ports.
+                        A link might then point not to the element as a whole but to a certain port instead.</p>
+
+                    <p>JointJS has a built-in support for <a href="#create">elements with ports</a>, <a href="#link">linking between
+                            ports</a> and a facility
+                        for <a href="#restrict">defining what connections are allowed</a> and what not. This is useful if you, for
+                        example, want to
+                        restrict linking in between input ports, or output ports or between a certain port of an element A and a
+                        certain
+                        port of an element B. This tutorial shows you how you can do all that.</p>
+
+                    <h3 id="create">Creating elements with ports</h3>
+
+                    <p>The easiest way to start with elements with ports is using the <code>joint.shapes.devs</code> plugin. Search
+                        for <code>joint.shapes.devs.js</code>
+                        file. This
+                        plugin defines one important shape, the <code>joint.shapes.devs.Model</code>*. You can just instantiate that
+                        shape and
+                        pass the <code>inPorts</code> and <code>outPorts</code> arrays as parameters. You can further set the
+                        coloring of the ports
+                        and label for your element as you can see in the example below. Moreover, JointJS takes care of preparing
+                        the view and the magnets** for
+                        UI interaction. That's why you can already click and drag a port and JointJS automatically creates a link
+                        coming out
+                        of that port.</p>
+
+                    <p>JointJS and the <code>joint.shapes.devs.Model</code> also makes it easy to change ports. Simply set the
+                        <code>inPorts</code>/<code>outPorts</code> arrays of your element:
+
+<pre><code>element.set('inPorts', ['newIn1', 'newIn2', 'newIn3']);
+element.set('outPorts', ['newOut1', 'newOut2']);</code></pre>
+
+                    <p class="small">*<a href="http://en.wikipedia.org/wiki/DEVS">DEVS</a> is an abbreviation for Discrete EVent
+                        System specification and is a formalism for modeling
+                        and analyzing general systems. This formalism uses two types of models (Atomic and Coupled) both having a
+                        set of input and output ports.</p>
+
+                    <p class="small">**Magnets in JointJS are SVG sub-elements that serve as sticky points for links. If you use the
+                        <code>joint.shapes.devs</code> plugin,
+                        you don't have to define your magnets yourself, instead the <code>joint.shapes.devs.Model</code> shape does
+                        it for you.</p>
+
+
+                    <div id="paper-create"></div>
+                    <script type="text/javascript" src="js/blog/ports-create.js"></script>
+                    <pre data-src="js/blog/ports-create.js" style="height: 440px"></pre>
+
+                    <h3 id="link">Linking elements with ports</h3>
+
+                    <p>Now when you have your elements with ports created, you can start observing what port is connected with
+                        a link to what other port. This is easy to do thanks to JointJS storing the information about ports in the
+                        link
+                        models themselves once the links are created via the UI. The following example shows you how you can get the
+                        linking
+                        information. Try to connect a port of one element to another port of another element.</p>
+
+                    <div id="paper-link"></div>
+                    <div id="paper-link-out"></div>
+                    <script type="text/javascript" src="js/blog/ports-link.js"></script>
+                    <pre data-src="js/blog/ports-link.js" style="height: 900px"></pre>
+
+                    <h3 id="restrict">Linking restrictions</h3>
+
+                    <p>Now you know how to create elements with ports and how to get the linking information. Another practical
+                        functionality related to elements with ports and their links is restricting certain connections. Say you
+                        want
+                        links to never start in input ports and never end in output ports. This is the most usual case. However,
+                        all kinds of restrictions are possible and application specific. JointJS doesn't limit you. Instead, it
+                        allows
+                        you to define a function that simply returns <code>true</code> if a connection between a source magnet of a
+                        source element
+                        and a target magnet of a target element is allowed, and <code>false</code> otherwise. If the connection is
+                        not
+                        allowed JointJS does not connect the magnets (and associated ports). Furthermore, you can mark certain
+                        magnets as
+                        <code>"passive"</code> in which case JointJS treats these magnets in a way that they can never become a
+                        source of a link.
+                        For further information, please see the list of options that you can pass to the
+                        <code>joint.dia.Paper</code> in the <a href="/api#dia.Paper">API reference page</a>,
+                        especially the two related functions: <code>validateConnection()</code> and <code>validateMagnet()</code>.
+                    </p>
+
+                    <div id="paper-restrict"></div>
+                    <div id="paper-restrict-out"></div>
+                    <script type="text/javascript" src="js/blog/ports-restrict.js"></script>
+                    <pre data-src="js/blog/ports-restrict.js" style="height: 940px"></pre>
+
+                    <h3 id="snapLinks">Link snapping</h3>
+
+                    <p>To improve user experience little bit you might want to enable the link snapping. While the user is
+                        dragging a link, it searches for the closest port in the given radius. Once a suitable port is found (it
+                        meets requirements specified in validateConnection()) the link automatically connects to it. You can try
+                        this functionality in the example below.</p>
+
+                    <div class="paper" id="paper-link-snapping"></div>
+                    <script type="text/javascript" src="js/blog/link-snapping.js"></script>
+
+                    <pre data-src="js/blog/link-snapping.js" style="height: 800px"></pre>
+
+                    <h3 id="markAvailable">Marking available magnets</h3>
+
+                    <p>Another way how to make user's life easier can be to offer him all magnets he can connect to while he
+                        is dragging a link. To achieve this you have to enable <code>markAvailable</code> option on the
+                        paper and add some css rules into your stylesheet like in the example bellow.</p>
+
+                    <div class="paper" id="paper-mark-available"></div>
+                    <link rel="stylesheet" type="text/css" href="css/blog/mark-available.css"/>
+                    <script type="text/javascript" src="js/blog/mark-available.js"></script>
+
+                    <pre data-src="css/blog/mark-available.css" style="height: 240px"></pre>
+                    <pre data-src="js/blog/mark-available.js" style="height: 800px"></pre>
+                </div>
+                <div id="multiple-links-between-elements" class="tutorial">
+
+                    <h2>Multiple links between elements</h2>
+
+                    <p>You've been asking how to deal with a situation when two or more links connect the same elements, they are
+                        covering each other and therefore it's quite hard to interact with them. The solution introduced in this
+                        tutorial shows a function that automatically creates vertices so that they cross control points in a way
+                        that makes the links shape a cluster with gaps between them. JointJS has a built-in <a
+                            href="http://www.daviddurman.com/hidden-gold-of-jointjs-the-geometry-library.html">geometry
+                            library</a> that we can use to find those control points.</p>
+
+                    <p>The core of the solution is wrapped in one function named <code>adjustVertices</code>. It accepts a <code>graph</code>
+                        and a <code>cell</code> (either link or element). If the <code>cell</code> is a link, it will find all links
+                        with the same source and target and then set vertices on them. We'll be calling those links 'siblings'. If
+                        the <code>cell</code> is an element, we execute our function for each distinct (in terms of its source and
+                        target) connected link to the element.</p> To make the usage even more comfortable, we allow passing model
+                    views as well. Ok, this is the function.
+
+                    <pre data-src="js/blog/adjust-vertices.js" style="height: 1650px"></pre>
+
+                    <p>Now we have to figure out when to call our function. Vertices need to be adjusted any time user changes the
+                        source or target of a link or he adds/removes one. Additionally we might want to recalculate the vertices
+                        when user translates an element.</p>
+
+                    <pre data-src="js/blog/bind-adjust-vertices.js" style="height: 200px"></pre>
+
+                    <p>Well, that's it. We can take a look at the result.</p>
+
+
+                    <p>
+                        <small>Try to move an element to see how the links follow. Then try to reconnect a link by dragging its
+                            arrowhead to see how the links shape a cluster.
+                        </small>
+                    </p>
+
+                    <div id="paper-vertices"></div>
+                    <script src="js/blog/multiple-links.js"></script>
+
+                </div>
+
+                <div id="connecting-by-dropping" class="tutorial">
+
+                    <h2>Connecting an element by dropping it over another element</h2>
+
+                    <p>This quick tutorial shows how to automatically create links when the user drops an element over another
+                        element.
+                        Note that this is not necessary if you have elements with ports. For more details on elements with ports,
+                        see
+                        the <a href="/tutorial#ports">Working with Ports</a> tutorial.
+                    </p>
+
+                    <p>Let's start with a demo and then let's have a look on how this can be done.</p>
+
+                    <p>
+                        <small>Try to drag an element and drop it over another element. You should see a new link has
+                            been created between the two elements.
+                        </small>
+                    </p>
+
+                    <div id="paper-connection-by-dropping" class="paper"></div>
+                    <script src="js/blog/connecting-by-dropping.js"></script>
+
+                    <p>The trick is to listen on the <code>cell:pointerup</code> event on the paper and search for
+                        an element who's area contains the point of the mouser cursor. If such an element was found,
+                        we just create a link connecting both elements and move the dropped element a little bit
+                        to the side to give the user a clue of what just happend.</p>
+
+                    <pre data-src="js/blog/connecting-by-dropping.js" style="height: 1000px"></pre>
+
+                </div>
+
+                <div id="requirejs" class="tutorial">
+
+                    <h2>Integrating JointJS with RequireJS</h2>
+
+                    <p>
+                        Some people ask how to integrate <em>JointJS</em> with the <a href="http://requirejs.org">RequireJS</a>
+                        module loader.
+                        This tutorial describes how to do just that. Starting from <em>JointJS</em> v0.9, it is actually pretty
+                        simple. <em>JointJS</em>
+                        is in the AMD format which makes it easy to use it with RequireJS.
+                        <em>JointJS</em> exports only one global variable <b><code>joint</code></b>.
+                    </p>
+
+                    <h3>index.html</h3>
+
+                    <p>Let's start with our <code>index.html</code> file. This file includes only the <code>require.js</code>
+                        library, our stylesheets
+                        and defines what is the starting point of our application (in our case, <code>main.js</code> file):
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+      &lt;link rel="stylesheet" href="joint.css" /&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+      &lt;div id="app"&gt;&lt;/div&gt;
+      &lt;script data-main="main" src="require.js"&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                    For simplicity, we assume all the files are in the same folder as our <code>index.html</code> file.
+
+                    <h3>RequireJS config, the main.js file</h3>
+
+                    <p>Now we can start with the more interesting part, our <code>main.js</code> file, containing the configuration
+                        of our modules needed by RequireJS. <em>JointJS</em> is dependent on <em>jQuery</em>, <em>Backbone</em>
+                        (which further depends on <em>Underscore</em>*).
+                    </p>
+
+                    <p>The only thing we have to do is to define our module names and tell RequireJS where to find them (the <code>paths</code>
+                        object).
+                        Next, we have to trick Backbone to use Lodash instead of Underscore (this is because JointJS requires
+                        Lodash, not just Underscore).
+                        All the files can be downloaded from <a href="http://jointjs.com/opensource#Download-JointJS">Download page</a>.</p>
+
+<pre><code class="language-javascript">require.config({
+    paths: {
+        jquery: './jquery',
+        lodash: './lodash',
+        backbone: './backbone'
+    },
+    map: {
+        '*': {
+            // Backbone requires underscore. This forces requireJS to load lodash instead:
+            'underscore': 'lodash'
+        }
+    }
+});
+
+// Now we're ready to require JointJS and write our application code.
+require(['joint'], function(joint) {
+    var graph = new joint.dia.Graph;
+    var paper = new joint.dia.Paper({ width: 600, height: 400, model: graph });
+
+    var elApp = document.getElementById('app');
+    elApp.appendChild(paper.el);
+
+    var rect = new joint.shapes.basic.Rect({
+        position: { x: 50, y: 50 },
+        size: { width: 100, height: 100 }
+    });
+    graph.addCell(rect);
+});</code></pre>
+
+                    <p>
+                        * Note we previously mentioned that <em>Backbone</em> is dependent on <em>Underscore</em> but we actually
+                        use the <em>Lodash</em> library instead.
+                        This is becausae Lodash library is a drop-in replacement for <em>Underscore</em> extending it with more
+                        features that <em>JointJS</em> uses.
+                    </p>
+
+                </div>
+
+                <div id="links-patterns" class="tutorial">
+
+                    <h2>Links and patterns</h2>
+
+                    <p><b>TL;DR</b>: Jump right into the <a href="#pipes-demo">demo</a> below.</p>
+
+                    <p>This tutorial shows another way how to style JointJS links, especially if only changing the stroke color and
+                        width of your links is not sufficient to meet your requirements.
+                        What gives us more flexibility is <b>SVG gradients</b> and <b>SVG patterns</b>. SVG gradients as filling for
+                        strokes would be fine enough if we were using only straight links with no vertices.
+                        This is because the gradients are applied on the link SVG path as a whole. Therefore, applying the gradient
+                        on the link SVG path stroke would give different parts of the links different colors depending on how the
+                        link is
+                        broken and where it is positioned. This gives us an unpredictable result that we most likely don't want.
+                        Meet SVG patterns!
+
+                    <div>
+                        <?xml version="1.0" standalone="no"?>
+                        <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+                        <svg width="600" height="200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+
+                        <defs>
+                        <pattern id="path-pattern" patternUnits="userSpaceOnUse" x="0" y="0" width="160" height="160">
+                            <image id="logo"
+                                   xlink:href="data:image/png;base64,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"
+                                   width="160" height="160"/>
+                        </pattern>
+                        </defs>
+
+                        <path stroke="black" stroke-width="20" d="M 10 20 L 80 130 150 20" fill="none"/>
+                        <use transform="translate(200,0)" xlink:href="#logo"/>
+                        <path transform="translate(400,0)" stroke="url(#path-pattern)" stroke-width="20"
+                              d="M 10 20 L 80 130 150 20" fill="none"/>
+                        <text x="160" y="80" font-size="40" fill="black">+</text>
+                        <text x="380" y="80" font-size="40" fill="black">=</text>
+                        </svg>
+                    </div>
+
+                    <p>The idea is simple. We create and render a link. We create an <a
+                            href="https://developer.mozilla.org/en-US/docs/Web/HTML/Canvas">HTML 5 canvas element</a> of the size of
+                        the bounding box of the link. We draw onto the canvas anything we'd like the link to look like. We generate
+                        a <a href="http://en.wikipedia.org/wiki/Data_URI_scheme">Data URI image</a> from the canvas
+                        and tell the link to use this image as an SVG pattern for the link stroke. And we repeat all this every time
+                        the link gets changed.</p>
+
+                    <h3 id="linkview">About the LinkView</h3>
+
+                    <p>A link view is responsible for rendering and updating a link, it manipulates the DOM elements and it is the
+                        right place to implement a link interaction or customize the link appearance.</p>
+
+                    <p>Each time we change a link attribute, source or target, we add a vertex or we move an element that is
+                        connected to the link - the link has to be updated.
+                        Normally, the <a href="/api#dia.LinkView">joint.dia.LinkView</a> takes care of this.
+                        It inherits from the <a href="http://backbonejs.org/#View" target="_blank">Backbone.View</a> and extends it
+                        by new methods and properties. We're going to introduce some of them.
+                        <br>
+                        <br>The <code>linkView.render()</code> method creates SVG elements from the defined link markup and appends
+                        them to the DOM.
+                        It's usually called only once when link is created. Also, it calls update() internally.
+                        <br>The <code>linkView.update()</code> method applies all the attributes to the DOM elements, finds the
+                        route, positions the link tools and arrowheads and so on. It is called everytime the link is changed.
+                        <br>The <code>linkView.remove()</code> cleans up SVG elements from the DOM and removes event handlers.
+                        Called once the view is removed.
+                        <br>The <code>linkView.sourcePoint</code> and <code>linkView.targetPoint</code> are cached coordinates of a
+                        point where the link connects to an element or point.
+                        <br>The <code>linkView.route</code> is a cached array of points calculated from the vertices by a <a
+                            href="http://jointjs.com/api#dia.Link">router</a>.
+                        <br>The <code>linkView.paper</code> is a reference to the paper the view is rendered into.
+                    </p>
+
+                    <p>The <code>joint.dia.LinkView</code> can be extended and used, for example, in the following way:</p>
+
+<pre><code class="language-javascript">joint.dia.LinkView.extend({
+
+    render: function() {
+
+        // call parent's render
+        joint.dia.LinkView.prototype.render.apply(this, arguments);
+
+        // here we create and append the pattern into the paper SVG &lt;defs&gt; element
+        // and tell the link to use it
+
+        // it is a good convetion to return `this` to enable chaining
+        return this;
+    },
+
+    remove: function() {
+
+        // call parent's remove first
+        joint.dia.LinkView.prototype.remove.apply(this, arguments);
+
+        // here we remove the pattern from the paper SVG &lt;defs&gt; element
+
+        return this;
+    },
+
+    update: function() {
+
+        // call parent's update first
+        joint.dia.LinkView.prototype.update.apply(this, arguments);
+
+        // here we generate an image and set it as a pattern
+
+        return this;
+    }
+});</code></pre>
+
+                    <h3 id="render">Creating a pattern</h3>
+
+                    <p>First of all we have to create an SVG pattern with an image element inside and append it to the DOM
+                        (specifically into the paper <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs">SVG
+                            <code>&lt;defs&gt;</code> element</a> - this is a good place in SVG documents where referenced elements
+                        are defined).
+                        The perfect place for this is the <code>linkView.render()</code> method.
+                        Here we can also cache some important elements we will be using during the updates in order to minimize DOM
+                        traversal.</p>
+
+<pre><code class="language-javascript">render: function() {
+
+    joint.dia.LinkView.prototype.render.apply(this, arguments);
+
+    // make sure that pattern doesn't already exist
+    if (!this.pattern) {
+
+        // create the pattern and the image element
+        this.pattern = V('&lt;pattern id="pattern-' + this.id + '" patternUnits="userSpaceOnUse"&gt;&lt;image/&gt;&lt;/pattern&gt;');
+
+        // cache the image element for a quicker access
+        this.patternImage = this.pattern.findOne('image');
+
+        // append the pattern to the paper's defs
+        V(this.paper.svg).defs().append(this.pattern);
+    }
+
+    // tell the '.connection' path to use the pattern
+    var connection = V(this.el).findOne('.connection').attr({
+        stroke: 'url(#pattern-' + this.id + ')'
+    });
+
+    // cache the stroke width
+    this.strokeWidth = connection.attr('stroke-width') || 1;
+
+    return this;
+}</code></pre>
+
+                    <p>Note that we're using the <a href="/docs/jointjs/v1.0/vectorizer.html">built-in Vectorizer library</a> for creating SVG.</p>
+
+                    <h3 id="update">Using the pattern</h3>
+
+                    <p>Once we are able to get the link's bounding box (the one without transformations), we can create an HTML 5
+                        canvas of the size of the bounding box of the link.
+                        We know the points which the link goes through (<code>sourcePoint</code>, <code>targetPoint</code> and
+                        <code>route</code>) so the next thing is to transform them into the link coordinate system (the coordinates
+                        of the link top-left corner are obtained from its bounding box).
+
+                        <br>For example if we have a bounding box <code>{ x: 100, y: 30, width: 200, height: 200 }</code> and a
+                        vertex with coordinates <code>{ x: 150, y: 150 }</code> the position of that vertex on the canvas is <code>{
+                            x: 50, y: 120 }</code>.
+                        Now we have all we need to be able to draw our pattern into the canvas (more info on how to draw into the
+                        canvas can be found <a href="https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Canvas_tutorial"
+                                               target="_blank">here</a>).</p>
+
+                    When we finish with drawing we set the pattern's coordinates and the dimensions to reflect the link bounding
+                    box.
+                    We set the <code>xlink:href</code> attribute of the image element inside the pattern to the data URI containing
+                    a representation of the image in the PNG format (we can obtain it from the canvas by calling <code>canvas.toDataURL('image/png')</code>).
+
+<pre><code class="language-javascript">update: function() {
+
+    joint.dia.LinkView.prototype.update.apply(this, arguments);
+
+    var strokeWidth = this.strokeWidth;
+
+    // we get the bounding box of the linkView without the transformations
+    // and expand it to all 4 sides by the stroke width
+    // (making sure there is always enough room for drawing,
+    // even if the bounding box was tiny.
+    // Note that the bounding box doesn't include the stroke.)
+    var bbox = g.rect(V(this.el).bbox(true)).moveAndExpand({
+        x: - strokeWidth,
+        y: - strokeWidth,
+        width: 2 * strokeWidth,
+        height: 2 * strokeWidth
+    });
+
+    // create an array of all the points the link goes through
+    // (route doesn't contain the connection points)
+    var points = [].concat(this.sourcePoint, this.route, this.targetPoint);
+
+    // transform all the points to the link coordinate system
+    points = _.map(points, function(point) {
+        return g.point(point.x - bbox.x, point.y - bbox.y);
+    });
+
+    // create a canvas of the size same as the link bounding box
+    var canvas = document.createElement('canvas');
+    canvas.width = bbox.width;
+    canvas.height = bbox.height;
+
+    var ctx = canvas.getContext('2d');
+    ctx.lineWidth = strokeWidth;
+
+    // iterate over the points and draw the link's new look into the canvas
+    for (var i = 0, pointsCount = points.length - 1; i < pointsCount; i++) {
+
+        var from = points[i];
+        var to = point[i + 1];
+
+        // draw something into the canvas
+        // e.g a line from 'from.x','from.y' to 'to.x','to.y'
+    }
+
+    // generate data URI from the canvas
+    var dataUri = canvas.toDataURL('image/png');
+
+    // set the pattern's size to the size of the link bounding box
+    this.pattern.attr(bbox);
+
+    // update the pattern image and the dimensions
+    this.patternImage.attr({
+        width: bbox.width,
+        height: bbox.height,
+        'xlink:href': dataUri
+    });
+
+    return this;
+}</code></pre>
+
+                    <h3 id="remove">Removing the pattern</h3>
+
+                    <p>It's a good practice to clean up when the link gets removed from the paper. We don't want to leave
+                        unreferenced pattern elements in the DOM.</p>
+
+<pre><code class="language-javascript">remove: function() {
+
+    joint.dia.LinkView.prototype.remove.apply(this, arguments);
+
+    // remove the pattern from the DOM
+    this.pattern.remove();
+}</code></pre>
+
+                    <h3 id="workaround">Pure vertical and horizontal lines</h3>
+
+                    <p>There is one more thing we have to deal with.
+                        According to the SVG specification it is not possible to apply patterns on elements with no width or no
+                        height.</p>
+
+                    <blockquote>
+                        <q>Keyword objectBoundingBox should not be used when the geometry of the
+                            applicable element has no width or no height, such as the case of a
+                            horizontal or vertical line, even when the line has actual thickness when
+                            viewed due to having a non-zero stroke width since stroke width is ignored
+                            for bounding box calculations. When the geometry of the applicable element
+                            has no width or height and objectBoundingBox is specified, then the given
+                            effect (e.g., a gradient or a filter) will be ignored.</q>
+                    </blockquote>
+
+                    <p>That means, in our case, that we can't use patterns for drawing pure vertical and pure horizontal links.</p>
+
+<pre><code class="language-markup">&lt;!-- pure vertical path (height 0)--&gt;
+&lt;path d="M 0 0 L 300 0"/&gt;
+
+&lt;!-- pure horizontal path (width 0)--&gt;
+&lt;path d="M 100 0 100 50 100 100"/&gt;</code></pre>
+
+                    <p>To overcome this issue, we can offset one of the path points by a small number.</p>
+
+<pre><code class="language-markup">&lt;!-- vertical path (height 0.01) --&gt;
+&lt;path d="M 0 0 L 300 0.01"/&gt;
+
+&lt;!-- horizontal path (width 0.01)--&gt;
+&lt;path d="M 100 0 100 50 100.01 100"/&gt;</code></pre>
+
+                    <p>The best place where to deal with this is the link connector (connectors are responsible for generating the
+                        link path by constructing its <code>d</code> attribute).
+                        Here we take <code>joint.connectors.normal</code>, change the method name to <code>normalDimFix</code> and
+                        add a very small number to x and y coordinates of the last point of the resulting path.</p>
+
+<pre><code class="language-javascript">joint.connectors.normalDimFix = function(sourcePoint, targetPoint, vertices) {
+
+    var dimensionFix = 1e-3;
+
+    var d = ['M', sourcePoint.x, sourcePoint.y];
+
+    _.each(vertices, function(vertex) { d.push(vertex.x, vertex.y); });
+
+    d.push(targetPoint.x + dimensionFix, targetPoint.y + dimensionFix);
+
+    return d.join(' ');
+};</code></pre>
+
+                    <h3 id="pipes-demo">The pipes demo</h3>
+
+                    <p>Let's combine all this together and create a link which looks like a pipe.
+                        The demo below contains all that we described so far, plus it is adding some new features.
+                        <br>The LinkView draws into the canvas and updates the pattern asynchronously (using <a
+                            href="/api#util.nextFrame">joint.util.nextFrame</a>).
+                        <br>It automatically creates a gradient with a directions perpendicular to the path direction for each link
+                        segment. This way you can style your link from the 'border' to 'border' and draw an image like the one
+                        below.</p>
+                    <img src="data:image/png;base64,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"
+                         width="316" height="67"/>
+                    <br>It also separates the drawing function from the <code>update()</code> into a new linkView method <code>drawPattern()</code>.
+
+                    <div id="paper-pipes"></div>
+
+                    <p>The <a href="js/blog/pipes.js">source code</a> to the demo.</p>
+
+                    <script type="text/javascript" src="js/blog/pipes.js"></script>
+                    <pre data-src="js/blog/pipes.js" style="height: 4880px"></pre>
+
+                </div>
+
+            </section>
+
+        </main>
+    </body>
+</html>

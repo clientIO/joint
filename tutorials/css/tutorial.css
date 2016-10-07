@@ -1,0 +1,161 @@
+html > body,
+html,
+body {
+    overflow-x: hidden;
+    margin: 0 auto;
+    padding: 0;
+    font-family: 'Helvetica Neue Light', 'Helvetica Neue', 'Source Sans Pro', sans-serif;
+}
+html {
+    box-sizing: border-box;
+}
+*,
+*:before,
+*:after {
+    box-sizing: inherit;
+}
+img {
+    max-width: 100%;
+}
+h2,
+h3,
+h4 {
+    font-family: 'Helvetica Neue Light', 'Helvetica Neue', 'Source Sans Pro', sans-serif;
+    font-weight: bold;
+    color: #3c4260;
+}
+h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 35px;
+    font-weight: lighter;
+    color: #3c4260;
+    word-spacing: 3.5px;
+    letter-spacing: 1px;
+    text-align: center;
+    text-transform: capitalize;
+    margin: 49px 0 46px;
+}
+h2 {
+    font-size: 24px;
+    text-align: center;
+    text-transform: uppercase;
+    border-bottom: 1px solid #d1d2d8;
+    padding-bottom: 30px;
+    margin: 0 276px 24px 276px;
+}
+
+h3 {
+    font-size: 19px;
+}
+h4 {
+    font-size: 16px;
+    color: #6a6c8a;
+}
+main {
+    color: #6a6c8a;
+}
+main li,
+main p {
+    font-weight: 200;
+}
+main p {
+    font-weight: 200;
+    line-height: 135%;
+}
+main a {
+    color: #3c4260;
+    text-decoration: underline;
+}
+main a:hover {
+    color: #31d0c6;
+    text-decoration: underline;
+}
+
+/*************************
+    sidebar navigation
+**************************/
+.sidebar-container {
+    background: #6764A7;
+    width: 288px;
+    vertical-align: top;
+    padding: 10px 0;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    z-index: 3;
+}
+.sidebar-container ul {
+    position: relative;
+    z-index: 2;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    max-height: 2100px;
+}
+.sidebar-container > ul {
+    overflow: auto;
+}
+.sidebar-container ul > li > a {
+    background-color: rgba(14, 20, 84, 0.15);
+    display: block;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    padding: 8px 8px 8px 29px;
+    margin: 6px 0;
+}
+.sidebar-container ul > li li > a {
+    background: transparent;
+    color: #fff;
+    font-size: 12px;
+    display: block;
+    margin: 0;
+    padding: 6px 6px 6px 27px;
+    border-left: 3px solid transparent;
+}
+.sidebar-container ul > li li > a:hover {
+    color: #feb663;
+    border-color: #feb663;
+    text-decoration: none;
+}
+.sidebar-container a {
+    color: #fff;
+}
+
+.paper {
+   border: 1px solid lightgray;
+   display: inline-block;
+   overflow: hidden;
+}
+
+pre {
+   padding-left: 20px;
+   border-left: 4px solid lightgray;
+}
+
+#paper-multiple-papers-small {
+   width: 300px;
+}
+
+#tutorial .content-container p {
+   max-width: 1200px;
+}
+
+.tutorials .tutorial {
+    margin: 0 0 32px;
+}
+.tutorials {
+    text-align: justify;
+    padding: 0 50px 0 330px;
+    top: 0;
+    position: absolute;
+    overflow-y: scroll;
+    bottom: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+.tutorials h2 {
+    margin: 32px 0 0;
+}
+.tutorials h1 + h2 {
+    margin-top: 0;
+}
