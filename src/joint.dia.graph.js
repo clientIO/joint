@@ -346,13 +346,11 @@ joint.dia.Graph = Backbone.Model.extend({
 
     removeCells: function(cells, opt) {
 
-        if (cells.length) {
-
+        if (!_.isEmpty(cells)) {
             this.startBatch('remove');
-            _.invoke(cells, 'remove', opt);
+            this.constructor.removeCells(cells, opt);
             this.stopBatch('remove');
         }
-
         return this;
     },
 
@@ -572,68 +570,9 @@ joint.dia.Graph = Backbone.Model.extend({
         return res;
     },
 
-    // Clone `cells` returning an object that maps the original cell ID to the clone. The number
-    // of clones is exactly the same as the `cells.length`.
-    // This function simply clones all the `cells`. However, it also reconstructs
-    // all the `source/target` and `parent/embed` references within the `cells`.
-    // This is the main difference from the `cell.clone()` method. The
-    // `cell.clone()` method works on one single cell only.
-    // For example, for a graph: `A --- L ---> B`, `cloneCells([A, L, B])`
-    // returns `[A2, L2, B2]` resulting to a graph: `A2 --- L2 ---> B2`, i.e.
-    // the source and target of the link `L2` is changed to point to `A2` and `B2`.
     cloneCells: function(cells) {
 
-        cells = _.unique(cells);
-
-        // A map of the form [original cell ID] -> [clone] helping
-        // us to reconstruct references for source/target and parent/embeds.
-        // This is also the returned value.
-        var cloneMap = _.transform(cells, function(map, cell) {
-            map[cell.id] = cell.clone();
-        }, {});
-
-        _.each(cells, function(cell) {
-
-            var clone = cloneMap[cell.id];
-            // assert(clone exists)
-
-            if (clone.isLink()) {
-                var source = clone.get('source');
-                var target = clone.get('target');
-                if (source.id && cloneMap[source.id]) {
-                    // Source points to an element and the element is among the clones.
-                    // => Update the source of the cloned link.
-                    clone.prop('source/id', cloneMap[source.id].id);
-                }
-                if (target.id && cloneMap[target.id]) {
-                    // Target points to an element and the element is among the clones.
-                    // => Update the target of the cloned link.
-                    clone.prop('target/id', cloneMap[target.id].id);
-                }
-            }
-
-            // Find the parent of the original cell
-            var parent = cell.get('parent');
-            if (parent && cloneMap[parent]) {
-                clone.set('parent', cloneMap[parent].id);
-            }
-
-            // Find the embeds of the original cell
-            var embeds = _.reduce(cell.get('embeds'), function(newEmbeds, embed) {
-                // Embedded cells that are not being cloned can not be carried
-                // over with other embedded cells.
-                if (cloneMap[embed]) {
-                    newEmbeds.push(cloneMap[embed].id);
-                }
-                return newEmbeds;
-            }, []);
-
-            if (!_.isEmpty(embeds)) {
-                clone.set('embeds', embeds);
-            }
-        });
-
-        return cloneMap;
+        return this.constructor.cloneCells(cells);
     },
 
     // Clone the whole subgraph (including all the connected links whose source/target is in the subgraph).
@@ -969,24 +908,37 @@ joint.dia.Graph = Backbone.Model.extend({
     // Links are being ignored.
     getCellsBBox: function(cells, opt) {
 
-        return _.reduce(cells, function(memo, cell) {
-            if (cell.isLink()) return memo;
-            if (memo) {
-                return memo.union(cell.getBBox(opt));
-            } else {
-                return cell.getBBox(opt);
-            }
-        }, null);
+        return this.constructor.getCellsBBox(cells, opt);
     },
 
     translate: function(dx, dy, opt) {
 
-        // Don't translate cells that are embedded in any other cell.
-        var cells = _.reject(this.getCells(), function(cell) {
-            return cell.isEmbedded();
-        });
+        return this.translateCells(dx, dy, this.getCells(), opt);
+    },
 
-        _.invoke(cells, 'translate', dx, dy, opt);
+    translateCells: function(dx, dy, cells, opt) {
+
+        if (!_.isEmpty(cells)) {
+            this.startBatch('translate');
+            this.constructor.translateCells(dx, dy, cells, opt);
+            this.stopBatch('translate');
+        }
+        return this;
+    },
+
+    rotate: function(angle, origin, opt) {
+
+        return this.rotateCells(angle, origin, this.getCells(), opt);
+    },
+
+    rotateCells: function(angle, origin, cells, opt) {
+
+        if (!_.isEmpty(cells)) {
+            this.startBatch('rotate');
+            this.constructor.rotateCells(angle, origin, cells, opt);
+            this.stopBatch('rotate');
+        }
+        return this;
     },
 
     resize: function(width, height, opt) {
@@ -996,15 +948,11 @@ joint.dia.Graph = Backbone.Model.extend({
 
     resizeCells: function(width, height, cells, opt) {
 
-        // `getBBox` method returns `null` if no elements provided.
-        // i.e. cells can be an array of links
-        var bbox = this.getCellsBBox(cells);
-        if (bbox) {
-            var sx = Math.max(width / bbox.width, 0);
-            var sy = Math.max(height / bbox.height, 0);
-            _.invoke(cells, 'scale', sx, sy, bbox.origin(), opt);
+        if (!_.isEmpty(cells)) {
+            this.startBatch('resize');
+            this.constructor.resizeCells(width, height, cells, opt);
+            this.stopBatch('resize');
         }
-
         return this;
     },
 
@@ -1031,6 +979,139 @@ joint.dia.Graph = Backbone.Model.extend({
             return _.any(this._batches, function(batches) { return batches > 0; });
         }
     }
+}, {
+
+    resizeCells: function(width, height, cells, opt) {
+
+        // `getBBox` method returns `null` if no elements provided.
+        // i.e. cells can be an array of links
+        var bbox = this.getCellsBBox(cells);
+        if (bbox) {
+            var sx = Math.max(width / bbox.width, 0);
+            var sy = Math.max(height / bbox.height, 0);
+            _.invoke(cells, 'scale', sx, sy, bbox.origin(), opt);
+        }
+    },
+
+    rotateCells: function(angle, origin, cells, opt) {
+
+        _.each(cells, function(cell) {
+            if (cell.isLink()) {
+                // links vertices are not currenty rotatable
+                return;
+            }
+            cell.rotate(cell.get('angle') + angle, true, origin, _.clone(opt));
+        });
+    },
+
+    translateCells: function(dx, dy, cells, opt) {
+
+        _.reduce(cells, function(processedCells, cell) {
+
+            // This `processedCells` hash of flags makes sure we're not adjusting vertices
+            // of one link twice. This could happen as one link can be an inbound link of one
+            // element in the `cells` and outbound link of another at the same time.
+
+            if (!processedCells[cell.id]) {
+
+                cell.translate(dx, dy, _.clone(opt));
+                processedCells[cell.id] = true;
+
+                // Embedded cells have been already translated by the `cell.translate` call.
+                _.each(cell.getEmbeddedCells({ deep: true }), function(embed) {
+                    processedCells[embed.id] = true;
+                });
+            }
+
+            return processedCells;
+
+        }, {});
+    },
+
+    removeCells: function(cells, opt) {
+
+        _.invoke(cells, 'remove', opt);
+    },
+
+    // Clone `cells` returning an object that maps the original cell ID to the clone. The number
+    // of clones is exactly the same as the `cells.length`.
+    // This function simply clones all the `cells`. However, it also reconstructs
+    // all the `source/target` and `parent/embed` references within the `cells`.
+    // This is the main difference from the `cell.clone()` method. The
+    // `cell.clone()` method works on one single cell only.
+    // For example, for a graph: `A --- L ---> B`, `cloneCells([A, L, B])`
+    // returns `[A2, L2, B2]` resulting to a graph: `A2 --- L2 ---> B2`, i.e.
+    // the source and target of the link `L2` is changed to point to `A2` and `B2`.
+    cloneCells: function(cells) {
+
+        cells = _.unique(cells);
+
+        // A map of the form [original cell ID] -> [clone] helping
+        // us to reconstruct references for source/target and parent/embeds.
+        // This is also the returned value.
+        var cloneMap = _.transform(cells, function(map, cell) {
+            map[cell.id] = cell.clone();
+        }, {});
+
+        _.each(cells, function(cell) {
+
+            var clone = cloneMap[cell.id];
+            // assert(clone exists)
+
+            if (clone.isLink()) {
+                var source = clone.get('source');
+                var target = clone.get('target');
+                if (source.id && cloneMap[source.id]) {
+                    // Source points to an element and the element is among the clones.
+                    // => Update the source of the cloned link.
+                    clone.prop('source/id', cloneMap[source.id].id);
+                }
+                if (target.id && cloneMap[target.id]) {
+                    // Target points to an element and the element is among the clones.
+                    // => Update the target of the cloned link.
+                    clone.prop('target/id', cloneMap[target.id].id);
+                }
+            }
+
+            // Find the parent of the original cell
+            var parent = cell.get('parent');
+            if (parent && cloneMap[parent]) {
+                clone.set('parent', cloneMap[parent].id);
+            }
+
+            // Find the embeds of the original cell
+            var embeds = _.reduce(cell.get('embeds'), function(newEmbeds, embed) {
+                // Embedded cells that are not being cloned can not be carried
+                // over with other embedded cells.
+                if (cloneMap[embed]) {
+                    newEmbeds.push(cloneMap[embed].id);
+                }
+                return newEmbeds;
+            }, []);
+
+            if (!_.isEmpty(embeds)) {
+                clone.set('embeds', embeds);
+            }
+        });
+
+        return cloneMap;
+    },
+
+    // Return the bounding box of all cells in array provided.
+    // Links are being ignored.
+    getCellsBBox: function(cells, opt) {
+
+        return _.reduce(cells, function(memo, cell) {
+            if (cell.isLink()) return memo;
+            var cellBBox = cell.getBBox(opt);
+            if (memo) {
+                return memo.union(cellBBox);
+            } else {
+                return cellBBox;
+            }
+        }, null);
+    }
+
 });
 
 joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'removeCells'], 'cells');
