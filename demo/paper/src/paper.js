@@ -301,7 +301,7 @@ function scaleToFit() {
         preserveAspectRatio: $stfRatio.is(':checked')
     });
 
-    paper.viewport.getBoundingClientRect();
+    paper.viewport.getBoundingClientRect(); // MS Edge hack to fix the invisible text.
 
     if (padding) {
 
