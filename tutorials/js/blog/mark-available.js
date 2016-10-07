@@ -30,18 +30,18 @@
                 'in': {
                     attrs: {
                         '.port-body': {
-                            fill: '#16A085'
-                        },
-                        magnet: 'passive',
-                        type: 'input'
+                            fill: '#16A085',
+                            magnet: 'passive'
+                        }
                     }
                 },
                 'out': {
                     attrs: {
                         '.port-body': {
-                            fill: '#E74C3C'
+                            fill: '#E74C3C',
+                            
                         },
-                        type: 'output'
+                        
                     }
                 }
             }
