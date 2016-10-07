@@ -28,11 +28,30 @@ var m1 = new joint.shapes.devs.Model({
     size: { width: 90, height: 90 },
     inPorts: ['in1','in2'],
     outPorts: ['out'],
+    ports: {
+        groups: {
+            'in': {
+                attrs: {
+                    '.port-body': {
+                        fill: '#16A085'
+                    },
+                    magnet: 'passive',
+                    type: 'input'
+                }
+            },
+            'out': {
+                attrs: {
+                    '.port-body': {
+                        fill: '#E74C3C'
+                    },
+                    type: 'output'
+                }
+            }
+        }
+    },
     attrs: {
         '.label': { text: 'Model', 'ref-x': .4, 'ref-y': .2 },
-        rect: { fill: '#2ECC71' },
-        '.inPorts circle': { fill: '#16A085', magnet: 'passive', type: 'input' },
-        '.outPorts circle': { fill: '#E74C3C', type: 'output' }
+        rect: { fill: '#2ECC71' }
     }
 });
 graph.addCell(m1);

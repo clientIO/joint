@@ -8,13 +8,29 @@ var m1 = new joint.shapes.devs.Model({
     size: { width: 90, height: 90 },
     inPorts: ['in1','in2'],
     outPorts: ['out'],
+    ports: {
+        groups: {
+            'in': {
+                attrs: {
+                    '.port-body': {
+                        fill: '#16A085'
+                    }
+                }
+            },
+            'out': {
+                attrs: {
+                    '.port-body': {
+                        fill: '#E74C3C'
+                    }
+                }
+            }
+        }
+    },
     attrs: {
         '.label': { text: 'Model', 'ref-x': .4, 'ref-y': .2 },
-        rect: { fill: '#2ECC71' },
-        '.inPorts circle': { fill: '#16A085' },
-        '.outPorts circle': { fill: '#E74C3C' }
+        rect: { fill: '#2ECC71' }
     }
 });
 graph.addCell(m1);
 
-}())
+}());

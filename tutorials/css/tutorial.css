@@ -121,7 +121,7 @@ main a:hover {
     color: #fff;
 }
 
-.paper {
+.joint-paper {
    border: 1px solid lightgray;
    display: inline-block;
    overflow: hidden;

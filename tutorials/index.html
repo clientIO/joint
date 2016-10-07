@@ -10,7 +10,7 @@
         <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 
         <link rel="stylesheet" href="css/tutorial.css" />
-        <link rel="stylesheet" href="lib/prism/themes/prism.css">
+        <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
 
 
         <!-- Dependencies: -->
@@ -21,8 +21,6 @@
 
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
         <script type="text/javascript" src="../build/joint.min.js"></script>
-        <script src="lib/prism/prism.js"></script>
-        <script src="js/tutorial.js"></script>
 
         <title>JointJS - JavaScript diagramming library - Getting started.</title>
 
@@ -647,17 +645,18 @@ V(paper.viewport).append(orbit);</code></pre>
                         to
                         a JavaScript object, JointJS will treat such an object as a JointJS-specific filter definition. This filter
                         definition has the following form:
+                    </p>
 
 <pre><code>{
     name: &lt;name of the filter&gt;,
     args: &lt;filter arguments&gt;
 }</code></pre>
+                    <p>
                     where <code>name</code> is the name of the filter, <code>args</code> is an object containing filter parameters
                     (dependent on the filter used).
-                    The full list of built-in filters and their parameters can be found in the <a
-                        href="/api#SpecialAttributes.filter">API reference</a>. The following
+                    The full list of built-in filters and their parameters can be found in the <a href="/api#SpecialAttributes.filter">API reference</a>. The following
                     demo shows all the filters in action. As you can see in the demo, you can define filters for links as well.
-
+                    </p>
                     <div id="paper-filters"></div>
                     <script type="text/javascript" src="js/blog/filters.js"></script>
                     <pre data-src="js/blog/filters.js" style="height: 1640px"></pre>
@@ -1279,7 +1278,7 @@ require(['joint'], function(joint) {
                         below.</p>
                     <img src="data:image/png;base64,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"
                          width="316" height="67"/>
-                    <br>It also separates the drawing function from the <code>update()</code> into a new linkView method <code>drawPattern()</code>.
+                    <br>It also separates the drawing function from the <code>update()</code> into a new linkView method <code>drawPattern()</code>.<br/>
 
                     <div id="paper-pipes"></div>
 
@@ -1293,5 +1292,7 @@ require(['joint'], function(joint) {
             </section>
 
         </main>
+        <script src="../node_modules/prismjs/prism.js"></script>
+        <script src="js/tutorial.js"></script>
     </body>
 </html>
