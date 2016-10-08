@@ -832,6 +832,20 @@ var g = (function() {
             return this;
         },
 
+        // Expand me.
+        // @param d {number} representing delta
+        expand: function(dw, dh) {
+            dw = dw || 0;
+            this.x -= dw;
+            this.width += 2*dw;
+            if (dh === undefined) {
+                dh = dw;
+            }
+            this.y -= dh;
+            this.height += 2*dh;
+            return this;
+        },
+
         // Normalize the rectangle; i.e., make it so that it has a non-negative width and height.
         // If width < 0 the function swaps the left and right corners,
         // and it swaps the top and bottom corners if height < 0

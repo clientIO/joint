@@ -13,22 +13,22 @@ var paper = new joint.dia.Paper({
 
         var model = cellView.model;
 
-        if (model.get('type') === 'groups.Port' && model.get('group')) {
-            return _.first(model.get('group').getCells()).getBBox().moveAndExpand({
-                x: -10,
-                y: -10,
-                width: 20,
-                height: 20
+        if (model.get('type') === 'groups.Port' && model.inEditMode()) {
+            var container = _.find(model.group.getCells(), function(cell) {
+                return cell.get('type') === 'groups.Container';
             });
+            if (container) {
+                return container.getBBox().expand(10);
+            }
         }
 
         return null;
     }
 });
 
-joint.shapes.groups = {};
+var groupShapes = joint.shapes.groups = {};
 
-joint.shapes.groups.Container = joint.shapes.basic.Generic.extend({
+groupShapes.Container = joint.shapes.basic.Generic.extend({
     markup: '<g class="rotatable"><rect/></g>',
     defaults: _.defaultsDeep({
         type: 'groups.Container',
@@ -36,6 +36,7 @@ joint.shapes.groups.Container = joint.shapes.basic.Generic.extend({
             width: 100,
             height: 100
         },
+        editMode: false,
         attrs: {
             '.': {
                 'magnet': false
@@ -53,12 +54,20 @@ joint.shapes.groups.Container = joint.shapes.basic.Generic.extend({
         }
     }, joint.shapes.basic.Generic.prototype.defaults),
 
-    toggle: function() {
-        return this.attr('rect/cursor', this.isEdited() ? 'move' : 'cell');
+    toggleEditMode: function() {
+        var editMode = this.inEditMode();
+        return this.prop({
+            editMode: !editMode,
+            attrs: {
+                rect: {
+                    cursor: (editMode) ? 'move' : 'cell'
+                }
+            }
+        });
     },
 
-    isEdited: function() {
-        return this.attr('rect/cursor') !== 'move';
+    inEditMode: function() {
+        return this.get('editMode');
     }
 
 }, {
@@ -68,7 +77,7 @@ joint.shapes.groups.Container = joint.shapes.basic.Generic.extend({
     }
 });
 
-joint.shapes.groups.Port = joint.shapes.basic.Generic.extend({
+groupShapes.Port = joint.shapes.basic.Generic.extend({
     markup: '<g class="rotatable"><rect/></g>',
     defaults: _.defaultsDeep({
         type: 'groups.Port',
@@ -76,6 +85,7 @@ joint.shapes.groups.Port = joint.shapes.basic.Generic.extend({
             width: 20,
             height: 20
         },
+        editMode: false,
         attrs: {
             '.': {
                 'magnet': false
@@ -94,16 +104,20 @@ joint.shapes.groups.Port = joint.shapes.basic.Generic.extend({
         }
     }, joint.shapes.basic.Generic.prototype.defaults),
 
-    toggle: function() {
-        return this.attr({
-            rect: (this.isEdited())
-                ? { magnet: true, fill: 'lightgray' }
-                : { magnet: null, fill: '#FF4136' }
+    toggleEditMode: function() {
+        var editMode = this.inEditMode();
+        return this.prop({
+            editMode: !editMode,
+            attrs: {
+                rect: (editMode)
+                    ? { magnet: true, fill: 'lightgray' }
+                    : { magnet: 'passive', fill: '#FF4136' }
+            }
         });
     },
 
-    isEdited: function() {
-        return !this.attr('rect/magnet');
+    inEditMode: function() {
+        return this.get('editMode');
     }
 
 }, {
@@ -117,16 +131,15 @@ joint.shapes.groups.Port = joint.shapes.basic.Generic.extend({
     }
 });
 
-var g1 = new joint.dia.Group({
+var g1 = (new joint.dia.Group({
     cells: [
-        joint.shapes.groups.Container.createAt(0,0),
-        joint.shapes.groups.Port.createAt(0, 50),
-        joint.shapes.groups.Port.createAt(100, 50),
-        joint.shapes.groups.Port.createAt(50, 0)
+        groupShapes.Container.createAt(0,0),
+        groupShapes.Port.createAt(0, 50),
+        groupShapes.Port.createAt(100, 50),
+        groupShapes.Port.createAt(50, 0)
     ]
-});
+})).translate(100,100).addTo(graph);
 
-g1.translate(100,100).addTo(graph);
 var g2 = g1.clone().translate(200,200).addTo(graph);
 
 var editHighlighter = {
@@ -169,15 +182,15 @@ paper.on('cell:pointerclick', function(view, evt, x, y) {
 function click(cellView, evt, x, y) {
 
     var model = cellView.model;
-    var group = graph.getCellGroup(model);
+    var group = model.group;
+    var editMode = model.inEditMode();
 
     switch (model.get('type')) {
         case 'groups.Container':
-            if (!group) {
-                group = model.get('group');
+            if (editMode) {
                 group.addCell(
-                    joint.shapes.groups.Port.createAt(x, y)
-                        .toggle()
+                    groupShapes.Port.createAt(x, y)
+                        .toggleEditMode()
                         .set('group', group)
                         .addTo(graph)
                 );
@@ -189,43 +202,44 @@ function click(cellView, evt, x, y) {
 function dblClick(cellView) {
 
     var model = cellView.model;
-    var group = graph.getCellGroup(model);
+    var group = model.group;
+    var editMode = model.inEditMode();
 
     switch (model.get('type')) {
         case 'groups.Container':
 
-            if (group) {
-
-                cellView
-                    .setInteractivity(false)
-                    .highlight(null, { highlighter: editHighlighter });
-
-                graph.removeGroup(group);
-
-                _.invoke(group.getCells(), 'toggle');
-                _.invoke(group.getCells(), 'set', 'group', group);
-
-            } else {
-
-                group = model.get('group');
+            if (editMode) {
 
                 cellView
                     .setInteractivity(true)
-                    .unhighlight(null, { highlighter: editHighlighter });
+                    .unhighlight(
+                        cellView.el.querySelector('rect'),
+                        { highlighter: editHighlighter }
+                    );
 
                 graph.addGroup(group);
 
-                _.invoke(group.getCells(), 'toggle');
-                _.invoke(group.getCells(), 'unset', 'group');
+            } else {
 
+                cellView
+                    .setInteractivity(false)
+                    .highlight(
+                        cellView.el.querySelector('rect'),
+                        { highlighter: editHighlighter }
+                    );
+
+                graph.removeGroup(group);
             }
-            break;
 
+            _.invoke(group.getCells(), 'toggleEditMode');
+
+            break;
         case 'groups.Port':
 
-            if (!group) {
+            if (editMode) {
                 model.remove();
             }
+
             break;
     }
 }

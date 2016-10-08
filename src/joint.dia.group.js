@@ -14,8 +14,30 @@
         },
 
         initialize: function() {
+
             joint.dia.Cell.prototype.initialize.apply(this, arguments);
-            // ?
+
+            this._setGroupRefs(this, this.getCells());
+            this.on('change:cells', _.bind(this._setGroupRefs, this));
+        },
+
+        _setGroupRefs: function(group, cells, opt) {
+
+            var removedCells = _.difference(group.previous('cells'), cells);
+
+            _.each(cells, _.bind(this._setGroupRef, this, group));
+            _.each(removedCells, _.bind(this._setGroupRef, this, null));
+        },
+
+        _setGroupRef: function(group, cell) {
+
+            var prevGroup = cell.group;
+
+            if (group && prevGroup && prevGroup !== group) {
+                throw new Error('Group: cell already a member of another group.');
+            }
+
+            cell.group = group;
         },
 
         position: function(x, y, opt) {
@@ -37,6 +59,13 @@
         // TODO: add to element
         angle: function() {
 
+        },
+
+        removeCell: function(cell, opt) {
+            if (this.hasCell(cell)) {
+                this.set('cells', _.without(this.get('cells'), cell), opt);
+            }
+            return this;
         },
 
         addCell: function(cell, opt) {
@@ -115,12 +144,12 @@
 
         clone: function(opt) {
 
-            var clone = Backbone.Model.prototype.clone.apply(this, arguments);
-
-            clone.set({
+            var attributes = _.merge({
                 id: joint.util.uuid(),
                 cells: _.toArray(graphUtils.cloneCells(this.getCells()))
-            });
+            }, _.omit(this.attributes, 'id', 'cells'));
+
+            var clone = new this.constructor(attributes);
 
             return (opt && opt.deep) ? [clone] : clone;
         },
