@@ -1134,7 +1134,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             if (this.can('elementMove')) {
 
-                var model = this.paper.model.getCellGroup(this.model) || this.model;
+                // TODO: move to pointerdown, use in pointerup & pointermove
+                var model = _.last(this.paper.model.getCellGroups(this.model)) || this.model;
 
                 var position = model.position();
 

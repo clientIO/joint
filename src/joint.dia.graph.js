@@ -203,6 +203,7 @@ joint.dia.Graph = Backbone.Model.extend({
         // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitely.
         var json = Backbone.Model.prototype.toJSON.apply(this, arguments);
         json.cells = this.get('cells').toJSON();
+        json.groups = _.invoke(this.get('groups'), 'toJSON');
         return json;
     },
 
@@ -232,6 +233,11 @@ joint.dia.Graph = Backbone.Model.extend({
         if (attrs.hasOwnProperty('cells')) {
             this.resetCells(attrs.cells, opt);
             attrs = _.omit(attrs, 'cells');
+        }
+
+        // Make sure that `groups` attribute is handled separately via resetGroups().
+        if (attrs.hasOwnProperty('groups')) {
+            attrs.groups = _.map(attrs.groups, _.bind(this._prepareGroup, this), opt);
         }
 
         // The rest of the attributes are applied via original set method.
@@ -286,6 +292,18 @@ joint.dia.Graph = Backbone.Model.extend({
         }
 
         return cell;
+    },
+
+    _prepareGroup: function(group) {
+
+        if (group instanceof joint.dia.Group) {
+
+        } else {
+
+            group = joint.dia.Group.fromJSON(group, this);
+        }
+
+        return group;
     },
 
     maxZIndex: function() {
@@ -1011,6 +1029,17 @@ joint.dia.Graph = Backbone.Model.extend({
         return _.find(this.getGroups(), function(group) {
             return group.hasCell(cell);
         });
+    },
+
+    getCellGroups: function(cell) {
+
+        var groups = [];
+
+        while ((cell = this.getCellGroup(cell))) {
+            groups.push(cell);
+        }
+
+        return groups;
     }
 
 }, {

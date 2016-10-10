@@ -1,15 +1,19 @@
-(function(joint, _, Backbone) {
+(function(joint, g, _, Backbone) {
 
     // TODO:
     // - missing batches
     // - restrictTranslate paper option
     // - command manager (set attribute)
     // - hasCell --> has ?
+    // - fromJSON cell vs group type??
+    // - resize + direction option
+    // - rotate
     var graphUtils = joint.dia.Graph;
 
     joint.dia.Group = joint.dia.Cell.extend({
 
         defaults: {
+            type: 'group',
             cells: []
         },
 
@@ -17,6 +21,7 @@
 
             joint.dia.Cell.prototype.initialize.apply(this, arguments);
 
+            // update the `group` reference for every group cell.
             this._setGroupRefs(this, this.getCells());
             this.on('change:cells', _.bind(this._setGroupRefs, this));
         },
@@ -48,7 +53,14 @@
                 return this.getBBox().origin();
             }
 
-            // TODO: setter
+            var delta = g.Point(x, y).difference(this.position());
+
+            _.each(this.getCells(), function(cell) {
+                var newPosition = cell.position().offset(delta);
+                cell.position(newPosition.x, newPosition.y, opt);
+            });
+
+            return this;
         },
 
         // TODO: add to element
@@ -107,7 +119,6 @@
         },
 
         scale: function(sx, sy, origin, opt) {
-
             graphUtils.scaleCells(sx, sy, origin, this.getCells(), opt);
             return this;
         },
@@ -118,10 +129,9 @@
         },
 
         toJSON: function() {
-            return {
-                id: this.id,
-                cells: _.map(this.get('cells'), 'id')
-            };
+            var json = _.clone(this.attributes);
+            json.cells = _.map(this.get('cells'), 'id');
+            return json;
         },
 
         toFront: function(opt) {
@@ -190,6 +200,15 @@
         processPorts: function() {
             // noop ? deprecated ?
         }
+
+    }, {
+
+        fromJSON: function(json, graph) {
+
+            json.cells = _.map(json.cells, _.bind(graph.getCell, graph));
+            return new this(json);
+        }
+
     });
 
-})(joint, _, Backbone);
+})(joint, g, _, Backbone);

@@ -561,6 +561,9 @@ var g = (function() {
         // Offset me by the specified amount.
         offset: function(dx, dy) {
 
+            if (Object(dx) === dx) {
+                return this.offset(dx.x, dx.y);
+            }
             this.x += dx || 0;
             this.y += dy || 0;
             return this;
