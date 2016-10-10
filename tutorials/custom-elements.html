@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="canonical" href="http://www.jointjs.com/" />
+        <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
+        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
+
+        <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
+
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/index.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+
+        <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <script type="text/javascript" src="../build/joint.min.js"></script>
+
+        <title>JointJS - JavaScript diagramming library - Getting started.</title>
+
+    </head>
+    <body class="language-javascript tutorial-page">
+
+        <script>
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
+            };
+        </script>
+
+        <div id="custom-elements" class="tutorial">
+
+            <h2>Creating custom elements</h2>
+
+            <p>JointJS has built-in elements for basic shapes. These shapes are all in the <code>joint.shapes.basic</code>
+                namespace and consist of <code>joint.shapes.basic.Rect</code>, <code>joint.shapes.basic.Circle</code>,
+                <code>joint.shapes.basic.Text</code> and <code>joint.shapes.basic.Image</code>. Additionally,
+                JointJS has plugins that contain shapes and links for elements of some well-known diagrams. Though there
+                is plenty of shapes to choose from, you might be missing one and want to create your own.</p>
+            <p>Creating new shapes is quite simple though you need some basic knowledge of SVG elements. The most important
+                SVG elements you should know about
+                are <code>rect</code>, <code>text</code>, <code>circle</code>, <code>ellipse</code>, <code>image</code> and
+                <code>path</code>. Their thorough description
+                together with examples can be found e.g. on <a
+                    href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element">MDN</a>. Combining these, you can
+                make
+                basically any 2D shape you like.</p>
+            <p> As it was mentioned, custom elements are created by combining SVG tags. Many times, it is useful to position
+                one
+                element relatively to another. Imagine a basic situation where you want to have a rectangle element and a
+                text element that should always be in the center of the rectangle.
+                Unfortunately, SVG does not provide a facility to do that. Therefore, JointJS introduces
+                <a href="/api#SpecialAttributes">special attributes</a> that are helpful for positioning elements relatively
+                to each other. For an example, let's explore how the
+                <code>joint.shapes.basic.Rect</code> element is defined:
+            <pre><code>joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
+    markup: '&lt;g class="rotatable"&gt;&lt;g class="scalable"&gt;&lt;rect/&gt;&lt;/g&gt;&lt;text/&gt;&lt;/g&gt;',
+
+    defaults: joint.util.deepSupplement({
+        type: 'basic.Rect',
+        attrs: {
+            'rect': { fill: 'white', stroke: 'black', 'follow-scale': true, width: 80, height: 40 },
+            'text': { 'font-size': 14, 'ref-x': .5, 'ref-y': .5, ref: 'rect', 'y-alignment': 'middle', 'x-alignment': 'middle' }
+        }
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});</code></pre>
+
+            As you can see, the SVG tags are stored in a property <code>markup</code>. This property contains an SVG
+            template for the <code>joint.shapes.basic.Rect</code> element.
+            There are two important SVG groups in the markup that JointJS understands. The first one is the one with the
+            class <code>"rotatable"</code>. All elements
+            in this group will get rotated when the <a href="/api#dia.Element.prototype.rotate">joint.dia.Element.rotate()</a>
+            method is called.
+            The other group is <code>"scalable"</code>. All elements in this group will get scaled when
+            the <a href="/api#dia.Element.prototype.resize">joint.dia.Element.resize()</a> method is called.
+
+            <p>
+                All the positioning and presentation definitions are then stored as usual in the <code>attrs</code> object.
+                Notice
+                the special attributes <code>ref-x</code>, <code>ref-y</code>, <code>ref</code>, <code>x-alignment</code>
+                and <code>y-alignment</code>.
+                <code>ref-x</code> and <code>ref-y</code> determine the position of the <code>text</code> SVG element
+                relative to
+                an element referenced to by the selector stored in the <code>ref</code> attribute. In our case, the <code>text</code>
+                element is positioned 50% in the x-axis and 50% in the y-axis relative to the <code>rect</code> element,
+                i.e. in the center of the rectangle.
+                <code>x-alignment === 'middle'</code> and <code>y-alignment === 'middle'</code> causes the text to center
+                itself around its x-axis and y-axis. If we didn't do that,
+                only the left-corner of the text element would be in the center of the rectangle but not the whole text.
+            </p>
+            <p>
+                Notice that in this case, we don't want the text to scale, only the rectangle (that's why the text is not
+                inside the "scalable" group in the markup). But because we set the
+                relative positioning attributes on the text, the text will move in order to put itself to the center of the
+                rectangle
+                even though the center moved due to the scale operation on the rectangle. Isn't this nice?
+            </p>
+            <p>SVG + JointJS relative positioning attributes make it easy to create custom elements in a declarative
+                fashion. It just
+                needs a little bit of practice and try-fail loops.</p>
+
+
+            <p><em>Browse through the menu on the left to see some common techniques that you might find useful in your
+                    applications.</em></p>
+
+        </div><!--end tutorial-->
+
+        <script src="../node_modules/prismjs/prism.js"></script>
+        <script src="js/tutorial.js"></script>
+    </body>
+</html>

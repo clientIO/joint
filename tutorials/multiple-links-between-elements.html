@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="canonical" href="http://www.jointjs.com/" />
+        <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
+        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
+
+        <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
+
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/index.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+
+        <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <script type="text/javascript" src="../build/joint.min.js"></script>
+
+        <title>JointJS - JavaScript diagramming library - Getting started.</title>
+
+    </head>
+    <body class="language-javascript tutorial-page">
+
+        <script>
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
+            };
+        </script>
+
+        <div id="multiple-links-between-elements" class="tutorial">
+
+            <h2>Multiple links between elements</h2>
+
+            <p>You've been asking how to deal with a situation when two or more links connect the same elements, they are
+                covering each other and therefore it's quite hard to interact with them. The solution introduced in this
+                tutorial shows a function that automatically creates vertices so that they cross control points in a way
+                that makes the links shape a cluster with gaps between them. JointJS has a built-in <a
+                    href="http://www.daviddurman.com/hidden-gold-of-jointjs-the-geometry-library.html">geometry
+                    library</a> that we can use to find those control points.</p>
+
+            <p>The core of the solution is wrapped in one function named <code>adjustVertices</code>. It accepts a <code>graph</code>
+                and a <code>cell</code> (either link or element). If the <code>cell</code> is a link, it will find all links
+                with the same source and target and then set vertices on them. We'll be calling those links 'siblings'. If
+                the <code>cell</code> is an element, we execute our function for each distinct (in terms of its source and
+                target) connected link to the element.</p> To make the usage even more comfortable, we allow passing model
+            views as well. Ok, this is the function.
+
+            <pre data-src="js/blog/adjust-vertices.js" style="height: 1650px"></pre>
+
+            <p>Now we have to figure out when to call our function. Vertices need to be adjusted any time user changes the
+                source or target of a link or he adds/removes one. Additionally we might want to recalculate the vertices
+                when user translates an element.</p>
+
+            <pre data-src="js/blog/bind-adjust-vertices.js" style="height: 200px"></pre>
+
+            <p>Well, that's it. We can take a look at the result.</p>
+
+
+            <p>
+                <small>Try to move an element to see how the links follow. Then try to reconnect a link by dragging its
+                    arrowhead to see how the links shape a cluster.
+                </small>
+            </p>
+
+            <div id="paper-vertices"></div>
+            <script src="js/blog/multiple-links.js"></script>
+
+        </div>
+
+        <script src="../node_modules/prismjs/prism.js"></script>
+        <script src="js/tutorial.js"></script>
+    </body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="canonical" href="http://www.jointjs.com/" />
+        <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
+        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
+
+        <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
+
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/index.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+
+        <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <script type="text/javascript" src="../build/joint.min.js"></script>
+
+        <title>JointJS - JavaScript diagramming library - Getting started.</title>
+
+    </head>
+    <body class="language-javascript tutorial-page">
+
+        <script>
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
+            };
+        </script>
+
+        <div id="filters-gradients" class="tutorial">
+            <h2>Using Filters and Gradients in elements and links</h2>
+
+            <p>This is a short introduction to using <a href="#filters">filters</a> and <a href="#gradients">gradients</a>
+                to style your JointJS shapes and links.
+                JointJS uses standard SVG filters and gradients, only instead of writing the SVG markup code, you
+                define your filters and gradients with plain JavaSript objects. JointJS then generates all the necessary
+                SVG elements for you.</p>
+
+            <h3 id="filters">Filters</h3>
+
+            <p>
+                The way you can define filters is described in the <a href="/api#SpecialAttributes.filter">Special
+                    Attributes</a>
+                section of the API reference. Filters can be applied on any SVG graphics and container element (ellipse,
+                circle, path,
+                text, g, ...) using the <code>filter</code> attribute. If you set this attribute to a string, the behaviour
+                will be left unchanged. For example, by setting the <code>filter</code> attribute to this string: <code>"url(#myfilter)"</code>,
+                the browser will try to find an element with ID <code>"myfilter"</code>, which can be the SVG <code>&lt;filter&gt;</code>
+                element and apply that filter on the graphics element. However, if you set the <code>filter</code> attribute
+                to
+                a JavaScript object, JointJS will treat such an object as a JointJS-specific filter definition. This filter
+                definition has the following form:
+            </p>
+
+            <pre><code>{
+    name: &lt;name of the filter&gt;,
+    args: &lt;filter arguments&gt;
+}</code></pre>
+            <p>
+                where <code>name</code> is the name of the filter, <code>args</code> is an object containing filter parameters
+                (dependent on the filter used).
+                The full list of built-in filters and their parameters can be found in the <a href="/api#SpecialAttributes.filter">API reference</a>. The following
+                demo shows all the filters in action. As you can see in the demo, you can define filters for links as well.
+            </p>
+            <div id="paper-filters"></div>
+            <script type="text/javascript" src="js/blog/filters.js"></script>
+            <pre data-src="js/blog/filters.js" style="height: 1640px"></pre>
+
+            <h3 id="gradients">Gradients</h3>
+
+            Gradients are again described in the <a href="/api#SpecialAttributes.fill">Special Attributes</a>
+            section of the API reference. Gradients can be applied either on the <code>fill</code> or the
+            <code>stroke</code>
+            attribute of graphics elements. Again, if these attributes are set as strings, the behaviour will
+            be left unchanged and JointJS just sets those strings as values for the respective attributes. Therefore, if you
+            set e.g. <code>fill</code> to "#ff0000", the fill color of the selected graphics element will be red. However,
+            if you set the <code>fill</code> attribute to a JavaScript object, JointJS will assume that it is a color
+            gradient that you want to set. JointJS uses the following special definition for gradients:
+
+            <pre><code>{
+    type: &lt;type of gradient&gt;,
+    stops: &lt;stop colors&gt;,
+    attrs: &lt;additional attributes&gt;
+}</code></pre>
+
+            where <code>type</code> is either <code>'linearGradient'</code> or <code>'radialGradient'</code>,
+            <code>attrs</code> is an object containing additional SVG attributes for the SVG gradient element
+            and <code>stops</code> is an array of the ramps of color on the gradient. Each stop object is of the form:
+
+            <pre><code>{
+    offset: &lt;offset&gt;,
+    color: &lt;color&gt;,
+    opacity: &lt;opacity&gt;
+}</code></pre>
+
+            where <code>offset</code> is a string representing the offset of the gradient stop, <code>color</code> indicates
+            what
+            color to use at that gradient stop and <code>opacity</code> is a number in the [0..1] range representing the
+            transparency of the stop color.
+            <p>
+                The following demo shows both linear and radial gradients in action. Note the last element and the use of
+                the
+                additional gradient attributes (<code>attrs</code>) which allows you to define the direction of the
+                gradient.
+            </p>
+
+            <div id="paper-gradients"></div>
+            <script type="text/javascript" src="js/blog/gradients.js"></script>
+            <pre data-src="js/blog/gradients.js" style="height: 1350px"></pre>
+        </div>
+
+        <script src="../node_modules/prismjs/prism.js"></script>
+        <script src="js/tutorial.js"></script>
+    </body>
+</html>

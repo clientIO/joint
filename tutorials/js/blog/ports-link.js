@@ -27,14 +27,13 @@ var m1 = new joint.shapes.devs.Model({
         }
     },
     attrs: {
-        '.label': { text: 'Model', 'ref-x': .4, 'ref-y': .2 },
+        '.label': { text: 'Model', 'ref-x': .5, 'ref-y': .2 },
         rect: { fill: '#2ECC71' }
     }
 });
 graph.addCell(m1);
 
-var m2 = m1.clone();
-m2.translate(300, 0);
+var m2 = m1.clone().translate(300, 0).attr('.label/text', 'Model 2');
 graph.addCell(m2);
 
 graph.on('change:source change:target', function(link) {
@@ -57,4 +56,4 @@ function out(m) {
     $('#paper-link-out').html(m);
 }
 
-}())
+}());

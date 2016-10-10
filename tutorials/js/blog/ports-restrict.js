@@ -33,24 +33,22 @@ var m1 = new joint.shapes.devs.Model({
             'in': {
                 attrs: {
                     '.port-body': {
-                        fill: '#16A085'
-                    },
-                    magnet: 'passive',
-                    type: 'input'
+                        fill: '#16A085',
+                        magnet: 'passive'
+                    }
                 }
             },
             'out': {
                 attrs: {
                     '.port-body': {
                         fill: '#E74C3C'
-                    },
-                    type: 'output'
+                    }
                 }
             }
         }
     },
     attrs: {
-        '.label': { text: 'Model', 'ref-x': .4, 'ref-y': .2 },
+        '.label': { text: 'Model', 'ref-x': .5, 'ref-y': .2 },
         rect: { fill: '#2ECC71' }
     }
 });
@@ -60,5 +58,5 @@ var m2 = m1.clone();
 m2.translate(300, 0);
 graph.addCell(m2);
 m2.attr('.label/text', 'Model 2');
-    
-}())
+
+}());

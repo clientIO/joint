@@ -38,16 +38,14 @@
                 'out': {
                     attrs: {
                         '.port-body': {
-                            fill: '#E74C3C',
-                            
-                        },
-                        
+                            fill: '#E74C3C'
+                        }
                     }
                 }
             }
         },
         attrs: {
-            '.label': { text: 'Model', 'ref-x': .4, 'ref-y': .2 },
+            '.label': { text: 'Model', 'ref-x': .5, 'ref-y': .2 },
             rect: { fill: '#2ECC71' }
         }
     }).addTo(graph);
