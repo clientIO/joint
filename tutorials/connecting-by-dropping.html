@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="canonical" href="http://www.jointjs.com/" />
+        <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
+        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
+
+        <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
+
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/index.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+
+        <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <script type="text/javascript" src="../build/joint.min.js"></script>
+
+        <title>JointJS - JavaScript diagramming library - Getting started.</title>
+
+    </head>
+    <body class="language-javascript tutorial-page">
+
+        <script>
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
+            };
+        </script>
+
+        <div id="connecting-by-dropping" class="tutorial">
+
+            <h2>Connecting an element by dropping it over another element</h2>
+
+            <p>This quick tutorial shows how to automatically create links when the user drops an element over another
+                element.
+                Note that this is not necessary if you have elements with ports. For more details on elements with ports,
+                see
+                the <a href="/tutorial#ports">Working with Ports</a> tutorial.
+            </p>
+
+            <p>Let's start with a demo and then let's have a look on how this can be done.</p>
+
+            <p>
+                <small>Try to drag an element and drop it over another element. You should see a new link has
+                    been created between the two elements.
+                </small>
+            </p>
+
+            <div id="paper-connection-by-dropping" class="paper"></div>
+            <script src="js/connecting-by-dropping.js"></script>
+
+            <p>The trick is to listen on the <code>cell:pointerup</code> event on the paper and search for
+                an element who's area contains the point of the mouser cursor. If such an element was found,
+                we just create a link connecting both elements and move the dropped element a little bit
+                to the side to give the user a clue of what just happend.</p>
+
+            <pre data-src="js/connecting-by-dropping.js" style="height: 1000px"></pre>
+
+        </div>
+
+        <script src="../node_modules/prismjs/prism.js"></script>
+
+    </body>
+</html>

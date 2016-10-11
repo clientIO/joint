@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="canonical" href="http://www.jointjs.com/" />
+        <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
+        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
+
+        <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
+
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/index.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+
+        <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <script type="text/javascript" src="../build/joint.min.js"></script>
+
+        <title>JointJS - JavaScript diagramming library - Getting started.</title>
+
+    </head>
+    <body class="language-javascript tutorial-page">
+
+        <script>
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
+            };
+        </script>
+
+        <div id="hyperlinks" class="tutorial">
+            <h2>Using Hyperlinks in JointJS elements</h2>
+
+            <p>This tutorial shows you how to create JointJS elements that contains links pointing to external sites.
+                The only thing you have to do is to create a shape that contains the SVG <a
+                    href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a">a</a>
+                element in the markup. Then you can just use the <code>xlink:href</code> attribute to set the target
+                resource URL.
+                Also note that you can use the <code>xlink:show</code> attribute to tell whether the content the link points
+                to should be
+                displayed in a new window, or replace the content of the existing window. Possible values for the <code>xlink:show</code>
+                attribute are <code>"new"</code> and <code>"replace"</code>.
+            </p>
+
+            <div id="paper-hyperlinks"></div>
+
+            <script type="text/javascript" src="js/hyperlinks.js"></script>
+
+            <pre data-src="js/hyperlinks.js" style="height: 1100px"></pre>
+        </div>
+
+        <script src="../node_modules/prismjs/prism.js"></script>
+
+    </body>
+</html>

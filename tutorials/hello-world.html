@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="canonical" href="http://www.jointjs.com/" />
+        <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
+        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
+
+        <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
+
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/index.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+
+        <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <script type="text/javascript" src="../build/joint.min.js"></script>
+
+        <title>JointJS - JavaScript diagramming library - Getting started.</title>
+
+    </head>
+    <body class="language-javascript tutorial-page">
+
+        <script>
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
+            };
+        </script>
+        <div id="hello-world" class="tutorial">
+
+            <h2>Hello world!</h2>
+
+            <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;link rel="stylesheet" href="joint.css" /&gt;
+    &lt;script src="jquery.js"&gt;&lt;/script&gt;
+    &lt;script src="lodash.js"&gt;&lt;/script&gt;
+    &lt;script src="backbone.js"&gt;&lt;/script&gt;
+    &lt;script src="joint.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div id="myholder"&gt;&lt;/div&gt;
+  &lt;script type="text/javascript"&gt;
+
+    var graph = new joint.dia.Graph;
+
+    var paper = new joint.dia.Paper({
+        el: $('#myholder'),
+        width: 600,
+        height: 200,
+        model: graph,
+        gridSize: 1
+    });
+
+    var rect = new joint.shapes.basic.Rect({
+        position: { x: 100, y: 30 },
+        size: { width: 100, height: 30 },
+        attrs: { rect: { fill: 'blue' }, text: { text: 'my box', fill: 'white' } }
+    });
+
+    var rect2 = rect.clone();
+    rect2.translate(300);
+
+    var link = new joint.dia.Link({
+        source: { id: rect.id },
+        target: { id: rect2.id }
+    });
+
+    graph.addCells([rect, rect2, link]);
+
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+            <div class="paper" id="paper-basic"></div>
+
+        </div><!--end tutorial-->
+
+        <script src="../node_modules/prismjs/prism.js"></script>
+        <script src="js/hello-world.js"></script>
+    </body>
+</html>

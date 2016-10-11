@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="canonical" href="http://www.jointjs.com/" />
+        <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
+        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
+
+        <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
+
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/index.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+
+        <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <script type="text/javascript" src="../build/joint.min.js"></script>
+
+        <title>JointJS - JavaScript diagramming library - Getting started.</title>
+
+    </head>
+    <body class="language-javascript tutorial-page">
+
+        <script>
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
+            };
+        </script>
+
+        <div id="multiple-papers" class="tutorial">
+
+            <h2>More papers for the same graph</h2>
+            <p>Now when you learned that a <code>joint.dia.Paper</code> is a view for the <code>joint.dia.Graph</code>
+                model, you can imagine that the same model can have
+                multiple views. That's right. Let's use the same application as the Hello World! above and let's add another
+                paper, scaled and non-interactive, that serves as a small
+                overview of the graph.
+            </p>
+            <pre><code>var paperSmall = new joint.dia.Paper({
+    el: $('#myholder-small'),
+    width: 600,
+    height: 100,
+    model: graph,
+    gridSize: 1
+});
+paperSmall.scale(.5);
+paperSmall.$el.css('pointer-events', 'none');</code></pre>
+
+            <div class="paper" id="paper-multiple-papers"></div>
+            <div class="paper" id="paper-multiple-papers-small"></div>
+            <p>
+                Try to interact with the first, bigger, paper. You should see all the changes reflected in the other,
+                smaller, paper.
+            </p>
+
+        </div><!--end tutorial-->
+
+        <script src="../node_modules/prismjs/prism.js"></script>
+        <script src="js/multiple-papers.js"></script>
+    </body>
+</html>

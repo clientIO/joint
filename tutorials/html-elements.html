@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="canonical" href="http://www.jointjs.com/" />
+        <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
+        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
+
+        <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
+
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/index.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+
+        <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <script type="text/javascript" src="../build/joint.min.js"></script>
+
+        <title>JointJS - JavaScript diagramming library - Getting started.</title>
+
+    </head>
+    <body class="language-javascript tutorial-page">
+
+        <script>
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
+            };
+        </script>
+
+        <div id="html-elements" class="tutorial">
+
+            <h2>Using HTML in JointJS elements</h2>
+
+            <p>Many times, you might want to use HTML inputs or other HTML elements inside your JointJS graphs. This
+                tutorial describes a way of doing this. The technique used in this tutorial is creating a custom
+                view that renders your HTML and takes care of the interaction with the HTML. A different approach might
+                be to use the <a
+                    href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject">foreignObject</a> and
+                embed it in the <code>markup</code> of your JointJS elements.
+                This technique is however problematic due to a poor browser support. (However, this seems to be the right
+                way
+                of combining HTML with SVG in JointJS in the future.)</p>
+
+            <p>The good news is that if you setup your custom HTML view properly, you can take advantage
+                of many of the features JointJS has to offer.</p>
+
+            <div id="paper-html-elements"></div>
+
+            <p>The code below shows how you can create a custom JointJS view that renders HTML (including
+                functional inputs). The trick is to update the HTML element position and dimension so that it follows
+                the underlying JointJS element. Additionally, we observe changes on the embedded inputs and update
+                the JointJS model accordingly. This also works the other way round, if the model changes, we
+                reflect the changes in the HTML.</p>
+
+            <link rel="stylesheet" type="text/css" href="css/html-elements.css"/>
+            <script type="text/javascript" src="js/html-elements.js"></script>
+
+            <h3>JavaScript code</h3>
+            <pre data-src="js/html-elements.js" style="height: 2100px"></pre>
+            <h3>CSS stylesheet</h3>
+            <pre data-src="css/html-elements.css" style="height: 1600px"></pre>
+        </div>
+
+        <script src="../node_modules/prismjs/prism.js"></script>
+
+    </body>
+</html>
