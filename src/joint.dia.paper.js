@@ -151,7 +151,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         'mouseout .joint-cell': 'cellMouseout',
         'contextmenu': 'contextmenu',
         'mousewheel': 'mousewheel',
-        'DOMMouseScroll': 'mousewheel'
+        'DOMMouseScroll': 'mousewheel',
+        'mouseenter .joint-cell': 'cellMouseenter',
+        'mouseleave .joint-cell': 'cellMouseleave'
     },
 
     _highlights: [],
@@ -1140,6 +1142,24 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (view) {
             if (this.guard(evt, view)) return;
             view.mouseout(evt);
+        }
+    },
+
+    cellMouseenter: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+        var view = this.findView(evt.target);
+        if (view && !this.guard(evt, view)) {
+            view.mouseenter(evt);
+        }
+    },
+
+    cellMouseleave: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+        var view = this.findView(evt.target);
+        if (view && !this.guard(evt, view)) {
+            view.mouseleave(evt);
         }
     },
 

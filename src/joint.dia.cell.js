@@ -1000,6 +1000,16 @@ joint.dia.CellView = joint.mvc.View.extend({
         this.notify('cell:mouseout', evt);
     },
 
+    mouseenter: function(evt) {
+
+        this.notify('cell:mouseenter', evt);
+    },
+
+    mouseleave: function(evt) {
+
+        this.notify('cell:mouseleave', evt);
+    },
+
     mousewheel: function(evt, x, y, delta) {
 
         this.notify('cell:mousewheel', evt, x, y, delta);

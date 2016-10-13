@@ -1816,6 +1816,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         this.notify('link:pointerup', evt, x, y);
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);
+    },
+
+    mouseenter: function(evt) {
+
+        joint.dia.CellView.prototype.mouseenter.apply(this, arguments);
+        this.notify('link:mouseenter', evt);
+    },
+
+    mouseleave: function(evt) {
+
+        joint.dia.CellView.prototype.mouseleave.apply(this, arguments);
+        this.notify('link:mouseleave', evt);
     }
 
 }, {
