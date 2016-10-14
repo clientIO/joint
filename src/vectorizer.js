@@ -1393,9 +1393,7 @@ V = Vectorizer = (function() {
 
     V.convertPolygonToPathData = function(polygon) {
 
-        polygon = V(polygon);
-
-        var points = V.getPointsFromSvgNode(polygon.node);
+        var points = V.getPointsFromSvgNode(V(polygon).node);
 
         if (!(points.length > 0)) return null;
 
@@ -1404,7 +1402,7 @@ V = Vectorizer = (function() {
 
     V.convertPolylineToPathData = function(polyline) {
 
-        var points = V.getPointsFromSvgNode(polyline.node);
+        var points = V.getPointsFromSvgNode(V(polyline).node);
 
         if (!(points.length > 0)) return null;
 
