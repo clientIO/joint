@@ -46,16 +46,14 @@
                 SVG elements you should know about
                 are <code>rect</code>, <code>text</code>, <code>circle</code>, <code>ellipse</code>, <code>image</code> and
                 <code>path</code>. Their thorough description
-                together with examples can be found e.g. on <a
-                    href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element">MDN</a>. Combining these, you can
-                make
-                basically any 2D shape you like.</p>
+                together with examples can be found e.g. on <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element" target="_blank">MDN</a>.
+                Combining these, you can make basically any 2D shape you like.</p>
             <p> As it was mentioned, custom elements are created by combining SVG tags. Many times, it is useful to position
                 one
                 element relatively to another. Imagine a basic situation where you want to have a rectangle element and a
                 text element that should always be in the center of the rectangle.
                 Unfortunately, SVG does not provide a facility to do that. Therefore, JointJS introduces
-                <a href="/api#SpecialAttributes">special attributes</a> that are helpful for positioning elements relatively
+                <a href="/docs/jointjs/v1.0/joint.html#specialAttributes" target="_top">special attributes</a> that are helpful for positioning elements relatively
                 to each other. For an example, let's explore how the
                 <code>joint.shapes.basic.Rect</code> element is defined:
             <pre><code>joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
@@ -74,10 +72,10 @@
             template for the <code>joint.shapes.basic.Rect</code> element.
             There are two important SVG groups in the markup that JointJS understands. The first one is the one with the
             class <code>"rotatable"</code>. All elements
-            in this group will get rotated when the <a href="/api#dia.Element.prototype.rotate">joint.dia.Element.rotate()</a>
+            in this group will get rotated when the <a href="/docs/jointjs/v1.0/joint.html#dia.Element.prototype.rotate" target="_top">joint.dia.Element.rotate()</a>
             method is called.
             The other group is <code>"scalable"</code>. All elements in this group will get scaled when
-            the <a href="/api#dia.Element.prototype.resize">joint.dia.Element.resize()</a> method is called.
+            the <a href="/docs/jointjs/v1.0/joint.html#dia.Element.prototype.resize" target="_top">joint.dia.Element.resize()</a> method is called.
 
             <p>
                 All the positioning and presentation definitions are then stored as usual in the <code>attrs</code> object.

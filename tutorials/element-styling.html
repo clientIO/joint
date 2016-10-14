@@ -58,16 +58,15 @@
             The answer is yes, you're absolutely right!
             It's perfectly fine to style your elements in CSS. Just keep in mind that you're styling SVG, not HTML. In that
             case, if you're completely new to SVG,
-            you might want to take a look at e.g.: <a
-                href="https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Fills_and_Strokes">Fills and Strokes
-                tutorial on MDN</a>.
+            you might want to take a look at e.g.: 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Fills_and_Strokes" target="_blank">Fills and Strokes tutorial on MDN</a>.
             If you use external CSS for styling your elements, all your elements will have the same style. Also note that,
             by SVG specification,
             CSS properties have higher precedence over SVG element attributes (which I find a bit counter-intuitive). That
             means that
             whatever you define in your external stylesheet cannot be overruled by setting element specific attributes with
             the method below.
-            <p>A better approach is using the <a href="/api#dia.Element.prototype.attr">attr</a> method of <code>joint.dia.Element</code>.
+            <p>A better approach is using the <a href="/docs/jointjs/v1.0/joint.html#dia.Element.prototype.attr" target="_top">attr</a> method of <code>joint.dia.Element</code>.
             <pre><code>rect.attr({
     rect: { fill: '#2C3E50', rx: 5, ry: 5, 'stroke-width': 2, stroke: 'black' },
     text: {
@@ -98,8 +97,9 @@
                 will be used to style that element.
             </p>
 
-            <p>For additional styling options using filters and gradients, please see the <a
-                    href="#filters-gradients">Filters and Gradients</a> tutorial.</p>
+            <p>For additional styling options using filters and gradients, please see the 
+               <a href="/tutorial/filters-gradients" target="_top">Filters and Gradients</a> tutorial.
+            </p>
 
         </div><!--end tutorial-->
 

@@ -39,7 +39,7 @@
         position: { x: 370, y: 160 }, size: { width: 170, height: 100 },
         attrs: {
             rect: { fill: '#9B59B6', stroke: '#8E44AD', 'stroke-width': 5 },
-            a: { 'xlink:href': 'http://jointjs.com', cursor: 'pointer' },
+            a: { 'xlink:href': 'http://jointjs.com', 'xlink:show': 'new', cursor: 'pointer' },
             text: { text: 'Only label as a link:\nhttp://jointjs.com', fill: 'white' }
         }
     });
