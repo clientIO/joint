@@ -886,27 +886,39 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Useful when you have a mouse event object and you'd like to get coordinates
     // inside the paper that correspond to `evt.clientX` and `evt.clientY` point.
     // Exmaple: var paperPoint = paper.clientToLocalPoint({ x: evt.clientX, y: evt.clientY });
-    clientToLocalPoint: function(p) {
+    clientToLocalPoint: function(x, y) {
+        // allow `x` to be a point and `y` undefined
+        var clientPoint = g.Point(x, y);
+        var localPoint = V(this.viewport).toLocalPoint(clientPoint.x, clientPoint.y);
+        return g.Point(localPoint);
+    },
 
-        p = g.point(p);
+    localToPaperPoint: function(x, y) {
+        // allow `x` to be a point and `y` undefined
+        var localPoint = g.Point(x, y);
+        var paperPoint = V.transformPoint(localPoint, this.matrix());
+        return g.Point(paperPoint);
+    },
 
-        // This is a hack for Firefox! If there wasn't a fake (non-visible) rectangle covering the
-        // whole SVG area, `$(paper.svg).offset()` used below won't work.
-        var fakeRect = V('rect', { width: this.options.width, height: this.options.height, x: 0, y: 0, opacity: 0 });
-        V(this.svg).prepend(fakeRect);
+    paperToLocalPoint: function(x, y) {
+        // allow `x` to be a point and `y` undefined
+        var paperPoint = g.Point(x, y);
+        var localPoint = V.transformPoint(paperPoint, this.matrix().inverse());
+        return g.Point(localPoint);
+    },
 
-        var paperOffset = $(this.svg).offset();
+    localToScreenPoint: function(x, y) {
+        // allow `x` to be a point and `y` undefined
+        var localPoint = g.Point(x, y);
+        var screenPoint = V.transformPoint(localPoint, this.viewport.getScreenCTM().inverse());
+        return g.Point(screenPoint);
+    },
 
-        // Clean up the fake rectangle once we have the offset of the SVG document.
-        fakeRect.remove();
-
-        var scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
-        var scrollLeft = document.body.scrollLeft || document.documentElement.scrollLeft;
-
-        p.offset(scrollLeft - paperOffset.left, scrollTop - paperOffset.top);
-
-        // Transform point into the viewport coordinate system.
-        return V.transformPoint(p, this.matrix().inverse());
+    screenToLocalPoint: function(x, y) {
+        // allow `x` to be a point and `y` undefined
+        var screenPoint = g.Point(x, y);
+        var localPoint = V.transformPoint(screenPoint, this.viewport.getScreenCTM());
+        return g.Point(localPoint);
     },
 
     linkAllowed: function(linkViewOrModel) {
