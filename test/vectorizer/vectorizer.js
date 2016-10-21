@@ -648,4 +648,58 @@ QUnit.module('vectorizer', function(hooks) {
         });
     });
 
+    QUnit.module('convertToPathData()', function(hooks) {
+
+        // round all numbers in a path data string
+        function roundPathData(pathData) {
+            return pathData.split(' ').map(function(command) {
+                var number = parseInt(command, 10);
+                if (isNaN(number)) return command;
+                return number.toFixed(0);
+            }).join(' ');
+        }
+
+        QUnit.test('invalid', function(assert) {
+            assert.throws(function() {
+                var group = V('<group/>');
+                V(group).convertToPathData();
+            }, 'Exception thrown');
+        });
+
+        QUnit.test('<path>', function(assert) {
+            var path = V('<path/>', { d: 'M 100 50 L 200 150' });
+            assert.equal(path.convertToPathData(), 'M 100 50 L 200 150');
+        });
+
+        QUnit.test('<line>', function(assert) {
+            var line = V('<line/>', { x1: 100, y1: 50, x2: 200, y2: 150 });
+            assert.equal(line.convertToPathData(), 'M 100 50 L 200 150');
+        });
+
+        QUnit.test('<rect>', function(assert) {
+            var rect = V('<rect/>', { x: 100, y: 50, width: 200, height: 150 });
+            assert.equal(rect.convertToPathData(), 'M 100 50 H 300 V 200 H 100 V 50 Z');
+        });
+
+        QUnit.test('<circle>', function(assert) {
+            var circle = V('<circle/>', { cx: 100, cy: 50, r: 50 });
+            assert.equal(roundPathData(circle.convertToPathData()), 'M 100 0 C 127 0 150 22 150 50 C 150 77 127 100 100 100 C 72 100 50 77 50 50 C 50 22 72 0 100 0 Z');
+        });
+
+        QUnit.test('<ellipse>', function(assert) {
+            var ellipse = V('<ellipse/>', { cx: 100, cy: 50, rx: 100, ry: 50 });
+            assert.equal(roundPathData(ellipse.convertToPathData()), 'M 100 0 C 155 0 200 22 200 50 C 200 77 155 100 100 100 C 44 100 0 77 0 50 C 0 22 44 0 100 0 Z');
+        });
+
+        QUnit.test('<polygon>', function(assert) {
+            var polygon = V('<polygon/>', { points: '200,10 250,190 160,210' });
+            assert.equal(polygon.convertToPathData(), 'M 200 10 L250 190 L160 210 Z');
+        });
+
+        QUnit.test('<polyline>', function(assert) {
+            var polyline = V('<polyline/>', { points: '100,10 200,10 150,110' });
+            assert.equal(polyline.convertToPathData(), 'M 100 10 L200 10 L150 110');
+        });
+
+    });
 });

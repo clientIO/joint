@@ -1397,7 +1397,7 @@ V = Vectorizer = (function() {
 
         if (!(points.length > 0)) return null;
 
-        return V.svgPointsToPath(points);
+        return V.svgPointsToPath(points) + ' Z';
     };
 
     V.convertPolylineToPathData = function(polyline) {
@@ -1417,7 +1417,7 @@ V = Vectorizer = (function() {
             points[i] = points[i].x + ' ' + points[i].y;
         }
 
-        return 'M ' + points.join(' L') + ' Z';
+        return 'M ' + points.join(' L');
     };
 
     V.getPointsFromSvgNode = function(node) {
