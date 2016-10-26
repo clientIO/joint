@@ -37,7 +37,7 @@
 
             <h2>Links and patterns</h2>
 
-            <p><b>TL;DR</b>: Jump right into the <a href="#pipes-demo">demo</a> below.</p>
+            <p><b>TL;DR</b>: Jump right into the <a href="#pipes-demo" target="_self">demo</a> below.</p>
 
             <p>This tutorial shows another way how to style JointJS links, especially if only changing the stroke color and
                 width of your links is not sufficient to meet your requirements.
@@ -71,10 +71,10 @@
                 </svg>
             </div>
 
-            <p>The idea is simple. We create and render a link. We create an <a
-                    href="https://developer.mozilla.org/en-US/docs/Web/HTML/Canvas">HTML 5 canvas element</a> of the size of
+            <p>The idea is simple. We create and render a link. We create an 
+                <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Canvas" target="_blank">HTML 5 canvas element</a> of the size of
                 the bounding box of the link. We draw onto the canvas anything we'd like the link to look like. We generate
-                a <a href="http://en.wikipedia.org/wiki/Data_URI_scheme">Data URI image</a> from the canvas
+                a <a href="http://en.wikipedia.org/wiki/Data_URI_scheme" target="_blank">Data URI image</a> from the canvas
                 and tell the link to use this image as an SVG pattern for the link stroke. And we repeat all this every time
                 the link gets changed.</p>
 
@@ -85,7 +85,7 @@
 
             <p>Each time we change a link attribute, source or target, we add a vertex or we move an element that is
                 connected to the link - the link has to be updated.
-                Normally, the <a href="/api#dia.LinkView">joint.dia.LinkView</a> takes care of this.
+                Normally, the <a href="/docs/jointjs/v1.0/joint.html#dia.LinkView" target="_top">joint.dia.LinkView</a> takes care of this.
                 It inherits from the <a href="http://backbonejs.org/#View" target="_blank">Backbone.View</a> and extends it
                 by new methods and properties. We're going to introduce some of them.
                 <br>
@@ -98,8 +98,8 @@
                 Called once the view is removed.
                 <br>The <code>linkView.sourcePoint</code> and <code>linkView.targetPoint</code> are cached coordinates of a
                 point where the link connects to an element or point.
-                <br>The <code>linkView.route</code> is a cached array of points calculated from the vertices by a <a
-                    href="http://jointjs.com/api#dia.Link">router</a>.
+                <br>The <code>linkView.route</code> is a cached array of points calculated from the vertices by a 
+                <a href="/docs/jointjs/v1.0/joint.html#dia.Link" target="_blank">router</a>.
                 <br>The <code>linkView.paper</code> is a reference to the paper the view is rendered into.
             </p>
 
@@ -143,7 +143,7 @@
             <h3 id="render">Creating a pattern</h3>
 
             <p>First of all we have to create an SVG pattern with an image element inside and append it to the DOM
-                (specifically into the paper <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs">SVG
+                (specifically into the paper <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs" target="_blank">SVG
                     <code>&lt;defs&gt;</code> element</a> - this is a good place in SVG documents where referenced elements
                 are defined).
                 The perfect place for this is the <code>linkView.render()</code> method.
@@ -178,7 +178,7 @@
     return this;
 }</code></pre>
 
-            <p>Note that we're using the <a href="/docs/jointjs/v1.0/vectorizer.html">built-in Vectorizer library</a> for creating SVG.</p>
+            <p>Note that we're using the <a href="/docs/jointjs/v1.0/vectorizer.html" target="_top">built-in Vectorizer library</a> for creating SVG.</p>
 
             <h3 id="update">Using the pattern</h3>
 
@@ -328,8 +328,8 @@
 
             <p>Let's combine all this together and create a link which looks like a pipe.
                 The demo below contains all that we described so far, plus it is adding some new features.
-                <br>The LinkView draws into the canvas and updates the pattern asynchronously (using <a
-                    href="/api#util.nextFrame">joint.util.nextFrame</a>).
+                <br>The LinkView draws into the canvas and updates the pattern asynchronously (using 
+                <a href="/docs/jointjs/v1.0/joint.html#util.nextFrame" target="_top">joint.util.nextFrame</a>).
                 <br>It automatically creates a gradient with a directions perpendicular to the path direction for each link
                 segment. This way you can style your link from the 'border' to 'border' and draw an image like the one
                 below.</p>
