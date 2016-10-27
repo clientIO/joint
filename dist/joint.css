@@ -1,4 +1,4 @@
-/*! JointJS v1.0.1 (2016-09-20) - JavaScript diagramming library
+/*! JointJS v1.0.2 (2016-10-27) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -156,6 +156,7 @@ Do not allow adding new vertices: .connection-wrap { pointer-events: none; }
 .joint-element .fobj body {
     background-color: transparent;
     margin: 0px;
+    position: static;
 }
 .joint-element .fobj div {
     text-align: center;
