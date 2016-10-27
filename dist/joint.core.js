@@ -1,4 +1,4 @@
-/*! JointJS v1.0.1 (2016-09-20) - JavaScript diagramming library
+/*! JointJS v1.0.2 (2016-10-27) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -183,8 +183,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     });
 })();
 
+
 //      Geometry library.
-//      (c) 2011-2015 client IO
 
 var g = (function() {
 
@@ -1213,7 +1213,6 @@ var g = (function() {
 // A tiny library for making your life easier when dealing with SVG.
 // The only Vectorizer dependency is the Geometry library.
 
-// Copyright © 2012 - 2015 client IO (http://client.io)
 
 var V;
 var Vectorizer;
@@ -2603,18 +2602,16 @@ V = Vectorizer = (function() {
 
     V.convertPolygonToPathData = function(polygon) {
 
-        polygon = V(polygon);
-
-        var points = V.getPointsFromSvgNode(polygon.node);
+        var points = V.getPointsFromSvgNode(V(polygon).node);
 
         if (!(points.length > 0)) return null;
 
-        return V.svgPointsToPath(points);
+        return V.svgPointsToPath(points) + ' Z';
     };
 
     V.convertPolylineToPathData = function(polyline) {
 
-        var points = V.getPointsFromSvgNode(polyline.node);
+        var points = V.getPointsFromSvgNode(V(polyline).node);
 
         if (!(points.length > 0)) return null;
 
@@ -2629,7 +2626,7 @@ V = Vectorizer = (function() {
             points[i] = points[i].x + ' ' + points[i].y;
         }
 
-        return 'M ' + points.join(' L') + ' Z';
+        return 'M ' + points.join(' L');
     };
 
     V.getPointsFromSvgNode = function(node) {
@@ -2763,14 +2760,12 @@ V = Vectorizer = (function() {
 
 })();
 
-//      JointJS library.
-//      (c) 2011-2015 client IO
 
 // Global namespace.
 
 var joint = {
 
-    version: '1.0.1',
+    version: '1.0.2',
 
     config: {
         // The class name prefix config is for advanced use only.
@@ -4139,8 +4134,6 @@ var joint = {
     }
 };
 
-//      JointJS library.
-//      (c) 2011-2015 client IO
 
 joint.mvc.View = Backbone.View.extend({
 
@@ -4278,8 +4271,6 @@ joint.mvc.View = Backbone.View.extend({
 
 })();
 
-//      JointJS, the JavaScript diagramming library.
-//      (c) 2011-2015 client IO
 
 joint.dia.GraphCells = Backbone.Collection.extend({
 
@@ -5317,8 +5308,6 @@ joint.dia.Graph = Backbone.Model.extend({
 
 joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'removeCells'], 'cells');
 
-//      JointJS.
-//      (c) 2011-2015 client IO
 
 // joint.dia.Cell base model.
 // --------------------------
@@ -6337,8 +6326,6 @@ joint.dia.CellView = joint.mvc.View.extend({
     }
 });
 
-//      JointJS library.
-//      (c) 2011-2015 client IO
 
 // joint.dia.Element base model.
 // -----------------------------
@@ -7528,11 +7515,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     }
 });
 
-//      JointJS diagramming library.
-//      (c) 2011-2015 client IO
 
 // joint.dia.Link base model.
 // --------------------------
+
 joint.dia.Link = joint.dia.Cell.extend({
 
     // The default markup for links.
@@ -9367,8 +9353,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
 });
 
-//      JointJS library.
-//      (c) 2011-2015 client IO
 
 joint.dia.Paper = joint.mvc.View.extend({
 
@@ -11217,8 +11201,6 @@ joint.dia.Paper = joint.mvc.View.extend({
     });
 }(joint, _));
 
-//      JointJS library.
-//      (c) 2011-2013 client IO
 
 joint.shapes.basic = {};
 

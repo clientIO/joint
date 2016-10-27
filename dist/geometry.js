@@ -1,4 +1,4 @@
-/*! JointJS v1.0.1 (2016-09-20) - JavaScript diagramming library
+/*! JointJS v1.0.2 (2016-10-27) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -27,8 +27,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 }(this, function() {
 
+
 //      Geometry library.
-//      (c) 2011-2015 client IO
 
 var g = (function() {
 

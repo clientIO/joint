@@ -1,3 +1,7 @@
+27-10-2016 (v1.0.2)
+  * Vectorizer - fix `convertToPathData()` for polyline.
+  * add yarn.lock
+  * improve documentation
 20-09-2016 (v1.0.1)
   * All joint views now use the `joint-` class name prefix for their class names.
   * dia.Element - make it easy to add ports to an arbitrary element, introduced API for ports manipulation
