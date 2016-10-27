@@ -169,7 +169,7 @@ QUnit.module('paper', function(hooks) {
             { x: -100, y: -100, width: 1000, height: 800 },
             'Paper area returns correct results for unscaled, but translated viewport.');
 
-        V(this.paper.viewport).scale(2, 2);
+        this.paper.scale(2,2);
 
         assert.deepEqual(
             _.pick(this.paper.getArea(), 'x', 'y', 'width', 'height'),
@@ -1086,4 +1086,60 @@ QUnit.module('paper', function(hooks) {
             }, this);
         });
     });
+
+    QUnit.test('matrix()', function(assert) {
+
+        assert.deepEqual(this.paper.matrix(), this.paper.matrix().inverse(), 'when the paper is not transformed it returns the identity matrix');
+
+        this.paper.setOrigin(100,100);
+        assert.deepEqual(V.decomposeMatrix(this.paper.matrix()), {
+            rotation: 0,
+            scaleX: 1,
+            scaleY: 1,
+            skewX: 0,
+            skewY: 0,
+            translateX: 100,
+            translateY: 100
+        }, 'changing the origin of the paper will modify the matrix');
+
+        this.paper.scale(2,2);
+        assert.deepEqual(V.decomposeMatrix(this.paper.matrix()), {
+            rotation: 0,
+            scaleX: 2,
+            scaleY: 2,
+            skewX: 0,
+            skewY: 0,
+            translateX: 100,
+            translateY: 100
+        }, 'changing the scale of the paper will modify the matrix');
+
+        this.paper.rotate(90);
+        assert.deepEqual(V.decomposeMatrix(this.paper.matrix()), {
+            rotation: 90,
+            scaleX: 2,
+            scaleY: 2,
+            skewX: 90,
+            skewY: 90,
+            translateX: 100,
+            translateY: 100
+        }, 'changing the rotation of the paper will modify the matrix');
+    });
+
+    QUnit.test('cacheMatrix()', function(assert) {
+
+        V(this.paper.viewport).scale(2,2);
+        assert.deepEqual(this.paper.matrix(), this.paper.matrix().inverse(), 'changing the viewport transformation directly (not using API) does not cache the CTM');
+
+        this.paper.cacheMatrix();
+        assert.deepEqual(V.decomposeMatrix(this.paper.matrix()), {
+            rotation: 0,
+            scaleX: 2,
+            scaleY: 2,
+            skewX: 0,
+            skewY: 0,
+            translateX: 0,
+            translateY: 0
+        }, 'Calling manually cacheMatrix() will store the CTM and this is returned in the subsequent matrix() call');
+    });
+
 });

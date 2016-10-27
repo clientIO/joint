@@ -200,6 +200,17 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.on('cell:unhighlight', this.onCellUnhighlight, this);
     },
 
+    cacheMatrix: function() {
+
+        this._matrix = this.viewport.getCTM();
+    },
+
+    matrix: function() {
+        // Clone the cached current transformation matrix.
+        // If no matrix previously stored the identity matrix is returned.
+        return V.createSVGMatrix(this._matrix);
+    },
+
     _onSort: function() {
         if (!this.model.hasActiveBatch('add')) {
             this.sortViews();
@@ -237,6 +248,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.options.origin.y = oy || 0;
 
         V(this.viewport).translate(ox, oy, { absolute: true });
+        this.cacheMatrix();
 
         this.trigger('translate', ox, oy);
 
@@ -271,12 +283,12 @@ joint.dia.Paper = joint.mvc.View.extend({
         // Calculate the paper size to accomodate all the graph's elements.
         var bbox = V(this.viewport).bbox(true, this.svg);
 
-        var currentScale = V(this.viewport).scale();
+        var ctm = this.matrix();
 
-        bbox.x *= currentScale.sx;
-        bbox.y *= currentScale.sy;
-        bbox.width *= currentScale.sx;
-        bbox.height *= currentScale.sy;
+        bbox.x *= ctm.a;
+        bbox.y *= ctm.d;
+        bbox.width *= ctm.a;
+        bbox.height *= ctm.d;
 
         var calcWidth = Math.max(Math.ceil((bbox.width + bbox.x) / gridWidth), 1) * gridWidth;
         var calcHeight = Math.max(Math.ceil((bbox.height + bbox.y) / gridHeight), 1) * gridHeight;
@@ -361,10 +373,10 @@ joint.dia.Paper = joint.mvc.View.extend({
             height: -2 * padding
         });
 
-        var currentScale = V(this.viewport).scale();
+        var ctm = this.matrix();
 
-        var newSx = fittingBBox.width / contentBBox.width * currentScale.sx;
-        var newSy = fittingBBox.height / contentBBox.height * currentScale.sy;
+        var newSx = fittingBBox.width / contentBBox.width * ctm.a;
+        var newSy = fittingBBox.height / contentBBox.height * ctm.d;
 
         if (opt.preserveAspectRatio) {
             newSx = newSy = Math.min(newSx, newSy);
@@ -402,7 +414,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var screenCTM = this.viewport.getScreenCTM();
 
         // for non-default origin we need to take the viewport translation into account
-        var viewportCTM = this.viewport.getCTM();
+        var viewportCTM = this.matrix();
 
         return g.rect({
             x: crect.left - screenCTM.e + viewportCTM.e,
@@ -417,7 +429,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // and the top border to the bottom one).
     getArea: function() {
 
-        var transformationMatrix = this.viewport.getCTM().inverse();
+        var transformationMatrix = this.matrix().inverse();
         var noTransformationBBox = { x: 0, y: 0, width: this.options.width, height: this.options.height };
 
         return g.rect(V.transformRect(noTransformationBBox, transformationMatrix));
@@ -661,6 +673,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
 
         V(this.viewport).scale(sx, sy);
+        this.cacheMatrix();
 
         this.trigger('scale', sx, sy, ox, oy);
 
@@ -684,6 +697,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
 
         V(this.viewport).rotate(deg, ox, oy);
+        this.cacheMatrix();
     },
 
     // Find the first view climbing up the DOM tree starting at element `el`. Note that `el` can also
@@ -780,7 +794,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         p.offset(scrollLeft - paperOffset.left, scrollTop - paperOffset.top);
 
         // Transform point into the viewport coordinate system.
-        return V.transformPoint(p, this.viewport.getCTM().inverse());
+        return V.transformPoint(p, this.matrix().inverse());
     },
 
     linkAllowed: function(linkViewOrModel) {
@@ -1173,9 +1187,9 @@ joint.dia.Paper = joint.mvc.View.extend({
             return this.clearGrid();
         }
 
-        var currentScale = V(this.viewport).scale();
-        var scaleX = currentScale.sx;
-        var scaleY = currentScale.sy;
+        var ctm = this.matrix();
+        var scaleX = ctm.a;
+        var scaleY = ctm.d;
         var originX = this.options.origin.x;
         var originY = this.options.origin.y;
         var gridX = gridSize * scaleX;
