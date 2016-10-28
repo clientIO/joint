@@ -199,9 +199,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.on('cell:unhighlight', this.onCellUnhighlight, this);
     },
 
-    cacheMatrix: function() {
+    cacheMatrix: function(matrix) {
 
-        this._matrix = this.viewport.getCTM();
+        this._matrix = matrix || this.viewport.getCTM();
     },
 
     matrix: function() {
@@ -659,21 +659,20 @@ joint.dia.Paper = joint.mvc.View.extend({
             oy = 0;
         }
 
-        var currentTranslate = this.translate();
-        // Remove previous transform so that the new scale is not affected by previous scales, especially
-        // the old translate() does not affect the new translate if an origin is specified.
-        V(this.viewport).attr('transform', '');
+        var translate = this.translate();
 
-        // TODO: V.scale() doesn't support setting scale origin. #Fix
-        if (ox || oy || currentTranslate.tx || currentTranslate.ty) {
-
-            var newTx = currentTranslate.tx - ox * (sx - 1);
-            var newTy = currentTranslate.ty - oy * (sy - 1);
+        if (ox || oy || translate.tx || translate.ty) {
+            var newTx = translate.tx - ox * (sx - 1);
+            var newTy = translate.ty - oy * (sy - 1);
             this.translate(newTx, newTy);
         }
 
-        V(this.viewport).scale(sx, sy);
-        this.cacheMatrix();
+        var matrix = this.matrix();
+        matrix.a = sx || 0;
+        matrix.d = sy || 0;
+
+        V(this.viewport).transform(matrix, { absolute: true });
+        this.cacheMatrix(matrix);
 
         this.trigger('scale', sx, sy, ox, oy);
 
@@ -684,6 +683,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this;
     },
 
+    // Experimental - do not use in production.
     rotate: function(angle, cx, cy) {
 
         // getter
@@ -697,14 +697,14 @@ joint.dia.Paper = joint.mvc.View.extend({
         // we must use the plain bounding box (`this.el.getBBox()` instead of the one that gives us
         // the real bounding box (`bbox()`) including transformations).
         if (cx === undefined) {
-
             var bbox = this.viewport.getBBox();
             cx = bbox.width / 2;
             cy = bbox.height / 2;
         }
 
-        V(this.viewport).rotate(angle, cx, cy);
-        this.cacheMatrix();
+        var matrix = this.matrix().translate(cx,cy).rotate(angle).translate(-cx,-cy);
+        V(this.viewport).transform(matrix);
+        this.cacheMatrix(matrix);
 
         return this;
     },
@@ -718,8 +718,12 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // setter
 
-        V(this.viewport).translate(tx || 0, ty || 0, opt);
-        this.cacheMatrix();
+        var matrix = this.matrix();
+        matrix.e = tx || 0;
+        matrix.f = ty || 0;
+
+        V(this.viewport).transform(matrix, { absolute: true });
+        this.cacheMatrix(matrix);
 
         var newTranslate = this.translate();
         var origin = this.options.origin;
