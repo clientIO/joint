@@ -1091,6 +1091,43 @@ V = Vectorizer = (function() {
         };
     };
 
+    V.matrixToScale = function(matrix) {
+
+        var a,b,c,d;
+        if (matrix) {
+            a = V.isUndefined(matrix.a) ? 1 : matrix.a;
+            d = V.isUndefined(matrix.d) ? 1 : matrix.d;
+            b = matrix.b;
+            c = matrix.c;
+        } else {
+            a = d = 1;
+        }
+        return {
+            sx: b ? Math.sqrt(a * a + b * b) : a,
+            sy: c ? Math.sqrt(c * c + d * d) : d
+        };
+    },
+
+    V.matrixToRotate = function(matrix) {
+
+        var p = { x: 0, y: 1 };
+        if (matrix) {
+            p =  V.deltaTransformPoint(matrix, p);
+        }
+
+        return {
+            angle: ((180 / Math.PI) * Math.atan2(p.y, p.x) - 90)
+        };
+    },
+
+    V.matrixToTranslate = function(matrix) {
+
+        return {
+            tx: (matrix && matrix.e) || 0,
+            ty: (matrix && matrix.f) || 0
+        };
+    },
+
     V.isV = function(object) {
 
         return object instanceof V;
