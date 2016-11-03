@@ -1816,8 +1816,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         this.notify('link:pointerup', evt, x, y);
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);
-    }
+    },
 
+    pointerclick: function(evt, x, y) {
+
+        this.notify('link:pointerclick', evt, x, y);
+        joint.dia.CellView.prototype.pointerclick.apply(this, arguments);
+    }
 }, {
 
     makeSelector: function(end) {

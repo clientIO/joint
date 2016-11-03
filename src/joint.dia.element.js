@@ -1184,5 +1184,11 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             this.notify('element:pointerup', evt, x, y);
             joint.dia.CellView.prototype.pointerup.apply(this, arguments);
         }
+    },
+
+    pointerclick: function(evt, x, y) {
+
+        this.notify('element:pointerclick', evt, x, y);
+        joint.dia.CellView.prototype.pointerclick.apply(this, arguments);
     }
 });
