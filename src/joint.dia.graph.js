@@ -267,12 +267,16 @@ joint.dia.Graph = Backbone.Model.extend({
         return this;
     },
 
-    _prepareCell: function(cell) {
+    _prepareCell: function(cell, opt) {
 
         var attrs;
         if (cell instanceof Backbone.Model) {
             attrs = cell.attributes;
-            cell.graph = this;
+            if (!cell.graph && (!opt || !opt.dry)) {
+                // An element can not be member of more than one graph.
+                // A cell stops being the member of the graph after it's explicitely removed.
+                cell.graph = this;
+            }
         } else {
             // In case we're dealing with a plain JS object, we have to set the reference
             // to the `graph` right after the actual model is created. This happens in the `model()` function
@@ -293,11 +297,11 @@ joint.dia.Graph = Backbone.Model.extend({
         return lastCell ? (lastCell.get('z') || 0) : 0;
     },
 
-    addCell: function(cell, options) {
+    addCell: function(cell, opt) {
 
         if (_.isArray(cell)) {
 
-            return this.addCells(cell, options);
+            return this.addCells(cell, opt);
         }
 
         if (cell instanceof Backbone.Model) {
@@ -311,7 +315,7 @@ joint.dia.Graph = Backbone.Model.extend({
             cell.z = this.maxZIndex() + 1;
         }
 
-        this.get('cells').add(this._prepareCell(cell), options || {});
+        this.get('cells').add(this._prepareCell(cell, opt), opt || {});
 
         return this;
     },
@@ -339,7 +343,8 @@ joint.dia.Graph = Backbone.Model.extend({
     // Useful for bulk operations and optimizations.
     resetCells: function(cells, opt) {
 
-        this.get('cells').reset(_.map(cells, this._prepareCell, this), opt);
+        var preparedCells = _.map(cells, _.bind(this._prepareCell, this, _, opt));
+        this.get('cells').reset(preparedCells, opt);
 
         return this;
     },
@@ -379,7 +384,10 @@ joint.dia.Graph = Backbone.Model.extend({
         // would be triggered on the graph model.
         this.get('cells').remove(cell, { silent: true });
 
-        delete cell.graph;
+        if (cell.graph === this) {
+            // Remove the element graph reference only if the cell is the member of this graph.
+            cell.graph = null;
+        }
     },
 
     // Get a cell by `id`.
