@@ -1,1 +1,15 @@
 <p>The basic model for diagram links. It inherits from <a href="#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to links.</p>
+
+<p>For links there are two crucial attributes: <code>source</code> and <code>target</code>. It defines the starting point and the end point of the link. It can be defined as follows:</p>
+
+<pre><code>new joint.dia.Link({
+        source: { id: 'source-id' },
+        target: { id: 'target-id', port: 'port_id'}
+    });
+
+    new joint.dia.Link({
+        source: { id: 'source-id' },
+        target: { x: 100, y: 100}
+    });
+</code></pre>
+
