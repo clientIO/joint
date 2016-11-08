@@ -1,4 +1,7 @@
 
+if (_ && _.startsWith(_.VERSION, '4')) {
+    throw new Error('Unsupported Lodash version detected (' + _.VERSION + '). Please install correct version (Lodash v3.x) ')
+}
 // Global namespace.
 
 var joint = {
