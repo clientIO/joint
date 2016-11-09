@@ -489,7 +489,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
 
         if (!joint.env.test('svgforeignobject')) {
 
-            this.listenTo(this.model, 'change:content', function(cell) {
+            this.listenTo(this.model, 'change:content change:size', function(cell) {
                 // avoiding pass of extra paramters
                 this.updateContent(cell);
             });
