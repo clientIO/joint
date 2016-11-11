@@ -497,7 +497,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
 
     update: function(cell, renderingOnlyAttrs) {
 
-        if (joint.env.test('svgforeignobject')) {
+        if (!joint.env.test('svgforeignobject')) {
 
             var model = this.model;
 
