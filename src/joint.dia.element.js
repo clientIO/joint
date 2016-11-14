@@ -557,7 +557,18 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                     var $el = $(el);
                     // copy original list selector to the element
                     $el.selector = list.selector;
-                    relativelyPositioned.push($el);
+
+                    // if an element in the list is positioned relative to this one, then
+                    // we want to insert this one before it in the list
+                    var refEl = _.find(relativelyPositioned, function (el) {
+                        return allAttrs[el.selector].ref === $el.selector;
+                    });
+
+                    if (refEl) {
+                        relativelyPositioned.splice(relativelyPositioned.indexOf(refEl), 0, $el);
+                    } else {
+                        relativelyPositioned.push($el);
+                    }
                 });
             }
 
