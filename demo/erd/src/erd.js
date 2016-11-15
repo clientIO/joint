@@ -9,7 +9,10 @@ var paper = new joint.dia.Paper({
     gridSize: 1,
     model: graph,
     linkPinning: false,
-    linkConnectionPoint: joint.util.shapePerimeterConnectionPoint
+    linkConnectionPoint: function(linkView, elementView, magnet, reference) {
+        var element = elementView.model;
+        return element.getConnectionPoint(reference) || element.getBBox().center();
+    }
 });
 
 // Custom highlighter - display an outline around each element that fits its shape.
@@ -42,6 +45,42 @@ erd.ISA.prototype.getHighlighterPath = function(w, h) {
 
     return ['M', -8, 1, w + 8, 1, w / 2, h + 2, 'z'].join(' ');
 };
+
+// Define a specific connection points for every shape
+
+erd.Attribute.prototype.getConnectionPoint = function(referencePoint) {
+    // Intersection with an ellipse
+    return g.Ellipse.fromRect(this.getBBox()).intersectionWithLineFromCenterToPoint(referencePoint);
+};
+
+erd.Entity.prototype.getConnectionPoint = function(referencePoint) {
+    // Intersection with a rectangle
+    return this.getBBox().intersectionWithLineFromCenterToPoint(referencePoint);
+};
+
+erd.Relationship.prototype.getConnectionPoint = function(referencePoint) {
+    // Intersection with a rhomb
+    var bbox = this.getBBox();
+    var line = g.Line(bbox.center(), referencePoint);
+    return (
+        line.intersection(g.Line(bbox.topMiddle(), bbox.leftMiddle())) ||
+        line.intersection(g.Line(bbox.leftMiddle(), bbox.bottomMiddle())) ||
+        line.intersection(g.Line(bbox.bottomMiddle(), bbox.rightMiddle())) ||
+        line.intersection(g.Line(bbox.rightMiddle(), bbox.topMiddle()))
+    );
+};
+
+erd.ISA.prototype.getConnectionPoint = function(referencePoint) {
+    // Intersection with a triangle
+    var bbox = this.getBBox();
+    var line = g.Line(bbox.center(), referencePoint);
+    return (
+        line.intersection(g.Line(bbox.origin(), bbox.topRight())) ||
+        line.intersection(g.Line(bbox.origin(), bbox.bottomMiddle())) ||
+        line.intersection(g.Line(bbox.topRight(), bbox.bottomMiddle()))
+    );
+};
+
 
 // Unbind orignal highligting handlers.
 paper.off('cell:highlight cell:unhighlight');
@@ -274,6 +313,13 @@ var plate = number.clone().position(405, 500).attr('text/text', 'Plate');
 var createLink = function(elm1, elm2) {
 
     var myLink = new erd.Line({
+        markup: [
+            '<path class="connection" stroke="black" d="M 0 0 0 0"/>',
+            '<path class="connection-wrap" d="M 0 0 0 0"/>',
+            '<g class="labels"/>',
+            '<g class="marker-vertices"/>',
+            '<g class="marker-arrowheads"/>'
+        ].join(''),
         source: { id: elm1.id },
         target: { id: elm2.id }
     });
