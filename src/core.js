@@ -611,34 +611,23 @@ var joint = {
 
         getElementBBox: function(el) {
 
-            var $el = $(el);
-            var offset = $el.offset();
-            var bbox;
-
-            if (el.ownerSVGElement) {
-
-                // Use Vectorizer to get the dimensions of the element if it is an SVG element.
-                bbox = V(el).bbox();
-
-                // getBoundingClientRect() used in jQuery.fn.offset() takes into account `stroke-width`
-                // in Firefox only. So clientRect width/height and getBBox width/height in FF don't match.
-                // To unify this across all browsers we add the `stroke-width` (left & top) back to
-                // the calculated offset.
-                var crect = el.getBoundingClientRect();
-                var strokeWidthX = (crect.width - bbox.width) / 2;
-                var strokeWidthY = (crect.height - bbox.height) / 2;
-
-                // The `bbox()` returns coordinates relative to the SVG viewport, therefore, use the
-                // ones returned from the `offset()` method that are relative to the document.
-                bbox.x = offset.left + strokeWidthX;
-                bbox.y = offset.top + strokeWidthY;
-
-            } else {
-
-                bbox = { x: offset.left, y: offset.top, width: $el.outerWidth(), height: $el.outerHeight() };
+            if (!el) {
+                return;
             }
 
-            return bbox;
+            if (_.isString(el)) {
+                el = $(el)[0];
+            }
+
+            var doc = el.ownerDocument;
+            var clientBBox = el.getBoundingClientRect();
+
+            return  {
+                x: clientBBox.left + window.pageXOffset - doc.documentElement.offsetLeft,
+                y: clientBBox.top + window.pageYOffset - doc.documentElement.offsetTop,
+                width: clientBBox.width,
+                height: clientBBox.height
+            };
         },
 
 
