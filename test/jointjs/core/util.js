@@ -463,7 +463,7 @@ QUnit.module('util', function(hooks) {
                 $htmlElement.remove();
             });
 
-            QUnit.test('html', function(assert) {
+            QUnit.test('html element', function(assert) {
 
                 var bBox = joint.util.getElementBBox($htmlElement[0]);
 
@@ -474,21 +474,44 @@ QUnit.module('util', function(hooks) {
             });
         });
 
-        QUnit.test('svg element', function (assert) {
+        QUnit.module('svg', function(hooks) {
 
-            var svgElement = V('<rect width="70" height="80"/>');
+            hooks.beforeEach(function () {
+                this.svgDoc = V(V.createSvgDocument()).attr('style', 'position:absolute;top:50px;left:60px');
+                V($('body')[0]).append(this.svgDoc);
+            });
 
-            var svgDoc = V(V.createSvgDocument()).append(svgElement).attr('style', 'position:absolute;top:50px;left:60px');
-            V($('body')[0]).append(svgDoc);
+            hooks.afterEach(function () {
+                this.svgDoc.remove();
+            });
 
-            var bBox = joint.util.getElementBBox(svgElement.node);
+            QUnit.test('simple element', function(assert) {
 
-            assert.equal(bBox.x, 60);
-            assert.equal(bBox.y, 50);
-            assert.equal(bBox.width, 70);
-            assert.equal(bBox.height, 80);
+                var svgElement = V('<rect width="70" height="80"/>');
+                this.svgDoc.append(svgElement);
 
-            svgDoc.remove();
+                var bBox = joint.util.getElementBBox(svgElement.node);
+
+                assert.equal(bBox.x, 60);
+                assert.equal(bBox.y, 50);
+                assert.equal(bBox.width, 70);
+                assert.equal(bBox.height, 80);
+            });
+
+            QUnit.test('with position, with stroke', function(assert) {
+
+                // firefox measures differently - includes the stroke as well.
+                // joint.util.getElementBBox should return consistent values across all browsers.
+                var svgElement = V('<rect width="70" height="80" x="50" y="50" stroke-width="10" stroke="red"/>');
+                this.svgDoc.append(svgElement);
+
+                var bBox = joint.util.getElementBBox(svgElement.node);
+
+                assert.equal(bBox.x, 60 + 50);
+                assert.equal(bBox.y, 50 + 50);
+                assert.equal(bBox.width, 70);
+                assert.equal(bBox.height, 80);
+            });
         });
     })
 });

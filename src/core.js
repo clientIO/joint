@@ -622,11 +622,25 @@ var joint = {
             var doc = el.ownerDocument;
             var clientBBox = el.getBoundingClientRect();
 
+            var strokeWidthX = 0;
+            var strokeWidthY = 0;
+
+            // Firefox correction
+            if (el.ownerSVGElement) {
+
+                var bbox = V(el).bbox();
+
+                // if FF getBoundingClientRect includes stroke-width, getBBox doesn't.
+                // To unify this across all browsers we need to adjust the final bBox with `stroke-width` value.
+                strokeWidthX = (clientBBox.width - bbox.width);
+                strokeWidthY = (clientBBox.height - bbox.height);
+            }
+
             return  {
-                x: clientBBox.left + window.pageXOffset - doc.documentElement.offsetLeft,
-                y: clientBBox.top + window.pageYOffset - doc.documentElement.offsetTop,
-                width: clientBBox.width,
-                height: clientBBox.height
+                x: clientBBox.left + window.pageXOffset - doc.documentElement.offsetLeft + strokeWidthX / 2,
+                y: clientBBox.top + window.pageYOffset - doc.documentElement.offsetTop + strokeWidthY / 2,
+                width: clientBBox.width - strokeWidthX,
+                height: clientBBox.height - strokeWidthY
             };
         },
 
