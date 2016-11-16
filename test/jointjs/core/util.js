@@ -465,12 +465,12 @@ QUnit.module('util', function(hooks) {
 
             QUnit.test('html', function(assert) {
 
-                var bbox = joint.util.getElementBBox($htmlElement[0]);
+                var bBox = joint.util.getElementBBox($htmlElement[0]);
 
-                assert.equal(bbox.x, 20);
-                assert.equal(bbox.y, 10);
-                assert.equal(bbox.width, 50);
-                assert.equal(bbox.height, 60);
+                assert.equal(bBox.x, 20);
+                assert.equal(bBox.y, 10);
+                assert.equal(bBox.width, 50);
+                assert.equal(bBox.height, 60);
             });
         });
 
@@ -481,12 +481,12 @@ QUnit.module('util', function(hooks) {
             var svgDoc = V(V.createSvgDocument()).append(svgElement).attr('style', 'position:absolute;top:50px;left:60px');
             V($('body')[0]).append(svgDoc);
 
-            var bbox = joint.util.getElementBBox(svgElement.node);
+            var bBox = joint.util.getElementBBox(svgElement.node);
 
-            assert.equal(bbox.x, 60);
-            assert.equal(bbox.y, 50);
-            assert.equal(bbox.width, 70);
-            assert.equal(bbox.height, 80);
+            assert.equal(bBox.x, 60);
+            assert.equal(bBox.y, 50);
+            assert.equal(bBox.width, 70);
+            assert.equal(bBox.height, 80);
 
             svgDoc.remove();
         });
