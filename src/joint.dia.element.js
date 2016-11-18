@@ -534,8 +534,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                     ? this.$el
                     : this.findBySelector(selector);
 
+            var elementsCount = $selected.length;
+
             // No element matched by the `selector` was found. We're done then.
-            if ($selected.length === 0) return;
+            if (elementsCount === 0) return;
 
             nodesBySelector[selector] = $selected;
 
@@ -553,12 +555,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 !_.isUndefined(attrs['ref-height'])
             ) {
 
-                _.each($selected, function(el, index, list) {
-                    var $el = $(el);
-                    // copy original list selector to the element
-                    $el.selector = list.selector;
+                for (var i = 0; i < elementsCount; i++) {
+                    var $el = $selected.eq(i);
+                    // store the selector for the element
+                    $el.selector = selector;
                     relativelyPositioned.push($el);
-                });
+                }
             }
 
         }, this);
