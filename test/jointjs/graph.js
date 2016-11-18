@@ -350,20 +350,52 @@ QUnit.module('graph', function(hooks) {
         var fromInstance = new joint.shapes.basic.Rect({ id: 'a' });
         var fromPlainObject = { id: 'b', type: 'basic.Rect' };
 
-        this.graph.addCell(fromInstance);
-        this.graph.addCell(fromPlainObject);
+        var graph1 = this.graph;
+        var graph2 = new joint.dia.Graph;
+
+        graph1.addCell(fromInstance);
+        graph1.addCell(fromPlainObject);
 
         assert.equal(
-            this.graph.getCell('a').graph,
-            this.graph,
+            graph1.getCell('a').graph,
+            graph1,
             'The graph reference was stored on the model when created from an instance.'
         );
 
         assert.equal(
-            this.graph.getCell('b').graph,
-            this.graph,
+            graph1.getCell('b').graph,
+            graph1,
             'The graph reference was stored on the model when created from a plain JS object.'
         );
+
+        var a = graph1.getCell('a');
+        var b = graph1.getCell('b');
+
+        a.remove();
+        assert.ok(a.graph === null, 'The graph reference is nulled when the model is removed from the graph.');
+
+        graph2.addCell(a);
+        assert.equal(
+            a.graph,
+            graph2,
+            'The graph reference was stored after the element was added to a graph.'
+        );
+
+        graph2.addCell(b);
+        assert.equal(
+            b.graph,
+            graph1,
+            'The graph reference was not stored after the model was added to a graph while it\'s still member of another graph.'
+        );
+
+        // Dry mode
+
+        b.remove();
+        graph1.addCell(b, { dry: true });
+        assert.ok(b.graph === null, 'The graph reference is not stored after element added when the `dry` flag is passed.');
+
+        graph1.resetCells([b], { dry: true });
+        assert.ok(b.graph === null, 'The graph reference is not stored after graph reset when the `dry` flag is passed.');
     });
 
     QUnit.test('graph.clear()', function(assert) {

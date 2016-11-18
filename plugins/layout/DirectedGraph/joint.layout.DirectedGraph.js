@@ -18,7 +18,8 @@ joint.layout.DirectedGraph = {
         if (graphOrCells instanceof joint.dia.Graph) {
             graph = graphOrCells;
         } else {
-            graph = (new joint.dia.Graph()).resetCells(graphOrCells);
+            // Reset cells in dry mode so the graph reference is not stored on the cells.
+            graph = (new joint.dia.Graph()).resetCells(graphOrCells, { dry: true });
         }
 
         // This is not needed anymore.
