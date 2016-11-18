@@ -611,26 +611,22 @@ var joint = {
 
         getElementBBox: function(el) {
 
-            if (!el) {
-                throw new Error('Input element is not defined');
-            }
-
             var $el = $(el);
             if ($el.length === 0) {
                 throw new Error('Element not found')
             }
-            el = $el[0];
 
-            var doc = el.ownerDocument;
-            var clientBBox = el.getBoundingClientRect();
+            var element = $el[0];
+            var doc = element.ownerDocument;
+            var clientBBox = element.getBoundingClientRect();
 
             var strokeWidthX = 0;
             var strokeWidthY = 0;
 
             // Firefox correction
-            if (el.ownerSVGElement) {
+            if (element.ownerSVGElement) {
 
-                var bbox = V(el).bbox();
+                var bbox = V(element).bbox();
 
                 // if FF getBoundingClientRect includes stroke-width, getBBox doesn't.
                 // To unify this across all browsers we need to adjust the final bBox with `stroke-width` value.
