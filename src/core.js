@@ -612,33 +612,34 @@ var joint = {
         getElementBBox: function(el) {
 
             var $el = $(el);
-            var offset = $el.offset();
-            var bbox;
-
-            if (el.ownerSVGElement) {
-
-                // Use Vectorizer to get the dimensions of the element if it is an SVG element.
-                bbox = V(el).bbox();
-
-                // getBoundingClientRect() used in jQuery.fn.offset() takes into account `stroke-width`
-                // in Firefox only. So clientRect width/height and getBBox width/height in FF don't match.
-                // To unify this across all browsers we add the `stroke-width` (left & top) back to
-                // the calculated offset.
-                var crect = el.getBoundingClientRect();
-                var strokeWidthX = (crect.width - bbox.width) / 2;
-                var strokeWidthY = (crect.height - bbox.height) / 2;
-
-                // The `bbox()` returns coordinates relative to the SVG viewport, therefore, use the
-                // ones returned from the `offset()` method that are relative to the document.
-                bbox.x = offset.left + strokeWidthX;
-                bbox.y = offset.top + strokeWidthY;
-
-            } else {
-
-                bbox = { x: offset.left, y: offset.top, width: $el.outerWidth(), height: $el.outerHeight() };
+            if ($el.length === 0) {
+                throw new Error('Element not found')
             }
 
-            return bbox;
+            var element = $el[0];
+            var doc = element.ownerDocument;
+            var clientBBox = element.getBoundingClientRect();
+
+            var strokeWidthX = 0;
+            var strokeWidthY = 0;
+
+            // Firefox correction
+            if (element.ownerSVGElement) {
+
+                var bbox = V(element).bbox();
+
+                // if FF getBoundingClientRect includes stroke-width, getBBox doesn't.
+                // To unify this across all browsers we need to adjust the final bBox with `stroke-width` value.
+                strokeWidthX = (clientBBox.width - bbox.width);
+                strokeWidthY = (clientBBox.height - bbox.height);
+            }
+
+            return  {
+                x: clientBBox.left + window.pageXOffset - doc.documentElement.offsetLeft + strokeWidthX / 2,
+                y: clientBBox.top + window.pageYOffset - doc.documentElement.offsetTop + strokeWidthY / 2,
+                width: clientBBox.width - strokeWidthX,
+                height: clientBBox.height - strokeWidthY
+            };
         },
 
 

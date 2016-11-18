@@ -441,4 +441,92 @@ QUnit.module('util', function(hooks) {
             delete joint.util.wrappers[wrapper];
         });
     });
+
+    QUnit.module('getElementBBox', function(hooks) {
+
+        QUnit.module('html', function(hooks) {
+
+            var $htmlElement;
+            hooks.beforeEach(function() {
+                $htmlElement = $('<div/>').css({
+                    position: 'absolute',
+                    top: 10,
+                    left: 20,
+                    width: 50,
+                    height: 60
+                });
+
+                $htmlElement.appendTo(document.body);
+            });
+
+            hooks.afterEach(function() {
+                $htmlElement.remove();
+            });
+
+            QUnit.test('html element', function(assert) {
+
+                var bBox = joint.util.getElementBBox($htmlElement[0]);
+
+                assert.equal(bBox.x, 20);
+                assert.equal(bBox.y, 10);
+                assert.equal(bBox.width, 50);
+                assert.equal(bBox.height, 60);
+            });
+
+            QUnit.test('possible input argument types', function (assert) {
+
+                assert.ok(joint.util.getElementBBox('html'));
+                assert.ok(joint.util.getElementBBox($htmlElement));
+                assert.ok(joint.util.getElementBBox($htmlElement[0]));
+
+                assert.throws(function () {
+                    joint.util.getElementBBox('xxx');
+                });
+
+                assert.throws(function () {
+                    joint.util.getElementBBox();
+                });
+            })
+        });
+
+        QUnit.module('svg', function(hooks) {
+
+            hooks.beforeEach(function () {
+                this.svgDoc = V(V.createSvgDocument()).attr('style', 'position:absolute;top:50px;left:60px');
+                V($('body')[0]).append(this.svgDoc);
+            });
+
+            hooks.afterEach(function () {
+                this.svgDoc.remove();
+            });
+
+            QUnit.test('simple element', function(assert) {
+
+                var svgElement = V('<rect width="70" height="80"/>');
+                this.svgDoc.append(svgElement);
+
+                var bBox = joint.util.getElementBBox(svgElement.node);
+
+                assert.equal(bBox.x, 60);
+                assert.equal(bBox.y, 50);
+                assert.equal(bBox.width, 70);
+                assert.equal(bBox.height, 80);
+            });
+
+            QUnit.test('with position, with stroke', function(assert) {
+
+                // firefox measures differently - includes the stroke as well.
+                // joint.util.getElementBBox should return consistent values across all browsers.
+                var svgElement = V('<rect width="70" height="80" x="50" y="50" stroke-width="10" stroke="red"/>');
+                this.svgDoc.append(svgElement);
+
+                var bBox = joint.util.getElementBBox(svgElement.node);
+
+                assert.equal(bBox.x, 60 + 50);
+                assert.equal(bBox.y, 50 + 50);
+                assert.equal(bBox.width, 70);
+                assert.equal(bBox.height, 80);
+            });
+        });
+    })
 });
