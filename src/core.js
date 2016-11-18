@@ -617,7 +617,7 @@ var joint = {
 
             var $el = $(el);
             if ($el.length === 0) {
-                throw new Error('element not found')
+                throw new Error('Element not found')
             }
             el = $el[0];
 
