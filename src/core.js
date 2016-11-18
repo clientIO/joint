@@ -615,13 +615,11 @@ var joint = {
                 throw new Error('Input element is not defined');
             }
 
-            if (_.isString(el)) {
-                var $el = $(el);
-                if ($el.length === 0) {
-                    throw new Error('element not found')
-                }
-                el = $el[0];
+            var $el = $(el);
+            if ($el.length === 0) {
+                throw new Error('element not found')
             }
+            el = $el[0];
 
             var doc = el.ownerDocument;
             var clientBBox = el.getBoundingClientRect();

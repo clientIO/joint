@@ -472,6 +472,21 @@ QUnit.module('util', function(hooks) {
                 assert.equal(bBox.width, 50);
                 assert.equal(bBox.height, 60);
             });
+
+            QUnit.test('possible input argument types', function (assert) {
+
+                assert.ok(joint.util.getElementBBox('html'));
+                assert.ok(joint.util.getElementBBox($htmlElement));
+                assert.ok(joint.util.getElementBBox($htmlElement[0]));
+
+                assert.throws(function () {
+                    joint.util.getElementBBox('xxx');
+                });
+
+                assert.throws(function () {
+                    joint.util.getElementBBox();
+                });
+            })
         });
 
         QUnit.module('svg', function(hooks) {
