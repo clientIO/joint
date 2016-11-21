@@ -429,7 +429,7 @@ V = Vectorizer = (function() {
             var attrs = {};
 
             for (var i = 0; i < attributes.length; i++) {
-                attrs[attributes[i].nodeName] = attributes[i].nodeValue;
+                attrs[attributes[i].name] = attributes[i].value;
             }
 
             return attrs;
