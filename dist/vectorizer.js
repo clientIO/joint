@@ -1,4 +1,4 @@
-/*! JointJS v1.0.2 (2016-10-27) - JavaScript diagramming library
+/*! JointJS v1.0.3 (2016-11-22) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -464,7 +464,7 @@ V = Vectorizer = (function() {
             var attrs = {};
 
             for (var i = 0; i < attributes.length; i++) {
-                attrs[attributes[i].nodeName] = attributes[i].nodeValue;
+                attrs[attributes[i].name] = attributes[i].value;
             }
 
             return attrs;

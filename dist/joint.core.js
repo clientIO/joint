@@ -1,4 +1,4 @@
-/*! JointJS v1.0.2 (2016-10-27) - JavaScript diagramming library
+/*! JointJS v1.0.3 (2016-11-22) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1638,7 +1638,7 @@ V = Vectorizer = (function() {
             var attrs = {};
 
             for (var i = 0; i < attributes.length; i++) {
-                attrs[attributes[i].nodeName] = attributes[i].nodeValue;
+                attrs[attributes[i].name] = attributes[i].value;
             }
 
             return attrs;
@@ -2765,7 +2765,7 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '1.0.2',
+    version: '1.0.3',
 
     config: {
         // The class name prefix config is for advanced use only.
@@ -3374,33 +3374,34 @@ var joint = {
         getElementBBox: function(el) {
 
             var $el = $(el);
-            var offset = $el.offset();
-            var bbox;
-
-            if (el.ownerSVGElement) {
-
-                // Use Vectorizer to get the dimensions of the element if it is an SVG element.
-                bbox = V(el).bbox();
-
-                // getBoundingClientRect() used in jQuery.fn.offset() takes into account `stroke-width`
-                // in Firefox only. So clientRect width/height and getBBox width/height in FF don't match.
-                // To unify this across all browsers we add the `stroke-width` (left & top) back to
-                // the calculated offset.
-                var crect = el.getBoundingClientRect();
-                var strokeWidthX = (crect.width - bbox.width) / 2;
-                var strokeWidthY = (crect.height - bbox.height) / 2;
-
-                // The `bbox()` returns coordinates relative to the SVG viewport, therefore, use the
-                // ones returned from the `offset()` method that are relative to the document.
-                bbox.x = offset.left + strokeWidthX;
-                bbox.y = offset.top + strokeWidthY;
-
-            } else {
-
-                bbox = { x: offset.left, y: offset.top, width: $el.outerWidth(), height: $el.outerHeight() };
+            if ($el.length === 0) {
+                throw new Error('Element not found')
             }
 
-            return bbox;
+            var element = $el[0];
+            var doc = element.ownerDocument;
+            var clientBBox = element.getBoundingClientRect();
+
+            var strokeWidthX = 0;
+            var strokeWidthY = 0;
+
+            // Firefox correction
+            if (element.ownerSVGElement) {
+
+                var bbox = V(element).bbox();
+
+                // if FF getBoundingClientRect includes stroke-width, getBBox doesn't.
+                // To unify this across all browsers we need to adjust the final bBox with `stroke-width` value.
+                strokeWidthX = (clientBBox.width - bbox.width);
+                strokeWidthY = (clientBBox.height - bbox.height);
+            }
+
+            return  {
+                x: clientBBox.left + window.pageXOffset - doc.documentElement.offsetLeft + strokeWidthX / 2,
+                y: clientBBox.top + window.pageYOffset - doc.documentElement.offsetTop + strokeWidthY / 2,
+                width: clientBBox.width - strokeWidthX,
+                height: clientBBox.height - strokeWidthY
+            };
         },
 
 
@@ -4540,12 +4541,16 @@ joint.dia.Graph = Backbone.Model.extend({
         return this;
     },
 
-    _prepareCell: function(cell) {
+    _prepareCell: function(cell, opt) {
 
         var attrs;
         if (cell instanceof Backbone.Model) {
             attrs = cell.attributes;
-            cell.graph = this;
+            if (!cell.graph && (!opt || !opt.dry)) {
+                // An element can not be member of more than one graph.
+                // A cell stops being the member of the graph after it's explicitely removed.
+                cell.graph = this;
+            }
         } else {
             // In case we're dealing with a plain JS object, we have to set the reference
             // to the `graph` right after the actual model is created. This happens in the `model()` function
@@ -4566,11 +4571,11 @@ joint.dia.Graph = Backbone.Model.extend({
         return lastCell ? (lastCell.get('z') || 0) : 0;
     },
 
-    addCell: function(cell, options) {
+    addCell: function(cell, opt) {
 
         if (_.isArray(cell)) {
 
-            return this.addCells(cell, options);
+            return this.addCells(cell, opt);
         }
 
         if (cell instanceof Backbone.Model) {
@@ -4584,7 +4589,7 @@ joint.dia.Graph = Backbone.Model.extend({
             cell.z = this.maxZIndex() + 1;
         }
 
-        this.get('cells').add(this._prepareCell(cell), options || {});
+        this.get('cells').add(this._prepareCell(cell, opt), opt || {});
 
         return this;
     },
@@ -4612,7 +4617,8 @@ joint.dia.Graph = Backbone.Model.extend({
     // Useful for bulk operations and optimizations.
     resetCells: function(cells, opt) {
 
-        this.get('cells').reset(_.map(cells, this._prepareCell, this), opt);
+        var preparedCells = _.map(cells, _.bind(this._prepareCell, this, _, opt));
+        this.get('cells').reset(preparedCells, opt);
 
         return this;
     },
@@ -4652,7 +4658,10 @@ joint.dia.Graph = Backbone.Model.extend({
         // would be triggered on the graph model.
         this.get('cells').remove(cell, { silent: true });
 
-        delete cell.graph;
+        if (cell.graph === this) {
+            // Remove the element graph reference only if the cell is the member of this graph.
+            cell.graph = null;
+        }
     },
 
     // Get a cell by `id`.
@@ -6862,8 +6871,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                     ? this.$el
                     : this.findBySelector(selector);
 
+            var elementsCount = $selected.length;
+
             // No element matched by the `selector` was found. We're done then.
-            if ($selected.length === 0) return;
+            if (elementsCount === 0) return;
 
             nodesBySelector[selector] = $selected;
 
@@ -6881,12 +6892,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 !_.isUndefined(attrs['ref-height'])
             ) {
 
-                _.each($selected, function(el, index, list) {
-                    var $el = $(el);
-                    // copy original list selector to the element
-                    $el.selector = list.selector;
+                for (var i = 0; i < elementsCount; i++) {
+                    var $el = $selected.eq(i);
+                    // store the selector for the element
+                    $el.selector = selector;
                     relativelyPositioned.push($el);
-                });
+                }
             }
 
         }, this);
@@ -11691,7 +11702,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
 
         if (!joint.env.test('svgforeignobject')) {
 
-            this.listenTo(this.model, 'change:content', function(cell) {
+            this.listenTo(this.model, 'change:content change:size', function(cell) {
                 // avoiding pass of extra paramters
                 this.updateContent(cell);
             });
@@ -11700,7 +11711,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
 
     update: function(cell, renderingOnlyAttrs) {
 
-        if (joint.env.test('svgforeignobject')) {
+        if (!joint.env.test('svgforeignobject')) {
 
             var model = this.model;
 

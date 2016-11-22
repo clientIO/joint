@@ -1,7 +1,15 @@
+18-11-2016 (v1.0.3)
+  * make compatibility changes towards jQuery 3.1
+  * shapes.TextBlock - fix `SVGForeignObject` detection
+  * dia.Graph - fix graph references stored on cells (when a cell added to another graph)
+  * layout.DirectedGraph - fix cell's graph references overriden by the layout
+  * Vectorizer - remove deprecated attributes' `nodeValue` and `nodeName` calls
+
 27-10-2016 (v1.0.2)
   * Vectorizer - fix `convertToPathData()` for polyline.
   * add yarn.lock
   * improve documentation
+
 20-09-2016 (v1.0.1)
   * All joint views now use the `joint-` class name prefix for their class names.
   * dia.Element - make it easy to add ports to an arbitrary element, introduced API for ports manipulation
