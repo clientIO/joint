@@ -40,7 +40,7 @@ joint.connectors.jumpover = (function(_, g) {
             updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
             jumpOverLinkView.paper.on('cell:pointerup', updateJumpOver);
             jumpOverLinkView.paper.model.on('reset', function() {
-                updateList = [];
+                updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
             });
         }
 
