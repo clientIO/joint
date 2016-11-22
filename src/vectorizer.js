@@ -317,17 +317,19 @@ V = Vectorizer = (function() {
         }
 
         var offset = 0;
+        var x = this.attr('x') || 0;
+
+        // Shift all the <tspan> but first by one line (`1em`)
+        var lineHeight = opt.lineHeight || '1em';
+        if (opt.lineHeight === 'auto') {
+            lineHeight = '1.5em';
+        }
 
         for (var i = 0; i < lines.length; i++) {
 
             var line = lines[i];
-            // Shift all the <tspan> but first by one line (`1em`)
-            var lineHeight = opt.lineHeight || '1em';
-            if (opt.lineHeight === 'auto') {
-                lineHeight = '1.5em';
-            }
-            var vLine = V('tspan', { dy: (i == 0 ? '0em' : lineHeight), x: this.attr('x') || 0 });
-            vLine.addClass('v-line');
+
+            var vLine = V('tspan', { 'class': 'v-line',  dy: (i == 0 ? '0em' : lineHeight), x: x });
 
             if (line) {
 

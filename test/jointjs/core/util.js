@@ -80,7 +80,7 @@ QUnit.module('util', function(hooks) {
 
         ok(_.contains(joint.util.breakText(text, { width: 15 }, styles), '\n'), 'A text was broken when width B specified.');
 
-        var brokenText = joint.util.breakText(text, { width: 100, height: 50 }, styles);
+        var brokenText = joint.util.breakText(text, { width: 100, height: 40 }, styles);
 
         ok(_.contains(brokenText, 'Lorem') && !_.contains(brokenText, 'elit.'), 'A text was trimmed when width & height specified.');
 
@@ -91,6 +91,19 @@ QUnit.module('util', function(hooks) {
         throws(function() {
             joint.util.breakText(text, { width: 100, height: 50 }, _.extend({}, styles, { 'font-size': '18px' }), { svgDocument: 'not-svg' });
         }, /appendChild|undefined/, 'A custom svgDocument provided was recognized.');
+    });
+
+    QUnit.test('util.parseCssNumeric', function(assert) {
+
+        assert.equal(joint.util.parseCssNumeric('auto'), null);
+
+        assert.deepEqual(joint.util.parseCssNumeric('1.1'), { value: 1.1 });
+        assert.deepEqual(joint.util.parseCssNumeric('1.1em', ['em']), { value: 1.1, unit: 'em' });
+        assert.equal(joint.util.parseCssNumeric('10px', ['em']), null, 'invalid unit');
+
+        assert.deepEqual(joint.util.parseCssNumeric('10px', ['em', 'px']), { value: 10, unit: 'px' });
+        assert.deepEqual(joint.util.parseCssNumeric('1.1em', ['em', 'px']), { value: 1.1, unit: 'em' });
+        assert.deepEqual(joint.util.parseCssNumeric(10, ['em', 'px']), { value: 10 });
     });
 
     QUnit.test('util.getByPath()', function() {
