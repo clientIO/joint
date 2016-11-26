@@ -31,6 +31,24 @@
             this.ports.push(port);
         },
 
+        setLayoutPosition: function (id, position) {
+
+            var port = this.getPort(id);
+            if (port) {
+                port.layoutPosition = position;
+            }
+        },
+
+        getLayoutPosition: function (id) {
+
+            var port= this.getPort(id);
+            if (port) {
+                return port.layoutPosition;
+            }
+
+            return null;
+        },
+
         _init: function(data) {
 
             data = data || {};
@@ -223,6 +241,11 @@
             return _.cloneDeep(_.find(this.prop('ports/items'), function(port) {
                 return port.id && port.id === id;
             }));
+        },
+
+        getPortPosition: function (id) {
+
+            return this.portData.getLayoutPosition(id);
         },
 
         /**
@@ -578,10 +601,13 @@
             }
 
             var portTrans = namespace[position](_.pluck(ports, 'position.args'), elBBox, group.position.args || {});
+            var portDataStorage = this.model.portData;
 
             _.each(portTrans, function(offset, index) {
 
-                var port = this.model.portData.getPort(ports[index].id);
+                var port = portDataStorage.getPort(ports[index].id);
+                portDataStorage.setLayoutPosition(ports[index].id, offset);
+
                 var cached = this._portElementsCache[port.id] || {};
 
                 this.applyPortTransform(cached.portElement, offset);
