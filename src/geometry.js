@@ -837,9 +837,14 @@ var g = (function() {
         // @param dy {delta_y} representing additional size to y -
         // dy param is not required -> in that case y is sized by dx
         inflate: function(dx, dy) {
-            if (!dy) {
+            if (dx === undefined) {
+                dx = 0;
+            }
+
+            if (dy === undefined) {
                 dy = dx;
             }
+
             this.x -= dx;
             this.y -= dy;
             this.width += 2 * dx;
