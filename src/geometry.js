@@ -835,17 +835,15 @@ var g = (function() {
         // inflate by dx and dy, recompute origin [x, y]
         // @param dx {delta_x} representing additional size to x
         // @param dy {delta_y} representing additional size to y -
-        // dy param is not required -> in that case x and y is sized by same
-        // number
-        inflate: function inflate(dx, dy) {
-            if (dy !== undefined) {
+        // dy param is not required -> in that case y is sized by dx
+        inflate: function(dx, dy) {
+            if (!dy) {
                 dy = dx;
             }
-
-            this.width += 2 * dx;
-            this.height += 2 * dy;
             this.x -= dx;
             this.y -= dy;
+            this.width += 2 * dx;
+            this.height += 2 * dy;
 
             return this;
         },
