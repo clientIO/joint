@@ -832,6 +832,24 @@ var g = (function() {
             return this;
         },
 
+        // inflate by dx and dy, recompute origin [x, y]
+        // @param dx {delta_x} representing additional size to x
+        // @param dy {delta_y} representing additional size to y -
+        // dy param is not required -> in that case x and y is sized by same
+        // number
+        inflate: function inflate(dx, dy) {
+            if (dy !== undefined) {
+                dy = dx;
+            }
+
+            this.width += 2 * dx;
+            this.height += 2 * dy;
+            this.x -= dx;
+            this.y -= dy;
+
+            return this;
+        },
+
         // Normalize the rectangle; i.e., make it so that it has a non-negative width and height.
         // If width < 0 the function swaps the left and right corners,
         // and it swaps the top and bottom corners if height < 0
