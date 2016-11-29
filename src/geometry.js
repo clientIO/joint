@@ -223,6 +223,26 @@ var g = (function() {
             return ((x0 - x) * (x0 - x)) / (a * a ) + ((y0 - y) * (y0 - y)) / (b * b);
         },
 
+        // inflate by dx and dy
+        // @param dx {delta_x} representing additional size to x
+        // @param dy {delta_y} representing additional size to y -
+        // dy param is not required -> in that case y is sized by dx
+        inflate: function(dx, dy) {
+            if (dx === undefined) {
+                dx = 0;
+            }
+
+            if (dy === undefined) {
+                dy = dx;
+            }
+
+            this.a += 2 * dx;
+            this.b += 2 * dy;
+
+            return this;
+        },
+
+
         /**
          * @param {g.Point} p
          * @returns {boolean}
@@ -829,6 +849,27 @@ var g = (function() {
             this.y += r.y || 0;
             this.width += r.width || 0;
             this.height += r.height || 0;
+            return this;
+        },
+
+        // inflate by dx and dy, recompute origin [x, y]
+        // @param dx {delta_x} representing additional size to x
+        // @param dy {delta_y} representing additional size to y -
+        // dy param is not required -> in that case y is sized by dx
+        inflate: function(dx, dy) {
+            if (dx === undefined) {
+                dx = 0;
+            }
+
+            if (dy === undefined) {
+                dy = dx;
+            }
+
+            this.x -= dx;
+            this.y -= dy;
+            this.width += 2 * dx;
+            this.height += 2 * dy;
+
             return this;
         },
 
