@@ -116,7 +116,7 @@ QUnit.module('ellipse', function() {
 
     QUnit.module('inflate()', function() {
 
-        QUnit.test('inflate rect', function(assert) {
+        QUnit.test('inflate ellipse', function(assert) {
 
             assert.ok(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate().equals(g.ellipse({ x: 0, y: 0 }, 1, 1)));
             assert.ok(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate(2, 1).equals(g.ellipse({ x: 0, y: 0 }, 5, 3)));
