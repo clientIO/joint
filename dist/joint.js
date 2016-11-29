@@ -1,4 +1,4 @@
-/*! JointJS v1.0.3 (2016-11-22) - JavaScript diagramming library
+/*! JointJS v1.0.3 (2016-11-28) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -12800,7 +12800,7 @@ joint.connectors.jumpover = (function(_, g) {
             updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
             jumpOverLinkView.paper.on('cell:pointerup', updateJumpOver);
             jumpOverLinkView.paper.model.on('reset', function() {
-                updateList = [];
+                updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
             });
         }
 

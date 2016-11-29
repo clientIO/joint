@@ -1,5 +1,4 @@
 build/
-dist/
 node_modules/
 lib/*/*
 coverage.info

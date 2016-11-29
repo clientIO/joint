@@ -868,7 +868,7 @@ module.exports = function(grunt) {
         'test:e2e:firefox-linux',
         'test:e2e:firefox-mac'
     ]);
-    
+
     grunt.registerTask('selenium', function(action) {
 
         var done = this.async();
