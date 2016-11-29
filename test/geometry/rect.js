@@ -121,6 +121,22 @@ QUnit.module('rect', function() {
 
         });
 
+        QUnit.module('inflate()', function() {
+
+            QUnit.test('inflate rect', function(assert) {
+
+                assert.ok(g.rect(0, 0, 1, 1).inflate(1).equals(g.rect(-1, -1, 3, 3)));
+                assert.ok(g.rect(0, 0, 1, 1).inflate(2).equals(g.rect(-2, -2, 5, 5)));
+                assert.ok(g.rect(5, 5, 10, 10).inflate(5).equals(g.rect(0, 0, 20, 20)));
+                assert.ok(g.rect(0, 0, 1, 1).inflate(1, 2).equals(g.rect(-1, -2, 3, 5)));
+                assert.ok(g.rect(5, 5, 10, 10).inflate(5, 3).equals(g.rect(0, 2, 20, 16)));
+                assert.ok(g.rect(0, 0, 1, 1).inflate(1, 0).equals(g.rect(-1, 0, 3, 1)));
+                assert.ok(g.rect(0, 0, 1, 1).inflate().equals(g.rect(0, 0, 1, 1)));
+                assert.ok(g.rect(0, 0, 1, 1).inflate(0).equals(g.rect(0, 0, 1, 1).inflate()));
+                assert.ok(g.rect(0, 0, 1, 1).inflate(0, 1).equals(g.rect(0, -1, 1, 3)));
+            });
+        });
+
         QUnit.module('normalize()', function() {
 
         });
