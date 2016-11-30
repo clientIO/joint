@@ -1045,6 +1045,11 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointerdown: function(evt) {
 
+        var isGesture = function() {
+            var touches = evt.originalEvent.touches;
+            return touches && touches.length > 1;
+        };
+
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
@@ -1053,6 +1058,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         evt.preventDefault();
 
         this._mousemoved = 0;
+        this._isGesture = isGesture();
+
+        if (this._isGesture) {
+            return ;
+        }
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
@@ -1070,6 +1080,57 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointermove: function(evt) {
 
+        var touchesToLine = function(touches) {
+            return g.Line(g.Point(touches[0].clientX, touches[0].clientY), g.Point(touches[1].clientX, touches[1].clientY));
+        };
+
+        var getGestureType = function(currentTouchList, prevTouchList) {
+
+            if (currentTouchList.length === 2 && prevTouchList.length === 2) {
+
+                var curr = touchesToLine(touches);
+                var prev = touchesToLine(prevTouches);
+
+                var delta = curr.length() - prev.length();
+
+                //TODO v.talas custom threshold
+                if (delta > 5) {
+                    return { name: 'gesture-stretch', data: delta };
+                }
+                if (delta < -5) {
+                    return { name: 'gesture-pinch', data: delta };
+                }
+            }
+        };
+        
+
+        if (this._isGesture) {
+
+            var touches = evt.originalEvent.touches;
+
+            var prevTouches = this._prdel || [];
+            var view = this.findView(touches[0].target);
+            if (this.guard(evt, view)) return;
+
+            var gesture = getGestureType(touches, prevTouches);
+            this._prdel = touches;
+
+            if (gesture) {
+
+                if (view) {
+                    //TODO v.talas
+                    //view.gesture(type) ... ?
+                    this.trigger('cell:'+ gesture.name, evt, gesture.data);
+                } else {
+                    this.trigger('blank:'+ gesture.name, evt, gesture.data);
+                }
+            }
+
+            if (touches.length > 1) {
+                return;
+            }
+        }
+
         if (this.sourceView) {
 
             evt.preventDefault();
@@ -1085,6 +1146,10 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     pointerup: function(evt) {
+
+        if (this._isGesture) {
+            return;
+        }
 
         evt = joint.util.normalizeEvent(evt);
 
