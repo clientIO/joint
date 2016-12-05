@@ -39,14 +39,14 @@
             }
         },
 
-        getLayoutPosition: function (id) {
+        getLayoutPosition: function(id) {
 
-            var port= this.getPort(id);
-            if (port) {
-                return port.layoutPosition;
+            var port = this.getPort(id);
+            if (!port) {
+                throw new Error('Port with id ' + id + ' not found.')
             }
 
-            return null;
+            return port.layoutPosition;
         },
 
         _init: function(data) {
@@ -243,9 +243,15 @@
             }));
         },
 
-        getPortPosition: function (id) {
+        getPortPosition: function(id) {
 
-            return this.portData.getLayoutPosition(id);
+            return g.Point(this._portSettingsData.getLayoutPosition(id));
+        },
+
+        getPortAngle: function(id) {
+
+            var layoutPosition = this._portSettingsData.getLayoutPosition(id) || {};
+            return layoutPosition.angle;
         },
 
         /**
@@ -381,7 +387,7 @@
                 throw new Error(err.join(' '));
             }
 
-            this.portData = new PortData(this.get('ports'));
+            this._portSettingsData = new PortData(this.get('ports'));
         }
     });
 
@@ -440,7 +446,7 @@
                 elementReferences.push(n);
             });
 
-            var ports = _.groupBy(this.model.portData.getPorts(), 'z');
+            var ports = _.groupBy(this.model._portSettingsData.getPorts(), 'z');
             var withoutZKey = 'auto';
 
             // render non-z first
@@ -507,11 +513,11 @@
         _updatePorts: function() {
 
             var elBBox = g.rect(this.model.get('size'));
-            var ports = this.model.portData.getPorts();
+            var ports = this.model._portSettingsData.getPorts();
 
             _.each(_.groupBy(ports, 'group'), function(ports, groupName) {
 
-                var group = this.model.portData.getGroup(groupName);
+                var group = this.model._portSettingsData.getGroup(groupName);
                 _.each(ports, this._updatePortAttrs, this);
                 this._layoutPorts(ports, group, elBBox.clone());
             }, this);
@@ -601,7 +607,7 @@
             }
 
             var portTrans = namespace[position](_.pluck(ports, 'position.args'), elBBox, group.position.args || {});
-            var portDataStorage = this.model.portData;
+            var portDataStorage = this.model._portSettingsData;
 
             _.each(portTrans, function(offset, index) {
 

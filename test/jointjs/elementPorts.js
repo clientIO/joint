@@ -289,7 +289,7 @@ QUnit.module('element ports', function() {
                     { group: 'a' }
                 ]);
 
-                var ports = shape.portData.getPorts();
+                var ports = shape._portSettingsData.getPorts();
 
                 assert.equal(ports[0].z, 0);
                 assert.equal(ports[1].z, 'auto');
@@ -441,7 +441,7 @@ QUnit.module('element ports', function() {
             var shape = create(data);
             new joint.dia.ElementView({ model: shape }).render();
 
-            var portData = shape.portData;
+            var portData = shape._portSettingsData;
 
             assert.equal(portData.getPort('pa').position.name, 'right');
             assert.equal(portData.getPort('pa').position.args.y, 20);
@@ -475,7 +475,7 @@ QUnit.module('element ports', function() {
             var shape = create(data);
             new joint.dia.ElementView({ model: shape }).render();
 
-            var portData = shape.portData;
+            var portData = shape._portSettingsData;
 
             assert.equal(portData.getPort('pa1').label.position.name, 'top', 'override group settings');
             assert.equal(portData.getPort('pa1').label.position.args.tx, 11);
