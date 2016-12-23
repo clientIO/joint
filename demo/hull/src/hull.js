@@ -79,12 +79,7 @@
 
         padding = padding || 0;
 
-        var bbox = element.getBBox().moveAndExpand({
-            x: -padding,
-            y: -padding,
-            width: 2 * padding,
-            height: 2 * padding
-        });
+        var bbox = element.getBBox().inflate(padding);
 
         return [
             bbox.origin(),

@@ -65,6 +65,7 @@ cd joint
 Run installation
 ```
 npm install
+bower install
 ```
 This will install all npm and bower dependencies as well as run a full build.
 

@@ -26,7 +26,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
     render: function() {
 
         if (!this.pattern) {
-            
+
             this.pattern = V(joint.util.template(this.patternMarkup)({ id: this.id }));
             this.patternImage = this.pattern.findOne('image');
 
@@ -48,7 +48,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
         this.pattern.remove();
     },
-    
+
     update: function() {
 
         joint.dia.LinkView.prototype.update.apply(this, arguments);
@@ -66,12 +66,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
         var strokeWidth = this.strokeWidth;
 
-        var bbox = g.rect(V(this.el).bbox(true)).moveAndExpand({
-            x: - strokeWidth,
-            y: - strokeWidth,
-            width: 2 * strokeWidth,
-            height: 2 * strokeWidth
-        });
+        var bbox = g.rect(V(this.el).bbox(true)).inflate(strokeWidth);
 
         var points = [].concat(this.sourcePoint, this.route, this.targetPoint);
 
@@ -91,17 +86,17 @@ var PatternLinkView = joint.dia.LinkView.extend({
         for (var i=0, pointsCount = points.length - 1; i < pointsCount; i++) {
 
             ctx.save();
-            
+
             var gradientPoints = this.gradientPoints(points[i], points[i+1], strokeWidth);
             var gradient = ctx.createLinearGradient.apply(ctx, gradientPoints);
 
             this.drawPattern.call(this, ctx, points[i], points[i+1], strokeWidth, gradient, points, i);
-            
+
             ctx.restore();
         }
 
         var dataUri = canvas.toDataURL('image/png');
-        
+
         this.pattern.attr(bbox);
         this.patternImage.attr({ width: bbox.width, height: bbox.height, 'xlink:href': dataUri });
     },
@@ -144,11 +139,11 @@ var paper = new joint.dia.Paper({
     model: graph,
     perpendicularLinks: true,
     linkView: PatternLinkView.extend({
-        
+
         drawPattern: function(ctx, from, to, width, gradient) {
 
             var innerWidth = width - 4;
-            var outerWidth = width;            
+            var outerWidth = width;
             var buttFrom = g.point(from).move(to, -outerWidth / 2);
             var buttTo = g.point(to).move(from, -outerWidth / 2);
 
@@ -164,12 +159,12 @@ var paper = new joint.dia.Paper({
             gradient.addColorStop(0.000, 'rgba(86, 170, 255, 1)');
             gradient.addColorStop(0.500, 'rgba(255, 255, 255, 1)');
             gradient.addColorStop(1.000, 'rgba(86, 170, 255, 1)');
-            
+
             ctx.beginPath();
             ctx.lineWidth = innerWidth;
             ctx.strokeStyle = gradient;
             ctx.moveTo(from.x, from.y);
-            
+
             ctx.lineTo(to.x, to.y);
             ctx.stroke();
             ctx.closePath();
@@ -246,11 +241,9 @@ var link3 = new joint.dia.Link({
         },
         '.marker-source': { d: 'M 0 0 5 0 5 20 0 20 z', fill: 'rgba(86, 170, 255, 1.000)' },
         '.marker-target': { d: 'M 0 0 5 0 5 20 0 20 z', fill: 'rgba(86, 170, 255, 1.000)' }
-        
+
     }
     //connector: { name: 'rounded' },
 });
 
 graph.resetCells([r1, r2, r3, link1, link2, link3]);
-
-

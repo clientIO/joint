@@ -114,6 +114,21 @@ QUnit.module('ellipse', function() {
         });
     });
 
+    QUnit.module('inflate()', function() {
+
+        QUnit.test('inflate ellipse', function(assert) {
+
+            assert.ok(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate().equals(g.ellipse({ x: 0, y: 0 }, 1, 1)));
+            assert.ok(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate(2, 1).equals(g.ellipse({ x: 0, y: 0 }, 5, 3)));
+            assert.ok(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate(0, 1).equals(g.ellipse({ x: 0, y: 0 }, 1, 3)));
+            assert.ok(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate(2, 0).equals(g.ellipse({ x: 0, y: 0 }, 5, 1)));
+            assert.ok(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate(5).equals(g.ellipse({ x: 0, y: 0 }, 11, 11)));
+            assert.ok(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate(2).equals(
+                g.ellipse.fromRect(g.rect.fromEllipse(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate(2)))
+            ));
+        });
+    });
+
     QUnit.module('prototype', function() {
 
         QUnit.module('bbox()', function() {
