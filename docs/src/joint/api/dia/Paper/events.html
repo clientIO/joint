@@ -5,8 +5,16 @@
     <li><code>cell:pointerup</code> - triggered when a pointer is released on a paper and <code>cell:pointerdown</code> was previously handled. Takes <code>cellView</code> and, <code>evt</code> as arguments.</li>
     <li><code>cell:pointerdblclick</code> - triggered when the user double-clicks a cell. Takes <code>cellView</code>, <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
     <li><code>cell:pointerclick</code> - triggered when the user clicks a cell. Takes <code>cellView</code>, <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
-    <li><code>cell:mouseover</code> - triggered when the user enters the cell view area. Takes <code>cellView</code> and <code>evt</code> as arguments.</li>
-    <li><code>cell:mouseout</code> - triggered when the user leaves the cell view area. Takes <code>cellView</code> and <code>evt</code> as arguments.</li>
+    <li><code>cell:mouseover</code> - triggered when the user enters the cellView or its child element. Takes <code>cellView</code> and <code>evt</code> as arguments.</li>
+    <li><code>cell:mouseout</code> - triggered when the user leaves the cellView or its child element. Takes <code>cellView</code> and <code>evt</code> as arguments.</li>
+
+    <li><code>cell:mouseenter</code> - triggered when the user enters the cell view area. Takes <code>cellView</code> and <code>evt</code> as arguments.</li>
+    <li><code>cell:mouseleave</code> - triggered when the user leaves the cell view area. Takes <code>cellView</code> and <code>evt</code> as arguments.</li>
+    <li><code>link:mouseenter</code> - triggered when the user enters the link view area. Takes <code>cellView</code> and <code>evt</code> as arguments.</li>
+    <li><code>link:mouseleave</code> - triggered when the user leaves the link view area. Takes <code>cellView</code> and <code>evt</code> as arguments.</li>
+    <li><code>element:mouseenter</code> - triggered when the user enters the element view area. Takes <code>cellView</code> and <code>evt</code> as arguments.</li>
+    <li><code>element:mouseleave</code> - triggered when the user leaves the element view area. Takes <code>cellView</code> and <code>evt</code> as arguments.</li>
+
     <li><code>blank:pointerdown</code> - triggered when a pointer is pressed on a blank area on the paper. Takes <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
     <li><code>blank:pointerdblclick</code> - triggered when the user double-clicks a blank area on the paper. Takes <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
     <li><code>blank:pointerclick</code> - triggered when the user clicks a blank area on the paper. Takes <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
@@ -25,7 +33,6 @@
     <li><code>link:disconnect</code> - triggered when a link is disconnected from a cell. Takes <code>evt</code>, <code>cellView</code>, <code>magnet</code>, <code>arrowhead</code> as arguments.</li>
 </ul>
 
-<pre><code>paper.on('blank:pointerdown', function(evt, x, y) { 
+<pre><code>paper.on('blank:pointerdown', function(evt, x, y) {
     alert('pointerdown on a blank area in the paper.')
 })</code></pre>
-
