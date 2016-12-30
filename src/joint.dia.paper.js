@@ -1363,7 +1363,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             case 'watermark':
                 img.width *= backgroundQuality;
                 img.height *= backgroundQuality;
-                var canvas = this.constructor.canvas[_.camelCase(backgroundRepeat)](img);
+                var canvas = this.constructor.canvas[_.camelCase(backgroundRepeat)](img, opt);
                 backgroundImage = canvas.toDataURL('image/png');
                 backgroundRepeat = 'repeat';
                 if (_.isObject(backgroundSize)) {
@@ -1506,34 +1506,35 @@ joint.dia.Paper = joint.mvc.View.extend({
             return canvas;
         },
 
-        watermark: function(img) {
+        watermark: function(img, opt) {
             //   d
             // d
 
-            var canvas = document.createElement('canvas');
+            opt = opt || {};
+
             var imgWidth = img.width;
             var imgHeight = img.height;
-            var canvasSize = Math.max(imgWidth * 3, imgHeight * 3);
 
-            canvas.width = canvasSize;
-            canvas.height = canvasSize;
-
-            var angle = -30;
-            var radians = g.toRad(angle);
-            var dy = Math.abs(Math.sin(radians) * imgWidth);
-            var rotatedImgBBox = g.rect(0, 0, imgWidth, imgHeight).bbox(angle);
+            var canvas = document.createElement('canvas');
+            canvas.width = imgWidth * 3;
+            canvas.height = imgHeight * 3;
 
             var ctx = canvas.getContext('2d');
-            // top-right image
-            ctx.save();
-            ctx.translate(canvasSize / 2, dy);
-            ctx.rotate(radians);
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-            // bottom-left image
-            ctx.restore();
-            ctx.translate(0, canvasSize - rotatedImgBBox.height + dy);
-            ctx.rotate(radians);
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+            var angle = _.isNumber(opt.watermarkAngle) ? -opt.watermarkAngle : -20;
+            var radians = g.toRad(angle);
+            var stepX = canvas.width / 4;
+            var stepY = canvas.height / 4;
+
+            for (var i = 0; i < 4; i ++) {
+                for (var j = 0; j < 4; j++) {
+                    if ((i + j) % 2 > 0) {
+                        // reset the current transformations
+                        ctx.setTransform(1, 0, 0, 1, (2 * i - 1) * stepX, (2 * j - 1)  * stepY);
+                        ctx.rotate(radians);
+                        ctx.drawImage(img, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
+                    }
+                }
+            }
 
             return canvas;
         },
