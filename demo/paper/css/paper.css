@@ -1,94 +1,129 @@
-#paper {
-    background: white;
-    margin: 50px;
-    display: inline-flex;
-    box-shadow: 10px 5px 5px rgba(0,0,0,0.5);
-}
-
 body {
-    color: #444444;
-    background: #7f8c8d;
     text-align: center;
 }
-
+.content-container {
+    margin: 0 0 50px 0;
+}
+.content-sidebar {
+    display: none;
+}
+#paper {
+    background: #FFF;
+    width: auto;
+    display: inline-flex;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+    border-top: 1px solid #eee;
+}
 .left {
     position: fixed;
     width: 300px;
-    left: 0;
-    top: 0;
+    left: 18px;
+    top: 0px;
 }
-
 .right {
     position: fixed;
-    right: 0;
-    top: 0;
+    right: 20px;
     width: 300px;
+    top: 0px;
 }
-
-.paper-container {
-    position: absolute;
-    left: 300px;
-}
-
 .panel {
     margin: 10px;
     border-radius: 4px;
-    box-shadow: 10px 5px 5px rgba(0,0,0,0.5);
+    box-shadow: 2px 2px 3px rgba(0,0,0,0.2);
+    font-size: 11px;
+    border-left: 1px solid #eee;
+    border-bottom: 1px solid #eee;
 }
-
 .panel-body {
     padding: 10px;
-    position: relative;
     background: white;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
 }
-
 .panel-heading {
-    background: #2c3e50;
-    color: #eeeeee;
+    background: #6a6c8a;
     padding: 4px;
     line-height: 30px;
     text-align: center;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
 }
-
-.panel-footer {
-    background: #ecf0f1;
-    padding: 4px;
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
+.panel-heading a {
+    color: #eeeeee;
 }
-
+.form-group {
+    padding: 5px 0;
+    text-align: left;
+}
+.form-group label {
+    display: inline-block;
+    width: 70px;
+}
 .form-group input {
     margin-left: 10px;
 }
-
-output, .output {
+.form-group input[type="range"] {
+    width: 110px;
+    padding: 0;
+}
+output,
+.output {
     background: #ecf0f1;
     color: #333333;
     padding: 5px;
     border-radius: 10px;
 }
-
-.form-group {
-    padding: 5px 0;
-}
-
-button {
-    background-color: #2c3e50;
+.tooltip {
+    background: #2c3e50;
+    border: 1px solid #eeeeee;
     color: #eeeeee;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    padding: 4px;
+}
+.tooltip &.left:after {
+    border-right-color: #2c3e50;
+}
+.tooltip &.right:after {
+    border-left-color: #2c3e50;
+}
+.tooltip &.left:before {
+    border-right-color: #eeeeee;
+ }
+.tooltip &.right:before {
+    border-left-color: #eeeeee;
+}
+.paper-demo .checkbox input[type='checkbox'] {
+  margin-right: 5px;
+}
+@media screen and (max-width: 1240px) {
+    .right, .left { 
+        position: absolute;
+        top: 500px;
+    }
 }
 
-button:hover {
-    background: #34495e;
+/* jointjs elements */
+
+.joint-element.joint-type-basic-path path {
+    fill: #6a6c8a;
+    stroke-width: 0px;
 }
 
-input[type="number"] {
-    width: 100px;
+.joint-element.joint-type-basic-path:hover path {
+    fill: #FEC582;
+}
+
+.joint-element.joint-type-basic-path text {
+    fill: #FFF;
+    font-size: 12px;
+    font-weight: lighter;
+}
+
+.joint-link .connection {
+    stroke: #6a6c8a;
+    stroke-width: 2px;
+}
+
+.joint-link * {
+    pointer-events: none;
 }
 
 /* svg */
@@ -128,29 +163,14 @@ input[type="number"] {
 }
 
 .active {
-    stroke-opacity: 0.2;
-    transition-property: stroke-opacity;
-    transition-duration: 2s;
-}
-
-.bbox.active {
     stroke-opacity: 0.5;
 }
 
-.joint-element.joint-type-basic-rect rect {
-    fill: #2ecc71;
-    stroke: #27ae60;
-    stroke-width: 1px;
+.padding.active, .bbox.active {
+    stroke-opacity: 0.2;
 }
 
-.joint-element.joint-type-basic-circle circle {
-    fill: #e74c3c;
-    stroke: #c0392b;
-    stroke-width: 1px;
-}
-
-.joint-element.joint-type-basic-rhombus path {
-    fill: #f1c40f;
-    stroke: #f39c12;
-    stroke-width: 1px;
+/* IE can't handle paths without the `d` attribute for bounding box calculation */
+.marker-source, .marker-target {
+    display:none;
 }
