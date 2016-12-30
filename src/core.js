@@ -369,6 +369,29 @@ var joint = {
             return spot || bbox.center();
         },
 
+        parseCssNumeric: function(strValue, restrictUnits) {
+
+            restrictUnits = restrictUnits || [];
+            var cssNumeric = { value: parseFloat(strValue) };
+
+            if (_.isNaN(cssNumeric.value)) {
+                return null;
+            }
+
+            var validUnitsExp = restrictUnits.join('|');
+
+            if (_.isString(strValue)) {
+                var matches = new RegExp('(\\d+)(' + validUnitsExp + ')$').exec(strValue);
+                if (!matches) {
+                    return null;
+                }
+                if (matches[2]) {
+                    cssNumeric.unit = matches[2];
+                }
+            }
+            return cssNumeric;
+        },
+
         breakText: function(text, size, styles, opt) {
 
             opt = opt || {};
@@ -404,6 +427,7 @@ var joint = {
             var full = [];
             var lines = [];
             var p;
+            var lineHeight;
 
             for (var i = 0, l = 0, len = words.length; i < len; i++) {
 
@@ -491,16 +515,29 @@ var joint = {
 
                 // if size.height is defined we have to check whether the height of the entire
                 // text exceeds the rect height
-                if (typeof height !== 'undefined') {
+                if (height !== undefined) {
 
-                    // get line height as text height / 0.8 (as text height is approx. 0.8em
-                    // and line height is 1em. See vectorizer.text())
-                    var lh = lh || textElement.getBBox().height * 1.25;
+                    if (lineHeight === undefined) {
 
-                    if (lh * lines.length > height) {
+                        var heightValue;
+
+                        // use the same defaults as in V.prototype.text
+                        if (styles.lineHeight === 'auto') {
+                            heightValue = { value: 1.5, unit: 'em' };
+                        } else {
+                            heightValue = joint.util.parseCssNumeric(styles.lineHeight, ['em']) || { value: 1, unit: 'em' };
+                        }
+
+                        lineHeight = heightValue.value;
+                        if (heightValue.unit === 'em' ) {
+                            lineHeight *= textElement.getBBox().height;
+                        }
+                    }
+
+                    if (lineHeight * lines.length > height) {
 
                         // remove overflowing lines
-                        lines.splice(Math.floor(height / lh));
+                        lines.splice(Math.floor(height / lineHeight));
 
                         break;
                     }
