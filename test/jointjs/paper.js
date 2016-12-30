@@ -1224,7 +1224,7 @@ QUnit.module('paper', function(hooks) {
                 assert.expect(4);
 
                 var done = assert.async();
-                var flipXSpy = sinon.spy(joint.dia.Paper.canvas, 'flipX');
+                var flipXSpy = sinon.spy(joint.dia.Paper.backgroundPatterns, 'flipX');
 
                 this.paper.drawBackground({
                     image: bgImageDataURL,
@@ -1236,7 +1236,7 @@ QUnit.module('paper', function(hooks) {
                     assert.ok(flipXSpy.calledOnce);
                     assert.equal(flipXSpy.firstCall.args[0].src, bgImageDataURL);
 
-                    var canvas = joint.dia.Paper.canvas.flipX(img);
+                    var canvas = joint.dia.Paper.backgroundPatterns.flipX(img);
                     assert.equal(canvas.width, 2 * img.width);
                     assert.equal(canvas.height, img.height);
 
@@ -1249,7 +1249,7 @@ QUnit.module('paper', function(hooks) {
                 assert.expect(4);
 
                 var done = assert.async();
-                var flipYSpy = sinon.spy(joint.dia.Paper.canvas, 'flipY');
+                var flipYSpy = sinon.spy(joint.dia.Paper.backgroundPatterns, 'flipY');
 
                 this.paper.drawBackground({
                     image: bgImageDataURL,
@@ -1261,7 +1261,7 @@ QUnit.module('paper', function(hooks) {
                     assert.ok(flipYSpy.calledOnce);
                     assert.equal(flipYSpy.firstCall.args[0].src, bgImageDataURL);
 
-                    var canvas = joint.dia.Paper.canvas.flipY(img);
+                    var canvas = joint.dia.Paper.backgroundPatterns.flipY(img);
                     assert.equal(canvas.width, img.width);
                     assert.equal(canvas.height, 2 * img.height);
 
@@ -1275,7 +1275,7 @@ QUnit.module('paper', function(hooks) {
                 assert.expect(4);
 
                 var done = assert.async();
-                var flipXYSpy = sinon.spy(joint.dia.Paper.canvas, 'flipXy');
+                var flipXYSpy = sinon.spy(joint.dia.Paper.backgroundPatterns, 'flipXy');
 
                 this.paper.drawBackground({
                     image: bgImageDataURL,
@@ -1287,7 +1287,7 @@ QUnit.module('paper', function(hooks) {
                     assert.ok(flipXYSpy.calledOnce);
                     assert.equal(flipXYSpy.firstCall.args[0].src, bgImageDataURL);
 
-                    var canvas = joint.dia.Paper.canvas.flipXy(img);
+                    var canvas = joint.dia.Paper.backgroundPatterns.flipXy(img);
                     assert.equal(canvas.width, 2 * img.width);
                     assert.equal(canvas.height, 2 * img.height);
 
@@ -1300,7 +1300,7 @@ QUnit.module('paper', function(hooks) {
                 assert.expect(4);
 
                 var done = assert.async();
-                var watermarkSpy = sinon.spy(joint.dia.Paper.canvas, 'watermark');
+                var watermarkSpy = sinon.spy(joint.dia.Paper.backgroundPatterns, 'watermark');
 
                 this.paper.drawBackground({
                     image: bgImageDataURL,
@@ -1311,7 +1311,7 @@ QUnit.module('paper', function(hooks) {
                     assert.ok(watermarkSpy.calledOnce);
                     assert.equal(watermarkSpy.firstCall.args[0].src, bgImageDataURL);
 
-                    var canvas = joint.dia.Paper.canvas.watermark(img);
+                    var canvas = joint.dia.Paper.backgroundPatterns.watermark(img);
                     assert.ok(canvas.width > img.width);
                     assert.ok(canvas.height > img.height);
 

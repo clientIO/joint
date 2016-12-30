@@ -1355,41 +1355,41 @@ joint.dia.Paper = joint.mvc.View.extend({
         var backgroundRepeat = opt.repeat || 'no-repeat';
         var backgroundOpacity = opt.opacity || 1;
         var backgroundQuality = Math.abs(opt.quality) || 1;
+        var backgroundPattern = this.constructor.backgroundPatterns[_.camelCase(backgroundRepeat)];
 
-        switch (backgroundRepeat) {
-            case 'flip-x':
-            case 'flip-y':
-            case 'flip-xy':
-            case 'watermark':
-                img.width *= backgroundQuality;
-                img.height *= backgroundQuality;
-                var canvas = this.constructor.canvas[_.camelCase(backgroundRepeat)](img, opt);
-                backgroundImage = canvas.toDataURL('image/png');
-                backgroundRepeat = 'repeat';
-                if (_.isObject(backgroundSize)) {
-                    // recalculate the tile size if an object passed in
-                    backgroundSize.width *= canvas.width / img.width;
-                    backgroundSize.height *= canvas.height / img.height;
-                } else if (_.isUndefined(backgroundSize)) {
-                    // calcule the tile size if no provided
-                    opt.size = {
-                        width: canvas.width / backgroundQuality,
-                        height: canvas.height / backgroundQuality
-                    };
-                }
-                break;
-            default:
-                // backgroundRepeat:
-                // no-repeat', 'round', 'space', 'repeat', 'repeat-x', 'repeat-y'
-                backgroundImage = img.src;
-                if (_.isUndefined(backgroundSize)) {
-                    // pass the image size for  the backgroundSize if no size provided
-                    opt.size = {
-                        width: img.width,
-                        height: img.height
-                    };
-                }
-                break;
+        if (_.isFunction(backgroundPattern)) {
+            // 'flip-x', 'flip-y', 'flip-xy', 'watermark' and custom
+            img.width *= backgroundQuality;
+            img.height *= backgroundQuality;
+            var canvas = backgroundPattern(img, opt);
+            if (!(canvas instanceof HTMLCanvasElement)) {
+                throw new Error('dia.Paper: background pattern must return an HTML Canvas instance');
+            }
+
+            backgroundImage = canvas.toDataURL('image/png');
+            backgroundRepeat = 'repeat';
+            if (_.isObject(backgroundSize)) {
+                // recalculate the tile size if an object passed in
+                backgroundSize.width *= canvas.width / img.width;
+                backgroundSize.height *= canvas.height / img.height;
+            } else if (_.isUndefined(backgroundSize)) {
+                // calcule the tile size if no provided
+                opt.size = {
+                    width: canvas.width / backgroundQuality,
+                    height: canvas.height / backgroundQuality
+                };
+            }
+        } else {
+            // backgroundRepeat:
+            // no-repeat', 'round', 'space', 'repeat', 'repeat-x', 'repeat-y'
+            backgroundImage = img.src;
+            if (_.isUndefined(backgroundSize)) {
+                // pass the image size for  the backgroundSize if no size provided
+                opt.size = {
+                    width: img.width,
+                    height: img.height
+                };
+            }
         }
 
         this.$background.css({
@@ -1433,7 +1433,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     }
 }, {
 
-    canvas: {
+    backgroundPatterns: {
 
         flipXy: function(img) {
             // d b
@@ -1539,7 +1539,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             return canvas;
         },
 
-        grid: function(opt) {
+        grid: function(img, opt) {
 
             opt = opt || {};
 
