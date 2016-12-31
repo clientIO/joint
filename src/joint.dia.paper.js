@@ -10,10 +10,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         origin: { x: 0, y: 0 }, // x,y coordinates in top-left corner
         gridSize: 1,
 
-        /*
-            Whether or not to draw the grid lines on the paper's DOM element.
-            e.g drawGrid: true, drawGrid: { color: 'red', thickness: 2 }
-         */
+        // Whether or not to draw the grid lines on the paper's DOM element.
+        // e.g drawGrid: true, drawGrid: { color: 'red', thickness: 2 }
         drawGrid: false,
 
         // Whether or not to draw the background on the paper's DOM element.
@@ -176,8 +174,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         // Return default highlighting options into the user specified options.
         _.defaults(this.options.highlighting, this.constructor.prototype.options.highlighting);
         this.options.highlighting = _.cloneDeep(this.options.highlighting);
+        this._background = this.options.background;
 
         this.render();
+        this.update();
 
         this.listenTo(this.model, 'add', this.onCellAdded);
         this.listenTo(this.model, 'remove', this.removeView);
@@ -214,10 +214,6 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.$background = $('<div/>').addClass(joint.util.addClassNamePrefix('paper-background'));
         this.$grid = $('<div/>').addClass(joint.util.addClassNamePrefix('paper-grid'));
 
-        if (this.options.background) {
-            this.drawBackground(this.options.background);
-        }
-
         this.$el.append(this.$background, this.$grid, this.svg);
 
         return this;
@@ -227,6 +223,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         if (this.options.drawGrid) {
             this.drawGrid();
+        } else {
+            this.clearGrid();
         }
 
         if (this._background) {
