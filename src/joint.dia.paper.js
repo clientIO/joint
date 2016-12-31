@@ -174,10 +174,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         // Return default highlighting options into the user specified options.
         _.defaults(this.options.highlighting, this.constructor.prototype.options.highlighting);
         this.options.highlighting = _.cloneDeep(this.options.highlighting);
-        this._background = this.options.background;
 
         this.render();
-        this.update();
 
         this.listenTo(this.model, 'add', this.onCellAdded);
         this.listenTo(this.model, 'remove', this.removeView);
@@ -212,7 +210,14 @@ joint.dia.Paper = joint.mvc.View.extend({
         V(this.svg).append([this.viewport, this.defs]);
 
         this.$background = $('<div/>').addClass(joint.util.addClassNamePrefix('paper-background'));
+        if (this.options.background) {
+            this.drawBackground(this.options.background);
+        }
+
         this.$grid = $('<div/>').addClass(joint.util.addClassNamePrefix('paper-grid'));
+        if (this.options.drawGrid) {
+            this.drawGrid();
+        }
 
         this.$el.append(this.$background, this.$grid, this.svg);
 
@@ -223,8 +228,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         if (this.options.drawGrid) {
             this.drawGrid();
-        } else {
-            this.clearGrid();
         }
 
         if (this._background) {
@@ -1551,11 +1554,11 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             var canvas = document.createElement('canvas');
 
-            var width = canvas.width = size * sx;
+            var width = canvas.width = Math.round(size * sx);
             var x = ox % width;
             if (x < 0) x += width;
 
-            var height = canvas.height = size * sy;
+            var height = canvas.height = Math.round(size * sy);
             var y = oy % height;
             if (y < 0) y += height;
 
