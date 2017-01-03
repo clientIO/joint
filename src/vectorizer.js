@@ -1033,22 +1033,37 @@ V = Vectorizer = (function() {
         return matches.reduce(function(matrix, transformationString) {
             var transformationMatch = transformationString.match(/^(\w+)\((.*)\)/);
             if (transformationMatch) {
+                var sx, sy, tx, ty, angle, cx, cy;
                 var currentTransformationMatrix = V.createSVGMatrix();
                 var args = transformationMatch[2].split(V.transformSeparatorRegex);
                 switch(transformationMatch[1].toLowerCase()) {
                     case 'scale':
-                        var sx = parseFloat(args[0]);
-                        var sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
+                        sx = parseFloat(args[0]);
+                        sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
                         currentTransformationMatrix = currentTransformationMatrix.scaleNonUniform(sx, sy);
                         break;
                     case 'translate':
-                        var tx = parseInt(args[0]);
-                        var ty = parseInt(args[1]);
+                        tx = parseInt(args[0]);
+                        ty = parseInt(args[1]);
                         currentTransformationMatrix = currentTransformationMatrix.translate(tx, ty);
                         break;
                     case 'rotate':
-                        var angle = parseInt(args[0]);
-                        currentTransformationMatrix = currentTransformationMatrix.rotate(angle);
+                        angle = parseInt(args[0]);
+                        cx = parseInt(args[1]) || 0;
+                        cy = parseInt(args[2]) || 0;
+                        if (cx !== 0 || cy !== 0) {
+                            currentTransformationMatrix = currentTransformationMatrix.translate(cx, cy).rotate(angle).translate(-cx, -cy);
+                        } else {
+                            currentTransformationMatrix = currentTransformationMatrix.rotate(angle);
+                        }
+                        break;
+                    case 'skewx':
+                        angle = parseInt(args[0]);
+                        currentTransformationMatrix = currentTransformationMatrix.skewX(angle);
+                        break;
+                    case 'skewy':
+                        angle = parseInt(args[0]);
+                        currentTransformationMatrix = currentTransformationMatrix.skewY(angle);
                         break;
                     case 'matrix':
                         currentTransformationMatrix.a = parseFloat(args[0]);
@@ -1076,8 +1091,7 @@ V = Vectorizer = (function() {
             var separator = V.transformSeparatorRegex;
 
             // Allow reading transform string with a single matrix
-            var matrixMatch = transform.trim().match(/matrix/);
-            if (matrixMatch) {
+            if (transform.trim().indexOf('matrix') >= 0) {
 
                 var matrix = V.transformStringToMatrix(transform);
                 var decomposedMatrix = V.decomposeMatrix(matrix);

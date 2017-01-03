@@ -702,4 +702,36 @@ QUnit.module('vectorizer', function(hooks) {
         });
 
     });
+
+    QUnit.module('transformStringToMatrix()', function(hooks) {
+
+        var svgTestGroup;
+
+        hooks.beforeEach(function() {
+            svgTestGroup = V('g');
+            V(svgContainer).append(svgTestGroup);
+        });
+
+        hooks.afterEach(function() {
+            svgTestGroup.remove();
+        });
+
+        var transformStrings = [
+            'scale(2)',
+            'scale(2,3)',
+            'translate(10,10)',
+            'rotate(10)',
+            'rotate(10,100,100)',
+            'skewX(40)',
+            'skewY(60)',
+            'scale(2,2) matrix(1 0 0 1 10 10)',
+            'matrix(1 0 0 1 10 10) scale(2,2)',
+            'rotate(10,100,100) matrix(1 0 0 1 10 10) scale(2,2) translate(10,20)'
+        ].forEach(function(transformString) {
+            QUnit.test(transformString, function(assert) {
+                svgTestGroup.attr('transform', transformString);
+                assert.deepEqual(V.transformStringToMatrix(transformString), svgTestGroup.node.getCTM());
+            });
+        });
+    });
 });
