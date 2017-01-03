@@ -1021,63 +1021,65 @@ V = Vectorizer = (function() {
         };
     };
 
-    V.transformRegex = /(\w+\((\-?\d+\.?\d*e?\-?\d*[, ]?)+\))+/g;
+    V.transformRegex = /(\w+)\(([^,)]+),?([^)]+)?\)/gi;
     V.transformSeparatorRegex = /[ ,]+/;
 
     V.transformStringToMatrix = function(transform) {
 
         var transformationMatrix = V.createSVGMatrix();
         var matches = transform && transform.match(V.transformRegex);
-        if (!matches) return transformationMatrix;
+        if (!matches) {
+            return transformationMatrix;
+        }
 
-        return matches.reduce(function(matrix, transformationString) {
+        return matches.reduce(function(resultMatrix, transformationString) {
             var transformationMatch = transformationString.match(/^(\w+)\((.*)\)/);
             if (transformationMatch) {
-                var sx, sy, tx, ty, angle, cx, cy;
-                var currentTransformationMatrix = V.createSVGMatrix();
+                var sx, sy, tx, ty, angle;
+                var ctm = V.createSVGMatrix();
                 var args = transformationMatch[2].split(V.transformSeparatorRegex);
                 switch(transformationMatch[1].toLowerCase()) {
                     case 'scale':
                         sx = parseFloat(args[0]);
                         sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
-                        currentTransformationMatrix = currentTransformationMatrix.scaleNonUniform(sx, sy);
+                        ctm = ctm.scaleNonUniform(sx, sy);
                         break;
                     case 'translate':
-                        tx = parseInt(args[0]);
-                        ty = parseInt(args[1]);
-                        currentTransformationMatrix = currentTransformationMatrix.translate(tx, ty);
+                        tx = parseFloat(args[0]);
+                        ty = parseFloat(args[1]);
+                        ctm = ctm.translate(tx, ty);
                         break;
                     case 'rotate':
-                        angle = parseInt(args[0]);
-                        cx = parseInt(args[1]) || 0;
-                        cy = parseInt(args[2]) || 0;
-                        if (cx !== 0 || cy !== 0) {
-                            currentTransformationMatrix = currentTransformationMatrix.translate(cx, cy).rotate(angle).translate(-cx, -cy);
+                        angle = parseFloat(args[0]);
+                        tx = parseFloat(args[1]) || 0;
+                        ty = parseFloat(args[2]) || 0;
+                        if (tx !== 0 || ty !== 0) {
+                            ctm = ctm.translate(tx, ty).rotate(angle).translate(-tx, -ty);
                         } else {
-                            currentTransformationMatrix = currentTransformationMatrix.rotate(angle);
+                            ctm = ctm.rotate(angle);
                         }
                         break;
                     case 'skewx':
-                        angle = parseInt(args[0]);
-                        currentTransformationMatrix = currentTransformationMatrix.skewX(angle);
+                        angle = parseFloat(args[0]);
+                        ctm = ctm.skewX(angle);
                         break;
                     case 'skewy':
-                        angle = parseInt(args[0]);
-                        currentTransformationMatrix = currentTransformationMatrix.skewY(angle);
+                        angle = parseFloat(args[0]);
+                        ctm = ctm.skewY(angle);
                         break;
                     case 'matrix':
-                        currentTransformationMatrix.a = parseFloat(args[0]);
-                        currentTransformationMatrix.b = parseFloat(args[1]);
-                        currentTransformationMatrix.c = parseFloat(args[2]);
-                        currentTransformationMatrix.d = parseFloat(args[3]);
-                        currentTransformationMatrix.e = parseFloat(args[4]);
-                        currentTransformationMatrix.f = parseFloat(args[5]);
+                        ctm.a = parseFloat(args[0]);
+                        ctm.b = parseFloat(args[1]);
+                        ctm.c = parseFloat(args[2]);
+                        ctm.d = parseFloat(args[3]);
+                        ctm.e = parseFloat(args[4]);
+                        ctm.f = parseFloat(args[5]);
                         break;
                     default:
-                        return matrix;
+                        return resultMatrix;
                 }
 
-                return matrix.multiply(currentTransformationMatrix);
+                return resultMatrix.multiply(ctm);
             }
         }, transformationMatrix);
     };

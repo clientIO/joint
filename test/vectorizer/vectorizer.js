@@ -717,8 +717,10 @@ QUnit.module('vectorizer', function(hooks) {
         });
 
         var transformStrings = [
+            '',
             'scale(2)',
             'scale(2,3)',
+            'translate(10, 10)',
             'translate(10,10)',
             'rotate(10)',
             'rotate(10,100,100)',
