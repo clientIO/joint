@@ -144,7 +144,7 @@ V = Vectorizer = (function() {
 
         var transformAttr = this.attr('transform') || '';
         var transform = V.parseTransformString(transformAttr);
-
+        transformAttr = transform.value;
         // Is it a getter?
         if (V.isUndefined(tx)) {
             return transform.translate;
@@ -168,6 +168,7 @@ V = Vectorizer = (function() {
 
         var transformAttr = this.attr('transform') || '';
         var transform = V.parseTransformString(transformAttr);
+        transformAttr = transform.value;
 
         // Is it a getter?
         if (V.isUndefined(angle)) {
@@ -193,6 +194,7 @@ V = Vectorizer = (function() {
 
         var transformAttr = this.attr('transform') || '';
         var transform = V.parseTransformString(transformAttr);
+        transformAttr = transform.value;
 
         // Is it a getter?
         if (V.isUndefined(sx)) {
@@ -1019,31 +1021,104 @@ V = Vectorizer = (function() {
         };
     };
 
+    V.transformRegex = /(\w+\((\-?\d+\.?\d*e?\-?\d*[, ]?)+\))+/g;
+    V.transformSeparatorRegex = /[ ,]+/;
+
+    V.transformStringToMatrix = function(transform) {
+
+        var transformationMatrix = V.createSVGMatrix();
+        var matches = transform && transform.match(V.transformRegex);
+        if (!matches) return transformationMatrix;
+
+        return matches.reduce(function(matrix, transformationString) {
+            var transformationMatch = transformationString.match(/^(\w+)\((.*)\)/);
+            if (transformationMatch) {
+                var currentTransformationMatrix = V.createSVGMatrix();
+                var args = transformationMatch[2].split(V.transformSeparatorRegex);
+                switch(transformationMatch[1].toLowerCase()) {
+                    case 'scale':
+                        var sx = parseFloat(args[0]);
+                        var sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
+                        currentTransformationMatrix = currentTransformationMatrix.scaleNonUniform(sx, sy);
+                        break;
+                    case 'translate':
+                        var tx = parseInt(args[0]);
+                        var ty = parseInt(args[1]);
+                        currentTransformationMatrix = currentTransformationMatrix.translate(tx, ty);
+                        break;
+                    case 'rotate':
+                        var angle = parseInt(args[0]);
+                        currentTransformationMatrix = currentTransformationMatrix.rotate(angle);
+                        break;
+                    case 'matrix':
+                        currentTransformationMatrix.a = parseFloat(args[0]);
+                        currentTransformationMatrix.b = parseFloat(args[1]);
+                        currentTransformationMatrix.c = parseFloat(args[2]);
+                        currentTransformationMatrix.d = parseFloat(args[3]);
+                        currentTransformationMatrix.e = parseFloat(args[4]);
+                        currentTransformationMatrix.f = parseFloat(args[5]);
+                        break;
+                    default:
+                        return matrix;
+                }
+
+                return matrix.multiply(currentTransformationMatrix);
+            }
+        }, transformationMatrix);
+    };
+
     V.parseTransformString = function(transform) {
 
         var translate, rotate, scale;
 
         if (transform) {
 
-            var separator = /[ ,]+/;
+            var separator = V.transformSeparatorRegex;
 
-            var translateMatch = transform.match(/translate\((.*)\)/);
-            if (translateMatch) {
-                translate = translateMatch[1].split(separator);
-            }
-            var rotateMatch = transform.match(/rotate\((.*)\)/);
-            if (rotateMatch) {
-                rotate = rotateMatch[1].split(separator);
-            }
-            var scaleMatch = transform.match(/scale\((.*)\)/);
-            if (scaleMatch) {
-                scale = scaleMatch[1].split(separator);
+            // Allow reading transform string with a single matrix
+            var matrixMatch = transform.trim().match(/matrix/);
+            if (matrixMatch) {
+
+                var matrix = V.transformStringToMatrix(transform);
+                var decomposedMatrix = V.decomposeMatrix(matrix);
+
+                translate = [decomposedMatrix.translateX, decomposedMatrix.translateY];
+                scale = [decomposedMatrix.scaleX, decomposedMatrix.scaleY];
+                rotate = [decomposedMatrix.rotation];
+
+                var transformations = [];
+                if (translate[0] !== 0 ||  translate[0] !== 0) {
+                    transformations.push('translate(' + translate + ')');
+                }
+                if (scale[0] !== 1 ||  scale[1] !== 1) {
+                    transformations.push('scale(' + scale + ')');
+                }
+                if (rotate[0] !== 0) {
+                    transformations.push('rotate(' + rotate + ')');
+                }
+                transform = transformations.join(' ');
+
+            } else {
+
+                var translateMatch = transform.match(/translate\((.*)\)/);
+                if (translateMatch) {
+                    translate = translateMatch[1].split(separator);
+                }
+                var rotateMatch = transform.match(/rotate\((.*)\)/);
+                if (rotateMatch) {
+                    rotate = rotateMatch[1].split(separator);
+                }
+                var scaleMatch = transform.match(/scale\((.*)\)/);
+                if (scaleMatch) {
+                    scale = scaleMatch[1].split(separator);
+                }
             }
         }
 
         var sx = (scale && scale[0]) ? parseFloat(scale[0]) : 1;
 
         return {
+            value: transform,
             translate: {
                 tx: (translate && translate[0]) ? parseInt(translate[0], 10) : 0,
                 ty: (translate && translate[1]) ? parseInt(translate[1], 10) : 0

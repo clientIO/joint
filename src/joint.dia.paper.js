@@ -199,15 +199,42 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.on('cell:unhighlight', this.onCellUnhighlight, this);
     },
 
-    cacheMatrix: function(matrix) {
+    // For storing the current transformation matrix (CTM) of the paper's viewport.
+    _viewportMatrix: null,
+    // For verifying whether the CTM is up-to-date. The viewport transform attribute
+    // could have been manipulated directly.
+    _viewportTransformString: null,
 
-        this._matrix = matrix || this.viewport.getCTM();
-    },
+    matrix: function(ctm) {
 
-    matrix: function() {
-        // Clone the cached current transformation matrix.
-        // If no matrix previously stored the identity matrix is returned.
-        return V.createSVGMatrix(this._matrix);
+        var viewport = this.viewport;
+
+        // Getter:
+        if (ctm === undefined) {
+
+            var transformString = viewport.getAttribute('transform');
+
+            if ((this._viewportTransformString || null) === transformString) {
+                // It's ok to return the cached matrix. The transform attribute has not changed since
+                // the matrix was stored.
+                ctm = this._viewportMatrix;
+            } else {
+                // The viewport transform attribute has changed. Measure the matrix and cache again.
+                ctm = viewport.getCTM();
+                this._viewportMatrix = ctm;
+                this._viewportTransformString = transformString;
+            }
+
+            // Clone the cached current transformation matrix.
+            // If no matrix previously stored the identity matrix is returned.
+            return V.createSVGMatrix(ctm);
+        }
+
+        // Setter:
+        ctm = V.createSVGMatrix(ctm);
+        V(viewport).transform(ctm, { absolute: true });
+        this._viewportMatrix = ctm;
+        this._viewportTransformString = viewport.getAttribute('transform');
     },
 
     _onSort: function() {
@@ -667,12 +694,11 @@ joint.dia.Paper = joint.mvc.View.extend({
             this.translate(newTx, newTy);
         }
 
-        var matrix = this.matrix();
-        matrix.a = sx || 0;
-        matrix.d = sy || 0;
+        var ctm = this.matrix();
+        ctm.a = sx || 0;
+        ctm.d = sy || 0;
 
-        V(this.viewport).transform(matrix, { absolute: true });
-        this.cacheMatrix(matrix);
+        this.matrix(ctm);
 
         this.trigger('scale', sx, sy, ox, oy);
 
@@ -702,14 +728,13 @@ joint.dia.Paper = joint.mvc.View.extend({
             cy = bbox.height / 2;
         }
 
-        var matrix = this.matrix().translate(cx,cy).rotate(angle).translate(-cx,-cy);
-        V(this.viewport).transform(matrix);
-        this.cacheMatrix(matrix);
+        var ctm = this.matrix().translate(cx,cy).rotate(angle).translate(-cx,-cy);
+        this.matrix(ctm);
 
         return this;
     },
 
-    translate: function(tx, ty, opt) {
+    translate: function(tx, ty) {
 
         // getter
         if (tx === undefined) {
@@ -718,12 +743,11 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // setter
 
-        var matrix = this.matrix();
-        matrix.e = tx || 0;
-        matrix.f = ty || 0;
+        var ctm = this.matrix();
+        ctm.e = tx || 0;
+        ctm.f = ty || 0;
 
-        V(this.viewport).transform(matrix, { absolute: true });
-        this.cacheMatrix(matrix);
+        this.matrix(ctm);
 
         var newTranslate = this.translate();
         var origin = this.options.origin;
