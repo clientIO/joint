@@ -716,7 +716,7 @@ QUnit.module('vectorizer', function(hooks) {
             svgTestGroup.remove();
         });
 
-        var transformStrings = [
+        [
             '',
             'scale(2)',
             'scale(2,3)',
