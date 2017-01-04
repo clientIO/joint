@@ -1182,6 +1182,8 @@ V = Vectorizer = (function() {
         };
     };
 
+    // Return the `scale` transformation from the following equation:
+    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
     V.matrixToScale = function(matrix) {
 
         var a,b,c,d;
@@ -1199,6 +1201,8 @@ V = Vectorizer = (function() {
         };
     },
 
+    // Return the `rotate` transformation from the following equation:
+    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
     V.matrixToRotate = function(matrix) {
 
         var p = { x: 0, y: 1 };
@@ -1207,10 +1211,12 @@ V = Vectorizer = (function() {
         }
 
         return {
-            angle: ((180 / Math.PI) * Math.atan2(p.y, p.x) - 90)
+            angle: g.normalizeAngle(g.toDeg(Math.atan2(p.y, p.x)) - 90)
         };
     },
 
+    // Return the `translate` transformation from the following equation:
+    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
     V.matrixToTranslate = function(matrix) {
 
         return {
