@@ -702,4 +702,85 @@ QUnit.module('vectorizer', function(hooks) {
         });
 
     });
+
+    QUnit.module('transformStringToMatrix()', function(hooks) {
+
+        var svgTestGroup;
+
+        hooks.beforeEach(function() {
+            svgTestGroup = V('g');
+            V(svgContainer).append(svgTestGroup);
+        });
+
+        hooks.afterEach(function() {
+            svgTestGroup.remove();
+        });
+
+        [
+            '',
+            'scale(2)',
+            'scale(2,3)',
+            'scale(2.5,3.1)',
+            'translate(10, 10)',
+            'translate(10,10)',
+            'translate(10.2,11.6)',
+            'rotate(10)',
+            'rotate(10,100,100)',
+            'skewX(40)',
+            'skewY(60)',
+            'scale(2,2) matrix(1 0 0 1 10 10)',
+            'matrix(1 0 0 1 10 10) scale(2,2)',
+            'rotate(10,100,100) matrix(1 0 0 1 10 10) scale(2,2) translate(10,20)'
+        ].forEach(function(transformString) {
+            QUnit.test(transformString, function(assert) {
+                svgTestGroup.attr('transform', transformString);
+                assert.deepEqual(V.transformStringToMatrix(transformString), svgTestGroup.node.getCTM());
+            });
+        });
+    });
+
+    QUnit.module('matrixTo[Transformation]()', function() {
+
+        function roundObject(obj) {
+            for (var i in obj) {
+                if (obj.hasOwnProperty(i)) {
+                    obj[i] = Math.round(obj[i]);
+                }
+            }
+            return obj;
+        }
+
+        QUnit.test('Rotate', function(assert) {
+            var angle;
+            angle = V.matrixToRotate(V.createSVGMatrix().rotate(45));
+            assert.deepEqual(roundObject(angle), { angle: 45 });
+            angle = V.matrixToRotate(V.createSVGMatrix().translate(50,50).rotate(15));
+            assert.deepEqual(roundObject(angle), { angle: 15 });
+            angle = V.matrixToRotate(V.createSVGMatrix().translate(50,50).rotate(60).scale(2));
+            assert.deepEqual(roundObject(angle), { angle: 60 });
+            angle = V.matrixToRotate(V.createSVGMatrix().rotate(60).rotate(60));
+            assert.deepEqual(roundObject(angle), { angle: 120 });
+        });
+
+        QUnit.test('Translate', function(assert) {
+            var translate;
+            translate = V.matrixToTranslate(V.createSVGMatrix().translate(10,20));
+            assert.deepEqual(roundObject(translate), { tx: 10, ty: 20 });
+            translate = V.matrixToTranslate(V.createSVGMatrix().translate(10,20).rotate(10,20).scale(2));
+            assert.deepEqual(roundObject(translate), { tx: 10, ty: 20 });
+            translate = V.matrixToTranslate(V.createSVGMatrix().translate(10,20).translate(30,40));
+            assert.deepEqual(roundObject(translate), { tx: 40, ty: 60 });
+        });
+
+        QUnit.test('Scale', function(assert) {
+            var scale;
+            scale = V.matrixToScale(V.createSVGMatrix().scale(2));
+            assert.deepEqual(roundObject(scale), { sx: 2, sy: 2 });
+            scale = V.matrixToScale(V.createSVGMatrix().translate(15,15).scaleNonUniform(2,3).rotate(10,20));
+            assert.deepEqual(roundObject(scale), { sx: 2, sy: 3 });
+            scale = V.matrixToScale(V.createSVGMatrix().scale(2,2).scale(3,3));
+            assert.deepEqual(roundObject(scale), { sx: 6, sy: 6 });
+        });
+
+    });
 });

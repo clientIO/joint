@@ -1,0 +1,6 @@
+<pre class="docs-method-signature"><code>paper.translate(x, y)</code></pre><p>Lets you modify the origin (zero coordinates) of a paper. An origin can also be passed to the options object of the <code>joint.dia.Paper</code> constructor. If the method is called a <code>&quot;translate&quot;</code> event is triggered on the paper. If the method is called with no paramater the current paper <code>translate</code> transformation is returned.</p>
+
+<pre><code>paper.translate(100, 200) // set origin to `x=100` and `y=200`
+paper.translate(100) // same as calling `translate(100,0)`
+paper.translate() // returns e.g. { tx: 100, ty: 100 }
+</code></pre>

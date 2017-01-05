@@ -1,2 +1,8 @@
-<pre class="docs-method-signature"><code>paper.scale(sx, sy, [ox, oy])</code></pre><p>Scale a paper by <code>sx</code> factor in x axis and <code>sy</code> factor in y axis.
-                    <code>ox</code> and <code>oy</code> are optional and determine the origin of the scale transformation. This method effectively implements a paper zoom in/out. If the method is called a <code>&quot;scale&quot;</code> event is triggered on the paper.</p>
+<pre class="docs-method-signature"><code>paper.scale([sx, sy, ox, oy])</code></pre><p>Scale a paper by <code>sx</code> factor in x axis and <code>sy</code> factor in y axis.
+                    <code>ox</code> and <code>oy</code> are optional and determine the origin of the scale transformation. This method effectively implements a paper zoom in/out. If the method is called a <code>&quot;scale&quot;</code> event is triggered on the paper. When the method is called with no parameter the current paper <code>scale</code> transformation is returned.</p>
+
+<pre><code>paper.scale(2) // scale 2x (uniformly)
+paper.scale(2,3) // scale 2x in `x` axis 3x in `y` axis (non-uniformly)
+paper.scale(2,2,100,100) // scale with the origin of the transformation at point `x=100` and `y=100`
+paper.scale() // returns e.g. { sx: 2, sy: 2 }
+</code></pre>

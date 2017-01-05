@@ -169,7 +169,7 @@ QUnit.module('paper', function(hooks) {
             { x: -100, y: -100, width: 1000, height: 800 },
             'Paper area returns correct results for unscaled, but translated viewport.');
 
-        V(this.paper.viewport).scale(2, 2);
+        this.paper.scale(2,2);
 
         assert.deepEqual(
             _.pick(this.paper.getArea(), 'x', 'y', 'width', 'height'),
@@ -1085,5 +1085,75 @@ QUnit.module('paper', function(hooks) {
                 assert.equal(cellView.can('manipulate'), cellView.model.isLink(), 'only links can be manipulated');
             }, this);
         });
+    });
+
+    QUnit.test('matrix()', function(assert) {
+
+        assert.deepEqual(this.paper.matrix(), this.paper.matrix().inverse(), 'when the paper is not transformed it returns the identity matrix');
+
+        this.paper.setOrigin(100,100);
+        assert.deepEqual(V.decomposeMatrix(this.paper.matrix()), {
+            rotation: 0,
+            scaleX: 1,
+            scaleY: 1,
+            skewX: 0,
+            skewY: 0,
+            translateX: 100,
+            translateY: 100
+        }, 'changing the origin of the paper will modify the matrix');
+
+        this.paper.scale(2,2);
+        assert.deepEqual(V.decomposeMatrix(this.paper.matrix()), {
+            rotation: 0,
+            scaleX: 2,
+            scaleY: 2,
+            skewX: 0,
+            skewY: 0,
+            translateX: 100,
+            translateY: 100
+        }, 'changing the scale of the paper will modify the matrix');
+
+        this.paper.rotate(90);
+        assert.deepEqual(V.decomposeMatrix(this.paper.matrix()), {
+            rotation: 90,
+            scaleX: 2,
+            scaleY: 2,
+            skewX: 90,
+            skewY: 90,
+            translateX: 100,
+            translateY: 100
+        }, 'changing the rotation of the paper will modify the matrix');
+    });
+
+    QUnit.module('transformations', function() {
+
+        QUnit.test('scale', function(assert) {
+            this.paper.scale(2);
+            var viewportScale = V.matrixToScale(this.paper.viewport.getCTM());
+            assert.equal(viewportScale.sx, 2);
+            assert.equal(viewportScale.sy, 2);
+            var getterScale = this.paper.scale();
+            assert.equal(getterScale.sx, 2);
+            assert.equal(getterScale.sy, 2);
+        });
+
+        QUnit.test('translate', function(assert) {
+            this.paper.translate(10,20);
+            var viewportTranslate = V.matrixToTranslate(this.paper.viewport.getCTM());
+            assert.equal(viewportTranslate.tx, 10);
+            assert.equal(viewportTranslate.ty, 20);
+            var getterTranslate = this.paper.translate();
+            assert.equal(getterTranslate.tx, 10);
+            assert.equal(getterTranslate.ty, 20);
+        });
+
+        QUnit.test('rotate', function(assert) {
+            this.paper.rotate(45);
+            var viewportRotate = V.matrixToRotate(this.paper.viewport.getCTM());
+            assert.equal(viewportRotate.angle, 45);
+            var getterRotate = this.paper.rotate();
+            assert.equal(getterRotate.angle, 45);
+        });
+
     });
 });

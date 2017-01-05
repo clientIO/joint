@@ -188,7 +188,6 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.listenTo(this.model, 'sort', this._onSort);
         this.listenTo(this.model, 'batch:stop', this._onBatchStop);
 
-        this.setOrigin();
         this.setDimensions();
 
         $(document).on('mouseup touchend', this.pointerup);
@@ -200,6 +199,44 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.on('cell:highlight', this.onCellHighlight, this);
         this.on('cell:unhighlight', this.onCellUnhighlight, this);
+    },
+
+    // For storing the current transformation matrix (CTM) of the paper's viewport.
+    _viewportMatrix: null,
+    // For verifying whether the CTM is up-to-date. The viewport transform attribute
+    // could have been manipulated directly.
+    _viewportTransformString: null,
+
+    matrix: function(ctm) {
+
+        var viewport = this.viewport;
+
+        // Getter:
+        if (ctm === undefined) {
+
+            var transformString = viewport.getAttribute('transform');
+
+            if ((this._viewportTransformString || null) === transformString) {
+                // It's ok to return the cached matrix. The transform attribute has not changed since
+                // the matrix was stored.
+                ctm = this._viewportMatrix;
+            } else {
+                // The viewport transform attribute has changed. Measure the matrix and cache again.
+                ctm = viewport.getCTM();
+                this._viewportMatrix = ctm;
+                this._viewportTransformString = transformString;
+            }
+
+            // Clone the cached current transformation matrix.
+            // If no matrix previously stored the identity matrix is returned.
+            return V.createSVGMatrix(ctm);
+        }
+
+        // Setter:
+        ctm = V.createSVGMatrix(ctm);
+        V(viewport).transform(ctm, { absolute: true });
+        this._viewportMatrix = ctm;
+        this._viewportTransformString = viewport.getAttribute('transform');
     },
 
     _onSort: function() {
@@ -235,16 +272,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     setOrigin: function(ox, oy) {
 
-        this.options.origin.x = ox || 0;
-        this.options.origin.y = oy || 0;
-
-        V(this.viewport).translate(ox, oy, { absolute: true });
-
-        this.trigger('translate', ox, oy);
-
-        if (this.options.drawGrid) {
-            this.drawGrid();
-        }
+        return this.translate(ox || 0, oy || 0, { absolute: true });
     },
 
     // Expand/shrink the paper to fit the content. Snap the width/height to the grid
@@ -273,7 +301,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         // Calculate the paper size to accomodate all the graph's elements.
         var bbox = V(this.viewport).bbox(true, this.svg);
 
-        var currentScale = V(this.viewport).scale();
+        var currentScale = this.scale();
+        var currentTranslate = this.translate();
 
         bbox.x *= currentScale.sx;
         bbox.y *= currentScale.sy;
@@ -310,11 +339,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         calcHeight = Math.min(calcHeight, opt.maxHeight || Number.MAX_VALUE);
 
         var dimensionChange = calcWidth != this.options.width || calcHeight != this.options.height;
-        var originChange = tx != this.options.origin.x || ty != this.options.origin.y;
+        var originChange = tx != currentTranslate.tx || ty != currentTranslate.ty;
 
         // Change the dimensions only if there is a size discrepency or an origin change
         if (originChange) {
-            this.setOrigin(tx, ty);
+            this.translate(tx, ty);
         }
         if (dimensionChange) {
             this.setDimensions(calcWidth, calcHeight);
@@ -349,12 +378,18 @@ joint.dia.Paper = joint.mvc.View.extend({
         var minScaleY = opt.minScaleY || opt.minScale;
         var maxScaleY = opt.maxScaleY || opt.maxScale;
 
-        var fittingBBox = opt.fittingBBox || ({
-            x: this.options.origin.x,
-            y: this.options.origin.y,
-            width: this.options.width,
-            height: this.options.height
-        });
+        var fittingBBox;
+        if (opt.fittingBBox) {
+            fittingBBox = opt.fittingBBox;
+        } else {
+            var currentTranslate = this.translate();
+            fittingBBox = {
+                x: currentTranslate.tx,
+                y: currentTranslate.ty,
+                width: this.options.width,
+                height: this.options.height
+            };
+        }
 
         fittingBBox = g.rect(fittingBBox).moveAndExpand({
             x: padding,
@@ -363,7 +398,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             height: -2 * padding
         });
 
-        var currentScale = V(this.viewport).scale();
+        var currentScale = this.scale();
 
         var newSx = fittingBBox.width / contentBBox.width * currentScale.sx;
         var newSy = fittingBBox.height / contentBBox.height * currentScale.sy;
@@ -392,7 +427,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var newOx = fittingBBox.x - contentTranslation.x;
         var newOy = fittingBBox.y - contentTranslation.y;
 
-        this.setOrigin(newOx, newOy);
+        this.translate(newOx, newOy);
     },
 
     getContentBBox: function() {
@@ -404,11 +439,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         var screenCTM = this.viewport.getScreenCTM();
 
         // for non-default origin we need to take the viewport translation into account
-        var viewportCTM = this.viewport.getCTM();
+        var currentTranslate = this.translate();
 
         return g.rect({
-            x: crect.left - screenCTM.e + viewportCTM.e,
-            y: crect.top - screenCTM.f + viewportCTM.f,
+            x: crect.left - screenCTM.e + currentTranslate.tx,
+            y: crect.top - screenCTM.f + currentTranslate.ty,
             width: crect.width,
             height: crect.height
         });
@@ -419,7 +454,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // and the top border to the bottom one).
     getArea: function() {
 
-        var transformationMatrix = this.viewport.getCTM().inverse();
+        var transformationMatrix = this.matrix().inverse();
         var noTransformationBBox = { x: 0, y: 0, width: this.options.width, height: this.options.height };
 
         return g.rect(V.transformRect(noTransformationBBox, transformationMatrix));
@@ -639,30 +674,33 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     scale: function(sx, sy, ox, oy) {
 
-        sy = sy || sx;
+        // getter
+        if (sx === undefined) {
+            return V.matrixToScale(this.matrix());
+        }
 
-        if (_.isUndefined(ox)) {
-
+        // setter
+        if (sy === undefined) {
+            sy = sx;
+        }
+        if (ox === undefined) {
             ox = 0;
             oy = 0;
         }
 
-        // Remove previous transform so that the new scale is not affected by previous scales, especially
-        // the old translate() does not affect the new translate if an origin is specified.
-        V(this.viewport).attr('transform', '');
+        var translate = this.translate();
 
-        var oldTx = this.options.origin.x;
-        var oldTy = this.options.origin.y;
-
-        // TODO: V.scale() doesn't support setting scale origin. #Fix
-        if (ox || oy || oldTx || oldTy) {
-
-            var newTx = oldTx - ox * (sx - 1);
-            var newTy = oldTy - oy * (sy - 1);
-            this.setOrigin(newTx, newTy);
+        if (ox || oy || translate.tx || translate.ty) {
+            var newTx = translate.tx - ox * (sx - 1);
+            var newTy = translate.ty - oy * (sy - 1);
+            this.translate(newTx, newTy);
         }
 
-        V(this.viewport).scale(sx, sy);
+        var ctm = this.matrix();
+        ctm.a = sx || 0;
+        ctm.d = sy || 0;
+
+        this.matrix(ctm);
 
         this.trigger('scale', sx, sy, ox, oy);
 
@@ -673,19 +711,58 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this;
     },
 
-    rotate: function(deg, ox, oy) {
+    // Experimental - do not use in production.
+    rotate: function(angle, cx, cy) {
+
+        // getter
+        if (angle === undefined) {
+            return V.matrixToRotate(this.matrix());
+        }
+
+        // setter
 
         // If the origin is not set explicitely, rotate around the center. Note that
         // we must use the plain bounding box (`this.el.getBBox()` instead of the one that gives us
         // the real bounding box (`bbox()`) including transformations).
-        if (_.isUndefined(ox)) {
-
+        if (cx === undefined) {
             var bbox = this.viewport.getBBox();
-            ox = bbox.width / 2;
-            oy = bbox.height / 2;
+            cx = bbox.width / 2;
+            cy = bbox.height / 2;
         }
 
-        V(this.viewport).rotate(deg, ox, oy);
+        var ctm = this.matrix().translate(cx,cy).rotate(angle).translate(-cx,-cy);
+        this.matrix(ctm);
+
+        return this;
+    },
+
+    translate: function(tx, ty) {
+
+        // getter
+        if (tx === undefined) {
+            return V.matrixToTranslate(this.matrix());
+        }
+
+        // setter
+
+        var ctm = this.matrix();
+        ctm.e = tx || 0;
+        ctm.f = ty || 0;
+
+        this.matrix(ctm);
+
+        var newTranslate = this.translate();
+        var origin = this.options.origin;
+        origin.x = newTranslate.tx;
+        origin.y = newTranslate.ty;
+
+        this.trigger('translate', newTranslate.tx, newTranslate.ty);
+
+        if (this.options.drawGrid) {
+            this.drawGrid();
+        }
+
+        return this;
     },
 
     // Find the first view climbing up the DOM tree starting at element `el`. Note that `el` can also
@@ -782,7 +859,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         p.offset(scrollLeft - paperOffset.left, scrollTop - paperOffset.top);
 
         // Transform point into the viewport coordinate system.
-        return V.transformPoint(p, this.viewport.getCTM().inverse());
+        return V.transformPoint(p, this.matrix().inverse());
     },
 
     linkAllowed: function(linkViewOrModel) {
@@ -1193,11 +1270,12 @@ joint.dia.Paper = joint.mvc.View.extend({
             return this.clearGrid();
         }
 
-        var currentScale = V(this.viewport).scale();
+        var currentScale = this.scale();
+        var currentTranslate = this.translate();
         var scaleX = currentScale.sx;
         var scaleY = currentScale.sy;
-        var originX = this.options.origin.x;
-        var originY = this.options.origin.y;
+        var originX = currentTranslate.tx;
+        var originY = currentTranslate.ty;
         var gridX = gridSize * scaleX;
         var gridY = gridSize * scaleY;
 
