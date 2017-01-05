@@ -1297,7 +1297,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
 
         var ctm = this.matrix();
-        var canvas = this.constructor.canvas.grid({
+        var canvas = this.constructor.backgroundPatterns.grid(null, {
             sx: ctm.a,
             sy: ctm.d,
             ox: ctm.e,
