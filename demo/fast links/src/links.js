@@ -1,35 +1,3 @@
-var CustomPaper = joint.dia.Paper.extend({
-  events: function() {
-    return _.extend({}, joint.dia.Paper.prototype.events, {
-      'mouseenter .joint-cell': 'cellMouseenter',
-      'mouseleave .joint-cell': 'cellMouseleave'
-    });
-  },
-  cellMouseenter: function(evt) {
-    evt = joint.util.normalizeEvent(evt);
-    var view = this.findView(evt.target);
-    if (view) {
-      if (this.guard(evt, view)) return;
-      view.mouseenter(evt);
-    }
-  },
-  cellMouseleave: function(evt) {
-    evt = joint.util.normalizeEvent(evt);
-    var view = this.findView(evt.target);
-    if (view) {
-      if (this.guard(evt, view)) return;
-      view.mouseleave(evt);
-    }
-  }
-});
-
-joint.dia.CellView.prototype.mouseenter = function(evt) {
-  this.notify('cell:mouseenter', evt);
-};
-joint.dia.CellView.prototype.mouseleave = function(evt) {
-  this.notify('cell:mouseleave', evt);
-};
-
 // Super fast (non-interactive) view for JointJS links
 joint.dia.LightLinkView = joint.dia.CellView.extend({
 
@@ -184,8 +152,8 @@ joint.dia.LightLinkView = joint.dia.CellView.extend({
 
 
 var graph = new joint.dia.Graph;
-var paper = new CustomPaper({
-    el: $('#paper'),
+var paper = new joint.dia.Paper({
+    el: document.getElementById('paper'),
     width: 600,
     height: 500,
     gridSize: 20,
