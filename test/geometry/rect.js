@@ -39,6 +39,14 @@ QUnit.module('rect', function() {
 
         });
 
+        QUnit.module('bottomLine()', function() {
+
+            QUnit.test('returns the bottom line', function(assert) {
+
+                assert.ok(g.rect(10, 20, 30, 40).bottomLine().equals(g.line('10 60', '40 60')));
+            });
+        });
+
         QUnit.module('bottomMiddle()', function() {
 
             QUnit.test('returns the bottom-middle point', function(assert) {
@@ -125,6 +133,14 @@ QUnit.module('rect', function() {
 
         });
 
+        QUnit.module('leftLine()', function() {
+
+            QUnit.test('returns the left line', function(assert) {
+
+                assert.ok(g.rect(10, 20, 30, 40).leftLine().equals(g.line('10 20', '10 60')));
+            });
+        });
+
         QUnit.module('leftMiddle()', function() {
 
             QUnit.test('returns the left-middle point', function(assert) {
@@ -147,6 +163,14 @@ QUnit.module('rect', function() {
 
         QUnit.module('pointNearestToPoint(point)', function() {
 
+        });
+
+        QUnit.module('rightLine()', function() {
+
+            QUnit.test('returns the right line', function(assert) {
+
+                assert.ok(g.rect(10, 20, 30, 40).rightLine().equals(g.line('40 20', '40 60')));
+            });
         });
 
         QUnit.module('rightMiddle()', function() {
@@ -176,6 +200,14 @@ QUnit.module('rect', function() {
 
         QUnit.module('snapToGrid(gx, gy)', function() {
 
+        });
+
+        QUnit.module('topLine()', function() {
+
+            QUnit.test('returns the top line', function(assert) {
+
+                assert.ok(g.rect(10, 20, 30, 40).topLine().equals(g.line('10 20', '40 20')));
+            });
         });
 
         QUnit.module('topMiddle()', function() {
