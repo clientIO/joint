@@ -374,33 +374,69 @@ var g = (function() {
             return Line(this);
         },
 
-        // @return {point} Point where I'm intersecting l.
-        // @see Squeak Smalltalk, LineSegment>>intersectionWith:
-        intersection: function(l) {
-            var pt1Dir = Point(this.end.x - this.start.x, this.end.y - this.start.y);
-            var pt2Dir = Point(l.end.x - l.start.x, l.end.y - l.start.y);
-            var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
-            var deltaPt = Point(l.start.x - this.start.x, l.start.y - this.start.y);
-            var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
-            var beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
+        equals: function(l) {
 
-            if (det === 0 ||
-                alpha * det < 0 ||
-                beta * det < 0) {
-                // No intersection found.
-                return null;
-            }
-            if (det > 0) {
-                if (alpha > det || beta > det) {
+            return this.start.x === l.start.x &&
+                    this.start.y === l.start.y &&
+                    this.start.x === l.start.x &&
+                    this.end.y === l.end.y;
+        },
+
+        // @return {point} Point where I'm intersecting a line.
+        // @return [point] Points where I'm intersecting a rectangle.
+        // @see Squeak Smalltalk, LineSegment>>intersectionWith:
+        intersect: function(l) {
+
+            if (l instanceof Line) {
+                // Passed in parameter is a line.
+
+                var pt1Dir = Point(this.end.x - this.start.x, this.end.y - this.start.y);
+                var pt2Dir = Point(l.end.x - l.start.x, l.end.y - l.start.y);
+                var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
+                var deltaPt = Point(l.start.x - this.start.x, l.start.y - this.start.y);
+                var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
+                var beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
+
+                if (det === 0 ||
+                    alpha * det < 0 ||
+                    beta * det < 0) {
+                    // No intersection found.
                     return null;
                 }
-            } else {
-                if (alpha < det || beta < det) {
-                    return null;
+                if (det > 0) {
+                    if (alpha > det || beta > det) {
+                        return null;
+                    }
+                } else {
+                    if (alpha < det || beta < det) {
+                        return null;
+                    }
                 }
+                return Point(this.start.x + (alpha * pt1Dir.x / det),
+                             this.start.y + (alpha * pt1Dir.y / det));
+
+            } else if (l instanceof Rect) {
+                // Passed in parameter is a rectangle.
+
+                var r = l;
+                var rectLines = [ r.topLine(), r.rightLine(), r.bottomLine(), r.leftLine() ];
+                var points = [];
+                var dedupeArr = [];
+                var pt, i;
+
+                for (i = 0; i < rectLines.length; i ++) {
+                    pt = this.intersect(rectLines[i]);
+                    if (pt !== null && dedupeArr.indexOf(pt.toString()) < 0) {
+                        points.push(pt);
+                        dedupeArr.push(pt.toString());
+                    }
+                }
+
+                return points.length > 0 ? points : null;
             }
-            return Point(this.start.x + (alpha * pt1Dir.x / det),
-                         this.start.y + (alpha * pt1Dir.y / det));
+
+            // Passed in parameter is neither a Line nor a Rectangle.
+            return null;
         },
 
         // @return {double} length of the line
@@ -443,6 +479,9 @@ var g = (function() {
             return this.start.toString() + ' ' + this.end.toString();
         }
     };
+
+    // For backwards compatibility:
+    g.Line.prototype.intersection = g.Line.prototype.intersect;
 
     /*
         Point is the most basic object consisting of x/y coordinate.
@@ -536,9 +575,14 @@ var g = (function() {
             return Point(this);
         },
 
-        difference: function(p) {
+        difference: function(dx, dy) {
 
-            return Point(this.x - p.x, this.y - p.y);
+            if ((Object(dx) === dx)) {
+                dy = dx.y;
+                dx = dx.x;
+            }
+
+            return Point(this.x - (dx || 0), this.y - (dy || 0));
         },
 
         // Returns distance between me and point `p`.
@@ -580,6 +624,11 @@ var g = (function() {
 
         // Offset me by the specified amount.
         offset: function(dx, dy) {
+
+            if ((Object(dx) === dx)) {
+                dy = dx.y;
+                dx = dx.x;
+            }
 
             this.x += dx || 0;
             this.y += dy || 0;
@@ -723,6 +772,11 @@ var g = (function() {
             return Point(this.x, this.y + this.height);
         },
 
+        bottomLine: function() {
+
+            return Line(this.bottomLeft(), this.corner());
+        },
+
         bottomMiddle: function() {
 
             return Point(this.x + this.width / 2, this.y + this.height);
@@ -836,6 +890,11 @@ var g = (function() {
             return result;
         },
 
+        leftLine: function() {
+
+            return Line(this.origin(), this.bottomLeft());
+        },
+
         leftMiddle: function() {
 
             return Point(this.x , this.y + this.height / 2);
@@ -920,6 +979,11 @@ var g = (function() {
             return point.adhereToRect(this);
         },
 
+        rightLine: function() {
+
+            return Line(this.topRight(), this.corner());
+        },
+
         rightMiddle: function() {
 
             return Point(this.x + this.width, this.y + this.height / 2);
@@ -981,6 +1045,11 @@ var g = (function() {
             this.width = corner.x - origin.x;
             this.height = corner.y - origin.y;
             return this;
+        },
+
+        topLine: function() {
+
+            return Line(this.origin(), this.topRight());
         },
 
         topMiddle: function() {

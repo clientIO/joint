@@ -47,6 +47,12 @@ QUnit.module('point', function() {
 
         QUnit.module('difference(point)', function() {
 
+            QUnit.test('returns a point with the correct coordinates', function(assert) {
+
+                assert.equal(g.point(0,10).difference(4, 8).toString(), '-4@2');
+                assert.equal(g.point(5,8).difference(g.point(5, 10)).toString(), '0@-2');
+                assert.equal(g.point(4,2).difference(2).toString(), '2@2');
+            });
         });
 
         QUnit.module('distance(point)', function() {
@@ -87,6 +93,10 @@ QUnit.module('point', function() {
                 assert.equal(point.toString(), '2@3');
                 point.offset(-2, 4);
                 assert.equal(point.toString(), '0@7');
+                point.offset(2);
+                assert.equal(point.toString(), '2@7');
+                point.offset(g.point(5, 3));
+                assert.equal(point.toString(), '7@10');
             });
         });
 
