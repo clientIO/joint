@@ -291,6 +291,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this;
     },
 
+    clientMatrix: function() {
+
+        return V.createSVGMatrix(this.viewport.getScreenCTM());
+    },
+
     _onSort: function() {
         if (!this.model.hasActiveBatch('add')) {
             this.sortViews();
@@ -487,14 +492,14 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Using Screen CTM was the only way to get the real viewport bounding box working in both
         // Google Chrome and Firefox.
-        var screenCTM = this.viewport.getScreenCTM();
+        var clientCTM = this.clientMatrix();
 
         // for non-default origin we need to take the viewport translation into account
         var currentTranslate = this.translate();
 
         return g.rect({
-            x: crect.left - screenCTM.e + currentTranslate.tx,
-            y: crect.top - screenCTM.f + currentTranslate.ty,
+            x: crect.left - clientCTM.e + currentTranslate.tx,
+            y: crect.top - clientCTM.f + currentTranslate.ty,
             width: crect.width,
             height: crect.height
         });
@@ -505,10 +510,12 @@ joint.dia.Paper = joint.mvc.View.extend({
     // and the top border to the bottom one).
     getArea: function() {
 
-        var transformationMatrix = this.matrix().inverse();
-        var noTransformationBBox = { x: 0, y: 0, width: this.options.width, height: this.options.height };
-
-        return g.rect(V.transformRect(noTransformationBBox, transformationMatrix));
+        return this.paperToLocalRect({
+            x: 0,
+            y: 0,
+            width: this.options.width,
+            height: this.options.height
+        });
     },
 
     getRestrictedArea: function() {
@@ -870,34 +877,36 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this.model.getCell(id);
     },
 
-    snapToGrid: function(p) {
+    snapToGrid: function(x, y) {
 
         // Convert global coordinates to the local ones of the `viewport`. Otherwise,
         // improper transformation would be applied when the viewport gets transformed (scaled/rotated).
-        var localPoint = V(this.viewport).toLocalPoint(p.x, p.y);
-
-        return {
-            x: g.snapToGrid(localPoint.x, this.options.gridSize),
-            y: g.snapToGrid(localPoint.y, this.options.gridSize)
-        };
+        return this.clientToLocalPoint(x, y).snapToGrid(this.options.gridSize);
     },
 
     // Transform client coordinates to the paper local coordinates.
     // Useful when you have a mouse event object and you'd like to get coordinates
     // inside the paper that correspond to `evt.clientX` and `evt.clientY` point.
     // Exmaple: var paperPoint = paper.clientToLocalPoint({ x: evt.clientX, y: evt.clientY });
-    clientToLocalPoint: function(x, y) {
-        // allow `x` to be a point and `y` undefined
-        var clientPoint = g.Point(x, y);
-        var localPoint = V(this.viewport).toLocalPoint(clientPoint.x, clientPoint.y);
-        return g.Point(localPoint);
-    },
+    // clientToLocalPoint: function(x, y) {
+    //     // allow `x` to be a point and `y` undefined
+    //     var clientPoint = g.Point(x, y);
+    //     var localPoint = V(this.viewport).toLocalPoint(clientPoint.x, clientPoint.y);
+    //     return g.Point(localPoint);
+    // },
 
     localToPaperPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
         var localPoint = g.Point(x, y);
         var paperPoint = V.transformPoint(localPoint, this.matrix());
         return g.Point(paperPoint);
+    },
+
+    localToPaperRect: function(x, y, width, height) {
+        // allow `x` to be a rectangle and rest arguments undefined
+        var localRect = g.Rect(x, y);
+        var paperRect = V.transformRect(localRect, this.matrix());
+        return g.Rect(paperRect);
     },
 
     paperToLocalPoint: function(x, y) {
@@ -907,18 +916,39 @@ joint.dia.Paper = joint.mvc.View.extend({
         return g.Point(localPoint);
     },
 
-    localToScreenPoint: function(x, y) {
-        // allow `x` to be a point and `y` undefined
-        var localPoint = g.Point(x, y);
-        var screenPoint = V.transformPoint(localPoint, this.viewport.getScreenCTM().inverse());
-        return g.Point(screenPoint);
+    paperToLocalRect: function(x, y, width, height) {
+        // allow `x` to be a rectangle and rest arguments undefined
+        var paperRect = g.Rect(x, y, width, height);
+        var localRect = V.transformRect(paperRect, this.matrix().inverse());
+        return g.Rect(localRect);
     },
 
-    screenToLocalPoint: function(x, y) {
+    localToClientPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
-        var screenPoint = g.Point(x, y);
-        var localPoint = V.transformPoint(screenPoint, this.viewport.getScreenCTM());
+        var localPoint = g.Point(x, y);
+        var clientPoint = V.transformPoint(localPoint, this.clientMatrix());
+        return g.Point(clientPoint);
+    },
+
+    localToClientRect: function(x, y, width, height) {
+        // allow `x` to be a point and `y` undefined
+        var localRect = g.Rect(x, y, width, height);
+        var clientRect = V.transformRect(localRect, this.clientMatrix());
+        return g.Rect(clientRect);
+    },
+
+    clientToLocalPoint: function(x, y) {
+        // allow `x` to be a point and `y` undefined
+        var clientPoint = g.Point(x, y);
+        var localPoint = V.transformPoint(clientPoint, this.clientMatrix().inverse());
         return g.Point(localPoint);
+    },
+
+    clientToLocalRect: function(x, y, width, height) {
+        // allow `x` to be a point and `y` undefined
+        var clientRect = g.Rect(x, y, width, height);
+        var localRect = V.transformRect(clientRect, this.clientMatrix().inverse());
+        return g.Rect(localRect);
     },
 
     linkAllowed: function(linkViewOrModel) {
