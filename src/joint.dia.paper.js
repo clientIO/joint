@@ -951,6 +951,37 @@ joint.dia.Paper = joint.mvc.View.extend({
         return g.Rect(localRect);
     },
 
+    localToPagePoint: function(x, y) {
+        return this.localToPaperPoint(x, y).offset(this.pageOffset());
+    },
+
+    localToPageRect: function(x, y, width, height) {
+        return this.localToPaperRect(x, y, width, height).moveAndExpand(this.pageOffset());
+    },
+
+    pageToLocalPoint: function(x, y) {
+        var pagePoint = g.Point(x, y);
+        var paperPoint = pagePoint.difference(this.pageOffset());
+        return this.paperToLocalPoint(paperPoint);
+    },
+
+    pageToLocalRect: function(x, y, width, height) {
+        var pageOffset = this.pageOffset();
+        var paperRect = g.Rect(x, y, width, height);
+        paperRect.x -= pageOffset.x;
+        paperRect.y -= pageOffset.y;
+        return this.paperToLocalRect(paperRect);
+    },
+
+    clientOffset: function() {
+        var clientRect = this.svg.getBoundingClientRect();
+        return g.Point(clientRect.left, clientRect.top);
+    },
+
+    pageOffset: function() {
+        return this.clientOffset().offset(window.scrollX, window.scrollY);
+    },
+
     linkAllowed: function(linkViewOrModel) {
 
         var link;
