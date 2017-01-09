@@ -66,7 +66,7 @@ QUnit.module('util', function(hooks) {
         // For example, some browsers might have a different default font size/family.
         var styles = {
             'font-size': '12px',
-            'font-family': 'Courer New'
+            'font-family': 'Courier New'
         };
 
         var text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
