@@ -64,6 +64,19 @@ test('options', function(assert) {
     assert.deepEqual(view.options, expectedOptions, 'options should be inherited correctly');
 });
 
+test('options for an svg element', function(assert) {
+
+    var svgElementView = joint.mvc.View.extend({
+        tagName: 'g',
+        svgElement: true
+    });
+    var svgEl = new svgElementView();
+
+    assert.ok(svgEl.el, "element is created");
+    assert.equal(svgEl.el.tagName.toLowerCase(), "g", "creates the correct element");
+    assert.ok(svgEl.el instanceof SVGElement, "element is of the type SVGElement");
+});
+
 test('init()', function(assert) {
 
     var called = false;
