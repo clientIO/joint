@@ -70,7 +70,6 @@ joint.highlighters.stroke = {
         var highlightView = this._views[magnetEl.id] = new joint.mvc.View({
             svgElement: true,
             className: 'highlight-stroke',
-            // This is necessary because we're passing in a vectorizer element (not jQuery).
             el: highlightVel.node,
         });
 
