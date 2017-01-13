@@ -41,8 +41,9 @@ console.log('width:', graphBBox.width, 'height:', graphBBox.height);</code></pre
     <tr><th>clusterPadding</th><td>A gap between the parent element and the boundary of its embedded children. It could be a number or an object e.g. <code>{ left: 10, right: 10, top: 30, bottom: 10 }</code>. It defaults to <code>10</code>.</td></tr>
     <tr><th>setPosition(element, position)</th><td>a function that will be used to set the position of elements at the end of the layout. This is useful
     if you don't want to use the default <code>element.set('position', position)</code> but want to set the position in an animated fashion via <a href="#dia.Element.prototype.transition">transitions</a>.</td></tr>
-    <tr><th>setLinkVertices(link, vertices)</th><td>a function that will be used to set the vertices of links at the end of the layout. This is useful
-    if you don't want to use the default <code>link.set('vertices', vertices)</code> but want to set the vertices in an animated fashion via <a href="#dia.Link.prototype.transition">transitions</a>.</td></tr>
+    <tr><th>setLinkVertices</th><td>If set to <code>true<code/> the layout will adjust the links by setting their vertices. It defaults to <code>false</code>.</td></tr>
+    <tr><th>setVertices(link, vertices)</th><td>a function that will be used to set the vertices of links at the end of the layout. This is useful
+        if you don't want to use the default <code>link.set('vertices', vertices)</code> but want to set the vertices in an animated fashion via <a href="#dia.Link.prototype.transition">transitions</a>.</td></tr>
 </table>
 
 <p>Additionally, the layout engine takes into account some properties on elements/links to fine tune the layout further. These are:</p>
