@@ -640,6 +640,8 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     tagName: 'g',
 
+    svgElement: true,
+
     className: function() {
 
         var classNames = ['cell'];
@@ -706,34 +708,6 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         return (_.isObject(interactive) && interactive[feature] !== false) ||
                 (_.isBoolean(interactive) && interactive !== false);
-    },
-
-    // Override the Backbone `_ensureElement()` method in order to create a `<g>` node that wraps
-    // all the nodes of the Cell view.
-    _ensureElement: function() {
-
-        var el;
-
-        if (!this.el) {
-
-            var attrs = _.extend({ id: this.id }, _.result(this, 'attributes'));
-            if (this.className) attrs['class'] = _.result(this, 'className');
-            el = V(_.result(this, 'tagName'), attrs).node;
-
-        } else {
-
-            el = _.result(this, 'el');
-        }
-
-        this.setElement(el, false);
-    },
-
-    // Utilize an alternative DOM manipulation API by
-    // adding an element reference wrapped in Vectorizer.
-    _setElement: function(el) {
-        this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
-        this.el = this.$el[0];
-        this.vel = V(this.el);
     },
 
     findBySelector: function(selector) {

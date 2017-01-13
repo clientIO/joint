@@ -68,10 +68,9 @@ joint.highlighters.stroke = {
 
         // joint.mvc.View will handle the theme class name and joint class name prefix.
         var highlightView = this._views[magnetEl.id] = new joint.mvc.View({
+            svgElement: true,
             className: 'highlight-stroke',
-            // This is necessary because we're passing in a vectorizer element (not jQuery).
             el: highlightVel.node,
-            $el: highlightVel
         });
 
         // Remove the highlight view when the cell is removed from the graph.

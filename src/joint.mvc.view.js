@@ -27,6 +27,52 @@ joint.mvc.View = Backbone.View.extend({
         this.init();
     },
 
+    // Override the Backbone `_ensureElement()` method in order to create an
+    // svg element (e.g., `<g>`) node that wraps all the nodes of the Cell view.
+    _ensureElement: function() {
+        var el;
+
+        if (this.svgElement) {
+
+            if (!this.el) {
+
+                var attrs = _.extend({ id: this.id }, _.result(this, 'attributes'));
+                if (this.className) attrs['class'] = _.result(this, 'className');
+                el = V(_.result(this, 'tagName'), attrs).node;
+
+            } else {
+
+                el = _.result(this, 'el');
+            }
+
+            this.setElement(el, false);
+
+        } else {
+
+            Backbone.View.prototype._ensureElement.call(this);
+
+        }
+
+    },
+
+    // Utilize an alternative DOM manipulation API by
+    // adding an element reference wrapped in Vectorizer.
+    _setElement: function(el) {
+
+        if (this.svgElement) {
+
+            this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
+            this.el = this.$el[0];
+            this.vel = V(this.el);
+
+        } else {
+
+            Backbone.View.prototype._setElement.call(this, el);
+
+        }
+
+    },
+
     _ensureElClassName: function() {
 
         var className = _.result(this, 'className');
