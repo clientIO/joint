@@ -662,13 +662,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             bbox = vref.bbox(false, this.el);
         }
 
-        // Remove the previous translate() from the transform attribute and translate the element
-        // relative to the root bounding box following the `ref-x` and `ref-y` attributes.
-        if (vel.attr('transform')) {
-
-            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '').trim() || '');
-        }
-
         // 'ref-width'/'ref-height' defines the width/height of the subelement relatively to
         // the reference element size
         // val in 0..1         ref-width = 0.75 sets the width to 75% of the ref. el. width
@@ -779,6 +772,11 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             var node = vel.node;
             var velBBox = vel.bbox(false, node.parentNode);
 
+            // Remove the previous translate()
+            var translate = vel.translate();
+            velBBox.x -= translate.tx;
+            velBBox.y -= translate.ty;
+
             // Compensate the size with the bounding box origin offset for text elements.
             var nodeName = node.nodeName.toUpperCase();
             if (nodeName === 'TEXT' || nodeName === 'TSPAN') {
@@ -823,7 +821,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
-        vel.translate(tx, ty);
+        vel.translate(tx, ty, { absolute: true });
     },
 
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
