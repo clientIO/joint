@@ -23,6 +23,7 @@ module.exports = function(grunt) {
             'src/core.js',
             'src/joint.mvc.view.js',
             'src/joint.dia.graph.js',
+            'src/joint.dia.specialAttributes.js',
             'src/joint.dia.cell.js',
             'src/joint.dia.element.js',
             'src/joint.dia.link.js',

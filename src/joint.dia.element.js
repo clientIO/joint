@@ -1,4 +1,3 @@
-
 // joint.dia.Element base model.
 // -----------------------------
 
@@ -426,86 +425,36 @@ joint.dia.ElementView = joint.dia.CellView.extend({
      */
     updateAttr: function($selected, attrs) {
 
-        // Special attributes are treated by JointJS, not by SVG.
-        var specialAttributes = this.SPECIAL_ATTRIBUTES.slice();
+        var namespace = joint.dia.specialAttributes;
+        var attrName, attrVal, def;
+        var normalAttributes = {};
+        var specialAttributes = [];
 
-        // If the `filter` attribute is an object, it is in the special JointJS filter format and so
-        // it becomes a special attribute and is treated separately.
-        if (_.isObject(attrs.filter)) {
-
-            specialAttributes.push('filter');
-            this.applyFilter($selected, attrs.filter);
+        // divide the attributes between normal and special
+        for (attrName in attrs) {
+            if (!attrs.hasOwnProperty(attrName)) continue;
+            attrVal = attrs[attrName];
+            def = namespace[attrName];
+            if (def && (!def.qualify || def.qualify.call(this, attrVal, attrs))) {
+                specialAttributes.push(attrName);
+            } else {
+                normalAttributes[attrName] = attrVal;
+            }
         }
 
-        // If the `fill` or `stroke` attribute is an object, it is in the special JointJS gradient format and so
-        // it becomes a special attribute and is treated separately.
-        if (_.isObject(attrs.fill)) {
+        // set all the normal attributes right on the SVG/HTML element
+        $selected.attr(normalAttributes);
 
-            specialAttributes.push('fill');
-            this.applyGradient($selected, 'fill', attrs.fill);
+        // handle the rest of attributes via related method
+        // from the special attributes namespace.
+        for (var i = 0, n = specialAttributes.length; i < n; i++) {
+            attrName = specialAttributes[i];
+            def = namespace[attrName];
+            if (def.exec) {
+                attrVal = attrs[attrName];
+                def.exec.call(this, $selected, attrVal, attrs);
+            }
         }
-        if (_.isObject(attrs.stroke)) {
-
-            specialAttributes.push('stroke');
-            this.applyGradient($selected, 'stroke', attrs.stroke);
-        }
-
-        // Make special case for `text` attribute. So that we can set text content of the `<text>` element
-        // via the `attrs` object as well.
-        // Note that it's important to set text before applying the rest of the final attributes.
-        // Vectorizer `text()` method sets on the element its own attributes and it has to be possible
-        // to rewrite them, if needed. (i.e display: 'none')
-        if (!_.isUndefined(attrs.text)) {
-
-            $selected.each(function() {
-
-                if (!_.isUndefined(attrs.x)) {
-                    V(this).attr('x', attrs.x);
-                    specialAttributes.push('x');
-                }
-
-                if (!_.isUndefined(attrs.y)) {
-                    V(this).attr('y', attrs.y);
-                    specialAttributes.push('y');
-                }
-
-                V(this).text(attrs.text + '', {
-                    lineHeight: attrs.lineHeight,
-                    textPath: attrs.textPath,
-                    annotations: attrs.annotations
-                });
-            });
-            specialAttributes.push('lineHeight', 'textPath', 'annotations');
-        }
-
-        // Set regular attributes on the `$selected` subelement. Note that we cannot use the jQuery attr()
-        // method as some of the attributes might be namespaced (e.g. xlink:href) which fails with jQuery attr().
-        var finalAttributes = _.omit(attrs, specialAttributes);
-
-        $selected.each(function() {
-
-            V(this).attr(finalAttributes);
-        });
-
-        // `port` attribute contains the `id` of the port that the underlying magnet represents.
-        if (attrs.port) {
-            $selected.attr('port', _.isUndefined(attrs.port.id) ? attrs.port : attrs.port.id);
-        }
-
-        // `style` attribute is special in the sense that it sets the CSS style of the subelement.
-        if (attrs.style) {
-
-            $selected.css(attrs.style);
-        }
-
-        if (!_.isUndefined(attrs.html)) {
-
-            $selected.each(function() {
-
-                $(this).html(attrs.html + '');
-            });
-        }
-
     },
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
