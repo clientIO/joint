@@ -358,22 +358,6 @@ joint.dia.Element = joint.dia.Cell.extend({
 
 joint.dia.ElementView = joint.dia.CellView.extend({
 
-    SPECIAL_ATTRIBUTES: [
-        'style',
-        'text',
-        'html',
-        'ref-x',
-        'ref-y',
-        'ref-dx',
-        'ref-dy',
-        'ref-width',
-        'ref-height',
-        'ref',
-        'x-alignment',
-        'y-alignment',
-        'port'
-    ],
-
     /**
      * @abstract
      */
@@ -435,7 +419,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             if (!attrs.hasOwnProperty(attrName)) continue;
             attrVal = attrs[attrName];
             def = namespace[attrName];
-            if (def && (!def.qualify || def.qualify.call(this, attrVal, attrs))) {
+            if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, attrs))) {
                 specialAttributes.push(attrName);
             } else {
                 normalAttributes[attrName] = attrVal;
@@ -450,9 +434,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         for (var i = 0, n = specialAttributes.length; i < n; i++) {
             attrName = specialAttributes[i];
             def = namespace[attrName];
-            if (def.exec) {
+            if (_.isFunction(def.set)) {
                 attrVal = attrs[attrName];
-                def.exec.call(this, $selected, attrVal, attrs);
+                def.set.call(this, $selected, attrVal, attrs);
             }
         }
     },

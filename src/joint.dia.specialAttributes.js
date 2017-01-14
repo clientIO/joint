@@ -2,27 +2,27 @@ joint.dia.specialAttributes = {
 
     filter: {
         qualify: _.isObject,
-        exec: function($elements, filter) {
-            this.applyFilter($elements, filter);            
+        set: function($elements, filter) {
+            this.applyFilter($elements, filter);
         }
     },
 
     fill: {
         qualify: _.isObject,
-        exec: function($elements, fill) {
+        set: function($elements, fill) {
             this.applyGradient($elements, 'fill', fill);
         }
     },
 
     stroke: {
         qualify: _.isObject,
-        exec: function($elements, stroke) {
+        set: function($elements, stroke) {
             this.applyGradient($elements, 'stroke', stroke);
-        }        
+        }
     },
 
     text: {
-        exec: function($elements, text, attrs) {
+        set: function($elements, text, attrs) {
             for (var i = 0, n = $elements.length; i < n; i++) {
                 V($elements[i]).text(text + '', {
                     lineHeight: attrs.lineHeight,
@@ -53,22 +53,22 @@ joint.dia.specialAttributes = {
 
     // `port` attribute contains the `id` of the port that the underlying magnet represents.
     port: {
-        exec: function($elements, port) {
+        set: function($elements, port) {
             var portId = _.isUndefined(port.id) ? port : port.id;
             $elements.attr('port', portId);
-        }        
+        }
     },
 
-    // `style` attribute is special in the sense that it sets the CSS style of the subelement.    
+    // `style` attribute is special in the sense that it sets the CSS style of the subelement.
     style: {
         qualify: _.isObject,
-        exec: function($elements, styles) {
+        set: function($elements, styles) {
             $elements.css(styles);
         }
     },
 
     html: {
-        exec: function($elements, html) {
+        set: function($elements, html) {
             $elements.html(html + '');
         }
     }

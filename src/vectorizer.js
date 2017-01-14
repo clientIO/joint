@@ -88,13 +88,13 @@ V = Vectorizer = (function() {
 
                 el = document.createElementNS(ns.xmlns, el);
             }
+
+            if (!el.id) {
+                el.id = V.uniqueId();
+            }
         }
 
         this.node = el;
-
-        if (!this.node.id) {
-            this.node.id = V.uniqueId();
-        }
 
         this.setAttributes(attrs);
 
@@ -696,8 +696,11 @@ V = Vectorizer = (function() {
 
     V.prototype.animateAlongPath = function(attrs, path) {
 
+        path = V(path).node;
+
+        var id = path.id = (path.id || V.uniqueId());
         var animateMotion = V('animateMotion', attrs);
-        var mpath = V('mpath', { 'xlink:href': '#' + V(path).node.id });
+        var mpath = V('mpath', { 'xlink:href': '#' + id });
 
         animateMotion.append(mpath);
 

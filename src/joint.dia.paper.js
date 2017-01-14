@@ -1111,6 +1111,9 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         opt = this.resolveHighlighter(opt);
         if (!opt) return;
+        if (!magnetEl.id) {
+            magnetEl.id = V.uniqueId();
+        }
 
         var key = opt.name + magnetEl.id + JSON.stringify(opt.options);
         if (!this._highlights[key]) {
