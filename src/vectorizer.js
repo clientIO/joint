@@ -610,7 +610,6 @@ V = Vectorizer = (function() {
 
         var a = this.node;
         var b = V(el).node;
-        var adown = a.nodeType === 9 ? a.documentElement : a;
         var bup = b && b.parentNode;
 
         return (a === bup) || !!(bup && bup.nodeType === 1 && (a.compareDocumentPosition(bup) & 16));

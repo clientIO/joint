@@ -459,19 +459,19 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         this._removePorts();
 
-        var allAttrs = this.model.get('attrs');
-
-        var rotatable = this.rotatableNode;
-        if (rotatable) {
-            var rotation = rotatable.attr('transform');
-            rotatable.attr('transform', '');
-        }
-
+        var model = this.model;
+        var allAttrs = model.get('attrs');
         var relativelyPositioned = [];
         var nodesBySelector = {};
 
+        var i, n, selector, $el;
 
-        _.each(renderingOnlyAttrs || allAttrs, function(attrs, selector) {
+        var currentAttrs = renderingOnlyAttrs || allAttrs;
+        for (selector in currentAttrs) {
+
+            if (!currentAttrs.hasOwnProperty(selector)) continue;
+
+            var attrs = currentAttrs[selector];
 
             // Elements that should be updated.
             var $selected = (selector === '.')
@@ -481,7 +481,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             var elementsCount = $selected.length;
 
             // No element matched by the `selector` was found. We're done then.
-            if (elementsCount === 0) return;
+            if (elementsCount === 0) continue;
 
             nodesBySelector[selector] = $selected;
 
@@ -490,25 +490,27 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             // Special attributes make it also possible to set both absolute or
             // relative positioning of subelements.
             if (!_.isEmpty(relativeAttributes)) {
-
-                for (var i = 0; i < elementsCount; i++) {
-                    var $el = $selected.eq(i);
+                for (i = 0; i < elementsCount; i++) {
+                    $el = $selected.eq(i);
                     // store the selector for the element
                     $el.selector = selector;
                     $el.relativeAttributes = relativeAttributes;
                     relativelyPositioned.push($el);
                 }
             }
-
-        }, this);
+        }
 
         renderingOnlyAttrs = renderingOnlyAttrs || {};
 
-        _.each(relativelyPositioned, function($el) {
+
+        for (i = 0, n = relativelyPositioned.length; i < n; i++) {
+
+            $el = relativelyPositioned[i];
+            selector = $el.selector;
 
             var relativeNodeAttributes = $el.relativeAttributes;
-            var selector = $el.selector;
             var allNodeAttrs = allAttrs[selector];
+
             // if there was a special attribute affecting the position amongst renderingOnlyAttributes
             // we have to merge it with rest of the element's attributes as they are necessary
             // to update the position relatively (i.e `ref`)
@@ -541,25 +543,20 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                     throw new Error('dia.ElementView: reference does not exists.');
                 }
 
+                var target = (this.rotatableNode && this.rotatableNode.node) || this.el;
                 // Get the bounding box of the reference element relative to the root `<g>` element.
-                refBBox = vref.bbox(false, this.el);
+                refBBox = vref.bbox(false, target);
 
             } else {
                 // Note that we're using the bounding box without transformation because we are already inside
                 // a transformed coordinate system.
-                refBBox = this.model.get('size');
+                refBBox = model.get('size');
             }
 
             refBBox = g.Rect(refBBox);
 
 
             this.positionRelative(V($el[0]), relativeNodeAttributes, refBBox);
-
-        }, this);
-
-        if (rotatable) {
-
-            rotatable.attr('transform', rotation || '');
         }
 
         this._renderPorts();

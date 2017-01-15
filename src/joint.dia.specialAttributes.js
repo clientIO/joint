@@ -77,6 +77,7 @@
 
         ref: {
             // We do not set `ref` attribute directly on an element.
+            // The attribute itself does not qualify for relative positioning.
         },
 
         // if `refX` is in [0, 1] then `refX` is a fraction of bounding box width
