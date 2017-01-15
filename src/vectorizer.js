@@ -605,6 +605,17 @@ V = Vectorizer = (function() {
         return null;
     };
 
+    // https://jsperf.com/get-common-parent
+    V.prototype.contains = function(el) {
+
+        var a = this.node;
+        var b = V(el).node;
+        var adown = a.nodeType === 9 ? a.documentElement : a;
+        var bup = b && b.parentNode;
+
+        return (a === bup) || !!(bup && bup.nodeType === 1 && (a.compareDocumentPosition(bup) & 16));
+    };
+
     // Convert global point into the coordinate space of this element.
     V.prototype.toLocalPoint = function(x, y) {
 

@@ -410,9 +410,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     updateAttr: function($selected, attrs) {
 
         var namespace = joint.dia.specialAttributes;
-        var attrName, attrVal, def;
+        var attrName, attrVal, def, i, n;
         var normalAttributes = {};
-        var specialAttributes = [];
+        var specialAttributeNames = [];
 
         // divide the attributes between normal and special
         for (attrName in attrs) {
@@ -420,25 +420,38 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             attrVal = attrs[attrName];
             def = namespace[attrName];
             if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, attrs))) {
-                specialAttributes.push(attrName);
+                specialAttributeNames.push(attrName);
             } else {
                 normalAttributes[attrName] = attrVal;
             }
         }
 
         // set all the normal attributes right on the SVG/HTML element
-        $selected.attr(normalAttributes);
-
-        // handle the rest of attributes via related method
-        // from the special attributes namespace.
-        for (var i = 0, n = specialAttributes.length; i < n; i++) {
-            attrName = specialAttributes[i];
-            def = namespace[attrName];
-            if (_.isFunction(def.set)) {
-                attrVal = attrs[attrName];
-                def.set.call(this, $selected, attrVal, attrs);
+        for (i = 0, n = $selected.length; i < n; i++) {
+            var el = $selected[i];
+            if (el instanceof SVGElement) {
+                V(el).attr(normalAttributes);
+            } else {
+                $(el).attr(normalAttributes);
             }
         }
+
+        var relativeAttributes = {};
+        // handle the rest of attributes via related method
+        // from the special attributes namespace.
+        for (i = 0, n = specialAttributeNames.length; i < n; i++) {
+            attrName = specialAttributeNames[i];
+            attrVal = attrs[attrName];
+            def = namespace[attrName];
+            if (_.isFunction(def.set)) {
+                def.set.call(this, $selected, attrVal, attrs);
+            }
+            if (def.positionRelatively || def.position || def.setRelatively) {
+                relativeAttributes[attrName] = attrVal;
+            }
+        }
+
+        return relativeAttributes;
     },
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
@@ -457,6 +470,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var relativelyPositioned = [];
         var nodesBySelector = {};
 
+
         _.each(renderingOnlyAttrs || allAttrs, function(attrs, selector) {
 
             // Elements that should be updated.
@@ -471,53 +485,75 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             nodesBySelector[selector] = $selected;
 
-            this.updateAttr($selected, attrs);
+            var relativeAttributes = this.updateAttr($selected, attrs);
 
-            // Special `ref-x` and `ref-y` attributes make it possible to set both absolute or
+            // Special attributes make it also possible to set both absolute or
             // relative positioning of subelements.
-            if (!_.isUndefined(attrs['ref-x']) ||
-                !_.isUndefined(attrs['ref-y']) ||
-                !_.isUndefined(attrs['ref-dx']) ||
-                !_.isUndefined(attrs['ref-dy']) ||
-                !_.isUndefined(attrs['x-alignment']) ||
-                !_.isUndefined(attrs['y-alignment']) ||
-                !_.isUndefined(attrs['ref-width']) ||
-                !_.isUndefined(attrs['ref-height'])
-            ) {
+            if (!_.isEmpty(relativeAttributes)) {
 
                 for (var i = 0; i < elementsCount; i++) {
                     var $el = $selected.eq(i);
                     // store the selector for the element
                     $el.selector = selector;
+                    $el.relativeAttributes = relativeAttributes;
                     relativelyPositioned.push($el);
                 }
             }
 
         }, this);
 
-        // We don't want the sub elements to affect the bounding box of the root element when
-        // positioning the sub elements relatively to the bounding box.
-        //_.invoke(relativelyPositioned, 'hide');
-        //_.invoke(relativelyPositioned, 'show');
-
-        // Note that we're using the bounding box without transformation because we are already inside
-        // a transformed coordinate system.
-        var size = this.model.get('size');
-        var bbox = { x: 0, y: 0, width: size.width, height: size.height };
-
         renderingOnlyAttrs = renderingOnlyAttrs || {};
 
         _.each(relativelyPositioned, function($el) {
 
+            var relativeNodeAttributes = $el.relativeAttributes;
+            var selector = $el.selector;
+            var allNodeAttrs = allAttrs[selector];
             // if there was a special attribute affecting the position amongst renderingOnlyAttributes
             // we have to merge it with rest of the element's attributes as they are necessary
             // to update the position relatively (i.e `ref`)
-            var renderingOnlyElAttrs = renderingOnlyAttrs[$el.selector];
-            var elAttrs = renderingOnlyElAttrs
-                ? _.merge({}, allAttrs[$el.selector], renderingOnlyElAttrs)
-                : allAttrs[$el.selector];
+            var renderingOnlyNodeAttrs = renderingOnlyAttrs[selector];
+            if (renderingOnlyNodeAttrs) {
+                var allNodeRelativeAttributes = _.pick(allNodeAttrs, function(val, key) {
+                    var def = joint.dia.specialAttributes[key];
+                    return (def && (def.positionRelatively || def.position || def.setRelatively));
+                });
+                relativeNodeAttributes =  _.merge({}, allNodeRelativeAttributes, relativeNodeAttributes);
+            }
 
-            this.positionRelative(V($el[0]), bbox, elAttrs, nodesBySelector);
+
+            var refBBox;
+            // `ref` is the selector of the reference element. If no `ref` is passed, reference
+            // element is the root element.
+            var ref = allNodeAttrs.ref;
+            if (ref) {
+
+                var vref;
+                if (nodesBySelector && nodesBySelector[ref]) {
+                    // First we check if the same selector has been already used.
+                    vref = V(nodesBySelector[ref][0]);
+                } else {
+                    // Other wise we find the ref ourselves.
+                    vref = (ref === '.') ? this.vel : this.vel.findOne(ref);
+                }
+
+                if (!vref) {
+                    throw new Error('dia.ElementView: reference does not exists.');
+                }
+
+                // Get the bounding box of the reference element relative to the root `<g>` element.
+                refBBox = vref.bbox(false, this.el);
+
+            } else {
+                // Note that we're using the bounding box without transformation because we are already inside
+                // a transformed coordinate system.
+                refBBox = this.model.get('size');
+            }
+
+            refBBox = g.Rect(refBBox);
+
+
+            this.positionRelative(V($el[0]), relativeNodeAttributes, refBBox);
 
         }, this);
 
@@ -529,231 +565,89 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this._renderPorts();
     },
 
-    positionRelative: function(vel, bbox, attributes, nodesBySelector) {
-
-        var ref = attributes['ref'];
-        var refDx = parseFloat(attributes['ref-dx']);
-        var refDy = parseFloat(attributes['ref-dy']);
-        var yAlignment = attributes['y-alignment'];
-        var xAlignment = attributes['x-alignment'];
-
-        // 'ref-y', 'ref-x', 'ref-width', 'ref-height' can be defined
-        // by value or by percentage e.g 4, 0.5, '200%'.
-        var refY = attributes['ref-y'];
-        var refYPercentage = _.isString(refY) && refY.slice(-1) === '%';
-        refY = parseFloat(refY);
-        if (refYPercentage) {
-            refY /= 100;
-        }
-
-        var refX = attributes['ref-x'];
-        var refXPercentage = _.isString(refX) && refX.slice(-1) === '%';
-        refX = parseFloat(refX);
-        if (refXPercentage) {
-            refX /= 100;
-        }
-
-        var refWidth = attributes['ref-width'];
-        var refWidthPercentage = _.isString(refWidth) && refWidth.slice(-1) === '%';
-        refWidth = parseFloat(refWidth);
-        if (refWidthPercentage) {
-            refWidth /= 100;
-        }
-
-        var refHeight = attributes['ref-height'];
-        var refHeightPercentage = _.isString(refHeight) && refHeight.slice(-1) === '%';
-        refHeight = parseFloat(refHeight);
-        if (refHeightPercentage) {
-            refHeight /= 100;
-        }
+    positionRelative: function(vel, relativeAttributes, refBBox) {
 
         // Check if the node is a descendant of the scalable group.
-        var scalable = vel.findParentByClass('scalable', this.el);
-
-        // `ref` is the selector of the reference element. If no `ref` is passed, reference
-        // element is the root element.
-        if (ref) {
-
-            var vref;
-
-            if (nodesBySelector && nodesBySelector[ref]) {
-                // First we check if the same selector has been already used.
-                vref = V(nodesBySelector[ref][0]);
-            } else {
-                // Other wise we find the ref ourselves.
-                vref = ref === '.' ? this.vel : this.vel.findOne(ref);
-            }
-
-            if (!vref) {
-                throw new Error('dia.ElementView: reference does not exists.');
-            }
-
-            // Get the bounding box of the reference element relative to the root `<g>` element.
-            bbox = vref.bbox(false, this.el);
-        }
-
-        // Remove the previous translate() from the transform attribute and translate the element
-        // relative to the root bounding box following the `ref-x` and `ref-y` attributes.
-        if (vel.attr('transform')) {
-
-            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '').trim() || '');
-        }
-
-        // 'ref-width'/'ref-height' defines the width/height of the subelement relatively to
-        // the reference element size
-        // val in 0..1         ref-width = 0.75 sets the width to 75% of the ref. el. width
-        // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
-
-        if (isFinite(refWidth)) {
-
-            if (refWidthPercentage || refWidth >= 0 && refWidth <= 1) {
-
-                vel.attr('width', refWidth * bbox.width);
-
-            } else {
-
-                vel.attr('width', Math.max(refWidth + bbox.width, 0));
-            }
-        }
-
-        if (isFinite(refHeight)) {
-
-            if (refHeightPercentage || refHeight >= 0 && refHeight <= 1) {
-
-                vel.attr('height', refHeight * bbox.height);
-
-            } else {
-
-                vel.attr('height', Math.max(refHeight + bbox.height, 0));
-            }
+        var sx, sy;
+        var scalableNode = this.scalableNode;
+        if (scalableNode && scalableNode.contains(vel)) {
+            var scale = scalableNode.scale();
+            sx = scale.sx;
+            sy = scale.sy;
+            refBBox.scale(sx, sy);
+        } else {
+            sx = 1;
+            sy = 1;
         }
 
         // The final translation of the subelement.
-        var tx = 0;
-        var ty = 0;
-        var scale;
+        var position = g.Point(0,0);
+        var velBBox, translation;
+        var defNamespace = joint.dia.specialAttributes;
 
-        // `ref-dx` and `ref-dy` define the offset of the subelement relative to the right and/or bottom
-        // coordinate of the reference element.
-        if (isFinite(refDx)) {
+        for (var attrName in relativeAttributes) {
 
-            if (scalable) {
+            if (!relativeAttributes.hasOwnProperty(attrName)) continue;
 
-                // Compensate for the scale grid in case the elemnt is in the scalable group.
-                scale = scale || scalable.scale();
-                tx = bbox.x + bbox.width + refDx / scale.sx;
+            var attrVal = relativeAttributes[attrName];
+            if (!_.isUndefined(attrVal)) {
 
-            } else {
+                var def = defNamespace[attrName];
+                if (!def) {
+                    continue;
+                }
 
-                tx = bbox.x + bbox.width + refDx;
+                // SET RELATIVELY
+                if (def.setRelatively) {
+                    def.setRelatively.call(this, vel, attrVal, refBBox);
+                }
+
+                // POSITION RELATIVELY
+                if (def.positionRelatively) {
+                    translation = def.positionRelatively.call(this, attrVal, refBBox);
+                    if (translation) {
+                        position.offset(translation.scale(1 / sx, 1 / sy));
+                    }
+                }
+
+                // POSITION
+                if (def.position) {
+                    if (!velBBox) {
+                        velBBox = this.getVNodeBBox(vel);
+                        velBBox.width *= sx;
+                        velBBox.height *= sy;
+                    }
+                    translation = def.position.call(this, attrVal, velBBox);
+                    if (translation) {
+                        position.offset(translation);
+                    }
+                }
             }
         }
 
-        if (isFinite(refDy)) {
+        vel.translate(position.x, position.y, { absolute: true });
+    },
 
-            if (scalable) {
+    // Get the boundind box with the tranformations applied by the the
+    // node itself only.
+    getVNodeBBox: function(vel) {
 
-                // Compensate for the scale grid in case the elemnt is in the scalable group.
-                scale = scale || scalable.scale();
-                ty = bbox.y + bbox.height + refDy / scale.sy;
-            } else {
+        var node = vel.node;
+        var bbox = vel.bbox(false, node.parentNode);
 
-                ty = bbox.y + bbox.height + refDy;
-            }
+        // Subtract the previous translate()
+        var translate = vel.translate();
+        bbox.x -= translate.tx;
+        bbox.y -= translate.ty;
+
+        // Compensate the size with the bounding box origin offset for text elements.
+        var nodeName = node.nodeName.toUpperCase();
+        if (nodeName === 'TEXT' || nodeName === 'TSPAN') {
+            bbox.height += bbox.y;
+            bbox.width += bbox.x;
         }
 
-        // if `refX` is in [0, 1] then `refX` is a fraction of bounding box width
-        // if `refX` is < 0 then `refX`'s absolute values is the right coordinate of the bounding box
-        // otherwise, `refX` is the left coordinate of the bounding box
-        // Analogical rules apply for `refY`.
-        if (isFinite(refX)) {
-
-            if (refXPercentage || refX > 0 && refX < 1) {
-
-                tx = bbox.x + bbox.width * refX;
-
-            } else if (scalable) {
-
-                // Compensate for the scale grid in case the elemnt is in the scalable group.
-                scale = scale || scalable.scale();
-                tx = bbox.x + refX / scale.sx;
-
-            } else {
-
-                tx = bbox.x + refX;
-            }
-        }
-
-        if (isFinite(refY)) {
-
-            if (refYPercentage || refY > 0 && refY < 1) {
-
-                ty = bbox.y + bbox.height * refY;
-
-            } else if (scalable) {
-
-                // Compensate for the scale grid in case the elemnt is in the scalable group.
-                scale = scale || scalable.scale();
-                ty = bbox.y + refY / scale.sy;
-
-            } else {
-
-                ty = bbox.y + refY;
-            }
-        }
-
-        if (!_.isUndefined(yAlignment) || !_.isUndefined(xAlignment)) {
-
-            // Get the boundind box with the tranformations applied by the the
-            // element itself only.
-            var node = vel.node;
-            var velBBox = vel.bbox(false, node.parentNode);
-
-            // Compensate the size with the bounding box origin offset for text elements.
-            var nodeName = node.nodeName.toUpperCase();
-            if (nodeName === 'TEXT' || nodeName === 'TSPAN') {
-                velBBox.height += velBBox.y;
-                velBBox.width += velBBox.x;
-            }
-
-            if (scalable) {
-                scale = scale || scalable.scale();
-                velBBox.width *= scale.sx;
-                velBBox.height *= scale.sy;
-            }
-
-            // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
-            // `y-alignment` when set to `bottom` uses the y coordinate as referenced to the bottom of the bbox.
-            if (yAlignment === 'middle') {
-
-                ty -= velBBox.height / 2;
-
-            } else if (yAlignment === 'bottom') {
-
-                ty -= velBBox.height;
-
-            } else if (isFinite(yAlignment)) {
-
-                ty += (yAlignment > -1 && yAlignment < 1) ? velBBox.height * yAlignment : yAlignment;
-            }
-
-            // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
-            // `x-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
-            if (xAlignment === 'middle') {
-
-                tx -= velBBox.width / 2;
-
-            } else if (xAlignment === 'right') {
-
-                tx -= velBBox.width;
-
-            } else if (isFinite(xAlignment)) {
-
-                tx += (xAlignment > -1 && xAlignment < 1) ? velBBox.width * xAlignment : xAlignment;
-            }
-        }
-
-        vel.translate(tx, ty);
+        return bbox;
     },
 
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the

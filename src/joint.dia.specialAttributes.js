@@ -1,76 +1,275 @@
-joint.dia.specialAttributes = {
+(function(joint, _, g) {
 
-    filter: {
-        qualify: _.isObject,
-        set: function($elements, filter) {
-            this.applyFilter($elements, filter);
-        }
-    },
+    var specialAttributes = joint.dia.specialAttributes = {
 
-    fill: {
-        qualify: _.isObject,
-        set: function($elements, fill) {
-            this.applyGradient($elements, 'fill', fill);
-        }
-    },
+        filter: {
+            qualify: _.isObject,
+            set: function($elements, filter) {
+                this.applyFilter($elements, filter);
+            }
+        },
 
-    stroke: {
-        qualify: _.isObject,
-        set: function($elements, stroke) {
-            this.applyGradient($elements, 'stroke', stroke);
-        }
-    },
+        fill: {
+            qualify: _.isObject,
+            set: function($elements, fill) {
+                this.applyGradient($elements, 'fill', fill);
+            }
+        },
 
-    text: {
-        set: function($elements, text, attrs) {
-            for (var i = 0, n = $elements.length; i < n; i++) {
-                V($elements[i]).text(text + '', {
-                    lineHeight: attrs.lineHeight,
-                    textPath: attrs.textPath,
-                    annotations: attrs.annotations
-                });
+        stroke: {
+            qualify: _.isObject,
+            set: function($elements, stroke) {
+                this.applyGradient($elements, 'stroke', stroke);
+            }
+        },
+
+        text: {
+            set: function($elements, text, attrs) {
+                for (var i = 0, n = $elements.length; i < n; i++) {
+                    V($elements[i]).text(text + '', {
+                        lineHeight: attrs.lineHeight,
+                        textPath: attrs.textPath,
+                        annotations: attrs.annotations
+                    });
+                }
+            }
+        },
+
+        lineHeight: {
+            qualify: function(lh, attrs) {
+                return _.isUndefined(attrs.text);
+            }
+        },
+
+        textPath: {
+            qualify: function(tp, attrs) {
+                return _.isUndefined(attrs.text);
+            }
+        },
+
+        annotations: {
+            qualify: function(a, attrs) {
+                return _.isUndefined(attrs.text);
+            }
+        },
+
+        // `port` attribute contains the `id` of the port that the underlying magnet represents.
+        port: {
+            set: function($elements, port) {
+                var portId = _.isUndefined(port.id) ? port : port.id;
+                $elements.attr('port', portId);
+            }
+        },
+
+        // `style` attribute is special in the sense that it sets the CSS style of the subelement.
+        style: {
+            qualify: _.isObject,
+            set: function($elements, styles) {
+                $elements.css(styles);
+            }
+        },
+
+        html: {
+            set: function($elements, html) {
+                $elements.html(html + '');
+            }
+        },
+
+        ref: {
+            // We do not set `ref` attribute directly on an element.
+        },
+
+        // if `refX` is in [0, 1] then `refX` is a fraction of bounding box width
+        // if `refX` is < 0 then `refX`'s absolute values is the right coordinate of the bounding box
+        // otherwise, `refX` is the left coordinate of the bounding box
+
+        refX: {
+
+            positionRelatively: function(refX, refBBox) {
+
+                var tx = 0;
+
+                var refXPercentage = _.isString(refX) && refX.slice(-1) === '%';
+                refX = parseFloat(refX);
+                if (refXPercentage) {
+                    refX /= 100;
+                }
+
+                if (isFinite(refX)) {
+                    if (refXPercentage || refX > 0 && refX < 1) {
+                        tx = refBBox.x + refBBox.width * refX;
+                    } else {
+                        tx = refBBox.x + refX;
+                    }
+                }
+
+                return g.Point(tx, 0);
+            }
+        },
+
+        refY: {
+
+            positionRelatively: function(refY, refBBox) {
+
+                var ty = 0;
+
+                var refYPercentage = _.isString(refY) && refY.slice(-1) === '%';
+                refY = parseFloat(refY);
+                if (refYPercentage) {
+                    refY /= 100;
+                }
+
+                if (isFinite(refY)) {
+                    if (refYPercentage || refY > 0 && refY < 1) {
+                        ty = refBBox.y + refBBox.height * refY;
+                    } else {
+                        ty = refBBox.y + refY;
+                    }
+                }
+
+                return g.Point(0, ty);
+            }
+        },
+
+        // `ref-dx` and `ref-dy` define the offset of the subelement relative to the right and/or bottom
+        // coordinate of the reference element.
+
+        refDx: {
+
+            positionRelatively: function(refDx, refBBox) {
+
+                var tx = 0;
+
+                refDx = parseFloat(refDx);
+
+                if (isFinite(refDx)) {
+                    tx = refBBox.x + refBBox.width + refDx;
+                }
+
+                return g.Point(tx, 0);
+            }
+        },
+
+        refDy: {
+
+            positionRelatively: function(refDy, refBBox) {
+
+                var ty = 0;
+
+                refDy = parseFloat(refDy);
+
+                if (isFinite(refDy)) {
+                    ty = refBBox.y + refBBox.height + refDy;
+                }
+
+                return g.Point(0, ty);
+            }
+        },
+
+        // 'ref-width'/'ref-height' defines the width/height of the subelement relatively to
+        // the reference element size
+        // val in 0..1         ref-width = 0.75 sets the width to 75% of the ref. el. width
+        // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
+
+        refWidth: {
+
+            setRelatively: function(vel, refWidth, refBBox) {
+
+                var refWidthPercentage = _.isString(refWidth) && refWidth.slice(-1) === '%';
+                refWidth = parseFloat(refWidth);
+                if (refWidthPercentage) {
+                    refWidth /= 100;
+                }
+
+                if (isFinite(refWidth)) {
+                    var width = (refWidthPercentage || refWidth >= 0 && refWidth <= 1)
+                        ? refWidth * refBBox.width
+                        : Math.max(refWidth + refBBox.width, 0);
+                    vel.attr('width', width);
+                }
+            }
+        },
+
+        refHeight: {
+
+            setRelatively: function(vel, refHeight, refBBox) {
+
+                var refHeightPercentage = _.isString(refHeight) && refHeight.slice(-1) === '%';
+                refHeight = parseFloat(refHeight);
+                if (refHeightPercentage) {
+                    refHeight /= 100;
+                }
+
+                if (isFinite(refHeight)) {
+                    var height = (refHeightPercentage || refHeight >= 0 && refHeight <= 1)
+                        ? refHeight * refBBox.height
+                        : Math.max(refHeight + refBBox.height, 0);
+                    vel.attr('height', height);
+                }
+            }
+        },
+
+        // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
+        // `x-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
+
+        xAlignment: {
+
+            position: function(xAlignment, elBBox) {
+
+                var tx;
+
+                if (xAlignment === 'middle') {
+
+                    tx = -elBBox.width / 2;
+
+                } else if (xAlignment === 'right') {
+
+                    tx = -elBBox.width;
+
+                } else if (isFinite(xAlignment)) {
+
+                    tx = (xAlignment > -1 && xAlignment < 1) ? elBBox.width * xAlignment : xAlignment;
+                }
+
+                return g.Point(tx, 0);
+            }
+        },
+
+        // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
+        // `y-alignment` when set to `bottom` uses the y coordinate as referenced to the bottom of the bbox.
+
+        yAlignment: {
+
+            position: function(yAlignment, elBBox) {
+
+                var ty;
+
+                if (yAlignment === 'middle') {
+
+                    ty = -elBBox.height / 2;
+
+                } else if (yAlignment === 'bottom') {
+
+                    ty = -elBBox.height;
+
+                } else if (isFinite(yAlignment)) {
+
+                    ty = (yAlignment > -1 && yAlignment < 1) ? elBBox.height * yAlignment : yAlignment;
+                }
+
+                return g.Point(0, ty);
             }
         }
-    },
+    };
 
-    lineHeight: {
-        qualify: function(lh, attrs) {
-            return _.isUndefined(attrs.text);
-        }
-    },
+    // Aliases
+    specialAttributes['ref-x'] = specialAttributes.refX;
+    specialAttributes['ref-y'] = specialAttributes.refY;
+    specialAttributes['ref-dy'] = specialAttributes.refDy;
+    specialAttributes['ref-dx'] = specialAttributes.refDx;
+    specialAttributes['ref-width'] = specialAttributes.refWidth;
+    specialAttributes['ref-height'] = specialAttributes.refHeight;
+    specialAttributes['x-alignment'] = specialAttributes.xAlignment;
+    specialAttributes['y-alignment'] = specialAttributes.yAlignment;
 
-    textPath: {
-        qualify: function(tp, attrs) {
-            return _.isUndefined(attrs.text);
-        }
-    },
-
-    annotations: {
-        qualify: function(a, attrs) {
-            return _.isUndefined(attrs.text);
-        }
-    },
-
-    // `port` attribute contains the `id` of the port that the underlying magnet represents.
-    port: {
-        set: function($elements, port) {
-            var portId = _.isUndefined(port.id) ? port : port.id;
-            $elements.attr('port', portId);
-        }
-    },
-
-    // `style` attribute is special in the sense that it sets the CSS style of the subelement.
-    style: {
-        qualify: _.isObject,
-        set: function($elements, styles) {
-            $elements.css(styles);
-        }
-    },
-
-    html: {
-        set: function($elements, html) {
-            $elements.html(html + '');
-        }
-    }
-};
-
+})(joint, _, g);
