@@ -585,7 +585,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
 
         // The final translation of the subelement.
-        var position = g.Point(0,0);
+        var velPosition = g.Point(0,0);
+        var velAttrs = {};
+
         var velBBox, translation;
         var defNamespace = joint.dia.specialAttributes;
 
@@ -603,14 +605,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 // SET RELATIVELY
                 if (def.setRelatively) {
-                    def.setRelatively.call(this, vel, attrVal, refBBox);
+                    _.extend(velAttrs, def.setRelatively.call(this, attrVal, refBBox, vel));
                 }
 
                 // POSITION RELATIVELY
                 if (def.positionRelatively) {
-                    translation = def.positionRelatively.call(this, attrVal, refBBox);
+                    translation = def.positionRelatively.call(this, attrVal, refBBox, vel);
                     if (translation) {
-                        position.offset(translation.scale(sx, sy));
+                        velPosition.offset(translation.scale(sx, sy));
                     }
                 }
 
@@ -621,15 +623,17 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                         velBBox.width /= sx;
                         velBBox.height /= sy;
                     }
-                    translation = def.position.call(this, attrVal, velBBox);
+                    translation = def.position.call(this, attrVal, velBBox, vel);
                     if (translation) {
-                        position.offset(translation.scale(sx, sy));
+                        velPosition.offset(translation.scale(sx, sy));
                     }
                 }
             }
         }
 
-        vel.translate(position.x, position.y, { absolute: true });
+        velPosition.round(1);
+        vel.translate(velPosition.x, velPosition.y, { absolute: true });
+        vel.attr(velAttrs);
     },
 
     // Get the boundind box with the tranformations applied by the the

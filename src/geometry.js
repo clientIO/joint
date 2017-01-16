@@ -656,8 +656,8 @@ var g = (function() {
 
         round: function(precision) {
 
-            this.x = precision ? this.x.toFixed(precision) : round(this.x);
-            this.y = precision ? this.y.toFixed(precision) : round(this.y);
+            this.x = precision ? +this.x.toFixed(precision) : round(this.x);
+            this.y = precision ? +this.y.toFixed(precision) : round(this.y);
             return this;
         },
 
@@ -991,10 +991,10 @@ var g = (function() {
 
         round: function(precision) {
 
-            this.x = precision ? this.x.toFixed(precision) : round(this.x);
-            this.y = precision ? this.y.toFixed(precision) : round(this.y);
-            this.width = precision ? this.width.toFixed(precision) : round(this.width);
-            this.height = precision ? this.height.toFixed(precision) : round(this.height);
+            this.x = precision ? +this.x.toFixed(precision) : round(this.x);
+            this.y = precision ? +this.y.toFixed(precision) : round(this.y);
+            this.width = precision ? +this.width.toFixed(precision) : round(this.width);
+            this.height = precision ? +this.height.toFixed(precision) : round(this.height);
             return this;
         },
 

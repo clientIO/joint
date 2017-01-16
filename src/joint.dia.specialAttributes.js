@@ -5,19 +5,22 @@
     }
 
     function createSetDimension(attrName, dimension) {
-        return function setDimension(vel, value, refBBox) {
+        return function setDimension(value, refBBox) {
             var isValuePercentage = isPercentage(value);
             value = parseFloat(value);
             if (isValuePercentage) {
                 value /= 100;
             }
 
+            var attrs = {};
             if (isFinite(value)) {
                 var attrValue = (isValuePercentage || value >= 0 && value <= 1)
                     ? value * refBBox[dimension]
                     : Math.max(value + refBBox[dimension], 0);
-                vel.attr(attrName, attrValue);
+                attrs[attrName] = attrValue;
             }
+
+            return attrs;
         };
     }
 
@@ -204,7 +207,7 @@
         // e.g. d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
         d: {
             qualify: _.isArray,
-            setRelatively: function(vel, value, refBBox) {
+            setRelatively: function(value, refBBox) {
                 var i = 0;
                 var attrValue = value.map(function(data, index) {
                     if (_.isString(data)) {
@@ -216,7 +219,7 @@
                     }
                     return data;
                 }).join(' ');
-                vel.attr('d', attrValue);
+                return { d:  attrValue };
             }
         },
         // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
