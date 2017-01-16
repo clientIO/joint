@@ -631,6 +631,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
+        // Round the coordinates to 1 decimal point.
         velPosition.round(1);
         vel.translate(velPosition.x, velPosition.y, { absolute: true });
         vel.attr(velAttrs);
@@ -653,6 +654,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (nodeName === 'TEXT' || nodeName === 'TSPAN') {
             bbox.height += bbox.y;
             bbox.width += bbox.x;
+            bbox.x = -translate.tx;
+            bbox.y = -translate.ty;
         }
 
         return bbox;

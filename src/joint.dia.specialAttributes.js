@@ -203,25 +203,6 @@
             setRelatively: createSetDimension('cy', 'height')
         },
 
-        // The path data `d` attribute to be defined via an array.
-        // e.g. d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
-        d: {
-            qualify: _.isArray,
-            setRelatively: function(value, refBBox) {
-                var i = 0;
-                var attrValue = value.map(function(data, index) {
-                    if (_.isString(data)) {
-                        if (data.slice(-1) === '%') {
-                            return parseFloat(data) / 100 * refBBox[((index - i) % 2) ? 'height' : 'width'];
-                        } else {
-                            i++;
-                        }
-                    }
-                    return data;
-                }).join(' ');
-                return { d:  attrValue };
-            }
-        },
         // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
         // `x-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
 

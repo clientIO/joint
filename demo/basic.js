@@ -59,7 +59,7 @@ var rh = new joint.shapes.basic.Rhombus({
 graph.addCell(rh);
 
 var tbl = new joint.shapes.basic.TextBlock({
-    position: { x: 400, y: 180 },
+    position: { x: 400, y: 150 },
     size: { width: 180, height: 100 },
     content: "Lorem ipsum dolor sit amet,\n consectetur adipiscing elit. Nulla vel porttitor est."
 });
@@ -240,3 +240,66 @@ var cylinderScalableCTM = cylinderScalable.node.getCTM().inverse();
 c.animateAlongPath({ dur: '4s', repeatCount: 'indefinite' }, cylinderPath.node);
 c.scale(cylinderScalableCTM.a, cylinderScalableCTM.d);
 cylinderScalable.append(c);
+
+// The path data `d` attribute to be defined via an array.
+// e.g. d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
+joint.dia.specialAttributes.d = {
+    qualify: _.isArray,
+    setRelatively: function(value, refBBox) {
+        var i = 0;
+        var attrValue = value.map(function(data, index) {
+            if (_.isString(data)) {
+                if (data.slice(-1) === '%') {
+                    return parseFloat(data) / 100 * refBBox[((index - i) % 2) ? 'height' : 'width'];
+                } else {
+                    i++;
+                }
+            }
+            return data;
+        }).join(' ');
+        return { d:  attrValue };
+    }
+};
+
+joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
+
+    markup: '<g class="rotatable"><ellipse/><text/><path/></g>',
+
+    defaults: _.defaultsDeep({
+
+        type: 'basic.Test',
+        attrs: {
+            ellipse: {
+                fill: '#FFFFFF',
+                stroke: '#cbd2d7',
+                'stroke-width': 3,
+                refRx: '50%',
+                refRy: '50%',
+                refCx: '50%',
+                refCy: '50%'
+            },
+            path: {
+                stroke: '#cbd2d7',
+                'stroke-width': 3,
+                fill: 'none',
+                d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
+            },
+            'text': {
+                fill: '#cbd2d7',
+                'font-size': 20,
+                'font-family': 'Arial, helvetica, sans-serif',
+                text: 'Special\nAttributes',
+                refX: '50%',
+                refY: '50%',
+                yAlignment: 'middle',
+                xAlignment: 'middle'
+            }
+        }
+
+    }, joint.shapes.basic.Generic.prototype.defaults)
+});
+
+var sa = new joint.shapes.basic.SATest({
+    size: { height: 100, width: 100 },
+    position: { x: 500, y: 280 }
+}).addTo(graph);
