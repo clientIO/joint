@@ -4,8 +4,8 @@
         return _.isString(val) && val.slice(-1) === '%';
     }
 
-    function createSetRelatively(attrName, dimension) {
-        return function setRelatively(vel, value, refBBox) {
+    function createSetDimension(attrName, dimension) {
+        return function setDimension(vel, value, refBBox) {
             var isValuePercentage = isPercentage(value);
             value = parseFloat(value);
             if (isValuePercentage) {
@@ -18,6 +18,29 @@
                     : Math.max(value + refBBox[dimension], 0);
                 vel.attr(attrName, attrValue);
             }
+        };
+    }
+
+    function createPositionCoordinate(coordinate, dimension) {
+        return function positionCoordinate(value, refBBox) {
+            var valuePercentage = isPercentage(value);
+            value = parseFloat(value);
+            if (valuePercentage) {
+                value /= 100;
+            }
+
+            var delta;
+            if (isFinite(value)) {
+                if (valuePercentage || value > 0 && value < 1) {
+                    delta = refBBox[coordinate] + refBBox[dimension] * value;
+                } else {
+                    delta = refBBox[coordinate] + value;
+                }
+            }
+
+            var point = g.Point();
+            point[coordinate] = delta || 0;
+            return point;
         };
     }
 
@@ -106,51 +129,11 @@
         // otherwise, `refX` is the left coordinate of the bounding box
 
         refX: {
-
-            positionRelatively: function(refX, refBBox) {
-
-                var tx;
-
-                var refXPercentage = isPercentage(refX);
-                refX = parseFloat(refX);
-                if (refXPercentage) {
-                    refX /= 100;
-                }
-
-                if (isFinite(refX)) {
-                    if (refXPercentage || refX > 0 && refX < 1) {
-                        tx = refBBox.x + refBBox.width * refX;
-                    } else {
-                        tx = refBBox.x + refX;
-                    }
-                }
-
-                return g.Point(tx, 0);
-            }
+            positionRelatively: createPositionCoordinate('x', 'width')
         },
 
         refY: {
-
-            positionRelatively: function(refY, refBBox) {
-
-                var ty;
-
-                var refYPercentage = isPercentage(refY);
-                refY = parseFloat(refY);
-                if (refYPercentage) {
-                    refY /= 100;
-                }
-
-                if (isFinite(refY)) {
-                    if (refYPercentage || refY > 0 && refY < 1) {
-                        ty = refBBox.y + refBBox.height * refY;
-                    } else {
-                        ty = refBBox.y + refY;
-                    }
-                }
-
-                return g.Point(0, ty);
-            }
+            positionRelatively: createPositionCoordinate('y', 'height')
         },
 
         // `ref-dx` and `ref-dy` define the offset of the subelement relative to the right and/or bottom
@@ -194,39 +177,39 @@
         // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
 
         refWidth: {
-            setRelatively: createSetRelatively('width', 'width')
+            setRelatively: createSetDimension('width', 'width')
         },
 
         refHeight: {
-            setRelatively: createSetRelatively('height', 'height')
+            setRelatively: createSetDimension('height', 'height')
         },
 
         refRx: {
-            setRelatively: createSetRelatively('rx', 'width')
+            setRelatively: createSetDimension('rx', 'width')
         },
 
         refRy: {
-            setRelatively: createSetRelatively('ry', 'height')
+            setRelatively: createSetDimension('ry', 'height')
         },
 
         refCx: {
-            setRelatively: createSetRelatively('cx', 'width')
+            setRelatively: createSetDimension('cx', 'width')
         },
 
         refCy: {
-            setRelatively: createSetRelatively('cy', 'height')
+            setRelatively: createSetDimension('cy', 'height')
         },
 
         // The path data `d` attribute to be defined via an array.
         // e.g. d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
         d: {
             qualify: _.isArray,
-            setRelatively: function(vel, value, elBBox) {
+            setRelatively: function(vel, value, refBBox) {
                 var i = 0;
                 var attrValue = value.map(function(data, index) {
                     if (_.isString(data)) {
-                        if (isPercentage(data)) {
-                            return parseFloat(data) / 100 * elBBox[ ((index - i) % 2) ? 'height' : 'width'];
+                        if (data.slice(-1) === '%') {
+                            return parseFloat(data) / 100 * refBBox[((index - i) % 2) ? 'height' : 'width'];
                         } else {
                             i++;
                         }
