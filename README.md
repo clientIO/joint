@@ -135,3 +135,5 @@ Copyright (c) 2013 client IO
 - [Daniel K.](https://github.com/FredyC)
 - [Vladimir Talas](https://github.com/vtalas)
 - [Petr Skala](https://github.com/pskala)
+- [Ujjwal Reddy](http://github.com/urstruly)
+
