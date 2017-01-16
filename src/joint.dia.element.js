@@ -577,9 +577,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var scalableNode = this.scalableNode;
         if (scalableNode && scalableNode.contains(vel)) {
             var scale = scalableNode.scale();
-            sx = scale.sx;
-            sy = scale.sy;
-            refBBox.scale(sx, sy);
+            sx = 1 / scale.sx;
+            sy = 1 / scale.sy;
         } else {
             sx = 1;
             sy = 1;
@@ -611,7 +610,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 if (def.positionRelatively) {
                     translation = def.positionRelatively.call(this, attrVal, refBBox);
                     if (translation) {
-                        position.offset(translation.scale(1 / sx, 1 / sy));
+                        position.offset(translation.scale(sx, sy));
                     }
                 }
 
@@ -619,12 +618,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 if (def.position) {
                     if (!velBBox) {
                         velBBox = this.getVNodeBBox(vel);
-                        velBBox.width *= sx;
-                        velBBox.height *= sy;
+                        velBBox.width /= sx;
+                        velBBox.height /= sy;
                     }
                     translation = def.position.call(this, attrVal, velBBox);
                     if (translation) {
-                        position.offset(translation);
+                        position.offset(translation.scale(sx, sy));
                     }
                 }
             }
