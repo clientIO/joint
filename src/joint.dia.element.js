@@ -459,7 +459,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         this._removePorts();
 
-        var i, n, selector, relativeAttributes;
+        var i, n, selector, relativeAttrs;
         var relativelyPositioned = [];
         var selectorCache = {};
         var modelAttrs = this.model.get('attrs');
@@ -477,16 +477,27 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             var elementsCount = $selected.length;
             if (elementsCount === 0) continue;
 
-            relativeAttributes = this.updateAttr($selected, currentAttrs[selector]);
+            relativeAttrs = this.updateAttr($selected, currentAttrs[selector]);
             // Special attributes make it also possible to set both absolute or
             // relative positioning of subelements.
-            if (!_.isEmpty(relativeAttributes)) {
+            if (!_.isEmpty(relativeAttrs)) {
                 for (i = 0; i < elementsCount; i++) {
-                    relativelyPositioned.push({
+
+                    var rel = {
+                        ref: (modelAttrs[selector] || {}).ref,
                         vel: V($selected[i]),
                         selector: selector,
-                        relativeAttributes: relativeAttributes
-                    });
+                        relativeAttributes: relativeAttrs
+                    };
+
+                    // If an element in the list is positioned relative to this one, then
+                    // we want to insert this one before it in the list.
+                    var relIndex = _.findIndex(relativelyPositioned, { ref: selector });
+                    if (relIndex > -1) {
+                        relativelyPositioned.splice(relIndex, 0, rel);
+                    } else {
+                        relativelyPositioned.push(rel);
+                    }
                 }
             }
         }
@@ -501,17 +512,15 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             selector = item.selector;
             relativeAttrs = item.relativeAttributes;
 
-            var allAttrs = modelAttrs[selector];
-
             // if there was a special attribute affecting the position amongst renderingOnlyAttributes
             // we have to merge it with rest of the element's attributes as they are necessary
             // to update the position relatively (i.e `ref`)
             if (attrs[selector]) {
-                var allRelativeAttrs = this._getRelativeAttributes(allAttrs);
+                var allRelativeAttrs = this._getRelativeAttributes(modelAttrs[selector]);
                 relativeAttrs =  _.merge({}, allRelativeAttrs, relativeAttrs);
             }
 
-            var refBBox = this._getReferenceBBox(allAttrs.ref, selectorCache);
+            var refBBox = this._getReferenceBBox(item.ref, selectorCache);
 
             this.positionRelative(item.vel, relativeAttrs, refBBox);
         }

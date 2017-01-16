@@ -1,5 +1,9 @@
 (function(joint, _, g) {
 
+    function isPercentage(val) {
+        return _.isString(val) && val.slice(-1) === '%';
+    }
+
     var specialAttributes = joint.dia.specialAttributes = {
 
         filter: {
@@ -88,9 +92,9 @@
 
             positionRelatively: function(refX, refBBox) {
 
-                var tx = 0;
+                var tx;
 
-                var refXPercentage = _.isString(refX) && refX.slice(-1) === '%';
+                var refXPercentage = isPercentage(refX);
                 refX = parseFloat(refX);
                 if (refXPercentage) {
                     refX /= 100;
@@ -112,9 +116,9 @@
 
             positionRelatively: function(refY, refBBox) {
 
-                var ty = 0;
+                var ty;
 
-                var refYPercentage = _.isString(refY) && refY.slice(-1) === '%';
+                var refYPercentage = isPercentage(refY);
                 refY = parseFloat(refY);
                 if (refYPercentage) {
                     refY /= 100;
@@ -139,7 +143,7 @@
 
             positionRelatively: function(refDx, refBBox) {
 
-                var tx = 0;
+                var tx;
 
                 refDx = parseFloat(refDx);
 
@@ -155,7 +159,7 @@
 
             positionRelatively: function(refDy, refBBox) {
 
-                var ty = 0;
+                var ty;
 
                 refDy = parseFloat(refDy);
 
@@ -176,7 +180,7 @@
 
             setRelatively: function(vel, refWidth, refBBox) {
 
-                var refWidthPercentage = _.isString(refWidth) && refWidth.slice(-1) === '%';
+                var refWidthPercentage = isPercentage(refWidth);
                 refWidth = parseFloat(refWidth);
                 if (refWidthPercentage) {
                     refWidth /= 100;
@@ -195,7 +199,7 @@
 
             setRelatively: function(vel, refHeight, refBBox) {
 
-                var refHeightPercentage = _.isString(refHeight) && refHeight.slice(-1) === '%';
+                var refHeightPercentage = isPercentage(refHeight);
                 refHeight = parseFloat(refHeight);
                 if (refHeightPercentage) {
                     refHeight /= 100;
