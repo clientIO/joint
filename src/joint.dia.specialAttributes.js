@@ -4,6 +4,23 @@
         return _.isString(val) && val.slice(-1) === '%';
     }
 
+    function createSetRelatively(attrName, dimension) {
+        return function setRelatively(vel, value, refBBox) {
+            var isValuePercentage = isPercentage(value);
+            value = parseFloat(value);
+            if (isValuePercentage) {
+                value /= 100;
+            }
+
+            if (isFinite(value)) {
+                var attrValue = (isValuePercentage || value >= 0 && value <= 1)
+                    ? value * refBBox[dimension]
+                    : Math.max(value + refBBox[dimension], 0);
+                vel.attr(attrName, attrValue);
+            }
+        };
+    }
+
     var specialAttributes = joint.dia.specialAttributes = {
 
         filter: {
@@ -177,43 +194,48 @@
         // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
 
         refWidth: {
-
-            setRelatively: function(vel, refWidth, refBBox) {
-
-                var refWidthPercentage = isPercentage(refWidth);
-                refWidth = parseFloat(refWidth);
-                if (refWidthPercentage) {
-                    refWidth /= 100;
-                }
-
-                if (isFinite(refWidth)) {
-                    var width = (refWidthPercentage || refWidth >= 0 && refWidth <= 1)
-                        ? refWidth * refBBox.width
-                        : Math.max(refWidth + refBBox.width, 0);
-                    vel.attr('width', width);
-                }
-            }
+            setRelatively: createSetRelatively('width', 'width')
         },
 
         refHeight: {
-
-            setRelatively: function(vel, refHeight, refBBox) {
-
-                var refHeightPercentage = isPercentage(refHeight);
-                refHeight = parseFloat(refHeight);
-                if (refHeightPercentage) {
-                    refHeight /= 100;
-                }
-
-                if (isFinite(refHeight)) {
-                    var height = (refHeightPercentage || refHeight >= 0 && refHeight <= 1)
-                        ? refHeight * refBBox.height
-                        : Math.max(refHeight + refBBox.height, 0);
-                    vel.attr('height', height);
-                }
-            }
+            setRelatively: createSetRelatively('height', 'height')
         },
 
+        refRx: {
+            setRelatively: createSetRelatively('rx', 'width')
+        },
+
+        refRy: {
+            setRelatively: createSetRelatively('ry', 'height')
+        },
+
+        refCx: {
+            setRelatively: createSetRelatively('cx', 'width')
+        },
+
+        refCy: {
+            setRelatively: createSetRelatively('cy', 'height')
+        },
+
+        // The path data `d` attribute to be defined via an array.
+        // e.g. d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
+        d: {
+            qualify: _.isArray,
+            setRelatively: function(vel, value, elBBox) {
+                var i = 0;
+                var attrValue = value.map(function(data, index) {
+                    if (_.isString(data)) {
+                        if (isPercentage(data)) {
+                            return parseFloat(data) / 100 * elBBox[ ((index - i) % 2) ? 'height' : 'width'];
+                        } else {
+                            i++;
+                        }
+                    }
+                    return data;
+                }).join(' ');
+                vel.attr('d', attrValue);
+            }
+        },
         // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
         // `x-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
 
@@ -267,7 +289,7 @@
         }
     };
 
-    // Aliases
+    // Aliases for backwards compatibility
     specialAttributes['ref-x'] = specialAttributes.refX;
     specialAttributes['ref-y'] = specialAttributes.refY;
     specialAttributes['ref-dy'] = specialAttributes.refDy;
