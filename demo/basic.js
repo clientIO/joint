@@ -261,6 +261,19 @@ joint.dia.specialAttributes.d = {
     }
 };
 
+joint.dia.specialAttributes.lineStyle = {
+    set: function(lineStyle, $elements, attrs) {
+
+        var n = attrs['stroke-width'] || 1;
+        var dasharray = {
+            'dashed': (4*n) + ',' + (2*n),
+            'dotted': n + ',' + n
+        }[lineStyle] || 'none';
+
+        return { 'stroke-dasharray': dasharray };
+    }
+};
+
 joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><ellipse/><text/><path/></g>',
@@ -276,11 +289,13 @@ joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
                 refRx: '50%',
                 refRy: '50%',
                 refCx: '50%',
-                refCy: '50%'
+                refCy: '50%',
+                lineStyle: 'dashed'
             },
             path: {
                 stroke: '#cbd2d7',
                 'stroke-width': 3,
+                lineStyle: 'dotted',
                 fill: 'none',
                 d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
             },

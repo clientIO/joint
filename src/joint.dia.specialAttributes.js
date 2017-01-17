@@ -51,27 +51,27 @@
 
         filter: {
             qualify: _.isObject,
-            set: function($elements, filter) {
-                this.applyFilter($elements, filter);
+            set: function(filter) {
+                return 'url(#' + this.generateFilterId(filter) + ')';
             }
         },
 
         fill: {
             qualify: _.isObject,
-            set: function($elements, fill) {
-                this.applyGradient($elements, 'fill', fill);
+            set: function(fill) {
+                return 'url(#' + this.generateGradientId(fill) + ')';
             }
         },
 
         stroke: {
             qualify: _.isObject,
-            set: function($elements, stroke) {
-                this.applyGradient($elements, 'stroke', stroke);
+            set: function(stroke) {
+                return 'url(#' + this.generateGradientId(stroke) + ')';
             }
         },
 
         text: {
-            set: function($elements, text, attrs) {
+            set: function(text, $elements, attrs) {
                 for (var i = 0, n = $elements.length; i < n; i++) {
                     V($elements[i]).text(text + '', {
                         lineHeight: attrs.lineHeight,
@@ -84,40 +84,39 @@
 
         lineHeight: {
             qualify: function(lh, attrs) {
-                return _.isUndefined(attrs.text);
+                return (attrs.text !== undefined);
             }
         },
 
         textPath: {
             qualify: function(tp, attrs) {
-                return _.isUndefined(attrs.text);
+                return (attrs.tex !== undefined);
             }
         },
 
         annotations: {
             qualify: function(a, attrs) {
-                return _.isUndefined(attrs.text);
+                return (attrs.text !== undefined);
             }
         },
 
         // `port` attribute contains the `id` of the port that the underlying magnet represents.
         port: {
-            set: function($elements, port) {
-                var portId = _.isUndefined(port.id) ? port : port.id;
-                $elements.attr('port', portId);
+            set: function(port) {
+                return (port.id === undefined) ? port : port.id;
             }
         },
 
         // `style` attribute is special in the sense that it sets the CSS style of the subelement.
         style: {
             qualify: _.isObject,
-            set: function($elements, styles) {
+            set: function(styles, $elements) {
                 $elements.css(styles);
             }
         },
 
         html: {
-            set: function($elements, html) {
+            set: function(html, $elements) {
                 $elements.html(html + '');
             }
         },

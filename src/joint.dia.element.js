@@ -426,16 +426,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
-        // set all the normal attributes right on the SVG/HTML element
-        for (i = 0, n = $selected.length; i < n; i++) {
-            var el = $selected[i];
-            if (el instanceof SVGElement) {
-                V(el).attr(normalAttributes);
-            } else {
-                $(el).attr(normalAttributes);
-            }
-        }
-
         var relativeAttributes = {};
         // handle the rest of attributes via related method
         // from the special attributes namespace.
@@ -444,10 +434,25 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             attrVal = attrs[attrName];
             def = namespace[attrName];
             if (_.isFunction(def.set)) {
-                def.set.call(this, $selected, attrVal, attrs);
+                var setResult = def.set.call(this, attrVal, $selected, attrs);
+                if (_.isObject(setResult)) {
+                    _.extend(normalAttributes, setResult);
+                } else if (setResult !== undefined) {
+                    normalAttributes[attrName] = setResult;
+                }
             }
             if (def.positionRelatively || def.position || def.setRelatively) {
                 relativeAttributes[attrName] = attrVal;
+            }
+        }
+
+        // set all the normal attributes right on the SVG/HTML element
+        for (i = 0, n = $selected.length; i < n; i++) {
+            var el = $selected[i];
+            if (el instanceof SVGElement) {
+                V(el).attr(normalAttributes);
+            } else {
+                $(el).attr(normalAttributes);
             }
         }
 
@@ -605,7 +610,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 // SET RELATIVELY
                 if (def.setRelatively) {
-                    _.extend(velAttrs, def.setRelatively.call(this, attrVal, refBBox, vel));
+                    var setRelativelyResult = def.setRelatively.call(this, attrVal, refBBox, vel);
+                    if (_.isObject(setRelativelyResult)) {
+                        _.extend(velAttrs, setRelativelyResult);
+                    } else if (setRelativelyResult !== undefined) {
+                        velAttrs[attrName] = setRelativelyResult;
+                    }
                 }
 
                 // POSITION RELATIVELY

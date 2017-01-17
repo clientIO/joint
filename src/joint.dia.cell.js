@@ -837,6 +837,14 @@ joint.dia.CellView = joint.mvc.View.extend({
     applyFilter: function(selector, filter) {
 
         var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
+        var filterId = this.generateFilterId(filter);
+
+        $selected.each(function() {
+            V(this).attr('filter', 'url(#' + filterId + ')');
+        });
+    },
+
+    generateFilterId: function(filter) {
 
         // Generate a hash code from the stringified filter definition. This gives us
         // a unique filter ID for different definitions.
@@ -863,10 +871,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             V(this.paper.svg).defs().append(filterElement);
         }
 
-        $selected.each(function() {
-
-            V(this).attr('filter', 'url(#' + filterId + ')');
-        });
+        return filterId;
     },
 
     // `selector` is a CSS selector or `'.'`. `attr` is either a `'fill'` or `'stroke'`.
@@ -876,6 +881,14 @@ joint.dia.CellView = joint.mvc.View.extend({
     applyGradient: function(selector, attr, gradient) {
 
         var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
+        var gradientId = this.generateFilterId(gradient);
+
+        $selected.each(function() {
+            V(this).attr(attr, 'url(#' + gradientId + ')');
+        });
+    },
+
+    generateGradientId: function(gradient) {
 
         // Generate a hash code from the stringified filter definition. This gives us
         // a unique filter ID for different definitions.
@@ -900,12 +913,8 @@ joint.dia.CellView = joint.mvc.View.extend({
             V(this.paper.svg).defs().append(gradientElement);
         }
 
-        $selected.each(function() {
-
-            V(this).attr(attr, 'url(#' + gradientId + ')');
-        });
+        return gradientId;
     },
-
     // Construct a unique selector for the `el` element within this view.
     // `prevSelector` is being collected through the recursive call.
     // No value for `prevSelector` is expected when using this method.
