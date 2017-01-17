@@ -245,7 +245,7 @@ cylinderScalable.append(c);
 // e.g. d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
 joint.dia.specialAttributes.d = {
     qualify: _.isArray,
-    setRelatively: function(value, refBBox) {
+    dimension: function(value, refBBox) {
         var i = 0;
         var attrValue = value.map(function(data, index) {
             if (_.isString(data)) {

@@ -1,11 +1,11 @@
-(function(joint, _, g) {
+(function(joint, _, g, $) {
 
     function isPercentage(val) {
         return _.isString(val) && val.slice(-1) === '%';
     }
 
-    function createSetDimension(attrName, dimension) {
-        return function setDimension(value, refBBox) {
+    function dimensionWrapper(attrName, dimension) {
+        return function(value, refBBox) {
             var isValuePercentage = isPercentage(value);
             value = parseFloat(value);
             if (isValuePercentage) {
@@ -24,8 +24,8 @@
         };
     }
 
-    function createPositionCoordinate(coordinate, dimension) {
-        return function positionCoordinate(value, refBBox) {
+    function positionWrapper(axis, dimension, origin) {
+        return function(value, refBBox) {
             var valuePercentage = isPercentage(value);
             value = parseFloat(value);
             if (valuePercentage) {
@@ -34,15 +34,36 @@
 
             var delta;
             if (isFinite(value)) {
+                var refOrigin = refBBox[origin]();
                 if (valuePercentage || value > 0 && value < 1) {
-                    delta = refBBox[coordinate] + refBBox[dimension] * value;
+                    delta = refOrigin[axis] + refBBox[dimension] * value;
                 } else {
-                    delta = refBBox[coordinate] + value;
+                    delta = refOrigin[axis] + value;
                 }
             }
 
             var point = g.Point();
-            point[coordinate] = delta || 0;
+            point[axis] = delta || 0;
+            return point;
+        };
+    }
+
+    function anchorWrapper(axis, dimension, corner) {
+        return function(value, nodeBBox) {
+            var delta;
+            if (value === 'middle') {
+                delta = nodeBBox[dimension] / 2;
+            } else if (value === corner) {
+                delta = nodeBBox[dimension];
+            } else if (isFinite(value)) {
+                // TODO: or not to do a breaking change?
+                delta = (value > -1 && value < 1) ? (-nodeBBox[dimension] * value) : -value;
+            } else if (isPercentage(value)) {
+                delta = nodeBBox[dimension] * parseFloat(value) / 100;
+            }
+
+            var point = g.Point();
+            point[axis] = delta || 0;
             return point;
         };
     }
@@ -145,46 +166,22 @@
         // otherwise, `refX` is the left coordinate of the bounding box
 
         refX: {
-            positionRelatively: createPositionCoordinate('x', 'width')
+            position: positionWrapper('x', 'width', 'origin')
         },
 
         refY: {
-            positionRelatively: createPositionCoordinate('y', 'height')
+            position: positionWrapper('y', 'height', 'origin')
         },
 
         // `ref-dx` and `ref-dy` define the offset of the subelement relative to the right and/or bottom
         // coordinate of the reference element.
 
         refDx: {
-
-            positionRelatively: function(refDx, refBBox) {
-
-                var tx;
-
-                refDx = parseFloat(refDx);
-
-                if (isFinite(refDx)) {
-                    tx = refBBox.x + refBBox.width + refDx;
-                }
-
-                return g.Point(tx, 0);
-            }
+            position: positionWrapper('x', 'width', 'corner')
         },
 
         refDy: {
-
-            positionRelatively: function(refDy, refBBox) {
-
-                var ty;
-
-                refDy = parseFloat(refDy);
-
-                if (isFinite(refDy)) {
-                    ty = refBBox.y + refBBox.height + refDy;
-                }
-
-                return g.Point(0, ty);
-            }
+            position: positionWrapper('y', 'height', 'corner')
         },
 
         // 'ref-width'/'ref-height' defines the width/height of the subelement relatively to
@@ -193,79 +190,41 @@
         // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
 
         refWidth: {
-            setRelatively: createSetDimension('width', 'width')
+            dimension: dimensionWrapper('width', 'width')
         },
 
         refHeight: {
-            setRelatively: createSetDimension('height', 'height')
+            dimension: dimensionWrapper('height', 'height')
         },
 
         refRx: {
-            setRelatively: createSetDimension('rx', 'width')
+            dimension: dimensionWrapper('rx', 'width')
         },
 
         refRy: {
-            setRelatively: createSetDimension('ry', 'height')
+            dimension: dimensionWrapper('ry', 'height')
         },
 
         refCx: {
-            setRelatively: createSetDimension('cx', 'width')
+            dimension: dimensionWrapper('cx', 'width')
         },
 
         refCy: {
-            setRelatively: createSetDimension('cy', 'height')
+            dimension: dimensionWrapper('cy', 'height')
         },
 
         // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
         // `x-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
 
         xAlignment: {
-
-            position: function(xAlignment, elBBox) {
-
-                var tx;
-
-                if (xAlignment === 'middle') {
-
-                    tx = -elBBox.width / 2;
-
-                } else if (xAlignment === 'right') {
-
-                    tx = -elBBox.width;
-
-                } else if (isFinite(xAlignment)) {
-
-                    tx = (xAlignment > -1 && xAlignment < 1) ? elBBox.width * xAlignment : xAlignment;
-                }
-
-                return g.Point(tx, 0);
-            }
+            anchor: anchorWrapper('x', 'width', 'right')
         },
 
         // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
         // `y-alignment` when set to `bottom` uses the y coordinate as referenced to the bottom of the bbox.
 
         yAlignment: {
-
-            position: function(yAlignment, elBBox) {
-
-                var ty;
-
-                if (yAlignment === 'middle') {
-
-                    ty = -elBBox.height / 2;
-
-                } else if (yAlignment === 'bottom') {
-
-                    ty = -elBBox.height;
-
-                } else if (isFinite(yAlignment)) {
-
-                    ty = (yAlignment > -1 && yAlignment < 1) ? elBBox.height * yAlignment : yAlignment;
-                }
-
-                return g.Point(0, ty);
-            }
+            anchor: anchorWrapper('y', 'height', 'bottom')
         }
     };
 
@@ -279,4 +238,4 @@
     specialAttributes['x-alignment'] = specialAttributes.xAlignment;
     specialAttributes['y-alignment'] = specialAttributes.yAlignment;
 
-})(joint, _, g);
+})(joint, _, g, $);

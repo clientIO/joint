@@ -462,9 +462,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
-        attrs || (attrs = {});
-
-
         for (i = 0, n = relativelyPositioned.length; i < n; i++) {
             var item = relativelyPositioned[i];
             var refBBox = this._getReferenceBBox(item.ref, selectorCache);
@@ -474,7 +471,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             // if there was a special attribute affecting the position amongst renderingOnlyAttributes
             // we have to merge it with rest of the element's attributes as they are necessary
             // to update the position relatively (i.e `ref`)
-            if (attrs[selector]) {
+            if (attrs && attrs[selector]) {
                 var allRelativeAttrs = this._getRelativeAttributes(modelAttrs[selector]);
                 relativeAttrs =  _.merge({}, allRelativeAttrs, relativeAttrs);
             }
@@ -525,7 +522,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 // If the set is a string, use this string for the attribute name
                 normalAttributes[def.set] = attrVal;
             }
-            if (def.positionRelatively || def.position || def.setRelatively) {
+            if (def.anchor || def.position || def.dimension) {
                 relativeAttributes[attrName] = attrVal;
             }
         }
@@ -552,13 +549,11 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // The final translation of the subelement.
         var nodePosition = g.Point(0,0);
-        var nodeAttrs = {};
-
         var nodeBBox, translation;
+        var nodeAttrs = {};
         var defNamespace = joint.dia.specialAttributes;
 
         for (var attrName in relativeAttributes) {
-
             if (!relativeAttributes.hasOwnProperty(attrName)) continue;
 
             var attrVal = relativeAttributes[attrName];
@@ -570,33 +565,36 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 }
 
                 // SET RELATIVELY
-                if (def.setRelatively) {
-                    var setRelativelyResult = def.setRelatively.call(this, attrVal, refBBox, node);
-                    if (_.isObject(setRelativelyResult)) {
-                        _.extend(nodeAttrs, setRelativelyResult);
-                    } else if (setRelativelyResult !== undefined) {
-                        nodeAttrs[attrName] = setRelativelyResult;
-                    }
-                }
-
-                // POSITION RELATIVELY
-                if (def.positionRelatively) {
-                    translation = def.positionRelatively.call(this, attrVal, refBBox, node);
-                    if (translation) {
-                        nodePosition.offset(translation.scale(sx, sy));
+                var dimensionFn = def.dimension;
+                if (dimensionFn) {
+                    var dimensionResult = dimensionFn.call(this, attrVal, refBBox, node);
+                    if (_.isObject(dimensionResult)) {
+                        _.extend(nodeAttrs, dimensionResult);
+                    } else if (dimensionResult !== undefined) {
+                        nodeAttrs[attrName] = dimensionResult;
                     }
                 }
 
                 // POSITION
-                if (def.position) {
+                var positionFn = def.position;
+                if (positionFn) {
+                    translation = positionFn.call(this, attrVal, refBBox, node);
+                    if (translation) {
+                        nodePosition.offset(translation.scale(sx, sy));
+                    }
+                }
+
+                // ANCHOR
+                var anchorFn = def.anchor;
+                if (anchorFn) {
                     if (!nodeBBox) {
-                        nodeBBox = this.getNodeBBox(node);
+                        nodeBBox = this._getNodeBBox(node);
                         nodeBBox.width /= sx;
                         nodeBBox.height /= sy;
                     }
-                    translation = def.position.call(this, attrVal, nodeBBox, node);
+                    translation = anchorFn.call(this, attrVal, nodeBBox, node);
                     if (translation) {
-                        nodePosition.offset(translation.scale(sx, sy));
+                        nodePosition.offset(translation.scale(-sx, -sy));
                     }
                 }
             }
@@ -612,7 +610,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     // Get the boundind box with the tranformations applied by the the
     // node itself only.
-    getNodeBBox: function(node) {
+    _getNodeBBox: function(node) {
 
         var vel = V(node);
         var bbox = vel.bbox(false, node.parentNode);
@@ -638,7 +636,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     _getRelativeAttributes: function(attrs) {
         return _.pick(attrs, function(val, key) {
             var def = this[key];
-            return (def && (def.positionRelatively || def.position || def.setRelatively));
+            return (def && (def.anchor || def.position || def.dimension));
         }, joint.dia.specialAttributes);
     },
 
