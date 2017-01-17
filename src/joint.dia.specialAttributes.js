@@ -61,6 +61,10 @@
             set: 'font-family'
         },
 
+        xlinkHref: {
+            set: 'xlink:href'
+        },
+
         filter: {
             qualify: _.isObject,
             set: function(filter) {
@@ -83,31 +87,29 @@
         },
 
         text: {
-            set: function(text, $elements, attrs) {
-                for (var i = 0, n = $elements.length; i < n; i++) {
-                    V($elements[i]).text(text + '', {
-                        lineHeight: attrs.lineHeight,
-                        textPath: attrs.textPath,
-                        annotations: attrs.annotations
-                    });
-                }
+            set: function(text, node, attrs) {
+                V(node).text(text + '', {
+                    lineHeight: attrs.lineHeight,
+                    textPath: attrs.textPath,
+                    annotations: attrs.annotations
+                });
             }
         },
 
         lineHeight: {
-            qualify: function(lineHeight, attrs) {
+            qualify: function(lineHeight, node, attrs) {
                 return (attrs.text !== undefined);
             }
         },
 
         textPath: {
-            qualify: function(textPath, attrs) {
-                return (attrs.tex !== undefined);
+            qualify: function(textPath, node, attrs) {
+                return (attrs.text !== undefined);
             }
         },
 
         annotations: {
-            qualify: function(annotations, attrs) {
+            qualify: function(annotations, node, attrs) {
                 return (attrs.text !== undefined);
             }
         },
@@ -122,14 +124,14 @@
         // `style` attribute is special in the sense that it sets the CSS style of the subelement.
         style: {
             qualify: _.isObject,
-            set: function(styles, $elements) {
-                $elements.css(styles);
+            set: function(styles, node) {
+                $(node).css(styles);
             }
         },
 
         html: {
-            set: function(html, $elements) {
-                $elements.html(html + '');
+            set: function(html, node) {
+                $(node).html(html + '');
             }
         },
 

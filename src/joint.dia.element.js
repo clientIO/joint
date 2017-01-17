@@ -407,11 +407,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
      * @param {jQuery} $selected
      * @param {Object} attrs
      */
-    updateAttr: function($selected, attrs) {
+    processAttributes: function(attrs, el) {
 
         var namespace = joint.dia.specialAttributes;
         var attrName, attrVal, def, i, n;
         var normalAttributes = {};
+        var relativeAttributes = {};
         var specialAttributeNames = [];
 
         // divide the attributes between normal and special
@@ -419,14 +420,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             if (!attrs.hasOwnProperty(attrName)) continue;
             attrVal = attrs[attrName];
             def = namespace[attrName];
-            if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, attrs))) {
+            if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, el, attrs))) {
                 specialAttributeNames.push(attrName);
             } else {
                 normalAttributes[attrName] = attrVal;
             }
         }
 
-        var relativeAttributes = {};
         // handle the rest of attributes via related method
         // from the special attributes namespace.
         for (i = 0, n = specialAttributeNames.length; i < n; i++) {
@@ -434,11 +434,11 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             attrVal = attrs[attrName];
             def = namespace[attrName];
             if (_.isFunction(def.set)) {
-                var setResult = def.set.call(this, attrVal, $selected, attrs);
+                var setResult = def.set.call(this, attrVal, el, attrs);
                 if (_.isObject(setResult)) {
                     _.extend(normalAttributes, setResult);
                 } else if (setResult !== undefined) {
-                    normalAttributes[defAttrName] = setResult;
+                    normalAttributes[attrName] = setResult;
                 }
             } else if (_.isString(def.set)) {
                 // If the set is a string, use this string for the attribute name
@@ -449,17 +449,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
-        // set all the normal attributes right on the SVG/HTML element
-        for (i = 0, n = $selected.length; i < n; i++) {
-            var el = $selected[i];
-            if (el instanceof SVGElement) {
-                V(el).attr(normalAttributes);
-            } else {
-                $(el).attr(normalAttributes);
-            }
-        }
-
-        return relativeAttributes;
+        return {
+            normal: normalAttributes,
+            relative: relativeAttributes
+        };
     },
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
@@ -467,7 +460,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         this._removePorts();
 
-        var i, n, selector, relativeAttrs;
+        var i, n, selector, relativeAttrs, normalAttrs;
         var relativelyPositioned = [];
         var selectorCache = {};
         var modelAttrs = this.model.get('attrs');
@@ -481,19 +474,27 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                     ? this.$el
                     : this.findBySelector(selector);
 
-            // No element matched by the `selector` was found. We're done then.
-            var elementsCount = $selected.length;
-            if (elementsCount === 0) continue;
+            for (i = 0, n = $selected.length; i < n; i++) {
+                var el = $selected[i];
+                var processedAttrs = this.processAttributes(currentAttrs[selector], el);
 
-            relativeAttrs = this.updateAttr($selected, currentAttrs[selector]);
-            // Special attributes make it also possible to set both absolute or
-            // relative positioning of subelements.
-            if (!_.isEmpty(relativeAttrs)) {
-                for (i = 0; i < elementsCount; i++) {
+                // Set all the normal attributes right on the SVG/HTML element.
+                normalAttrs = processedAttrs.normal;
+                if (!_.isEmpty(normalAttrs)) {
+                    if (el instanceof SVGElement) {
+                        V(el).attr(normalAttrs);
+                    } else {
+                        $(el).attr(normalAttrs);
+                    }
+                }
 
+                // Special attributes make it also possible to set both absolute or
+                // relative positioning of subelements.
+                relativeAttrs = processedAttrs.relative;
+                if (!_.isEmpty(relativeAttrs)) {
                     var rel = {
                         ref: (modelAttrs[selector] || {}).ref,
-                        vel: V($selected[i]),
+                        node: el,
                         selector: selector,
                         relativeAttributes: relativeAttrs
                     };
@@ -514,9 +515,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
 
         for (i = 0, n = relativelyPositioned.length; i < n; i++) {
-
             var item = relativelyPositioned[i];
-
+            var refBBox = this._getReferenceBBox(item.ref, selectorCache);
             selector = item.selector;
             relativeAttrs = item.relativeAttributes;
 
@@ -528,9 +528,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 relativeAttrs =  _.merge({}, allRelativeAttrs, relativeAttrs);
             }
 
-            var refBBox = this._getReferenceBBox(item.ref, selectorCache);
-
-            this.positionRelative(item.vel, relativeAttrs, refBBox);
+            this.positionRelative(item.node, relativeAttrs, refBBox);
         }
 
         this._renderPorts();
@@ -578,12 +576,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         return g.Rect(refBBox);
     },
 
-    positionRelative: function(vel, relativeAttributes, refBBox) {
+    positionRelative: function(node, relativeAttributes, refBBox) {
 
         // Check if the node is a descendant of the scalable group.
         var sx, sy;
         var scalableNode = this.scalableNode;
-        if (scalableNode && scalableNode.contains(vel)) {
+        if (scalableNode && scalableNode.contains(node)) {
             var scale = scalableNode.scale();
             sx = 1 / scale.sx;
             sy = 1 / scale.sy;
@@ -593,10 +591,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
 
         // The final translation of the subelement.
-        var velPosition = g.Point(0,0);
-        var velAttrs = {};
+        var nodePosition = g.Point(0,0);
+        var nodeAttrs = {};
 
-        var velBBox, translation;
+        var nodeBBox, translation;
         var defNamespace = joint.dia.specialAttributes;
 
         for (var attrName in relativeAttributes) {
@@ -613,48 +611,50 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 // SET RELATIVELY
                 if (def.setRelatively) {
-                    var setRelativelyResult = def.setRelatively.call(this, attrVal, refBBox, vel);
+                    var setRelativelyResult = def.setRelatively.call(this, attrVal, refBBox, node);
                     if (_.isObject(setRelativelyResult)) {
-                        _.extend(velAttrs, setRelativelyResult);
+                        _.extend(nodeAttrs, setRelativelyResult);
                     } else if (setRelativelyResult !== undefined) {
-                        velAttrs[attrName] = setRelativelyResult;
+                        nodeAttrs[attrName] = setRelativelyResult;
                     }
                 }
 
                 // POSITION RELATIVELY
                 if (def.positionRelatively) {
-                    translation = def.positionRelatively.call(this, attrVal, refBBox, vel);
+                    translation = def.positionRelatively.call(this, attrVal, refBBox, node);
                     if (translation) {
-                        velPosition.offset(translation.scale(sx, sy));
+                        nodePosition.offset(translation.scale(sx, sy));
                     }
                 }
 
                 // POSITION
                 if (def.position) {
-                    if (!velBBox) {
-                        velBBox = this.getVNodeBBox(vel);
-                        velBBox.width /= sx;
-                        velBBox.height /= sy;
+                    if (!nodeBBox) {
+                        nodeBBox = this.getNodeBBox(node);
+                        nodeBBox.width /= sx;
+                        nodeBBox.height /= sy;
                     }
-                    translation = def.position.call(this, attrVal, velBBox, vel);
+                    translation = def.position.call(this, attrVal, nodeBBox, node);
                     if (translation) {
-                        velPosition.offset(translation.scale(sx, sy));
+                        nodePosition.offset(translation.scale(sx, sy));
                     }
                 }
             }
         }
 
         // Round the coordinates to 1 decimal point.
-        velPosition.round(1);
-        vel.translate(velPosition.x, velPosition.y, { absolute: true });
-        vel.attr(velAttrs);
+        nodePosition.round(1);
+
+        V(node)
+            .translate(nodePosition.x, nodePosition.y, { absolute: true })
+            .attr(nodeAttrs);
     },
 
     // Get the boundind box with the tranformations applied by the the
     // node itself only.
-    getVNodeBBox: function(vel) {
+    getNodeBBox: function(node) {
 
-        var node = vel.node;
+        var vel = V(node);
         var bbox = vel.bbox(false, node.parentNode);
 
         // Subtract the previous translate()

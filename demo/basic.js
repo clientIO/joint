@@ -262,7 +262,7 @@ joint.dia.specialAttributes.d = {
 };
 
 joint.dia.specialAttributes.lineStyle = {
-    set: function(lineStyle, $elements, attrs) {
+    set: function(lineStyle, node, attrs) {
 
         var n = attrs['strokeWidth'] || attrs['stroke-width'] || 1;
         var dasharray = {
@@ -274,13 +274,21 @@ joint.dia.specialAttributes.lineStyle = {
     }
 };
 
+joint.dia.specialAttributes.debug = {
+    set: function(debug, node, attrs) {
+        if (debug) {
+            console.log('node:', node);
+        }
+    }
+};
+
 joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><ellipse/><text/><path/></g>',
 
     defaults: _.defaultsDeep({
 
-        type: 'basic.Test',
+        type: 'basic.SATest',
         attrs: {
             ellipse: {
                 fill: '#FFFFFF',
@@ -290,7 +298,8 @@ joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
                 refRy: '50%',
                 refCx: '50%',
                 refCy: '50%',
-                lineStyle: 'dashed'
+                lineStyle: 'dashed',
+                debug: true
             },
             path: {
                 stroke: '#cbd2d7',
