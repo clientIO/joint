@@ -403,63 +403,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     },
 
-    /**
-     * @param {jQuery} $selected
-     * @param {Object} attrs
-     */
-    processAttributes: function(attrs, el) {
-
-        var namespace = joint.dia.specialAttributes;
-        var attrName, attrVal, def, i, n;
-        var normalAttributes = {};
-        var relativeAttributes = {};
-        var specialAttributeNames = [];
-
-        // divide the attributes between normal and special
-        for (attrName in attrs) {
-            if (!attrs.hasOwnProperty(attrName)) continue;
-            attrVal = attrs[attrName];
-            def = namespace[attrName];
-            if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, el, attrs))) {
-                specialAttributeNames.push(attrName);
-            } else {
-                normalAttributes[attrName] = attrVal;
-            }
-        }
-
-        // handle the rest of attributes via related method
-        // from the special attributes namespace.
-        for (i = 0, n = specialAttributeNames.length; i < n; i++) {
-            attrName = specialAttributeNames[i];
-            attrVal = attrs[attrName];
-            def = namespace[attrName];
-            if (_.isFunction(def.set)) {
-                var setResult = def.set.call(this, attrVal, el, attrs);
-                if (_.isObject(setResult)) {
-                    _.extend(normalAttributes, setResult);
-                } else if (setResult !== undefined) {
-                    normalAttributes[attrName] = setResult;
-                }
-            } else if (_.isString(def.set)) {
-                // If the set is a string, use this string for the attribute name
-                normalAttributes[def.set] = attrVal;
-            }
-            if (def.positionRelatively || def.position || def.setRelatively) {
-                relativeAttributes[attrName] = attrVal;
-            }
-        }
-
-        return {
-            normal: normalAttributes,
-            relative: relativeAttributes
-        };
+    update: function(cell, attrs) {
+        this._removePorts();
+        this.updateAttributes();
+        this._renderPorts();
     },
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
-    update: function(cell, attrs) {
-
-        this._removePorts();
-
+    updateAttributes: function(attrs) {
         var i, n, selector, relativeAttrs, normalAttrs;
         var relativelyPositioned = [];
         var selectorCache = {};
@@ -530,50 +481,59 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             this.positionRelative(item.node, relativeAttrs, refBBox);
         }
-
-        this._renderPorts();
     },
 
-    _getRelativeAttributes: function(attrs) {
-        return _.pick(attrs, function(val, key) {
-            var def = this[key];
-            return (def && (def.positionRelatively || def.position || def.setRelatively));
-        }, joint.dia.specialAttributes);
-    },
 
-    _getReferenceBBox: function(refSelector, selectorCache) {
+    /**
+     * @param {jQuery} $selected
+     * @param {Object} attrs
+     */
+    processAttributes: function(attrs, el) {
 
-        selectorCache || (selectorCache = {}) ;
+        var namespace = joint.dia.specialAttributes;
+        var attrName, attrVal, def, i, n;
+        var normalAttributes = {};
+        var relativeAttributes = {};
+        var specialAttributeNames = [];
 
-        var refBBox;
-        // `ref` is the selector of the reference element. If no `ref` is passed, reference
-        // element is the root element.
-        if (refSelector) {
-
-            var vref;
-            if (selectorCache[refSelector]) {
-                // First we check if the same selector has been already used.
-                vref = V(selectorCache[refSelector][0]);
+        // divide the attributes between normal and special
+        for (attrName in attrs) {
+            if (!attrs.hasOwnProperty(attrName)) continue;
+            attrVal = attrs[attrName];
+            def = namespace[attrName];
+            if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, el, attrs))) {
+                specialAttributeNames.push(attrName);
             } else {
-                // Other wise we find the ref ourselves.
-                vref = (refSelector === '.') ? this.vel : this.vel.findOne(refSelector);
+                normalAttributes[attrName] = attrVal;
             }
-
-            if (!vref) {
-                throw new Error('dia.ElementView: "' + refSelector + '" reference does not exists.');
-            }
-
-            var target = (this.rotatableNode && this.rotatableNode.node) || this.el;
-            // Get the bounding box of the reference element relative to the root `<g>` element.
-            refBBox = vref.bbox(false, target);
-
-        } else {
-            // Note that we're using the bounding box without transformation because we are already inside
-            // a transformed coordinate system.
-            refBBox = this.model.get('size');
         }
 
-        return g.Rect(refBBox);
+        // handle the rest of attributes via related method
+        // from the special attributes namespace.
+        for (i = 0, n = specialAttributeNames.length; i < n; i++) {
+            attrName = specialAttributeNames[i];
+            attrVal = attrs[attrName];
+            def = namespace[attrName];
+            if (_.isFunction(def.set)) {
+                var setResult = def.set.call(this, attrVal, el, attrs);
+                if (_.isObject(setResult)) {
+                    _.extend(normalAttributes, setResult);
+                } else if (setResult !== undefined) {
+                    normalAttributes[attrName] = setResult;
+                }
+            } else if (_.isString(def.set)) {
+                // If the set is a string, use this string for the attribute name
+                normalAttributes[def.set] = attrVal;
+            }
+            if (def.positionRelatively || def.position || def.setRelatively) {
+                relativeAttributes[attrName] = attrVal;
+            }
+        }
+
+        return {
+            normal: normalAttributes,
+            relative: relativeAttributes
+        };
     },
 
     positionRelative: function(node, relativeAttributes, refBBox) {
@@ -672,6 +632,49 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
 
         return bbox;
+    },
+
+
+    _getRelativeAttributes: function(attrs) {
+        return _.pick(attrs, function(val, key) {
+            var def = this[key];
+            return (def && (def.positionRelatively || def.position || def.setRelatively));
+        }, joint.dia.specialAttributes);
+    },
+
+    _getReferenceBBox: function(refSelector, selectorCache) {
+
+        selectorCache || (selectorCache = {}) ;
+
+        var refBBox;
+        // `ref` is the selector of the reference element. If no `ref` is passed, reference
+        // element is the root element.
+        if (refSelector) {
+
+            var vref;
+            if (selectorCache[refSelector]) {
+                // First we check if the same selector has been already used.
+                vref = V(selectorCache[refSelector][0]);
+            } else {
+                // Other wise we find the ref ourselves.
+                vref = (refSelector === '.') ? this.vel : this.vel.findOne(refSelector);
+            }
+
+            if (!vref) {
+                throw new Error('dia.ElementView: "' + refSelector + '" reference does not exists.');
+            }
+
+            var target = (this.rotatableNode && this.rotatableNode.node) || this.el;
+            // Get the bounding box of the reference element relative to the root `<g>` element.
+            refBBox = vref.bbox(false, target);
+
+        } else {
+            // Note that we're using the bounding box without transformation because we are already inside
+            // a transformed coordinate system.
+            refBBox = this.model.get('size');
+        }
+
+        return g.Rect(refBBox);
     },
 
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
