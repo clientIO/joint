@@ -264,7 +264,7 @@ joint.dia.specialAttributes.d = {
 joint.dia.specialAttributes.lineStyle = {
     set: function(lineStyle, $elements, attrs) {
 
-        var n = attrs['stroke-width'] || 1;
+        var n = attrs['strokeWidth'] || attrs['stroke-width'] || 1;
         var dasharray = {
             'dashed': (4*n) + ',' + (2*n),
             'dotted': n + ',' + n
@@ -285,7 +285,7 @@ joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
             ellipse: {
                 fill: '#FFFFFF',
                 stroke: '#cbd2d7',
-                'stroke-width': 3,
+                strokeWidth: 3,
                 refRx: '50%',
                 refRy: '50%',
                 refCx: '50%',
@@ -294,15 +294,15 @@ joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
             },
             path: {
                 stroke: '#cbd2d7',
-                'stroke-width': 3,
+                strokeWidth: 3,
                 lineStyle: 'dotted',
                 fill: 'none',
                 d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
             },
             'text': {
                 fill: '#cbd2d7',
-                'font-size': 20,
-                'font-family': 'Arial, helvetica, sans-serif',
+                fontSize: 20,
+                fontFamily: 'Arial, helvetica, sans-serif',
                 text: 'Special\nAttributes',
                 refX: '50%',
                 refY: '50%',

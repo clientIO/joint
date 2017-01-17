@@ -438,8 +438,11 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 if (_.isObject(setResult)) {
                     _.extend(normalAttributes, setResult);
                 } else if (setResult !== undefined) {
-                    normalAttributes[attrName] = setResult;
+                    normalAttributes[defAttrName] = setResult;
                 }
+            } else if (_.isString(def.set)) {
+                // If the set is a string, use this string for the attribute name
+                normalAttributes[def.set] = attrVal;
             }
             if (def.positionRelatively || def.position || def.setRelatively) {
                 relativeAttributes[attrName] = attrVal;

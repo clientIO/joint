@@ -49,6 +49,18 @@
 
     var specialAttributes = joint.dia.specialAttributes = {
 
+        strokeWidth: {
+            set: 'stroke-width'
+        },
+
+        fontSize: {
+            set: 'font-size'
+        },
+
+        fontFamily: {
+            set: 'font-family'
+        },
+
         filter: {
             qualify: _.isObject,
             set: function(filter) {
@@ -83,19 +95,19 @@
         },
 
         lineHeight: {
-            qualify: function(lh, attrs) {
+            qualify: function(lineHeight, attrs) {
                 return (attrs.text !== undefined);
             }
         },
 
         textPath: {
-            qualify: function(tp, attrs) {
+            qualify: function(textPath, attrs) {
                 return (attrs.tex !== undefined);
             }
         },
 
         annotations: {
-            qualify: function(a, attrs) {
+            qualify: function(annotations, attrs) {
                 return (attrs.text !== undefined);
             }
         },
