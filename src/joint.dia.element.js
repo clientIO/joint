@@ -403,9 +403,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     },
 
-    update: function(cell, attrs) {
+    update: function(cell, renderingOnlyAttrs) {
         this._removePorts();
-        this.updateAttributes();
+        this.updateAttributes(renderingOnlyAttrs);
         this._renderPorts();
     },
 
@@ -421,9 +421,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             if (!currentAttrs.hasOwnProperty(selector)) continue;
 
             // Elements that should be updated.
-            var $selected = selectorCache[selector] = (selector === '.')
-                    ? this.$el
-                    : this.findBySelector(selector);
+            var $selected = selectorCache[selector] = this.findBySelector(selector);
 
             for (i = 0, n = $selected.length; i < n; i++) {
                 var el = $selected[i];
