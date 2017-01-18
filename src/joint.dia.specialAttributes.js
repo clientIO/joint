@@ -4,7 +4,7 @@
         return _.isString(val) && val.slice(-1) === '%';
     }
 
-    function dimensionWrapper(attrName, dimension) {
+    function sizeWrapper(attrName, dimension) {
         return function(value, refBBox) {
             var isValuePercentage = isPercentage(value);
             value = parseFloat(value);
@@ -190,27 +190,27 @@
         // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
 
         refWidth: {
-            dimension: dimensionWrapper('width', 'width')
+            size: sizeWrapper('width', 'width')
         },
 
         refHeight: {
-            dimension: dimensionWrapper('height', 'height')
+            size: sizeWrapper('height', 'height')
         },
 
         refRx: {
-            dimension: dimensionWrapper('rx', 'width')
+            size: sizeWrapper('rx', 'width')
         },
 
         refRy: {
-            dimension: dimensionWrapper('ry', 'height')
+            size: sizeWrapper('ry', 'height')
         },
 
         refCx: {
-            dimension: dimensionWrapper('cx', 'width')
+            size: sizeWrapper('cx', 'width')
         },
 
         refCy: {
-            dimension: dimensionWrapper('cy', 'height')
+            size: sizeWrapper('cy', 'height')
         },
 
         // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.

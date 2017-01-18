@@ -522,7 +522,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 // If the set is a string, use this string for the attribute name
                 normalAttributes[def.set] = attrVal;
             }
-            if (def.anchor || def.position || def.dimension) {
+            if (def.anchor || def.position || def.size) {
                 relativeAttributes[attrName] = attrVal;
             }
         }
@@ -565,13 +565,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 }
 
                 // SET RELATIVELY
-                var dimensionFn = def.dimension;
-                if (dimensionFn) {
-                    var dimensionResult = dimensionFn.call(this, attrVal, refBBox, node);
-                    if (_.isObject(dimensionResult)) {
-                        _.extend(nodeAttrs, dimensionResult);
-                    } else if (dimensionResult !== undefined) {
-                        nodeAttrs[attrName] = dimensionResult;
+                var sizeFn = def.size;
+                if (sizeFn) {
+                    var sizeResult = sizeFn.call(this, attrVal, refBBox, node);
+                    if (_.isObject(sizeResult)) {
+                        _.extend(nodeAttrs, sizeResult);
+                    } else if (sizeResult !== undefined) {
+                        nodeAttrs[attrName] = sizeResult;
                     }
                 }
 
@@ -636,7 +636,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     _getRelativeAttributes: function(attrs) {
         return _.pick(attrs, function(val, key) {
             var def = this[key];
-            return (def && (def.anchor || def.position || def.dimension));
+            return (def && (def.anchor || def.position || def.size));
         }, joint.dia.specialAttributes);
     },
 
