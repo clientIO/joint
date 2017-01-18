@@ -411,29 +411,30 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
     updateAttributes: function(attrs) {
-        var i, n, selector, relativeAttrs, normalAttrs;
-        var relativelyPositioned = [];
+        var i, n, item, node, relativeAttrs, normalAttrs, processedAttrs;
+        var relativeItems = [];
         var selectorCache = {};
-        var modelAttrs = this.model.get('attrs');
+        var model = this.model;
+        var modelAttrs = model.get('attrs');
         var currentAttrs = attrs || modelAttrs;
 
-        for (selector in currentAttrs) {
+        for (var selector in currentAttrs) {
             if (!currentAttrs.hasOwnProperty(selector)) continue;
 
             // Elements that should be updated.
             var $selected = selectorCache[selector] = this.findBySelector(selector);
 
             for (i = 0, n = $selected.length; i < n; i++) {
-                var el = $selected[i];
-                var processedAttrs = this.processAttributes(currentAttrs[selector], el);
+                node = $selected[i];
+                processedAttrs = this.processAttributes(currentAttrs[selector], node);
 
                 // Set all the normal attributes right on the SVG/HTML element.
                 normalAttrs = processedAttrs.normal;
                 if (!_.isEmpty(normalAttrs)) {
-                    if (el instanceof SVGElement) {
-                        V(el).attr(normalAttrs);
+                    if (node instanceof SVGElement) {
+                        V(node).attr(normalAttrs);
                     } else {
-                        $(el).attr(normalAttrs);
+                        $(node).attr(normalAttrs);
                     }
                 }
 
@@ -441,40 +442,57 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 // relative positioning of subelements.
                 relativeAttrs = processedAttrs.relative;
                 if (!_.isEmpty(relativeAttrs)) {
-                    var rel = {
-                        ref: (modelAttrs[selector] || {}).ref,
-                        node: el,
-                        selector: selector,
-                        relativeAttributes: relativeAttrs
+                    var currentModelAttrs = modelAttrs[selector];
+                    item = {
+                        node: node,
+                        refSelector: currentModelAttrs && currentModelAttrs.ref,
+                        relativeAttributes: relativeAttrs,
+                        modelAttributes: currentModelAttrs
                     };
 
                     // If an element in the list is positioned relative to this one, then
                     // we want to insert this one before it in the list.
-                    var relIndex = _.findIndex(relativelyPositioned, { ref: selector });
-                    if (relIndex > -1) {
-                        relativelyPositioned.splice(relIndex, 0, rel);
+                    var itemIndex = _.findIndex(relativeItems, { ref: selector });
+                    if (itemIndex > -1) {
+                        relativeItems.splice(itemIndex, 0, item);
                     } else {
-                        relativelyPositioned.push(rel);
+                        relativeItems.push(item);
                     }
                 }
             }
         }
 
-        for (i = 0, n = relativelyPositioned.length; i < n; i++) {
-            var item = relativelyPositioned[i];
-            var refBBox = this._getReferenceBBox(item.ref, selectorCache);
-            selector = item.selector;
-            relativeAttrs = item.relativeAttributes;
+        for (i = 0, n = relativeItems.length; i < n; i++) {
+            item = relativeItems[i];
+            node = item.node;
 
-            // if there was a special attribute affecting the position amongst renderingOnlyAttributes
-            // we have to merge it with rest of the element's attributes as they are necessary
-            // to update the position relatively (i.e `ref`)
-            if (attrs && attrs[selector]) {
-                var allRelativeAttrs = this._getRelativeAttributes(modelAttrs[selector]);
-                relativeAttrs =  _.merge({}, allRelativeAttrs, relativeAttrs);
+            // Find the reference element bounding box. If no reference was provided, we
+            // use the model's bounding box.
+            var refBBox;
+            var refSelector = item.refSelector;
+            if (refSelector) {
+                var refNode = (selectorCache[refSelector] || this.findBySelector(refSelector))[0];
+                if (!refNode) {
+                    throw new Error('dia.ElementView: "' + refSelector + '" reference does not exists.');
+                }
+                // Get the bounding box of the reference element relative to the `rotatable` `<g>` (without rotation)
+                // or to the root `<g>` element if no rotatable group present.
+                refBBox = V(refNode).bbox(false, (this.rotatableNode || this.vel));
+            } else {
+                refBBox = g.Rect(model.get('size'));
             }
 
-            this.positionRelative(item.node, relativeAttrs, refBBox);
+            if (attrs) {
+                // if there was a special attribute affecting the position amongst passed-in attributes
+                // we have to merge it with the rest of the element's attributes as they are necessary
+                // to update the position relatively (i.e `ref-x` && 'ref-dx')
+                processedAttrs = this.processAttributes(item.modelAttributes, node, { dry: true });
+                relativeAttrs = _.extend(processedAttrs.relative, item.relativeAttributes);
+            } else {
+                relativeAttrs = item.relativeAttributes;
+            }
+
+            this.updateRelativeAttributes(node, relativeAttrs, refBBox);
         }
     },
 
@@ -483,8 +501,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
      * @param {jQuery} $selected
      * @param {Object} attrs
      */
-    processAttributes: function(attrs, el) {
+    processAttributes: function(attrs, el, opt) {
 
+        var dry = !!(opt && opt.dry);
         var namespace = joint.dia.specialAttributes;
         var attrName, attrVal, def, i, n;
         var normalAttributes = {};
@@ -509,7 +528,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             attrName = specialAttributeNames[i];
             attrVal = attrs[attrName];
             def = namespace[attrName];
-            if (_.isFunction(def.set)) {
+            if (!dry && _.isFunction(def.set)) {
                 var setResult = def.set.call(this, attrVal, el, attrs);
                 if (_.isObject(setResult)) {
                     _.extend(normalAttributes, setResult);
@@ -531,7 +550,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         };
     },
 
-    positionRelative: function(node, relativeAttributes, refBBox) {
+    updateRelativeAttributes: function(node, relativeAttributes, refBBox) {
 
         // Check if the node is a descendant of the scalable group.
         var sx, sy;
@@ -628,49 +647,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
 
         return bbox;
-    },
-
-
-    _getRelativeAttributes: function(attrs) {
-        return _.pick(attrs, function(val, key) {
-            var def = this[key];
-            return (def && (def.anchor || def.position || def.size));
-        }, joint.dia.specialAttributes);
-    },
-
-    _getReferenceBBox: function(refSelector, selectorCache) {
-
-        selectorCache || (selectorCache = {}) ;
-
-        var refBBox;
-        // `ref` is the selector of the reference element. If no `ref` is passed, reference
-        // element is the root element.
-        if (refSelector) {
-
-            var vref;
-            if (selectorCache[refSelector]) {
-                // First we check if the same selector has been already used.
-                vref = V(selectorCache[refSelector][0]);
-            } else {
-                // Other wise we find the ref ourselves.
-                vref = (refSelector === '.') ? this.vel : this.vel.findOne(refSelector);
-            }
-
-            if (!vref) {
-                throw new Error('dia.ElementView: "' + refSelector + '" reference does not exists.');
-            }
-
-            var target = (this.rotatableNode && this.rotatableNode.node) || this.el;
-            // Get the bounding box of the reference element relative to the root `<g>` element.
-            refBBox = vref.bbox(false, target);
-
-        } else {
-            // Note that we're using the bounding box without transformation because we are already inside
-            // a transformed coordinate system.
-            refBBox = this.model.get('size');
-        }
-
-        return g.Rect(refBBox);
     },
 
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the

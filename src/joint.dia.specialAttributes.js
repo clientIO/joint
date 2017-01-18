@@ -138,7 +138,7 @@
         // `port` attribute contains the `id` of the port that the underlying magnet represents.
         port: {
             set: function(port) {
-                return (port.id === undefined) ? port : port.id;
+                return (port === null || port.id === undefined) ? port : port.id;
             }
         },
 

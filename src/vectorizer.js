@@ -110,7 +110,9 @@ V = Vectorizer = (function() {
      * @returns {SVGMatrix}
      */
     V.prototype.getTransformToElement = function(toElem) {
-
+        if (V.isV(toElem)) {
+            toElem = toElem.node;
+        }
         return toElem.getScreenCTM().inverse().multiply(this.node.getScreenCTM());
     };
 
@@ -1311,7 +1313,7 @@ V = Vectorizer = (function() {
         var minY = Math.min(corner1.y, corner2.y, corner3.y, corner4.y);
         var maxY = Math.max(corner1.y, corner2.y, corner3.y, corner4.y);
 
-        return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+        return g.Rect(minX, minY, maxX - minX, maxY - minY);
     };
 
     V.transformPoint = function(p, matrix) {
