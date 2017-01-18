@@ -245,7 +245,7 @@ cylinderScalable.append(c);
 // e.g. d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
 joint.dia.specialAttributes.d = {
     qualify: _.isArray,
-    dimension: function(value, refBBox) {
+    size: function(value, refBBox) {
         var i = 0;
         var attrValue = value.map(function(data, index) {
             if (_.isString(data)) {
@@ -282,6 +282,31 @@ joint.dia.specialAttributes.debug = {
     }
 };
 
+joint.dia.specialAttributes.fitRef = {
+    size: function(fitRef, refBBox, node) {
+        switch (node.tagName.toUpperCase()) {
+            case 'ELLIPSE':
+                return {
+                    rx: refBBox.width / 2,
+                    ry: refBBox.height / 2,
+                    cx: refBBox.width / 2,
+                    cy: refBBox.height / 2
+                };
+            case 'RECT':
+                return {
+                    width: refBBox.width,
+                    height: refBBox.height
+                };
+            case 'PATH':
+                var rect = _.extend(refBBox.toJSON(), fitRef);
+                return {
+                    d: V.rectToPath(rect)
+                };
+        }
+        return undefined;
+    }
+}
+
 joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><ellipse/><text/><path/></g>',
@@ -294,12 +319,9 @@ joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
                 fill: '#FFFFFF',
                 stroke: '#cbd2d7',
                 strokeWidth: 3,
-                refRx: '50%',
-                refRy: '50%',
-                refCx: '50%',
-                refCy: '50%',
                 lineStyle: 'dashed',
-                debug: true
+                debug: true,
+                fitRef: true,
             },
             path: {
                 stroke: '#cbd2d7',
@@ -307,6 +329,7 @@ joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
                 lineStyle: 'dotted',
                 fill: 'none',
                 d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
+                //fitRef: { rx: 15, ry: 15 }
             },
             'text': {
                 fill: '#cbd2d7',
