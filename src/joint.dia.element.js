@@ -585,7 +585,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                     continue;
                 }
 
-                // SET RELATIVELY
+                // SIZE
                 var sizeFn = def.size;
                 if (sizeFn) {
                     var sizeResult = sizeFn.call(this, attrVal, refBBox, node);

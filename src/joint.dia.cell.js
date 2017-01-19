@@ -837,41 +837,11 @@ joint.dia.CellView = joint.mvc.View.extend({
     applyFilter: function(selector, filter) {
 
         var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
-        var filterId = this.generateFilterId(filter);
+        var filterId = this.paper.defineFilter(filter);
 
         $selected.each(function() {
             V(this).attr('filter', 'url(#' + filterId + ')');
         });
-    },
-
-    generateFilterId: function(filter) {
-
-        // Generate a hash code from the stringified filter definition. This gives us
-        // a unique filter ID for different definitions.
-        var filterId = filter.name + this.paper.svg.id + joint.util.hashCode(JSON.stringify(filter));
-
-        // If the filter already exists in the document,
-        // we're done and we can just use it (reference it using `url()`).
-        // If not, create one.
-        if (!this.paper.svg.getElementById(filterId)) {
-
-            var filterSVGString = joint.util.filter[filter.name] && joint.util.filter[filter.name](filter.args || {});
-            if (!filterSVGString) {
-                throw new Error('Non-existing filter ' + filter.name);
-            }
-            var filterElement = V(filterSVGString);
-            // Set the filter area to be 3x the bounding box of the cell
-            // and center the filter around the cell.
-            filterElement.attr({
-                filterUnits: 'objectBoundingBox',
-                x: -1, y: -1, width: 3, height: 3
-            });
-            if (filter.attrs) filterElement.attr(filter.attrs);
-            filterElement.node.id = filterId;
-            V(this.paper.svg).defs().append(filterElement);
-        }
-
-        return filterId;
     },
 
     // `selector` is a CSS selector or `'.'`. `attr` is either a `'fill'` or `'stroke'`.
@@ -881,40 +851,13 @@ joint.dia.CellView = joint.mvc.View.extend({
     applyGradient: function(selector, attr, gradient) {
 
         var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
-        var gradientId = this.generateFilterId(gradient);
+        var gradientId = this.paper.defineGradient(gradient);
 
         $selected.each(function() {
             V(this).attr(attr, 'url(#' + gradientId + ')');
         });
     },
 
-    generateGradientId: function(gradient) {
-
-        // Generate a hash code from the stringified filter definition. This gives us
-        // a unique filter ID for different definitions.
-        var gradientId = gradient.type + this.paper.svg.id + joint.util.hashCode(JSON.stringify(gradient));
-
-        // If the gradient already exists in the document,
-        // we're done and we can just use it (reference it using `url()`).
-        // If not, create one.
-        if (!this.paper.svg.getElementById(gradientId)) {
-
-            var gradientSVGString = [
-                '<' + gradient.type + '>',
-                _.map(gradient.stops, function(stop) {
-                    return '<stop offset="' + stop.offset + '" stop-color="' + stop.color + '" stop-opacity="' + (_.isFinite(stop.opacity) ? stop.opacity : 1) + '" />';
-                }).join(''),
-                '</' + gradient.type + '>'
-            ].join('');
-
-            var gradientElement = V(gradientSVGString);
-            if (gradient.attrs) { gradientElement.attr(gradient.attrs); }
-            gradientElement.node.id = gradientId;
-            V(this.paper.svg).defs().append(gradientElement);
-        }
-
-        return gradientId;
-    },
     // Construct a unique selector for the `el` element within this view.
     // `prevSelector` is being collected through the recursive call.
     // No value for `prevSelector` is expected when using this method.

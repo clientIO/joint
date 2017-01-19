@@ -1625,7 +1625,84 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.options.interactive = value;
 
         _.invoke(this._views, 'setInteractivity', value);
+    },
+
+    defineFilter: function(filter) {
+
+        var filterId = filter.id;
+        var name = filter.name;
+        // Generate a hash code from the stringified filter definition. This gives us
+        // a unique filter ID for different definitions.
+        if (!filterId) {
+            filterId = name + this.svg.id + joint.util.hashCode(JSON.stringify(filter));
+        }
+        // If the filter already exists in the document,
+        // we're done and we can just use it (reference it using `url()`).
+        // If not, create one.
+        if (!this.svg.getElementById(filterId)) {
+
+            var namespace = joint.util.filter;
+            var filterSVGString = namespace[name] && namespace[name](filter.args || {});
+            if (!filterSVGString) {
+                throw new Error('Non-existing filter ' + name);
+            }
+
+            // Set the filter area to be 3x the bounding box of the cell
+            // and center the filter around the cell.
+            var filterAttrs = _.extend({
+                filterUnits: 'objectBoundingBox',
+                x: -1,
+                y: -1,
+                width: 3,
+                height: 3
+            }, filter.attrs, {
+                id: filterId
+            });
+
+            V(this.defs).append(V(filterSVGString, filterAttrs));
+        }
+
+        return filterId;
+    },
+
+    defineGradient: function(gradient) {
+
+        var gradientId = gradient.id;
+        var type = gradient.type;
+        var stops = gradient.stops;
+        // Generate a hash code from the stringified filter definition. This gives us
+        // a unique filter ID for different definitions.
+        if (!gradientId) {
+            gradientId = type + this.svg.id + joint.util.hashCode(JSON.stringify(gradient));
+        }
+        // If the gradient already exists in the document,
+        // we're done and we can just use it (reference it using `url()`).
+        // If not, create one.
+        if (!this.svg.getElementById(gradientId)) {
+
+            var stopTemplate = joint.util.template('<stop offset="${offset}" stop-color="${color}" stop-opacity="${opacity}"/>');
+            var gradientStopsStrings = _.map(stops, function(stop) {
+                return stopTemplate({
+                    offset: stop.offset,
+                    color: stop.color,
+                    opacity: _.isFinite(stop.opacity) ? stop.opacity : 1
+                });
+            });
+
+            var gradientSVGString = [
+                '<' + type + '>',
+                gradientStopsStrings.join(''),
+                '</' + type + '>'
+            ].join('');
+
+            var gradientAttrs = _.extend({ id: gradientId }, gradient.attrs);
+
+            V(this.defs).append(V(gradientSVGString, gradientAttrs));
+        }
+
+        return gradientId;
     }
+
 }, {
 
     backgroundPatterns: {

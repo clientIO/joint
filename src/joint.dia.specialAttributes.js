@@ -87,23 +87,23 @@
         },
 
         filter: {
-            qualify: _.isObject,
+            qualify: _.isPlainObject,
             set: function(filter) {
-                return 'url(#' + this.generateFilterId(filter) + ')';
+                return 'url(#' + this.paper.defineFilter(filter) + ')';
             }
         },
 
         fill: {
-            qualify: _.isObject,
+            qualify: _.isPlainObject,
             set: function(fill) {
-                return 'url(#' + this.generateGradientId(fill) + ')';
+                return 'url(#' + this.paper.defineGradient(fill) + ')';
             }
         },
 
         stroke: {
-            qualify: _.isObject,
+            qualify: _.isPlainObject,
             set: function(stroke) {
-                return 'url(#' + this.generateGradientId(stroke) + ')';
+                return 'url(#' + this.paper.defineGradient(stroke) + ')';
             }
         },
 
@@ -144,7 +144,7 @@
 
         // `style` attribute is special in the sense that it sets the CSS style of the subelement.
         style: {
-            qualify: _.isObject,
+            qualify: _.isPlainObject,
             set: function(styles, node) {
                 $(node).css(styles);
             }
