@@ -411,7 +411,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
     updateAttributes: function(attrs) {
-        var i, n, item, node, relativeAttrs, normalAttrs, processedAttrs;
+
+        var i, n, item, node, relativeAttrs, processedAttrs;
         var relativeItems = [];
         var selectorCache = {};
         var model = this.model;
@@ -429,14 +430,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 processedAttrs = this.processAttributes(currentAttrs[selector], node);
 
                 // Set all the normal attributes right on the SVG/HTML element.
-                normalAttrs = processedAttrs.normal;
-                if (!_.isEmpty(normalAttrs)) {
-                    if (node instanceof SVGElement) {
-                        V(node).attr(normalAttrs);
-                    } else {
-                        $(node).attr(normalAttrs);
-                    }
-                }
+                this.updateNormalAttributes(node, processedAttrs.normal);
 
                 // Special attributes make it also possible to set both absolute or
                 // relative positioning of subelements.
@@ -496,6 +490,16 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
     },
 
+    updateNormalAttributes: function(node, attrs) {
+
+        if (!_.isEmpty(attrs)) {
+            if (node instanceof SVGElement) {
+                V(node).attr(attrs);
+            } else {
+                $(node).attr(attrs);
+            }
+        }
+    },
 
     /**
      * @param {jQuery} $selected

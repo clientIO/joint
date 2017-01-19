@@ -725,11 +725,12 @@ joint.dia.CellView = joint.mvc.View.extend({
                 (_.isBoolean(interactive) && interactive !== false);
     },
 
-    findBySelector: function(selector) {
+    findBySelector: function(selector, root) {
 
+        var $root = $(root || this.el);
         // These are either descendants of `this.$el` of `this.$el` itself.
         // `.` is a special selector used to select the wrapping `<g>` element.
-        return (selector === '.') ? this.$el : this.$el.find(selector);
+        return (selector === '.') ? $root : $root.find(selector);
     },
 
     notify: function(eventName) {
