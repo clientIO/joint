@@ -586,7 +586,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 // SIZE
                 var sizeFn = def.size;
-                if (sizeFn) {
+                if (_.isFunction(sizeFn)) {
                     var sizeResult = sizeFn.call(this, attrVal, refBBox, node);
                     if (_.isObject(sizeResult)) {
                         _.extend(nodeAttrs, sizeResult);
@@ -597,7 +597,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
                 // POSITION
                 var positionFn = def.position;
-                if (positionFn) {
+                if (_.isFunction(positionFn)) {
                     translation = positionFn.call(this, attrVal, refBBox, node);
                     if (translation) {
                         nodePosition.offset(translation.scale(sx, sy));
@@ -612,6 +612,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
 
         // The node bounding box could depend on the `size` set from the previous loop.
+        // Here we know, that all the size attributes have been already set.
         var anchorsCount = anchors.length;
         if (anchorsCount > 0) {
             var nodeBBox = this._getNodeBBox(node);
@@ -619,11 +620,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             nodeBBox.height /= sy;
             for (var i = 0; i < anchorsCount; i++) {
                 attrName = anchors[i];
-                attrVal = attrs[attrName];
                 var anchorFn = defNamespace[attrName].anchor;
-                translation = anchorFn.call(this, attrVal, nodeBBox, node);
-                if (translation) {
-                    nodePosition.offset(translation.scale(-sx, -sy));
+                if (_.isFunction(anchorFn)) {
+                    attrVal = attrs[attrName];
+                    translation = anchorFn.call(this, attrVal, nodeBBox, node);
+                    if (translation) {
+                        nodePosition.offset(translation.scale(-sx, -sy));
+                    }
                 }
             }
         }
