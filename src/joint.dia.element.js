@@ -570,7 +570,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // The final translation of the subelement.
         var nodePosition = g.Point(0,0);
-        var nodeBBox, translation;
+        var translation;
+        var anchors = [];
         var nodeAttrs = {};
         var defNamespace = joint.dia.specialAttributes;
 
@@ -581,9 +582,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             if (!_.isUndefined(attrVal)) {
 
                 var def = defNamespace[attrName];
-                if (!def) {
-                    continue;
-                }
+                if (!def) continue;
 
                 // SIZE
                 var sizeFn = def.size;
@@ -606,17 +605,25 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 }
 
                 // ANCHOR
-                var anchorFn = def.anchor;
-                if (anchorFn) {
-                    if (!nodeBBox) {
-                        nodeBBox = this._getNodeBBox(node);
-                        nodeBBox.width /= sx;
-                        nodeBBox.height /= sy;
-                    }
-                    translation = anchorFn.call(this, attrVal, nodeBBox, node);
-                    if (translation) {
-                        nodePosition.offset(translation.scale(-sx, -sy));
-                    }
+                if (def.anchor) {
+                    anchors.push(attrName);
+                }
+            }
+        }
+
+        // The node bounding box could depend on the `size` set from the previous loop.
+        var anchorsCount = anchors.length;
+        if (anchorsCount > 0) {
+            var nodeBBox = this._getNodeBBox(node);
+            nodeBBox.width /= sx;
+            nodeBBox.height /= sy;
+            for (var i = 0; i < anchorsCount; i++) {
+                attrName = anchors[i];
+                attrVal = relativeAttributes[attrName];
+                var anchorFn = defNamespace[attrName].anchor;
+                translation = anchorFn.call(this, attrVal, nodeBBox, node);
+                if (translation) {
+                    nodePosition.offset(translation.scale(-sx, -sy));
                 }
             }
         }
