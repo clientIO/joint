@@ -1629,6 +1629,10 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     defineFilter: function(filter) {
 
+        if (!_.isObject(filter)) {
+            throw new TypeError('dia.Paper: defineFilter() requires 1. argument to be an object.');
+        }
+
         var filterId = filter.id;
         var name = filter.name;
         // Generate a hash code from the stringified filter definition. This gives us
@@ -1666,6 +1670,10 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     defineGradient: function(gradient) {
+
+        if (!_.isObject(gradient)) {
+            throw new TypeError('dia.Paper: defineGradient() requires 1. argument to be an object.');
+        }
 
         var gradientId = gradient.id;
         var type = gradient.type;
