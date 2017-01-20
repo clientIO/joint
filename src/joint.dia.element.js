@@ -584,7 +584,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 var def = defNamespace[attrName];
                 if (!def) continue;
 
-                // SIZE
+                // SIZE - size function should return attributes to be set on the node,
+                // which will affect the node dimensions based on the reference bounding
+                // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points`
                 var sizeFn = def.size;
                 if (_.isFunction(sizeFn)) {
                     var sizeResult = sizeFn.call(this, attrVal, refBBox, node);
@@ -595,7 +597,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                     }
                 }
 
-                // POSITION
+                // POSITION - position function should return a point from the
+                // reference bounding box. The default position of the node is x:0, y:0 of
+                // the reference bounding box or could be further specify by some
+                // SVG attributes e.g. `x`, `y`
                 var positionFn = def.position;
                 if (_.isFunction(positionFn)) {
                     translation = positionFn.call(this, attrVal, refBBox, node);
@@ -604,7 +609,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                     }
                 }
 
-                // ANCHOR
+                // ANCHOR - anchor function should return a point from the element
+                // bounding box. The default anchor point is x:0, y:0 (origin) or could be further
+                // specify with some SVG attributes e.g. `text-anchor`, `cx`, `cy`
                 if (def.anchor) {
                     anchors.push(attrName);
                 }
