@@ -112,7 +112,7 @@
                 var $node = $(node);
                 var cacheName = 'joint-text';
                 var cache = $node.data(cacheName);
-                var textAttrs = _.pick(attrs, 'lineHeight', 'anotations', 'textPath');
+                var textAttrs = _.pick(attrs, 'lineHeight', 'annotations', 'textPath');
                 var textHash = JSON.stringify([text, textAttrs]);
                 // Update the text only if there was a change in the string
                 // or any of its attributes.
