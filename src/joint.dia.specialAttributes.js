@@ -109,11 +109,17 @@
 
         text: {
             set: function(text, node, attrs) {
-                V(node).text(text + '', {
-                    lineHeight: attrs.lineHeight,
-                    textPath: attrs.textPath,
-                    annotations: attrs.annotations
-                });
+                var $node = $(node);
+                var cacheName = 'joint-text';
+                var cache = $node.data(cacheName);
+                var textAttrs = _.pick(attrs, 'lineHeight', 'anotations', 'textPath');
+                var textHash = JSON.stringify([text, textAttrs]);
+                // Update the text only if there was a change in the string
+                // or any of its attributes.
+                if (cache === undefined || cache !== textHash) {
+                    V(node).text('' + text, textAttrs);
+                    $node.data(cacheName, textHash);
+                }
             }
         },
 
