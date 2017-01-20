@@ -554,7 +554,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         };
     },
 
-    updateRelativeAttributes: function(node, relativeAttributes, refBBox) {
+    updateRelativeAttributes: function(node, attrs, refBBox) {
 
         // Check if the node is a descendant of the scalable group.
         var sx, sy;
@@ -570,15 +570,15 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // The final translation of the subelement.
         var nodePosition = g.Point(0,0);
-        var translation;
+        var translation, attrName, attrVal;
         var anchors = [];
         var nodeAttrs = {};
         var defNamespace = joint.dia.specialAttributes;
 
-        for (var attrName in relativeAttributes) {
-            if (!relativeAttributes.hasOwnProperty(attrName)) continue;
+        for (attrName in attrs) {
+            if (!attrs.hasOwnProperty(attrName)) continue;
 
-            var attrVal = relativeAttributes[attrName];
+            attrVal = attrs[attrName];
             if (!_.isUndefined(attrVal)) {
 
                 var def = defNamespace[attrName];
@@ -619,7 +619,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             nodeBBox.height /= sy;
             for (var i = 0; i < anchorsCount; i++) {
                 attrName = anchors[i];
-                attrVal = relativeAttributes[attrName];
+                attrVal = attrs[attrName];
                 var anchorFn = defNamespace[attrName].anchor;
                 translation = anchorFn.call(this, attrVal, nodeBBox, node);
                 if (translation) {
