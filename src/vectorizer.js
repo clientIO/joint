@@ -1318,7 +1318,7 @@ V = Vectorizer = (function() {
 
     V.transformPoint = function(p, matrix) {
 
-        return V.createSVGPoint(p.x, p.y).matrixTransform(matrix);
+        return g.Point(V.createSVGPoint(p.x, p.y).matrixTransform(matrix));
     };
 
     // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to

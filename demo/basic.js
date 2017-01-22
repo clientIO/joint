@@ -321,7 +321,7 @@ joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
                 strokeWidth: 3,
                 lineStyle: 'dashed',
                 debug: true,
-                fitRef: true,
+                fitRef: true
             },
             path: {
                 stroke: '#cbd2d7',
@@ -338,6 +338,7 @@ joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
                 text: 'Special\nAttributes',
                 refX: '50%',
                 refY: '50%',
+                transform: 'rotate(45) scale(0.5,0.5)',
                 yAlignment: 'middle',
                 xAlignment: 'middle'
             }

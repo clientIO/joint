@@ -412,7 +412,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
     updateAttributes: function(attrs) {
 
-        var i, n, item, node, relativeAttrs, processedAttrs;
+        var i, n, item, node, relativeAttrs, normalAttrs, processedAttrs;
         var relativeItems = [];
         var selectorCache = {};
         var model = this.model;
@@ -428,12 +428,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             for (i = 0, n = $selected.length; i < n; i++) {
                 node = $selected[i];
                 processedAttrs = this.processAttributes(currentAttrs[selector], node);
-
-                // Set all the normal attributes right on the SVG/HTML element.
-                this.updateNormalAttributes(node, processedAttrs.normal);
-
-                // Special attributes make it also possible to set both absolute or
-                // relative positioning of subelements.
+                normalAttrs = processedAttrs.normal;
                 relativeAttrs = processedAttrs.relative;
                 if (!_.isEmpty(relativeAttrs)) {
                     var currentModelAttrs = modelAttrs[selector];
@@ -441,6 +436,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                         node: node,
                         refSelector: currentModelAttrs && currentModelAttrs.ref,
                         relativeAttributes: relativeAttrs,
+                        normalAttributes: normalAttrs,
                         modelAttributes: currentModelAttrs
                     };
 
@@ -452,6 +448,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                     } else {
                         relativeItems.push(item);
                     }
+                } else {
+                    // Set all the normal attributes right on the SVG/HTML element.
+                    this.updateNormalAttributes(node, normalAttrs);
                 }
             }
         }
@@ -459,6 +458,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         for (i = 0, n = relativeItems.length; i < n; i++) {
             item = relativeItems[i];
             node = item.node;
+            normalAttrs = item.normalAttributes;
 
             // Find the reference element bounding box. If no reference was provided, we
             // use the model's bounding box.
@@ -486,7 +486,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 relativeAttrs = item.relativeAttributes;
             }
 
-            this.updateRelativeAttributes(node, relativeAttrs, refBBox);
+            this.updateRelativeAttributes(node, relativeAttrs, refBBox, normalAttrs);
         }
     },
 
@@ -554,7 +554,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         };
     },
 
-    updateRelativeAttributes: function(node, attrs, refBBox) {
+    updateRelativeAttributes: function(node, attrs, refBBox, nodeAttrs) {
 
         // Check if the node is a descendant of the scalable group.
         var sx, sy;
@@ -572,7 +572,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var nodePosition = g.Point(0,0);
         var translation, attrName, attrVal;
         var anchors = [];
-        var nodeAttrs = {};
         var defNamespace = joint.dia.specialAttributes;
 
         for (attrName in attrs) {
@@ -618,11 +617,19 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             }
         }
 
+        var nodeTransform = nodeAttrs.transform || '';
+        var nodeMatrix = V.transformStringToMatrix(nodeTransform);
+        if (nodeTransform) {
+            nodeAttrs = _.omit(nodeAttrs, 'transform');
+        }
+
+        this.updateNormalAttributes(node, nodeAttrs);
+
         // The node bounding box could depend on the `size` set from the previous loop.
         // Here we know, that all the size attributes have been already set.
         var anchorsCount = anchors.length;
-        if (anchorsCount > 0) {
-            var nodeBBox = this._getNodeBBox(node);
+        if (anchorsCount > 0 && (node instanceof SVGElement)) {
+            var nodeBBox = this.getNodeBBox(node, nodeMatrix);
             nodeBBox.width /= sx;
             nodeBBox.height /= sy;
             for (var i = 0; i < anchorsCount; i++) {
@@ -641,33 +648,34 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Round the coordinates to 1 decimal point.
         nodePosition.round(1);
 
-        V(node)
-            .translate(nodePosition.x, nodePosition.y, { absolute: true })
-            .attr(nodeAttrs);
+        nodeMatrix.e += nodePosition.x;
+        nodeMatrix.f += nodePosition.y;
+        node.setAttribute('transform', 'matrix(' + [
+            nodeMatrix.a,
+            nodeMatrix.b,
+            nodeMatrix.c,
+            nodeMatrix.d,
+            nodeMatrix.e,
+            nodeMatrix.f
+        ] + ')');
     },
 
     // Get the boundind box with the tranformations applied by the the
     // node itself only.
-    _getNodeBBox: function(node) {
+    getNodeBBox: function(node, matrix) {
 
-        var vel = V(node);
-        var bbox = vel.bbox(false, node.parentNode);
-
-        // Subtract the previous translate()
-        var translate = vel.translate();
-        bbox.x -= translate.tx;
-        bbox.y -= translate.ty;
+        var bbox = node.getBBox();
 
         // Compensate the size with the bounding box origin offset for text elements.
         var nodeName = node.nodeName.toUpperCase();
         if (nodeName === 'TEXT' || nodeName === 'TSPAN') {
             bbox.height += bbox.y;
             bbox.width += bbox.x;
-            bbox.x = -translate.tx;
-            bbox.y = -translate.ty;
+            bbox.x = 0;
+            bbox.y = 0;
         }
 
-        return bbox;
+        return V.transformRect(bbox, matrix);
     },
 
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
