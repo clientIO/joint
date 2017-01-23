@@ -412,12 +412,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
     updateAttributes: function(attrs) {
 
-        var i, n, item, node, relativeAttrs, normalAttrs, processedAttrs;
+        var i, n, item, node, relativeAttrs, normalAttrs, processedAttrs, refSelector;
         var relativeItems = [];
-        var selectorCache = {};
         var model = this.model;
         var modelAttrs = model.get('attrs');
         var currentAttrs = attrs || modelAttrs;
+        // Cache table for query results and bounding box calculation.
+        var selectorCache = {};
+        var bboxCache = {};
 
         for (var selector in currentAttrs) {
             if (!currentAttrs.hasOwnProperty(selector)) continue;
@@ -431,10 +433,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 normalAttrs = processedAttrs.normal;
                 relativeAttrs = processedAttrs.relative;
                 if (!_.isEmpty(relativeAttrs)) {
-                    var currentModelAttrs = modelAttrs[selector];
+                    var currentModelAttrs = modelAttrs[selector] || {};
+                    refSelector = (currentAttrs[selector].ref === undefined)
+                        ? currentModelAttrs.ref
+                        : currentAttrs[selector].ref;
                     item = {
                         node: node,
-                        refSelector: currentModelAttrs && currentModelAttrs.ref,
+                        refSelector: refSelector,
                         relativeAttributes: relativeAttrs,
                         normalAttributes: normalAttrs,
                         modelAttributes: currentModelAttrs
@@ -459,21 +464,24 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             item = relativeItems[i];
             node = item.node;
             normalAttrs = item.normalAttributes;
+            refSelector = item.refSelector || '';
 
             // Find the reference element bounding box. If no reference was provided, we
             // use the model's bounding box.
-            var refBBox;
-            var refSelector = item.refSelector;
-            if (refSelector) {
-                var refNode = (selectorCache[refSelector] || this.findBySelector(refSelector))[0];
-                if (!refNode) {
-                    throw new Error('dia.ElementView: "' + refSelector + '" reference does not exists.');
+            var refBBox = bboxCache[refSelector];
+            if (!refBBox) {
+                if (refSelector) {
+                    var refNode = (selectorCache[refSelector] || this.findBySelector(refSelector))[0];
+                    if (!refNode) {
+                        throw new Error('dia.ElementView: "' + refSelector + '" reference does not exists.');
+                    }
+                    // Get the bounding box of the reference element relative to the `rotatable` `<g>` (without rotation)
+                    // or to the root `<g>` element if no rotatable group present.
+                    refBBox = V(refNode).bbox(false, (this.rotatableNode || this.vel));
+                } else {
+                    refBBox = g.Rect(model.get('size'));
                 }
-                // Get the bounding box of the reference element relative to the `rotatable` `<g>` (without rotation)
-                // or to the root `<g>` element if no rotatable group present.
-                refBBox = V(refNode).bbox(false, (this.rotatableNode || this.vel));
-            } else {
-                refBBox = g.Rect(model.get('size'));
+                bboxCache[refSelector] = refBBox;
             }
 
             if (attrs) {
@@ -482,11 +490,16 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 // to update the position relatively (i.e `ref-x` && 'ref-dx')
                 processedAttrs = this.processAttributes(item.modelAttributes, node, { dry: true });
                 relativeAttrs = _.extend(processedAttrs.relative, item.relativeAttributes);
+                // Handle also the special transform property.
+                var transform = processedAttrs.normal.transform;
+                if (transform !== undefined) {
+                    normalAttrs.transform = transform;
+                }
             } else {
                 relativeAttrs = item.relativeAttributes;
             }
 
-            this.updateRelativeAttributes(node, relativeAttrs, refBBox, normalAttrs);
+            this.updateRelativeAttributes(node, relativeAttrs, refBBox.clone(), normalAttrs);
         }
     },
 
