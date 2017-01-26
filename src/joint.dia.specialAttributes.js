@@ -63,7 +63,7 @@
             }
 
             var point = g.Point();
-            point[axis] = nodeBBox[axis] +  + delta || 0;
+            point[axis] = nodeBBox[axis] + delta || 0;
             return point;
         };
     }

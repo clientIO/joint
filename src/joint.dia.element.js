@@ -644,7 +644,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (node instanceof HTMLElement) {
             // TODO: setting the `transform` attribute on HTMLElements
             // via `node.style.transform = 'matrix(...)';` would introduce
-            // a breaking change.
+            // a breaking change (e.g. basic.TextBlock).
             return;
         }
 
@@ -652,9 +652,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Here we know, that all the size attributes have been already set.
         var anchorsCount = anchors.length;
         if (anchorsCount > 0) {
-            var nodeBBox = V.transformRect(node.getBBox(), nodeMatrix);
-            nodeBBox.width /= sx;
-            nodeBBox.height /= sy;
+            var nodeBBox = V.transformRect(node.getBBox(), nodeMatrix).scale(1 / sx, 1 / sy);
             for (var i = 0; i < anchorsCount; i++) {
                 attrName = anchors[i];
                 var anchorFn = this.getAttributeDefinition(attrName).anchor;
@@ -669,9 +667,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
 
         // Round the coordinates to 1 decimal point.
-        nodePosition.round(1);
-        nodeMatrix.e += nodePosition.x;
-        nodeMatrix.f += nodePosition.y;
+        nodePosition.offset(nodeMatrix.e, nodeMatrix.f).round(1);
+        nodeMatrix.e = nodePosition.x;
+        nodeMatrix.f = nodePosition.y;
         node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
     },
 
