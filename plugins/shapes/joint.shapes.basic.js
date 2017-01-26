@@ -244,6 +244,7 @@ joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
             },
             'text': {
                 'ref-y': .5,
+                'ref-dy': null,
                 'y-alignment': 'middle'
             }
         }

@@ -643,7 +643,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (node instanceof HTMLElement) {
             // TODO: setting the `transform` attribute on HTMLElements
-            // via `node.style.transform = 'transformString';` would introduce
+            // via `node.style.transform = 'matrix(...)';` would introduce
             // a breaking change.
             return;
         }
@@ -652,7 +652,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Here we know, that all the size attributes have been already set.
         var anchorsCount = anchors.length;
         if (anchorsCount > 0) {
-            var nodeBBox = this.getNodeBBox(node, nodeMatrix);
+            var nodeBBox = V.transformRect(node.getBBox(), nodeMatrix);
             nodeBBox.width /= sx;
             nodeBBox.height /= sy;
             for (var i = 0; i < anchorsCount; i++) {
@@ -673,24 +673,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         nodeMatrix.e += nodePosition.x;
         nodeMatrix.f += nodePosition.y;
         node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
-    },
-
-    // Get the boundind box with the tranformations applied by the the
-    // node itself only.
-    getNodeBBox: function(node, matrix) {
-
-        var bbox = node.getBBox();
-
-        // Compensate the size with the bounding box origin offset for text elements.
-        var nodeName = node.nodeName.toUpperCase();
-        if (nodeName === 'TEXT' || nodeName === 'TSPAN') {
-            bbox.height += bbox.y;
-            bbox.width += bbox.x;
-            bbox.x = 0;
-            bbox.y = 0;
-        }
-
-        return V.transformRect(bbox, matrix);
     },
 
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
