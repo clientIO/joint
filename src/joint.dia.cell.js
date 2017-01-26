@@ -644,6 +644,16 @@ joint.dia.Cell = Backbone.Model.extend({
         if (this.graph) { this.graph.stopBatch(name, _.extend({}, opt, { cell: this })); }
         return this;
     }
+
+}, {
+
+    getAttributeDefinition: function(attrName) {
+
+        var defNS = this.specialAttributes;
+        var globalDefNS = joint.dia.specialAttributes;
+        return (defNS && defNS[attrName]) || globalDefNS[attrName];
+    }
+
 });
 
 // joint.dia.CellView base view and controller.

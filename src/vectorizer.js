@@ -1105,6 +1105,18 @@ V = Vectorizer = (function() {
         }, transformationMatrix);
     };
 
+    V.matrixToTransformString = function(matrix) {
+        matrix || (matrix = true);
+        return 'matrix(' + [
+            matrix.a || 1,
+            matrix.b || 0,
+            matrix.c || 0,
+            matrix.d || 1,
+            matrix.e || 0,
+            matrix.f || 0
+        ] + ')';
+    },
+
     V.parseTransformString = function(transform) {
 
         var translate, rotate, scale;

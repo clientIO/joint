@@ -630,7 +630,7 @@
             _.each(allAttrs, function(attrs, selector) {
                 _.each(this.findBySelector(selector, element), function(node) {
                     var processedAttributes = this.processAttributes(attrs, node);
-                    this.updateNormalAttributes(node, processedAttributes.normal);
+                    this.setNodeAttributes(node, processedAttributes.normal);
                 }, this);
             }, this);
         },

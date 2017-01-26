@@ -409,7 +409,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this._renderPorts();
     },
 
-    // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
+    // Default is to process the `model.attributes.attrs` object and set attributes on subelements based on the selectors,
+    // unless `attrs` parameter was passed.
     updateAttributes: function(attrs) {
 
         var i, n, item, node, relativeAttrs, normalAttrs, processedAttrs, refSelector;
@@ -455,7 +456,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                     }
                 } else {
                     // Set all the normal attributes right on the SVG/HTML element.
-                    this.updateNormalAttributes(node, normalAttrs);
+                    this.setNodeAttributes(node, normalAttrs);
                 }
             }
         }
@@ -503,7 +504,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
     },
 
-    updateNormalAttributes: function(node, attrs) {
+    getAttributeDefinition: function(attrName) {
+
+        return this.model.constructor.getAttributeDefinition(attrName);
+    },
+
+    setNodeAttributes: function(node, attrs) {
 
         if (!_.isEmpty(attrs)) {
             if (node instanceof SVGElement) {
@@ -521,17 +527,15 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     processAttributes: function(attrs, el, opt) {
 
         var dry = !!(opt && opt.dry);
-        var namespace = joint.dia.specialAttributes;
         var attrName, attrVal, def, i, n;
         var normalAttributes = {};
         var relativeAttributes = {};
         var specialAttributeNames = [];
-
         // divide the attributes between normal and special
         for (attrName in attrs) {
             if (!attrs.hasOwnProperty(attrName)) continue;
             attrVal = attrs[attrName];
-            def = namespace[attrName];
+            def = this.getAttributeDefinition(attrName);
             if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, el, attrs))) {
                 specialAttributeNames.push(attrName);
             } else {
@@ -544,7 +548,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         for (i = 0, n = specialAttributeNames.length; i < n; i++) {
             attrName = specialAttributeNames[i];
             attrVal = attrs[attrName];
-            def = namespace[attrName];
+            def = this.getAttributeDefinition(attrName);
             if (!dry && _.isFunction(def.set)) {
                 var setResult = def.set.call(this, attrVal, el, attrs);
                 if (_.isObject(setResult)) {
@@ -585,7 +589,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var nodePosition = g.Point(0,0);
         var translation, attrName, attrVal;
         var anchors = [];
-        var defNamespace = joint.dia.specialAttributes;
 
         for (attrName in attrs) {
             if (!attrs.hasOwnProperty(attrName)) continue;
@@ -593,7 +596,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             attrVal = attrs[attrName];
             if (!_.isUndefined(attrVal)) {
 
-                var def = defNamespace[attrName];
+                var def = this.getAttributeDefinition(attrName);
                 if (!def) continue;
 
                 // SIZE - size function should return attributes to be set on the node,
@@ -636,18 +639,25 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             nodeAttrs = _.omit(nodeAttrs, 'transform');
         }
 
-        this.updateNormalAttributes(node, nodeAttrs);
+        this.setNodeAttributes(node, nodeAttrs);
+
+        if (node instanceof HTMLElement) {
+            // TODO: setting the `transform` attribute on HTMLElements
+            // via `node.style.transform = 'transformString';` would introduce
+            // a breaking change.
+            return;
+        }
 
         // The node bounding box could depend on the `size` set from the previous loop.
         // Here we know, that all the size attributes have been already set.
         var anchorsCount = anchors.length;
-        if (anchorsCount > 0 && (node instanceof SVGElement)) {
+        if (anchorsCount > 0) {
             var nodeBBox = this.getNodeBBox(node, nodeMatrix);
             nodeBBox.width /= sx;
             nodeBBox.height /= sy;
             for (var i = 0; i < anchorsCount; i++) {
                 attrName = anchors[i];
-                var anchorFn = defNamespace[attrName].anchor;
+                var anchorFn = this.getAttributeDefinition(attrName).anchor;
                 if (_.isFunction(anchorFn)) {
                     attrVal = attrs[attrName];
                     translation = anchorFn.call(this, attrVal, nodeBBox, node);
@@ -660,17 +670,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // Round the coordinates to 1 decimal point.
         nodePosition.round(1);
-
         nodeMatrix.e += nodePosition.x;
         nodeMatrix.f += nodePosition.y;
-        node.setAttribute('transform', 'matrix(' + [
-            nodeMatrix.a,
-            nodeMatrix.b,
-            nodeMatrix.c,
-            nodeMatrix.d,
-            nodeMatrix.e,
-            nodeMatrix.f
-        ] + ')');
+        node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
     },
 
     // Get the boundind box with the tranformations applied by the the
@@ -723,18 +725,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.translate();
 
         return this;
-    },
-
-    // Scale the whole `<g>` group. Note the difference between `scale()` and `resize()` here.
-    // `resize()` doesn't scale the whole `<g>` group but rather adjusts the `box.sx`/`box.sy` only.
-    // `update()` is then responsible for scaling only those elements that have the `follow-scale`
-    // attribute set to `true`. This is desirable in elements that have e.g. a `<text>` subelement
-    // that is not supposed to be scaled together with a surrounding `<rect>` element that IS supposed
-    // be be scaled.
-    scale: function(sx, sy) {
-
-        // TODO: take into account the origin coordinates `ox` and `oy`.
-        this.vel.scale(sx, sy);
     },
 
     resize: function(cell, changed, opt) {

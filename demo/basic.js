@@ -241,26 +241,7 @@ c.animateAlongPath({ dur: '4s', repeatCount: 'indefinite' }, cylinderPath.node);
 c.scale(cylinderScalableCTM.a, cylinderScalableCTM.d);
 cylinderScalable.append(c);
 
-// The path data `d` attribute to be defined via an array.
-// e.g. d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
-joint.dia.specialAttributes.d = {
-    qualify: _.isArray,
-    size: function(value, refBBox) {
-        var i = 0;
-        var attrValue = value.map(function(data, index) {
-            if (_.isString(data)) {
-                if (data.slice(-1) === '%') {
-                    return parseFloat(data) / 100 * refBBox[((index - i) % 2) ? 'height' : 'width'];
-                } else {
-                    i++;
-                }
-            }
-            return data;
-        }).join(' ');
-        return { d:  attrValue };
-    }
-};
-
+// Global special attributes
 joint.dia.specialAttributes.lineStyle = {
     set: function(lineStyle, node, attrs) {
 
@@ -271,14 +252,6 @@ joint.dia.specialAttributes.lineStyle = {
         }[lineStyle] || 'none';
 
         return { 'stroke-dasharray': dasharray };
-    }
-};
-
-joint.dia.specialAttributes.debug = {
-    set: function(debug, node, attrs) {
-        if (debug) {
-            console.log('node:', node);
-        }
     }
 };
 
@@ -303,9 +276,16 @@ joint.dia.specialAttributes.fitRef = {
                     d: V.rectToPath(rect)
                 };
         }
-        return undefined;
     }
-}
+};
+
+joint.dia.specialAttributes.debug = {
+    set: function(debug, node, attrs) {
+        if (debug) {
+            console.log('node:', node);
+        }
+    }
+};
 
 joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
 
@@ -345,6 +325,31 @@ joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
         }
 
     }, joint.shapes.basic.Generic.prototype.defaults)
+}, {
+
+    // Element specific special attributes
+    specialAttributes: {
+
+        d: {
+            // The path data `d` attribute to be defined via an array.
+            // e.g. d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
+            qualify: _.isArray,
+            size: function(value, refBBox) {
+                var i = 0;
+                var attrValue = value.map(function(data, index) {
+                    if (_.isString(data)) {
+                        if (data.slice(-1) === '%') {
+                            return parseFloat(data) / 100 * refBBox[((index - i) % 2) ? 'height' : 'width'];
+                        } else {
+                            i++;
+                        }
+                    }
+                    return data;
+                }).join(' ');
+                return { d:  attrValue };
+            }
+        }
+    }
 });
 
 var sa = new joint.shapes.basic.SATest({
