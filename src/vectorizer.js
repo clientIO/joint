@@ -110,9 +110,7 @@ V = Vectorizer = (function() {
      * @returns {SVGMatrix}
      */
     V.prototype.getTransformToElement = function(toElem) {
-        if (V.isV(toElem)) {
-            toElem = toElem.node;
-        }
+        toElem = V.toNode(toElem);
         return toElem.getScreenCTM().inverse().multiply(this.node.getScreenCTM());
     };
 
@@ -611,7 +609,7 @@ V = Vectorizer = (function() {
     V.prototype.contains = function(el) {
 
         var a = this.node;
-        var b = V(el).node;
+        var b = V.toNode(el);
         var bup = b && b.parentNode;
 
         return (a === bup) || !!(bup && bup.nodeType === 1 && (a.compareDocumentPosition(bup) & 16));

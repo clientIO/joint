@@ -328,6 +328,17 @@ QUnit.module('vectorizer', function(hooks) {
         );
     });
 
+    QUnit.test('contains()', function(assert) {
+
+        assert.ok(V(svgContainer).contains(svgGroup1));
+        assert.ok(V(svgGroup1).contains(svgGroup3));
+        assert.ok(V(svgGroup1).contains(svgGroup2));
+        assert.notOk(V(svgGroup3).contains(svgGroup1));
+        assert.notOk(V(svgGroup2).contains(svgGroup1));
+        assert.notOk(V(svgGroup1).contains(svgGroup1));
+        assert.notOk(V(svgGroup1).contains(document));
+    });
+
     QUnit.module('transform()', function(hooks) {
 
         var vel;
