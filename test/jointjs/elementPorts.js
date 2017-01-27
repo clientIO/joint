@@ -100,7 +100,7 @@ QUnit.module('element ports', function() {
 
         QUnit.test('getPortIndex', function(assert) {
 
-            var idObject = { };
+            var idObject = {};
             var ports = [
                 true,
                 { id: 'aaa', 'group_id': 'in' },
@@ -542,6 +542,29 @@ QUnit.module('element ports', function() {
         });
     });
 
+    QUnit.module('getPortsPositions', function() {
+
+        QUnit.test('ports positions can be retrieved even if element is not rendered yet', function(assert) {
+
+            var shape = create({
+                groups: {
+                    'a': { position: 'left' }
+                },
+                items: [
+                    { id: 'one', group: 'a' },
+                    { id: 'two', group: 'a' },
+                    { id: 'three', group: 'a' }
+                ]
+            }).set('size', { width: 5, height: 10 });
+
+            var portsPositions = shape.getPortsPositions('a');
+
+            assert.ok(portsPositions[0].position.y > 0);
+            assert.ok(portsPositions[0].position.y < portsPositions[1].position.y);
+            assert.ok(portsPositions[1].position.y < portsPositions[2].position.y);
+        });
+    });
+
     QUnit.module('portProp', function() {
 
         QUnit.test('set port properties', function(assert) {
@@ -576,6 +599,9 @@ QUnit.module('element ports', function() {
 
             var prop = shape.portProp('one', 'attrs/.body');
             assert.equal(prop.fill, 'red');
+
+            prop = shape.portProp('one');
+            assert.ok(prop.id, 'red');
         });
     });
 });

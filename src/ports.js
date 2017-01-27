@@ -6,6 +6,9 @@
         this.ports = [];
         this.groups = this._getNormalizedGroups(clonedData);
 
+        this.portLayoutNamespace = joint.layout.Port;
+        this.portLabelLayoutNamespace = joint.layout.PortLabel;
+
         this._init(clonedData);
     };
 
@@ -32,20 +35,50 @@
             });
         },
 
+        resolvePortAttrs: function(groupName, elBBox) {
+
+            var group = this.getGroup(groupName);
+            var ports = this.getPortsByGroup(groupName);
+
+            var position = group.position.name;
+            var namespace = this.portLayoutNamespace;
+            if (!namespace[position]) {
+                position = 'left';
+            }
+
+            var groupPortTransformations = namespace[position](_.pluck(ports, 'position.args'), elBBox, group.position.args || {});
+
+            var result = [];
+            _.each(groupPortTransformations, function(portTransformation, index) {
+
+                var port = ports[index];
+
+                result.push({
+                    portId: port.id,
+                    port: portTransformation,
+                    label: this._getPortLabelLayout(port, g.Point(portTransformation), elBBox)
+                })
+            }, this);
+
+            return result;
+        },
+
+        _getPortLabelLayout: function(port, portPosition, elBBox) {
+
+            var namespace = this.portLabelLayoutNamespace;
+            var labelPosition = port.label.position.name;
+
+            if (namespace[labelPosition]) {
+                return namespace[labelPosition](portPosition, elBBox, port.label.position.args);
+            }
+
+            return null;
+        },
+
         addPort: function(port) {
 
             port = this._evaluatePort(port);
             this.ports.push(port);
-        },
-
-        getLayoutPosition: function(id) {
-
-            var port = this.getPort(id);
-            if (!port) {
-                throw new Error('Port with id ' + id + ' not found.')
-            }
-
-            return port.layoutPosition;
         },
 
         _init: function(data) {
@@ -242,15 +275,21 @@
             }));
         },
 
-        getPortPosition: function(id) {
+        /**
+         * @param {string} groupName
+         * @returns {Array}
+         */
+        getPortsPositions: function(groupName) {
 
-            return g.Point(this._portSettingsData.getLayoutPosition(id));
-        },
+            var portsPositions = this._portSettingsData.resolvePortAttrs(groupName, g.Rect(this.get('size')));
 
-        getPortAngle: function(id) {
-
-            var layoutPosition = this._portSettingsData.getLayoutPosition(id) || {};
-            return layoutPosition.angle;
+            return _.map(portsPositions, function (port) {
+                return {id: port.portId, position: {
+                    x: port.port.x,
+                    y: port.port.y,
+                    angle: port.port.angle
+                }};
+            });
         },
 
         /**
@@ -288,7 +327,7 @@
 
         /**
          * @param {string} portId
-         * @param {string|object} path
+         * @param {string|object=} path
          * @param {*=} value
          * @param {object=} opt
          * @returns {joint.dia.Element}
@@ -311,45 +350,15 @@
 
             } else {
 
-                args = ['ports/items/' + index, path, value];
+                args = ['ports/items/' + index];
+                if (_.isObject(path)){
+                    args.push(path);
+                    args.push(value);
+                }
             }
 
             return this.prop.apply(this, args);
         },
-
-        getPortsTrans: function(groupName) {
-
-            var group = this._portSettingsData.getGroup(groupName);
-            var elBBox = g.rect(this.get('size'));
-
-            var ports = this._portSettingsData.getPortsByGroup(groupName);
-
-            // console.log(this.get('size'));
-
-            var position = group.position.name;
-            var namespace = joint.layout.Port;
-            if (!namespace[position]) {
-                position = 'left';
-            }
-
-            return namespace[position](_.pluck(ports, 'position.args'), elBBox, group.position.args || {});
-        },
-
-        getPortLabelLayout: function (id, portPosition) {
-
-            var port = this._portSettingsData.getPort(id);
-            var elBBox = g.Rect(this.get('size'));
-
-            var namespace = joint.layout.PortLabel;
-            var labelPosition = port.label.position.name;
-
-            if (namespace[labelPosition]) {
-                return namespace[labelPosition](portPosition, elBBox, port.label.position.args);
-            }
-
-            return null;
-        },
-
 
         _validatePorts: function() {
 
@@ -630,18 +639,15 @@
          */
         _layoutPorts: function(groupName) {
 
-            var portTrans = this.model.getPortsTrans(groupName);
-            var ports = this.model._portSettingsData.getPortsByGroup(groupName);
+            var elementBBox = g.Rect(this.model.get('size'));
 
-            _.each(portTrans, function(offset, index) {
+            _.each(this.model._portSettingsData.resolvePortAttrs(groupName, elementBBox), function(portAttrs) {
 
-                var portId = ports[index].id;
+                var portId = portAttrs.portId;
                 var cached = this._portElementsCache[portId] || {};
-                this.applyPortTransform(cached.portElement, offset);
-
-                var labelTrans = this.model.getPortLabelLayout(portId, g.Point(offset));
-                if (labelTrans) {
-                    this.applyPortTransform(cached.portLabelElement, labelTrans, -(offset.angle || 0));
+                this.applyPortTransform(cached.portElement, portAttrs.port);
+                if (portAttrs.label) {
+                    this.applyPortTransform(cached.portLabelElement, portAttrs.label, -(portAttrs.port.angle || 0));
                 }
             }, this);
         },
