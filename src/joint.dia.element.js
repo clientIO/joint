@@ -409,80 +409,124 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this._renderPorts();
     },
 
-    // Default is to process the `model.attributes.attrs` object and set attributes on subelements based on the selectors,
-    // unless `attrs` parameter was passed.
-    updateAttributes: function(attrs) {
+    findNodesAttributes: function(attrs, selectorCache) {
 
-        var i, n, item, node, relativeAttrs, normalAttrs, processedAttrs, refSelector;
-        var relativeItems = [];
-        var model = this.model;
-        var modelAttrs = model.get('attrs');
-        var currentAttrs = attrs || modelAttrs;
-        // Cache table for query results and bounding box calculation.
-        var selectorCache = {};
-        var bboxCache = {};
+        var nodesAttrs = {};
 
-        for (var selector in currentAttrs) {
-            if (!currentAttrs.hasOwnProperty(selector)) continue;
-
-            // Elements that should be updated.
+        for (var selector in attrs) {
+            if (!attrs.hasOwnProperty(selector)) continue;
             var $selected = selectorCache[selector] = this.findBySelector(selector);
 
-            for (i = 0, n = $selected.length; i < n; i++) {
-                node = $selected[i];
-                processedAttrs = this.processAttributes(currentAttrs[selector], node);
-                normalAttrs = processedAttrs.normal;
-                relativeAttrs = processedAttrs.relative;
-                if (!_.isEmpty(relativeAttrs)) {
-                    var currentModelAttrs = modelAttrs[selector] || {};
-                    refSelector = (currentAttrs[selector].ref === undefined)
-                        ? currentModelAttrs.ref
-                        : currentAttrs[selector].ref;
-                    item = {
-                        node: node,
-                        refSelector: refSelector,
-                        relativeAttributes: relativeAttrs,
-                        normalAttributes: normalAttrs,
-                        modelAttributes: currentModelAttrs
-                    };
-
-                    // If an element in the list is positioned relative to this one, then
-                    // we want to insert this one before it in the list.
-                    var itemIndex = _.findIndex(relativeItems, { ref: selector });
-                    if (itemIndex > -1) {
-                        relativeItems.splice(itemIndex, 0, item);
-                    } else {
-                        relativeItems.push(item);
-                    }
+            for (var i = 0, n = $selected.length; i < n; i++) {
+                var node = $selected[i];
+                var nodeId = V.ensureId(node);
+                var nodeAttrs = attrs[selector];
+                var prevNodeAttrs = nodesAttrs[nodeId];
+                if (prevNodeAttrs) {
+                    _.assign(prevNodeAttrs.attributes, nodeAttrs);
                 } else {
-                    // Set all the normal attributes right on the SVG/HTML element.
-                    this.setNodeAttributes(node, normalAttrs);
+                    nodesAttrs[nodeId] = {
+                        attributes: _.clone(nodeAttrs),
+                        node: node
+                    };
                 }
             }
         }
 
-        for (i = 0, n = relativeItems.length; i < n; i++) {
-            item = relativeItems[i];
-            node = item.node;
-            normalAttrs = item.normalAttributes;
-            refSelector = item.refSelector || '';
+        return nodesAttrs;
+    },
 
-            // Find the reference element bounding box. If no reference was provided, we
-            // use the model's bounding box.
-            var refBBox = bboxCache[refSelector];
-            if (!refBBox) {
+    // Default is to process the `model.attributes.attrs` object and set attributes on subelements based on the selectors,
+    // unless `attrs` parameter was passed.
+    updateAttributes: function(attrs) {
+
+        // Cache table for query results and bounding box calculation.
+        // Note that `selectorCache` needs to be invalidated for all
+        // `updateAttributes` calls, as the selectors might pointing
+        // to nodes designated by an attribute or elements dynamically
+        // created.
+        var selectorCache = {};
+        var bboxCache = {};
+
+        var model = this.model;
+        var modelAttrs = model.get('attrs');
+        var nodesAttrs = this.findNodesAttributes(attrs || modelAttrs, selectorCache);
+        // `nodesAttrs` are different from attributes defined on the model, when
+        // custom attributes sent to this method.
+        var nodesModelAttrs = (attrs)
+            ? nodesModelAttrs = this.findNodesAttributes(modelAttrs, selectorCache)
+            : nodesAttrs;
+
+        var item;
+        var relativeItems = [];
+        var node, nodeAttrs, nodeData;
+        var relativeAttrs, normalAttrs, processedAttrs;
+
+        for (var nodeId in nodesAttrs) {
+            nodeData = nodesAttrs[nodeId];
+            nodeAttrs = nodeData.attributes;
+            node = nodeData.node;
+            processedAttrs = this.processAttributes(nodeAttrs, node);
+            normalAttrs = processedAttrs.normal;
+            relativeAttrs = processedAttrs.relative;
+
+            if (_.isEmpty(relativeAttrs)) {
+                // Set all the normal attributes right on the SVG/HTML element.
+                this.setNodeAttributes(node, normalAttrs);
+
+            } else {
+
+                var nodeModelAttrs = nodesModelAttrs[nodeId] || {};
+                var refSelector = (nodeAttrs.ref === undefined)
+                    ? nodeModelAttrs.ref
+                    : nodeAttrs.ref;
+
+                var refNode;
                 if (refSelector) {
-                    var refNode = (selectorCache[refSelector] || this.findBySelector(refSelector))[0];
+                    refNode = (selectorCache[refSelector] || this.findBySelector(refSelector))[0];
                     if (!refNode) {
                         throw new Error('dia.ElementView: "' + refSelector + '" reference does not exists.');
                     }
-                    // Get the bounding box of the reference element relative to the `rotatable` `<g>` (without rotation)
-                    // or to the root `<g>` element if no rotatable group present.
-                    refBBox = V(refNode).bbox(false, (this.rotatableNode || this.vel));
                 } else {
-                    refBBox = g.Rect(model.get('size'));
+                    refNode = null;
                 }
-                bboxCache[refSelector] = refBBox;
+
+                item = {
+                    node: node,
+                    refNode: refNode,
+                    relativeAttributes: relativeAttrs,
+                    normalAttributes: normalAttrs,
+                    modelAttributes: nodeModelAttrs
+                };
+
+                // If an element in the list is positioned relative to this one, then
+                // we want to insert this one before it in the list.
+                var itemIndex = _.findIndex(relativeItems, { refNode: node });
+                if (itemIndex > -1) {
+                    relativeItems.splice(itemIndex, 0, item);
+                } else {
+                    relativeItems.push(item);
+                }
+            }
+        }
+
+        for (var i = 0, n = relativeItems.length; i < n; i++) {
+            item = relativeItems[i];
+            node = item.node;
+            normalAttrs = item.normalAttributes;
+            refNode = item.refNode;
+
+            // Find the reference element bounding box. If no reference was provided, we
+            // use the model's bounding box.
+            var refNodeId = refNode ? V.ensureId(refNode) : '';
+            var refBBox = bboxCache[refNodeId];
+            if (!refBBox) {
+                // Get the bounding box of the reference element relative to the `rotatable` `<g>` (without rotation)
+                // or to the root `<g>` element if no rotatable group present if reference node present.
+                // Uses the model bounding box with origin at 0,0 otherwise.
+                refBBox = bboxCache[refNodeId] = (refNode)
+                    ? V(refNode).bbox(false, (this.rotatableNode || this.vel))
+                    : g.Rect(model.get('size'));
             }
 
             if (attrs) {
