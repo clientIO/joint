@@ -89,9 +89,7 @@ V = Vectorizer = (function() {
                 el = document.createElementNS(ns.xmlns, el);
             }
 
-            if (!el.id) {
-                el.id = V.uniqueId();
-            }
+            V.ensureId(el);
         }
 
         this.node = el;
@@ -706,9 +704,9 @@ V = Vectorizer = (function() {
 
     V.prototype.animateAlongPath = function(attrs, path) {
 
-        path = V(path).node;
+        path = V.toNode(path);
 
-        var id = path.id = (path.id || V.uniqueId());
+        var id = V.ensureId(path);
         var animateMotion = V('animateMotion', attrs);
         var mpath = V('mpath', { 'xlink:href': '#' + id });
 
@@ -964,10 +962,13 @@ V = Vectorizer = (function() {
     // A function returning a unique identifier for this client session with every call.
     V.uniqueId = function() {
 
-        var id = ++V.idCounter + '';
-        return 'v-' + id;
+        return 'v-' + (++V.idCounter);
     };
 
+    V.ensureId = function(node) {
+
+        return node.id || (node.id = V.uniqueId());
+    };
     // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
     // IE would otherwise collapse all spaces into one. This is used in the text() method but it is
     // also exposed so that the programmer can use it in case he needs to. This is useful e.g. in tests

@@ -71,6 +71,16 @@ QUnit.module('vectorizer', function(hooks) {
         assert.ok(typeof error === 'undefined', 'Should not throw an error when given valid markup.');
     });
 
+    QUnit.test('V.ensureId()', function(assert) {
+        var node = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        assert.notOk(node.id);
+        var id = V.ensureId(node);
+        assert.ok(id);
+        assert.equal(id, node.id);
+        assert.equal(id, V.ensureId(node));
+        assert.equal(id, node.id);
+    });
+
     QUnit.test('index()', function(assert) {
 
         // svg container
