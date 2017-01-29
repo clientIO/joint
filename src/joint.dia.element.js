@@ -564,10 +564,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
     },
 
-    /**
-     * @param {jQuery} $selected
-     * @param {Object} attrs
-     */
     processAttributes: function(attrs, el, opt) {
 
         var dry = !!(opt && opt.dry);
@@ -581,7 +577,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             attrVal = attrs[attrName];
             def = this.getAttributeDefinition(attrName);
             if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, el, attrs))) {
-                specialAttributeNames.push(attrName);
+                if (attrVal != null) {
+                    specialAttributeNames.push(attrName);
+                }
             } else {
                 normalAttributes[attrName] = attrVal;
             }
