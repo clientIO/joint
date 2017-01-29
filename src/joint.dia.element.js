@@ -411,6 +411,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     findNodesAttributes: function(attrs, selectorCache) {
 
+        // TODO: merge attributes in order defined by `index` property
+
         var nodesAttrs = {};
 
         for (var selector in attrs) {
@@ -699,15 +701,19 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Here we know, that all the size attributes have been already set.
         var anchorsCount = anchors.length;
         if (anchorsCount > 0) {
-            var nodeBBox = V.transformRect(node.getBBox(), nodeMatrix).scale(1 / sx, 1 / sy);
-            for (var i = 0; i < anchorsCount; i++) {
-                attrName = anchors[i];
-                var anchorFn = this.getAttributeDefinition(attrName).anchor;
-                if (_.isFunction(anchorFn)) {
-                    attrVal = attrs[attrName];
-                    translation = anchorFn.call(this, attrVal, nodeBBox, node);
-                    if (translation) {
-                        nodePosition.offset(translation.scale(-sx, -sy));
+            // Check if the node is visible
+            var nodeClientRect = node.getBoundingClientRect();
+            if (nodeClientRect.width > 0 && nodeClientRect.height > 0) {
+                var nodeBBox = V.transformRect(node.getBBox(), nodeMatrix).scale(1 / sx, 1 / sy);
+                for (var i = 0; i < anchorsCount; i++) {
+                    attrName = anchors[i];
+                    var anchorFn = this.getAttributeDefinition(attrName).anchor;
+                    if (_.isFunction(anchorFn)) {
+                        attrVal = attrs[attrName];
+                        translation = anchorFn.call(this, attrVal, nodeBBox, node);
+                        if (translation) {
+                            nodePosition.offset(translation.scale(-sx, -sy));
+                        }
                     }
                 }
             }
