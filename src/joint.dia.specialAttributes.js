@@ -112,11 +112,15 @@
                 var $node = $(node);
                 var cacheName = 'joint-text';
                 var cache = $node.data(cacheName);
-                var textAttrs = _.pick(attrs, 'lineHeight', 'annotations', 'textPath');
+                var textAttrs = _.pick(attrs, 'lineHeight', 'annotations', 'textPath', 'font-size', 'fontSize');
                 var textHash = JSON.stringify([text, textAttrs]);
                 // Update the text only if there was a change in the string
                 // or any of its attributes.
                 if (cache === undefined || cache !== textHash) {
+                    // Chrome bug:
+                    // Tspans positions defined as `em` are not updated
+                    // when container `font-size` change.
+                    node.setAttribute('font-size', attrs['font-size'] || attrs['fontSize']);
                     V(node).text('' + text, textAttrs);
                     $node.data(cacheName, textHash);
                 }
