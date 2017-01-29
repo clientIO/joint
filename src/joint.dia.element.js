@@ -423,11 +423,16 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 var nodeAttrs = attrs[selector];
                 var prevNodeAttrs = nodesAttrs[nodeId];
                 if (prevNodeAttrs) {
-                    _.assign(prevNodeAttrs.attributes, nodeAttrs);
+                    if (!prevNodeAttrs.merged) {
+                        prevNodeAttrs.merged = true;
+                        prevNodeAttrs.attributes = _.cloneDeep(prevNodeAttrs.attributes);
+                    }
+                    _.merge(prevNodeAttrs.attributes, nodeAttrs);
                 } else {
                     nodesAttrs[nodeId] = {
-                        attributes: _.clone(nodeAttrs),
-                        node: node
+                        attributes: nodeAttrs,
+                        node: node,
+                        merged: false
                     };
                 }
             }

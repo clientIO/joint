@@ -120,7 +120,10 @@
                     // Chrome bug:
                     // Tspans positions defined as `em` are not updated
                     // when container `font-size` change.
-                    node.setAttribute('font-size', attrs['font-size'] || attrs['fontSize']);
+                    var fontSize = attrs['font-size'] || attrs['fontSize'];
+                    if (fontSize) {
+                        node.setAttribute('font-size', fontSize);
+                    }
                     V(node).text('' + text, textAttrs);
                     $node.data(cacheName, textHash);
                 }
