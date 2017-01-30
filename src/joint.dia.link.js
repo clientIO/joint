@@ -634,47 +634,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this._translateAndAutoOrientArrows(this._V.markerSource, this._V.markerTarget);
     },
 
-    updateAttributes: function() {
-
-        // Update attributes.
-        _.each(this.model.get('attrs'), function(attrs, selector) {
-
-            var processedAttributes = [];
-
-            // If the `fill` or `stroke` attribute is an object, it is in the special JointJS gradient format and so
-            // it becomes a special attribute and is treated separately.
-            if (_.isObject(attrs.fill)) {
-
-                this.applyGradient(selector, 'fill', attrs.fill);
-                processedAttributes.push('fill');
-            }
-
-            if (_.isObject(attrs.stroke)) {
-
-                this.applyGradient(selector, 'stroke', attrs.stroke);
-                processedAttributes.push('stroke');
-            }
-
-            // If the `filter` attribute is an object, it is in the special JointJS filter format and so
-            // it becomes a special attribute and is treated separately.
-            if (_.isObject(attrs.filter)) {
-
-                this.applyFilter(selector, attrs.filter);
-                processedAttributes.push('filter');
-            }
-
-            // remove processed special attributes from attrs
-            if (processedAttributes.length > 0) {
-
-                processedAttributes.unshift(attrs);
-                attrs = _.omit.apply(_, processedAttributes);
-            }
-
-            this.findBySelector(selector).attr(attrs);
-
-        }, this);
-    },
-
     _findConnectionPoints: function(vertices) {
 
         // cache source and target points
