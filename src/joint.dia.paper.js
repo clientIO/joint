@@ -1663,7 +1663,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 id: filterId
             });
 
-            V(this.defs).append(V(filterSVGString, filterAttrs));
+            V(filterSVGString, filterAttrs).appendTo(this.defs);
         }
 
         return filterId;
@@ -1705,10 +1705,42 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             var gradientAttrs = _.extend({ id: gradientId }, gradient.attrs);
 
-            V(this.defs).append(V(gradientSVGString, gradientAttrs));
+            V(gradientSVGString, gradientAttrs).appendTo(this.defs);
         }
 
         return gradientId;
+    },
+
+    defineMarker: function(marker) {
+
+        if (!_.isObject(marker)) {
+            throw new TypeError('dia.Paper: defineMarker() requires 1. argument to be an object.');
+        }
+
+        var markerId = marker.id;
+
+        // Generate a hash code from the stringified filter definition. This gives us
+        // a unique filter ID for different definitions.
+        if (!markerId) {
+            markerId = this.svg.id + joint.util.hashCode(JSON.stringify(marker));
+        }
+
+        if (!this.svg.getElementById(markerId)) {
+
+            var attrs = _.omit(marker, 'type', 'userSpaceOnUse');
+            var pathMarker = V('marker', {
+                id: markerId,
+                orient: 'auto',
+                overflow: 'visible',
+	            markerUnits: marker.markerUnits || 'userSpaceOnUse'
+            }, [
+                V(marker.type || 'path', attrs)
+            ]);
+
+            pathMarker.appendTo(this.defs);
+        }
+
+        return markerId;
     }
 
 }, {

@@ -356,3 +356,33 @@ var sa = new joint.shapes.basic.SATest({
     size: { height: 100, width: 100 },
     position: { x: 500, y: 280 }
 }).addTo(graph);
+
+var sal = new joint.dia.Link({
+    source: { id: sa.id },
+    target: { x: 400, y: 350 },
+    vertices: [{ x: 450, y: 300 }],
+    router: { name: 'orthogonal' },
+    attrs: {
+        '.connection': {
+            sourceMarker: {
+                type: 'circle',
+                fill: '#666',
+                stroke: '#000',
+                r: 5,
+                cx: 5
+            },
+            targetMarker: {
+                type: 'path',
+                fill: '#666',
+                stroke: '#000',
+                d: 'M 10 -10 0 0 10 10 z'
+            },
+            vertexMarker: {
+                type: 'circle',
+                fill: '#666',
+                stroke: '#000',
+                r: 5
+            }
+        }
+    }
+}).addTo(graph);
