@@ -528,6 +528,11 @@ V = Vectorizer = (function() {
         return this;
     };
 
+    V.prototype.appendTo = function(node) {
+        V.toNode(node).appendChild(this.node);
+        return this;
+    },
+
     V.prototype.svg = function() {
 
         return this.node instanceof window.SVGSVGElement ? this : V(this.node.ownerSVGElement);

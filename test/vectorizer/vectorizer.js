@@ -610,6 +610,31 @@ QUnit.module('vectorizer', function(hooks) {
         });
     });
 
+    QUnit.module('appendTo()', function(hooks) {
+
+        var groupNode;
+
+        hooks.beforeEach(function() {
+            groupNode = V(svgGroup).clone().empty().node;
+        });
+
+        QUnit.test('append vnode', function(assert) {
+
+            var rect = V('<rect/>').appendTo(V(groupNode));
+            assert.ok(V.isV(rect));
+            assert.equal(rect.node.parentNode, groupNode);
+            assert.equal(rect.node, groupNode.lastChild);
+        });
+
+        QUnit.test('append node', function(assert) {
+
+            var rect = V('<rect/>').appendTo(groupNode);
+            assert.ok(V.isV(rect));
+            assert.equal(rect.node.parentNode, groupNode);
+            assert.equal(rect.node, groupNode.lastChild);
+        });
+    });
+
     QUnit.module('prepend()', function(hooks) {
 
         var groupElement;
