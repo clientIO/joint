@@ -1732,7 +1732,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 id: markerId,
                 orient: 'auto',
                 overflow: 'visible',
-	            markerUnits: marker.markerUnits || 'userSpaceOnUse'
+                markerUnits: marker.markerUnits || 'userSpaceOnUse'
             }, [
                 V(marker.type || 'path', attrs)
             ]);
