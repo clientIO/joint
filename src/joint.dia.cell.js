@@ -841,33 +841,6 @@ joint.dia.CellView = joint.mvc.View.extend({
         return undefined;
     },
 
-    // `selector` is a CSS selector or `'.'`. `filter` must be in the special JointJS filter format:
-    // `{ name: <name of the filter>, args: { <arguments>, ... }`.
-    // An example is: `{ filter: { name: 'blur', args: { radius: 5 } } }`.
-    applyFilter: function(selector, filter) {
-
-        var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
-        var filterId = this.paper.defineFilter(filter);
-
-        $selected.each(function() {
-            V(this).attr('filter', 'url(#' + filterId + ')');
-        });
-    },
-
-    // `selector` is a CSS selector or `'.'`. `attr` is either a `'fill'` or `'stroke'`.
-    // `gradient` must be in the special JointJS gradient format:
-    // `{ type: <linearGradient|radialGradient>, stops: [ { offset: <offset>, color: <color> }, ... ]`.
-    // An example is: `{ fill: { type: 'linearGradient', stops: [ { offset: '10%', color: 'green' }, { offset: '50%', color: 'blue' } ] } }`.
-    applyGradient: function(selector, attr, gradient) {
-
-        var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
-        var gradientId = this.paper.defineGradient(gradient);
-
-        $selected.each(function() {
-            V(this).attr(attr, 'url(#' + gradientId + ')');
-        });
-    },
-
     // Construct a unique selector for the `el` element within this view.
     // `prevSelector` is being collected through the recursive call.
     // No value for `prevSelector` is expected when using this method.
