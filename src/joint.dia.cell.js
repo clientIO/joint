@@ -884,56 +884,151 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
     },
 
-    processAttributes: function(attrs, el, opt) {
+    processAttributes: function(attrs, node) {
 
-        var dry = !!(opt && opt.dry);
         var attrName, attrVal, def, i, n;
-        var normalAttributes = {};
-        var relativeAttributes = {};
-        var specialAttributeNames = [];
+        var normalAttrs, setAttrs, positionAttrs, offsetAttrs;
+        var relatives = [];
         // divide the attributes between normal and special
         for (attrName in attrs) {
             if (!attrs.hasOwnProperty(attrName)) continue;
             attrVal = attrs[attrName];
             def = this.getAttributeDefinition(attrName);
-            if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, el, attrs))) {
-                if (attrVal != null) {
-                    specialAttributeNames.push(attrName);
+            if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs))) {
+                if (_.isString(def.set)) {
+                    normalAttrs || (normalAttrs = {});
+                    normalAttrs[def.set] = attrVal;
+                }
+                if (attrVal !== null) {
+                    relatives.push(attrName, def);
                 }
             } else {
-                normalAttributes[attrName] = attrVal;
+                normalAttrs || (normalAttrs = {});
+                normalAttrs[attrName] = attrVal;
             }
         }
 
         // handle the rest of attributes via related method
         // from the special attributes namespace.
-        for (i = 0, n = specialAttributeNames.length; i < n; i++) {
-            attrName = specialAttributeNames[i];
+        for (i = 0, n = relatives.length; i < n; i+=2) {
+            attrName = relatives[i];
+            def = relatives[i+1];
             attrVal = attrs[attrName];
-            def = this.getAttributeDefinition(attrName);
-            if (!dry && _.isFunction(def.set)) {
-                var setResult = def.set.call(this, attrVal, el, attrs);
-                if (_.isObject(setResult)) {
-                    _.extend(normalAttributes, setResult);
-                } else if (setResult !== undefined) {
-                    normalAttributes[attrName] = setResult;
-                }
-            } else if (_.isString(def.set)) {
-                // If the set is a string, use this string for the attribute name
-                normalAttributes[def.set] = attrVal;
+            if (_.isFunction(def.set)) {
+                setAttrs || (setAttrs = {});
+                setAttrs[attrName] = attrVal;
             }
-            if (def.offset || def.position || def.size) {
-                relativeAttributes[attrName] = attrVal;
+            if (_.isFunction(def.position)) {
+                positionAttrs || (positionAttrs = {});
+                positionAttrs[attrName] = attrVal;
+            }
+            if (_.isFunction(def.offset)) {
+                offsetAttrs || (offsetAttrs = {});
+                offsetAttrs[attrName] = attrVal;
             }
         }
 
         return {
-            normal: normalAttributes,
-            relative: relativeAttributes
+            raw: attrs,
+            normal: normalAttrs,
+            set: setAttrs,
+            position: positionAttrs,
+            offset: offsetAttrs
         };
     },
 
-    updateRelativeAttributes: function(node, attrs, refBBox, nodeAttrs) {
+    updateRelativeAttributes: function(node, attrs, refBBox) {
+
+        var attrName, attrVal, def;
+        var rawAttrs = attrs.raw || {};
+        var nodeAttrs = attrs.normal || {};
+        var setAttrs = attrs.set;
+        var positionAttrs = attrs.position;
+        var offsetAttrs = attrs.offset;
+
+        for (attrName in setAttrs) {
+            attrVal = setAttrs[attrName];
+            def = this.getAttributeDefinition(attrName);
+            // SET - set function should return attributes to be set on the node,
+            // which will affect the node dimensions based on the reference bounding
+            // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
+            var setResult = def.set.call(this, attrVal, refBBox, node, rawAttrs);
+            if (_.isObject(setResult)) {
+                _.extend(nodeAttrs, setResult);
+            } else if (setResult !== undefined) {
+                nodeAttrs[attrName] = setResult;
+            }
+        }
+
+        if (node instanceof HTMLElement) {
+            // TODO: setting the `transform` attribute on HTMLElements
+            // via `node.style.transform = 'matrix(...)';` would introduce
+            // a breaking change (e.g. basic.TextBlock).
+            this.setNodeAttributes(node, nodeAttrs);
+            return;
+        }
+
+        // The final translation of the subelement.
+        var nodePosition = g.Point(0,0);
+        var nodeTransform = nodeAttrs.transform || '';
+        var nodeMatrix = V.transformStringToMatrix(nodeTransform);
+        if (nodeTransform) {
+            nodeAttrs = _.omit(nodeAttrs, 'transform');
+        }
+
+        // Calculate node scale determined by the scalable group
+        // only if later needed.
+        var sx, sy, translation;
+        if (positionAttrs || offsetAttrs) {
+            var nodeScale = this.getNodeScale(node);
+            sx = nodeScale.sx;
+            sy = nodeScale.sy;
+        }
+
+        for (attrName in positionAttrs) {
+            attrVal = positionAttrs[attrName];
+            def = this.getAttributeDefinition(attrName);
+            // POSITION - position function should return a point from the
+            // reference bounding box. The default position of the node is x:0, y:0 of
+            // the reference bounding box or could be further specify by some
+            // SVG attributes e.g. `x`, `y`
+            translation = def.position.call(this, attrVal, refBBox, node, rawAttrs);
+            if (translation) {
+                nodePosition.offset(translation.scale(sx, sy));
+            }
+        }
+
+        // The node bounding box could depend on the `size` set from the previous loop.
+        // Here we know, that all the size attributes have been already set.
+        this.setNodeAttributes(node, nodeAttrs);
+
+        if (offsetAttrs) {
+            // Check if the node is visible
+            var nodeClientRect = node.getBoundingClientRect();
+            if (nodeClientRect.width > 0 && nodeClientRect.height > 0) {
+                var nodeBBox = V.transformRect(node.getBBox(), nodeMatrix).scale(1 / sx, 1 / sy);
+                for (attrName in offsetAttrs) {
+                    attrVal = offsetAttrs[attrName];
+                    def = this.getAttributeDefinition(attrName);
+                    // OFFSET - offset function should return a point from the element
+                    // bounding box. The default offset point is x:0, y:0 (origin) or could be further
+                    // specify with some SVG attributes e.g. `text-anchor`, `cx`, `cy`
+                    translation = def.offset.call(this, attrVal, nodeBBox, node, rawAttrs);
+                    if (translation) {
+                        nodePosition.offset(translation.scale(sx, sy));
+                    }
+                }
+            }
+        }
+
+        // Round the coordinates to 1 decimal point.
+        nodePosition.offset(nodeMatrix.e, nodeMatrix.f).round(1);
+        nodeMatrix.e = nodePosition.x;
+        nodeMatrix.f = nodePosition.y;
+        node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
+    },
+
+    getNodeScale: function(node) {
 
         // Check if the node is a descendant of the scalable group.
         var sx, sy;
@@ -947,96 +1042,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             sy = 1;
         }
 
-        // The final translation of the subelement.
-        var nodePosition = g.Point(0,0);
-        var translation, attrName, attrVal;
-        var offsets = [];
-
-        for (attrName in attrs) {
-            if (!attrs.hasOwnProperty(attrName)) continue;
-
-            attrVal = attrs[attrName];
-            if (!_.isUndefined(attrVal)) {
-
-                var def = this.getAttributeDefinition(attrName);
-                if (!def) continue;
-
-                // SIZE - size function should return attributes to be set on the node,
-                // which will affect the node dimensions based on the reference bounding
-                // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points`
-                var sizeFn = def.size;
-                if (_.isFunction(sizeFn)) {
-                    var sizeResult = sizeFn.call(this, attrVal, refBBox, node);
-                    if (_.isObject(sizeResult)) {
-                        _.extend(nodeAttrs, sizeResult);
-                    } else if (sizeResult !== undefined) {
-                        nodeAttrs[attrName] = sizeResult;
-                    }
-                }
-
-                // POSITION - position function should return a point from the
-                // reference bounding box. The default position of the node is x:0, y:0 of
-                // the reference bounding box or could be further specify by some
-                // SVG attributes e.g. `x`, `y`
-                var positionFn = def.position;
-                if (_.isFunction(positionFn)) {
-                    translation = positionFn.call(this, attrVal, refBBox, node);
-                    if (translation) {
-                        nodePosition.offset(translation.scale(sx, sy));
-                    }
-                }
-
-                // OFFSET - offset function should return a point from the element
-                // bounding box. The default offset point is x:0, y:0 (origin) or could be further
-                // specify with some SVG attributes e.g. `text-anchor`, `cx`, `cy`
-                if (def.offset) {
-                    offsets.push(attrName);
-                }
-            }
-        }
-
-        var nodeTransform = nodeAttrs.transform || '';
-        var nodeMatrix = V.transformStringToMatrix(nodeTransform);
-        if (nodeTransform) {
-            nodeAttrs = _.omit(nodeAttrs, 'transform');
-        }
-
-        this.setNodeAttributes(node, nodeAttrs);
-
-        if (node instanceof HTMLElement) {
-            // TODO: setting the `transform` attribute on HTMLElements
-            // via `node.style.transform = 'matrix(...)';` would introduce
-            // a breaking change (e.g. basic.TextBlock).
-            return;
-        }
-
-        // The node bounding box could depend on the `size` set from the previous loop.
-        // Here we know, that all the size attributes have been already set.
-        var offsetsCount = offsets.length;
-        if (offsetsCount > 0) {
-            // Check if the node is visible
-            var nodeClientRect = node.getBoundingClientRect();
-            if (nodeClientRect.width > 0 && nodeClientRect.height > 0) {
-                var nodeBBox = V.transformRect(node.getBBox(), nodeMatrix).scale(1 / sx, 1 / sy);
-                for (var i = 0; i < offsetsCount; i++) {
-                    attrName = offsets[i];
-                    var offsetFn = this.getAttributeDefinition(attrName).offset;
-                    if (_.isFunction(offsetFn)) {
-                        attrVal = attrs[attrName];
-                        translation = offsetFn.call(this, attrVal, nodeBBox, node);
-                        if (translation) {
-                            nodePosition.offset(translation.scale(sx, sy));
-                        }
-                    }
-                }
-            }
-        }
-
-        // Round the coordinates to 1 decimal point.
-        nodePosition.offset(nodeMatrix.e, nodeMatrix.f).round(1);
-        nodeMatrix.e = nodePosition.x;
-        nodeMatrix.f = nodePosition.y;
-        node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
+        return { sx: sx, sy: sy };
     },
 
     findNodesAttributes: function(attrs, selectorCache) {
@@ -1097,23 +1103,22 @@ joint.dia.CellView = joint.mvc.View.extend({
         var item;
         var relativeItems = [];
         var node, nodeAttrs, nodeData;
-        var relativeAttrs, normalAttrs, processedAttrs;
+        var processedAttrs;
 
         for (var nodeId in nodesAttrs) {
             nodeData = nodesAttrs[nodeId];
             nodeAttrs = nodeData.attributes;
             node = nodeData.node;
             processedAttrs = this.processAttributes(nodeAttrs, node);
-            normalAttrs = processedAttrs.normal;
-            relativeAttrs = processedAttrs.relative;
 
-            if (_.isEmpty(relativeAttrs)) {
+            if (!processedAttrs.set && !processedAttrs.position && !processedAttrs.offset) {
                 // Set all the normal attributes right on the SVG/HTML element.
-                this.setNodeAttributes(node, normalAttrs);
+                this.setNodeAttributes(node, processedAttrs.normal);
 
             } else {
 
-                var nodeModelAttrs = nodesModelAttrs[nodeId] || {};
+                var nodeModelData = nodesModelAttrs[nodeId];
+                var nodeModelAttrs = (nodeModelData && nodeModelData.attributes) || {};
                 var refSelector = (nodeAttrs.ref === undefined)
                     ? nodeModelAttrs.ref
                     : nodeAttrs.ref;
@@ -1131,8 +1136,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                 item = {
                     node: node,
                     refNode: refNode,
-                    relativeAttributes: relativeAttrs,
-                    normalAttributes: normalAttrs,
+                    processedAttributes: processedAttrs,
                     modelAttributes: nodeModelAttrs
                 };
 
@@ -1150,7 +1154,6 @@ joint.dia.CellView = joint.mvc.View.extend({
         for (var i = 0, n = relativeItems.length; i < n; i++) {
             item = relativeItems[i];
             node = item.node;
-            normalAttrs = item.normalAttributes;
             refNode = item.refNode;
 
             // Find the reference element bounding box. If no reference was provided, we
@@ -1170,18 +1173,26 @@ joint.dia.CellView = joint.mvc.View.extend({
                 // if there was a special attribute affecting the position amongst passed-in attributes
                 // we have to merge it with the rest of the element's attributes as they are necessary
                 // to update the position relatively (i.e `ref-x` && 'ref-dx')
-                processedAttrs = this.processAttributes(item.modelAttributes, node, { dry: true });
-                relativeAttrs = _.extend(processedAttrs.relative, item.relativeAttributes);
+                processedAttrs = this.processAttributes(item.modelAttributes, node);
+                processedAttrs.set || (processedAttrs.set = {});
+                processedAttrs.position || (processedAttrs.position = {});
+                processedAttrs.offset || (processedAttrs.offset = {});
+                _.extend(processedAttrs.set, item.processedAttributes.set);
+                _.extend(processedAttrs.position, item.processedAttributes.position);
+                _.extend(processedAttrs.offset, item.processedAttributes.offset);
+
                 // Handle also the special transform property.
-                var transform = processedAttrs.normal.transform;
-                if (transform !== undefined) {
-                    normalAttrs.transform = transform;
+                var transform = processedAttrs.normal && processedAttrs.normal.transform;
+                if (transform !== undefined && item.processedAttributes.normal) {
+                    item.processedAttributes.normal.transform = transform;
                 }
+                processedAttrs.normal = item.processedAttributes.normal;
+
             } else {
-                relativeAttrs = item.relativeAttributes;
+                processedAttrs = item.processedAttributes;
             }
 
-            this.updateRelativeAttributes(node, relativeAttrs, refBBox.clone(), normalAttrs);
+            this.updateRelativeAttributes(node, processedAttrs, refBBox.clone());
         }
     },
 

@@ -4,7 +4,7 @@
         return _.isString(val) && val.slice(-1) === '%';
     }
 
-    function sizeWrapper(attrName, dimension) {
+    function setWrapper(attrName, dimension) {
         return function(value, refBBox) {
             var isValuePercentage = isPercentage(value);
             value = parseFloat(value);
@@ -132,7 +132,7 @@
         },
 
         text: {
-            set: function(text, node, attrs) {
+            set: function(text, refBBox, node, attrs) {
                 var $node = $(node);
                 var cacheName = 'joint-text';
                 var cache = $node.data(cacheName);
@@ -182,13 +182,13 @@
         // `style` attribute is special in the sense that it sets the CSS style of the subelement.
         style: {
             qualify: _.isPlainObject,
-            set: function(styles, node) {
+            set: function(styles, refBBox, node) {
                 $(node).css(styles);
             }
         },
 
         html: {
-            set: function(html, node) {
+            set: function(html, refBBox, node) {
                 $(node).html(html + '');
             }
         },
@@ -227,27 +227,27 @@
         // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
 
         refWidth: {
-            size: sizeWrapper('width', 'width')
+            set: setWrapper('width', 'width')
         },
 
         refHeight: {
-            size: sizeWrapper('height', 'height')
+            set: setWrapper('height', 'height')
         },
 
         refRx: {
-            size: sizeWrapper('rx', 'width')
+            set: setWrapper('rx', 'width')
         },
 
         refRy: {
-            size: sizeWrapper('ry', 'height')
+            set: setWrapper('ry', 'height')
         },
 
         refCx: {
-            size: sizeWrapper('cx', 'width')
+            set: setWrapper('cx', 'width')
         },
 
         refCy: {
-            size: sizeWrapper('cy', 'height')
+            set: setWrapper('cy', 'height')
         },
 
         // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.

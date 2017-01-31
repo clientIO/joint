@@ -243,7 +243,7 @@ cylinderScalable.append(c);
 
 // Global special attributes
 joint.dia.attributes.lineStyle = {
-    set: function(lineStyle, node, attrs) {
+    set: function(lineStyle, refBBox, node, attrs) {
 
         var n = attrs['strokeWidth'] || attrs['stroke-width'] || 1;
         var dasharray = {
@@ -256,7 +256,7 @@ joint.dia.attributes.lineStyle = {
 };
 
 joint.dia.attributes.fitRef = {
-    size: function(fitRef, refBBox, node) {
+    set: function(fitRef, refBBox, node) {
         switch (node.tagName.toUpperCase()) {
             case 'ELLIPSE':
                 return {
@@ -334,7 +334,7 @@ joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
             // The path data `d` attribute to be defined via an array.
             // e.g. d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
             qualify: _.isArray,
-            size: function(value, refBBox) {
+            set: function(value, refBBox) {
                 var i = 0;
                 var attrValue = value.map(function(data, index) {
                     if (_.isString(data)) {
