@@ -922,7 +922,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                 // If the set is a string, use this string for the attribute name
                 normalAttributes[def.set] = attrVal;
             }
-            if (def.anchor || def.position || def.size) {
+            if (def.offset || def.position || def.size) {
                 relativeAttributes[attrName] = attrVal;
             }
         }
@@ -950,7 +950,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         // The final translation of the subelement.
         var nodePosition = g.Point(0,0);
         var translation, attrName, attrVal;
-        var anchors = [];
+        var offsets = [];
 
         for (attrName in attrs) {
             if (!attrs.hasOwnProperty(attrName)) continue;
@@ -986,11 +986,11 @@ joint.dia.CellView = joint.mvc.View.extend({
                     }
                 }
 
-                // ANCHOR - anchor function should return a point from the element
-                // bounding box. The default anchor point is x:0, y:0 (origin) or could be further
+                // OFFSET - offset function should return a point from the element
+                // bounding box. The default offset point is x:0, y:0 (origin) or could be further
                 // specify with some SVG attributes e.g. `text-anchor`, `cx`, `cy`
-                if (def.anchor) {
-                    anchors.push(attrName);
+                if (def.offset) {
+                    offsets.push(attrName);
                 }
             }
         }
@@ -1012,20 +1012,20 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         // The node bounding box could depend on the `size` set from the previous loop.
         // Here we know, that all the size attributes have been already set.
-        var anchorsCount = anchors.length;
-        if (anchorsCount > 0) {
+        var offsetsCount = offsets.length;
+        if (offsetsCount > 0) {
             // Check if the node is visible
             var nodeClientRect = node.getBoundingClientRect();
             if (nodeClientRect.width > 0 && nodeClientRect.height > 0) {
                 var nodeBBox = V.transformRect(node.getBBox(), nodeMatrix).scale(1 / sx, 1 / sy);
-                for (var i = 0; i < anchorsCount; i++) {
-                    attrName = anchors[i];
-                    var anchorFn = this.getAttributeDefinition(attrName).anchor;
-                    if (_.isFunction(anchorFn)) {
+                for (var i = 0; i < offsetsCount; i++) {
+                    attrName = offsets[i];
+                    var offsetFn = this.getAttributeDefinition(attrName).offset;
+                    if (_.isFunction(offsetFn)) {
                         attrVal = attrs[attrName];
-                        translation = anchorFn.call(this, attrVal, nodeBBox, node);
+                        translation = offsetFn.call(this, attrVal, nodeBBox, node);
                         if (translation) {
-                            nodePosition.offset(translation.scale(-sx, -sy));
+                            nodePosition.offset(translation.scale(sx, sy));
                         }
                     }
                 }

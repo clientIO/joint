@@ -48,7 +48,7 @@
         };
     }
 
-    function anchorWrapper(axis, dimension, corner) {
+    function offsetWrapper(axis, dimension, corner) {
         return function(value, nodeBBox) {
             var delta;
             if (value === 'middle') {
@@ -60,10 +60,12 @@
                 delta = (value > -1 && value < 1) ? (-nodeBBox[dimension] * value) : -value;
             } else if (isPercentage(value)) {
                 delta = nodeBBox[dimension] * parseFloat(value) / 100;
+            } else {
+                delta = 0;
             }
 
             var point = g.Point();
-            point[axis] = nodeBBox[axis] + delta || 0;
+            point[axis] = -(nodeBBox[axis] + delta);
             return point;
         };
     }
@@ -252,14 +254,14 @@
         // `x-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
 
         xAlignment: {
-            anchor: anchorWrapper('x', 'width', 'right')
+            offset: offsetWrapper('x', 'width', 'right')
         },
 
         // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
         // `y-alignment` when set to `bottom` uses the y coordinate as referenced to the bottom of the bbox.
 
         yAlignment: {
-            anchor: anchorWrapper('y', 'height', 'bottom')
+            offset: offsetWrapper('y', 'height', 'bottom')
         }
     };
 
