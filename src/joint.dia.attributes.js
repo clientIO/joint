@@ -70,7 +70,7 @@
         };
     }
 
-    var specialAttributes = joint.dia.specialAttributes = {
+    var attributesNS = joint.dia.attributes = {
 
         strokeWidth: {
             set: 'stroke-width'
@@ -266,13 +266,13 @@
     };
 
     // Aliases for backwards compatibility
-    specialAttributes['ref-x'] = specialAttributes.refX;
-    specialAttributes['ref-y'] = specialAttributes.refY;
-    specialAttributes['ref-dy'] = specialAttributes.refDy;
-    specialAttributes['ref-dx'] = specialAttributes.refDx;
-    specialAttributes['ref-width'] = specialAttributes.refWidth;
-    specialAttributes['ref-height'] = specialAttributes.refHeight;
-    specialAttributes['x-alignment'] = specialAttributes.xAlignment;
-    specialAttributes['y-alignment'] = specialAttributes.yAlignment;
+    attributesNS['ref-x'] = attributesNS.refX;
+    attributesNS['ref-y'] = attributesNS.refY;
+    attributesNS['ref-dy'] = attributesNS.refDy;
+    attributesNS['ref-dx'] = attributesNS.refDx;
+    attributesNS['ref-width'] = attributesNS.refWidth;
+    attributesNS['ref-height'] = attributesNS.refHeight;
+    attributesNS['x-alignment'] = attributesNS.xAlignment;
+    attributesNS['y-alignment'] = attributesNS.yAlignment;
 
 })(joint, _, g, $);

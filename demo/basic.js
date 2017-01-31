@@ -242,7 +242,7 @@ c.scale(cylinderScalableCTM.a, cylinderScalableCTM.d);
 cylinderScalable.append(c);
 
 // Global special attributes
-joint.dia.specialAttributes.lineStyle = {
+joint.dia.attributes.lineStyle = {
     set: function(lineStyle, node, attrs) {
 
         var n = attrs['strokeWidth'] || attrs['stroke-width'] || 1;
@@ -255,7 +255,7 @@ joint.dia.specialAttributes.lineStyle = {
     }
 };
 
-joint.dia.specialAttributes.fitRef = {
+joint.dia.attributes.fitRef = {
     size: function(fitRef, refBBox, node) {
         switch (node.tagName.toUpperCase()) {
             case 'ELLIPSE':
@@ -279,7 +279,7 @@ joint.dia.specialAttributes.fitRef = {
     }
 };
 
-joint.dia.specialAttributes.debug = {
+joint.dia.attributes.debug = {
     set: function(debug, node, attrs) {
         if (debug) {
             console.log('node:', node);
@@ -328,7 +328,7 @@ joint.shapes.basic.SATest = joint.shapes.basic.Generic.extend({
 }, {
 
     // Element specific special attributes
-    specialAttributes: {
+    attributes: {
 
         d: {
             // The path data `d` attribute to be defined via an array.

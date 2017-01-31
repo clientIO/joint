@@ -649,8 +649,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
     getAttributeDefinition: function(attrName) {
 
-        var defNS = this.specialAttributes;
-        var globalDefNS = joint.dia.specialAttributes;
+        var defNS = this.attributes;
+        var globalDefNS = joint.dia.attributes;
         return (defNS && defNS[attrName]) || globalDefNS[attrName];
     }
 

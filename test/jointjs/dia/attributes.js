@@ -1,14 +1,14 @@
-QUnit.module('Special Attributes', function() {
+QUnit.module('Attributes', function() {
 
     QUnit.module('getAttributeDefinition()', function() {
 
         QUnit.test('will find correct defintion', function(assert) {
 
-            joint.dia.specialAttributes.globalTest = 'global';
-            joint.dia.specialAttributes.priority = 'lower';
+            joint.dia.attributes.globalTest = 'global';
+            joint.dia.attributes.priority = 'lower';
 
             var Cell = joint.dia.Cell.extend({}, {
-                specialAttributes: {
+                attributes: {
                     localTest: 'local',
                     priority: 'higher'
                 }
@@ -21,7 +21,5 @@ QUnit.module('Special Attributes', function() {
             assert.equal(Cell.getAttributeDefinition('priority'), 'higher');
         });
     });
-
-
 
 });
