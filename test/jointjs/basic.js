@@ -303,6 +303,34 @@ QUnit.module('basic', function(hooks) {
         assert.equal(rect.prop('position/y'), 40, 'restrictedArea is respected when the element and its embeds are translated to the top.');
     });
 
+    QUnit.test('size()', function(assert) {
+
+        assert.expect(9);
+
+        var el = new joint.shapes.basic.Rect({
+            size: { width: 1, height: 2 }
+        });
+
+        // Getter
+        assert.deepEqual(el.size(), el.get('size'), 'work as getter');
+        assert.notOk(el.size() === el.get('size'), 'getter clones size');
+
+        // Setter
+        assert.equal(el.size(1, 2), el, 'chaining enabled');
+        assert.deepEqual(el.size(2, 3).size(), { width: 2, height: 3 }, 'set via width & height');
+        assert.deepEqual(el.size({ width: 3, height: 4 }).size(), { width: 3, height: 4 }, 'set via object');
+        assert.deepEqual(el.size({ width: 4 }).size(), { width: 4, height: 4 }, 'set via object with width only');
+        assert.deepEqual(el.size({ height: 5 }).size(), { width: 4, height: 5 }, 'set via object with height only');
+
+        // Setter with option
+        el.on('change:size', function(model, size, opt) {
+            assert.ok(opt.test);
+        });
+
+        el.size(10, 10, { test: true });
+        el.size({ width: 20, height: 20 }, { test: true });
+    });
+
     QUnit.test('resize()', function() {
 
         var myrect = new joint.shapes.basic.Rect({
@@ -426,7 +454,7 @@ QUnit.module('basic', function(hooks) {
         );
     });
 
-    QUnit.test('attr()', function() {
+    QUnit.test('attr()', function(assert) {
 
         var el = new joint.shapes.basic.Generic({
             position: { x: 20, y: 30 },
@@ -441,12 +469,13 @@ QUnit.module('basic', function(hooks) {
 
         var elView = this.paper.findViewByModel(el);
 
-        equal(elView.$('.big').attr('opacity'), undefined, 'No opacity is set on the element');
+        assert.equal(elView.$('.big').attr('opacity'), undefined, 'No opacity is set on the element');
 
         el.attr({ '.big': { opacity: .5 } });
 
-        equal(elView.$('.big').attr('opacity'), .5, '.5 opacity was correctly set by attr()');
+        assert.equal(elView.$('.big').attr('opacity'), .5, '.5 opacity was correctly set by attr()');
 
+        assert.equal(el.attr(), el.get('attrs'), 'called with no arguments returns all `attrs`');
     });
 
     QUnit.test('removeAttr()', function() {
