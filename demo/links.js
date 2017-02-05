@@ -281,6 +281,24 @@ var link6 = new joint.dia.Link({
             }
         },
         {
+            position: 0.5,
+            markup: '<circle/><path/>',
+            attrs: {
+                circle: {
+                    r: 10,
+                    fill: 'lightgray',
+                    stroke: 'black',
+                    strokeWidth: 2
+                },
+                path: {
+                    d: 'M 0 -10 0 -30 20 -30',
+                    stroke: 'black',
+                    strokeWidth: 2,
+                    fill: 'none'
+                }
+            }
+        },
+        {
             position: -10,
             attrs: {
                 text: {

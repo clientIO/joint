@@ -443,34 +443,44 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var canLabelMove = this.can('labelMove');
 
         for (var i = 0; i < labelsCount; i++) {
+
             var label = labels[i];
+            var labelMarkup = label.markup;
+            var vLabelNode = (labelMarkup)
+                ? V('g').append(V(labelMarkup))
+                : labelNodeInstance.clone();
+
             // Cache label nodes so that the `updateLabels()` can just update the label node positions.
-            var vLabelNode = labelCache[i] = labelNodeInstance.clone()
+            labelCache[i] = vLabelNode
+                .addClass('label')
                 .attr({
                     'label-idx': i,
                     'cursor': (canLabelMove ? 'move' : 'default')
                 })
                 .appendTo(vLabels);
 
-            // Text attributes with the default `text-anchor` and font-size set.
-            var labelAttrs = _.merge({
-                text: {
-                    textAnchor: 'middle',
-                    fontSize: 14,
-                    pointerEvents: 'none',
-                    yAlignment: 'middle'
-                },
-                rect: {
-                    ref: 'text',
-                    fill: 'white',
-                    rx: 3,
-                    ry: 3,
-                    refWidth: 1,
-                    refHeight: 1,
-                    refX: 0,
-                    refY: 0
-                }
-            }, label.attrs);
+            var labelAttrs = label.attrs;
+            if (!labelMarkup) {
+                // Default attributes to maintain backwards compatibility
+                labelAttrs = _.merge({
+                    text: {
+                        textAnchor: 'middle',
+                        fontSize: 14,
+                        pointerEvents: 'none',
+                        yAlignment: 'middle'
+                    },
+                    rect: {
+                        ref: 'text',
+                        fill: 'white',
+                        rx: 3,
+                        ry: 3,
+                        refWidth: 1,
+                        refHeight: 1,
+                        refX: 0,
+                        refY: 0
+                    }
+                }, labelAttrs);
+            }
 
             this.updateDOMSubtreeAttributes(vLabelNode.node, labelAttrs);
         }
