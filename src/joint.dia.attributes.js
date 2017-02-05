@@ -273,6 +273,9 @@
         }
     };
 
+    attributesNS.refX2 = attributesNS.refX;
+    attributesNS.refY2 = attributesNS.refY;
+
     // Aliases for backwards compatibility
     attributesNS['ref-x'] = attributesNS.refX;
     attributesNS['ref-y'] = attributesNS.refY;

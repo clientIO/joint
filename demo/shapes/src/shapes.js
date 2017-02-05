@@ -46,6 +46,33 @@ joint.dia.attributes.fitRef = {
     }
 };
 
+joint.dia.attributes.wrappedText = {
+    qualify: _.isPlainObject,
+    set: function(value, refBBox, node, attrs) {
+        // option `width`
+        var width = value.width || 0;
+        if (width <= 0) {
+            refBBox.width += width;
+        } else {
+            refBBox.width = width;
+        }
+        // option `height`
+        var height = value.height || 0;
+        if (height <= 0) {
+            refBBox.height += height;
+        } else {
+            refBBox.height = height;
+        }
+        // option `text`
+        var brokenText = joint.util.breakText(value.text + '', refBBox, {
+            'font-size': attrs.fontSize,
+            'font-family': attrs.fontFamily
+        });
+        V(node).text(brokenText);
+    }
+};
+
+
 var Circle = joint.dia.Element.define('custom.Circle', {
     markup: '<g class="rotatable"><ellipse/><text/><path/></g>',
     attrs: {
@@ -108,23 +135,12 @@ var Circle = joint.dia.Element.define('custom.Circle', {
     }
 });
 
-var circle = new Circle({
-    size: { height: 100, width: 100 },
-    position: { x: 500, y: 200 }
-}).setText('Special\nAttributes').addTo(graph);
-
-
-joint.dia.attributes.wrappedText = {
-    qualify: _.isPlainObject,
-    set: function(value, refBBox, node, attrs) {
-        refBBox.inflate(-value.margin || 0);
-        var brokenText = joint.util.breakText(value.text + '', refBBox, {
-            'font-size': attrs.fontSize,
-            'font-family': attrs.fontFamily
-        });
-        V(node).text(brokenText);
-    }
-};
+var circle = (new Circle())
+    .size(100, 100)
+    .position(500,200)
+    .setText('Special\nAttributes')
+    .rotate(-45)
+    .addTo(graph);
 
 var Rectangle = joint.dia.Element.define('custom.Rectangle', {
     markup: [
@@ -161,21 +177,86 @@ var Rectangle = joint.dia.Element.define('custom.Rectangle', {
         '.content': {
             wrappedText: {
                 text: 'An element with text automatically wrapped to fit the rectangle.',
-                margin: 5
+                width: -10,
+                height: -10
             },
             fontSize: 14,
             fontFamily: 'sans-serif',
             textAnchor: 'middle',
             refX: '50%',
-            refY: 5
+            refDy: -5,
+            yAlignment: 'bottom'
         }
     }
 });
 
-var rectangle = new Rectangle({
-    size: { height: 100, width: 100 },
-    position: { x: 200, y: 100 }
-}).addTo(graph);
+var rectangle = (new Rectangle())
+    .size(100,90)
+    .position(200,100)
+    .addTo(graph);
+
+var Header = joint.dia.Element.define('custom.Header', {
+
+    markup: [
+        '<rect class="body"/>',
+        '<rect class="header"/>',
+        '<text class="caption"/>',
+        '<text class="description"/>',
+        '<image class="icon"/>'
+    ].join(''),
+    attrs: {
+        '.body': {
+            fitRef: true,
+            fill: 'white',
+            stroke: 'gray',
+            strokeWidth: 3
+        },
+        '.header': {
+            fill: 'gray',
+            stroke: 'none',
+            height: 20,
+            refWidth: '100%'
+        },
+        '.caption': {
+            refX: '50%',
+            textAnchor: 'middle',
+            fontSize: 12,
+            fontFamily: 'sans-serif',
+            y: 15,
+            wrappedText: {
+                text: 'Header',
+                height: 0
+            },
+            fill: '#fff'
+        },
+        '.description': {
+            refX: '50%',
+            refX2: 15,
+            refY: 25,
+            textAnchor: 'middle',
+            fontSize: 12,
+            fontFamily: 'sans-serif',
+            wrappedText: {
+                text: 'Here is a descioption spread on multiple lines. Obviously wrapped automagically.',
+                width: -40,
+                height: -25
+            },
+            fill: '#aaa'
+        },
+        '.icon': {
+            x: 3,
+            y: 22,
+            width: 30,
+            height: 40,
+            xlinkHref: 'http://placehold.it/30x40'
+        }
+    }
+});
+
+var header = (new Header())
+    .size(140,120)
+    .position(420,40)
+    .addTo(graph);
 
 var link = new joint.dia.Link({
     source: { id: circle.id },
@@ -184,10 +265,12 @@ var link = new joint.dia.Link({
     router: { name: 'orthogonal' },
     attrs: {
         '.connection': {
+            stroke: '#333',
+            strokeWidth: 2,
             sourceMarker: {
                 type: 'circle',
                 fill: '#666',
-                stroke: '#000',
+                stroke: '#333',
                 r: 5,
                 cx: 5
             },
@@ -200,7 +283,7 @@ var link = new joint.dia.Link({
             vertexMarker: {
                 type: 'circle',
                 fill: '#666',
-                stroke: '#000',
+                stroke: '#333',
                 r: 5
             }
         }

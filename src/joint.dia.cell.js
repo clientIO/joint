@@ -967,7 +967,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             // SET - set function should return attributes to be set on the node,
             // which will affect the node dimensions based on the reference bounding
             // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
-            var setResult = def.set.call(this, attrVal, refBBox, node, rawAttrs);
+            var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs);
             if (_.isObject(setResult)) {
                 _.extend(nodeAttrs, setResult);
             } else if (setResult !== undefined) {
@@ -1007,7 +1007,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             // reference bounding box. The default position of the node is x:0, y:0 of
             // the reference bounding box or could be further specify by some
             // SVG attributes e.g. `x`, `y`
-            translation = def.position.call(this, attrVal, refBBox, node, rawAttrs);
+            translation = def.position.call(this, attrVal, refBBox.clone(), node, rawAttrs);
             if (translation) {
                 nodePosition.offset(translation.scale(sx, sy));
             }
@@ -1192,7 +1192,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                 processedAttrs = item.processedAttributes;
             }
 
-            this.updateRelativeAttributes(node, processedAttrs, refBBox.clone(), opt);
+            this.updateRelativeAttributes(node, processedAttrs, refBBox, opt);
         }
     },
 
