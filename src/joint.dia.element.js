@@ -465,8 +465,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         this.renderMarkup();
         this.rotatableNode = this.vel.findOne('.rotatable');
-        this.scalableNode = this.vel.findOne('.scalable');
-        this.update();
+        var scalable = this.scalableNode = this.vel.findOne('.scalable');
+        if (scalable) {
+            // Double update is necessary for elements with the scalable group only
+            // Note the resize() triggers the other `update`.
+            this.update();
+        }
         this.resize();
         this.rotate();
         this.translate();
