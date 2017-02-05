@@ -446,12 +446,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             var label = labels[i];
             var labelMarkup = label.markup;
-            var vLabelNode = (labelMarkup)
+            // Cache label nodes so that the `updateLabels()` can just update the label node positions.
+            var vLabelNode = labelCache[i] = (labelMarkup)
                 ? V('g').append(V(labelMarkup))
                 : labelNodeInstance.clone();
 
-            // Cache label nodes so that the `updateLabels()` can just update the label node positions.
-            labelCache[i] = vLabelNode
+            vLabelNode
                 .addClass('label')
                 .attr({
                     'label-idx': i,
