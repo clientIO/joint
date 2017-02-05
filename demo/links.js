@@ -251,15 +251,43 @@ var link6 = new joint.dia.Link({
     source: { id: r12.id },
     target: { id: r11.id },
     labels: [
-        { position: 10, attrs: { text: { text: '1..n' } } },
         {
-            position: { distance: .5, offset: { x: 20, y: 20 } },
+            position: 10,
             attrs: {
-                text: { text: 'Foo', fill: 'white', 'font-family': 'sans-serif' },
-                rect: { stroke: '#F39C12', 'stroke-width': 20, rx: 5, ry: 5 }
+                text: {
+                    text: '1..n'
+                }
             }
         },
-        { position: -10, attrs: { text: { text: '*' } } }
+        {
+            position: { distance: .5, offset: { x: 20, y: 20 }},
+            attrs: {
+                text: {
+                    text: 'Foo',
+                    fill: 'white',
+                    fontFamily: 'sans-serif'
+                },
+                rect: {
+                    stroke: 'red',
+                    strokeWidth: 2,
+                    fill: '#F39C12',
+                    rx: 5,
+                    ry: 5,
+                    refWidth: '140%',
+                    refHeight: '140%',
+                    refX: '-20%',
+                    refY: '-20%'
+                }
+            }
+        },
+        {
+            position: -10,
+            attrs: {
+                text: {
+                    text: '*'
+                }
+            }
+        }
     ],
     attrs: {
         '.marker-source': {

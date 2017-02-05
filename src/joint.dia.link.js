@@ -420,71 +420,60 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     renderLabels: function() {
 
-        if (!this._V.labels) return this;
+        var vLabels = this._V.labels;
+        if (!vLabels) {
+            return this;
+        }
 
-        this._labelCache = {};
-        var $labels = $(this._V.labels.node).empty();
+        vLabels.empty();
 
-        var labels = this.model.get('labels') || [];
-        if (!labels.length) return this;
+        var model = this.model;
+        var labels = model.get('labels') || [];
+        var labelCache = this._labelCache = {};
+        var labelsCount = labels.length;
+        if (labelsCount === 0) {
+            return this;
+        }
 
-        var labelTemplate = joint.util.template(this.model.get('labelMarkup') || this.model.labelMarkup);
+        var labelTemplate = joint.util.template(model.get('labelMarkup') || model.labelMarkup);
         // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
         var labelNodeInstance = V(labelTemplate());
-
         var canLabelMove = this.can('labelMove');
 
-        _.each(labels, function(label, idx) {
-
-            var labelNode = labelNodeInstance.clone().node;
-            V(labelNode).attr('label-idx', idx);
-            if (canLabelMove) {
-                V(labelNode).attr('cursor', 'move');
-            }
-
+        for (var i = 0; i < labelsCount; i++) {
+            var label = labels[i];
             // Cache label nodes so that the `updateLabels()` can just update the label node positions.
-            this._labelCache[idx] = V(labelNode);
-
-            var $text = $(labelNode).find('text');
-            var $rect = $(labelNode).find('rect');
+            var vLabelNode = labelCache[i] = labelNodeInstance.clone()
+                .attr({
+                    'label-idx': i,
+                    'cursor': (canLabelMove ? 'move' : 'default')
+                })
+                .appendTo(vLabels);
 
             // Text attributes with the default `text-anchor` and font-size set.
-            var textAttributes = _.extend({ 'text-anchor': 'middle', 'font-size': 14 }, joint.util.getByPath(label, 'attrs/text', '/'));
+            var labelAttrs = _.merge({
+                text: {
+                    textAnchor: 'middle',
+                    fontSize: 14,
+                    pointerEvents: 'none',
+                    yAlignment: 'middle'
+                },
+                rect: {
+                    ref: 'text',
+                    fill: 'white',
+                    rx: 3,
+                    ry: 3,
+                    refWidth: 1,
+                    refHeight: 1,
+                    refX: 0,
+                    refY: 0
+                }
+            }, label.attrs);
 
-            $text.attr(_.omit(textAttributes, 'text'));
-
-            if (!_.isUndefined(textAttributes.text)) {
-
-                V($text[0]).text(textAttributes.text + '', { annotations: textAttributes.annotations });
-            }
-
-            // Note that we first need to append the `<text>` element to the DOM in order to
-            // get its bounding box.
-            $labels.append(labelNode);
-
-            // `y-alignment` - center the text element around its y coordinate.
-            var textBbox = V($text[0]).bbox(true, $labels[0]);
-            V($text[0]).translate(0, -textBbox.height / 2);
-
-            // Add default values.
-            var rectAttributes = _.extend({
-
-                fill: 'white',
-                rx: 3,
-                ry: 3
-
-            }, joint.util.getByPath(label, 'attrs/rect', '/'));
-
-            $rect.attr(_.extend(rectAttributes, {
-                x: textBbox.x,
-                y: textBbox.y - textBbox.height / 2,  // Take into account the y-alignment translation.
-                width: textBbox.width,
-                height: textBbox.height
-            }));
-
-        }, this);
+            this.updateDOMSubtreeAttributes(vLabelNode.node, labelAttrs);
+        }
 
         return this;
     },

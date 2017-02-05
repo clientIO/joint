@@ -88,6 +88,14 @@
             set: 'xlink:href'
         },
 
+        textAnchor: {
+            set: 'text-anchor'
+        },
+
+        pointerEvents: {
+            set: 'pointer-events'
+        },
+
         filter: {
             qualify: _.isPlainObject,
             set: function(filter) {
