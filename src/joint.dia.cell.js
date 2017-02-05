@@ -655,8 +655,18 @@ joint.dia.Cell = Backbone.Model.extend({
         var defNS = this.attributes;
         var globalDefNS = joint.dia.attributes;
         return (defNS && defNS[attrName]) || globalDefNS[attrName];
-    }
+    },
 
+    define: function(type, defaults, protoProps, staticProps) {
+
+        protoProps = _.assign({
+            defaults: _.defaultsDeep(defaults, this.prototype.defaults, { type: type })
+        }, protoProps);
+
+        var Cell = this.extend(protoProps, staticProps);
+        joint.util.setByPath(joint.shapes, type, Cell, '.');
+        return Cell;
+    }
 });
 
 // joint.dia.CellView base view and controller.
