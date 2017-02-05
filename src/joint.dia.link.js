@@ -577,7 +577,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (!opt.updateConnectionOnly) {
             // update SVG attributes defined by 'attrs/'.
-            this.updateAttributes();
+            this.updateDOMSubtreeAttributes(this.el, this.model.attr());
         }
 
         // update the link path, label position etc.

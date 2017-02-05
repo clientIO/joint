@@ -617,22 +617,7 @@
                 return;
             }
 
-            this._updateAllAttrs(element.portElement.node, allAttrs);
-        },
-
-        /**
-         * @param {Element} element
-         * @param {Object} allAttrs
-         * @private
-         */
-        _updateAllAttrs: function(element, allAttrs) {
-
-            _.each(allAttrs, function(attrs, selector) {
-                _.each(this.findBySelector(selector, element), function(node) {
-                    var processedAttributes = this.processAttributes(attrs, node);
-                    this.setNodeAttributes(node, processedAttributes.normal);
-                }, this);
-            }, this);
+            this.updateDOMSubtreeAttributes(element.portElement.node, allAttrs);
         },
 
         /**
@@ -668,7 +653,7 @@
                 .rotate(transformData.angle || 0);
 
             element.transform(matrix, { absolute: true });
-            this._updateAllAttrs(element.node, transformData.attrs || {});
+            this.updateDOMSubtreeAttributes(element.node, transformData.attrs);
         },
 
         /**

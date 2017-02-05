@@ -138,6 +138,28 @@ joint.dia.Element = joint.dia.Cell.extend({
         return this;
     },
 
+    size: function(width, height, opt) {
+
+        var currentSize = this.get('size');
+        // Getter
+        // () signature
+        if (width === undefined) {
+            return {
+                width: currentSize.width,
+                height: currentSize.height
+            };
+        }
+        // Setter
+        // (size, opt) signature
+        if (_.isObject(width)) {
+            opt = height;
+            height = _.isNumber(width.height) ? width.height : currentSize.height;
+            width = _.isNumber(width.width) ? width.width : currentSize.width;
+        }
+
+        return this.resize(width, height, opt);
+    },
+
     resize: function(width, height, opt) {
 
         opt = opt || {};
@@ -404,8 +426,17 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     },
 
     update: function(cell, renderingOnlyAttrs) {
+
         this._removePorts();
-        this.updateAttributes(renderingOnlyAttrs);
+
+        var model = this.model;
+        this.updateDOMSubtreeAttributes(this.el, model.attr(), {
+            rootBBox: g.Rect(model.size()),
+            scalableNode: this.scalableNode,
+            rotatableNode: this.rotatableNode,
+            roAttributes: renderingOnlyAttrs
+        });
+
         this._renderPorts();
     },
 

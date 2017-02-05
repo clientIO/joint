@@ -499,6 +499,9 @@ joint.dia.Cell = Backbone.Model.extend({
     attr: function(attrs, value, opt) {
 
         var args = Array.prototype.slice.call(arguments);
+        if (args.length === 0) {
+            return this.get('attrs');
+        }
 
         if (_.isArray(attrs)) {
             args[0] = ['attrs'].concat(attrs);
@@ -884,7 +887,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
     },
 
-    processAttributes: function(attrs, node) {
+    processNodeAttributes: function(node, attrs) {
 
         var attrName, attrVal, def, i, n;
         var normalAttrs, setAttrs, positionAttrs, offsetAttrs;
@@ -937,7 +940,9 @@ joint.dia.CellView = joint.mvc.View.extend({
         };
     },
 
-    updateRelativeAttributes: function(node, attrs, refBBox) {
+    updateRelativeAttributes: function(node, attrs, refBBox, opt) {
+
+        opt || (opt = {});
 
         var attrName, attrVal, def;
         var rawAttrs = attrs.raw || {};
@@ -980,7 +985,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         // only if later needed.
         var sx, sy, translation;
         if (positionAttrs || offsetAttrs) {
-            var nodeScale = this.getNodeScale(node);
+            var nodeScale = this.getNodeScale(node, opt.scalableNode);
             sx = nodeScale.sx;
             sy = nodeScale.sy;
         }
@@ -1028,11 +1033,10 @@ joint.dia.CellView = joint.mvc.View.extend({
         node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
     },
 
-    getNodeScale: function(node) {
+    getNodeScale: function(node, scalableNode) {
 
         // Check if the node is a descendant of the scalable group.
         var sx, sy;
-        var scalableNode = this.scalableNode;
         if (scalableNode && scalableNode.contains(node)) {
             var scale = scalableNode.scale();
             sx = 1 / scale.sx;
@@ -1045,7 +1049,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         return { sx: sx, sy: sy };
     },
 
-    findNodesAttributes: function(attrs, selectorCache) {
+    findNodesAttributes: function(attrs, root, selectorCache) {
 
         // TODO: merge attributes in order defined by `index` property
 
@@ -1053,7 +1057,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         for (var selector in attrs) {
             if (!attrs.hasOwnProperty(selector)) continue;
-            var $selected = selectorCache[selector] = this.findBySelector(selector);
+            var $selected = selectorCache[selector] = this.findBySelector(selector, root);
 
             for (var i = 0, n = $selected.length; i < n; i++) {
                 var node = $selected[i];
@@ -1081,7 +1085,10 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     // Default is to process the `model.attributes.attrs` object and set attributes on subelements based on the selectors,
     // unless `attrs` parameter was passed.
-    updateAttributes: function(attrs) {
+    updateDOMSubtreeAttributes: function(rootNode, attrs, opt) {
+
+        opt || (opt = {});
+        opt.rootBBox || (opt.rootBBox = g.Rect());
 
         // Cache table for query results and bounding box calculation.
         // Note that `selectorCache` needs to be invalidated for all
@@ -1090,26 +1097,22 @@ joint.dia.CellView = joint.mvc.View.extend({
         // created.
         var selectorCache = {};
         var bboxCache = {};
-
-        var model = this.model;
-        var modelAttrs = model.get('attrs');
-        var nodesAttrs = this.findNodesAttributes(attrs || modelAttrs, selectorCache);
-        // `nodesAttrs` are different from attributes defined on the model, when
-        // custom attributes sent to this method.
-        var nodesModelAttrs = (attrs)
-            ? nodesModelAttrs = this.findNodesAttributes(modelAttrs, selectorCache)
-            : nodesAttrs;
-
-        var item;
         var relativeItems = [];
-        var node, nodeAttrs, nodeData;
-        var processedAttrs;
+        var item, node, nodeAttrs, nodeData, processedAttrs;
+
+        var roAttrs = opt.roAttributes;
+        var nodesAttrs = this.findNodesAttributes(roAttrs || attrs, rootNode, selectorCache);
+        // `nodesAttrs` are different from all attributes, when
+        // rendering only  attributes sent to this method.
+        var nodesAllAttrs = (roAttrs)
+            ? nodesAllAttrs = this.findNodesAttributes(attrs, rootNode, selectorCache)
+            : nodesAttrs;
 
         for (var nodeId in nodesAttrs) {
             nodeData = nodesAttrs[nodeId];
             nodeAttrs = nodeData.attributes;
             node = nodeData.node;
-            processedAttrs = this.processAttributes(nodeAttrs, node);
+            processedAttrs = this.processNodeAttributes(node, nodeAttrs);
 
             if (!processedAttrs.set && !processedAttrs.position && !processedAttrs.offset) {
                 // Set all the normal attributes right on the SVG/HTML element.
@@ -1117,15 +1120,14 @@ joint.dia.CellView = joint.mvc.View.extend({
 
             } else {
 
-                var nodeModelData = nodesModelAttrs[nodeId];
-                var nodeModelAttrs = (nodeModelData && nodeModelData.attributes) || {};
-                var refSelector = (nodeAttrs.ref === undefined)
-                    ? nodeModelAttrs.ref
+                var nodeAllAttrs = nodesAllAttrs[nodeId] && nodesAllAttrs[nodeId].attributes;
+                var refSelector = (nodeAllAttrs && (nodeAttrs.ref === undefined))
+                    ? nodeAllAttrs.ref
                     : nodeAttrs.ref;
 
                 var refNode;
                 if (refSelector) {
-                    refNode = (selectorCache[refSelector] || this.findBySelector(refSelector))[0];
+                    refNode = (selectorCache[refSelector] || this.findBySelector(refSelector, rootNode))[0];
                     if (!refNode) {
                         throw new Error('dia.ElementView: "' + refSelector + '" reference does not exists.');
                     }
@@ -1137,7 +1139,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                     node: node,
                     refNode: refNode,
                     processedAttributes: processedAttrs,
-                    modelAttributes: nodeModelAttrs
+                    allAttributes: nodeAllAttrs
                 };
 
                 // If an element in the list is positioned relative to this one, then
@@ -1157,43 +1159,49 @@ joint.dia.CellView = joint.mvc.View.extend({
             refNode = item.refNode;
 
             // Find the reference element bounding box. If no reference was provided, we
-            // use the model's bounding box.
+            // use the optional bounding box.
             var refNodeId = refNode ? V.ensureId(refNode) : '';
             var refBBox = bboxCache[refNodeId];
             if (!refBBox) {
                 // Get the bounding box of the reference element relative to the `rotatable` `<g>` (without rotation)
                 // or to the root `<g>` element if no rotatable group present if reference node present.
-                // Uses the model bounding box with origin at 0,0 otherwise.
+                // Uses the bounding box provided.
                 refBBox = bboxCache[refNodeId] = (refNode)
-                    ? V(refNode).bbox(false, (this.rotatableNode || this.vel))
-                    : g.Rect(model.get('size'));
+                    ? V(refNode).bbox(false, (opt.rotatableNode || rootNode))
+                    : opt.rootBBox;
             }
 
-            if (attrs) {
+            if (roAttrs) {
                 // if there was a special attribute affecting the position amongst passed-in attributes
                 // we have to merge it with the rest of the element's attributes as they are necessary
                 // to update the position relatively (i.e `ref-x` && 'ref-dx')
-                processedAttrs = this.processAttributes(item.modelAttributes, node);
-                processedAttrs.set || (processedAttrs.set = {});
-                processedAttrs.position || (processedAttrs.position = {});
-                processedAttrs.offset || (processedAttrs.offset = {});
-                _.extend(processedAttrs.set, item.processedAttributes.set);
-                _.extend(processedAttrs.position, item.processedAttributes.position);
-                _.extend(processedAttrs.offset, item.processedAttributes.offset);
-
-                // Handle also the special transform property.
-                var transform = processedAttrs.normal && processedAttrs.normal.transform;
-                if (transform !== undefined && item.processedAttributes.normal) {
-                    item.processedAttributes.normal.transform = transform;
-                }
-                processedAttrs.normal = item.processedAttributes.normal;
+                processedAttrs = this.processNodeAttributes(node, item.allAttributes);
+                this.mergeProcessedAttributes(processedAttrs, item.processedAttributes);
 
             } else {
                 processedAttrs = item.processedAttributes;
             }
 
-            this.updateRelativeAttributes(node, processedAttrs, refBBox.clone());
+            this.updateRelativeAttributes(node, processedAttrs, refBBox.clone(), opt);
         }
+    },
+
+    mergeProcessedAttributes: function(processedAttrs, roProcessedAttrs) {
+
+        processedAttrs.set || (processedAttrs.set = {});
+        processedAttrs.position || (processedAttrs.position = {});
+        processedAttrs.offset || (processedAttrs.offset = {});
+
+        _.extend(processedAttrs.set, roProcessedAttrs.set);
+        _.extend(processedAttrs.position, roProcessedAttrs.position);
+        _.extend(processedAttrs.offset, roProcessedAttrs.offset);
+
+        // Handle also the special transform property.
+        var transform = processedAttrs.normal && processedAttrs.normal.transform;
+        if (transform !== undefined && roProcessedAttrs.normal) {
+            roProcessedAttrs.normal.transform = transform;
+        }
+        processedAttrs.normal = roProcessedAttrs.normal;
     },
 
     // Interaction. The controller part.
