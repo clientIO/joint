@@ -237,7 +237,7 @@ var Header = joint.dia.Element.define('custom.Header', {
             fontSize: 12,
             fontFamily: 'sans-serif',
             wrappedText: {
-                text: 'Here is a descioption spread on multiple lines. Obviously wrapped automagically.',
+                text: 'Here is a description spread on multiple lines. Obviously wrapped automagically.',
                 width: -40,
                 height: -25
             },
@@ -254,9 +254,16 @@ var Header = joint.dia.Element.define('custom.Header', {
 });
 
 var header = (new Header())
-    .size(140,120)
+    .size(200,140)
     .position(420,40)
     .addTo(graph);
+
+// Animate the element size
+header.transition('size', { width: 160, height: 100 }, {
+    valueFunction: joint.util.interpolate.object,
+    duration: 1000,
+    delay: 1000
+});
 
 var link = new joint.dia.Link({
     source: { id: circle.id },
