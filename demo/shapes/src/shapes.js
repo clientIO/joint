@@ -241,8 +241,34 @@ header.transition('size', { width: 160, height: 100 }, {
 var link = new joint.dia.Link({
     source: { id: circle.id },
     target: { id: rectangle.id },
-    vertices: [{ x: 450, y: 300 }],
-    router: { name: 'orthogonal' },
+    router: {
+        name: 'orthogonal'
+    },
+    labels: [{
+        position: 0.5,
+        markup: '<path/>',
+        attrs: {
+            path: {
+                d: 'M 30 15 -30 15',
+                stroke: '#666',
+                strokeWidth: 2,
+                fill: 'none',
+                targetMarker: {
+                    type: 'path',
+                    fill: '#666',
+                    stroke: '#000',
+                    d: 'M 10 -10 0 0 10 10 z'
+                },
+                sourceMarker: {
+                    type: 'circle',
+                    fill: '#666',
+                    stroke: '#333',
+                    r: 5,
+                    cx: 5
+                }
+            }
+        }
+    }],
     attrs: {
         '.connection': {
             stroke: '#333',
