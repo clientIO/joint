@@ -46,33 +46,6 @@ joint.dia.attributes.fitRef = {
     }
 };
 
-joint.dia.attributes.wrappedText = {
-    qualify: _.isPlainObject,
-    set: function(value, refBBox, node, attrs) {
-        // option `width`
-        var width = value.width || 0;
-        if (width <= 0) {
-            refBBox.width += width;
-        } else {
-            refBBox.width = width;
-        }
-        // option `height`
-        var height = value.height || 0;
-        if (height <= 0) {
-            refBBox.height += height;
-        } else {
-            refBBox.height = height;
-        }
-        // option `text`
-        var brokenText = joint.util.breakText(value.text + '', refBBox, {
-            'font-size': attrs.fontSize,
-            'font-family': attrs.fontFamily
-        });
-        V(node).text(brokenText);
-    }
-};
-
-
 var Circle = joint.dia.Element.define('custom.Circle', {
     markup: '<g class="rotatable"><ellipse/><text/><path/></g>',
     attrs: {
@@ -175,7 +148,7 @@ var Rectangle = joint.dia.Element.define('custom.Rectangle', {
             transform: 'translate(-4,4)'
         },
         '.content': {
-            wrappedText: {
+            textWrap: {
                 text: 'An element with text automatically wrapped to fit the rectangle.',
                 width: -10,
                 height: -10
@@ -223,7 +196,7 @@ var Header = joint.dia.Element.define('custom.Header', {
             fontSize: 12,
             fontFamily: 'sans-serif',
             y: 15,
-            wrappedText: {
+            textWrap: {
                 text: 'Header',
                 height: 0
             },
@@ -236,7 +209,7 @@ var Header = joint.dia.Element.define('custom.Header', {
             textAnchor: 'middle',
             fontSize: 12,
             fontFamily: 'sans-serif',
-            wrappedText: {
+            textWrap: {
                 text: 'Here is a description spread on multiple lines. Obviously wrapped automagically.',
                 width: -40,
                 height: -25

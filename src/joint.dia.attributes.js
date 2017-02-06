@@ -144,7 +144,8 @@
                 var $node = $(node);
                 var cacheName = 'joint-text';
                 var cache = $node.data(cacheName);
-                var textAttrs = _.pick(attrs, 'lineHeight', 'annotations', 'textPath', 'font-size', 'fontSize');
+                var textAttrs = _.pick(attrs, 'lineHeight', 'annotations', 'textPath');
+                var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
                 var textHash = JSON.stringify([text, textAttrs]);
                 // Update the text only if there was a change in the string
                 // or any of its attributes.
@@ -152,13 +153,46 @@
                     // Chrome bug:
                     // Tspans positions defined as `em` are not updated
                     // when container `font-size` change.
-                    var fontSize = attrs['font-size'] || attrs['fontSize'];
                     if (fontSize) {
                         node.setAttribute('font-size', fontSize);
                     }
                     V(node).text('' + text, textAttrs);
                     $node.data(cacheName, textHash);
                 }
+            }
+        },
+
+        textWrap: {
+            qualify: _.isPlainObject,
+            set: function(value, refBBox, node, attrs) {
+                // option `width`
+                var width = value.width || 0;
+                if (isPercentage(width)) {
+                    refBBox.width *= parseFloat(width) / 100;
+                } else if (width <= 0) {
+                    refBBox.width += width;
+                } else {
+                    refBBox.width = width;
+                }
+                // option `height`
+                var height = value.height || 0;
+                if (isPercentage(height)) {
+                    refBBox.height *= parseFloat(height) / 100;
+                } else if (height <= 0) {
+                    refBBox.height += height;
+                } else {
+                    refBBox.height = height;
+                }
+                // option `text`
+                var wrappedText = joint.util.breakText('' + value.text, refBBox, {
+                    'font-weight': attrs['font-weight'] || attrs.fontWeight,
+                    'font-size': attrs['font-size'] || attrs.fontSize,
+                    'font-family': attrs['font-family'] || attrs.fontFamily
+                }, {
+                    svgDocument: this.paper.svg
+                });
+
+                V(node).text(wrappedText);
             }
         },
 
