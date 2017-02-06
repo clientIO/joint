@@ -99,7 +99,7 @@
 
     function iframeIsLoaded(iframe) {
 
-        return (iframe.src.indexOf('demo/placeholder.html') === -1);
+        return iframe.src != 'about:blank';
     }
 
     function getVisibleIFrames() {
