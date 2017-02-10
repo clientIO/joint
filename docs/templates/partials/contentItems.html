@@ -1,7 +1,9 @@
     {{#each items}}
     <div id="{{key}}" class="docs-item">
         {{#if content}}
-        <h{{#depth}}{{/depth}} class="docs-item-header">{{title}}<a href="#{{key}}" class="docs-item-anchor"></a></h{{#depth}}{{/depth}}>
+        <a href="#{{key}}" class="docs-item-anchor">
+            <h{{#depth}}{{/depth}} class="docs-item-header">{{title}}</h{{#depth}}{{/depth}}>
+        </a>
         <div class="docs-item-content">
 {{{ content }}}
         </div>
