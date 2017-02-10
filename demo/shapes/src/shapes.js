@@ -4,7 +4,7 @@ var paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: 650,
     height: 400,
-    gridSize: 20,
+    gridSize: 10,
     model: graph
 });
 
@@ -165,7 +165,7 @@ var Rectangle = joint.dia.Element.define('custom.Rectangle', {
 
 var rectangle = (new Rectangle())
     .size(100,90)
-    .position(200,100)
+    .position(250,50)
     .addTo(graph);
 
 var Header = joint.dia.Element.define('custom.Header', {
@@ -236,6 +236,81 @@ header.transition('size', { width: 160, height: 100 }, {
     valueFunction: joint.util.interpolate.object,
     duration: 1000,
     delay: 1000
+});
+
+
+var Puzzle = joint.dia.Element.define('custom.Puzzle', {
+    markup: '<polygon/>',
+    size: { width: 100, height: 100 },
+    tabSize: 20,
+    attrs: {
+        polygon: {
+            puzzle: [0, 0, 0, 0],
+            fill: {
+                type: 'radialGradient',
+                stops: [
+                    { offset: '0%', color: '#feb663' },
+                    { offset: '100%', color: '#fe854f' }
+                ]
+            },
+            stroke: 'black'
+        }
+    }
+}, null, {
+    attributes: {
+        puzzle: {
+            qualify: _.isArray,
+            set: function(tabs, refBBox) {
+                var tabSize = this.model.prop('tabSize');
+                var points = [];
+                var refCenter = refBBox.center();
+                var refPoints = [
+                    refBBox.origin(),
+                    refBBox.topRight(),
+                    refBBox.corner(),
+                    refBBox.bottomLeft()
+                ];
+                for (var i = 0; i < 4; i++) {
+                    var a = refPoints[i];
+                    var b = refPoints[i + 1] || refPoints[0];
+                    points.push(a);
+                    if (tabs[i]) {
+                        var mid = g.Line(a, b).midpoint();
+                        points.push(
+                            mid.clone().move(b, tabSize),
+                            mid.clone().move(refCenter, tabs[i] * tabSize),
+                            mid.clone().move(a, tabSize)
+                        );
+                    }
+                }
+
+                return {
+                    points: points.join(' ').replace(/@/g,' ')
+                };
+            }
+        }
+    }
+});
+
+var puzzle1 = (new Puzzle())
+    .position(50, 170)
+    .attr('polygon/puzzle', [0, -1, 1, 1])
+    .addTo(graph);
+var puzzle2 = (new Puzzle())
+    .position(50, 270)
+    .attr('polygon/puzzle', [-1, 1, 1, -1])
+    .addTo(graph);
+var puzzle3 = (new Puzzle())
+    .position(150, 270)
+    .attr('polygon/puzzle', [-1, 0, 1, -1])
+    .addTo(graph);
+var puzzle4 = (new Puzzle())
+    .position(150, 170)
+    .attr('polygon/puzzle', [0, 0, 1, 1])
+    .addTo(graph);
+
+paper.listenTo(graph, 'change:tabSize', function(puzzle) {
+    puzzle.findView(this).update();
 });
 
 var link = new joint.dia.Link({
