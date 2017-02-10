@@ -115,6 +115,8 @@ var circle = (new Circle())
     .rotate(-45)
     .addTo(graph);
 
+circle.transition('angle', 0, { delay: 500 });
+
 var Rectangle = joint.dia.Element.define('custom.Rectangle', {
     markup: [
         '<rect class="body"/>',
@@ -293,7 +295,7 @@ var Puzzle = joint.dia.Element.define('custom.Puzzle', {
 });
 
 var puzzle1 = (new Puzzle())
-    .position(50, 170)
+    .position(20, 140)
     .attr('polygon/puzzle', [0, -1, 1, 1])
     .addTo(graph);
 var puzzle2 = (new Puzzle())
