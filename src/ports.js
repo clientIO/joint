@@ -277,19 +277,23 @@
 
         /**
          * @param {string} groupName
-         * @returns {Array}
+         * @returns {Object<portId, {x: number, y: number, angle: number}>}
          */
         getPortsPositions: function(groupName) {
 
             var portsPositions = this._portSettingsData.resolvePortAttrs(groupName, g.Rect(this.get('size')));
+            var positions = {};
 
-            return _.map(portsPositions, function (port) {
-                return {id: port.portId, position: {
+            _.each(portsPositions, function(port) {
+
+                positions[port.portId] = {
                     x: port.port.x,
                     y: port.port.y,
                     angle: port.port.angle
-                }};
+                }
             });
+
+            return positions;
         },
 
         /**
@@ -351,7 +355,7 @@
             } else {
 
                 args = ['ports/items/' + index];
-                if (_.isObject(path)){
+                if (_.isPlainObject(path)) {
                     args.push(path);
                     args.push(value);
                 }

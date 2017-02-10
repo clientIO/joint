@@ -559,9 +559,9 @@ QUnit.module('element ports', function() {
 
             var portsPositions = shape.getPortsPositions('a');
 
-            assert.ok(portsPositions[0].position.y > 0);
-            assert.ok(portsPositions[0].position.y < portsPositions[1].position.y);
-            assert.ok(portsPositions[1].position.y < portsPositions[2].position.y);
+            assert.ok(portsPositions.one.y > 0);
+            assert.ok(portsPositions.one.y < portsPositions.two.y);
+            assert.ok(portsPositions.two.y < portsPositions.three.y);
         });
     });
 
