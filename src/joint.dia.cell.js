@@ -400,25 +400,33 @@ joint.dia.Cell = Backbone.Model.extend({
     prop: function(props, value, opt) {
 
         var delim = '/';
+        var isString = _.isString(props);
 
-        if (_.isString(props)) {
+        if (isString || _.isArray(props)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
 
             if (arguments.length > 1) {
 
-                var path = props;
-                var pathArray = path.split('/');
-                var property = pathArray[0];
+                var path;
+                var pathArray;
 
-                // Remove the top-level property from the array of properties.
-                pathArray.shift();
+                if (isString) {
+                    path = props;
+                    pathArray = path.split('/')
+                } else {
+                    path = props.join(delim);
+                    pathArray = props;
+                }
+
+                var property = pathArray[0];
 
                 opt = opt || {};
                 opt.propertyPath = path;
                 opt.propertyValue = value;
+                opt.propertyValueArray = pathArray.slice();
 
-                if (pathArray.length === 0) {
+                if (pathArray.length === 1) {
                     // Property is not nested. We can simply use `set()`.
                     return this.set(property, value, opt);
                 }
@@ -430,12 +438,15 @@ joint.dia.Cell = Backbone.Model.extend({
                 // Pure integer keys will cause issues and are therefore not allowed.
                 var initializer = update;
                 var prevProperty = property;
-                _.each(pathArray, function(key) {
-                    initializer = initializer[prevProperty] = (_.isFinite(Number(key)) ? [] : {});
+
+                // Remove the top-level property from the array of properties.
+                _.each(pathArray.slice(1), function(key) {
+                    initializer = initializer[prevProperty] = (_.isFinite(isString ? Number(key) : key) ? [] : {});
                     prevProperty = key;
                 });
+
                 // Fill update with the `value` on `path`.
-                update = joint.util.setByPath(update, path, value, '/');
+                update = joint.util.setByPath(update, pathArray, value, '/');
 
                 var baseAttributes = _.merge({}, this.attributes);
                 // if rewrite mode enabled, we replace value referenced by path with

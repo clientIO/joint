@@ -118,7 +118,8 @@ QUnit.module('util', function(hooks) {
             g: [],
             h: [null, 4, {
                 i: { j: 6 }
-            }]
+            }],
+            'a/b/c': { d: 'abcd' }
         };
 
         deepEqual(joint.util.getByPath(obj, 'none'), undefined, 'non-existing property is undefined');
@@ -135,6 +136,8 @@ QUnit.module('util', function(hooks) {
         deepEqual(joint.util.getByPath(obj, 'h/1/none'), undefined, 'non-existing property of nth item of an array is undefined');
         equal(joint.util.getByPath(obj, 'h/2/i/j'), 6, 'nested property of nth item of an array is number');
         equal(joint.util.getByPath(obj, 'h.2.i.j', '.'), 6, 'same but this time with a custom delimiter');
+        equal(joint.util.getByPath(obj, ['h', '2', 'i', 'j']), 6, 'path as array');
+        equal(joint.util.getByPath(obj, ['a/b/c', 'd']), 'abcd', 'path as array, separator in name');
     });
 
     QUnit.test('util.setByPath()', function() {
@@ -146,6 +149,8 @@ QUnit.module('util', function(hooks) {
         deepEqual(joint.util.setByPath({}, 'first/second/third', 8), { first: { second: { third: 8 } } }, 'populate an empty object with nested objects');
         deepEqual(joint.util.setByPath({}, 'first.second.third', 9, '.'), { first: { second: { third: 9 } } }, 'same but this time with a custom delimiter');
         deepEqual(joint.util.setByPath([null], '0/property', 10), [{ property: 10 }], 'replace null item with an object');
+        deepEqual(joint.util.setByPath({ array: [] }, 'array/1', 'index'), { array: [undefined, 'index'] }, 'define array');
+        deepEqual(joint.util.setByPath({ object: {} }, 'object/1', 'property'), { object: {'1' : 'property'} }, 'define property');
     });
 
     QUnit.test('util.unsetByPath()', function() {
