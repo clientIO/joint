@@ -1,5 +1,3 @@
-var ROWS = 4;
-var COLUMNS = 5;
 joint.dia.Element.define('jigsaw.Piece', {
     markup: '<g class="rotatable"><polygon/></g>',
     attrs: {
@@ -86,7 +84,7 @@ var Jigsaw = {
         var paper = this.paper = new joint.dia.Paper({
             el: document.getElementById('paper'),
             gridSize: this.GRID,
-            clickTreshold: 5,
+            clickThreshold: 5,
             model: graph
         }).on({
             'cell:pointerdown': function(pieceView) {
