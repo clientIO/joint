@@ -119,19 +119,19 @@ V = Vectorizer = (function() {
      */
     V.prototype.transform = function(matrix, opt) {
 
+        var node = this.node;
         if (V.isUndefined(matrix)) {
-            return (this.node.parentNode)
-                ? this.getTransformToElement(this.node.parentNode)
-                : this.node.getScreenCTM();
+            return (node.parentNode)
+                ? this.getTransformToElement(node.parentNode)
+                : node.getScreenCTM();
         }
 
-        var transformList = this.node.transform.baseVal;
         if (opt && opt.absolute) {
-            transformList.clear();
+            return this.attr('transform', V.matrixToTransformString(matrix));
         }
 
         var svgTransform = V.createSVGTransform(matrix);
-        transformList.appendItem(svgTransform);
+        node.transform.baseVal.appendItem(svgTransform);
         return this;
     };
 
