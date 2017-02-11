@@ -12,23 +12,30 @@
             #paper {
                 border: 1px solid #ddd;
                 background: radial-gradient(ellipse at center, #45484d 0%,#000000 100%);
+                margin: auto;
             }
+         #controls {
+             margin: auto;
+             text-align: center;
+         }
         </style>
     </head>
     <body>
         <div id="paper"></div>
-        <label for="image-picker">Image:</label>
-        <select id="image-picker">
-            <option value="./images/clientio.jpeg" selected>team</option>
-            <option value="./images/vindaloo.jpeg">vindaloo</option>
-            <option value="./images/night.jpeg">night</option>
-        </select>
-        <label for="size-picker">Size:</label>
-        <select id="size-picker">
-            <option value="[2,2,200]">small</option>
-            <option value="[4,5,100]" selected>normal</option>
-            <option value="[20,20,50]">large</option>
-        </select>
+        <div id="controls">
+            <label for="image-picker">Image:</label>
+            <select id="image-picker">
+                <option value="./images/clientio.jpeg" selected>team</option>
+                <option value="./images/vindaloo.jpeg">vindaloo</option>
+                <option value="./images/night.jpeg">night</option>
+            </select>
+            <label for="size-picker">Size:</label>
+            <select id="size-picker">
+                <option value="[2,2,200]">small</option>
+                <option value="[4,5,100]" selected>normal</option>
+                <option value="[20,20,50]">large</option>
+            </select>
+        </div>
         <!-- Dependencies: -->
         <script src="../../node_modules/jquery/dist/jquery.js"></script>
         <script src="../../node_modules/lodash/index.js"></script>
