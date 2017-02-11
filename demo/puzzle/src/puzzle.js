@@ -58,7 +58,7 @@ joint.dia.Element.define('jigsaw.Piece', {
                         patternUnits: 'userSpaceOnUse'
                     }, [
                         V('use', {
-                            href: '#puzzle-image',
+                            'xlink:href': '#puzzle-image',
                             x: - (tile[0] * width + tabSize),
                             y: - (tile[1] * height + tabSize)
                         })
@@ -99,15 +99,13 @@ var Jigsaw = {
             }
         });
 
-         vImage = this.vImage = V('image', {
+        this.vImage = V('image', {
             id: 'puzzle-image',
             preserveAspectRatio: 'none'
         }).appendTo(paper.defs);
 
-        vImage.node.addEventListener('load', this.playPuzzle.bind(this));
-
-        this._setSize(sizeArray[0], sizeArray[1], sizeArray[2]);
-        this.changePuzzleImage(imageHref);
+        this._setImageHref(imageHref);
+        this.resizePuzzle(sizeArray);
     },
 
     resizePuzzle: function(sizeArray) {
@@ -116,7 +114,8 @@ var Jigsaw = {
     },
 
     changePuzzleImage: function(imageHref) {
-        this.vImage.attr('href', imageHref);
+        this._setImageHref(imageHref);
+        this.playPuzzle();
     },
 
     playPuzzle: function() {
@@ -190,6 +189,10 @@ var Jigsaw = {
                 }).addTo(this.graph));
             }
         }
+    },
+
+    _setImageHref: function(imageHref) {
+        this.vImage.attr('xlink:href', imageHref);
     },
 
     _setImageSize: function(width, height, pieceSize) {
