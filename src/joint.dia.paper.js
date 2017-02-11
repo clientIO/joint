@@ -1627,6 +1627,12 @@ joint.dia.Paper = joint.mvc.View.extend({
         _.invoke(this._views, 'setInteractivity', value);
     },
 
+    // Paper Defs
+
+    isDefined: function(defId) {
+        return !!this.svg.getElementById(defId);
+    },
+
     defineFilter: function(filter) {
 
         if (!_.isObject(filter)) {
@@ -1643,7 +1649,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         // If the filter already exists in the document,
         // we're done and we can just use it (reference it using `url()`).
         // If not, create one.
-        if (!this.svg.getElementById(filterId)) {
+        if (!this.isDefined(filterId)) {
 
             var namespace = joint.util.filter;
             var filterSVGString = namespace[name] && namespace[name](filter.args || {});
@@ -1686,7 +1692,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         // If the gradient already exists in the document,
         // we're done and we can just use it (reference it using `url()`).
         // If not, create one.
-        if (!this.svg.getElementById(gradientId)) {
+        if (!this.isDefined(gradientId)) {
 
             var stopTemplate = joint.util.template('<stop offset="${offset}" stop-color="${color}" stop-opacity="${opacity}"/>');
             var gradientStopsStrings = _.map(stops, function(stop) {
@@ -1725,7 +1731,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             markerId = this.svg.id + joint.util.hashCode(JSON.stringify(marker));
         }
 
-        if (!this.svg.getElementById(markerId)) {
+        if (!this.isDefined(markerId)) {
 
             var attrs = _.omit(marker, 'type', 'userSpaceOnUse');
             var pathMarker = V('marker', {

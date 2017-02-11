@@ -84,11 +84,15 @@ var Jigsaw = {
         var paper = this.paper = new joint.dia.Paper({
             el: document.getElementById('paper'),
             gridSize: this.GRID,
-            clickThreshold: 5,
+            clickThreshold: this.GRID,
             model: graph
         }).on({
             'cell:pointerdown': function(pieceView) {
                 pieceView.model.toFront();
+                pieceView.highlight('polygon');
+            },
+            'cell:pointerup': function(pieceView) {
+                pieceView.unhighlight('polygon');
             },
             'cell:pointerclick': function(pieceView) {
                 pieceView.model.rotate(90);
