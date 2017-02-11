@@ -9,7 +9,7 @@ joint.dia.Element.define('jigsaw.Piece', {
     }
 }, null , {
     attributes: {
-        tabs: {
+        tabs: { /* [topTab, rightTab, bottomTab, leftTab] */
             qualify: _.isArray,
             set: function(tabs, refBBox) {
                 var tabSize = this.model.prop('tabSize');
@@ -39,14 +39,14 @@ joint.dia.Element.define('jigsaw.Piece', {
                 };
             }
         },
-        image: {
+        image: { /* [imageId, rowIndex, columnIndex] */
             qualify: _.isArray,
-            set: function(tile) {
+            set: function(image) {
                 var paper = this.paper;
                 var model = this.model;
                 var width = model.prop('size/width');
                 var height = model.prop('size/height');
-                var id = 'image-pattern-' + width + '-' + height + '-' + tile.join('-'); 
+                var id = 'image-pattern-' + width + '-' + height + '-' + image.join('-');
                 if (!paper.isDefined(id)) {
                     var tabSize = model.get('tabSize');
                     V('pattern', {
@@ -58,9 +58,9 @@ joint.dia.Element.define('jigsaw.Piece', {
                         patternUnits: 'userSpaceOnUse'
                     }, [
                         V('use', {
-                            'xlink:href': '#puzzle-image',
-                            x: - (tile[0] * width + tabSize),
-                            y: - (tile[1] * height + tabSize)
+                            'xlink:href': '#' + image[0],
+                            x: - (image[1] * width + tabSize),
+                            y: - (image[2] * height + tabSize)
                         })
                     ]).appendTo(paper.defs);
                 }
@@ -77,6 +77,7 @@ var Jigsaw = {
     GRID: 10,
     PADDING: 200,
     TAB_RATIO: .15,
+    IMAGE_ID: 'puzzle-image',
 
     createPuzzle: function(sizeArray, imageHref) {
 
@@ -100,7 +101,7 @@ var Jigsaw = {
         });
 
         this.vImage = V('image', {
-            id: 'puzzle-image',
+            id: this.IMAGE_ID,
             preserveAspectRatio: 'none'
         }).appendTo(paper.defs);
 
@@ -183,7 +184,7 @@ var Jigsaw = {
                     attrs: {
                         polygon: {
                             tabs: tabs,
-                            image: [c, r]
+                            image: [this.IMAGE_ID, c, r]
                         }
                     }
                 }).addTo(this.graph));
