@@ -284,6 +284,7 @@
             var portsPositions = this._portSettingsData.resolvePortAttrs(groupName, g.Rect(this.get('size')));
             var positions = {};
 
+            //TODO v.talas user transfot
             _.each(portsPositions, function(port) {
 
                 positions[port.portId] = {
@@ -560,7 +561,8 @@
             var ports = this.model._portSettingsData.getPorts();
             var groupsNames = _.keys(this.model._portSettingsData.groups);
 
-            this._layoutPorts();
+
+            this._layoutPorts(undefined); // layout ports without group
             _.each(groupsNames, function(groupName) {
                 this._layoutPorts(groupName);
             }, this);
