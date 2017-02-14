@@ -131,6 +131,11 @@ QUnit.module('vectorizer', function(hooks) {
         assert.equal(V(t.find('tspan')[1]).attr('annotations'), '0', 'annotation indices added as an attribute');
         assert.equal(V(t.find('tspan')[2]).attr('annotations'), '0,1', 'annotation indices added as an attribute');
         assert.equal(V(t.find('tspan')[3]).attr('annotations'), '1', 'annotation indices added as an attribute');
+
+        t.text('');
+        assert.equal(t.attr('display'), 'none');
+        t.text('text');
+        assert.equal(t.attr('display'), null);
     });
 
     QUnit.test('annotateString', function(assert) {

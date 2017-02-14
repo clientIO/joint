@@ -270,7 +270,11 @@ V = Vectorizer = (function() {
         // An empty text gets rendered into the DOM in webkit-based browsers.
         // In order to unify this behaviour across all browsers
         // we rather hide the text element when it's empty.
-        this.attr('display', content ? null : 'none');
+        if (content) {
+            this.removeAttr('display');
+        } else {
+            this.attr('display', 'none');
+        }
 
         // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
         this.attr('xml:space', 'preserve');
