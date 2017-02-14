@@ -129,7 +129,7 @@ var joint = {
 
         setByPath: function(obj, path, value, delim) {
 
-            var keys = _.isArray(path) ? path.slice() : path.split(delim || '/');
+            var keys = _.isArray(path) ? path : path.split(delim || '/');
 
             var diver = obj;
             var i = 0;

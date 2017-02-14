@@ -416,7 +416,7 @@ joint.dia.Cell = Backbone.Model.extend({
                     pathArray = path.split('/')
                 } else {
                     path = props.join(delim);
-                    pathArray = pathArray.slice();
+                    pathArray = props.slice();
                 }
 
                 var property = pathArray[0];
@@ -442,11 +442,7 @@ joint.dia.Cell = Backbone.Model.extend({
                 for (var i = 1; i < pathArray.length; i++) {
                     initializer = initializer[prevProperty] = (_.isFinite(isString ? Number(pathArray[i]) : pathArray[i]) ? [] : {});
                     prevProperty = pathArray[i];
-
                 }
-                // Remove the top-level property from the array of properties.
-                _.each(pathArray.slice(1), function(key) {
-                });
 
                 // Fill update with the `value` on `path`.
                 update = joint.util.setByPath(update, pathArray, value, '/');
