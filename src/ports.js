@@ -284,15 +284,18 @@
             var portsPositions = this._portSettingsData.resolvePortAttrs(groupName, g.Rect(this.get('size')));
             var positions = {};
 
-            //TODO v.talas user transfot
-            _.each(portsPositions, function(port) {
+            var length = portsPositions.length;
+            var i;
+            var port;
 
+            for (i = 0; i < length; i++) {
+                port = portsPositions[i];
                 positions[port.portId] = {
                     x: port.port.x,
                     y: port.port.y,
                     angle: port.port.angle
                 }
-            });
+            }
 
             return positions;
         },
