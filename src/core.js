@@ -157,13 +157,7 @@ var joint = {
                 var parent = joint.util.getByPath(obj, pathArray, delim);
 
                 if (parent) {
-                    if (_.isArray(parent))  {
-                        if (_.isFinite(propertyToRemove)) {
-                            parent.splice(propertyToRemove, 1)
-                        }
-                    } else {
-                        delete parent[propertyToRemove];
-                    }
+                    delete parent[propertyToRemove];
                 }
 
             } else {

@@ -36,52 +36,57 @@ QUnit.module('cell', function(hooks) {
 
         var /** @type joint.dia.Cell */
         el;
-        var attrs;
+        var attributes;
 
         hooks.beforeEach(function() {
-            el = new joint.shapes.basic.Rect();
-            attrs = el.attributes;
+            el = new joint.dia.Element();
+            attributes = el.attributes;
+            attributes.attrs = {};
         });
 
         QUnit.module('removeProp', function(hooks) {
 
             QUnit.test('remove single property', function(assert) {
 
-                attrs.a = 'aaa';
+                attributes.a = 'aaa';
                 el.removeProp('a');
-                assert.notOk(attrs.hasOwnProperty('a'));
+                assert.notOk(attributes.hasOwnProperty('a'));
             });
 
             QUnit.test('remove nested property', function(assert) {
 
-                attrs.a = [{ aa: 'aa' }, { bb: 'bb', cc: 'cc' }];
+                attributes.a = [{ aa: 'aa' }, { bb: 'bb', cc: 'cc' }];
                 el.removeProp('a/1/bb');
-                assert.deepEqual(attrs.a[0], { aa: 'aa' });
-                assert.deepEqual(attrs.a[1], { cc: 'cc' });
+                assert.deepEqual(attributes.a[0], { aa: 'aa' });
+                assert.deepEqual(attributes.a[1], { cc: 'cc' });
             });
 
             QUnit.module('define path as an array', function(hooks) {
 
                 QUnit.test('remove item from array', function(assert) {
 
-                    attrs.a = [{ aa: 'aa' }, { bb: 'bb', cc: 'cc' }];
+                    attributes.a = [{ aa: 'aa' }, { bb: 'bb', cc: 'cc' }];
                     el.removeProp(['a', 1, 'bb']);
-                    assert.deepEqual(attrs.a[0], { aa: 'aa' });
-                    assert.deepEqual(attrs.a[1], { cc: 'cc' });
+                    assert.deepEqual(attributes.a[0], { aa: 'aa' });
+                    assert.deepEqual(attributes.a[1], { cc: 'cc' });
                 });
             })
         });
-
 
         QUnit.module('removeAttr', function(hooks) {
 
             QUnit.test('TODO', function(assert) {
 
-                attrs.attrs.a = 'a';
-                attrs.attrs.b = 'b';
-                el.removeAttr(['a', 'b']);
-                assert.notOk(attrs.hasOwnProperty('a'));
-                assert.notOk(attrs.hasOwnProperty('b'));
+                attributes.attrs.a = {
+                    b: {
+                        c: 'deep_c'
+                    }
+                };
+                attributes.attrs.c = 'root_c';
+                attributes.attrs.b = 'root_b';
+
+                el.removeAttr(['a', 'b', 'c']);
+                assert.deepEqual(attributes.attrs, { a: { b: {} }, b: 'root_b', c: 'root_c' }, 'deep_c is removed');
             })
         });
     });

@@ -176,27 +176,31 @@ QUnit.module('util', function(hooks) {
 
         });
 
-        QUnit.test('????????????????', function(assert) {
+        QUnit.test('path defined as array - remove from objects and arrays', function(assert) {
 
             var obj = {
-                object: {
-                    1: 'property',
-                    2: 'property2',
-                    3: 'property3'
-                },
+                object: { 1: 'property', 2: 'property2', 3: 'property3' },
                 array: ['a', 'b', 'c'],
-                aaa: [{ a: 'a_value', b: 'b_value' }, { c: 'c_value', d: 'd_value' }]
+                objectArray: [{ a: 'a_value', b: 'b_value' }, { c: 'c_value', d: 'd_value' }]
             };
 
-            joint.util.unsetByPath(obj, ['array', 1]);
-            assert.equal(obj.array.length, 2);
-            assert.equal(obj.array[0], 'a');
-            assert.equal(obj.array[1], 'c');
+            joint.util.unsetByPath(obj, ['object', 1]);
+            assert.deepEqual(obj.object, { 2: 'property2', 3: 'property3' });
 
-            joint.util.unsetByPath(obj, ['aaa', 1, 'c']);
-            console.log(obj.aaa);
-            assert.deepEqual(obj.aaa[0], { a: 'a_value', b: 'b_value' });
-            assert.deepEqual(obj.aaa[1], { d: 'd_value'})
+            joint.util.unsetByPath(obj, ['object', 2]);
+            assert.deepEqual(obj.object, { 3: 'property3' });
+
+            joint.util.unsetByPath(obj, ['array', 1]);
+            assert.deepEqual(obj.array, ['a', undefined, 'c']);
+
+            joint.util.unsetByPath(obj, ['array', 2]);
+            assert.deepEqual(obj.array, ['a', undefined, undefined]);
+
+            joint.util.unsetByPath(obj, ['objectArray', 1, 'c']);
+            assert.deepEqual(obj.objectArray, [{ a: 'a_value', b: 'b_value' }, { d: 'd_value' }]);
+
+            joint.util.unsetByPath(obj, ['objectArray', '1', 'd']);
+            assert.deepEqual(obj.objectArray, [{ a: 'a_value', b: 'b_value' }, {}]);
         });
 
         QUnit.test('path defined as array', function() {
