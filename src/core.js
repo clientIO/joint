@@ -148,26 +148,57 @@ var joint = {
 
             delim = delim || '/';
 
-            // index of the last delimiter
-            var i = path.lastIndexOf(delim);
+            var pathArray = _.isArray(path) ? path.slice() : path.split(delim);
 
-            if (i > -1) {
+            var propertyToRemove = pathArray.pop();
+            if (pathArray.length > 0) {
 
                 // unsetting a nested attribute
-                var parent = joint.util.getByPath(obj, path.substr(0, i), delim);
+                var parent = joint.util.getByPath(obj, pathArray, delim);
 
                 if (parent) {
-                    delete parent[path.slice(i + 1)];
+                    if (_.isArray(parent))  {
+                        if (_.isFinite(propertyToRemove)) {
+                            parent.splice(propertyToRemove, 1)
+                        }
+                    } else {
+                        delete parent[propertyToRemove];
+                    }
                 }
 
             } else {
 
                 // unsetting a primitive attribute
-                delete obj[path];
+                delete obj[propertyToRemove];
             }
 
             return obj;
         },
+
+        // unsetByPath: function(obj, path, delim) {
+        //
+        //     delim = delim || '/';
+        //
+        //     // index of the last delimiter
+        //     var i = path.lastIndexOf(delim);
+        //
+        //     if (i > -1) {
+        //
+        //         // unsetting a nested attribute
+        //         var parent = joint.util.getByPath(obj, path.substr(0, i), delim);
+        //
+        //         if (parent) {
+        //             delete parent[path.slice(i + 1)];
+        //         }
+        //
+        //     } else {
+        //
+        //         // unsetting a primitive attribute
+        //         delete obj[path];
+        //     }
+        //
+        //     return obj;
+        // },
 
         flattenObject: function(obj, delim, stop) {
 

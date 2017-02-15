@@ -150,30 +150,74 @@ QUnit.module('util', function(hooks) {
         deepEqual(joint.util.setByPath({}, 'first.second.third', 9, '.'), { first: { second: { third: 9 } } }, 'same but this time with a custom delimiter');
         deepEqual(joint.util.setByPath([null], '0/property', 10), [{ property: 10 }], 'replace null item with an object');
         deepEqual(joint.util.setByPath({ array: [] }, 'array/1', 'index'), { array: [undefined, 'index'] }, 'define array');
-        deepEqual(joint.util.setByPath({ object: {} }, 'object/1', 'property'), { object: {'1' : 'property'} }, 'define property');
+        deepEqual(joint.util.setByPath({ object: {} }, 'object/1', 'property'), { object: { '1': 'property' } }, 'define property');
     });
 
-    QUnit.test('util.unsetByPath()', function() {
+    QUnit.module('util.unsetByPath', function(hooks) {
 
-        var obj = {
-            a: 1,
-            b: {
-                c: 2,
-                d: 3
-            }
-        };
+        QUnit.test('path defined as string', function() {
 
-        joint.util.unsetByPath(obj, 'b/c', '/');
+            var obj = {
+                a: 1,
+                b: {
+                    c: 2,
+                    d: 3
+                }
+            };
 
-        deepEqual(obj, { a: 1, b: { d: 3 } }, 'A nested attribute was removed.');
+            joint.util.unsetByPath(obj, 'b/c', '/');
+            deepEqual(obj, { a: 1, b: { d: 3 } }, 'A nested attribute was removed.');
 
-        joint.util.unsetByPath(obj, 'b');
+            joint.util.unsetByPath(obj, 'b');
+            deepEqual(obj, { a: 1 }, 'A primitive attribute was removed.');
 
-        deepEqual(obj, { a: 1 }, 'A primitive attribute was removed.');
+            joint.util.unsetByPath(obj, 'c/d');
+            deepEqual(obj, { a: 1 }, 'Attempt to delete non-existing attribute doesn\'t affect object.');
 
-        joint.util.unsetByPath(obj, 'c/d');
+        });
 
-        deepEqual(obj, { a: 1 }, 'Attempt to delete non-existing attribute doesn\'t affect object.');
+        QUnit.test('????????????????', function(assert) {
+
+            var obj = {
+                object: {
+                    1: 'property',
+                    2: 'property2',
+                    3: 'property3'
+                },
+                array: ['a', 'b', 'c'],
+                aaa: [{ a: 'a_value', b: 'b_value' }, { c: 'c_value', d: 'd_value' }]
+            };
+
+            joint.util.unsetByPath(obj, ['array', 1]);
+            assert.equal(obj.array.length, 2);
+            assert.equal(obj.array[0], 'a');
+            assert.equal(obj.array[1], 'c');
+
+            joint.util.unsetByPath(obj, ['aaa', 1, 'c']);
+            console.log(obj.aaa);
+            assert.deepEqual(obj.aaa[0], { a: 'a_value', b: 'b_value' });
+            assert.deepEqual(obj.aaa[1], { d: 'd_value'})
+        });
+
+        QUnit.test('path defined as array', function() {
+
+            var obj = {
+                a: 1,
+                b: {
+                    c: 2,
+                    d: 3
+                }
+            };
+
+            joint.util.unsetByPath(obj, ['b', 'c'], '/');
+            deepEqual(obj, { a: 1, b: { d: 3 } }, 'A nested attribute was removed.');
+
+            joint.util.unsetByPath(obj, ['b']);
+            deepEqual(obj, { a: 1 }, 'A primitive attribute was removed.');
+
+            joint.util.unsetByPath(obj, ['c', 'd']);
+            deepEqual(obj, { a: 1 }, 'Attempt to delete non-existing attribute doesn\'t affect object.');
+        });
     });
 
     QUnit.test('util.normalizeSides()', function(assert) {

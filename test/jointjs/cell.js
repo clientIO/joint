@@ -32,6 +32,60 @@ QUnit.module('cell', function(hooks) {
         });
     });
 
+    QUnit.module('remove attributes', function(hooks) {
+
+        var /** @type joint.dia.Cell */
+        el;
+        var attrs;
+
+        hooks.beforeEach(function() {
+            el = new joint.shapes.basic.Rect();
+            attrs = el.attributes;
+        });
+
+        QUnit.module('removeProp', function(hooks) {
+
+            QUnit.test('remove single property', function(assert) {
+
+                attrs.a = 'aaa';
+                el.removeProp('a');
+                assert.notOk(attrs.hasOwnProperty('a'));
+            });
+
+            QUnit.test('remove nested property', function(assert) {
+
+                attrs.a = [{ aa: 'aa' }, { bb: 'bb', cc: 'cc' }];
+                el.removeProp('a/1/bb');
+                assert.deepEqual(attrs.a[0], { aa: 'aa' });
+                assert.deepEqual(attrs.a[1], { cc: 'cc' });
+            });
+
+            QUnit.module('define path as an array', function(hooks) {
+
+                QUnit.test('remove item from array', function(assert) {
+
+                    attrs.a = [{ aa: 'aa' }, { bb: 'bb', cc: 'cc' }];
+                    el.removeProp(['a', 1, 'bb']);
+                    assert.deepEqual(attrs.a[0], { aa: 'aa' });
+                    assert.deepEqual(attrs.a[1], { cc: 'cc' });
+                });
+            })
+        });
+
+
+        QUnit.module('removeAttr', function(hooks) {
+
+            QUnit.test('TODO', function(assert) {
+
+                attrs.attrs.a = 'a';
+                attrs.attrs.b = 'b';
+                el.removeAttr(['a', 'b']);
+                assert.notOk(attrs.hasOwnProperty('a'));
+                assert.notOk(attrs.hasOwnProperty('b'));
+            })
+        });
+    });
+
     QUnit.module('prop()', function(hooks) {
 
         var /** @type joint.dia.Cell */
@@ -39,10 +93,8 @@ QUnit.module('cell', function(hooks) {
         var attrs;
 
         hooks.beforeEach(function() {
-            el = new joint.shapes.basic.Rect({
-                position: { x: 20, y: 30 },
-                size: { width: 120, height: 80 }
-            });
+
+            el = new joint.shapes.basic.Rect();
             attrs = el.attributes;
         });
 

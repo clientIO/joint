@@ -475,7 +475,7 @@ joint.dia.Cell = Backbone.Model.extend({
         opt = opt || {};
         opt.dirty = true;
 
-        var pathArray = path.split('/');
+        var pathArray = _.isArray(path) ? path : path.split('/');
 
         if (pathArray.length === 1) {
             // A top level property
@@ -484,7 +484,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         // A nested property
         var property = pathArray[0];
-        var nestedPath = pathArray.slice(1).join('/');
+        var nestedPath = pathArray.slice(1);
         var propertyValue = _.merge({}, this.get(property));
 
         joint.util.unsetByPath(propertyValue, nestedPath, '/');
