@@ -2,10 +2,9 @@
 
     var PortData = function(data) {
 
-        var clonedData = _.cloneDeep(data);
+        var clonedData = _.cloneDeep(data) || {};
         this.ports = [];
-        this.groups = this._getNormalizedGroups(clonedData);
-
+        this.groups = clonedData.groups || {};
         this.portLayoutNamespace = joint.layout.Port;
         this.portLabelLayoutNamespace = joint.layout.PortLabel;
 
@@ -25,7 +24,13 @@
         },
 
         getGroup: function(name) {
-            return this.groups[name] || this._createGroupNode();
+
+            var group = this.groups[name] || {};
+
+            return _.merge(group, {
+                position: this._getPosition(group.position, true),
+                label: this._getLabel(group, true)
+            });
         },
 
         getPortsByGroup: function(groupName) {
@@ -46,21 +51,18 @@
                 position = 'left';
             }
 
+            var port;
             var groupPortTransformations = namespace[position](_.pluck(ports, 'position.args'), elBBox, group.position.args || {});
 
-            var result = [];
-            _.each(groupPortTransformations, function(portTransformation, index) {
+            return _.transform(groupPortTransformations, _.bind(function(result, portTransformation, index) {
 
-                var port = ports[index];
-
+                port = ports[index];
                 result.push({
                     portId: port.id,
                     port: portTransformation,
                     label: this._getPortLabelLayout(port, g.Point(portTransformation), elBBox)
                 })
-            }, this);
-
-            return result;
+            }, this), []);
         },
 
         _getPortLabelLayout: function(port, portPosition, elBBox) {
@@ -83,69 +85,41 @@
 
         _init: function(data) {
 
-            data = data || {};
-
-            var ports = data.items || [];
-
-            _.each(ports, function(port) {
-
-                this.addPort(port);
-            }, this);
+            _.each(data.items || [], _.bind(this.addPort, this));
         },
 
         _evaluatePort: function(port) {
 
             var evaluated = _.clone(port);
 
-            var group = _.extend(this._createGroupNode(), port.group ? this.groups[port.group] : null);
+            var group = this.getGroup(port.group);
 
             evaluated.markup = evaluated.markup || group.markup;
             evaluated.attrs = _.merge({}, group.attrs, evaluated.attrs);
-            evaluated.position = _.merge(this._createPositionNode(), group.position, { args: evaluated.args });
+            evaluated.position = this._createPositionNode(group, evaluated);
             evaluated.label = _.merge({}, group.label, this._getLabel(evaluated));
-            evaluated.z = this._getZIndex(evaluated.z, group.z);
+            evaluated.z = this._getZIndex(group, evaluated);
 
             return evaluated;
         },
 
-        _getZIndex: function(data, group) {
+        _getZIndex: function(group, port) {
 
-            if (_.isNumber(data)) {
-                return data;
+            if (_.isNumber(port.z)) {
+                return port.z;
             }
-            if (_.isNumber(group) || group === 'auto') {
-                return group;
+            if (_.isNumber(group.z) || group.z === 'auto') {
+                return group.z;
             }
             return 'auto';
         },
 
-        _createPositionNode: function() {
+        _createPositionNode: function(group, port) {
 
-            return {
+            return _.merge({
                 name: 'left',
                 args: {}
-            };
-        },
-
-        _createGroupNode: function() {
-
-            return {
-                position: {},
-                label: { position: { name: 'left', args: {} } }
-            };
-        },
-
-        _getNormalizedGroups: function(data) {
-
-            data = data || {};
-            data.groups = data.groups || {};
-
-            _.each(data.groups, function(group) {
-                group.position = this._getPosition(group.position, true);
-                group.label = this._getLabel(group, true);
-            }, this);
-
-            return data.groups;
+            }, group.position, { args: port.args });
         },
 
         _getPosition: function(position, setDefault) {
@@ -282,22 +256,14 @@
         getPortsPositions: function(groupName) {
 
             var portsPositions = this._portSettingsData.resolvePortAttrs(groupName, g.Rect(this.get('size')));
-            var positions = {};
 
-            var length = portsPositions.length;
-            var i;
-            var port;
-
-            for (i = 0; i < length; i++) {
-                port = portsPositions[i];
+            return _.transform(portsPositions, function(positions, port) {
                 positions[port.portId] = {
                     x: port.port.x,
                     y: port.port.y,
                     angle: port.port.angle
-                }
-            }
-
-            return positions;
+                };
+            }, {});
         },
 
         /**
@@ -563,7 +529,6 @@
 
             var ports = this.model._portSettingsData.getPorts();
             var groupsNames = _.keys(this.model._portSettingsData.groups);
-
 
             this._layoutPorts(undefined); // layout ports without group
             _.each(groupsNames, function(groupName) {
