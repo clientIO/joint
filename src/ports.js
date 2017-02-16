@@ -4,7 +4,7 @@
 
         var clonedData = _.cloneDeep(data) || {};
         this.ports = [];
-        this.groups = clonedData.groups || {};
+        this.groups = {};
         this.portLayoutNamespace = joint.layout.Port;
         this.portLabelLayoutNamespace = joint.layout.PortLabel;
 
@@ -24,13 +24,7 @@
         },
 
         getGroup: function(name) {
-
-            var group = this.groups[name] || {};
-
-            return _.merge(group, {
-                position: this._getPosition(group.position, true),
-                label: this._getLabel(group, true)
-            });
+            return this.groups[name] || {};
         },
 
         getPortsByGroup: function(groupName) {
@@ -45,15 +39,16 @@
             var group = this.getGroup(groupName);
             var ports = this.getPortsByGroup(groupName);
 
-            var position = group.position.name;
+            var position = group.position || {};
+            var positionName = position.name;
             var namespace = this.portLayoutNamespace;
-            if (!namespace[position]) {
-                position = 'left';
+            if (!namespace[positionName]) {
+                positionName = 'left';
             }
 
-            var port;
-            var groupPortTransformations = namespace[position](_.pluck(ports, 'position.args'), elBBox, group.position.args || {});
+            var groupPortTransformations = namespace[positionName](_.pluck(ports, 'position.args'), elBBox, position.args || {});
 
+            var port;
             return _.transform(groupPortTransformations, _.bind(function(result, portTransformation, index) {
 
                 port = ports[index];
@@ -77,18 +72,23 @@
             return null;
         },
 
-        addPort: function(port) {
-
-            port = this._evaluatePort(port);
-            this.ports.push(port);
-        },
-
         _init: function(data) {
 
-            _.each(data.items || [], _.bind(this.addPort, this));
+            // prepare groups
+            _.transform(data.groups || {}, _.bind(this._evaluateGroup, this), this.groups);
+            // prepare ports
+            _.transform(data.items || [], _.bind(this._evaluatePort, this), this.ports);
         },
 
-        _evaluatePort: function(port) {
+        _evaluateGroup: function (resultMap, group, key) {
+
+            resultMap[key] = _.merge(group, {
+                position: this._getPosition(group.position, true),
+                label: this._getLabel(group, true)
+            });
+        },
+
+        _evaluatePort: function(resultArray, port) {
 
             var evaluated = _.clone(port);
 
@@ -100,7 +100,7 @@
             evaluated.label = _.merge({}, group.label, this._getLabel(evaluated));
             evaluated.z = this._getZIndex(group, evaluated);
 
-            return evaluated;
+            resultArray.push(evaluated);
         },
 
         _getZIndex: function(group, port) {
