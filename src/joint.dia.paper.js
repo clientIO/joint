@@ -1289,25 +1289,48 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     drawGrid: function(opt) {
 
-        opt = _.defaults({}, opt, this.options.drawGrid);
-
         var gridSize = this.options.gridSize;
         if (gridSize <= 1) {
             return this.clearGrid();
         }
 
         var ctm = this.matrix();
-        var canvas = this.constructor.backgroundPatterns.grid(null, {
-            sx: ctm.a,
-            sy: ctm.d,
-            ox: ctm.e,
-            oy: ctm.f,
-            size: gridSize,
-            color: opt.color,
-            thickness: opt.thickness
-        });
+        var options = _.defaults({}, opt, this.options.drawGrid,
+            {
+                color: '#aaa',
+                thickness: 1,
+                pattern: 'dot'
+            },
+            {
+                sx: ctm.a || 1,
+                sy: ctm.d || 1,
+                ox: ctm.e || 0,
+                oy: ctm.f || 0,
+                width: gridSize * (ctm.a || 1),
+                height: gridSize * (ctm.d || 1)
+            });
 
-        this.$grid.css('backgroundImage', 'url(' + canvas.toDataURL('image/png') + ')');
+        if (_.isString(options.pattern)) {
+            options.pattern = this.constructor.gridPatterns[options.pattern];
+        }
+
+        if (!_.isFunction(options.pattern)) {
+            console.warn('dia.Paper: unable to find grid pattern function (options.drawGrid.patten)');
+            options.pattern = _.noop;
+        }
+        var canvas = this.constructor.backgroundPatterns.grid(null, options);
+
+        var x = options.ox % options.width;
+        if (x < 0) x += options.width;
+
+        var y = options.oy % options.height;
+        if (y < 0) y += options.height;
+
+        this.$grid.css({
+            backgroundImage: 'url(' + canvas.toDataURL('image/png') + ')',
+            backgroundPositionX: x,
+            backgroundPositionY: y
+        });
 
         return this;
     },
@@ -1544,31 +1567,72 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             opt = opt || {};
 
-            var size = opt.size;
-            var ox = opt.ox || 0;
-            var oy = opt.oy || 0;
-            var sx = opt.sx || 1;
-            var sy = opt.sy || 1;
-            var thickness = opt.thickness || 1;
-            var color = opt.color || '#aaa';
-
             var canvas = document.createElement('canvas');
+            canvas.width = opt.width;
+            canvas.height = opt.height;
 
-            var width = canvas.width = Math.round(size * sx);
-            var x = ox % width;
-            if (x < 0) x += width;
-
-            var height = canvas.height = Math.round(size * sy);
-            var y = oy % height;
-            if (y < 0) y += height;
-
-            var context = canvas.getContext('2d');
-            context.beginPath();
-            context.rect(x, y, thickness * sx, thickness * sy);
-            context.fillStyle = color;
-            context.fill();
+            opt.pattern(canvas.getContext('2d'), opt);
 
             return canvas;
+        }
+    },
+    gridPatterns: {
+
+        dot: function(context, opt) {
+
+            var scale = opt.sx < 1 ? opt.sx : 1;
+            context.beginPath();
+            context.rect(0, 0, opt.thickness * scale, opt.thickness * scale);
+            context.fillStyle = opt.color;
+            context.fill();
+        },
+
+        cross: function (context, opt) {
+
+            var scale = opt.scale < 1 ? opt.scale : 1;
+            var size = Math.min((opt.crossSize || 5) * opt.sx, Math.round(opt.width / 4));
+            if (size * 2 >= Math.floor(opt.width)) {
+                return;
+            }
+
+            context.beginPath();
+            context.strokeStyle = opt.color;
+            context.lineWidth = opt.thickness * scale;
+            context.moveTo(size, 0);
+            context.lineTo(0, 0);
+            context.lineTo(0, size);
+
+            context.moveTo(opt.width - size, 0);
+            context.lineTo(opt.width, 0);
+            context.lineTo(opt.width, size);
+
+            context.moveTo(0, opt.height - size);
+            context.lineTo(0, opt.height);
+            context.lineTo(size, opt.height);
+
+            context.moveTo(opt.width - size, opt.height);
+            context.lineTo(opt.width, opt.height);
+            context.lineTo(opt.width, opt.height - size);
+
+            context.stroke();
+        },
+
+        mesh: function (context, opt) {
+
+            if (opt.thickness * 2 >= Math.floor(opt.width)) {
+                return;
+            }
+
+            context.beginPath();
+            context.strokeStyle = opt.color;
+            context.lineWidth = opt.thickness;
+
+            context.moveTo(0, 0);
+            context.lineTo(0, opt.height);
+
+            context.moveTo(0, 0);
+            context.lineTo(opt.width, 0);
+            context.stroke();
         }
     }
 
