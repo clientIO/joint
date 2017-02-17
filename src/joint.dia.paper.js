@@ -1314,10 +1314,11 @@ joint.dia.Paper = joint.mvc.View.extend({
             options.pattern = this.constructor.gridPatterns[options.pattern];
         }
 
-
         if (!_.isFunction(options.pattern)) {
             console.warn('dia.Paper: unable to find grid pattern function (options.drawGrid.patten)');
-            options.pattern = _.noop;
+            options.pattern = function(a, b, done) {
+                done()
+            };
         }
 
         var canvas = document.createElement('canvas');
