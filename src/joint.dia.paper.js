@@ -1318,7 +1318,12 @@ joint.dia.Paper = joint.mvc.View.extend({
             console.warn('dia.Paper: unable to find grid pattern function (options.drawGrid.patten)');
             options.pattern = _.noop;
         }
-        var canvas = this.constructor.backgroundPatterns.grid(null, options);
+
+        var canvas = document.createElement('canvas');
+        canvas.width = opt.width;
+        canvas.height = opt.height;
+
+        opt.pattern(canvas.getContext('2d'), opt);
 
         var x = options.ox % options.width;
         if (x < 0) x += options.width;
@@ -1561,21 +1566,9 @@ joint.dia.Paper = joint.mvc.View.extend({
             }
 
             return canvas;
-        },
-
-        grid: function(img, opt) {
-
-            opt = opt || {};
-
-            var canvas = document.createElement('canvas');
-            canvas.width = opt.width;
-            canvas.height = opt.height;
-
-            opt.pattern(canvas.getContext('2d'), opt);
-
-            return canvas;
         }
     },
+
     gridPatterns: {
 
         dot: function(context, opt) {
