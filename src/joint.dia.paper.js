@@ -164,38 +164,54 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         _.bindAll(this, 'pointerup');
 
-        this.model = this.options.model || new joint.dia.Graph;
+        var model = this.model = this.options.model || new joint.dia.Graph;
 
-        // This is a fix for the case where two papers share the same options.
-        // Changing origin.x for one paper would change the value of origin.x for the other.
-        // This prevents that behavior.
-        this.options.origin = _.clone(this.options.origin);
-        this.options.defaultConnector = _.clone(this.options.defaultConnector);
-        // Return default highlighting options into the user specified options.
-        _.defaults(this.options.highlighting, this.constructor.prototype.options.highlighting);
-        this.options.highlighting = _.cloneDeep(this.options.highlighting);
-
+        this.cloneOptions();
         this.render();
-
-        this.listenTo(this.model, 'add', this.onCellAdded);
-        this.listenTo(this.model, 'remove', this.removeView);
-        this.listenTo(this.model, 'reset', this.resetViews);
-        this.listenTo(this.model, 'sort', this._onSort);
-        this.listenTo(this.model, 'batch:stop', this._onBatchStop);
-
         this.setDimensions();
 
-        $(document).on('mouseup touchend', this.pointerup);
+        this.listenTo(model, 'add', this.onCellAdded)
+            .listenTo(model, 'remove', this.removeView)
+            .listenTo(model, 'reset', this.resetViews)
+            .listenTo(model, 'sort', this._onSort)
+            .listenTo(model, 'batch:stop', this._onBatchStop);
+
+        this.on('cell:highlight', this.onCellHighlight)
+            .on('cell:unhighlight', this.onCellUnhighlight)
+            .on('scale translate', this.update);
 
         // Hold the value when mouse has been moved: when mouse moved, no click event will be triggered.
         this._mousemoved = 0;
         // Hash of all cell views.
         this._views = {};
+        // Reference to the paper owner document
+        this.$document = $(this.el.ownerDocument);
+    },
 
-        this.on('cell:highlight', this.onCellHighlight, this);
-        this.on('cell:unhighlight', this.onCellUnhighlight, this);
+    cloneOptions: function() {
 
-        this.on('scale translate', this.update);
+        var options = this.options;
+
+        // This is a fix for the case where two papers share the same options.
+        // Changing origin.x for one paper would change the value of origin.x for the other.
+        // This prevents that behavior.
+        options.origin = _.clone(options.origin);
+        options.defaultConnector = _.clone(options.defaultConnector);
+        // Return the default highlighting options into the user specified options.
+        options.highlighting = _.defaultsDeep(
+            {},
+            options.highlighting,
+            this.constructor.prototype.options.highlighting
+        );
+    },
+
+    bindDocumentEvents: function() {
+        var eventNS = this.getEventNamespace();
+        this.$document.on('mouseup' + eventNS + ' touchend' + eventNS, this.pointerup);
+    },
+
+    unbindDocumentEvents: function() {
+        this.$document.off(this.getEventNamespace());
     },
 
     render: function() {
@@ -271,6 +287,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         V(viewport).transform(ctm, { absolute: true });
         this._viewportMatrix = ctm;
         this._viewportTransformString = viewport.getAttribute('transform');
+
+        return this;
     },
 
     _onSort: function() {
@@ -290,8 +308,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         //clean up all DOM elements/views to prevent memory leaks
         this.removeViews();
-
-        $(document).off('mouseup touchend', this.pointerup);
+        this.unbindDocumentEvents();
     },
 
     setDimensions: function(width, height) {
@@ -1154,6 +1171,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointerdown: function(evt) {
 
+        this.bindDocumentEvents();
+
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
@@ -1194,6 +1213,8 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     pointerup: function(evt) {
+
+        this.unbindDocumentEvents();
 
         evt = joint.util.normalizeEvent(evt);
 

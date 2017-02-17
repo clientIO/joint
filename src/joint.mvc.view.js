@@ -98,7 +98,9 @@ joint.mvc.View = Backbone.View.extend({
 
         // Theme is already set, override is required, and override has not been set.
         // Don't set the theme.
-        if (this.theme && this.requireSetThemeOverride && !opt.override) return;
+        if (this.theme && this.requireSetThemeOverride && !opt.override) {
+            return this;
+        }
 
         this.removeThemeClassName();
         this.addThemeClassName(theme);
@@ -149,6 +151,11 @@ joint.mvc.View = Backbone.View.extend({
     onRemove: function() {
         // Intentionally empty.
         // This method is meant to be overriden.
+    },
+
+    getEventNamespace: function() {
+        // Returns a per-session unique namespace
+        return '.joint-event-ns-' + this.cid;
     }
 });
 
