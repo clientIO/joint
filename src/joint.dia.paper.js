@@ -1320,10 +1320,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
 
         var canvas = document.createElement('canvas');
-        canvas.width = opt.width;
-        canvas.height = opt.height;
+        canvas.width = options.width;
+        canvas.height = options.height;
 
-        opt.pattern(canvas.getContext('2d'), opt);
+        options.pattern(canvas.getContext('2d'), options);
 
         var x = options.ox % options.width;
         if (x < 0) x += options.width;
