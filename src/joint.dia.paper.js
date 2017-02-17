@@ -1314,6 +1314,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             options.pattern = this.constructor.gridPatterns[options.pattern];
         }
 
+
         if (!_.isFunction(options.pattern)) {
             console.warn('dia.Paper: unable to find grid pattern function (options.drawGrid.patten)');
             options.pattern = _.noop;
@@ -1323,19 +1324,22 @@ joint.dia.Paper = joint.mvc.View.extend({
         canvas.width = options.width;
         canvas.height = options.height;
 
-        options.pattern(canvas.getContext('2d'), options);
+        options.pattern(canvas.getContext('2d'), _.bind(function() {
 
-        var x = options.ox % options.width;
-        if (x < 0) x += options.width;
+            var x = options.ox % options.width;
+            if (x < 0) x += options.width;
 
-        var y = options.oy % options.height;
-        if (y < 0) y += options.height;
+            var y = options.oy % options.height;
+            if (y < 0) y += options.height;
 
-        this.$grid.css({
-            backgroundImage: 'url(' + canvas.toDataURL('image/png') + ')',
-            backgroundPositionX: x,
-            backgroundPositionY: y
-        });
+            this.$grid.css({
+                backgroundImage: 'url(' + canvas.toDataURL('image/png') + ')',
+                backgroundPositionX: x,
+                backgroundPositionY: y
+            });
+
+        }, this), options);
+
 
         return this;
     },
@@ -1571,16 +1575,17 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     gridPatterns: {
 
-        dot: function(context, opt) {
+        dot: function(context, done, opt) {
 
             var scale = opt.sx < 1 ? opt.sx : 1;
             context.beginPath();
             context.rect(0, 0, opt.thickness * scale, opt.thickness * scale);
             context.fillStyle = opt.color;
             context.fill();
+            done();
         },
 
-        cross: function (context, opt) {
+        cross: function (context, done, opt ) {
 
             var scale = opt.scale < 1 ? opt.scale : 1;
             var size = Math.min((opt.crossSize || 5) * opt.sx, Math.round(opt.width / 4));
@@ -1608,9 +1613,10 @@ joint.dia.Paper = joint.mvc.View.extend({
             context.lineTo(opt.width, opt.height - size);
 
             context.stroke();
+            done();
         },
 
-        mesh: function (context, opt) {
+        mesh: function (context, done, opt) {
 
             if (opt.thickness * 2 >= Math.floor(opt.width)) {
                 return;
@@ -1626,6 +1632,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             context.moveTo(0, 0);
             context.lineTo(opt.width, 0);
             context.stroke();
+            done();
         }
     }
 
