@@ -1316,7 +1316,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         if (!_.isFunction(options.pattern)) {
             console.warn('dia.Paper: unable to find grid pattern function (options.drawGrid.patten)');
-            options.pattern = function(a, b, done) {
+            options.pattern = function(canvas, done) {
                 done()
             };
         }
