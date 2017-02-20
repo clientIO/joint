@@ -1,0 +1,10 @@
+<pre class="docs-method-signature"><code>paper.paperToLocalPoint(p)</code></pre>
+<p>Transform the point <code>p</code> defined in the paper coordinate system to the local coordinate system.
+    <pre><code>var paperCenter = g.Point(paper.options.width / 2, paper.options.height / 2);
+var localPoint1 = paper.paperToLocalPoint(paperCenter);
+ // alternative method signature
+var localPoint2 = paper.paperToLocalPoint(paper.options.width / 2, paper.options.height / 2);
+// Move the element to the center of the paper viewport.
+var elSize = element.size();
+element.position(localPoint1.x - elSize.width, localPoint1.y - elSize.height);</code></pre>
+</p>

@@ -954,9 +954,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     getBBox: function(opt) {
 
         if (opt && opt.useModelGeometry) {
-            var noTransformationBBox = this.model.getBBox().bbox(this.model.get('angle'));
-            var transformationMatrix = this.paper.matrix();
-            return g.rect(V.transformRect(noTransformationBBox, transformationMatrix));
+            var bbox = this.model.getBBox().bbox(this.model.get('angle'));
+            return this.paper.localToPaperRect(bbox);
         }
 
         return joint.dia.CellView.prototype.getBBox.apply(this, arguments);
