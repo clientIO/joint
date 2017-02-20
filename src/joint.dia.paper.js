@@ -158,7 +158,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         'mouseleave .joint-cell': 'cellMouseleave'
     },
 
-    _highlights: [],
+    _highlights: {},
 
     init: function() {
 
