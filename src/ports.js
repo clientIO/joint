@@ -397,7 +397,25 @@
                 throw new Error(err.join(' '));
             }
 
+            var prevPortData;
+
+            if (this._portSettingsData) {
+
+                prevPortData = this._portSettingsData.getPorts();
+            }
+
             this._portSettingsData = new PortData(this.get('ports'));
+
+            var curPortData = this._portSettingsData.getPorts();
+            if (prevPortData && prevPortData.length < curPortData.length) {
+
+                this.trigger('add:ports', this, _.difference(curPortData, prevPortData));
+            }
+
+            if (prevPortData && prevPortData.length > curPortData.length) {
+
+                this.trigger('remove:ports', this, _.difference(prevPortData, curPortData));
+            }
         }
     });
 
