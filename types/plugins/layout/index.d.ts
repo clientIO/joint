@@ -1,5 +1,3 @@
-/// <reference path="joint.layout.DirectedGraph.d.ts" />
-
 declare namespace joint {
   namespace layout {
 

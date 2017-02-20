@@ -1,5 +1,3 @@
-/// <reference path="joint.shapes.basic.d.ts" />
-
 declare namespace joint {
   namespace shapes {
     interface GenericAttributes<T> extends dia.CellAttributes {

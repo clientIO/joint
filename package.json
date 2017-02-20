@@ -14,7 +14,7 @@
   "version": "1.0.3",
   "main": "./dist/joint.min.js",
   "style": "./dist/joint.min.css",
-  "types": "./types/index.d.ts",
+  "types": "./dist/joint.d.ts",
   "homepage": "http://jointjs.com",
   "author": {
     "name": "client IO",
