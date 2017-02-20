@@ -1,0 +1,11 @@
+<pre class="docs-method-signature"><code>paper.clientToLocalRect(rect)</code></pre>
+<p>Transform the rectangle <code>rect</code> defined in the client coordinate system to the local coordinate system.
+<pre><code>var bcr = paper.svg.getBoundingClientRect();
+var localRect1 = paper.clientToLocalRect({ x: bcr.left, y: bcr.top, width: bcr.width, height: bcr.height });
+// alternative method signature
+var localRect2 = paper.clientToLocalRect(bcr.left, bcr.top, bcr.width, bcr.height);
+// Move the element to the center of the paper viewport.
+var localCenter = localRect1.center();
+var elSize = element.size();
+element.position(localCenter.x - elSize.width, localCenter.y - elSize.height);</code></pre>
+</p>

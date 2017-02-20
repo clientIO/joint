@@ -1,0 +1,18 @@
+<pre class="docs-method-signature"><code>paper.localToPaperPoint(p)</code></pre>
+<p>Transform the point <code>p</code> defined in the local coordinate system to the paper coordinate system.
+    <pre><code>var rightMidPoint = element.getBBox().rightMiddle();
+var paperPoint1 = paper.localToPaperPoint(rightMidPoint);
+ // alternative method signature
+var paperPoint2 = paper.localToPaperPoint(rightMidPoint.x, rightMidPoint.y);
+// Draw an HTML rectangle next to the element.
+var div = document.createElement('div');
+div.style.position = 'absolute';
+div.style.background = 'red';
+div.style.left = paperPoint1.x + 'px';
+div.style.top = paperPoint1.y + 'px';
+div.style.width = '40px';
+div.style.height = '40px';
+div.style.marginLeft = '10px';
+div.style.marginTop = '-20px';
+paper.el.appendChild(div); </code></pre>
+</p>
