@@ -884,17 +884,6 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this.clientToLocalPoint(x, y).snapToGrid(this.options.gridSize);
     },
 
-    // Transform client coordinates to the paper local coordinates.
-    // Useful when you have a mouse event object and you'd like to get coordinates
-    // inside the paper that correspond to `evt.clientX` and `evt.clientY` point.
-    // Exmaple: var paperPoint = paper.clientToLocalPoint({ x: evt.clientX, y: evt.clientY });
-    // clientToLocalPoint: function(x, y) {
-    //     // allow `x` to be a point and `y` undefined
-    //     var clientPoint = g.Point(x, y);
-    //     var localPoint = V(this.viewport).toLocalPoint(clientPoint.x, clientPoint.y);
-    //     return g.Point(localPoint);
-    // },
-
     localToPaperPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
         var localPoint = g.Point(x, y);
@@ -937,6 +926,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         return g.Rect(clientRect);
     },
 
+    // Transform client coordinates to the paper local coordinates.
+    // Useful when you have a mouse event object and you'd like to get coordinates
+    // inside the paper that correspond to `evt.clientX` and `evt.clientY` point.
+    // Example: var localPoint = paper.clientToLocalPoint({ x: evt.clientX, y: evt.clientY });
     clientToLocalPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
         var clientPoint = g.Point(x, y);

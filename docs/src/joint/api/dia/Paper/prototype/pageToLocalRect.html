@@ -1,0 +1,17 @@
+<pre class="docs-method-signature"><code>paper.pageToLocalRect(rect)</code></pre>
+<p>Transform the rectangle <code>rect</code> defined in the page coordinate system to the local coordinate system.
+    <pre><code>var x, y;
+paper.on('blank:pointerdown', function(evt) {
+  x = evt.pageX;
+  y = evt.pageY;
+});
+paper.on('blank:pointerup', function(evt) {
+  var pageRect = g.Rect(x, y, evt.pageX - x, evt.pageY - y).normalize();
+  var localRect1 = this.pageToLocalRect(pageRect);
+  // alternative method signature
+  var localRect2 = this.pageToLocalRect(x, y, evt.pageX - x, evt.pageY - y).normalize();
+  // Move and resize the element to cover the area, that the user just selected.
+  element.position(localRect1.x, localRect1.y);
+  element.resize(localRect1.width, localRect1.height);
+});</code></pre>
+</p>

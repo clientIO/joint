@@ -1,0 +1,11 @@
+<pre class="docs-method-signature"><code>paper.pageToLocalPoint(p)</code></pre>
+<p>Transform the point <code>p</code> defined in the page coordinate system to the local coordinate system.
+    <pre><code>paper.on('blank:pointerup', function(evt) {
+  var pagePoint = g.Point(evt.pageX, evt.pageY);
+  var localPoint1 = this.pageToLocalPoint(pagePoint);
+  // alternative method signature
+  var localPoint2 = this.pageToLocalPoint(evt.pageX, evt.pageY);
+  // Move the element to the point, where the user just clicks.
+  element.position(localPoint1.x, localPoint1.y);
+});</code></pre>
+</p>
