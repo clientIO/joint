@@ -14,6 +14,7 @@
   "version": "1.0.3",
   "main": "./dist/joint.min.js",
   "style": "./dist/joint.min.css",
+  "types": "./types/index.d.ts",
   "homepage": "http://jointjs.com",
   "author": {
     "name": "client IO",
@@ -44,6 +45,8 @@
     "lodash": "3.10.1"
   },
   "devDependencies": {
+    "@types/backbone": "1.3.33",
+    "@types/jquery": "2.0.40",
     "async": "2.0.1",
     "chai": "3.5.0",
     "cheerio": "0.20.0",
@@ -75,6 +78,7 @@
     "should": "11.0.0",
     "sinon": "1.17.5",
     "time-grunt": "1.4.0",
+    "typescript": "2.1.6",
     "webdriverio": "4.0.8",
     "webpack": "1.13.1",
     "webpack-dev-server": "1.14.1"
