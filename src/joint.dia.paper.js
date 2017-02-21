@@ -1383,8 +1383,26 @@ joint.dia.Paper = joint.mvc.View.extend({
             return this.clearGrid();
         }
 
+        if (!this.svgGridElements || !this.svgGrid) {
+
+            this.svgGridElements = {
+                pattern: V('<pattern id="grid-pattern" width="10" height="10" patternUnits="userSpaceOnUse"></pattern>'),
+                gridShape: V(opt.gridPattern) || V('<rect width="2" height="2"  fill="red"/>')
+            };
+
+            var gridBackground = V('<rect width="100%" height="100%" fill="url(#grid-pattern)"/>');
+            var defs = V('defs').append(this.svgGridElements.pattern.append(this.svgGridElements.gridShape));
+            this.svgGrid = V('svg')
+                .append(defs)
+                .append(gridBackground)
+                .addClass('background-grid')
+                .attr({ width: '100%', height: '100%' });
+        }
+
+
+
         var ctm = this.matrix();
-        var canvas = this.constructor.backgroundPatterns.grid(null, {
+        var xxx = {
             sx: ctm.a,
             sy: ctm.d,
             ox: ctm.e,
@@ -1392,9 +1410,37 @@ joint.dia.Paper = joint.mvc.View.extend({
             size: gridSize,
             color: opt.color,
             thickness: opt.thickness
+        };
+
+        var size = xxx.size;
+        var ox = xxx.ox || 0;
+        var oy = xxx.oy || 0;
+        var sx = xxx.sx || 1;
+        var sy = xxx.sy || 1;
+
+        var width = size * sx;
+        var x = ox % width;
+        if (x < 0) x += width;
+
+        var height = size * sy;
+        var y = oy % height;
+        if (y < 0) y += height;
+
+
+        this.svgGridElements.pattern.attr({
+            x: x,
+            y: y,
+            width: gridSize * ctm.a,
+            height: gridSize * ctm.d
         });
 
-        this.$grid.css('backgroundImage', 'url(' + canvas.toDataURL('image/png') + ')');
+        console.time();
+        var x = (new XMLSerializer()).serializeToString(this.svgGrid.node);
+
+        x = 'data:image/svg+xml;base64,' + btoa(x);
+
+        this.$grid.css('backgroundImage', 'url(' + x + ')');
+        console.timeEnd();
 
         return this;
     },

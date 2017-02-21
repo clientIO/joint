@@ -3,7 +3,13 @@ var paper = new joint.dia.Paper({
     el: $('#paper'),
     width: 600,
     height: 400,
-    gridSize: 1,
+    gridSize: 10,
+    drawGrid: {
+        gridPattern:'<path d="M5 0 H0 M0 0 V5"  stroke="red" stroke-width="1"/>',
+        updateGridPatern: function () {
+
+        }
+    },
     model: graph,
     linkConnectionPoint: function(linkView, view) {
         // connection point is always in the center of an element
@@ -389,7 +395,8 @@ $h.on('input change', function() {
 });
 $grid.on('input change', function() {
     paper.options.gridSize = this.value;
-    paper.$el.css('background-image', 'url("' + getGridBackgroundImage(this.value * $sx.val(), this.value * $sy.val()) + '")');
+    paper.drawGrid();
+    // paper.$el.css('background-image', 'url("' + getGridBackgroundImage(this.value * $sx.val(), this.value * $sy.val()) + '")');
 });
 $('.range').on('input change', function() {
     $(this).next().text(this.value);
@@ -403,7 +410,7 @@ paper.on({
         $sy.val(sy).next().text(sy.toFixed(2));
 
         var grid = $grid.val();
-        paper.$el.css('background-image', 'url("' + getGridBackgroundImage(grid * sx, grid * sy) + '")');
+        // paper.$el.css('background-image', 'url("' + getGridBackgroundImage(grid * sx, grid * sy) + '")');
 
         svgContainer.hideAll();
     },
