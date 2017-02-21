@@ -169,31 +169,6 @@ var joint = {
             return obj;
         },
 
-        // unsetByPath: function(obj, path, delim) {
-        //
-        //     delim = delim || '/';
-        //
-        //     // index of the last delimiter
-        //     var i = path.lastIndexOf(delim);
-        //
-        //     if (i > -1) {
-        //
-        //         // unsetting a nested attribute
-        //         var parent = joint.util.getByPath(obj, path.substr(0, i), delim);
-        //
-        //         if (parent) {
-        //             delete parent[path.slice(i + 1)];
-        //         }
-        //
-        //     } else {
-        //
-        //         // unsetting a primitive attribute
-        //         delete obj[path];
-        //     }
-        //
-        //     return obj;
-        // },
-
         flattenObject: function(obj, delim, stop) {
 
             delim = delim || '/';
