@@ -75,11 +75,28 @@ QUnit.module('cell', function(hooks) {
 
         QUnit.module('attr', function(hooks) {
 
-            //TODO v.talas
-            QUnit.test('ksndlkfdslknfk', function(assert) {
+            QUnit.test('path as array - set array item', function(assert) {
                 el.attr(['array', 123], 'property');
-                console.log(attributes);
-            })
+                assert.ok(_.isArray(attributes.attrs.array));
+                assert.equal(attributes.attrs.array[123], 'property');
+            });
+
+            QUnit.test('path as array - set object property', function(assert) {
+                el.attr(['object', '123'], 'property');
+                assert.deepEqual(attributes.attrs.object,  { '123': 'property' });
+            });
+
+            QUnit.test('set attr as an object', function(assert) {
+                el.attr({ 'object': { '123': 'property' } });
+                assert.deepEqual(attributes.attrs.object,  { '123': 'property' });
+            });
+
+            QUnit.test('get object property', function(assert) {
+                attributes.attrs.object = {
+                    '123': 'property'
+                };
+                assert.equal(el.attr('object/123'), 'property');
+            });
         });
 
         QUnit.module('removeAttr', function(hooks) {

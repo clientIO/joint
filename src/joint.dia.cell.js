@@ -497,7 +497,11 @@ joint.dia.Cell = Backbone.Model.extend({
 
         var args = Array.prototype.slice.call(arguments);
 
-        if (_.isString(attrs)) {
+        if (_.isArray(attrs)) {
+            var clone = attrs.slice();
+            clone.unshift('attrs');
+            args[0] = clone;
+        } else if (_.isString(attrs)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
             args[0] = 'attrs/' + attrs;
