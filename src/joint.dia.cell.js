@@ -514,8 +514,20 @@ joint.dia.Cell = Backbone.Model.extend({
     removeAttr: function(path, opt) {
 
         if (_.isArray(path)) {
-            _.each(path, function(p) { this.removeAttr(p, opt); }, this);
-            return this;
+            var clone = path.slice();
+            clone.unshift('attrs');
+            return this.removeProp(clone);
+        }
+
+        return this.removeProp('attrs/' + path, opt);
+    },
+
+    removeAttrs: function(path, opt) {
+
+        if (_.isArray(path)) {
+            _.each(path, function(p) {
+                return this.removeAttr(p, opt);
+            }, this);
         }
 
         return this.removeProp('attrs/' + path, opt);

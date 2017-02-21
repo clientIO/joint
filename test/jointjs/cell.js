@@ -73,9 +73,18 @@ QUnit.module('cell', function(hooks) {
             })
         });
 
+        QUnit.module('attr', function(hooks) {
+
+            //TODO v.talas
+            QUnit.test('ksndlkfdslknfk', function(assert) {
+                el.attr(['array', 123], 'property');
+                console.log(attributes);
+            })
+        });
+
         QUnit.module('removeAttr', function(hooks) {
 
-            QUnit.test('TODO', function(assert) {
+            QUnit.test('path defines as array', function(assert) {
 
                 attributes.attrs.a = {
                     b: {
@@ -84,11 +93,63 @@ QUnit.module('cell', function(hooks) {
                 };
                 attributes.attrs.c = 'root_c';
                 attributes.attrs.b = 'root_b';
-
                 el.removeAttr(['a', 'b', 'c']);
+                assert.deepEqual(attributes.attrs, { a: { b: {} }, b: 'root_b', c: 'root_c' }, 'deep_c is removed');
+            });
+
+            QUnit.test('path defines as array - delimiter in name', function(assert) {
+
+                attributes.attrs['a/b'] = {
+                    c: 'deep_c'
+                };
+                attributes.attrs.c = 'root_c';
+                attributes.attrs.b = 'root_b';
+                el.removeAttr(['a/b', 'c']);
+                assert.deepEqual(attributes.attrs, { 'a/b': {} , b: 'root_b', c: 'root_c' }, 'deep_c is removed');
+            });
+
+            QUnit.test('path defines as string', function(assert) {
+
+                attributes.attrs.a = {
+                    b: {
+                        c: 'deep_c'
+                    }
+                };
+                attributes.attrs.c = 'root_c';
+                attributes.attrs.b = 'root_b';
+                el.removeAttr('a/b/c');
                 assert.deepEqual(attributes.attrs, { a: { b: {} }, b: 'root_b', c: 'root_c' }, 'deep_c is removed');
             })
         });
+
+        QUnit.module('removeAttrs', function(hooks) {
+
+            QUnit.test('remove multiple attrs', function(assert) {
+
+                attributes.attrs.a = {
+                    b: {
+                        c: 'deep_c'
+                    }
+                };
+                attributes.attrs.c = 'root_c';
+                attributes.attrs.b = 'root_b';
+                el.removeAttrs(['a', 'b', 'c']);
+                assert.deepEqual(attributes.attrs, {}, '"root a", "root b", "root c" is removed');
+            });
+
+            QUnit.test('remove multiple attrs with path defined as array', function(assert) {
+
+                attributes.attrs.a = {
+                    b: {
+                        c: 'deep_c'
+                    }
+                };
+                attributes.attrs.c = 'root_c';
+                attributes.attrs.b = 'root_b';
+                el.removeAttrs([['a', 'b', 'c'], 'b', 'c']);
+                assert.deepEqual(attributes.attrs, { a: { b: {} } }, 'deep_c, "root b", "root c" is removed, root_a remainss');
+            })
+        })
     });
 
     QUnit.module('prop()', function(hooks) {
