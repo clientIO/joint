@@ -1387,7 +1387,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             this.svgGridElements = {
                 pattern: V('<pattern id="grid-pattern" width="10" height="10" patternUnits="userSpaceOnUse"></pattern>'),
-                gridShape: V(opt.gridPattern) || V('<rect width="2" height="2"  fill="red"/>')
+                gridShape: opt.gridPattern ? V(opt.gridPattern) : V('<rect width="1" height="1"  fill="red"/>')
             };
 
             var gridBackground = V('<rect width="100%" height="100%" fill="url(#grid-pattern)"/>');
@@ -1399,32 +1399,31 @@ joint.dia.Paper = joint.mvc.View.extend({
                 .attr({ width: '100%', height: '100%' });
         }
 
-
-
         var ctm = this.matrix();
-        var xxx = {
-            sx: ctm.a,
-            sy: ctm.d,
-            ox: ctm.e,
-            oy: ctm.f,
-            size: gridSize,
-            color: opt.color,
-            thickness: opt.thickness
-        };
 
-        var size = xxx.size;
-        var ox = xxx.ox || 0;
-        var oy = xxx.oy || 0;
-        var sx = xxx.sx || 1;
-        var sy = xxx.sy || 1;
+        var options = _.defaults({}, opt, this.options.drawGrid,
+            {
+                color: '#aaa',
+                thickness: 1
+            },
+            {
+                sx: ctm.a || 1,
+                sy: ctm.d || 1,
+                ox: ctm.e || 0,
+                oy: ctm.f || 0,
+                width: gridSize * (ctm.a || 1),
+                height: gridSize * (ctm.d || 1)
+            });
 
-        var width = size * sx;
-        var x = ox % width;
-        if (x < 0) x += width;
+        if (_.isFunction(options.updateGridPattern)) {
+            options.updateGridPattern(this.svgGridElements.gridShape, options);
+        }
 
-        var height = size * sy;
-        var y = oy % height;
-        if (y < 0) y += height;
+        var x = options.ox % options.width;
+        if (x < 0) x += options.width;
+
+        var y = options.oy % options.height;
+        if (y < 0) y += options.height;
 
 
         this.svgGridElements.pattern.attr({
@@ -1435,11 +1434,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         });
 
         console.time();
-        var x = (new XMLSerializer()).serializeToString(this.svgGrid.node);
+        var aaaa = (new XMLSerializer()).serializeToString(this.svgGrid.node);
 
-        x = 'data:image/svg+xml;base64,' + btoa(x);
+        aaaa = 'data:image/svg+xml;base64,' + btoa(aaaa);
 
-        this.$grid.css('backgroundImage', 'url(' + x + ')');
+        this.$grid.css('backgroundImage', 'url(' + aaaa + ')');
         console.timeEnd();
 
         return this;

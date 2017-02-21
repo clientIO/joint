@@ -5,10 +5,25 @@ var paper = new joint.dia.Paper({
     height: 400,
     gridSize: 10,
     drawGrid: {
-        gridPattern:'<path d="M5 0 H0 M0 0 V5"  stroke="red" stroke-width="1"/>',
-        updateGridPatern: function () {
+        // gridPattern: '<path stroke="red" stroke-width="1"/>',
+        // gridPattern: '<rect width="10" height="10" stroke="red" stroke-width="1" fill="transparent"/>',
+        gridPattern: '<path stroke="red" stroke-width="1"/>',
+        updateGridPattern: function(el, opt) {
+            var w = opt.width, h = opt.height;
 
+            var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h ];
+
+            el.attr('d', d.join(' '))
         }
+        // gridPattern: '<path stroke="red" stroke-width="1"/>',
+        // updateGridPattern: function(el, opt) {
+        //     var w = opt.width, h = opt.height;
+        //
+        //
+        //     var d = ['M', size, 0, 'H0', 'M0', 0, 'V', size, 'M', w - size, h, 'H', w, 'M', w, h, 'V', h - size];
+        //
+        //     el.attr('d', d.join(' '))
+        // }
     },
     model: graph,
     linkConnectionPoint: function(linkView, view) {
@@ -396,7 +411,7 @@ $h.on('input change', function() {
 $grid.on('input change', function() {
     paper.options.gridSize = this.value;
     paper.drawGrid();
-    // paper.$el.css('background-image', 'url("' + getGridBackgroundImage(this.value * $sx.val(), this.value * $sy.val()) + '")');
+    paper.$el.css('background-image', 'url("' + getGridBackgroundImage(this.value * $sx.val(), this.value * $sy.val()) + '")');
 });
 $('.range').on('input change', function() {
     $(this).next().text(this.value);
@@ -410,7 +425,7 @@ paper.on({
         $sy.val(sy).next().text(sy.toFixed(2));
 
         var grid = $grid.val();
-        // paper.$el.css('background-image', 'url("' + getGridBackgroundImage(grid * sx, grid * sy) + '")');
+        paper.$el.css('background-image', 'url("' + getGridBackgroundImage(grid * sx, grid * sy) + '")');
 
         svgContainer.hideAll();
     },
