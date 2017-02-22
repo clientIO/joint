@@ -3,27 +3,26 @@ var paper = new joint.dia.Paper({
     el: $('#paper'),
     width: 600,
     height: 400,
-    gridSize: 10,
+    gridSize: 1,
     drawGrid: {
-        // gridPattern: '<path stroke="red" stroke-width="1"/>',
-        // gridPattern: '<rect width="10" height="10" stroke="red" stroke-width="1" fill="transparent"/>',
-        gridPattern: '<path stroke="red" stroke-width="1"/>',
+        //default grid - dot
+        color: 'black',
+        thickness: 1,
+
+        /**
+         * define custom grid pattern shape
+         */
+        // gridPattern: '<rect width="100%" height="100%" stroke="red" stroke-width="1" fill="transparent"/>',
+
+        /**
+         * define custom shape with updating attributes
+         */
+        gridPattern: '<path stroke="green" stroke-width="1"/>',
         updateGridPattern: function(el, opt) {
             var w = opt.width, h = opt.height;
-
             var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h ];
-
             el.attr('d', d.join(' '))
         }
-        // gridPattern: '<path stroke="red" stroke-width="1"/>',
-        // updateGridPattern: function(el, opt) {
-        //     var w = opt.width, h = opt.height;
-        //
-        //
-        //     var d = ['M', size, 0, 'H0', 'M0', 0, 'V', size, 'M', w - size, h, 'H', w, 'M', w, h, 'V', h - size];
-        //
-        //     el.attr('d', d.join(' '))
-        // }
     },
     model: graph,
     linkConnectionPoint: function(linkView, view) {
@@ -349,30 +348,6 @@ function scaleToFit() {
     svgContainer.showAll();
 }
 
-function getGridBackgroundImage(gridX, gridY) {
-
-    var canvas = document.createElement('canvas');
-    canvas.width = gridX;
-    canvas.height = gridY;
-
-    if (gridX > 5 && gridY > 5) {
-
-        var ox = $ox.val();
-        var oy = $oy.val();
-
-        gridX = ox >= 0 ? ox % gridX : gridX + ox % gridX - 1;
-        gridY = oy >= 0 ? oy % gridY : gridY + oy % gridY - 1;
-
-        var context = canvas.getContext('2d');
-        context.beginPath();
-        context.rect(gridX, gridY, 1, 1);
-        context.fillStyle = 'black';
-        context.fill();
-    }
-
-    return canvas.toDataURL('image/png');
-}
-
 function updateBBox() {
 
     var bbox = paper.getContentBBox();
@@ -411,7 +386,6 @@ $h.on('input change', function() {
 $grid.on('input change', function() {
     paper.options.gridSize = this.value;
     paper.drawGrid();
-    paper.$el.css('background-image', 'url("' + getGridBackgroundImage(this.value * $sx.val(), this.value * $sy.val()) + '")');
 });
 $('.range').on('input change', function() {
     $(this).next().text(this.value);
@@ -424,9 +398,6 @@ paper.on({
         $sx.val(sx).next().text(sx.toFixed(2));
         $sy.val(sy).next().text(sy.toFixed(2));
 
-        var grid = $grid.val();
-        paper.$el.css('background-image', 'url("' + getGridBackgroundImage(grid * sx, grid * sy) + '")');
-
         svgContainer.hideAll();
     },
 
@@ -438,9 +409,6 @@ paper.on({
         // translate axis
         svgAxisX.translate(0, oy, { absolute: true });
         svgAxisY.translate(ox, 0, { absolute: true });
-
-        var grid = $grid.val();
-        paper.$el.css('background-image', 'url("' + getGridBackgroundImage(grid * $sx.val(), grid * $sy.val()) + '")');
 
         svgContainer.hideAll();
     },

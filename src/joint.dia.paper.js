@@ -1406,8 +1406,6 @@ joint.dia.Paper = joint.mvc.View.extend({
             return this.clearGrid();
         }
 
-        console.time('svg');
-
         var ctm = this.matrix();
 
         var options = _.defaults({}, opt, this.options.drawGrid,
@@ -1454,7 +1452,6 @@ joint.dia.Paper = joint.mvc.View.extend({
         patternUri = 'url(data:image/svg+xml;base64,' + btoa(patternUri) + ')';
 
         this.$grid.css('backgroundImage', patternUri);
-        console.timeEnd('svg');
 
         return this;
     },
@@ -1686,37 +1683,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             return canvas;
         },
-
-        grid: function(img, opt) {
-
-            opt = opt || {};
-
-            var size = opt.size;
-            var ox = opt.ox || 0;
-            var oy = opt.oy || 0;
-            var sx = opt.sx || 1;
-            var sy = opt.sy || 1;
-            var thickness = opt.thickness || 1;
-            var color = opt.color || '#aaa';
-
-            var canvas = document.createElement('canvas');
-
-            var width = canvas.width = Math.round(size * sx);
-            var x = ox % width;
-            if (x < 0) x += width;
-
-            var height = canvas.height = Math.round(size * sy);
-            var y = oy % height;
-            if (y < 0) y += height;
-
-            var context = canvas.getContext('2d');
-            context.beginPath();
-            context.rect(x, y, thickness * sx, thickness * sy);
-            context.fillStyle = color;
-            context.fill();
-
-            return canvas;
-        }
     }
 
 });
