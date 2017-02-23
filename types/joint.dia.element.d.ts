@@ -23,15 +23,15 @@ declare namespace joint {
             style?: string;
             text?: string;
             html?: string;
-            "ref-x"?: string | number;
-            "ref-y"?: string | number;
-            "ref-dx"?: number;
-            "ref-dy"?: number;
-            "ref-width"?: string | number;
-            "ref-height"?: string | number;
+            'ref-x'?: string | number;
+            'ref-y'?: string | number;
+            'ref-dx'?: number;
+            'ref-dy'?: number;
+            'ref-width'?: string | number;
+            'ref-height'?: string | number;
             ref?: string;
-            "x-alignment"?: 'middle' | 'right' | number;
-            "y-alignment"?: 'middle' | 'bottom' | number;
+            'x-alignment'?: 'middle' | 'right' | number;
+            'y-alignment'?: 'middle' | 'bottom' | number;
             port?: string;
         }
 
