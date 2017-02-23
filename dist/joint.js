@@ -1,4 +1,4 @@
-/*! JointJS v1.0.3 (2016-11-22) - JavaScript diagramming library
+/*! JointJS v1.1.0-alpha.1 (2017-02-23) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -408,6 +408,26 @@ var g = (function() {
             return ((x0 - x) * (x0 - x)) / (a * a ) + ((y0 - y) * (y0 - y)) / (b * b);
         },
 
+        // inflate by dx and dy
+        // @param dx {delta_x} representing additional size to x
+        // @param dy {delta_y} representing additional size to y -
+        // dy param is not required -> in that case y is sized by dx
+        inflate: function(dx, dy) {
+            if (dx === undefined) {
+                dx = 0;
+            }
+
+            if (dy === undefined) {
+                dy = dx;
+            }
+
+            this.a += 2 * dx;
+            this.b += 2 * dy;
+
+            return this;
+        },
+
+
         /**
          * @param {g.Point} p
          * @returns {boolean}
@@ -539,33 +559,69 @@ var g = (function() {
             return Line(this);
         },
 
-        // @return {point} Point where I'm intersecting l.
-        // @see Squeak Smalltalk, LineSegment>>intersectionWith:
-        intersection: function(l) {
-            var pt1Dir = Point(this.end.x - this.start.x, this.end.y - this.start.y);
-            var pt2Dir = Point(l.end.x - l.start.x, l.end.y - l.start.y);
-            var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
-            var deltaPt = Point(l.start.x - this.start.x, l.start.y - this.start.y);
-            var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
-            var beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
+        equals: function(l) {
 
-            if (det === 0 ||
-                alpha * det < 0 ||
-                beta * det < 0) {
-                // No intersection found.
-                return null;
-            }
-            if (det > 0) {
-                if (alpha > det || beta > det) {
+            return this.start.x === l.start.x &&
+                    this.start.y === l.start.y &&
+                    this.start.x === l.start.x &&
+                    this.end.y === l.end.y;
+        },
+
+        // @return {point} Point where I'm intersecting a line.
+        // @return [point] Points where I'm intersecting a rectangle.
+        // @see Squeak Smalltalk, LineSegment>>intersectionWith:
+        intersect: function(l) {
+
+            if (l instanceof Line) {
+                // Passed in parameter is a line.
+
+                var pt1Dir = Point(this.end.x - this.start.x, this.end.y - this.start.y);
+                var pt2Dir = Point(l.end.x - l.start.x, l.end.y - l.start.y);
+                var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
+                var deltaPt = Point(l.start.x - this.start.x, l.start.y - this.start.y);
+                var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
+                var beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
+
+                if (det === 0 ||
+                    alpha * det < 0 ||
+                    beta * det < 0) {
+                    // No intersection found.
                     return null;
                 }
-            } else {
-                if (alpha < det || beta < det) {
-                    return null;
+                if (det > 0) {
+                    if (alpha > det || beta > det) {
+                        return null;
+                    }
+                } else {
+                    if (alpha < det || beta < det) {
+                        return null;
+                    }
                 }
+                return Point(this.start.x + (alpha * pt1Dir.x / det),
+                             this.start.y + (alpha * pt1Dir.y / det));
+
+            } else if (l instanceof Rect) {
+                // Passed in parameter is a rectangle.
+
+                var r = l;
+                var rectLines = [ r.topLine(), r.rightLine(), r.bottomLine(), r.leftLine() ];
+                var points = [];
+                var dedupeArr = [];
+                var pt, i;
+
+                for (i = 0; i < rectLines.length; i ++) {
+                    pt = this.intersect(rectLines[i]);
+                    if (pt !== null && dedupeArr.indexOf(pt.toString()) < 0) {
+                        points.push(pt);
+                        dedupeArr.push(pt.toString());
+                    }
+                }
+
+                return points.length > 0 ? points : null;
             }
-            return Point(this.start.x + (alpha * pt1Dir.x / det),
-                         this.start.y + (alpha * pt1Dir.y / det));
+
+            // Passed in parameter is neither a Line nor a Rectangle.
+            return null;
         },
 
         // @return {double} length of the line
@@ -608,6 +664,9 @@ var g = (function() {
             return this.start.toString() + ' ' + this.end.toString();
         }
     };
+
+    // For backwards compatibility:
+    g.Line.prototype.intersection = g.Line.prototype.intersect;
 
     /*
         Point is the most basic object consisting of x/y coordinate.
@@ -701,9 +760,14 @@ var g = (function() {
             return Point(this);
         },
 
-        difference: function(p) {
+        difference: function(dx, dy) {
 
-            return Point(this.x - p.x, this.y - p.y);
+            if ((Object(dx) === dx)) {
+                dy = dx.y;
+                dx = dx.x;
+            }
+
+            return Point(this.x - (dx || 0), this.y - (dy || 0));
         },
 
         // Returns distance between me and point `p`.
@@ -745,6 +809,11 @@ var g = (function() {
 
         // Offset me by the specified amount.
         offset: function(dx, dy) {
+
+            if ((Object(dx) === dx)) {
+                dy = dx.y;
+                dx = dx.x;
+            }
 
             this.x += dx || 0;
             this.y += dy || 0;
@@ -888,6 +957,11 @@ var g = (function() {
             return Point(this.x, this.y + this.height);
         },
 
+        bottomLine: function() {
+
+            return Line(this.bottomLeft(), this.corner());
+        },
+
         bottomMiddle: function() {
 
             return Point(this.x + this.width / 2, this.y + this.height);
@@ -1001,6 +1075,11 @@ var g = (function() {
             return result;
         },
 
+        leftLine: function() {
+
+            return Line(this.origin(), this.bottomLeft());
+        },
+
         leftMiddle: function() {
 
             return Point(this.x , this.y + this.height / 2);
@@ -1014,6 +1093,27 @@ var g = (function() {
             this.y += r.y || 0;
             this.width += r.width || 0;
             this.height += r.height || 0;
+            return this;
+        },
+
+        // inflate by dx and dy, recompute origin [x, y]
+        // @param dx {delta_x} representing additional size to x
+        // @param dy {delta_y} representing additional size to y -
+        // dy param is not required -> in that case y is sized by dx
+        inflate: function(dx, dy) {
+            if (dx === undefined) {
+                dx = 0;
+            }
+
+            if (dy === undefined) {
+                dy = dx;
+            }
+
+            this.x -= dx;
+            this.y -= dy;
+            this.width += 2 * dx;
+            this.height += 2 * dy;
+
             return this;
         },
 
@@ -1062,6 +1162,11 @@ var g = (function() {
                 }
             }
             return point.adhereToRect(this);
+        },
+
+        rightLine: function() {
+
+            return Line(this.topRight(), this.corner());
         },
 
         rightMiddle: function() {
@@ -1125,6 +1230,11 @@ var g = (function() {
             this.width = corner.x - origin.x;
             this.height = corner.y - origin.y;
             return this;
+        },
+
+        topLine: function() {
+
+            return Line(this.origin(), this.topRight());
         },
 
         topMiddle: function() {
@@ -1353,7 +1463,7 @@ V = Vectorizer = (function() {
 
         var transformAttr = this.attr('transform') || '';
         var transform = V.parseTransformString(transformAttr);
-
+        transformAttr = transform.value;
         // Is it a getter?
         if (V.isUndefined(tx)) {
             return transform.translate;
@@ -1377,6 +1487,7 @@ V = Vectorizer = (function() {
 
         var transformAttr = this.attr('transform') || '';
         var transform = V.parseTransformString(transformAttr);
+        transformAttr = transform.value;
 
         // Is it a getter?
         if (V.isUndefined(angle)) {
@@ -1402,6 +1513,7 @@ V = Vectorizer = (function() {
 
         var transformAttr = this.attr('transform') || '';
         var transform = V.parseTransformString(transformAttr);
+        transformAttr = transform.value;
 
         // Is it a getter?
         if (V.isUndefined(sx)) {
@@ -1477,7 +1589,11 @@ V = Vectorizer = (function() {
         // An empty text gets rendered into the DOM in webkit-based browsers.
         // In order to unify this behaviour across all browsers
         // we rather hide the text element when it's empty.
-        this.attr('display', content ? null : 'none');
+        if (content) {
+            this.removeAttr('display');
+        } else {
+            this.attr('display', 'none');
+        }
 
         // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
         this.attr('xml:space', 'preserve');
@@ -1526,17 +1642,19 @@ V = Vectorizer = (function() {
         }
 
         var offset = 0;
+        var x = this.attr('x') || 0;
+
+        // Shift all the <tspan> but first by one line (`1em`)
+        var lineHeight = opt.lineHeight || '1em';
+        if (opt.lineHeight === 'auto') {
+            lineHeight = '1.5em';
+        }
 
         for (var i = 0; i < lines.length; i++) {
 
             var line = lines[i];
-            // Shift all the <tspan> but first by one line (`1em`)
-            var lineHeight = opt.lineHeight || '1em';
-            if (opt.lineHeight === 'auto') {
-                lineHeight = '1.5em';
-            }
-            var vLine = V('tspan', { dy: (i == 0 ? '0em' : lineHeight), x: this.attr('x') || 0 });
-            vLine.addClass('v-line');
+
+            var vLine = V('tspan', { 'class': 'v-line',  dy: (i == 0 ? '0em' : lineHeight), x: x });
 
             if (line) {
 
@@ -2228,31 +2346,120 @@ V = Vectorizer = (function() {
         };
     };
 
+    V.transformRegex = /(\w+)\(([^,)]+),?([^)]+)?\)/gi;
+    V.transformSeparatorRegex = /[ ,]+/;
+
+    V.transformStringToMatrix = function(transform) {
+
+        var transformationMatrix = V.createSVGMatrix();
+        var matches = transform && transform.match(V.transformRegex);
+        if (!matches) {
+            return transformationMatrix;
+        }
+
+        return matches.reduce(function(resultMatrix, transformationString) {
+            var transformationMatch = transformationString.match(/^(\w+)\((.*)\)/);
+            if (transformationMatch) {
+                var sx, sy, tx, ty, angle;
+                var ctm = V.createSVGMatrix();
+                var args = transformationMatch[2].split(V.transformSeparatorRegex);
+                switch(transformationMatch[1].toLowerCase()) {
+                    case 'scale':
+                        sx = parseFloat(args[0]);
+                        sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
+                        ctm = ctm.scaleNonUniform(sx, sy);
+                        break;
+                    case 'translate':
+                        tx = parseFloat(args[0]);
+                        ty = parseFloat(args[1]);
+                        ctm = ctm.translate(tx, ty);
+                        break;
+                    case 'rotate':
+                        angle = parseFloat(args[0]);
+                        tx = parseFloat(args[1]) || 0;
+                        ty = parseFloat(args[2]) || 0;
+                        if (tx !== 0 || ty !== 0) {
+                            ctm = ctm.translate(tx, ty).rotate(angle).translate(-tx, -ty);
+                        } else {
+                            ctm = ctm.rotate(angle);
+                        }
+                        break;
+                    case 'skewx':
+                        angle = parseFloat(args[0]);
+                        ctm = ctm.skewX(angle);
+                        break;
+                    case 'skewy':
+                        angle = parseFloat(args[0]);
+                        ctm = ctm.skewY(angle);
+                        break;
+                    case 'matrix':
+                        ctm.a = parseFloat(args[0]);
+                        ctm.b = parseFloat(args[1]);
+                        ctm.c = parseFloat(args[2]);
+                        ctm.d = parseFloat(args[3]);
+                        ctm.e = parseFloat(args[4]);
+                        ctm.f = parseFloat(args[5]);
+                        break;
+                    default:
+                        return resultMatrix;
+                }
+
+                return resultMatrix.multiply(ctm);
+            }
+        }, transformationMatrix);
+    };
+
     V.parseTransformString = function(transform) {
 
         var translate, rotate, scale;
 
         if (transform) {
 
-            var separator = /[ ,]+/;
+            var separator = V.transformSeparatorRegex;
 
-            var translateMatch = transform.match(/translate\((.*)\)/);
-            if (translateMatch) {
-                translate = translateMatch[1].split(separator);
-            }
-            var rotateMatch = transform.match(/rotate\((.*)\)/);
-            if (rotateMatch) {
-                rotate = rotateMatch[1].split(separator);
-            }
-            var scaleMatch = transform.match(/scale\((.*)\)/);
-            if (scaleMatch) {
-                scale = scaleMatch[1].split(separator);
+            // Allow reading transform string with a single matrix
+            if (transform.trim().indexOf('matrix') >= 0) {
+
+                var matrix = V.transformStringToMatrix(transform);
+                var decomposedMatrix = V.decomposeMatrix(matrix);
+
+                translate = [decomposedMatrix.translateX, decomposedMatrix.translateY];
+                scale = [decomposedMatrix.scaleX, decomposedMatrix.scaleY];
+                rotate = [decomposedMatrix.rotation];
+
+                var transformations = [];
+                if (translate[0] !== 0 ||  translate[0] !== 0) {
+                    transformations.push('translate(' + translate + ')');
+                }
+                if (scale[0] !== 1 ||  scale[1] !== 1) {
+                    transformations.push('scale(' + scale + ')');
+                }
+                if (rotate[0] !== 0) {
+                    transformations.push('rotate(' + rotate + ')');
+                }
+                transform = transformations.join(' ');
+
+            } else {
+
+                var translateMatch = transform.match(/translate\((.*)\)/);
+                if (translateMatch) {
+                    translate = translateMatch[1].split(separator);
+                }
+                var rotateMatch = transform.match(/rotate\((.*)\)/);
+                if (rotateMatch) {
+                    rotate = rotateMatch[1].split(separator);
+                }
+                var scaleMatch = transform.match(/scale\((.*)\)/);
+                if (scaleMatch) {
+                    scale = scaleMatch[1].split(separator);
+                }
             }
         }
 
         var sx = (scale && scale[0]) ? parseFloat(scale[0]) : 1;
 
         return {
+            value: transform,
             translate: {
                 tx: (translate && translate[0]) ? parseInt(translate[0], 10) : 0,
                 ty: (translate && translate[1]) ? parseInt(translate[1], 10) : 0
@@ -2299,6 +2506,49 @@ V = Vectorizer = (function() {
             rotation: skewX // rotation is the same as skew x
         };
     };
+
+    // Return the `scale` transformation from the following equation:
+    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
+    V.matrixToScale = function(matrix) {
+
+        var a,b,c,d;
+        if (matrix) {
+            a = V.isUndefined(matrix.a) ? 1 : matrix.a;
+            d = V.isUndefined(matrix.d) ? 1 : matrix.d;
+            b = matrix.b;
+            c = matrix.c;
+        } else {
+            a = d = 1;
+        }
+        return {
+            sx: b ? Math.sqrt(a * a + b * b) : a,
+            sy: c ? Math.sqrt(c * c + d * d) : d
+        };
+    },
+
+    // Return the `rotate` transformation from the following equation:
+    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
+    V.matrixToRotate = function(matrix) {
+
+        var p = { x: 0, y: 1 };
+        if (matrix) {
+            p =  V.deltaTransformPoint(matrix, p);
+        }
+
+        return {
+            angle: g.normalizeAngle(g.toDeg(Math.atan2(p.y, p.x)) - 90)
+        };
+    },
+
+    // Return the `translate` transformation from the following equation:
+    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
+    V.matrixToTranslate = function(matrix) {
+
+        return {
+            tx: (matrix && matrix.e) || 0,
+            ty: (matrix && matrix.f) || 0
+        };
+    },
 
     V.isV = function(object) {
 
@@ -2765,7 +3015,7 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '1.0.3',
+    version: '1.1.0-alpha.1',
 
     config: {
         // The class name prefix config is for advanced use only.
@@ -3131,6 +3381,29 @@ var joint = {
             return spot || bbox.center();
         },
 
+        parseCssNumeric: function(strValue, restrictUnits) {
+
+            restrictUnits = restrictUnits || [];
+            var cssNumeric = { value: parseFloat(strValue) };
+
+            if (_.isNaN(cssNumeric.value)) {
+                return null;
+            }
+
+            var validUnitsExp = restrictUnits.join('|');
+
+            if (_.isString(strValue)) {
+                var matches = new RegExp('(\\d+)(' + validUnitsExp + ')$').exec(strValue);
+                if (!matches) {
+                    return null;
+                }
+                if (matches[2]) {
+                    cssNumeric.unit = matches[2];
+                }
+            }
+            return cssNumeric;
+        },
+
         breakText: function(text, size, styles, opt) {
 
             opt = opt || {};
@@ -3166,6 +3439,7 @@ var joint = {
             var full = [];
             var lines = [];
             var p;
+            var lineHeight;
 
             for (var i = 0, l = 0, len = words.length; i < len; i++) {
 
@@ -3253,16 +3527,29 @@ var joint = {
 
                 // if size.height is defined we have to check whether the height of the entire
                 // text exceeds the rect height
-                if (typeof height !== 'undefined') {
+                if (height !== undefined) {
 
-                    // get line height as text height / 0.8 (as text height is approx. 0.8em
-                    // and line height is 1em. See vectorizer.text())
-                    var lh = lh || textElement.getBBox().height * 1.25;
+                    if (lineHeight === undefined) {
 
-                    if (lh * lines.length > height) {
+                        var heightValue;
+
+                        // use the same defaults as in V.prototype.text
+                        if (styles.lineHeight === 'auto') {
+                            heightValue = { value: 1.5, unit: 'em' };
+                        } else {
+                            heightValue = joint.util.parseCssNumeric(styles.lineHeight, ['em']) || { value: 1, unit: 'em' };
+                        }
+
+                        lineHeight = heightValue.value;
+                        if (heightValue.unit === 'em' ) {
+                            lineHeight *= textElement.getBBox().height;
+                        }
+                    }
+
+                    if (lineHeight * lines.length > height) {
 
                         // remove overflowing lines
-                        lines.splice(Math.floor(height / lh));
+                        lines.splice(Math.floor(height / lineHeight));
 
                         break;
                     }
@@ -4164,6 +4451,52 @@ joint.mvc.View = Backbone.View.extend({
         this.init();
     },
 
+    // Override the Backbone `_ensureElement()` method in order to create an
+    // svg element (e.g., `<g>`) node that wraps all the nodes of the Cell view.
+    _ensureElement: function() {
+        var el;
+
+        if (this.svgElement) {
+
+            if (!this.el) {
+
+                var attrs = _.extend({ id: this.id }, _.result(this, 'attributes'));
+                if (this.className) attrs['class'] = _.result(this, 'className');
+                el = V(_.result(this, 'tagName'), attrs).node;
+
+            } else {
+
+                el = _.result(this, 'el');
+            }
+
+            this.setElement(el, false);
+
+        } else {
+
+            Backbone.View.prototype._ensureElement.call(this);
+
+        }
+
+    },
+
+    // Utilize an alternative DOM manipulation API by
+    // adding an element reference wrapped in Vectorizer.
+    _setElement: function(el) {
+
+        if (this.svgElement) {
+
+            this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
+            this.el = this.$el[0];
+            this.vel = V(this.el);
+
+        } else {
+
+            Backbone.View.prototype._setElement.call(this, el);
+
+        }
+
+    },
+
     _ensureElClassName: function() {
 
         var className = _.result(this, 'className');
@@ -4189,7 +4522,9 @@ joint.mvc.View = Backbone.View.extend({
 
         // Theme is already set, override is required, and override has not been set.
         // Don't set the theme.
-        if (this.theme && this.requireSetThemeOverride && !opt.override) return;
+        if (this.theme && this.requireSetThemeOverride && !opt.override) {
+            return this;
+        }
 
         this.removeThemeClassName();
         this.addThemeClassName(theme);
@@ -4240,6 +4575,11 @@ joint.mvc.View = Backbone.View.extend({
     onRemove: function() {
         // Intentionally empty.
         // This method is meant to be overriden.
+    },
+
+    getEventNamespace: function() {
+        // Returns a per-session unique namespace
+        return '.joint-event-ns-' + this.cid;
     }
 });
 
@@ -5959,6 +6299,8 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     tagName: 'g',
 
+    svgElement: true,
+
     className: function() {
 
         var classNames = ['cell'];
@@ -6025,34 +6367,6 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         return (_.isObject(interactive) && interactive[feature] !== false) ||
                 (_.isBoolean(interactive) && interactive !== false);
-    },
-
-    // Override the Backbone `_ensureElement()` method in order to create a `<g>` node that wraps
-    // all the nodes of the Cell view.
-    _ensureElement: function() {
-
-        var el;
-
-        if (!this.el) {
-
-            var attrs = _.extend({ id: this.id }, _.result(this, 'attributes'));
-            if (this.className) attrs['class'] = _.result(this, 'className');
-            el = V(_.result(this, 'tagName'), attrs).node;
-
-        } else {
-
-            el = _.result(this, 'el');
-        }
-
-        this.setElement(el, false);
-    },
-
-    // Utilize an alternative DOM manipulation API by
-    // adding an element reference wrapped in Vectorizer.
-    _setElement: function(el) {
-        this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
-        this.el = this.$el[0];
-        this.vel = V(this.el);
     },
 
     findBySelector: function(selector) {
@@ -6317,6 +6631,16 @@ joint.dia.CellView = joint.mvc.View.extend({
     mouseout: function(evt) {
 
         this.notify('cell:mouseout', evt);
+    },
+
+    mouseenter: function(evt) {
+
+        this.notify('cell:mouseenter', evt);
+    },
+
+    mouseleave: function(evt) {
+
+        this.notify('cell:mouseleave', evt);
     },
 
     mousewheel: function(evt, x, y, delta) {
@@ -7291,9 +7615,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     getBBox: function(opt) {
 
         if (opt && opt.useModelGeometry) {
-            var noTransformationBBox = this.model.getBBox().bbox(this.model.get('angle'));
-            var transformationMatrix = this.paper.viewport.getCTM();
-            return g.rect(V.transformRect(noTransformationBBox, transformationMatrix));
+            var bbox = this.model.getBBox().bbox(this.model.get('angle'));
+            return this.paper.localToPaperRect(bbox);
         }
 
         return joint.dia.CellView.prototype.getBBox.apply(this, arguments);
@@ -7523,6 +7846,18 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             this.notify('element:pointerup', evt, x, y);
             joint.dia.CellView.prototype.pointerup.apply(this, arguments);
         }
+    },
+
+    mouseenter: function(evt) {
+
+        joint.dia.CellView.prototype.mouseenter.apply(this, arguments);
+        this.notify('element:mouseenter', evt);
+    },
+
+    mouseleave: function(evt) {
+
+        joint.dia.CellView.prototype.mouseleave.apply(this, arguments);
+        this.notify('element:mouseleave', evt);
     }
 });
 
@@ -9344,6 +9679,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         this.notify('link:pointerup', evt, x, y);
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);
+    },
+
+    mouseenter: function(evt) {
+
+        joint.dia.CellView.prototype.mouseenter.apply(this, arguments);
+        this.notify('link:mouseenter', evt);
+    },
+
+    mouseleave: function(evt) {
+
+        joint.dia.CellView.prototype.mouseleave.apply(this, arguments);
+        this.notify('link:mouseleave', evt);
     }
 
 }, {
@@ -9376,11 +9723,13 @@ joint.dia.Paper = joint.mvc.View.extend({
         origin: { x: 0, y: 0 }, // x,y coordinates in top-left corner
         gridSize: 1,
 
-        /*
-            Whether or not to draw the grid lines on the paper's DOM element.
-            e.g drawGrid: true, drawGrid: { color: 'red', thickness: 2 }
-         */
+        // Whether or not to draw the grid lines on the paper's DOM element.
+        // e.g drawGrid: true, drawGrid: { color: 'red', thickness: 2 }
         drawGrid: false,
+
+        // Whether or not to draw the background on the paper's DOM element.
+        // e.g. background: { color: 'lightblue', image: '/paper-background.png', repeat: 'flip-xy' }
+        background: false,
 
         perpendicularLinks: false,
         elementView: joint.dia.ElementView,
@@ -9517,53 +9866,147 @@ joint.dia.Paper = joint.mvc.View.extend({
         'mouseout .joint-cell': 'cellMouseout',
         'contextmenu': 'contextmenu',
         'mousewheel': 'mousewheel',
-        'DOMMouseScroll': 'mousewheel'
+        'DOMMouseScroll': 'mousewheel',
+        'mouseenter .joint-cell': 'cellMouseenter',
+        'mouseleave .joint-cell': 'cellMouseleave'
     },
 
-    _highlights: [],
+    _highlights: {},
 
     init: function() {
 
         _.bindAll(this, 'pointerup');
 
-        this.model = this.options.model || new joint.dia.Graph;
+        var model = this.model = this.options.model || new joint.dia.Graph;
+
+        this.cloneOptions();
+        this.render();
+        this.setDimensions();
+
+        this.listenTo(model, 'add', this.onCellAdded)
+            .listenTo(model, 'remove', this.removeView)
+            .listenTo(model, 'reset', this.resetViews)
+            .listenTo(model, 'sort', this._onSort)
+            .listenTo(model, 'batch:stop', this._onBatchStop);
+
+        this.on('cell:highlight', this.onCellHighlight)
+            .on('cell:unhighlight', this.onCellUnhighlight)
+            .on('scale translate', this.update);
+
+        // Hold the value when mouse has been moved: when mouse moved, no click event will be triggered.
+        this._mousemoved = 0;
+        // Hash of all cell views.
+        this._views = {};
+        // Reference to the paper owner document
+        this.$document = $(this.el.ownerDocument);
+    },
+
+    cloneOptions: function() {
+
+        var options = this.options;
 
         // This is a fix for the case where two papers share the same options.
         // Changing origin.x for one paper would change the value of origin.x for the other.
         // This prevents that behavior.
-        this.options.origin = _.clone(this.options.origin);
-        this.options.defaultConnector = _.clone(this.options.defaultConnector);
-        // Return default highlighting options into the user specified options.
-        _.defaults(this.options.highlighting, this.constructor.prototype.options.highlighting);
-        this.options.highlighting = _.cloneDeep(this.options.highlighting);
+        options.origin = _.clone(options.origin);
+        options.defaultConnector = _.clone(options.defaultConnector);
+        // Return the default highlighting options into the user specified options.
+        options.highlighting = _.defaultsDeep(
+            {},
+            options.highlighting,
+            this.constructor.prototype.options.highlighting
+        );
+    },
 
-        this.svg = V('svg').node;
+    bindDocumentEvents: function() {
+        var eventNS = this.getEventNamespace();
+        this.$document.on('mouseup' + eventNS + ' touchend' + eventNS, this.pointerup);
+    },
+
+    unbindDocumentEvents: function() {
+        this.$document.off(this.getEventNamespace());
+    },
+
+    render: function() {
+
+        this.$el.empty();
+
+        this.svg = V('svg').attr({ width: '100%', height: '100%' }).node;
         this.viewport = V('g').addClass(joint.util.addClassNamePrefix('viewport')).node;
         this.defs = V('defs').node;
 
         // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
         V(this.svg).append([this.viewport, this.defs]);
 
-        this.$el.append(this.svg);
+        this.$background = $('<div/>').addClass(joint.util.addClassNamePrefix('paper-background'));
+        if (this.options.background) {
+            this.drawBackground(this.options.background);
+        }
 
-        this.listenTo(this.model, 'add', this.onCellAdded);
-        this.listenTo(this.model, 'remove', this.removeView);
-        this.listenTo(this.model, 'reset', this.resetViews);
-        this.listenTo(this.model, 'sort', this._onSort);
-        this.listenTo(this.model, 'batch:stop', this._onBatchStop);
+        this.$grid = $('<div/>').addClass(joint.util.addClassNamePrefix('paper-grid'));
+        if (this.options.drawGrid) {
+            this.drawGrid();
+        }
 
-        this.setOrigin();
-        this.setDimensions();
+        this.$el.append(this.$background, this.$grid, this.svg);
 
-        $(document).on('mouseup touchend', this.pointerup);
+        return this;
+    },
 
-        // Hold the value when mouse has been moved: when mouse moved, no click event will be triggered.
-        this._mousemoved = 0;
-        // Hash of all cell views.
-        this._views = {};
+    update: function() {
 
-        this.on('cell:highlight', this.onCellHighlight, this);
-        this.on('cell:unhighlight', this.onCellUnhighlight, this);
+        if (this.options.drawGrid) {
+            this.drawGrid();
+        }
+
+        if (this._background) {
+            this.updateBackgroundImage(this._background);
+        }
+    },
+
+    // For storing the current transformation matrix (CTM) of the paper's viewport.
+    _viewportMatrix: null,
+    // For verifying whether the CTM is up-to-date. The viewport transform attribute
+    // could have been manipulated directly.
+    _viewportTransformString: null,
+
+    matrix: function(ctm) {
+
+        var viewport = this.viewport;
+
+        // Getter:
+        if (ctm === undefined) {
+
+            var transformString = viewport.getAttribute('transform');
+
+            if ((this._viewportTransformString || null) === transformString) {
+                // It's ok to return the cached matrix. The transform attribute has not changed since
+                // the matrix was stored.
+                ctm = this._viewportMatrix;
+            } else {
+                // The viewport transform attribute has changed. Measure the matrix and cache again.
+                ctm = viewport.getCTM();
+                this._viewportMatrix = ctm;
+                this._viewportTransformString = transformString;
+            }
+
+            // Clone the cached current transformation matrix.
+            // If no matrix previously stored the identity matrix is returned.
+            return V.createSVGMatrix(ctm);
+        }
+
+        // Setter:
+        ctm = V.createSVGMatrix(ctm);
+        V(viewport).transform(ctm, { absolute: true });
+        this._viewportMatrix = ctm;
+        this._viewportTransformString = viewport.getAttribute('transform');
+
+        return this;
+    },
+
+    clientMatrix: function() {
+
+        return V.createSVGMatrix(this.viewport.getScreenCTM());
     },
 
     _onSort: function() {
@@ -9583,8 +10026,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         //clean up all DOM elements/views to prevent memory leaks
         this.removeViews();
-
-        $(document).off('mouseup touchend', this.pointerup);
+        this.unbindDocumentEvents();
     },
 
     setDimensions: function(width, height) {
@@ -9592,23 +10034,14 @@ joint.dia.Paper = joint.mvc.View.extend({
         width = this.options.width = width || this.options.width;
         height = this.options.height = height || this.options.height;
 
-        V(this.svg).attr({ width: width, height: height });
+        this.$el.css({ width: width, height: height });
 
         this.trigger('resize', width, height);
     },
 
     setOrigin: function(ox, oy) {
 
-        this.options.origin.x = ox || 0;
-        this.options.origin.y = oy || 0;
-
-        V(this.viewport).translate(ox, oy, { absolute: true });
-
-        this.trigger('translate', ox, oy);
-
-        if (this.options.drawGrid) {
-            this.drawGrid();
-        }
+        return this.translate(ox || 0, oy || 0, { absolute: true });
     },
 
     // Expand/shrink the paper to fit the content. Snap the width/height to the grid
@@ -9637,7 +10070,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         // Calculate the paper size to accomodate all the graph's elements.
         var bbox = V(this.viewport).bbox(true, this.svg);
 
-        var currentScale = V(this.viewport).scale();
+        var currentScale = this.scale();
+        var currentTranslate = this.translate();
 
         bbox.x *= currentScale.sx;
         bbox.y *= currentScale.sy;
@@ -9674,11 +10108,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         calcHeight = Math.min(calcHeight, opt.maxHeight || Number.MAX_VALUE);
 
         var dimensionChange = calcWidth != this.options.width || calcHeight != this.options.height;
-        var originChange = tx != this.options.origin.x || ty != this.options.origin.y;
+        var originChange = tx != currentTranslate.tx || ty != currentTranslate.ty;
 
         // Change the dimensions only if there is a size discrepency or an origin change
         if (originChange) {
-            this.setOrigin(tx, ty);
+            this.translate(tx, ty);
         }
         if (dimensionChange) {
             this.setDimensions(calcWidth, calcHeight);
@@ -9713,12 +10147,18 @@ joint.dia.Paper = joint.mvc.View.extend({
         var minScaleY = opt.minScaleY || opt.minScale;
         var maxScaleY = opt.maxScaleY || opt.maxScale;
 
-        var fittingBBox = opt.fittingBBox || ({
-            x: this.options.origin.x,
-            y: this.options.origin.y,
-            width: this.options.width,
-            height: this.options.height
-        });
+        var fittingBBox;
+        if (opt.fittingBBox) {
+            fittingBBox = opt.fittingBBox;
+        } else {
+            var currentTranslate = this.translate();
+            fittingBBox = {
+                x: currentTranslate.tx,
+                y: currentTranslate.ty,
+                width: this.options.width,
+                height: this.options.height
+            };
+        }
 
         fittingBBox = g.rect(fittingBBox).moveAndExpand({
             x: padding,
@@ -9727,7 +10167,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             height: -2 * padding
         });
 
-        var currentScale = V(this.viewport).scale();
+        var currentScale = this.scale();
 
         var newSx = fittingBBox.width / contentBBox.width * currentScale.sx;
         var newSy = fittingBBox.height / contentBBox.height * currentScale.sy;
@@ -9756,7 +10196,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var newOx = fittingBBox.x - contentTranslation.x;
         var newOy = fittingBBox.y - contentTranslation.y;
 
-        this.setOrigin(newOx, newOy);
+        this.translate(newOx, newOy);
     },
 
     getContentBBox: function() {
@@ -9765,14 +10205,14 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Using Screen CTM was the only way to get the real viewport bounding box working in both
         // Google Chrome and Firefox.
-        var screenCTM = this.viewport.getScreenCTM();
+        var clientCTM = this.clientMatrix();
 
         // for non-default origin we need to take the viewport translation into account
-        var viewportCTM = this.viewport.getCTM();
+        var currentTranslate = this.translate();
 
         return g.rect({
-            x: crect.left - screenCTM.e + viewportCTM.e,
-            y: crect.top - screenCTM.f + viewportCTM.f,
+            x: crect.left - clientCTM.e + currentTranslate.tx,
+            y: crect.top - clientCTM.f + currentTranslate.ty,
             width: crect.width,
             height: crect.height
         });
@@ -9783,10 +10223,12 @@ joint.dia.Paper = joint.mvc.View.extend({
     // and the top border to the bottom one).
     getArea: function() {
 
-        var transformationMatrix = this.viewport.getCTM().inverse();
-        var noTransformationBBox = { x: 0, y: 0, width: this.options.width, height: this.options.height };
-
-        return g.rect(V.transformRect(noTransformationBBox, transformationMatrix));
+        return this.paperToLocalRect({
+            x: 0,
+            y: 0,
+            width: this.options.width,
+            height: this.options.height
+        });
     },
 
     getRestrictedArea: function() {
@@ -10003,53 +10445,91 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     scale: function(sx, sy, ox, oy) {
 
-        sy = sy || sx;
+        // getter
+        if (sx === undefined) {
+            return V.matrixToScale(this.matrix());
+        }
 
-        if (_.isUndefined(ox)) {
-
+        // setter
+        if (sy === undefined) {
+            sy = sx;
+        }
+        if (ox === undefined) {
             ox = 0;
             oy = 0;
         }
 
-        // Remove previous transform so that the new scale is not affected by previous scales, especially
-        // the old translate() does not affect the new translate if an origin is specified.
-        V(this.viewport).attr('transform', '');
+        var translate = this.translate();
 
-        var oldTx = this.options.origin.x;
-        var oldTy = this.options.origin.y;
-
-        // TODO: V.scale() doesn't support setting scale origin. #Fix
-        if (ox || oy || oldTx || oldTy) {
-
-            var newTx = oldTx - ox * (sx - 1);
-            var newTy = oldTy - oy * (sy - 1);
-            this.setOrigin(newTx, newTy);
+        if (ox || oy || translate.tx || translate.ty) {
+            var newTx = translate.tx - ox * (sx - 1);
+            var newTy = translate.ty - oy * (sy - 1);
+            this.translate(newTx, newTy);
         }
 
-        V(this.viewport).scale(sx, sy);
+        var ctm = this.matrix();
+        ctm.a = sx || 0;
+        ctm.d = sy || 0;
+
+        this.matrix(ctm);
 
         this.trigger('scale', sx, sy, ox, oy);
+
+        return this;
+    },
+
+    // Experimental - do not use in production.
+    rotate: function(angle, cx, cy) {
+
+        // getter
+        if (angle === undefined) {
+            return V.matrixToRotate(this.matrix());
+        }
+
+        // setter
+
+        // If the origin is not set explicitely, rotate around the center. Note that
+        // we must use the plain bounding box (`this.el.getBBox()` instead of the one that gives us
+        // the real bounding box (`bbox()`) including transformations).
+        if (cx === undefined) {
+            var bbox = this.viewport.getBBox();
+            cx = bbox.width / 2;
+            cy = bbox.height / 2;
+        }
+
+        var ctm = this.matrix().translate(cx,cy).rotate(angle).translate(-cx,-cy);
+        this.matrix(ctm);
+
+        return this;
+    },
+
+    translate: function(tx, ty) {
+
+        // getter
+        if (tx === undefined) {
+            return V.matrixToTranslate(this.matrix());
+        }
+
+        // setter
+
+        var ctm = this.matrix();
+        ctm.e = tx || 0;
+        ctm.f = ty || 0;
+
+        this.matrix(ctm);
+
+        var newTranslate = this.translate();
+        var origin = this.options.origin;
+        origin.x = newTranslate.tx;
+        origin.y = newTranslate.ty;
+
+        this.trigger('translate', newTranslate.tx, newTranslate.ty);
 
         if (this.options.drawGrid) {
             this.drawGrid();
         }
 
         return this;
-    },
-
-    rotate: function(deg, ox, oy) {
-
-        // If the origin is not set explicitely, rotate around the center. Note that
-        // we must use the plain bounding box (`this.el.getBBox()` instead of the one that gives us
-        // the real bounding box (`bbox()`) including transformations).
-        if (_.isUndefined(ox)) {
-
-            var bbox = this.viewport.getBBox();
-            ox = bbox.width / 2;
-            oy = bbox.height / 2;
-        }
-
-        V(this.viewport).rotate(deg, ox, oy);
     },
 
     // Find the first view climbing up the DOM tree starting at element `el`. Note that `el` can also
@@ -10110,43 +10590,102 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this.model.getCell(id);
     },
 
-    snapToGrid: function(p) {
+    snapToGrid: function(x, y) {
 
         // Convert global coordinates to the local ones of the `viewport`. Otherwise,
         // improper transformation would be applied when the viewport gets transformed (scaled/rotated).
-        var localPoint = V(this.viewport).toLocalPoint(p.x, p.y);
+        return this.clientToLocalPoint(x, y).snapToGrid(this.options.gridSize);
+    },
 
-        return {
-            x: g.snapToGrid(localPoint.x, this.options.gridSize),
-            y: g.snapToGrid(localPoint.y, this.options.gridSize)
-        };
+    localToPaperPoint: function(x, y) {
+        // allow `x` to be a point and `y` undefined
+        var localPoint = g.Point(x, y);
+        var paperPoint = V.transformPoint(localPoint, this.matrix());
+        return g.Point(paperPoint);
+    },
+
+    localToPaperRect: function(x, y, width, height) {
+        // allow `x` to be a rectangle and rest arguments undefined
+        var localRect = g.Rect(x, y);
+        var paperRect = V.transformRect(localRect, this.matrix());
+        return g.Rect(paperRect);
+    },
+
+    paperToLocalPoint: function(x, y) {
+        // allow `x` to be a point and `y` undefined
+        var paperPoint = g.Point(x, y);
+        var localPoint = V.transformPoint(paperPoint, this.matrix().inverse());
+        return g.Point(localPoint);
+    },
+
+    paperToLocalRect: function(x, y, width, height) {
+        // allow `x` to be a rectangle and rest arguments undefined
+        var paperRect = g.Rect(x, y, width, height);
+        var localRect = V.transformRect(paperRect, this.matrix().inverse());
+        return g.Rect(localRect);
+    },
+
+    localToClientPoint: function(x, y) {
+        // allow `x` to be a point and `y` undefined
+        var localPoint = g.Point(x, y);
+        var clientPoint = V.transformPoint(localPoint, this.clientMatrix());
+        return g.Point(clientPoint);
+    },
+
+    localToClientRect: function(x, y, width, height) {
+        // allow `x` to be a point and `y` undefined
+        var localRect = g.Rect(x, y, width, height);
+        var clientRect = V.transformRect(localRect, this.clientMatrix());
+        return g.Rect(clientRect);
     },
 
     // Transform client coordinates to the paper local coordinates.
     // Useful when you have a mouse event object and you'd like to get coordinates
     // inside the paper that correspond to `evt.clientX` and `evt.clientY` point.
-    // Exmaple: var paperPoint = paper.clientToLocalPoint({ x: evt.clientX, y: evt.clientY });
-    clientToLocalPoint: function(p) {
+    // Example: var localPoint = paper.clientToLocalPoint({ x: evt.clientX, y: evt.clientY });
+    clientToLocalPoint: function(x, y) {
+        // allow `x` to be a point and `y` undefined
+        var clientPoint = g.Point(x, y);
+        var localPoint = V.transformPoint(clientPoint, this.clientMatrix().inverse());
+        return g.Point(localPoint);
+    },
 
-        p = g.point(p);
+    clientToLocalRect: function(x, y, width, height) {
+        // allow `x` to be a point and `y` undefined
+        var clientRect = g.Rect(x, y, width, height);
+        var localRect = V.transformRect(clientRect, this.clientMatrix().inverse());
+        return g.Rect(localRect);
+    },
 
-        // This is a hack for Firefox! If there wasn't a fake (non-visible) rectangle covering the
-        // whole SVG area, `$(paper.svg).offset()` used below won't work.
-        var fakeRect = V('rect', { width: this.options.width, height: this.options.height, x: 0, y: 0, opacity: 0 });
-        V(this.svg).prepend(fakeRect);
+    localToPagePoint: function(x, y) {
+        return this.localToPaperPoint(x, y).offset(this.pageOffset());
+    },
 
-        var paperOffset = $(this.svg).offset();
+    localToPageRect: function(x, y, width, height) {
+        return this.localToPaperRect(x, y, width, height).moveAndExpand(this.pageOffset());
+    },
 
-        // Clean up the fake rectangle once we have the offset of the SVG document.
-        fakeRect.remove();
+    pageToLocalPoint: function(x, y) {
+        var pagePoint = g.Point(x, y);
+        var paperPoint = pagePoint.difference(this.pageOffset());
+        return this.paperToLocalPoint(paperPoint);
+    },
 
-        var scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
-        var scrollLeft = document.body.scrollLeft || document.documentElement.scrollLeft;
+    pageToLocalRect: function(x, y, width, height) {
+        var pageOffset = this.pageOffset();
+        var paperRect = g.Rect(x, y, width, height);
+        paperRect.x -= pageOffset.x;
+        paperRect.y -= pageOffset.y;
+        return this.paperToLocalRect(paperRect);
+    },
 
-        p.offset(scrollLeft - paperOffset.left, scrollTop - paperOffset.top);
+    clientOffset: function() {
+        var clientRect = this.svg.getBoundingClientRect();
+        return g.Point(clientRect.left, clientRect.top);
+    },
 
-        // Transform point into the viewport coordinate system.
-        return V.transformPoint(p, this.viewport.getCTM().inverse());
+    pageOffset: function() {
+        return this.clientOffset().offset(window.scrollX, window.scrollY);
     },
 
     linkAllowed: function(linkViewOrModel) {
@@ -10411,6 +10950,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointerdown: function(evt) {
 
+        this.bindDocumentEvents();
+
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
@@ -10451,6 +10992,8 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     pointerup: function(evt) {
+
+        this.unbindDocumentEvents();
 
         evt = joint.util.normalizeEvent(evt);
 
@@ -10509,6 +11052,24 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
     },
 
+    cellMouseenter: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+        var view = this.findView(evt.target);
+        if (view && !this.guard(evt, view)) {
+            view.mouseenter(evt);
+        }
+    },
+
+    cellMouseleave: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+        var view = this.findView(evt.target);
+        if (view && !this.guard(evt, view)) {
+            view.mouseleave(evt);
+        }
+    },
+
     setGridSize: function(gridSize) {
 
         this.options.gridSize = gridSize;
@@ -10522,47 +11083,145 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     clearGrid: function() {
 
-        this.el.style.backgroundImage = 'none';
+        this.$grid.css('backgroundImage', 'none');
         return this;
     },
 
     drawGrid: function(opt) {
 
-        opt = _.defaults(opt || {}, this.options.drawGrid, {
-            color: '#aaa',
-            thickness: 1
-        });
+        opt = _.defaults({}, opt, this.options.drawGrid);
 
         var gridSize = this.options.gridSize;
-
         if (gridSize <= 1) {
             return this.clearGrid();
         }
 
-        var currentScale = V(this.viewport).scale();
-        var scaleX = currentScale.sx;
-        var scaleY = currentScale.sy;
-        var originX = this.options.origin.x;
-        var originY = this.options.origin.y;
-        var gridX = gridSize * scaleX;
-        var gridY = gridSize * scaleY;
+        var ctm = this.matrix();
+        var canvas = this.constructor.backgroundPatterns.grid(null, {
+            sx: ctm.a,
+            sy: ctm.d,
+            ox: ctm.e,
+            oy: ctm.f,
+            size: gridSize,
+            color: opt.color,
+            thickness: opt.thickness
+        });
 
-        var canvas = document.createElement('canvas');
+        this.$grid.css('backgroundImage', 'url(' + canvas.toDataURL('image/png') + ')');
 
-        canvas.width = gridX;
-        canvas.height = gridY;
+        return this;
+    },
 
-        gridX = originX >= 0 ? originX % gridX : gridX + originX % gridX;
-        gridY = originY >= 0 ? originY % gridY : gridY + originY % gridY;
+    updateBackgroundImage: function(opt) {
 
-        var context = canvas.getContext('2d');
-        context.beginPath();
-        context.rect(gridX, gridY, opt.thickness * scaleX, opt.thickness * scaleY);
-        context.fillStyle = opt.color;
-        context.fill();
+        opt = opt || {};
 
-        var backgroundImage = canvas.toDataURL('image/png');
-        this.el.style.backgroundImage = 'url("' + backgroundImage + '")';
+        var backgroundPosition = opt.position || 'center';
+        var backgroundSize = opt.size || 'auto auto';
+
+        var currentScale = this.scale();
+        var currentTranslate = this.translate();
+
+        // backgroundPosition
+        if (_.isObject(backgroundPosition)) {
+            var x = currentTranslate.tx + (currentScale.sx * (backgroundPosition.x || 0));
+            var y = currentTranslate.ty + (currentScale.sy * (backgroundPosition.y || 0));
+            backgroundPosition = x + 'px ' + y + 'px';
+        }
+
+        // backgroundSize
+        if (_.isObject(backgroundSize)) {
+            backgroundSize = g.rect(backgroundSize).scale(currentScale.sx, currentScale.sy);
+            backgroundSize = backgroundSize.width + 'px ' + backgroundSize.height + 'px';
+        }
+
+        this.$background.css({
+            backgroundSize: backgroundSize,
+            backgroundPosition: backgroundPosition
+        });
+    },
+
+    drawBackgroundImage: function(img, opt) {
+
+        // Clear the background image if no image provided
+        if (!(img instanceof HTMLImageElement)) {
+            this.$background.css('backgroundImage', '');
+            return;
+        }
+
+        opt = opt || {};
+
+        var backgroundImage;
+        var backgroundSize = opt.size;
+        var backgroundRepeat = opt.repeat || 'no-repeat';
+        var backgroundOpacity = opt.opacity || 1;
+        var backgroundQuality = Math.abs(opt.quality) || 1;
+        var backgroundPattern = this.constructor.backgroundPatterns[_.camelCase(backgroundRepeat)];
+
+        if (_.isFunction(backgroundPattern)) {
+            // 'flip-x', 'flip-y', 'flip-xy', 'watermark' and custom
+            img.width *= backgroundQuality;
+            img.height *= backgroundQuality;
+            var canvas = backgroundPattern(img, opt);
+            if (!(canvas instanceof HTMLCanvasElement)) {
+                throw new Error('dia.Paper: background pattern must return an HTML Canvas instance');
+            }
+
+            backgroundImage = canvas.toDataURL('image/png');
+            backgroundRepeat = 'repeat';
+            if (_.isObject(backgroundSize)) {
+                // recalculate the tile size if an object passed in
+                backgroundSize.width *= canvas.width / img.width;
+                backgroundSize.height *= canvas.height / img.height;
+            } else if (_.isUndefined(backgroundSize)) {
+                // calcule the tile size if no provided
+                opt.size = {
+                    width: canvas.width / backgroundQuality,
+                    height: canvas.height / backgroundQuality
+                };
+            }
+        } else {
+            // backgroundRepeat:
+            // no-repeat', 'round', 'space', 'repeat', 'repeat-x', 'repeat-y'
+            backgroundImage = img.src;
+            if (_.isUndefined(backgroundSize)) {
+                // pass the image size for  the backgroundSize if no size provided
+                opt.size = {
+                    width: img.width,
+                    height: img.height
+                };
+            }
+        }
+
+        this.$background.css({
+            opacity: backgroundOpacity,
+            backgroundRepeat: backgroundRepeat,
+            backgroundImage: 'url(' + backgroundImage + ')'
+        });
+
+        this.updateBackgroundImage(opt);
+    },
+
+    updateBackgroundColor: function(color) {
+
+        this.$el.css('backgroundColor', color || '');
+    },
+
+    drawBackground: function(opt) {
+
+        opt = opt || {};
+
+        this.updateBackgroundColor(opt.color);
+
+        if (opt.image) {
+            opt = this._background = _.cloneDeep(opt);
+            var img = document.createElement('img');
+            img.onload = _.bind(this.drawBackgroundImage, this, img, opt);
+            img.src = opt.image;
+        } else {
+            this.drawBackgroundImage(null);
+            this._background = null;
+        }
 
         return this;
     },
@@ -10573,6 +11232,146 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         _.invoke(this._views, 'setInteractivity', value);
     }
+}, {
+
+    backgroundPatterns: {
+
+        flipXy: function(img) {
+            // d b
+            // q p
+
+            var canvas = document.createElement('canvas');
+            var imgWidth = img.width;
+            var imgHeight = img.height;
+
+            canvas.width = 2 * imgWidth;
+            canvas.height = 2 * imgHeight;
+
+            var ctx = canvas.getContext('2d');
+            // top-left image
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+            // xy-flipped bottom-right image
+            ctx.setTransform(-1, 0, 0, -1, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+            // x-flipped top-right image
+            ctx.setTransform(-1, 0, 0, 1, canvas.width, 0);
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+            // y-flipped bottom-left image
+            ctx.setTransform(1, 0, 0, -1, 0, canvas.height);
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+            return canvas;
+        },
+
+        flipX: function(img) {
+            // d b
+            // d b
+
+            var canvas = document.createElement('canvas');
+            var imgWidth = img.width;
+            var imgHeight = img.height;
+
+            canvas.width = imgWidth * 2;
+            canvas.height = imgHeight;
+
+            var ctx = canvas.getContext('2d');
+            // left image
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+            // flipped right image
+            ctx.translate(2 * imgWidth, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+            return canvas;
+        },
+
+        flipY: function(img) {
+            // d d
+            // q q
+
+            var canvas = document.createElement('canvas');
+            var imgWidth = img.width;
+            var imgHeight = img.height;
+
+            canvas.width = imgWidth;
+            canvas.height = imgHeight * 2;
+
+            var ctx = canvas.getContext('2d');
+            // top image
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+            // flipped bottom image
+            ctx.translate(0, 2 * imgHeight);
+            ctx.scale(1, -1);
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+            return canvas;
+        },
+
+        watermark: function(img, opt) {
+            //   d
+            // d
+
+            opt = opt || {};
+
+            var imgWidth = img.width;
+            var imgHeight = img.height;
+
+            var canvas = document.createElement('canvas');
+            canvas.width = imgWidth * 3;
+            canvas.height = imgHeight * 3;
+
+            var ctx = canvas.getContext('2d');
+            var angle = _.isNumber(opt.watermarkAngle) ? -opt.watermarkAngle : -20;
+            var radians = g.toRad(angle);
+            var stepX = canvas.width / 4;
+            var stepY = canvas.height / 4;
+
+            for (var i = 0; i < 4; i ++) {
+                for (var j = 0; j < 4; j++) {
+                    if ((i + j) % 2 > 0) {
+                        // reset the current transformations
+                        ctx.setTransform(1, 0, 0, 1, (2 * i - 1) * stepX, (2 * j - 1)  * stepY);
+                        ctx.rotate(radians);
+                        ctx.drawImage(img, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
+                    }
+                }
+            }
+
+            return canvas;
+        },
+
+        grid: function(img, opt) {
+
+            opt = opt || {};
+
+            var size = opt.size;
+            var ox = opt.ox || 0;
+            var oy = opt.oy || 0;
+            var sx = opt.sx || 1;
+            var sy = opt.sy || 1;
+            var thickness = opt.thickness || 1;
+            var color = opt.color || '#aaa';
+
+            var canvas = document.createElement('canvas');
+
+            var width = canvas.width = Math.round(size * sx);
+            var x = ox % width;
+            if (x < 0) x += width;
+
+            var height = canvas.height = Math.round(size * sy);
+            var y = oy % height;
+            if (y < 0) y += height;
+
+            var context = canvas.getContext('2d');
+            context.beginPath();
+            context.rect(x, y, thickness * sx, thickness * sy);
+            context.fillStyle = color;
+            context.fill();
+
+            return canvas;
+        }
+    }
+
 });
 
 (function(joint, _) {
@@ -12800,7 +13599,7 @@ joint.connectors.jumpover = (function(_, g) {
             updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
             jumpOverLinkView.paper.on('cell:pointerup', updateJumpOver);
             jumpOverLinkView.paper.model.on('reset', function() {
-                updateList = [];
+                updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
             });
         }
 
@@ -13544,6 +14343,18 @@ joint.highlighters.stroke = {
 
     _views: {},
 
+    getHighlighterId: function(magnetEl, opt) {
+
+        return magnetEl.id + JSON.stringify(opt);
+    },
+
+    removeHighlighter: function(id) {
+        if (this._views[id]) {
+            this._views[id].remove();
+            this._views[id] = null;
+        }
+    },
+
     /**
      * @param {joint.dia.CellView} cellView
      * @param {Element} magnetEl
@@ -13551,13 +14362,15 @@ joint.highlighters.stroke = {
      */
     highlight: function(cellView, magnetEl, opt) {
 
+        var id = this.getHighlighterId(magnetEl, opt);
+
         // Only highlight once.
-        if (this._views[magnetEl.id]) return;
+        if (this._views[id]) return;
 
         var options = _.defaults(opt || {}, this.defaultOptions);
 
         var magnetVel = V(magnetEl);
-        var magnetBBox = magnetVel.bbox(true/* without transforms */);
+        var magnetBBox;
 
         try {
 
@@ -13567,6 +14380,7 @@ joint.highlighters.stroke = {
 
             // Failed to get path data from magnet element.
             // Draw a rectangle around the entire cell view instead.
+            magnetBBox = magnetVel.bbox(true/* without transforms */);
             pathData = V.rectToPath(_.extend({}, options, magnetBBox));
         }
 
@@ -13583,6 +14397,7 @@ joint.highlighters.stroke = {
         var padding = options.padding;
         if (padding) {
 
+            magnetBBox || (magnetBBox = magnetVel.bbox(true));
             // Add padding to the highlight element.
             var cx = magnetBBox.x + (magnetBBox.width / 2);
             var cy = magnetBBox.y + (magnetBBox.height / 2);
@@ -13599,15 +14414,17 @@ joint.highlighters.stroke = {
         }
 
         // joint.mvc.View will handle the theme class name and joint class name prefix.
-        var highlightView = this._views[magnetEl.id] = new joint.mvc.View({
+        var highlightView = this._views[id] = new joint.mvc.View({
+            svgElement: true,
             className: 'highlight-stroke',
-            // This is necessary because we're passing in a vectorizer element (not jQuery).
-            el: highlightVel.node,
-            $el: highlightVel
+            el: highlightVel.node
         });
 
         // Remove the highlight view when the cell is removed from the graph.
-        highlightView.listenTo(cellView.model, 'remove', highlightView.remove);
+        var removeHandler = _.bind(this.removeHighlighter, this, id);
+        var cell = cellView.model;
+        highlightView.listenTo(cell, 'remove', removeHandler);
+        highlightView.listenTo(cell.graph, 'reset', removeHandler);
 
         cellView.vel.append(highlightVel);
     },
@@ -13619,10 +14436,7 @@ joint.highlighters.stroke = {
      */
     unhighlight: function(cellView, magnetEl, opt) {
 
-        if (this._views[magnetEl.id]) {
-            this._views[magnetEl.id].remove();
-            this._views[magnetEl.id] = null;
-        }
+        this.removeHighlighter(this.getHighlighterId(magnetEl, opt));
     }
 };
 

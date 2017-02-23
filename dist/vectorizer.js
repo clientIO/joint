@@ -1,4 +1,4 @@
-/*! JointJS v1.0.3 (2016-11-22) - JavaScript diagramming library
+/*! JointJS v1.1.0-alpha.1 (2017-02-23) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -179,7 +179,7 @@ V = Vectorizer = (function() {
 
         var transformAttr = this.attr('transform') || '';
         var transform = V.parseTransformString(transformAttr);
-
+        transformAttr = transform.value;
         // Is it a getter?
         if (V.isUndefined(tx)) {
             return transform.translate;
@@ -203,6 +203,7 @@ V = Vectorizer = (function() {
 
         var transformAttr = this.attr('transform') || '';
         var transform = V.parseTransformString(transformAttr);
+        transformAttr = transform.value;
 
         // Is it a getter?
         if (V.isUndefined(angle)) {
@@ -228,6 +229,7 @@ V = Vectorizer = (function() {
 
         var transformAttr = this.attr('transform') || '';
         var transform = V.parseTransformString(transformAttr);
+        transformAttr = transform.value;
 
         // Is it a getter?
         if (V.isUndefined(sx)) {
@@ -303,7 +305,11 @@ V = Vectorizer = (function() {
         // An empty text gets rendered into the DOM in webkit-based browsers.
         // In order to unify this behaviour across all browsers
         // we rather hide the text element when it's empty.
-        this.attr('display', content ? null : 'none');
+        if (content) {
+            this.removeAttr('display');
+        } else {
+            this.attr('display', 'none');
+        }
 
         // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
         this.attr('xml:space', 'preserve');
@@ -352,17 +358,19 @@ V = Vectorizer = (function() {
         }
 
         var offset = 0;
+        var x = this.attr('x') || 0;
+
+        // Shift all the <tspan> but first by one line (`1em`)
+        var lineHeight = opt.lineHeight || '1em';
+        if (opt.lineHeight === 'auto') {
+            lineHeight = '1.5em';
+        }
 
         for (var i = 0; i < lines.length; i++) {
 
             var line = lines[i];
-            // Shift all the <tspan> but first by one line (`1em`)
-            var lineHeight = opt.lineHeight || '1em';
-            if (opt.lineHeight === 'auto') {
-                lineHeight = '1.5em';
-            }
-            var vLine = V('tspan', { dy: (i == 0 ? '0em' : lineHeight), x: this.attr('x') || 0 });
-            vLine.addClass('v-line');
+
+            var vLine = V('tspan', { 'class': 'v-line',  dy: (i == 0 ? '0em' : lineHeight), x: x });
 
             if (line) {
 
@@ -1054,31 +1062,120 @@ V = Vectorizer = (function() {
         };
     };
 
+    V.transformRegex = /(\w+)\(([^,)]+),?([^)]+)?\)/gi;
+    V.transformSeparatorRegex = /[ ,]+/;
+
+    V.transformStringToMatrix = function(transform) {
+
+        var transformationMatrix = V.createSVGMatrix();
+        var matches = transform && transform.match(V.transformRegex);
+        if (!matches) {
+            return transformationMatrix;
+        }
+
+        return matches.reduce(function(resultMatrix, transformationString) {
+            var transformationMatch = transformationString.match(/^(\w+)\((.*)\)/);
+            if (transformationMatch) {
+                var sx, sy, tx, ty, angle;
+                var ctm = V.createSVGMatrix();
+                var args = transformationMatch[2].split(V.transformSeparatorRegex);
+                switch(transformationMatch[1].toLowerCase()) {
+                    case 'scale':
+                        sx = parseFloat(args[0]);
+                        sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
+                        ctm = ctm.scaleNonUniform(sx, sy);
+                        break;
+                    case 'translate':
+                        tx = parseFloat(args[0]);
+                        ty = parseFloat(args[1]);
+                        ctm = ctm.translate(tx, ty);
+                        break;
+                    case 'rotate':
+                        angle = parseFloat(args[0]);
+                        tx = parseFloat(args[1]) || 0;
+                        ty = parseFloat(args[2]) || 0;
+                        if (tx !== 0 || ty !== 0) {
+                            ctm = ctm.translate(tx, ty).rotate(angle).translate(-tx, -ty);
+                        } else {
+                            ctm = ctm.rotate(angle);
+                        }
+                        break;
+                    case 'skewx':
+                        angle = parseFloat(args[0]);
+                        ctm = ctm.skewX(angle);
+                        break;
+                    case 'skewy':
+                        angle = parseFloat(args[0]);
+                        ctm = ctm.skewY(angle);
+                        break;
+                    case 'matrix':
+                        ctm.a = parseFloat(args[0]);
+                        ctm.b = parseFloat(args[1]);
+                        ctm.c = parseFloat(args[2]);
+                        ctm.d = parseFloat(args[3]);
+                        ctm.e = parseFloat(args[4]);
+                        ctm.f = parseFloat(args[5]);
+                        break;
+                    default:
+                        return resultMatrix;
+                }
+
+                return resultMatrix.multiply(ctm);
+            }
+        }, transformationMatrix);
+    };
+
     V.parseTransformString = function(transform) {
 
         var translate, rotate, scale;
 
         if (transform) {
 
-            var separator = /[ ,]+/;
+            var separator = V.transformSeparatorRegex;
 
-            var translateMatch = transform.match(/translate\((.*)\)/);
-            if (translateMatch) {
-                translate = translateMatch[1].split(separator);
-            }
-            var rotateMatch = transform.match(/rotate\((.*)\)/);
-            if (rotateMatch) {
-                rotate = rotateMatch[1].split(separator);
-            }
-            var scaleMatch = transform.match(/scale\((.*)\)/);
-            if (scaleMatch) {
-                scale = scaleMatch[1].split(separator);
+            // Allow reading transform string with a single matrix
+            if (transform.trim().indexOf('matrix') >= 0) {
+
+                var matrix = V.transformStringToMatrix(transform);
+                var decomposedMatrix = V.decomposeMatrix(matrix);
+
+                translate = [decomposedMatrix.translateX, decomposedMatrix.translateY];
+                scale = [decomposedMatrix.scaleX, decomposedMatrix.scaleY];
+                rotate = [decomposedMatrix.rotation];
+
+                var transformations = [];
+                if (translate[0] !== 0 ||  translate[0] !== 0) {
+                    transformations.push('translate(' + translate + ')');
+                }
+                if (scale[0] !== 1 ||  scale[1] !== 1) {
+                    transformations.push('scale(' + scale + ')');
+                }
+                if (rotate[0] !== 0) {
+                    transformations.push('rotate(' + rotate + ')');
+                }
+                transform = transformations.join(' ');
+
+            } else {
+
+                var translateMatch = transform.match(/translate\((.*)\)/);
+                if (translateMatch) {
+                    translate = translateMatch[1].split(separator);
+                }
+                var rotateMatch = transform.match(/rotate\((.*)\)/);
+                if (rotateMatch) {
+                    rotate = rotateMatch[1].split(separator);
+                }
+                var scaleMatch = transform.match(/scale\((.*)\)/);
+                if (scaleMatch) {
+                    scale = scaleMatch[1].split(separator);
+                }
             }
         }
 
         var sx = (scale && scale[0]) ? parseFloat(scale[0]) : 1;
 
         return {
+            value: transform,
             translate: {
                 tx: (translate && translate[0]) ? parseInt(translate[0], 10) : 0,
                 ty: (translate && translate[1]) ? parseInt(translate[1], 10) : 0
@@ -1125,6 +1222,49 @@ V = Vectorizer = (function() {
             rotation: skewX // rotation is the same as skew x
         };
     };
+
+    // Return the `scale` transformation from the following equation:
+    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
+    V.matrixToScale = function(matrix) {
+
+        var a,b,c,d;
+        if (matrix) {
+            a = V.isUndefined(matrix.a) ? 1 : matrix.a;
+            d = V.isUndefined(matrix.d) ? 1 : matrix.d;
+            b = matrix.b;
+            c = matrix.c;
+        } else {
+            a = d = 1;
+        }
+        return {
+            sx: b ? Math.sqrt(a * a + b * b) : a,
+            sy: c ? Math.sqrt(c * c + d * d) : d
+        };
+    },
+
+    // Return the `rotate` transformation from the following equation:
+    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
+    V.matrixToRotate = function(matrix) {
+
+        var p = { x: 0, y: 1 };
+        if (matrix) {
+            p =  V.deltaTransformPoint(matrix, p);
+        }
+
+        return {
+            angle: g.normalizeAngle(g.toDeg(Math.atan2(p.y, p.x)) - 90)
+        };
+    },
+
+    // Return the `translate` transformation from the following equation:
+    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
+    V.matrixToTranslate = function(matrix) {
+
+        return {
+            tx: (matrix && matrix.e) || 0,
+            ty: (matrix && matrix.f) || 0
+        };
+    },
 
     V.isV = function(object) {
 
