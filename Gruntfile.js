@@ -212,7 +212,7 @@ module.exports = function(grunt) {
                    'types/plugins/shapes/index.d.ts',
                    'types/plugins/shapes/joint.shapes.basic.d.ts'
                  ],
-                 dest: "dist/joint.d.ts"
+                 dest: 'dist/joint.d.ts'
             },
             geometry: {
                 files: {
