@@ -195,6 +195,25 @@ module.exports = function(grunt) {
             }
         },
         concat: {
+            types: {
+                 src: [
+                   'types/index.d.ts',
+                   'types/core.d.ts',
+                   'types/geometry.d.ts',
+                   'types/joint.dia.cell.d.ts',
+                   'types/joint.dia.element.d.ts',
+                   'types/joint.dia.graph.d.ts',
+                   'types/joint.dia.link.d.ts',
+                   'types/joint.dia.paper.d.ts',
+                   'types/joint.mvc.view.d.ts',
+                   'types/vectorizer.d.ts',
+                   'types/plugins/layout/index.d.ts',
+                   'types/plugins/layout/joint.layout.DirectedGraph.d.ts',
+                   'types/plugins/shapes/index.d.ts',
+                   'types/plugins/shapes/joint.shapes.basic.d.ts'
+                 ],
+                 dest: 'dist/joint.d.ts'
+            },
             geometry: {
                 files: {
                     'build/geometry.js': [].concat(
@@ -772,7 +791,8 @@ module.exports = function(grunt) {
         'clean:dist',
         'clean:build',
         'build:all',
-        'copy:dist'
+        'copy:dist',
+        'concat:types'
     ]);
 
     grunt.registerTask('test:server', ['mochaTest:server']);
