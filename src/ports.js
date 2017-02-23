@@ -273,10 +273,13 @@
                 throw new Error('Element: unable to find port with id ' + portId);
             }
 
-            var args;
-            if (_.isString(path)) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            if (_.isArray(path)) {
+                var clone = path.slice();
+                clone.unshift('ports', 'items', index);
+                args[0] = clone;
+            } else if (_.isString(path)) {
 
-                args = Array.prototype.slice.call(arguments, 1);
                 // Get/set an attribute by a special path syntax that delimits
                 // nested objects by the colon character.
                 args[0] = ['ports/items/', index, '/', path].join('');

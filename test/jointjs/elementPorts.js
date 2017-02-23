@@ -100,7 +100,7 @@ QUnit.module('element ports', function() {
 
         QUnit.test('getPortIndex', function(assert) {
 
-            var idObject = { };
+            var idObject = {};
             var ports = [
                 true,
                 { id: 'aaa', 'group_id': 'in' },
@@ -577,5 +577,23 @@ QUnit.module('element ports', function() {
             var prop = shape.portProp('one', 'attrs/.body');
             assert.equal(prop.fill, 'red');
         });
+
+        QUnit.test('set port props, path defined as an array', function(assert) {
+
+            var shape = create({
+                items: [
+                    { id: 'one' }
+                ]
+            });
+
+            shape.portProp('one', ['array', 20], 'array item');
+            shape.portProp('one', ['object', '20'], 'object property');
+
+            assert.ok(_.isArray(shape.portProp('one', 'array')));
+            assert.equal(shape.portProp('one', 'array')[20], 'array item');
+
+            assert.ok(_.isPlainObject(shape.portProp('one', 'object')));
+            assert.equal(shape.portProp('one', 'object/20'), 'object property');
+        })
     });
 });
