@@ -73,4 +73,3 @@ declare namespace joint {
         class CellView extends CellViewGeneric<Cell> { }
     }
 }
-

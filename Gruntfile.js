@@ -197,7 +197,6 @@ module.exports = function(grunt) {
         concat: {
             types: {
                  src: [
-                   'types/index.d.ts',
                    'types/core.d.ts',
                    'types/geometry.d.ts',
                    'types/joint.dia.cell.d.ts',

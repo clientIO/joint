@@ -1,12 +1,3 @@
-export = joint;
-export as namespace Joint;
-
-import * as Backbone from 'backbone';
-
-declare namespace joint {
-
-}
-
 declare namespace joint {
     const version: string;
 
@@ -410,7 +401,6 @@ declare namespace joint {
     }
 }
 
-
 declare namespace joint {
     namespace dia {
 
@@ -750,6 +740,7 @@ declare namespace joint {
         }
     }
 }
+
 declare namespace joint {
     namespace layout {
         class DirectedGraph {
@@ -757,6 +748,7 @@ declare namespace joint {
         }
     }
 }
+
 declare namespace joint {
     namespace shapes {
         interface GenericAttributes<T> extends dia.CellAttributes {
