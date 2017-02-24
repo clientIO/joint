@@ -420,13 +420,14 @@ joint.dia.Cell = Backbone.Model.extend({
                 }
 
                 var property = pathArray[0];
+                var pathArrayLength = pathArray.length;
 
                 opt = opt || {};
                 opt.propertyPath = path;
                 opt.propertyValue = value;
                 opt.propertyPathArray = pathArray;
 
-                if (pathArray.length === 1) {
+                if (pathArrayLength === 1) {
                     // Property is not nested. We can simply use `set()`.
                     return this.set(property, value, opt);
                 }
@@ -439,10 +440,10 @@ joint.dia.Cell = Backbone.Model.extend({
                 var initializer = update;
                 var prevProperty = property;
 
-                for (var i = 1; i < pathArray.length; i++) {
+                for (var i = 1; i < pathArrayLength; i++) {
                     var pathItem = pathArray[i];
-                    var initializerValue = _.isFinite(isString ? Number(pathItem) : pathItem) ? [] : {};
-                    initializer = initializer[prevProperty] = initializerValue;
+                    var isArrayIndex = _.isFinite(isString ? Number(pathItem) : pathItem);
+                    initializer = initializer[prevProperty] = isArrayIndex ? [] : {};
                     prevProperty = pathItem;
                 }
 
