@@ -1,3 +1,6 @@
+??-??-???? (v1.1.0)
+ * ports events `ports:add` and `ports:remove` triggered when port is added to element/removed from element
+
 18-11-2016 (v1.0.3)
   * make compatibility changes towards jQuery 3.1
   * shapes.TextBlock - fix `SVGForeignObject` detection

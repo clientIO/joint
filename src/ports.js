@@ -397,7 +397,40 @@
                 throw new Error(err.join(' '));
             }
 
+            var prevPortData;
+
+            if (this._portSettingsData) {
+
+                prevPortData = this._portSettingsData.getPorts();
+            }
+
             this._portSettingsData = new PortData(this.get('ports'));
+
+            var curPortData = this._portSettingsData.getPorts();
+
+            if (prevPortData) {
+
+                // _.filter can be replaced with _.differenceBy in lodash 4
+                var added = _.filter(curPortData, function(item) {
+                    if (!_.find(prevPortData, 'id', item.id)) {
+                        return item;
+                    }
+                });
+
+                var removed = _.filter(prevPortData, function(item) {
+                    if (!_.find(curPortData, 'id', item.id)) {
+                        return item;
+                    }
+                });
+
+                if (removed.length > 0) {
+                    this.trigger('ports:remove', this, removed);
+                }
+
+                if (added.length > 0) {
+                    this.trigger('ports:add', this, added);
+                }
+            }
         }
     });
 
