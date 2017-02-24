@@ -400,25 +400,34 @@ joint.dia.Cell = Backbone.Model.extend({
     prop: function(props, value, opt) {
 
         var delim = '/';
+        var isString = _.isString(props);
 
-        if (_.isString(props)) {
+        if (isString || _.isArray(props)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
 
             if (arguments.length > 1) {
 
-                var path = props;
-                var pathArray = path.split('/');
-                var property = pathArray[0];
+                var path;
+                var pathArray;
 
-                // Remove the top-level property from the array of properties.
-                pathArray.shift();
+                if (isString) {
+                    path = props;
+                    pathArray = path.split('/')
+                } else {
+                    path = props.join(delim);
+                    pathArray = props.slice();
+                }
+
+                var property = pathArray[0];
+                var pathArrayLength = pathArray.length;
 
                 opt = opt || {};
                 opt.propertyPath = path;
                 opt.propertyValue = value;
+                opt.propertyPathArray = pathArray;
 
-                if (pathArray.length === 0) {
+                if (pathArrayLength === 1) {
                     // Property is not nested. We can simply use `set()`.
                     return this.set(property, value, opt);
                 }
@@ -430,12 +439,16 @@ joint.dia.Cell = Backbone.Model.extend({
                 // Pure integer keys will cause issues and are therefore not allowed.
                 var initializer = update;
                 var prevProperty = property;
-                _.each(pathArray, function(key) {
-                    initializer = initializer[prevProperty] = (_.isFinite(Number(key)) ? [] : {});
-                    prevProperty = key;
-                });
+
+                for (var i = 1; i < pathArrayLength; i++) {
+                    var pathItem = pathArray[i];
+                    var isArrayIndex = _.isFinite(isString ? Number(pathItem) : pathItem);
+                    initializer = initializer[prevProperty] = isArrayIndex ? [] : {};
+                    prevProperty = pathItem;
+                }
+
                 // Fill update with the `value` on `path`.
-                update = joint.util.setByPath(update, path, value, '/');
+                update = joint.util.setByPath(update, pathArray, value, '/');
 
                 var baseAttributes = _.merge({}, this.attributes);
                 // if rewrite mode enabled, we replace value referenced by path with
@@ -465,7 +478,7 @@ joint.dia.Cell = Backbone.Model.extend({
         opt = opt || {};
         opt.dirty = true;
 
-        var pathArray = path.split('/');
+        var pathArray = _.isArray(path) ? path : path.split('/');
 
         if (pathArray.length === 1) {
             // A top level property
@@ -474,7 +487,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         // A nested property
         var property = pathArray[0];
-        var nestedPath = pathArray.slice(1).join('/');
+        var nestedPath = pathArray.slice(1);
         var propertyValue = _.merge({}, this.get(property));
 
         joint.util.unsetByPath(propertyValue, nestedPath, '/');
@@ -487,7 +500,9 @@ joint.dia.Cell = Backbone.Model.extend({
 
         var args = Array.prototype.slice.call(arguments);
 
-        if (_.isString(attrs)) {
+        if (_.isArray(attrs)) {
+            args[0] = ['attrs'].concat(attrs);
+        } else if (_.isString(attrs)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
             args[0] = 'attrs/' + attrs;
@@ -504,8 +519,8 @@ joint.dia.Cell = Backbone.Model.extend({
     removeAttr: function(path, opt) {
 
         if (_.isArray(path)) {
-            _.each(path, function(p) { this.removeAttr(p, opt); }, this);
-            return this;
+
+            return this.removeProp(['attrs'].concat(path));
         }
 
         return this.removeProp('attrs/' + path, opt);

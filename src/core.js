@@ -113,8 +113,7 @@ var joint = {
 
         getByPath: function(obj, path, delim) {
 
-            delim = delim || '/';
-            var keys = path.split(delim);
+            var keys = _.isArray(path) ? path.slice() : path.split(delim || '/');
             var key;
 
             while (keys.length) {
@@ -130,23 +129,18 @@ var joint = {
 
         setByPath: function(obj, path, value, delim) {
 
-            delim = delim || '/';
+            var keys = _.isArray(path) ? path : path.split(delim || '/');
 
-            var keys = path.split(delim);
             var diver = obj;
             var i = 0;
 
-            if (path.indexOf(delim) > -1) {
-
-                for (var len = keys.length; i < len - 1; i++) {
-                    // diver creates an empty object if there is no nested object under such a key.
-                    // This means that one can populate an empty nested object with setByPath().
-                    diver = diver[keys[i]] || (diver[keys[i]] = {});
-                }
-                diver[keys[len - 1]] = value;
-            } else {
-                obj[path] = value;
+            for (var len = keys.length; i < len - 1; i++) {
+                // diver creates an empty object if there is no nested object under such a key.
+                // This means that one can populate an empty nested object with setByPath().
+                diver = diver[keys[i]] || (diver[keys[i]] = {});
             }
+            diver[keys[len - 1]] = value;
+
             return obj;
         },
 
@@ -154,22 +148,22 @@ var joint = {
 
             delim = delim || '/';
 
-            // index of the last delimiter
-            var i = path.lastIndexOf(delim);
+            var pathArray = _.isArray(path) ? path.slice() : path.split(delim);
 
-            if (i > -1) {
+            var propertyToRemove = pathArray.pop();
+            if (pathArray.length > 0) {
 
                 // unsetting a nested attribute
-                var parent = joint.util.getByPath(obj, path.substr(0, i), delim);
+                var parent = joint.util.getByPath(obj, pathArray, delim);
 
                 if (parent) {
-                    delete parent[path.slice(i + 1)];
+                    delete parent[propertyToRemove];
                 }
 
             } else {
 
                 // unsetting a primitive attribute
-                delete obj[path];
+                delete obj[propertyToRemove];
             }
 
             return obj;
