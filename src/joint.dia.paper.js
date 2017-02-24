@@ -1412,9 +1412,9 @@ joint.dia.Paper = joint.mvc.View.extend({
             {
                 color: '#aaa',
                 thickness: 1,
-                updateGridPattern: function () {
+                updateGridPattern: function (el) {
                     var size = options.sx <= 1 ? options.thickness * options.sx : options.thickness;
-                    gridData.gridShape.attr({ width: size, height: size, fill: opt.color });
+                    V(el).attr({ width: size, height: size, fill: opt.color });
                 },
                 gridPattern: '<rect />',
 
@@ -1428,12 +1428,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var gridData = this.getGridData(options);
 
-        var hasDefaultGridShape = options.gridPattern === null;
-
         if (_.isFunction(options.updateGridPattern)) {
             options.updateGridPattern(gridData.gridShape.node, options);
-        } else if (hasDefaultGridShape) {
-
         }
 
         var x = options.ox % options.width;
