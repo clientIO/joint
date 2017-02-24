@@ -289,7 +289,7 @@ QUnit.module('element ports', function() {
                     { group: 'a' }
                 ]);
 
-                var ports = shape.portData.getPorts();
+                var ports = shape._portSettingsData.getPorts();
 
                 assert.equal(ports[0].z, 0);
                 assert.equal(ports[1].z, 'auto');
@@ -441,14 +441,18 @@ QUnit.module('element ports', function() {
             var shape = create(data);
             new joint.dia.ElementView({ model: shape }).render();
 
-            var portData = shape.portData;
+            var getPort = function (id) {
+                return _.find(shape._portSettingsData.ports, function(p) {
+                    return p.id === id;
+                });
+            };
 
-            assert.equal(portData.getPort('pa').position.name, 'right');
-            assert.equal(portData.getPort('pa').position.args.y, 20);
-            assert.equal(portData.getPort('pa').position.args.x, 10);
+            assert.equal(getPort('pa').position.name, 'right');
+            assert.equal(getPort('pa').position.args.y, 20);
+            assert.equal(getPort('pa').position.args.x, 10);
 
-            assert.equal(portData.getPort('pb').position.name, 'top');
-            assert.equal(portData.getPort('pb').position.args.y, 20);
+            assert.equal(getPort('pb').position.name, 'top');
+            assert.equal(getPort('pb').position.args.y, 20);
         });
 
         QUnit.test('resolve port labels', function(assert) {
@@ -475,18 +479,22 @@ QUnit.module('element ports', function() {
             var shape = create(data);
             new joint.dia.ElementView({ model: shape }).render();
 
-            var portData = shape.portData;
+            var getPort = function (id) {
+                return _.find(shape._portSettingsData.ports, function(p) {
+                    return p.id === id;
+                });
+            };
 
-            assert.equal(portData.getPort('pa1').label.position.name, 'top', 'override group settings');
-            assert.equal(portData.getPort('pa1').label.position.args.tx, 11);
-            assert.equal(portData.getPort('pa1').label.position.args.ty, 20);
+            assert.equal(getPort('pa1').label.position.name, 'top', 'override group settings');
+            assert.equal(getPort('pa1').label.position.args.tx, 11);
+            assert.equal(getPort('pa1').label.position.args.ty, 20);
 
-            assert.equal(portData.getPort('pa2').label.position.name, 'right', 'gets settings from group');
+            assert.equal(getPort('pa2').label.position.name, 'right', 'gets settings from group');
 
-            assert.equal(portData.getPort('pb1').label.position.name, 'left', 'default settings, extra args');
-            assert.equal(portData.getPort('pb1').label.position.args.tx, 11);
+            assert.equal(getPort('pb1').label.position.name, 'left', 'default settings, extra args');
+            assert.equal(getPort('pb1').label.position.args.tx, 11);
 
-            assert.equal(portData.getPort('pb2').label.position.name, 'left', 'defaults - no settings on group, either on port label');
+            assert.equal(getPort('pb2').label.position.name, 'left', 'defaults - no settings on group, either on port label');
         });
     });
 
@@ -542,6 +550,29 @@ QUnit.module('element ports', function() {
         });
     });
 
+    QUnit.module('getPortsPositions', function() {
+
+        QUnit.test('ports positions can be retrieved even if element is not rendered yet', function(assert) {
+
+            var shape = create({
+                groups: {
+                    'a': { position: 'left' }
+                },
+                items: [
+                    { id: 'one', group: 'a' },
+                    { id: 'two', group: 'a' },
+                    { id: 'three', group: 'a' }
+                ]
+            }).set('size', { width: 5, height: 10 });
+
+            var portsPositions = shape.getPortsPositions('a');
+
+            assert.ok(portsPositions.one.y > 0);
+            assert.ok(portsPositions.one.y < portsPositions.two.y);
+            assert.ok(portsPositions.two.y < portsPositions.three.y);
+        });
+    });
+
     QUnit.module('portProp', function() {
 
         QUnit.test('set port properties', function(assert) {
@@ -576,6 +607,9 @@ QUnit.module('element ports', function() {
 
             var prop = shape.portProp('one', 'attrs/.body');
             assert.equal(prop.fill, 'red');
+
+            prop = shape.portProp('one');
+            assert.ok(prop.id, 'red');
         });
 
         QUnit.test('set port props, path defined as an array', function(assert) {

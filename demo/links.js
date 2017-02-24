@@ -34,12 +34,12 @@ paper.on('link:pointerdown', function(evt, linkView, x, y) {
     console.log('link:pointerdown');
 });
 
-paper.on('link:disconnect', function(linkView, type, evt, disconnectedFrom, magnetElement) {
-    console.log('link:disconnect', type, disconnectedFrom, magnetElement);
+paper.on('link:disconnect', function(linkView, evt, disconnectedFromView, magnetElement, type) {
+    console.log('link:disconnect', type, disconnectedFromView, magnetElement);
 });
 
-paper.on('link:connect', function(linkView, evt, type, connectedTo, magnetElement) {
-    console.log('link:connect', type, connectedTo, magnetElement);
+paper.on('link:connect', function(linkView, evt, connectedToView, magnetElement, type) {
+    console.log('link:connect', type, connectedToView, magnetElement);
 });
 
 $('#perpendicularLinks').on('change', function() {
