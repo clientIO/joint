@@ -275,9 +275,7 @@
 
             var args = Array.prototype.slice.call(arguments, 1);
             if (_.isArray(path)) {
-                var clone = path.slice();
-                clone.unshift('ports', 'items', index);
-                args[0] = clone;
+                args[0] = ['ports', 'items', index].concat(path);
             } else if (_.isString(path)) {
 
                 // Get/set an attribute by a special path syntax that delimits

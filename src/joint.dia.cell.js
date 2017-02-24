@@ -440,8 +440,10 @@ joint.dia.Cell = Backbone.Model.extend({
                 var prevProperty = property;
 
                 for (var i = 1; i < pathArray.length; i++) {
-                    initializer = initializer[prevProperty] = (_.isFinite(isString ? Number(pathArray[i]) : pathArray[i]) ? [] : {});
-                    prevProperty = pathArray[i];
+                    var pathItem = pathArray[i];
+                    var initializerValue = _.isFinite(isString ? Number(pathItem) : pathItem) ? [] : {};
+                    initializer = initializer[prevProperty] = initializerValue;
+                    prevProperty = pathItem;
                 }
 
                 // Fill update with the `value` on `path`.
@@ -521,22 +523,6 @@ joint.dia.Cell = Backbone.Model.extend({
         }
 
         return this.removeProp('attrs/' + path, opt);
-    },
-
-    removeAttrs: function(attrs, opt) {
-
-        if (_.isArray(attrs)) {
-
-            var i;
-            var length = attrs.length;
-
-            for (i = 0; i < length; i++) {
-                this.removeAttr(attrs[i], opt);
-            }
-            return this;
-        }
-
-        throw new Error('Invalid argument - attrs should be an array');
     },
 
     transition: function(path, value, opt, delim) {
