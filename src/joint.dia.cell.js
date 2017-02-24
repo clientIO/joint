@@ -660,7 +660,7 @@ joint.dia.Cell = Backbone.Model.extend({
     define: function(type, defaults, protoProps, staticProps) {
 
         protoProps = _.assign({
-            defaults: _.defaultsDeep(defaults, this.prototype.defaults, { type: type })
+            defaults: _.defaultsDeep({ type: type }, defaults, this.prototype.defaults)
         }, protoProps);
 
         var Cell = this.extend(protoProps, staticProps);
@@ -984,11 +984,9 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
 
         // The final translation of the subelement.
-        var nodePosition = g.Point(0,0);
         var nodeTransform = nodeAttrs.transform || '';
         var nodeMatrix = V.transformStringToMatrix(nodeTransform);
-        var nodeTX = nodeMatrix.e;
-        var nodeTY = nodeMatrix.f;
+        var nodePosition = g.Point(nodeMatrix.e, nodeMatrix.f);
         if (nodeTransform) {
             nodeAttrs = _.omit(nodeAttrs, 'transform');
             nodeMatrix.e = nodeMatrix.f = 0;
@@ -1040,7 +1038,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
 
         // Round the coordinates to 1 decimal point.
-        nodePosition.offset(nodeTX, nodeTY).round(1);
+        nodePosition.round(1);
         nodeMatrix.e = nodePosition.x;
         nodeMatrix.f = nodePosition.y;
         node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));

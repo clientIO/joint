@@ -2,8 +2,8 @@ joint.dia.Element.define('jigsaw.Piece', {
     markup: '<g class="rotatable"><polygon/></g>',
     attrs: {
         polygon: {
-            puzzle: [0, 0, 0, 0],
-            tile: [0,0],
+            tabs: [0, 0, 0, 0],
+            image: ['', 0, 0],
             stroke: '#ddd'
         }
     }
