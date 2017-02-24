@@ -17,12 +17,6 @@
             return this.ports;
         },
 
-        getPort: function(id) {
-            return _.find(this.ports, function(p) {
-                return p.id === id;
-            });
-        },
-
         getGroup: function(name) {
             return this.groups[name] || {};
         },

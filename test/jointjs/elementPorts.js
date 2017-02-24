@@ -441,14 +441,18 @@ QUnit.module('element ports', function() {
             var shape = create(data);
             new joint.dia.ElementView({ model: shape }).render();
 
-            var portData = shape._portSettingsData;
+            var getPort = function (id) {
+                return _.find(shape._portSettingsData.ports, function(p) {
+                    return p.id === id;
+                });
+            };
 
-            assert.equal(portData.getPort('pa').position.name, 'right');
-            assert.equal(portData.getPort('pa').position.args.y, 20);
-            assert.equal(portData.getPort('pa').position.args.x, 10);
+            assert.equal(getPort('pa').position.name, 'right');
+            assert.equal(getPort('pa').position.args.y, 20);
+            assert.equal(getPort('pa').position.args.x, 10);
 
-            assert.equal(portData.getPort('pb').position.name, 'top');
-            assert.equal(portData.getPort('pb').position.args.y, 20);
+            assert.equal(getPort('pb').position.name, 'top');
+            assert.equal(getPort('pb').position.args.y, 20);
         });
 
         QUnit.test('resolve port labels', function(assert) {
@@ -475,18 +479,22 @@ QUnit.module('element ports', function() {
             var shape = create(data);
             new joint.dia.ElementView({ model: shape }).render();
 
-            var portData = shape._portSettingsData;
+            var getPort = function (id) {
+                return _.find(shape._portSettingsData.ports, function(p) {
+                    return p.id === id;
+                });
+            };
 
-            assert.equal(portData.getPort('pa1').label.position.name, 'top', 'override group settings');
-            assert.equal(portData.getPort('pa1').label.position.args.tx, 11);
-            assert.equal(portData.getPort('pa1').label.position.args.ty, 20);
+            assert.equal(getPort('pa1').label.position.name, 'top', 'override group settings');
+            assert.equal(getPort('pa1').label.position.args.tx, 11);
+            assert.equal(getPort('pa1').label.position.args.ty, 20);
 
-            assert.equal(portData.getPort('pa2').label.position.name, 'right', 'gets settings from group');
+            assert.equal(getPort('pa2').label.position.name, 'right', 'gets settings from group');
 
-            assert.equal(portData.getPort('pb1').label.position.name, 'left', 'default settings, extra args');
-            assert.equal(portData.getPort('pb1').label.position.args.tx, 11);
+            assert.equal(getPort('pb1').label.position.name, 'left', 'default settings, extra args');
+            assert.equal(getPort('pb1').label.position.args.tx, 11);
 
-            assert.equal(portData.getPort('pb2').label.position.name, 'left', 'defaults - no settings on group, either on port label');
+            assert.equal(getPort('pb2').label.position.name, 'left', 'defaults - no settings on group, either on port label');
         });
     });
 
