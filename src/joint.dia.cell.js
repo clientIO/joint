@@ -498,9 +498,7 @@ joint.dia.Cell = Backbone.Model.extend({
         var args = Array.prototype.slice.call(arguments);
 
         if (_.isArray(attrs)) {
-            var clone = attrs.slice();
-            clone.unshift('attrs');
-            args[0] = clone;
+            args[0] = ['attrs'].concat(attrs);
         } else if (_.isString(attrs)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
@@ -519,28 +517,26 @@ joint.dia.Cell = Backbone.Model.extend({
 
         if (_.isArray(path)) {
 
-            var clone = path.slice();
-            clone.unshift('attrs');
-            return this.removeProp(clone);
+            return this.removeProp(['attrs'].concat(path));
         }
 
         return this.removeProp('attrs/' + path, opt);
     },
 
-    removeAttrs: function(path, opt) {
+    removeAttrs: function(attrs, opt) {
 
-        if (_.isArray(path)) {
+        if (_.isArray(attrs)) {
 
             var i;
-            var length = path.length;
+            var length = attrs.length;
 
             for (i = 0; i < length; i++) {
-                this.removeAttr(path[i], opt);
+                this.removeAttr(attrs[i], opt);
             }
             return this;
         }
 
-        return this.removeProp('attrs/' + path, opt);
+        throw new Error('Invalid argument - attrs should be an array');
     },
 
     transition: function(path, value, opt, delim) {
