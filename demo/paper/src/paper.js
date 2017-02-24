@@ -21,7 +21,7 @@ var paper = new joint.dia.Paper({
         updateGridPattern: function(el, opt) {
             var w = opt.width, h = opt.height;
             var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h ];
-            el.attr('d', d.join(' '))
+            V(el).attr('d', d.join(' '))
         }
     },
     model: graph,

@@ -1383,7 +1383,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             svgGridElements = {
                 xmlSerializer: new XMLSerializer(),
                 pattern: V('<pattern id="grid-pattern" patternUnits="userSpaceOnUse"></pattern>'),
-                gridShape: opt.gridPattern ? V(opt.gridPattern) : V('<rect />').attr('fill', opt.color)
+                gridShape: V(opt.gridPattern)
             };
 
             var gridBackground = V('<rect width="100%" height="100%" fill="url(#grid-pattern)"/>');
@@ -1412,8 +1412,11 @@ joint.dia.Paper = joint.mvc.View.extend({
             {
                 color: '#aaa',
                 thickness: 1,
-                updateGridPattern: null,
-                gridPattern: null,
+                updateGridPattern: function () {
+                    var size = options.sx <= 1 ? options.thickness * options.sx : options.thickness;
+                    gridData.gridShape.attr({ width: size, height: size, fill: opt.color });
+                },
+                gridPattern: '<rect />',
 
                 sx: ctm.a || 1,
                 sy: ctm.d || 1,
@@ -1428,10 +1431,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         var hasDefaultGridShape = options.gridPattern === null;
 
         if (_.isFunction(options.updateGridPattern)) {
-            options.updateGridPattern(gridData.gridShape, options);
+            options.updateGridPattern(gridData.gridShape.node, options);
         } else if (hasDefaultGridShape) {
-            var size = options.sx <= 1 ? options.thickness * options.sx : options.thickness;
-            gridData.gridShape.attr({ width: size, height: size });
+
         }
 
         var x = options.ox % options.width;
