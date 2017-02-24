@@ -407,24 +407,29 @@
             this._portSettingsData = new PortData(this.get('ports'));
 
             var curPortData = this._portSettingsData.getPorts();
-            if (prevPortData && prevPortData.length < curPortData.length) {
+
+            if (prevPortData) {
 
                 // _.filter can be replaced with _.differenceBy in lodash 4
-                this.trigger('ports:add', this, _.filter(curPortData, function(item) {
+                var added = _.filter(curPortData, function(item) {
                     if (!_.find(prevPortData, 'id', item.id)) {
                         return item;
                     }
-                }));
-            }
+                });
 
-            if (prevPortData && prevPortData.length > curPortData.length) {
-
-                // _.filter can be replaced with _.differenceBy in lodash 4
-                this.trigger('ports:remove', this, _.filter(prevPortData, function (item) {
+                var removed = _.filter(prevPortData, function(item) {
                     if (!_.find(curPortData, 'id', item.id)) {
                         return item;
                     }
-                }));
+                });
+
+                if (removed.length > 0) {
+                    this.trigger('ports:remove', this, removed);
+                }
+
+                if (added.length > 0) {
+                    this.trigger('ports:add', this, added);
+                }
             }
         }
     });

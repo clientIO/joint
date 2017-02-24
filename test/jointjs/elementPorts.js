@@ -448,7 +448,7 @@ QUnit.module('element ports', function() {
             var shape = create(data);
             new joint.dia.ElementView({ model: shape }).render();
 
-            var getPort = function (id) {
+            var getPort = function(id) {
                 return _.find(shape._portSettingsData.ports, function(p) {
                     return p.id === id;
                 });
@@ -486,7 +486,7 @@ QUnit.module('element ports', function() {
             var shape = create(data);
             new joint.dia.ElementView({ model: shape }).render();
 
-            var getPort = function (id) {
+            var getPort = function(id) {
                 return _.find(shape._portSettingsData.ports, function(p) {
                     return p.id === id;
                 });
@@ -640,14 +640,9 @@ QUnit.module('element ports', function() {
 
     QUnit.module('event ports:add and ports:remove', function(hooks) {
 
-        var x = QUnit.config.testTimeout;
-        QUnit.config.testTimeout = 500;
+        QUnit.config.testTimeout = 5000;
 
-        hooks.afterEach(function() {
-            QUnit.config.testTimeout = x;
-        });
-
-        QUnit.test('jbsakfd', function(assert) {
+        QUnit.test('simple add', function(assert) {
 
             var shape = create({ items: [{}] });
 
@@ -663,6 +658,56 @@ QUnit.module('element ports', function() {
             });
 
             shape.addPort({ id: 'a' })
+        });
+
+        QUnit.test('rewrite', function(assert) {
+
+            var shape = create({ items: [{ id: 'a' }] });
+
+            assert.expect(5);
+            assert.equal(shape.getPorts().length, 1);
+
+            var eventAddDone = assert.async();
+            var eventRemoveDone = assert.async();
+
+            shape.on('ports:add', function(cell, ports) {
+                assert.equal(ports.length, 1);
+                assert.equal(ports[0].id, 'b');
+                eventAddDone();
+            });
+
+            shape.on('ports:remove', function(cell, ports) {
+                assert.equal(ports.length, 1);
+                assert.equal(ports[0].id, 'a');
+                eventRemoveDone();
+            });
+
+            shape.prop('ports/items', [{ id: 'b' }], { rewrite: true });
+        });
+
+        QUnit.test('change id', function(assert) {
+
+            var shape = create({ items: [{ id: 'a' }] });
+
+            assert.expect(5);
+            assert.equal(shape.getPorts().length, 1);
+
+            var eventAddDone = assert.async();
+            var eventRemoveDone = assert.async();
+
+            shape.on('ports:add', function(cell, ports) {
+                assert.equal(ports.length, 1);
+                assert.equal(ports[0].id, 'b');
+                eventAddDone();
+            });
+
+            shape.on('ports:remove', function(cell, ports) {
+                assert.equal(ports.length, 1);
+                assert.equal(ports[0].id, 'a');
+                eventRemoveDone();
+            });
+
+            shape.prop('ports/items/0/id', 'b');
         });
 
         QUnit.test('failed to add', function(assert) {
