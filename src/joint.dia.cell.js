@@ -987,8 +987,11 @@ joint.dia.CellView = joint.mvc.View.extend({
         var nodePosition = g.Point(0,0);
         var nodeTransform = nodeAttrs.transform || '';
         var nodeMatrix = V.transformStringToMatrix(nodeTransform);
+        var nodeTX = nodeMatrix.e;
+        var nodeTY = nodeMatrix.f;
         if (nodeTransform) {
             nodeAttrs = _.omit(nodeAttrs, 'transform');
+            nodeMatrix.e = nodeMatrix.f = 0;
         }
 
         // Calculate node scale determined by the scalable group
@@ -1037,7 +1040,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
 
         // Round the coordinates to 1 decimal point.
-        nodePosition.offset(nodeMatrix.e, nodeMatrix.f).round(1);
+        nodePosition.offset(nodeTX, nodeTY).round(1);
         nodeMatrix.e = nodePosition.x;
         nodeMatrix.f = nodePosition.y;
         node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
