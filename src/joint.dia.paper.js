@@ -1374,25 +1374,39 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this;
     },
 
-    getGridData: function (opt) {
+    createSvgGrid: function () {
+
+        var root = V('svg', { width: '100%', height: '100%' }, V('defs'));
+
+        return  root;
+    },
+
+    getGridData: function (gridshape) {
 
         var svgGridElements = this._svgGridData;
 
         if (!svgGridElements) {
 
+            var root = V('svg', { width: '100%', height: '100%' });
+            var defs = V('defs');
+
             svgGridElements = {
                 xmlSerializer: new XMLSerializer(),
-                pattern: V('<pattern id="grid-pattern" patternUnits="userSpaceOnUse"></pattern>'),
-                gridShape: V(opt.gridPattern)
+                pattern: [],
+                root: root.append(defs)
             };
 
-            var gridBackground = V('<rect width="100%" height="100%" fill="url(#grid-pattern)"/>');
-            var defs = V('defs').append(svgGridElements.pattern.append(svgGridElements.gridShape));
-            svgGridElements.root = V('svg')
-                .append(defs)
-                .append(gridBackground)
-                .addClass('background-grid')
-                .attr({ width: '100%', height: '100%' });
+            _.each(gridshape, function (item, index) {
+
+                var id = 'pattern_' + index;
+                var shape = V(item.gridPattern);
+                var pattern = V('<pattern patternUnits="userSpaceOnUse"></pattern>', { id: id }, shape);
+                svgGridElements.pattern.push(pattern);
+
+                defs.append(pattern);
+                // root.append(V('<rect width="100%" height="100%" />', { fill: 'url(#' + id + ')' }));
+            });
+
             this._svgGridData = svgGridElements
         }
 
@@ -1407,46 +1421,61 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
 
         var ctm = this.matrix();
+        var drawGrid = this.options.drawGrid;
 
-        var options = _.defaults({}, opt, this.options.drawGrid,
-            {
-                color: '#aaa',
-                thickness: 1,
-                updateGridPattern: function (el) {
-                    var size = options.sx <= 1 ? options.thickness * options.sx : options.thickness;
-                    V(el).attr({ width: size, height: size, fill: opt.color });
-                },
-                gridPattern: '<rect />',
-
-                sx: ctm.a || 1,
-                sy: ctm.d || 1,
-                ox: ctm.e || 0,
-                oy: ctm.f || 0,
-                width: gridSize * (ctm.a || 1),
-                height: gridSize * (ctm.d || 1)
-            });
-
-        var gridData = this.getGridData(options);
-
-        if (_.isFunction(options.updateGridPattern)) {
-            options.updateGridPattern(gridData.gridShape.node, options);
+        if (!_.isArray(drawGrid)) {
+            drawGrid = [drawGrid];
         }
 
-        var x = options.ox % options.width;
-        if (x < 0) x += options.width;
+        var svg = this.createSvgGrid();
+        var defs = V(svg.node.childNodes[0]);
 
-        var y = options.oy % options.height;
-        if (y < 0) y += options.height;
+        _.each(drawGrid, function (dg, index) {
 
-        gridData.pattern.attr({
-            x: x,
-            y: y,
-            width: gridSize * ctm.a,
-            height: gridSize * ctm.d
+            var id = 'pattern_'  + index;
+            var options = _.defaults({}, opt, drawGrid[index],
+                {
+                    color: '#aaa',
+                    thickness: 1,
+                    updateGridPattern: function (el, opt) {
+                        var size = options.sx <= 1 ? options.thickness * options.sx : options.thickness;
+                        V(el).attr({ width: size, height: size, fill: opt.color });
+                    },
+                    gridPattern: '<rect/>',
+                    gridScale: 1,
+                    sx: ctm.a || 1,
+                    sy: ctm.d || 1,
+                    ox: ctm.e || 0,
+                    oy: ctm.f || 0
+                });
+
+            options.width = gridSize * (ctm.a || 1) * options.gridScale;
+            options.height = gridSize * (ctm.d || 1) * options.gridScale;
+
+            var patternShapeVel = V(options.gridPattern);
+            var patternDefVel = V('<pattern patternUnits="userSpaceOnUse"></pattern>', { id: id }, patternShapeVel);
+
+            if (_.isFunction(options.updateGridPattern)) {
+                options.updateGridPattern(patternDefVel.node.childNodes[0], options);
+            }
+
+            var x = options.ox % options.width;
+            if (x < 0) x += options.width;
+
+            var y = options.oy % options.height;
+            if (y < 0) y += options.height;
+
+            patternDefVel.attr({
+                x: x,
+                y: y,
+                width: options.width,
+                height: options.height
+            });
+            defs.append(patternDefVel);
+            svg.append(V('<rect width="100%" height="100%" />', { fill: 'url(#' + id + ')' }));
         });
 
-        var patternUri = gridData.xmlSerializer.serializeToString(gridData.root.node);
-
+        var patternUri = new XMLSerializer().serializeToString(svg.node);
         patternUri = 'url(data:image/svg+xml;base64,' + btoa(patternUri) + ')';
 
         this.$grid.css('backgroundImage', patternUri);
