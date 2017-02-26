@@ -1048,7 +1048,7 @@ QUnit.module('paper', function(hooks) {
             paperSettings = paperSettings ||
                 {
                     gridSize: 10,
-                    scale: { x: 0, y: 0 },
+                    scale: { x: 1, y: 1 },
                     origin: { x: 0, y: 0 }
                 };
 
@@ -1129,22 +1129,46 @@ QUnit.module('paper', function(hooks) {
             assert.equal(shape.attr('width'), 999);
             assert.equal(shape.attr('height'), 111);
             assert.equal(shape.attr('fill'), 'green');
-            console.log(svg.node);
         });
 
-        // QUnit.test('aaa', function(assert) {
-        //     var a = new joint.dia.Paper({
-        //         drawGrid: true,
-        //     });
-        // });
-        //
-        // QUnit.test('aaa', function(assert) {
-        //     var a = new joint.dia.Paper({
-        //         drawGrid: {
-        //             color: 'red'
-        //         },
-        //     });
-        // });
+        QUnit.test('patterns with scale factor', function(assert) {
+
+            var drawGrid = [
+                { color: 'red' },
+                { color: 'green', scaleFactor: 2 }
+            ];
+
+            var paper = preparePaper(drawGrid, {
+                gridSize: 10,
+                scale: { x: 1, y: 1 },
+                origin: { x: -5, y: -5 }
+            });
+
+            paper.drawGrid();
+
+            var svg = getGridVel(paper);
+
+            assert.equal(svg.node.childNodes.length, 3, 'defs + 2x rect with pattern fill');
+            var defs = V(svg.node.childNodes[0]);
+            var patterns = defs.find('pattern');
+
+            assert.equal(patterns.length, 2);
+
+            var redDotAttrs = V(patterns[0]).attr();
+            var greenDotAttrs = V(patterns[1]).attr();
+
+            assert.deepEqual(
+                { width: redDotAttrs.width, height: redDotAttrs.height, x: redDotAttrs.x, y: redDotAttrs.y },
+                { width: '10', height: '10', x: '5', y: '5' },
+                'red dot pattern attrs'
+            );
+
+            assert.deepEqual(
+                { width: greenDotAttrs.width, height: greenDotAttrs.height, x: greenDotAttrs.x, y: greenDotAttrs.y },
+                { width: '20', height: '20', x: '15', y: '15' },
+                'green dot pattern attrs'
+            );
+        })
     });
 
     QUnit.module('interactivity', function(hooks) {
