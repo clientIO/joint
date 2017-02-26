@@ -1417,7 +1417,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         _.each(drawGrid, function (dg, index) {
 
             var id = 'pattern_'  + index;
-            var options = _.defaultsDeep({}, opt, drawGrid[index],
+            var options = _.defaults({}, opt, drawGrid[index],
                 {
                     color: '#aaa',
                     thickness: 1,

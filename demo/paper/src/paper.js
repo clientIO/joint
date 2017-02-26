@@ -4,26 +4,31 @@ var paper = new joint.dia.Paper({
     width: 600,
     height: 400,
     gridSize: 1,
-    drawGrid: {
-        //default grid - dot
-        color: 'black',
-        thickness: 1,
+    drawGrid: [
+        {
+            gridScale: 1,
+            markup: '<path stroke="gray" stroke-width="1"/>',
+            update: function(el, opt) {
 
-        /**
-         * define custom grid pattern shape
-         */
-        // gridPattern: '<rect width="100%" height="100%" stroke="red" stroke-width="1" fill="transparent"/>',
+                var w = opt.width, h = opt.height;
+                var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
+                if (opt.sx < 0.5) {
+                    d = []
+                }
+                V(el).attr('d', d.join(' '))
+            }
+        },
+        {
+            scaleFactor: 5,
+            markup: '<path stroke="black" stroke-width="3"/>',
+            update: function(el, opt) {
 
-        /**
-         * define custom shape with updating attributes
-         */
-        gridPattern: '<path stroke="green" stroke-width="1"/>',
-        updateGridPattern: function(el, opt) {
-            var w = opt.width, h = opt.height;
-            var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h ];
-            V(el).attr('d', d.join(' '))
+                var w = opt.width, h = opt.height;
+                var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
+                V(el).attr('d', d.join(' '))
+            }
         }
-    },
+    ],
     model: graph,
     linkConnectionPoint: function(linkView, view) {
         // connection point is always in the center of an element
