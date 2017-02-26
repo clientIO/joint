@@ -6,7 +6,6 @@ var paper = new joint.dia.Paper({
     gridSize: 1,
     drawGrid: [
         {
-            gridScale: 1,
             markup: '<path stroke="gray" stroke-width="1"/>',
             update: function(el, opt) {
 
@@ -20,7 +19,7 @@ var paper = new joint.dia.Paper({
         },
         {
             scaleFactor: 5,
-            markup: '<path stroke="black" stroke-width="3"/>',
+            markup: '<path stroke="black" stroke-width="2"/>',
             update: function(el, opt) {
 
                 var w = opt.width, h = opt.height;
