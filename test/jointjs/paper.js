@@ -1036,6 +1036,117 @@ QUnit.module('paper', function(hooks) {
         }, done);
     });
 
+    QUnit.module('draw grid options ', function(hooks) {
+
+        var getGridVel = function (paper) {
+            var image = paper.$grid.css('backgroundImage').replace(/url\("*|"*\)/g, '').replace('data:image/svg+xml;base64,', '');
+            return V(atob(image));
+        };
+
+        var preparePaper = function(drawGrid, paperSettings) {
+
+            paperSettings = paperSettings ||
+                {
+                    gridSize: 10,
+                    scale: { x: 0, y: 0 },
+                    origin: { x: 0, y: 0 }
+                };
+
+            var paper = new joint.dia.Paper({
+                drawGrid: drawGrid
+            });
+
+            paper.setGridSize(paperSettings.gridSize);
+            paper.scale(paperSettings.scale.x, paperSettings.scale.y);
+            paper.setOrigin(paperSettings.origin.x, paperSettings.origin.y);
+            paper.drawGrid();
+
+            return paper;
+        };
+
+        QUnit.test('default format', function(assert) {
+
+            var drawGrid = { color: 'red', thickness: 2 };
+            var paper = preparePaper(drawGrid);
+
+            paper.drawGrid();
+
+            var svg = getGridVel(paper);
+
+            assert.equal(svg.node.childNodes.length, 2, 'defs + rect with pattern fill');
+            var defs = V(svg.node.childNodes[0]);
+            var patterns = defs.find('pattern');
+
+            assert.equal(patterns.length, 1);
+
+            var shape = V(patterns[0].node.childNodes[0]);
+            assert.equal(shape.attr('width'), drawGrid.thickness);
+            assert.equal(shape.attr('height'), drawGrid.thickness);
+            assert.equal(shape.attr('fill'), drawGrid.color);
+        });
+
+        QUnit.test('custom markup only', function(assert) {
+
+            var drawGrid = { markup: '<circle r="10" fill="black" />', color: 'red' };
+            var paper = preparePaper(drawGrid);
+
+            paper.drawGrid();
+
+            var svg = getGridVel(paper);
+
+            assert.equal(svg.node.childNodes.length, 2, 'defs + rect with pattern fill');
+            var defs = V(svg.node.childNodes[0]);
+            var patterns = defs.find('pattern');
+
+            assert.equal(patterns.length, 1);
+
+            var shape = V(patterns[0].node.childNodes[0]);
+            assert.equal(shape.attr('width'), undefined, 'width shouldn\'t be set');
+            assert.equal(shape.attr('height'), undefined, 'height shouldn\'t be set');
+            assert.equal(shape.attr('fill'), 'black', 'color shouldn\'t be updated');
+        });
+
+        QUnit.test('custom update only', function(assert) {
+
+            var drawGrid = {
+                update: function(element, opt) {
+                    V(element).attr({'fill': 'green', width: 999, height: 111})
+                }, color: 'red'
+            };
+            var paper = preparePaper(drawGrid);
+
+            paper.drawGrid();
+
+            var svg = getGridVel(paper);
+
+            assert.equal(svg.node.childNodes.length, 2, 'defs + rect with pattern fill');
+            var defs = V(svg.node.childNodes[0]);
+            var patterns = defs.find('pattern');
+
+            assert.equal(patterns.length, 1);
+
+            var shape = V(patterns[0].node.childNodes[0]);
+            assert.equal(shape.attr('width'), 999);
+            assert.equal(shape.attr('height'), 111);
+            assert.equal(shape.attr('fill'), 'green');
+            console.log(svg.node);
+        });
+
+        // QUnit.test('aaa', function(assert) {
+        //     var a = new joint.dia.Paper({
+        //         drawGrid: true,
+        //     });
+        // });
+        //
+        // QUnit.test('aaa', function(assert) {
+        //     var a = new joint.dia.Paper({
+        //         drawGrid: {
+        //             color: 'red'
+        //         },
+        //     });
+        // });
+    });
+
     QUnit.module('interactivity', function(hooks) {
 
         hooks.beforeEach(function() {
