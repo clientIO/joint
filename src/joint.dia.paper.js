@@ -1405,19 +1405,20 @@ joint.dia.Paper = joint.mvc.View.extend({
             return this.clearGrid();
         }
 
-        var ctm = this.matrix();
         var drawGrid = this.options.drawGrid;
+        var localOptions = _.isArray(opt) ? opt : ([opt] || [{}]);
 
         if (!_.isArray(drawGrid)) {
             drawGrid = [drawGrid];
         }
 
+        var ctm = this.matrix();
         var refs = this.getGriRefs();
 
         _.each(drawGrid, function (dg, index) {
 
             var id = 'pattern_'  + index;
-            var options = _.defaults({}, opt, drawGrid[index],
+            var options = _.defaults({}, localOptions[index], dg,
                 {
                     color: '#aaa',
                     thickness: 1,

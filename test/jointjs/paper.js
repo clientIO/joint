@@ -939,7 +939,61 @@ QUnit.module('paper', function(hooks) {
                 { width: '20', height: '20', x: '15', y: '15' },
                 'green dot pattern attrs'
             );
-        })
+        });
+
+        QUnit.test('local options - as an object', function(assert) {
+
+            var drawGrid = [
+                { color: 'red' },
+                { color: 'green' }
+            ];
+
+            var paper = preparePaper(drawGrid, {
+                gridSize: 10,
+                scale: { x: 1, y: 1 },
+                origin: { x: -5, y: -5 }
+            });
+
+            paper.drawGrid({ color: 'pink' });
+
+            var svg = getGridVel(paper);
+
+            assert.equal(svg.node.childNodes.length, 3, 'defs + 2x rect with pattern fill');
+            var defs = V(svg.node.childNodes[0]);
+            var patterns = defs.find('pattern');
+
+            assert.equal(patterns.length, 2);
+
+            var redDot = V(patterns[0].node.childNodes[0]);
+
+            assert.equal(redDot.attr('fill'), 'pink', 'color updated by local options');
+        });
+
+        QUnit.test('local options - as an array', function(assert) {
+
+            var drawGrid = [
+                { color: 'red' },
+                { color: 'green' }
+            ];
+
+            var paper = preparePaper(drawGrid, {
+                gridSize: 10,
+                scale: { x: 1, y: 1 },
+                origin: { x: -5, y: -5 }
+            });
+
+            paper.drawGrid([{}, { color: 'pink' }]);
+
+            var svg = getGridVel(paper);
+
+            var defs = V(svg.node.childNodes[0]);
+            var patterns = defs.find('pattern');
+            var greenDot = V(patterns[1].node.childNodes[0]);
+
+            assert.equal(svg.node.childNodes.length, 3, 'defs + 2x rect with pattern fill');
+            assert.equal(patterns.length, 2);
+            assert.equal(greenDot.attr('fill'), 'pink', 'color updated by local options');
+        });
     });
 
     QUnit.module('interactivity', function(hooks) {
