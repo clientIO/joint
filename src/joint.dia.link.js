@@ -1764,8 +1764,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     var selector = viewUnderPointer.getSelector(magnetUnderPointer);
                     var port = magnetUnderPointer.getAttribute('port');
                     var arrowheadValue = { id: viewUnderPointer.model.id };
-                    if (selector != null) arrowheadValue.port = port;
-                    if (port != null) arrowheadValue.selector = selector;
+                    if (port != null) arrowheadValue.port = port;
+                    if (selector != null) arrowheadValue.selector = selector;
                     this.model.set(arrowhead, arrowheadValue, { ui: true });
                 }
             }
