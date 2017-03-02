@@ -25,6 +25,7 @@ declare namespace joint {
             restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
             guard?: (evt: Event, view: CellView) => boolean;
             multiLinks?: boolean;
+            model?: Graph,
             cellViewNamespace?: Object;
             /** useful undocumented option */
             clickThreshold?: number;
