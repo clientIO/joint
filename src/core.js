@@ -1312,10 +1312,12 @@ var joint = {
                 }
             }
 
-            if (prefixedResult(document, 'FullScreen') || prefixedResult(document, 'IsFullScreen')) {
-                prefixedResult(document, 'CancelFullScreen');
+            if (prefixedResult(document, 'FullscreenElement') || prefixedResult(document, 'FullScreenElement')) {
+                prefixedResult(document, 'ExitFullscreen') || // Spec.
+                prefixedResult(document, 'CancelFullScreen'); // Firefox
             } else {
-                prefixedResult(el, 'RequestFullScreen');
+                prefixedResult(el, 'RequestFullscreen') || // Spec.
+                prefixedResult(el, 'RequestFullScreen'); // Firefox
             }
         },
 
