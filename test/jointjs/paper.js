@@ -873,8 +873,7 @@ QUnit.module('paper', function(hooks) {
                 opt: {
                     color: '#aaa',
                     thickness: 1
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAGklEQVQIW2NctWrV/7CwMEYGJIDCgYlTKAgAl6cEBngimTIAAAAASUVORK5CYII='
+                }
             },
             {
                 message: 'using default options',
@@ -887,8 +886,7 @@ QUnit.module('paper', function(hooks) {
                     x: 1,
                     y: 1
                 },
-                opt: {},
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAGklEQVQIW2NctWrV/7CwMEYGJIDCgYlTKAgAl6cEBngimTIAAAAASUVORK5CYII='
+                opt: {}
             },
             {
                 message: 'custom color',
@@ -904,8 +902,7 @@ QUnit.module('paper', function(hooks) {
                 opt: {
                     color: 'purple',
                     thickness: 1
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAGUlEQVQIW2NsYGj438DQwMiABFA4MHEKBQEwrwMGTWEEKgAAAABJRU5ErkJggg=='
+                }
             },
             {
                 message: 'custom thickness',
@@ -921,8 +918,7 @@ QUnit.module('paper', function(hooks) {
                 opt: {
                     color: '#aaa',
                     thickness: 3
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAIElEQVQIW2NctWrVfwYoCAsLYwQxGYkXhGlFpsFmoAMAr2UMBnjfcSIAAAAASUVORK5CYII='
+                }
             },
             {
                 message: 'large, odd gridSize',
@@ -938,8 +934,7 @@ QUnit.module('paper', function(hooks) {
                 opt: {
                     color: '#aaa',
                     thickness: 1
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAXCAYAAADgKtSgAAAANklEQVRIS2NctWrV/7CwMEYGGgCaGApz56jhWGNsNFhGg4X4rDyaWkZTy2hqIT4ERlML8WEFAMyCBBj4/EAnAAAAAElFTkSuQmCC'
+                }
             },
             {
                 message: 'negative origin',
@@ -955,8 +950,7 @@ QUnit.module('paper', function(hooks) {
                 opt: {
                     color: '#aaa',
                     thickness: 1
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAAGUlEQVQIW2NkwAMYB63kqlWr/oeFhaE4EABJ6wQImIsygAAAAABJRU5ErkJggg=='
+                }
             },
             {
                 message: 'positive origin',
@@ -972,8 +966,7 @@ QUnit.module('paper', function(hooks) {
                 opt: {
                     color: '#aaa',
                     thickness: 1
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAAHElEQVQIW2NkQAOrVq36HxYWxggSBhO4wKCTBADiCQQIkW6pkwAAAABJRU5ErkJggg=='
+                }
             },
             {
                 message: 'scaled up',
@@ -989,8 +982,7 @@ QUnit.module('paper', function(hooks) {
                 opt: {
                     color: '#aaa',
                     thickness: 1
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAARUlEQVRIS2NctWrVfwYGBoawsDBGEE1twEhzC6jtYnTzaBIsyJaMWkAwCkeDaDSICIYAQQWjqWg0iAiGAEEFo6loBAQRAJa9CBnOM9wvAAAAAElFTkSuQmCC'
+                }
             },
             {
                 message: 'scaled down',
@@ -1006,8 +998,7 @@ QUnit.module('paper', function(hooks) {
                 opt: {
                     color: '#aaa',
                     thickness: 2
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAIElEQVQYV2NctWrV/7CwMEYGAoCgApj+UYV4Q5Lo4AEAZLcECwWKMoMAAAAASUVORK5CYII='
+                }
             }
         ];
 
@@ -1023,15 +1014,31 @@ QUnit.module('paper', function(hooks) {
             paper.setOrigin(origin.x, origin.y);
             paper.drawGrid(opt);
 
-            var actualBackgroundImage = paper.$grid.css('background-image');
+            var actualBackgroundImage = paper.$grid.css('background-image').replace(/url\("*|"*\)/g, '');
             var message = inputsAndOutput.message;
 
-            normalizeImageDataUri(inputsAndOutput.imageDataUri, function(error, normalizedImageDataUri) {
+            var x = parseInt(paper.$grid.css('backgroundPositionX').replace('px', ''), 10);
+            var y = parseInt(paper.$grid.css('backgroundPositionY').replace('px', ''), 10);
+            var image = new Image();
 
-                var expectedBackgroundImage = normalizeCssAttr('background-image', 'url("' + normalizedImageDataUri + '")');
-                assert.equal(actualBackgroundImage, expectedBackgroundImage, message);
+            $(image).on('load', function() {
+                assert.equal(image.width, inputsAndOutput.gridSize * inputsAndOutput.scale.x, message + 'width');
+                assert.equal(image.height, inputsAndOutput.gridSize * inputsAndOutput.scale.y, message + 'height');
+
+                if (inputsAndOutput.origin.x !== 0 && inputsAndOutput.origin.x !== image.width) {
+                    assert.ok(x > 0 && x < image.height, message + ' offset x performed');
+                } else {
+                    assert.equal(x, 0, message + ' no offset x');
+                }
+                if (inputsAndOutput.origin.y !== 0 && inputsAndOutput.origin.y !== image.height) {
+                    assert.ok(y > 0 && y < image.height, message + ' offset y performed');
+                } else {
+                    assert.equal(y, 0, message + ' no offset y');
+                }
                 next();
             });
+
+            image.src = actualBackgroundImage;
 
         }, done);
     });
