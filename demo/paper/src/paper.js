@@ -3,31 +3,14 @@ var paper = new joint.dia.Paper({
     el: $('#paper'),
     width: 600,
     height: 400,
-    gridSize: 1,
-    drawGrid: [
-        {
-            markup: '<path stroke="gray" stroke-width="1"/>',
-            update: function(el, opt) {
-
-                var w = opt.width, h = opt.height;
-                var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
-                if (opt.sx < 0.5) {
-                    d = []
-                }
-                V(el).attr('d', d.join(' '))
-            }
-        },
-        {
-            scaleFactor: 5,
-            markup: '<path stroke="black" stroke-width="2"/>',
-            update: function(el, opt) {
-
-                var w = opt.width, h = opt.height;
-                var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
-                V(el).attr('d', d.join(' '))
-            }
-        }
-    ],
+    gridSize: 10,
+    // drawGrid: { name: 'mesh', args: { color: 'red' } },
+    // drawGrid: { name: 'doublemesh', args: { color: 'blue' } },
+    // drawGrid: 'doubleMesh',
+    // drawGrid: 'mesh',
+    // drawGrid: { color: 'green', thickness: 5, name : 'dot', args: {color: 'red', thickness: 5 } },
+    // drawGrid: { color: 'green', thickness: 5 },
+    drawGrid: false,
     model: graph,
     linkConnectionPoint: function(linkView, view) {
         // connection point is always in the center of an element
@@ -445,3 +428,101 @@ $('#bg-toggle, #bg-color, #bg-repeat, #bg-opacity, #bg-size, #bg-position').on('
         opacity: $('#bg-opacity').val()
     });
 });
+
+var xxxx = function(gridTypes, onChange) {
+
+    var currentOpt = {args: {}};
+    var formTypes = {
+        'color': function(data, container) {
+            var input = $('<input/>', { type: 'color'}).val(data.value).on('change input', function() {
+                currentOpt.args = currentOpt.args || {};
+                currentOpt.args[data.prop] = $(this).val();
+                onChange(currentOpt)
+            });
+            currentOpt.args[data.prop] = input.val();
+
+            container.append($('<label/>').text(data.name));
+            container.append(input);
+        },
+        'number': function(data, container) {
+            var input = $('<input/>', { type: 'range'})
+                .val(data.value)
+                .attr({
+                    step: data.step,
+                    min: data.min,
+                    max: data.max
+                })
+                .on('change input', function() {
+                    currentOpt.args = currentOpt.args || {};
+                    currentOpt.args[data.prop] = $(this).val();
+
+                    $('output', $(this).parent()).text(parseFloat($(this).val()).toFixed(2));
+                    onChange(currentOpt);
+                });
+            currentOpt.args[data.prop] = input.val();
+            container.append($('<label/>').text(data.name));
+            container.append(input);
+            container.append($('<output/>').text(input.val()));
+        }
+    };
+
+    var renderInput =  function(formType, container) {
+        return formTypes[formType.type](formType, container);
+    };
+
+    return {
+        renderSettings: function (gridTypeName) {
+            currentOpt.name = gridTypeName;
+            _.each(gridTypes[gridTypeName], function (x) {
+
+                var element = $('<div/>').addClass('form-group').appendTo($gridTypesOpt);
+                renderInput(x, element);
+            })
+        }
+    }
+};
+
+var gridTypes = {
+    'dot': [
+        { type: 'color', prop: 'color', name: 'Color', value: '#000000' },
+        { type: 'number', prop:'thickness',  name: 'Thickness', value: 1, step: 0.5, min: 0.5, max: 10 }
+    ],
+    'mesh': [
+        { type: 'color', prop: 'color', name: 'Color', value: '#000000' },
+        { type: 'number', prop: 'thickness',  name: 'Thickness', value: 1, step: 0.5, min: 0.5, max: 10 },
+
+    ],
+    'doubleMesh': [
+        { type: 'color', prop: 'primaryColor', name: 'Primary Color', value: '#AAAAAA' },
+        { type: 'number', prop: 'primaryThickness', name: 'Primary Thickness', value: 1, step: 0.5, min: 0.5, max: 5 },
+
+        { type: 'color', prop: 'secondaryColor', name: 'Secondary Color', value: '#000000' },
+        { type: 'number', prop: 'secondaryThickness', name: 'Secondary Thickness', value: 3, step: 0.5, min: 0.5, max: 5 },
+        { type: 'number', prop: 'scaleFactor', name: 'Scale Factor', value: 5, step: 1, min: 1, max: 10 },
+    ]
+};
+//
+var a = xxxx(gridTypes, function (gridOpt) {
+
+    console.log(gridOpt);
+    paper.options.drawGrid = gridOpt;
+    paper.clearGrid();
+    paper.drawGrid();
+});
+
+var $gridTypesOpt = $('.grid-types-opt');
+
+$('#grid-type').on('change input', function() {
+
+    var type = $(this).val();
+    paper.options.drawGrid = type;
+    paper.clearGrid();
+    paper.drawGrid();
+
+    $gridTypesOpt.empty();
+    a.renderSettings(type)
+});
+
+$gridTypesOpt.empty();
+a.renderSettings($('#grid-type').val());
+

@@ -830,37 +830,39 @@ QUnit.module('paper', function(hooks) {
             paper.setGridSize(paperSettings.gridSize);
             paper.scale(paperSettings.scale.x, paperSettings.scale.y);
             paper.setOrigin(paperSettings.origin.x, paperSettings.origin.y);
-            paper.drawGrid();
 
             return paper;
         };
+
+        QUnit.test('no grid', function(assert) {
+
+            var paper = preparePaper(false);
+            var svg = getGridVel(paper);
+            assert.equal(svg, undefined);
+        });
 
         QUnit.test('default format', function(assert) {
 
             var drawGrid = { color: 'red', thickness: 2 };
             var paper = preparePaper(drawGrid);
-
             paper.drawGrid();
 
             var svg = getGridVel(paper);
 
             assert.equal(svg.node.childNodes.length, 2, 'defs + rect with pattern fill');
-            var defs = V(svg.node.childNodes[0]);
-            var patterns = defs.find('pattern');
-
+            var patterns = V(svg.node.childNodes[0]).find('pattern');
             assert.equal(patterns.length, 1);
 
             var shape = V(patterns[0].node.childNodes[0]);
-            assert.equal(shape.attr('width'), drawGrid.thickness);
-            assert.equal(shape.attr('height'), drawGrid.thickness);
-            assert.equal(shape.attr('fill'), drawGrid.color);
+            assert.equal(shape.attr('width'), drawGrid.thickness, 'has correct width');
+            assert.equal(shape.attr('height'), drawGrid.thickness, 'has correct height');
+            assert.equal(shape.attr('fill'), drawGrid.color, 'has correct color');
         });
 
         QUnit.test('custom markup only', function(assert) {
 
             var drawGrid = { markup: '<circle r="10" fill="black" />', color: 'red' };
             var paper = preparePaper(drawGrid);
-
             paper.drawGrid();
 
             var svg = getGridVel(paper);
@@ -885,15 +887,12 @@ QUnit.module('paper', function(hooks) {
                 }, color: 'red'
             };
             var paper = preparePaper(drawGrid);
-
             paper.drawGrid();
 
             var svg = getGridVel(paper);
 
+            var patterns = V(svg.node.childNodes[0]).find('pattern');
             assert.equal(svg.node.childNodes.length, 2, 'defs + rect with pattern fill');
-            var defs = V(svg.node.childNodes[0]);
-            var patterns = defs.find('pattern');
-
             assert.equal(patterns.length, 1);
 
             var shape = V(patterns[0].node.childNodes[0]);
@@ -919,10 +918,8 @@ QUnit.module('paper', function(hooks) {
 
             var svg = getGridVel(paper);
 
+            var patterns = V(svg.node.childNodes[0]).find('pattern');
             assert.equal(svg.node.childNodes.length, 3, 'defs + 2x rect with pattern fill');
-            var defs = V(svg.node.childNodes[0]);
-            var patterns = defs.find('pattern');
-
             assert.equal(patterns.length, 2);
 
             var redDotAttrs = V(patterns[0]).attr();
@@ -958,6 +955,7 @@ QUnit.module('paper', function(hooks) {
 
             var svg = getGridVel(paper);
 
+            console.log(svg.node);
             assert.equal(svg.node.childNodes.length, 3, 'defs + 2x rect with pattern fill');
             var defs = V(svg.node.childNodes[0]);
             var patterns = defs.find('pattern');
@@ -986,13 +984,109 @@ QUnit.module('paper', function(hooks) {
 
             var svg = getGridVel(paper);
 
-            var defs = V(svg.node.childNodes[0]);
-            var patterns = defs.find('pattern');
+            var patterns = V(svg.node.childNodes[0]).find('pattern');
             var greenDot = V(patterns[1].node.childNodes[0]);
 
             assert.equal(svg.node.childNodes.length, 3, 'defs + 2x rect with pattern fill');
             assert.equal(patterns.length, 2);
             assert.equal(greenDot.attr('fill'), 'pink', 'color updated by local options');
+        });
+
+        QUnit.test('', function(assert) {
+
+            var drawGrid = { name: 'mesh',  args: { color: 'red', thickness: 2 }};
+            var paper = preparePaper(drawGrid);
+            paper.drawGrid();
+
+            var svg = getGridVel(paper);
+
+            var patterns = V(svg.node.childNodes[0]).find('pattern');
+            var patternAttr = V(patterns[0].node.childNodes[0]).attr();
+            assert.equal(patternAttr.stroke, 'red');
+            assert.equal(patternAttr['stroke-width'], '2');
+
+            paper.drawGrid({ color: 'blue', thickness: 1 });
+            svg = getGridVel(paper);
+            patterns = V(svg.node.childNodes[0]).find('pattern');
+            patternAttr = V(patterns[0].node.childNodes[0]).attr();
+            assert.equal(patternAttr.stroke, 'blue');
+            assert.equal(patternAttr['stroke-width'], '1');
+        });
+
+
+        //
+        // QUnit.test('', function(assert){
+        //
+        //     var drawGridOpt = 'mesh';
+        //
+        //     var paper = preparePaper(drawGridOpt);
+        //
+        //
+        //     console.log(paper.sss('doubleMesh'));
+        //
+        //     console.log(paper.sss({ name: 'mesh', args: { color: 'pink' } })[0]);
+        //
+        //     console.log(paper.sss({ name: 'prdel', args: { color: 'pink' } })[0]);
+        //
+        //     console.log(paper.sss({ color: 'pink' })[0]);
+        //
+        //     console.log(paper.sss({})[0]);
+        //
+        //     assert.ok(true)
+        // })
+        //
+        QUnit.module('name', function(hooks) {
+
+            QUnit.test('', function(assert) {
+                var paper = preparePaper(false);
+            });
+
+            QUnit.test('', function(assert) {
+
+                var paper = preparePaper({ name: 'mesh', args: { color: 'red' } });
+
+                paper.drawGrid();
+                var svg = getGridVel(paper);
+                console.log(svg.node);
+            });
+
+            QUnit.test('', function(assert) {
+
+                var paper = preparePaper({ name: 'mesh', args: { color: 'red' } });
+                paper.drawGrid({ name: 'doubleMesh', args: { color: 'green' } });
+            });
+
+            QUnit.test('', function(assert) {
+
+                var paper = preparePaper({
+                    name: 'doubleMesh',
+                    args: { primaryColor: 'red', secondaryColor: 'black' }
+                });
+
+                // update
+                paper.drawGrid({ primaryColor: 'red', secondaryColor: 'black' });
+                paper.drawGrid({ args: { primaryColor: 'red', secondaryColor: 'black' } });
+
+                // redraw
+                paper.drawGrid({ name: 'mesh', args: { color: 'red' } });
+                paper.drawGrid({
+                    markup: '<circle/>',
+                    update: function() {
+                    }
+                });
+            });
+
+            QUnit.test('', function(assert) {
+
+                var paper = preparePaper({ color: 'red' });
+                paper.drawGrid();
+            });
+
+            QUnit.test('', function(assert) {
+
+                var paper = preparePaper({ color: 'red' });
+                paper.drawGrid({ color: 'green' });
+            });
         });
     });
 

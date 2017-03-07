@@ -1371,6 +1371,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     clearGrid: function() {
 
         this.$grid.css('backgroundImage', 'none');
+        this._gridCache = null;
         return this;
     },
 
@@ -1398,6 +1399,23 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this._gridCache;
     },
 
+    sss: function (opt) {
+
+        var localOptions = _.isArray(opt) ? opt : ([opt] || [{}]);
+
+        return _.flatten(_.map(localOptions, function (o) {
+
+            o = o || {};
+            var name = (_.isString(o) ? o : o.name);
+
+            if (this.constructor.grids[name]) {
+                return this.constructor.grids[name](o.args || {});
+            }
+
+            return o;
+        }, this));
+    },
+
     drawGrid: function(opt) {
 
         var gridSize = this.options.gridSize;
@@ -1405,12 +1423,8 @@ joint.dia.Paper = joint.mvc.View.extend({
             return this.clearGrid();
         }
 
-        var drawGrid = this.options.drawGrid;
-        var localOptions = _.isArray(opt) ? opt : ([opt] || [{}]);
-
-        if (!_.isArray(drawGrid)) {
-            drawGrid = [drawGrid];
-        }
+        var localOptions = this.sss(opt);
+        var drawGrid = this.sss(this.options.drawGrid);
 
         var ctm = this.matrix();
         var refs = this.getGriRefs();
@@ -1694,7 +1708,75 @@ joint.dia.Paper = joint.mvc.View.extend({
             }
 
             return canvas;
-        },
-    }
+        }
+    },
 
+    grids: {
+
+        // dot: function (drawGridArgs) {
+        //
+        //     return {
+        //         color: drawGridArgs.color || '#AAAAAA',
+        //         thickness: drawGridArgs.thickness || 1,
+        //         markup: '<rect />',
+        //         update: function(el, opt) {
+        //             var size = opt.sx <= 1 ? opt.thickness * opt.sx : opt.thickness;
+        //             V(el).attr({ width: size, height: size, fill: opt.color });
+        //         }
+        //     }
+        // },
+
+        mesh: function(drawGridArgs) {
+
+            // var color = drawGridArgs.color || '#AAAAAA';
+            // var thickness = drawGridArgs.thickness || 1;
+            return {
+                color: drawGridArgs.color || '#AAAAAA',
+                thickness: drawGridArgs.thickness || 1,
+                markup: '<path stroke="' + color + '" stroke-width="' + thickness + '"/>',
+                update: function(el, opt) {
+
+                    var w = opt.width, h = opt.height;
+                    var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
+                    if (opt.sx < 0.5) {
+                        d = []
+                    }
+                    V(el).attr('d', d.join(' '));
+                }
+            };
+        },
+
+        doubleMesh: function(drawGridArgs) {
+
+            var primaryColor = drawGridArgs.primaryColor || '#AAAAAA';
+            var primaryThickness = drawGridArgs.primaryThickness || 1;
+            var secondaryColor = drawGridArgs.secondaryColor || '#000000';
+            var secondaryThickness = drawGridArgs.secondaryThickness || 3;
+            var scaleFactor = drawGridArgs.scaleFactor || 5;
+            return [
+                {
+                    markup: '<path stroke="' + primaryColor + '" stroke-width="' + primaryThickness + '"/>',
+                    update: function(el, opt) {
+
+                        var w = opt.width, h = opt.height;
+                        var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
+                        if (opt.sx < 0.5) {
+                            d = []
+                        }
+                        V(el).attr('d', d.join(' '));
+                    }
+                },
+                {
+                    scaleFactor: scaleFactor,
+                    markup: '<path stroke="' + secondaryColor + '" stroke-width="' + secondaryThickness + '"/>',
+                    update: function(el, opt) {
+
+                        var w = opt.width, h = opt.height;
+                        var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
+                        V(el).attr('d', d.join(' '));
+                    }
+                }
+            ];
+        }
+    }
 });
