@@ -1014,27 +1014,32 @@ QUnit.module('paper', function(hooks) {
         });
 
 
-        //
-        // QUnit.test('', function(assert){
-        //
-        //     var drawGridOpt = 'mesh';
-        //
-        //     var paper = preparePaper(drawGridOpt);
-        //
-        //
-        //     console.log(paper.sss('doubleMesh'));
-        //
-        //     console.log(paper.sss({ name: 'mesh', args: { color: 'pink' } })[0]);
-        //
-        //     console.log(paper.sss({ name: 'prdel', args: { color: 'pink' } })[0]);
-        //
-        //     console.log(paper.sss({ color: 'pink' })[0]);
-        //
-        //     console.log(paper.sss({})[0]);
-        //
-        //     assert.ok(true)
-        // })
-        //
+        QUnit.test('dsfdsafdsaf', function(assert){
+
+            var paper = preparePaper();
+
+            var opt = paper.sss({ color: 'red' });
+            console.log(opt[0]);
+
+            var opt = paper.sss({ markup: '<circle />', update: function () {} });
+            console.log(opt[0]);
+
+            opt = paper.sss('mesh');
+            console.log(opt[0]);
+
+            console.log("aaaaaaaaaa");
+
+            console.log(paper.sss({ name: 'mesh', args: { color: 'pink' } })[0]);
+
+            console.log(paper.sss({ name: 'prdel', args: { color: 'pink' } })[0]);
+
+            console.log(paper.sss({ color: 'pink' })[0]);
+
+            console.log(paper.sss({})[0]);
+
+            assert.ok(true)
+        })
+
         QUnit.module('name', function(hooks) {
 
             QUnit.test('', function(assert) {
@@ -1066,6 +1071,8 @@ QUnit.module('paper', function(hooks) {
                 // update
                 paper.drawGrid({ primaryColor: 'red', secondaryColor: 'black' });
                 paper.drawGrid({ args: { primaryColor: 'red', secondaryColor: 'black' } });
+                paper.drawGrid({ markup: 'circel' });
+                paper.drawGrid('mesh');
 
                 // redraw
                 paper.drawGrid({ name: 'mesh', args: { color: 'red' } });

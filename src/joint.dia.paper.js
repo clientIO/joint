@@ -1405,12 +1405,21 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         return _.flatten(_.map(localOptions, function (o) {
 
-            o = o || {};
-            var name = (_.isString(o) ? o : o.name);
+            var name;
+            var args;
+            if (_.isString(o)) {
+                name = o;
+                args = {}
+            } else {
+                name = o.name;
+                args = o.args || {};
+            }
 
             if (this.constructor.grids[name]) {
-                return this.constructor.grids[name](o.args || {});
+                return this.constructor.grids[name](args);
             }
+
+
 
             return o;
         }, this));
@@ -1733,7 +1742,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             return {
                 color: drawGridArgs.color || '#AAAAAA',
                 thickness: drawGridArgs.thickness || 1,
-                markup: '<path stroke="' + color + '" stroke-width="' + thickness + '"/>',
+                markup: '<path />',
                 update: function(el, opt) {
 
                     var w = opt.width, h = opt.height;
