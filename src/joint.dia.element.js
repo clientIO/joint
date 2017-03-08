@@ -430,11 +430,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this._removePorts();
 
         var model = this.model;
-        this.updateDOMSubtreeAttributes(this.el, model.attr(), {
+        var modelAttrs = model.attr();
+        this.updateDOMSubtreeAttributes(this.el, modelAttrs, {
             rootBBox: g.Rect(model.size()),
             scalableNode: this.scalableNode,
             rotatableNode: this.rotatableNode,
-            roAttributes: renderingOnlyAttrs
+            // Use rendering only attributes if they differs from the model attributes
+            roAttributes: (renderingOnlyAttrs === modelAttrs) ? null : renderingOnlyAttrs
         });
 
         this._renderPorts();
