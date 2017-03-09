@@ -1,0 +1,8 @@
+<p>Valid for <code>&lt;text&gt;</code> subelements. Similar to <code>text</code> attribute but in this case the text is automatically wrapped to fit within the reference bounding box.
+It's defined as an object with <code>text</code> property and optional <code>width</code> and <code>height</code>, which can adjust the final size of the wrapped text.
+Positive values increment and negative values decrement the dimension. Define values as percentage when  a fraction of the dimension is required.</p>
+<pre><code>textWrap: {
+  text: 'Here is the text to be wrapped.',
+  width: -10, // reference width minus 10
+  height: '50%' // half of the reference height
+}</code></pre>
