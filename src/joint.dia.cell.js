@@ -885,7 +885,6 @@ joint.dia.CellView = joint.mvc.View.extend({
         return this.model.constructor.getAttributeDefinition(attrName);
     },
 
-
     setNodeAttributes: function(node, attrs) {
 
         if (!_.isEmpty(attrs)) {
@@ -917,7 +916,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                 }
             } else {
                 normalAttrs || (normalAttrs = {});
-                normalAttrs[attrName] = attrVal;
+                normalAttrs[joint.util.toKebabCase(attrName)] = attrVal;
             }
         }
 

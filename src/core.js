@@ -220,6 +220,11 @@ var joint = {
             return obj.id;
         },
 
+        toKebabCase: function(string) {
+
+            return string.replace(/[A-Z]/g, '-$&').toLowerCase();
+        },
+
         // Copy all the properties to the first argument from the following arguments.
         // All the properties will be overwritten by the properties from the following
         // arguments. Inherited properties are ignored.

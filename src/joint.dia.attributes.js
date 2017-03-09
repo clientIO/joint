@@ -72,28 +72,8 @@
 
     var attributesNS = joint.dia.attributes = {
 
-        strokeWidth: {
-            set: 'stroke-width'
-        },
-
-        fontSize: {
-            set: 'font-size'
-        },
-
-        fontFamily: {
-            set: 'font-family'
-        },
-
         xlinkHref: {
             set: 'xlink:href'
-        },
-
-        textAnchor: {
-            set: 'text-anchor'
-        },
-
-        pointerEvents: {
-            set: 'pointer-events'
         },
 
         filter: {
@@ -309,6 +289,8 @@
         }
     };
 
+    // This allows to combine both absolute and relative positioning
+    // refX: 50%, refX2: 20
     attributesNS.refX2 = attributesNS.refX;
     attributesNS.refY2 = attributesNS.refY;
 
