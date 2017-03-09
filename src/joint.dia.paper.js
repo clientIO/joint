@@ -1409,14 +1409,17 @@ joint.dia.Paper = joint.mvc.View.extend({
     sss: function (opt) {
 
         if (_.isString(opt) && this.constructor.gridPatterns[opt]) {
-            return _.clone(this.constructor.gridPatterns[opt]);
+            return _.map(this.constructor.gridPatterns[opt], _.clone);
         }
 
         var options = opt || { args: [{}]};
+
         if (options.name && this.constructor.gridPatterns[options.name]) {
-            var pattern = this.constructor.gridPatterns[options.name];
+            var pattern = _.map(this.constructor.gridPatterns[options.name], _.clone);
 
             var args = _.isArray(options.args) ? options.args : [options.args || {}];
+
+            _.defaults(args[0], opt);
             for (var i = 0; i < args.length; i++) {
                 if (pattern[i]) {
                     _.extend(pattern[i], args[i]);
@@ -1755,7 +1758,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         mesh: [{
             color: '#AAAAAA',
             thickness: 1,
-            markup: '<path />',
+            markup: '<path/>',
             update: function(el, opt) {
 
                 var w = opt.width, h = opt.height;
@@ -1769,7 +1772,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         doubleMesh: [{
             color: '#AAAAAA',
             thickness: 1,
-            markup: '<path />',
+            markup: '<path/>',
             update: function(el, opt) {
                 var w = opt.width, h = opt.height;
                 var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
@@ -1782,7 +1785,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             color: '#000000',
             thickness: 3,
             scaleFactor: 4,
-            markup: '<path />',
+            markup: '<path/>',
             update: function(el, opt) {
                 var w = opt.width, h = opt.height;
                 var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];

@@ -1046,31 +1046,25 @@ QUnit.module('paper', function(hooks) {
 
             QUnit.test('set doubleMesh settings', function(assert) {
 
-                var check = function() {
-                    assert.propEqual(_.omit(paper._gridSettings[0], 'update'), {
-                        color: 'red',
-                        thickness: 11,
-                        markup: '<rect/>'
-                    }, 'override update function');
-                    assert.ok(_.isFunction(paper._gridSettings[0].update));
+                var check = function(message) {
+
+                    var x = paper._gridSettings[0];
+
+                    assert.equal(x.color, 'red', message + ': color');
+                    assert.equal(x.thickness, 11, message + ': thickness');
+                    assert.equal(x.markup, '<path/>', message + ': markup');
+                    assert.ok(_.isFunction(x.update), message + ': update');
                     paper._gridSettings = null;
                 };
 
-                paper.setGrid({ name: 'dot', args: { color: 'red', thickness: 11 } });
-                check();
+                paper.setGrid({ name: 'doubleMesh', args: { color: 'red', thickness: 11 } });
+                check('args: {}');
 
-                paper.setGrid({ name: 'dot', args: [{ color: 'red', thickness: 11 }] });
-                check();
+                paper.setGrid({ name: 'doubleMesh', args: [{ color: 'red', thickness: 11 }] });
+                check('args: [{}]');
 
-                paper.setGrid({ name: 'dot',  color: 'red', thickness: 11 });
-                check();
-
-                paper.setGrid({ color: 'red', thickness: 11 });
-                console.log(paper._gridSettings);
-                check();
-            });
-
-            QUnit.test('', function(assert) {
+                paper.setGrid({ name: 'doubleMesh', color: 'red', thickness: 11 });
+                check('no args');
             });
 
             QUnit.test('initialize gridSettings', function(assert) {
@@ -1089,6 +1083,7 @@ QUnit.module('paper', function(hooks) {
                     markup: '<rect/>',
                     update: {}
                 }, 'update default');
+
                 assert.ok(_.isFunction(paper._gridSettings[0].update));
                 paper._gridSettings = null;
 
