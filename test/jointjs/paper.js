@@ -963,7 +963,6 @@ QUnit.module('paper', function(hooks) {
 
                 var svg = getGridVel(paper);
 
-                console.log(svg.node);
                 assert.equal(svg.node.childNodes.length, 3, 'defs + 2x rect with pattern fill');
                 var defs = V(svg.node.childNodes[0]);
                 var patterns = defs.find('pattern');
@@ -992,7 +991,6 @@ QUnit.module('paper', function(hooks) {
 
                 var svg = getGridVel(paper);
 
-                console.log(svg.node);
                 var patterns = V(svg.node.childNodes[0]).find('pattern');
                 var greenDot = V(patterns[1].node.childNodes[0]);
 
@@ -1070,7 +1068,6 @@ QUnit.module('paper', function(hooks) {
                     assert.equal(firstLayer.thickness, 11, message + ': thickness');
                     assert.equal(firstLayer.markup, '<path/>', message + ': markup');
                     assert.ok(_.isFunction(firstLayer.update), message + ': update');
-                    paper._gridSettings = null;
                 };
 
                 paper.setGrid(drawGridTestFixtures[0]);
@@ -1099,7 +1096,6 @@ QUnit.module('paper', function(hooks) {
                     update: {}
                 }, 'update default');
                 assert.ok(_.isFunction(paper._gridSettings[0].update));
-                paper._gridSettings = null;
             });
 
             QUnit.test('create custom', function(assert) {
@@ -1112,13 +1108,11 @@ QUnit.module('paper', function(hooks) {
 
                 paper.setGrid(drawGridTestFixtures[0]);
                 assert.deepEqual(paper._gridSettings[0], { markup: 'rect', update: 'fnc' }, 'custom markup and update');
-                paper._gridSettings = null;
 
                 paper.setGrid(drawGridTestFixtures[1]);
                 assert.ok(_.isArray(paper._gridSettings));
                 assert.deepEqual(paper._gridSettings[0], { markup: 'rect', update: 'fnc' }, 'custom markup and update - first layer');
                 assert.deepEqual(paper._gridSettings[1], { markup: 'rect2', update: 'fnc2' }, 'custom markup and update- second layer');
-                paper._gridSettings = null;
 
                 paper.setGrid(drawGridTestFixtures[2]);
                 assert.ok(_.isArray(paper._gridSettings));
@@ -1135,19 +1129,15 @@ QUnit.module('paper', function(hooks) {
 
                 paper.setGrid({ markup: '<rect/>' });
                 assert.deepEqual(paper._gridSettings[0], { markup: '<rect/>' }, 'markup only');
-                paper._gridSettings = null;
 
                 paper.setGrid({ update: 'custom' });
                 assert.propEqual(_.omit(paper._gridSettings[0], 'update'), _.omit(dotDefault, 'update'), 'override update function');
                 assert.equal(paper._gridSettings[0].update, 'custom');
-                paper._gridSettings = null;
 
                 paper.setGrid('dot');
                 assert.propEqual(paper._gridSettings[0], dotDefault, 'update');
-                paper._gridSettings = null;
 
                 paper.setGrid([{ color: 'red' }, { color: 'black' }]);
-                console.log(paper._gridSettings);
             });
         });
     });

@@ -1374,8 +1374,6 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (this.$grid) {
             this.$grid.css('backgroundImage', 'none');
         }
-        this._gridCache = null;
-        this._gridSettings = [];
         return this;
     },
 
@@ -1406,6 +1404,9 @@ joint.dia.Paper = joint.mvc.View.extend({
     setGrid:function (drawGrid) {
 
         this.clearGrid();
+
+        this._gridCache = null;
+        this._gridSettings = [];
 
         var optionsList = _.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
         _.each(optionsList, function (item) {
