@@ -4,24 +4,7 @@ var paper = new joint.dia.Paper({
     width: 600,
     height: 400,
     gridSize: 10,
-
-    // drawGrid: 'doubleMesh',
-    // drawGrid: { name: 'doubleMesh', args: [{ color: 'blue' }, { color: 'red' }] },
-
-    // drawGrid: {
-    //     markup: '<rect stroke="red" stroke-width="1" width="1" height="1"/>'
-    // },
-
-    // dot
-    // drawGrid: {color: 'red', thickness: 1},
-    //
-    // drawGrid: 'mesh',
-    // drawGrid: { name: 'mesh', color: 'blue'  },
-    // drawGrid: { name: 'mesh', args: { color: 'blue' } },
-
-    // drawGrid: 'mesh',
-    // drawGrid: { color: 'green', thickness: 5, name : 'dot', args: {color: 'red', thickness: 5 } },
-    // drawGrid: { name: 'mesh', color: 'green', thickness: 2 },
+    drawGrid: true,
     model: graph,
     linkConnectionPoint: function(linkView, view) {
         // connection point is always in the center of an element
@@ -440,38 +423,33 @@ $('#bg-toggle, #bg-color, #bg-repeat, #bg-opacity, #bg-size, #bg-position').on('
     });
 });
 
-var xxxx = function(gridTypes, onChange) {
+var _inputRenderer = function(gridTypes, onChange) {
 
-    var currentOpt = {args: {}};
+    var currentOpt = {};
     var formTypes = {
-        'color': function(data, container) {
-            var input = $('<input/>', { type: 'color'}).val(data.value).on('change input', function() {
-                currentOpt.args = currentOpt.args || {};
-                currentOpt.args[data.prop] = $(this).val();
+        'color': function(inputDef, container) {
+            var input = $('<input/>', { type: 'color'}).val(inputDef.value).on('change input', function() {
+                inputDef.onChange($(this).val(), currentOpt);
                 onChange(currentOpt)
-            });
-            currentOpt.args[data.prop] = input.val();
-
-            container.append($('<label/>').text(data.name));
+            }).trigger('change');
+            container.append($('<label/>').text(inputDef.name));
             container.append(input);
         },
-        'number': function(data, container) {
+        'number': function(inputDef, container) {
             var input = $('<input/>', { type: 'range'})
-                .val(data.value)
+                .val(inputDef.value)
                 .attr({
-                    step: data.step,
-                    min: data.min,
-                    max: data.max
+                    step: inputDef.step,
+                    min: inputDef.min,
+                    max: inputDef.max
                 })
                 .on('change input', function() {
-                    currentOpt.args = currentOpt.args || {};
-                    currentOpt.args[data.prop] = $(this).val();
-
-                    $('output', $(this).parent()).text(parseFloat($(this).val()).toFixed(2));
+                    var value = parseFloat($(this).val()).toFixed(2);
+                    $('output', $(this).parent()).text(value);
+                    inputDef.onChange(value, currentOpt);
                     onChange(currentOpt);
-                });
-            currentOpt.args[data.prop] = input.val();
-            container.append($('<label/>').text(data.name));
+                }).trigger('change');
+            container.append($('<label/>').text(inputDef.name));
             container.append(input);
             container.append($('<output/>').text(input.val()));
         }
@@ -484,55 +462,86 @@ var xxxx = function(gridTypes, onChange) {
     return {
         renderSettings: function (gridTypeName) {
             currentOpt.name = gridTypeName;
-            _.each(gridTypes[gridTypeName], function (x) {
+            currentOpt.args = [{}, {}];
+            _.each(gridTypes[gridTypeName].inputs, function (x) {
 
                 var element = $('<div/>').addClass('form-group').appendTo($gridTypesOpt);
                 renderInput(x, element);
-            })
+            });
+            onChange(currentOpt);
         }
     }
 };
 
 var gridTypes = {
-    'dot': [
-        { type: 'color', prop: 'color', name: 'Color', value: '#000000' },
-        { type: 'number', prop:'thickness',  name: 'Thickness', value: 1, step: 0.5, min: 0.5, max: 10 }
-    ],
-    'mesh': [
-        { type: 'color', prop: 'color', name: 'Color', value: '#000000' },
-        { type: 'number', prop: 'thickness',  name: 'Thickness', value: 1, step: 0.5, min: 0.5, max: 10 },
-
-    ],
-    'doubleMesh': [
-        { type: 'color', prop: 'primaryColor', name: 'Primary Color', value: '#AAAAAA' },
-        { type: 'number', prop: 'primaryThickness', name: 'Primary Thickness', value: 1, step: 0.5, min: 0.5, max: 5 },
-
-        { type: 'color', prop: 'secondaryColor', name: 'Secondary Color', value: '#000000' },
-        { type: 'number', prop: 'secondaryThickness', name: 'Secondary Thickness', value: 3, step: 0.5, min: 0.5, max: 5 },
-        { type: 'number', prop: 'scaleFactor', name: 'Scale Factor', value: 5, step: 1, min: 1, max: 10 },
-    ]
+    'dot': {
+        inputs: [{
+            type: 'color', name: 'Color', value: '#000000',
+            onChange: function(value, ref) {
+                ref.args[0].color = value;
+            }
+        }, {
+            type: 'number', name: 'Thickness', value: 1, step: 0.5, min: 0.5, max: 10,
+            onChange: function(value, ref) {
+                ref.args[0].thickness = value;
+            }
+        }]
+    },
+    'mesh': {
+        inputs: [{
+            type: 'color', name: 'Color', value: '#000000',
+            onChange: function(value, ref) {
+                ref.args[0].color = value;
+            }
+        }, {
+            type: 'number', prop: 'thickness', name: 'Thickness', value: 1, step: 0.5, min: 0.5, max: 10,
+            onChange: function(value, ref) {
+                ref.args[0].thickness = value;
+            }
+        }]
+    },
+    'doubleMesh': {
+        inputs: [{
+            type: 'color', name: 'Primary Color', value: '#AAAAAA',
+            onChange: function(value, ref) {
+                ref.args[0].color = value;
+            }
+        }, {
+            type: 'number', name: 'Primary Thickness', value: 1, step: 0.5, min: 0.5, max: 5,
+            onChange: function(value, ref) {
+                ref.args[0].thickness = value;
+            }
+        }, {
+            type: 'color', name: 'Secondary Color', value: '#000000',
+            onChange: function(value, ref) {
+                ref.args[1].color = value;
+            }
+        }, {
+            type: 'number', name: 'Secondary Thickness', value: 3, step: 0.5, min: 0.5, max: 5,
+            onChange: function(value, ref) {
+                ref.args[1].thickness = value;
+            }
+        }, {
+            type: 'number', name: 'Scale Factor', value: 5, step: 1, min: 1, max: 10,
+            onChange: function(value, ref) {
+                ref.args[1].scaleFactor = value;
+            }
+        }]
+    }
 };
-// var a = xxxx(gridTypes, function (gridOpt) {
-//
-//     console.log(gridOpt);
-//     paper.options.drawGrid = gridOpt;
-//     paper.clearGrid();
-//     paper.drawGrid();
-// });
-//
-// var $gridTypesOpt = $('.grid-types-opt');
-//
-// $('#grid-type').on('change input', function() {
-//
-//     var type = $(this).val();
-//     paper.options.drawGrid = type;
-//     paper.clearGrid();
-//     paper.drawGrid();
-//
-//     $gridTypesOpt.empty();
-//     a.renderSettings(type)
-// });
-//
-// $gridTypesOpt.empty();
-// a.renderSettings($('#grid-type').val());
-//
+var renderer = _inputRenderer(gridTypes, function (gridOpt) {
+
+    paper.setGrid(gridOpt);
+    paper.drawGrid();
+});
+
+var $gridTypesOpt = $('.grid-types-opt');
+
+$('#grid-type').on('change input', function() {
+
+    $gridTypesOpt.empty();
+    renderer.renderSettings($(this).val())
+});
+
+renderer.renderSettings($('#grid-type').val());
+

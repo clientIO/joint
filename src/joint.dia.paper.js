@@ -1371,8 +1371,11 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     clearGrid: function() {
 
-        this.$grid.css('backgroundImage', 'none');
+        if (this.$grid) {
+            this.$grid.css('backgroundImage', 'none');
+        }
         this._gridCache = null;
+        this._gridSettings = [];
         return this;
     },
 
@@ -1402,24 +1405,35 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     setGrid:function (drawGrid) {
 
-        this._gridSettings = this.sss(drawGrid);
+        this.clearGrid();
+
+        var optionsList = _.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
+        _.each(optionsList, function (item) {
+            this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
+        }, this);
         return this;
     },
 
-    sss: function (opt) {
+    _resolveDrawGridOption: function (opt) {
 
         if (_.isString(opt) && this.constructor.gridPatterns[opt]) {
             return _.map(this.constructor.gridPatterns[opt], _.clone);
         }
 
-        var options = opt || { args: [{}]};
+        var options = opt || { args: [{}] };
+        var isArray = _.isArray(options);
+        var name = options.name;
 
-        if (options.name && this.constructor.gridPatterns[options.name]) {
-            var pattern = _.map(this.constructor.gridPatterns[options.name], _.clone);
+        if (!isArray && !options.markup && !name) {
+            name = 'dot';
+        }
+
+        if (name && this.constructor.gridPatterns[name]) {
+            var pattern = _.map(this.constructor.gridPatterns[name], _.clone);
 
             var args = _.isArray(options.args) ? options.args : [options.args || {}];
 
-            _.defaults(args[0], opt);
+            _.defaults(args[0], _.omit(opt, 'args'));
             for (var i = 0; i < args.length; i++) {
                 if (pattern[i]) {
                     _.extend(pattern[i], args[i]);
@@ -1428,31 +1442,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             return pattern;
         }
 
-        return ['picus'];
-
-        var localOptions = _.isArray(opt) ? opt : [opt || {}];
-
-        return _.flatten(_.map(localOptions, function (o, index) {
-
-            var name;
-            if (_.isString(o)) {
-                name = o;
-                o = {};
-            } else {
-                name = o.name;
-            }
-
-            if (!name && !o.markup){
-                name  = 'dot';
-            }
-
-            var gridPattern = this.constructor.gridPatterns[name];
-            if (gridPattern) {
-                return _.defaults(o, gridPattern[index] ? gridPattern[index] : gridPattern[gridPattern.length - 1]);
-            }
-
-            return o;
-        }, this));
+        return isArray ? options : [options];
     },
 
     drawGrid: function(opt) {
@@ -1779,7 +1769,9 @@ joint.dia.Paper = joint.mvc.View.extend({
                 if (opt.sx < 0.5) {
                     d = []
                 }
-                V(el).attr({ 'd': d.join(' '), stroke: opt.color, 'stroke-width': opt.thickness });
+                V(el).attr({
+                    'd': d.join(' '), stroke: opt.color, 'stroke-width': opt.thickness
+                });
             }
         }, {
             color: '#000000',
@@ -1790,9 +1782,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 var w = opt.width, h = opt.height;
                 var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
                 V(el).attr({
-                    'd': d.join(' '),
-                    stroke: opt.color,
-                    'stroke-width': opt.color
+                    'd': d.join(' '), stroke: opt.color, 'stroke-width': opt.thickness
                 });
             }
         }]
