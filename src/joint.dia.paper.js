@@ -166,6 +166,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var model = this.model = this.options.model || new joint.dia.Graph;
 
+        this.setGrid(this.options.drawGrid);
         this.cloneOptions();
         this.render();
         this.setDimensions();
@@ -1399,27 +1400,53 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this._gridCache;
     },
 
+    setGrid:function (drawGrid) {
+
+        this._gridSettings = this.sss(drawGrid);
+        return this;
+    },
+
     sss: function (opt) {
 
-        var localOptions = _.isArray(opt) ? opt : ([opt] || [{}]);
+        if (_.isString(opt) && this.constructor.gridPatterns[opt]) {
+            return _.clone(this.constructor.gridPatterns[opt]);
+        }
 
-        return _.flatten(_.map(localOptions, function (o) {
+        var options = opt || { args: [{}]};
+        if (options.name && this.constructor.gridPatterns[options.name]) {
+            var pattern = this.constructor.gridPatterns[options.name];
+
+            var args = _.isArray(options.args) ? options.args : [options.args || {}];
+            for (var i = 0; i < args.length; i++) {
+                if (pattern[i]) {
+                    _.extend(pattern[i], args[i]);
+                }
+            }
+            return pattern;
+        }
+
+        return ['picus'];
+
+        var localOptions = _.isArray(opt) ? opt : [opt || {}];
+
+        return _.flatten(_.map(localOptions, function (o, index) {
 
             var name;
-            var args;
             if (_.isString(o)) {
                 name = o;
-                args = {}
+                o = {};
             } else {
                 name = o.name;
-                args = o.args || {};
             }
 
-            if (this.constructor.grids[name]) {
-                return this.constructor.grids[name](args);
+            if (!name && !o.markup){
+                name  = 'dot';
             }
 
-
+            var gridPattern = this.constructor.gridPatterns[name];
+            if (gridPattern) {
+                return _.defaults(o, gridPattern[index] ? gridPattern[index] : gridPattern[gridPattern.length - 1]);
+            }
 
             return o;
         }, this));
@@ -1432,41 +1459,32 @@ joint.dia.Paper = joint.mvc.View.extend({
             return this.clearGrid();
         }
 
-        var localOptions = this.sss(opt);
-        var drawGrid = this.sss(this.options.drawGrid);
+        var localOptions = _.isArray(opt) ? opt : [opt];
 
         var ctm = this.matrix();
         var refs = this.getGriRefs();
 
-        _.each(drawGrid, function (dg, index) {
+        _.each(this._gridSettings, function (dg, index) {
 
             var id = 'pattern_'  + index;
-            var options = _.defaults({}, localOptions[index], dg,
+            var options = _.merge(dg, localOptions[index],
                 {
-                    color: '#aaa',
-                    thickness: 1,
-                    markup: null,
-                    update: null,
-                    scaleFactor: 1,
                     sx: ctm.a || 1,
                     sy: ctm.d || 1,
                     ox: ctm.e || 0,
                     oy: ctm.f || 0
                 });
 
-            options.width = gridSize * (ctm.a || 1) * options.scaleFactor;
-            options.height = gridSize * (ctm.d || 1) * options.scaleFactor;
+            options.width = gridSize * (ctm.a || 1) * (options.scaleFactor || 1);
+            options.height = gridSize * (ctm.d || 1) * (options.scaleFactor || 1);
 
             if (!refs.exist(id)) {
-                refs.add(id, V('<pattern patternUnits="userSpaceOnUse"></pattern>', { id: id }, V(options.markup || '<rect/>' )))
+                refs.add(id, V('<pattern patternUnits="userSpaceOnUse"></pattern>', { id: id }, V(options.markup)))
             }
             var patternDefVel = refs.get(id);
 
             if (_.isFunction(options.update)) {
                 options.update(patternDefVel.node.childNodes[0], options);
-            } else if (options.markup === null) {
-                var size = options.sx <= 1 ? options.thickness * options.sx : options.thickness;
-                V(patternDefVel.node.childNodes[0]).attr({ width: size, height: size, fill: options.color });
             }
 
             var x = options.ox % options.width;
@@ -1720,72 +1738,60 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
     },
 
-    grids: {
+    gridPatterns: {
 
-        // dot: function (drawGridArgs) {
-        //
-        //     return {
-        //         color: drawGridArgs.color || '#AAAAAA',
-        //         thickness: drawGridArgs.thickness || 1,
-        //         markup: '<rect />',
-        //         update: function(el, opt) {
-        //             var size = opt.sx <= 1 ? opt.thickness * opt.sx : opt.thickness;
-        //             V(el).attr({ width: size, height: size, fill: opt.color });
-        //         }
-        //     }
-        // },
+        // drawGrid: {name: 'dot', args: {}},
+        // drawGrid: {color: 'dfdf', thickness: 21}
 
-        mesh: function(drawGridArgs) {
+        dot: [{
+            color: '#AAAAAA',
+            thickness: 1,
+            markup: '<rect/>',
+            update: function(el, opt) {
+                var size = opt.sx <= 1 ? opt.thickness * opt.sx : opt.thickness;
+                V(el).attr({ width: size, height: size, fill: opt.color });
+            }
+        }],
+        mesh: [{
+            color: '#AAAAAA',
+            thickness: 1,
+            markup: '<path />',
+            update: function(el, opt) {
 
-            // var color = drawGridArgs.color || '#AAAAAA';
-            // var thickness = drawGridArgs.thickness || 1;
-            return {
-                color: drawGridArgs.color || '#AAAAAA',
-                thickness: drawGridArgs.thickness || 1,
-                markup: '<path />',
-                update: function(el, opt) {
-
-                    var w = opt.width, h = opt.height;
-                    var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
-                    if (opt.sx < 0.5) {
-                        d = []
-                    }
-                    V(el).attr('d', d.join(' '));
+                var w = opt.width, h = opt.height;
+                var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
+                if (opt.sx < 0.5) {
+                    d = []
                 }
-            };
-        },
-
-        doubleMesh: function(drawGridArgs) {
-
-            var primaryColor = drawGridArgs.primaryColor || '#AAAAAA';
-            var primaryThickness = drawGridArgs.primaryThickness || 1;
-            var secondaryColor = drawGridArgs.secondaryColor || '#000000';
-            var secondaryThickness = drawGridArgs.secondaryThickness || 3;
-            var scaleFactor = drawGridArgs.scaleFactor || 5;
-            return [
-                {
-                    markup: '<path stroke="' + primaryColor + '" stroke-width="' + primaryThickness + '"/>',
-                    update: function(el, opt) {
-
-                        var w = opt.width, h = opt.height;
-                        var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
-                        if (opt.sx < 0.5) {
-                            d = []
-                        }
-                        V(el).attr('d', d.join(' '));
-                    }
-                },
-                {
-                    scaleFactor: scaleFactor,
-                    markup: '<path stroke="' + secondaryColor + '" stroke-width="' + secondaryThickness + '"/>',
-                    update: function(el, opt) {
-
-                        var w = opt.width, h = opt.height;
-                        var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
-                        V(el).attr('d', d.join(' '));
-                    }
+                V(el).attr({ 'd': d.join(' '), stroke: opt.color, 'stroke-width': opt.thickness });
+            }
+        }],
+        doubleMesh: [{
+            color: '#AAAAAA',
+            thickness: 1,
+            markup: '<path />',
+            update: function(el, opt) {
+                var w = opt.width, h = opt.height;
+                var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
+                if (opt.sx < 0.5) {
+                    d = []
                 }
-            ];
-        }
+                V(el).attr({ 'd': d.join(' '), stroke: opt.color, 'stroke-width': opt.thickness });
+            }
+        }, {
+            color: '#000000',
+            thickness: 3,
+            scaleFactor: 4,
+            markup: '<path />',
+            update: function(el, opt) {
+                var w = opt.width, h = opt.height;
+                var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
+                V(el).attr({
+                    'd': d.join(' '),
+                    stroke: opt.color,
+                    'stroke-width': opt.color
+                });
+            }
+        }]
     }
 });

@@ -4,13 +4,24 @@ var paper = new joint.dia.Paper({
     width: 600,
     height: 400,
     gridSize: 10,
-    // drawGrid: { name: 'mesh', args: { color: 'red' } },
-    // drawGrid: { name: 'doublemesh', args: { color: 'blue' } },
+
     // drawGrid: 'doubleMesh',
+    // drawGrid: { name: 'doubleMesh', args: [{ color: 'blue' }, { color: 'red' }] },
+
+    // drawGrid: {
+    //     markup: '<rect stroke="red" stroke-width="1" width="1" height="1"/>'
+    // },
+
+    // dot
+    // drawGrid: {color: 'red', thickness: 1},
+    //
+    // drawGrid: 'mesh',
+    // drawGrid: { name: 'mesh', color: 'blue'  },
+    // drawGrid: { name: 'mesh', args: { color: 'blue' } },
+
     // drawGrid: 'mesh',
     // drawGrid: { color: 'green', thickness: 5, name : 'dot', args: {color: 'red', thickness: 5 } },
-    // drawGrid: { color: 'green', thickness: 5 },
-    drawGrid: false,
+    // drawGrid: { name: 'mesh', color: 'green', thickness: 2 },
     model: graph,
     linkConnectionPoint: function(linkView, view) {
         // connection point is always in the center of an element
@@ -501,28 +512,27 @@ var gridTypes = {
         { type: 'number', prop: 'scaleFactor', name: 'Scale Factor', value: 5, step: 1, min: 1, max: 10 },
     ]
 };
+// var a = xxxx(gridTypes, function (gridOpt) {
 //
-var a = xxxx(gridTypes, function (gridOpt) {
-
-    console.log(gridOpt);
-    paper.options.drawGrid = gridOpt;
-    paper.clearGrid();
-    paper.drawGrid();
-});
-
-var $gridTypesOpt = $('.grid-types-opt');
-
-$('#grid-type').on('change input', function() {
-
-    var type = $(this).val();
-    paper.options.drawGrid = type;
-    paper.clearGrid();
-    paper.drawGrid();
-
-    $gridTypesOpt.empty();
-    a.renderSettings(type)
-});
-
-$gridTypesOpt.empty();
-a.renderSettings($('#grid-type').val());
-
+//     console.log(gridOpt);
+//     paper.options.drawGrid = gridOpt;
+//     paper.clearGrid();
+//     paper.drawGrid();
+// });
+//
+// var $gridTypesOpt = $('.grid-types-opt');
+//
+// $('#grid-type').on('change input', function() {
+//
+//     var type = $(this).val();
+//     paper.options.drawGrid = type;
+//     paper.clearGrid();
+//     paper.drawGrid();
+//
+//     $gridTypesOpt.empty();
+//     a.renderSettings(type)
+// });
+//
+// $gridTypesOpt.empty();
+// a.renderSettings($('#grid-type').val());
+//
