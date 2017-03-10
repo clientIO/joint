@@ -1009,7 +1009,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             // SVG attributes e.g. `x`, `y`
             translation = def.position.call(this, attrVal, refBBox.clone(), node, rawAttrs);
             if (translation) {
-                nodePosition.offset(translation.scale(sx, sy));
+                nodePosition.offset(g.Point(translation).scale(sx, sy));
             }
         }
 
@@ -1030,7 +1030,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                     // specify with some SVG attributes e.g. `text-anchor`, `cx`, `cy`
                     translation = def.offset.call(this, attrVal, nodeBBox, node, rawAttrs);
                     if (translation) {
-                        nodePosition.offset(translation.scale(sx, sy));
+                        nodePosition.offset(g.Point(translation).scale(sx, sy));
                     }
                 }
             }

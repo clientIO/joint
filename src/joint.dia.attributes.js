@@ -102,14 +102,14 @@
         },
 
         sourceMarker: {
-            qualify: _.isObject,
+            qualify: _.isPlainObject,
             set: function(marker) {
                 return { 'marker-start': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
 
         targetMarker: {
-            qualify: _.isObject,
+            qualify: _.isPlainObject,
             set: function(marker) {
                 marker = _.assign({ transform: 'rotate(180)' }, marker);
                 return { 'marker-end': 'url(#' + this.paper.defineMarker(marker) + ')' };
@@ -117,7 +117,7 @@
         },
 
         vertexMarker: {
-            qualify: _.isObject,
+            qualify: _.isPlainObject,
             set: function(marker) {
                 return { 'marker-mid': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
