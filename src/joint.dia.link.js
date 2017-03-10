@@ -720,8 +720,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         // if there was no markup for the marker, use the connection point.
-        cache.sourcePoint = sourceMarkerPoint || sourcePoint;
-        cache.targetPoint = targetMarkerPoint || targetPoint;
+        cache.sourcePoint = sourceMarkerPoint || sourcePoint.clone();
+        cache.targetPoint = targetMarkerPoint || targetPoint.clone();
 
         // make connection points public
         this.sourcePoint = sourcePoint;
