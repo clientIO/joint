@@ -166,6 +166,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var model = this.model = this.options.model || new joint.dia.Graph;
 
+        this.setGrid(this.options.drawGrid);
         this.cloneOptions();
         this.render();
         this.setDimensions();
@@ -1370,31 +1371,135 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     clearGrid: function() {
 
-        this.$grid.css('backgroundImage', 'none');
+        if (this.$grid) {
+            this.$grid.css('backgroundImage', 'none');
+        }
         return this;
     },
 
-    drawGrid: function(opt) {
+    _getGriRefs: function () {
 
-        opt = _.defaults({}, opt, this.options.drawGrid);
+        if (!this._gridCache) {
+
+            this._gridCache = {
+                root: V('svg', { width: '100%', height: '100%' }, V('defs')),
+                patterns: {},
+                add: function (id, vel) {
+                    V(this.root.node.childNodes[0]).append(vel);
+                    this.patterns[id] = vel;
+                    this.root.append(V('rect', { width: "100%", height: "100%", fill: 'url(#' + id + ')' }));
+                },
+                get: function (id) {
+                    return  this.patterns[id]
+                },
+                exist: function (id) {
+                    return this.patterns[id] !== undefined;
+                }
+            }
+        }
+
+        return this._gridCache;
+    },
+
+    setGrid:function (drawGrid) {
+
+        this.clearGrid();
+
+        this._gridCache = null;
+        this._gridSettings = [];
+
+        var optionsList = _.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
+        _.each(optionsList, function (item) {
+            this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
+        }, this);
+        return this;
+    },
+
+    _resolveDrawGridOption: function (opt) {
+
+        var namespace = this.constructor.gridPatterns;
+        if (_.isString(opt) && namespace[opt]) {
+            return _.map(namespace[opt], _.clone);
+        }
+
+        var options = opt || { args: [{}] };
+        var isArray = _.isArray(options);
+        var name = options.name;
+
+        if (!isArray && !name && !options.markup ) {
+            name = 'dot';
+        }
+
+        if (name && namespace[name]) {
+            var pattern = _.map(namespace[name], _.clone);
+
+            var args = _.isArray(options.args) ? options.args : [options.args || {}];
+
+            _.defaults(args[0], _.omit(opt, 'args'));
+            for (var i = 0; i < args.length; i++) {
+                if (pattern[i]) {
+                    _.extend(pattern[i], args[i]);
+                }
+            }
+            return pattern;
+        }
+
+        return isArray ? options : [options];
+    },
+
+    drawGrid: function(opt) {
 
         var gridSize = this.options.gridSize;
         if (gridSize <= 1) {
             return this.clearGrid();
         }
 
+        var localOptions = _.isArray(opt) ? opt : [opt];
+
         var ctm = this.matrix();
-        var canvas = this.constructor.backgroundPatterns.grid(null, {
-            sx: ctm.a,
-            sy: ctm.d,
-            ox: ctm.e,
-            oy: ctm.f,
-            size: gridSize,
-            color: opt.color,
-            thickness: opt.thickness
+        var refs = this._getGriRefs();
+
+        _.each(this._gridSettings, function (gridLayerSetting, index) {
+
+            var id = 'pattern_'  + index;
+            var options = _.merge(gridLayerSetting, localOptions[index], {
+                sx: ctm.a || 1,
+                sy: ctm.d || 1,
+                ox: ctm.e || 0,
+                oy: ctm.f || 0
+            });
+
+            options.width = gridSize * (ctm.a || 1) * (options.scaleFactor || 1);
+            options.height = gridSize * (ctm.d || 1) * (options.scaleFactor || 1);
+
+            if (!refs.exist(id)) {
+                refs.add(id, V('pattern', { id: id, patternUnits: 'userSpaceOnUse' }, V(options.markup)))
+            }
+
+            var patternDefVel = refs.get(id);
+
+            if (_.isFunction(options.update)) {
+                options.update(patternDefVel.node.childNodes[0], options);
+            }
+
+            var x = options.ox % options.width;
+            if (x < 0) x += options.width;
+
+            var y = options.oy % options.height;
+            if (y < 0) y += options.height;
+
+            patternDefVel.attr({
+                x: x,
+                y: y,
+                width: options.width,
+                height: options.height
+            });
         });
 
-        this.$grid.css('backgroundImage', 'url(' + canvas.toDataURL('image/png') + ')');
+        var patternUri = new XMLSerializer().serializeToString(refs.root.node);
+        patternUri = 'url(data:image/svg+xml;base64,' + btoa(patternUri) + ')';
+
+        this.$grid.css('backgroundImage', patternUri);
 
         return this;
     },
@@ -1625,38 +1730,78 @@ joint.dia.Paper = joint.mvc.View.extend({
             }
 
             return canvas;
-        },
-
-        grid: function(img, opt) {
-
-            opt = opt || {};
-
-            var size = opt.size;
-            var ox = opt.ox || 0;
-            var oy = opt.oy || 0;
-            var sx = opt.sx || 1;
-            var sy = opt.sy || 1;
-            var thickness = opt.thickness || 1;
-            var color = opt.color || '#aaa';
-
-            var canvas = document.createElement('canvas');
-
-            var width = canvas.width = Math.round(size * sx);
-            var x = ox % width;
-            if (x < 0) x += width;
-
-            var height = canvas.height = Math.round(size * sy);
-            var y = oy % height;
-            if (y < 0) y += height;
-
-            var context = canvas.getContext('2d');
-            context.beginPath();
-            context.rect(x, y, thickness * sx, thickness * sy);
-            context.fillStyle = color;
-            context.fill();
-
-            return canvas;
         }
-    }
+    },
 
+    gridPatterns: {
+        dot: [{
+            color: '#AAAAAA',
+            thickness: 1,
+            markup: 'rect',
+            update: function(el, opt) {
+                var size = opt.sx <= 1 ? opt.thickness * opt.sx : opt.thickness;
+                V(el).attr({ width: size, height: size, fill: opt.color });
+            }
+        }],
+        mesh: [{
+            color: '#AAAAAA',
+            thickness: 1,
+            markup: 'path',
+            update: function(el, opt) {
+
+                var d;
+                var width = opt.width;
+                var height = opt.height;
+                var thickness = opt.thickness;
+
+                if (width - thickness >= 0 && height - thickness >= 0) {
+                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+                } else {
+                    d = 'M 0 0 0 0';
+                }
+
+                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+            }
+        }],
+        doubleMesh: [{
+            color: '#AAAAAA',
+            thickness: 1,
+            markup: 'path',
+            update: function(el, opt) {
+
+                var d;
+                var width = opt.width;
+                var height = opt.height;
+                var thickness = opt.thickness;
+
+                if (width - thickness >= 0 && height - thickness >= 0) {
+                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+                } else {
+                    d = 'M 0 0 0 0';
+                }
+
+                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+            }
+        }, {
+            color: '#000000',
+            thickness: 3,
+            scaleFactor: 4,
+            markup: 'path',
+            update: function(el, opt) {
+
+                var d;
+                var width = opt.width;
+                var height = opt.height;
+                var thickness = opt.thickness;
+
+                if (width - thickness >= 0 && height - thickness >= 0) {
+                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+                } else {
+                    d = 'M 0 0 0 0';
+                }
+
+                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+            }
+        }]
+    }
 });

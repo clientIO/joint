@@ -169,7 +169,7 @@ QUnit.module('paper', function(hooks) {
             { x: -100, y: -100, width: 1000, height: 800 },
             'Paper area returns correct results for unscaled, but translated viewport.');
 
-        this.paper.scale(2,2);
+        this.paper.scale(2, 2);
 
         assert.deepEqual(
             _.pick(this.paper.getArea(), 'x', 'y', 'width', 'height'),
@@ -807,233 +807,335 @@ QUnit.module('paper', function(hooks) {
         assert.equal(this.paper.options.gridSize, newGridSize, 'should set options.gridSize');
     });
 
-    QUnit.test('drawGrid(opt)', function(assert) {
+    QUnit.module('draw grid options', function(hooks) {
 
-        var done = assert.async();
+        var getGridVel = function(paper) {
+            var image = paper.$grid.css('backgroundImage').replace(/url\("*|"*\)/g, '').replace('data:image/svg+xml;base64,', '');
+            return V(atob(image));
+        };
 
-        assert.equal(typeof joint.dia.Paper.prototype.drawGrid, 'function', 'should be a function');
+        var preparePaper = function(drawGrid, paperSettings) {
 
-        var called = false;
+            paperSettings = paperSettings ||
+                {
+                    gridSize: 10,
+                    scale: { x: 1, y: 1 },
+                    origin: { x: 0, y: 0 }
+                };
 
-        var TestPaper = joint.dia.Paper.extend({
-            drawGrid: function() {
-                called = true;
-                joint.dia.Paper.prototype.drawGrid.apply(this, arguments);
-            }
-        });
-
-        var paper = new TestPaper({
-            model: new joint.dia.Graph
-        });
-
-        var callerMethods = [
-            {
-                name: 'setGridSize'
-            },
-            {
-                name: 'scale',
-                args: [1]
-            },
-            {
-                name: 'setOrigin',
-                args: [0, 0]
-            }
-        ];
-
-        paper.options.drawGrid = true;
-
-        _.each(callerMethods, function(callerMethod) {
-            called = false;
-            paper[callerMethod.name].apply(paper, callerMethod.args || []);
-            assert.ok(called, 'should be called by ' + callerMethod.name + '()');
-        });
-
-        paper.options.drawGrid = false;
-
-        _.each(callerMethods, function(callerMethod) {
-            called = false;
-            paper[callerMethod.name].apply(paper, callerMethod.args || []);
-            assert.notOk(called, 'when paper.options.drawGrid set to FALSE, should be called by ' + callerMethod.name + '()');
-        });
-
-        paper.options.drawGrid = true;
-
-        var inputsAndOutputs = [
-            {
-                message: 'normal',
-                gridSize: 5,
-                origin: {
-                    x: 0,
-                    y: 0
-                },
-                scale: {
-                    x: 1,
-                    y: 1
-                },
-                opt: {
-                    color: '#aaa',
-                    thickness: 1
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAGklEQVQIW2NctWrV/7CwMEYGJIDCgYlTKAgAl6cEBngimTIAAAAASUVORK5CYII='
-            },
-            {
-                message: 'using default options',
-                gridSize: 5,
-                origin: {
-                    x: 0,
-                    y: 0
-                },
-                scale: {
-                    x: 1,
-                    y: 1
-                },
-                opt: {},
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAGklEQVQIW2NctWrV/7CwMEYGJIDCgYlTKAgAl6cEBngimTIAAAAASUVORK5CYII='
-            },
-            {
-                message: 'custom color',
-                gridSize: 5,
-                origin: {
-                    x: 0,
-                    y: 0
-                },
-                scale: {
-                    x: 1,
-                    y: 1
-                },
-                opt: {
-                    color: 'purple',
-                    thickness: 1
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAGUlEQVQIW2NsYGj438DQwMiABFA4MHEKBQEwrwMGTWEEKgAAAABJRU5ErkJggg=='
-            },
-            {
-                message: 'custom thickness',
-                gridSize: 5,
-                origin: {
-                    x: 0,
-                    y: 0
-                },
-                scale: {
-                    x: 1,
-                    y: 1
-                },
-                opt: {
-                    color: '#aaa',
-                    thickness: 3
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAIElEQVQIW2NctWrVfwYoCAsLYwQxGYkXhGlFpsFmoAMAr2UMBnjfcSIAAAAASUVORK5CYII='
-            },
-            {
-                message: 'large, odd gridSize',
-                gridSize: 23,
-                origin: {
-                    x: 0,
-                    y: 0
-                },
-                scale: {
-                    x: 1,
-                    y: 1
-                },
-                opt: {
-                    color: '#aaa',
-                    thickness: 1
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAXCAYAAADgKtSgAAAANklEQVRIS2NctWrV/7CwMEYGGgCaGApz56jhWGNsNFhGg4X4rDyaWkZTy2hqIT4ERlML8WEFAMyCBBj4/EAnAAAAAElFTkSuQmCC'
-            },
-            {
-                message: 'negative origin',
-                gridSize: 7,
-                origin: {
-                    x: -5,
-                    y: -8
-                },
-                scale: {
-                    x: 1,
-                    y: 1
-                },
-                opt: {
-                    color: '#aaa',
-                    thickness: 1
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAAGUlEQVQIW2NkwAMYB63kqlWr/oeFhaE4EABJ6wQImIsygAAAAABJRU5ErkJggg=='
-            },
-            {
-                message: 'positive origin',
-                gridSize: 7,
-                origin: {
-                    x: 11,
-                    y: 7
-                },
-                scale: {
-                    x: 1,
-                    y: 1
-                },
-                opt: {
-                    color: '#aaa',
-                    thickness: 1
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAAHElEQVQIW2NkQAOrVq36HxYWxggSBhO4wKCTBADiCQQIkW6pkwAAAABJRU5ErkJggg=='
-            },
-            {
-                message: 'scaled up',
-                gridSize: 12,
-                origin: {
-                    x: 0,
-                    y: 0
-                },
-                scale: {
-                    x: 2,
-                    y: 2
-                },
-                opt: {
-                    color: '#aaa',
-                    thickness: 1
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAARUlEQVRIS2NctWrVfwYGBoawsDBGEE1twEhzC6jtYnTzaBIsyJaMWkAwCkeDaDSICIYAQQWjqWg0iAiGAEEFo6loBAQRAJa9CBnOM9wvAAAAAElFTkSuQmCC'
-            },
-            {
-                message: 'scaled down',
-                gridSize: 20,
-                origin: {
-                    x: 0,
-                    y: 0
-                },
-                scale: {
-                    x: 0.5,
-                    y: 0.5
-                },
-                opt: {
-                    color: '#aaa',
-                    thickness: 2
-                },
-                imageDataUri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAIElEQVQYV2NctWrV/7CwMEYGAoCgApj+UYV4Q5Lo4AEAZLcECwWKMoMAAAAASUVORK5CYII='
-            }
-        ];
-
-        async.each(inputsAndOutputs, function(inputsAndOutput, next) {
-
-            var gridSize = inputsAndOutput.gridSize;
-            var origin = inputsAndOutput.origin;
-            var scale = inputsAndOutput.scale;
-            var opt = inputsAndOutput.opt;
-
-            paper.setGridSize(gridSize);
-            paper.scale(scale.x, scale.y);
-            paper.setOrigin(origin.x, origin.y);
-            paper.drawGrid(opt);
-
-            var actualBackgroundImage = paper.$grid.css('background-image');
-            var message = inputsAndOutput.message;
-
-            normalizeImageDataUri(inputsAndOutput.imageDataUri, function(error, normalizedImageDataUri) {
-
-                var expectedBackgroundImage = normalizeCssAttr('background-image', 'url("' + normalizedImageDataUri + '")');
-                assert.equal(actualBackgroundImage, expectedBackgroundImage, message);
-                next();
+            var paper = new joint.dia.Paper({
+                drawGrid: drawGrid
             });
 
-        }, done);
+            paper.setGridSize(paperSettings.gridSize);
+            paper.scale(paperSettings.scale.x, paperSettings.scale.y);
+            paper.setOrigin(paperSettings.origin.x, paperSettings.origin.y);
+
+            return paper;
+        };
+
+
+        QUnit.test('no grid', function(assert) {
+
+            var paper = preparePaper(false);
+            var svg = getGridVel(paper);
+            assert.equal(svg, undefined);
+        });
+
+        QUnit.module('Check rendered output', function(hooks) {
+
+            QUnit.test('default format', function(assert) {
+
+                var drawGrid = { color: 'red', thickness: 2 };
+                var paper = preparePaper(drawGrid);
+                paper.drawGrid();
+
+                var svg = getGridVel(paper);
+
+                assert.equal(svg.node.childNodes.length, 2, 'defs + rect with pattern fill');
+                var patterns = V(svg.node.childNodes[0]).find('pattern');
+                assert.equal(patterns.length, 1);
+
+                var shape = V(patterns[0].node.childNodes[0]);
+                assert.equal(shape.attr('width'), drawGrid.thickness, 'has correct width');
+                assert.equal(shape.attr('height'), drawGrid.thickness, 'has correct height');
+                assert.equal(shape.attr('fill'), drawGrid.color, 'has correct color');
+            });
+
+            QUnit.test('custom markup only', function(assert) {
+
+                var drawGrid = { markup: '<circle r="10" fill="black" />', color: 'red' };
+                var paper = preparePaper(drawGrid);
+                paper.drawGrid();
+
+                var svg = getGridVel(paper);
+
+                assert.equal(svg.node.childNodes.length, 2, 'defs + rect with pattern fill');
+                var defs = V(svg.node.childNodes[0]);
+                var patterns = defs.find('pattern');
+
+                assert.equal(patterns.length, 1);
+
+                var shape = V(patterns[0].node.childNodes[0]);
+                assert.equal(shape.attr('width'), undefined, 'width shouldn\'t be set');
+                assert.equal(shape.attr('height'), undefined, 'height shouldn\'t be set');
+                assert.equal(shape.attr('fill'), 'black', 'color shouldn\'t be updated');
+            });
+
+            QUnit.test('custom update only', function(assert) {
+
+                var drawGrid = {
+                    update: function(element, opt) {
+                        V(element).attr({ 'fill': 'green', width: 999, height: 111 })
+                    }, color: 'red'
+                };
+                var paper = preparePaper(drawGrid);
+                paper.drawGrid();
+
+                var svg = getGridVel(paper);
+
+                var patterns = V(svg.node.childNodes[0]).find('pattern');
+                assert.equal(svg.node.childNodes.length, 2, 'defs + rect with pattern fill');
+                assert.equal(patterns.length, 1);
+
+                var shape = V(patterns[0].node.childNodes[0]);
+                assert.equal(shape.attr('width'), 999);
+                assert.equal(shape.attr('height'), 111);
+                assert.equal(shape.attr('fill'), 'green');
+            });
+
+            QUnit.test('patterns with scale factor', function(assert) {
+
+                var drawGrid = [
+                    { color: 'red' },
+                    { color: 'green', scaleFactor: 2 }
+                ];
+
+                var paper = preparePaper(drawGrid, {
+                    gridSize: 10,
+                    scale: { x: 1, y: 1 },
+                    origin: { x: -5, y: -5 }
+                });
+
+                paper.drawGrid();
+
+                var svg = getGridVel(paper);
+
+                var patterns = V(svg.node.childNodes[0]).find('pattern');
+                assert.equal(svg.node.childNodes.length, 3, 'defs + 2x rect with pattern fill');
+                assert.equal(patterns.length, 2);
+
+                var redDotAttrs = V(patterns[0]).attr();
+                var greenDotAttrs = V(patterns[1]).attr();
+
+                assert.deepEqual(
+                    { width: redDotAttrs.width, height: redDotAttrs.height, x: redDotAttrs.x, y: redDotAttrs.y },
+                    { width: '10', height: '10', x: '5', y: '5' },
+                    'red dot pattern attrs'
+                );
+
+                assert.deepEqual(
+                    {
+                        width: greenDotAttrs.width,
+                        height: greenDotAttrs.height,
+                        x: greenDotAttrs.x,
+                        y: greenDotAttrs.y
+                    },
+                    { width: '20', height: '20', x: '15', y: '15' },
+                    'green dot pattern attrs'
+                );
+            });
+
+            QUnit.test('local options - as an object', function(assert) {
+
+                var drawGrid = [
+                    { color: 'red' },
+                    { color: 'green' }
+                ];
+
+                var paper = preparePaper(drawGrid, {
+                    gridSize: 10,
+                    scale: { x: 1, y: 1 },
+                    origin: { x: -5, y: -5 }
+                });
+
+                paper.drawGrid({ color: 'pink' });
+
+                var svg = getGridVel(paper);
+
+                assert.equal(svg.node.childNodes.length, 3, 'defs + 2x rect with pattern fill');
+                var defs = V(svg.node.childNodes[0]);
+                var patterns = defs.find('pattern');
+
+                assert.equal(patterns.length, 2);
+
+                var redDot = V(patterns[0].node.childNodes[0]);
+
+                assert.equal(redDot.attr('fill'), 'pink', 'color updated by local options');
+            });
+
+            QUnit.test('local options - as an array', function(assert) {
+
+                var drawGrid = [
+                    { color: 'red' },
+                    { color: 'green' }
+                ];
+
+                var paper = preparePaper(drawGrid, {
+                    gridSize: 10,
+                    scale: { x: 1, y: 1 },
+                    origin: { x: -5, y: -5 }
+                });
+
+                paper.drawGrid([{ color: 'black' }, { color: 'pink' }]);
+
+                var svg = getGridVel(paper);
+
+                var patterns = V(svg.node.childNodes[0]).find('pattern');
+                var greenDot = V(patterns[1].node.childNodes[0]);
+
+                assert.equal(svg.node.childNodes.length, 3, 'defs + 2x rect with pattern fill');
+                assert.equal(patterns.length, 2);
+                assert.equal(greenDot.attr('fill'), 'pink', 'color updated by local options');
+            });
+
+            QUnit.test('update mesh', function(assert) {
+
+                var drawGrid = { name: 'mesh', color: 'red', thickness: 2 };
+                var paper = preparePaper(drawGrid);
+                paper.drawGrid();
+
+                var svg = getGridVel(paper);
+
+                var patterns = V(svg.node.childNodes[0]).find('pattern');
+                var patternAttr = V(patterns[0].node.childNodes[0]).attr();
+                assert.equal(patternAttr.stroke, 'red');
+                assert.equal(patternAttr['stroke-width'], '2');
+
+                paper.drawGrid({ color: 'blue', thickness: 1 });
+                svg = getGridVel(paper);
+                patterns = V(svg.node.childNodes[0]).find('pattern');
+                patternAttr = V(patterns[0].node.childNodes[0]).attr();
+                assert.equal(patternAttr.stroke, 'blue');
+                assert.equal(patternAttr['stroke-width'], '1');
+            });
+
+            QUnit.test('doubleMesh', function(assert) {
+
+                var drawGrid = { name: 'doubleMesh', args: [{ color: 'red', thickness: 2 }] };
+                var paper = preparePaper(drawGrid);
+                paper.drawGrid();
+
+                var svg = getGridVel(paper);
+
+                var patterns = V(svg.node.childNodes[0]).find('pattern');
+                var patternAttr = V(patterns[0].node.childNodes[0]).attr();
+                assert.equal(patternAttr.stroke, 'red');
+                assert.equal(patternAttr['stroke-width'], '2');
+
+                paper.drawGrid({ color: 'blue', thickness: 1 });
+                svg = getGridVel(paper);
+                patterns = V(svg.node.childNodes[0]).find('pattern');
+                patternAttr = V(patterns[0].node.childNodes[0]).attr();
+                assert.equal(patternAttr.stroke, 'blue');
+                assert.equal(patternAttr['stroke-width'], '1');
+            });
+        });
+
+        QUnit.module('setGrid() - possible definitions of the drawGrid options', function(hooks) {
+
+            /** @type joint.dia.Paper */
+            var paper;
+
+            hooks.beforeEach(function() {
+                paper = new joint.dia.Paper();
+            });
+
+            QUnit.test('set doubleMesh settings', function(assert) {
+
+                var drawGridTestFixtures = [
+                    { name: 'doubleMesh', args: { color: 'red', thickness: 11 } }, //update first layer
+                    { name: 'doubleMesh', args: [{ color: 'red', thickness: 11 }, { color: 'black', thickness: 55 }] }, //udate both alyers
+                    { name: 'doubleMesh', color: 'red', thickness: 11 } // update firs layer
+                ];
+
+                var check = function(message) {
+
+                    assert.equal(paper._gridSettings.length, 2);
+                    var firstLayer = paper._gridSettings[0];
+
+                    assert.equal(firstLayer.color, 'red', message + ': color');
+                    assert.equal(firstLayer.thickness, 11, message + ': thickness');
+                    assert.equal(firstLayer.markup, 'path', message + ': markup');
+                    assert.ok(_.isFunction(firstLayer.update), message + ': update');
+                };
+
+                paper.setGrid(drawGridTestFixtures[0]);
+                check('args: {}');
+
+                paper.setGrid(drawGridTestFixtures[1]);
+                var secondLayer = paper._gridSettings[1];
+                var message = 'args: [{}] - second layer';
+                assert.equal(secondLayer.color, 'black', message + ': color');
+                assert.equal(secondLayer.thickness, 55, message + ': thickness');
+                assert.equal(secondLayer.markup, 'path', message + ': markup');
+                assert.ok(_.isFunction(secondLayer.update), message + ': update');
+                check('args: [{}]');
+
+                paper.setGrid(drawGridTestFixtures[2]);
+                check('no args');
+            });
+
+            QUnit.test('update default', function(assert){
+
+                paper.setGrid({ color: 'red', thickness: 11 });
+                assert.propEqual(paper._gridSettings[0], {
+                    color: 'red',
+                    thickness: 11,
+                    markup: 'rect',
+                    update: {}
+                }, 'update default');
+                assert.ok(_.isFunction(paper._gridSettings[0].update));
+            });
+
+            QUnit.test('create custom', function(assert) {
+
+                var drawGridTestFixtures = [
+                    { markup: 'rect', update: 'fnc' }, //custom one-layer grid
+                    [{ markup: 'rect', update: 'fnc' }, { markup: 'rect2', update: 'fnc2' }], //custom double layered grid
+                    { markup: '<circle/>' } // minimal setup for custom grid
+                ];
+
+                paper.setGrid(drawGridTestFixtures[0]);
+                assert.deepEqual(paper._gridSettings[0], { markup: 'rect', update: 'fnc' }, 'custom markup and update');
+
+                paper.setGrid(drawGridTestFixtures[1]);
+                assert.ok(_.isArray(paper._gridSettings));
+                assert.deepEqual(paper._gridSettings[0], { markup: 'rect', update: 'fnc' }, 'custom markup and update - first layer');
+                assert.deepEqual(paper._gridSettings[1], { markup: 'rect2', update: 'fnc2' }, 'custom markup and update- second layer');
+
+                paper.setGrid(drawGridTestFixtures[2]);
+                assert.ok(_.isArray(paper._gridSettings));
+                assert.deepEqual(paper._gridSettings[0], { markup: '<circle/>' }, 'custom grid - minimal setup');
+            });
+
+            QUnit.test('initialize gridSettings', function(assert) {
+
+                var dotDefault = joint.dia.Paper.gridPatterns.dot[0];
+
+                paper.setGrid({ markup: '<rect/>' });
+                assert.deepEqual(paper._gridSettings[0], { markup: '<rect/>' }, 'markup only');
+
+                paper.setGrid({ update: 'custom' });
+                assert.propEqual(_.omit(paper._gridSettings[0], 'update'), _.omit(dotDefault, 'update'), 'override update function');
+                assert.equal(paper._gridSettings[0].update, 'custom');
+
+                paper.setGrid('dot');
+                assert.propEqual(paper._gridSettings[0], dotDefault, 'update');
+
+                paper.setGrid([{ color: 'red' }, { color: 'black' }]);
+            });
+        });
     });
 
     QUnit.module('interactivity', function(hooks) {
@@ -1091,7 +1193,7 @@ QUnit.module('paper', function(hooks) {
 
         assert.deepEqual(this.paper.matrix(), this.paper.matrix().inverse(), 'when the paper is not transformed it returns the identity matrix');
 
-        this.paper.setOrigin(100,100);
+        this.paper.setOrigin(100, 100);
         assert.deepEqual(V.decomposeMatrix(this.paper.matrix()), {
             rotation: 0,
             scaleX: 1,
@@ -1102,7 +1204,7 @@ QUnit.module('paper', function(hooks) {
             translateY: 100
         }, 'changing the origin of the paper will modify the matrix');
 
-        this.paper.scale(2,2);
+        this.paper.scale(2, 2);
         assert.deepEqual(V.decomposeMatrix(this.paper.matrix()), {
             rotation: 0,
             scaleX: 2,
@@ -1138,7 +1240,7 @@ QUnit.module('paper', function(hooks) {
         });
 
         QUnit.test('translate', function(assert) {
-            this.paper.translate(10,20);
+            this.paper.translate(10, 20);
             var viewportTranslate = V.matrixToTranslate(this.paper.viewport.getCTM());
             assert.equal(viewportTranslate.tx, 10);
             assert.equal(viewportTranslate.ty, 20);
@@ -1361,7 +1463,7 @@ QUnit.module('paper', function(hooks) {
 
                 _.delay(function() {
                     assert.equal(paper.$background.css('backgroundSize'), '100px 100px');
-                    paper.scale(2,3);
+                    paper.scale(2, 3);
                     assert.equal(paper.$background.css('backgroundSize'), '200px 300px');
                     done();
                 });
@@ -1381,7 +1483,7 @@ QUnit.module('paper', function(hooks) {
 
                 _.delay(function() {
                     assert.equal(paper.$background.css('backgroundSize'), '100px 100px');
-                    paper.scale(2,3);
+                    paper.scale(2, 3);
                     assert.equal(paper.$background.css('backgroundSize'), '100px 100px');
                     done();
                 });
@@ -1405,7 +1507,7 @@ QUnit.module('paper', function(hooks) {
 
                 _.delay(function() {
                     assert.equal(paper.$background.css('backgroundPosition'), '100px 100px');
-                    paper.scale(2,3);
+                    paper.scale(2, 3);
                     assert.equal(paper.$background.css('backgroundPosition'), '200px 300px');
                     done();
                 });
@@ -1425,7 +1527,7 @@ QUnit.module('paper', function(hooks) {
 
                 _.delay(function() {
                     assert.equal(paper.$background.css('backgroundPosition'), '100px 100px');
-                    paper.scale(2,3);
+                    paper.scale(2, 3);
                     assert.equal(paper.$background.css('backgroundPosition'), '100px 100px');
                     done();
                 });
@@ -1445,7 +1547,7 @@ QUnit.module('paper', function(hooks) {
             this.paper.drawBackground({
                 image: bgImageDataURL,
                 repeat: 'flip-x', // quality is valid only for custom repeat values, which uses canvas
-                quality: 1/2
+                quality: 1 / 2
             });
 
             _.delay(

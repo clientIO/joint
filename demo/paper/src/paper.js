@@ -3,7 +3,8 @@ var paper = new joint.dia.Paper({
     el: $('#paper'),
     width: 600,
     height: 400,
-    gridSize: 1,
+    gridSize: 10,
+    drawGrid: true,
     model: graph,
     linkConnectionPoint: function(linkView, view) {
         // connection point is always in the center of an element
@@ -328,30 +329,6 @@ function scaleToFit() {
     svgContainer.showAll();
 }
 
-function getGridBackgroundImage(gridX, gridY) {
-
-    var canvas = document.createElement('canvas');
-    canvas.width = gridX;
-    canvas.height = gridY;
-
-    if (gridX > 5 && gridY > 5) {
-
-        var ox = $ox.val();
-        var oy = $oy.val();
-
-        gridX = ox >= 0 ? ox % gridX : gridX + ox % gridX - 1;
-        gridY = oy >= 0 ? oy % gridY : gridY + oy % gridY - 1;
-
-        var context = canvas.getContext('2d');
-        context.beginPath();
-        context.rect(gridX, gridY, 1, 1);
-        context.fillStyle = 'black';
-        context.fill();
-    }
-
-    return canvas.toDataURL('image/png');
-}
-
 function updateBBox() {
 
     var bbox = paper.getContentBBox();
@@ -389,7 +366,7 @@ $h.on('input change', function() {
 });
 $grid.on('input change', function() {
     paper.options.gridSize = this.value;
-    paper.$el.css('background-image', 'url("' + getGridBackgroundImage(this.value * $sx.val(), this.value * $sy.val()) + '")');
+    paper.drawGrid();
 });
 $('.range').on('input change', function() {
     $(this).next().text(this.value);
@@ -402,9 +379,6 @@ paper.on({
         $sx.val(sx).next().text(sx.toFixed(2));
         $sy.val(sy).next().text(sy.toFixed(2));
 
-        var grid = $grid.val();
-        paper.$el.css('background-image', 'url("' + getGridBackgroundImage(grid * sx, grid * sy) + '")');
-
         svgContainer.hideAll();
     },
 
@@ -416,9 +390,6 @@ paper.on({
         // translate axis
         svgAxisX.translate(0, oy, { absolute: true });
         svgAxisY.translate(ox, 0, { absolute: true });
-
-        var grid = $grid.val();
-        paper.$el.css('background-image', 'url("' + getGridBackgroundImage(grid * $sx.val(), grid * $sy.val()) + '")');
 
         svgContainer.hideAll();
     },
@@ -451,3 +422,126 @@ $('#bg-toggle, #bg-color, #bg-repeat, #bg-opacity, #bg-size, #bg-position').on('
         opacity: $('#bg-opacity').val()
     });
 });
+
+var _inputRenderer = function(gridTypes, onChange) {
+
+    var currentOpt = {};
+    var formTypes = {
+        'color': function(inputDef, container) {
+            var input = $('<input/>', { type: 'color'}).val(inputDef.value).on('change input', function() {
+                inputDef.onChange($(this).val(), currentOpt);
+                onChange(currentOpt)
+            }).trigger('change');
+            container.append($('<label/>').text(inputDef.name));
+            container.append(input);
+        },
+        'number': function(inputDef, container) {
+            var input = $('<input/>', { type: 'range'})
+                .val(inputDef.value)
+                .attr({
+                    step: inputDef.step,
+                    min: inputDef.min,
+                    max: inputDef.max
+                })
+                .on('change input', function() {
+                    var value = parseFloat($(this).val()).toFixed(2);
+                    $('output', $(this).parent()).text(value);
+                    inputDef.onChange(value, currentOpt);
+                    onChange(currentOpt);
+                }).trigger('change');
+            container.append($('<label/>').text(inputDef.name));
+            container.append(input);
+            container.append($('<output/>').text(input.val()));
+        }
+    };
+
+    var renderInput =  function(formType, container) {
+        return formTypes[formType.type](formType, container);
+    };
+
+    return {
+        renderSettings: function (gridTypeName) {
+            currentOpt.name = gridTypeName;
+            currentOpt.args = [{}, {}];
+            _.each(gridTypes[gridTypeName].inputs, function (x) {
+
+                var element = $('<div/>').addClass('form-group').appendTo($gridTypesOpt);
+                renderInput(x, element);
+            });
+            onChange(currentOpt);
+        }
+    }
+};
+
+var gridTypes = {
+    'dot': {
+        inputs: [{
+            type: 'color', name: 'Color', value: '#000000',
+            onChange: function(value, ref) {
+                ref.args[0].color = value;
+            }
+        }, {
+            type: 'number', name: 'Thickness', value: 1, step: 0.5, min: 0.5, max: 10,
+            onChange: function(value, ref) {
+                ref.args[0].thickness = value;
+            }
+        }]
+    },
+    'mesh': {
+        inputs: [{
+            type: 'color', name: 'Color', value: '#000000',
+            onChange: function(value, ref) {
+                ref.args[0].color = value;
+            }
+        }, {
+            type: 'number', prop: 'thickness', name: 'Thickness', value: 1, step: 0.5, min: 0.5, max: 10,
+            onChange: function(value, ref) {
+                ref.args[0].thickness = value;
+            }
+        }]
+    },
+    'doubleMesh': {
+        inputs: [{
+            type: 'color', name: 'Primary Color', value: '#AAAAAA',
+            onChange: function(value, ref) {
+                ref.args[0].color = value;
+            }
+        }, {
+            type: 'number', name: 'Primary Thickness', value: 1, step: 0.5, min: 0.5, max: 5,
+            onChange: function(value, ref) {
+                ref.args[0].thickness = value;
+            }
+        }, {
+            type: 'color', name: 'Secondary Color', value: '#000000',
+            onChange: function(value, ref) {
+                ref.args[1].color = value;
+            }
+        }, {
+            type: 'number', name: 'Secondary Thickness', value: 3, step: 0.5, min: 0.5, max: 5,
+            onChange: function(value, ref) {
+                ref.args[1].thickness = value;
+            }
+        }, {
+            type: 'number', name: 'Scale Factor', value: 5, step: 1, min: 1, max: 10,
+            onChange: function(value, ref) {
+                ref.args[1].scaleFactor = value;
+            }
+        }]
+    }
+};
+var renderer = _inputRenderer(gridTypes, function (gridOpt) {
+
+    paper.setGrid(gridOpt);
+    paper.drawGrid();
+});
+
+var $gridTypesOpt = $('.grid-types-opt');
+
+$('#grid-type').on('change input', function() {
+
+    $gridTypesOpt.empty();
+    renderer.renderSettings($(this).val())
+});
+
+renderer.renderSettings($('#grid-type').val());
+
