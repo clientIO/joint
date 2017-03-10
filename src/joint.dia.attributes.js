@@ -76,6 +76,10 @@
             set: 'xlink:href'
         },
 
+        xmlSpace: {
+            set: 'xml:space'
+        },
+
         filter: {
             qualify: _.isPlainObject,
             set: function(filter) {
