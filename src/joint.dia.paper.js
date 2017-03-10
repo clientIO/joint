@@ -1737,7 +1737,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         dot: [{
             color: '#AAAAAA',
             thickness: 1,
-            markup: '<rect/>',
+            markup: 'rect',
             update: function(el, opt) {
                 var size = opt.sx <= 1 ? opt.thickness * opt.sx : opt.thickness;
                 V(el).attr({ width: size, height: size, fill: opt.color });
@@ -1746,7 +1746,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         mesh: [{
             color: '#AAAAAA',
             thickness: 1,
-            markup: '<path/>',
+            markup: 'path',
             update: function(el, opt) {
 
                 var d;
@@ -1766,7 +1766,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         doubleMesh: [{
             color: '#AAAAAA',
             thickness: 1,
-            markup: '<path/>',
+            markup: 'path',
             update: function(el, opt) {
 
                 var d;
@@ -1786,7 +1786,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             color: '#000000',
             thickness: 3,
             scaleFactor: 4,
-            markup: '<path/>',
+            markup: 'path',
             update: function(el, opt) {
 
                 var d;
