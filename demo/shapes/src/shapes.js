@@ -297,3 +297,58 @@ var link = new joint.dia.Link({
         }
     }
 }).addTo(graph);
+
+var Shape = joint.dia.Element.define('custom.Shape', {
+    markup: 'path',
+    attrs: {
+        path: {
+            fill: 'lightgreen',
+            stroke: 'green'
+        }
+    }
+}, { /* no prototype methods */ }, {
+    attributes: {
+
+        shape: {
+            qualify: function(value) {
+                return _.contains(['hexagon', 'rhombus'], value);
+            },
+            set: function(shape, refBBox) {
+                var data;
+                switch (shape) {
+                    case 'hexagon':
+                        data = [
+                            g.Line(refBBox.topMiddle(), refBBox.origin()).midpoint(),
+                            g.Line(refBBox.topMiddle(), refBBox.topRight()).midpoint(),
+                            refBBox.rightMiddle(),
+                            g.Line(refBBox.bottomMiddle(), refBBox.corner()).midpoint(),
+                            g.Line(refBBox.bottomMiddle(), refBBox.bottomLeft()).midpoint(),
+                            refBBox.leftMiddle()
+                        ];
+                        break;
+                    case 'rhombus':
+                        data = [
+                            refBBox.topMiddle(),
+                            refBBox.rightMiddle(),
+                            refBBox.bottomMiddle(),
+                            refBBox.leftMiddle()
+                        ];
+                        break;
+                }
+                return { d: 'M ' + data.join(' ').replace(/@/g, ' ') + ' Z' };
+            }
+        }
+    }
+});
+
+var shape1 = (new Shape())
+    .attr('path/shape', 'hexagon')
+    .size(100, 100)
+    .position(100, 100)
+    .addTo(graph);
+
+var shape2 = (new Shape())
+    .attr('path/shape', 'rhombus')
+    .size(100, 100)
+    .position(100, 250)
+    .addTo(graph);
