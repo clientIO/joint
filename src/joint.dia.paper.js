@@ -1417,20 +1417,21 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     _resolveDrawGridOption: function (opt) {
 
-        if (_.isString(opt) && this.constructor.gridPatterns[opt]) {
-            return _.map(this.constructor.gridPatterns[opt], _.clone);
+        var namespace = this.constructor.gridPatterns;
+        if (_.isString(opt) && namespace[opt]) {
+            return _.map(namespace[opt], _.clone);
         }
 
         var options = opt || { args: [{}] };
         var isArray = _.isArray(options);
         var name = options.name;
 
-        if (!isArray && !options.markup && !name) {
+        if (!isArray && !name && !options.markup ) {
             name = 'dot';
         }
 
-        if (name && this.constructor.gridPatterns[name]) {
-            var pattern = _.map(this.constructor.gridPatterns[name], _.clone);
+        if (name && namespace[name]) {
+            var pattern = _.map(namespace[name], _.clone);
 
             var args = _.isArray(options.args) ? options.args : [options.args || {}];
 
@@ -1458,16 +1459,15 @@ joint.dia.Paper = joint.mvc.View.extend({
         var ctm = this.matrix();
         var refs = this._getGriRefs();
 
-        _.each(this._gridSettings, function (dg, index) {
+        _.each(this._gridSettings, function (gridLayerSetting, index) {
 
             var id = 'pattern_'  + index;
-            var options = _.merge(dg, localOptions[index],
-                {
-                    sx: ctm.a || 1,
-                    sy: ctm.d || 1,
-                    ox: ctm.e || 0,
-                    oy: ctm.f || 0
-                });
+            var options = _.merge(gridLayerSetting, localOptions[index], {
+                sx: ctm.a || 1,
+                sy: ctm.d || 1,
+                ox: ctm.e || 0,
+                oy: ctm.f || 0
+            });
 
             options.width = gridSize * (ctm.a || 1) * (options.scaleFactor || 1);
             options.height = gridSize * (ctm.d || 1) * (options.scaleFactor || 1);
