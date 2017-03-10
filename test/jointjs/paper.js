@@ -1066,7 +1066,7 @@ QUnit.module('paper', function(hooks) {
 
                     assert.equal(firstLayer.color, 'red', message + ': color');
                     assert.equal(firstLayer.thickness, 11, message + ': thickness');
-                    assert.equal(firstLayer.markup, '<path/>', message + ': markup');
+                    assert.equal(firstLayer.markup, 'path', message + ': markup');
                     assert.ok(_.isFunction(firstLayer.update), message + ': update');
                 };
 
@@ -1078,7 +1078,7 @@ QUnit.module('paper', function(hooks) {
                 var message = 'args: [{}] - second layer';
                 assert.equal(secondLayer.color, 'black', message + ': color');
                 assert.equal(secondLayer.thickness, 55, message + ': thickness');
-                assert.equal(secondLayer.markup, '<path/>', message + ': markup');
+                assert.equal(secondLayer.markup, 'path', message + ': markup');
                 assert.ok(_.isFunction(secondLayer.update), message + ': update');
                 check('args: [{}]');
 
@@ -1092,7 +1092,7 @@ QUnit.module('paper', function(hooks) {
                 assert.propEqual(paper._gridSettings[0], {
                     color: 'red',
                     thickness: 11,
-                    markup: '<rect/>',
+                    markup: 'rect',
                     update: {}
                 }, 'update default');
                 assert.ok(_.isFunction(paper._gridSettings[0].update));
@@ -1117,10 +1117,6 @@ QUnit.module('paper', function(hooks) {
                 paper.setGrid(drawGridTestFixtures[2]);
                 assert.ok(_.isArray(paper._gridSettings));
                 assert.deepEqual(paper._gridSettings[0], { markup: '<circle/>' }, 'custom grid - minimal setup');
-
-                //TODO v.talas
-                // paper.setGrid(['dot', { name: 'mesh' }, 'doubleMesh']);
-
             });
 
             QUnit.test('initialize gridSettings', function(assert) {
