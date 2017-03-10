@@ -1,42 +1,99 @@
 {
-  "name": "jointjs",
-  "title": "JointJS",
-  "description": "JavaScript diagramming library",
-  "keywords": [
-    "diagram",
-    "flowchart",
-    "graph",
-    "visualization"
+  "_args": [
+    [
+      {
+        "raw": "jointjs@git+https://github.com/clientIO/joint.git",
+        "scope": null,
+        "escapedName": "jointjs",
+        "name": "jointjs",
+        "rawSpec": "git+https://github.com/clientIO/joint.git",
+        "spec": "git+https://github.com/clientIO/joint.git",
+        "type": "hosted",
+        "hosted": {
+          "type": "github",
+          "ssh": "git@github.com:clientIO/joint.git",
+          "sshUrl": "git+ssh://git@github.com/clientIO/joint.git",
+          "httpsUrl": "git+https://github.com/clientIO/joint.git",
+          "gitUrl": "git://github.com/clientIO/joint.git",
+          "shortcut": "github:clientIO/joint",
+          "directUrl": "https://raw.githubusercontent.com/clientIO/joint/master/package.json"
+        }
+      },
+      "C:\\Users\\fbe\\Documents\\jointangular2"
+    ]
   ],
-  "scripts": {
-    "test": "grunt test"
+  "_from": "git+https://github.com/clientIO/joint.git",
+  "_id": "jointjs@1.1.0-alpha.1",
+  "_inCache": true,
+  "_location": "/jointjs",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "jointjs@git+https://github.com/clientIO/joint.git",
+    "scope": null,
+    "escapedName": "jointjs",
+    "name": "jointjs",
+    "rawSpec": "git+https://github.com/clientIO/joint.git",
+    "spec": "git+https://github.com/clientIO/joint.git",
+    "type": "hosted",
+    "hosted": {
+      "type": "github",
+      "ssh": "git@github.com:clientIO/joint.git",
+      "sshUrl": "git+ssh://git@github.com/clientIO/joint.git",
+      "httpsUrl": "git+https://github.com/clientIO/joint.git",
+      "gitUrl": "git://github.com/clientIO/joint.git",
+      "shortcut": "github:clientIO/joint",
+      "directUrl": "https://raw.githubusercontent.com/clientIO/joint/master/package.json"
+    }
   },
-  "version": "1.1.0-alpha.1",
-  "main": "./dist/joint.min.js",
-  "style": "./dist/joint.min.css",
-  "types": "./dist/joint.d.ts",
-  "homepage": "http://jointjs.com",
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "git+https://github.com/clientIO/joint.git#fe9365f6985bb3c962fbc813e2cf2e400890ca9e",
+  "_shasum": "8d68e212ac7902d2da608d60040e7c82d5ebed03",
+  "_shrinkwrap": null,
+  "_spec": "jointjs@git+https://github.com/clientIO/joint.git",
+  "_where": "C:\\Users\\fbe\\Documents\\jointangular2",
   "author": {
     "name": "client IO",
     "url": "http://client.io"
   },
-  "contributors": [
-    "David Durman <daviddurman@gmail.com> (https://github.com/DavidDurman)",
-    "Roman Bruckner <bruckner.roman@gmail.com> (https://github.com/kumilingus)",
-    "Emanuele Palombo <emanuele@client.io> (https://github.com/elbowz)",
-    "Charles Hill <chill@degreesofzero.com> (https://github.com/chill117)",
-    "Daniel K. (https://github.com/FredyC)",
-    "Vladimir Talas (https://github.com/vtalas)",
-    "Petr Skala (https://github.com/pskala)"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/clientIO/joint.git"
-  },
   "bugs": {
     "url": "https://github.com/clientIO/joint/issues"
   },
-  "license": "MPL-2.0",
+  "contributors": [
+    {
+      "name": "David Durman",
+      "email": "daviddurman@gmail.com",
+      "url": "https://github.com/DavidDurman"
+    },
+    {
+      "name": "Roman Bruckner",
+      "email": "bruckner.roman@gmail.com",
+      "url": "https://github.com/kumilingus"
+    },
+    {
+      "name": "Emanuele Palombo",
+      "email": "emanuele@client.io",
+      "url": "https://github.com/elbowz"
+    },
+    {
+      "name": "Charles Hill",
+      "email": "chill@degreesofzero.com",
+      "url": "https://github.com/chill117"
+    },
+    {
+      "name": "Daniel K.",
+      "url": "https://github.com/FredyC"
+    },
+    {
+      "name": "Vladimir Talas",
+      "url": "https://github.com/vtalas"
+    },
+    {
+      "name": "Petr Skala",
+      "url": "https://github.com/pskala"
+    }
+  ],
   "dependencies": {
     "backbone": "1.3.3",
     "dagre": "0.7.4",
@@ -44,6 +101,7 @@
     "jquery": "3.1.1",
     "lodash": "3.10.1"
   },
+  "description": "JavaScript diagramming library",
   "devDependencies": {
     "@types/backbone": "1.3.33",
     "@types/jquery": "2.0.40",
@@ -82,5 +140,30 @@
     "webdriverio": "4.0.8",
     "webpack": "1.13.1",
     "webpack-dev-server": "1.14.1"
-  }
+  },
+  "gitHead": "fe9365f6985bb3c962fbc813e2cf2e400890ca9e",
+  "homepage": "http://jointjs.com",
+  "keywords": [
+    "diagram",
+    "flowchart",
+    "graph",
+    "visualization"
+  ],
+  "license": "MPL-2.0",
+  "main": "./dist/joint.min.js",
+  "name": "jointjs",
+  "optionalDependencies": {},
+  "readme": "# JointJS - JavaScript diagramming library\r\n\r\n[![Build Status](https://travis-ci.org/clientIO/joint.svg?branch=master)](https://travis-ci.org/clientIO/joint)\r\n\r\nJointJS is a JavaScript diagramming library. It can be used to create either static diagrams or, and more\r\nimportantly, fully interactive diagramming tools and application builders.\r\n\r\nPlease see [http://jointjs.com](http://jointjs.com) for more information, demos and documentation.\r\n\r\n\r\n## Features\r\n\r\n* basic diagram elements (rect, circle, ellipse, text, image, path)\r\n* ready-to-use diagram elements of well-known diagrams (ERD, Org chart, FSA, UML, PN, DEVS, ...)\r\n* custom diagram elements based on SVG or programmatically rendered\r\n* interactive elements and links\r\n* connecting diagram elements with links\r\n* customizable links, their arrowheads and labels\r\n* links smoothing (bezier interpolation)\r\n* magnets (link connection points) can be placed basically anywhere\r\n* hierarchical diagrams\r\n* serialization/deserialization to/from JSON format\r\n* highly event driven - you can react on any event that happens inside the paper\r\n* zoom in/out\r\n* touch support\r\n* plugin awareness\r\n* MVC architecture\r\n* ... a lot more\r\n\r\n\r\n## Supported browsers\r\n\r\nOnly the good ones (those that support SVG):\r\n\r\n* Latest Google Chrome (including mobile)\r\n* Latest Firefox\r\n* Safari (including mobile)\r\n* IE 9+\r\n\r\n\r\n## Development Environment\r\n\r\nIf you want to work on JointJS locally, use the following guidelines to get started.\r\n\r\n### Dependencies\r\n\r\nMake sure you have the following dependencies installed on your system:\r\n* [Node.js](https://nodejs.org/)\r\n* [grunt-cli](http://gruntjs.com/using-the-cli)\r\n* [bower](http://bower.io/)\r\n* git\r\n\r\n### Setup\r\n\r\nClone this git repository:\r\n```\r\ngit clone https://github.com/clientIO/joint.git\r\n```\r\n\r\nChange into the joint directory:\r\n```\r\ncd joint\r\n```\r\n\r\nRun installation\r\n```\r\nnpm install\r\nbower install\r\n```\r\nThis will install all npm and bower dependencies as well as run a full build.\r\n\r\n### Tests\r\n\r\nTo run all tests:\r\n```\r\ngrunt test\r\n```\r\n\r\nTo run only the server-side tests:\r\n```\r\ngrunt test:server\r\n```\r\n\r\nTo run only the client-side tests:\r\n```\r\ngrunt test:client\r\n```\r\n\r\nTo run code style checks:\r\n```\r\ngrunt test:code-style\r\n```\r\n\r\n\r\n### Code Coverage\r\n\r\nTo output a code coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) for all unit tests:\r\n```\r\ngrunt test:coverage --reporter=\"lcov\"\r\n```\r\nThe output will be saved to a new file named `coverage.info` at the root of the project directory.\r\n\r\n\r\n### Building Distribution Files\r\n\r\nThe `dist` directory contains pre-built distribution files. To re-build them, run the following:\r\n```\r\ngrunt dist\r\n```\r\n\r\n\r\n## Documentation\r\n\r\nThe source for the JointJS documentation (plus geometry and Vectorizer libraries) are included in this repository; see the `docs` directory. The documentation can be built into stand-alone HTML documents like this:\r\n```\r\ngrunt build:docs\r\n```\r\nThe output of the above command can be found at `build/docs`.\r\n\r\n\r\n\r\n## License\r\n\r\nJointJS library is licensed under the Mozilla Public License, v. 2.0. Please see the LICENSE file for the full license.\r\n\r\nCopyright (c) 2013 client IO\r\n\r\n\r\n## Contributors\r\n\r\n- [David Durman](https://github.com/DavidDurman)\r\n- [Roman Bruckner](https://github.com/kumilingus)\r\n- [Emanuele Palombo](https://github.com/elbowz)\r\n- [Charles Hill](https://github.com/chill117)\r\n- [Daniel K.](https://github.com/FredyC)\r\n- [Vladimir Talas](https://github.com/vtalas)\r\n- [Petr Skala](https://github.com/pskala)\r\n- [Ujjwal Reddy](http://github.com/urstruly)\r\n\r\n",
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clientIO/joint.git"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "style": "./dist/joint.min.css",
+  "title": "JointJS",
+  "types": "./dist/joint.d.ts",
+  "version": "1.1.0-alpha.1"
 }
