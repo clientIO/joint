@@ -1377,7 +1377,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this;
     },
 
-    getGriRefs: function () {
+    _getGriRefs: function () {
 
         if (!this._gridCache) {
 
@@ -1456,7 +1456,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var localOptions = _.isArray(opt) ? opt : [opt];
 
         var ctm = this.matrix();
-        var refs = this.getGriRefs();
+        var refs = this._getGriRefs();
 
         _.each(this._gridSettings, function (dg, index) {
 
@@ -1473,8 +1473,9 @@ joint.dia.Paper = joint.mvc.View.extend({
             options.height = gridSize * (ctm.d || 1) * (options.scaleFactor || 1);
 
             if (!refs.exist(id)) {
-                refs.add(id, V('<pattern patternUnits="userSpaceOnUse"></pattern>', { id: id }, V(options.markup)))
+                refs.add(id, V('<pattern/>', { id: id, patternUnits: 'userSpaceOnUse' }, V(options.markup)))
             }
+
             var patternDefVel = refs.get(id);
 
             if (_.isFunction(options.update)) {
@@ -1733,10 +1734,6 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     gridPatterns: {
-
-        // drawGrid: {name: 'dot', args: {}},
-        // drawGrid: {color: 'dfdf', thickness: 21}
-
         dot: [{
             color: '#AAAAAA',
             thickness: 1,
@@ -1752,12 +1749,18 @@ joint.dia.Paper = joint.mvc.View.extend({
             markup: '<path/>',
             update: function(el, opt) {
 
-                var w = opt.width, h = opt.height;
-                var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
-                if (opt.sx < 0.5) {
-                    d = []
+                var d;
+                var width = opt.width;
+                var height = opt.height;
+                var thickness = opt.thickness;
+
+                if (width - thickness * 2 >= 0 && height - thickness * 2 >= 0) {
+                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+                } else {
+                    d = 'M 0 0 0 0';
                 }
-                V(el).attr({ 'd': d.join(' '), stroke: opt.color, 'stroke-width': opt.thickness });
+
+                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
             }
         }],
         doubleMesh: [{
@@ -1765,14 +1768,19 @@ joint.dia.Paper = joint.mvc.View.extend({
             thickness: 1,
             markup: '<path/>',
             update: function(el, opt) {
-                var w = opt.width, h = opt.height;
-                var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
-                if (opt.sx < 0.5) {
-                    d = []
+
+                var d;
+                var width = opt.width;
+                var height = opt.height;
+                var thickness = opt.thickness;
+
+                if (width - thickness * 2 >= 0 && height - thickness * 2 >= 0) {
+                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+                } else {
+                    d = 'M 0 0 0 0';
                 }
-                V(el).attr({
-                    'd': d.join(' '), stroke: opt.color, 'stroke-width': opt.thickness
-                });
+
+                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
             }
         }, {
             color: '#000000',
@@ -1780,11 +1788,19 @@ joint.dia.Paper = joint.mvc.View.extend({
             scaleFactor: 4,
             markup: '<path/>',
             update: function(el, opt) {
-                var w = opt.width, h = opt.height;
-                var d = ['M', w, 0, 'H0', 'M0 0', 'V0', h];
-                V(el).attr({
-                    'd': d.join(' '), stroke: opt.color, 'stroke-width': opt.thickness
-                });
+
+                var d;
+                var width = opt.width;
+                var height = opt.height;
+                var thickness = opt.thickness;
+
+                if (width - thickness * 2 >= 0 && height - thickness * 2 >= 0) {
+                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+                } else {
+                    d = 'M 0 0 0 0';
+                }
+
+                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
             }
         }]
     }

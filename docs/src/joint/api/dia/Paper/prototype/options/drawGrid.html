@@ -1,26 +1,46 @@
-<code>drawGrid</code> - option whether the paper grid should be drawn or not. It could be a <code>boolean</code> or an <code>object</code>. It defaults to <code>false</code>
+<code>drawGrid</code> - option whether the paper grid should be drawn or not. It could be a <code>boolean</code> or an <code>array</code>. of <code>object</code> It defaults to <code>false</code>
 
 
 <table>
     <tr>
         <th>color</th>
         <td><i>string</i></td>
-        <td>color of the default grid</td>
+        <td>color of the current grid pattern.</td>
     </tr>
     <tr>
         <th>thickness</th>
         <td><i>number</i></td>
-        <td>thickness of the default grid</td>
+        <td>thickness of the current grid pattern.</td>
     </tr>
+</table>
+
+
+There is also some pre-defined grid patterns: <code>dot</code>, <code>mesh</code>, <code>doubleMesh</code>.
+
+
+<table>
     <tr>
-        <th>gridPattern</th>
+        <th>name</th>
         <td><i>string</i></td>
-        <td>you can define your own custom grid pattern. <code>gridPattern</code> is a single tile which the resulting grid consists of. It can be a valid SVG element. For example <code>&lt;rect width="100%" height="100%" stroke="red" stroke-width="1" fill="transparent"/&gt;</code></td>
+        <td>name of the pre-defined pattern. Can be either <code>dot</code>, <code>mesh</code>, <code>doubleMesh</code> </td>
     </tr>
     <tr>
-        <th>updateGridPattern</th>
-        <td><i>function(vel, opt)</i></td>
-        <td>this callback function is called on every re-draw of the grid. There can be many reasons to re-draw the grid. For example scaling the paper changes the physical grid size. <code>vel</code> and <code>opt</code> is passed into this callback function, where the <code>vel</code> is the <code>Vectorizer</code> element, <code>opt</code> contains information about actual grid size - <code>width</code>, <code>height</code> and transformation: scale and translate - <code>sx</code>, <code>sy</code>, <code>ox</code>, <code>oy</code>. You are able update attributes on your <code>gridPattern</code> shape to adapt it to actual transformations.</td>
+        <th>args</th>
+        <td><i>object | array</i></td>
+        <td>an extra arguments for the pre-defined grid patterns</td>
     </tr>
 
 </table>
+
+
+<!--<tr>-->
+    <!--<th>gridPattern</th>-->
+    <!--<td><i>string</i></td>-->
+    <!--<td>you can define your own custom grid pattern. <code>gridPattern</code> is a single tile which the resulting grid consists of. It can be a valid SVG element. For example <code>&lt;rect width="100%" height="100%" stroke="red" stroke-width="1" fill="transparent"/&gt;</code></td>-->
+<!--</tr>-->
+<!--<tr>-->
+    <!--<th>updateGridPattern</th>-->
+    <!--<td><i>function(vel, opt)</i></td>-->
+    <!--<td>this callback function is called on every re-draw of the grid. There can be many reasons to re-draw the grid. For example scaling the paper changes the physical grid size. <code>vel</code> and <code>opt</code> is passed into this callback function, where the <code>vel</code> is the <code>Vectorizer</code> element, <code>opt</code> contains information about actual grid size - <code>width</code>, <code>height</code> and transformation: scale and translate - <code>sx</code>, <code>sy</code>, <code>ox</code>, <code>oy</code>. You are able update attributes on your <code>gridPattern</code> shape to adapt it to actual transformations.</td>-->
+<!--</tr>-->
+
