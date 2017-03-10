@@ -1754,7 +1754,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 var height = opt.height;
                 var thickness = opt.thickness;
 
-                if (width - thickness * 2 >= 0 && height - thickness * 2 >= 0) {
+                if (width - thickness >= 0 && height - thickness >= 0) {
                     d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
                 } else {
                     d = 'M 0 0 0 0';
@@ -1774,7 +1774,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 var height = opt.height;
                 var thickness = opt.thickness;
 
-                if (width - thickness * 2 >= 0 && height - thickness * 2 >= 0) {
+                if (width - thickness >= 0 && height - thickness >= 0) {
                     d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
                 } else {
                     d = 'M 0 0 0 0';
@@ -1794,7 +1794,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 var height = opt.height;
                 var thickness = opt.thickness;
 
-                if (width - thickness * 2 >= 0 && height - thickness * 2 >= 0) {
+                if (width - thickness >= 0 && height - thickness >= 0) {
                     d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
                 } else {
                     d = 'M 0 0 0 0';
