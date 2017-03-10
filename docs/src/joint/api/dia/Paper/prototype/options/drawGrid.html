@@ -1,23 +1,23 @@
-<code>drawGrid</code> - option whether the paper grid should be drawn or not. It could be a <code>boolean</code> or an <code>array</code>. of <code>object</code> It defaults to <code>false</code>
-
-
+    <p>
+<code>drawGrid</code> - option whether the paper grid should be drawn or not. It could be a <code>boolean</code> or an <code>object</code>. It defaults to <code>false</code>.
+        <br/>
+    Define <code>color</code> and <code>thickness</code> to adjust the default grid pattern:
+</p>
 <table>
     <tr>
         <th>color</th>
         <td><i>string</i></td>
-        <td>color of the current grid pattern.</td>
+        <td>color of the default grid pattern.</td>
     </tr>
     <tr>
         <th>thickness</th>
         <td><i>number</i></td>
-        <td>thickness of the current grid pattern.</td>
+        <td>thickness of the default grid pattern.</td>
     </tr>
 </table>
 
 
-There is also some pre-defined grid patterns: <code>dot</code>, <code>mesh</code>, <code>doubleMesh</code>.
-
-
+<p>There are also some pre-defined grid patterns: <code>dot</code>, <code>mesh</code>, <code>doubleMesh</code>. If you'd like to use these patterns, define <code>drawGrid</code> options as follows:</p>
 <table>
     <tr>
         <th>name</th>
@@ -27,11 +27,21 @@ There is also some pre-defined grid patterns: <code>dot</code>, <code>mesh</code
     <tr>
         <th>args</th>
         <td><i>object | array</i></td>
-        <td>an extra arguments for the pre-defined grid patterns</td>
+        <td>an extra arguments for the pre-defined grid patterns. It can be either a <code>object</code> (e.g. <code>dot</code>, <code>mesh</code>) or an <code>array</code> (e.g. <code>doubleMesh</code>)</td>
     </tr>
-
 </table>
 
+
+<pre><code>drawGrid: true // default pattern (dot) with default settings
+
+drawGrid: 'mesh' // pre-defined pattern with default settings
+
+drawGrid: {
+    name: 'doubleMesh',
+    args: [
+        { color: 'red', thickness: 1 }, // color of the primary mesh
+        { color: 'green', scaleFactor: 5, thickness: 5 } // color of the secondary mesh
+]}</code></pre>
 
 <!--<tr>-->
     <!--<th>gridPattern</th>-->
