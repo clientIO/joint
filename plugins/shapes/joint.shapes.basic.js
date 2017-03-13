@@ -497,9 +497,9 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
 
     update: function(cell, renderingOnlyAttrs) {
 
-        if (!joint.env.test('svgforeignobject')) {
+        var model = this.model;
 
-            var model = this.model;
+        if (!joint.env.test('svgforeignobject')) {
 
             // Update everything but the content first.
             var noTextAttrs = _.omit(renderingOnlyAttrs || model.get('attrs'), '.content');
