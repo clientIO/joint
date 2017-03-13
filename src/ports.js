@@ -28,7 +28,7 @@
             });
         },
 
-        resolvePortAttrs: function(groupName, elBBox) {
+        getGroupPortsMetrics: function(groupName, elBBox) {
 
             var group = this.getGroup(groupName);
             var ports = this.getPortsByGroup(groupName);
@@ -48,8 +48,11 @@
                 var port = ports[index];
                 result.push({
                     portId: port.id,
-                    port: portTransformation,
-                    label: this._getPortLabelLayout(port, g.Point(portTransformation), elBBox)
+                    portTransformation: portTransformation,
+                    labelTransformation: this._getPortLabelLayout(port, g.Point(portTransformation), elBBox),
+                    portAttrs: port.attrs,
+                    portSize: port.size,
+                    labelSize: port.label.size
                 });
             }, this), []);
         },
@@ -93,6 +96,7 @@
             evaluated.position = this._createPositionNode(group, evaluated);
             evaluated.label = _.merge({}, group.label, this._getLabel(evaluated));
             evaluated.z = this._getZIndex(group, evaluated);
+            evaluated.size = _.extend({}, group.size, evaluated.size);
 
             resultArray.push(evaluated);
         },
@@ -249,13 +253,14 @@
          */
         getPortsPositions: function(groupName) {
 
-            var portsPositions = this._portSettingsData.resolvePortAttrs(groupName, g.Rect(this.size()));
+            var portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, g.Rect(this.size()));
 
-            return _.transform(portsPositions, function(positions, port) {
-                positions[port.portId] = {
-                    x: port.port.x,
-                    y: port.port.y,
-                    angle: port.port.angle
+            return _.transform(portsMetrics, function(positions, metrics) {
+                var transformation = metrics.portTransformation;
+                positions[metrics.portId] = {
+                    x: transformation.x,
+                    y: transformation.y,
+                    angle: transformation.angle
                 };
             }, {});
         },
@@ -607,22 +612,24 @@
         _updatePortGroup: function(groupName) {
 
             var elementBBox = g.Rect(this.model.size());
-            var portsAttrs = this.model._portSettingsData.resolvePortAttrs(groupName, elementBBox);
-            var ports = this.model._portSettingsData.getPortsByGroup(groupName);
+            var portsMetrics = this.model._portSettingsData.getGroupPortsMetrics(groupName, elementBBox);
 
-            for (var i = 0, n = portsAttrs.length; i < n; i++) {
-                var portAttrs = portsAttrs[i];
-                var portId = portAttrs.portId;
-                var port = _.find(ports, { id: portId });
+            for (var i = 0, n = portsMetrics.length; i < n; i++) {
+                var metrics = portsMetrics[i];
+                var portId = metrics.portId;
                 var cached = this._portElementsCache[portId] || {};
+                var portTransformation = metrics.portTransformation;
+                this.applyPortTransform(cached.portElement, portTransformation);
+                this.updateDOMSubtreeAttributes(cached.portElement.node, metrics.portAttrs, {
+                    rootBBox: g.Rect(metrics.portSize)
+                });
 
-                this.applyPortTransform(cached.portElement, portAttrs.port);
-                this.updateDOMSubtreeAttributes(cached.portElement.node, port.attrs);
-
-                var labelAttrs = portAttrs.label;
-                if (labelAttrs) {
-                    this.applyPortTransform(cached.portLabelElement, labelAttrs, -(portAttrs.port.angle || 0));
-                    this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelAttrs.attrs);
+                var labelTransformation = metrics.labelTransformation;
+                if (labelTransformation) {
+                    this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
+                    this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelTransformation.attrs, {
+                        rootBBox: g.Rect(metrics.labelSize)
+                    });
                 }
             }
         },

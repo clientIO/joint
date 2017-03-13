@@ -301,9 +301,33 @@ var link = new joint.dia.Link({
 var Shape = joint.dia.Element.define('custom.Shape', {
     markup: 'path',
     attrs: {
+        '.': {
+            magnet: false
+        },
         path: {
             fill: 'lightgreen',
             stroke: 'green'
+        }
+    },
+    ports: {
+        groups: {
+            main: {
+                position: {
+                    name: 'absolute',
+                    args: {
+                        y: '50%'
+                    }
+                },
+                markup: 'path',
+                size: { width: 20, height: 20 },
+                attrs: {
+                    path: {
+                        fill: 'green',
+                        transform: 'translate(-10,-10)',
+                        magnet: true
+                    }
+                }
+            }
         }
     }
 }, { /* no prototype methods */ }, {
@@ -345,10 +369,28 @@ var shape1 = (new Shape())
     .attr('path/shape', 'hexagon')
     .size(100, 100)
     .position(100, 100)
+    .addPort({
+        group: 'main',
+        attrs: { path: { shape: 'hexagon' }}
+    })
+    .addPort({
+        group: 'main',
+        args: { x: '100%' },
+        attrs: { path: { shape: 'hexagon' }}
+    })
     .addTo(graph);
 
 var shape2 = (new Shape())
     .attr('path/shape', 'rhombus')
     .size(100, 100)
     .position(100, 250)
+    .addPort({
+        group: 'main',
+        attrs: { path: { shape: 'rhombus' }}
+    })
+    .addPort({
+        group: 'main',
+        args: { x: '100%' },
+        attrs: { path: { shape: 'rhombus' }}
+    })
     .addTo(graph);
