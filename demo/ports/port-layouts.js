@@ -10,7 +10,6 @@ var g2Rect = new joint.shapes.basic.Rect({
     ports: {
         groups: {
             'blacks': {
-                position: 'top',
                 attrs: {
                     circle: { fill: '#ffffff', stroke: '#31d0c6', 'stroke-width': 2, r: 12, magnet: true }
                 }

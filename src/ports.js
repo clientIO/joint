@@ -33,31 +33,31 @@
             var group = this.getGroup(groupName);
             var ports = this.getPortsByGroup(groupName);
 
-            var position = group.position || {};
-            var positionName = position.name;
+            var groupPosition = group.position || {};
+            var groupPositionName = groupPosition.name;
             var namespace = this.portLayoutNamespace;
-            if (!namespace[positionName]) {
-                positionName = 'left';
+            if (!namespace[groupPositionName]) {
+                groupPositionName = 'left';
             }
 
-            var groupPortTransformations = namespace[positionName](_.pluck(ports, 'position.args'), elBBox, position.args || {});
+            var groupArgs = groupPosition.args || {};
+            var portsArgs = _.pluck(ports, 'position.args');
+            var groupPortTransformations = namespace[groupPositionName](portsArgs, elBBox, groupArgs);
 
-            var port;
             return _.transform(groupPortTransformations, _.bind(function(result, portTransformation, index) {
-
-                port = ports[index];
+                var port = ports[index];
                 result.push({
                     portId: port.id,
                     port: portTransformation,
                     label: this._getPortLabelLayout(port, g.Point(portTransformation), elBBox)
-                })
+                });
             }, this), []);
         },
 
         _getPortLabelLayout: function(port, portPosition, elBBox) {
 
             var namespace = this.portLabelLayoutNamespace;
-            var labelPosition = port.label.position.name;
+            var labelPosition = port.label.position.name || 'left';
 
             if (namespace[labelPosition]) {
                 return namespace[labelPosition](portPosition, elBBox, port.label.position.args);
@@ -249,7 +249,7 @@
          */
         getPortsPositions: function(groupName) {
 
-            var portsPositions = this._portSettingsData.resolvePortAttrs(groupName, g.Rect(this.get('size')));
+            var portsPositions = this._portSettingsData.resolvePortAttrs(groupName, g.Rect(this.size()));
 
             return _.transform(portsPositions, function(positions, port) {
                 positions[port.portId] = {
@@ -555,15 +555,11 @@
          */
         _updatePorts: function() {
 
-            var ports = this.model._portSettingsData.getPorts();
+            // layout ports without group
+            this._updatePortGroup(undefined);
+            // layout ports with explicit group
             var groupsNames = _.keys(this.model._portSettingsData.groups);
-
-            this._layoutPorts(undefined); // layout ports without group
-            _.each(groupsNames, function(groupName) {
-                this._layoutPorts(groupName);
-            }, this);
-
-            _.each(ports, this._updatePortAttrs, this);
+            _.each(groupsNames, this._updatePortGroup, this);
         },
 
         /**
@@ -605,38 +601,30 @@
         },
 
         /**
-         * @param {Port} port
-         * @private
-         */
-        _updatePortAttrs: function(port) {
-
-            var allAttrs = port.attrs || {};
-            var element = this._portElementsCache[port.id];
-
-            if (!element) {
-                return;
-            }
-
-            this.updateDOMSubtreeAttributes(element.portElement.node, allAttrs);
-        },
-
-        /**
          * @param {string=} groupName
          * @private
          */
-        _layoutPorts: function(groupName) {
+        _updatePortGroup: function(groupName) {
 
-            var elementBBox = g.Rect(this.model.get('size'));
+            var elementBBox = g.Rect(this.model.size());
+            var portsAttrs = this.model._portSettingsData.resolvePortAttrs(groupName, elementBBox);
+            var ports = this.model._portSettingsData.getPortsByGroup(groupName);
 
-            _.each(this.model._portSettingsData.resolvePortAttrs(groupName, elementBBox), function(portAttrs) {
-
+            for (var i = 0, n = portsAttrs.length; i < n; i++) {
+                var portAttrs = portsAttrs[i];
                 var portId = portAttrs.portId;
+                var port = _.find(ports, { id: portId });
                 var cached = this._portElementsCache[portId] || {};
+
                 this.applyPortTransform(cached.portElement, portAttrs.port);
-                if (portAttrs.label) {
-                    this.applyPortTransform(cached.portLabelElement, portAttrs.label, -(portAttrs.port.angle || 0));
+                this.updateDOMSubtreeAttributes(cached.portElement.node, port.attrs);
+
+                var labelAttrs = portAttrs.label;
+                if (labelAttrs) {
+                    this.applyPortTransform(cached.portLabelElement, labelAttrs, -(portAttrs.port.angle || 0));
+                    this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelAttrs.attrs);
                 }
-            }, this);
+            }
         },
 
         /**
@@ -653,7 +641,6 @@
                 .rotate(transformData.angle || 0);
 
             element.transform(matrix, { absolute: true });
-            this.updateDOMSubtreeAttributes(element.node, transformData.attrs);
         },
 
         /**
