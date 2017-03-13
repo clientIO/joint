@@ -335,7 +335,11 @@ var Shape = joint.dia.Element.define('custom.Shape', {
 
         shape: {
             qualify: function(value, node) {
-                return _.contains(['hexagon', 'rhombus'], value) && (node instanceof SVGPathElement);
+                return _.contains([
+                    'hexagon',
+                    'rhombus',
+                    'rounded-rectangle'
+                ], value) && (node instanceof SVGPathElement);
             },
             set: function(shape, refBBox) {
                 var data;
@@ -358,6 +362,11 @@ var Shape = joint.dia.Element.define('custom.Shape', {
                             refBBox.leftMiddle()
                         ];
                         break;
+                    case 'rounded-rectangle':
+                        var rect = refBBox.toJSON();
+                        rect.rx = 5;
+                        rect.ry = 5;
+                        return { d: V.rectToPath(rect) };
                 }
                 return { d: 'M ' + data.join(' ').replace(/@/g, ' ') + ' Z' };
             }
@@ -368,7 +377,7 @@ var Shape = joint.dia.Element.define('custom.Shape', {
 var shape1 = (new Shape())
     .attr('path/shape', 'hexagon')
     .size(100, 100)
-    .position(100, 100)
+    .position(100, 50)
     .addPort({
         group: 'main',
         attrs: { path: { shape: 'hexagon' }}
@@ -383,7 +392,7 @@ var shape1 = (new Shape())
 var shape2 = (new Shape())
     .attr('path/shape', 'rhombus')
     .size(100, 100)
-    .position(100, 250)
+    .position(100, 170)
     .addPort({
         group: 'main',
         attrs: { path: { shape: 'rhombus' }}
@@ -392,5 +401,20 @@ var shape2 = (new Shape())
         group: 'main',
         args: { x: '100%' },
         attrs: { path: { shape: 'rhombus' }}
+    })
+    .addTo(graph);
+
+var shape3 = (new Shape())
+    .attr('path/shape', 'rounded-rectangle')
+    .size(100, 100)
+    .position(100, 290)
+    .addPort({
+        group: 'main',
+        attrs: { path: { shape: 'rounded-rectangle' }}
+    })
+    .addPort({
+        group: 'main',
+        args: { x: '100%' },
+        attrs: { path: { shape: 'rounded-rectangle' }}
     })
     .addTo(graph);
