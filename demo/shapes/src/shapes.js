@@ -413,8 +413,29 @@ var shape3 = (new Shape())
         attrs: { path: { shape: 'rounded-rectangle' }}
     })
     .addPort({
+        id: 'circle-port',
         group: 'main',
         args: { x: '100%' },
-        attrs: { path: { shape: 'rounded-rectangle' }}
+        markup: '<g><circle/><circle/></g>',
+        attrs: {
+            circle: {
+                fill: 'green'
+            },
+            'circle:first': {
+                r: 15
+            },
+            'circle:last': {
+                ref: 'circle:first',
+                r: 10,
+                refDx: 10,
+                magnet: true
+            }
+        }
     })
     .addTo(graph);
+
+var portIndex = shape3.getPortIndex('circle-port');
+
+shape3.transition('ports/items/' + portIndex + '/attrs/circle:first/r', 5, {
+    delay: 2000
+});
