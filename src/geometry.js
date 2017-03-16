@@ -378,7 +378,7 @@ var g = (function() {
 
             return this.start.x === l.start.x &&
                     this.start.y === l.start.y &&
-                    this.start.x === l.start.x &&
+                    this.end.x === l.end.x &&
                     this.end.y === l.end.y;
         },
 
