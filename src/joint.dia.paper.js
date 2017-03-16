@@ -684,14 +684,13 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             var batchSize = (this.options.async && this.options.async.batchSize) || 50;
             var batchCells = cells.splice(0, batchSize);
-            var collection = this.model.get('cells');
 
             _.each(batchCells, function(cell) {
 
-                // The cell has to be part of the graph collection.
+                // The cell has to be part of the graph.
                 // There is a chance in asynchronous rendering
                 // that a cell was removed before it's rendered to the paper.
-                if (cell.collection === collection) this.renderView(cell);
+                if (cell.graph === this.model) this.renderView(cell);
 
             }, this);
 
