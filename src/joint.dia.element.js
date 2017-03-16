@@ -319,10 +319,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             var dx = center.x - size.width / 2 - position.x;
             var dy = center.y - size.height / 2 - position.y;
             this.startBatch('rotate', { angle: angle, absolute: absolute, origin: origin });
-            // Cloning the options here so the flags added by the `translate` method
-            // won't propagate to the `rotate` method. This is important because of
-            // LinkView update optimalization.
-            this.translate(dx, dy, _.clone(opt));
+            this.position(position.x + dx, position.y + dy, opt);
             this.rotate(angle, absolute, null, opt);
             this.stopBatch('rotate');
 
