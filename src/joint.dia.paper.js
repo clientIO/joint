@@ -322,7 +322,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         width = this.options.width = width || this.options.width;
         height = this.options.height = height || this.options.height;
 
-        this.$el.css({ width: width, height: height });
+        this.$el.css({
+            width: Math.round(width),
+            height: Math.round(height)
+        });
 
         this.trigger('resize', width, height);
     },
