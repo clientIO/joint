@@ -165,11 +165,11 @@ joint.mvc.View = Backbone.View.extend({
 
     joint.mvc.View.extend = function(protoProps, staticProps) {
 
-        protoProps = protoProps || {};
+        var protoPropsClone = _.clone(protoProps || {});
 
-        var render = protoProps.render || this.prototype.render || null;
+        var render = protoPropsClone.render;
 
-        protoProps.render = function() {
+        protoPropsClone.render = function() {
 
             if (render) {
                 // Call the original render method.
@@ -183,7 +183,7 @@ joint.mvc.View = Backbone.View.extend({
             return this;
         };
 
-        return joint.mvc.View._extend.call(this, protoProps, staticProps);
+        return joint.mvc.View._extend.call(this, protoPropsClone, staticProps);
     };
 
 })();
