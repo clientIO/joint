@@ -244,6 +244,7 @@ joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
             },
             'text': {
                 'ref-y': .5,
+                'ref-dy': null,
                 'y-alignment': 'middle'
             }
         }
@@ -405,7 +406,6 @@ joint.shapes.basic.TextBlock = joint.shapes.basic.Generic.extend({
             },
             '.content': {
                 text: '',
-                ref: 'rect',
                 'ref-x': .5,
                 'ref-y': .5,
                 'y-alignment': 'middle',

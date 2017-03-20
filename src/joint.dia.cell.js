@@ -499,6 +499,9 @@ joint.dia.Cell = Backbone.Model.extend({
     attr: function(attrs, value, opt) {
 
         var args = Array.prototype.slice.call(arguments);
+        if (args.length === 0) {
+            return this.get('attrs');
+        }
 
         if (_.isArray(attrs)) {
             args[0] = ['attrs'].concat(attrs);
@@ -644,6 +647,26 @@ joint.dia.Cell = Backbone.Model.extend({
         if (this.graph) { this.graph.stopBatch(name, _.extend({}, opt, { cell: this })); }
         return this;
     }
+
+}, {
+
+    getAttributeDefinition: function(attrName) {
+
+        var defNS = this.attributes;
+        var globalDefNS = joint.dia.attributes;
+        return (defNS && defNS[attrName]) || globalDefNS[attrName];
+    },
+
+    define: function(type, defaults, protoProps, staticProps) {
+
+        protoProps = _.assign({
+            defaults: _.defaultsDeep({ type: type }, defaults, this.prototype.defaults)
+        }, protoProps);
+
+        var Cell = this.extend(protoProps, staticProps);
+        joint.util.setByPath(joint.shapes, type, Cell, '.');
+        return Cell;
+    }
 });
 
 // joint.dia.CellView base view and controller.
@@ -725,12 +748,12 @@ joint.dia.CellView = joint.mvc.View.extend({
                 (_.isBoolean(interactive) && interactive !== false);
     },
 
-    findBySelector: function(selector) {
+    findBySelector: function(selector, root) {
 
+        var $root = $(root || this.el);
         // These are either descendants of `this.$el` of `this.$el` itself.
         // `.` is a special selector used to select the wrapping `<g>` element.
-        var $selected = selector === '.' ? this.$el : this.$el.find(selector);
-        return $selected;
+        return (selector === '.') ? $root : $root.find(selector);
     },
 
     notify: function(eventName) {
@@ -831,81 +854,6 @@ joint.dia.CellView = joint.mvc.View.extend({
         return undefined;
     },
 
-    // `selector` is a CSS selector or `'.'`. `filter` must be in the special JointJS filter format:
-    // `{ name: <name of the filter>, args: { <arguments>, ... }`.
-    // An example is: `{ filter: { name: 'blur', args: { radius: 5 } } }`.
-    applyFilter: function(selector, filter) {
-
-        var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
-
-        // Generate a hash code from the stringified filter definition. This gives us
-        // a unique filter ID for different definitions.
-        var filterId = filter.name + this.paper.svg.id + joint.util.hashCode(JSON.stringify(filter));
-
-        // If the filter already exists in the document,
-        // we're done and we can just use it (reference it using `url()`).
-        // If not, create one.
-        if (!this.paper.svg.getElementById(filterId)) {
-
-            var filterSVGString = joint.util.filter[filter.name] && joint.util.filter[filter.name](filter.args || {});
-            if (!filterSVGString) {
-                throw new Error('Non-existing filter ' + filter.name);
-            }
-            var filterElement = V(filterSVGString);
-            // Set the filter area to be 3x the bounding box of the cell
-            // and center the filter around the cell.
-            filterElement.attr({
-                filterUnits: 'objectBoundingBox',
-                x: -1, y: -1, width: 3, height: 3
-            });
-            if (filter.attrs) filterElement.attr(filter.attrs);
-            filterElement.node.id = filterId;
-            V(this.paper.svg).defs().append(filterElement);
-        }
-
-        $selected.each(function() {
-
-            V(this).attr('filter', 'url(#' + filterId + ')');
-        });
-    },
-
-    // `selector` is a CSS selector or `'.'`. `attr` is either a `'fill'` or `'stroke'`.
-    // `gradient` must be in the special JointJS gradient format:
-    // `{ type: <linearGradient|radialGradient>, stops: [ { offset: <offset>, color: <color> }, ... ]`.
-    // An example is: `{ fill: { type: 'linearGradient', stops: [ { offset: '10%', color: 'green' }, { offset: '50%', color: 'blue' } ] } }`.
-    applyGradient: function(selector, attr, gradient) {
-
-        var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
-
-        // Generate a hash code from the stringified filter definition. This gives us
-        // a unique filter ID for different definitions.
-        var gradientId = gradient.type + this.paper.svg.id + joint.util.hashCode(JSON.stringify(gradient));
-
-        // If the gradient already exists in the document,
-        // we're done and we can just use it (reference it using `url()`).
-        // If not, create one.
-        if (!this.paper.svg.getElementById(gradientId)) {
-
-            var gradientSVGString = [
-                '<' + gradient.type + '>',
-                _.map(gradient.stops, function(stop) {
-                    return '<stop offset="' + stop.offset + '" stop-color="' + stop.color + '" stop-opacity="' + (_.isFinite(stop.opacity) ? stop.opacity : 1) + '" />';
-                }).join(''),
-                '</' + gradient.type + '>'
-            ].join('');
-
-            var gradientElement = V(gradientSVGString);
-            if (gradient.attrs) { gradientElement.attr(gradient.attrs); }
-            gradientElement.node.id = gradientId;
-            V(this.paper.svg).defs().append(gradientElement);
-        }
-
-        $selected.each(function() {
-
-            V(this).attr(attr, 'url(#' + gradientId + ')');
-        });
-    },
-
     // Construct a unique selector for the `el` element within this view.
     // `prevSelector` is being collected through the recursive call.
     // No value for `prevSelector` is expected when using this method.
@@ -930,6 +878,340 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
 
         return selector;
+    },
+
+    getAttributeDefinition: function(attrName) {
+
+        return this.model.constructor.getAttributeDefinition(attrName);
+    },
+
+    setNodeAttributes: function(node, attrs) {
+
+        if (!_.isEmpty(attrs)) {
+            if (node instanceof SVGElement) {
+                V(node).attr(attrs);
+            } else {
+                $(node).attr(attrs);
+            }
+        }
+    },
+
+    processNodeAttributes: function(node, attrs) {
+
+        var attrName, attrVal, def, i, n;
+        var normalAttrs, setAttrs, positionAttrs, offsetAttrs;
+        var relatives = [];
+        // divide the attributes between normal and special
+        for (attrName in attrs) {
+            if (!attrs.hasOwnProperty(attrName)) continue;
+            attrVal = attrs[attrName];
+            def = this.getAttributeDefinition(attrName);
+            if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs))) {
+                if (_.isString(def.set)) {
+                    normalAttrs || (normalAttrs = {});
+                    normalAttrs[def.set] = attrVal;
+                }
+                if (attrVal !== null) {
+                    relatives.push(attrName, def);
+                }
+            } else {
+                normalAttrs || (normalAttrs = {});
+                normalAttrs[joint.util.toKebabCase(attrName)] = attrVal;
+            }
+        }
+
+        // handle the rest of attributes via related method
+        // from the special attributes namespace.
+        for (i = 0, n = relatives.length; i < n; i+=2) {
+            attrName = relatives[i];
+            def = relatives[i+1];
+            attrVal = attrs[attrName];
+            if (_.isFunction(def.set)) {
+                setAttrs || (setAttrs = {});
+                setAttrs[attrName] = attrVal;
+            }
+            if (_.isFunction(def.position)) {
+                positionAttrs || (positionAttrs = {});
+                positionAttrs[attrName] = attrVal;
+            }
+            if (_.isFunction(def.offset)) {
+                offsetAttrs || (offsetAttrs = {});
+                offsetAttrs[attrName] = attrVal;
+            }
+        }
+
+        return {
+            raw: attrs,
+            normal: normalAttrs,
+            set: setAttrs,
+            position: positionAttrs,
+            offset: offsetAttrs
+        };
+    },
+
+    updateRelativeAttributes: function(node, attrs, refBBox, opt) {
+
+        opt || (opt = {});
+
+        var attrName, attrVal, def;
+        var rawAttrs = attrs.raw || {};
+        var nodeAttrs = attrs.normal || {};
+        var setAttrs = attrs.set;
+        var positionAttrs = attrs.position;
+        var offsetAttrs = attrs.offset;
+
+        for (attrName in setAttrs) {
+            attrVal = setAttrs[attrName];
+            def = this.getAttributeDefinition(attrName);
+            // SET - set function should return attributes to be set on the node,
+            // which will affect the node dimensions based on the reference bounding
+            // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
+            var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs);
+            if (_.isObject(setResult)) {
+                _.extend(nodeAttrs, setResult);
+            } else if (setResult !== undefined) {
+                nodeAttrs[attrName] = setResult;
+            }
+        }
+
+        if (node instanceof HTMLElement) {
+            // TODO: setting the `transform` attribute on HTMLElements
+            // via `node.style.transform = 'matrix(...)';` would introduce
+            // a breaking change (e.g. basic.TextBlock).
+            this.setNodeAttributes(node, nodeAttrs);
+            return;
+        }
+
+        // The final translation of the subelement.
+        var nodeTransform = nodeAttrs.transform || '';
+        var nodeMatrix = V.transformStringToMatrix(nodeTransform);
+        var nodePosition = g.Point(nodeMatrix.e, nodeMatrix.f);
+        if (nodeTransform) {
+            nodeAttrs = _.omit(nodeAttrs, 'transform');
+            nodeMatrix.e = nodeMatrix.f = 0;
+        }
+
+        // Calculate node scale determined by the scalable group
+        // only if later needed.
+        var sx, sy, translation;
+        if (positionAttrs || offsetAttrs) {
+            var nodeScale = this.getNodeScale(node, opt.scalableNode);
+            sx = nodeScale.sx;
+            sy = nodeScale.sy;
+        }
+
+        for (attrName in positionAttrs) {
+            attrVal = positionAttrs[attrName];
+            def = this.getAttributeDefinition(attrName);
+            // POSITION - position function should return a point from the
+            // reference bounding box. The default position of the node is x:0, y:0 of
+            // the reference bounding box or could be further specify by some
+            // SVG attributes e.g. `x`, `y`
+            translation = def.position.call(this, attrVal, refBBox.clone(), node, rawAttrs);
+            if (translation) {
+                nodePosition.offset(g.Point(translation).scale(sx, sy));
+            }
+        }
+
+        // The node bounding box could depend on the `size` set from the previous loop.
+        // Here we know, that all the size attributes have been already set.
+        this.setNodeAttributes(node, nodeAttrs);
+
+        if (offsetAttrs) {
+            // Check if the node is visible
+            var nodeClientRect = node.getBoundingClientRect();
+            if (nodeClientRect.width > 0 && nodeClientRect.height > 0) {
+                var nodeBBox = V.transformRect(node.getBBox(), nodeMatrix).scale(1 / sx, 1 / sy);
+                for (attrName in offsetAttrs) {
+                    attrVal = offsetAttrs[attrName];
+                    def = this.getAttributeDefinition(attrName);
+                    // OFFSET - offset function should return a point from the element
+                    // bounding box. The default offset point is x:0, y:0 (origin) or could be further
+                    // specify with some SVG attributes e.g. `text-anchor`, `cx`, `cy`
+                    translation = def.offset.call(this, attrVal, nodeBBox, node, rawAttrs);
+                    if (translation) {
+                        nodePosition.offset(g.Point(translation).scale(sx, sy));
+                    }
+                }
+            }
+        }
+
+        // Round the coordinates to 1 decimal point.
+        nodePosition.round(1);
+        nodeMatrix.e = nodePosition.x;
+        nodeMatrix.f = nodePosition.y;
+        node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
+    },
+
+    getNodeScale: function(node, scalableNode) {
+
+        // Check if the node is a descendant of the scalable group.
+        var sx, sy;
+        if (scalableNode && scalableNode.contains(node)) {
+            var scale = scalableNode.scale();
+            sx = 1 / scale.sx;
+            sy = 1 / scale.sy;
+        } else {
+            sx = 1;
+            sy = 1;
+        }
+
+        return { sx: sx, sy: sy };
+    },
+
+    findNodesAttributes: function(attrs, root, selectorCache) {
+
+        // TODO: merge attributes in order defined by `index` property
+
+        var nodesAttrs = {};
+
+        for (var selector in attrs) {
+            if (!attrs.hasOwnProperty(selector)) continue;
+            var $selected = selectorCache[selector] = this.findBySelector(selector, root);
+
+            for (var i = 0, n = $selected.length; i < n; i++) {
+                var node = $selected[i];
+                var nodeId = V.ensureId(node);
+                var nodeAttrs = attrs[selector];
+                var prevNodeAttrs = nodesAttrs[nodeId];
+                if (prevNodeAttrs) {
+                    if (!prevNodeAttrs.merged) {
+                        prevNodeAttrs.merged = true;
+                        prevNodeAttrs.attributes = _.cloneDeep(prevNodeAttrs.attributes);
+                    }
+                    _.merge(prevNodeAttrs.attributes, nodeAttrs);
+                } else {
+                    nodesAttrs[nodeId] = {
+                        attributes: nodeAttrs,
+                        node: node,
+                        merged: false
+                    };
+                }
+            }
+        }
+
+        return nodesAttrs;
+    },
+
+    // Default is to process the `model.attributes.attrs` object and set attributes on subelements based on the selectors,
+    // unless `attrs` parameter was passed.
+    updateDOMSubtreeAttributes: function(rootNode, attrs, opt) {
+
+        opt || (opt = {});
+        opt.rootBBox || (opt.rootBBox = g.Rect());
+
+        // Cache table for query results and bounding box calculation.
+        // Note that `selectorCache` needs to be invalidated for all
+        // `updateAttributes` calls, as the selectors might pointing
+        // to nodes designated by an attribute or elements dynamically
+        // created.
+        var selectorCache = {};
+        var bboxCache = {};
+        var relativeItems = [];
+        var item, node, nodeAttrs, nodeData, processedAttrs;
+
+        var roAttrs = opt.roAttributes;
+        var nodesAttrs = this.findNodesAttributes(roAttrs || attrs, rootNode, selectorCache);
+        // `nodesAttrs` are different from all attributes, when
+        // rendering only  attributes sent to this method.
+        var nodesAllAttrs = (roAttrs)
+            ? nodesAllAttrs = this.findNodesAttributes(attrs, rootNode, selectorCache)
+            : nodesAttrs;
+
+        for (var nodeId in nodesAttrs) {
+            nodeData = nodesAttrs[nodeId];
+            nodeAttrs = nodeData.attributes;
+            node = nodeData.node;
+            processedAttrs = this.processNodeAttributes(node, nodeAttrs);
+
+            if (!processedAttrs.set && !processedAttrs.position && !processedAttrs.offset) {
+                // Set all the normal attributes right on the SVG/HTML element.
+                this.setNodeAttributes(node, processedAttrs.normal);
+
+            } else {
+
+                var nodeAllAttrs = nodesAllAttrs[nodeId] && nodesAllAttrs[nodeId].attributes;
+                var refSelector = (nodeAllAttrs && (nodeAttrs.ref === undefined))
+                    ? nodeAllAttrs.ref
+                    : nodeAttrs.ref;
+
+                var refNode;
+                if (refSelector) {
+                    refNode = (selectorCache[refSelector] || this.findBySelector(refSelector, rootNode))[0];
+                    if (!refNode) {
+                        throw new Error('dia.ElementView: "' + refSelector + '" reference does not exists.');
+                    }
+                } else {
+                    refNode = null;
+                }
+
+                item = {
+                    node: node,
+                    refNode: refNode,
+                    processedAttributes: processedAttrs,
+                    allAttributes: nodeAllAttrs
+                };
+
+                // If an element in the list is positioned relative to this one, then
+                // we want to insert this one before it in the list.
+                var itemIndex = _.findIndex(relativeItems, { refNode: node });
+                if (itemIndex > -1) {
+                    relativeItems.splice(itemIndex, 0, item);
+                } else {
+                    relativeItems.push(item);
+                }
+            }
+        }
+
+        for (var i = 0, n = relativeItems.length; i < n; i++) {
+            item = relativeItems[i];
+            node = item.node;
+            refNode = item.refNode;
+
+            // Find the reference element bounding box. If no reference was provided, we
+            // use the optional bounding box.
+            var refNodeId = refNode ? V.ensureId(refNode) : '';
+            var refBBox = bboxCache[refNodeId];
+            if (!refBBox) {
+                // Get the bounding box of the reference element relative to the `rotatable` `<g>` (without rotation)
+                // or to the root `<g>` element if no rotatable group present if reference node present.
+                // Uses the bounding box provided.
+                refBBox = bboxCache[refNodeId] = (refNode)
+                    ? V(refNode).bbox(false, (opt.rotatableNode || rootNode))
+                    : opt.rootBBox;
+            }
+
+            if (roAttrs) {
+                // if there was a special attribute affecting the position amongst passed-in attributes
+                // we have to merge it with the rest of the element's attributes as they are necessary
+                // to update the position relatively (i.e `ref-x` && 'ref-dx')
+                processedAttrs = this.processNodeAttributes(node, item.allAttributes);
+                this.mergeProcessedAttributes(processedAttrs, item.processedAttributes);
+
+            } else {
+                processedAttrs = item.processedAttributes;
+            }
+
+            this.updateRelativeAttributes(node, processedAttrs, refBBox, opt);
+        }
+    },
+
+    mergeProcessedAttributes: function(processedAttrs, roProcessedAttrs) {
+
+        processedAttrs.set || (processedAttrs.set = {});
+        processedAttrs.position || (processedAttrs.position = {});
+        processedAttrs.offset || (processedAttrs.offset = {});
+
+        _.extend(processedAttrs.set, roProcessedAttrs.set);
+        _.extend(processedAttrs.position, roProcessedAttrs.position);
+        _.extend(processedAttrs.offset, roProcessedAttrs.offset);
+
+        // Handle also the special transform property.
+        var transform = processedAttrs.normal && processedAttrs.normal.transform;
+        if (transform !== undefined && roProcessedAttrs.normal) {
+            roProcessedAttrs.normal.transform = transform;
+        }
+        processedAttrs.normal = roProcessedAttrs.normal;
     },
 
     // Interaction. The controller part.

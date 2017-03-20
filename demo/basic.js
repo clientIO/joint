@@ -59,7 +59,7 @@ var rh = new joint.shapes.basic.Rhombus({
 graph.addCell(rh);
 
 var tbl = new joint.shapes.basic.TextBlock({
-    position: { x: 400, y: 180 },
+    position: { x: 400, y: 150 },
     size: { width: 180, height: 100 },
     content: "Lorem ipsum dolor sit amet,\n consectetur adipiscing elit. Nulla vel porttitor est."
 });
@@ -222,6 +222,7 @@ joint.shapes.basic.Cylinder = joint.shapes.basic.Generic.extend({
 });
 
 var cylinder = new joint.shapes.basic.Cylinder({
+
     position: { x: 200, y: 200 },
     size: { width: 180, height: 150 },
     attrs: {

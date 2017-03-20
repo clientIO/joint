@@ -1,0 +1,44 @@
+<pre class="docs-method-signature"><code>define(type [, defaultAttributes, prototypeProperties, staticProperties])</code></pre>
+<p>Helper to define new Cell class or extend the existing one. The <code>type</code> must be a unique identifier of the class, which determines the location of the class definiton in the <code>joint.shapes</code> namespace (the type is the path to the class definition delimited by dots (<code>.</code>).
+ When creating an instance of the cell, any unspecified attributes will be set to the value from the <code>defaultAttributes</code>.
+</p>
+    <pre><code>// Define a new Ellipse class in `joint.shapes.examples` namespace.
+var Ellipse = joint.dia.Element.define('examples.Ellipse', {
+  markup: '&lt;ellipse/&gt;',
+  attrs: {
+    ellipse: {
+      fill: 'white',
+      stroke: 'black',
+      refRx: .5,
+      refRy: .5,
+      refCx: .5,
+      refCy: .5
+    }
+  }
+});
+// `Ellipse === joint.shapes.examples.Ellipse` now
+// Instantiate an element
+var el1 = (new Ellipse).position(100,100).size(120,50).addTo(graph);
+</code></pre>
+
+    <pre><code>// Define a new ColoredEllipse class that inherits from Ellipse.
+var BlueEllipse = Ellipse.define('examples.ColoredEllipse', {
+  attrs: {
+    ellipse: {
+      fill: 'black'
+    }
+  }
+}, {
+  // Prototype methods
+  changeColor: function() {
+    return this.attr('ellipse/stroke', this.constructor.getRandomColor());
+  }  
+}, {
+  // Static methods
+  getRandomColor: function() {
+    return '#' + Math.floor(Math.random() * 16777215).toString(16);
+  }
+});
+
+var el2 = (new ColoredEllipse).changeColor().position(300,100).size(120,50).addTo(graph);
+</code></pre>

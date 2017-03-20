@@ -183,6 +183,47 @@ QUnit.module('rect', function() {
 
         QUnit.module('round(precision)', function() {
 
+            QUnit.test('no precision', function(assert) {
+                assert.deepEqual(
+                    g.Rect(1, 2, 3, 4).round().toJSON(),
+                    g.Rect(1, 2, 3, 4).toJSON()
+                );
+                assert.deepEqual(
+                    g.Rect(1.1, 2.2, 3.3, 4.4).round().toJSON(),
+                    g.Rect(1, 2, 3, 4).toJSON()
+                );
+            });
+
+            QUnit.test('with precision', function(assert) {
+                assert.deepEqual(
+                    g.Rect(1, 2, 3, 4).round(1).toJSON(),
+                    g.Rect(1, 2, 3,4).toJSON()
+                );
+                assert.deepEqual(
+                    g.Rect(1.11, 2.22, 3.33, 6.66).round(1).toJSON(),
+                    g.Rect(1.1, 2.2, 3.3, 6.7).toJSON()
+                );
+                assert.deepEqual(
+                    g.Rect(1, 2, 3, 4).round(2).toJSON(),
+                    g.Rect(1, 2, 3, 4).toJSON()
+                );
+                assert.deepEqual(
+                    g.Rect(1.111, 2.222, 3.333, 6.666).round(2).toJSON(),
+                    g.Rect(1.11, 2.22, 3.33, 6.67).toJSON()
+                );
+            });
+
+            QUnit.test('with negative precision', function(assert) {
+                assert.deepEqual(
+                    g.Rect(11, 22, 33, 66).round(-1).toJSON(),
+                    g.Rect(10, 20, 30, 70).toJSON()
+                );
+                assert.deepEqual(
+                    g.Rect(11.1,22.2,33.3,66.6).round(-1).toJSON(),
+                    g.Rect(10, 20, 30, 70).toJSON()
+                );
+            });
+
         });
 
         QUnit.module('scale(sx, sy, origin)', function() {

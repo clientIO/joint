@@ -18,7 +18,7 @@ var elements = [
         position: { x: 75, y: 175 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'joint', 'ref-y': 0.5, 'y-alignment': 'middle' },
+            text: { text: 'joint', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
             path: { d: 'M 0 0 L 100 0 80 20 100 40 0 40 Z' }
         }
     }),
@@ -27,7 +27,7 @@ var elements = [
         position: { x: 200, y: 275 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'dia', 'ref-y': 0.5, 'y-alignment': 'middle' },
+            text: { text: 'dia', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
             path: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
         }
     }),
@@ -36,7 +36,7 @@ var elements = [
         position: { x: 200, y: 75 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'util', 'ref-y': 0.5, 'y-alignment': 'middle' },
+            text: { text: 'util', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
             path: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
         }
     }),
@@ -45,7 +45,7 @@ var elements = [
         position: { x: 200, y: 175 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'shapes', 'ref-y': 0.5, 'y-alignment': 'middle' },
+            text: { text: 'shapes', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
             path: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
         }
     }),
@@ -54,7 +54,7 @@ var elements = [
         position: { x: 325, y: 175 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'basic', 'ref-y': 0.5, 'y-alignment': 'middle' },
+            text: { text: 'basic', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
             path: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
         }
     }),
@@ -63,7 +63,7 @@ var elements = [
         position: { x: 450, y: 150 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'Path', 'ref-y': 0.5, 'y-alignment': 'middle' },
+            text: { text: 'Path', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
             path: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
@@ -72,7 +72,7 @@ var elements = [
         position: { x: 450, y: 200 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'Text', 'ref-y': 0.5, 'y-alignment': 'middle' },
+            text: { text: 'Text', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
             path: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
@@ -81,7 +81,7 @@ var elements = [
         position: { x: 325, y: 250 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'Paper', 'ref-y': 0.5, 'y-alignment': 'middle' },
+            text: { text: 'Paper', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
             path: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
@@ -90,7 +90,7 @@ var elements = [
         position: { x: 325, y: 300 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'Graph', 'ref-y': 0.5, 'y-alignment': 'middle' },
+            text: { text: 'Graph', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
             path: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
@@ -99,7 +99,7 @@ var elements = [
         position: { x: 325, y: 100 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'getByPath', 'ref-y': 0.5, 'y-alignment': 'middle' },
+            text: { text: 'getByPath', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
             path: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
@@ -108,7 +108,7 @@ var elements = [
         position: { x: 325, y: 50 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'setByPath', 'ref-y': 0.5, 'y-alignment': 'middle' },
+            text: { text: 'setByPath', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
             path: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     })

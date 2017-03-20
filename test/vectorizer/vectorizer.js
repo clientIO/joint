@@ -71,6 +71,16 @@ QUnit.module('vectorizer', function(hooks) {
         assert.ok(typeof error === 'undefined', 'Should not throw an error when given valid markup.');
     });
 
+    QUnit.test('V.ensureId()', function(assert) {
+        var node = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        assert.notOk(node.id);
+        var id = V.ensureId(node);
+        assert.ok(id);
+        assert.equal(id, node.id);
+        assert.equal(id, V.ensureId(node));
+        assert.equal(id, node.id);
+    });
+
     QUnit.test('index()', function(assert) {
 
         // svg container
@@ -326,6 +336,17 @@ QUnit.module('vectorizer', function(hooks) {
             V(svgGroup3).findParentByClass('not-a-parent', svgCircle),
             'parent does not exist, terminator not on the way down'
         );
+    });
+
+    QUnit.test('contains()', function(assert) {
+
+        assert.ok(V(svgContainer).contains(svgGroup1));
+        assert.ok(V(svgGroup1).contains(svgGroup3));
+        assert.ok(V(svgGroup1).contains(svgGroup2));
+        assert.notOk(V(svgGroup3).contains(svgGroup1));
+        assert.notOk(V(svgGroup2).contains(svgGroup1));
+        assert.notOk(V(svgGroup1).contains(svgGroup1));
+        assert.notOk(V(svgGroup1).contains(document));
     });
 
     QUnit.module('transform()', function(hooks) {
@@ -589,6 +610,31 @@ QUnit.module('vectorizer', function(hooks) {
         });
     });
 
+    QUnit.module('appendTo()', function(hooks) {
+
+        var groupNode;
+
+        hooks.beforeEach(function() {
+            groupNode = V(svgGroup).clone().empty().node;
+        });
+
+        QUnit.test('append vnode', function(assert) {
+
+            var rect = V('<rect/>').appendTo(V(groupNode));
+            assert.ok(V.isV(rect));
+            assert.equal(rect.node.parentNode, groupNode);
+            assert.equal(rect.node, groupNode.lastChild);
+        });
+
+        QUnit.test('append node', function(assert) {
+
+            var rect = V('<rect/>').appendTo(groupNode);
+            assert.ok(V.isV(rect));
+            assert.equal(rect.node.parentNode, groupNode);
+            assert.equal(rect.node, groupNode.lastChild);
+        });
+    });
+
     QUnit.module('prepend()', function(hooks) {
 
         var groupElement;
@@ -741,6 +787,16 @@ QUnit.module('vectorizer', function(hooks) {
                 svgTestGroup.attr('transform', transformString);
                 assert.deepEqual(V.transformStringToMatrix(transformString), svgTestGroup.node.getCTM());
             });
+        });
+    });
+
+    QUnit.module('matrixToTransformString()', function() {
+
+        QUnit.test('return correct transformation string', function(assert) {
+            assert.equal(V.matrixToTransformString(), 'matrix(1,0,0,1,0,0)');
+            assert.equal(V.matrixToTransformString({ a: 2, d: 2 }), 'matrix(2,0,0,2,0,0)');
+            assert.equal(V.matrixToTransformString({ a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 }), 'matrix(1,2,3,4,5,6)');
+            assert.equal(V.matrixToTransformString(V.createSVGMatrix({ a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 })), 'matrix(1,2,3,4,5,6)');
         });
     });
 

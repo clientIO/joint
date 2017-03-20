@@ -1,4 +1,3 @@
-
 // joint.dia.Element base model.
 // -----------------------------
 
@@ -137,6 +136,28 @@ joint.dia.Element = joint.dia.Cell.extend({
         _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
 
         return this;
+    },
+
+    size: function(width, height, opt) {
+
+        var currentSize = this.get('size');
+        // Getter
+        // () signature
+        if (width === undefined) {
+            return {
+                width: currentSize.width,
+                height: currentSize.height
+            };
+        }
+        // Setter
+        // (size, opt) signature
+        if (_.isObject(width)) {
+            opt = height;
+            height = _.isNumber(width.height) ? width.height : currentSize.height;
+            width = _.isNumber(width.width) ? width.width : currentSize.width;
+        }
+
+        return this.resize(width, height, opt);
     },
 
     resize: function(width, height, opt) {
@@ -359,22 +380,6 @@ joint.dia.Element = joint.dia.Cell.extend({
 
 joint.dia.ElementView = joint.dia.CellView.extend({
 
-    SPECIAL_ATTRIBUTES: [
-        'style',
-        'text',
-        'html',
-        'ref-x',
-        'ref-y',
-        'ref-dx',
-        'ref-dy',
-        'ref-width',
-        'ref-height',
-        'ref',
-        'x-alignment',
-        'y-alignment',
-        'port'
-    ],
-
     /**
      * @abstract
      */
@@ -420,407 +425,21 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     },
 
-    /**
-     * @param {jQuery} $selected
-     * @param {Object} attrs
-     */
-    updateAttr: function($selected, attrs) {
-
-        // Special attributes are treated by JointJS, not by SVG.
-        var specialAttributes = this.SPECIAL_ATTRIBUTES.slice();
-
-        // If the `filter` attribute is an object, it is in the special JointJS filter format and so
-        // it becomes a special attribute and is treated separately.
-        if (_.isObject(attrs.filter)) {
-
-            specialAttributes.push('filter');
-            this.applyFilter($selected, attrs.filter);
-        }
-
-        // If the `fill` or `stroke` attribute is an object, it is in the special JointJS gradient format and so
-        // it becomes a special attribute and is treated separately.
-        if (_.isObject(attrs.fill)) {
-
-            specialAttributes.push('fill');
-            this.applyGradient($selected, 'fill', attrs.fill);
-        }
-        if (_.isObject(attrs.stroke)) {
-
-            specialAttributes.push('stroke');
-            this.applyGradient($selected, 'stroke', attrs.stroke);
-        }
-
-        // Make special case for `text` attribute. So that we can set text content of the `<text>` element
-        // via the `attrs` object as well.
-        // Note that it's important to set text before applying the rest of the final attributes.
-        // Vectorizer `text()` method sets on the element its own attributes and it has to be possible
-        // to rewrite them, if needed. (i.e display: 'none')
-        if (!_.isUndefined(attrs.text)) {
-
-            $selected.each(function() {
-
-                if (!_.isUndefined(attrs.x)) {
-                    V(this).attr('x', attrs.x);
-                    specialAttributes.push('x');
-                }
-
-                if (!_.isUndefined(attrs.y)) {
-                    V(this).attr('y', attrs.y);
-                    specialAttributes.push('y');
-                }
-
-                V(this).text(attrs.text + '', {
-                    lineHeight: attrs.lineHeight,
-                    textPath: attrs.textPath,
-                    annotations: attrs.annotations
-                });
-            });
-            specialAttributes.push('lineHeight', 'textPath', 'annotations');
-        }
-
-        // Set regular attributes on the `$selected` subelement. Note that we cannot use the jQuery attr()
-        // method as some of the attributes might be namespaced (e.g. xlink:href) which fails with jQuery attr().
-        var finalAttributes = _.omit(attrs, specialAttributes);
-
-        $selected.each(function() {
-
-            V(this).attr(finalAttributes);
-        });
-
-        // `port` attribute contains the `id` of the port that the underlying magnet represents.
-        if (attrs.port) {
-            $selected.attr('port', _.isUndefined(attrs.port.id) ? attrs.port : attrs.port.id);
-        }
-
-        // `style` attribute is special in the sense that it sets the CSS style of the subelement.
-        if (attrs.style) {
-
-            $selected.css(attrs.style);
-        }
-
-        if (!_.isUndefined(attrs.html)) {
-
-            $selected.each(function() {
-
-                $(this).html(attrs.html + '');
-            });
-        }
-
-    },
-
-    // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
     update: function(cell, renderingOnlyAttrs) {
 
         this._removePorts();
 
-        var allAttrs = this.model.get('attrs');
-
-        var rotatable = this.rotatableNode;
-        if (rotatable) {
-            var rotation = rotatable.attr('transform');
-            rotatable.attr('transform', '');
-        }
-
-        var relativelyPositioned = [];
-        var nodesBySelector = {};
-
-        _.each(renderingOnlyAttrs || allAttrs, function(attrs, selector) {
-
-            // Elements that should be updated.
-            var $selected = (selector === '.')
-                    ? this.$el
-                    : this.findBySelector(selector);
-
-            var elementsCount = $selected.length;
-
-            // No element matched by the `selector` was found. We're done then.
-            if (elementsCount === 0) return;
-
-            nodesBySelector[selector] = $selected;
-
-            this.updateAttr($selected, attrs);
-
-            // Special `ref-x` and `ref-y` attributes make it possible to set both absolute or
-            // relative positioning of subelements.
-            if (!_.isUndefined(attrs['ref-x']) ||
-                !_.isUndefined(attrs['ref-y']) ||
-                !_.isUndefined(attrs['ref-dx']) ||
-                !_.isUndefined(attrs['ref-dy']) ||
-                !_.isUndefined(attrs['x-alignment']) ||
-                !_.isUndefined(attrs['y-alignment']) ||
-                !_.isUndefined(attrs['ref-width']) ||
-                !_.isUndefined(attrs['ref-height'])
-            ) {
-
-                for (var i = 0; i < elementsCount; i++) {
-                    var $el = $selected.eq(i);
-                    // store the selector for the element
-                    $el.selector = selector;
-                    relativelyPositioned.push($el);
-                }
-            }
-
-        }, this);
-
-        // We don't want the sub elements to affect the bounding box of the root element when
-        // positioning the sub elements relatively to the bounding box.
-        //_.invoke(relativelyPositioned, 'hide');
-        //_.invoke(relativelyPositioned, 'show');
-
-        // Note that we're using the bounding box without transformation because we are already inside
-        // a transformed coordinate system.
-        var size = this.model.get('size');
-        var bbox = { x: 0, y: 0, width: size.width, height: size.height };
-
-        renderingOnlyAttrs = renderingOnlyAttrs || {};
-
-        _.each(relativelyPositioned, function($el) {
-
-            // if there was a special attribute affecting the position amongst renderingOnlyAttributes
-            // we have to merge it with rest of the element's attributes as they are necessary
-            // to update the position relatively (i.e `ref`)
-            var renderingOnlyElAttrs = renderingOnlyAttrs[$el.selector];
-            var elAttrs = renderingOnlyElAttrs
-                ? _.merge({}, allAttrs[$el.selector], renderingOnlyElAttrs)
-                : allAttrs[$el.selector];
-
-            this.positionRelative(V($el[0]), bbox, elAttrs, nodesBySelector);
-
-        }, this);
-
-        if (rotatable) {
-
-            rotatable.attr('transform', rotation || '');
-        }
+        var model = this.model;
+        var modelAttrs = model.attr();
+        this.updateDOMSubtreeAttributes(this.el, modelAttrs, {
+            rootBBox: g.Rect(model.size()),
+            scalableNode: this.scalableNode,
+            rotatableNode: this.rotatableNode,
+            // Use rendering only attributes if they differs from the model attributes
+            roAttributes: (renderingOnlyAttrs === modelAttrs) ? null : renderingOnlyAttrs
+        });
 
         this._renderPorts();
-    },
-
-    positionRelative: function(vel, bbox, attributes, nodesBySelector) {
-
-        var ref = attributes['ref'];
-        var refDx = parseFloat(attributes['ref-dx']);
-        var refDy = parseFloat(attributes['ref-dy']);
-        var yAlignment = attributes['y-alignment'];
-        var xAlignment = attributes['x-alignment'];
-
-        // 'ref-y', 'ref-x', 'ref-width', 'ref-height' can be defined
-        // by value or by percentage e.g 4, 0.5, '200%'.
-        var refY = attributes['ref-y'];
-        var refYPercentage = _.isString(refY) && refY.slice(-1) === '%';
-        refY = parseFloat(refY);
-        if (refYPercentage) {
-            refY /= 100;
-        }
-
-        var refX = attributes['ref-x'];
-        var refXPercentage = _.isString(refX) && refX.slice(-1) === '%';
-        refX = parseFloat(refX);
-        if (refXPercentage) {
-            refX /= 100;
-        }
-
-        var refWidth = attributes['ref-width'];
-        var refWidthPercentage = _.isString(refWidth) && refWidth.slice(-1) === '%';
-        refWidth = parseFloat(refWidth);
-        if (refWidthPercentage) {
-            refWidth /= 100;
-        }
-
-        var refHeight = attributes['ref-height'];
-        var refHeightPercentage = _.isString(refHeight) && refHeight.slice(-1) === '%';
-        refHeight = parseFloat(refHeight);
-        if (refHeightPercentage) {
-            refHeight /= 100;
-        }
-
-        // Check if the node is a descendant of the scalable group.
-        var scalable = vel.findParentByClass('scalable', this.el);
-
-        // `ref` is the selector of the reference element. If no `ref` is passed, reference
-        // element is the root element.
-        if (ref) {
-
-            var vref;
-
-            if (nodesBySelector && nodesBySelector[ref]) {
-                // First we check if the same selector has been already used.
-                vref = V(nodesBySelector[ref][0]);
-            } else {
-                // Other wise we find the ref ourselves.
-                vref = ref === '.' ? this.vel : this.vel.findOne(ref);
-            }
-
-            if (!vref) {
-                throw new Error('dia.ElementView: reference does not exists.');
-            }
-
-            // Get the bounding box of the reference element relative to the root `<g>` element.
-            bbox = vref.bbox(false, this.el);
-        }
-
-        // Remove the previous translate() from the transform attribute and translate the element
-        // relative to the root bounding box following the `ref-x` and `ref-y` attributes.
-        if (vel.attr('transform')) {
-
-            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '').trim() || '');
-        }
-
-        // 'ref-width'/'ref-height' defines the width/height of the subelement relatively to
-        // the reference element size
-        // val in 0..1         ref-width = 0.75 sets the width to 75% of the ref. el. width
-        // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
-
-        if (isFinite(refWidth)) {
-
-            if (refWidthPercentage || refWidth >= 0 && refWidth <= 1) {
-
-                vel.attr('width', refWidth * bbox.width);
-
-            } else {
-
-                vel.attr('width', Math.max(refWidth + bbox.width, 0));
-            }
-        }
-
-        if (isFinite(refHeight)) {
-
-            if (refHeightPercentage || refHeight >= 0 && refHeight <= 1) {
-
-                vel.attr('height', refHeight * bbox.height);
-
-            } else {
-
-                vel.attr('height', Math.max(refHeight + bbox.height, 0));
-            }
-        }
-
-        // The final translation of the subelement.
-        var tx = 0;
-        var ty = 0;
-        var scale;
-
-        // `ref-dx` and `ref-dy` define the offset of the subelement relative to the right and/or bottom
-        // coordinate of the reference element.
-        if (isFinite(refDx)) {
-
-            if (scalable) {
-
-                // Compensate for the scale grid in case the elemnt is in the scalable group.
-                scale = scale || scalable.scale();
-                tx = bbox.x + bbox.width + refDx / scale.sx;
-
-            } else {
-
-                tx = bbox.x + bbox.width + refDx;
-            }
-        }
-
-        if (isFinite(refDy)) {
-
-            if (scalable) {
-
-                // Compensate for the scale grid in case the elemnt is in the scalable group.
-                scale = scale || scalable.scale();
-                ty = bbox.y + bbox.height + refDy / scale.sy;
-            } else {
-
-                ty = bbox.y + bbox.height + refDy;
-            }
-        }
-
-        // if `refX` is in [0, 1] then `refX` is a fraction of bounding box width
-        // if `refX` is < 0 then `refX`'s absolute values is the right coordinate of the bounding box
-        // otherwise, `refX` is the left coordinate of the bounding box
-        // Analogical rules apply for `refY`.
-        if (isFinite(refX)) {
-
-            if (refXPercentage || refX > 0 && refX < 1) {
-
-                tx = bbox.x + bbox.width * refX;
-
-            } else if (scalable) {
-
-                // Compensate for the scale grid in case the elemnt is in the scalable group.
-                scale = scale || scalable.scale();
-                tx = bbox.x + refX / scale.sx;
-
-            } else {
-
-                tx = bbox.x + refX;
-            }
-        }
-
-        if (isFinite(refY)) {
-
-            if (refYPercentage || refY > 0 && refY < 1) {
-
-                ty = bbox.y + bbox.height * refY;
-
-            } else if (scalable) {
-
-                // Compensate for the scale grid in case the elemnt is in the scalable group.
-                scale = scale || scalable.scale();
-                ty = bbox.y + refY / scale.sy;
-
-            } else {
-
-                ty = bbox.y + refY;
-            }
-        }
-
-        if (!_.isUndefined(yAlignment) || !_.isUndefined(xAlignment)) {
-
-            // Get the boundind box with the tranformations applied by the the
-            // element itself only.
-            var node = vel.node;
-            var velBBox = vel.bbox(false, node.parentNode);
-
-            // Compensate the size with the bounding box origin offset for text elements.
-            var nodeName = node.nodeName.toUpperCase();
-            if (nodeName === 'TEXT' || nodeName === 'TSPAN') {
-                velBBox.height += velBBox.y;
-                velBBox.width += velBBox.x;
-            }
-
-            if (scalable) {
-                scale = scale || scalable.scale();
-                velBBox.width *= scale.sx;
-                velBBox.height *= scale.sy;
-            }
-
-            // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
-            // `y-alignment` when set to `bottom` uses the y coordinate as referenced to the bottom of the bbox.
-            if (yAlignment === 'middle') {
-
-                ty -= velBBox.height / 2;
-
-            } else if (yAlignment === 'bottom') {
-
-                ty -= velBBox.height;
-
-            } else if (isFinite(yAlignment)) {
-
-                ty += (yAlignment > -1 && yAlignment < 1) ? velBBox.height * yAlignment : yAlignment;
-            }
-
-            // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
-            // `x-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
-            if (xAlignment === 'middle') {
-
-                tx -= velBBox.width / 2;
-
-            } else if (xAlignment === 'right') {
-
-                tx -= velBBox.width;
-
-            } else if (isFinite(xAlignment)) {
-
-                tx += (xAlignment > -1 && xAlignment < 1) ? velBBox.width * xAlignment : xAlignment;
-            }
-        }
-
-        vel.translate(tx, ty);
     },
 
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
@@ -848,25 +467,17 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         this.renderMarkup();
         this.rotatableNode = this.vel.findOne('.rotatable');
-        this.scalableNode = this.vel.findOne('.scalable');
-        this.update();
+        var scalable = this.scalableNode = this.vel.findOne('.scalable');
+        if (scalable) {
+            // Double update is necessary for elements with the scalable group only
+            // Note the resize() triggers the other `update`.
+            this.update();
+        }
         this.resize();
         this.rotate();
         this.translate();
 
         return this;
-    },
-
-    // Scale the whole `<g>` group. Note the difference between `scale()` and `resize()` here.
-    // `resize()` doesn't scale the whole `<g>` group but rather adjusts the `box.sx`/`box.sy` only.
-    // `update()` is then responsible for scaling only those elements that have the `follow-scale`
-    // attribute set to `true`. This is desirable in elements that have e.g. a `<text>` subelement
-    // that is not supposed to be scaled together with a surrounding `<rect>` element that IS supposed
-    // be be scaled.
-    scale: function(sx, sy) {
-
-        // TODO: take into account the origin coordinates `ox` and `oy`.
-        this.vel.scale(sx, sy);
     },
 
     resize: function(cell, changed, opt) {

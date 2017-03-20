@@ -33,7 +33,8 @@ var buffer = pReady.clone().attr({
         'font-weight': 'bold',
         'ref-x': 0.5,
         'ref-y': 0.5,
-        'y-alignment': -0.5
+        'y-alignment': -0.5,
+        'transform': null
     }
 }).position(350, 160).set('tokens', 12);
 

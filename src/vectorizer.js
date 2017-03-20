@@ -88,13 +88,11 @@ V = Vectorizer = (function() {
 
                 el = document.createElementNS(ns.xmlns, el);
             }
+
+            V.ensureId(el);
         }
 
         this.node = el;
-
-        if (!this.node.id) {
-            this.node.id = V.uniqueId();
-        }
 
         this.setAttributes(attrs);
 
@@ -110,7 +108,7 @@ V = Vectorizer = (function() {
      * @returns {SVGMatrix}
      */
     V.prototype.getTransformToElement = function(toElem) {
-
+        toElem = V.toNode(toElem);
         return toElem.getScreenCTM().inverse().multiply(this.node.getScreenCTM());
     };
 
@@ -121,19 +119,19 @@ V = Vectorizer = (function() {
      */
     V.prototype.transform = function(matrix, opt) {
 
+        var node = this.node;
         if (V.isUndefined(matrix)) {
-            return (this.node.parentNode)
-                ? this.getTransformToElement(this.node.parentNode)
-                : this.node.getScreenCTM();
+            return (node.parentNode)
+                ? this.getTransformToElement(node.parentNode)
+                : node.getScreenCTM();
         }
 
-        var transformList = this.node.transform.baseVal;
         if (opt && opt.absolute) {
-            transformList.clear();
+            return this.attr('transform', V.matrixToTransformString(matrix));
         }
 
         var svgTransform = V.createSVGTransform(matrix);
-        transformList.appendItem(svgTransform);
+        node.transform.baseVal.appendItem(svgTransform);
         return this;
     };
 
@@ -530,6 +528,11 @@ V = Vectorizer = (function() {
         return this;
     };
 
+    V.prototype.appendTo = function(node) {
+        V.toNode(node).appendChild(this.node);
+        return this;
+    },
+
     V.prototype.svg = function() {
 
         return this.node instanceof window.SVGSVGElement ? this : V(this.node.ownerSVGElement);
@@ -603,6 +606,16 @@ V = Vectorizer = (function() {
         }
 
         return null;
+    };
+
+    // https://jsperf.com/get-common-parent
+    V.prototype.contains = function(el) {
+
+        var a = this.node;
+        var b = V.toNode(el);
+        var bup = b && b.parentNode;
+
+        return (a === bup) || !!(bup && bup.nodeType === 1 && (a.compareDocumentPosition(bup) & 16));
     };
 
     // Convert global point into the coordinate space of this element.
@@ -696,8 +709,11 @@ V = Vectorizer = (function() {
 
     V.prototype.animateAlongPath = function(attrs, path) {
 
+        path = V.toNode(path);
+
+        var id = V.ensureId(path);
         var animateMotion = V('animateMotion', attrs);
-        var mpath = V('mpath', { 'xlink:href': '#' + V(path).node.id });
+        var mpath = V('mpath', { 'xlink:href': '#' + id });
 
         animateMotion.append(mpath);
 
@@ -951,10 +967,13 @@ V = Vectorizer = (function() {
     // A function returning a unique identifier for this client session with every call.
     V.uniqueId = function() {
 
-        var id = ++V.idCounter + '';
-        return 'v-' + id;
+        return 'v-' + (++V.idCounter);
     };
 
+    V.ensureId = function(node) {
+
+        return node.id || (node.id = V.uniqueId());
+    };
     // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
     // IE would otherwise collapse all spaces into one. This is used in the text() method but it is
     // also exposed so that the programmer can use it in case he needs to. This is useful e.g. in tests
@@ -1089,6 +1108,18 @@ V = Vectorizer = (function() {
             }
         }, transformationMatrix);
     };
+
+    V.matrixToTransformString = function(matrix) {
+        matrix || (matrix = true);
+        return 'matrix(' + [
+            matrix.a || 1,
+            matrix.b || 0,
+            matrix.c || 0,
+            matrix.d || 1,
+            matrix.e || 0,
+            matrix.f || 0
+        ] + ')';
+    },
 
     V.parseTransformString = function(transform) {
 
@@ -1298,12 +1329,12 @@ V = Vectorizer = (function() {
         var minY = Math.min(corner1.y, corner2.y, corner3.y, corner4.y);
         var maxY = Math.max(corner1.y, corner2.y, corner3.y, corner4.y);
 
-        return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+        return g.Rect(minX, minY, maxX - minX, maxY - minY);
     };
 
     V.transformPoint = function(p, matrix) {
 
-        return V.createSVGPoint(p.x, p.y).matrixTransform(matrix);
+        return g.Point(V.createSVGPoint(p.x, p.y).matrixTransform(matrix));
     };
 
     // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
