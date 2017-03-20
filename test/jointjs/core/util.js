@@ -508,6 +508,91 @@ QUnit.module('util', function(hooks) {
         });
     });
 
+    QUnit.module('wrappers', function(hooks) {
+
+        QUnit.module('cells', function(hooks) {
+
+            var expected;
+
+            hooks.beforeEach(function() {
+
+                expected = {
+                    cells: [
+                        new joint.dia.Cell,
+                        new joint.dia.Cell,
+                        new joint.dia.Cell
+                    ],
+                    opt: {
+                        someOption: 'testing',
+                        anotherOption: 50
+                    }
+                };
+            });
+
+            QUnit.test('fn([cell, cell, cell], opt)', function(assert) {
+
+                var fn = joint.util.wrappers.cells(function(cells, opt) {
+                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(_.isEqual(cells, expected.cells), 'cells is as expected');
+                    assert.ok(_.isObject(opt), 'opt is an object');
+                    assert.ok(_.isEqual(opt, expected.opt), 'opt is as expected');
+                });
+
+                fn(expected.cells, expected.opt);
+            });
+
+            QUnit.test('fn([cell, cell, cell])', function(assert) {
+
+                var fn = joint.util.wrappers.cells(function(cells, opt) {
+                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(_.isEqual(cells, expected.cells), 'cells is as expected');
+                    assert.ok(_.isObject(opt), 'opt is an object');
+                    assert.ok(_.isEqual(opt, {}), 'opt is an empty object');
+                });
+
+                fn(expected.cells);
+            });
+
+            QUnit.test('fn(cell, cell, cell)', function(assert) {
+
+                var fn = joint.util.wrappers.cells(function(cells, opt) {
+                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(_.isEqual(cells, expected.cells), 'cells is as expected');
+                    assert.ok(_.isObject(opt), 'opt is an object');
+                    assert.ok(_.isEqual(opt, {}), 'opt is an empty object');
+                });
+
+                fn.apply(undefined, expected.cells);
+            });
+
+            QUnit.test('fn(cell, cell, cell, opt)', function(assert) {
+
+                var fn = joint.util.wrappers.cells(function(cells, opt) {
+                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(_.isEqual(cells, expected.cells), 'cells is as expected');
+                    assert.ok(_.isObject(opt), 'opt is an object');
+                    assert.ok(_.isEqual(opt, expected.opt), 'opt is as expected');
+                });
+
+                fn.apply(undefined, [].concat(expected.cells, [expected.opt]));
+            });
+
+            QUnit.test('fn(cell)', function(assert) {
+
+                var cell = _.first(expected.cells);
+
+                var fn = joint.util.wrappers.cells(function(cells, opt) {
+                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(_.isEqual(cells, [cell]), 'cells is as expected');
+                    assert.ok(_.isObject(opt), 'opt is an object');
+                    assert.ok(_.isEqual(opt, {}), 'opt is an empty object');
+                });
+
+                fn(cell);
+            });
+        });
+    });
+
     QUnit.module('getElementBBox', function(hooks) {
 
         QUnit.module('html', function(hooks) {
