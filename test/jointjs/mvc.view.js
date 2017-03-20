@@ -173,7 +173,7 @@ test('mvc.View.extend does not modify prototype', function(assert) {
     var proto = {};
 
     var a = joint.mvc.View.extend(proto);
-    var b = a.extend(proto);
+    a.extend(proto);
 
     assert.ok(proto.render === undefined);
 });
