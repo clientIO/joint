@@ -1380,6 +1380,7 @@ var joint = {
                     fn([cell, cell, cell]);
                     fn(cell, cell, cell, opt);
                     fn(cell, cell, cell);
+                    fn(cell);
             */
             cells: function(fn) {
 
@@ -1393,10 +1394,13 @@ var joint = {
 
                         if (opt instanceof joint.dia.Cell) {
                             cells = args;
-                            opt = {};
-                        } else {
-                            cells = _.initial(args);
+                        } else if (cells instanceof joint.dia.Cell) {
+                            cells = args.length > 1 ? _.initial(args) : args;
                         }
+                    }
+
+                    if (opt instanceof joint.dia.Cell) {
+                        opt = {};
                     }
 
                     return fn.call(this, cells, opt);
