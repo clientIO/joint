@@ -21,8 +21,7 @@ var Board = joint.dia.Paper.extend({
 
         height: 8 * 50,
 
-        gridSize: 1
-
+        gridSize: 2
     }),
 
     initialize: function() {
@@ -238,7 +237,29 @@ var Chessboard = Board.extend({
 
 // User interaction
 
-var board = new Chessboard({ el: $('#board'), animation: true });
+var board = new Chessboard({
+
+    drawGrid: {
+        scaleFactor: 50,
+        markup: 'path',
+        update: function(el, opt) {
+
+            var size = opt.width;
+            var s = Math.round(size/2);
+
+            var d = [
+                'M0 0 v', s, 'h',size, 'v', s, 'h', -s, 'v', -size, 'v', -s, 'Z'
+            ];
+
+            V(el).attr({
+                d: d.join(' '),
+                fill: '#30d0c6',
+                'stroke-width': 0
+            });
+
+        }
+    },
+    el: $('#board'), animation: true });
 
 board.on('piece:touch', function(piece, from) {
 
