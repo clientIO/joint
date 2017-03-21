@@ -28,9 +28,11 @@
   * dia.Link - allow arbitrary shapes for labels
   * dia.LinkView - fix link translating when embedded and has no marker
   * dia.LinkView - set correct port and selector on the link
+  * mvc.View - prevent extend() from modifying prototype propertires
   * ports events `ports:add` and `ports:remove` triggered when port is added to element/removed from element
   * utils - fix toggleFullScreen() in IE
   * utils - breakText() takes the lineHeight style into account
+  * util - change cells() wrapper also accept a single cell
   * highlighter.Stroke - allow multiple strokes to be applied to a single cellView magnet, prevent memory leaks
   * connectors.jumpover - fix on graph `reset`
 
