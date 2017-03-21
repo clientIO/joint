@@ -1652,40 +1652,32 @@ V = Vectorizer = (function() {
         var y = parseFloat(rect.attr('y')) || 0;
         var width = parseFloat(rect.attr('width')) || 0;
         var height = parseFloat(rect.attr('height')) || 0;
-        var rx = parseFloat(rect.attr('rx')) || 0;
-        var ry = parseFloat(rect.attr('ry')) || 0;
+        var rx = Math.min(parseFloat(rect.attr('rx')) || 0, width / 2);
+        var ry = Math.min(parseFloat(rect.attr('ry')) || 0, height / 2);
         var bbox = g.rect(x, y, width, height);
 
         var d;
 
         if (!rx && !ry) {
 
+            var origin = bbox.origin();
+            var corner = bbox.corner();
             d = [
-                'M', bbox.origin().x, bbox.origin().y,
-                'H', bbox.corner().x,
-                'V', bbox.corner().y,
-                'H', bbox.origin().x,
-                'V', bbox.origin().y,
+                'M', origin.x, origin.y,
+                'H', corner.x,
+                'V', corner.y,
+                'H', origin.x,
+                'V', origin.y,
                 'Z'
             ].join(' ');
 
         } else {
 
-            var r = x + width;
-            var b = y + height;
-            d = [
-                'M', x + rx, y,
-                'L', r - rx, y,
-                'Q', r, y, r, y + ry,
-                'L', r, y + height - ry,
-                'Q', r, b, r - rx, b,
-                'L', x + rx, b,
-                'Q', x, b, x, b - rx,
-                'L', x, y + ry,
-                'Q', x, y, x + rx, y,
-                'Z'
-            ].join(' ');
+            bbox.rx = rx;
+            bbox.ry = ry;
+            d = V.rectToPath(bbox);
         }
+
         return d;
     };
 
