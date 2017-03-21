@@ -238,7 +238,14 @@ var Chessboard = Board.extend({
 
 // User interaction
 
-var board = new Chessboard({ el: $('#board'), animation: true });
+var board = new Chessboard({
+    background: {
+        image: './background.png',
+        repeat: 'repeat'
+    },
+    el: $('#board'),
+    animation: true
+});
 
 board.on('piece:touch', function(piece, from) {
 

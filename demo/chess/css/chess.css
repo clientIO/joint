@@ -5,30 +5,14 @@ body {
     margin: 0 auto;
     border-style: none;
     width: 400px;
+    background-color: #7c68fd;
     position: relative;
 }
-.board-bg {
-    border-spacing: 0;
-    width: 402px;
-    height: 402px;
-    z-index: -1;
-    border-collapse: inherit;
-    margin: 0 auto;
-}
+
 #board > svg {
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
     right: 0;
-}
-.board-bg td {
-    width: 46px;
-    height: 46px;
-    border-style: none;
-    background: #30d0c6;
-}
-.board-bg tr:nth-child(odd) td:nth-child(even),
-.board-bg tr:nth-child(even) td:nth-child(odd) {
-    background: #7c68fd;
 }
