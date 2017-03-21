@@ -1,0 +1,38 @@
+<pre class="docs-method-signature"><code>paper.defineGradient(gradientDefinition)</code></pre>
+
+<p>Define an SVG gradient for later reuse within the paper. The method returns the gradient id and the <code>gradientDefinition</code> must have the following form:</p>
+
+<pre><code>{
+    type: &lt;type of gradient&gt;,
+    stops: &lt;stop colors&gt;,
+    attrs: &lt;additional attributes&gt;
+}</code></pre>
+
+<p>Where <code>type</code> is either <code>'linearGradient'</code> or <code>'radialGradient'</code>, <code>attrs</code> is an object containing additional SVG attributes for the SVG gradient element and <code>stops</code> is an array of the ramps of color on the gradient. Each stop object is of the form:</p>
+
+<pre><code>{
+    offset: &lt;offset&gt;,
+    color: &lt;color&gt;,
+    opacity: &lt;opacity&gt;
+}</code></pre>
+
+<p>Where <code>offset</code> is a string representing the offset of the gradient stop, <code>color</code> indicates what
+    color to use at that gradient stop and <code>opacity</code> is a number in the [0..1] range representing the
+    transparency of the stop color.
+    Example use:</p>
+
+<pre><code>var gradientId = paper.defineGradient({
+    type: 'linearGradient',
+    stops: [
+        { offset: '0%', color: '#E67E22' },
+        { offset: '20%', color: '#D35400' },
+        { offset: '40%', color: '#E74C3C' },
+        { offset: '60%', color: '#C0392B' },
+        { offset: '80%', color: '#F39C12' }
+    ]
+});
+
+svgNode.setAttribute('fill', 'url(#' + gradientId + ')');
+</code></pre>
+
+<p>For an introduction to gradients, please refer to the tutorial on <a href="http://resources.jointjs.com/tutorial/filters-gradients">Filters and Gradients</a>.</p>
