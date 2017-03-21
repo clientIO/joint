@@ -22,6 +22,7 @@ var Board = joint.dia.Paper.extend({
         height: 8 * 50,
 
         gridSize: 1
+
     }),
 
     initialize: function() {
