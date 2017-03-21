@@ -157,30 +157,41 @@ joint.mvc.View = Backbone.View.extend({
         // Returns a per-session unique namespace
         return '.joint-event-ns-' + this.cid;
     }
-},
-    {
-        extend: function(protoProps, staticProps) {
 
-            var protoPropsClone = _.clone(protoProps || {});
+}, {
 
-            var render = protoPropsClone.render || this.prototype.render || null;
+    extend: function() {
 
-            protoPropsClone.render = function() {
+        var args = Array.prototype.slice.call(arguments);
 
-                if (render) {
-                    // Call the original render method.
-                    render.apply(this, arguments);
-                }
+        // Deep clone the prototype and static properties objects.
+        // This prevents unexpected behavior where some properties are overwritten outside of this function.
+        var protoProps = args[0] && _.clone(args[0]) || {};
+        var staticProps = args[1] && _.clone(args[1]) || {};
 
-                // Should always call onRender() method.
-                this.onRender();
+        // Need the real render method so that we can wrap it and call it later.
+        var renderFn = protoProps.render || (this.prototype && this.prototype.render) || null;
 
-                // Should always return itself.
-                return this;
-            };
+        /*
+            Wrap the real render method so that:
+                .. `onRender` is always called.
+                .. `this` is always returned.
+        */
+        protoProps.render = function() {
 
-            return Backbone.View.extend.call(this, protoPropsClone, staticProps)
-        }
+            if (renderFn) {
+                // Call the original render method.
+                renderFn.apply(this, arguments);
+            }
+
+            // Should always call onRender() method.
+            this.onRender();
+
+            // Should always return itself.
+            return this;
+        };
+
+        return Backbone.View.extend.call(this, protoProps, staticProps);
     }
-);
+});
 
