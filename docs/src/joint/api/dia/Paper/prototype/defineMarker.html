@@ -1,0 +1,23 @@
+<pre class="docs-method-signature"><code>paper.defineMarker(markerDefinition)</code></pre>
+
+<p>Define an SVG marker for later reuse within the paper. The method returns the marker id and the <code>markerDefinition</code> is an object with <code>type</code> property and any other visual attributes. The valid values for <code>type</code> are <code>'path'</code>, <code>'circle'</code>, <code>'ellipse'</code>, <code>'rect'</code>, <code>'polyline'</code> and <code>'polygon'</code>.</p>
+
+<pre><code>var markerId = paper.defineMarker({
+  type: 'path', // SVG Path
+  fill: '#666',
+  stroke: '#333',
+  // The coordinate system for defining the path data
+  // ------------------------------------------------
+  // 0,0: marker-start, marker-end or marker-mid
+  // n,0: n > 0 in path direction
+  //      n < 0 opposite path direction
+  // 0,m: m > 0 left to the path direction
+  //      m < 0 right to the path direction
+  d: 'M 10 -10 0 0 10 10 z'
+});
+
+// Draw an arrow at the start and the end of a path
+svgPath.setAttribute('marker-start', 'url(#' + markerId + ')');
+svgPath.setAttribute('marker-end', 'url(#' + markerId + ')');
+</code></pre>
+
