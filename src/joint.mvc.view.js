@@ -157,33 +157,30 @@ joint.mvc.View = Backbone.View.extend({
         // Returns a per-session unique namespace
         return '.joint-event-ns-' + this.cid;
     }
-});
+},
+    {
+        extend: function(protoProps, staticProps) {
 
-(function() {
+            var protoPropsClone = _.clone(protoProps || {});
 
-    joint.mvc.View._extend = joint.mvc.View.extend;
+            var render = protoPropsClone.render || this.prototype.render || null;
 
-    joint.mvc.View.extend = function(protoProps, staticProps) {
+            protoPropsClone.render = function() {
 
-        protoProps = protoProps || {};
+                if (render) {
+                    // Call the original render method.
+                    render.apply(this, arguments);
+                }
 
-        var render = protoProps.render || this.prototype.render || null;
+                // Should always call onRender() method.
+                this.onRender();
 
-        protoProps.render = function() {
+                // Should always return itself.
+                return this;
+            };
 
-            if (render) {
-                // Call the original render method.
-                render.apply(this, arguments);
-            }
+            return Backbone.View.extend.call(this, protoPropsClone, staticProps)
+        }
+    }
+);
 
-            // Should always call onRender() method.
-            this.onRender();
-
-            // Should always return itself.
-            return this;
-        };
-
-        return joint.mvc.View._extend.call(this, protoProps, staticProps);
-    };
-
-})();
