@@ -239,25 +239,9 @@ var Chessboard = Board.extend({
 
 var board = new Chessboard({
 
-    drawGrid: {
-        scaleFactor: 50,
-        markup: 'path',
-        update: function(el, opt) {
-
-            var size = opt.width;
-            var s = Math.round(size/2);
-
-            var d = [
-                'M0 0 v', s, 'h',size, 'v', s, 'h', -s, 'v', -size, 'v', -s, 'Z'
-            ];
-
-            V(el).attr({
-                d: d.join(' '),
-                fill: '#30d0c6',
-                'stroke-width': 0
-            });
-
-        }
+    background: {
+        image: './background.png',
+        repeat: 'repeat'
     },
     el: $('#board'), animation: true });
 
