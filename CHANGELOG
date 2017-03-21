@@ -16,6 +16,7 @@
   * dia.attributes - add namespace for defining custom attributes, allow camelCase attribute style
   * dia.attributes - new attributes `sourceMarker`, `targetMarker`, `vertexMarker`, `textWrap`, `refRx`, `refRy`, `refCx`, `refCy`, `refX2`, `refY2`
   * dia.attributes - improve `text` attribute performance on cellView update
+  * dia.attributes - fix mixing various attributes (e.g. `transform`, `refX` and `refDx` now add up)
   * dia.Paper - add defineGradient(), defineFilter(), defineMarker() and isDefined() methods
   * dia.Paper - fix async rendering when cell was previously member of different graph.
   * dia.Paper - improve grid precision, added new grid patterns, update drawGrid() options definition.
