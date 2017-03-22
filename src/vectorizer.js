@@ -1648,37 +1648,15 @@ V = Vectorizer = (function() {
     V.convertRectToPathData = function(rect) {
 
         rect = V(rect);
-        var x = parseFloat(rect.attr('x')) || 0;
-        var y = parseFloat(rect.attr('y')) || 0;
-        var width = parseFloat(rect.attr('width')) || 0;
-        var height = parseFloat(rect.attr('height')) || 0;
-        var rx = Math.min(parseFloat(rect.attr('rx')) || 0, width / 2);
-        var ry = Math.min(parseFloat(rect.attr('ry')) || 0, height / 2);
-        var bbox = g.rect(x, y, width, height);
 
-        var d;
-
-        if (!rx && !ry) {
-
-            var origin = bbox.origin();
-            var corner = bbox.corner();
-            d = [
-                'M', origin.x, origin.y,
-                'H', corner.x,
-                'V', corner.y,
-                'H', origin.x,
-                'V', origin.y,
-                'Z'
-            ].join(' ');
-
-        } else {
-
-            bbox.rx = rx;
-            bbox.ry = ry;
-            d = V.rectToPath(bbox);
-        }
-
-        return d;
+        return V.rectToPath({
+            x: parseFloat(rect.attr('x')) || 0,
+            y: parseFloat(rect.attr('y')) || 0,
+            width: parseFloat(rect.attr('width')) || 0,
+            height: parseFloat(rect.attr('height')) || 0,
+            rx: parseFloat(rect.attr('rx')) || 0,
+            ry: parseFloat(rect.attr('ry')) || 0
+        });
     };
 
     // Convert a rectangle to SVG path commands. `r` is an object of the form:
@@ -1688,22 +1666,41 @@ V = Vectorizer = (function() {
     // that has only `rx` and `ry` attributes).
     V.rectToPath = function(r) {
 
-        var topRx = r.rx || r['top-rx'] || 0;
-        var bottomRx = r.rx || r['bottom-rx'] || 0;
-        var topRy = r.ry || r['top-ry'] || 0;
-        var bottomRy = r.ry || r['bottom-ry'] || 0;
+        var d;
+        var x = r.x;
+        var y = r.y;
+        var width = r.width;
+        var height = r.height;
+        var topRx = Math.min(r.rx || r['top-rx'] || 0, width / 2);
+        var bottomRx = Math.min(r.rx || r['bottom-rx'] || 0, width / 2);
+        var topRy = Math.min(r.ry || r['top-ry'] || 0, height / 2);
+        var bottomRy = Math.min(r.ry || r['bottom-ry'] || 0, height / 2);
 
-        return [
-            'M', r.x, r.y + topRy,
-            'v', r.height - topRy - bottomRy,
-            'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, bottomRy,
-            'h', r.width - 2 * bottomRx,
-            'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, -bottomRy,
-            'v', -(r.height - bottomRy - topRy),
-            'a', topRx, topRy, 0, 0, 0, -topRx, -topRy,
-            'h', -(r.width - 2 * topRx),
-            'a', topRx, topRy, 0, 0, 0, -topRx, topRy
-        ].join(' ');
+        if (topRx || bottomRx || topRy || bottomRy) {
+            d = [
+                'M', x, y + topRy,
+                'v', height - topRy - bottomRy,
+                'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, bottomRy,
+                'h', width - 2 * bottomRx,
+                'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, -bottomRy,
+                'v', -(height - bottomRy - topRy),
+                'a', topRx, topRy, 0, 0, 0, -topRx, -topRy,
+                'h', -(width - 2 * topRx),
+                'a', topRx, topRy, 0, 0, 0, -topRx, topRy,
+                'Z'
+            ];
+        } else {
+            d = [
+                'M', x, y,
+                'H', x + width,
+                'V', y + height,
+                'H', x,
+                'V', y,
+                'Z'
+            ];
+        }
+
+        return d.join(' ');
     };
 
     V.toNode = function(el) {
