@@ -1,18 +1,43 @@
-<pre class="docs-method-signature"><code>link.label(index, properties)</code></pre>
+<pre class="docs-method-signature"><code>link.label(index, properties, opt)</code></pre>
 
-<p>Set <code>properties</code> on a label indexed by <code>index</code>. A link can have multiple labels each having different position and attributes.</p><code>labels</code></p>
+<p>Set <code>properties</code> on a label indexed by <code>index</code>. A link can have multiple labels each having different position and attributes.</p>
 
 <pre><code>{
-        position: &lt;number&gt;,
-        attrs: { &lt;selector&gt;: &lt;SVG attributes&gt; }
+    markup: &lt;string&gt;,
+    position: &lt;number&gt;,
+    attrs: { &lt;selector&gt;: &lt;SVG attributes | JointJS attributes&gt; }
 }</code></pre>
 
-<p>Where <code>position</code> is the position of the label with regard to the link <code>.connection</code> SVG path. If the <code>position</code> is in <code>[0,1]</code> interval then the position of the label is considered to be defined as a percentage of the total length of the <code>.connection</code> path. E.g. position <code>0.5</code> puts the label to the middle of the link. If the position is <code>&gt;1</code> then the label will be put <code>position</code> pixels starting from the beginning of the <code>.connection</code> path. <code>position &lt;0</code> puts the label <code>Math.abs(position)</code> pixels starting from the end of the <code>.connection</code> path.</p><p><code>attrs</code> is again an object with CSS selectors as keys and SVG attributes as values. The label markup is defined as follows:</p>
+<p>Where <code>position</code> is the position of the label with regard to the link <code>.connection</code> SVG path.
+    It's supposed to be an object with <code>distance</code> and <code>offset</code> properties.
 
-<pre><code data-lang="svg">&lt;g class=&quot;label&quot;&gt;
-&lt;rect /&gt;
-&lt;text /&gt;
-&lt;/g&gt;</code></pre>
+    Where <code>distance</code> defined as below.
+    <ul>
+        <li>If the <code>distance</code> is in <code>[0,1]</code> interval then the position of the label is considered to be defined as a percentage of the total length of the <code>.connection</code> path.
+            E.g. distance <code>0.5</code> puts the label to the middle of the link.
+        </li>
+        <li>
+            If the <code>distance</code> is <code>&gt;1</code> then the label will be put <code>distance</code> pixels starting from the beginning of the <code>.connection</code> path.
+        </li>
+        <li>
+            If the <code>distance</code> is <code>&lt;0</code> puts the label <code>Math.abs(distance)</code> pixels starting from the end of the <code>.connection</code> path.
+        </li>
+    </ul>
+
+    And <code>offset</code> defined as below.
+    <ul>
+        <li>If the <code>offset</code> is defined as a number the position of the label is moved to the left (<code>&lt;0</code>) or to the right (<code>&gt;0</code>) perpendiculary in the direction of the path. </li>
+        <li>
+            If the <code>offset</code> is defined as an object with <code>x</code> and <code>y</code> properties. It moves the label by <code>x</code> and <code>y</code> in the paper local coordinate system.
+        </li>
+    </ul>
+
+    Alernatively the <code>position</code> could be defined as a number that behaves as <code>distance</code> defined above.
+</p>
+
+<p><code>attrs</code> is again an object with CSS selectors as keys and SVG attributes as values. The default label markup is defined as follows:</p>
+
+<pre><code data-lang="svg">&lt;g class=&quot;label&quot;&gt;&lt;rect /&gt;&lt;text /&gt;&lt;/g&gt;</code></pre>
 
 <p>Where <code data-lang="svg">&lt;rect&gt;</code> is a box below the label.</p>
 
@@ -23,3 +48,9 @@
         text: { fill: 'blue', text: 'my label' }
     }
 });</code></pre>
+
+<p>Note that all labels are stored in an array on the link model under the attribute <code>labels</code>.</p>
+
+<pre><code>link.prop('labels'); // returns an array of label properties</code></pre>
+
+
