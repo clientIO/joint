@@ -146,6 +146,8 @@ QUnit.module('vectorizer', function(hooks) {
         assert.equal(t.attr('display'), 'none');
         t.text('text');
         assert.equal(t.attr('display'), null);
+
+        svg.remove();
     });
 
     QUnit.test('annotateString', function(assert) {
@@ -275,6 +277,9 @@ QUnit.module('vectorizer', function(hooks) {
             f: transformPoly.f
         };
         assert.deepEqual(matrix, transformNativeResult);
+
+        group.remove();
+        rect.remove();
     });
 
     QUnit.test('native getTransformToElement vs VElement getTransformToElement - rotate', function(assert) {
@@ -310,6 +315,9 @@ QUnit.module('vectorizer', function(hooks) {
             f: normalizeFloat(transformPoly.f)
         };
         assert.deepEqual(matrix, transformNativeResult);
+
+        group.remove();
+        rect.remove();
     });
 
     QUnit.test('findParentByClass', function(assert) {
@@ -730,6 +738,11 @@ QUnit.module('vectorizer', function(hooks) {
         QUnit.test('<rect>', function(assert) {
             var rect = V('<rect/>', { x: 100, y: 50, width: 200, height: 150 });
             assert.equal(rect.convertToPathData(), 'M 100 50 H 300 V 200 H 100 V 50 Z');
+        });
+
+        QUnit.test('<rect rx ry/>', function(assert) {
+            var rect = V('<rect/>', { x: 100, y: 50, width: 200, height: 150, rx: 200, ry: 200 });
+            assert.equal(rect.convertToPathData(), 'M 100 125 v 0 a 100 75 0 0 0 100 75 h 0 a 100 75 0 0 0 100 -75 v 0 a 100 75 0 0 0 -100 -75 h 0 a 100 75 0 0 0 -100 75 Z');
         });
 
         QUnit.test('<circle>', function(assert) {
