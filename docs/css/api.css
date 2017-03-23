@@ -503,6 +503,29 @@ html.no-js .docs-content iframe {
     margin-top: 30px;
 }
 
+.caption-image {
+    display: inline-block;
+    border: 1px solid #ccc;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.caption-image.h150{
+    width: 150px;
+    height:auto;
+}
+
+.caption-image .caption {
+    padding: 5px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.caption-image img {
+    border-bottom: 1px solid #ccc;
+}
+
 /*  Custom  */
 
 .docs-items blockquote {
