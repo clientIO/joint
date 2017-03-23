@@ -75,24 +75,16 @@ joint.dia.Link = joint.dia.Cell.extend({
     },
 
     // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
-    label: function(idx, value) {
+    label: function(idx, value, opt) {
 
         idx = idx || 0;
 
-        var labels = this.get('labels') || [];
-
         // Is it a getter?
-        if (arguments.length === 0 || arguments.length === 1) {
-
-            return labels[idx];
+        if (arguments.length <= 1) {
+            return this.prop(['labels', idx]);
         }
 
-        var newValue = _.merge({}, labels[idx], value);
-
-        var newLabels = labels.slice();
-        newLabels[idx] = newValue;
-
-        return this.set({ labels: newLabels });
+        return this.prop(['labels', idx], value, opt);
     },
 
     translate: function(tx, ty, opt) {
@@ -721,7 +713,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var distance = _.isObject(position) ? position.distance : position;
                 var offset = _.isObject(position) ? position.offset : { x: 0, y: 0 };
 
-                if (!_.isNaN(distance)) {
+                if (_.isFinite(distance)) {
                     distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
                     distance = (distance < 0) ? connectionLength + distance : distance;
                     distance = (distance > 1) ? distance : connectionLength * distance;
@@ -734,9 +726,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 if (_.isObject(offset)) {
 
                     // Just offset the label by the x,y provided in the offset object.
-                    labelCoordinates = g.point(labelCoordinates).offset(offset.x, offset.y);
+                    labelCoordinates = g.point(labelCoordinates).offset(offset);
 
-                } else if (_.isNumber(offset)) {
+                } else if (_.isFinite(offset)) {
 
                     if (!samples) {
                         samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
