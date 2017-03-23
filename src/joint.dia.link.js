@@ -713,7 +713,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var distance = _.isObject(position) ? position.distance : position;
                 var offset = _.isObject(position) ? position.offset : { x: 0, y: 0 };
 
-                if (_.isNumber(distance) && !_.isNaN(distance)) {
+                if (_.isFinite(distance)) {
                     distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
                     distance = (distance < 0) ? connectionLength + distance : distance;
                     distance = (distance > 1) ? distance : connectionLength * distance;
@@ -726,9 +726,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 if (_.isObject(offset)) {
 
                     // Just offset the label by the x,y provided in the offset object.
-                    labelCoordinates = g.point(labelCoordinates).offset(offset.x, offset.y);
+                    labelCoordinates = g.point(labelCoordinates).offset(offset);
 
-                } else if (_.isNumber(offset)) {
+                } else if (_.isFinite(offset)) {
 
                     if (!samples) {
                         samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
