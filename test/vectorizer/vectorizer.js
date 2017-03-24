@@ -387,8 +387,7 @@ QUnit.module('vectorizer', function(hooks) {
 
         hooks.beforeEach(function() {
 
-            vel = V('rect').attr({width: 10, height: 10});
-            V(svgContainer).append(V('g').append(vel));
+            vel = V('rect').appendTo(svgContainer);
         });
 
         hooks.afterEach(function() {
