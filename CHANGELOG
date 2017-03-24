@@ -13,6 +13,7 @@
   * Vectorizer - add appendTo() method
   * Vectorizer - V(node); does not set automatically id on the node anymore
   * Vectorizer - text() with content doesn't set invalid display: null on node anymore
+  * Vectorizer - fix convertRectToPathData() for rounded rectangles 
   * dia.attributes - add namespace for defining custom attributes, allow camelCase attribute style
   * dia.attributes - new attributes `sourceMarker`, `targetMarker`, `vertexMarker`, `textWrap`, `refRx`, `refRy`, `refCx`, `refCy`, `refX2`, `refY2`
   * dia.attributes - improve `text` attribute performance on cellView update
