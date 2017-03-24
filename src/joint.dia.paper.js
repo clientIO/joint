@@ -1867,6 +1867,18 @@ joint.dia.Paper = joint.mvc.View.extend({
             thickness: 1,
             markup: 'rect',
             update: function(el, opt) {
+                V(el).attr({
+                    width: opt.thickness * opt.sx,
+                    height: opt.thickness * opt.sy,
+                    fill: opt.color
+                });
+            }
+        }],
+        fixedDot: [{
+            color: '#AAAAAA',
+            thickness: 1,
+            markup: 'rect',
+            update: function(el, opt) {
                 var size = opt.sx <= 1 ? opt.thickness * opt.sx : opt.thickness;
                 V(el).attr({ width: size, height: size, fill: opt.color });
             }

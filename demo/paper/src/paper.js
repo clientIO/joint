@@ -487,6 +487,19 @@ var gridTypes = {
             }
         }]
     },
+    'fixedDot': {
+        inputs: [{
+            type: 'color', name: 'Color', value: '#000000',
+            onChange: function(value, ref) {
+                ref.args[0].color = value;
+            }
+        }, {
+            type: 'number', name: 'Thickness', value: 1, step: 0.5, min: 0.5, max: 10,
+            onChange: function(value, ref) {
+                ref.args[0].thickness = value;
+            }
+        }]
+    },
     'mesh': {
         inputs: [{
             type: 'color', name: 'Color', value: '#000000',
