@@ -3,18 +3,17 @@
 QUnit.module('vectorizer', function(hooks) {
 
     var $fixture = $('#qunit-fixture');
-
-    var svgContainer = document.getElementById('svg-container');
-    var svgPath = document.getElementById('svg-path');
-    var svgGroup = document.getElementById('svg-group');
-    var svgCircle = document.getElementById('svg-circle');
-    var svgEllipse = document.getElementById('svg-ellipse');
-    var svgPolygon = document.getElementById('svg-polygon');
-    var svgText = document.getElementById('svg-text');
-    var svgRectangle = document.getElementById('svg-rectangle');
-    var svgGroup1 = document.getElementById('svg-group-1');
-    var svgGroup2 = document.getElementById('svg-group-2');
-    var svgGroup3 = document.getElementById('svg-group-3');
+    var svgContainer;
+    var svgPath;
+    var svgGroup;
+    var svgCircle;
+    var svgEllipse;
+    var svgPolygon;
+    var svgText;
+    var svgRectangle;
+    var svgGroup1;
+    var svgGroup2;
+    var svgGroup3;
 
     var childrenTagNames = function(vel) {
         var tagNames = [];
@@ -24,15 +23,42 @@ QUnit.module('vectorizer', function(hooks) {
         return tagNames;
     };
 
-    hooks.afterEach = function() {
+    hooks.beforeEach(function() {
 
-        $fixture.empty();
-    };
+        var svgContent = '<path id="svg-path" d="M10 10"/>' +
+                '<!-- comment -->' +
+                '<g id="svg-group">' +
+                    '<ellipse id="svg-ellipse" x="10" y="10" rx="30" ry="30"/>' +
+                    '<circle id="svg-circle" cx="10" cy="10" r="2" fill="red"/>' +
+                '</g>' +
+                '<polygon id="svg-polygon" points="200,10 250,190 160,210"/>' +
+                '<text id="svg-text" x="0" y="15" fill="red">Test</text>' +
+                '<rect id="svg-rectangle" x="100" y="100" width="50" height="100"/>' +
+                '<g id="svg-group-1" class="group-1">' +
+                    '<g id="svg-group-2" class="group-2">' +
+                        '<g id="svg-group-3" class="group3">' +
+                        '</g>' +
+                    '</g>' +
+                '</g>';
+
+        $fixture.append(V('svg', { id: 'svg-container' }, V(svgContent)).node);
+
+        svgContainer = document.getElementById('svg-container');
+        svgPath = document.getElementById('svg-path');
+        svgGroup = document.getElementById('svg-group');
+        svgCircle = document.getElementById('svg-circle');
+        svgEllipse = document.getElementById('svg-ellipse');
+        svgPolygon = document.getElementById('svg-polygon');
+        svgText = document.getElementById('svg-text');
+        svgRectangle = document.getElementById('svg-rectangle');
+        svgGroup1 = document.getElementById('svg-group-1');
+        svgGroup2 = document.getElementById('svg-group-2');
+        svgGroup3 = document.getElementById('svg-group-3');
+    });
 
     function serializeNode(node) {
 
-        var str = (new XMLSerializer()).serializeToString(node);
-        return str;
+        return (new XMLSerializer()).serializeToString(node);
     }
 
     QUnit.test('constuctor', function(assert) {
@@ -244,8 +270,6 @@ QUnit.module('vectorizer', function(hooks) {
         group.attr('transform', 'rotate(90)');
         t = V.transformPoint(p, group.node.getCTM());
         assert.deepEqual({ x: t.x, y: t.y }, { x: -2, y: 1 }, 'transform with rotate transformation returns correct point.');
-
-        group.remove();
     });
 
     QUnit.test('native getTransformToElement vs VElement getTransformToElement - translate', function(assert) {
@@ -363,8 +387,7 @@ QUnit.module('vectorizer', function(hooks) {
 
         hooks.beforeEach(function() {
 
-            vel = V('rect');
-            V(svgContainer).append(vel);
+            vel = V('rect').appendTo(svgContainer);
         });
 
         hooks.afterEach(function() {

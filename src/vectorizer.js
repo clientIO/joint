@@ -121,9 +121,7 @@ V = Vectorizer = (function() {
 
         var node = this.node;
         if (V.isUndefined(matrix)) {
-            return (node.parentNode)
-                ? this.getTransformToElement(node.parentNode)
-                : node.getScreenCTM();
+            return V.transformStringToMatrix(this.attr('transform'));
         }
 
         if (opt && opt.absolute) {
@@ -1048,6 +1046,7 @@ V = Vectorizer = (function() {
 
     V.transformRegex = /(\w+)\(([^,)]+),?([^)]+)?\)/gi;
     V.transformSeparatorRegex = /[ ,]+/;
+    V.transformationListRegex = /^(\w+)\((.*)\)/;
 
     V.transformStringToMatrix = function(transform) {
 
@@ -1057,13 +1056,15 @@ V = Vectorizer = (function() {
             return transformationMatrix;
         }
 
-        return matches.reduce(function(resultMatrix, transformationString) {
-            var transformationMatch = transformationString.match(/^(\w+)\((.*)\)/);
+        for (var i = 0, n = matches.length; i < n; i++) {
+            var transformationString = matches[i];
+
+            var transformationMatch = transformationString.match(V.transformationListRegex);
             if (transformationMatch) {
                 var sx, sy, tx, ty, angle;
                 var ctm = V.createSVGMatrix();
                 var args = transformationMatch[2].split(V.transformSeparatorRegex);
-                switch(transformationMatch[1].toLowerCase()) {
+                switch (transformationMatch[1].toLowerCase()) {
                     case 'scale':
                         sx = parseFloat(args[0]);
                         sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
@@ -1101,25 +1102,28 @@ V = Vectorizer = (function() {
                         ctm.f = parseFloat(args[5]);
                         break;
                     default:
-                        return resultMatrix;
+                        continue;
                 }
 
-                return resultMatrix.multiply(ctm);
+                transformationMatrix = transformationMatrix.multiply(ctm);
             }
-        }, transformationMatrix);
+
+        }
+        return transformationMatrix;
     };
 
     V.matrixToTransformString = function(matrix) {
         matrix || (matrix = true);
-        return 'matrix(' + [
-            matrix.a || 1,
-            matrix.b || 0,
-            matrix.c || 0,
-            matrix.d || 1,
-            matrix.e || 0,
-            matrix.f || 0
-        ] + ')';
-    },
+
+        return 'matrix(' +
+            (matrix.a || 1) + ',' +
+            (matrix.b || 0) + ',' +
+            (matrix.c || 0) + ',' +
+            (matrix.d || 1) + ',' +
+            (matrix.e || 0) + ',' +
+            (matrix.f || 0) +
+            ')';
+    };
 
     V.parseTransformString = function(transform) {
 
