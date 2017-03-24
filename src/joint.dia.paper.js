@@ -882,6 +882,17 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     snapToGrid: function(x, y) {
 
+        // Synthesized events such as in unit tests won't have clientX/clientY
+        // values set, but Firefox throws an exception if we call toLocalPoint
+        // with undefined values, so in this case, just return an undefined/undefined
+        // point.
+        if (p.x === undefined || p.y === undefined) {
+            return {
+                x: undefined,
+                y: undefined
+            };
+        }
+
         // Convert global coordinates to the local ones of the `viewport`. Otherwise,
         // improper transformation would be applied when the viewport gets transformed (scaled/rotated).
         return this.clientToLocalPoint(x, y).snapToGrid(this.options.gridSize);
