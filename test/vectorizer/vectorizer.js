@@ -25,8 +25,7 @@ QUnit.module('vectorizer', function(hooks) {
 
     hooks.beforeEach(function() {
 
-        var svgContent = '<svg id="svg-container" width="200px" height="200px" version="1.1" xmlns="http://www.w3.org/2000/svg">' +
-            '<path id="svg-path" d="M10 10"/>' +
+        var svgContent = '<path id="svg-path" d="M10 10"/>' +
                 '<!-- comment -->' +
                 '<g id="svg-group">' +
                     '<ellipse id="svg-ellipse" x="10" y="10" rx="30" ry="30"/>' +
@@ -40,8 +39,7 @@ QUnit.module('vectorizer', function(hooks) {
                         '<g id="svg-group-3" class="group3">' +
                         '</g>' +
                     '</g>' +
-                '</g>' +
-            '</svg>';
+                '</g>';
 
         $fixture.append(V('svg', { id: 'svg-container' }, V(svgContent)).node);
 
