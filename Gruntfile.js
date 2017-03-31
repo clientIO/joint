@@ -197,22 +197,13 @@ module.exports = function(grunt) {
         },
         concat: {
             types: {
-                 src: [
-                   'types/core.d.ts',
-                   'types/geometry.d.ts',
-                   'types/joint.dia.cell.d.ts',
-                   'types/joint.dia.element.d.ts',
-                   'types/joint.dia.graph.d.ts',
-                   'types/joint.dia.link.d.ts',
-                   'types/joint.dia.paper.d.ts',
-                   'types/joint.mvc.view.d.ts',
-                   'types/vectorizer.d.ts',
-                   'types/plugins/layout/index.d.ts',
-                   'types/plugins/layout/joint.layout.DirectedGraph.d.ts',
-                   'types/plugins/shapes/index.d.ts',
-                   'types/plugins/shapes/joint.shapes.basic.d.ts'
-                 ],
-                 dest: 'dist/joint.d.ts'
+                src: [
+                    'types/joint.head.d.ts',
+                    'types/geometry.d.ts',
+                    'types/vectorizer.d.ts',
+                    'types/joint.d.ts'
+                ],
+                dest: 'build/joint.d.ts'
             },
             geometry: {
                 files: {
@@ -541,6 +532,12 @@ module.exports = function(grunt) {
                     allCSSPlugins()
                 ),
                 tasks: ['build']
+            },
+            types: {
+                files: [
+                    'types/**/*'
+                ],
+                tasks: ['newer:concat:types']
             }
         },
         env: {
@@ -765,7 +762,8 @@ module.exports = function(grunt) {
         'newer:cssmin:joint',
         'newer:concat:geometry',
         'newer:concat:vectorizer',
-        'newer:concat:joint'
+        'newer:concat:joint',
+        'newer:concat:types'
     ]);
 
     grunt.registerTask('build', ['build:joint']);

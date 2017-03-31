@@ -1,27 +1,31 @@
-declare namespace joint {
-    function V(svg: SVGElement): Vectorizer;
+export function V(svg: SVGElement | string): Vectorizer;
 
-    class Vectorizer {
-        constructor(svg: SVGElement);
+export class Vectorizer {
+    constructor(svg: SVGElement);
 
-        // TODO sever more methods to add
+    node: SVGElement;
 
-        addClass(className: string): Vectorizer;
+    append(node: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): Vectorizer;
 
-        clone(): Vectorizer;
+    attr(): object;
+    attr(name: string, value: string | number): Vectorizer;
+    attr(attrs: object): Vectorizer;
 
-        index(): number;
+    addClass(className: string): Vectorizer;
 
-        removeClass(className: string): Vectorizer;
+    clone(): Vectorizer;
 
-        scale(): {sx: number, sy: number};
-        scale(sx: number, sy?: number): void;
+    index(): number;
 
-        svg(): Vectorizer;
+    removeClass(className: string): Vectorizer;
 
-        transform(matrix: SVGMatrix, opt: any): Vectorizer
-        transform(): SVGMatrix;
+    scale(): { sx: number, sy: number };
+    scale(sx: number, sy?: number): void;
 
-        translate(tx: number, ty?: number): Vectorizer;
-    }
+    svg(): Vectorizer;
+
+    transform(matrix: SVGMatrix, opt: any): Vectorizer
+    transform(): SVGMatrix;
+
+    translate(tx: number, ty?: number): Vectorizer;
 }
