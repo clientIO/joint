@@ -1,4 +1,4 @@
-/*! JointJS v1.1.0-alpha.1 (2017-02-23) - JavaScript diagramming library
+/*! JointJS v1.1.0 (2017-03-31) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -47,6 +47,7 @@ var g = (function() {
     var floor = math.floor;
     var PI = math.PI;
     var random = math.random;
+    var pow = math.pow;
 
     g.bezier = {
 
@@ -407,7 +408,7 @@ var g = (function() {
 
             return this.start.x === l.start.x &&
                     this.start.y === l.start.y &&
-                    this.start.x === l.start.x &&
+                    this.end.x === l.end.x &&
                     this.end.y === l.end.y;
         },
 
@@ -685,8 +686,9 @@ var g = (function() {
 
         round: function(precision) {
 
-            this.x = precision ? this.x.toFixed(precision) : round(this.x);
-            this.y = precision ? this.y.toFixed(precision) : round(this.y);
+            var f = pow(10, precision || 0);
+            this.x = round(this.x * f) / f;
+            this.y = round(this.y * f) / f;
             return this;
         },
 
@@ -1020,10 +1022,11 @@ var g = (function() {
 
         round: function(precision) {
 
-            this.x = precision ? this.x.toFixed(precision) : round(this.x);
-            this.y = precision ? this.y.toFixed(precision) : round(this.y);
-            this.width = precision ? this.width.toFixed(precision) : round(this.width);
-            this.height = precision ? this.height.toFixed(precision) : round(this.height);
+            var f = pow(10, precision || 0);
+            this.x = round(this.x * f) / f;
+            this.y = round(this.y * f) / f;
+            this.width = round(this.width * f) / f;
+            this.height = round(this.height * f) / f;
             return this;
         },
 
@@ -1036,6 +1039,65 @@ var g = (function() {
             this.width *= sx;
             this.height *= sy;
             return this;
+        },
+
+        maxRectScaleToFit: function(rect, origin) {
+
+            rect = g.Rect(rect);
+            origin || (origin = rect.center());
+
+            var sx1, sx2, sx3, sx4, sy1, sy2, sy3, sy4;
+            var ox = origin.x;
+            var oy = origin.y;
+
+            // Here we find the maximal possible scale for all corner points (for x and y axis) of the rectangle,
+            // so when the scale is applied the point is still inside the rectangle.
+
+            sx1 = sx2 = sx3 = sx4 = sy1 = sy2 = sy3 = sy4 = Infinity;
+
+            // Top Left
+            var p1 = rect.origin();
+            if (p1.x < ox) {
+                sx1 = (this.x - ox) / (p1.x - ox);
+            }
+            if (p1.y < oy) {
+                sy1 = (this.y - oy) / (p1.y - oy);
+            }
+            // Bottom Right
+            var p2 = rect.corner();
+            if (p2.x > ox) {
+                sx2 = (this.x + this.width - ox) / (p2.x - ox);
+            }
+            if (p2.y > oy) {
+                sy2 = (this.y + this.height - oy) / (p2.y - oy);
+            }
+            // Top Right
+            var p3 = rect.topRight();
+            if (p3.x > ox) {
+                sx3 = (this.x + this.width - ox) / (p3.x - ox);
+            }
+            if (p3.y < oy) {
+                sy3 = (this.y - oy) / (p3.y - oy);
+            }
+            // Bottom Left
+            var p4 = rect.bottomLeft();
+            if (p4.x < ox) {
+                sx4 = (this.x - ox) / (p4.x - ox);
+            }
+            if (p4.y > oy) {
+                sy4 = (this.y + this.height - oy) / (p4.y - oy);
+            }
+
+            return {
+                sx: Math.min(sx1, sx2, sx3, sx4),
+                sy: Math.min(sy1, sy2, sy3, sy4)
+            };
+        },
+
+        maxRectUniformScaleToFit: function(rect, origin) {
+
+            var scale = this.maxRectScaleToFit(rect, origin);
+            return Math.min(scale.sx, scale.sy);
         },
 
         // @return {string} (left|right|top|bottom) side which is nearest to point

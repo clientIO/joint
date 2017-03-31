@@ -1,4 +1,4 @@
-/*! JointJS v1.1.0-alpha.1 (2017-02-23) - JavaScript diagramming library
+/*! JointJS v1.1.0 (2017-03-31) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -165,6 +165,7 @@ var g = (function() {
     var floor = math.floor;
     var PI = math.PI;
     var random = math.random;
+    var pow = math.pow;
 
     g.bezier = {
 
@@ -525,7 +526,7 @@ var g = (function() {
 
             return this.start.x === l.start.x &&
                     this.start.y === l.start.y &&
-                    this.start.x === l.start.x &&
+                    this.end.x === l.end.x &&
                     this.end.y === l.end.y;
         },
 
@@ -803,8 +804,9 @@ var g = (function() {
 
         round: function(precision) {
 
-            this.x = precision ? this.x.toFixed(precision) : round(this.x);
-            this.y = precision ? this.y.toFixed(precision) : round(this.y);
+            var f = pow(10, precision || 0);
+            this.x = round(this.x * f) / f;
+            this.y = round(this.y * f) / f;
             return this;
         },
 
@@ -1138,10 +1140,11 @@ var g = (function() {
 
         round: function(precision) {
 
-            this.x = precision ? this.x.toFixed(precision) : round(this.x);
-            this.y = precision ? this.y.toFixed(precision) : round(this.y);
-            this.width = precision ? this.width.toFixed(precision) : round(this.width);
-            this.height = precision ? this.height.toFixed(precision) : round(this.height);
+            var f = pow(10, precision || 0);
+            this.x = round(this.x * f) / f;
+            this.y = round(this.y * f) / f;
+            this.width = round(this.width * f) / f;
+            this.height = round(this.height * f) / f;
             return this;
         },
 
@@ -1154,6 +1157,65 @@ var g = (function() {
             this.width *= sx;
             this.height *= sy;
             return this;
+        },
+
+        maxRectScaleToFit: function(rect, origin) {
+
+            rect = g.Rect(rect);
+            origin || (origin = rect.center());
+
+            var sx1, sx2, sx3, sx4, sy1, sy2, sy3, sy4;
+            var ox = origin.x;
+            var oy = origin.y;
+
+            // Here we find the maximal possible scale for all corner points (for x and y axis) of the rectangle,
+            // so when the scale is applied the point is still inside the rectangle.
+
+            sx1 = sx2 = sx3 = sx4 = sy1 = sy2 = sy3 = sy4 = Infinity;
+
+            // Top Left
+            var p1 = rect.origin();
+            if (p1.x < ox) {
+                sx1 = (this.x - ox) / (p1.x - ox);
+            }
+            if (p1.y < oy) {
+                sy1 = (this.y - oy) / (p1.y - oy);
+            }
+            // Bottom Right
+            var p2 = rect.corner();
+            if (p2.x > ox) {
+                sx2 = (this.x + this.width - ox) / (p2.x - ox);
+            }
+            if (p2.y > oy) {
+                sy2 = (this.y + this.height - oy) / (p2.y - oy);
+            }
+            // Top Right
+            var p3 = rect.topRight();
+            if (p3.x > ox) {
+                sx3 = (this.x + this.width - ox) / (p3.x - ox);
+            }
+            if (p3.y < oy) {
+                sy3 = (this.y - oy) / (p3.y - oy);
+            }
+            // Bottom Left
+            var p4 = rect.bottomLeft();
+            if (p4.x < ox) {
+                sx4 = (this.x - ox) / (p4.x - ox);
+            }
+            if (p4.y > oy) {
+                sy4 = (this.y + this.height - oy) / (p4.y - oy);
+            }
+
+            return {
+                sx: Math.min(sx1, sx2, sx3, sx4),
+                sy: Math.min(sy1, sy2, sy3, sy4)
+            };
+        },
+
+        maxRectUniformScaleToFit: function(rect, origin) {
+
+            var scale = this.maxRectScaleToFit(rect, origin);
+            return Math.min(scale.sx, scale.sy);
         },
 
         // @return {string} (left|right|top|bottom) side which is nearest to point
@@ -1369,13 +1431,11 @@ V = Vectorizer = (function() {
 
                 el = document.createElementNS(ns.xmlns, el);
             }
+
+            V.ensureId(el);
         }
 
         this.node = el;
-
-        if (!this.node.id) {
-            this.node.id = V.uniqueId();
-        }
 
         this.setAttributes(attrs);
 
@@ -1391,7 +1451,7 @@ V = Vectorizer = (function() {
      * @returns {SVGMatrix}
      */
     V.prototype.getTransformToElement = function(toElem) {
-
+        toElem = V.toNode(toElem);
         return toElem.getScreenCTM().inverse().multiply(this.node.getScreenCTM());
     };
 
@@ -1402,19 +1462,17 @@ V = Vectorizer = (function() {
      */
     V.prototype.transform = function(matrix, opt) {
 
+        var node = this.node;
         if (V.isUndefined(matrix)) {
-            return (this.node.parentNode)
-                ? this.getTransformToElement(this.node.parentNode)
-                : this.node.getScreenCTM();
+            return V.transformStringToMatrix(this.attr('transform'));
         }
 
-        var transformList = this.node.transform.baseVal;
         if (opt && opt.absolute) {
-            transformList.clear();
+            return this.attr('transform', V.matrixToTransformString(matrix));
         }
 
         var svgTransform = V.createSVGTransform(matrix);
-        transformList.appendItem(svgTransform);
+        node.transform.baseVal.appendItem(svgTransform);
         return this;
     };
 
@@ -1811,6 +1869,11 @@ V = Vectorizer = (function() {
         return this;
     };
 
+    V.prototype.appendTo = function(node) {
+        V.toNode(node).appendChild(this.node);
+        return this;
+    },
+
     V.prototype.svg = function() {
 
         return this.node instanceof window.SVGSVGElement ? this : V(this.node.ownerSVGElement);
@@ -1884,6 +1947,16 @@ V = Vectorizer = (function() {
         }
 
         return null;
+    };
+
+    // https://jsperf.com/get-common-parent
+    V.prototype.contains = function(el) {
+
+        var a = this.node;
+        var b = V.toNode(el);
+        var bup = b && b.parentNode;
+
+        return (a === bup) || !!(bup && bup.nodeType === 1 && (a.compareDocumentPosition(bup) & 16));
     };
 
     // Convert global point into the coordinate space of this element.
@@ -1977,8 +2050,11 @@ V = Vectorizer = (function() {
 
     V.prototype.animateAlongPath = function(attrs, path) {
 
+        path = V.toNode(path);
+
+        var id = V.ensureId(path);
         var animateMotion = V('animateMotion', attrs);
-        var mpath = V('mpath', { 'xlink:href': '#' + V(path).node.id });
+        var mpath = V('mpath', { 'xlink:href': '#' + id });
 
         animateMotion.append(mpath);
 
@@ -2232,10 +2308,13 @@ V = Vectorizer = (function() {
     // A function returning a unique identifier for this client session with every call.
     V.uniqueId = function() {
 
-        var id = ++V.idCounter + '';
-        return 'v-' + id;
+        return 'v-' + (++V.idCounter);
     };
 
+    V.ensureId = function(node) {
+
+        return node.id || (node.id = V.uniqueId());
+    };
     // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
     // IE would otherwise collapse all spaces into one. This is used in the text() method but it is
     // also exposed so that the programmer can use it in case he needs to. This is useful e.g. in tests
@@ -2310,6 +2389,7 @@ V = Vectorizer = (function() {
 
     V.transformRegex = /(\w+)\(([^,)]+),?([^)]+)?\)/gi;
     V.transformSeparatorRegex = /[ ,]+/;
+    V.transformationListRegex = /^(\w+)\((.*)\)/;
 
     V.transformStringToMatrix = function(transform) {
 
@@ -2319,13 +2399,15 @@ V = Vectorizer = (function() {
             return transformationMatrix;
         }
 
-        return matches.reduce(function(resultMatrix, transformationString) {
-            var transformationMatch = transformationString.match(/^(\w+)\((.*)\)/);
+        for (var i = 0, n = matches.length; i < n; i++) {
+            var transformationString = matches[i];
+
+            var transformationMatch = transformationString.match(V.transformationListRegex);
             if (transformationMatch) {
                 var sx, sy, tx, ty, angle;
                 var ctm = V.createSVGMatrix();
                 var args = transformationMatch[2].split(V.transformSeparatorRegex);
-                switch(transformationMatch[1].toLowerCase()) {
+                switch (transformationMatch[1].toLowerCase()) {
                     case 'scale':
                         sx = parseFloat(args[0]);
                         sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
@@ -2363,12 +2445,27 @@ V = Vectorizer = (function() {
                         ctm.f = parseFloat(args[5]);
                         break;
                     default:
-                        return resultMatrix;
+                        continue;
                 }
 
-                return resultMatrix.multiply(ctm);
+                transformationMatrix = transformationMatrix.multiply(ctm);
             }
-        }, transformationMatrix);
+
+        }
+        return transformationMatrix;
+    };
+
+    V.matrixToTransformString = function(matrix) {
+        matrix || (matrix = true);
+
+        return 'matrix(' +
+            (matrix.a || 1) + ',' +
+            (matrix.b || 0) + ',' +
+            (matrix.c || 0) + ',' +
+            (matrix.d || 1) + ',' +
+            (matrix.e || 0) + ',' +
+            (matrix.f || 0) +
+            ')';
     };
 
     V.parseTransformString = function(transform) {
@@ -2579,12 +2676,12 @@ V = Vectorizer = (function() {
         var minY = Math.min(corner1.y, corner2.y, corner3.y, corner4.y);
         var maxY = Math.max(corner1.y, corner2.y, corner3.y, corner4.y);
 
-        return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+        return g.Rect(minX, minY, maxX - minX, maxY - minY);
     };
 
     V.transformPoint = function(p, matrix) {
 
-        return V.createSVGPoint(p.x, p.y).matrixTransform(matrix);
+        return g.Point(V.createSVGPoint(p.x, p.y).matrixTransform(matrix));
     };
 
     // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
@@ -2898,45 +2995,15 @@ V = Vectorizer = (function() {
     V.convertRectToPathData = function(rect) {
 
         rect = V(rect);
-        var x = parseFloat(rect.attr('x')) || 0;
-        var y = parseFloat(rect.attr('y')) || 0;
-        var width = parseFloat(rect.attr('width')) || 0;
-        var height = parseFloat(rect.attr('height')) || 0;
-        var rx = parseFloat(rect.attr('rx')) || 0;
-        var ry = parseFloat(rect.attr('ry')) || 0;
-        var bbox = g.rect(x, y, width, height);
 
-        var d;
-
-        if (!rx && !ry) {
-
-            d = [
-                'M', bbox.origin().x, bbox.origin().y,
-                'H', bbox.corner().x,
-                'V', bbox.corner().y,
-                'H', bbox.origin().x,
-                'V', bbox.origin().y,
-                'Z'
-            ].join(' ');
-
-        } else {
-
-            var r = x + width;
-            var b = y + height;
-            d = [
-                'M', x + rx, y,
-                'L', r - rx, y,
-                'Q', r, y, r, y + ry,
-                'L', r, y + height - ry,
-                'Q', r, b, r - rx, b,
-                'L', x + rx, b,
-                'Q', x, b, x, b - rx,
-                'L', x, y + ry,
-                'Q', x, y, x + rx, y,
-                'Z'
-            ].join(' ');
-        }
-        return d;
+        return V.rectToPath({
+            x: parseFloat(rect.attr('x')) || 0,
+            y: parseFloat(rect.attr('y')) || 0,
+            width: parseFloat(rect.attr('width')) || 0,
+            height: parseFloat(rect.attr('height')) || 0,
+            rx: parseFloat(rect.attr('rx')) || 0,
+            ry: parseFloat(rect.attr('ry')) || 0
+        });
     };
 
     // Convert a rectangle to SVG path commands. `r` is an object of the form:
@@ -2946,22 +3013,41 @@ V = Vectorizer = (function() {
     // that has only `rx` and `ry` attributes).
     V.rectToPath = function(r) {
 
-        var topRx = r.rx || r['top-rx'] || 0;
-        var bottomRx = r.rx || r['bottom-rx'] || 0;
-        var topRy = r.ry || r['top-ry'] || 0;
-        var bottomRy = r.ry || r['bottom-ry'] || 0;
+        var d;
+        var x = r.x;
+        var y = r.y;
+        var width = r.width;
+        var height = r.height;
+        var topRx = Math.min(r.rx || r['top-rx'] || 0, width / 2);
+        var bottomRx = Math.min(r.rx || r['bottom-rx'] || 0, width / 2);
+        var topRy = Math.min(r.ry || r['top-ry'] || 0, height / 2);
+        var bottomRy = Math.min(r.ry || r['bottom-ry'] || 0, height / 2);
 
-        return [
-            'M', r.x, r.y + topRy,
-            'v', r.height - topRy - bottomRy,
-            'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, bottomRy,
-            'h', r.width - 2 * bottomRx,
-            'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, -bottomRy,
-            'v', -(r.height - bottomRy - topRy),
-            'a', topRx, topRy, 0, 0, 0, -topRx, -topRy,
-            'h', -(r.width - 2 * topRx),
-            'a', topRx, topRy, 0, 0, 0, -topRx, topRy
-        ].join(' ');
+        if (topRx || bottomRx || topRy || bottomRy) {
+            d = [
+                'M', x, y + topRy,
+                'v', height - topRy - bottomRy,
+                'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, bottomRy,
+                'h', width - 2 * bottomRx,
+                'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, -bottomRy,
+                'v', -(height - bottomRy - topRy),
+                'a', topRx, topRy, 0, 0, 0, -topRx, -topRy,
+                'h', -(width - 2 * topRx),
+                'a', topRx, topRy, 0, 0, 0, -topRx, topRy,
+                'Z'
+            ];
+        } else {
+            d = [
+                'M', x, y,
+                'H', x + width,
+                'V', y + height,
+                'H', x,
+                'V', y,
+                'Z'
+            ];
+        }
+
+        return d.join(' ');
     };
 
     V.toNode = function(el) {
@@ -2977,7 +3063,7 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '1.1.0-alpha.1',
+    version: '1.1.0',
 
     config: {
         // The class name prefix config is for advanced use only.
@@ -3087,8 +3173,7 @@ var joint = {
 
         getByPath: function(obj, path, delim) {
 
-            delim = delim || '/';
-            var keys = path.split(delim);
+            var keys = _.isArray(path) ? path.slice() : path.split(delim || '/');
             var key;
 
             while (keys.length) {
@@ -3104,23 +3189,18 @@ var joint = {
 
         setByPath: function(obj, path, value, delim) {
 
-            delim = delim || '/';
+            var keys = _.isArray(path) ? path : path.split(delim || '/');
 
-            var keys = path.split(delim);
             var diver = obj;
             var i = 0;
 
-            if (path.indexOf(delim) > -1) {
-
-                for (var len = keys.length; i < len - 1; i++) {
-                    // diver creates an empty object if there is no nested object under such a key.
-                    // This means that one can populate an empty nested object with setByPath().
-                    diver = diver[keys[i]] || (diver[keys[i]] = {});
-                }
-                diver[keys[len - 1]] = value;
-            } else {
-                obj[path] = value;
+            for (var len = keys.length; i < len - 1; i++) {
+                // diver creates an empty object if there is no nested object under such a key.
+                // This means that one can populate an empty nested object with setByPath().
+                diver = diver[keys[i]] || (diver[keys[i]] = {});
             }
+            diver[keys[len - 1]] = value;
+
             return obj;
         },
 
@@ -3128,22 +3208,22 @@ var joint = {
 
             delim = delim || '/';
 
-            // index of the last delimiter
-            var i = path.lastIndexOf(delim);
+            var pathArray = _.isArray(path) ? path.slice() : path.split(delim);
 
-            if (i > -1) {
+            var propertyToRemove = pathArray.pop();
+            if (pathArray.length > 0) {
 
                 // unsetting a nested attribute
-                var parent = joint.util.getByPath(obj, path.substr(0, i), delim);
+                var parent = joint.util.getByPath(obj, pathArray, delim);
 
                 if (parent) {
-                    delete parent[path.slice(i + 1)];
+                    delete parent[propertyToRemove];
                 }
 
             } else {
 
                 // unsetting a primitive attribute
-                delete obj[path];
+                delete obj[propertyToRemove];
             }
 
             return obj;
@@ -3198,6 +3278,11 @@ var joint = {
             this.guid.id = this.guid.id || 1;
             obj.id = (obj.id === undefined ? 'j_' + this.guid.id++ : obj.id);
             return obj.id;
+        },
+
+        toKebabCase: function(string) {
+
+            return string.replace(/[A-Z]/g, '-$&').toLowerCase();
         },
 
         // Copy all the properties to the first argument from the following arguments.
@@ -4292,10 +4377,12 @@ var joint = {
                 }
             }
 
-            if (prefixedResult(document, 'FullScreen') || prefixedResult(document, 'IsFullScreen')) {
-                prefixedResult(document, 'CancelFullScreen');
+            if (prefixedResult(document, 'FullscreenElement') || prefixedResult(document, 'FullScreenElement')) {
+                prefixedResult(document, 'ExitFullscreen') || // Spec.
+                prefixedResult(document, 'CancelFullScreen'); // Firefox
             } else {
-                prefixedResult(el, 'RequestFullScreen');
+                prefixedResult(el, 'RequestFullscreen') || // Spec.
+                prefixedResult(el, 'RequestFullScreen'); // Firefox
             }
         },
 
@@ -4358,6 +4445,7 @@ var joint = {
                     fn([cell, cell, cell]);
                     fn(cell, cell, cell, opt);
                     fn(cell, cell, cell);
+                    fn(cell);
             */
             cells: function(fn) {
 
@@ -4371,10 +4459,13 @@ var joint = {
 
                         if (opt instanceof joint.dia.Cell) {
                             cells = args;
-                            opt = {};
-                        } else {
-                            cells = _.initial(args);
+                        } else if (cells instanceof joint.dia.Cell) {
+                            cells = args.length > 1 ? _.initial(args) : args;
                         }
+                    }
+
+                    if (opt instanceof joint.dia.Cell) {
+                        opt = {};
                     }
 
                     return fn.call(this, cells, opt);
@@ -4543,23 +4634,31 @@ joint.mvc.View = Backbone.View.extend({
         // Returns a per-session unique namespace
         return '.joint-event-ns-' + this.cid;
     }
-});
 
-(function() {
+}, {
 
-    joint.mvc.View._extend = joint.mvc.View.extend;
+    extend: function() {
 
-    joint.mvc.View.extend = function(protoProps, staticProps) {
+        var args = Array.prototype.slice.call(arguments);
 
-        protoProps = protoProps || {};
+        // Deep clone the prototype and static properties objects.
+        // This prevents unexpected behavior where some properties are overwritten outside of this function.
+        var protoProps = args[0] && _.clone(args[0]) || {};
+        var staticProps = args[1] && _.clone(args[1]) || {};
 
-        var render = protoProps.render || this.prototype.render || null;
+        // Need the real render method so that we can wrap it and call it later.
+        var renderFn = protoProps.render || (this.prototype && this.prototype.render) || null;
 
+        /*
+            Wrap the real render method so that:
+                .. `onRender` is always called.
+                .. `this` is always returned.
+        */
         protoProps.render = function() {
 
-            if (render) {
+            if (renderFn) {
                 // Call the original render method.
-                render.apply(this, arguments);
+                renderFn.apply(this, arguments);
             }
 
             // Should always call onRender() method.
@@ -4569,10 +4668,10 @@ joint.mvc.View = Backbone.View.extend({
             return this;
         };
 
-        return joint.mvc.View._extend.call(this, protoProps, staticProps);
-    };
+        return Backbone.View.extend.call(this, protoProps, staticProps);
+    }
+});
 
-})();
 
 
 joint.dia.GraphCells = Backbone.Collection.extend({
@@ -5619,6 +5718,318 @@ joint.dia.Graph = Backbone.Model.extend({
 
 joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'removeCells'], 'cells');
 
+(function(joint, _, g, $) {
+
+    function isPercentage(val) {
+        return _.isString(val) && val.slice(-1) === '%';
+    }
+
+    function setWrapper(attrName, dimension) {
+        return function(value, refBBox) {
+            var isValuePercentage = isPercentage(value);
+            value = parseFloat(value);
+            if (isValuePercentage) {
+                value /= 100;
+            }
+
+            var attrs = {};
+            if (isFinite(value)) {
+                var attrValue = (isValuePercentage || value >= 0 && value <= 1)
+                    ? value * refBBox[dimension]
+                    : Math.max(value + refBBox[dimension], 0);
+                attrs[attrName] = attrValue;
+            }
+
+            return attrs;
+        };
+    }
+
+    function positionWrapper(axis, dimension, origin) {
+        return function(value, refBBox) {
+            var valuePercentage = isPercentage(value);
+            value = parseFloat(value);
+            if (valuePercentage) {
+                value /= 100;
+            }
+
+            var delta;
+            if (isFinite(value)) {
+                var refOrigin = refBBox[origin]();
+                if (valuePercentage || value > 0 && value < 1) {
+                    delta = refOrigin[axis] + refBBox[dimension] * value;
+                } else {
+                    delta = refOrigin[axis] + value;
+                }
+            }
+
+            var point = g.Point();
+            point[axis] = delta || 0;
+            return point;
+        };
+    }
+
+    function offsetWrapper(axis, dimension, corner) {
+        return function(value, nodeBBox) {
+            var delta;
+            if (value === 'middle') {
+                delta = nodeBBox[dimension] / 2;
+            } else if (value === corner) {
+                delta = nodeBBox[dimension];
+            } else if (isFinite(value)) {
+                // TODO: or not to do a breaking change?
+                delta = (value > -1 && value < 1) ? (-nodeBBox[dimension] * value) : -value;
+            } else if (isPercentage(value)) {
+                delta = nodeBBox[dimension] * parseFloat(value) / 100;
+            } else {
+                delta = 0;
+            }
+
+            var point = g.Point();
+            point[axis] = -(nodeBBox[axis] + delta);
+            return point;
+        };
+    }
+
+    var attributesNS = joint.dia.attributes = {
+
+        xlinkHref: {
+            set: 'xlink:href'
+        },
+
+        xmlSpace: {
+            set: 'xml:space'
+        },
+
+        filter: {
+            qualify: _.isPlainObject,
+            set: function(filter) {
+                return 'url(#' + this.paper.defineFilter(filter) + ')';
+            }
+        },
+
+        fill: {
+            qualify: _.isPlainObject,
+            set: function(fill) {
+                return 'url(#' + this.paper.defineGradient(fill) + ')';
+            }
+        },
+
+        stroke: {
+            qualify: _.isPlainObject,
+            set: function(stroke) {
+                return 'url(#' + this.paper.defineGradient(stroke) + ')';
+            }
+        },
+
+        sourceMarker: {
+            qualify: _.isPlainObject,
+            set: function(marker) {
+                return { 'marker-start': 'url(#' + this.paper.defineMarker(marker) + ')' };
+            }
+        },
+
+        targetMarker: {
+            qualify: _.isPlainObject,
+            set: function(marker) {
+                marker = _.assign({ transform: 'rotate(180)' }, marker);
+                return { 'marker-end': 'url(#' + this.paper.defineMarker(marker) + ')' };
+            }
+        },
+
+        vertexMarker: {
+            qualify: _.isPlainObject,
+            set: function(marker) {
+                return { 'marker-mid': 'url(#' + this.paper.defineMarker(marker) + ')' };
+            }
+        },
+
+        text: {
+            set: function(text, refBBox, node, attrs) {
+                var $node = $(node);
+                var cacheName = 'joint-text';
+                var cache = $node.data(cacheName);
+                var textAttrs = _.pick(attrs, 'lineHeight', 'annotations', 'textPath');
+                var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
+                var textHash = JSON.stringify([text, textAttrs]);
+                // Update the text only if there was a change in the string
+                // or any of its attributes.
+                if (cache === undefined || cache !== textHash) {
+                    // Chrome bug:
+                    // Tspans positions defined as `em` are not updated
+                    // when container `font-size` change.
+                    if (fontSize) {
+                        node.setAttribute('font-size', fontSize);
+                    }
+                    V(node).text('' + text, textAttrs);
+                    $node.data(cacheName, textHash);
+                }
+            }
+        },
+
+        textWrap: {
+            qualify: _.isPlainObject,
+            set: function(value, refBBox, node, attrs) {
+                // option `width`
+                var width = value.width || 0;
+                if (isPercentage(width)) {
+                    refBBox.width *= parseFloat(width) / 100;
+                } else if (width <= 0) {
+                    refBBox.width += width;
+                } else {
+                    refBBox.width = width;
+                }
+                // option `height`
+                var height = value.height || 0;
+                if (isPercentage(height)) {
+                    refBBox.height *= parseFloat(height) / 100;
+                } else if (height <= 0) {
+                    refBBox.height += height;
+                } else {
+                    refBBox.height = height;
+                }
+                // option `text`
+                var wrappedText = joint.util.breakText('' + value.text, refBBox, {
+                    'font-weight': attrs['font-weight'] || attrs.fontWeight,
+                    'font-size': attrs['font-size'] || attrs.fontSize,
+                    'font-family': attrs['font-family'] || attrs.fontFamily
+                }, {
+                    // Provide an existing SVG Document here
+                    // instead of creating a temporary one over again.
+                    svgDocument: this.paper.svg
+                });
+
+                V(node).text(wrappedText);
+            }
+        },
+
+        lineHeight: {
+            qualify: function(lineHeight, node, attrs) {
+                return (attrs.text !== undefined);
+            }
+        },
+
+        textPath: {
+            qualify: function(textPath, node, attrs) {
+                return (attrs.text !== undefined);
+            }
+        },
+
+        annotations: {
+            qualify: function(annotations, node, attrs) {
+                return (attrs.text !== undefined);
+            }
+        },
+
+        // `port` attribute contains the `id` of the port that the underlying magnet represents.
+        port: {
+            set: function(port) {
+                return (port === null || port.id === undefined) ? port : port.id;
+            }
+        },
+
+        // `style` attribute is special in the sense that it sets the CSS style of the subelement.
+        style: {
+            qualify: _.isPlainObject,
+            set: function(styles, refBBox, node) {
+                $(node).css(styles);
+            }
+        },
+
+        html: {
+            set: function(html, refBBox, node) {
+                $(node).html(html + '');
+            }
+        },
+
+        ref: {
+            // We do not set `ref` attribute directly on an element.
+            // The attribute itself does not qualify for relative positioning.
+        },
+
+        // if `refX` is in [0, 1] then `refX` is a fraction of bounding box width
+        // if `refX` is < 0 then `refX`'s absolute values is the right coordinate of the bounding box
+        // otherwise, `refX` is the left coordinate of the bounding box
+
+        refX: {
+            position: positionWrapper('x', 'width', 'origin')
+        },
+
+        refY: {
+            position: positionWrapper('y', 'height', 'origin')
+        },
+
+        // `ref-dx` and `ref-dy` define the offset of the subelement relative to the right and/or bottom
+        // coordinate of the reference element.
+
+        refDx: {
+            position: positionWrapper('x', 'width', 'corner')
+        },
+
+        refDy: {
+            position: positionWrapper('y', 'height', 'corner')
+        },
+
+        // 'ref-width'/'ref-height' defines the width/height of the subelement relatively to
+        // the reference element size
+        // val in 0..1         ref-width = 0.75 sets the width to 75% of the ref. el. width
+        // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
+
+        refWidth: {
+            set: setWrapper('width', 'width')
+        },
+
+        refHeight: {
+            set: setWrapper('height', 'height')
+        },
+
+        refRx: {
+            set: setWrapper('rx', 'width')
+        },
+
+        refRy: {
+            set: setWrapper('ry', 'height')
+        },
+
+        refCx: {
+            set: setWrapper('cx', 'width')
+        },
+
+        refCy: {
+            set: setWrapper('cy', 'height')
+        },
+
+        // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
+        // `x-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
+
+        xAlignment: {
+            offset: offsetWrapper('x', 'width', 'right')
+        },
+
+        // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
+        // `y-alignment` when set to `bottom` uses the y coordinate as referenced to the bottom of the bbox.
+
+        yAlignment: {
+            offset: offsetWrapper('y', 'height', 'bottom')
+        }
+    };
+
+    // This allows to combine both absolute and relative positioning
+    // refX: 50%, refX2: 20
+    attributesNS.refX2 = attributesNS.refX;
+    attributesNS.refY2 = attributesNS.refY;
+
+    // Aliases for backwards compatibility
+    attributesNS['ref-x'] = attributesNS.refX;
+    attributesNS['ref-y'] = attributesNS.refY;
+    attributesNS['ref-dy'] = attributesNS.refDy;
+    attributesNS['ref-dx'] = attributesNS.refDx;
+    attributesNS['ref-width'] = attributesNS.refWidth;
+    attributesNS['ref-height'] = attributesNS.refHeight;
+    attributesNS['x-alignment'] = attributesNS.xAlignment;
+    attributesNS['y-alignment'] = attributesNS.yAlignment;
+
+})(joint, _, g, $);
+
 
 // joint.dia.Cell base model.
 // --------------------------
@@ -6021,25 +6432,34 @@ joint.dia.Cell = Backbone.Model.extend({
     prop: function(props, value, opt) {
 
         var delim = '/';
+        var isString = _.isString(props);
 
-        if (_.isString(props)) {
+        if (isString || _.isArray(props)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
 
             if (arguments.length > 1) {
 
-                var path = props;
-                var pathArray = path.split('/');
-                var property = pathArray[0];
+                var path;
+                var pathArray;
 
-                // Remove the top-level property from the array of properties.
-                pathArray.shift();
+                if (isString) {
+                    path = props;
+                    pathArray = path.split('/')
+                } else {
+                    path = props.join(delim);
+                    pathArray = props.slice();
+                }
+
+                var property = pathArray[0];
+                var pathArrayLength = pathArray.length;
 
                 opt = opt || {};
                 opt.propertyPath = path;
                 opt.propertyValue = value;
+                opt.propertyPathArray = pathArray;
 
-                if (pathArray.length === 0) {
+                if (pathArrayLength === 1) {
                     // Property is not nested. We can simply use `set()`.
                     return this.set(property, value, opt);
                 }
@@ -6051,12 +6471,16 @@ joint.dia.Cell = Backbone.Model.extend({
                 // Pure integer keys will cause issues and are therefore not allowed.
                 var initializer = update;
                 var prevProperty = property;
-                _.each(pathArray, function(key) {
-                    initializer = initializer[prevProperty] = (_.isFinite(Number(key)) ? [] : {});
-                    prevProperty = key;
-                });
+
+                for (var i = 1; i < pathArrayLength; i++) {
+                    var pathItem = pathArray[i];
+                    var isArrayIndex = _.isFinite(isString ? Number(pathItem) : pathItem);
+                    initializer = initializer[prevProperty] = isArrayIndex ? [] : {};
+                    prevProperty = pathItem;
+                }
+
                 // Fill update with the `value` on `path`.
-                update = joint.util.setByPath(update, path, value, '/');
+                update = joint.util.setByPath(update, pathArray, value, '/');
 
                 var baseAttributes = _.merge({}, this.attributes);
                 // if rewrite mode enabled, we replace value referenced by path with
@@ -6086,7 +6510,7 @@ joint.dia.Cell = Backbone.Model.extend({
         opt = opt || {};
         opt.dirty = true;
 
-        var pathArray = path.split('/');
+        var pathArray = _.isArray(path) ? path : path.split('/');
 
         if (pathArray.length === 1) {
             // A top level property
@@ -6095,7 +6519,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         // A nested property
         var property = pathArray[0];
-        var nestedPath = pathArray.slice(1).join('/');
+        var nestedPath = pathArray.slice(1);
         var propertyValue = _.merge({}, this.get(property));
 
         joint.util.unsetByPath(propertyValue, nestedPath, '/');
@@ -6107,8 +6531,13 @@ joint.dia.Cell = Backbone.Model.extend({
     attr: function(attrs, value, opt) {
 
         var args = Array.prototype.slice.call(arguments);
+        if (args.length === 0) {
+            return this.get('attrs');
+        }
 
-        if (_.isString(attrs)) {
+        if (_.isArray(attrs)) {
+            args[0] = ['attrs'].concat(attrs);
+        } else if (_.isString(attrs)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
             args[0] = 'attrs/' + attrs;
@@ -6125,8 +6554,8 @@ joint.dia.Cell = Backbone.Model.extend({
     removeAttr: function(path, opt) {
 
         if (_.isArray(path)) {
-            _.each(path, function(p) { this.removeAttr(p, opt); }, this);
-            return this;
+
+            return this.removeProp(['attrs'].concat(path));
         }
 
         return this.removeProp('attrs/' + path, opt);
@@ -6250,6 +6679,26 @@ joint.dia.Cell = Backbone.Model.extend({
         if (this.graph) { this.graph.stopBatch(name, _.extend({}, opt, { cell: this })); }
         return this;
     }
+
+}, {
+
+    getAttributeDefinition: function(attrName) {
+
+        var defNS = this.attributes;
+        var globalDefNS = joint.dia.attributes;
+        return (defNS && defNS[attrName]) || globalDefNS[attrName];
+    },
+
+    define: function(type, defaults, protoProps, staticProps) {
+
+        protoProps = _.assign({
+            defaults: _.defaultsDeep({ type: type }, defaults, this.prototype.defaults)
+        }, protoProps);
+
+        var Cell = this.extend(protoProps, staticProps);
+        joint.util.setByPath(joint.shapes, type, Cell, '.');
+        return Cell;
+    }
 });
 
 // joint.dia.CellView base view and controller.
@@ -6331,12 +6780,12 @@ joint.dia.CellView = joint.mvc.View.extend({
                 (_.isBoolean(interactive) && interactive !== false);
     },
 
-    findBySelector: function(selector) {
+    findBySelector: function(selector, root) {
 
+        var $root = $(root || this.el);
         // These are either descendants of `this.$el` of `this.$el` itself.
         // `.` is a special selector used to select the wrapping `<g>` element.
-        var $selected = selector === '.' ? this.$el : this.$el.find(selector);
-        return $selected;
+        return (selector === '.') ? $root : $root.find(selector);
     },
 
     notify: function(eventName) {
@@ -6437,81 +6886,6 @@ joint.dia.CellView = joint.mvc.View.extend({
         return undefined;
     },
 
-    // `selector` is a CSS selector or `'.'`. `filter` must be in the special JointJS filter format:
-    // `{ name: <name of the filter>, args: { <arguments>, ... }`.
-    // An example is: `{ filter: { name: 'blur', args: { radius: 5 } } }`.
-    applyFilter: function(selector, filter) {
-
-        var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
-
-        // Generate a hash code from the stringified filter definition. This gives us
-        // a unique filter ID for different definitions.
-        var filterId = filter.name + this.paper.svg.id + joint.util.hashCode(JSON.stringify(filter));
-
-        // If the filter already exists in the document,
-        // we're done and we can just use it (reference it using `url()`).
-        // If not, create one.
-        if (!this.paper.svg.getElementById(filterId)) {
-
-            var filterSVGString = joint.util.filter[filter.name] && joint.util.filter[filter.name](filter.args || {});
-            if (!filterSVGString) {
-                throw new Error('Non-existing filter ' + filter.name);
-            }
-            var filterElement = V(filterSVGString);
-            // Set the filter area to be 3x the bounding box of the cell
-            // and center the filter around the cell.
-            filterElement.attr({
-                filterUnits: 'objectBoundingBox',
-                x: -1, y: -1, width: 3, height: 3
-            });
-            if (filter.attrs) filterElement.attr(filter.attrs);
-            filterElement.node.id = filterId;
-            V(this.paper.svg).defs().append(filterElement);
-        }
-
-        $selected.each(function() {
-
-            V(this).attr('filter', 'url(#' + filterId + ')');
-        });
-    },
-
-    // `selector` is a CSS selector or `'.'`. `attr` is either a `'fill'` or `'stroke'`.
-    // `gradient` must be in the special JointJS gradient format:
-    // `{ type: <linearGradient|radialGradient>, stops: [ { offset: <offset>, color: <color> }, ... ]`.
-    // An example is: `{ fill: { type: 'linearGradient', stops: [ { offset: '10%', color: 'green' }, { offset: '50%', color: 'blue' } ] } }`.
-    applyGradient: function(selector, attr, gradient) {
-
-        var $selected = _.isString(selector) ? this.findBySelector(selector) : $(selector);
-
-        // Generate a hash code from the stringified filter definition. This gives us
-        // a unique filter ID for different definitions.
-        var gradientId = gradient.type + this.paper.svg.id + joint.util.hashCode(JSON.stringify(gradient));
-
-        // If the gradient already exists in the document,
-        // we're done and we can just use it (reference it using `url()`).
-        // If not, create one.
-        if (!this.paper.svg.getElementById(gradientId)) {
-
-            var gradientSVGString = [
-                '<' + gradient.type + '>',
-                _.map(gradient.stops, function(stop) {
-                    return '<stop offset="' + stop.offset + '" stop-color="' + stop.color + '" stop-opacity="' + (_.isFinite(stop.opacity) ? stop.opacity : 1) + '" />';
-                }).join(''),
-                '</' + gradient.type + '>'
-            ].join('');
-
-            var gradientElement = V(gradientSVGString);
-            if (gradient.attrs) { gradientElement.attr(gradient.attrs); }
-            gradientElement.node.id = gradientId;
-            V(this.paper.svg).defs().append(gradientElement);
-        }
-
-        $selected.each(function() {
-
-            V(this).attr(attr, 'url(#' + gradientId + ')');
-        });
-    },
-
     // Construct a unique selector for the `el` element within this view.
     // `prevSelector` is being collected through the recursive call.
     // No value for `prevSelector` is expected when using this method.
@@ -6536,6 +6910,340 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
 
         return selector;
+    },
+
+    getAttributeDefinition: function(attrName) {
+
+        return this.model.constructor.getAttributeDefinition(attrName);
+    },
+
+    setNodeAttributes: function(node, attrs) {
+
+        if (!_.isEmpty(attrs)) {
+            if (node instanceof SVGElement) {
+                V(node).attr(attrs);
+            } else {
+                $(node).attr(attrs);
+            }
+        }
+    },
+
+    processNodeAttributes: function(node, attrs) {
+
+        var attrName, attrVal, def, i, n;
+        var normalAttrs, setAttrs, positionAttrs, offsetAttrs;
+        var relatives = [];
+        // divide the attributes between normal and special
+        for (attrName in attrs) {
+            if (!attrs.hasOwnProperty(attrName)) continue;
+            attrVal = attrs[attrName];
+            def = this.getAttributeDefinition(attrName);
+            if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs))) {
+                if (_.isString(def.set)) {
+                    normalAttrs || (normalAttrs = {});
+                    normalAttrs[def.set] = attrVal;
+                }
+                if (attrVal !== null) {
+                    relatives.push(attrName, def);
+                }
+            } else {
+                normalAttrs || (normalAttrs = {});
+                normalAttrs[joint.util.toKebabCase(attrName)] = attrVal;
+            }
+        }
+
+        // handle the rest of attributes via related method
+        // from the special attributes namespace.
+        for (i = 0, n = relatives.length; i < n; i+=2) {
+            attrName = relatives[i];
+            def = relatives[i+1];
+            attrVal = attrs[attrName];
+            if (_.isFunction(def.set)) {
+                setAttrs || (setAttrs = {});
+                setAttrs[attrName] = attrVal;
+            }
+            if (_.isFunction(def.position)) {
+                positionAttrs || (positionAttrs = {});
+                positionAttrs[attrName] = attrVal;
+            }
+            if (_.isFunction(def.offset)) {
+                offsetAttrs || (offsetAttrs = {});
+                offsetAttrs[attrName] = attrVal;
+            }
+        }
+
+        return {
+            raw: attrs,
+            normal: normalAttrs,
+            set: setAttrs,
+            position: positionAttrs,
+            offset: offsetAttrs
+        };
+    },
+
+    updateRelativeAttributes: function(node, attrs, refBBox, opt) {
+
+        opt || (opt = {});
+
+        var attrName, attrVal, def;
+        var rawAttrs = attrs.raw || {};
+        var nodeAttrs = attrs.normal || {};
+        var setAttrs = attrs.set;
+        var positionAttrs = attrs.position;
+        var offsetAttrs = attrs.offset;
+
+        for (attrName in setAttrs) {
+            attrVal = setAttrs[attrName];
+            def = this.getAttributeDefinition(attrName);
+            // SET - set function should return attributes to be set on the node,
+            // which will affect the node dimensions based on the reference bounding
+            // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
+            var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs);
+            if (_.isObject(setResult)) {
+                _.extend(nodeAttrs, setResult);
+            } else if (setResult !== undefined) {
+                nodeAttrs[attrName] = setResult;
+            }
+        }
+
+        if (node instanceof HTMLElement) {
+            // TODO: setting the `transform` attribute on HTMLElements
+            // via `node.style.transform = 'matrix(...)';` would introduce
+            // a breaking change (e.g. basic.TextBlock).
+            this.setNodeAttributes(node, nodeAttrs);
+            return;
+        }
+
+        // The final translation of the subelement.
+        var nodeTransform = nodeAttrs.transform || '';
+        var nodeMatrix = V.transformStringToMatrix(nodeTransform);
+        var nodePosition = g.Point(nodeMatrix.e, nodeMatrix.f);
+        if (nodeTransform) {
+            nodeAttrs = _.omit(nodeAttrs, 'transform');
+            nodeMatrix.e = nodeMatrix.f = 0;
+        }
+
+        // Calculate node scale determined by the scalable group
+        // only if later needed.
+        var sx, sy, translation;
+        if (positionAttrs || offsetAttrs) {
+            var nodeScale = this.getNodeScale(node, opt.scalableNode);
+            sx = nodeScale.sx;
+            sy = nodeScale.sy;
+        }
+
+        for (attrName in positionAttrs) {
+            attrVal = positionAttrs[attrName];
+            def = this.getAttributeDefinition(attrName);
+            // POSITION - position function should return a point from the
+            // reference bounding box. The default position of the node is x:0, y:0 of
+            // the reference bounding box or could be further specify by some
+            // SVG attributes e.g. `x`, `y`
+            translation = def.position.call(this, attrVal, refBBox.clone(), node, rawAttrs);
+            if (translation) {
+                nodePosition.offset(g.Point(translation).scale(sx, sy));
+            }
+        }
+
+        // The node bounding box could depend on the `size` set from the previous loop.
+        // Here we know, that all the size attributes have been already set.
+        this.setNodeAttributes(node, nodeAttrs);
+
+        if (offsetAttrs) {
+            // Check if the node is visible
+            var nodeClientRect = node.getBoundingClientRect();
+            if (nodeClientRect.width > 0 && nodeClientRect.height > 0) {
+                var nodeBBox = V.transformRect(node.getBBox(), nodeMatrix).scale(1 / sx, 1 / sy);
+                for (attrName in offsetAttrs) {
+                    attrVal = offsetAttrs[attrName];
+                    def = this.getAttributeDefinition(attrName);
+                    // OFFSET - offset function should return a point from the element
+                    // bounding box. The default offset point is x:0, y:0 (origin) or could be further
+                    // specify with some SVG attributes e.g. `text-anchor`, `cx`, `cy`
+                    translation = def.offset.call(this, attrVal, nodeBBox, node, rawAttrs);
+                    if (translation) {
+                        nodePosition.offset(g.Point(translation).scale(sx, sy));
+                    }
+                }
+            }
+        }
+
+        // Round the coordinates to 1 decimal point.
+        nodePosition.round(1);
+        nodeMatrix.e = nodePosition.x;
+        nodeMatrix.f = nodePosition.y;
+        node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
+    },
+
+    getNodeScale: function(node, scalableNode) {
+
+        // Check if the node is a descendant of the scalable group.
+        var sx, sy;
+        if (scalableNode && scalableNode.contains(node)) {
+            var scale = scalableNode.scale();
+            sx = 1 / scale.sx;
+            sy = 1 / scale.sy;
+        } else {
+            sx = 1;
+            sy = 1;
+        }
+
+        return { sx: sx, sy: sy };
+    },
+
+    findNodesAttributes: function(attrs, root, selectorCache) {
+
+        // TODO: merge attributes in order defined by `index` property
+
+        var nodesAttrs = {};
+
+        for (var selector in attrs) {
+            if (!attrs.hasOwnProperty(selector)) continue;
+            var $selected = selectorCache[selector] = this.findBySelector(selector, root);
+
+            for (var i = 0, n = $selected.length; i < n; i++) {
+                var node = $selected[i];
+                var nodeId = V.ensureId(node);
+                var nodeAttrs = attrs[selector];
+                var prevNodeAttrs = nodesAttrs[nodeId];
+                if (prevNodeAttrs) {
+                    if (!prevNodeAttrs.merged) {
+                        prevNodeAttrs.merged = true;
+                        prevNodeAttrs.attributes = _.cloneDeep(prevNodeAttrs.attributes);
+                    }
+                    _.merge(prevNodeAttrs.attributes, nodeAttrs);
+                } else {
+                    nodesAttrs[nodeId] = {
+                        attributes: nodeAttrs,
+                        node: node,
+                        merged: false
+                    };
+                }
+            }
+        }
+
+        return nodesAttrs;
+    },
+
+    // Default is to process the `model.attributes.attrs` object and set attributes on subelements based on the selectors,
+    // unless `attrs` parameter was passed.
+    updateDOMSubtreeAttributes: function(rootNode, attrs, opt) {
+
+        opt || (opt = {});
+        opt.rootBBox || (opt.rootBBox = g.Rect());
+
+        // Cache table for query results and bounding box calculation.
+        // Note that `selectorCache` needs to be invalidated for all
+        // `updateAttributes` calls, as the selectors might pointing
+        // to nodes designated by an attribute or elements dynamically
+        // created.
+        var selectorCache = {};
+        var bboxCache = {};
+        var relativeItems = [];
+        var item, node, nodeAttrs, nodeData, processedAttrs;
+
+        var roAttrs = opt.roAttributes;
+        var nodesAttrs = this.findNodesAttributes(roAttrs || attrs, rootNode, selectorCache);
+        // `nodesAttrs` are different from all attributes, when
+        // rendering only  attributes sent to this method.
+        var nodesAllAttrs = (roAttrs)
+            ? nodesAllAttrs = this.findNodesAttributes(attrs, rootNode, selectorCache)
+            : nodesAttrs;
+
+        for (var nodeId in nodesAttrs) {
+            nodeData = nodesAttrs[nodeId];
+            nodeAttrs = nodeData.attributes;
+            node = nodeData.node;
+            processedAttrs = this.processNodeAttributes(node, nodeAttrs);
+
+            if (!processedAttrs.set && !processedAttrs.position && !processedAttrs.offset) {
+                // Set all the normal attributes right on the SVG/HTML element.
+                this.setNodeAttributes(node, processedAttrs.normal);
+
+            } else {
+
+                var nodeAllAttrs = nodesAllAttrs[nodeId] && nodesAllAttrs[nodeId].attributes;
+                var refSelector = (nodeAllAttrs && (nodeAttrs.ref === undefined))
+                    ? nodeAllAttrs.ref
+                    : nodeAttrs.ref;
+
+                var refNode;
+                if (refSelector) {
+                    refNode = (selectorCache[refSelector] || this.findBySelector(refSelector, rootNode))[0];
+                    if (!refNode) {
+                        throw new Error('dia.ElementView: "' + refSelector + '" reference does not exists.');
+                    }
+                } else {
+                    refNode = null;
+                }
+
+                item = {
+                    node: node,
+                    refNode: refNode,
+                    processedAttributes: processedAttrs,
+                    allAttributes: nodeAllAttrs
+                };
+
+                // If an element in the list is positioned relative to this one, then
+                // we want to insert this one before it in the list.
+                var itemIndex = _.findIndex(relativeItems, { refNode: node });
+                if (itemIndex > -1) {
+                    relativeItems.splice(itemIndex, 0, item);
+                } else {
+                    relativeItems.push(item);
+                }
+            }
+        }
+
+        for (var i = 0, n = relativeItems.length; i < n; i++) {
+            item = relativeItems[i];
+            node = item.node;
+            refNode = item.refNode;
+
+            // Find the reference element bounding box. If no reference was provided, we
+            // use the optional bounding box.
+            var refNodeId = refNode ? V.ensureId(refNode) : '';
+            var refBBox = bboxCache[refNodeId];
+            if (!refBBox) {
+                // Get the bounding box of the reference element relative to the `rotatable` `<g>` (without rotation)
+                // or to the root `<g>` element if no rotatable group present if reference node present.
+                // Uses the bounding box provided.
+                refBBox = bboxCache[refNodeId] = (refNode)
+                    ? V(refNode).bbox(false, (opt.rotatableNode || rootNode))
+                    : opt.rootBBox;
+            }
+
+            if (roAttrs) {
+                // if there was a special attribute affecting the position amongst passed-in attributes
+                // we have to merge it with the rest of the element's attributes as they are necessary
+                // to update the position relatively (i.e `ref-x` && 'ref-dx')
+                processedAttrs = this.processNodeAttributes(node, item.allAttributes);
+                this.mergeProcessedAttributes(processedAttrs, item.processedAttributes);
+
+            } else {
+                processedAttrs = item.processedAttributes;
+            }
+
+            this.updateRelativeAttributes(node, processedAttrs, refBBox, opt);
+        }
+    },
+
+    mergeProcessedAttributes: function(processedAttrs, roProcessedAttrs) {
+
+        processedAttrs.set || (processedAttrs.set = {});
+        processedAttrs.position || (processedAttrs.position = {});
+        processedAttrs.offset || (processedAttrs.offset = {});
+
+        _.extend(processedAttrs.set, roProcessedAttrs.set);
+        _.extend(processedAttrs.position, roProcessedAttrs.position);
+        _.extend(processedAttrs.offset, roProcessedAttrs.offset);
+
+        // Handle also the special transform property.
+        var transform = processedAttrs.normal && processedAttrs.normal.transform;
+        if (transform !== undefined && roProcessedAttrs.normal) {
+            roProcessedAttrs.normal.transform = transform;
+        }
+        processedAttrs.normal = roProcessedAttrs.normal;
     },
 
     // Interaction. The controller part.
@@ -6620,7 +7328,6 @@ joint.dia.CellView = joint.mvc.View.extend({
         this.options.interactive = value;
     }
 });
-
 
 // joint.dia.Element base model.
 // -----------------------------
@@ -6760,6 +7467,28 @@ joint.dia.Element = joint.dia.Cell.extend({
         _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
 
         return this;
+    },
+
+    size: function(width, height, opt) {
+
+        var currentSize = this.get('size');
+        // Getter
+        // () signature
+        if (width === undefined) {
+            return {
+                width: currentSize.width,
+                height: currentSize.height
+            };
+        }
+        // Setter
+        // (size, opt) signature
+        if (_.isObject(width)) {
+            opt = height;
+            height = _.isNumber(width.height) ? width.height : currentSize.height;
+            width = _.isNumber(width.width) ? width.width : currentSize.width;
+        }
+
+        return this.resize(width, height, opt);
     },
 
     resize: function(width, height, opt) {
@@ -6942,10 +7671,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             var dx = center.x - size.width / 2 - position.x;
             var dy = center.y - size.height / 2 - position.y;
             this.startBatch('rotate', { angle: angle, absolute: absolute, origin: origin });
-            // Cloning the options here so the flags added by the `translate` method
-            // won't propagate to the `rotate` method. This is important because of
-            // LinkView update optimalization.
-            this.translate(dx, dy, _.clone(opt));
+            this.position(position.x + dx, position.y + dy, opt);
             this.rotate(angle, absolute, null, opt);
             this.stopBatch('rotate');
 
@@ -6984,22 +7710,6 @@ joint.dia.Element = joint.dia.Cell.extend({
 
 
 joint.dia.ElementView = joint.dia.CellView.extend({
-
-    SPECIAL_ATTRIBUTES: [
-        'style',
-        'text',
-        'html',
-        'ref-x',
-        'ref-y',
-        'ref-dx',
-        'ref-dy',
-        'ref-width',
-        'ref-height',
-        'ref',
-        'x-alignment',
-        'y-alignment',
-        'port'
-    ],
 
     /**
      * @abstract
@@ -7046,407 +7756,21 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     },
 
-    /**
-     * @param {jQuery} $selected
-     * @param {Object} attrs
-     */
-    updateAttr: function($selected, attrs) {
-
-        // Special attributes are treated by JointJS, not by SVG.
-        var specialAttributes = this.SPECIAL_ATTRIBUTES.slice();
-
-        // If the `filter` attribute is an object, it is in the special JointJS filter format and so
-        // it becomes a special attribute and is treated separately.
-        if (_.isObject(attrs.filter)) {
-
-            specialAttributes.push('filter');
-            this.applyFilter($selected, attrs.filter);
-        }
-
-        // If the `fill` or `stroke` attribute is an object, it is in the special JointJS gradient format and so
-        // it becomes a special attribute and is treated separately.
-        if (_.isObject(attrs.fill)) {
-
-            specialAttributes.push('fill');
-            this.applyGradient($selected, 'fill', attrs.fill);
-        }
-        if (_.isObject(attrs.stroke)) {
-
-            specialAttributes.push('stroke');
-            this.applyGradient($selected, 'stroke', attrs.stroke);
-        }
-
-        // Make special case for `text` attribute. So that we can set text content of the `<text>` element
-        // via the `attrs` object as well.
-        // Note that it's important to set text before applying the rest of the final attributes.
-        // Vectorizer `text()` method sets on the element its own attributes and it has to be possible
-        // to rewrite them, if needed. (i.e display: 'none')
-        if (!_.isUndefined(attrs.text)) {
-
-            $selected.each(function() {
-
-                if (!_.isUndefined(attrs.x)) {
-                    V(this).attr('x', attrs.x);
-                    specialAttributes.push('x');
-                }
-
-                if (!_.isUndefined(attrs.y)) {
-                    V(this).attr('y', attrs.y);
-                    specialAttributes.push('y');
-                }
-
-                V(this).text(attrs.text + '', {
-                    lineHeight: attrs.lineHeight,
-                    textPath: attrs.textPath,
-                    annotations: attrs.annotations
-                });
-            });
-            specialAttributes.push('lineHeight', 'textPath', 'annotations');
-        }
-
-        // Set regular attributes on the `$selected` subelement. Note that we cannot use the jQuery attr()
-        // method as some of the attributes might be namespaced (e.g. xlink:href) which fails with jQuery attr().
-        var finalAttributes = _.omit(attrs, specialAttributes);
-
-        $selected.each(function() {
-
-            V(this).attr(finalAttributes);
-        });
-
-        // `port` attribute contains the `id` of the port that the underlying magnet represents.
-        if (attrs.port) {
-            $selected.attr('port', _.isUndefined(attrs.port.id) ? attrs.port : attrs.port.id);
-        }
-
-        // `style` attribute is special in the sense that it sets the CSS style of the subelement.
-        if (attrs.style) {
-
-            $selected.css(attrs.style);
-        }
-
-        if (!_.isUndefined(attrs.html)) {
-
-            $selected.each(function() {
-
-                $(this).html(attrs.html + '');
-            });
-        }
-
-    },
-
-    // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
     update: function(cell, renderingOnlyAttrs) {
 
         this._removePorts();
 
-        var allAttrs = this.model.get('attrs');
-
-        var rotatable = this.rotatableNode;
-        if (rotatable) {
-            var rotation = rotatable.attr('transform');
-            rotatable.attr('transform', '');
-        }
-
-        var relativelyPositioned = [];
-        var nodesBySelector = {};
-
-        _.each(renderingOnlyAttrs || allAttrs, function(attrs, selector) {
-
-            // Elements that should be updated.
-            var $selected = (selector === '.')
-                    ? this.$el
-                    : this.findBySelector(selector);
-
-            var elementsCount = $selected.length;
-
-            // No element matched by the `selector` was found. We're done then.
-            if (elementsCount === 0) return;
-
-            nodesBySelector[selector] = $selected;
-
-            this.updateAttr($selected, attrs);
-
-            // Special `ref-x` and `ref-y` attributes make it possible to set both absolute or
-            // relative positioning of subelements.
-            if (!_.isUndefined(attrs['ref-x']) ||
-                !_.isUndefined(attrs['ref-y']) ||
-                !_.isUndefined(attrs['ref-dx']) ||
-                !_.isUndefined(attrs['ref-dy']) ||
-                !_.isUndefined(attrs['x-alignment']) ||
-                !_.isUndefined(attrs['y-alignment']) ||
-                !_.isUndefined(attrs['ref-width']) ||
-                !_.isUndefined(attrs['ref-height'])
-            ) {
-
-                for (var i = 0; i < elementsCount; i++) {
-                    var $el = $selected.eq(i);
-                    // store the selector for the element
-                    $el.selector = selector;
-                    relativelyPositioned.push($el);
-                }
-            }
-
-        }, this);
-
-        // We don't want the sub elements to affect the bounding box of the root element when
-        // positioning the sub elements relatively to the bounding box.
-        //_.invoke(relativelyPositioned, 'hide');
-        //_.invoke(relativelyPositioned, 'show');
-
-        // Note that we're using the bounding box without transformation because we are already inside
-        // a transformed coordinate system.
-        var size = this.model.get('size');
-        var bbox = { x: 0, y: 0, width: size.width, height: size.height };
-
-        renderingOnlyAttrs = renderingOnlyAttrs || {};
-
-        _.each(relativelyPositioned, function($el) {
-
-            // if there was a special attribute affecting the position amongst renderingOnlyAttributes
-            // we have to merge it with rest of the element's attributes as they are necessary
-            // to update the position relatively (i.e `ref`)
-            var renderingOnlyElAttrs = renderingOnlyAttrs[$el.selector];
-            var elAttrs = renderingOnlyElAttrs
-                ? _.merge({}, allAttrs[$el.selector], renderingOnlyElAttrs)
-                : allAttrs[$el.selector];
-
-            this.positionRelative(V($el[0]), bbox, elAttrs, nodesBySelector);
-
-        }, this);
-
-        if (rotatable) {
-
-            rotatable.attr('transform', rotation || '');
-        }
+        var model = this.model;
+        var modelAttrs = model.attr();
+        this.updateDOMSubtreeAttributes(this.el, modelAttrs, {
+            rootBBox: g.Rect(model.size()),
+            scalableNode: this.scalableNode,
+            rotatableNode: this.rotatableNode,
+            // Use rendering only attributes if they differs from the model attributes
+            roAttributes: (renderingOnlyAttrs === modelAttrs) ? null : renderingOnlyAttrs
+        });
 
         this._renderPorts();
-    },
-
-    positionRelative: function(vel, bbox, attributes, nodesBySelector) {
-
-        var ref = attributes['ref'];
-        var refDx = parseFloat(attributes['ref-dx']);
-        var refDy = parseFloat(attributes['ref-dy']);
-        var yAlignment = attributes['y-alignment'];
-        var xAlignment = attributes['x-alignment'];
-
-        // 'ref-y', 'ref-x', 'ref-width', 'ref-height' can be defined
-        // by value or by percentage e.g 4, 0.5, '200%'.
-        var refY = attributes['ref-y'];
-        var refYPercentage = _.isString(refY) && refY.slice(-1) === '%';
-        refY = parseFloat(refY);
-        if (refYPercentage) {
-            refY /= 100;
-        }
-
-        var refX = attributes['ref-x'];
-        var refXPercentage = _.isString(refX) && refX.slice(-1) === '%';
-        refX = parseFloat(refX);
-        if (refXPercentage) {
-            refX /= 100;
-        }
-
-        var refWidth = attributes['ref-width'];
-        var refWidthPercentage = _.isString(refWidth) && refWidth.slice(-1) === '%';
-        refWidth = parseFloat(refWidth);
-        if (refWidthPercentage) {
-            refWidth /= 100;
-        }
-
-        var refHeight = attributes['ref-height'];
-        var refHeightPercentage = _.isString(refHeight) && refHeight.slice(-1) === '%';
-        refHeight = parseFloat(refHeight);
-        if (refHeightPercentage) {
-            refHeight /= 100;
-        }
-
-        // Check if the node is a descendant of the scalable group.
-        var scalable = vel.findParentByClass('scalable', this.el);
-
-        // `ref` is the selector of the reference element. If no `ref` is passed, reference
-        // element is the root element.
-        if (ref) {
-
-            var vref;
-
-            if (nodesBySelector && nodesBySelector[ref]) {
-                // First we check if the same selector has been already used.
-                vref = V(nodesBySelector[ref][0]);
-            } else {
-                // Other wise we find the ref ourselves.
-                vref = ref === '.' ? this.vel : this.vel.findOne(ref);
-            }
-
-            if (!vref) {
-                throw new Error('dia.ElementView: reference does not exists.');
-            }
-
-            // Get the bounding box of the reference element relative to the root `<g>` element.
-            bbox = vref.bbox(false, this.el);
-        }
-
-        // Remove the previous translate() from the transform attribute and translate the element
-        // relative to the root bounding box following the `ref-x` and `ref-y` attributes.
-        if (vel.attr('transform')) {
-
-            vel.attr('transform', vel.attr('transform').replace(/translate\([^)]*\)/g, '').trim() || '');
-        }
-
-        // 'ref-width'/'ref-height' defines the width/height of the subelement relatively to
-        // the reference element size
-        // val in 0..1         ref-width = 0.75 sets the width to 75% of the ref. el. width
-        // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
-
-        if (isFinite(refWidth)) {
-
-            if (refWidthPercentage || refWidth >= 0 && refWidth <= 1) {
-
-                vel.attr('width', refWidth * bbox.width);
-
-            } else {
-
-                vel.attr('width', Math.max(refWidth + bbox.width, 0));
-            }
-        }
-
-        if (isFinite(refHeight)) {
-
-            if (refHeightPercentage || refHeight >= 0 && refHeight <= 1) {
-
-                vel.attr('height', refHeight * bbox.height);
-
-            } else {
-
-                vel.attr('height', Math.max(refHeight + bbox.height, 0));
-            }
-        }
-
-        // The final translation of the subelement.
-        var tx = 0;
-        var ty = 0;
-        var scale;
-
-        // `ref-dx` and `ref-dy` define the offset of the subelement relative to the right and/or bottom
-        // coordinate of the reference element.
-        if (isFinite(refDx)) {
-
-            if (scalable) {
-
-                // Compensate for the scale grid in case the elemnt is in the scalable group.
-                scale = scale || scalable.scale();
-                tx = bbox.x + bbox.width + refDx / scale.sx;
-
-            } else {
-
-                tx = bbox.x + bbox.width + refDx;
-            }
-        }
-
-        if (isFinite(refDy)) {
-
-            if (scalable) {
-
-                // Compensate for the scale grid in case the elemnt is in the scalable group.
-                scale = scale || scalable.scale();
-                ty = bbox.y + bbox.height + refDy / scale.sy;
-            } else {
-
-                ty = bbox.y + bbox.height + refDy;
-            }
-        }
-
-        // if `refX` is in [0, 1] then `refX` is a fraction of bounding box width
-        // if `refX` is < 0 then `refX`'s absolute values is the right coordinate of the bounding box
-        // otherwise, `refX` is the left coordinate of the bounding box
-        // Analogical rules apply for `refY`.
-        if (isFinite(refX)) {
-
-            if (refXPercentage || refX > 0 && refX < 1) {
-
-                tx = bbox.x + bbox.width * refX;
-
-            } else if (scalable) {
-
-                // Compensate for the scale grid in case the elemnt is in the scalable group.
-                scale = scale || scalable.scale();
-                tx = bbox.x + refX / scale.sx;
-
-            } else {
-
-                tx = bbox.x + refX;
-            }
-        }
-
-        if (isFinite(refY)) {
-
-            if (refYPercentage || refY > 0 && refY < 1) {
-
-                ty = bbox.y + bbox.height * refY;
-
-            } else if (scalable) {
-
-                // Compensate for the scale grid in case the elemnt is in the scalable group.
-                scale = scale || scalable.scale();
-                ty = bbox.y + refY / scale.sy;
-
-            } else {
-
-                ty = bbox.y + refY;
-            }
-        }
-
-        if (!_.isUndefined(yAlignment) || !_.isUndefined(xAlignment)) {
-
-            // Get the boundind box with the tranformations applied by the the
-            // element itself only.
-            var node = vel.node;
-            var velBBox = vel.bbox(false, node.parentNode);
-
-            // Compensate the size with the bounding box origin offset for text elements.
-            var nodeName = node.nodeName.toUpperCase();
-            if (nodeName === 'TEXT' || nodeName === 'TSPAN') {
-                velBBox.height += velBBox.y;
-                velBBox.width += velBBox.x;
-            }
-
-            if (scalable) {
-                scale = scale || scalable.scale();
-                velBBox.width *= scale.sx;
-                velBBox.height *= scale.sy;
-            }
-
-            // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
-            // `y-alignment` when set to `bottom` uses the y coordinate as referenced to the bottom of the bbox.
-            if (yAlignment === 'middle') {
-
-                ty -= velBBox.height / 2;
-
-            } else if (yAlignment === 'bottom') {
-
-                ty -= velBBox.height;
-
-            } else if (isFinite(yAlignment)) {
-
-                ty += (yAlignment > -1 && yAlignment < 1) ? velBBox.height * yAlignment : yAlignment;
-            }
-
-            // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
-            // `x-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
-            if (xAlignment === 'middle') {
-
-                tx -= velBBox.width / 2;
-
-            } else if (xAlignment === 'right') {
-
-                tx -= velBBox.width;
-
-            } else if (isFinite(xAlignment)) {
-
-                tx += (xAlignment > -1 && xAlignment < 1) ? velBBox.width * xAlignment : xAlignment;
-            }
-        }
-
-        vel.translate(tx, ty);
     },
 
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
@@ -7474,25 +7798,17 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         this.renderMarkup();
         this.rotatableNode = this.vel.findOne('.rotatable');
-        this.scalableNode = this.vel.findOne('.scalable');
-        this.update();
+        var scalable = this.scalableNode = this.vel.findOne('.scalable');
+        if (scalable) {
+            // Double update is necessary for elements with the scalable group only
+            // Note the resize() triggers the other `update`.
+            this.update();
+        }
         this.resize();
         this.rotate();
         this.translate();
 
         return this;
-    },
-
-    // Scale the whole `<g>` group. Note the difference between `scale()` and `resize()` here.
-    // `resize()` doesn't scale the whole `<g>` group but rather adjusts the `box.sx`/`box.sy` only.
-    // `update()` is then responsible for scaling only those elements that have the `follow-scale`
-    // attribute set to `true`. This is desirable in elements that have e.g. a `<text>` subelement
-    // that is not supposed to be scaled together with a surrounding `<rect>` element that IS supposed
-    // be be scaled.
-    scale: function(sx, sy) {
-
-        // TODO: take into account the origin coordinates `ox` and `oy`.
-        this.vel.scale(sx, sy);
     },
 
     resize: function(cell, changed, opt) {
@@ -7900,24 +8216,16 @@ joint.dia.Link = joint.dia.Cell.extend({
     },
 
     // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
-    label: function(idx, value) {
+    label: function(idx, value, opt) {
 
         idx = idx || 0;
 
-        var labels = this.get('labels') || [];
-
         // Is it a getter?
-        if (arguments.length === 0 || arguments.length === 1) {
-
-            return labels[idx];
+        if (arguments.length <= 1) {
+            return this.prop(['labels', idx]);
         }
 
-        var newValue = _.merge({}, labels[idx], value);
-
-        var newLabels = labels.slice();
-        newLabels[idx] = newValue;
-
-        return this.set({ labels: newLabels });
+        return this.prop(['labels', idx], value, opt);
     },
 
     translate: function(tx, ty, opt) {
@@ -8245,71 +8553,70 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     renderLabels: function() {
 
-        if (!this._V.labels) return this;
+        var vLabels = this._V.labels;
+        if (!vLabels) {
+            return this;
+        }
 
-        this._labelCache = {};
-        var $labels = $(this._V.labels.node).empty();
+        vLabels.empty();
 
-        var labels = this.model.get('labels') || [];
-        if (!labels.length) return this;
+        var model = this.model;
+        var labels = model.get('labels') || [];
+        var labelCache = this._labelCache = {};
+        var labelsCount = labels.length;
+        if (labelsCount === 0) {
+            return this;
+        }
 
-        var labelTemplate = joint.util.template(this.model.get('labelMarkup') || this.model.labelMarkup);
+        var labelTemplate = joint.util.template(model.get('labelMarkup') || model.labelMarkup);
         // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
         var labelNodeInstance = V(labelTemplate());
-
         var canLabelMove = this.can('labelMove');
 
-        _.each(labels, function(label, idx) {
+        for (var i = 0; i < labelsCount; i++) {
 
-            var labelNode = labelNodeInstance.clone().node;
-            V(labelNode).attr('label-idx', idx);
-            if (canLabelMove) {
-                V(labelNode).attr('cursor', 'move');
-            }
-
+            var label = labels[i];
+            var labelMarkup = label.markup;
             // Cache label nodes so that the `updateLabels()` can just update the label node positions.
-            this._labelCache[idx] = V(labelNode);
+            var vLabelNode = labelCache[i] = (labelMarkup)
+                ? V('g').append(V(labelMarkup))
+                : labelNodeInstance.clone();
 
-            var $text = $(labelNode).find('text');
-            var $rect = $(labelNode).find('rect');
+            vLabelNode
+                .addClass('label')
+                .attr({
+                    'label-idx': i,
+                    'cursor': (canLabelMove ? 'move' : 'default')
+                })
+                .appendTo(vLabels);
 
-            // Text attributes with the default `text-anchor` and font-size set.
-            var textAttributes = _.extend({ 'text-anchor': 'middle', 'font-size': 14 }, joint.util.getByPath(label, 'attrs/text', '/'));
-
-            $text.attr(_.omit(textAttributes, 'text'));
-
-            if (!_.isUndefined(textAttributes.text)) {
-
-                V($text[0]).text(textAttributes.text + '', { annotations: textAttributes.annotations });
+            var labelAttrs = label.attrs;
+            if (!labelMarkup) {
+                // Default attributes to maintain backwards compatibility
+                labelAttrs = _.merge({
+                    text: {
+                        textAnchor: 'middle',
+                        fontSize: 14,
+                        pointerEvents: 'none',
+                        yAlignment: 'middle'
+                    },
+                    rect: {
+                        ref: 'text',
+                        fill: 'white',
+                        rx: 3,
+                        ry: 3,
+                        refWidth: 1,
+                        refHeight: 1,
+                        refX: 0,
+                        refY: 0
+                    }
+                }, labelAttrs);
             }
 
-            // Note that we first need to append the `<text>` element to the DOM in order to
-            // get its bounding box.
-            $labels.append(labelNode);
-
-            // `y-alignment` - center the text element around its y coordinate.
-            var textBbox = V($text[0]).bbox(true, $labels[0]);
-            V($text[0]).translate(0, -textBbox.height / 2);
-
-            // Add default values.
-            var rectAttributes = _.extend({
-
-                fill: 'white',
-                rx: 3,
-                ry: 3
-
-            }, joint.util.getByPath(label, 'attrs/rect', '/'));
-
-            $rect.attr(_.extend(rectAttributes, {
-                x: textBbox.x,
-                y: textBbox.y - textBbox.height / 2,  // Take into account the y-alignment translation.
-                width: textBbox.width,
-                height: textBbox.height
-            }));
-
-        }, this);
+            this.updateDOMSubtreeAttributes(vLabelNode.node, labelAttrs);
+        }
 
         return this;
     },
@@ -8402,7 +8709,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (!opt.updateConnectionOnly) {
             // update SVG attributes defined by 'attrs/'.
-            this.updateAttributes();
+            this.updateDOMSubtreeAttributes(this.el, this.model.attr());
         }
 
         // update the link path, label position etc.
@@ -8459,47 +8766,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this._translateAndAutoOrientArrows(this._V.markerSource, this._V.markerTarget);
     },
 
-    updateAttributes: function() {
-
-        // Update attributes.
-        _.each(this.model.get('attrs'), function(attrs, selector) {
-
-            var processedAttributes = [];
-
-            // If the `fill` or `stroke` attribute is an object, it is in the special JointJS gradient format and so
-            // it becomes a special attribute and is treated separately.
-            if (_.isObject(attrs.fill)) {
-
-                this.applyGradient(selector, 'fill', attrs.fill);
-                processedAttributes.push('fill');
-            }
-
-            if (_.isObject(attrs.stroke)) {
-
-                this.applyGradient(selector, 'stroke', attrs.stroke);
-                processedAttributes.push('stroke');
-            }
-
-            // If the `filter` attribute is an object, it is in the special JointJS filter format and so
-            // it becomes a special attribute and is treated separately.
-            if (_.isObject(attrs.filter)) {
-
-                this.applyFilter(selector, attrs.filter);
-                processedAttributes.push('filter');
-            }
-
-            // remove processed special attributes from attrs
-            if (processedAttributes.length > 0) {
-
-                processedAttributes.unshift(attrs);
-                attrs = _.omit.apply(_, processedAttributes);
-            }
-
-            this.findBySelector(selector).attr(attrs);
-
-        }, this);
-    },
-
     _findConnectionPoints: function(vertices) {
 
         // cache source and target points
@@ -8545,8 +8811,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         // if there was no markup for the marker, use the connection point.
-        cache.sourcePoint = sourceMarkerPoint || sourcePoint;
-        cache.targetPoint = targetMarkerPoint || targetPoint;
+        cache.sourcePoint = sourceMarkerPoint || sourcePoint.clone();
+        cache.targetPoint = targetMarkerPoint || targetPoint.clone();
 
         // make connection points public
         this.sourcePoint = sourcePoint;
@@ -8588,7 +8854,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var distance = _.isObject(position) ? position.distance : position;
                 var offset = _.isObject(position) ? position.offset : { x: 0, y: 0 };
 
-                if (!_.isNaN(distance)) {
+                if (_.isFinite(distance)) {
                     distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
                     distance = (distance < 0) ? connectionLength + distance : distance;
                     distance = (distance > 1) ? distance : connectionLength * distance;
@@ -8601,9 +8867,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 if (_.isObject(offset)) {
 
                     // Just offset the label by the x,y provided in the offset object.
-                    labelCoordinates = g.point(labelCoordinates).offset(offset.x, offset.y);
+                    labelCoordinates = g.point(labelCoordinates).offset(offset);
 
-                } else if (_.isNumber(offset)) {
+                } else if (_.isFinite(offset)) {
 
                     if (!samples) {
                         samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
@@ -9589,8 +9855,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     var selector = viewUnderPointer.getSelector(magnetUnderPointer);
                     var port = magnetUnderPointer.getAttribute('port');
                     var arrowheadValue = { id: viewUnderPointer.model.id };
-                    if (selector != null) arrowheadValue.port = port;
-                    if (port != null) arrowheadValue.selector = selector;
+                    if (port != null) arrowheadValue.port = port;
+                    if (selector != null) arrowheadValue.selector = selector;
                     this.model.set(arrowhead, arrowheadValue, { ui: true });
                 }
             }
@@ -9841,6 +10107,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var model = this.model = this.options.model || new joint.dia.Graph;
 
+        this.setGrid(this.options.drawGrid);
         this.cloneOptions();
         this.render();
         this.setDimensions();
@@ -9996,7 +10263,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         width = this.options.width = width || this.options.width;
         height = this.options.height = height || this.options.height;
 
-        this.$el.css({ width: width, height: height });
+        this.$el.css({
+            width: Math.round(width),
+            height: Math.round(height)
+        });
 
         this.trigger('resize', width, height);
     },
@@ -10358,14 +10628,13 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             var batchSize = (this.options.async && this.options.async.batchSize) || 50;
             var batchCells = cells.splice(0, batchSize);
-            var collection = this.model.get('cells');
 
             _.each(batchCells, function(cell) {
 
-                // The cell has to be part of the graph collection.
+                // The cell has to be part of the graph.
                 // There is a chance in asynchronous rendering
                 // that a cell was removed before it's rendered to the paper.
-                if (cell.collection === collection) this.renderView(cell);
+                if (cell.graph === this.model) this.renderView(cell);
 
             }, this);
 
@@ -10786,6 +11055,9 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         opt = this.resolveHighlighter(opt);
         if (!opt) return;
+        if (!magnetEl.id) {
+            magnetEl.id = V.uniqueId();
+        }
 
         var key = opt.name + magnetEl.id + JSON.stringify(opt.options);
         if (!this._highlights[key]) {
@@ -11045,31 +11317,135 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     clearGrid: function() {
 
-        this.$grid.css('backgroundImage', 'none');
+        if (this.$grid) {
+            this.$grid.css('backgroundImage', 'none');
+        }
         return this;
     },
 
-    drawGrid: function(opt) {
+    _getGriRefs: function () {
 
-        opt = _.defaults({}, opt, this.options.drawGrid);
+        if (!this._gridCache) {
+
+            this._gridCache = {
+                root: V('svg', { width: '100%', height: '100%' }, V('defs')),
+                patterns: {},
+                add: function (id, vel) {
+                    V(this.root.node.childNodes[0]).append(vel);
+                    this.patterns[id] = vel;
+                    this.root.append(V('rect', { width: "100%", height: "100%", fill: 'url(#' + id + ')' }));
+                },
+                get: function (id) {
+                    return  this.patterns[id]
+                },
+                exist: function (id) {
+                    return this.patterns[id] !== undefined;
+                }
+            }
+        }
+
+        return this._gridCache;
+    },
+
+    setGrid:function (drawGrid) {
+
+        this.clearGrid();
+
+        this._gridCache = null;
+        this._gridSettings = [];
+
+        var optionsList = _.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
+        _.each(optionsList, function (item) {
+            this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
+        }, this);
+        return this;
+    },
+
+    _resolveDrawGridOption: function (opt) {
+
+        var namespace = this.constructor.gridPatterns;
+        if (_.isString(opt) && namespace[opt]) {
+            return _.map(namespace[opt], _.clone);
+        }
+
+        var options = opt || { args: [{}] };
+        var isArray = _.isArray(options);
+        var name = options.name;
+
+        if (!isArray && !name && !options.markup ) {
+            name = 'dot';
+        }
+
+        if (name && namespace[name]) {
+            var pattern = _.map(namespace[name], _.clone);
+
+            var args = _.isArray(options.args) ? options.args : [options.args || {}];
+
+            _.defaults(args[0], _.omit(opt, 'args'));
+            for (var i = 0; i < args.length; i++) {
+                if (pattern[i]) {
+                    _.extend(pattern[i], args[i]);
+                }
+            }
+            return pattern;
+        }
+
+        return isArray ? options : [options];
+    },
+
+    drawGrid: function(opt) {
 
         var gridSize = this.options.gridSize;
         if (gridSize <= 1) {
             return this.clearGrid();
         }
 
+        var localOptions = _.isArray(opt) ? opt : [opt];
+
         var ctm = this.matrix();
-        var canvas = this.constructor.backgroundPatterns.grid(null, {
-            sx: ctm.a,
-            sy: ctm.d,
-            ox: ctm.e,
-            oy: ctm.f,
-            size: gridSize,
-            color: opt.color,
-            thickness: opt.thickness
+        var refs = this._getGriRefs();
+
+        _.each(this._gridSettings, function (gridLayerSetting, index) {
+
+            var id = 'pattern_'  + index;
+            var options = _.merge(gridLayerSetting, localOptions[index], {
+                sx: ctm.a || 1,
+                sy: ctm.d || 1,
+                ox: ctm.e || 0,
+                oy: ctm.f || 0
+            });
+
+            options.width = gridSize * (ctm.a || 1) * (options.scaleFactor || 1);
+            options.height = gridSize * (ctm.d || 1) * (options.scaleFactor || 1);
+
+            if (!refs.exist(id)) {
+                refs.add(id, V('pattern', { id: id, patternUnits: 'userSpaceOnUse' }, V(options.markup)))
+            }
+
+            var patternDefVel = refs.get(id);
+
+            if (_.isFunction(options.update)) {
+                options.update(patternDefVel.node.childNodes[0], options);
+            }
+
+            var x = options.ox % options.width;
+            if (x < 0) x += options.width;
+
+            var y = options.oy % options.height;
+            if (y < 0) y += options.height;
+
+            patternDefVel.attr({
+                x: x,
+                y: y,
+                width: options.width,
+                height: options.height
+            });
         });
 
-        this.$grid.css('backgroundImage', 'url(' + canvas.toDataURL('image/png') + ')');
+        var patternUri = new XMLSerializer().serializeToString(refs.root.node);
+        patternUri = 'url(data:image/svg+xml;base64,' + btoa(patternUri) + ')';
+
+        this.$grid.css('backgroundImage', patternUri);
 
         return this;
     },
@@ -11193,7 +11569,130 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.options.interactive = value;
 
         _.invoke(this._views, 'setInteractivity', value);
+    },
+
+    // Paper Defs
+
+    isDefined: function(defId) {
+        return !!this.svg.getElementById(defId);
+    },
+
+    defineFilter: function(filter) {
+
+        if (!_.isObject(filter)) {
+            throw new TypeError('dia.Paper: defineFilter() requires 1. argument to be an object.');
+        }
+
+        var filterId = filter.id;
+        var name = filter.name;
+        // Generate a hash code from the stringified filter definition. This gives us
+        // a unique filter ID for different definitions.
+        if (!filterId) {
+            filterId = name + this.svg.id + joint.util.hashCode(JSON.stringify(filter));
+        }
+        // If the filter already exists in the document,
+        // we're done and we can just use it (reference it using `url()`).
+        // If not, create one.
+        if (!this.isDefined(filterId)) {
+
+            var namespace = joint.util.filter;
+            var filterSVGString = namespace[name] && namespace[name](filter.args || {});
+            if (!filterSVGString) {
+                throw new Error('Non-existing filter ' + name);
+            }
+
+            // Set the filter area to be 3x the bounding box of the cell
+            // and center the filter around the cell.
+            var filterAttrs = _.extend({
+                filterUnits: 'objectBoundingBox',
+                x: -1,
+                y: -1,
+                width: 3,
+                height: 3
+            }, filter.attrs, {
+                id: filterId
+            });
+
+            V(filterSVGString, filterAttrs).appendTo(this.defs);
+        }
+
+        return filterId;
+    },
+
+    defineGradient: function(gradient) {
+
+        if (!_.isObject(gradient)) {
+            throw new TypeError('dia.Paper: defineGradient() requires 1. argument to be an object.');
+        }
+
+        var gradientId = gradient.id;
+        var type = gradient.type;
+        var stops = gradient.stops;
+        // Generate a hash code from the stringified filter definition. This gives us
+        // a unique filter ID for different definitions.
+        if (!gradientId) {
+            gradientId = type + this.svg.id + joint.util.hashCode(JSON.stringify(gradient));
+        }
+        // If the gradient already exists in the document,
+        // we're done and we can just use it (reference it using `url()`).
+        // If not, create one.
+        if (!this.isDefined(gradientId)) {
+
+            var stopTemplate = joint.util.template('<stop offset="${offset}" stop-color="${color}" stop-opacity="${opacity}"/>');
+            var gradientStopsStrings = _.map(stops, function(stop) {
+                return stopTemplate({
+                    offset: stop.offset,
+                    color: stop.color,
+                    opacity: _.isFinite(stop.opacity) ? stop.opacity : 1
+                });
+            });
+
+            var gradientSVGString = [
+                '<' + type + '>',
+                gradientStopsStrings.join(''),
+                '</' + type + '>'
+            ].join('');
+
+            var gradientAttrs = _.extend({ id: gradientId }, gradient.attrs);
+
+            V(gradientSVGString, gradientAttrs).appendTo(this.defs);
+        }
+
+        return gradientId;
+    },
+
+    defineMarker: function(marker) {
+
+        if (!_.isObject(marker)) {
+            throw new TypeError('dia.Paper: defineMarker() requires 1. argument to be an object.');
+        }
+
+        var markerId = marker.id;
+
+        // Generate a hash code from the stringified filter definition. This gives us
+        // a unique filter ID for different definitions.
+        if (!markerId) {
+            markerId = this.svg.id + joint.util.hashCode(JSON.stringify(marker));
+        }
+
+        if (!this.isDefined(markerId)) {
+
+            var attrs = _.omit(marker, 'type', 'userSpaceOnUse');
+            var pathMarker = V('marker', {
+                id: markerId,
+                orient: 'auto',
+                overflow: 'visible',
+                markerUnits: marker.markerUnits || 'userSpaceOnUse'
+            }, [
+                V(marker.type || 'path', attrs)
+            ]);
+
+            pathMarker.appendTo(this.defs);
+        }
+
+        return markerId;
     }
+
 }, {
 
     backgroundPatterns: {
@@ -11300,49 +11799,103 @@ joint.dia.Paper = joint.mvc.View.extend({
             }
 
             return canvas;
-        },
-
-        grid: function(img, opt) {
-
-            opt = opt || {};
-
-            var size = opt.size;
-            var ox = opt.ox || 0;
-            var oy = opt.oy || 0;
-            var sx = opt.sx || 1;
-            var sy = opt.sy || 1;
-            var thickness = opt.thickness || 1;
-            var color = opt.color || '#aaa';
-
-            var canvas = document.createElement('canvas');
-
-            var width = canvas.width = Math.round(size * sx);
-            var x = ox % width;
-            if (x < 0) x += width;
-
-            var height = canvas.height = Math.round(size * sy);
-            var y = oy % height;
-            if (y < 0) y += height;
-
-            var context = canvas.getContext('2d');
-            context.beginPath();
-            context.rect(x, y, thickness * sx, thickness * sy);
-            context.fillStyle = color;
-            context.fill();
-
-            return canvas;
         }
-    }
+    },
 
+    gridPatterns: {
+        dot: [{
+            color: '#AAAAAA',
+            thickness: 1,
+            markup: 'rect',
+            update: function(el, opt) {
+                V(el).attr({
+                    width: opt.thickness * opt.sx,
+                    height: opt.thickness * opt.sy,
+                    fill: opt.color
+                });
+            }
+        }],
+        fixedDot: [{
+            color: '#AAAAAA',
+            thickness: 1,
+            markup: 'rect',
+            update: function(el, opt) {
+                var size = opt.sx <= 1 ? opt.thickness * opt.sx : opt.thickness;
+                V(el).attr({ width: size, height: size, fill: opt.color });
+            }
+        }],
+        mesh: [{
+            color: '#AAAAAA',
+            thickness: 1,
+            markup: 'path',
+            update: function(el, opt) {
+
+                var d;
+                var width = opt.width;
+                var height = opt.height;
+                var thickness = opt.thickness;
+
+                if (width - thickness >= 0 && height - thickness >= 0) {
+                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+                } else {
+                    d = 'M 0 0 0 0';
+                }
+
+                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+            }
+        }],
+        doubleMesh: [{
+            color: '#AAAAAA',
+            thickness: 1,
+            markup: 'path',
+            update: function(el, opt) {
+
+                var d;
+                var width = opt.width;
+                var height = opt.height;
+                var thickness = opt.thickness;
+
+                if (width - thickness >= 0 && height - thickness >= 0) {
+                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+                } else {
+                    d = 'M 0 0 0 0';
+                }
+
+                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+            }
+        }, {
+            color: '#000000',
+            thickness: 3,
+            scaleFactor: 4,
+            markup: 'path',
+            update: function(el, opt) {
+
+                var d;
+                var width = opt.width;
+                var height = opt.height;
+                var thickness = opt.thickness;
+
+                if (width - thickness >= 0 && height - thickness >= 0) {
+                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+                } else {
+                    d = 'M 0 0 0 0';
+                }
+
+                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+            }
+        }]
+    }
 });
 
 (function(joint, _) {
 
     var PortData = function(data) {
 
-        var clonedData = _.cloneDeep(data);
+        var clonedData = _.cloneDeep(data) || {};
         this.ports = [];
-        this.groups = this._getNormalizedGroups(clonedData);
+        this.groups = {};
+        this.portLayoutNamespace = joint.layout.Port;
+        this.portLabelLayoutNamespace = joint.layout.PortLabel;
 
         this._init(clonedData);
     };
@@ -11353,87 +11906,107 @@ joint.dia.Paper = joint.mvc.View.extend({
             return this.ports;
         },
 
-        getPort: function(id) {
-            return _.find(this.ports, function(p) {
-                return p.id === id;
+        getGroup: function(name) {
+            return this.groups[name] || {};
+        },
+
+        getPortsByGroup: function(groupName) {
+
+            return _.filter(this.ports, function(port) {
+                return port.group === groupName;
             });
         },
 
-        getGroup: function(name) {
-            return this.groups[name] || this._createGroupNode();
+        getGroupPortsMetrics: function(groupName, elBBox) {
+
+            var group = this.getGroup(groupName);
+            var ports = this.getPortsByGroup(groupName);
+
+            var groupPosition = group.position || {};
+            var groupPositionName = groupPosition.name;
+            var namespace = this.portLayoutNamespace;
+            if (!namespace[groupPositionName]) {
+                groupPositionName = 'left';
+            }
+
+            var groupArgs = groupPosition.args || {};
+            var portsArgs = _.pluck(ports, 'position.args');
+            var groupPortTransformations = namespace[groupPositionName](portsArgs, elBBox, groupArgs);
+
+            return _.transform(groupPortTransformations, _.bind(function(result, portTransformation, index) {
+                var port = ports[index];
+                result.push({
+                    portId: port.id,
+                    portTransformation: portTransformation,
+                    labelTransformation: this._getPortLabelLayout(port, g.Point(portTransformation), elBBox),
+                    portAttrs: port.attrs,
+                    portSize: port.size,
+                    labelSize: port.label.size
+                });
+            }, this), []);
         },
 
-        addPort: function(port) {
+        _getPortLabelLayout: function(port, portPosition, elBBox) {
 
-            port = this._evaluatePort(port);
-            this.ports.push(port);
+            var namespace = this.portLabelLayoutNamespace;
+            var labelPosition = port.label.position.name || 'left';
+
+            if (namespace[labelPosition]) {
+                return namespace[labelPosition](portPosition, elBBox, port.label.position.args);
+            }
+
+            return null;
         },
 
         _init: function(data) {
 
-            data = data || {};
-
-            var ports = data.items || [];
-
-            _.each(ports, function(port) {
-
-                this.addPort(port);
-            }, this);
+            // prepare groups
+            _.transform(data.groups || {}, _.bind(this._evaluateGroup, this), this.groups);
+            // prepare ports
+            _.transform(data.items || [], _.bind(this._evaluatePort, this), this.ports);
         },
 
-        _evaluatePort: function(port) {
+        _evaluateGroup: function (resultMap, group, key) {
+
+            resultMap[key] = _.merge(group, {
+                position: this._getPosition(group.position, true),
+                label: this._getLabel(group, true)
+            });
+        },
+
+        _evaluatePort: function(resultArray, port) {
 
             var evaluated = _.clone(port);
 
-            var group = _.extend(this._createGroupNode(), port.group ? this.groups[port.group] : null);
+            var group = this.getGroup(port.group);
 
             evaluated.markup = evaluated.markup || group.markup;
             evaluated.attrs = _.merge({}, group.attrs, evaluated.attrs);
-            evaluated.position = _.merge(this._createPositionNode(), group.position, { args: evaluated.args });
+            evaluated.position = this._createPositionNode(group, evaluated);
             evaluated.label = _.merge({}, group.label, this._getLabel(evaluated));
-            evaluated.z = this._getZIndex(evaluated.z, group.z);
+            evaluated.z = this._getZIndex(group, evaluated);
+            evaluated.size = _.extend({}, group.size, evaluated.size);
 
-            return evaluated;
+            resultArray.push(evaluated);
         },
 
-        _getZIndex: function(data, group) {
+        _getZIndex: function(group, port) {
 
-            if (_.isNumber(data)) {
-                return data;
+            if (_.isNumber(port.z)) {
+                return port.z;
             }
-            if (_.isNumber(group) || group === 'auto') {
-                return group;
+            if (_.isNumber(group.z) || group.z === 'auto') {
+                return group.z;
             }
             return 'auto';
         },
 
-        _createPositionNode: function() {
+        _createPositionNode: function(group, port) {
 
-            return {
+            return _.merge({
                 name: 'left',
                 args: {}
-            };
-        },
-
-        _createGroupNode: function() {
-
-            return {
-                position: {},
-                label: { position: { name: 'left', args: {} } }
-            };
-        },
-
-        _getNormalizedGroups: function(data) {
-
-            data = data || {};
-            data.groups = data.groups || {};
-
-            _.each(data.groups, function(group) {
-                group.position = this._getPosition(group.position, true);
-                group.label = this._getLabel(group, true);
-            }, this);
-
-            return data.groups;
+            }, group.position, { args: port.args });
         },
 
         _getPosition: function(position, setDefault) {
@@ -11564,6 +12137,24 @@ joint.dia.Paper = joint.mvc.View.extend({
         },
 
         /**
+         * @param {string} groupName
+         * @returns {Object<portId, {x: number, y: number, angle: number}>}
+         */
+        getPortsPositions: function(groupName) {
+
+            var portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, g.Rect(this.size()));
+
+            return _.transform(portsMetrics, function(positions, metrics) {
+                var transformation = metrics.portTransformation;
+                positions[metrics.portId] = {
+                    x: transformation.x,
+                    y: transformation.y,
+                    angle: transformation.angle
+                };
+            }, {});
+        },
+
+        /**
          * @param {string|Port} port port id or port
          * @returns {number} port index
          */
@@ -11598,7 +12189,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         /**
          * @param {string} portId
-         * @param {string|object} path
+         * @param {string|object=} path
          * @param {*=} value
          * @param {object=} opt
          * @returns {joint.dia.Element}
@@ -11611,22 +12202,26 @@ joint.dia.Paper = joint.mvc.View.extend({
                 throw new Error('Element: unable to find port with id ' + portId);
             }
 
-            var args;
-            if (_.isString(path)) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            if (_.isArray(path)) {
+                args[0] = ['ports', 'items', index].concat(path);
+            } else if (_.isString(path)) {
 
-                args = Array.prototype.slice.call(arguments, 1);
                 // Get/set an attribute by a special path syntax that delimits
                 // nested objects by the colon character.
                 args[0] = ['ports/items/', index, '/', path].join('');
 
             } else {
 
-                args = ['ports/items/' + index, path, value];
+                args = ['ports/items/' + index];
+                if (_.isPlainObject(path)) {
+                    args.push(path);
+                    args.push(value);
+                }
             }
 
             return this.prop.apply(this, args);
         },
-
 
         _validatePorts: function() {
 
@@ -11696,7 +12291,40 @@ joint.dia.Paper = joint.mvc.View.extend({
                 throw new Error(err.join(' '));
             }
 
-            this.portData = new PortData(this.get('ports'));
+            var prevPortData;
+
+            if (this._portSettingsData) {
+
+                prevPortData = this._portSettingsData.getPorts();
+            }
+
+            this._portSettingsData = new PortData(this.get('ports'));
+
+            var curPortData = this._portSettingsData.getPorts();
+
+            if (prevPortData) {
+
+                // _.filter can be replaced with _.differenceBy in lodash 4
+                var added = _.filter(curPortData, function(item) {
+                    if (!_.find(prevPortData, 'id', item.id)) {
+                        return item;
+                    }
+                });
+
+                var removed = _.filter(prevPortData, function(item) {
+                    if (!_.find(curPortData, 'id', item.id)) {
+                        return item;
+                    }
+                });
+
+                if (removed.length > 0) {
+                    this.trigger('ports:remove', this, removed);
+                }
+
+                if (added.length > 0) {
+                    this.trigger('ports:add', this, added);
+                }
+            }
         }
     });
 
@@ -11755,20 +12383,20 @@ joint.dia.Paper = joint.mvc.View.extend({
                 elementReferences.push(n);
             });
 
-            var ports = _.groupBy(this.model.portData.getPorts(), 'z');
+            var portsGropsByZ = _.groupBy(this.model._portSettingsData.getPorts(), 'z');
             var withoutZKey = 'auto';
 
             // render non-z first
-            _.each(ports[withoutZKey], function(port) {
+            _.each(portsGropsByZ[withoutZKey], function(port) {
                 var portElement = this._getPortElement(port);
                 elem.append(portElement);
                 elementReferences.push(portElement);
             }, this);
 
-            _.each(ports, function(groupPorts, groupName) {
+            _.each(portsGropsByZ, function(groupPorts, groupName) {
                 if (groupName !== withoutZKey) {
                     var z = parseInt(groupName, 10);
-                    this._appendPorts(ports[groupName], z, elementReferences);
+                    this._appendPorts(portsGropsByZ[groupName], z, elementReferences);
                 }
             }, this);
 
@@ -11821,15 +12449,11 @@ joint.dia.Paper = joint.mvc.View.extend({
          */
         _updatePorts: function() {
 
-            var elBBox = g.rect(this.model.get('size'));
-            var ports = this.model.portData.getPorts();
-
-            _.each(_.groupBy(ports, 'group'), function(ports, groupName) {
-
-                var group = this.model.portData.getGroup(groupName);
-                _.each(ports, this._updatePortAttrs, this);
-                this._layoutPorts(ports, group, elBBox.clone());
-            }, this);
+            // layout ports without group
+            this._updatePortGroup(undefined);
+            // layout ports with explicit group
+            var groupsNames = _.keys(this.model._portSettingsData.groups);
+            _.each(groupsNames, this._updatePortGroup, this);
         },
 
         /**
@@ -11871,66 +12495,32 @@ joint.dia.Paper = joint.mvc.View.extend({
         },
 
         /**
-         * @param {Port} port
+         * @param {string=} groupName
          * @private
          */
-        _updatePortAttrs: function(port) {
+        _updatePortGroup: function(groupName) {
 
-            var allAttrs = port.attrs || {};
-            var element = this._portElementsCache[port.id];
+            var elementBBox = g.Rect(this.model.size());
+            var portsMetrics = this.model._portSettingsData.getGroupPortsMetrics(groupName, elementBBox);
 
-            if (!element) {
-                return;
-            }
+            for (var i = 0, n = portsMetrics.length; i < n; i++) {
+                var metrics = portsMetrics[i];
+                var portId = metrics.portId;
+                var cached = this._portElementsCache[portId] || {};
+                var portTransformation = metrics.portTransformation;
+                this.applyPortTransform(cached.portElement, portTransformation);
+                this.updateDOMSubtreeAttributes(cached.portElement.node, metrics.portAttrs, {
+                    rootBBox: g.Rect(metrics.portSize)
+                });
 
-            this._updateAllAttrs(element.portElement.node, allAttrs);
-        },
-
-        /**
-         * @param {Element} element
-         * @param {Object} allAttrs
-         * @private
-         */
-        _updateAllAttrs: function(element, allAttrs) {
-
-            _.each(allAttrs, function(attrs, selector) {
-
-                var $selected = selector === '.' ? $(element) : $(element).find(selector);
-                this.updateAttr($selected, attrs);
-
-            }, this);
-        },
-
-        /**
-         * @param {Array<Port>} ports
-         * @param {object} group
-         * @param {g.rect} elBBox
-         * @private
-         */
-        _layoutPorts: function(ports, group, elBBox) {
-
-            var position = group.position.name;
-            var namespace = joint.layout.Port;
-            if (!namespace[position]) {
-                position = 'left';
-            }
-
-            var portTrans = namespace[position](_.pluck(ports, 'position.args'), elBBox, group.position.args || {});
-
-            _.each(portTrans, function(offset, index) {
-
-                var port = this.model.portData.getPort(ports[index].id);
-                var cached = this._portElementsCache[port.id] || {};
-
-                this.applyPortTransform(cached.portElement, offset);
-
-                var namespace = joint.layout.PortLabel;
-                var labelPosition = port.label.position.name;
-                if (namespace[labelPosition]) {
-                    var labelTrans = namespace[labelPosition](g.point(offset), elBBox, port.label.position.args);
-                    this.applyPortTransform(cached.portLabelElement, labelTrans, -(offset.angle || 0));
+                var labelTransformation = metrics.labelTransformation;
+                if (labelTransformation) {
+                    this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
+                    this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelTransformation.attrs, {
+                        rootBBox: g.Rect(metrics.labelSize)
+                    });
                 }
-            }, this);
+            }
         },
 
         /**
@@ -11947,7 +12537,6 @@ joint.dia.Paper = joint.mvc.View.extend({
                 .rotate(transformData.angle || 0);
 
             element.transform(matrix, { absolute: true });
-            this._updateAllAttrs(element.node, transformData.attrs || {});
         },
 
         /**
@@ -12219,6 +12808,7 @@ joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
             },
             'text': {
                 'ref-y': .5,
+                'ref-dy': null,
                 'y-alignment': 'middle'
             }
         }
@@ -12380,7 +12970,6 @@ joint.shapes.basic.TextBlock = joint.shapes.basic.Generic.extend({
             },
             '.content': {
                 text: '',
-                ref: 'rect',
                 'ref-x': .5,
                 'ref-y': .5,
                 'y-alignment': 'middle',
@@ -12472,9 +13061,9 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
 
     update: function(cell, renderingOnlyAttrs) {
 
-        if (!joint.env.test('svgforeignobject')) {
+        var model = this.model;
 
-            var model = this.model;
+        if (!joint.env.test('svgforeignobject')) {
 
             // Update everything but the content first.
             var noTextAttrs = _.omit(renderingOnlyAttrs || model.get('attrs'), '.content');
