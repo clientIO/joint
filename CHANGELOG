@@ -1,6 +1,45 @@
 ??-??-???? (v1.1.0)
+  * add TypeScript definitions
+  * update jQuery v3.1.1
+  * Geometry - improve Point/Rect prototype.round(precision) - fix coordinates being converted to a string after round() with a precision called, allow negative precision
+  * Geometry - add Rect inflate(), bottomLine(), topLine(), leftLine() and rightLine()
+  * Geometry - Point offset() and difference() accept both a point and x,y coordinates
+  * Geometry - add Line equals()
+  * Geometry - Line intersection() renamed to intersect() and calculates intersection points with another line or rectangle
+  * Vectorizer - stop accessing deprecated `nodeName` and `nodeValue` attribute properties
+  * Vectorizer - add prototype.contains() method
+  * Vectorizer - add matrixToTransformString() method as opposed to transformStringToMatrix()
+  * Vectorizer - add ensureId() method
+  * Vectorizer - add appendTo() method
+  * Vectorizer - V(node); does not set automatically id on the node anymore
+  * Vectorizer - text() with content doesn't set invalid display: null on node anymore
+  * Vectorizer - fix convertRectToPathData() for rounded rectangles 
+  * dia.attributes - add namespace for defining custom attributes, allow camelCase attribute style
+  * dia.attributes - new attributes `sourceMarker`, `targetMarker`, `vertexMarker`, `textWrap`, `refRx`, `refRy`, `refCx`, `refCy`, `refX2`, `refY2`
+  * dia.attributes - improve `text` attribute performance on cellView update
+  * dia.attributes - fix mixing various attributes (e.g. `transform`, `refX` and `refDx` now add up)
+  * dia.Paper - add defineGradient(), defineFilter(), defineMarker() and isDefined() methods
+  * dia.Paper - fix async rendering when cell was previously member of different graph.
+  * dia.Paper - improve grid precision, added new grid patterns, update drawGrid() options definition.
+  * dia.Paper - `blank:pointerup` event is fired only after a preceeding `blank:pointerdown` event
+  * dia.Paper - add paperToLocalPoint(), clientToLocalPoint(), pageToLocalPoint(), localToPaperPoint(), localToPagePoint() and localToClientPoint().
+  * dia.Paper - add paperToLocalRect(), clientToLocalRect(), pageToLocalRect(), localToPaperRect(), localToClientRect() and localToPageRect()
+  * dia.Paper - add clientOffset() and pageOffset()
+  * dia.Cell - make cell.attr() work as getter
+  * dia.Cell - prop(), removeProp() accept also path defined as an array
+  * dia.Element - add size(), getPortPositions() methods
+  * dia.Element - rotate() doesn't translate embeddeded cells anymore
+  * dia.Link - allow arbitrary shapes for labels
+  * dia.LinkView - fix link translating when embedded and has no marker
+  * dia.LinkView - set correct port and selector on the link
+  * mvc.View - prevent extend() from modifying prototype propertires
   * ports events `ports:add` and `ports:remove` triggered when port is added to element/removed from element
-  * dia.Paper: Improve grid precision, added new grid patterns,  update `drawGrid` options definition.
+  * utils - fix toggleFullScreen() in IE
+  * utils - breakText() takes the lineHeight style into account
+  * util - change cells() wrapper also accept a single cell
+  * highlighter.Stroke - allow multiple strokes to be applied to a single cellView magnet, prevent memory leaks
+  * connectors.jumpover - fix on graph `reset`
+
 18-11-2016 (v1.0.3)
   * make compatibility changes towards jQuery 3.1
   * shapes.TextBlock - fix `SVGForeignObject` detection
