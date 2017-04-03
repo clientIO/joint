@@ -1169,7 +1169,7 @@ export namespace layout {
         setLinkVertices?: (link: dia.Link, vertices: Position[]) => void;
     }
 
-    class DirectedGraph {
-        static layout(graph: dia.Graph | dia.Cell[], options?: LayoutOptions): dia.BBox;
+    export namespace DirectedGraph {
+        export function layout(graph: dia.Graph | dia.Cell[], options?: LayoutOptions): dia.BBox;
     }
 }
