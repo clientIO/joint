@@ -107,8 +107,7 @@ export namespace dia {
         findModelsFromPoint(rect: BBox): Element[];
 
         findModelsUnderElement(element: Element, options?: {
-                                   searchBy?:
-                                       'bbox'
+                                   searchBy?: 'bbox'
                                        | 'center'
                                        | 'origin'
                                        | 'corner'
@@ -219,8 +218,7 @@ export namespace dia {
         position(x: number, y: number, options?: { parentRelative?: boolean }): this;
 
         resize(width: number, height: number, options?: {
-                   direction?:
-                       'left'
+                   direction?: 'left'
                        | 'right'
                        | 'top'
                        | 'bottom'
@@ -354,14 +352,12 @@ export namespace dia {
         elementView?: (element: Element) => ElementView | ElementView;
         linkView?: (link: Link) => LinkView | LinkView;
         defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
-        defaultRouter?:
-            ((vertices: Point[], args: Object, linkView: LinkView) => Point[])
+        defaultRouter?: ((vertices: Point[], args: Object, linkView: LinkView) => Point[])
             | { name: string, args?: ManhattanRouterArgs };
         defaultConnector?:
             ((sourcePoint: Point, targetPoint: Point, vertices: Point[], args: Object, linkView: LinkView) => string)
             | { name: string, args?: { radius?: number } };
-        interactive?:
-            ((cellView: CellView, event: string) => boolean)
+        interactive?: ((cellView: CellView, event: string) => boolean)
             | boolean
             | { vertexAdd?: boolean, vertexMove?: boolean, vertexRemove?: boolean, arrowheadMove?: boolean };
         validateMagnet?: (cellView: CellView, magnet: SVGElement) => boolean;
@@ -640,8 +636,7 @@ export namespace dia {
 
         findRoute(oldVertices: Point[]): Point[];
 
-        getConnectionPoint(end: 'source' | 'target', selectorOrPoint: Element | Point, referenceSelectorOrPoint:
-                               Element
+        getConnectionPoint(end: 'source' | 'target', selectorOrPoint: Element | Point, referenceSelectorOrPoint: Element
                                | Point): Point;
 
         getPathData(vertices: Point[]): any;
@@ -1131,8 +1126,7 @@ export namespace util {
 
     export function setAttributesBySelector(el: Element, attrs: dia.SVGAttributes): void;
 
-    export function sortElements(elements:
-                                     Element[]
+    export function sortElements(elements: Element[]
                                      | string
                                      | JQuery, comparator: (a: Element, b: Element) => number): Element[];
 

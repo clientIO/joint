@@ -11,17 +11,29 @@ export namespace g {
     function toRad(deg: number, over360?: boolean): number;
 
     namespace bezier {
-	function curveThroughPoints(points: dia.Point[] | Point[]): string[];
-	export function getCurveControlPoints(points: dia.Point[] | Point[]): [Point[], Point[]];
-	interface ICurveDivider {
-	    p0: Point;
-	    p1: Point;
-	    p2: Point;
-	    p3: Point;
-	}
-	export function getCurveDivider(p0: string | dia.Point | Point, p1: string | dia.Point | Point, p2: string | dia.Point | Point, p3: string | dia.Point | Point): (t: number) => [ICurveDivider, ICurveDivider];
-	export function getFirectControlPoints(rhs: number[]): number[];
-	export function getInversionSolver(p0: dia.Point | Point, p1: dia.Point | Point, p2: dia.Point | Point, p3: dia.Point | Point): (p: dia.Point | Point) => number;
+        function curveThroughPoints(points: dia.Point[] | Point[]): string[];
+
+        export function getCurveControlPoints(points: dia.Point[] | Point[]): [Point[], Point[]];
+
+        interface ICurveDivider {
+            p0: Point;
+            p1: Point;
+            p2: Point;
+            p3: Point;
+        }
+        export function getCurveDivider(p0: string | dia.Point | Point, p1: string | dia.Point | Point, p2:
+                                            string
+                                            | dia.Point
+                                            | Point, p3:
+                                            string
+                                            | dia.Point
+                                            | Point): (t: number) => [ICurveDivider, ICurveDivider];
+
+        export function getFirectControlPoints(rhs: number[]): number[];
+
+        export function getInversionSolver(p0: dia.Point | Point, p1: dia.Point | Point, p2: dia.Point | Point, p3:
+                                               dia.Point
+                                               | Point): (p: dia.Point | Point) => number;
     }
 
     class Ellipse {
@@ -80,7 +92,7 @@ export namespace g {
 
         squaredLength(): number;
 
-	toString(): string;
+        toString(): string;
     }
 
     class Point {
@@ -98,6 +110,7 @@ export namespace g {
         bearing(p: Point): CardinalDirection;
 
         changeInAngle(dx: number, dy: number, ref: string | dia.Point | Point): number;
+
         clone(): Point;
 
         difference(dx: dia.Point | Point | number, dy?: number): Point;
@@ -140,10 +153,10 @@ export namespace g {
     class Rect {
         static fromEllipse(e: Ellipse): Rect;
 
-	x: number;
-	y: number;
-	width: number;
-	height: number;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
 
         constructor(x?: number | dia.BBox, y?: number, w?: number, h?: number);
 
@@ -205,7 +218,7 @@ export namespace g {
 
         toJSON(): dia.BBox;
 
-	toString(): string;
+        toString(): string;
 
         union(rect: Rect): Rect;
     }
