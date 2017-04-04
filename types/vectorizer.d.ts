@@ -1,84 +1,92 @@
-export function V(svg: SVGElement | string, attrs?: Object, children?: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): Vectorizer;
+export function V(svg: SVGElement | string, attrs?: Object, children?:
+                      Vectorizer
+                      | Vectorizer[]
+                      | SVGElement
+                      | SVGElement[]): Vectorizer;
 
 export namespace Vectorizer {
 
     interface RotateOptions {
-	absolute: boolean;
+        absolute: boolean;
     }
 
     interface Sample {
-	x: number;
-	y: number;
-	distance: number;
+        x: number;
+        y: number;
+        distance: number;
     }
     interface TextAnnotation {
-	start: number;
-	end: number;
-	attrs: object;
+        start: number;
+        end: number;
+        attrs: object;
     }
     interface TextOptions {
-	lineHeight: number | string;
-	textPath: string | object;
-	annotations: TextAnnotation[];
-	includeAnnotationIndices: boolean;
+        lineHeight: number | string;
+        textPath: string | object;
+        annotations: TextAnnotation[];
+        includeAnnotationIndices: boolean;
     }
     interface TransformOptions {
-	absolute: boolean;
+        absolute: boolean;
     }
     // modifiable Matrix. SVGMatrix doesn't allow set on properties or a constructor.
     interface Matrix {
-	a: number;
-	b: number;
-	c: number;
-	d: number;
-	e: number;
-	f: number;
+        a: number;
+        b: number;
+        c: number;
+        d: number;
+        e: number;
+        f: number;
     }
     interface DecomposedTransformation {
-	translateX: number;
-	translateY: number;
-	scaleX: number;
-	scaleY: number;
-	skewX: number;
-	skewY: number;
-	rotation: number;
+        translateX: number;
+        translateY: number;
+        scaleX: number;
+        scaleY: number;
+        skewX: number;
+        skewY: number;
+        rotation: number;
     }
     interface Rect extends dia.BBox {
-	'top-rx'?: number;
-	'top-ry'?: number;
-	'bottom-rx'?: number;
-	'bottom-ry'?: number;
+        'top-rx'?: number;
+        'top-ry'?: number;
+        'bottom-rx'?: number;
+        'bottom-ry'?: number;
     }
     interface Rotation {
-	angle: number;
-	cx?: number;
-	cy?: number;
+        angle: number;
+        cx?: number;
+        cy?: number;
     }
     interface Translation {
-	tx: number;
-	ty: number;
+        tx: number;
+        ty: number;
     }
     interface Scale {
-	sx: number;
-	sy: number;
+        sx: number;
+        sy: number;
     }
     interface Transform {
-	value: string;
-	translate: Translation;
-	rotate: Rotation;
-	scale: Scale;
+        value: string;
+        translate: Translation;
+        rotate: Rotation;
+        scale: Scale;
     }
     interface ParseXMLOptions {
-	async: boolean;
+        async: boolean;
     }
     interface QualifiedAttribute {
-	ns?: string;
-	local: string;
+        ns?: string;
+        local: string;
     }
 }
 
 export class Vectorizer {
-    constructor(svg: string | SVGElement, attrs?: Object, children?: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]);
+    constructor(svg: string | SVGElement, attrs?: Object, children?:
+                    Vectorizer
+                    | Vectorizer[]
+                    | SVGElement
+                    | SVGElement[]);
 
     node: SVGElement;
 
@@ -225,6 +233,7 @@ export class Vectorizer {
     static parseTransformString(transform: string): Vectorizer.Transform;
 
     static parseXML(data: string, opt?: Vectorizer.ParseXMLOptions): XMLDocument;
+
     static qualifyAttr(name: string): Vectorizer.QualifiedAttribute;
 
     static rectToPath(r: Vectorizer.Rect): string;
