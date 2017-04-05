@@ -809,10 +809,6 @@ module.exports = function(grunt) {
     grunt.registerTask('install', ['bowerInstall', 'build:all']);
     grunt.registerTask('default', ['install', 'build', 'watch']);
 
-    /*
-        List of Available Platforms on Sauce Labs:
-        https://saucelabs.com/platforms
-    */
     var e2eBrowsers = {
         'chrome': {
             'browserName': 'chrome',
@@ -849,15 +845,11 @@ module.exports = function(grunt) {
         },
         'phantomjs': {
             'browserName': 'phantomjs',
-            'name': 'PhantomJS'
-        },
-        'phantomjs-2.x': {
-            'browserName': 'phantomjs',
-            // Set the path to the PhantomJS 2.x binary.
+            // Set the path to the PhantomJS binary.
             // Can be in different places depending upon the current environment.
             // For example, if phantomjs is on the current user's PATH (with the correct version).
             'phantomjs.binary.path': phantomjs.path,
-            'name': 'PhantomJS 2.x'
+            'name': 'PhantomJS'
         }
     };
 
@@ -922,16 +914,23 @@ module.exports = function(grunt) {
     });
 
     var seleniumInstalled = (function() {
-
         return grunt.file.exists(__dirname + '/node_modules/selenium-standalone/.selenium/selenium-server');
-
     }());
 
     var seleniumChildProcess;
 
+    var seleniumConfig = {
+        drivers: {
+            chrome: {
+                version: 2.29,
+                baseURL: 'https://chromedriver.storage.googleapis.com'
+            }
+        }
+    };
+
     function startSelenium(cb) {
         grunt.log.writeln('Starting selenium..');
-        selenium.start(function(error, child) {
+        selenium.start(seleniumConfig, function(error, child) {
             if (error) return cb(error);
             seleniumChildProcess = child;
             cb();
@@ -947,8 +946,9 @@ module.exports = function(grunt) {
         if (seleniumInstalled) return cb();
         grunt.log.writeln('Installing selenium..');
         seleniumInstalled = true;
-        selenium.install(cb);
+        selenium.install(seleniumConfig, cb);
     }
+
     process.on('exit', function() {
         // Kill selenium server process if it is running.
         if (seleniumChildProcess) seleniumChildProcess.kill();
