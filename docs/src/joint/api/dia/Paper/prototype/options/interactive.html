@@ -1,3 +1,58 @@
-<code>interactive</code> - if set to <code>false</code>, interaction with elements and links is disabled. If it is a function, it will be called with the cell view in action and the name of the method it is evaluated in (<code>'pointerdown'</code>, <code>'pointermove'</code>, ...). If the returned value of 
-                  such a function is <code>false</code> interaction will be disabled for the action. For links, there are special properties of the <code>interaction</code> object that are useful to disable the default behaviour. These
-                  properties are: <code>vertexAdd</code>, <code>vertexMove</code>, <code>vertexRemove</code> and <code>arrowheadMove</code>. By setting any of these properties to <code>false</code>, you can disable the related default action on links.
+<p>
+    <code>interactive</code> - if set to <code>false</code>, interaction with elements and links is disabled. If it is a
+    function, it will be called with the cell view in action and the name of the method it is evaluated in (<code>'pointerdown'</code>,
+    <code>'pointermove'</code>, ...). If the returned value of
+    such a function is <code>false</code> interaction will be disabled for the action. For links, there are special
+    properties of the <code>interaction</code> object that are useful to disable the default behaviour.
+</p>
+
+<p>
+    In the table bellow there is a list of properties followed by an example with the related property set to <code>false</code>.
+</p>
+
+<table>
+    <tr>
+        <th valign="top">arrowheadMove</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/arrowheadMove.html"
+                    style="height: 94px; width: 250px;"></iframe>
+        </td>
+        <th valign="top">vertexMove</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexMove.html"
+                    style="height: 94px; width: 250px;"></iframe>
+        </td>
+    </tr>
+    <tr>
+        <th valign="top">vertexAdd</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexAdd.html"
+                    style="height: 94px; width: 250px;"></iframe>
+        </td>
+        <th valign="top">vertexRemove</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexRemove.html"
+                    style="height: 94px; width: 250px;"></iframe>
+        </td>
+    </tr>
+    <tr>
+        <th valign="top">labelMove</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/labelMove.html"
+                    style="height: 94px; width: 250px;"></iframe>
+        </td>
+        <th valign="top">useLinkTools</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/useLinkTools.html"
+                    style="height: 94px; width: 250px;"></iframe>
+        </td>
+    </tr>
+</table>
+
+<p>
+    For a comparison this example has default settings - all interactions on the link are enabled.
+
+</p>
+<iframe src="about:blank" data-src="./demo/dia/Paper/interactive/useLinkTools.html"
+        style="height: 94px; width: 250px;"></iframe>
+
