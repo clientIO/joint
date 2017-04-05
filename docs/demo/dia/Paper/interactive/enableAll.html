@@ -34,11 +34,11 @@
 
     var paper = new joint.dia.Paper({
         el: $('<div/>').appendTo(document.body),
-        width: 190,
+        width: 380,
         height: 90,
         gridSize: 1,
-        interactive: true,
-        model: graph
+        model: graph,
+        interactive: true
     });
 
     var link = new joint.dia.Link({
@@ -52,7 +52,7 @@
         },
         labels: [
             {
-                position: { distance: .5, offset: { x: 30, y: 20 }},
+                position: { distance: .5, offset: { x: 30, y: 20 } },
                 attrs: {
                     text: {
                         text: 'label'
@@ -64,12 +64,38 @@
         target: { x: 167, y: 36 },
         vertices: [{ x: 86, y: 71 }, { x: 87, y: 36 }]
     });
+
+    var Circle = joint.dia.Element.define('i.Circle', {
+        markup: '<g><circle/><text/></g>>',
+        attrs: {
+            circle: {
+                magnet: 'passive',
+                r: 20
+            },
+            text: {
+                fill: 'white',
+                fontSize: 8,
+                xAlignment: 'middle',
+                yAlignment: 'middle'
+            }
+        }
+    });
+
+    graph.addCell(new Circle()
+        .position(226, 34)
+        .attr('circle/fill', '#333333')
+    );
+
+    graph.addCell(new Circle()
+        .position(337, 50)
+        .attr('circle/fill', '#a6a6a6')
+        .attr('circle/r', 30)
+        .attr('circle/magnet', true)
+        .attr('text/text', 'MAGNET')
+    );
+
     graph.addCell(link);
 
-
 </script>
-
-<script src="./js/port.js"></script>
-
 </body>
 </html>

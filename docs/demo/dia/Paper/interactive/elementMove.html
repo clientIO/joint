@@ -4,7 +4,7 @@
     <meta charset="utf8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 
-    <title>dia.Paper - interactive - vertexAdd disabled</title>
+    <title>dia.Paper - interactive - elementMove disabled</title>
 
     <link rel="stylesheet" type="text/css" href="../../../../css/lib/joint.min.css"/>
 
@@ -29,6 +29,7 @@
 
 <script src="../../../../js/lib/joint.min.js"></script>
 
+</body>
 <script>
     var graph = new joint.dia.Graph;
 
@@ -37,35 +38,38 @@
         width: 190,
         height: 90,
         gridSize: 1,
-        interactive: { vertexAdd: false },
+        interactive: { elementMove: false },
         model: graph
     });
 
-    var link = new joint.dia.Link({
+    var Circle = joint.dia.Element.define('i.Circle', {
+        markup: '<g><circle/><text/></g>>',
         attrs: {
-            '.marker-source': {
-                d: 'M 10 0 L 0 5 L 10 10 z'
+            circle: {
+                magnet: 'passive',
+                r: 20
             },
-            '.marker-target': {
-                d: 'M 10 0 L 0 5 L 10 10 z'
+            text: {
+                fill: 'white',
+                fontSize: 8,
+                xAlignment: 'middle',
+                yAlignment: 'middle'
             }
-        },
-        labels: [
-            {
-                position: { distance: .5, offset: { x: 30, y: 20 }},
-                attrs: {
-                    text: {
-                        text: 'label'
-                    }
-                }
-            }
-        ],
-        source: { x: 13, y: 44 },
-        target: { x: 167, y: 36 },
-        vertices: [{ x: 86, y: 71 }, { x: 87, y: 36 }]
+        }
     });
-    graph.addCell(link);
+
+    graph.addCell(new Circle()
+        .position(36, 34)
+        .attr('circle/fill', '#333333')
+    );
+
+    graph.addCell(new Circle()
+        .position(147, 50)
+        .attr('circle/fill', '#a6a6a6')
+        .attr('circle/r', 30)
+        .attr('circle/magnet', true)
+        .attr('text/text', 'MAGNET')
+    );
 
 </script>
-</body>
 </html>
