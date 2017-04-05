@@ -344,8 +344,8 @@ export namespace dia {
 
     interface PaperOptions extends Backbone.ViewOptions<Graph> {
         el?: string | JQuery | HTMLElement;
-        width?: number;
-        height?: number;
+        width?: number | string;
+        height?: number | string;
         origin?: Point;
         gridSize?: number;
         perpendicularLinks?: boolean;
