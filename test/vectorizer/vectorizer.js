@@ -880,4 +880,14 @@ QUnit.module('vectorizer', function(hooks) {
         });
 
     });
+
+    QUnit.module('bbox()', function() {
+
+        QUnit.test('sanity', function(assert) {
+            assert.ok(V(svgCircle).bbox() instanceof g.Rect);
+            assert.ok(V(svgCircle).bbox(true) instanceof g.Rect);
+            assert.ok(V(svgCircle).bbox(false, svgGroup) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).bbox() instanceof g.Rect);
+        });
+    });
 });
