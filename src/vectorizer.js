@@ -210,35 +210,36 @@ V = Vectorizer = (function() {
     // If `target` is specified, bounding box will be computed relatively to `target` element.
     V.prototype.bbox = function(withoutTransformations, target) {
 
+        var box;
+        var node = this.node;
+        var ownerSVGElement = node.ownerSVGElement;
+
         // If the element is not in the live DOM, it does not have a bounding box defined and
         // so fall back to 'zero' dimension element.
-        if (!this.node.ownerSVGElement) return { x: 0, y: 0, width: 0, height: 0 };
+        if (!ownerSVGElement) {
+            return g.Rect(0, 0, 0, 0);
+        }
 
-        var box;
         try {
 
-            box = this.node.getBBox();
-            // We are creating a new object as the standard says that you can't
-            // modify the attributes of a bbox.
-            box = { x: box.x, y: box.y, width: box.width, height: box.height };
+            box = node.getBBox();
 
         } catch (e) {
 
             // Fallback for IE.
             box = {
-                x: this.node.clientLeft,
-                y: this.node.clientTop,
-                width: this.node.clientWidth,
-                height: this.node.clientHeight
+                x: node.clientLeft,
+                y: node.clientTop,
+                width: node.clientWidth,
+                height: node.clientHeight
             };
         }
 
         if (withoutTransformations) {
-
-            return box;
+            return g.Rect(box);
         }
 
-        var matrix = this.getTransformToElement(target || this.node.ownerSVGElement);
+        var matrix = this.getTransformToElement(target || ownerSVGElement);
 
         return V.transformRect(box, matrix);
     };
