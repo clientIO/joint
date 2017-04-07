@@ -101,7 +101,7 @@ export class Vectorizer {
 
     addClass(className: string): Vectorizer;
 
-    bbox(withoutTransformations?: boolean, target?: SVGElement): dia.BBox;
+    bbox(withoutTransformations?: boolean, target?: SVGElement | Vectorizer): g.Rect;
 
     before(els: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): this;
 
@@ -125,7 +125,7 @@ export class Vectorizer {
 
     findParentByClass(className: string, ternimator: SVGElement): Vectorizer | undefined;
 
-    getTransformToElement(elem: SVGGElement): SVGMatrix;
+    getTransformToElement(elem: SVGGElement | Vectorizer): SVGMatrix;
 
     hasClass(className: string): boolean;
 
