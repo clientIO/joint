@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+
+    <title>dia.Paper - interactive - vertexAdd disabled</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../../css/lib/joint.min.css"/>
+
+    <style>
+        .joint-paper {
+            border: 1px solid gray;
+            width: 800px
+        }
+
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+
+<!-- Dependencies: -->
+<script src="../../../../js/lib/jquery.min.js"></script>
+<script src="../../../../js/lib/lodash.min.js"></script>
+<script src="../../../../js/lib/backbone.min.js"></script>
+
+<script src="../../../../js/lib/joint.min.js"></script>
+
+<script>
+    var graph = new joint.dia.Graph;
+
+    var paper = new joint.dia.Paper({
+        el: $('<div/>').appendTo(document.body),
+        width: 190,
+        height: 90,
+        gridSize: 1,
+        interactive: { vertexAdd: false },
+        model: graph
+    });
+
+    var link = new joint.dia.Link({
+        attrs: {
+            '.marker-source': {
+                d: 'M 10 0 L 0 5 L 10 10 z'
+            },
+            '.marker-target': {
+                d: 'M 10 0 L 0 5 L 10 10 z'
+            }
+        },
+        labels: [
+            {
+                position: { distance: .5, offset: { x: 30, y: 20 }},
+                attrs: {
+                    text: {
+                        text: 'label'
+                    }
+                }
+            }
+        ],
+        source: { x: 13, y: 44 },
+        target: { x: 167, y: 36 },
+        vertices: [{ x: 86, y: 71 }, { x: 87, y: 36 }]
+    });
+    graph.addCell(link);
+
+</script>
+</body>
+</html>

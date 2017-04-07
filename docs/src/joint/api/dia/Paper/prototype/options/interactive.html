@@ -1,3 +1,81 @@
-<code>interactive</code> - if set to <code>false</code>, interaction with elements and links is disabled. If it is a function, it will be called with the cell view in action and the name of the method it is evaluated in (<code>'pointerdown'</code>, <code>'pointermove'</code>, ...). If the returned value of 
-                  such a function is <code>false</code> interaction will be disabled for the action. For links, there are special properties of the <code>interaction</code> object that are useful to disable the default behaviour. These
-                  properties are: <code>vertexAdd</code>, <code>vertexMove</code>, <code>vertexRemove</code> and <code>arrowheadMove</code>. By setting any of these properties to <code>false</code>, you can disable the related default action on links.
+<p>
+    <code>interactive</code> - if set to <code>false</code>, all interactions with elements and links are disabled. If it's defined as a
+    function, the function is called with the element/link view (the user is about to interact with) as the first parameter followed by the name of the event (<code>'pointerdown'</code>,
+    <code>'pointermove'</code>, ...). If the returned value of such a function is <code>false</code> the interaction is disabled for this action.
+    The returned value could be also defined as an object to achieve the fine-grained control over interaction. Here is the list of all properties of the <code>interactive</code> object to disable/enable only certain aspects of interactions. The properties not used within this object are enabled by default.
+</p>
+
+<p>
+    In the tables bellow there are lists of properties followed by an example with the related property set to <code>false</code>.
+</p>
+
+<p>
+    <b>Links:</b>
+</p>
+
+<table>
+    <tr>
+        <th valign="top">arrowheadMove</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/arrowheadMove.html"
+                    style="height: 94px; width: 250px;"></iframe>
+        </td>
+        <th valign="top">vertexMove</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexMove.html"
+                    style="height: 94px; width: 250px;"></iframe>
+        </td>
+    </tr>
+    <tr>
+        <th valign="top">vertexAdd</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexAdd.html"
+                    style="height: 94px; width: 250px;"></iframe>
+        </td>
+        <th valign="top">vertexRemove</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexRemove.html"
+                    style="height: 94px; width: 250px;"></iframe>
+        </td>
+    </tr>
+    <tr>
+        <th valign="top">labelMove</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/labelMove.html"
+                    style="height: 94px; width: 250px;"></iframe>
+        </td>
+        <th valign="top">useLinkTools</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/useLinkTools.html"
+                    style="height: 94px; width: 250px;"></iframe>
+        </td>
+    </tr>
+</table>
+
+<p>
+    <b>Elements:</b>
+</p>
+
+<table>
+
+    <tr>
+        <th valign="top">elementMove</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/elementMove.html"
+                    style="height: 94px; width: 250px;"></iframe>
+        </td>
+        <th valign="top">addLinkFromMagnet</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/addLinkFromMagnet.html"
+                    style="height: 94px; width: 250px;"></iframe>
+        </td>
+    </tr>
+</table>
+
+<p>
+    For a comparison the example below has all interactions on the link and on the elements enabled.
+</p>
+<iframe src="about:blank" data-src="./demo/dia/Paper/interactive/enableAll.html"
+        style="height: 94px; width: 400px;"></iframe>
+
+<p>property <code>interactive</code> defaults to <code>{ labelMove: false }</code></p>
