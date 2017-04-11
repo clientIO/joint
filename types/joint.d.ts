@@ -36,7 +36,7 @@ export namespace dia {
     }
 
     interface EdgeMap {
-	[key: string]: boolean;
+        [key: string]: boolean;
     }
 
     class Graph extends Backbone.Model {
@@ -145,7 +145,7 @@ export namespace dia {
     }
 
     class Cell extends Backbone.Model {
-	constructor(attributes?: object, options?: object);
+        constructor(attributes?: object, options?: object);
 
         id: string;
 
@@ -224,35 +224,35 @@ export namespace dia {
                     | 'bottom-right';
 
     interface Port {
-	id?: string;
-	markup?: string;
-	group?: string;
-	attrs?: object;
-	args?: object;
-	size?: Size;
-	label: {
+        id?: string;
+        markup?: string;
+        group?: string;
+        attrs?: object;
+        args?: object;
+        size?: Size;
+        label: {
             size?: Size;
-	    markup?: string;
-	    position?: any;
-	    args?: any;
-	}
-	z?: number | 'auto';
+            markup?: string;
+            position?: any;
+            args?: any;
+        }
+        z?: number | 'auto';
     }
 
     interface PortPosition extends Point {
-	angle: number;
+        angle: number;
     }
 
     class Element extends Cell {
-	constructor(attributes?: object, options?: object);
+        constructor(attributes?: object, options?: object);
 
         translate(tx: number, ty?: number, options?: TranslateOptions): this;
 
         position(options?: { parentRelative: boolean }): g.Point;
         position(x: number, y: number, options?: { parentRelative?: boolean }): this;
 
-	size(): Size;
-	size(width: number, height?: number, options?: { direction?: Direction}): this;
+        size(): Size;
+        size(width: number, height?: number, options?: { direction?: Direction}): this;
 
         resize(width: number, height: number, options?: { direction?: Direction }): this;
 
@@ -286,7 +286,7 @@ export namespace dia {
 
         getPort(id: string): Port;
 
-	getPortsPositions(groupName: string): {[id: string]: PortPosition};
+        getPortsPositions(groupName: string): {[id: string]: PortPosition};
 
         getPortIndex(port: string | Port): number;
 
@@ -335,7 +335,7 @@ export namespace dia {
 
         constructor(attributes?: LinkAttributes, options?: Object);
 
-	applyToPoints(fn: (p: Point) => Point, opt?: object): this;
+        applyToPoints(fn: (p: Point) => Point, opt?: object): this;
 
         disconnect(): this;
 
@@ -371,10 +371,10 @@ export namespace dia {
     }
 
     interface GridOptions {
-	color?: string;
-	thickness?: number;
-	name?: 'dot' | 'fixedDot' | 'mesh' | 'doubleMesh';
-	args?: object[] | object;
+        color?: string;
+        thickness?: number;
+        name?: 'dot' | 'fixedDot' | 'mesh' | 'doubleMesh';
+        args?: object[] | object;
     }
 
     interface PaperOptions extends Backbone.ViewOptions<Graph> {
@@ -383,7 +383,7 @@ export namespace dia {
         height?: number | string;
         origin?: Point;
         gridSize?: number;
-	drawGrid?: boolean | GridOptions;
+        drawGrid?: boolean | GridOptions;
         perpendicularLinks?: boolean;
         elementView?: (element: Element) => typeof ElementView | typeof ElementView;
         linkView?: (link: Link) => typeof LinkView | typeof LinkView;
@@ -406,17 +406,17 @@ export namespace dia {
         markAvailable?: boolean;
         async?: boolean | { batchZise: number };
         embeddingMode?: boolean;
-	findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft';
+        findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft';
         validateEmbedding?: (childView: ElementView, parentView: ElementView) => boolean;
         restrictTranslate?: (elementView: ElementView) => BBox | boolean;
         guard?: (evt: Event, view: CellView) => boolean;
         multiLinks?: boolean;
         cellViewNamespace?: object;
-	highlighterNamespace?: object;
+        highlighterNamespace?: object;
         /** useful undocumented option */
         clickThreshold?: number;
         highlighting?: any;
-	preventContextMenu?: boolean;
+        preventContextMenu?: boolean;
     }
 
     interface ScaleContentOptions {
@@ -444,8 +444,8 @@ export namespace dia {
     }
 
     interface Highlighter {
-	name: string;
-	options?: object;
+        name: string;
+        options?: object;
     }
 
     class Paper extends Backbone.View<Graph> {
@@ -464,9 +464,9 @@ export namespace dia {
 
         bindDocumentEvents(): void;
 
-	cellMouseEnter(evt: Event): void;
+        cellMouseEnter(evt: Event): void;
 
-	cellMouseleave(evt: Event): void;
+        cellMouseleave(evt: Event): void;
 
         cellMouseout(evt: Event): void;
 
@@ -476,11 +476,11 @@ export namespace dia {
 
         clientMatrix(): SVGMatrix;
 
-	clientToLocalPoint(x: number | g.Point, y?: number): g.Point;
+        clientToLocalPoint(x: number | g.Point, y?: number): g.Point;
 
-	clientToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+        clientToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
 
-	clientOffset(): g.Point;
+        clientOffset(): g.Point;
 
         cloneOptions(): PaperOptions;
 
@@ -488,18 +488,18 @@ export namespace dia {
 
         createViewForModel(cell: Cell): CellView;
 
-	defineFilter(filter: object): string;
+        defineFilter(filter: object): string;
 
-	defineGradient(gradient: object): string;
+        defineGradient(gradient: object): string;
 
-	defineMarker(marker: object): string;
+        defineMarker(marker: object): string;
 
-	drawBackground(opt?: {color?: string, img?: string}): this;
+        drawBackground(opt?: {color?: string, img?: string}): this;
 
-	drawBackgroundImage(img: HTMLImageElement, opt: object): void;
+        drawBackgroundImage(img: HTMLImageElement, opt: object): void;
 
         drawGrid(options?: {width?: number, height?: number, scaleFactor?: number,
-			    update: any, ox?: number, oy?: number}): this;
+                            update: any, ox?: number, oy?: number}): this;
 
         findView(element: string | JQuery | SVGElement): CellView;
 
@@ -527,21 +527,21 @@ export namespace dia {
 
         init(): void;
 
-	isDefined(defId: string): boolean;
+        isDefined(defId: string): boolean;
 
         linkAllowed(linkViewOrModel: LinkView | Link): boolean;
 
-	localToClientPoint(x: number | g.Point, y?: number): g.Point;
+        localToClientPoint(x: number | g.Point, y?: number): g.Point;
 
-	localToClientRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+        localToClientRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
 
-	localToPagePoint(x: number | g.Point, y?: number): g.Point;
+        localToPagePoint(x: number | g.Point, y?: number): g.Point;
 
-	localToPageRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+        localToPageRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
 
-	localToPaperPoint(x: number | g.Point, y?: number): g.Point;
+        localToPaperPoint(x: number | g.Point, y?: number): g.Point;
 
-	localToPaperRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+        localToPaperRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
 
         matrix(): SVGMatrix;
 
@@ -561,15 +561,15 @@ export namespace dia {
 
         onRemove(): void;
 
-	pageOffset(): g.Point;
+        pageOffset(): g.Point;
 
-	pageToLocalPoint(x: number | g.Point, y?: number): g.Point;
+        pageToLocalPoint(x: number | g.Point, y?: number): g.Point;
 
-	pageToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+        pageToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
 
-	paperToLocalPoint(x: number | g.Point, y?: number): g.Point;
+        paperToLocalPoint(x: number | g.Point, y?: number): g.Point;
 
-	paperToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+        paperToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
 
         pointerdown(evt: Event): void;
 
@@ -591,17 +591,17 @@ export namespace dia {
 
         resolveHighlighter(opt: {highlighter?: Highlighter}): boolean | {highlighter: Highlighter, options: object, name: string};
 
-	rotate(): Vectorizer.Rotation;
+        rotate(): Vectorizer.Rotation;
         rotate(deg: number, ox?: number, oy?: number): this;      // @todo not released yet though it's in the source code already
 
-	scale(): Vectorizer.Scale;
+        scale(): Vectorizer.Scale;
         scale(sx: number, sy?: number, ox?: number, oy?: number): this;
 
         scaleContentToFit(options?: ScaleContentOptions): void;
 
         setDimensions(width: number, height: number): void;
 
-	setGrid(drawGrid: GridOptions | GridOptions[]): this;
+        setGrid(drawGrid: GridOptions | GridOptions[]): this;
 
         setGridSize(gridSize: number): this;
 
@@ -613,16 +613,16 @@ export namespace dia {
 
         sortViews(): void;
 
-	translate(): Vectorizer.Translation;
-	translate(tx: number, ty?: number): this;
+        translate(): Vectorizer.Translation;
+        translate(tx: number, ty?: number): this;
 
         unbindDocumentEvents(): void;
 
         update(): void;
 
-	updateBackgroundColor(color: string): void;
+        updateBackgroundColor(color: string): void;
 
-	updateBackgroundImage(opt: {position?: any, size?: any}): void;
+        updateBackgroundImage(opt: {position?: any, size?: any}): void;
     }
 
 
@@ -635,11 +635,11 @@ export namespace dia {
         }>;
     }
     class CellViewGeneric<T extends Backbone.Model> extends Backbone.View<T> {
-	constructor(options?: {id: string});
+        constructor(options?: {id: string});
 
-	initialize(options?: object): void;
+        initialize(options?: object): void;
 
-	init(): void;
+        init(): void;
 
         getBBox(options?: { useModelGeometry?: boolean }): g.Rect;
 
@@ -647,7 +647,7 @@ export namespace dia {
 
         unhighlight(el?: any, options?: object): this;
 
-	addThemeClassName(theme?: string): this;
+        addThemeClassName(theme?: string): this;
 
         applyFilter(selector: string | HTMLElement, filter: object): void;
 
@@ -655,21 +655,21 @@ export namespace dia {
 
         can(feature: string): boolean;
 
-	contextmenu(evt: Event, x: number, y: number): void;
+        contextmenu(evt: Event, x: number, y: number): void;
 
         findBySelector(selector: string): JQuery;
 
         findMagnet(el: SVGElement | JQuery): undefined | JQuery;
 
-	getEventNamespace(): string;
+        getEventNamespace(): string;
 
         getSelector(el: HTMLElement, prevSelector: string): string;
 
         getStrokeBBox(el?: Vectorizer | string | SVGElement): g.Rect;
 
-	mouseenter(evt: Event): void;
+        mouseenter(evt: Event): void;
 
-	mouseleave(evt: Event): void;
+        mouseleave(evt: Event): void;
 
         mouseout(evt: Event): void;
 
@@ -683,9 +683,9 @@ export namespace dia {
 
         onSetTheme(oldTheme: string, newTheme: string): void;
 
-	onRemove(): void;
+        onRemove(): void;
 
-	onRender(): void;
+        onRender(): void;
 
         pointerclick(evt: Event, x: number, y: number): void;
 
@@ -699,7 +699,7 @@ export namespace dia {
 
         remove(): this;
 
-	removeThemeClassName(theme?: string): this;
+        removeThemeClassName(theme?: string): this;
 
         setInteractivity(value: any): void;
 
@@ -730,9 +730,9 @@ export namespace dia {
 
         getBBox(options?: {useModelGeometry?: boolean}): g.Rect;
 
-	mouseenter(evt: Event): void;
+        mouseenter(evt: Event): void;
 
-	mouseleave(evt: Event): void;
+        mouseleave(evt: Event): void;
 
         pointerdown(evt: Event, x: number, y: number): void;
 
@@ -748,21 +748,21 @@ export namespace dia {
 
         renderMarkup(): void;
 
-	resize(): void;
-	// cell and changed are not used in the method, but opt is.
+        resize(): void;
+        // cell and changed are not used in the method, but opt is.
         resize(cell: any, changed: any, opt: object): void;
 
         rotate(): void;
 
-	translate(): void;
-	// none of these args are used in the function body.
+        translate(): void;
+        // none of these args are used in the function body.
         translate(model: Backbone.Model, changes?: any, options?: any): void;
 
         update(cell: Cell, renderingOnlyAttrs?: object): void;
 
-	applyPortTransform(element: Vectorizer,
-			   transformData: {dx: number, dy: number, angle: number,
-					   attrs: object, x: number, y: number}, initialAngle: number): void;
+        applyPortTransform(element: Vectorizer,
+                           transformData: {dx: number, dy: number, angle: number,
+                                           attrs: object, x: number, y: number}, initialAngle: number): void;
     }
 
     class LinkView extends CellViewGeneric<Link> {
@@ -791,12 +791,12 @@ export namespace dia {
 
         getPathData(vertices: Point[]): string;
 
-	mouseenter(evt: Event): void;
+        mouseenter(evt: Event): void;
 
-	mouseleave(evt: Event): void;
+        mouseleave(evt: Event): void;
 
         onEndModelChange(endType: 'source' | 'target', endModel?: Element,
-			 opt?: {cacheOnly?: boolean, handleBy?: string, translateBy?: boolean, tx?: number, ty?: number}): void;
+                         opt?: {cacheOnly?: boolean, handleBy?: string, translateBy?: boolean, tx?: number, ty?: number}): void;
 
         onLabelsChange(): void;
 
@@ -806,7 +806,7 @@ export namespace dia {
 
         onToolsChange(): void;
 
-	// changed is not used in function body.
+        // changed is not used in function body.
         onVerticesChange(cell: Cell, changed: any, options: object): void;
 
         pointerdown(evt: Event, x: number, y: number): void;
