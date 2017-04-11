@@ -244,11 +244,7 @@ export namespace dia {
     }
 
     class Element extends Cell {
-	defaults: {
-	    position: Point;
-	    size: Size;
-	    angle: number;
-	};
+	constructor(attributes?: object, options?: object);
 
         translate(tx: number, ty?: number, options?: TranslateOptions): this;
 
@@ -260,7 +256,7 @@ export namespace dia {
 
         resize(width: number, height: number, options?: { direction?: Direction }): this;
 
-        rotate(deg: number, absolute?: boolean, origin?: Point, opt: { parentRelative?: boolean }): this;
+        rotate(deg: number, absolute?: boolean, origin?: Point, opt?: { parentRelative?: boolean }): this;
 
         embed(cell: Cell): this;
 
@@ -271,8 +267,6 @@ export namespace dia {
         fitEmbeds(options?: { deep?: boolean, padding?: Padding }): this;
 
         getBBox(options?: { deep?: boolean }): g.Rect;
-
-        findView(paper: Paper): ElementView;
 
         isElement(): boolean;
 
@@ -349,8 +343,6 @@ export namespace dia {
         label(index: number, value: Label, opt?: object): this;
 
         reparent(options?: object): Element;
-
-        findView(paper: Paper): LinkView;
 
         getSourceElement(): undefined | Element | Graph;
 
@@ -463,7 +455,6 @@ export namespace dia {
         svg: SVGElement;
         viewport: SVGGElement;
         defs: SVGDefsElement;
-	events: {[key: string]: string};
 
         afterRenderViews(): void;
 
@@ -664,8 +655,6 @@ export namespace dia {
 
         can(feature: string): boolean;
 
-	className(): string;
-
 	contextmenu(evt: Event, x: number, y: number): void;
 
         findBySelector(selector: string): JQuery;
@@ -757,8 +746,6 @@ export namespace dia {
 
         processEmbedding(options?: {model?: Backbone.Model, paper?: Paper}): void;
 
-        render(): this;
-
         renderMarkup(): void;
 
 	resize(): void;
@@ -829,8 +816,6 @@ export namespace dia {
         pointerup(evt: Event, x: number, y: number): void;
 
         removeVertex(idx: number): this;
-
-        render(): this;
 
         renderArrowheadMarkers(): this;
 
