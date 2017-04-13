@@ -627,7 +627,7 @@ export namespace dia {
         updateBackgroundImage(opt: {position?: any, size?: any}): void;
     }
 
-
+    //TODO v.talas used in attributes
     interface GradientOptions {
         type: 'linearGradient' | 'radialGradient';
         stops: Array<{
@@ -636,76 +636,43 @@ export namespace dia {
             opacity?: number;
         }>;
     }
-    class CellViewGeneric<T extends Backbone.Model> extends Backbone.View<T> {
-        constructor(options?: {id: string});
 
-        initialize(options?: object): void;
+    abstract class CellViewGeneric<T extends Backbone.Model> extends Backbone.View<T> {
+        constructor(options?: { id: string });
 
-        init(): void;
+        protected mouseover(evt: Event): void;
 
-        getBBox(options?: { useModelGeometry?: boolean }): g.Rect;
+        protected mousewheel(evt: Event, x: number, y: number, delta: number): void
 
-        highlight(el?: any, options?: object): this;
+        protected notify(eventName: string): void;
 
-        unhighlight(el?: any, options?: object): this;
+        protected onSetTheme(oldTheme: string, newTheme: string): void;
 
-        addThemeClassName(theme?: string): this;
+        protected pointerclick(evt: Event, x: number, y: number): void;
 
-        applyFilter(selector: string | HTMLElement, filter: object): void;
+        protected pointerdblclick(evt: Event, x: number, y: number): void;
 
-        applyGradient(selector: string | HTMLElement, attr: 'fill' | 'stroke', gradient: GradientOptions): void;
+        protected pointerdown(evt: Event, x: number, y: number): void;
+
+        protected pointermove(evt: Event, x: number, y: number): void;
+
+        protected pointerup(evt: Event, x: number, y: number): void;
+
+        unhighlight(el?: any, options?: any): this;
 
         can(feature: string): boolean;
 
-        contextmenu(evt: Event, x: number, y: number): void;
-
-        findBySelector(selector: string): JQuery;
-
-        findMagnet(el: SVGElement | JQuery): undefined | JQuery;
-
-        getEventNamespace(): string;
+        findMagnet(el: any): HTMLElement;
 
         getSelector(el: HTMLElement, prevSelector: string): string;
 
-        getStrokeBBox(el?: Vectorizer | string | SVGElement): g.Rect;
-
-        mouseenter(evt: Event): void;
-
-        mouseleave(evt: Event): void;
-
-        mouseout(evt: Event): void;
-
-        mouseover(evt: Event): void;
-
-        mousewheel(evt: Event, x: number, y: number, delta: number): void
-
-        notify(eventName: string, ...notifyArgs: any[]): void;
-
-        onChangeAttrs(cell: Cell, attrs: Backbone.ViewOptions<T>, options?: {dirty?: boolean}): this;
-
-        onSetTheme(oldTheme: string, newTheme: string): void;
-
-        onRemove(): void;
-
-        onRender(): void;
-
-        pointerclick(evt: Event, x: number, y: number): void;
-
-        pointerdblclick(evt: Event, x: number, y: number): void;
-
-        pointerdown(evt: Event, x: number, y: number): void;
-
-        pointermove(evt: Event, x: number, y: number): void;
-
-        pointerup(evt: Event, x: number, y: number): void;
+        getStrokeBBox(el: any): BBox; // string|HTMLElement|Vectorizer
 
         remove(): this;
 
-        removeThemeClassName(theme?: string): this;
-
         setInteractivity(value: any): void;
 
-        setTheme(theme: string, options?: {override?: boolean}): this;
+        setTheme(theme: string, options?: any): this;
     }
 
     class CellView extends CellViewGeneric<Cell> {
