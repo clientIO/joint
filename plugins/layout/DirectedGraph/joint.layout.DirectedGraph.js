@@ -11,6 +11,40 @@ dagre = dagre || (typeof window !== 'undefined' && window.dagre);
 
 joint.layout.DirectedGraph = {
 
+    exportElement: function(element) {
+
+        // The width and height of the element.
+        return element.size();
+    },
+
+    exportLink: function(link) {
+
+        var labelSize = link.get('labelSize') || {};
+        var edge = {
+            // The number of ranks to keep between the source and target of the edge.
+            minLen: link.get('minLen') || 1,
+            // The weight to assign edges. Higher weight edges are generally
+            // made shorter and straighter than lower weight edges.
+            weight: link.get('weight') || 1,
+            // Where to place the label relative to the edge.
+            // l = left, c = center r = right.
+            labelpos: link.get('labelPosition') || 'c',
+            // How many pixels to move the label away from the edge.
+            // Applies only when labelpos is l or r.
+            labeloffset: link.get('labelOffset') || 0,
+            // The width of the edge label in pixels.
+            width: labelSize.width || 0,
+            // The height of the edge label in pixels.
+            height: labelSize.height || 0
+        };
+
+        return edge;
+    },
+
+    importNode: function() {
+
+    },
+
     layout: function(graphOrCells, opt) {
 
         var graph;
@@ -27,7 +61,9 @@ joint.layout.DirectedGraph = {
 
         opt = _.defaults(opt || {}, {
             resizeClusters: true,
-            clusterPadding: 10
+            clusterPadding: 10,
+            exportElement: this.exportElement,
+            exportLink: this.exportLink
         });
 
         // create a graphlib.Graph that represents the joint.dia.Graph
@@ -37,18 +73,8 @@ joint.layout.DirectedGraph = {
             multigraph: true,
             // We are able to layout graphs with embeds.
             compound: true,
-            setNodeLabel: function(element) {
-                return {
-                    width: element.get('size').width,
-                    height: element.get('size').height,
-                    rank: element.get('rank')
-                };
-            },
-            setEdgeLabel: function(link) {
-                return {
-                    minLen: link.get('minLen') || 1
-                };
-            },
+            setNodeLabel: opt.exportElement,
+            setEdgeLabel: opt.exportLink,
             setEdgeName: function(link) {
                 // Graphlib edges have no ids. We use edge name property
                 // to store and retrieve ids instead.
@@ -75,6 +101,12 @@ joint.layout.DirectedGraph = {
         if (marginX) glLabel.marginx = marginX;
         // Number of pixels to use as a margin around the top and bottom of the graph.
         if (marginY) glLabel.marginy = marginY;
+        // Type of algorithm to assigns a rank to each node in the input graph.
+        // Possible values: network-simplex, tight-tree or longest-path
+        if (opt.ranker) glLabel.ranker = opt.ranker;
+        // If set to greedy, uses a greedy heuristic for finding a feedback arc set for a graph.
+        // A feedback arc set is a set of edges that can be removed to make a graph acyclic.
+        if (opt.acyclicer) glLabel.acyclicer = opt.acyclicer;
 
         // Set the option object for the graph label.
         glGraph.setGraph(glLabel);
@@ -115,6 +147,15 @@ joint.layout.DirectedGraph = {
                         // Those are source/target element connection points
                         // ie. they lies on the edge of connected elements.
                         link.set('vertices', points.slice(1, points.length - 1));
+                    }
+                }
+
+                if (opt.setLinkLabel && ('x' in glEdge) && ('y' in glEdge)) {
+                    var labelPosition = { x: glEdge.x, y: glEdge.y};
+                    if (opt.setLabel) {
+                        opt.setLabel(link, labelPosition);
+                    } else {
+                        link.label(0, { position: labelPosition });
                     }
                 }
             }
