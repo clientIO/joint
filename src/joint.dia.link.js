@@ -350,9 +350,33 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.renderTools().updateToolsPosition();
     },
 
-    onLabelsChange: function() {
+    onLabelsChange: function(link, labels, opt) {
 
-        this.renderLabels().updateLabelPositions();
+        var requireRender = true;
+
+        // Here is an optimalization for cases when we know, that change does
+        // not require rerendering of all labels.
+        if (('propertyPathArray' in opt) && ('propertyValue' in opt)) {
+            // The label is setting by `prop()` method
+            var pathLength = (opt.propertyPathArray || []).length;
+            if (pathLength > 1) {
+                // We are changing a single label here e.g. 'labels/0/position'
+                if (pathLength === 2) {
+                    // We are changing the entire label. Need to check if the
+                    // markup is also being changed.
+                    requireRender = ('markup' in Object(opt.propertValue));
+                } else if (pathArray[3] !== 'markup') {
+                    // We are changing a label property but not the markup
+                    requireRender = false;
+                }
+            }
+        }
+
+        if (requireRender) {
+            this.renderLabels();
+        }
+
+        this.updateLabelPositions();
     },
 
     // Rendering
@@ -474,7 +498,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 }, labelAttrs);
             }
 
-            this.updateDOMSubtreeAttributes(vLabelNode.node, labelAttrs);
+            this.updateDOMSubtreeAttributes(vLabelNode.node, labelAttrs, {
+                rootBBox: g.Rect(label.size)
+            });
         }
 
         return this;
@@ -698,20 +724,36 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var labels = this.model.get('labels') || [];
         if (!labels.length) return this;
 
+        var samples;
+        var connectionLength;
         var connectionElement = this._V.connection.node;
-        var connectionLength = connectionElement.getTotalLength();
 
-        // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
-        // In that case we won't update labels at all.
-        if (!_.isNaN(connectionLength)) {
+        for (var idx = 0, n = labels.length; idx < n; idx++) {
 
-            var samples;
+            var label = labels[idx];
+            var position = label.position;
+            var isPositionObject = _.isObject(position);
+            var labelCoordinates;
 
-            _.each(labels, function(label, idx) {
+            if (isPositionObject && ('x' in position) && ('y' in position)) {
 
-                var position = label.position;
-                var distance = _.isObject(position) ? position.distance : position;
-                var offset = _.isObject(position) ? position.offset : { x: 0, y: 0 };
+                // Absolute position for label
+                labelCoordinates = position;
+
+            } else {
+
+                if (connectionLength === undefined) {
+                    connectionLength = connectionElement.getTotalLength();
+                }
+
+                // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
+                // In that case we won't update labels at all.
+                if (_.isNaN(connectionLength)) {
+                    continue;
+                }
+
+                var distance = isPositionObject ? position.distance : position;
+                var offset = isPositionObject ? position.offset : { x: 0, y: 0 };
 
                 if (_.isFinite(distance)) {
                     distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
@@ -721,7 +763,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     distance = connectionLength / 2;
                 }
 
-                var labelCoordinates = connectionElement.getPointAtLength(distance);
+                labelCoordinates = connectionElement.getPointAtLength(distance);
 
                 if (_.isObject(offset)) {
 
@@ -762,10 +804,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     }
                     labelCoordinates = g.point(labelCoordinates).offset(offset).rotate(labelCoordinates, angle - 90);
                 }
+            }
 
-                this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
-
-            }, this);
+            this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
         }
 
         return this;
