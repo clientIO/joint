@@ -51,7 +51,7 @@
         z: -1,
         weight: 1,
         minLen: 1,
-        labelPos: 'c',
+        labelPosition: 'c',
         labelOffset: 10,
         labelSize: {
             width: 50,
