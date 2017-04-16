@@ -59,10 +59,6 @@
         },
         labels: [{
             markup: '<rect/><text/>',
-            position: {
-                x: 0,
-                y: 0
-            },
             attrs: {
                 text: {
                     fill: 'gray',
@@ -284,10 +280,12 @@
         el: document.getElementById('layout-controls'),
         paper: new joint.dia.Paper({
             el: document.getElementById('paper'),
-            interactive: false
+            interactive: function(cellView) {
+                return cellView.model.isElement();
+            }
         }).on({
             'link:pointerdown': LinkControls.create,
-            'blank:pointerdown': LinkControls.remove
+            'blank:pointerdown element:pointerdown': LinkControls.remove
         }, LinkControls),
         adjacencyList: {
             a: ['b','c','d'],
