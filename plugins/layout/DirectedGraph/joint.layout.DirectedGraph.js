@@ -101,7 +101,7 @@ joint.layout.DirectedGraph = {
         if (marginX) glLabel.marginx = marginX;
         // Number of pixels to use as a margin around the top and bottom of the graph.
         if (marginY) glLabel.marginy = marginY;
-        // Type of algorithm to assigns a rank to each node in the input graph.
+        // Type of algorithm to assign a rank to each node in the input graph.
         // Possible values: network-simplex, tight-tree or longest-path
         if (opt.ranker) glLabel.ranker = opt.ranker;
         // If set to greedy, uses a greedy heuristic for finding a feedback arc set for a graph.
@@ -155,7 +155,18 @@ joint.layout.DirectedGraph = {
                     if (opt.setLabel) {
                         opt.setLabel(link, labelPosition);
                     } else {
-                        link.label(0, { position: labelPosition });
+                        // Convert the absolute label position to a relative position
+                        // towards the closest point on the edge
+                        var polyline = g.Polyline(points);
+                        var length = polyline.closestPointLenght(labelPosition);
+                        var closestPoint = polyline.pointAtLength(length);
+                        var distance = length / polyline.length();
+                        link.label(0, {
+                            position: {
+                                distance: distance,
+                                offset: g.Point(labelPosition).difference(closestPoint).toJSON()
+                            }
+                        });
                     }
                 }
             }
