@@ -466,12 +466,9 @@ var g = (function() {
             return ((this.end.x - this.start.x) * (p.y - this.start.y) - (this.end.y - this.start.y) * (p.x - this.start.x)) / 2;
         },
 
-        normalize: function() {
-            this.end.x -= this.start.x;
-            this.end.y -= this.start.y;
-            this.start.x = 0;
-            this.start.y = 0;
-            return this;
+        vector: function() {
+
+            return Point(this.end.x - this.start.x, this.end.y - this.start.y);
         },
 
         closestPoint: function(p) {
@@ -481,10 +478,7 @@ var g = (function() {
 
         closestPointNormalizedLength: function(p) {
 
-            var a = this.start;
-            var ab = this.clone().normalize();
-            var ap = Line(a, p).normalize();
-            var product = ab.end.dot(ap.end);
+            var product = this.vector().dot(Line(this.start, p).vector());
 
             return Math.min(1, Math.max(0, product / this.squaredLength()));
         },
@@ -759,7 +753,7 @@ var g = (function() {
 
         dot: function(p) {
 
-            return this.x * p.x + this.y * p.y;
+            return p ? (this.x * p.x + this.y * p.y) : NaN;
         }
     };
 
@@ -1224,7 +1218,7 @@ var g = (function() {
         },
 
         closestPointLenght: function(p) {
-            points = this.points;
+            var points = this.points;
             var pointLength;
             var minSqrDistance = Infinity;
             var lenght = 0;

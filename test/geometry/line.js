@@ -37,6 +37,13 @@ QUnit.module('line', function() {
 
         QUnit.module('clone()', function() {
 
+            QUnit.test('returns a clone', function(assert) {
+
+                var l1 = g.Line('1 2', '3 4');
+                var l2 = l1.clone();
+                assert.notOk(l1 === l2);
+                assert.equal(l1.toString(), l2.toString());
+            });
         });
 
         // Kept for backwards compatibility
