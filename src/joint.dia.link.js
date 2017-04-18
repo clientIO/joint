@@ -374,6 +374,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (requireRender) {
             this.renderLabels();
+        } else {
+            this.updateLabels();
         }
 
         this.updateLabelPositions();
@@ -456,7 +458,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
         var labelNodeInstance = V(labelTemplate());
-        var canLabelMove = this.can('labelMove');
 
         for (var i = 0; i < labelsCount; i++) {
 
@@ -469,14 +470,33 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             vLabelNode
                 .addClass('label')
-                .attr({
-                    'label-idx': i,
-                    'cursor': (canLabelMove ? 'move' : 'default')
-                })
+                .attr('label-idx', i)
                 .appendTo(vLabels);
+        }
+
+        this.updateLabels();
+
+        return this;
+    },
+
+    updateLabels: function() {
+
+        if (!this._V.labels) {
+            return this;
+        }
+
+        var labels = this.model.get('labels') || [];
+        var canLabelMove = this.can('labelMove');
+
+        for (var i = 0, n = labels.length; i < n; i++) {
+
+            var vLabel = this._labelCache[i];
+            var label = labels[i];
+
+            vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
 
             var labelAttrs = label.attrs;
-            if (!labelMarkup) {
+            if (!label.markup) {
                 // Default attributes to maintain backwards compatibility
                 labelAttrs = _.merge({
                     text: {
@@ -498,7 +518,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 }, labelAttrs);
             }
 
-            this.updateDOMSubtreeAttributes(vLabelNode.node, labelAttrs, {
+            this.updateDOMSubtreeAttributes(vLabel.node, labelAttrs, {
                 rootBBox: g.Rect(label.size)
             });
         }

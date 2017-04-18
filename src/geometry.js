@@ -341,6 +341,10 @@ var g = (function() {
             return new Line(p1, p2);
         }
 
+        if (p1 instanceof Line) {
+            return Line(p1.start, p1.end);
+        }
+
         this.start = Point(p1);
         this.end = Point(p2);
     };
@@ -466,16 +470,19 @@ var g = (function() {
             return ((this.end.x - this.start.x) * (p.y - this.start.y) - (this.end.y - this.start.y) * (p.x - this.start.x)) / 2;
         },
 
+        // @return vector {point} of the line
         vector: function() {
 
             return Point(this.end.x - this.start.x, this.end.y - this.start.y);
         },
 
+        // @return {point} the closest point on the line to point `p`
         closestPoint: function(p) {
 
             return this.pointAt(this.closestPointNormalizedLength(p));
         },
 
+        // @return {number} the normalized lenght of the closest point on the line to point `p`
         closestPointNormalizedLength: function(p) {
 
             var product = this.vector().dot(Line(this.start, p).vector());
