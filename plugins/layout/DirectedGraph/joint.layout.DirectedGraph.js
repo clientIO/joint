@@ -77,7 +77,7 @@ joint.layout.DirectedGraph = {
         if (opt.setLabels && ('x' in glEdge) && ('y' in glEdge)) {
             var labelPosition = { x: glEdge.x, y: glEdge.y};
             if (_.isFunction(opt.setLabels)) {
-                opt.setLabel(link, labelPosition, points);
+                opt.setLabels(link, labelPosition, points);
             } else {
                 // Convert the absolute label position to a relative position
                 // towards the closest point on the edge
