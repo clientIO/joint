@@ -93,6 +93,12 @@ export namespace g {
         squaredLength(): number;
 
         toString(): string;
+
+        vector(): Point;
+
+        closestPoint(p: dia.Point | Point): Point;
+
+        closestPointNormalizedLength(p: dia.Point | Point): number;
     }
 
     class Point {
@@ -116,6 +122,8 @@ export namespace g {
         difference(dx: dia.Point | Point | number, dy?: number): Point;
 
         distance(p: string | dia.Point | Point): number;
+
+        squaredDistance(p: dia.Point | Point): number;
 
         equals(p: Point): boolean;
 
@@ -148,6 +156,8 @@ export namespace g {
         toString(): string;
 
         update(x: number, y: number): this;
+
+        dot(p: dia.Point | Point): number;
     }
 
     class Rect {
