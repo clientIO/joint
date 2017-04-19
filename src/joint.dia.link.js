@@ -745,8 +745,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (!labels.length) return this;
 
         var samples;
-        var connectionLength;
         var connectionElement = this._V.connection.node;
+        var connectionLength = connectionElement.getTotalLength();
+
+        // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
+        // In that case we won't update labels at all.
+        if (_.isNaN(connectionLength)) {
+            return this;
+        }
 
         for (var idx = 0, n = labels.length; idx < n; idx++) {
 
@@ -755,75 +761,57 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var isPositionObject = _.isObject(position);
             var labelCoordinates;
 
-            if (isPositionObject && ('x' in position) && ('y' in position)) {
+            var distance = isPositionObject ? position.distance : position;
+            var offset = isPositionObject ? position.offset : { x: 0, y: 0 };
 
-                // Absolute position for label
-                labelCoordinates = position;
-
+            if (_.isFinite(distance)) {
+                distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
+                distance = (distance < 0) ? connectionLength + distance : distance;
+                distance = (distance > 1) ? distance : connectionLength * distance;
             } else {
+                distance = connectionLength / 2;
+            }
 
-                if (connectionLength === undefined) {
-                    connectionLength = connectionElement.getTotalLength();
+            labelCoordinates = connectionElement.getPointAtLength(distance);
+
+            if (_.isObject(offset)) {
+
+                // Just offset the label by the x,y provided in the offset object.
+                labelCoordinates = g.point(labelCoordinates).offset(offset);
+
+            } else if (_.isFinite(offset)) {
+
+                if (!samples) {
+                    samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
                 }
 
-                // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
-                // In that case we won't update labels at all.
-                if (_.isNaN(connectionLength)) {
-                    continue;
-                }
+                // Offset the label by the amount provided in `offset` to an either
+                // side of the link.
 
-                var distance = isPositionObject ? position.distance : position;
-                var offset = isPositionObject ? position.offset : { x: 0, y: 0 };
-
-                if (_.isFinite(distance)) {
-                    distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
-                    distance = (distance < 0) ? connectionLength + distance : distance;
-                    distance = (distance > 1) ? distance : connectionLength * distance;
-                } else {
-                    distance = connectionLength / 2;
-                }
-
-                labelCoordinates = connectionElement.getPointAtLength(distance);
-
-                if (_.isObject(offset)) {
-
-                    // Just offset the label by the x,y provided in the offset object.
-                    labelCoordinates = g.point(labelCoordinates).offset(offset);
-
-                } else if (_.isFinite(offset)) {
-
-                    if (!samples) {
-                        samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
+                // 1. Find the closest sample & its left and right neighbours.
+                var minSqDistance = Infinity;
+                var closestSampleIndex, sample, sqDistance;
+                for (var i = 0; i < samples.length; i++) {
+                    sample = samples[i];
+                    sqDistance = g.line(sample, labelCoordinates).squaredLength();
+                    if (sqDistance < minSqDistance) {
+                        minSqDistance = sqDistance;
+                        closestSampleIndex = i;
                     }
-
-                    // Offset the label by the amount provided in `offset` to an either
-                    // side of the link.
-
-                    // 1. Find the closest sample & its left and right neighbours.
-                    var minSqDistance = Infinity;
-                    var closestSampleIndex, sample, sqDistance;
-                    for (var i = 0; i < samples.length; i++) {
-                        sample = samples[i];
-                        sqDistance = g.line(sample, labelCoordinates).squaredLength();
-                        if (sqDistance < minSqDistance) {
-                            minSqDistance = sqDistance;
-                            closestSampleIndex = i;
-                        }
-                    }
-                    var prevSample = samples[closestSampleIndex - 1];
-                    var nextSample = samples[closestSampleIndex + 1];
-
-                    // 2. Offset the label on the perpendicular line between
-                    // the current label coordinate ("at `distance`") and
-                    // the next sample.
-                    var angle = 0;
-                    if (nextSample) {
-                        angle = g.point(labelCoordinates).theta(nextSample);
-                    } else if (prevSample) {
-                        angle = g.point(prevSample).theta(labelCoordinates);
-                    }
-                    labelCoordinates = g.point(labelCoordinates).offset(offset).rotate(labelCoordinates, angle - 90);
                 }
+                var prevSample = samples[closestSampleIndex - 1];
+                var nextSample = samples[closestSampleIndex + 1];
+
+                // 2. Offset the label on the perpendicular line between
+                // the current label coordinate ("at `distance`") and
+                // the next sample.
+                var angle = 0;
+                if (nextSample) {
+                    angle = g.point(labelCoordinates).theta(nextSample);
+                } else if (prevSample) {
+                    angle = g.point(prevSample).theta(labelCoordinates);
+                }
+                labelCoordinates = g.point(labelCoordinates).offset(offset).rotate(labelCoordinates, angle - 90);
             }
 
             this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');

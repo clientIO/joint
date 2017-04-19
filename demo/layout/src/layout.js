@@ -149,8 +149,8 @@
 
         getLayoutOptions: function() {
             return {
-                setLinkVertices: true,
-                setLinkLabel: true,
+                setVertices: true,
+                setLabels: true,
                 ranker: this.$('#ranker').val(),
                 rankDir: this.$('#rankdir').val(),
                 align: this.$('#align').val(),

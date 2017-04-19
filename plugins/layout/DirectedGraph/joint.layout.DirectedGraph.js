@@ -41,8 +41,58 @@ joint.layout.DirectedGraph = {
         return edge;
     },
 
-    importNode: function() {
+    importElement: function(opt, v, gl) {
 
+        var element = this.getCell(v);
+        var glNode = gl.node(v);
+
+        if (opt.setPosition) {
+            opt.setPosition(element, glNode);
+        } else {
+            element.set('position', {
+                x: glNode.x - glNode.width / 2,
+                y: glNode.y - glNode.height / 2
+            });
+        }
+    },
+
+    importLink: function(opt, edgeObj, gl) {
+
+        var link = this.getCell(edgeObj.name);
+        var glEdge = gl.edge(edgeObj);
+        var points = glEdge.points || [];
+
+        // check the `setLinkVertices` here for backwards compatibility
+        if (opt.setVertices || opt.setLinkVertices) {
+            if (_.isFunction(opt.setVertices)) {
+                opt.setVertices(link, points);
+            } else {
+                // Remove the first and last point from points array.
+                // Those are source/target element connection points
+                // ie. they lies on the edge of connected elements.
+                link.set('vertices', points.slice(1, points.length - 1));
+            }
+        }
+
+        if (opt.setLabels && ('x' in glEdge) && ('y' in glEdge)) {
+            var labelPosition = { x: glEdge.x, y: glEdge.y};
+            if (_.isFunction(opt.setLabels)) {
+                opt.setLabel(link, labelPosition, points);
+            } else {
+                // Convert the absolute label position to a relative position
+                // towards the closest point on the edge
+                var polyline = g.Polyline(points);
+                var length = polyline.closestPointLenght(labelPosition);
+                var closestPoint = polyline.pointAtLength(length);
+                var distance = length / polyline.length();
+                link.label(0, {
+                    position: {
+                        distance: distance,
+                        offset: g.Point(labelPosition).difference(closestPoint).toJSON()
+                    }
+                });
+            }
+        }
     },
 
     layout: function(graphOrCells, opt) {
@@ -97,16 +147,13 @@ joint.layout.DirectedGraph = {
         if (opt.edgeSep) glLabel.edgesep = opt.edgeSep;
         // Number of pixels between each rank in the layout.
         if (opt.rankSep) glLabel.ranksep = opt.rankSep;
+        // Type of algorithm to assign a rank to each node in the input graph.
+        // Possible values: network-simplex, tight-tree or longest-path
+        if (opt.ranker) glLabel.ranker = opt.ranker;
         // Number of pixels to use as a margin around the left and right of the graph.
         if (marginX) glLabel.marginx = marginX;
         // Number of pixels to use as a margin around the top and bottom of the graph.
         if (marginY) glLabel.marginy = marginY;
-        // Type of algorithm to assign a rank to each node in the input graph.
-        // Possible values: network-simplex, tight-tree or longest-path
-        if (opt.ranker) glLabel.ranker = opt.ranker;
-        // If set to greedy, uses a greedy heuristic for finding a feedback arc set for a graph.
-        // A feedback arc set is a set of edges that can be removed to make a graph acyclic.
-        if (opt.acyclicer) glLabel.acyclicer = opt.acyclicer;
 
         // Set the option object for the graph label.
         glGraph.setGraph(glLabel);
@@ -119,57 +166,8 @@ joint.layout.DirectedGraph = {
 
         // Update the graph.
         graph.fromGraphLib(glGraph, {
-            importNode: function(v, gl) {
-
-                var element = this.getCell(v);
-                var glNode = gl.node(v);
-
-                if (opt.setPosition) {
-                    opt.setPosition(element, glNode);
-                } else {
-                    element.set('position', {
-                        x: glNode.x - glNode.width / 2,
-                        y: glNode.y - glNode.height / 2
-                    });
-                }
-            },
-            importEdge: function(edgeObj, gl) {
-
-                var link = this.getCell(edgeObj.name);
-                var glEdge = gl.edge(edgeObj);
-                var points = glEdge.points || [];
-
-                if (opt.setLinkVertices) {
-                    if (opt.setVertices) {
-                        opt.setVertices(link, points);
-                    } else {
-                        // Remove the first and last point from points array.
-                        // Those are source/target element connection points
-                        // ie. they lies on the edge of connected elements.
-                        link.set('vertices', points.slice(1, points.length - 1));
-                    }
-                }
-
-                if (opt.setLinkLabel && ('x' in glEdge) && ('y' in glEdge)) {
-                    var labelPosition = { x: glEdge.x, y: glEdge.y};
-                    if (opt.setLabel) {
-                        opt.setLabel(link, labelPosition);
-                    } else {
-                        // Convert the absolute label position to a relative position
-                        // towards the closest point on the edge
-                        var polyline = g.Polyline(points);
-                        var length = polyline.closestPointLenght(labelPosition);
-                        var closestPoint = polyline.pointAtLength(length);
-                        var distance = length / polyline.length();
-                        link.label(0, {
-                            position: {
-                                distance: distance,
-                                offset: g.Point(labelPosition).difference(closestPoint).toJSON()
-                            }
-                        });
-                    }
-                }
-            }
+            importNode: _.partial(this.importElement, opt),
+            importEdge: _.partial(this.importLink, opt)
         });
 
         if (opt.resizeClusters) {
