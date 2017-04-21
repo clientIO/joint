@@ -440,6 +440,8 @@ export namespace dia {
 
         asyncRenderViews(cells: Cell[], options?: any): void;
 
+        cancelRenderViews(): void;
+
         beforeRenderViews(cells: Cell[]): Cell[];
 
         cellMouseout(evt: Event): void;
