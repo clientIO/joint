@@ -108,14 +108,12 @@ joint.layout.DirectedGraph = {
                 var points = glEdge.points || [];
 
                 if (opt.setLinkVertices) {
-                    if (opt.setVertices) {
-                        opt.setVertices(link, points);
-                    } else {
-                        // Remove the first and last point from points array.
-                        // Those are source/target element connection points
-                        // ie. they lies on the edge of connected elements.
-                        link.set('vertices', points.slice(1, points.length - 1));
-                    }
+                    opt.setLinkVertices(link, points);
+                } else {
+                    // Remove the first and last point from points array.
+                    // Those are source/target element connection points
+                    // ie. they lies on the edge of connected elements.
+                    link.set('vertices', points.slice(1, points.length - 1));
                 }
             }
         });
