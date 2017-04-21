@@ -486,8 +486,6 @@ export namespace dia {
 
         cancelRenderViews(): void;
 
-        beforeRenderViews(cells: Cell[]): Cell[];
-
         contextmenu(evt: Event): void;
 
         createViewForModel(cell: Cell): CellView;
