@@ -358,14 +358,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // not require rerendering of all labels.
         if (('propertyPathArray' in opt) && ('propertyValue' in opt)) {
             // The label is setting by `prop()` method
-            var pathLength = (opt.propertyPathArray || []).length;
+            var pathArray = opt.propertyPathArray || [];
+            var pathLength = pathArray.length;
             if (pathLength > 1) {
                 // We are changing a single label here e.g. 'labels/0/position'
                 if (pathLength === 2) {
                     // We are changing the entire label. Need to check if the
                     // markup is also being changed.
-                    requireRender = ('markup' in Object(opt.propertValue));
-                } else if (pathArray[3] !== 'markup') {
+                    requireRender = ('markup' in Object(opt.propertyValue));
+                } else if (pathArray[2] !== 'markup') {
                     // We are changing a label property but not the markup
                     requireRender = false;
                 }
