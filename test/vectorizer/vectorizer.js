@@ -893,7 +893,7 @@ QUnit.module('vectorizer', function(hooks) {
 
     QUnit.module('parseTransformString', function() {
 
-        QUnit.test('scale(1,3) rotate(9)', function(assert) {
+        QUnit.test('single value transformations, not the last one', function(assert) {
 
             var parsed = V.parseTransformString('scale(3) rotate(6) translate(9) xxx(11)');
 
