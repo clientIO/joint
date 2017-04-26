@@ -1158,15 +1158,15 @@ V = Vectorizer = (function() {
 
             } else {
 
-                var translateMatch = transform.match(/translate\((.*)\)/);
+                var translateMatch = transform.match(/translate\((.*?)\)/);
                 if (translateMatch) {
                     translate = translateMatch[1].split(separator);
                 }
-                var rotateMatch = transform.match(/rotate\((.*)\)/);
+                var rotateMatch = transform.match(/rotate\((.*?)\)/);
                 if (rotateMatch) {
                     rotate = rotateMatch[1].split(separator);
                 }
-                var scaleMatch = transform.match(/scale\((.*)\)/);
+                var scaleMatch = transform.match(/scale\((.*?)\)/);
                 if (scaleMatch) {
                     scale = scaleMatch[1].split(separator);
                 }

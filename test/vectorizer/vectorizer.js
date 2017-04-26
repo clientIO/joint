@@ -890,4 +890,16 @@ QUnit.module('vectorizer', function(hooks) {
             assert.ok(V('circle', { class: 'not-in-dom' }).bbox() instanceof g.Rect);
         });
     });
+
+    QUnit.module('parseTransformString', function() {
+
+        QUnit.test('single value transformations, not the last one', function(assert) {
+
+            var parsed = V.parseTransformString('scale(3) rotate(6) translate(9) xxx(11)');
+
+            assert.deepEqual(parsed.scale, { sx: 3, sy: 3 });
+            assert.deepEqual(parsed.rotate, { angle: 6, cx: undefined, cy: undefined });
+            assert.deepEqual(parsed.translate, { tx: 9, ty: 0 });
+        });
+    });
 });
