@@ -416,5 +416,19 @@ QUnit.module('cellView', function(hooks) {
                 assert.deepEqual(rectB.bbox().toString(), '-15@-15 135@135');
             });
         });
+
+        QUnit.module('Backwards compatibility', function() {
+
+            QUnit.test('inline transform attribute', function(assert) {
+                cell.set('markup', '<rect class="a" transform="translate(10,10)"/>');
+                var rect = cellView.vel.findOne('.a');
+
+                cell.attr('rect/style', { fill: 'red' }); // set attribute
+                assert.equal(rect.attr('transform'), 'translate(10,10)', 'inline attribute stays untouched');
+
+                cell.attr('rect/refX', 20); // position attribute
+                assert.equal(rect.attr('transform'), 'matrix(1,0,0,1,20,0)', 'inline attribute is disregarder');
+            });
+        });
     });
 });
