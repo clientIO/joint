@@ -983,7 +983,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
 
         // The final translation of the subelement.
-        var nodeTransform = nodeAttrs.transform || '';
+        var nodeTransform = nodeAttrs.transform;
         var nodeMatrix = V.transformStringToMatrix(nodeTransform);
         var nodePosition = g.Point(nodeMatrix.e, nodeMatrix.f);
         if (nodeTransform) {
@@ -1000,6 +1000,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             sy = nodeScale.sy;
         }
 
+        var positioned = false;
         for (attrName in positionAttrs) {
             attrVal = positionAttrs[attrName];
             def = this.getAttributeDefinition(attrName);
@@ -1010,6 +1011,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             translation = def.position.call(this, attrVal, refBBox.clone(), node, rawAttrs);
             if (translation) {
                 nodePosition.offset(g.Point(translation).scale(sx, sy));
+                positioned || (positioned = true);
             }
         }
 
@@ -1017,6 +1019,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         // Here we know, that all the size attributes have been already set.
         this.setNodeAttributes(node, nodeAttrs);
 
+        var offseted = false;
         if (offsetAttrs) {
             // Check if the node is visible
             var nodeClientRect = node.getBoundingClientRect();
@@ -1031,16 +1034,20 @@ joint.dia.CellView = joint.mvc.View.extend({
                     translation = def.offset.call(this, attrVal, nodeBBox, node, rawAttrs);
                     if (translation) {
                         nodePosition.offset(g.Point(translation).scale(sx, sy));
+                        offseted || (offseted = true);
                     }
                 }
             }
         }
 
-        // Round the coordinates to 1 decimal point.
-        nodePosition.round(1);
-        nodeMatrix.e = nodePosition.x;
-        nodeMatrix.f = nodePosition.y;
-        node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
+        // Do not touch node's transform attribute if there is no transformation applied.
+        if (nodeTransform !== undefined || positioned || offseted) {
+            // Round the coordinates to 1 decimal point.
+            nodePosition.round(1);
+            nodeMatrix.e = nodePosition.x;
+            nodeMatrix.f = nodePosition.y;
+            node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
+        }
     },
 
     getNodeScale: function(node, scalableNode) {
