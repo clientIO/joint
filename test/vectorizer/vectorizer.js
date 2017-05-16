@@ -833,6 +833,7 @@ QUnit.module('vectorizer', function(hooks) {
             assert.equal(V.matrixToTransformString({ a: 2, d: 2 }), 'matrix(2,0,0,2,0,0)');
             assert.equal(V.matrixToTransformString({ a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 }), 'matrix(1,2,3,4,5,6)');
             assert.equal(V.matrixToTransformString(V.createSVGMatrix({ a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 })), 'matrix(1,2,3,4,5,6)');
+            assert.equal(V.matrixToTransformString({ a: 0, b: 1, c: 1, d: 0, e: 0, f: 0 }), 'matrix(0,1,1,0,0,0)');
         });
     });
 
