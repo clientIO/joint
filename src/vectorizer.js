@@ -1117,12 +1117,12 @@ V = Vectorizer = (function() {
         matrix || (matrix = true);
 
         return 'matrix(' +
-            (matrix.a || 1) + ',' +
-            (matrix.b || 0) + ',' +
-            (matrix.c || 0) + ',' +
-            (matrix.d || 1) + ',' +
-            (matrix.e || 0) + ',' +
-            (matrix.f || 0) +
+            (matrix.a !== undefined ? matrix.a : 1) + ',' +
+            (matrix.b !== undefined ? matrix.b : 0) + ',' +
+            (matrix.c !== undefined ? matrix.c : 0) + ',' +
+            (matrix.d !== undefined ? matrix.d : 1) + ',' +
+            (matrix.e !== undefined ? matrix.e : 0) + ',' +
+            (matrix.f !== undefined ? matrix.f : 0) +
             ')';
     };
 
