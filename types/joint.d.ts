@@ -501,9 +501,9 @@ export namespace dia {
         drawGrid(options?: {width?: number, height?: number, scaleFactor?: number,
                             update: any, ox?: number, oy?: number}): this;
 
-        findView<T extends CellView | LinkView>(element: string | JQuery | SVGElement): T;
+        findView<T extends ElementView | LinkView>(element: string | JQuery | SVGElement): T;
 
-        findViewByModel<T extends CellView | LinkView>(model: Cell | string | Link) : T;
+        findViewByModel<T extends ElementView | LinkView>(model: Element | string | Link) : T;
 
         findViewsFromPoint(point: string | Point | g.Point): ElementView[];
 
