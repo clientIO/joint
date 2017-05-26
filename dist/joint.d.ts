@@ -1,10 +1,10 @@
 /*! JointJS v1.1.0 (2017-03-31) - JavaScript diagramming library
 
 
-This Source Code Form is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at http://mozilla.org/MPL/2.0/.
-*/
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 // Definitions by:
 // Aidan Reel <http://github.com/areel>,
 // David Durman <http://github.com/DavidDurman>,
@@ -46,7 +46,7 @@ export namespace g {
         a: number;
         b: number;
 
-        constructor(c, a, b);
+        constructor(c: number, a: number, b: number);
 
         bbox(): Rect;
 
@@ -98,7 +98,7 @@ export namespace g {
     class Point {
         static fromPolar(distance: number, angle: number, origin: Point): Point;
 
-        static random(distance, angle, origin): Point;
+        static random(distance: number, angle: number, origin: Point): Point;
 
         x: number;
         y: number;
@@ -109,7 +109,7 @@ export namespace g {
 
         bearing(p: Point): CardinalDirection;
 
-        changeInAngle(dx, dy, ref) //FIXME
+        changeInAngle(dx: number, dy: number, ref: Point) //FIXME
         clone(): Point;
 
         difference(dx: number, dy: number): Point;
@@ -122,7 +122,7 @@ export namespace g {
 
         manhattanDistance(): number;
 
-        move(ref, distance): Point;
+        move(ref: Point, distance: any): Point;
 
         normalize(length: number): Point;
 
@@ -152,7 +152,7 @@ export namespace g {
     class Rect {
         static fromEllipse(e: Ellipse): Rect;
 
-        constructor(x, y, w, h);
+        constructor(x: number, y: number, w: number, h: number);
 
         bbox(angle: number): Rect;
 
@@ -237,7 +237,7 @@ export namespace g {
     function point(xy: string): Point;
     function point(point: IPoint): Point;
 
-    function rect(x,y,w,h): Rect;
+    function rect(x: number, y: number, w: number, h: number): Rect;
     function rect(rect:IBBox): Rect;
 }
 
@@ -382,14 +382,14 @@ export namespace dia {
         findModelsFromPoint(rect: BBox): Element[];
 
         findModelsUnderElement(element: Element, options?: {
-                                   searchBy?:
-                                       'bbox'
-                                       | 'center'
-                                       | 'origin'
-                                       | 'corner'
-                                       | 'topRight'
-                                       | 'bottomLeft'
-                               }): Element[];
+            searchBy?:
+                'bbox'
+                | 'center'
+                | 'origin'
+                | 'corner'
+                | 'topRight'
+                | 'bottomLeft'
+        }): Element[];
 
         getBBox(elements: Element[], options?: any): BBox;
 
@@ -494,16 +494,16 @@ export namespace dia {
         position(x: number, y: number, options?: { parentRelative?: boolean }): this;
 
         resize(width: number, height: number, options?: {
-                   direction?:
-                       'left'
-                       | 'right'
-                       | 'top'
-                       | 'bottom'
-                       | 'top-right'
-                       | 'top-left'
-                       | 'bottom-left'
-                       | 'bottom-right'
-               }): this;
+            direction?:
+                'left'
+                | 'right'
+                | 'top'
+                | 'bottom'
+                | 'top-right'
+                | 'top-left'
+                | 'bottom-left'
+                | 'bottom-right'
+        }): this;
 
         rotate(deg: number, absolute?: boolean, origin?: Point): this;
 
@@ -641,8 +641,8 @@ export namespace dia {
             | { vertexAdd?: boolean, vertexMove?: boolean, vertexRemove?: boolean, arrowheadMove?: boolean };
         validateMagnet?: (cellView: CellView, magnet: SVGElement) => boolean;
         validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end:
-                                  'source'
-                                  | 'target', linkView: LinkView) => boolean;
+            'source'
+            | 'target', linkView: LinkView) => boolean;
         linkConnectionPoint?: (linkView: LinkView, view: ElementView, magnet: SVGElement, reference: Point) => Point;
         snapLinks?: boolean | { radius: number };
         linkPinning?: boolean;
@@ -916,8 +916,8 @@ export namespace dia {
         findRoute(oldVertices: Point[]): Point[];
 
         getConnectionPoint(end: 'source' | 'target', selectorOrPoint: Element | Point, referenceSelectorOrPoint:
-                               Element
-                               | Point): Point;
+            Element
+            | Point): Point;
 
         getPathData(vertices: Point[]): any;
 
