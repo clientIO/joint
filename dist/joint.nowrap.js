@@ -1,4 +1,4 @@
-/*! JointJS v1.1.0 (2017-03-31) - JavaScript diagramming library
+/*! JointJS v1.1.1-alpha.1 (2017-06-02) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1553,35 +1553,36 @@ V = Vectorizer = (function() {
     // If `target` is specified, bounding box will be computed relatively to `target` element.
     V.prototype.bbox = function(withoutTransformations, target) {
 
+        var box;
+        var node = this.node;
+        var ownerSVGElement = node.ownerSVGElement;
+
         // If the element is not in the live DOM, it does not have a bounding box defined and
         // so fall back to 'zero' dimension element.
-        if (!this.node.ownerSVGElement) return { x: 0, y: 0, width: 0, height: 0 };
+        if (!ownerSVGElement) {
+            return g.Rect(0, 0, 0, 0);
+        }
 
-        var box;
         try {
 
-            box = this.node.getBBox();
-            // We are creating a new object as the standard says that you can't
-            // modify the attributes of a bbox.
-            box = { x: box.x, y: box.y, width: box.width, height: box.height };
+            box = node.getBBox();
 
         } catch (e) {
 
             // Fallback for IE.
             box = {
-                x: this.node.clientLeft,
-                y: this.node.clientTop,
-                width: this.node.clientWidth,
-                height: this.node.clientHeight
+                x: node.clientLeft,
+                y: node.clientTop,
+                width: node.clientWidth,
+                height: node.clientHeight
             };
         }
 
         if (withoutTransformations) {
-
-            return box;
+            return g.Rect(box);
         }
 
-        var matrix = this.getTransformToElement(target || this.node.ownerSVGElement);
+        var matrix = this.getTransformToElement(target || ownerSVGElement);
 
         return V.transformRect(box, matrix);
     };
@@ -2500,15 +2501,15 @@ V = Vectorizer = (function() {
 
             } else {
 
-                var translateMatch = transform.match(/translate\((.*)\)/);
+                var translateMatch = transform.match(/translate\((.*?)\)/);
                 if (translateMatch) {
                     translate = translateMatch[1].split(separator);
                 }
-                var rotateMatch = transform.match(/rotate\((.*)\)/);
+                var rotateMatch = transform.match(/rotate\((.*?)\)/);
                 if (rotateMatch) {
                     rotate = rotateMatch[1].split(separator);
                 }
-                var scaleMatch = transform.match(/scale\((.*)\)/);
+                var scaleMatch = transform.match(/scale\((.*?)\)/);
                 if (scaleMatch) {
                     scale = scaleMatch[1].split(separator);
                 }
@@ -3063,7 +3064,7 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '1.1.0',
+    version: '1.1.1-alpha.1',
 
     config: {
         // The class name prefix config is for advanced use only.
@@ -7015,7 +7016,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
 
         // The final translation of the subelement.
-        var nodeTransform = nodeAttrs.transform || '';
+        var nodeTransform = nodeAttrs.transform;
         var nodeMatrix = V.transformStringToMatrix(nodeTransform);
         var nodePosition = g.Point(nodeMatrix.e, nodeMatrix.f);
         if (nodeTransform) {
@@ -7032,6 +7033,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             sy = nodeScale.sy;
         }
 
+        var positioned = false;
         for (attrName in positionAttrs) {
             attrVal = positionAttrs[attrName];
             def = this.getAttributeDefinition(attrName);
@@ -7042,6 +7044,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             translation = def.position.call(this, attrVal, refBBox.clone(), node, rawAttrs);
             if (translation) {
                 nodePosition.offset(g.Point(translation).scale(sx, sy));
+                positioned || (positioned = true);
             }
         }
 
@@ -7049,6 +7052,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         // Here we know, that all the size attributes have been already set.
         this.setNodeAttributes(node, nodeAttrs);
 
+        var offseted = false;
         if (offsetAttrs) {
             // Check if the node is visible
             var nodeClientRect = node.getBoundingClientRect();
@@ -7063,16 +7067,20 @@ joint.dia.CellView = joint.mvc.View.extend({
                     translation = def.offset.call(this, attrVal, nodeBBox, node, rawAttrs);
                     if (translation) {
                         nodePosition.offset(g.Point(translation).scale(sx, sy));
+                        offseted || (offseted = true);
                     }
                 }
             }
         }
 
-        // Round the coordinates to 1 decimal point.
-        nodePosition.round(1);
-        nodeMatrix.e = nodePosition.x;
-        nodeMatrix.f = nodePosition.y;
-        node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
+        // Do not touch node's transform attribute if there is no transformation applied.
+        if (nodeTransform !== undefined || positioned || offseted) {
+            // Round the coordinates to 1 decimal point.
+            nodePosition.round(1);
+            nodeMatrix.e = nodePosition.x;
+            nodeMatrix.f = nodePosition.y;
+            node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
+        }
     },
 
     getNodeScale: function(node, scalableNode) {
