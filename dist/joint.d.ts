@@ -1,4 +1,4 @@
-/*! JointJS v1.1.0 (2017-03-31) - JavaScript diagramming library
+/*! JointJS v1.1.1-alpha.1 (2017-06-02) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -35,7 +35,29 @@ export namespace g {
     function toRad(deg: number, over360?: boolean): number;
 
     namespace bezier {
-        // TODO
+        function curveThroughPoints(points: dia.Point[] | Point[]): string[];
+
+        export function getCurveControlPoints(points: dia.Point[] | Point[]): [Point[], Point[]];
+
+        interface ICurveDivider {
+            p0: Point;
+            p1: Point;
+            p2: Point;
+            p3: Point;
+        }
+        export function getCurveDivider(p0: string | dia.Point | Point, p1: string | dia.Point | Point, p2:
+                                            string
+                                            | dia.Point
+                                            | Point, p3:
+                                            string
+                                            | dia.Point
+                                            | Point): (t: number) => [ICurveDivider, ICurveDivider];
+
+        export function getFirectControlPoints(rhs: number[]): number[];
+
+        export function getInversionSolver(p0: dia.Point | Point, p1: dia.Point | Point, p2: dia.Point | Point, p3:
+                                               dia.Point
+                                               | Point): (p: dia.Point | Point) => number;
     }
 
     class Ellipse {
@@ -52,19 +74,19 @@ export namespace g {
 
         clone(): Ellipse;
 
-        normalizedDistance(point: Point): number;
+        normalizedDistance(point: dia.Point | Point): number;
 
-        inflate(dx: number, dy: number): Ellipse
+        inflate(dx: number, dy: number): this;
 
-        containsPoint(p: Point): boolean;
+        containsPoint(p: dia.Point | Point): boolean;
 
         center(): Point;
 
-        tangentTheta(p: Point): number;
+        tangentTheta(p: dia.Point | Point): number;
 
         equals(ellipse: Ellipse): boolean;
 
-        intersectionWithLineFromCenterToPoint(p: Point, angle: number): Point;
+        intersectionWithLineFromCenterToPoint(p: dia.Point | Point, angle: number): Point;
 
         toString(): string;
     }
@@ -73,7 +95,7 @@ export namespace g {
         start: Point;
         end: Point;
 
-        constructor(p1: Point, p2: Point);
+        constructor(p1: string | dia.Point | Point, p2: string | dia.Point | Point);
 
         bearing(): CardinalDirection;
 
@@ -81,8 +103,8 @@ export namespace g {
 
         equals(line: Line): boolean;
 
-        intersect(line: Line): Point;
-        intersect(rect: Rect): Point[];
+        intersect(line: Line): Point | undefined;
+        intersect(rect: Rect): Point[] | undefined;
 
         length(): number;
 
@@ -90,69 +112,77 @@ export namespace g {
 
         pointAt(t: number): Point;
 
-        pointOffset(p: Point): number;
+        pointOffset(p: dia.Point | Point): number;
 
         squaredLength(): number;
+
+        toString(): string;
     }
 
     class Point {
-        static fromPolar(distance: number, angle: number, origin: Point): Point;
+        static fromPolar(distance: number, angle: number, origin?: string | dia.Point | Point): Point;
 
-        static random(distance, angle, origin): Point;
+        static random(x1: number, x2: number, y1: number, y2: number): Point;
 
         x: number;
         y: number;
 
         constructor(x: number | string | Point, y?: number);
 
-        adhereToRect(r: Rect): Point;
+        adhereToRect(r: Rect): this;
 
         bearing(p: Point): CardinalDirection;
 
-        changeInAngle(dx, dy, ref) //FIXME
+        changeInAngle(dx: number, dy: number, ref: string | dia.Point | Point): number;
+
         clone(): Point;
 
-        difference(dx: number, dy: number): Point;
+        difference(dx: dia.Point | Point | number, dy?: number): Point;
 
-        distance(p: Point): number;
+        distance(p: string | dia.Point | Point): number;
 
         equals(p: Point): boolean;
 
         magnitude(): number;
 
-        manhattanDistance(): number;
+        manhattanDistance(p: dia.Point | Point): number;
 
-        move(ref, distance): Point;
+        move(ref: string | dia.Point | Point, distance: number): this;
 
-        normalize(length: number): Point;
+        normalize(length: number): this;
 
-        offset(dx: number, dy?: number): Point;
+        offset(dx: number | dia.Point | Point, dy?: number): this;
 
-        reflection(ref: Point): Point;
+        reflection(ref: string | dia.Point | Point): Point;
 
-        rotate(origin: Point, angle: number): Point;
+        rotate(origin: string | dia.Point | Point, angle: number): this;
 
-        round(precision: number): Point;
+        round(precision: number): this;
 
-        scale(sx: number, sy: number, origin: Point): Point;
+        scale(sx: number, sy: number, origin: string | dia.Point | Point): this;
 
-        snapToGrid(gx: number, gy?: number): Point;
+        snapToGrid(gx: number, gy?: number): this;
 
-        theta(p: Point): number;
+        theta(p: string | dia.Point | Point): number;
 
-        toJSON(): any;
+        toJSON(): dia.Point;
 
-        toPolar(origin: Point): Point;
+        toPolar(origin: string | dia.Point | Point): this;
 
         toString(): string;
 
-        update(x: number, y: number): Point;
+        update(x: number, y: number): this;
     }
 
     class Rect {
         static fromEllipse(e: Ellipse): Rect;
 
-        constructor(x, y, w, h);
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+
+        constructor(x?: number | dia.BBox, y?: number, w?: number, h?: number);
 
         bbox(angle: number): Rect;
 
@@ -166,43 +196,43 @@ export namespace g {
 
         clone(): Rect;
 
-        containsPoint(p: Point): boolean;
+        containsPoint(p: string | dia.Point | Point): boolean;
 
-        containsRect(r: Rect): boolean;
+        containsRect(r: dia.BBox | Rect): boolean;
 
         corner(): Point;
 
-        equals(r: Rect): Rect;
+        equals(r: dia.BBox | Rect): boolean;
 
-        intersect(r: Rect): Rect;
+        intersect(r: Rect): Rect | undefined;
 
-        intersectionWithLineFromCenterToPoint(p: Point, angle: number): Point;
+        intersectionWithLineFromCenterToPoint(p: string | dia.Point | Point, angle: number): Point;
 
         leftLine(): Line;
 
         leftMiddle(): Point;
 
-        moveAndExpand(r: Rect): Rect;
+        moveAndExpand(r: dia.BBox | Rect): this;
 
-        inflate(dx: number, dy: number): Rect;
+        inflate(dx?: number, dy?: number): this;
 
-        normalize(): Rect;
+        normalize(): this;
 
         origin(): Point;
 
-        pointNearestToPoint(point: Point): Point;
+        pointNearestToPoint(point: string | dia.Point | Point): Point;
 
         rightLine(): Line;
 
         rightMiddle(): Point;
 
-        round(precision: number): Rect;
+        round(precision: number): this;
 
-        scale(sx: number, sy: number, origin: Point): Rect;
+        scale(sx: number, sy: number, origin?: string | dia.Point | Point): this;
 
-        sideNearestToPoint(point: Point): 'left' | 'right' | 'top' | 'bottom';
+        sideNearestToPoint(point: string | dia.Point | Point): 'left' | 'right' | 'top' | 'bottom';
 
-        snapToGrid(gx: number, gy: number): Rect;
+        snapToGrid(gx: number, gy?: number): this;
 
         topLine(): Line;
 
@@ -210,7 +240,9 @@ export namespace g {
 
         topRight(): Point;
 
-        toJSON(): any;
+        toJSON(): dia.BBox;
+
+        toString(): string;
 
         union(rect: Rect): Rect;
     }
@@ -219,58 +251,275 @@ export namespace g {
         function linear(domain: number[], range: number[], value: number): number;
     }
 
-    interface IPoint {
-        x:number;
-        y:number;
-    }
-
-    interface IBBox extends IPoint{
-        width:number;
-        height:number;
-    }
-
     function ellipse(c: number, a: number, b: number): Ellipse;
 
-    function line(start: IPoint | Point, end: IPoint | Point): Line
+    function line(start: dia.Point | Point, end: dia.Point | Point): Line
 
     function point(x: number, y: number): Point;
     function point(xy: string): Point;
-    function point(point: IPoint): Point;
+    function point(point: dia.Point): Point;
 
-    function rect(x,y,w,h): Rect;
-    function rect(rect:IBBox): Rect;
+    function rect(x: number, y: number, w: number, h: number): Rect;
+    function rect(rect: dia.BBox): Rect;
 }
 
-export function V(svg: SVGElement | string): Vectorizer;
+export function V(svg: SVGElement | string, attrs?: Object, children?:
+                      Vectorizer
+                      | Vectorizer[]
+                      | SVGElement
+                      | SVGElement[]): Vectorizer;
+
+export namespace Vectorizer {
+
+    interface RotateOptions {
+        absolute: boolean;
+    }
+
+    interface Sample {
+        x: number;
+        y: number;
+        distance: number;
+    }
+    interface TextAnnotation {
+        start: number;
+        end: number;
+        attrs: object;
+    }
+    interface TextOptions {
+        lineHeight: number | string;
+        textPath: string | object;
+        annotations: TextAnnotation[];
+        includeAnnotationIndices: boolean;
+    }
+    interface TransformOptions {
+        absolute: boolean;
+    }
+    // modifiable Matrix. SVGMatrix doesn't allow set on properties or a constructor.
+    interface Matrix {
+        a: number;
+        b: number;
+        c: number;
+        d: number;
+        e: number;
+        f: number;
+    }
+    interface DecomposedTransformation {
+        translateX: number;
+        translateY: number;
+        scaleX: number;
+        scaleY: number;
+        skewX: number;
+        skewY: number;
+        rotation: number;
+    }
+    interface Rect extends dia.BBox {
+        'top-rx'?: number;
+        'top-ry'?: number;
+        'bottom-rx'?: number;
+        'bottom-ry'?: number;
+    }
+    interface Rotation {
+        angle: number;
+        cx?: number;
+        cy?: number;
+    }
+    interface Translation {
+        tx: number;
+        ty: number;
+    }
+    interface Scale {
+        sx: number;
+        sy: number;
+    }
+    interface Transform {
+        value: string;
+        translate: Translation;
+        rotate: Rotation;
+        scale: Scale;
+    }
+    interface ParseXMLOptions {
+        async: boolean;
+    }
+    interface QualifiedAttribute {
+        ns?: string;
+        local: string;
+    }
+}
 
 export class Vectorizer {
-    constructor(svg: SVGElement);
+    constructor(svg: string | SVGElement, attrs?: Object, children?:
+                    Vectorizer
+                    | Vectorizer[]
+                    | SVGElement
+                    | SVGElement[]);
 
     node: SVGElement;
 
-    append(node: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): Vectorizer;
+    animateAlongPath(attrs: Object, path: Vectorizer | SVGElement): void;
+
+    append(node: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): this;
 
     attr(): object;
-    attr(name: string, value: string | number): Vectorizer;
-    attr(attrs: object): Vectorizer;
+    attr(name: string): string | number | object;
+    attr(name: string, value: string | number): this;
+    attr(attrs: object): this;
 
     addClass(className: string): Vectorizer;
 
+    bbox(withoutTransformations?: boolean, target?: SVGElement | Vectorizer): g.Rect;
+
+    before(els: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): this;
+
     clone(): Vectorizer;
+
+    contains(el: SVGElement): boolean;
+
+    convertToPath(): Vectorizer;
+
+    convertToPathData(): string;
+
+    defs(): Vectorizer | undefined;
+
+    empty(): this;
+
+    find(selector: string): Vectorizer[];
+
+    findIntersection(ref: dia.Point, target: SVGElement | Vectorizer): dia.Point | undefined;
+
+    findOne(selector: string): Vectorizer | undefined;
+
+    findParentByClass(className: string, ternimator: SVGElement): Vectorizer | undefined;
+
+    getTransformToElement(elem: SVGGElement | Vectorizer): SVGMatrix;
+
+    hasClass(className: string): boolean;
 
     index(): number;
 
-    removeClass(className: string): Vectorizer;
+    prepend(els: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): this;
 
-    scale(): { sx: number, sy: number };
-    scale(sx: number, sy?: number): void;
+    remove(): this;
 
+    removeAttr(name: string): this;
+
+    removeClass(className: string): this;
+
+    rotate(): Vectorizer.Rotation;
+
+    rotate(angle: number, cx?: number, cy?: number, opt?: Vectorizer.RotateOptions): this;
+
+    sample(interval: number): Vectorizer.Sample[];
+
+    scale(): Vectorizer.Scale;
+
+    scale(sx: number, sy: number): this;
+
+    setAttribute(name: string, value: string): this;
+
+    setAttributes(attrs: object): this;
+
+    // returns either this or Vectorizer, no point in specifying this.
     svg(): Vectorizer;
 
-    transform(matrix: SVGMatrix, opt: any): Vectorizer
+    text(content: string, opt: Vectorizer.TextOptions): this;
+
+    toggleClass(className: string, switchArg?: boolean): this;
+
+    toLocalPoint(x: number, y: number): dia.Point;
+
     transform(): SVGMatrix;
 
-    translate(tx: number, ty?: number): Vectorizer;
+    transform(matrix: SVGMatrix, opt?: Vectorizer.TransformOptions): this;
+
+    translate(): Vectorizer.Translation;
+
+    translate(tx: number, ty?: number, opt?: Vectorizer.TransformOptions): this;
+
+    translateAndAutoOrient(position: dia.Point, reference: dia.Point, target?: SVGElement): this;
+
+    translateCenterToPoint(p: dia.Point): void;
+
+    static convertCircleToPathData(circle: string | SVGElement): string;
+
+    static convertEllipseToPathData(ellipse: string | SVGElement): string;
+
+    static convertLineToPathData(line: string | SVGElement): string;
+
+    static convertPolylineToPathData(line: string | SVGElement): string;
+
+    static convertPolygonToPathData(line: string | SVGElement): string;
+
+    static convertRectToPathData(rect: string | SVGElement): string;
+
+    static createSlicePathData(innerRadius: number, outRadius: number, startAngle: number, endAngle: number): string;
+
+    static createSVGDocument(content: string): Document;
+
+    static createSVGMatrix(extension: Vectorizer.Matrix): SVGMatrix;
+
+    static createSVGPoint(x: number, y: number): SVGPoint;
+
+    static createSVGTransform(matrix?: Vectorizer.Matrix | SVGMatrix): SVGTransform;
+
+    static decomposeMatrix(matrix: SVGMatrix): Vectorizer.DecomposedTransformation;
+
+    static deltaTransformPoint(matrix: SVGMatrix | Vectorizer.Matrix, point: SVGPoint | dia.Point): dia.Point;
+
+    static ensureId(node: SVGElement): string;
+
+    static findAnnotationsAtIndex(annotations: Vectorizer.TextAnnotation[], start: number, end: number): Vectorizer.TextAnnotation;
+
+    static findAnnotationsBetweenIndexes(annotations: Vectorizer.TextAnnotation[], start: number, end: number): Vectorizer.TextAnnotation;
+
+    static getPointsFromSvgNode(node: SVGElement): SVGPoint[];
+
+    static isArray(value: any): boolean;
+
+    static isObject(value: any): boolean;
+
+    static isString(value: any): boolean;
+
+    static isUndefined(value: any): boolean;
+
+    static isV(value: any): boolean;
+
+    static isVElement(object: any): boolean;
+
+    static matrixToRotate(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Rotation;
+
+    static matrixToScale(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Scale;
+
+    static matrixToTransformString(matrix: SVGMatrix | Vectorizer.Matrix): string;
+
+    static matrixToTranslate(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Translation;
+
+    static mergeAttrs(a: Object, b: Object): Object;
+
+    static parseTransformString(transform: string): Vectorizer.Transform;
+
+    static parseXML(data: string, opt?: Vectorizer.ParseXMLOptions): XMLDocument;
+
+    static qualifyAttr(name: string): Vectorizer.QualifiedAttribute;
+
+    static rectToPath(r: Vectorizer.Rect): string;
+
+    static sanitizeText(text: string): string;
+
+    static shiftAnnotations(annotations: Vectorizer.TextAnnotation[], index: number, offset: number): Vectorizer.TextAnnotation[];
+
+    static styleToObject(styleString: string): object;
+
+    static svgPointsToPath(points: dia.Point[] | SVGPoint[]): string;
+
+    static toNode(el: Vectorizer | SVGElement | SVGElement[]): SVGElement;
+
+    static transformPoint(p: dia.Point | g.Point, matrix: SVGMatrix): g.Point;
+
+    static transformRect(r: Vectorizer.Rect, matrix: SVGMatrix): g.Rect;
+
+    static transformStringToMatrix(transform: string): SVGMatrix;
+
+    static uniqueId(): string;
 }
 
 export namespace dia {
@@ -310,14 +559,18 @@ export namespace dia {
         deep?: boolean;
     }
 
+    interface EdgeMap {
+        [key: string]: boolean;
+    }
+
     class Graph extends Backbone.Model {
-        constructor(attributes?: any, options?: { cellNamespace: any });
+        constructor(attributes?: any, options?: { cellNamespace: any, cellModel: typeof Cell });
 
-        addCell(cell: Cell | Cell[]): this;
+        addCell(cell: Cell | Cell[], opt?: object): this;
 
-        addCells(cells: Cell[]): this;
+        addCells(cells: Cell[], opt: object): this;
 
-        resetCells(cells: Cell[], options?: any): this;
+        resetCells(cells: Cell[], options?: object): this;
 
         getCell(id: string): Cell;
 
@@ -333,9 +586,9 @@ export namespace dia {
 
         getConnectedLinks(element: Cell, options?: { inbound?: boolean, outbound?: boolean, deep?: boolean }): Link[];
 
-        disconnectLinks(cell: Cell, options?: any): void;
+        disconnectLinks(cell: Cell, options?: object): void;
 
-        removeLinks(cell: Cell, options?: any): void;
+        removeLinks(cell: Cell, options?: object): void;
 
         translate(tx: number, ty?: number, options?: TranslateOptions): void;
 
@@ -373,46 +626,42 @@ export namespace dia {
 
         getCommonAncestor(...cells: Cell[]): Element;
 
-        toJSON(): any;
+        toJSON(): object;
 
-        fromJSON(json: any, options?: any): this;
+        fromJSON(json: {cells: Cell[]}, options?: object): this;
 
-        clear(options?: any): this;
+        clear(options?: object): this;
 
-        findModelsFromPoint(rect: BBox): Element[];
+        findModelsFromPoint(p: Point): Element[];
 
         findModelsUnderElement(element: Element, options?: {
-                                   searchBy?:
-                                       'bbox'
-                                       | 'center'
-                                       | 'origin'
-                                       | 'corner'
-                                       | 'topRight'
-                                       | 'bottomLeft'
+                                   searchBy?: 'bottomLeft' | 'bottomMiddle' | 'center' |
+                                              'corner' | 'leftMiddle' | 'origin' | 'rightMiddle' |
+                                              'topMiddle' | 'topRight'
                                }): Element[];
 
-        getBBox(elements: Element[], options?: any): BBox;
+        getBBox(elements: Element[], options?: {deep?: boolean}): g.Rect;
 
-        toGraphLib(): any; // graphlib graph object
-        findModelsInArea(rect: BBox, options?: any): BBox | boolean;
+        toGraphLib(): object; // graphlib graph object
+        findModelsInArea(rect: g.Rect | BBox, options?: {strict?: boolean}): BBox | boolean;
 
-        getCellsBBox(cells: Cell[], options?: any): BBox;
+        getCellsBBox(cells: Cell[], options?: {deep?: boolean}): g.Rect;
 
-        getInboundEdges(node: string): Object;
+        getInboundEdges(node: string): EdgeMap;
 
-        getOutboundEdges(node: string): Object;
+        getOutboundEdges(node: string): EdgeMap;
 
         hasActiveBatch(name?: string): number | boolean;
 
         maxZIndex(): number;
 
-        removeCells(cells: Cell[], options?: any): this;
+        removeCells(cells: Cell[], options?: object): this;
 
-        resize(width: number, height: number, options?: number): this;
+        resize(width: number, height: number, options?: object): this;
 
-        resizeCells(width: number, height: number, cells: Cell[], options?: number): this;
+        resizeCells(width: number, height: number, cells: Cell[], options?: object): this;
 
-        set(key: Object | string, value: any, options?: any): this;
+        set(key: object | string, value: any, options?: object): this;
 
         startBatch(name: string, data?: Object): any;
 
@@ -420,9 +669,11 @@ export namespace dia {
     }
 
     class Cell extends Backbone.Model {
+        constructor(attributes?: object, options?: object);
+
         id: string;
 
-        toJSON(): any;
+        toJSON(): object;
 
         remove(options?: { disconnectLinks?: boolean }): this;
 
@@ -434,11 +685,11 @@ export namespace dia {
 
         isEmbeddedIn(element: Element, options?: { deep: boolean }): boolean;
 
-        prop(key: string): any;
-        prop(object: any): this;
-        prop(key: string, value: any, options?: any): this;
+        prop(key: string | string[]): any;
+        prop(object: object): this;
+        prop(key: string | string[], value: any, options?: object): this;
 
-        removeProp(path: string, options?: any): this;
+        removeProp(path: string | string[], options?: object): this;
 
         attr(key: string): any;
         attr(object: SVGAttributes): this;
@@ -447,7 +698,7 @@ export namespace dia {
         clone(): Cell;
         clone(opt: { deep?: boolean }): Cell | Cell[];
 
-        removeAttr(path: string | string[], options?: any): this;
+        removeAttr(path: string | string[], options?: object): this;
 
         transition(path: string, value?: any, options?: TransitionOptions, delim?: string): number;
 
@@ -455,17 +706,17 @@ export namespace dia {
 
         stopTransitions(path?: string, delim?: string): this;
 
-        addTo(graph: Graph, options?: any): this;
+        addTo(graph: Graph, options?: object): this;
 
         isLink(): boolean;
 
-        embed(cell: Cell, options?: any): this;
+        embed(cell: Cell, options?: object): this;
 
         findView(paper: Paper): CellView;
 
-        getEmbeddedCells(options?: any): Cell[];
+        getEmbeddedCells(options?: {deep?: boolean, breadthFirst?: boolean}): Cell[];
 
-        initialize(options?: any): void;
+        initialize(options?: {id?: string}): void;
 
         isElement(): boolean;
 
@@ -473,11 +724,11 @@ export namespace dia {
 
         processPorts(): void;
 
-        startBatch(name: string, options?: any): this;
+        startBatch(name: string, options?: object): this;
 
-        stopBatch(name: string, options?: any): this;
+        stopBatch(name: string, options?: object): this;
 
-        unembed(cell: Cell, options?: any): this;
+        unembed(cell: Cell, options?: object): this;
     }
 
     type Padding = number | {
@@ -487,25 +738,49 @@ export namespace dia {
         left?: number
     };
 
+    type Direction = 'left'
+                    | 'right'
+                    | 'top'
+                    | 'bottom'
+                    | 'top-right'
+                    | 'top-left'
+                    | 'bottom-left'
+                    | 'bottom-right';
+
+    interface Port {
+        id?: string;
+        markup?: string;
+        group?: string;
+        attrs?: object;
+        args?: object;
+        size?: Size;
+        label: {
+            size?: Size;
+            markup?: string;
+            position?: any;
+            args?: any;
+        }
+        z?: number | 'auto';
+    }
+
+    interface PortPosition extends Point {
+        angle: number;
+    }
+
     class Element extends Cell {
+        constructor(attributes?: object, options?: object);
+
         translate(tx: number, ty?: number, options?: TranslateOptions): this;
 
-        position(options?: { parentRelative: boolean }): Point;
+        position(options?: { parentRelative: boolean }): g.Point;
         position(x: number, y: number, options?: { parentRelative?: boolean }): this;
 
-        resize(width: number, height: number, options?: {
-                   direction?:
-                       'left'
-                       | 'right'
-                       | 'top'
-                       | 'bottom'
-                       | 'top-right'
-                       | 'top-left'
-                       | 'bottom-left'
-                       | 'bottom-right'
-               }): this;
+        size(): Size;
+        size(width: number, height?: number, options?: { direction?: Direction}): this;
 
-        rotate(deg: number, absolute?: boolean, origin?: Point): this;
+        resize(width: number, height: number, options?: { direction?: Direction }): this;
+
+        rotate(deg: number, absolute?: boolean, origin?: Point, opt?: { parentRelative?: boolean }): this;
 
         embed(cell: Cell): this;
 
@@ -515,29 +790,29 @@ export namespace dia {
 
         fitEmbeds(options?: { deep?: boolean, padding?: Padding }): this;
 
-        getBBox(options?: any): BBox;
-
-        findView(paper: Paper): ElementView;
+        getBBox(options?: { deep?: boolean }): g.Rect;
 
         isElement(): boolean;
 
-        scale(scaleX: number, scaleY: number, origin?: Point, options?: any): this;
+        scale(scaleX: number, scaleY: number, origin?: Point, options?: { direction?: Direction, parentRelative?: boolean}): this;
 
-        addPort(port: any, opt?: any): this;
+        addPort(port: Port, opt?: object): this;
 
-        addPorts(ports: any[], opt?: any): this;
+        addPorts(ports: Port[], opt?: object): this;
 
-        removePort(port: any, opt?: any): this;
+        removePort(port: string | Port, opt?: object): this;
 
         hasPorts(): boolean;
 
         hasPort(id: string): boolean;
 
-        getPorts(): any[];
+        getPorts(): Port[];
 
-        getPort(id: string): any;
+        getPort(id: string): Port;
 
-        getPortIndex(port: any): number;
+        getPortsPositions(groupName: string): {[id: string]: PortPosition};
+
+        getPortIndex(port: string | Port): number;
 
         portProp(portId: string, path: any, value?: any, opt?: any): joint.dia.Element;
     }
@@ -584,32 +859,32 @@ export namespace dia {
 
         constructor(attributes?: LinkAttributes, options?: Object);
 
+        applyToPoints(fn: (p: Point) => Point, opt?: object): this;
+
         disconnect(): this;
 
         label(index?: number): any;
-        label(index: number, value: Label): this;
+        label(index: number, value: Label, opt?: object): this;
 
-        reparent(options?: any): Element;
+        reparent(options?: object): Element;
 
-        findView(paper: Paper): LinkView;
+        getSourceElement(): undefined | Element | Graph;
 
-        getSourceElement(): Element;
-
-        getTargetElement(): Element;
+        getTargetElement(): undefined | Element | Graph;
 
         hasLoop(options?: { deep?: boolean }): boolean;
 
         applyToPoints(fn: Function, options?: any): this;
 
-        getRelationshipAncestor(): Element;
+        getRelationshipAncestor(): undefined | Element;
 
         isLink(): boolean;
 
         isRelationshipEmbeddedIn(element: Element): boolean;
 
-        scale(sx: number, sy: number, origin: Point, optionts?: any): this;
+        scale(sx: number, sy: number, origin: Point | g.Point | string, opt?: object): this;
 
-        translate(tx: number, ty: number, options?: any): this;
+        translate(tx: number, ty: number, options?: object): this;
     }
 
     interface ManhattanRouterArgs {
@@ -619,24 +894,30 @@ export namespace dia {
         endDirections?: ['left' | 'right' | 'top' | 'bottom'];
     }
 
+    interface GridOptions {
+        color?: string;
+        thickness?: number;
+        name?: 'dot' | 'fixedDot' | 'mesh' | 'doubleMesh';
+        args?: object[] | object;
+    }
+
     interface PaperOptions extends Backbone.ViewOptions<Graph> {
         el?: string | JQuery | HTMLElement;
-        width?: number;
-        height?: number;
+        width?: number | string;
+        height?: number | string;
         origin?: Point;
         gridSize?: number;
+        drawGrid?: boolean | GridOptions;
         perpendicularLinks?: boolean;
-        elementView?: (element: Element) => ElementView | ElementView;
-        linkView?: (link: Link) => LinkView | LinkView;
+        elementView?: (element: Element) => typeof ElementView | typeof ElementView;
+        linkView?: (link: Link) => typeof LinkView | typeof LinkView;
         defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
-        defaultRouter?:
-            ((vertices: Point[], args: Object, linkView: LinkView) => Point[])
+        defaultRouter?: ((vertices: Point[], args: Object, linkView: LinkView) => Point[])
             | { name: string, args?: ManhattanRouterArgs };
         defaultConnector?:
             ((sourcePoint: Point, targetPoint: Point, vertices: Point[], args: Object, linkView: LinkView) => string)
             | { name: string, args?: { radius?: number } };
-        interactive?:
-            ((cellView: CellView, event: string) => boolean)
+        interactive?: ((cellView: CellView, event: string) => boolean)
             | boolean
             | { vertexAdd?: boolean, vertexMove?: boolean, vertexRemove?: boolean, arrowheadMove?: boolean };
         validateMagnet?: (cellView: CellView, magnet: SVGElement) => boolean;
@@ -649,14 +930,17 @@ export namespace dia {
         markAvailable?: boolean;
         async?: boolean | { batchZise: number };
         embeddingMode?: boolean;
+        findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft';
         validateEmbedding?: (childView: ElementView, parentView: ElementView) => boolean;
-        restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
+        restrictTranslate?: (elementView: ElementView) => BBox | boolean;
         guard?: (evt: Event, view: CellView) => boolean;
         multiLinks?: boolean;
-        cellViewNamespace?: Object;
+        cellViewNamespace?: object;
+        highlighterNamespace?: object;
         /** useful undocumented option */
         clickThreshold?: number;
         highlighting?: any;
+        preventContextMenu?: boolean;
     }
 
     interface ScaleContentOptions {
@@ -683,6 +967,11 @@ export namespace dia {
         maxHeight?: number;
     }
 
+    interface Highlighter {
+        name: string;
+        options?: object;
+    }
+
     class Paper extends Backbone.View<Graph> {
         constructor(options?: PaperOptions);
 
@@ -691,35 +980,17 @@ export namespace dia {
         viewport: SVGGElement;
         defs: SVGDefsElement;
 
-        setDimensions(width: number, height: number): void;
-
-        setOrigin(x: number, y: number): void;
-
-        scale(sx: number, sy?: number, ox?: number, oy?: number): this;
-
-        findView(element: any): CellView;
-
-        findViewByModel(model: Cell | string): CellView;
-
-        findViewsFromPoint(point: Point): ElementView[];
-
-        findViewsInArea(rect: BBox, options?: { strict?: boolean }): CellView[];
-
-        fitToContent(options?: FitToContentOptions): void;
-
-        scaleContentToFit(options?: ScaleContentOptions): void;
-
-        getContentBBox(): BBox;
-
-        clientToLocalPoint(p: Point): Point;
-
-        rotate(deg: number, ox?: number, oy?: number): Paper;      // @todo not released yet though it's in the source code already
-
         afterRenderViews(): void;
 
-        asyncRenderViews(cells: Cell[], options?: any): void;
+        asyncRenderViews(cells: Cell[], options?: object): void;
 
         beforeRenderViews(cells: Cell[]): Cell[];
+
+        bindDocumentEvents(): void;
+
+        cellMouseEnter(evt: Event): void;
+
+        cellMouseleave(evt: Event): void;
 
         cellMouseout(evt: Event): void;
 
@@ -727,25 +998,78 @@ export namespace dia {
 
         clearGrid(): this;
 
+        clientMatrix(): SVGMatrix;
+
+        clientToLocalPoint(x: number | g.Point, y?: number): g.Point;
+
+        clientToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+
+        clientOffset(): g.Point;
+
+        cloneOptions(): PaperOptions;
+
         contextmenu(evt: Event): void;
 
         createViewForModel(cell: Cell): CellView;
 
-        drawGrid(options?: any): this;
+        defineFilter(filter: object): string;
+
+        defineGradient(gradient: object): string;
+
+        defineMarker(marker: object): string;
+
+        drawBackground(opt?: {color?: string, img?: string}): this;
+
+        drawBackgroundImage(img: HTMLImageElement, opt: object): void;
+
+        drawGrid(options?: {width?: number, height?: number, scaleFactor?: number,
+                            update: any, ox?: number, oy?: number}): this;
+
+        findView(element: string | JQuery | SVGElement): CellView;
+
+        findViewByModel(model: Cell | string): CellView;
+
+        findViewsFromPoint(point: string | Point | g.Point): ElementView[];
+
+        findViewsInArea(rect: g.Rect | BBox, options?: { strict?: boolean }): CellView[];
 
         fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, options?: any): void;
 
-        getArea(): BBox;
+        fitToContent(options?: FitToContentOptions): void;
+
+        getArea(): g.Rect;
+
+        getContentBBox(): g.Rect;
 
         getDefaultLink(cellView: CellView, magnet: HTMLElement): Link;
 
         getModelById(id: string): Cell;
 
-        getRestrictedArea(): BBox;
+        getRestrictedArea(): g.Rect | undefined;
 
         guard(evt: Event, view: CellView): boolean;
 
+        init(): void;
+
+        isDefined(defId: string): boolean;
+
         linkAllowed(linkViewOrModel: LinkView | Link): boolean;
+
+        localToClientPoint(x: number | g.Point, y?: number): g.Point;
+
+        localToClientRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+
+        localToPagePoint(x: number | g.Point, y?: number): g.Point;
+
+        localToPageRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+
+        localToPaperPoint(x: number | g.Point, y?: number): g.Point;
+
+        localToPaperRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+
+        matrix(): SVGMatrix;
+
+        matrix(ctm: SVGMatrix | Vectorizer.Matrix): this;
 
         mouseclick(evt: Event): void;
 
@@ -753,13 +1077,23 @@ export namespace dia {
 
         mousewheel(evt: Event): void;
 
-        onCellAdded(cell: Cell, graph: Graph, options: Object): void;
+        onCellAdded(cell: Cell, graph: Graph, options: {async?: boolean, position?: number}): void;
 
-        onCellHighlight(cellView: CellView, magnetEl: HTMLElement, options?: any): void;
+        onCellHighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
 
-        onCellUnhighlight(cellView: CellView, magnetEl: HTMLElement, options?: any): void;
+        onCellUnhighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
 
         onRemove(): void;
+
+        pageOffset(): g.Point;
+
+        pageToLocalPoint(x: number | g.Point, y?: number): g.Point;
+
+        pageToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+
+        paperToLocalPoint(x: number | g.Point, y?: number): g.Point;
+
+        paperToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
 
         pointerdown(evt: Event): void;
 
@@ -773,19 +1107,46 @@ export namespace dia {
 
         removeViews(): void;
 
+        render(): this;
+
         renderView(cell: Cell): CellView;
 
-        resetViews(cellsCollection: Cell[], options: any): void;
+        resetViews(cellsCollection: Cell[], options: object): void;
 
-        resolveHighlighter(options?: any): boolean | Object;
+        resolveHighlighter(opt: {highlighter?: Highlighter}): boolean | {highlighter: Highlighter, options: object, name: string};
+
+        rotate(): Vectorizer.Rotation;
+        rotate(deg: number, ox?: number, oy?: number): this;      // @todo not released yet though it's in the source code already
+
+        scale(): Vectorizer.Scale;
+        scale(sx: number, sy?: number, ox?: number, oy?: number): this;
+
+        scaleContentToFit(options?: ScaleContentOptions): void;
+
+        setDimensions(width: number, height: number): void;
+
+        setGrid(drawGrid: GridOptions | GridOptions[]): this;
 
         setGridSize(gridSize: number): this;
 
         setInteractivity(value: any): void;
 
-        snapToGrid(p: Point): Point;
+        setOrigin(x: number, y: number): this;
+
+        snapToGrid(x: g.Point | number, y?: number): g.Point;
 
         sortViews(): void;
+
+        translate(): Vectorizer.Translation;
+        translate(tx: number, ty?: number): this;
+
+        unbindDocumentEvents(): void;
+
+        update(): void;
+
+        updateBackgroundColor(color: string): void;
+
+        updateBackgroundImage(opt: {position?: any, size?: any}): void;
     }
 
 
@@ -798,36 +1159,57 @@ export namespace dia {
         }>;
     }
     class CellViewGeneric<T extends Backbone.Model> extends Backbone.View<T> {
-        getBBox(options?: { useModelGeometry?: boolean }): BBox;
+        constructor(options?: {id: string});
 
-        highlight(el?: any, options?: any): this;
+        initialize(options?: object): void;
 
-        unhighlight(el?: any, options?: any): this;
+        init(): void;
 
-        applyFilter(selector: string | HTMLElement, filter: Object): void;
+        getBBox(options?: { useModelGeometry?: boolean }): g.Rect;
+
+        highlight(el?: any, options?: object): this;
+
+        unhighlight(el?: any, options?: object): this;
+
+        addThemeClassName(theme?: string): this;
+
+        applyFilter(selector: string | HTMLElement, filter: object): void;
 
         applyGradient(selector: string | HTMLElement, attr: 'fill' | 'stroke', gradient: GradientOptions): void;
 
         can(feature: string): boolean;
 
+        contextmenu(evt: Event, x: number, y: number): void;
+
         findBySelector(selector: string): JQuery;
 
-        findMagnet(el: any): HTMLElement;
+        findMagnet(el: SVGElement | JQuery): undefined | JQuery;
+
+        getEventNamespace(): string;
 
         getSelector(el: HTMLElement, prevSelector: string): string;
 
-        getStrokeBBox(el: any): BBox; // string|HTMLElement|Vectorizer
+        getStrokeBBox(el?: Vectorizer | string | SVGElement): g.Rect;
+
+        mouseenter(evt: Event): void;
+
+        mouseleave(evt: Event): void;
+
         mouseout(evt: Event): void;
 
         mouseover(evt: Event): void;
 
         mousewheel(evt: Event, x: number, y: number, delta: number): void
 
-        notify(eventName: string): void;
+        notify(eventName: string, ...notifyArgs: any[]): void;
 
-        onChangeAttrs(cell: Cell, attrs: Backbone.ViewOptions<T>, options?: any): this;
+        onChangeAttrs(cell: Cell, attrs: Backbone.ViewOptions<T>, options?: {dirty?: boolean}): this;
 
         onSetTheme(oldTheme: string, newTheme: string): void;
+
+        onRemove(): void;
+
+        onRender(): void;
 
         pointerclick(evt: Event, x: number, y: number): void;
 
@@ -841,9 +1223,11 @@ export namespace dia {
 
         remove(): this;
 
+        removeThemeClassName(theme?: string): this;
+
         setInteractivity(value: any): void;
 
-        setTheme(theme: string, options?: any): this;
+        setTheme(theme: string, options?: {override?: boolean}): this;
     }
 
     class CellView extends CellViewGeneric<Cell> {
@@ -866,9 +1250,13 @@ export namespace dia {
     }
     class ElementView extends CellViewGeneric<Element> {
         scale(sx: number, sy: number): void; // @todo Documented in source but not released
-        finalizeEmbedding(options?: any): void;
+        finalizeEmbedding(options?: {model?: Backbone.Model, paper?: Paper}): void;
 
-        getBBox(options?: any): BBox;
+        getBBox(options?: {useModelGeometry?: boolean}): g.Rect;
+
+        mouseenter(evt: Event): void;
+
+        mouseleave(evt: Event): void;
 
         pointerdown(evt: Event, x: number, y: number): void;
 
@@ -877,21 +1265,28 @@ export namespace dia {
         pointerup(evt: Event, x: number, y: number): void;
 
         positionRelative(vel: any, bbox: BBox, attributes: ElementViewAttributes, nodesBySelector?: Object): void; // Vectorizer
-        prepareEmbedding(options?: any): void;
 
-        processEmbedding(options?: any): void;
+        prepareEmbedding(options?: {model?: Backbone.Model, paper?: Paper}): void;
 
-        render(): this;
+        processEmbedding(options?: {model?: Backbone.Model, paper?: Paper}): void;
 
         renderMarkup(): void;
 
         resize(): void;
+        // cell and changed are not used in the method, but opt is.
+        resize(cell: any, changed: any, opt: object): void;
 
         rotate(): void;
 
+        translate(): void;
+        // none of these args are used in the function body.
         translate(model: Backbone.Model, changes?: any, options?: any): void;
 
-        update(cell: Cell, renderingOnlyAttrs?: Object): void;
+        update(cell: Cell, renderingOnlyAttrs?: object): void;
+
+        applyPortTransform(element: Vectorizer,
+                           transformData: {dx: number, dy: number, angle: number,
+                                           attrs: object, x: number, y: number}, initialAngle: number): void;
     }
 
     class LinkView extends CellViewGeneric<Link> {
@@ -910,28 +1305,33 @@ export namespace dia {
 
         addVertex(vertex: Point): number;
 
-        getPointAtLength(length: number): Point; // Marked as public api in source but not in the documents
-        createWatcher(endType: { id: string }): Function;
+        getPointAtLength(length: number): g.Point; // Marked as public api in source but not in the documents
+        createWatcher(endType: { id: string }): (link: Link, end?: {id: string}) => this;
 
         findRoute(oldVertices: Point[]): Point[];
 
-        getConnectionPoint(end: 'source' | 'target', selectorOrPoint: Element | Point, referenceSelectorOrPoint:
-                               Element
-                               | Point): Point;
+        getConnectionPoint(end: 'source' | 'target', selectorOrPoint: Element | Point, referenceSelectorOrPoint: Element
+                               | Point): g.Point;
 
-        getPathData(vertices: Point[]): any;
+        getPathData(vertices: Point[]): string;
 
-        onEndModelChange(endType: 'source' | 'target', endModel?: Element, opt?: any): void;
+        mouseenter(evt: Event): void;
+
+        mouseleave(evt: Event): void;
+
+        onEndModelChange(endType: 'source' | 'target', endModel?: Element,
+                         opt?: {cacheOnly?: boolean, handleBy?: string, translateBy?: boolean, tx?: number, ty?: number}): void;
 
         onLabelsChange(): void;
 
-        onSourceChange(cell: Cell, sourceEnd: { id: string }, options: any): void;
+        onSourceChange(cell: Cell, sourceEnd: { id: string }, options: object): void;
 
-        onTargetChange(cell: Cell, targetEnd: { id: string }, options: any): void;
+        onTargetChange(cell: Cell, targetEnd: { id: string }, options: object): void;
 
         onToolsChange(): void;
 
-        onVerticesChange(cell: Cell, changed: any, options: any): void;
+        // changed is not used in function body.
+        onVerticesChange(cell: Cell, changed: any, options: object): void;
 
         pointerdown(evt: Event, x: number, y: number): void;
 
@@ -941,8 +1341,6 @@ export namespace dia {
 
         removeVertex(idx: number): this;
 
-        render(): this;
-
         renderArrowheadMarkers(): this;
 
         renderLabels(): this;
@@ -951,17 +1349,17 @@ export namespace dia {
 
         renderVertexMarkers(): this;
 
-        startArrowheadMove(end: 'source' | 'target', options?: any): void;
+        startArrowheadMove(end: 'source' | 'target', options?: { whenNotAllowed: 'remove' | 'revert' }): void;
 
         startListening(): void;
 
-        update(model: any, attributes: any, options?: any): this;
+        update(model: Cell, attributes: object, options?: object): this;
 
         updateArrowheadMarkers(): this;
 
         updateAttributes(): void;
 
-        updateConnection(options?: any): void;
+        updateConnection(options?: {translateBy?: any, tx?: number, ty?: number}): void;
 
         updateLabelPositions(): this;
 
@@ -1406,8 +1804,7 @@ export namespace util {
 
     export function setAttributesBySelector(el: Element, attrs: dia.SVGAttributes): void;
 
-    export function sortElements(elements:
-                                     Element[]
+    export function sortElements(elements: Element[]
                                      | string
                                      | JQuery, comparator: (a: Element, b: Element) => number): Element[];
 
@@ -1444,7 +1841,7 @@ export namespace layout {
         setLinkVertices?: (link: dia.Link, vertices: Position[]) => void;
     }
 
-    class DirectedGraph {
-        static layout(graph: dia.Graph | dia.Cell[], options?: LayoutOptions): dia.BBox;
+    export namespace DirectedGraph {
+        export function layout(graph: dia.Graph | dia.Cell[], options?: LayoutOptions): dia.BBox;
     }
 }
