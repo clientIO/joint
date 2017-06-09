@@ -115,6 +115,11 @@ module.exports = function(grunt) {
         return files;
     }
 
+    var watchOptions = process.platform === 'win32' ? {
+        spawn: false,
+        interval: 1500
+    } : {};
+
     var config = {
 
         pkg: pkg,
@@ -519,6 +524,7 @@ module.exports = function(grunt) {
                 files: [
                     'docs/**/*'
                 ],
+                options: watchOptions,
                 tasks: ['build:docs']
             },
             joint: {
@@ -531,9 +537,11 @@ module.exports = function(grunt) {
                     css.core,
                     allCSSPlugins()
                 ),
+                options: watchOptions,
                 tasks: ['build']
             },
             types: {
+                options: watchOptions,
                 files: [
                     'types/**/*'
                 ],
