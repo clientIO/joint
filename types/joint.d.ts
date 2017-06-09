@@ -1257,6 +1257,8 @@ export namespace util {
 
     export function imageToDataUri(url: string, callback: (err: Error, dataUri: string) => void): void;
 
+    export function toggleFullScreen(el?: Element): void;
+
     // Not documented but used in examples
     /** @deprecated use lodash _.defaultsDeep */
     export function deepSupplement(objects: any, defaultIndicator?: any): any;
