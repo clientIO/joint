@@ -408,7 +408,7 @@ export namespace dia {
         embeddingMode?: boolean;
         findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft';
         validateEmbedding?: (childView: ElementView, parentView: ElementView) => boolean;
-        restrictTranslate?: (elementView: ElementView) => BBox | boolean;
+        restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
         guard?: (evt: Event, view: CellView) => boolean;
         multiLinks?: boolean;
         cellViewNamespace?: object;
