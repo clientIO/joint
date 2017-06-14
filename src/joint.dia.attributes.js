@@ -72,8 +72,8 @@
 
     var attributesNS = joint.dia.attributes = {
 
-        xlinkHref: {
-            set: 'xlink:href'
+        href: {
+            set: 'href'
         },
 
         xmlSpace: {

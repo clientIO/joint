@@ -38,7 +38,7 @@ var ib = new joint.shapes.basic.Image({
     size: { width: 40, height: 40 },
     attrs: {
         text: { text: 'basic.Image' },
-        image: { 'xlink:href': 'http://placehold.it/48x48', width: 48, height: 48 }
+        image: { 'href': 'http://placehold.it/48x48', width: 48, height: 48 }
     }
 });
 graph.addCell(ib);
@@ -193,7 +193,7 @@ var decoratedRect = new joint.shapes.basic.DecoratedRect({
     size: { width: 100, height: 60 },
     attrs: {
         text: { text: 'My Element' },
-        image: { 'xlink:href': 'http://placehold.it/16x16' }
+        image: { 'href': 'http://placehold.it/16x16' }
     }
 });
 graph.addCell(decoratedRect);

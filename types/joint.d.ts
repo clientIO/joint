@@ -1102,7 +1102,7 @@ export namespace shapes {
             constructor(attributes?: GenericAttributes<IOAttrs>, options?: Object);
         }
         interface Image {
-            'xlink:href'?: string;
+            'href'?: string;
         }
         interface ImageAttrs extends LogicAttrs {
             image?: Image;

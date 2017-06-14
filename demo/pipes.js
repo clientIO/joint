@@ -19,7 +19,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
     patternMarkup: [
         '<pattern id="pattern-<%= id %>" patternUnits="userSpaceOnUse">',
-        '<image xlink:href=""/>',
+        '<image href=""/>',
         '</pattern>'
     ].join(''),
 
@@ -98,7 +98,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
         var dataUri = canvas.toDataURL('image/png');
 
         this.pattern.attr(bbox);
-        this.patternImage.attr({ width: bbox.width, height: bbox.height, 'xlink:href': dataUri });
+        this.patternImage.attr({ width: bbox.width, height: bbox.height, 'href': dataUri });
     },
 
     gradientPoints: function(from, to, width) {

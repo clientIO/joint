@@ -73,7 +73,7 @@ joint.shapes.devs.MyImageModel = joint.shapes.basic.Rect.extend({
             },
             '.label': { text: 'My Shape', 'ref-y': -20 },
             image: {
-                'xlink:href': 'http://jointjs.com/images/logo.png',
+                'href': 'http://jointjs.com/images/logo.png',
                 width: 80,
                 height: 50,
                 'ref-x': .5,
