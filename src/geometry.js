@@ -482,7 +482,7 @@ var g = (function() {
             return this.pointAt(this.closestPointNormalizedLength(p));
         },
 
-        // @return {number} the normalized lenght of the closest point on the line to point `p`
+        // @return {number} the normalized length of the closest point on the line to point `p`
         closestPointNormalizedLength: function(p) {
 
             var product = this.vector().dot(Line(this.start, p).vector());
@@ -1221,25 +1221,25 @@ var g = (function() {
         },
 
         closestPoint: function(p) {
-            return this.pointAtLength(this.closestPointLenght(p));
+            return this.pointAtLength(this.closestPointLength(p));
         },
 
-        closestPointLenght: function(p) {
+        closestPointLength: function(p) {
             var points = this.points;
             var pointLength;
             var minSqrDistance = Infinity;
-            var lenght = 0;
+            var length = 0;
             for (var i = 0, n = points.length - 1; i < n; i++) {
                 var line = Line(points[i], points[i+1]);
                 var lineLength = line.length();
-                var cpNormalizedLenght = line.closestPointNormalizedLength(p);
-                var cp = line.pointAt(cpNormalizedLenght);
+                var cpNormalizedLength = line.closestPointNormalizedLength(p);
+                var cp = line.pointAt(cpNormalizedLength);
                 var sqrDistance = cp.squaredDistance(p);
                 if (sqrDistance < minSqrDistance) {
                     minSqrDistance = sqrDistance;
-                    pointLength = lenght + cpNormalizedLenght * lineLength;
+                    pointLength = length + cpNormalizedLength * lineLength;
                 }
-                lenght += lineLength;
+                length += lineLength;
             }
             return pointLength;
         }
