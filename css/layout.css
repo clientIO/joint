@@ -57,12 +57,13 @@ the whole group of elements. Each plugin can provide its own stylesheet.
 }
 
 .joint-element * {
-   /* The default behavior when scaling an element is not to scale the stroke in order to prevent the ugly effect of stroke with different proportions. */
-   vector-effect: non-scaling-stroke;
    user-drag: none;
 }
 
-
+.joint-element .scalable * {
+   /* The default behavior when scaling an element is not to scale the stroke in order to prevent the ugly effect of stroke with different proportions. */
+   vector-effect: non-scaling-stroke;
+}
 /*
 
 connection-wrap is a <path> element of the joint.dia.Link that follows the .connection <path> of that link.
