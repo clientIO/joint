@@ -82,7 +82,7 @@ joint.layout.DirectedGraph = {
                 // Convert the absolute label position to a relative position
                 // towards the closest point on the edge
                 var polyline = g.Polyline(points);
-                var length = polyline.closestPointLenght(labelPosition);
+                var length = polyline.closestPointLength(labelPosition);
                 var closestPoint = polyline.pointAtLength(length);
                 var distance = length / polyline.length();
                 link.label(0, {
