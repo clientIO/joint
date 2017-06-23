@@ -18,7 +18,7 @@ var member = function(x, y, rank, name, image, background, textColor) {
         position: { x: x, y: y },
         attrs: {
             '.card': { fill: background, stroke: 'none'},
-              image: { 'xlink:href': 'images/'+ image, opacity: 0.7 },
+              image: { 'href': 'images/'+ image, opacity: 0.7 },
             '.rank': { text: rank, fill: textColor, 'word-spacing': '-5px', 'letter-spacing': 0},
             '.name': { text: name, fill: textColor, 'font-size': 13, 'font-family': 'Arial', 'letter-spacing': 0 }
         }

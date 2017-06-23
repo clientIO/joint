@@ -58,7 +58,7 @@ joint.dia.Element.define('jigsaw.Piece', {
                         patternUnits: 'userSpaceOnUse'
                     }, [
                         V('use', {
-                            'xlink:href': '#' + image[0],
+                            'href': '#' + image[0],
                             x: - (image[1] * width + tabSize),
                             y: - (image[2] * height + tabSize)
                         })
@@ -193,7 +193,7 @@ var Jigsaw = {
     },
 
     _setImageHref: function(imageHref) {
-        this.vImage.attr('xlink:href', imageHref);
+        this.vImage.attr('href', imageHref);
     },
 
     _setImageSize: function(width, height, pieceSize) {

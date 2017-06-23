@@ -302,13 +302,13 @@ V = Vectorizer = (function() {
 
             var textPath = V('textPath');
             // Set attributes on the `<textPath>`. The most important one
-            // is the `xlink:href` that points to our newly created `<path/>` element in `<defs/>`.
+            // is the `href` that points to our newly created `<path/>` element in `<defs/>`.
             // Note that we also allow the following construct:
-            // `t.text('my text', { textPath: { 'xlink:href': '#my-other-path' } })`.
+            // `t.text('my text', { textPath: { 'href': '#my-other-path' } })`.
             // In other words, one can completely skip the auto-creation of the path
             // and use any other arbitrary path that is in the document.
-            if (!opt.textPath['xlink:href'] && path) {
-                textPath.attr('xlink:href', '#' + path.node.id);
+            if (!opt.textPath['href'] && path) {
+                textPath.attr('href', '#' + path.node.id);
             }
 
             if (Object(opt.textPath) === opt.textPath) {
@@ -712,7 +712,7 @@ V = Vectorizer = (function() {
 
         var id = V.ensureId(path);
         var animateMotion = V('animateMotion', attrs);
-        var mpath = V('mpath', { 'xlink:href': '#' + id });
+        var mpath = V('mpath', { 'href': '#' + id });
 
         animateMotion.append(mpath);
 
@@ -941,7 +941,7 @@ V = Vectorizer = (function() {
 
         if (qualifiedName.ns) {
             // Attribute names can be namespaced. E.g. `image` elements
-            // have a `xlink:href` attribute to set the source of the image.
+            // have a `href` attribute to set the source of the image.
             el.setAttributeNS(qualifiedName.ns, name, value);
         } else if (name === 'id') {
             el.id = value;

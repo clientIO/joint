@@ -15,7 +15,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
     patternMarkup: [
         '<pattern id="pattern-<%= id %>" patternUnits="userSpaceOnUse">',
-        '<image xlink:href=""/>',
+        '<image href=""/>',
         '</pattern>'
     ].join(''),
 
@@ -125,7 +125,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
         // update the pattern image and the dimensions
         this.pattern.attr(bbox);
-        this.patternImage.attr({ width: bbox.width, height: bbox.height, 'xlink:href': dataUri });
+        this.patternImage.attr({ width: bbox.width, height: bbox.height, 'href': dataUri });
     },
 
     // finds a gradient with perpendicular direction to a link segment

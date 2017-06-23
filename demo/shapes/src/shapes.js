@@ -223,7 +223,7 @@ var Header = joint.dia.Element.define('custom.Header', {
             y: 22,
             width: 30,
             height: 40,
-            xlinkHref: 'http://placehold.it/30x40'
+            href: 'http://placehold.it/30x40'
         }
     }
 });

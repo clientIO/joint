@@ -526,23 +526,23 @@ QUnit.module('vectorizer', function(hooks) {
 
             QUnit.test('with namespace', function(assert) {
 
-                var element = V('a').attr('xlink:href', 'www.seznam.cz');
+                var element = V('a').attr('href', 'www.seznam.cz');
                 this.svg.append(element);
 
                 var text = svgToString(this.svg);
-                assert.ok(text.indexOf('xlink:href') > 0, 'message');
+                assert.ok(text.indexOf('href') > 0, 'message');
             });
 
             QUnit.test('value "null" removes attr', function(assert) {
 
-                var element = V('a').attr('xlink:href', 'www.seznam.cz');
+                var element = V('a').attr('href', 'www.seznam.cz');
                 this.svg.append(element);
 
-                element.attr('xlink:href', null);
+                element.attr('href', null);
 
                 var text = svgToString(this.svg);
 
-                assert.ok(text.indexOf('xlink:href') === -1, 'attribute should be removed');
+                assert.ok(text.indexOf('href') === -1, 'attribute should be removed');
             });
 
             QUnit.test('special attr', function(assert) {
@@ -577,9 +577,9 @@ QUnit.module('vectorizer', function(hooks) {
 
         QUnit.test('remove with namespace', function(assert) {
 
-            var a = V('a').attr('xlink:href', 'www.seznam.cz');
+            var a = V('a').attr('href', 'www.seznam.cz');
             this.svg.append(a);
-            a.removeAttr('xlink:href');
+            a.removeAttr('href');
 
             var text = svgToString(this.svg);
             assert.equal(text.indexOf('href'), -1, 'message');

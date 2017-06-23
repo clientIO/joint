@@ -216,15 +216,15 @@ var link5 = new joint.dia.Link({
     },
     markup: [
         '<path class="connection"/>',
-        '<image class="marker-source" xlink:href="http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png" width="25" height="25"/>',
-        '<image class="marker-target" xlink:href="http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png" width="25" height="25"/>',
+        '<image class="marker-source" href="http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png" width="25" height="25"/>',
+        '<image class="marker-target" href="http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png" width="25" height="25"/>',
         '<path class="connection-wrap"/>',
         '<g class="marker-vertices"/>'
     ].join(''),
 
     vertexMarkup: [
         '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
-        '<image class="marker-vertex" idx="<%= idx %>" xlink:href="http://jointjs.com/images/logo.png" width="25" height="25" transform="translate(-12.5, -12.5)"/>',
+        '<image class="marker-vertex" idx="<%= idx %>" href="http://jointjs.com/images/logo.png" width="25" height="25" transform="translate(-12.5, -12.5)"/>',
         '<rect class="marker-vertex-remove-area" idx="<%= idx %>" fill="red" width="19.5" height="19" transform="translate(11, -26)" rx="3" ry="3" />',
         '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
         '<title>Remove vertex.</title>',
