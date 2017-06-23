@@ -985,14 +985,11 @@ V = Vectorizer = (function() {
 
         target || (target = this.svg().node);
 
-        var spot, geometryObj;
-        var tagName = this.node.localName.toUpperCase();
+        var spot, geometryObj, points;
         var matrix = this.getTransformToElement(target);
         var localRef = V.transformPoint(ref, matrix.inverse());
+        var tagName = this.node.localName.toUpperCase();
 
-        // Little speed up optimalization for `<rect>`, `<ellipse>`, <circle>` elements. We do not do conversion
-        // to path element and sampling but directly calculate the intersection through
-        // a transformed geometrical object.
         switch (tagName) {
             case 'RECT':
                 geometryObj = g.Rect(
@@ -1019,47 +1016,30 @@ V = Vectorizer = (function() {
                 );
                 spot = geometryObj.intersectionWithLineFromCenterToPoint(localRef);
                 break;
-            case 'POLYGON':
             case 'POLYLINE':
+                points = V.getPointsFromSvgNode(this.node);
+                geometryObj = g.Polyline(points);
+                spot = geometryObj.closestPoint(localRef);
+                break;
+            case 'POLYGON':
+                points = V.getPointsFromSvgNode(this.node);
+                if (points.length > 1) {
+                    points.push(points[0]);
+                }
+                geometryObj = g.Polyline(points);
+                spot = geometryObj.closestPoint(localRef);
+                break;
             case 'PATH':
 
-                // TODO: use polyline geometry shape
-
+                // backwards compatibility
                 var bbox = this.bbox(true);
-                var center = bbox.center();
                 if (bbox.containsPoint(localRef)) {
                     return undefined;
                 }
-                var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
-                var samples = pathNode.sample();
-                var minDistance = Infinity;
-                var closestSamples = [];
-                var i, sample, centerDistance, refDistance, distance;
-                for (i = 0; i < samples.length; i++) {
 
-                    sample = g.Point(samples[i]);
-                    centerDistance = sample.distance(center);
-                    // Penalize a higher distance to the reference point by 10%.
-                    // This gives better results. This is due to
-                    // inaccuracies introduced by rounding errors and getPointAtLength() returns.
-                    refDistance = sample.distance(localRef) * 1.1;
-                    distance = centerDistance + refDistance;
-
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        closestSamples = [{ sample: sample, refDistance: refDistance }];
-                    } else if (distance < minDistance + 1) {
-                        closestSamples.push({ sample: sample, refDistance: refDistance });
-                    }
-                }
-
-                closestSamples.sort(function(a, b) {
-                    return a.refDistance - b.refDistance;
-                });
-
-                if (closestSamples[0]) {
-                    spot = closestSamples[0].sample;
-                }
+                points = this.sample();
+                geometryObj = g.Polyline(points);
+                spot = geometryObj.closestPoint(localRef);
                 break;
         }
 
