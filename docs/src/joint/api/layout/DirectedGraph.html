@@ -37,26 +37,63 @@ console.log('width:', graphBBox.width, 'height:', graphBBox.height);</code></pre
     <tr><th>rankDir</th><td>direction of the layout (one of <code>"TB"</code> (top-to-bottom) / <code>"BT"</code> (bottom-to-top) / <code>"LR"</code> (left-to-right) / <code>"RL"</code> (right-to-left))</td></tr>
     <tr><th>marginX</th><td>number of pixels to use as a margin around the left and right of the graph.</td></tr>
     <tr><th>marginY</th><td>number of pixels to use as a margin around the top and bottom of the graph.</td></tr>
+    <tr><th>ranker</th><td>Type of algorithm to assign a rank to each node in the input graph. Possible values: <code>'network-simplex'</code> (default), <code>'tight-tree'</code> or <code>'longest-path'</code>.
+number of pixels to use as a margin around the top and bottom of the graph.</td></tr>
     <tr><th>resizeClusters</th><td>set to <code>false</code> if you don't want parent elements to stretch in order to fit all their embedded children. Default is <code>true</code>.</td></tr>
     <tr><th>clusterPadding</th><td>A gap between the parent element and the boundary of its embedded children. It could be a number or an object e.g. <code>{ left: 10, right: 10, top: 30, bottom: 10 }</code>. It defaults to <code>10</code>.</td></tr>
     <tr><th>setPosition(element, position)</th><td>a function that will be used to set the position of elements at the end of the layout. This is useful
     if you don't want to use the default <code>element.set('position', position)</code> but want to set the position in an animated fashion via <a href="#dia.Element.prototype.transition">transitions</a>.</td></tr>
-    <tr><th>setLinkVertices</th><td>If set to <code>true<code/> the layout will adjust the links by setting their vertices. It defaults to <code>false</code>.</td></tr>
-    <tr><th>setVertices(link, vertices)</th><td>a function that will be used to set the vertices of links at the end of the layout. This is useful
-        if you don't want to use the default <code>link.set('vertices', vertices)</code> but want to set the vertices in an animated fashion via <a href="#dia.Link.prototype.transition">transitions</a>.</td></tr>
+    <tr><th>setVertices(link, vertices)</th>
+        <td>
+            If set to <code>true</code> the layout will adjust the links by setting their vertices. It defaults to <code>false</code>. If the option is defined as a function it will be used to set the vertices of links at the end of the layout. This is useful
+            if you don't want to use the default <code>link.set('vertices', vertices)</code> but want to set the vertices in an animated fashion via <a href="#dia.Link.prototype.transition">transitions</a>.
+        </td>
+    </tr>
+    <tr><th>setLabels(link, labelPosition, points)</th>
+        <td>
+            If set to <code>true</code> the layout will adjust the labels by setting their position. It defaults to <code>false</code>. If the option is defined as a function it will be used to set the labels of links at the end of the layout.
+            <em><b>Note:</b> Only the first label (<code>link.label(0);</code>) is positioned by the layout.</em>
+        </td>
+    </tr>
 </table>
 
 <p>Additionally, the layout engine takes into account some properties on elements/links to fine tune the layout further. These are:</p>
 
 <table>
-  <tr>
-    <th>minLen <em>Link specific</em></th>
-    <td>The number of ranks to keep between the source and target of the link.</td>
-  </tr>
+    <tr>
+        <th>size</th>
+        <td>element</td>
+        <td>An object with `width` and `height` properties representing the size of the element.</td>
+    </tr>
+    <tr>
+        <th>minLen</th>
+        <td>link</td>
+        <td>The number of ranks to keep between the source and target of the link.</td>
+    </tr>
+    <tr>
+        <th>weight</th>
+        <td>link</td>
+        <td>The weight to assign edges. Higher weight edges are generally made shorter and straighter than lower weight edges.</td>
+    </tr>
+    <tr>
+        <th>labelPosition</th>
+        <td>link</td>
+        <td>Where to place the label relative to the edge. <code>'l'</code> = left, <code>'c'</code> = center (default), <code>'r'</code> = right.
+        </td>
+    </tr>
+    <tr>
+        <th>labelOffset</th>
+        <td>link</td>
+        <td>How many pixels to move the label away from the edge. Applies only when <code>labelPosition</code> is left or right.</td>
+    </tr>
+    <tr>
+        <th>labelSize</th>
+        <td>link</td>
+        <td>The width and height of the edge label in pixels. e.g. <code>{ width: 100, height: 50 }</code></td>
+    </tr>
 </table>
 
-<p>The <code>layout()</code> function returns an object that contains <code>width</code> and <code>height</code>
-of the resulting graph.</p>
+<p>The <code>layout()</code> function returns a bounding box (<code>g.Rect</code>) of the resulting graph.</p>
 
 
 <h3>API</h3>

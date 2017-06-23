@@ -37,6 +37,13 @@ QUnit.module('line', function() {
 
         QUnit.module('clone()', function() {
 
+            QUnit.test('returns a clone', function(assert) {
+
+                var l1 = g.Line('1 2', '3 4');
+                var l2 = l1.clone();
+                assert.notOk(l1 === l2);
+                assert.equal(l1.toString(), l2.toString());
+            });
         });
 
         // Kept for backwards compatibility
@@ -141,6 +148,45 @@ QUnit.module('line', function() {
                 assert.equal(line3.intersect(rect).length, 2, "two intersection points");
                 assert.equal(line3.intersect(rect)[0].toString(), '0@0');
                 assert.equal(line3.intersect(rect)[1].toString(), '5@5');
+            });
+        });
+
+        QUnit.module('vector()', function() {
+
+            QUnit.test('returns the vector of the line', function(assert) {
+
+                assert.ok(g.Line().vector() instanceof g.Point);
+                assert.equal(g.Line('10 10', '20 30').vector().toString(), g.Point(10,20).toString());
+                assert.equal(g.Line('20 30', '10 10').vector().toString(), g.Point(-10,-20).toString());
+            });
+
+        });
+
+        QUnit.module('closestPointNormalizedLenght(p)', function() {
+
+            QUnit.test('returns the normalized lentgh of the closest point', function(assert) {
+
+                assert.equal(g.Line('10 0', '20 0').closestPointNormalizedLength(g.Point(15,0)), .5);
+                assert.equal(g.Line('10 0', '20 0').closestPointNormalizedLength(g.Point(15,20)), .5);
+                assert.equal(g.Line('10 0', '20 0').closestPointNormalizedLength(g.Point(15,-20)), .5);
+                assert.equal(g.Line('10 0', '20 0').closestPointNormalizedLength(g.Point(20,10)), 1);
+                assert.equal(g.Line('10 0', '20 0').closestPointNormalizedLength(g.Point(0,10)), 0);
+                assert.equal(g.Line('10 0', '20 0').closestPointNormalizedLength(g.Point(30,10)), 1);
+                assert.equal(g.Line('10 0', '20 0').closestPointNormalizedLength(g.Point(-10,10)), 0);
+            });
+        });
+
+        QUnit.module('closestPoint(p)', function() {
+
+            QUnit.test('returns the the closest point', function(assert) {
+
+                assert.equal(g.Line('10 0', '20 0').closestPoint(g.Point(15,0)).toString(), g.Point(15,0).toString());
+                assert.equal(g.Line('10 0', '20 0').closestPoint(g.Point(15,20)).toString(), g.Point(15,0).toString());
+                assert.equal(g.Line('10 0', '20 0').closestPoint(g.Point(15,-20)).toString(), g.Point(15,0).toString());
+                assert.equal(g.Line('10 0', '20 0').closestPoint(g.Point(20,10)).toString(), g.Point(20,0).toString());
+                assert.equal(g.Line('10 0', '20 0').closestPoint(g.Point(0,10)).toString(), g.Point(10,0).toString());
+                assert.equal(g.Line('10 0', '20 0').closestPoint(g.Point(30,10)).toString(), g.Point(20,0).toString());
+                assert.equal(g.Line('10 0', '20 0').closestPoint(g.Point(-10,10)).toString(), g.Point(10,0).toString());
             });
         });
 

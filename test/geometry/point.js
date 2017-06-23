@@ -173,5 +173,19 @@ QUnit.module('point', function() {
                 assert.equal(point.toString(), '16@24');
             });
         });
+
+        QUnit.module('dot(p)', function() {
+
+            QUnit.test('returns the dot product of p', function(assert) {
+
+                var p1 = g.point(4, 17);
+                var p2 = g.point(2, 10);
+
+                assert.ok(isNaN(p1.dot()));
+                assert.ok(isNaN(p1.dot({})));
+                assert.equal(p1.dot(p2), 178);
+                assert.equal(p2.dot(p1), 178);
+            });
+        });
     });
 });

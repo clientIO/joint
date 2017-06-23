@@ -200,36 +200,6 @@ QUnit.module('links', function(hooks) {
         checkDataPath(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 300 100 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400, 400');
     });
 
-    QUnit.test('labelMove', function() {
-
-        expect(2);
-
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 50, height: 50 } });
-        var r2 = r1.clone().translate(250);
-
-        this.graph.addCell([r1, r2]);
-
-        var l0 = new joint.dia.Link({
-            source: { id: r1.id },
-            target: { id: r2.id },
-            attrs: { '.connection': { stroke: 'black' } },
-            labels: [
-                { position: .5, attrs: { text: { text: 'test label' } } }
-            ]
-        });
-
-        this.graph.addCell(l0);
-
-        var v0 = this.paper.findViewByModel(l0);
-
-        v0.options.interactive = { labelMove: true };
-        v0.pointerdown({ target: v0.$('.label')[0], type: 'mousedown' });
-        v0.pointermove({ target: v0.$('.label')[0], type: 'mousemove' }, 150, 25);
-        equal(l0.get('labels')[0].position.offset, -50, 'offset was set during the label drag');
-        equal(l0.get('labels')[0].position.distance, .25, 'distance was set during the label drag');
-        v0.pointerup();
-    });
-
     QUnit.test('defaultLink', function() {
 
         expect(9);
@@ -609,51 +579,133 @@ QUnit.module('links', function(hooks) {
 
     });
 
-    QUnit.test('labels', function() {
+    QUnit.module('Labels', function() {
 
-        var myrect = new joint.shapes.basic.Rect;
-        var myrect2 = myrect.clone();
-        myrect2.translate(300);
+        QUnit.test('labels', function() {
 
-        this.graph.addCell(myrect);
-        this.graph.addCell(myrect2);
+            var myrect = new joint.shapes.basic.Rect;
+            var myrect2 = myrect.clone();
+            myrect2.translate(300);
 
-        var link = new joint.dia.Link({
+            this.graph.addCell(myrect);
+            this.graph.addCell(myrect2);
 
-            source: { id: myrect.id },
-            target: { id: myrect2.id },
-            labels: [
-                { position: 10, attrs: { text: { text: '1..n' } } },
-                { position: .5, attrs: { text: { text: 'Foo', fill: 'white', 'font-family': 'sans-serif' }, rect: { stroke: '#F39C12', 'stroke-width': 20, rx: 5, ry: 5 } } },
-                { position: -10, attrs: { text: { text: '*' } } }
-            ]
+            var link = new joint.dia.Link({
+
+                source: { id: myrect.id },
+                target: { id: myrect2.id },
+                labels: [
+                    { position: 10, attrs: { text: { text: '1..n' } } },
+                    { position: .5, attrs: { text: { text: 'Foo', fill: 'white', 'font-family': 'sans-serif' }, rect: { stroke: '#F39C12', 'stroke-width': 20, rx: 5, ry: 5 } } },
+                    { position: -10, attrs: { text: { text: '*' } } }
+                ]
+            });
+
+            this.graph.addCell(link);
+
+            var linkView = this.paper.findViewByModel(link);
+
+            equal(linkView.$('.label').length, 3, 'label elements were correctly added to the DOM');
+
+            var label1Bbox = V(linkView.$('.label')[0]).bbox();
+            var label2Bbox = V(linkView.$('.label')[1]).bbox();
+            var label3Bbox = V(linkView.$('.label')[2]).bbox();
+
+            ok(label1Bbox.x < label2Bbox.x, 'second label is positioned after the first one');
+            ok(label2Bbox.x < label3Bbox.x, 'third label is positioned after the second one');
+
+            equal(linkView.$('.label')[0].textContent, '1..n', 'first label has correctly set text');
+            equal(linkView.$('.label')[1].textContent, 'Foo', 'second label has correctly set text');
+            equal(linkView.$('.label')[2].textContent, '*', 'third label has correctly set text');
+
+            link.label(1, { attrs: { text: { text: 'Bar' } } });
+
+            equal(linkView.$('.label')[1].textContent, 'Bar', 'a call to link.label() changed text of the second label correctly');
+
+            link.label(0, { position: -10 });
+
+            label1Bbox = V(linkView.$('.label')[0]).bbox();
+            ok(label1Bbox.x > label2Bbox.x, 'second label is positioned before the first one after changing the first one position');
         });
 
-        this.graph.addCell(link);
+        QUnit.test('labelMove', function() {
 
-        var linkView = this.paper.findViewByModel(link);
+            expect(2);
 
-        equal(linkView.$('.label').length, 3, 'label elements were correctly added to the DOM');
+            var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 50, height: 50 } });
+            var r2 = r1.clone().translate(250);
 
-        var label1Bbox = V(linkView.$('.label')[0]).bbox();
-        var label2Bbox = V(linkView.$('.label')[1]).bbox();
-        var label3Bbox = V(linkView.$('.label')[2]).bbox();
+            this.graph.addCell([r1, r2]);
 
-        ok(label1Bbox.x < label2Bbox.x, 'second label is positioned after the first one');
-        ok(label2Bbox.x < label3Bbox.x, 'third label is positioned after the second one');
+            var l0 = new joint.dia.Link({
+                source: { id: r1.id },
+                target: { id: r2.id },
+                attrs: { '.connection': { stroke: 'black' } },
+                labels: [
+                    { position: .5, attrs: { text: { text: 'test label' } } }
+                ]
+            });
 
-        equal(linkView.$('.label')[0].textContent, '1..n', 'first label has correctly set text');
-        equal(linkView.$('.label')[1].textContent, 'Foo', 'second label has correctly set text');
-        equal(linkView.$('.label')[2].textContent, '*', 'third label has correctly set text');
+            this.graph.addCell(l0);
 
-        link.label(1, { attrs: { text: { text: 'Bar' } } });
+            var v0 = this.paper.findViewByModel(l0);
 
-        equal(linkView.$('.label')[1].textContent, 'Bar', 'a call to link.label() changed text of the second label correctly');
+            v0.options.interactive = { labelMove: true };
+            v0.pointerdown({ target: v0.$('.label')[0], type: 'mousedown' });
+            v0.pointermove({ target: v0.$('.label')[0], type: 'mousemove' }, 150, 25);
+            equal(l0.get('labels')[0].position.offset, -50, 'offset was set during the label drag');
+            equal(l0.get('labels')[0].position.distance, .25, 'distance was set during the label drag');
+            v0.pointerup();
+        });
 
-        link.label(0, { position: -10 });
+        QUnit.test('change:labels', function(assert) {
 
-        label1Bbox = V(linkView.$('.label')[0]).bbox();
-        ok(label1Bbox.x > label2Bbox.x, 'second label is positioned before the first one after changing the first one position');
+            var l = new joint.dia.Link({
+                source: { x: 0, y: 0 },
+                target: { x: 100, y: 100 }
+            }).addTo(this.graph);
+
+            var view = l.findView(this.paper);
+            var renderSpy = sinon.spy(view, 'renderLabels');
+            var updateSpy = sinon.spy(view, 'updateLabels');
+
+            l.set({
+                labels: [
+                    { position: 20, attrs: { text: { text: 'label1' }}},
+                    { position: -20, attrs: { text: { text: 'label2' }}}
+                ]
+            });
+            assert.ok(renderSpy.calledOnce);
+            assert.ok(updateSpy.calledOnce);
+            renderSpy.reset();
+            updateSpy.reset();
+
+
+            l.prop('labels/0/attrs/text/text', 'label3');
+            assert.ok(renderSpy.notCalled);
+            assert.ok(updateSpy.calledOnce);
+            renderSpy.reset();
+            updateSpy.reset();
+
+            l.prop('labels/0', { attrs: { text: { text: 'label4' }}});
+            assert.ok(renderSpy.notCalled);
+            assert.ok(updateSpy.calledOnce);
+            renderSpy.reset();
+            updateSpy.reset();
+
+            l.prop('labels/1', { markup: '<rect/><text/>' });
+            assert.ok(renderSpy.calledOnce);
+            assert.ok(updateSpy.calledOnce);
+            renderSpy.reset();
+            updateSpy.reset();
+
+            l.prop('labels/0/markup', '<rect/><text/>');
+            assert.ok(renderSpy.calledOnce);
+            assert.ok(updateSpy.calledOnce);
+            renderSpy.reset();
+            updateSpy.reset();
+        });
+
     });
 
     QUnit.test('magnets & ports', function() {

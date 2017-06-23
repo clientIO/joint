@@ -350,9 +350,36 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.renderTools().updateToolsPosition();
     },
 
-    onLabelsChange: function() {
+    onLabelsChange: function(link, labels, opt) {
 
-        this.renderLabels().updateLabelPositions();
+        var requireRender = true;
+
+        // Here is an optimalization for cases when we know, that change does
+        // not require rerendering of all labels.
+        if (('propertyPathArray' in opt) && ('propertyValue' in opt)) {
+            // The label is setting by `prop()` method
+            var pathArray = opt.propertyPathArray || [];
+            var pathLength = pathArray.length;
+            if (pathLength > 1) {
+                // We are changing a single label here e.g. 'labels/0/position'
+                if (pathLength === 2) {
+                    // We are changing the entire label. Need to check if the
+                    // markup is also being changed.
+                    requireRender = ('markup' in Object(opt.propertyValue));
+                } else if (pathArray[2] !== 'markup') {
+                    // We are changing a label property but not the markup
+                    requireRender = false;
+                }
+            }
+        }
+
+        if (requireRender) {
+            this.renderLabels();
+        } else {
+            this.updateLabels();
+        }
+
+        this.updateLabelPositions();
     },
 
     // Rendering
@@ -432,7 +459,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
         var labelNodeInstance = V(labelTemplate());
-        var canLabelMove = this.can('labelMove');
 
         for (var i = 0; i < labelsCount; i++) {
 
@@ -445,14 +471,33 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             vLabelNode
                 .addClass('label')
-                .attr({
-                    'label-idx': i,
-                    'cursor': (canLabelMove ? 'move' : 'default')
-                })
+                .attr('label-idx', i)
                 .appendTo(vLabels);
+        }
+
+        this.updateLabels();
+
+        return this;
+    },
+
+    updateLabels: function() {
+
+        if (!this._V.labels) {
+            return this;
+        }
+
+        var labels = this.model.get('labels') || [];
+        var canLabelMove = this.can('labelMove');
+
+        for (var i = 0, n = labels.length; i < n; i++) {
+
+            var vLabel = this._labelCache[i];
+            var label = labels[i];
+
+            vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
 
             var labelAttrs = label.attrs;
-            if (!labelMarkup) {
+            if (!label.markup) {
                 // Default attributes to maintain backwards compatibility
                 labelAttrs = _.merge({
                     text: {
@@ -474,7 +519,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 }, labelAttrs);
             }
 
-            this.updateDOMSubtreeAttributes(vLabelNode.node, labelAttrs);
+            this.updateDOMSubtreeAttributes(vLabel.node, labelAttrs, {
+                rootBBox: g.Rect(label.size)
+            });
         }
 
         return this;
@@ -698,74 +745,77 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var labels = this.model.get('labels') || [];
         if (!labels.length) return this;
 
+        var samples;
         var connectionElement = this._V.connection.node;
         var connectionLength = connectionElement.getTotalLength();
 
         // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
         // In that case we won't update labels at all.
-        if (!_.isNaN(connectionLength)) {
+        if (_.isNaN(connectionLength)) {
+            return this;
+        }
 
-            var samples;
+        for (var idx = 0, n = labels.length; idx < n; idx++) {
 
-            _.each(labels, function(label, idx) {
+            var label = labels[idx];
+            var position = label.position;
+            var isPositionObject = _.isObject(position);
+            var labelCoordinates;
 
-                var position = label.position;
-                var distance = _.isObject(position) ? position.distance : position;
-                var offset = _.isObject(position) ? position.offset : { x: 0, y: 0 };
+            var distance = isPositionObject ? position.distance : position;
+            var offset = isPositionObject ? position.offset : { x: 0, y: 0 };
 
-                if (_.isFinite(distance)) {
-                    distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
-                    distance = (distance < 0) ? connectionLength + distance : distance;
-                    distance = (distance > 1) ? distance : connectionLength * distance;
-                } else {
-                    distance = connectionLength / 2;
+            if (_.isFinite(distance)) {
+                distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
+                distance = (distance < 0) ? connectionLength + distance : distance;
+                distance = (distance > 1) ? distance : connectionLength * distance;
+            } else {
+                distance = connectionLength / 2;
+            }
+
+            labelCoordinates = connectionElement.getPointAtLength(distance);
+
+            if (_.isObject(offset)) {
+
+                // Just offset the label by the x,y provided in the offset object.
+                labelCoordinates = g.point(labelCoordinates).offset(offset);
+
+            } else if (_.isFinite(offset)) {
+
+                if (!samples) {
+                    samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
                 }
 
-                var labelCoordinates = connectionElement.getPointAtLength(distance);
+                // Offset the label by the amount provided in `offset` to an either
+                // side of the link.
 
-                if (_.isObject(offset)) {
-
-                    // Just offset the label by the x,y provided in the offset object.
-                    labelCoordinates = g.point(labelCoordinates).offset(offset);
-
-                } else if (_.isFinite(offset)) {
-
-                    if (!samples) {
-                        samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
+                // 1. Find the closest sample & its left and right neighbours.
+                var minSqDistance = Infinity;
+                var closestSampleIndex, sample, sqDistance;
+                for (var i = 0; i < samples.length; i++) {
+                    sample = samples[i];
+                    sqDistance = g.line(sample, labelCoordinates).squaredLength();
+                    if (sqDistance < minSqDistance) {
+                        minSqDistance = sqDistance;
+                        closestSampleIndex = i;
                     }
-
-                    // Offset the label by the amount provided in `offset` to an either
-                    // side of the link.
-
-                    // 1. Find the closest sample & its left and right neighbours.
-                    var minSqDistance = Infinity;
-                    var closestSampleIndex, sample, sqDistance;
-                    for (var i = 0; i < samples.length; i++) {
-                        sample = samples[i];
-                        sqDistance = g.line(sample, labelCoordinates).squaredLength();
-                        if (sqDistance < minSqDistance) {
-                            minSqDistance = sqDistance;
-                            closestSampleIndex = i;
-                        }
-                    }
-                    var prevSample = samples[closestSampleIndex - 1];
-                    var nextSample = samples[closestSampleIndex + 1];
-
-                    // 2. Offset the label on the perpendicular line between
-                    // the current label coordinate ("at `distance`") and
-                    // the next sample.
-                    var angle = 0;
-                    if (nextSample) {
-                        angle = g.point(labelCoordinates).theta(nextSample);
-                    } else if (prevSample) {
-                        angle = g.point(prevSample).theta(labelCoordinates);
-                    }
-                    labelCoordinates = g.point(labelCoordinates).offset(offset).rotate(labelCoordinates, angle - 90);
                 }
+                var prevSample = samples[closestSampleIndex - 1];
+                var nextSample = samples[closestSampleIndex + 1];
 
-                this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
+                // 2. Offset the label on the perpendicular line between
+                // the current label coordinate ("at `distance`") and
+                // the next sample.
+                var angle = 0;
+                if (nextSample) {
+                    angle = g.point(labelCoordinates).theta(nextSample);
+                } else if (prevSample) {
+                    angle = g.point(prevSample).theta(labelCoordinates);
+                }
+                labelCoordinates = g.point(labelCoordinates).offset(offset).rotate(labelCoordinates, angle - 90);
+            }
 
-            }, this);
+            this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
         }
 
         return this;

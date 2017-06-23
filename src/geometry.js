@@ -341,6 +341,10 @@ var g = (function() {
             return new Line(p1, p2);
         }
 
+        if (p1 instanceof Line) {
+            return Line(p1.start, p1.end);
+        }
+
         this.start = Point(p1);
         this.end = Point(p2);
     };
@@ -372,7 +376,7 @@ var g = (function() {
 
         clone: function() {
 
-            return Line(this);
+            return Line(this.start, this.end);
         },
 
         equals: function(l) {
@@ -464,6 +468,26 @@ var g = (function() {
 
             // Find the sign of the determinant of vectors (start,end), where p is the query point.
             return ((this.end.x - this.start.x) * (p.y - this.start.y) - (this.end.y - this.start.y) * (p.x - this.start.x)) / 2;
+        },
+
+        // @return vector {point} of the line
+        vector: function() {
+
+            return Point(this.end.x - this.start.x, this.end.y - this.start.y);
+        },
+
+        // @return {point} the closest point on the line to point `p`
+        closestPoint: function(p) {
+
+            return this.pointAt(this.closestPointNormalizedLength(p));
+        },
+
+        // @return {number} the normalized length of the closest point on the line to point `p`
+        closestPointNormalizedLength: function(p) {
+
+            var product = this.vector().dot(Line(this.start, p).vector());
+
+            return Math.min(1, Math.max(0, product / this.squaredLength()));
         },
 
         // @return {integer} length without sqrt
@@ -590,6 +614,11 @@ var g = (function() {
         distance: function(p) {
 
             return Line(this, p).length();
+        },
+
+        squaredDistance: function(p) {
+
+            return Line(this, p).squaredLength();
         },
 
         equals: function(p) {
@@ -727,6 +756,11 @@ var g = (function() {
             this.x = x || 0;
             this.y = y || 0;
             return this;
+        },
+
+        dot: function(p) {
+
+            return p ? (this.x * p.x + this.y * p.y) : NaN;
         }
     };
 
@@ -1150,6 +1184,67 @@ var g = (function() {
             return Rect(originX, originY, cornerX - originX, cornerY - originY);
         }
     };
+
+    var Polyline = g.Polyline = function(points) {
+
+        if (!(this instanceof Polyline)) {
+            return new Polyline(points);
+        }
+
+        this.points = (Array.isArray(points)) ? points.map(Point) : [];
+    };
+
+    Polyline.prototype = {
+
+        pointAtLength: function(length) {
+            var points = this.points;
+            var l = 0;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var a = points[i];
+                var b = points[i+1];
+                var d = a.distance(b);
+                l += d;
+                if (length <= l) {
+                    return Line(b, a).pointAt(d ? (l - length) / d : 0);
+                }
+            }
+            return null;
+        },
+
+        length: function() {
+            var points = this.points;
+            var length = 0;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                length += points[i].distance(points[i+1]);
+            }
+            return length;
+        },
+
+        closestPoint: function(p) {
+            return this.pointAtLength(this.closestPointLength(p));
+        },
+
+        closestPointLength: function(p) {
+            var points = this.points;
+            var pointLength;
+            var minSqrDistance = Infinity;
+            var length = 0;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var line = Line(points[i], points[i+1]);
+                var lineLength = line.length();
+                var cpNormalizedLength = line.closestPointNormalizedLength(p);
+                var cp = line.pointAt(cpNormalizedLength);
+                var sqrDistance = cp.squaredDistance(p);
+                if (sqrDistance < minSqrDistance) {
+                    minSqrDistance = sqrDistance;
+                    pointLength = length + cpNormalizedLength * lineLength;
+                }
+                length += lineLength;
+            }
+            return pointLength;
+        }
+    };
+
 
     var normalizeAngle = g.normalizeAngle = function(angle) {
 
