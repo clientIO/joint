@@ -983,79 +983,89 @@ V = Vectorizer = (function() {
     // an intersection is found. Returns `undefined` otherwise.
     V.prototype.findIntersection = function(ref, target) {
 
-        var svg = this.svg().node;
-        target = target || svg;
-        var bbox = this.getBBox({ target: target });
-        var center = bbox.center();
+        target || (target = this.svg().node);
 
-        if (!bbox.intersectionWithLineFromCenterToPoint(ref)) return undefined;
-
-        var spot;
+        var spot, geometry;
         var tagName = this.node.localName.toUpperCase();
+        var matrix = this.getTransformToElement(target);
+        var localRef = V.transformPoint(ref, matrix.inverse());
 
-        // Little speed up optimalization for `<rect>` element. We do not do conversion
+        // Little speed up optimalization for `<rect>`, `<ellipse>`, <circle>` elements. We do not do conversion
         // to path element and sampling but directly calculate the intersection through
-        // a transformed geometrical rectangle.
-        if (tagName === 'RECT') {
+        // a transformed geometrical object.
+        switch (tagName) {
+            case 'RECT':
+                geometry = g.Rect(
+                    parseFloat(this.attr('x') || 0),
+                    parseFloat(this.attr('y') || 0),
+                    parseFloat(this.attr('width') || 1),
+                    parseFloat(this.attr('height') || 1)
+                );
+                spot = geometry.intersectionWithLineFromCenterToPoint(localRef);
+                break;
+            case 'CIRCLE':
+                geometry = g.Ellipse(
+                    g.Point(parseFloat(this.attr('cx')), parseFloat(this.attr('cy'))),
+                    parseFloat(this.attr('r') || 1),
+                    parseFloat(this.attr('r') || 1)
+                );
+                spot = geometry.intersectionWithLineFromCenterToPoint(localRef);
+                break;
+            case 'ELLIPSE':
+                geometry = g.Ellipse(
+                    g.Point(parseFloat(this.attr('cx')), parseFloat(this.attr('cy'))),
+                    parseFloat(this.attr('rx') || 1),
+                    parseFloat(this.attr('ry') || 1)
+                );
+                spot = geometry.intersectionWithLineFromCenterToPoint(localRef);
+                break;
+            case 'POLYGON':
+            case 'POLYLINE':
+            case 'PATH':
 
-            var gRect = g.rect(
-                parseFloat(this.attr('x') || 0),
-                parseFloat(this.attr('y') || 0),
-                parseFloat(this.attr('width')),
-                parseFloat(this.attr('height'))
-            );
-            // Get the rect transformation matrix with regards to the SVG document.
-            var rectMatrix = this.getTransformToElement(target);
-            // Decompose the matrix to find the rotation angle.
-            var rectMatrixComponents = V.decomposeMatrix(rectMatrix);
-            // Now we want to rotate the rectangle back so that we
-            // can use `intersectionWithLineFromCenterToPoint()` passing the angle as the second argument.
-            var resetRotation = svg.createSVGTransform();
-            resetRotation.setRotate(-rectMatrixComponents.rotation, center.x, center.y);
-            var rect = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
-            spot = g.rect(rect).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
+                // TODO: use polyline geometry shape
 
-        } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
-
-            var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
-            var samples = pathNode.sample();
-            var minDistance = Infinity;
-            var closestSamples = [];
-
-            var i, sample, gp, centerDistance, refDistance, distance;
-
-            for (i = 0; i < samples.length; i++) {
-
-                sample = samples[i];
-                // Convert the sample point in the local coordinate system to the global coordinate system.
-                gp = V.createSVGPoint(sample.x, sample.y);
-                gp = gp.matrixTransform(this.getTransformToElement(target));
-                sample = g.point(gp);
-                centerDistance = sample.distance(center);
-                // Penalize a higher distance to the reference point by 10%.
-                // This gives better results. This is due to
-                // inaccuracies introduced by rounding errors and getPointAtLength() returns.
-                refDistance = sample.distance(ref) * 1.1;
-                distance = centerDistance + refDistance;
-
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestSamples = [{ sample: sample, refDistance: refDistance }];
-                } else if (distance < minDistance + 1) {
-                    closestSamples.push({ sample: sample, refDistance: refDistance });
+                var bbox = this.bbox(true);
+                var center = bbox.center();
+                if (bbox.containsPoint(localRef)) {
+                    return undefined;
                 }
-            }
+                var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
+                var samples = pathNode.sample();
+                var minDistance = Infinity;
+                var closestSamples = [];
+                var i, sample, centerDistance, refDistance, distance;
+                for (i = 0; i < samples.length; i++) {
 
-            closestSamples.sort(function(a, b) {
-                return a.refDistance - b.refDistance;
-            });
+                    sample = g.Point(samples[i]);
+                    centerDistance = sample.distance(center);
+                    // Penalize a higher distance to the reference point by 10%.
+                    // This gives better results. This is due to
+                    // inaccuracies introduced by rounding errors and getPointAtLength() returns.
+                    refDistance = sample.distance(localRef) * 1.1;
+                    distance = centerDistance + refDistance;
 
-            if (closestSamples[0]) {
-                spot = closestSamples[0].sample;
-            }
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestSamples = [{ sample: sample, refDistance: refDistance }];
+                    } else if (distance < minDistance + 1) {
+                        closestSamples.push({ sample: sample, refDistance: refDistance });
+                    }
+                }
+
+                closestSamples.sort(function(a, b) {
+                    return a.refDistance - b.refDistance;
+                });
+
+                if (closestSamples[0]) {
+                    spot = closestSamples[0].sample;
+                }
+                break;
         }
 
-        return spot;
+        if (spot) return V.transformPoint(spot, matrix);
+
+        return undefined;
     };
 
     /**
