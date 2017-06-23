@@ -985,7 +985,7 @@ V = Vectorizer = (function() {
 
         target || (target = this.svg().node);
 
-        var spot, geometry;
+        var spot, geometryObj;
         var tagName = this.node.localName.toUpperCase();
         var matrix = this.getTransformToElement(target);
         var localRef = V.transformPoint(ref, matrix.inverse());
@@ -995,29 +995,29 @@ V = Vectorizer = (function() {
         // a transformed geometrical object.
         switch (tagName) {
             case 'RECT':
-                geometry = g.Rect(
+                geometryObj = g.Rect(
                     parseFloat(this.attr('x') || 0),
                     parseFloat(this.attr('y') || 0),
                     parseFloat(this.attr('width') || 1),
                     parseFloat(this.attr('height') || 1)
                 );
-                spot = geometry.intersectionWithLineFromCenterToPoint(localRef);
+                spot = geometryObj.intersectionWithLineFromCenterToPoint(localRef);
                 break;
             case 'CIRCLE':
-                geometry = g.Ellipse(
+                geometryObj = g.Ellipse(
                     g.Point(parseFloat(this.attr('cx')), parseFloat(this.attr('cy'))),
                     parseFloat(this.attr('r') || 1),
                     parseFloat(this.attr('r') || 1)
                 );
-                spot = geometry.intersectionWithLineFromCenterToPoint(localRef);
+                spot = geometryObj.intersectionWithLineFromCenterToPoint(localRef);
                 break;
             case 'ELLIPSE':
-                geometry = g.Ellipse(
+                geometryObj = g.Ellipse(
                     g.Point(parseFloat(this.attr('cx')), parseFloat(this.attr('cy'))),
                     parseFloat(this.attr('rx') || 1),
                     parseFloat(this.attr('ry') || 1)
                 );
-                spot = geometry.intersectionWithLineFromCenterToPoint(localRef);
+                spot = geometryObj.intersectionWithLineFromCenterToPoint(localRef);
                 break;
             case 'POLYGON':
             case 'POLYLINE':
