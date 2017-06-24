@@ -952,7 +952,7 @@ V = Vectorizer = (function() {
 
     V.prototype.convertToPathData = function() {
 
-        var tagName = this.node.tagName.toUpperCase();
+        var tagName = this.tagName();
 
         switch (tagName) {
             case 'PATH':
@@ -974,6 +974,54 @@ V = Vectorizer = (function() {
         throw new Error(tagName + ' cannot be converted to PATH.');
     };
 
+    V.prototype.tagName = function() {
+        return this.node.localName.toUpperCase();
+    },
+
+    V.prototype.toGeometryShape = function() {
+        var x, y, width, height, cx, cy, r, rx, ry, points;
+        switch (this.tagName()) {
+            case 'RECT':
+                x = parseFloat(this.attr('x')) || 0;
+                y = parseFloat(this.attr('y')) || 0;
+                width = parseFloat(this.attr('width')) || 0;
+                height = parseFloat(this.attr('height')) || 0;
+                return g.Rect(x, y, width, height);
+            case 'CIRCLE':
+                cx = parseFloat(this.attr('cx')) || 0;
+                cy =  parseFloat(this.attr('cy')) || 0;
+                r = parseFloat(this.attr('r')) || 0;
+                return g.Ellipse({ x: cx, y: cy }, r, r);
+            case 'ELLIPSE':
+                cx = parseFloat(this.attr('cx')) || 0;
+                cy =  parseFloat(this.attr('cy')) || 0;
+                rx = parseFloat(this.attr('rx')) || 0;
+                ry = parseFloat(this.attr('ry')) || 0;
+                return g.Ellipse({ x: cx, y: cy }, rx, ry);
+            case 'POLYLINE':
+                points = V.getPointsFromSvgNode(this);
+                return g.Polyline(points);
+            case 'POLYGON':
+                points = V.getPointsFromSvgNode(this);
+                if (points.length > 1) {
+                    points.push(points[0]);
+                }
+                return g.Polyline(points);
+            case 'PATH':
+                points = this.sample();
+                if (points.length > 0) {
+                    var d = this.attr('d') || '';
+                    if (d[d.length - 1].toUpperCase() === 'Z') {
+                        points.push(points[0]);
+                    }
+                }
+                return g.Polyline(points);
+        }
+
+        // Anything else is a rectangle
+        return this.bbox(true);
+    },
+
     // Find the intersection of a line starting in the center
     // of the SVG `node` ending in the point `ref`.
     // `target` is an SVG element to which `node`s transformations are relative to.
@@ -983,67 +1031,32 @@ V = Vectorizer = (function() {
     // an intersection is found. Returns `undefined` otherwise.
     V.prototype.findIntersection = function(ref, target) {
 
-        target || (target = this.svg().node);
+        target || (target = this.svg());
 
-        var spot, geometryObj, points;
         var matrix = this.getTransformToElement(target);
         var localRef = V.transformPoint(ref, matrix.inverse());
-        var tagName = this.node.localName.toUpperCase();
 
-        switch (tagName) {
-            case 'RECT':
-                geometryObj = g.Rect(
-                    parseFloat(this.attr('x') || 0),
-                    parseFloat(this.attr('y') || 0),
-                    parseFloat(this.attr('width') || 1),
-                    parseFloat(this.attr('height') || 1)
-                );
-                spot = geometryObj.intersectionWithLineFromCenterToPoint(localRef);
-                break;
-            case 'CIRCLE':
-                geometryObj = g.Ellipse(
-                    g.Point(parseFloat(this.attr('cx')), parseFloat(this.attr('cy'))),
-                    parseFloat(this.attr('r') || 1),
-                    parseFloat(this.attr('r') || 1)
-                );
-                spot = geometryObj.intersectionWithLineFromCenterToPoint(localRef);
-                break;
-            case 'ELLIPSE':
-                geometryObj = g.Ellipse(
-                    g.Point(parseFloat(this.attr('cx')), parseFloat(this.attr('cy'))),
-                    parseFloat(this.attr('rx') || 1),
-                    parseFloat(this.attr('ry') || 1)
-                );
-                spot = geometryObj.intersectionWithLineFromCenterToPoint(localRef);
-                break;
-            case 'POLYLINE':
-                points = V.getPointsFromSvgNode(this);
-                geometryObj = g.Polyline(points);
-                spot = geometryObj.closestPoint(localRef);
-                break;
-            case 'POLYGON':
-                points = V.getPointsFromSvgNode(this);
-                if (points.length > 1) {
-                    points.push(points[0]);
-                }
-                geometryObj = g.Polyline(points);
-                spot = geometryObj.closestPoint(localRef);
-                break;
-            case 'PATH':
-
-                // backwards compatibility
-                var bbox = this.bbox(true);
-                if (bbox.containsPoint(localRef)) {
-                    return undefined;
-                }
-
-                points = this.sample();
-                geometryObj = g.Polyline(points);
-                spot = geometryObj.closestPoint(localRef);
-                break;
+        // backwards compatibility
+        if (this.node.localName.toUpperCase() === 'PATH') {
+            var bbox = this.bbox(true);
+            if (bbox.containsPoint(localRef)) {
+                return undefined;
+            }
         }
 
-        if (spot) return V.transformPoint(spot, matrix);
+        var intersection;
+        var geometryShape = this.toGeometryShape();
+
+        // TODO: fix
+        if (geometryShape.intersectionWithLineFromCenterToPoint) {
+            intersection = geometryShape.intersectionWithLineFromCenterToPoint(localRef);
+        } else {
+            intersection = geometryShape.closestPoint(localRef);
+        }
+
+        if (intersection) {
+            return V.transformPoint(intersection, matrix);
+        }
 
         return undefined;
     };
