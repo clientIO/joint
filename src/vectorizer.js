@@ -1017,12 +1017,12 @@ V = Vectorizer = (function() {
                 spot = geometryObj.intersectionWithLineFromCenterToPoint(localRef);
                 break;
             case 'POLYLINE':
-                points = V.getPointsFromSvgNode(this.node);
+                points = V.getPointsFromSvgNode(this);
                 geometryObj = g.Polyline(points);
                 spot = geometryObj.closestPoint(localRef);
                 break;
             case 'POLYGON':
-                points = V.getPointsFromSvgNode(this.node);
+                points = V.getPointsFromSvgNode(this);
                 if (points.length > 1) {
                     points.push(points[0]);
                 }
@@ -1695,7 +1695,7 @@ V = Vectorizer = (function() {
 
     V.convertPolygonToPathData = function(polygon) {
 
-        var points = V.getPointsFromSvgNode(V(polygon).node);
+        var points = V.getPointsFromSvgNode(polygon);
 
         if (!(points.length > 0)) return null;
 
@@ -1704,7 +1704,7 @@ V = Vectorizer = (function() {
 
     V.convertPolylineToPathData = function(polyline) {
 
-        var points = V.getPointsFromSvgNode(V(polyline).node);
+        var points = V.getPointsFromSvgNode(polyline);
 
         if (!(points.length > 0)) return null;
 
@@ -1713,9 +1713,7 @@ V = Vectorizer = (function() {
 
     V.svgPointsToPath = function(points) {
 
-        var i;
-
-        for (i = 0; i < points.length; i++) {
+        for (var i = 0, n = points.length; i < n; i++) {
             points[i] = points[i].x + ' ' + points[i].y;
         }
 
@@ -1724,11 +1722,11 @@ V = Vectorizer = (function() {
 
     V.getPointsFromSvgNode = function(node) {
 
+        var nodePoints = V.toNode(node).points;
         var points = [];
-        var i;
 
-        for (i = 0; i < node.points.numberOfItems; i++) {
-            points.push(node.points.getItem(i));
+        for (var i = 0, n = nodePoints.numberOfItems; i < n; i++) {
+            points.push(nodePoints.getItem(i));
         }
 
         return points;
