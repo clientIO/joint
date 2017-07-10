@@ -242,7 +242,7 @@ joint.connectors.jumpover = (function(_, g) {
             var connector = link.get('connector') || defaultConnector;
 
             // avoid jumping over links with connector type listed in `ignored connectors`.
-            if (_.contains(ignoreConnectors, connector.name)) {
+            if (_.includes(ignoreConnectors, connector.name)) {
                 return false;
             }
             // filter out links that are above this one and  have the same connector type
@@ -266,7 +266,7 @@ joint.connectors.jumpover = (function(_, g) {
         );
 
         // create lines for all other links
-        var linkLines = linkViews.map(function(linkView) {
+        var linkLines = linkViews.map(_.bind(function(linkView) {
             if (linkView == null) {
                 return [];
             }
@@ -278,7 +278,7 @@ joint.connectors.jumpover = (function(_, g) {
                 linkView.targetPoint,
                 linkView.route
             );
-        }, this);
+        }, this));
 
         // transform lines for this link by splitting with jump lines at
         // points of intersection with other links

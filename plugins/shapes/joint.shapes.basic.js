@@ -303,17 +303,17 @@ joint.shapes.basic.PortsModelInterface = {
 
         var attrs = {};
 
-        _.each(this.get('inPorts'), function(portName, index, ports) {
+        _.each(this.get('inPorts'), _.bind(function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.inPorts', 'in');
             this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
             _.extend(attrs, portAttributes);
-        }, this);
+        }, this));
 
-        _.each(this.get('outPorts'), function(portName, index, ports) {
+        _.each(this.get('outPorts'), _.bind(function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.outPorts', 'out');
             this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
             _.extend(attrs, portAttributes);
-        }, this);
+        }, this));
 
         // Silently set `attrs` on the cell so that noone knows the attrs have changed. This makes sure
         // that, for example, command manager does not register `change:attrs` command but only

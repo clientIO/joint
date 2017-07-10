@@ -4,3 +4,6 @@ lib/*/*
 coverage.info
 npm-debug.log
 phantomjsdriver.log
+package-lock.json
+
+.idea

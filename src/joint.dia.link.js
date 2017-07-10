@@ -403,7 +403,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Cache all children elements for quicker access.
         this._V = {}; // vectorized markup;
-        _.each(children, function(child) {
+        _.each(children, _.bind(function(child) {
 
             var className = child.attr('class');
 
@@ -413,7 +413,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 this._V[$.camelCase(className)] = child;
             }
 
-        }, this);
+        }, this));
 
         // Only the connection path is mandatory
         if (!this._V.connection) throw new Error('link: no connection path in the markup');
@@ -1404,7 +1404,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var elements = paper.model.getElements();
         this._marked = {};
 
-        _.chain(elements).map(paper.findViewByModel, paper).each(function(view) {
+        _.chain(elements).map(_.bind(paper.findViewByModel, paper)).each(_.bind(function(view) {
 
             var magnets = Array.prototype.slice.call(view.el.querySelectorAll('[magnet]'));
             if (view.el.getAttribute('magnet') !== 'false') {
@@ -1412,28 +1412,28 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 magnets.push(view.el);
             }
 
-            var availableMagnets = _.filter(magnets, _.partial(isMagnetAvailable, view), this);
+            var availableMagnets = _.filter(magnets, _.bind(_.partial(isMagnetAvailable, view), this));
             if (availableMagnets.length > 0) {
                 // highlight all available magnets
-                _.each(availableMagnets, _.partial(view.highlight, _, { magnetAvailability: true }), view);
+                _.each(availableMagnets, _.bind(_.partial(view.highlight, _, { magnetAvailability: true }), view));
                 // highlight the entire view
                 view.highlight(null, { elementAvailability: true });
 
                 this._marked[view.model.id] = availableMagnets;
             }
 
-        }, this).value();
+        }, this)).value();
     },
 
     _unmarkAvailableMagnets: function() {
 
-        _.each(this._marked, function(markedMagnets, id) {
+        _.each(this._marked, _.bind(function(markedMagnets, id) {
             var view = this.paper.findViewByModel(id);
             if (view) {
-                _.each(markedMagnets, _.partial(view.unhighlight, _, { magnetAvailability: true }), view);
+                _.each(markedMagnets, _.bind(_.partial(view.unhighlight, _, { magnetAvailability: true }), view));
                 view.unhighlight(null, { elementAvailability: true });
             }
-        }, this);
+        }, this));
 
         this._marked = null;
     },
@@ -1599,7 +1599,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     var minDistance = Number.MAX_VALUE;
                     var pointer = g.point(x, y);
 
-                    _.each(viewsInArea, function(view) {
+                    _.each(viewsInArea, _.bind(function(view) {
 
                         // skip connecting to the element in case '.': { magnet: false } attribute present
                         if (view.el.getAttribute('magnet') !== 'false') {
@@ -1646,7 +1646,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                         }, this));
 
-                    }, this);
+                    }, this));
 
                     if (this._closestView) {
                         this._closestView.highlight(this._closestEnd.selector, {

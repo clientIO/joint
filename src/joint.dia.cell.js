@@ -17,7 +17,7 @@ joint.dia.Cell = Backbone.Model.extend({
         if ((defaults = _.result(this, 'defaults'))) {
             //<custom code>
             // Replaced the call to _.defaults with _.merge.
-            attrs = _.merge({}, defaults, attrs);
+            attrs = _.mergeWith({}, defaults, attrs);
             //</custom code>
         }
         this.set(attrs, options);
@@ -161,7 +161,7 @@ joint.dia.Cell = Backbone.Model.extend({
             parentCell.unembed(this);
         }
 
-        _.invoke(this.getEmbeddedCells(), 'remove', opt);
+        _.invokeMap(this.getEmbeddedCells(), 'remove', opt);
 
         this.trigger('remove', this, this.collection, opt);
 
@@ -316,7 +316,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             } else {
 
-                cells = _.map(this.get('embeds'), this.graph.getCell, this.graph);
+                cells = _.map(this.get('embeds'), _.bind(this.graph.getCell, this.graph));
             }
 
             return cells;
@@ -466,7 +466,7 @@ joint.dia.Cell = Backbone.Model.extend({
             }
         }
 
-        return this.set(_.merge({}, this.attributes, props), value);
+        return this.set(_.mergeWith({}, this.attributes, props), value);
     },
 
     // A convient way to unset nested properties
@@ -599,7 +599,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             return _.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
 
-        }).each(function(key) {
+        }).each(_.bind(function(key) {
 
             joint.util.cancelFrame(this._transitionIds[key]);
 
@@ -607,7 +607,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             this.trigger('transition:end', this, key);
 
-        }, this);
+        }, this));
 
         return this;
     },

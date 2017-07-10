@@ -10,7 +10,7 @@
     }
 
     function lineLayout(ports, p1, p2) {
-        return _.map(ports, function(port, index, ports) {
+        return _.map(ports, _.bind(function(port, index, ports) {
             var p = this.pointAt(((index + 0.5) / ports.length));
             // `dx`,`dy` per port offset option
             if (port.dx || port.dy) {
@@ -18,7 +18,7 @@
             }
 
             return portTransformAttrs(p.round(), 0, port);
-        }, g.line(p1, p2));
+        }, g.line(p1, p2)));
     }
 
     function ellipseLayout(ports, elBBox, startAngle, stepFn) {

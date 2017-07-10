@@ -155,7 +155,7 @@ joint.dia.Graph = Backbone.Model.extend({
         this._nodes = {};
         this._edges = {};
 
-        _.each(cells, this._restructureOnAdd, this);
+        _.each(cells, _.bind(this._restructureOnAdd, this));
     },
 
     _restructureOnChangeSource: function(link) {
@@ -328,10 +328,10 @@ joint.dia.Graph = Backbone.Model.extend({
             opt.position = cells.length;
 
             this.startBatch('add');
-            _.each(cells, function(cell) {
+            _.each(cells, _.bind(function(cell) {
                 opt.position--;
                 this.addCell(cell, opt);
-            }, this);
+            }, this));
             this.stopBatch('add');
         }
 
@@ -354,7 +354,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (cells.length) {
 
             this.startBatch('remove');
-            _.invoke(cells, 'remove', opt);
+            _.invokeMap(cells, 'remove', opt);
             this.stopBatch('remove');
         }
 
@@ -403,12 +403,12 @@ joint.dia.Graph = Backbone.Model.extend({
 
     getElements: function() {
 
-        return _.map(this._nodes, function(exists, node) { return this.getCell(node); }, this);
+        return _.map(this._nodes, _.bind(function(exists, node) { return this.getCell(node); }, this));
     },
 
     getLinks: function() {
 
-        return _.map(this._edges, function(exists, edge) { return this.getCell(edge); }, this);
+        return _.map(this._edges, _.bind(function(exists, edge) { return this.getCell(edge); }, this));
     },
 
     getFirstCell: function() {
@@ -439,22 +439,22 @@ joint.dia.Graph = Backbone.Model.extend({
         var edges = {};
 
         if (outbound) {
-            _.each(this.getOutboundEdges(model.id), function(exists, edge) {
+            _.each(this.getOutboundEdges(model.id), _.bind(function(exists, edge) {
                 if (!edges[edge]) {
                     links.push(this.getCell(edge));
                     edges[edge] = true;
                 }
-            }, this);
+            }, this));
         }
         if (inbound) {
-            _.each(this.getInboundEdges(model.id), function(exists, edge) {
+            _.each(this.getInboundEdges(model.id), _.bind(function(exists, edge) {
                 // Skip links that were already added. Those must be self-loop links
                 // because they are both inbound and outbond edges of the same element.
                 if (!edges[edge]) {
                     links.push(this.getCell(edge));
                     edges[edge] = true;
                 }
-            }, this);
+            }, this));
         }
 
         // If 'deep' option is 'true', return all the links that are connected to any of the descendent cells
@@ -470,25 +470,25 @@ joint.dia.Graph = Backbone.Model.extend({
                     embeddedEdges[cell.id] = true;
                 }
             });
-            _.each(embeddedCells, function(cell) {
+            _.each(embeddedCells, _.bind(function(cell) {
                 if (cell.isLink()) return;
                 if (outbound) {
-                    _.each(this.getOutboundEdges(cell.id), function(exists, edge) {
+                    _.each(this.getOutboundEdges(cell.id), _.bind(function(exists, edge) {
                         if (!edges[edge] && !embeddedEdges[edge]) {
                             links.push(this.getCell(edge));
                             edges[edge] = true;
                         }
-                    }, this);
+                    }, this));
                 }
                 if (inbound) {
-                    _.each(this.getInboundEdges(cell.id), function(exists, edge) {
+                    _.each(this.getInboundEdges(cell.id), _.bind(function(exists, edge) {
                         if (!edges[edge] && !embeddedEdges[edge]) {
                             links.push(this.getCell(edge));
                             edges[edge] = true;
                         }
-                    }, this);
+                    }, this));
                 }
-            }, this);
+            }, this));
         }
 
         return links;
@@ -504,7 +504,7 @@ joint.dia.Graph = Backbone.Model.extend({
             inbound = outbound = true;
         }
 
-        var neighbors = _.transform(this.getConnectedLinks(model, opt), function(res, link) {
+        var neighbors = _.transform(this.getConnectedLinks(model, opt), _.bind(function(res, link) {
 
             var source = link.get('source');
             var target = link.get('target');
@@ -530,14 +530,14 @@ joint.dia.Graph = Backbone.Model.extend({
                 }
             }
 
-        }, {}, this);
+        }, this), {});
 
         return _.values(neighbors);
     },
 
     getCommonAncestor: function(/* cells */) {
 
-        var cellsAncestors = _.map(arguments, function(cell) {
+        var cellsAncestors = _.map(arguments, _.bind(function(cell) {
 
             var ancestors = [];
             var parentId = cell.get('parent');
@@ -550,14 +550,14 @@ joint.dia.Graph = Backbone.Model.extend({
 
             return ancestors;
 
-        }, this);
+        }, this));
 
         cellsAncestors = _.sortBy(cellsAncestors, 'length');
 
         var commonAncestor = _.find(cellsAncestors.shift(), function(ancestor) {
 
             return _.every(cellsAncestors, function(cellAncestors) {
-                return _.contains(cellAncestors, ancestor);
+                return _.includes(cellAncestors, ancestor);
             });
         });
 
@@ -591,7 +591,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // the source and target of the link `L2` is changed to point to `A2` and `B2`.
     cloneCells: function(cells) {
 
-        cells = _.unique(cells);
+        cells = _.uniq(cells);
 
         // A map of the form [original cell ID] -> [clone] helping
         // us to reconstruct references for source/target and parent/embeds.
@@ -696,7 +696,7 @@ joint.dia.Graph = Backbone.Model.extend({
             }
         });
 
-        _.each(links, function(link) {
+        _.each(links, _.bind(function(link) {
             // For links, return their source & target (if they are elements - not points).
             var source = link.get('source');
             var target = link.get('target');
@@ -712,9 +712,9 @@ joint.dia.Graph = Backbone.Model.extend({
                 cellMap[targetElement.id] = targetElement;
                 elements.push(targetElement);
             }
-        }, this);
+        }, this));
 
-        _.each(elements, function(element) {
+        _.each(elements, _.bind(function(element) {
             // For elements, include their connected links if their source/target is in the subgraph;
             var links = this.getConnectedLinks(element, opt);
             _.each(links, function(link) {
@@ -725,7 +725,7 @@ joint.dia.Graph = Backbone.Model.extend({
                     cellMap[link.id] = link;
                 }
             });
-        }, this);
+        }, this));
 
         return subgraph;
     },
@@ -807,22 +807,22 @@ joint.dia.Graph = Backbone.Model.extend({
         if (iteratee(element, distance) === false) return;
         visited[element.id] = true;
 
-        _.each(this.getNeighbors(element, opt), function(neighbor) {
+        _.each(this.getNeighbors(element, opt), _.bind(function(neighbor) {
             if (!visited[neighbor.id]) {
                 this.dfs(neighbor, iteratee, opt, visited, distance + 1);
             }
-        }, this);
+        }, this));
     },
 
     // Get all the roots of the graph. Time complexity: O(|V|).
     getSources: function() {
 
         var sources = [];
-        _.each(this._nodes, function(exists, node) {
+        _.each(this._nodes, _.bind(function(exists, node) {
             if (!this._in[node] || _.isEmpty(this._in[node])) {
                 sources.push(this.getCell(node));
             }
-        }, this);
+        }, this));
         return sources;
     },
 
@@ -830,11 +830,11 @@ joint.dia.Graph = Backbone.Model.extend({
     getSinks: function() {
 
         var sinks = [];
-        _.each(this._nodes, function(exists, node) {
+        _.each(this._nodes, _.bind(function(exists, node) {
             if (!this._out[node] || _.isEmpty(this._out[node])) {
                 sinks.push(this.getCell(node));
             }
-        }, this);
+        }, this));
         return sinks;
     },
 
@@ -926,7 +926,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Remove links connected to the cell `model` completely.
     removeLinks: function(model, options) {
 
-        _.invoke(this.getConnectedLinks(model), 'remove', options);
+        _.invokeMap(this.getConnectedLinks(model), 'remove', options);
     },
 
     // Find all elements at given point
@@ -994,7 +994,7 @@ joint.dia.Graph = Backbone.Model.extend({
             return cell.isEmbedded();
         });
 
-        _.invoke(cells, 'translate', dx, dy, opt);
+        _.invokeMap(cells, 'translate', dx, dy, opt);
     },
 
     resize: function(width, height, opt) {
@@ -1010,7 +1010,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (bbox) {
             var sx = Math.max(width / bbox.width, 0);
             var sy = Math.max(height / bbox.height, 0);
-            _.invoke(cells, 'scale', sx, sy, bbox.origin(), opt);
+            _.invokeMap(cells, 'scale', sx, sy, bbox.origin(), opt);
         }
 
         return this;

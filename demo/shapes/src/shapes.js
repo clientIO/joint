@@ -335,7 +335,7 @@ var Shape = joint.dia.Element.define('custom.Shape', {
 
         shape: {
             qualify: function(value, node) {
-                return _.contains([
+                return _.includes([
                     'hexagon',
                     'rhombus',
                     'rounded-rectangle'

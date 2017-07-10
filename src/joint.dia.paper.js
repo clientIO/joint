@@ -664,7 +664,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         } else {
 
-            _.each(cells, this.renderView, this);
+            _.each(cells, _.bind(this.renderView, this));
 
             // Sort the cells in the DOM manually as we might have changed the order they
             // were added to the DOM (see above).
@@ -674,7 +674,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     removeViews: function() {
 
-        _.invoke(this._views, 'remove');
+        _.invokeMap(this._views, 'remove');
 
         this._views = {};
     },
@@ -688,14 +688,14 @@ joint.dia.Paper = joint.mvc.View.extend({
             var batchSize = (this.options.async && this.options.async.batchSize) || 50;
             var batchCells = cells.splice(0, batchSize);
 
-            _.each(batchCells, function(cell) {
+            _.each(batchCells, _.bind(function(cell) {
 
                 // The cell has to be part of the graph.
                 // There is a chance in asynchronous rendering
                 // that a cell was removed before it's rendered to the paper.
                 if (cell.graph === this.model) this.renderView(cell);
 
-            }, this);
+            }, this));
 
             this.asyncBatchAdded();
         }
@@ -854,11 +854,11 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         p = g.point(p);
 
-        var views = _.map(this.model.getElements(), this.findViewByModel, this);
+        var views = _.map(this.model.getElements(), _.bind(this.findViewByModel, this));
 
-        return _.filter(views, function(view) {
+        return _.filter(views, _.bind(function(view) {
             return view && g.rect(view.vel.bbox(false, this.viewport)).containsPoint(p);
-        }, this);
+        }, this));
     },
 
     // Find all views in given area
@@ -867,12 +867,12 @@ joint.dia.Paper = joint.mvc.View.extend({
         opt = _.defaults(opt || {}, { strict: false });
         rect = g.rect(rect);
 
-        var views = _.map(this.model.getElements(), this.findViewByModel, this);
+        var views = _.map(this.model.getElements(), _.bind(this.findViewByModel, this));
         var method = opt.strict ? 'containsRect' : 'intersect';
 
-        return _.filter(views, function(view) {
+        return _.filter(views, _.bind(function(view) {
             return view && rect[method](g.rect(view.vel.bbox(false, this.viewport)));
-        }, this);
+        }, this));
     },
 
     getModelById: function(id) {
@@ -1414,9 +1414,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         this._gridSettings = [];
 
         var optionsList = _.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
-        _.each(optionsList, function (item) {
+        _.each(optionsList, _.bind(function (item) {
             this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
-        }, this);
+        }, this));
         return this;
     },
 
@@ -1467,7 +1467,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         _.each(this._gridSettings, function (gridLayerSetting, index) {
 
             var id = 'pattern_'  + index;
-            var options = _.merge(gridLayerSetting, localOptions[index], {
+            var options = _.mergeWith(gridLayerSetting, localOptions[index], {
                 sx: ctm.a || 1,
                 sy: ctm.d || 1,
                 ox: ctm.e || 0,
@@ -1627,7 +1627,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.options.interactive = value;
 
-        _.invoke(this._views, 'setInteractivity', value);
+        _.invokeMap(this._views, 'setInteractivity', value);
     },
 
     // Paper Defs
