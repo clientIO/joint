@@ -92,9 +92,9 @@
             var group = this.getGroup(port.group);
 
             evaluated.markup = evaluated.markup || group.markup;
-            evaluated.attrs = _.merge({}, group.attrs, evaluated.attrs);
+            evaluated.attrs = _.mergeWith({}, group.attrs, evaluated.attrs);
             evaluated.position = this._createPositionNode(group, evaluated);
-            evaluated.label = _.merge({}, group.label, this._getLabel(evaluated));
+            evaluated.label = _.mergeWith({}, group.label, this._getLabel(evaluated));
             evaluated.z = this._getZIndex(group, evaluated);
             evaluated.size = _.extend({}, group.size, evaluated.size);
 
@@ -114,7 +114,7 @@
 
         _createPositionNode: function(group, port) {
 
-            return _.merge({
+            return _.mergeWith({
                 name: 'left',
                 args: {}
             }, group.position, { args: port.args });
@@ -417,13 +417,13 @@
 
                 // _.filter can be replaced with _.differenceBy in lodash 4
                 var added = _.filter(curPortData, function(item) {
-                    if (!_.find(prevPortData, 'id', item.id)) {
+                    if (!_.find(prevPortData, ['id', item.id])) {
                         return item;
                     }
                 });
 
                 var removed = _.filter(prevPortData, function(item) {
-                    if (!_.find(curPortData, 'id', item.id)) {
+                    if (!_.find(curPortData, ['id', item.id])) {
                         return item;
                     }
                 });

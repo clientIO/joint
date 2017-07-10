@@ -17,7 +17,7 @@ joint.dia.Cell = Backbone.Model.extend({
         if ((defaults = _.result(this, 'defaults'))) {
             //<custom code>
             // Replaced the call to _.defaults with _.merge.
-            attrs = _.merge({}, defaults, attrs);
+            attrs = _.mergeWith({}, defaults, attrs);
             //</custom code>
         }
         this.set(attrs, options);
@@ -466,7 +466,7 @@ joint.dia.Cell = Backbone.Model.extend({
             }
         }
 
-        return this.set(_.merge({}, this.attributes, props), value);
+        return this.set(_.mergeWith({}, this.attributes, props), value);
     },
 
     // A convient way to unset nested properties

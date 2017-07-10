@@ -108,9 +108,9 @@ joint.routers.manhattan = (function(g, _, joint) {
 
         // source or target element could be excluded from set of obstacles
         var excludedEnds = _.chain(opt.excludeEnds)
-            .map(link.get, link)
+            .map(_.bind(link.get, link))
             .map('id')
-            .map(graph.getCell, graph).value();
+            .map(_.bind(graph.getCell, graph)).value();
 
         // Exclude any embedded elements from the source and the target element.
         var excludedAncestors = [];
@@ -145,7 +145,7 @@ joint.routers.manhattan = (function(g, _, joint) {
             // expand their boxes by specific padding
             .invoke('moveAndExpand', opt.paddingBox)
             // build the map
-            .foldl(function(map, bbox) {
+            .reduce(function(map, bbox) {
 
                 var origin = bbox.origin().snapToGrid(mapGridSize);
                 var corner = bbox.corner().snapToGrid(mapGridSize);
@@ -338,8 +338,8 @@ joint.routers.manhattan = (function(g, _, joint) {
         }
 
         // take into account only accessible end points
-        startPoints = _.filter(startPoints, map.isPointAccessible, map);
-        endPoints = _.filter(endPoints, map.isPointAccessible, map);
+        startPoints = _.filter(startPoints, _.bind(map.isPointAccessible, map));
+        endPoints = _.filter(endPoints, _.bind(map.isPointAccessible, map));
 
         // Check if there is a accessible end point.
         // We would have to use a fallback route otherwise.

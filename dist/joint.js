@@ -13443,7 +13443,7 @@ joint.routers.manhattan = (function(g, _, joint) {
             // expand their boxes by specific padding
             .invoke('moveAndExpand', opt.paddingBox)
             // build the map
-            .foldl(function(map, bbox) {
+            .reduce(function(map, bbox) {
 
                 var origin = bbox.origin().snapToGrid(mapGridSize);
                 var corner = bbox.corner().snapToGrid(mapGridSize);
