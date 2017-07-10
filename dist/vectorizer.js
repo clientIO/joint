@@ -1,4 +1,4 @@
-/*! JointJS v1.1.1-alpha.1 (2017-06-02) - JavaScript diagramming library
+/*! JointJS v1.1.1-alpha.1 (2017-07-10) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1152,12 +1152,12 @@ V = Vectorizer = (function() {
         matrix || (matrix = true);
 
         return 'matrix(' +
-            (matrix.a || 1) + ',' +
-            (matrix.b || 0) + ',' +
-            (matrix.c || 0) + ',' +
-            (matrix.d || 1) + ',' +
-            (matrix.e || 0) + ',' +
-            (matrix.f || 0) +
+            (matrix.a !== undefined ? matrix.a : 1) + ',' +
+            (matrix.b !== undefined ? matrix.b : 0) + ',' +
+            (matrix.c !== undefined ? matrix.c : 0) + ',' +
+            (matrix.d !== undefined ? matrix.d : 1) + ',' +
+            (matrix.e !== undefined ? matrix.e : 0) + ',' +
+            (matrix.f !== undefined ? matrix.f : 0) +
             ')';
     };
 

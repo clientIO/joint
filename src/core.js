@@ -45,7 +45,7 @@ var joint = {
 
         opt = opt || {};
 
-        _.invoke(joint.mvc.views, 'setTheme', theme, opt);
+        _.invokeMap(joint.mvc.views, 'setTheme', theme, opt);
 
         // Update the default theme on the view prototype.
         joint.mvc.View.prototype.defaultTheme = theme;

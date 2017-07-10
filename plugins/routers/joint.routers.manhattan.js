@@ -109,7 +109,7 @@ joint.routers.manhattan = (function(g, _, joint) {
         // source or target element could be excluded from set of obstacles
         var excludedEnds = _.chain(opt.excludeEnds)
             .map(link.get, link)
-            .pluck('id')
+            .map('id')
             .map(graph.getCell, graph).value();
 
         // Exclude any embedded elements from the source and the target element.
@@ -138,7 +138,7 @@ joint.routers.manhattan = (function(g, _, joint) {
             // remove all elements whose type is listed in excludedTypes array
             .reject(function(element) {
                 // reject any element which is an ancestor of either source or target
-                return _.contains(opt.excludeTypes, element.get('type')) || _.contains(excludedAncestors, element.id);
+                return _.includes(opt.excludeTypes, element.get('type')) || _.includes(excludedAncestors, element.id);
             })
             // change elements (models) to their bounding boxes
             .invoke('getBBox')
@@ -197,9 +197,9 @@ joint.routers.manhattan = (function(g, _, joint) {
 
         this.values[item] = value;
 
-        var index = _.sortedIndex(this.items, item, function(i) {
+        var index = _.sortedIndex(this.items, item, _.bind(function(i) {
             return this.values[i];
-        }, this);
+        }, this));
 
         this.items.splice(index, 0, item);
     };

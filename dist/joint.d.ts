@@ -1,4 +1,4 @@
-/*! JointJS v1.1.1-alpha.1 (2017-06-02) - JavaScript diagramming library
+/*! JointJS v1.1.1-alpha.1 (2017-07-10) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -68,7 +68,7 @@ export namespace g {
         a: number;
         b: number;
 
-        constructor(c, a, b);
+        constructor(center: Ellipse | Point, a: number, b: number);
 
         bbox(): Rect;
 
@@ -117,6 +117,12 @@ export namespace g {
         squaredLength(): number;
 
         toString(): string;
+
+        vector(): Point;
+
+        closestPoint(p: dia.Point | Point): Point;
+
+        closestPointNormalizedLength(p: dia.Point | Point): number;
     }
 
     class Point {
@@ -140,6 +146,8 @@ export namespace g {
         difference(dx: dia.Point | Point | number, dy?: number): Point;
 
         distance(p: string | dia.Point | Point): number;
+
+        squaredDistance(p: dia.Point | Point): number;
 
         equals(p: Point): boolean;
 
@@ -172,6 +180,8 @@ export namespace g {
         toString(): string;
 
         update(x: number, y: number): this;
+
+        dot(p: dia.Point | Point): number;
     }
 
     class Rect {
@@ -182,7 +192,7 @@ export namespace g {
         width: number;
         height: number;
 
-        constructor(x?: number | dia.BBox, y?: number, w?: number, h?: number);
+        constructor(x?: number | dia.BBox, y?: number, width?: number, height?: number);
 
         bbox(angle: number): Rect;
 
@@ -259,7 +269,7 @@ export namespace g {
     function point(xy: string): Point;
     function point(point: dia.Point): Point;
 
-    function rect(x: number, y: number, w: number, h: number): Rect;
+    function rect(x: number, y: number, width: number, height: number): Rect;
     function rect(rect: dia.BBox): Rect;
 }
 
@@ -853,7 +863,7 @@ export namespace dia {
     class Link extends Cell {
         markup: string;
         labelMarkup: string;
-        toolMakup: string;
+        toolMarkup: string;
         vertexMarkup: string;
         arrowHeadMarkup: string;
 
@@ -932,7 +942,7 @@ export namespace dia {
         embeddingMode?: boolean;
         findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft';
         validateEmbedding?: (childView: ElementView, parentView: ElementView) => boolean;
-        restrictTranslate?: (elementView: ElementView) => BBox | boolean;
+        restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
         guard?: (evt: Event, view: CellView) => boolean;
         multiLinks?: boolean;
         cellViewNamespace?: object;
@@ -1025,9 +1035,9 @@ export namespace dia {
         drawGrid(options?: {width?: number, height?: number, scaleFactor?: number,
                             update: any, ox?: number, oy?: number}): this;
 
-        findView(element: string | JQuery | SVGElement): CellView;
+        findView<T extends ElementView | LinkView>(element: string | JQuery | SVGElement): T;
 
-        findViewByModel(model: Cell | string): CellView;
+        findViewByModel<T extends ElementView | LinkView>(model: Element | string | Link) : T;
 
         findViewsFromPoint(point: string | Point | g.Point): ElementView[];
 

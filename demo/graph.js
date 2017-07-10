@@ -30,17 +30,17 @@ function info(view) {
 
         var i = {
             id: cell.id,
-            graphSources: _.pluck(graph.getSources(), 'id'),
-            graphSinks: _.pluck(graph.getSinks(), 'id'),
-            inboundNeighbors: _.pluck(inboundNeighbors, 'id'),
-            outboundNeighbors: _.pluck(outboundNeighbors, 'id'),
-            'successors (DFS)': _.pluck(successors, 'id'),
-            'successors (BFS)': _.pluck(successorsBreadthFirst, 'id'),
-            'predecessors (DFS)': _.pluck(predecessors, 'id'),
-            'predecessors (BFS)': _.pluck(predecessorsBreadthFirst, 'id'),
-            deepSuccessors: _.pluck(deepSuccessors, 'id'),
-            outboundLinks: _.pluck(outboundLinks, 'id'),
-            inboundLinks: _.pluck(inboundLinks, 'id'),
+            graphSources: _.map(graph.getSources(), 'id'),
+            graphSinks: _.map(graph.getSinks(), 'id'),
+            inboundNeighbors: _.map(inboundNeighbors, 'id'),
+            outboundNeighbors: _.map(outboundNeighbors, 'id'),
+            'successors (DFS)': _.map(successors, 'id'),
+            'successors (BFS)': _.map(successorsBreadthFirst, 'id'),
+            'predecessors (DFS)': _.map(predecessors, 'id'),
+            'predecessors (BFS)': _.map(predecessorsBreadthFirst, 'id'),
+            deepSuccessors: _.map(deepSuccessors, 'id'),
+            outboundLinks: _.map(outboundLinks, 'id'),
+            inboundLinks: _.map(inboundLinks, 'id'),
             bfsDistance: bfsDistance
         };
         console.log(i);

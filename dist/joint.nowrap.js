@@ -1,4 +1,4 @@
-/*! JointJS v1.1.1-alpha.1 (2017-06-02) - JavaScript diagramming library
+/*! JointJS v1.1.1-alpha.1 (2017-07-10) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -488,6 +488,10 @@ var g = (function() {
             return new Line(p1, p2);
         }
 
+        if (p1 instanceof Line) {
+            return Line(p1.start, p1.end);
+        }
+
         this.start = Point(p1);
         this.end = Point(p2);
     };
@@ -519,7 +523,7 @@ var g = (function() {
 
         clone: function() {
 
-            return Line(this);
+            return Line(this.start, this.end);
         },
 
         equals: function(l) {
@@ -611,6 +615,26 @@ var g = (function() {
 
             // Find the sign of the determinant of vectors (start,end), where p is the query point.
             return ((this.end.x - this.start.x) * (p.y - this.start.y) - (this.end.y - this.start.y) * (p.x - this.start.x)) / 2;
+        },
+
+        // @return vector {point} of the line
+        vector: function() {
+
+            return Point(this.end.x - this.start.x, this.end.y - this.start.y);
+        },
+
+        // @return {point} the closest point on the line to point `p`
+        closestPoint: function(p) {
+
+            return this.pointAt(this.closestPointNormalizedLength(p));
+        },
+
+        // @return {number} the normalized length of the closest point on the line to point `p`
+        closestPointNormalizedLength: function(p) {
+
+            var product = this.vector().dot(Line(this.start, p).vector());
+
+            return Math.min(1, Math.max(0, product / this.squaredLength()));
         },
 
         // @return {integer} length without sqrt
@@ -737,6 +761,11 @@ var g = (function() {
         distance: function(p) {
 
             return Line(this, p).length();
+        },
+
+        squaredDistance: function(p) {
+
+            return Line(this, p).squaredLength();
         },
 
         equals: function(p) {
@@ -874,6 +903,11 @@ var g = (function() {
             this.x = x || 0;
             this.y = y || 0;
             return this;
+        },
+
+        dot: function(p) {
+
+            return p ? (this.x * p.x + this.y * p.y) : NaN;
         }
     };
 
@@ -1297,6 +1331,67 @@ var g = (function() {
             return Rect(originX, originY, cornerX - originX, cornerY - originY);
         }
     };
+
+    var Polyline = g.Polyline = function(points) {
+
+        if (!(this instanceof Polyline)) {
+            return new Polyline(points);
+        }
+
+        this.points = (Array.isArray(points)) ? points.map(Point) : [];
+    };
+
+    Polyline.prototype = {
+
+        pointAtLength: function(length) {
+            var points = this.points;
+            var l = 0;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var a = points[i];
+                var b = points[i+1];
+                var d = a.distance(b);
+                l += d;
+                if (length <= l) {
+                    return Line(b, a).pointAt(d ? (l - length) / d : 0);
+                }
+            }
+            return null;
+        },
+
+        length: function() {
+            var points = this.points;
+            var length = 0;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                length += points[i].distance(points[i+1]);
+            }
+            return length;
+        },
+
+        closestPoint: function(p) {
+            return this.pointAtLength(this.closestPointLength(p));
+        },
+
+        closestPointLength: function(p) {
+            var points = this.points;
+            var pointLength;
+            var minSqrDistance = Infinity;
+            var length = 0;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var line = Line(points[i], points[i+1]);
+                var lineLength = line.length();
+                var cpNormalizedLength = line.closestPointNormalizedLength(p);
+                var cp = line.pointAt(cpNormalizedLength);
+                var sqrDistance = cp.squaredDistance(p);
+                if (sqrDistance < minSqrDistance) {
+                    minSqrDistance = sqrDistance;
+                    pointLength = length + cpNormalizedLength * lineLength;
+                }
+                length += lineLength;
+            }
+            return pointLength;
+        }
+    };
+
 
     var normalizeAngle = g.normalizeAngle = function(angle) {
 
@@ -2460,12 +2555,12 @@ V = Vectorizer = (function() {
         matrix || (matrix = true);
 
         return 'matrix(' +
-            (matrix.a || 1) + ',' +
-            (matrix.b || 0) + ',' +
-            (matrix.c || 0) + ',' +
-            (matrix.d || 1) + ',' +
-            (matrix.e || 0) + ',' +
-            (matrix.f || 0) +
+            (matrix.a !== undefined ? matrix.a : 1) + ',' +
+            (matrix.b !== undefined ? matrix.b : 0) + ',' +
+            (matrix.c !== undefined ? matrix.c : 0) + ',' +
+            (matrix.d !== undefined ? matrix.d : 1) + ',' +
+            (matrix.e !== undefined ? matrix.e : 0) + ',' +
+            (matrix.f !== undefined ? matrix.f : 0) +
             ')';
     };
 
@@ -3106,7 +3201,7 @@ var joint = {
 
         opt = opt || {};
 
-        _.invoke(joint.mvc.views, 'setTheme', theme, opt);
+        _.invokeMap(joint.mvc.views, 'setTheme', theme, opt);
 
         // Update the default theme on the view prototype.
         joint.mvc.View.prototype.defaultTheme = theme;
@@ -4831,7 +4926,7 @@ joint.dia.Graph = Backbone.Model.extend({
         this._nodes = {};
         this._edges = {};
 
-        _.each(cells, this._restructureOnAdd, this);
+        _.each(cells, _.bind(this._restructureOnAdd, this));
     },
 
     _restructureOnChangeSource: function(link) {
@@ -5004,10 +5099,10 @@ joint.dia.Graph = Backbone.Model.extend({
             opt.position = cells.length;
 
             this.startBatch('add');
-            _.each(cells, function(cell) {
+            _.each(cells, _.bind(function(cell) {
                 opt.position--;
                 this.addCell(cell, opt);
-            }, this);
+            }, this));
             this.stopBatch('add');
         }
 
@@ -5030,7 +5125,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (cells.length) {
 
             this.startBatch('remove');
-            _.invoke(cells, 'remove', opt);
+            _.invokeMap(cells, 'remove', opt);
             this.stopBatch('remove');
         }
 
@@ -5115,22 +5210,22 @@ joint.dia.Graph = Backbone.Model.extend({
         var edges = {};
 
         if (outbound) {
-            _.each(this.getOutboundEdges(model.id), function(exists, edge) {
+            _.each(this.getOutboundEdges(model.id), _.bind(function(exists, edge) {
                 if (!edges[edge]) {
                     links.push(this.getCell(edge));
                     edges[edge] = true;
                 }
-            }, this);
+            }, this));
         }
         if (inbound) {
-            _.each(this.getInboundEdges(model.id), function(exists, edge) {
+            _.each(this.getInboundEdges(model.id), _.bind(function(exists, edge) {
                 // Skip links that were already added. Those must be self-loop links
                 // because they are both inbound and outbond edges of the same element.
                 if (!edges[edge]) {
                     links.push(this.getCell(edge));
                     edges[edge] = true;
                 }
-            }, this);
+            }, this));
         }
 
         // If 'deep' option is 'true', return all the links that are connected to any of the descendent cells
@@ -5146,25 +5241,25 @@ joint.dia.Graph = Backbone.Model.extend({
                     embeddedEdges[cell.id] = true;
                 }
             });
-            _.each(embeddedCells, function(cell) {
+            _.each(embeddedCells, _.bind(function(cell) {
                 if (cell.isLink()) return;
                 if (outbound) {
-                    _.each(this.getOutboundEdges(cell.id), function(exists, edge) {
+                    _.each(this.getOutboundEdges(cell.id), _.bind(function(exists, edge) {
                         if (!edges[edge] && !embeddedEdges[edge]) {
                             links.push(this.getCell(edge));
                             edges[edge] = true;
                         }
-                    }, this);
+                    }, this));
                 }
                 if (inbound) {
-                    _.each(this.getInboundEdges(cell.id), function(exists, edge) {
+                    _.each(this.getInboundEdges(cell.id), _.bind(function(exists, edge) {
                         if (!edges[edge] && !embeddedEdges[edge]) {
                             links.push(this.getCell(edge));
                             edges[edge] = true;
                         }
-                    }, this);
+                    }, this));
                 }
-            }, this);
+            }, this));
         }
 
         return links;
@@ -5233,7 +5328,7 @@ joint.dia.Graph = Backbone.Model.extend({
         var commonAncestor = _.find(cellsAncestors.shift(), function(ancestor) {
 
             return _.every(cellsAncestors, function(cellAncestors) {
-                return _.contains(cellAncestors, ancestor);
+                return _.includes(cellAncestors, ancestor);
             });
         });
 
@@ -5267,7 +5362,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // the source and target of the link `L2` is changed to point to `A2` and `B2`.
     cloneCells: function(cells) {
 
-        cells = _.unique(cells);
+        cells = _.uniq(cells);
 
         // A map of the form [original cell ID] -> [clone] helping
         // us to reconstruct references for source/target and parent/embeds.
@@ -5372,7 +5467,7 @@ joint.dia.Graph = Backbone.Model.extend({
             }
         });
 
-        _.each(links, function(link) {
+        _.each(links, _.bind(function(link) {
             // For links, return their source & target (if they are elements - not points).
             var source = link.get('source');
             var target = link.get('target');
@@ -5388,9 +5483,9 @@ joint.dia.Graph = Backbone.Model.extend({
                 cellMap[targetElement.id] = targetElement;
                 elements.push(targetElement);
             }
-        }, this);
+        }, this));
 
-        _.each(elements, function(element) {
+        _.each(elements, _.bind(function(element) {
             // For elements, include their connected links if their source/target is in the subgraph;
             var links = this.getConnectedLinks(element, opt);
             _.each(links, function(link) {
@@ -5401,7 +5496,7 @@ joint.dia.Graph = Backbone.Model.extend({
                     cellMap[link.id] = link;
                 }
             });
-        }, this);
+        }, this));
 
         return subgraph;
     },
@@ -5483,22 +5578,22 @@ joint.dia.Graph = Backbone.Model.extend({
         if (iteratee(element, distance) === false) return;
         visited[element.id] = true;
 
-        _.each(this.getNeighbors(element, opt), function(neighbor) {
+        _.each(this.getNeighbors(element, opt), _.bind(function(neighbor) {
             if (!visited[neighbor.id]) {
                 this.dfs(neighbor, iteratee, opt, visited, distance + 1);
             }
-        }, this);
+        }, this));
     },
 
     // Get all the roots of the graph. Time complexity: O(|V|).
     getSources: function() {
 
         var sources = [];
-        _.each(this._nodes, function(exists, node) {
+        _.each(this._nodes, _.bind(function(exists, node) {
             if (!this._in[node] || _.isEmpty(this._in[node])) {
                 sources.push(this.getCell(node));
             }
-        }, this);
+        }, this));
         return sources;
     },
 
@@ -5506,11 +5601,11 @@ joint.dia.Graph = Backbone.Model.extend({
     getSinks: function() {
 
         var sinks = [];
-        _.each(this._nodes, function(exists, node) {
+        _.each(this._nodes, _.bind(function(exists, node) {
             if (!this._out[node] || _.isEmpty(this._out[node])) {
                 sinks.push(this.getCell(node));
             }
-        }, this);
+        }, this));
         return sinks;
     },
 
@@ -5602,7 +5697,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Remove links connected to the cell `model` completely.
     removeLinks: function(model, options) {
 
-        _.invoke(this.getConnectedLinks(model), 'remove', options);
+        _.invokeMap(this.getConnectedLinks(model), 'remove', options);
     },
 
     // Find all elements at given point
@@ -5670,7 +5765,7 @@ joint.dia.Graph = Backbone.Model.extend({
             return cell.isEmbedded();
         });
 
-        _.invoke(cells, 'translate', dx, dy, opt);
+        _.invokeMap(cells, 'translate', dx, dy, opt);
     },
 
     resize: function(width, height, opt) {
@@ -5686,7 +5781,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (bbox) {
             var sx = Math.max(width / bbox.width, 0);
             var sy = Math.max(height / bbox.height, 0);
-            _.invoke(cells, 'scale', sx, sy, bbox.origin(), opt);
+            _.invokeMap(cells, 'scale', sx, sy, bbox.origin(), opt);
         }
 
         return this;
@@ -6194,7 +6289,7 @@ joint.dia.Cell = Backbone.Model.extend({
             parentCell.unembed(this);
         }
 
-        _.invoke(this.getEmbeddedCells(), 'remove', opt);
+        _.invokeMap(this.getEmbeddedCells(), 'remove', opt);
 
         this.trigger('remove', this, this.collection, opt);
 
@@ -6632,7 +6727,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             return _.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
 
-        }).each(function(key) {
+        }).each(_.bind(function(key) {
 
             joint.util.cancelFrame(this._transitionIds[key]);
 
@@ -6640,7 +6735,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             this.trigger('transition:end', this, key);
 
-        }, this);
+        }, this));
 
         return this;
     },
@@ -7472,7 +7567,7 @@ joint.dia.Element = joint.dia.Cell.extend({
         }
 
         // Recursively call `translate()` on all the embeds cells.
-        _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
+        _.invokeMap(this.getEmbeddedCells(), 'translate', tx, ty, opt);
 
         return this;
     },
@@ -7636,7 +7731,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             if (opt.deep) {
                 // Recursively apply fitEmbeds on all embeds first.
-                _.invoke(embeddedCells, 'fitEmbeds', opt);
+                _.invokeMap(embeddedCells, 'fitEmbeds', opt);
             }
 
             // Compute cell's size and position  based on the children bbox
@@ -7932,7 +8027,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Move to front also all the inbound and outbound links that are connected
         // to any of the element descendant. If we bring to front only embedded elements,
         // links connected to them would stay in the background.
-        _.invoke(connectedLinks, 'set', 'z', maxZ + 1, { ui: true });
+        _.invokeMap(connectedLinks, 'set', 'z', maxZ + 1, { ui: true });
 
         model.stopBatch('to-front');
 
@@ -8021,7 +8116,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             delete this._candidateEmbedView;
         }
 
-        _.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
+        _.invokeMap(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
     },
 
     // Interaction. The controller part.
@@ -8499,9 +8594,36 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.renderTools().updateToolsPosition();
     },
 
-    onLabelsChange: function() {
+    onLabelsChange: function(link, labels, opt) {
 
-        this.renderLabels().updateLabelPositions();
+        var requireRender = true;
+
+        // Here is an optimalization for cases when we know, that change does
+        // not require rerendering of all labels.
+        if (('propertyPathArray' in opt) && ('propertyValue' in opt)) {
+            // The label is setting by `prop()` method
+            var pathArray = opt.propertyPathArray || [];
+            var pathLength = pathArray.length;
+            if (pathLength > 1) {
+                // We are changing a single label here e.g. 'labels/0/position'
+                if (pathLength === 2) {
+                    // We are changing the entire label. Need to check if the
+                    // markup is also being changed.
+                    requireRender = ('markup' in Object(opt.propertyValue));
+                } else if (pathArray[2] !== 'markup') {
+                    // We are changing a label property but not the markup
+                    requireRender = false;
+                }
+            }
+        }
+
+        if (requireRender) {
+            this.renderLabels();
+        } else {
+            this.updateLabels();
+        }
+
+        this.updateLabelPositions();
     },
 
     // Rendering
@@ -8525,7 +8647,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Cache all children elements for quicker access.
         this._V = {}; // vectorized markup;
-        _.each(children, function(child) {
+        _.each(children, _.bind(function(child) {
 
             var className = child.attr('class');
 
@@ -8535,7 +8657,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 this._V[$.camelCase(className)] = child;
             }
 
-        }, this);
+        }, this));
 
         // Only the connection path is mandatory
         if (!this._V.connection) throw new Error('link: no connection path in the markup');
@@ -8581,7 +8703,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
         var labelNodeInstance = V(labelTemplate());
-        var canLabelMove = this.can('labelMove');
 
         for (var i = 0; i < labelsCount; i++) {
 
@@ -8594,14 +8715,33 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             vLabelNode
                 .addClass('label')
-                .attr({
-                    'label-idx': i,
-                    'cursor': (canLabelMove ? 'move' : 'default')
-                })
+                .attr('label-idx', i)
                 .appendTo(vLabels);
+        }
+
+        this.updateLabels();
+
+        return this;
+    },
+
+    updateLabels: function() {
+
+        if (!this._V.labels) {
+            return this;
+        }
+
+        var labels = this.model.get('labels') || [];
+        var canLabelMove = this.can('labelMove');
+
+        for (var i = 0, n = labels.length; i < n; i++) {
+
+            var vLabel = this._labelCache[i];
+            var label = labels[i];
+
+            vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
 
             var labelAttrs = label.attrs;
-            if (!labelMarkup) {
+            if (!label.markup) {
                 // Default attributes to maintain backwards compatibility
                 labelAttrs = _.merge({
                     text: {
@@ -8623,7 +8763,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 }, labelAttrs);
             }
 
-            this.updateDOMSubtreeAttributes(vLabelNode.node, labelAttrs);
+            this.updateDOMSubtreeAttributes(vLabel.node, labelAttrs, {
+                rootBBox: g.Rect(label.size)
+            });
         }
 
         return this;
@@ -8847,74 +8989,77 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var labels = this.model.get('labels') || [];
         if (!labels.length) return this;
 
+        var samples;
         var connectionElement = this._V.connection.node;
         var connectionLength = connectionElement.getTotalLength();
 
         // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
         // In that case we won't update labels at all.
-        if (!_.isNaN(connectionLength)) {
+        if (_.isNaN(connectionLength)) {
+            return this;
+        }
 
-            var samples;
+        for (var idx = 0, n = labels.length; idx < n; idx++) {
 
-            _.each(labels, function(label, idx) {
+            var label = labels[idx];
+            var position = label.position;
+            var isPositionObject = _.isObject(position);
+            var labelCoordinates;
 
-                var position = label.position;
-                var distance = _.isObject(position) ? position.distance : position;
-                var offset = _.isObject(position) ? position.offset : { x: 0, y: 0 };
+            var distance = isPositionObject ? position.distance : position;
+            var offset = isPositionObject ? position.offset : { x: 0, y: 0 };
 
-                if (_.isFinite(distance)) {
-                    distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
-                    distance = (distance < 0) ? connectionLength + distance : distance;
-                    distance = (distance > 1) ? distance : connectionLength * distance;
-                } else {
-                    distance = connectionLength / 2;
+            if (_.isFinite(distance)) {
+                distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
+                distance = (distance < 0) ? connectionLength + distance : distance;
+                distance = (distance > 1) ? distance : connectionLength * distance;
+            } else {
+                distance = connectionLength / 2;
+            }
+
+            labelCoordinates = connectionElement.getPointAtLength(distance);
+
+            if (_.isObject(offset)) {
+
+                // Just offset the label by the x,y provided in the offset object.
+                labelCoordinates = g.point(labelCoordinates).offset(offset);
+
+            } else if (_.isFinite(offset)) {
+
+                if (!samples) {
+                    samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
                 }
 
-                var labelCoordinates = connectionElement.getPointAtLength(distance);
+                // Offset the label by the amount provided in `offset` to an either
+                // side of the link.
 
-                if (_.isObject(offset)) {
-
-                    // Just offset the label by the x,y provided in the offset object.
-                    labelCoordinates = g.point(labelCoordinates).offset(offset);
-
-                } else if (_.isFinite(offset)) {
-
-                    if (!samples) {
-                        samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
+                // 1. Find the closest sample & its left and right neighbours.
+                var minSqDistance = Infinity;
+                var closestSampleIndex, sample, sqDistance;
+                for (var i = 0; i < samples.length; i++) {
+                    sample = samples[i];
+                    sqDistance = g.line(sample, labelCoordinates).squaredLength();
+                    if (sqDistance < minSqDistance) {
+                        minSqDistance = sqDistance;
+                        closestSampleIndex = i;
                     }
-
-                    // Offset the label by the amount provided in `offset` to an either
-                    // side of the link.
-
-                    // 1. Find the closest sample & its left and right neighbours.
-                    var minSqDistance = Infinity;
-                    var closestSampleIndex, sample, sqDistance;
-                    for (var i = 0; i < samples.length; i++) {
-                        sample = samples[i];
-                        sqDistance = g.line(sample, labelCoordinates).squaredLength();
-                        if (sqDistance < minSqDistance) {
-                            minSqDistance = sqDistance;
-                            closestSampleIndex = i;
-                        }
-                    }
-                    var prevSample = samples[closestSampleIndex - 1];
-                    var nextSample = samples[closestSampleIndex + 1];
-
-                    // 2. Offset the label on the perpendicular line between
-                    // the current label coordinate ("at `distance`") and
-                    // the next sample.
-                    var angle = 0;
-                    if (nextSample) {
-                        angle = g.point(labelCoordinates).theta(nextSample);
-                    } else if (prevSample) {
-                        angle = g.point(prevSample).theta(labelCoordinates);
-                    }
-                    labelCoordinates = g.point(labelCoordinates).offset(offset).rotate(labelCoordinates, angle - 90);
                 }
+                var prevSample = samples[closestSampleIndex - 1];
+                var nextSample = samples[closestSampleIndex + 1];
 
-                this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
+                // 2. Offset the label on the perpendicular line between
+                // the current label coordinate ("at `distance`") and
+                // the next sample.
+                var angle = 0;
+                if (nextSample) {
+                    angle = g.point(labelCoordinates).theta(nextSample);
+                } else if (prevSample) {
+                    angle = g.point(prevSample).theta(labelCoordinates);
+                }
+                labelCoordinates = g.point(labelCoordinates).offset(offset).rotate(labelCoordinates, angle - 90);
+            }
 
-            }, this);
+            this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
         }
 
         return this;
@@ -9503,7 +9648,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var elements = paper.model.getElements();
         this._marked = {};
 
-        _.chain(elements).map(paper.findViewByModel, paper).each(function(view) {
+        _.chain(elements).map(paper.findViewByModel, paper).each(_.bind(function(view) {
 
             var magnets = Array.prototype.slice.call(view.el.querySelectorAll('[magnet]'));
             if (view.el.getAttribute('magnet') !== 'false') {
@@ -9514,25 +9659,25 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var availableMagnets = _.filter(magnets, _.partial(isMagnetAvailable, view), this);
             if (availableMagnets.length > 0) {
                 // highlight all available magnets
-                _.each(availableMagnets, _.partial(view.highlight, _, { magnetAvailability: true }), view);
+                _.each(availableMagnets, _.bind(_.partial(view.highlight, _, { magnetAvailability: true }), view));
                 // highlight the entire view
                 view.highlight(null, { elementAvailability: true });
 
                 this._marked[view.model.id] = availableMagnets;
             }
 
-        }, this).value();
+        }, this)).value();
     },
 
     _unmarkAvailableMagnets: function() {
 
-        _.each(this._marked, function(markedMagnets, id) {
+        _.each(this._marked, _.bind(function(markedMagnets, id) {
             var view = this.paper.findViewByModel(id);
             if (view) {
-                _.each(markedMagnets, _.partial(view.unhighlight, _, { magnetAvailability: true }), view);
+                _.each(markedMagnets, _.bind(_.partial(view.unhighlight, _, { magnetAvailability: true }), view));
                 view.unhighlight(null, { elementAvailability: true });
             }
-        }, this);
+        }, this));
 
         this._marked = null;
     },
@@ -9698,7 +9843,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     var minDistance = Number.MAX_VALUE;
                     var pointer = g.point(x, y);
 
-                    _.each(viewsInArea, function(view) {
+                    _.each(viewsInArea, _.bind(function(view) {
 
                         // skip connecting to the element in case '.': { magnet: false } attribute present
                         if (view.el.getAttribute('magnet') !== 'false') {
@@ -9745,7 +9890,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                         }, this));
 
-                    }, this);
+                    }, this));
 
                     if (this._closestView) {
                         this._closestView.highlight(this._closestEnd.selector, {
@@ -10613,7 +10758,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         } else {
 
-            _.each(cells, this.renderView, this);
+            _.each(cells, _.bind(this.renderView, this));
 
             // Sort the cells in the DOM manually as we might have changed the order they
             // were added to the DOM (see above).
@@ -10623,7 +10768,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     removeViews: function() {
 
-        _.invoke(this._views, 'remove');
+        _.invokeMap(this._views, 'remove');
 
         this._views = {};
     },
@@ -10637,14 +10782,14 @@ joint.dia.Paper = joint.mvc.View.extend({
             var batchSize = (this.options.async && this.options.async.batchSize) || 50;
             var batchCells = cells.splice(0, batchSize);
 
-            _.each(batchCells, function(cell) {
+            _.each(batchCells, _.bind(function(cell) {
 
                 // The cell has to be part of the graph.
                 // There is a chance in asynchronous rendering
                 // that a cell was removed before it's rendered to the paper.
                 if (cell.graph === this.model) this.renderView(cell);
 
-            }, this);
+            }, this));
 
             this.asyncBatchAdded();
         }
@@ -11363,9 +11508,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         this._gridSettings = [];
 
         var optionsList = _.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
-        _.each(optionsList, function (item) {
+        _.each(optionsList, _.bind(function (item) {
             this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
-        }, this);
+        }, this));
         return this;
     },
 
@@ -11576,7 +11721,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.options.interactive = value;
 
-        _.invoke(this._views, 'setInteractivity', value);
+        _.invokeMap(this._views, 'setInteractivity', value);
     },
 
     // Paper Defs
@@ -11938,7 +12083,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             }
 
             var groupArgs = groupPosition.args || {};
-            var portsArgs = _.pluck(ports, 'position.args');
+            var portsArgs = _.map(ports, 'position.args');
             var groupPortTransformations = namespace[groupPositionName](portsArgs, elBBox, groupArgs);
 
             return _.transform(groupPortTransformations, _.bind(function(result, portTransformation, index) {
@@ -12239,11 +12384,11 @@ joint.dia.Paper = joint.mvc.View.extend({
             portsAttr = portsAttr || {};
             var ports = portsAttr.items || [];
 
-            _.each(ports, function(p) {
+            _.each(ports, _.bind(function(p) {
                 if (!this._isValidPortId(p.id)) {
                     p.id = joint.util.uuid();
                 }
-            }, this);
+            }, this));
 
             if (_.uniq(ports, 'id').length !== ports.length) {
                 errorMessages.push('Element: found id duplicities in ports.');
@@ -12395,18 +12540,18 @@ joint.dia.Paper = joint.mvc.View.extend({
             var withoutZKey = 'auto';
 
             // render non-z first
-            _.each(portsGropsByZ[withoutZKey], function(port) {
+            _.each(portsGropsByZ[withoutZKey], _.bind(function(port) {
                 var portElement = this._getPortElement(port);
                 elem.append(portElement);
                 elementReferences.push(portElement);
-            }, this);
+            }, this));
 
-            _.each(portsGropsByZ, function(groupPorts, groupName) {
+            _.each(portsGropsByZ, _.bind(function(groupPorts, groupName) {
                 if (groupName !== withoutZKey) {
                     var z = parseInt(groupName, 10);
                     this._appendPorts(portsGropsByZ[groupName], z, elementReferences);
                 }
-            }, this);
+            }, this));
 
             this._updatePorts();
         },
@@ -12461,14 +12606,14 @@ joint.dia.Paper = joint.mvc.View.extend({
             this._updatePortGroup(undefined);
             // layout ports with explicit group
             var groupsNames = _.keys(this.model._portSettingsData.groups);
-            _.each(groupsNames, this._updatePortGroup, this);
+            _.each(groupsNames, _.bind(this._updatePortGroup, this));
         },
 
         /**
          * @private
          */
         _removePorts: function() {
-            _.invoke(this._portElementsCache, 'portElement.remove');
+            _.invokeMap(this._portElementsCache, 'portElement.remove');
         },
 
         /**
@@ -12875,17 +13020,17 @@ joint.shapes.basic.PortsModelInterface = {
 
         var attrs = {};
 
-        _.each(this.get('inPorts'), function(portName, index, ports) {
+        _.each(this.get('inPorts'), _.bind(function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.inPorts', 'in');
             this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
             _.extend(attrs, portAttributes);
-        }, this);
+        }, this));
 
-        _.each(this.get('outPorts'), function(portName, index, ports) {
+        _.each(this.get('outPorts'), _.bind(function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.outPorts', 'out');
             this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
             _.extend(attrs, portAttributes);
-        }, this);
+        }, this));
 
         // Silently set `attrs` on the cell so that noone knows the attrs have changed. This makes sure
         // that, for example, command manager does not register `change:attrs` command but only
@@ -13224,7 +13369,7 @@ joint.routers.manhattan = (function(g, _, joint) {
         // source or target element could be excluded from set of obstacles
         var excludedEnds = _.chain(opt.excludeEnds)
             .map(link.get, link)
-            .pluck('id')
+            .map('id')
             .map(graph.getCell, graph).value();
 
         // Exclude any embedded elements from the source and the target element.
@@ -13253,7 +13398,7 @@ joint.routers.manhattan = (function(g, _, joint) {
             // remove all elements whose type is listed in excludedTypes array
             .reject(function(element) {
                 // reject any element which is an ancestor of either source or target
-                return _.contains(opt.excludeTypes, element.get('type')) || _.contains(excludedAncestors, element.id);
+                return _.includes(opt.excludeTypes, element.get('type')) || _.includes(excludedAncestors, element.id);
             })
             // change elements (models) to their bounding boxes
             .invoke('getBBox')
@@ -14360,7 +14505,7 @@ joint.connectors.jumpover = (function(_, g) {
             var connector = link.get('connector') || defaultConnector;
 
             // avoid jumping over links with connector type listed in `ignored connectors`.
-            if (_.contains(ignoreConnectors, connector.name)) {
+            if (_.includes(ignoreConnectors, connector.name)) {
                 return false;
             }
             // filter out links that are above this one and  have the same connector type
@@ -16409,6 +16554,90 @@ dagre = dagre || (typeof window !== 'undefined' && window.dagre);
 
 joint.layout.DirectedGraph = {
 
+    exportElement: function(element) {
+
+        // The width and height of the element.
+        return element.size();
+    },
+
+    exportLink: function(link) {
+
+        var labelSize = link.get('labelSize') || {};
+        var edge = {
+            // The number of ranks to keep between the source and target of the edge.
+            minLen: link.get('minLen') || 1,
+            // The weight to assign edges. Higher weight edges are generally
+            // made shorter and straighter than lower weight edges.
+            weight: link.get('weight') || 1,
+            // Where to place the label relative to the edge.
+            // l = left, c = center r = right.
+            labelpos: link.get('labelPosition') || 'c',
+            // How many pixels to move the label away from the edge.
+            // Applies only when labelpos is l or r.
+            labeloffset: link.get('labelOffset') || 0,
+            // The width of the edge label in pixels.
+            width: labelSize.width || 0,
+            // The height of the edge label in pixels.
+            height: labelSize.height || 0
+        };
+
+        return edge;
+    },
+
+    importElement: function(opt, v, gl) {
+
+        var element = this.getCell(v);
+        var glNode = gl.node(v);
+
+        if (opt.setPosition) {
+            opt.setPosition(element, glNode);
+        } else {
+            element.set('position', {
+                x: glNode.x - glNode.width / 2,
+                y: glNode.y - glNode.height / 2
+            });
+        }
+    },
+
+    importLink: function(opt, edgeObj, gl) {
+
+        var link = this.getCell(edgeObj.name);
+        var glEdge = gl.edge(edgeObj);
+        var points = glEdge.points || [];
+
+        // check the `setLinkVertices` here for backwards compatibility
+        if (opt.setVertices || opt.setLinkVertices) {
+            if (_.isFunction(opt.setVertices)) {
+                opt.setVertices(link, points);
+            } else {
+                // Remove the first and last point from points array.
+                // Those are source/target element connection points
+                // ie. they lies on the edge of connected elements.
+                link.set('vertices', points.slice(1, points.length - 1));
+            }
+        }
+
+        if (opt.setLabels && ('x' in glEdge) && ('y' in glEdge)) {
+            var labelPosition = { x: glEdge.x, y: glEdge.y};
+            if (_.isFunction(opt.setLabels)) {
+                opt.setLabels(link, labelPosition, points);
+            } else {
+                // Convert the absolute label position to a relative position
+                // towards the closest point on the edge
+                var polyline = g.Polyline(points);
+                var length = polyline.closestPointLength(labelPosition);
+                var closestPoint = polyline.pointAtLength(length);
+                var distance = length / polyline.length();
+                link.label(0, {
+                    position: {
+                        distance: distance,
+                        offset: g.Point(labelPosition).difference(closestPoint).toJSON()
+                    }
+                });
+            }
+        }
+    },
+
     layout: function(graphOrCells, opt) {
 
         var graph;
@@ -16425,7 +16654,9 @@ joint.layout.DirectedGraph = {
 
         opt = _.defaults(opt || {}, {
             resizeClusters: true,
-            clusterPadding: 10
+            clusterPadding: 10,
+            exportElement: this.exportElement,
+            exportLink: this.exportLink
         });
 
         // create a graphlib.Graph that represents the joint.dia.Graph
@@ -16435,18 +16666,8 @@ joint.layout.DirectedGraph = {
             multigraph: true,
             // We are able to layout graphs with embeds.
             compound: true,
-            setNodeLabel: function(element) {
-                return {
-                    width: element.get('size').width,
-                    height: element.get('size').height,
-                    rank: element.get('rank')
-                };
-            },
-            setEdgeLabel: function(link) {
-                return {
-                    minLen: link.get('minLen') || 1
-                };
-            },
+            setNodeLabel: opt.exportElement,
+            setEdgeLabel: opt.exportLink,
             setEdgeName: function(link) {
                 // Graphlib edges have no ids. We use edge name property
                 // to store and retrieve ids instead.
@@ -16469,6 +16690,9 @@ joint.layout.DirectedGraph = {
         if (opt.edgeSep) glLabel.edgesep = opt.edgeSep;
         // Number of pixels between each rank in the layout.
         if (opt.rankSep) glLabel.ranksep = opt.rankSep;
+        // Type of algorithm to assign a rank to each node in the input graph.
+        // Possible values: network-simplex, tight-tree or longest-path
+        if (opt.ranker) glLabel.ranker = opt.ranker;
         // Number of pixels to use as a margin around the left and right of the graph.
         if (marginX) glLabel.marginx = marginX;
         // Number of pixels to use as a margin around the top and bottom of the graph.
@@ -16485,37 +16709,8 @@ joint.layout.DirectedGraph = {
 
         // Update the graph.
         graph.fromGraphLib(glGraph, {
-            importNode: function(v, gl) {
-
-                var element = this.getCell(v);
-                var glNode = gl.node(v);
-
-                if (opt.setPosition) {
-                    opt.setPosition(element, glNode);
-                } else {
-                    element.set('position', {
-                        x: glNode.x - glNode.width / 2,
-                        y: glNode.y - glNode.height / 2
-                    });
-                }
-            },
-            importEdge: function(edgeObj, gl) {
-
-                var link = this.getCell(edgeObj.name);
-                var glEdge = gl.edge(edgeObj);
-                var points = glEdge.points || [];
-
-                if (opt.setLinkVertices) {
-                    if (opt.setVertices) {
-                        opt.setVertices(link, points);
-                    } else {
-                        // Remove the first and last point from points array.
-                        // Those are source/target element connection points
-                        // ie. they lies on the edge of connected elements.
-                        link.set('vertices', points.slice(1, points.length - 1));
-                    }
-                }
-            }
+            importNode: _.partial(this.importElement, opt),
+            importEdge: _.partial(this.importLink, opt)
         });
 
         if (opt.resizeClusters) {

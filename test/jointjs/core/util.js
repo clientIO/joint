@@ -75,18 +75,18 @@ QUnit.module('util', function(hooks) {
 
         equal(joint.util.breakText(text, { width: 0, height: 0 }, styles), '', 'A text was correctly broken when zero width and height provided.');
 
-        ok(_.contains(joint.util.breakText(text, { width: 100 }, styles), '\n'),
+        ok(_.includes(joint.util.breakText(text, { width: 100 }, styles), '\n'),
            'A text was broken when width A specified.');
 
-        ok(_.contains(joint.util.breakText(text, { width: 15 }, styles), '\n'), 'A text was broken when width B specified.');
+        ok(_.includes(joint.util.breakText(text, { width: 15 }, styles), '\n'), 'A text was broken when width B specified.');
 
         var brokenText = joint.util.breakText(text, { width: 100, height: 40 }, styles);
 
-        ok(_.contains(brokenText, 'Lorem') && !_.contains(brokenText, 'elit.'), 'A text was trimmed when width & height specified.');
+        ok(_.includes(brokenText, 'Lorem') && !_.includes(brokenText, 'elit.'), 'A text was trimmed when width & height specified.');
 
         brokenText = joint.util.breakText(text, { width: 100, height: 50 }, _.extend({}, styles, { 'font-size': '18px' }));
 
-        ok(_.contains(brokenText, '\n') || !_.contains(brokenText, 'elit.'), 'A text was broken when style specified.');
+        ok(_.includes(brokenText, '\n') || !_.includes(brokenText, 'elit.'), 'A text was broken when style specified.');
 
         throws(function() {
             joint.util.breakText(text, { width: 100, height: 50 }, _.extend({}, styles, { 'font-size': '18px' }), { svgDocument: 'not-svg' });
@@ -462,7 +462,7 @@ QUnit.module('util', function(hooks) {
 
             _.each(someObject, function(fn, method) {
 
-                if (_.contains(methods, method)) {
+                if (_.includes(methods, method)) {
                     // Should be wrapped.
                     assert.equal(someObject[method], innerWrapper);
                 } else {
@@ -494,7 +494,7 @@ QUnit.module('util', function(hooks) {
 
             _.each(someObject, function(fn, method) {
 
-                if (_.contains(methods, method)) {
+                if (_.includes(methods, method)) {
                     // Should be wrapped.
                     assert.equal(someObject[method], innerWrapper);
                 } else {

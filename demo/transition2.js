@@ -79,7 +79,7 @@ var DraggingElementView = joint.dia.ElementView.extend({
     pointerdown: function(evt, x, y) {
 
 	// do not allow drag element while it's still in a transition
-	if (_.contains(this.model.getTransitions(), 'position')) return;
+	if (_.includes(this.model.getTransitions(), 'position')) return;
 
 	// create a link
 	this._link = new joint.dia.Link({
