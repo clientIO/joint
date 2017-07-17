@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+
+    <title>Expand</title>
+
+    <link rel="stylesheet" type="text/css" href="../../build/joint.css" />
+
+    <style>
+        #paper {
+            border: 1px solid gray;
+            position: relative;
+            width: 800px;
+            height: 600px;
+            overflow: hidden;
+        }
+
+        .collapsed:hover {
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+<p>Try to click an element to hide it.</p>
+
+<div id="paper"></div>
+
+<!-- Dependencies: -->
+<script src="../../node_modules/jquery/dist/jquery.js"></script>
+<script src="../../node_modules/lodash/index.js"></script>
+<script src="../../node_modules/backbone/backbone.js"></script>
+
+<script src="../../build/joint.js"></script>
+
+<script src="./expand.paper.js"></script>
+<script src="./shapes.js"></script>
+<script src="./index.js"></script>
+
+</body>
+</html>
