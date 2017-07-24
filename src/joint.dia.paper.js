@@ -133,6 +133,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         // Allowed number of mousemove events after which the pointerclick event will be still triggered.
         clickThreshold: 0,
 
+        // Number of required mousemove events before the first pointermove event will be triggered.
+        moveThreshold: 0,
+
         // The namespace, where all the cell views are defined.
         cellViewNamespace: joint.shapes,
 
@@ -1265,6 +1268,25 @@ joint.dia.Paper = joint.mvc.View.extend({
         } else {
 
             this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
+        }
+    },
+
+    pointermove: function(evt) {
+
+        var view = this.sourceView;
+        if (view) {
+
+            evt.preventDefault();
+
+            // Mouse moved counter.
+            var mousemoved = this._mousemoved++;
+            if (mousemoved > this.options.moveThreshold) {
+
+                evt = joint.util.normalizeEvent(evt);
+
+                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+                view.pointermove(evt, localPoint.x, localPoint.y);
+            }
         }
     },
 
