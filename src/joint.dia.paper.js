@@ -1290,22 +1290,6 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
     },
 
-    pointermove: function(evt) {
-
-        if (this.sourceView) {
-
-            evt.preventDefault();
-            evt = joint.util.normalizeEvent(evt);
-
-            // Mouse moved counter.
-            this._mousemoved++;
-
-            var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-
-            this.sourceView.pointermove(evt, localPoint.x, localPoint.y);
-        }
-    },
-
     pointerup: function(evt) {
 
         this.unbindDocumentEvents();
