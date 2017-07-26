@@ -79,10 +79,10 @@ QUnit.module('links', function(hooks) {
             markup: '<path class="connection"/>'
         });
 
-        ok(_.isUndefined(l1.get('source').x) && _.isUndefined(l1.get('source').y),
-           'Source connected to an element has no x or y.');
-        ok(_.isUndefined(l1.get('target').x) && _.isUndefined(l1.get('target').y),
-           'Target connected to an element has no x or y.');
+        ok(l1.get('source').x === undefined && l1.get('source').y === undefined,
+            'Source connected to an element has no x or y.');
+        ok(l1.get('target').x === undefined && l1.get('target').y === undefined,
+            'Target connected to an element has no x or y.');
 
         this.graph.addCell(l1);
         var v1 = this.paper.findViewByModel(l1);

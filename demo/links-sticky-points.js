@@ -137,7 +137,7 @@ function showPoint(x, y, radius, fill) {
 
     if (!DEBUG) return;
 
-    if (!_.isUndefined(x.x) && !_.isUndefined(x.y)) {
+    if (typeof x.x !== 'undefined' && typeof x.y !== 'undefined') {
 
         fill = radius;
         radius = y;

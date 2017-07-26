@@ -107,7 +107,7 @@ joint.dia.Cell = Backbone.Model.extend({
             if (attrs && attrs.port) {
 
                 // `port` can either be directly an `id` or an object containing an `id` (and potentially other data).
-                if (!_.isUndefined(attrs.port.id)) {
+                if (typeof attrs.port.id !== 'undefined') {
                     ports[attrs.port.id] = attrs.port;
                 } else {
                     ports[attrs.port] = { id: attrs.port };

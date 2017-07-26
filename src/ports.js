@@ -130,7 +130,7 @@
                 args.fn = position;
             } else if (_.isString(position)) {
                 positionName = position;
-            } else if (_.isUndefined(position)) {
+            } else if (typeof position === 'undefined') {
                 positionName = setDefault ? 'left' : null;
             } else if (_.isArray(position)) {
                 positionName = 'absolute';
@@ -362,7 +362,7 @@
          */
         _isValidPortId: function(id) {
 
-            return !_.isNull(id) && !_.isUndefined(id) && !_.isObject(id);
+            return !_.isNull(id) && typeof id !== 'undefined' && !_.isObject(id);
         },
 
         addPorts: function(ports, opt) {
