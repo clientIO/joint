@@ -630,7 +630,7 @@ QUnit.module('element ports', function() {
             shape.portProp('one', ['array', 20], 'array item');
             shape.portProp('one', ['object', '20'], 'object property');
 
-            assert.ok(_.isArray(shape.portProp('one', 'array')));
+            assert.ok(Array.isArray(shape.portProp('one', 'array')));
             assert.equal(shape.portProp('one', 'array')[20], 'array item');
 
             assert.ok(_.isPlainObject(shape.portProp('one', 'object')));

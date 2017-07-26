@@ -374,7 +374,7 @@ QUnit.module('util', function(hooks) {
             assert.equal(joint.util.addClassNamePrefix(undefined), undefined);
             assert.equal(joint.util.addClassNamePrefix(0), 0);
             assert.equal(joint.util.addClassNamePrefix(''), '');
-            assert.ok(_.isNaN(joint.util.addClassNamePrefix(NaN)));
+            assert.ok(Number.isNaN(joint.util.addClassNamePrefix(NaN)));
         });
 
         QUnit.test('non-string value provided', function(assert) {
@@ -406,7 +406,7 @@ QUnit.module('util', function(hooks) {
             assert.equal(joint.util.removeClassNamePrefix(undefined), undefined);
             assert.equal(joint.util.removeClassNamePrefix(0), 0);
             assert.equal(joint.util.removeClassNamePrefix(''), '');
-            assert.ok(_.isNaN(joint.util.removeClassNamePrefix(NaN)));
+            assert.ok(Number.isNaN(joint.util.removeClassNamePrefix(NaN)));
         });
 
         QUnit.test('non-string value provided', function(assert) {
@@ -532,7 +532,7 @@ QUnit.module('util', function(hooks) {
             QUnit.test('fn([cell, cell, cell], opt)', function(assert) {
 
                 var fn = joint.util.wrappers.cells(function(cells, opt) {
-                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(Array.isArray(cells), 'cells is an array');
                     assert.ok(_.isEqual(cells, expected.cells), 'cells is as expected');
                     assert.ok(_.isObject(opt), 'opt is an object');
                     assert.ok(_.isEqual(opt, expected.opt), 'opt is as expected');
@@ -544,7 +544,7 @@ QUnit.module('util', function(hooks) {
             QUnit.test('fn([cell, cell, cell])', function(assert) {
 
                 var fn = joint.util.wrappers.cells(function(cells, opt) {
-                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(Array.isArray(cells), 'cells is an array');
                     assert.ok(_.isEqual(cells, expected.cells), 'cells is as expected');
                     assert.ok(_.isObject(opt), 'opt is an object');
                     assert.ok(_.isEqual(opt, {}), 'opt is an empty object');
@@ -556,7 +556,7 @@ QUnit.module('util', function(hooks) {
             QUnit.test('fn(cell, cell, cell)', function(assert) {
 
                 var fn = joint.util.wrappers.cells(function(cells, opt) {
-                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(Array.isArray(cells), 'cells is an array');
                     assert.ok(_.isEqual(cells, expected.cells), 'cells is as expected');
                     assert.ok(_.isObject(opt), 'opt is an object');
                     assert.ok(_.isEqual(opt, {}), 'opt is an empty object');
@@ -568,7 +568,7 @@ QUnit.module('util', function(hooks) {
             QUnit.test('fn(cell, cell, cell, opt)', function(assert) {
 
                 var fn = joint.util.wrappers.cells(function(cells, opt) {
-                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(Array.isArray(cells), 'cells is an array');
                     assert.ok(_.isEqual(cells, expected.cells), 'cells is as expected');
                     assert.ok(_.isObject(opt), 'opt is an object');
                     assert.ok(_.isEqual(opt, expected.opt), 'opt is as expected');
@@ -582,7 +582,7 @@ QUnit.module('util', function(hooks) {
                 var cell = _.first(expected.cells);
 
                 var fn = joint.util.wrappers.cells(function(cells, opt) {
-                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(Array.isArray(cells), 'cells is an array');
                     assert.ok(_.isEqual(cells, [cell]), 'cells is as expected');
                     assert.ok(_.isObject(opt), 'opt is an object');
                     assert.ok(_.isEqual(opt, {}), 'opt is an empty object');

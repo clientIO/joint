@@ -89,11 +89,11 @@ var Circle = joint.dia.Element.define('custom.Circle', {
         d: {
             // The path data `d` attribute to be defined via an array.
             // e.g. d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
-            qualify: _.isArray,
+            qualify: Array.isArray,
             set: function(value, refBBox) {
                 var i = 0;
                 var attrValue = value.map(function(data, index) {
-                    if (_.isString(data)) {
+                    if (typeof data === 'string') {
                         if (data.slice(-1) === '%') {
                             return parseFloat(data) / 100 * refBBox[((index - i) % 2) ? 'height' : 'width'];
                         } else {

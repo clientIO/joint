@@ -1,7 +1,7 @@
 (function(joint, _, g, $) {
 
     function isPercentage(val) {
-        return _.isString(val) && val.slice(-1) === '%';
+        return typeof val === 'string' && val.slice(-1) === '%';
     }
 
     function setWrapper(attrName, dimension) {

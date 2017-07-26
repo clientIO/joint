@@ -72,7 +72,7 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
 
         _.each(rects, function(rect) {
 
-            var lines = _.isArray(rect.text) ? rect.text : [rect.text];
+            var lines = Array.isArray(rect.text) ? rect.text : [rect.text];
             var rectHeight = lines.length * 20 + 20;
 
             attrs['.uml-class-' + rect.type + '-text'].text = lines.join('\n');

@@ -567,23 +567,23 @@ QUnit.module('basic', function(hooks) {
 
         el.prop('array/1/0/value/0', 'baz');
         equal(el.prop('array/1/0/value/0'), 'baz', 'value in nested object in nested array set correctly');
-        ok(_.isArray(el.prop('array/1/0/value')), 'type of the nested array was preserved');
+        ok(Array.isArray(el.prop('array/1/0/value')), 'type of the nested array was preserved');
         ok(_.isObject(el.prop('array/1/0')), 'type of the nested object was preserved');
-        ok(_.isArray(el.prop('array/1')), 'type of the nested array was preserved');
-        ok(_.isArray(el.prop('array')), 'type of the top level array was preserved');
+        ok(Array.isArray(el.prop('array/1')), 'type of the nested array was preserved');
+        ok(Array.isArray(el.prop('array')), 'type of the top level array was preserved');
 
         el.prop('array/1/0/value', { s: 'baz' });
         deepEqual(el.prop('array/1/0/value'), { s: 'baz' }, 'value in nested object in nested array set correctly');
         ok(_.isObject(el.prop('array/1/0/value')), 'type of the object was changed');
 
         el.prop('array/2', 10);
-        ok(_.isArray(el.prop('array')), 'type of the top level array was preserved after adding new item');
+        ok(Array.isArray(el.prop('array')), 'type of the top level array was preserved after adding new item');
         equal(el.prop('array/2'), '10', 'value of the newly added array item is correct');
 
         el.prop({ array: [['foo']] });
-        ok(_.isArray(el.prop('array')), 'type of the top level array was preserved after changing an item');
+        ok(Array.isArray(el.prop('array')), 'type of the top level array was preserved after changing an item');
         equal(el.prop('array/0/0'), 'foo', 'value of the newly added array item is correct');
-        ok(_.isArray(el.prop('array/0')), 'type of the nested array is correct');
+        ok(Array.isArray(el.prop('array/0')), 'type of the nested array is correct');
 
         var called = false;
         el.once('change:array', function(cell, changed, opt) {

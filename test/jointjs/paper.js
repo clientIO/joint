@@ -1130,12 +1130,12 @@ QUnit.module('paper', function(hooks) {
                 assert.deepEqual(paper._gridSettings[0], { markup: 'rect', update: 'fnc' }, 'custom markup and update');
 
                 paper.setGrid(drawGridTestFixtures[1]);
-                assert.ok(_.isArray(paper._gridSettings));
+                assert.ok(Array.isArray(paper._gridSettings));
                 assert.deepEqual(paper._gridSettings[0], { markup: 'rect', update: 'fnc' }, 'custom markup and update - first layer');
                 assert.deepEqual(paper._gridSettings[1], { markup: 'rect2', update: 'fnc2' }, 'custom markup and update- second layer');
 
                 paper.setGrid(drawGridTestFixtures[2]);
-                assert.ok(_.isArray(paper._gridSettings));
+                assert.ok(Array.isArray(paper._gridSettings));
                 assert.deepEqual(paper._gridSettings[0], { markup: '<circle/>' }, 'custom grid - minimal setup');
             });
 

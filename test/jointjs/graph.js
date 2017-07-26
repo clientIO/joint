@@ -1113,7 +1113,7 @@ QUnit.module('graph', function(hooks) {
 
             var cells = this.graph.get('cells').models;
 
-            assert.ok(_.isArray(cells));
+            assert.ok(Array.isArray(cells));
             assert.equal(cells.length, 3);
 
             _.each(cells, function(cell) {
@@ -1159,7 +1159,7 @@ QUnit.module('graph', function(hooks) {
             var json = this.graph.toJSON();
 
             assert.ok(_.isObject(json));
-            assert.ok(_.isArray(json.cells));
+            assert.ok(Array.isArray(json.cells));
             assert.equal(json.cells.length, 3);
         });
     });

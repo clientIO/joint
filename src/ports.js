@@ -128,11 +128,11 @@
             if (typeof position === 'function') {
                 positionName = 'fn';
                 args.fn = position;
-            } else if (_.isString(position)) {
+            } else if (typeof position === 'string') {
                 positionName = position;
             } else if (typeof position === 'undefined') {
                 positionName = setDefault ? 'left' : null;
-            } else if (_.isArray(position)) {
+            } else if (Array.isArray(position)) {
                 positionName = 'absolute';
                 args.x = position[0];
                 args.y = position[1];
@@ -287,7 +287,7 @@
          */
         addPort: function(port, opt) {
 
-            if (!_.isObject(port) || _.isArray(port)) {
+            if (!_.isObject(port) || Array.isArray(port)) {
                 throw new Error('Element: addPort requires an object.');
             }
 
@@ -314,9 +314,9 @@
             }
 
             var args = Array.prototype.slice.call(arguments, 1);
-            if (_.isArray(path)) {
+            if (Array.isArray(path)) {
                 args[0] = ['ports', 'items', index].concat(path);
-            } else if (_.isString(path)) {
+            } else if (typeof path === 'string') {
 
                 // Get/set an attribute by a special path syntax that delimits
                 // nested objects by the colon character.

@@ -56,12 +56,12 @@
     function argPoint(bbox, args) {
 
         var x = args.x;
-        if (_.isString(x)) {
+        if (typeof x === 'string') {
             x = parseFloat(x) / 100 * bbox.width;
         }
 
         var y = args.y;
-        if (_.isString(y)) {
+        if (typeof y === 'string') {
             y = parseFloat(y) / 100 * bbox.height;
         }
 

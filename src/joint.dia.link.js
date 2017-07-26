@@ -226,7 +226,7 @@ joint.dia.Link = joint.dia.Cell.extend({
     // Is source, target and the link itself embedded in a given element?
     isRelationshipEmbeddedIn: function(element) {
 
-        var elementId = _.isString(element) ? element : element.id;
+        var elementId = typeof element === 'string' ? element : element.id;
         var ancestor = this.getRelationshipAncestor();
 
         return !!ancestor && (ancestor.id === elementId || ancestor.isEmbeddedIn(elementId));
@@ -399,7 +399,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var children = V(markup);
 
         // custom markup may contain only one children
-        if (!_.isArray(children)) children = [children];
+        if (!Array.isArray(children)) children = [children];
 
         // Cache all children elements for quicker access.
         this._V = {}; // vectorized markup;
@@ -751,7 +751,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
         // In that case we won't update labels at all.
-        if (_.isNaN(connectionLength)) {
+        if (Number.isNaN(connectionLength)) {
             return this;
         }
 
@@ -765,7 +765,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var distance = isPositionObject ? position.distance : position;
             var offset = isPositionObject ? position.offset : { x: 0, y: 0 };
 
-            if (_.isFinite(distance)) {
+            if (Number.isFinite(distance)) {
                 distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
                 distance = (distance < 0) ? connectionLength + distance : distance;
                 distance = (distance > 1) ? distance : connectionLength * distance;
@@ -780,7 +780,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // Just offset the label by the x,y provided in the offset object.
                 labelCoordinates = g.point(labelCoordinates).offset(offset);
 
-            } else if (_.isFinite(offset)) {
+            } else if (Number.isFinite(offset)) {
 
                 if (!samples) {
                     samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
@@ -837,7 +837,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
         // In that case we won't update tools position at all.
-        if (!_.isNaN(connectionLength)) {
+        if (!Number.isNaN(connectionLength)) {
 
             // If the link is too short, make the tools half the size and the offset twice as low.
             if (connectionLength < this.options.shortLinkLength) {
