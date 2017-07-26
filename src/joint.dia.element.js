@@ -29,7 +29,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
     position: function(x, y, opt) {
 
-        var isSetter = _.isNumber(y);
+        var isSetter = typeof y === 'number';
 
         opt = (isSetter ? opt : x) || {};
 
@@ -160,8 +160,8 @@ joint.dia.Element = joint.dia.Cell.extend({
         // (size, opt) signature
         if (_.isObject(width)) {
             opt = height;
-            height = _.isNumber(width.height) ? width.height : currentSize.height;
-            width = _.isNumber(width.width) ? width.width : currentSize.width;
+            height = typeof width.height === 'number' ? width.height : currentSize.height;
+            width = typeof width.width === 'number' ? width.width : currentSize.width;
         }
 
         return this.resize(width, height, opt);

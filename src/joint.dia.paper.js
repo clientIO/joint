@@ -584,7 +584,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     onCellAdded: function(cell, graph, opt) {
 
-        if (this.options.async && opt.async !== false && _.isNumber(opt.position)) {
+        if (this.options.async && opt.async !== false && typeof opt.position === 'number') {
 
             this._asyncCells = this._asyncCells || [];
             this._asyncCells.push(cell);
@@ -1850,7 +1850,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             canvas.height = imgHeight * 3;
 
             var ctx = canvas.getContext('2d');
-            var angle = _.isNumber(opt.watermarkAngle) ? -opt.watermarkAngle : -20;
+            var angle = typeof opt.watermarkAngle === 'number' ? -opt.watermarkAngle : -20;
             var radians = g.toRad(angle);
             var stepX = canvas.width / 4;
             var stepY = canvas.height / 4;

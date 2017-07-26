@@ -103,10 +103,10 @@
 
         _getZIndex: function(group, port) {
 
-            if (_.isNumber(port.z)) {
+            if (typeof port.z === 'number') {
                 return port.z;
             }
-            if (_.isNumber(group.z) || group.z === 'auto') {
+            if (typeof group.z === 'number' || group.z === 'auto') {
                 return group.z;
             }
             return 'auto';
