@@ -1312,7 +1312,7 @@ var joint = {
                     var prefix = prefixes[i];
                     var propName = prefix ? (prefix + prop) : (prop.substr(0, 1).toLowerCase() + prop.substr(1));
                     if (el[propName] !== undefined) {
-                        return _.isFunction(el[propName]) ? el[propName]() : el[propName];
+                        return typeof el[propName] === 'function' ? el[propName]() : el[propName];
                     }
                 }
             }

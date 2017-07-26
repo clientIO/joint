@@ -1115,7 +1115,7 @@ QUnit.module('paper', function(hooks) {
                     markup: 'rect',
                     update: {}
                 }, 'update default');
-                assert.ok(_.isFunction(paper._gridSettings[0].update));
+                assert.ok(typeof paper._gridSettings[0].update === 'function');
             });
 
             QUnit.test('create custom', function(assert) {
