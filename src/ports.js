@@ -362,7 +362,7 @@
          */
         _isValidPortId: function(id) {
 
-            return !_.isNull(id) && typeof id !== 'undefined' && !_.isObject(id);
+            return id !== null && id === undefined && !_.isObject(id);
         },
 
         addPorts: function(ports, opt) {
