@@ -344,7 +344,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // the content visible.
     fitToContent: function(gridWidth, gridHeight, padding, opt) { // alternatively function(opt)
 
-        if (_.isObject(gridWidth)) {
+        if (joint.util.isObject(gridWidth)) {
             // first parameter is an option object
             opt = gridWidth;
             gridWidth = opt.gridWidth || 1;
@@ -1529,14 +1529,14 @@ joint.dia.Paper = joint.mvc.View.extend({
         var currentTranslate = this.translate();
 
         // backgroundPosition
-        if (_.isObject(backgroundPosition)) {
+        if (joint.util.isObject(backgroundPosition)) {
             var x = currentTranslate.tx + (currentScale.sx * (backgroundPosition.x || 0));
             var y = currentTranslate.ty + (currentScale.sy * (backgroundPosition.y || 0));
             backgroundPosition = x + 'px ' + y + 'px';
         }
 
         // backgroundSize
-        if (_.isObject(backgroundSize)) {
+        if (joint.util.isObject(backgroundSize)) {
             backgroundSize = g.rect(backgroundSize).scale(currentScale.sx, currentScale.sy);
             backgroundSize = backgroundSize.width + 'px ' + backgroundSize.height + 'px';
         }
@@ -1575,7 +1575,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             backgroundImage = canvas.toDataURL('image/png');
             backgroundRepeat = 'repeat';
-            if (_.isObject(backgroundSize)) {
+            if (joint.util.isObject(backgroundSize)) {
                 // recalculate the tile size if an object passed in
                 backgroundSize.width *= canvas.width / img.width;
                 backgroundSize.height *= canvas.height / img.height;
@@ -1647,7 +1647,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     defineFilter: function(filter) {
 
-        if (!_.isObject(filter)) {
+        if (!joint.util.isObject(filter)) {
             throw new TypeError('dia.Paper: defineFilter() requires 1. argument to be an object.');
         }
 
@@ -1689,7 +1689,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     defineGradient: function(gradient) {
 
-        if (!_.isObject(gradient)) {
+        if (!joint.util.isObject(gradient)) {
             throw new TypeError('dia.Paper: defineGradient() requires 1. argument to be an object.');
         }
 
@@ -1731,7 +1731,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     defineMarker: function(marker) {
 
-        if (!_.isObject(marker)) {
+        if (!joint.util.isObject(marker)) {
             throw new TypeError('dia.Paper: defineMarker() requires 1. argument to be an object.');
         }
 

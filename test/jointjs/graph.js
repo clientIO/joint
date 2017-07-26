@@ -583,7 +583,7 @@ QUnit.module('graph', function(hooks) {
 
         var clones = graph.cloneCells([graph.getCell('d')].concat(graph.getSuccessors(graph.getCell('d'))));
         assert.deepEqual(_.map(clones, function(c) { return c.get('name'); }), ['d', 'k', 'l', 'm'], 'cloneCells() returns cloned elements without connected links');
-        assert.ok(_.isObject(clones), 'returned clone map is an object');
+        assert.ok(joint.util.isObject(clones), 'returned clone map is an object');
         assert.equal(clones['d'].get('name'), 'd', 'returned clone map maps original ID to the clone');
         assert.notEqual(clones['d'].id, 'd', 'returned clone map maps original ID to the clone');
     });
@@ -1158,7 +1158,7 @@ QUnit.module('graph', function(hooks) {
 
             var json = this.graph.toJSON();
 
-            assert.ok(_.isObject(json));
+            assert.ok(joint.util.isObject(json));
             assert.ok(Array.isArray(json.cells));
             assert.equal(json.cells.length, 3);
         });

@@ -1411,6 +1411,10 @@ var joint = {
                     return fn.call(this, cells, opt);
                 };
             }
+        },
+
+        isObject: function(value) {
+            return !!value && typeof value === 'object';
         }
     }
 };

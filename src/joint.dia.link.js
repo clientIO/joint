@@ -759,7 +759,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             var label = labels[idx];
             var position = label.position;
-            var isPositionObject = _.isObject(position);
+            var isPositionObject = joint.util.isObject(position);
             var labelCoordinates;
 
             var distance = isPositionObject ? position.distance : position;
@@ -775,7 +775,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             labelCoordinates = connectionElement.getPointAtLength(distance);
 
-            if (_.isObject(offset)) {
+            if (joint.util.isObject(offset)) {
 
                 // Just offset the label by the x,y provided in the offset object.
                 labelCoordinates = g.point(labelCoordinates).offset(offset);

@@ -568,13 +568,13 @@ QUnit.module('basic', function(hooks) {
         el.prop('array/1/0/value/0', 'baz');
         equal(el.prop('array/1/0/value/0'), 'baz', 'value in nested object in nested array set correctly');
         ok(Array.isArray(el.prop('array/1/0/value')), 'type of the nested array was preserved');
-        ok(_.isObject(el.prop('array/1/0')), 'type of the nested object was preserved');
+        ok(joint.util.isObject(el.prop('array/1/0')), 'type of the nested object was preserved');
         ok(Array.isArray(el.prop('array/1')), 'type of the nested array was preserved');
         ok(Array.isArray(el.prop('array')), 'type of the top level array was preserved');
 
         el.prop('array/1/0/value', { s: 'baz' });
         deepEqual(el.prop('array/1/0/value'), { s: 'baz' }, 'value in nested object in nested array set correctly');
-        ok(_.isObject(el.prop('array/1/0/value')), 'type of the object was changed');
+        ok(joint.util.isObject(el.prop('array/1/0/value')), 'type of the object was changed');
 
         el.prop('array/2', 10);
         ok(Array.isArray(el.prop('array')), 'type of the top level array was preserved after adding new item');

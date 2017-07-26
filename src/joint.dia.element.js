@@ -128,7 +128,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
         if (opt.transition) {
 
-            if (!_.isObject(opt.transition)) opt.transition = {};
+            if (!joint.util.isObject(opt.transition)) opt.transition = {};
 
             this.transition('position', translatedPosition, _.extend({}, opt.transition, {
                 valueFunction: joint.util.interpolate.object
@@ -158,7 +158,7 @@ joint.dia.Element = joint.dia.Cell.extend({
         }
         // Setter
         // (size, opt) signature
-        if (_.isObject(width)) {
+        if (joint.util.isObject(width)) {
             opt = height;
             height = typeof width.height === 'number' ? width.height : currentSize.height;
             width = typeof width.width === 'number' ? width.width : currentSize.width;
