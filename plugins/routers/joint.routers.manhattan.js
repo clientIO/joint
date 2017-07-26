@@ -478,7 +478,7 @@ joint.routers.manhattan = (function(g, _, joint) {
                 // might use dragging route instead of main routing method if that is enabled.
                 var endingAtPoint = !this.model.get('source').id || !this.model.get('target').id;
 
-                if (endingAtPoint && _.isFunction(opt.draggingRoute)) {
+                if (endingAtPoint && typeof opt.draggingRoute === 'function') {
                     // Make sure we passing points only (not rects).
                     var dragFrom = from instanceof g.rect ? from.center() : from;
                     partialRoute = opt.draggingRoute(dragFrom, to.origin(), opt);
@@ -491,7 +491,7 @@ joint.routers.manhattan = (function(g, _, joint) {
             if (partialRoute === null) {
                 // The partial route could not be found.
                 // use orthogonal (do not avoid elements) route instead.
-                if (!_.isFunction(joint.routers.orthogonal)) {
+                if (typeof joint.routers.orthogonal !== 'function') {
                     throw new Error('Manhattan requires the orthogonal router.');
                 }
                 return joint.routers.orthogonal(vertices, opt, this);

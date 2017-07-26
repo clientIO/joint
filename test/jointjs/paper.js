@@ -1087,7 +1087,7 @@ QUnit.module('paper', function(hooks) {
                     assert.equal(firstLayer.color, 'red', message + ': color');
                     assert.equal(firstLayer.thickness, 11, message + ': thickness');
                     assert.equal(firstLayer.markup, 'path', message + ': markup');
-                    assert.ok(_.isFunction(firstLayer.update), message + ': update');
+                    assert.ok(typeof firstLayer.update === 'function', message + ': update');
                 };
 
                 paper.setGrid(drawGridTestFixtures[0]);
@@ -1099,7 +1099,7 @@ QUnit.module('paper', function(hooks) {
                 assert.equal(secondLayer.color, 'black', message + ': color');
                 assert.equal(secondLayer.thickness, 55, message + ': thickness');
                 assert.equal(secondLayer.markup, 'path', message + ': markup');
-                assert.ok(_.isFunction(secondLayer.update), message + ': update');
+                assert.ok(typeof secondLayer.update === 'function', message + ': update');
                 check('args: [{}]');
 
                 paper.setGrid(drawGridTestFixtures[2]);

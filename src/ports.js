@@ -125,7 +125,7 @@
             var args = {};
             var positionName;
 
-            if (_.isFunction(position)) {
+            if (typeof position === 'function') {
                 positionName = 'fn';
                 args.fn = position;
             } else if (_.isString(position)) {

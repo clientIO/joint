@@ -1367,7 +1367,7 @@ var joint = {
                 wrapper = joint.util.wrappers[wrapper];
             }
 
-            if (!_.isFunction(wrapper)) {
+            if (typeof wrapper !== 'function') {
                 throw new Error('Wrapper must be a function.');
             }
 

@@ -64,7 +64,7 @@ joint.layout.DirectedGraph = {
 
         // check the `setLinkVertices` here for backwards compatibility
         if (opt.setVertices || opt.setLinkVertices) {
-            if (_.isFunction(opt.setVertices)) {
+            if (typeof opt.setVertices === 'function') {
                 opt.setVertices(link, points);
             } else {
                 // Remove the first and last point from points array.
@@ -76,7 +76,7 @@ joint.layout.DirectedGraph = {
 
         if (opt.setLabels && ('x' in glEdge) && ('y' in glEdge)) {
             var labelPosition = { x: glEdge.x, y: glEdge.y};
-            if (_.isFunction(opt.setLabels)) {
+            if (typeof opt.setLabels === 'function') {
                 opt.setLabels(link, labelPosition, points);
             } else {
                 // Convert the absolute label position to a relative position
