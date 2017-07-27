@@ -343,7 +343,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Useful for bulk operations and optimizations.
     resetCells: function(cells, opt) {
 
-        var preparedCells = _.map(cells, _.bind(this._prepareCell, this, _, opt));
+        var preparedCells = cells.map((cell) => this._prepareCell(cell, opt));
         this.get('cells').reset(preparedCells, opt);
 
         return this;
@@ -403,12 +403,12 @@ joint.dia.Graph = Backbone.Model.extend({
 
     getElements: function() {
 
-        return _.map(this._nodes, function(exists, node) { return this.getCell(node); }, this);
+        return Object.entries(this._nodes).map((entry) => this.getCell(entry[0]));
     },
 
     getLinks: function() {
 
-        return _.map(this._edges, function(exists, edge) { return this.getCell(edge); }, this);
+        return Object.entries(this._edges).map((entry) => this.getCell(entry[0]));
     },
 
     getFirstCell: function() {
@@ -537,7 +537,8 @@ joint.dia.Graph = Backbone.Model.extend({
 
     getCommonAncestor: function(/* cells */) {
 
-        var cellsAncestors = arguments.map((cell) => {
+        var args = (arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments));
+        var cellsAncestors = args.map((cell) => {
 
             var ancestors = [];
             var parentId = cell.get('parent');

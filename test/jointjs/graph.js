@@ -582,7 +582,7 @@ QUnit.module('graph', function(hooks) {
         this.setupTestTreeGraph(graph);
 
         var clones = graph.cloneCells([graph.getCell('d')].concat(graph.getSuccessors(graph.getCell('d'))));
-        assert.deepEqual(clones.map(function(c) { return c.get('name'); }), ['d', 'k', 'l', 'm'], 'cloneCells() returns cloned elements without connected links');
+        assert.deepEqual(Object.values(clones).map(function(c) { return c.get('name'); }), ['d', 'k', 'l', 'm'], 'cloneCells() returns cloned elements without connected links');
         assert.ok(joint.util.isObject(clones), 'returned clone map is an object');
         assert.equal(clones['d'].get('name'), 'd', 'returned clone map maps original ID to the clone');
         assert.notEqual(clones['d'].id, 'd', 'returned clone map maps original ID to the clone');
@@ -594,7 +594,7 @@ QUnit.module('graph', function(hooks) {
         this.setupTestTreeGraph(graph);
 
         var clones = graph.cloneSubgraph([graph.getCell('d')].concat(graph.getSuccessors(graph.getCell('d'))));
-        assert.deepEqual(clones.map(function(c) {return c.get('name'); }), ['d', 'k', 'l', 'm', 'l10', 'l11', 'l12'], 'cloneSubgraph() returns cloned elements including connected links');
+        assert.deepEqual(Object.values(clones).map(function(c) {return c.get('name'); }), ['d', 'k', 'l', 'm', 'l10', 'l11', 'l12'], 'cloneSubgraph() returns cloned elements including connected links');
     });
 
     QUnit.test('graph.getSubgraph()', function(assert) {

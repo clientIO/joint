@@ -753,20 +753,20 @@ module.exports = function(grunt) {
 
     grunt.registerTask('concat:plugins', allPluginTasks.concat);
     grunt.registerTask('cssmin:plugins', allPluginTasks.cssmin);
-    grunt.registerTask('uglify:plugins', allPluginTasks.uglify);
+    // grunt.registerTask('uglify:plugins', allPluginTasks.uglify);
 
     grunt.registerTask('build:plugins', [
-        'uglify:plugins',
+        // 'uglify:plugins',
         'cssmin:plugins',
         'concat:plugins'
     ]);
 
     grunt.registerTask('build:joint', [
         'build:plugins',
-        'newer:uglify:deps',
-        'newer:uglify:geometry',
-        'newer:uglify:vectorizer',
-        'newer:uglify:joint',
+        // 'newer:uglify:deps',
+        // 'newer:uglify:geometry',
+        // 'newer:uglify:vectorizer',
+        // 'newer:uglify:joint',
         'newer:cssmin:joint',
         'newer:concat:geometry',
         'newer:concat:vectorizer',
