@@ -70,7 +70,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
         var points = [].concat(this.sourcePoint, this.route, this.targetPoint);
 
-        points = _.map(points, function(point) {
+        points = points.map(function(point) {
             return g.point(point.x - bbox.x, point.y - bbox.y);
         });
 

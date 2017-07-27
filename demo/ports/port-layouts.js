@@ -16,7 +16,7 @@ var g2Rect = new joint.shapes.basic.Rect({
             },
             'reds': {
                 position: function(ports, elBBox, opt) {
-                    return _.map(ports, function(port, index) {
+                    return ports.map(function(port, index) {
                         var step = -Math.PI / 8;
 
                         var y = Math.sin(index * step) * 50;

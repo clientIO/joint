@@ -11,7 +11,7 @@ var g5 = new joint.shapes.basic.Rect({
 
             'a': {
                 position: function(ports, elBBox, opt) {
-                    return _.map(ports, function(port, index) {
+                    return ports.map(function(port, index) {
                         return {
                             x: index * 100,
                             y: -20,

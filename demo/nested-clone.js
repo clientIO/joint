@@ -60,23 +60,23 @@ paper.on('cell:mouseover', function(cellView) {
     var cell = cellView.model;
     var i = {};
     var keyCloneCells = 'graph.cloneCells([' + cell.id + '], { deep: true })';
-    i[keyCloneCells] = _.map(graph.cloneCells([cell], { deep: true }), function(c) {
+    i[keyCloneCells] = graph.cloneCells([cell], { deep: true }).map(function(c) {
         return c.get('name');
     }).join(',');
     var keyCloneSubgraph = 'graph.cloneSubgraph([' + cell.id + '], { deep: true })';
-    i[keyCloneSubgraph] = _.map(graph.cloneSubgraph([cell], { deep: true }), function(c) {
+    i[keyCloneSubgraph] = graph.cloneSubgraph([cell], { deep: true }).map(function(c) {
         return c.get('name');
     }).join(',');
     var keyClone = cell.id + '.clone({ deep: true })';
-    i[keyClone] = _.map(cell.clone({ deep: true }), function(c) {
+    i[keyClone] = cell.clone({ deep: true }).map(function(c) {
         return c.get('name');
     }).join(',');
     var keySubgraph = 'graph.getSubgraph([' + cell.id + '], { deep: true })';
-    i[keySubgraph] = _.map(graph.getSubgraph([cell], { deep: true }), function(c) {
+    i[keySubgraph] = graph.getSubgraph([cell], { deep: true }).map(function(c) {
         return c.get('name');
     }).join(',');
     var keyGetConnectedLinks = 'graph.getConnectedLinks(' + cell.id + ', { deep: true })';
-    i[keyGetConnectedLinks] = _.map(graph.getConnectedLinks(cell, { deep: true }), function(c) {
+    i[keyGetConnectedLinks] = graph.getConnectedLinks(cell, { deep: true }).map(function(c) {
         return c.get('name');
     }).join(',');
     $info.text(JSON.stringify(i, '\t', 4));

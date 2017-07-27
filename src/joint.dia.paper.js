@@ -1433,7 +1433,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var namespace = this.constructor.gridPatterns;
         if (typeof opt === 'string' && namespace[opt]) {
-            return _.map(namespace[opt], _.clone);
+            return namespace[opt].map(_.clone);
         }
 
         var options = opt || { args: [{}] };
@@ -1445,7 +1445,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
 
         if (name && namespace[name]) {
-            var pattern = _.map(namespace[name], _.clone);
+            var pattern = namespace[name].map(_.clone);
 
             var args = Array.isArray(options.args) ? options.args : [options.args || {}];
 
@@ -1707,7 +1707,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (!this.isDefined(gradientId)) {
 
             var stopTemplate = joint.util.template('<stop offset="${offset}" stop-color="${color}" stop-opacity="${opacity}"/>');
-            var gradientStopsStrings = _.map(stops, function(stop) {
+            var gradientStopsStrings = stops.map(function(stop) {
                 return stopTemplate({
                     offset: stop.offset,
                     color: stop.color,

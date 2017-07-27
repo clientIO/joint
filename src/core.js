@@ -1245,7 +1245,7 @@ var joint = {
 
             prefix: function(value, precision) {
 
-                var prefixes = _.map(['y', 'z', 'a', 'f', 'p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'], function(d, i) {
+                var prefixes = ['y', 'z', 'a', 'f', 'p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'].map(function(d, i) {
                     var k = Math.pow(10, Math.abs(8 - i) * 3);
                     return {
                         scale: i > 8 ? function(d) { return d / k; } : function(d) { return d * k; },
@@ -1330,7 +1330,7 @@ var joint = {
 
             if (!className) return className;
 
-            return _.map(className.toString().split(' '), function(_className) {
+            return className.toString().split(' ').map(function(_className) {
 
                 if (_className.substr(0, joint.config.classNamePrefix.length) !== joint.config.classNamePrefix) {
                     _className = joint.config.classNamePrefix + _className;
@@ -1345,7 +1345,7 @@ var joint = {
 
             if (!className) return className;
 
-            return _.map(className.toString().split(' '), function(_className) {
+            return className.toString().split(' ').map(function(_className) {
 
                 if (_className.substr(0, joint.config.classNamePrefix.length) === joint.config.classNamePrefix) {
                     _className = _className.substr(joint.config.classNamePrefix.length);

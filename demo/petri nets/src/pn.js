@@ -105,10 +105,10 @@ function fireTransition(t, sec) {
     var inbound = graph.getConnectedLinks(t, {inbound: true});
     var outbound = graph.getConnectedLinks(t, {outbound: true});
 
-    var placesBefore = _.map(inbound, function (link) {
+    var placesBefore = inbound.map(function (link) {
         return graph.getCell(link.get('source').id);
     });
-    var placesAfter = _.map(outbound, function (link) {
+    var placesAfter = outbound.map(function (link) {
         return graph.getCell(link.get('target').id);
     });
 

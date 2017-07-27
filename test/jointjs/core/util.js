@@ -11,10 +11,10 @@ QUnit.module('util', function(hooks) {
         var hexColorInterpolation = joint.util.interpolate.hexColor('#FFFFFF', '#00FF77');
         var unitInterpolation = joint.util.interpolate.unit('1em', '0.50em');
 
-        var numberArray = _.map(values, numberInterpolation);
-        var objectArray = _.map(values, objectInterpolation);
-        var hexColorArray = _.map(values, hexColorInterpolation);
-        var unitArray = _.map(values, unitInterpolation);
+        var numberArray = values.map(numberInterpolation);
+        var objectArray = values.map(objectInterpolation);
+        var hexColorArray = values.map(hexColorInterpolation);
+        var unitArray = values.map(unitInterpolation);
 
         deepEqual(numberArray, [
             0, 25, 50, 75, 100

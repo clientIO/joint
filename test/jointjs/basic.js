@@ -832,7 +832,7 @@ QUnit.module('basic', function(hooks) {
         this.setupTestNestedGraph(this.graph);
 
         clones = this.graph.getCell('a').clone({ deep: true });
-        deepEqual(_.map(clones, function(c) {
+        deepEqual(clones.map( function(c) {
             return c.get('name');
         }), ['a', 'aa', 'c', 'l2', 'aaa'], 'clone({ deep: true }) returns clones including all embedded cells');
     });

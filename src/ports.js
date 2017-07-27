@@ -532,7 +532,7 @@
         _appendPorts: function(ports, z, refs) {
 
             var containerElement = this._getContainerElement();
-            var portElements = _.map(ports, this._getPortElement, this);
+            var portElements = ports.map(this._getPortElement.bind(this));
 
             if (refs[z] || z < 0) {
                 V(refs[Math.max(z, 0)]).before(portElements);

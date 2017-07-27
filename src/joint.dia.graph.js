@@ -537,7 +537,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
     getCommonAncestor: function(/* cells */) {
 
-        var cellsAncestors = _.map(arguments, function(cell) {
+        var cellsAncestors = arguments.map((cell) => {
 
             var ancestors = [];
             var parentId = cell.get('parent');
@@ -550,7 +550,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
             return ancestors;
 
-        }, this);
+        });
 
         cellsAncestors = _.sortBy(cellsAncestors, 'length');
 

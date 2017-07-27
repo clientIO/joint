@@ -457,7 +457,7 @@ joint.routers.manhattan = (function(g, _, joint) {
 
         // pathfinding
         var map = (new ObstacleMap(opt)).build(this.paper.model, this.model);
-        var oldVertices = _.map(vertices, g.point);
+        var oldVertices = vertices.map(g.point);
         var newVertices = [];
         var tailPoint = sourceBBox.center().snapToGrid(opt.step);
 
