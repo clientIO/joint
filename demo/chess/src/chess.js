@@ -65,7 +65,7 @@ var Board = joint.dia.Paper.extend({
 
     at: function(square) {
 
-        return _.pluck(this.findViewsFromPoint(this._mid(this._n2p(square))), 'model');
+        return this.findViewsFromPoint(this._mid(this._n2p(square))).map(({ model }) => model);
     },
 
     addPiece: function(piece, square) {

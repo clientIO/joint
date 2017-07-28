@@ -1041,7 +1041,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     removeVertex: function(idx) {
 
-        var vertices = Object.assign({}, this.model.get('vertices'));
+        var vertices = (this.model.get('vertices') || []).slice();
 
         if (vertices && vertices.length) {
 
@@ -1536,7 +1536,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             case 'vertex-move':
 
-                var vertices = Object.assign({}, this.model.get('vertices'));
+                var vertices = (this.model.get('vertices') || []).slice();
                 vertices[this._vertexIdx] = { x: x, y: y };
                 this.model.set('vertices', vertices, { ui: true });
                 break;

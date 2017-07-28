@@ -227,7 +227,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             this.startBatch('embed');
 
-            var embeds = Object.assign({}, this.get('embeds') || []);
+            var embeds = (this.get('embeds') || []).slice();
 
             // We keep all element ids after link ids.
             embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);

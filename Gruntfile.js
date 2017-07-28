@@ -784,13 +784,13 @@ module.exports = function(grunt) {
     grunt.registerTask('build:docs', [
         'compileDocs:all',
         'syntaxHighlighting:docs',
-        'newer:copy:docs'
+        // 'newer:copy:docs'
     ]);
 
     grunt.registerTask('build:all', [
         'build:joint',
         'build:bundles',
-        'build:docs'
+        // 'build:docs'
     ]);
 
     grunt.registerTask('dist', [

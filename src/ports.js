@@ -41,7 +41,9 @@
             }
 
             var groupArgs = groupPosition.args || {};
-            var portsArgs = _.pluck(ports, 'position.args');
+            var portsArgs = ports.map(({ position }) => {
+                return position ? position.args : {};
+            });
             var groupPortTransformations = namespace[groupPositionName](portsArgs, elBBox, groupArgs);
 
             return _.transform(groupPortTransformations, _.bind(function(result, portTransformation, index) {
@@ -291,7 +293,7 @@
                 throw new Error('Element: addPort requires an object.');
             }
 
-            var ports = Object.assign({}, this.prop('ports/items')) || [];
+            var ports = (this.prop('ports/items') || []).slice();
             ports.push(port);
             this.prop('ports/items', ports, opt);
 
@@ -368,7 +370,7 @@
         addPorts: function(ports, opt) {
 
             if (ports.length) {
-                this.prop('ports/items', (Object.assign({}, this.prop('ports/items')) || []).concat(ports), opt);
+                this.prop('ports/items', ((this.prop('ports/items') || []).slice()).concat(ports), opt);
             }
 
             return this;
@@ -377,8 +379,7 @@
         removePort: function(port, opt) {
 
             var options = opt || {};
-            var ports = Object.assign({}, this.prop('ports/items'));
-
+            var ports = (this.prop('ports/items') || []).slice();
             var index = this.getPortIndex(port);
 
             if (index !== -1) {

@@ -860,7 +860,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         p = g.point(p);
 
-        var views = this.model.getElements().map(this.findViewByModel.bind(this));
+        var views = this.model.getElements().map((element) => this.findViewByModel(element));
 
         return _.filter(views, function(view) {
             return view && g.rect(view.vel.bbox(false, this.viewport)).containsPoint(p);
