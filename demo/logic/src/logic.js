@@ -44,7 +44,7 @@ function toggleLive(model, signal) {
 
 function broadcastSignal(gate, signal) {
     // broadcast signal to all output ports
-    _.defer(_.invoke, graph.getConnectedLinks(gate, { outbound: true }), 'set', 'signal', signal);
+    _.defer(joint.util.invoke, graph.getConnectedLinks(gate, { outbound: true }), 'set', 'signal', signal);
 }
 
 function initializeSignal() {
@@ -55,7 +55,7 @@ function initializeSignal() {
     // 0 none of the above - reset value
 
     // cancel all signals stores in wires
-    _.invoke(graph.getLinks(), 'set', 'signal', 0);
+    joint.util.invoke(graph.getLinks(), 'set', 'signal', 0);
 
     // remove all 'live' classes
     $('.live').each(function() {
@@ -146,7 +146,7 @@ graph.on('change:signal', function(wire, signal) {
                     return wire.get('target').port;
                 })
                 .map(function(wires) {
-                    return Math.max.apply(this, _.invoke(wires, 'get', 'signal')) > 0;
+                    return Math.max.apply(this, joint.util.invoke(wires, 'get', 'signal')) > 0;
                 })
                 .value();
 

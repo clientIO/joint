@@ -81,11 +81,11 @@ var Board = joint.dia.Paper.extend({
 
         if (!this.options.animation || opts.animation === false) {
 
-            _.invoke(pc, 'set', 'position', this._n2p(to));
+            joint.util.invoke(pc, 'set', 'position', this._n2p(to));
 
         } else {
 
-            _.invoke(pc, 'transition', 'position', this._n2p(to), {
+            joint.util.invoke(pc, 'transition', 'position', this._n2p(to), {
                 valueFunction: joint.util.interpolate.object
             });
         }
@@ -132,7 +132,7 @@ var Board = joint.dia.Paper.extend({
     
     removePointers: function() {
 
-        _.invoke(this.model.getLinks(), 'remove');
+        joint.util.invoke(this.model.getLinks(), 'remove');
     },
 
     _p2n: function(p) {
@@ -165,7 +165,7 @@ var Chessboard = Board.extend({
         var to = FormatSquare((mv >> 8) & 0xFF);
         var opts = { animation: transition };
 
-        _.invoke(this.at(to), 'remove');
+        joint.util.invoke(this.at(to), 'remove');
 
         board.movePiece(from, to, opts);
 
@@ -173,7 +173,7 @@ var Chessboard = Board.extend({
 
             var promote = _.bind(function(color) {
 
-                _.invoke(this.at(to), 'remove');
+                joint.util.invoke(this.at(to), 'remove');
                 this.addPiece('Queen' + color, to);
 
             }, this, (g_toMove ? 'White' : 'Black'));
@@ -194,7 +194,7 @@ var Chessboard = Board.extend({
 
         } else if (mv & moveflagEPC) {
 
-            _.invoke(this.at(to[0] + from[1]), 'remove');
+            joint.util.invoke(this.at(to[0] + from[1]), 'remove');
 	}
 
         var msg = ['message', g_moveCount, GetMoveSAN(mv), ''];

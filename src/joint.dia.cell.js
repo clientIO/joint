@@ -161,7 +161,7 @@ joint.dia.Cell = Backbone.Model.extend({
             parentCell.unembed(this);
         }
 
-        _.invoke(this.getEmbeddedCells(), 'remove', opt);
+        joint.util.invoke(this.getEmbeddedCells(), 'remove', opt);
 
         this.trigger('remove', this, this.collection, opt);
 

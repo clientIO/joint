@@ -354,7 +354,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (cells.length) {
 
             this.startBatch('remove');
-            _.invoke(cells, 'remove', opt);
+            joint.util.invoke(cells, 'remove', opt);
             this.stopBatch('remove');
         }
 
@@ -927,7 +927,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Remove links connected to the cell `model` completely.
     removeLinks: function(model, options) {
 
-        _.invoke(this.getConnectedLinks(model), 'remove', options);
+        joint.util.invoke(this.getConnectedLinks(model), 'remove', options);
     },
 
     // Find all elements at given point
@@ -995,7 +995,7 @@ joint.dia.Graph = Backbone.Model.extend({
             return cell.isEmbedded();
         });
 
-        _.invoke(cells, 'translate', dx, dy, opt);
+        joint.util.invoke(cells, 'translate', dx, dy, opt);
     },
 
     resize: function(width, height, opt) {
@@ -1011,7 +1011,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (bbox) {
             var sx = Math.max(width / bbox.width, 0);
             var sy = Math.max(height / bbox.height, 0);
-            _.invoke(cells, 'scale', sx, sy, bbox.origin(), opt);
+            joint.util.invoke(cells, 'scale', sx, sy, bbox.origin(), opt);
         }
 
         return this;

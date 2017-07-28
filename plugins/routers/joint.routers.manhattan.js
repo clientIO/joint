@@ -368,7 +368,7 @@ joint.routers.manhattan = (function(g, _, joint) {
             var dirs = opt.directions;
             var dirLen = dirs.length;
             var loopsRemain = opt.maximumLoops;
-            var endPointsKeys = _.invoke(endPoints, 'toString');
+            var endPointsKeys = joint.util.invoke(endPoints, 'toString');
 
             // main route finding loop
             while (!openSet.isEmpty() && loopsRemain > 0) {

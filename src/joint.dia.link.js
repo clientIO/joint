@@ -1395,7 +1395,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     _markAvailableMagnets: function() {
 
         function isMagnetAvailable(view, magnet) {
-            console.log(this, arguments, 'ssssssssssss');
             var paper = view.paper;
             var validate = paper.options.validateConnection;
 

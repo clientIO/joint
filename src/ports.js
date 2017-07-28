@@ -574,7 +574,10 @@
          * @private
          */
         _removePorts: function() {
-            _.invoke(this._portElementsCache, 'portElement.remove');
+
+            Object.values(this._portElementsCache).forEach(function(entry) {
+                entry.portElement.remove();
+            })
         },
 
         /**

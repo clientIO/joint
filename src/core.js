@@ -45,7 +45,7 @@ var joint = {
 
         opt = opt || {};
 
-        _.invoke(joint.mvc.views, 'setTheme', theme, opt);
+        joint.util.invoke(joint.mvc.views, 'setTheme', theme, opt);
 
         // Update the default theme on the view prototype.
         joint.mvc.View.prototype.defaultTheme = theme;
@@ -1418,5 +1418,21 @@ var joint = {
         isObject: function(value) {
             return !!value && typeof value === 'object';
         },
+
+        invoke: function(collection, method, ...args) {
+
+            let x = (collection || []);
+            if (!Array.isArray(x)) {
+                x = Object.values(x);
+            }
+
+            return x.map(function(item) {
+
+                if (!item)  {
+                    return ;
+                }
+        		return item[method].call(item, ...args);
+        	});
+        }
     }
 };
