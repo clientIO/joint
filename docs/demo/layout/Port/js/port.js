@@ -77,12 +77,12 @@ var g2Circle = new joint.shapes.basic.Circle({
     }
 });
 
-_.times(4, function() {
+for (let i = 0; i < 4; i++) {
     g2Rect.addPort({ group: 'blacks' });
-});
-_.times(24, function() {
+}
+for (let i = 0; i < 24; i++) {
     g2Rect.addPort({ group: 'reds' });
-});
+}
 g2Rect.addPort({ group: 'reds', attrs: { text: { text: 'fn: sin(x)' } } });
 
 g2Rect.addPort({
@@ -95,9 +95,9 @@ g2Rect.addPort({
     }
 });
 
-_.times(8, function() {
+for (let i = 0; i < 8; i++) {
     g2Circle.addPort({ group: 'blacks' });
-});
+}
 
 paper2.model.addCell(g2Circle);
 paper2.model.addCell(g2Rect);

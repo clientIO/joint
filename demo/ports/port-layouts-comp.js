@@ -40,9 +40,9 @@ var g6 = new joint.shapes.basic.Circle({
     }
 });
 
-_.times(36, function(index) {
+for (let index = 0; index < 36; index++) {
     g6.addPort({ group: 'a', id: index + '', attrs: { text: { text: index } } });
-});
+}
 
 paper6.model.addCell(g6);
 paper6.on('cell:pointerclick', function(cellView, e) {

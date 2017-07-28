@@ -40,9 +40,10 @@ var g5 = new joint.shapes.basic.Rect({
     }
 });
 
-_.times(5, function(index) {
+
+for (let index = 0; index < 5; index++) {
     g5.addPort({ group: 'a', id: index + '', attrs: { text: { text: 'L' + (index + 1) } } });
-});
+}
 
 paper5.model.addCell(g5);
 var labelPos5 = 0;
