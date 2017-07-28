@@ -23,7 +23,7 @@
 
         getPortsByGroup: function(groupName) {
 
-            return _.filter(this.ports, function(port) {
+            return this.ports.filter(function(port) {
                 return port.group === groupName;
             });
         },
@@ -419,13 +419,13 @@
             if (prevPortData) {
 
                 // _.filter can be replaced with _.differenceBy in lodash 4
-                var added = _.filter(curPortData, function(item) {
+                var added = curPortData.filter(function(item) {
                     if (!prevPortData.find((prevPort) => prevPort.id === item.id)) {
                         return item;
                     }
                 });
 
-                var removed = _.filter(prevPortData, function(item) {
+                var removed = prevPortData.filter(function(item) {
                     if (!curPortData.find((curPort) => curPort.id === item.id)) {
                         return item;
                     }

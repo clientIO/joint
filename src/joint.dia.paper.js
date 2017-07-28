@@ -862,7 +862,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var views = this.model.getElements().map((element) => this.findViewByModel(element));
 
-        return _.filter(views, function(view) {
+        return views.filter(function(view) {
             return view && g.rect(view.vel.bbox(false, this.viewport)).containsPoint(p);
         }, this);
     },
@@ -876,7 +876,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var views = this.model.getElements().map((element) => this.findViewByModel(element));
         var method = opt.strict ? 'containsRect' : 'intersect';
 
-        return _.filter(views, function(view) {
+        return views.filter(function(view) {
             return view && rect[method](g.rect(view.vel.bbox(false, this.viewport)));
         }, this);
     },
@@ -1014,7 +1014,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                         inbound: false
                     });
 
-                    var numSameLinks = _.filter(connectedLinks, function(_link) {
+                    var numSameLinks = connectedLinks.filter(function(_link) {
 
                         var _source = _link.get('source');
                         var _target = _link.get('target');

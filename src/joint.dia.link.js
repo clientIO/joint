@@ -1395,8 +1395,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     _markAvailableMagnets: function() {
 
         function isMagnetAvailable(view, magnet) {
+            console.log(this, arguments, 'ssssssssssss');
             var paper = view.paper;
             var validate = paper.options.validateConnection;
+
             return validate.apply(paper, this._validateConnectionArgs(view, magnet));
         }
 
@@ -1412,7 +1414,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 magnets.push(view.el);
             }
 
-            var availableMagnets = _.filter(magnets, _.partial(isMagnetAvailable, view), this);
+            var availableMagnets = magnets.filter((magnet) => isMagnetAvailable.call(this, view, magnet));
             if (availableMagnets.length > 0) {
                 // highlight all available magnets
                 _.each(availableMagnets, _.partial(view.highlight, _, { magnetAvailability: true }), view);

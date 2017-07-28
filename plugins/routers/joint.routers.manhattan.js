@@ -338,8 +338,13 @@ joint.routers.manhattan = (function(g, _, joint) {
         }
 
         // take into account only accessible end points
-        startPoints = _.filter(startPoints, map.isPointAccessible, map);
-        endPoints = _.filter(endPoints, map.isPointAccessible, map);
+        startPoints = startPoints.filter(function(point) {
+            return map.isPointAccessible(point);
+        }.bind(map));
+
+        endPoints = endPoints.filter(function(point) {
+            return map.isPointAccessible(point);
+        }.bind(map));
 
         // Check if there is a accessible end point.
         // We would have to use a fallback route otherwise.

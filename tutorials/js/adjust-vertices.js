@@ -23,7 +23,7 @@ function adjustVertices(graph, cell) {
     // If one of the ends is not a model, the link has no siblings.
     if (!srcId || !trgId) return;
 
-    var siblings = _.filter(graph.getLinks(), function(sibling) {
+    var siblings = graph.getLinks().filter(function(sibling) {
 
         var _srcId = sibling.get('source').id;
         var _trgId = sibling.get('target').id;

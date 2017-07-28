@@ -50,7 +50,7 @@
 
     function getPointsByGroup(group, padding) {
 
-        var elements = _.filter(graph.getElements(), function(el) {
+        var elements = graph.getElements().filter(function(el) {
             return el.get('group') === group;
         });
 
