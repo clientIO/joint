@@ -431,9 +431,9 @@ joint.shapes.basic.TextBlock = joint.shapes.basic.Generic.extend({
         // Selector `foreignObject' doesn't work accross all browsers, we'r using class selector instead.
         // We have to clone size as we don't want attributes.div.style to be same object as attributes.size.
         this.attr({
-            '.fobj': _.clone(size),
+            '.fobj': Object.assign({}, size),
             div: {
-                style: _.clone(size)
+                style: Object.assign({}, size)
             }
         });
     },

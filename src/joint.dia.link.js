@@ -1041,7 +1041,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     removeVertex: function(idx) {
 
-        var vertices = _.clone(this.model.get('vertices'));
+        var vertices = Object.assign({}, this.model.get('vertices'));
 
         if (vertices && vertices.length) {
 
@@ -1447,7 +1447,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this._whenNotAllowed = opt.whenNotAllowed;
         this._arrowhead = end;
         this._initialMagnet = this[end + 'Magnet'] || (this[end + 'View'] ? this[end + 'View'].el : null);
-        this._initialEnd = _.clone(this.model.get(end)) || { x: 0, y: 0 };
+        this._initialEnd = Object.assign({}, this.model.get(end)) || { x: 0, y: 0 };
         this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
         this._beforeArrowheadMove();
     },
@@ -1536,7 +1536,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             case 'vertex-move':
 
-                var vertices = _.clone(this.model.get('vertices'));
+                var vertices = Object.assign({}, this.model.get('vertices'));
                 vertices[this._vertexIdx] = { x: x, y: y };
                 this.model.set('vertices', vertices, { ui: true });
                 break;

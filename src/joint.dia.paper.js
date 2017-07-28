@@ -199,8 +199,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         // This is a fix for the case where two papers share the same options.
         // Changing origin.x for one paper would change the value of origin.x for the other.
         // This prevents that behavior.
-        options.origin = _.clone(options.origin);
-        options.defaultConnector = _.clone(options.defaultConnector);
+        options.origin = Object.assign({}, options.origin);
+        options.defaultConnector = Object.assign({}, options.defaultConnector);
         // Return the default highlighting options into the user specified options.
         options.highlighting = _.defaultsDeep(
             {},
@@ -1128,7 +1128,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (!this._highlights[key]) {
 
             var highlighter = opt.highlighter;
-            highlighter.highlight(cellView, magnetEl, _.clone(opt.options));
+            highlighter.highlight(cellView, magnetEl, Object.assign({}, opt.options));
 
             this._highlights[key] = {
                 cellView: cellView,
@@ -1433,7 +1433,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var namespace = this.constructor.gridPatterns;
         if (typeof opt === 'string' && namespace[opt]) {
-            return namespace[opt].map(_.clone);
+            return namespace[opt].map((item) => Object.assign({}, item));
         }
 
         var options = opt || { args: [{}] };
@@ -1445,7 +1445,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
 
         if (name && namespace[name]) {
-            var pattern = namespace[name].map(_.clone);
+            var pattern = namespace[name].map((item) => Object.assign({}, item));
 
             var args = Array.isArray(options.args) ? options.args : [options.args || {}];
 

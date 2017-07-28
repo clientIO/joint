@@ -87,7 +87,7 @@
 
         _evaluatePort: function(resultArray, port) {
 
-            var evaluated = _.clone(port);
+            var evaluated = Object.assign({}, port);
 
             var group = this.getGroup(port.group);
 
@@ -291,7 +291,7 @@
                 throw new Error('Element: addPort requires an object.');
             }
 
-            var ports = _.clone(this.prop('ports/items')) || [];
+            var ports = Object.assign({}, this.prop('ports/items')) || [];
             ports.push(port);
             this.prop('ports/items', ports, opt);
 
@@ -368,7 +368,7 @@
         addPorts: function(ports, opt) {
 
             if (ports.length) {
-                this.prop('ports/items', (_.clone(this.prop('ports/items')) || []).concat(ports), opt);
+                this.prop('ports/items', (Object.assign({}, this.prop('ports/items')) || []).concat(ports), opt);
             }
 
             return this;
@@ -377,7 +377,7 @@
         removePort: function(port, opt) {
 
             var options = opt || {};
-            var ports = _.clone(this.prop('ports/items'));
+            var ports = Object.assign({}, this.prop('ports/items'));
 
             var index = this.getPortIndex(port);
 
