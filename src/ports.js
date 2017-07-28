@@ -244,7 +244,7 @@
          */
         getPort: function(id) {
 
-            return _.cloneDeep(_.find(this.prop('ports/items'), function(port) {
+            return _.cloneDeep(this.prop('ports/items').find(function(port) {
                 return port.id && port.id === id;
             }));
         },
@@ -279,7 +279,9 @@
                 return -1;
             }
 
-            return _.findIndex(this.prop('ports/items'), { id: id });
+            return this.prop('ports/items').findIndex(function(item) {
+            	return item.id === id;
+            });
         },
 
         /**
@@ -418,13 +420,13 @@
 
                 // _.filter can be replaced with _.differenceBy in lodash 4
                 var added = _.filter(curPortData, function(item) {
-                    if (!_.find(prevPortData, 'id', item.id)) {
+                    if (!prevPortData.find((prevPort) => prevPort.id === item.id)) {
                         return item;
                     }
                 });
 
                 var removed = _.filter(prevPortData, function(item) {
-                    if (!_.find(curPortData, 'id', item.id)) {
+                    if (!curPortData.find((curPort) => curPort.id === item.id)) {
                         return item;
                     }
                 });

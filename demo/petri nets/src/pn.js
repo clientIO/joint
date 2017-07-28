@@ -127,7 +127,7 @@ function fireTransition(t, sec) {
                 p.set('tokens', p.get('tokens') - 1);
             });
 
-            var link = _.find(inbound, function (l) {
+            var link = inbound.find(function (l) {
                 return l.get('source').id === p.id;
             });
             paper.findViewByModel(link).sendToken(V('circle', {r: 5, fill: '#feb662'}).node, sec * 1000);
@@ -135,7 +135,7 @@ function fireTransition(t, sec) {
         });
 
         _.each(placesAfter, function (p) {
-            var link = _.find(outbound, function (l) {
+            var link = outbound.find(function (l) {
                 return l.get('target').id === p.id;
             });
             paper.findViewByModel(link).sendToken(V('circle', {r: 5, fill: '#feb662'}).node, sec * 1000, function () {

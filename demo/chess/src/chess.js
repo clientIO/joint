@@ -214,7 +214,7 @@ var Chessboard = Board.extend({
     getMove: function(from, to) {
 
         var s = from + to;
-        return _.find(GenerateValidMoves(), _.compose(function(m) {
+        return GenerateValidMoves().find(_.compose(function(m) {
             return m == s || m == s + 'q';
         }, FormatMove));
     },

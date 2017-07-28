@@ -1161,7 +1161,9 @@ joint.dia.CellView = joint.mvc.View.extend({
 
                 // If an element in the list is positioned relative to this one, then
                 // we want to insert this one before it in the list.
-                var itemIndex = _.findIndex(relativeItems, { refNode: node });
+                var itemIndex = relativeItems.findIndex(function(item) {
+                    return item.refNode === node;
+                });
                 if (itemIndex > -1) {
                     relativeItems.splice(itemIndex, 0, item);
                 } else {

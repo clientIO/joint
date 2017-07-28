@@ -1282,7 +1282,7 @@ var joint = {
                 return html.replace(regex, function(match) {
 
                     var args = Array.prototype.slice.call(arguments);
-                    var attr = _.find(args.slice(1, 4), function(_attr) {
+                    var attr = args.slice(1, 4).find(function(_attr) {
                         return !!_attr;
                     });
 

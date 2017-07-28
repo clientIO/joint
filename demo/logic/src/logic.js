@@ -17,7 +17,7 @@ var paper = new joint.dia.Paper({
             if (!mt || !mt.getAttribute('class') || mt.getAttribute('class').indexOf('input') < 0) return false;
 
             // check whether the port is being already used
-            var portUsed = _.find(this.model.getLinks(), function(link) {
+            var portUsed = this.model.getLinks().find(function(link) {
 
                 return (link.id !== vl.model.id &&
                         link.get('target').id === vt.model.id &&
