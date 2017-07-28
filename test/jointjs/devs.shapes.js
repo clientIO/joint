@@ -40,8 +40,8 @@ QUnit.module('devs.shapes plugin', function(hooks) {
 
         QUnit.test('removeOutPort', function(assert) {
 
-            var outPorts = Object.assign({}, atomic.get('outPorts'));
-            var inPorts = Object.assign({}, atomic.get('inPorts'));
+            var outPorts = _.clone(atomic.get('outPorts'));
+            var inPorts = _.clone(atomic.get('inPorts'));
 
             atomic.removeOutPort(outPorts.shift());
             assert.equal(atomic.getPorts().length, outPorts.length + inPorts.length);
@@ -59,8 +59,8 @@ QUnit.module('devs.shapes plugin', function(hooks) {
 
         QUnit.test('removeInPort', function(assert) {
 
-            var outPorts = Object.assign({}, atomic.get('outPorts'));
-            var inPorts = Object.assign({}, atomic.get('inPorts'));
+            var outPorts = _.clone(atomic.get('outPorts'));
+            var inPorts = _.clone(atomic.get('inPorts'));
 
             atomic.removeInPort(inPorts.shift()).removeInPort(inPorts.shift());
             assert.equal(atomic.getPorts().length, outPorts.length + inPorts.length);
