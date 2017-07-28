@@ -515,7 +515,7 @@ joint.routers.manhattan = (function(g, _, joint) {
     // public function
     return function(vertices, opt, linkView) {
 
-        return router.call(linkView, vertices, _.extend({}, config, opt));
+        return router.call(linkView, vertices, Object.assign({}, config, opt));
     };
 
 })(g, _, joint);

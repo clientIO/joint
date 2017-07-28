@@ -540,7 +540,7 @@ joint.dia.Cell = Backbone.Model.extend({
             valueFunction: joint.util.interpolate.number
         };
 
-        opt = _.extend(defaults, opt);
+        opt = Object.assign(defaults, opt);
 
         var firstFrameTime = 0;
         var interpolatingFunction;
@@ -639,12 +639,12 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     startBatch: function(name, opt) {
-        if (this.graph) { this.graph.startBatch(name, _.extend({}, opt, { cell: this })); }
+        if (this.graph) { this.graph.startBatch(name, Object.assign({}, opt, { cell: this })); }
         return this;
     },
 
     stopBatch: function(name, opt) {
-        if (this.graph) { this.graph.stopBatch(name, _.extend({}, opt, { cell: this })); }
+        if (this.graph) { this.graph.stopBatch(name, Object.assign({}, opt, { cell: this })); }
         return this;
     }
 
@@ -968,7 +968,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
             var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs);
             if (joint.util.isObject(setResult)) {
-                _.extend(nodeAttrs, setResult);
+                Object.assign(nodeAttrs, setResult);
             } else if (setResult !== undefined) {
                 nodeAttrs[attrName] = setResult;
             }
@@ -1209,9 +1209,9 @@ joint.dia.CellView = joint.mvc.View.extend({
         processedAttrs.position || (processedAttrs.position = {});
         processedAttrs.offset || (processedAttrs.offset = {});
 
-        _.extend(processedAttrs.set, roProcessedAttrs.set);
-        _.extend(processedAttrs.position, roProcessedAttrs.position);
-        _.extend(processedAttrs.offset, roProcessedAttrs.offset);
+        Object.assign(processedAttrs.set, roProcessedAttrs.set);
+        Object.assign(processedAttrs.position, roProcessedAttrs.position);
+        Object.assign(processedAttrs.offset, roProcessedAttrs.offset);
 
         // Handle also the special transform property.
         var transform = processedAttrs.normal && processedAttrs.normal.transform;

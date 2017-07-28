@@ -38,7 +38,7 @@ joint.dia.attributes.fitRef = {
                     height: refBBox.height
                 };
             case 'PATH':
-                var rect = _.extend(refBBox.toJSON(), fitRef);
+                var rect = Object.assign(refBBox.toJSON(), fitRef);
                 return {
                     d: V.rectToPath(rect)
                 };

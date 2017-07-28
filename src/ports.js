@@ -98,7 +98,7 @@
             evaluated.position = this._createPositionNode(group, evaluated);
             evaluated.label = _.merge({}, group.label, this._getLabel(evaluated));
             evaluated.z = this._getZIndex(group, evaluated);
-            evaluated.size = _.extend({}, group.size, evaluated.size);
+            evaluated.size = Object.assign({}, group.size, evaluated.size);
 
             resultArray.push(evaluated);
         },
@@ -140,7 +140,7 @@
                 args.y = position[1];
             } else if (joint.util.isObject(position)) {
                 positionName = position.name;
-                _.extend(args, position.args);
+                Object.assign(args, position.args);
             }
 
             var result = { args: args };
@@ -162,7 +162,7 @@
         }
     };
 
-    _.extend(joint.dia.Element.prototype, {
+    Object.assign(joint.dia.Element.prototype, {
 
         _initializePorts: function() {
 
@@ -440,7 +440,7 @@
         }
     });
 
-    _.extend(joint.dia.ElementView.prototype, {
+    Object.assign(joint.dia.ElementView.prototype, {
 
         portContainerMarkup: '<g class="joint-port"/>',
         portMarkup: '<circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/>',

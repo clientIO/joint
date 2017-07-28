@@ -306,13 +306,13 @@ joint.shapes.basic.PortsModelInterface = {
         _.each(this.get('inPorts'), function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.inPorts', 'in');
             this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
-            _.extend(attrs, portAttributes);
+            Object.assign(attrs, portAttributes);
         }, this);
 
         _.each(this.get('outPorts'), function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.outPorts', 'out');
             this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
-            _.extend(attrs, portAttributes);
+            Object.assign(attrs, portAttributes);
         }, this);
 
         // Silently set `attrs` on the cell so that noone knows the attrs have changed. This makes sure

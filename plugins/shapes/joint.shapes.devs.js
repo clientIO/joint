@@ -103,7 +103,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
         var inPortItems = this.createPortItems('in', inPorts);
         var outPortItems = this.createPortItems('out', outPorts);
 
-        this.prop('ports/items', inPortItems.concat(outPortItems), _.extend({ rewrite: true }, opt));
+        this.prop('ports/items', inPortItems.concat(outPortItems), Object.assign({ rewrite: true }, opt));
     },
 
     createPortItem: function(group, port) {

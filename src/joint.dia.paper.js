@@ -1452,7 +1452,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             _.defaults(args[0], _.omit(opt, 'args'));
             for (var i = 0; i < args.length; i++) {
                 if (pattern[i]) {
-                    _.extend(pattern[i], args[i]);
+                    Object.assign(pattern[i], args[i]);
                 }
             }
             return pattern;
@@ -1671,7 +1671,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             // Set the filter area to be 3x the bounding box of the cell
             // and center the filter around the cell.
-            var filterAttrs = _.extend({
+            var filterAttrs = Object.assign({
                 filterUnits: 'objectBoundingBox',
                 x: -1,
                 y: -1,
@@ -1721,7 +1721,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 '</' + type + '>'
             ].join('');
 
-            var gradientAttrs = _.extend({ id: gradientId }, gradient.attrs);
+            var gradientAttrs = Object.assign({ id: gradientId }, gradient.attrs);
 
             V(gradientSVGString, gradientAttrs).appendTo(this.defs);
         }

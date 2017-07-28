@@ -50,7 +50,7 @@ joint.highlighters.stroke = {
             // Failed to get path data from magnet element.
             // Draw a rectangle around the entire cell view instead.
             magnetBBox = magnetVel.bbox(true/* without transforms */);
-            pathData = V.rectToPath(_.extend({}, options, magnetBBox));
+            pathData = V.rectToPath(Object.assign({}, options, magnetBBox));
         }
 
         var highlightVel = V('path').attr({

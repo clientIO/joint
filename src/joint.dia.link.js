@@ -577,7 +577,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         _.each(this.model.get('vertices'), function(vertex, idx) {
 
-            $markerVertices.append(V(markupTemplate(_.extend({ idx: idx }, vertex))).node);
+            $markerVertices.append(V(markupTemplate(Object.assign({ idx: idx }, vertex))).node);
         });
 
         return this;

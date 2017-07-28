@@ -1,6 +1,6 @@
 var Board = joint.dia.Paper.extend({
 
-    options: _.extend(joint.dia.Paper.prototype.options, {
+    options: Object.assign(joint.dia.Paper.prototype.options, {
 
         letters: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
 

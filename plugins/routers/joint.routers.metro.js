@@ -64,7 +64,7 @@ joint.routers.metro = (function() {
     // public function
     return function(vertices, opts, linkView) {
 
-        return joint.routers.manhattan(vertices, _.extend({}, config, opts), linkView);
+        return joint.routers.manhattan(vertices, Object.assign({}, config, opts), linkView);
     };
 
 })();

@@ -84,12 +84,12 @@ QUnit.module('util', function(hooks) {
 
         ok(_.contains(brokenText, 'Lorem') && !_.contains(brokenText, 'elit.'), 'A text was trimmed when width & height specified.');
 
-        brokenText = joint.util.breakText(text, { width: 100, height: 50 }, _.extend({}, styles, { 'font-size': '18px' }));
+        brokenText = joint.util.breakText(text, { width: 100, height: 50 }, Object.assign({}, styles, { 'font-size': '18px' }));
 
         ok(_.contains(brokenText, '\n') || !_.contains(brokenText, 'elit.'), 'A text was broken when style specified.');
 
         throws(function() {
-            joint.util.breakText(text, { width: 100, height: 50 }, _.extend({}, styles, { 'font-size': '18px' }), { svgDocument: 'not-svg' });
+            joint.util.breakText(text, { width: 100, height: 50 }, Object.assign({}, styles, { 'font-size': '18px' }), { svgDocument: 'not-svg' });
         }, /appendChild|undefined/, 'A custom svgDocument provided was recognized.');
     });
 

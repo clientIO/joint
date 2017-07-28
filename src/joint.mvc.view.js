@@ -16,7 +16,7 @@ joint.mvc.View = Backbone.View.extend({
 
         this.requireSetThemeOverride = options && !!options.theme;
 
-        this.options = _.extend({}, this.options, options);
+        this.options = Object.assign({}, this.options, options);
 
         _.bindAll(this, 'setTheme', 'onSetTheme', 'remove', 'onRemove');
 
@@ -36,7 +36,7 @@ joint.mvc.View = Backbone.View.extend({
 
             if (!this.el) {
 
-                var attrs = _.extend({ id: this.id }, _.result(this, 'attributes'));
+                var attrs = Object.assign({ id: this.id }, _.result(this, 'attributes'));
                 if (this.className) attrs['class'] = _.result(this, 'className');
                 el = V(_.result(this, 'tagName'), attrs).node;
 
