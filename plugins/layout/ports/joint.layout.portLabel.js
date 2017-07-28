@@ -2,7 +2,7 @@
 
     function labelAttributes(opt1, opt2) {
 
-        return _.defaultsDeep({}, opt1, opt2, {
+        return joint.util.defaultsDeep({}, opt1, opt2, {
             x: 0,
             y: 0,
             angle: 0,

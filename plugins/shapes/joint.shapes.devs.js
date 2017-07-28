@@ -5,7 +5,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
     portMarkup: '<circle class="port-body"/>',
     portLabelMarkup: '<text class="port-label"/>',
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'devs.Model',
         inPorts: [],
@@ -173,7 +173,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
 joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'devs.Atomic',
         size: {
@@ -190,7 +190,7 @@ joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
 
 joint.shapes.devs.Coupled = joint.shapes.devs.Model.extend({
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'devs.Coupled',
         size: {

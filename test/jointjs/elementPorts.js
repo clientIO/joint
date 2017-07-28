@@ -4,7 +4,7 @@ QUnit.module('element ports', function() {
 
         markup: '<g class="rotatable"><g class="scalable"><rect class="rectangle"/></g><text/></g>',
         portMarkup: '<circle class="circle-port" />',
-        defaults: _.defaultsDeep({
+        defaults: joint.util.defaultsDeep({
             type: 'basic.Model'
 
         }, joint.dia.Element.prototype.defaults)
@@ -242,7 +242,7 @@ QUnit.module('element ports', function() {
             var WithoutPorts = joint.dia.Element.extend({
                 markup: '<g class="rotatable"><g class="scalable"><rect class="rectangle"/></g><text/></g>',
                 portMarkup: '<circle class="custom-port-markup"/>',
-                defaults: _.defaultsDeep({ type: 'temp' }, joint.dia.Element.prototype.defaults)
+                defaults: joint.util.defaultsDeep({ type: 'temp' }, joint.dia.Element.prototype.defaults)
             });
 
             var model = new WithoutPorts();

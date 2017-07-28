@@ -243,6 +243,8 @@ var joint = {
         // Same as `supplement()` but deep version.
         deepSupplement: _.defaultsDeep,
 
+        defaultsDeep: _.defaultsDeep,
+
         normalizeEvent: function(evt) {
 
             var touchEvt = evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches[0];
@@ -1415,6 +1417,6 @@ var joint = {
 
         isObject: function(value) {
             return !!value && typeof value === 'object';
-        }
+        },
     }
 };

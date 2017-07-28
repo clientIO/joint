@@ -202,7 +202,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         options.origin = Object.assign({}, options.origin);
         options.defaultConnector = Object.assign({}, options.defaultConnector);
         // Return the default highlighting options into the user specified options.
-        options.highlighting = _.defaultsDeep(
+        options.highlighting = joint.util.defaultsDeep(
             {},
             options.highlighting,
             this.constructor.prototype.options.highlighting
