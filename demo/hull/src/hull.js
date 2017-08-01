@@ -52,9 +52,9 @@
 
         var elements = graph.getElements().filter(function(el) {
             return el.get('group') === group;
-        });
+        }) || [];
 
-        return _.reduce(elements, function(res, el) {
+        return elements.reduce(function(res, el) {
             return res.concat(getElementCornerPoints(el, padding));
         }, []);
     }
@@ -64,7 +64,7 @@
 
         padding = padding || 0;
 
-        return _.reduce(inPoints, function(outPoints, point) {
+        return inPoints.reduce(function(outPoints, point) {
             outPoints.push(
                 point.clone().offset(padding, padding),
                 point.clone().offset(-padding, padding),

@@ -628,7 +628,7 @@ joint.dia.Graph = Backbone.Model.extend({
             }
 
             // Find the embeds of the original cell
-            var embeds = _.reduce(cell.get('embeds'), function(newEmbeds, embed) {
+            var embeds = (cell.get('embeds') || []).reduce(function(newEmbeds, embed) {
                 // Embedded cells that are not being cloned can not be carried
                 // over with other embedded cells.
                 if (cloneMap[embed]) {
@@ -978,7 +978,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Links are being ignored.
     getCellsBBox: function(cells, opt) {
 
-        return _.reduce(cells, function(memo, cell) {
+        return (cells || []).reduce(function(memo, cell) {
             if (cell.isLink()) return memo;
             if (memo) {
                 return memo.union(cell.getBBox(opt));
