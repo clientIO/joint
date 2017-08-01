@@ -2,7 +2,7 @@
 
     var PortData = function(data) {
 
-        var clonedData = _.cloneDeep(data) || {};
+        var clonedData = joint.util.cloneDeep(data) || {};
         this.ports = [];
         this.groups = {};
         this.portLayoutNamespace = joint.layout.Port;
@@ -235,7 +235,7 @@
          */
         getPorts: function() {
 
-            return _.cloneDeep(this.prop('ports/items')) || [];
+            return (this.prop('ports/items') || []).map(joint.util.cloneDeep);
         },
 
         /**
@@ -244,7 +244,9 @@
          */
         getPort: function(id) {
 
-            return _.cloneDeep(this.prop('ports/items').find(function(port) {
+            var ports = this.prop('ports/items') || [];
+
+            return joint.util.cloneDeep(ports.find(function(port) {
                 return port.id && port.id === id;
             }));
         },

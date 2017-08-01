@@ -1440,6 +1440,10 @@ var joint = {
             min = Math.ceil(min);
             max = Math.floor(max);
             return Math.floor(Math.random() * (max - min)) + min;
+        },
+
+        cloneDeep: function(obj) {
+            return jQuery.extend(true, {}, obj);
         }
     }
 };
