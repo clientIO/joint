@@ -138,7 +138,7 @@ joint.routers.manhattan = (function(g, _, joint) {
             // remove all elements whose type is listed in excludedTypes array
             .reject(function(element) {
                 // reject any element which is an ancestor of either source or target
-                return _.contains(opt.excludeTypes, element.get('type')) || _.contains(excludedAncestors, element.id);
+                return (opt.excludeTypes || []).includes(element.get('type')) || excludedAncestors.includes(element.id);
             })
             // change elements (models) to their bounding boxes
             .invoke('getBBox')

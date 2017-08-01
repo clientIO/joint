@@ -35,7 +35,7 @@
 
         // If the two elements are connected already, don't
         // connect them again (this is application specific though).
-        if (elementBelow && !_.contains(graph.getNeighbors(elementBelow), cellView.model)) {
+        if (elementBelow && !graph.getNeighbors(elementBelow).includes(cellView.model)) {
 
             graph.addCell(new joint.dia.Link({
                 source: { id: cellView.model.id }, target: { id: elementBelow.id },

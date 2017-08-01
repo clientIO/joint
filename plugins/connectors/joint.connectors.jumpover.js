@@ -242,7 +242,7 @@ joint.connectors.jumpover = (function(_, g) {
             var connector = link.get('connector') || defaultConnector;
 
             // avoid jumping over links with connector type listed in `ignored connectors`.
-            if (_.contains(ignoreConnectors, connector.name)) {
+            if (ignoreConnectors.includes(connector.name)) {
                 return false;
             }
             // filter out links that are above this one and  have the same connector type

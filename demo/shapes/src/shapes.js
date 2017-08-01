@@ -335,11 +335,11 @@ var Shape = joint.dia.Element.define('custom.Shape', {
 
         shape: {
             qualify: function(value, node) {
-                return _.contains([
+                return [
                     'hexagon',
                     'rhombus',
                     'rounded-rectangle'
-                ], value) && (node instanceof SVGPathElement);
+                ].includes(value) && (node instanceof SVGPathElement);
             },
             set: function(shape, refBBox) {
                 var data;

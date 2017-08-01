@@ -558,7 +558,7 @@ joint.dia.Graph = Backbone.Model.extend({
         var commonAncestor = (cellsAncestors.shift() || []).find(function(ancestor) {
 
             return _.every(cellsAncestors, function(cellAncestors) {
-                return _.contains(cellAncestors, ancestor);
+                return cellAncestors.includes(ancestor);
             });
         });
 
