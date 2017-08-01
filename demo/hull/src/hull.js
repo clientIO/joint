@@ -18,8 +18,8 @@
 
     // create circles
     for (let n = 0; n < 10; n++) {
-        var x = _.random(100, 700);
-        var y = _.random(100, 500);
+        var x = joint.util.random(100, 700);
+        var y = joint.util.random(100, 500);
         createCircle(x, y, (n % 3 === 0) ? 'inner' : 'outer').addTo(graph);
     }
 
