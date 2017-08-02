@@ -41,14 +41,14 @@
                 evt.stopPropagation();
             });
             // This is an example of reacting on the input change and storing the input data in the cell model.
-            this.$box.find('input').on('change', _.bind(function(evt) {
+            this.$box.find('input').on('change', (evt) => {
                 this.model.set('input', $(evt.target).val());
-            }, this));
-            this.$box.find('select').on('change', _.bind(function(evt) {
+            });
+            this.$box.find('select').on('change', evt => {
                 this.model.set('select', $(evt.target).val());
-            }, this));
+            });
             this.$box.find('select').val(this.model.get('select'));
-            this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));
+            this.$box.find('.delete').on('click',() => this.model.remove.apply(this.model, arguments));
             // Update the box position whenever the underlying model changes.
             this.model.on('change', this.updateBox, this);
             // Remove the box when the model gets removed from the graph.
@@ -104,4 +104,4 @@
 
     graph.addCells([el1, el2, l]);
 
-}())
+}());

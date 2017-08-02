@@ -545,7 +545,7 @@ joint.dia.Cell = Backbone.Model.extend({
         var firstFrameTime = 0;
         var interpolatingFunction;
 
-        var setter = _.bind(function(runtime) {
+        var setter = runtime => {
 
             var id, progress, propertyValue;
 
@@ -568,7 +568,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             if (!id) this.trigger('transition:end', this, path);
 
-        }, this);
+        };
 
         var initiator = _.bind(function(callback) {
 

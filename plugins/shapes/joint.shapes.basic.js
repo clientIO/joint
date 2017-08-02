@@ -505,7 +505,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
             var noTextAttrs = _.omit(renderingOnlyAttrs || model.get('attrs'), '.content');
             joint.dia.ElementView.prototype.update.call(this, model, noTextAttrs);
 
-            if (!renderingOnlyAttrs || _.has(renderingOnlyAttrs, '.content')) {
+            if (!renderingOnlyAttrs || joint.util.has(renderingOnlyAttrs, '.content')) {
                 // Update the content itself.
                 this.updateContent(model, renderingOnlyAttrs);
             }

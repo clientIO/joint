@@ -1036,8 +1036,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (
             !this.options.linkPinning &&
             (
-                !_.has(link.get('source'), 'id') ||
-                !_.has(link.get('target'), 'id')
+                !joint.util.has(link.get('source'), 'id') ||
+                !joint.util.has(link.get('target'), 'id')
             )
         ) {
             // Link pinning is not allowed and the link is not connected to the target.
@@ -1622,7 +1622,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (opt.image) {
             opt = this._background = joint.util.cloneDeep(opt);
             var img = document.createElement('img');
-            img.onload = _.bind(this.drawBackgroundImage, this, img, opt);
+            img.onload = (evt) => this.drawBackgroundImage(img, opt);
             img.src = opt.image;
         } else {
             this.drawBackgroundImage(null);

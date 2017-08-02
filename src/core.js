@@ -723,7 +723,7 @@ var joint = {
                 var $elements = $element.find(selector).addBack().filter(selector);
                 // Make a special case for setting classes.
                 // We do not want to overwrite any existing class.
-                if (_.has(attrs, 'class')) {
+                if (joint.util.has(attrs, 'class')) {
                     $elements.addClass(attrs['class']);
                     attrs = _.omit(attrs, 'class');
                 }
@@ -1444,6 +1444,11 @@ var joint = {
 
         cloneDeep: function(obj) {
             return jQuery.extend(true, {}, obj);
+        },
+
+        has: function(obj, key) {
+            return Object.hasOwnProperty.call(obj, key);
         }
+
     }
 };

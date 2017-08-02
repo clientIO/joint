@@ -46,7 +46,7 @@
             });
             var groupPortTransformations = namespace[groupPositionName](portsArgs, elBBox, groupArgs);
 
-            return _.transform(groupPortTransformations, _.bind(function(result, portTransformation, index) {
+            return _.transform(groupPortTransformations, (result, portTransformation, index) => {
                 var port = ports[index];
                 result.push({
                     portId: port.id,
@@ -56,7 +56,7 @@
                     portSize: port.size,
                     labelSize: port.label.size
                 });
-            }, this), []);
+            }, []);
         },
 
         _getPortLabelLayout: function(port, portPosition, elBBox) {
@@ -74,9 +74,9 @@
         _init: function(data) {
 
             // prepare groups
-            _.transform(data.groups || {}, _.bind(this._evaluateGroup, this), this.groups);
+            _.transform(data.groups || {}, this._evaluateGroup.bind(this), this.groups);
             // prepare ports
-            _.transform(data.items || [], _.bind(this._evaluatePort, this), this.ports);
+            _.transform(data.items || [], this._evaluatePort.bind(this), this.ports);
         },
 
         _evaluateGroup: function (resultMap, group, key) {
@@ -87,7 +87,7 @@
             });
         },
 
-        _evaluatePort: function(resultArray, port) {
+        _evaluatePort(resultArray, port) {
 
             var evaluated = Object.assign({}, port);
 
