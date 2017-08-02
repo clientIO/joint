@@ -81,7 +81,7 @@
 
         _evaluateGroup: function (group) {
 
-            return _.merge(group, {
+            return joint.util.merge(group, {
                 position: this._getPosition(group.position, true),
                 label: this._getLabel(group, true)
             });
@@ -94,9 +94,9 @@
             var group = this.getGroup(port.group);
 
             evaluated.markup = evaluated.markup || group.markup;
-            evaluated.attrs = _.merge({}, group.attrs, evaluated.attrs);
+            evaluated.attrs = joint.util.merge({}, group.attrs, evaluated.attrs);
             evaluated.position = this._createPositionNode(group, evaluated);
-            evaluated.label = _.merge({}, group.label, this._getLabel(evaluated));
+            evaluated.label = joint.util.merge({}, group.label, this._getLabel(evaluated));
             evaluated.z = this._getZIndex(group, evaluated);
             evaluated.size = Object.assign({}, group.size, evaluated.size);
 
@@ -116,7 +116,7 @@
 
         _createPositionNode: function(group, port) {
 
-            return _.merge({
+            return joint.util.merge({
                 name: 'left',
                 args: {}
             }, group.position, { args: port.args });

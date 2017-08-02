@@ -504,7 +504,7 @@ joint.dia.Graph = Backbone.Model.extend({
             inbound = outbound = true;
         }
 
-        var neighbors = _.transform(this.getConnectedLinks(model, opt), function(res, link) {
+        var neighbors = this.getConnectedLinks(model, opt).reduce((res, link) => {
 
             var source = link.get('source');
             var target = link.get('target');
@@ -530,7 +530,8 @@ joint.dia.Graph = Backbone.Model.extend({
                 }
             }
 
-        }, {}, this);
+            return res;
+        }, {});
 
         return Object.values(neighbors);
     },
@@ -597,8 +598,9 @@ joint.dia.Graph = Backbone.Model.extend({
         // A map of the form [original cell ID] -> [clone] helping
         // us to reconstruct references for source/target and parent/embeds.
         // This is also the returned value.
-        var cloneMap = _.transform(cells, function(map, cell) {
+        var cloneMap = (cells || []).reduce(function(map, cell) {
             map[cell.id] = cell.clone();
+            return map
         }, {});
 
         _.each(cells, function(cell) {

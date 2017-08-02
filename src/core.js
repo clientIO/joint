@@ -1448,7 +1448,10 @@ var joint = {
 
         has: function(obj, key) {
             return Object.hasOwnProperty.call(obj, key);
-        }
+        },
 
+        merge: function(obj, ...args) {
+            return jQuery.extend(true, obj, ...args);
+        }
     }
 };

@@ -499,7 +499,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var labelAttrs = label.attrs;
             if (!label.markup) {
                 // Default attributes to maintain backwards compatibility
-                labelAttrs = _.merge({
+                labelAttrs = joint.util.merge({
                     text: {
                         textAnchor: 'middle',
                         fontSize: 14,
