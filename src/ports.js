@@ -332,7 +332,7 @@
             } else {
 
                 args = ['ports/items/' + index];
-                if (_.isPlainObject(path)) {
+                if (joint.util.isPlainObject(path)) {
                     args.push(path);
                     args.push(value);
                 }

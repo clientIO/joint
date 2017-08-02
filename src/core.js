@@ -1452,6 +1452,9 @@ var joint = {
 
         merge: function(obj, ...args) {
             return jQuery.extend(true, obj, ...args);
-        }
+        },
+
+        isPlainObject: jQuery.isPlainObject,
+
     }
 };
