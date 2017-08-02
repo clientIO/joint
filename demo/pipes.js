@@ -57,7 +57,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
         joint.util.cancelFrame(this.frameId);
 
-        this.frameId = joint.util.nextFrame(_.bind(this.fillWithPattern, this));
+        this.frameId = joint.util.nextFrame(this.fillWithPattern.bind(this));
 
         return this;
     },
