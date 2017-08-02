@@ -532,7 +532,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         }, {}, this);
 
-        return _.values(neighbors);
+        return Object.values(neighbors);
     },
 
     getCommonAncestor: function(/* cells */) {

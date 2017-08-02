@@ -46,17 +46,17 @@
             });
             var groupPortTransformations = namespace[groupPositionName](portsArgs, elBBox, groupArgs);
 
-            return _.transform(groupPortTransformations, (result, portTransformation, index) => {
+            return groupPortTransformations.map((portTransformation, index) => {
                 var port = ports[index];
-                result.push({
+                return {
                     portId: port.id,
                     portTransformation: portTransformation,
                     labelTransformation: this._getPortLabelLayout(port, g.Point(portTransformation), elBBox),
                     portAttrs: port.attrs,
                     portSize: port.size,
                     labelSize: port.label.size
-                });
-            }, []);
+                };
+            });
         },
 
         _getPortLabelLayout: function(port, portPosition, elBBox) {
@@ -74,20 +74,20 @@
         _init: function(data) {
 
             // prepare groups
-            _.transform(data.groups || {}, this._evaluateGroup.bind(this), this.groups);
+            Object.entries(data.groups || {}).forEach(pair => { this.groups[pair[0]] = this._evaluateGroup(pair[1]); });
             // prepare ports
-            _.transform(data.items || [], this._evaluatePort.bind(this), this.ports);
+            this.ports = (data.items || []).map(this._evaluatePort.bind(this));
         },
 
-        _evaluateGroup: function (resultMap, group, key) {
+        _evaluateGroup: function (group) {
 
-            resultMap[key] = _.merge(group, {
+            return _.merge(group, {
                 position: this._getPosition(group.position, true),
                 label: this._getLabel(group, true)
             });
         },
 
-        _evaluatePort(resultArray, port) {
+        _evaluatePort(port) {
 
             var evaluated = Object.assign({}, port);
 
@@ -100,7 +100,7 @@
             evaluated.z = this._getZIndex(group, evaluated);
             evaluated.size = Object.assign({}, group.size, evaluated.size);
 
-            resultArray.push(evaluated);
+            return evaluated;
         },
 
         _getZIndex: function(group, port) {
@@ -257,15 +257,16 @@
          */
         getPortsPositions: function(groupName) {
 
-            var portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, g.Rect(this.size()));
+            const portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, g.Rect(this.size()));
 
-            return _.transform(portsMetrics, function(positions, metrics) {
-                var transformation = metrics.portTransformation;
+            return portsMetrics.reduce(function(positions, metrics) {
+                const transformation = metrics.portTransformation;
                 positions[metrics.portId] = {
                     x: transformation.x,
                     y: transformation.y,
                     angle: transformation.angle
                 };
+                return positions;
             }, {});
         },
 
