@@ -593,7 +593,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // the source and target of the link `L2` is changed to point to `A2` and `B2`.
     cloneCells: function(cells) {
 
-        cells = _.unique(cells);
+        cells = joint.util.uniq(cells);
 
         // A map of the form [original cell ID] -> [clone] helping
         // us to reconstruct references for source/target and parent/embeds.
@@ -639,7 +639,7 @@ joint.dia.Graph = Backbone.Model.extend({
                 return newEmbeds;
             }, []);
 
-            if (!_.isEmpty(embeds)) {
+            if (!joint.util.isEmpty(embeds)) {
                 clone.set('embeds', embeds);
             }
         });
@@ -822,7 +822,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var sources = [];
         joint.util.each(this._nodes, (exists, node) => {
-            if (!this._in[node] || _.isEmpty(this._in[node])) {
+            if (!this._in[node] || joint.util.isEmpty(this._in[node])) {
                 sources.push(this.getCell(node));
             }
         });
@@ -834,7 +834,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var sinks = [];
         joint.util.each(this._nodes, (exists, node) => {
-            if (!this._out[node] || _.isEmpty(this._out[node])) {
+            if (!this._out[node] || joint.util.isEmpty(this._out[node])) {
                 sinks.push(this.getCell(node));
             }
         });
@@ -844,13 +844,13 @@ joint.dia.Graph = Backbone.Model.extend({
     // Return `true` if `element` is a root. Time complexity: O(1).
     isSource: function(element) {
 
-        return !this._in[element.id] || _.isEmpty(this._in[element.id]);
+        return !this._in[element.id] || joint.util.isEmpty(this._in[element.id]);
     },
 
     // Return `true` if `element` is a leaf. Time complexity: O(1).
     isSink: function(element) {
 
-        return !this._out[element.id] || _.isEmpty(this._out[element.id]);
+        return !this._out[element.id] || joint.util.isEmpty(this._out[element.id]);
     },
 
     // Return `true` is `elementB` is a successor of `elementA`. Return `false` otherwise.
@@ -944,7 +944,7 @@ joint.dia.Graph = Backbone.Model.extend({
     findModelsInArea: function(rect, opt) {
 
         rect = g.rect(rect);
-        opt = _.defaults(opt || {}, { strict: false });
+        opt = joint.util.defaults(opt || {}, { strict: false });
 
         var method = opt.strict ? 'containsRect' : 'intersect';
 
@@ -956,7 +956,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Find all elements under the given element.
     findModelsUnderElement: function(element, opt) {
 
-        opt = _.defaults(opt || {}, { searchBy: 'bbox' });
+        opt = joint.util.defaults(opt || {}, { searchBy: 'bbox' });
 
         var bbox = element.getBBox();
         var elements = (opt.searchBy == 'bbox')

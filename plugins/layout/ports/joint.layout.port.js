@@ -6,7 +6,7 @@
 
         trans.angle = angle || 0;
 
-        return _.defaults({}, opt, trans);
+        return joint.util.defaults({}, opt, trans);
     }
 
     function lineLayout(ports, p1, p2) {

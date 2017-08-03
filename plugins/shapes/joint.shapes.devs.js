@@ -97,8 +97,8 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     updatePortItems: function(model, changed, opt) {
 
         // Make sure all ports are unique.
-        var inPorts = _.uniq(this.get('inPorts'));
-        var outPorts = _.difference(_.uniq(this.get('outPorts')), inPorts);
+        var inPorts = joint.util.uniq(this.get('inPorts'));
+        var outPorts = _.difference(joint.util.uniq(this.get('outPorts')), inPorts);
 
         var inPortItems = this.createPortItems('in', inPorts);
         var outPortItems = this.createPortItems('out', outPorts);

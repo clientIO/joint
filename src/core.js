@@ -1393,15 +1393,17 @@ var joint = {
                 return function() {
 
                     var args = Array.prototype.slice.call(arguments);
-                    var cells = args.length > 0 && _.first(args) || [];
-                    var opt = args.length > 1 && _.last(args) || {};
+                    var length = args.length;
+
+                    var cells = length > 0 && args[0] || [];
+                    var opt = length > 1 && args[length - 1] || {};
 
                     if (!Array.isArray(cells)) {
 
                         if (opt instanceof joint.dia.Cell) {
                             cells = args;
                         } else if (cells instanceof joint.dia.Cell) {
-                            cells = args.length > 1 ? (a => {a.pop();return a})(args) : args;
+                            cells = args.length > 1 ? (a => {a.pop();return a})(args.slice()) : args;
                         }
                     }
 
@@ -1475,6 +1477,25 @@ var joint = {
             return Object.keys(obj)
                 .filter((key) => blacklistedKeys.indexOf(key) < 0)
                 .reduce((newObj, key) => Object.assign(newObj, { [key]: obj[key] }), {})
-        }
+        },
+
+        first: function(array) {
+            return array ? array[0] : undefined;
+        },
+
+        last: function(array) {
+            var length = array ? array.length : 0;
+            return length ? array[length - 1] : undefined;
+        },
+
+        result: _.result,
+
+        uniq: _.uniq,
+
+        isEmpty: _.isEmpty,
+
+        defaults: _.defaults,
+
+        uniqueId: _.uniqueId
     }
 };

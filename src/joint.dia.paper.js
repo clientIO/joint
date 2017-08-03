@@ -421,7 +421,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         opt = opt || {};
 
-        _.defaults(opt, {
+        joint.util.defaults(opt, {
             padding: 0,
             preserveAspectRatio: true,
             scaleGrid: null,
@@ -685,7 +685,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         this._views = {};
     },
 
-    asyncBatchAdded: _.noop,
+    asyncBatchAdded: () => {},
 
     asyncRenderViews: function(cells, opt) {
 
@@ -870,7 +870,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Find all views in given area
     findViewsInArea: function(rect, opt) {
 
-        opt = _.defaults(opt || {}, { strict: false });
+        opt = joint.util.defaults(opt || {}, { strict: false });
         rect = g.rect(rect);
 
         var views = this.model.getElements().map((element) => this.findViewByModel(element));
@@ -1447,7 +1447,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             var args = Array.isArray(options.args) ? options.args : [options.args || {}];
 
-            _.defaults(args[0], joint.util.omit(opt, 'args'));
+            joint.util.defaults(args[0], joint.util.omit(opt, 'args'));
             for (var i = 0; i < args.length; i++) {
                 if (pattern[i]) {
                     Object.assign(pattern[i], args[i]);

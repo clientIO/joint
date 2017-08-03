@@ -678,13 +678,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // cache source and target points
         var sourcePoint, targetPoint, sourceMarkerPoint, targetMarkerPoint;
 
-        var firstVertex = _.first(vertices);
+        var firstVertex = joint.util.first(vertices);
 
         sourcePoint = this.getConnectionPoint(
             'source', this.model.get('source'), firstVertex || this.model.get('target')
         ).round();
 
-        var lastVertex = _.last(vertices);
+        var lastVertex = joint.util.last(vertices);
 
         targetPoint = this.getConnectionPoint(
             'target', this.model.get('target'), lastVertex || sourcePoint
@@ -966,7 +966,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             if (opt.handleBy === this.cid && opt.translateBy &&
                 model.isEmbeddedIn(endModel) &&
-                !_.isEmpty(model.get('vertices'))) {
+                !joint.util.isEmpty(model.get('vertices'))) {
                 // Loop link whose element was translated and that has vertices (that need to be translated with
                 // the parent in which my element is embedded).
                 // If the link is embedded, has a loop and vertices and the end model
@@ -1026,7 +1026,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (sourceArrow) {
             sourceArrow.translateAndAutoOrient(
                 this.sourcePoint,
-                _.first(this.route) || this.targetPoint,
+                joint.util.first(this.route) || this.targetPoint,
                 this.paper.viewport
             );
         }
@@ -1034,7 +1034,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (targetArrow) {
             targetArrow.translateAndAutoOrient(
                 this.targetPoint,
-                _.last(this.route) || this.sourcePoint,
+                joint.util.last(this.route) || this.sourcePoint,
                 this.paper.viewport
             );
         }
@@ -1207,8 +1207,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // If the `selectorOrPoint` (or `referenceSelectorOrPoint`) is `undefined`, the `source`/`target` of the link model is `undefined`.
         // We want to allow this however so that one can create links such as `var link = new joint.dia.Link` and
         // set the `source`/`target` later.
-        _.isEmpty(selectorOrPoint) && (selectorOrPoint = { x: 0, y: 0 });
-        _.isEmpty(referenceSelectorOrPoint) && (referenceSelectorOrPoint = { x: 0, y: 0 });
+        joint.util.isEmpty(selectorOrPoint) && (selectorOrPoint = { x: 0, y: 0 });
+        joint.util.isEmpty(referenceSelectorOrPoint) && (referenceSelectorOrPoint = { x: 0, y: 0 });
 
         if (!selectorOrPoint.id) {
 
@@ -1442,7 +1442,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     startArrowheadMove: function(end, opt) {
 
-        opt = _.defaults(opt || {}, { whenNotAllowed: 'revert' });
+        opt = joint.util.defaults(opt || {}, { whenNotAllowed: 'revert' });
         // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
         // move without need to click on the actual arrowhead dom element.
         this._action = 'arrowhead-move';

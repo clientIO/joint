@@ -197,7 +197,7 @@
             });
 
             var graph = this.graph;
-            if (graph && !_.isEmpty(removed)) {
+            if (graph && !joint.util.isEmpty(removed)) {
 
                 var inboundLinks = graph.getConnectedLinks(this, { inbound: true });
                 inboundLinks.forEach(function(link) {
@@ -355,7 +355,7 @@
                 }
             });
 
-            if (_.uniq(ports, 'id').length !== ports.length) {
+            if (joint.util.uniq(ports, 'id').length !== ports.length) {
                 errorMessages.push('Element: found id duplicities in ports.');
             }
 

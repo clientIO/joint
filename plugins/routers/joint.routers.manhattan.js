@@ -435,9 +435,9 @@ joint.routers.manhattan = (function(g, _, joint) {
     // resolve some of the options
     function resolveOptions(opt) {
 
-        opt.directions = _.result(opt, 'directions') || [];
-        opt.penalties = _.result(opt, 'penalties');
-        opt.paddingBox = _.result(opt, 'paddingBox');
+        opt.directions = joint.util.result(opt, 'directions') || [];
+        opt.penalties = joint.util.result(opt, 'penalties');
+        opt.paddingBox = joint.util.result(opt, 'paddingBox');
 
         opt.directions.forEach(function(direction) {
 
@@ -502,14 +502,14 @@ joint.routers.manhattan = (function(g, _, joint) {
                 return joint.routers.orthogonal(vertices, opt, this);
             }
 
-            var leadPoint = _.first(partialRoute);
+            var leadPoint = joint.util.first(partialRoute);
 
             if (leadPoint && leadPoint.equals(tailPoint)) {
                 // remove the first point if the previous partial route had the same point as last
                 partialRoute.shift();
             }
 
-            tailPoint = _.last(partialRoute) || tailPoint;
+            tailPoint = joint.util.last(partialRoute) || tailPoint;
 
             Array.prototype.push.apply(newVertices, partialRoute);
         }

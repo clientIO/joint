@@ -10,11 +10,11 @@ joint.dia.Cell = Backbone.Model.extend({
 
         var defaults;
         var attrs = attributes || {};
-        this.cid = _.uniqueId('c');
+        this.cid = joint.util.uniqueId('c');
         this.attributes = {};
         if (options && options.collection) this.collection = options.collection;
         if (options && options.parse) attrs = this.parse(attrs, options) || {};
-        if ((defaults = _.result(this, 'defaults'))) {
+        if ((defaults = joint.util.result(this, 'defaults'))) {
             //<custom code>
             // Replaced the call to _.defaults with _.merge.
             attrs = joint.util.merge({}, defaults, attrs);
@@ -125,7 +125,7 @@ joint.dia.Cell = Backbone.Model.extend({
         });
 
         // Remove all the incoming/outgoing links that have source/target port set to any of the removed ports.
-        if (this.graph && !_.isEmpty(removedPorts)) {
+        if (this.graph && !joint.util.isEmpty(removedPorts)) {
 
             var inboundLinks = this.graph.getConnectedLinks(this, { inbound: true });
             inboundLinks.forEach(function(link) {
@@ -234,7 +234,7 @@ joint.dia.Cell = Backbone.Model.extend({
             embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
 
             cell.set('parent', this.id, opt);
-            this.set('embeds', _.uniq(embeds), opt);
+            this.set('embeds', joint.util.uniq(embeds), opt);
 
             this.stopBatch('embed');
         }
@@ -330,7 +330,7 @@ joint.dia.Cell = Backbone.Model.extend({
         var cellId = typeof cell === 'string' ? cell : cell.id;
         var parentId = this.get('parent');
 
-        opt = _.defaults({ deep: true }, opt);
+        opt = joint.util.defaults({ deep: true }, opt);
 
         // See getEmbeddedCells().
         if (this.graph && opt.deep) {
@@ -888,7 +888,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     setNodeAttributes: function(node, attrs) {
 
-        if (!_.isEmpty(attrs)) {
+        if (!joint.util.isEmpty(attrs)) {
             if (node instanceof SVGElement) {
                 V(node).attr(attrs);
             } else {
