@@ -570,7 +570,7 @@
             // layout ports without group
             this._updatePortGroup(undefined);
             // layout ports with explicit group
-            var groupsNames = _.keys(this.model._portSettingsData.groups) || [];
+            var groupsNames = Object.keys(this.model._portSettingsData.groups) || [];
             groupsNames.forEach(this._updatePortGroup.bind(this));
         },
 

@@ -587,7 +587,7 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     getTransitions: function() {
-        return _.keys(this._transitionIds);
+        return Object.keys(this._transitionIds);
     },
 
     stopTransitions: function(path, delim) {

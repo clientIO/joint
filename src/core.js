@@ -831,7 +831,7 @@ var joint = {
             },
 
             object: function(a, b) {
-                var s = _.keys(a);
+                var s = Object.keys(a);
                 return function(t) {
                     var i, p;
                     var r = {};

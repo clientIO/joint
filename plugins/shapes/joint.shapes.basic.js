@@ -307,7 +307,7 @@ joint.shapes.basic.PortsModelInterface = {
         let inPortsCount = inPorts.length;
         inPorts.forEach((portName, index) => {
             var portAttributes = this.getPortAttrs(portName, index, inPortsCount, '.inPorts', 'in');
-            this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
+            this._portSelectors = this._portSelectors.concat(Object.keys(portAttributes));
             Object.assign(attrs, portAttributes);
         });
 
@@ -315,7 +315,7 @@ joint.shapes.basic.PortsModelInterface = {
         let outPortsCount = outPorts.length;
         outPorts.forEach(this.get('outPorts'), (portName, index) => {
             var portAttributes = this.getPortAttrs(portName, index, outPortsCount, '.outPorts', 'out');
-            this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
+            this._portSelectors = this._portSelectors.concat(Object.keys(portAttributes));
             Object.assign(attrs, portAttributes);
         });
 
