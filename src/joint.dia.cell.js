@@ -38,17 +38,18 @@ joint.dia.Cell = Backbone.Model.extend({
 
         // Loop through all the attributes and
         // omit the default attributes as they are implicitly reconstructable by the cell 'type'.
-        _.each(attrs, function(attr, selector) {
+
+        joint.util.each(attrs, function(attr, selector) {
 
             var defaultAttr = defaultAttrs[selector];
 
-            _.each(attr, function(value, name) {
+            joint.util.each(attr, function(value, name) {
 
                 // attr is mainly flat though it might have one more level (consider the `style` attribute).
                 // Check if the `value` is object and if yes, go one level deep.
                 if (joint.util.isObject(value) && !Array.isArray(value)) {
 
-                    _.each(value, function(value2, name2) {
+                    joint.util.each(value, function(value2, name2) {
 
                         if (!defaultAttr || !defaultAttr[name] || !_.isEqual(defaultAttr[name][name2], value2)) {
 
@@ -102,7 +103,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         // Collect ports from the `attrs` object.
         var ports = {};
-        _.each(this.get('attrs'), function(attrs, selector) {
+        joint.util.each(this.get('attrs'), function(attrs, selector) {
 
             if (attrs && attrs.port) {
 
@@ -118,7 +119,7 @@ joint.dia.Cell = Backbone.Model.extend({
         // Collect ports that have been removed (compared to the previous ports) - if any.
         // Use hash table for quick lookup.
         var removedPorts = {};
-        _.each(previousPorts, function(port, id) {
+        joint.util.each(function(port, id) {
 
             if (!ports[id]) removedPorts[id] = true;
         });
@@ -127,13 +128,13 @@ joint.dia.Cell = Backbone.Model.extend({
         if (this.graph && !_.isEmpty(removedPorts)) {
 
             var inboundLinks = this.graph.getConnectedLinks(this, { inbound: true });
-            _.each(inboundLinks, function(link) {
+            inboundLinks.forEach(function(link) {
 
                 if (removedPorts[link.get('target').port]) link.remove();
             });
 
             var outboundLinks = this.graph.getConnectedLinks(this, { outbound: true });
-            _.each(outboundLinks, function(link) {
+            outboundLinks.forEach(function(link) {
 
                 if (removedPorts[link.get('source').port]) link.remove();
             });
@@ -185,7 +186,7 @@ joint.dia.Cell = Backbone.Model.extend({
             if (opt.deep) {
 
                 var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
-                _.each(cells, function(cell) { cell.set('z', ++z, opt); });
+                cells.forEach(function(cell) { cell.set('z', ++z, opt); });
 
             }
 
@@ -207,8 +208,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
             if (opt.deep) {
 
-                var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
-                _.eachRight(cells, function(cell) { cell.set('z', z--, opt); });
+                var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true }) || [];
+                cells.reverse().forEach(function(cell) { cell.set('z', z--, opt); });
             }
 
             this.set('z', z, opt).stopBatch('to-back');
@@ -309,7 +310,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
                     // depthFirst algorithm
                     cells = this.getEmbeddedCells();
-                    _.each(cells, function(cell) {
+                    cells.forEach(function(cell) {
                         cells.push.apply(cells, cell.getEmbeddedCells(opt));
                     });
                 }
@@ -687,7 +688,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         if (type) {
 
-            _.each(type.toLowerCase().split('.'), function(value, index, list) {
+            type.toLowerCase().split('.').forEach(function(value, index, list) {
                 classNames.push('type-' + list.slice(0, index + 1).join('-'));
             });
         }

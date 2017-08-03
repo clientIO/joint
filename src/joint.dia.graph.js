@@ -155,7 +155,7 @@ joint.dia.Graph = Backbone.Model.extend({
         this._nodes = {};
         this._edges = {};
 
-        _.each(cells, this._restructureOnAdd, this);
+        cells.forEach(this._restructureOnAdd.bind(this));
     },
 
     _restructureOnChangeSource: function(link) {
@@ -328,10 +328,10 @@ joint.dia.Graph = Backbone.Model.extend({
             opt.position = cells.length;
 
             this.startBatch('add');
-            _.each(cells, function(cell) {
+            cells.forEach((cell) => {
                 opt.position--;
                 this.addCell(cell, opt);
-            }, this);
+            });
             this.stopBatch('add');
         }
 
@@ -439,22 +439,22 @@ joint.dia.Graph = Backbone.Model.extend({
         var edges = {};
 
         if (outbound) {
-            _.each(this.getOutboundEdges(model.id), function(exists, edge) {
+            joint.util.each(this.getOutboundEdges(model.id), (exists, edge) => {
                 if (!edges[edge]) {
                     links.push(this.getCell(edge));
                     edges[edge] = true;
                 }
-            }, this);
+            });
         }
         if (inbound) {
-            _.each(this.getInboundEdges(model.id), function(exists, edge) {
+            joint.util.each(this.getInboundEdges(model.id), (exists, edge) => {
                 // Skip links that were already added. Those must be self-loop links
                 // because they are both inbound and outbond edges of the same element.
                 if (!edges[edge]) {
                     links.push(this.getCell(edge));
                     edges[edge] = true;
                 }
-            }, this);
+            });
         }
 
         // If 'deep' option is 'true', return all the links that are connected to any of the descendent cells
@@ -465,30 +465,30 @@ joint.dia.Graph = Backbone.Model.extend({
             // In the first round, we collect all the embedded edges so that we can exclude
             // them from the final result.
             var embeddedEdges = {};
-            _.each(embeddedCells, function(cell) {
+            embeddedCells.forEach(function(cell) {
                 if (cell.isLink()) {
                     embeddedEdges[cell.id] = true;
                 }
             });
-            _.each(embeddedCells, function(cell) {
+            embeddedCells.forEach((cell) => {
                 if (cell.isLink()) return;
                 if (outbound) {
-                    _.each(this.getOutboundEdges(cell.id), function(exists, edge) {
+                    joint.util.each(this.getOutboundEdges(cell.id), (exists, edge) => {
                         if (!edges[edge] && !embeddedEdges[edge]) {
                             links.push(this.getCell(edge));
                             edges[edge] = true;
                         }
-                    }, this);
+                    });
                 }
                 if (inbound) {
-                    _.each(this.getInboundEdges(cell.id), function(exists, edge) {
+                    joint.util.each(this.getInboundEdges(cell.id), (exists, edge) => {
                         if (!edges[edge] && !embeddedEdges[edge]) {
                             links.push(this.getCell(edge));
                             edges[edge] = true;
                         }
-                    }, this);
+                    });
                 }
-            }, this);
+            });
         }
 
         return links;
@@ -603,7 +603,7 @@ joint.dia.Graph = Backbone.Model.extend({
             return map
         }, {});
 
-        _.each(cells, function(cell) {
+        cells.forEach(function(cell) {
 
             var clone = cloneMap[cell.id];
             // assert(clone exists)
@@ -672,7 +672,7 @@ joint.dia.Graph = Backbone.Model.extend({
         var elements = [];
         var links = [];
 
-        _.each(cells, function(cell) {
+        cells.forEach(function(cell) {
             if (!cellMap[cell.id]) {
                 subgraph.push(cell);
                 cellMap[cell.id] = cell;
@@ -685,7 +685,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
             if (opt.deep) {
                 var embeds = cell.getEmbeddedCells({ deep: true });
-                _.each(embeds, function(embed) {
+                embeds.forEach(function(embed) {
                     if (!cellMap[embed.id]) {
                         subgraph.push(embed);
                         cellMap[embed.id] = embed;
@@ -699,7 +699,7 @@ joint.dia.Graph = Backbone.Model.extend({
             }
         });
 
-        _.each(links, function(link) {
+        links.forEach((link) => {
             // For links, return their source & target (if they are elements - not points).
             var source = link.get('source');
             var target = link.get('target');
@@ -715,12 +715,12 @@ joint.dia.Graph = Backbone.Model.extend({
                 cellMap[targetElement.id] = targetElement;
                 elements.push(targetElement);
             }
-        }, this);
+        });
 
-        _.each(elements, function(element) {
+        elements.forEach((element) => {
             // For elements, include their connected links if their source/target is in the subgraph;
             var links = this.getConnectedLinks(element, opt);
-            _.each(links, function(link) {
+            links.forEach(function(link) {
                 var source = link.get('source');
                 var target = link.get('target');
                 if (!cellMap[link.id] && source.id && cellMap[source.id] && target.id && cellMap[target.id]) {
@@ -728,7 +728,7 @@ joint.dia.Graph = Backbone.Model.extend({
                     cellMap[link.id] = link;
                 }
             });
-        }, this);
+        });
 
         return subgraph;
     },
@@ -789,7 +789,7 @@ joint.dia.Graph = Backbone.Model.extend({
             if (!visited[next.id]) {
                 visited[next.id] = true;
                 if (iteratee(next, distance[next.id]) === false) return;
-                _.each(this.getNeighbors(next, opt), function(neighbor) {
+                this.getNeighbors(next, opt).forEach(function(neighbor) {
                     distance[neighbor.id] = distance[next.id] + 1;
                     queue.push(neighbor);
                 });
@@ -810,22 +810,22 @@ joint.dia.Graph = Backbone.Model.extend({
         if (iteratee(element, distance) === false) return;
         visited[element.id] = true;
 
-        _.each(this.getNeighbors(element, opt), function(neighbor) {
+        this.getNeighbors(element, opt).forEach((neighbor) => {
             if (!visited[neighbor.id]) {
                 this.dfs(neighbor, iteratee, opt, visited, distance + 1);
             }
-        }, this);
+        });
     },
 
     // Get all the roots of the graph. Time complexity: O(|V|).
     getSources: function() {
 
         var sources = [];
-        _.each(this._nodes, function(exists, node) {
+        joint.util.each(this._nodes, (exists, node) => {
             if (!this._in[node] || _.isEmpty(this._in[node])) {
                 sources.push(this.getCell(node));
             }
-        }, this);
+        });
         return sources;
     },
 
@@ -833,11 +833,11 @@ joint.dia.Graph = Backbone.Model.extend({
     getSinks: function() {
 
         var sinks = [];
-        _.each(this._nodes, function(exists, node) {
+        joint.util.each(this._nodes, (exists, node) => {
             if (!this._out[node] || _.isEmpty(this._out[node])) {
                 sinks.push(this.getCell(node));
             }
-        }, this);
+        });
         return sinks;
     },
 
@@ -896,7 +896,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var isNeighbor = false;
 
-        _.each(this.getConnectedLinks(elementA, opt), function(link) {
+        this.getConnectedLinks(elementA, opt).forEach(function(link) {
 
             var source = link.get('source');
             var target = link.get('target');
@@ -920,7 +920,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Disconnect links connected to the cell `model`.
     disconnectLinks: function(model, options) {
 
-        _.each(this.getConnectedLinks(model), function(link) {
+        this.getConnectedLinks(model).forEach(function(link) {
 
             link.set(link.get('source').id === model.id ? 'source' : 'target', g.point(0, 0), options);
         });

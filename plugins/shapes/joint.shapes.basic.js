@@ -303,17 +303,21 @@ joint.shapes.basic.PortsModelInterface = {
 
         var attrs = {};
 
-        _.each(this.get('inPorts'), function(portName, index, ports) {
-            var portAttributes = this.getPortAttrs(portName, index, ports.length, '.inPorts', 'in');
+        let inPorts = this.get('inPorts') || [];
+        let inPortsCount = inPorts.length;
+        inPorts.forEach((portName, index) => {
+            var portAttributes = this.getPortAttrs(portName, index, inPortsCount, '.inPorts', 'in');
             this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
             Object.assign(attrs, portAttributes);
-        }, this);
+        });
 
-        _.each(this.get('outPorts'), function(portName, index, ports) {
-            var portAttributes = this.getPortAttrs(portName, index, ports.length, '.outPorts', 'out');
+        let outPorts = this.get('outPorts') || [];
+        let outPortsCount = outPorts.length;
+        outPorts.forEach(this.get('outPorts'), (portName, index) => {
+            var portAttributes = this.getPortAttrs(portName, index, outPortsCount, '.outPorts', 'out');
             this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
             Object.assign(attrs, portAttributes);
-        }, this);
+        });
 
         // Silently set `attrs` on the cell so that noone knows the attrs have changed. This makes sure
         // that, for example, command manager does not register `change:attrs` command but only
@@ -366,12 +370,12 @@ joint.shapes.basic.PortsViewInterface = {
 
         var portTemplate = joint.util.template(this.model.portMarkup);
 
-        _.each(this.model.ports.filter(function(p) { return p.type === 'in'; }), function(port, index) {
+        this.model.ports.filter(function(p) { return p.type === 'in'; }).forEach(function(port, index) {
 
             $inPorts.append(V(portTemplate({ id: index, port: port })).node);
         });
 
-        _.each(this.model.ports.filter(function(p) { return p.type === 'out'; }), function(port, index) {
+        this.model.ports.filter(function(p) { return p.type === 'out'; }).forEach(function(port, index) {
 
             $outPorts.append(V(portTemplate({ id: index, port: port })).node);
         });

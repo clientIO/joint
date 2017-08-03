@@ -663,7 +663,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         } else {
 
-            _.each(cells, this.renderView, this);
+            cells.forEach(this.renderView.bind(this));
 
             // Sort the cells in the DOM manually as we might have changed the order they
             // were added to the DOM (see above).
@@ -694,14 +694,14 @@ joint.dia.Paper = joint.mvc.View.extend({
             var batchSize = (this.options.async && this.options.async.batchSize) || 50;
             var batchCells = cells.splice(0, batchSize);
 
-            _.each(batchCells, function(cell) {
+            batchCells.forEach(cell => {
 
                 // The cell has to be part of the graph.
                 // There is a chance in asynchronous rendering
                 // that a cell was removed before it's rendered to the paper.
                 if (cell.graph === this.model) this.renderView(cell);
 
-            }, this);
+            });
 
             this.asyncBatchAdded();
         }
@@ -876,9 +876,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var views = this.model.getElements().map((element) => this.findViewByModel(element));
         var method = opt.strict ? 'containsRect' : 'intersect';
 
-        return views.filter(function(view) {
-            return view && rect[method](g.rect(view.vel.bbox(false, this.viewport)));
-        }, this);
+        return views.filter((view) => view && rect[method](g.rect(view.vel.bbox(false, this.viewport))));
     },
 
     getModelById: function(id) {
@@ -1423,9 +1421,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         this._gridSettings = [];
 
         var optionsList = Array.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
-        _.each(optionsList, function (item) {
-            this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
-        }, this);
+        optionsList.forEach((item) =>
+            this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item))
+        );
         return this;
     },
 
@@ -1473,7 +1471,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var ctm = this.matrix();
         var refs = this._getGriRefs();
 
-        _.each(this._gridSettings, function (gridLayerSetting, index) {
+        this._gridSettings.forEach(function (gridLayerSetting, index) {
 
             var id = 'pattern_'  + index;
             var options = joint.util.merge(gridLayerSetting, localOptions[index], {

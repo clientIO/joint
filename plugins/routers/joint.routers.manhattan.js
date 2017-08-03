@@ -357,7 +357,7 @@ joint.routers.manhattan = (function(g, _, joint) {
             // Cost from start to a point along best known path.
             var costs = {};
 
-            _.each(startPoints, function(point) {
+            startPoints.forEach(function(point) {
                 var key = point.toString();
                 openSet.add(key, estimateCost(point, endPoints));
                 costs[key] = 0;
@@ -435,11 +435,11 @@ joint.routers.manhattan = (function(g, _, joint) {
     // resolve some of the options
     function resolveOptions(opt) {
 
-        opt.directions = _.result(opt, 'directions');
+        opt.directions = _.result(opt, 'directions') || [];
         opt.penalties = _.result(opt, 'penalties');
         opt.paddingBox = _.result(opt, 'paddingBox');
 
-        _.each(opt.directions, function(direction) {
+        opt.directions.forEach(function(direction) {
 
             var point1 = g.point(0, 0);
             var point2 = g.point(direction.offsetX, direction.offsetY);

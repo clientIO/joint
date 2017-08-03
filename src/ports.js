@@ -183,14 +183,14 @@
             var current = this.get('ports') || {};
             var currentItemsMap = {};
 
-            _.each(current.items, function(item) {
+            (current.items || []).forEach(function(item) {
                 currentItemsMap[item.id] = true;
             });
 
             var previous = this.previous('ports') || {};
             var removed = {};
 
-            _.each(previous.items, function(item) {
+            (previous.items || []).forEach(function(item) {
                 if (!currentItemsMap[item.id]) {
                     removed[item.id] = true;
                 }
@@ -200,13 +200,13 @@
             if (graph && !_.isEmpty(removed)) {
 
                 var inboundLinks = graph.getConnectedLinks(this, { inbound: true });
-                _.each(inboundLinks, function(link) {
+                inboundLinks.forEach(function(link) {
 
                     if (removed[link.get('target').port]) link.remove();
                 });
 
                 var outboundLinks = graph.getConnectedLinks(this, { outbound: true });
-                _.each(outboundLinks, function(link) {
+                outboundLinks.forEach(function(link) {
 
                     if (removed[link.get('source').port]) link.remove();
                 });
@@ -349,11 +349,11 @@
             portsAttr = portsAttr || {};
             var ports = portsAttr.items || [];
 
-            _.each(ports, function(p) {
+            ports.forEach(p => {
                 if (!this._isValidPortId(p.id)) {
                     p.id = joint.util.uuid();
                 }
-            }, this);
+            });
 
             if (_.uniq(ports, 'id').length !== ports.length) {
                 errorMessages.push('Element: found id duplicities in ports.');
@@ -496,7 +496,8 @@
             // references to rendered elements without z-index
             var elementReferences = [];
             var elem = this._getContainerElement();
-            _.each(elem.node.childNodes, function(n) {
+
+            (elem.node.childNodes || []).forEach(function(n) {
                 elementReferences.push(n);
             });
 
@@ -504,18 +505,18 @@
             var withoutZKey = 'auto';
 
             // render non-z first
-            _.each(portsGropsByZ[withoutZKey], function(port) {
+            (portsGropsByZ[withoutZKey] || []).forEach((port) => {
                 var portElement = this._getPortElement(port);
                 elem.append(portElement);
                 elementReferences.push(portElement);
-            }, this);
+            });
 
-            _.each(portsGropsByZ, function(groupPorts, groupName) {
+            joint.util.each(portsGropsByZ, (groupPorts, groupName) => {
                 if (groupName !== withoutZKey) {
                     var z = parseInt(groupName, 10);
                     this._appendPorts(portsGropsByZ[groupName], z, elementReferences);
                 }
-            }, this);
+            });
 
             this._updatePorts();
         },
@@ -569,8 +570,8 @@
             // layout ports without group
             this._updatePortGroup(undefined);
             // layout ports with explicit group
-            var groupsNames = _.keys(this.model._portSettingsData.groups);
-            _.each(groupsNames, this._updatePortGroup, this);
+            var groupsNames = _.keys(this.model._portSettingsData.groups) || [];
+            groupsNames.forEach(this._updatePortGroup.bind(this));
         },
 
         /**

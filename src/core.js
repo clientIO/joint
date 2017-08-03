@@ -719,7 +719,7 @@ var joint = {
 
             var $element = $(element);
 
-            _.each(attrs, function(attrs, selector) {
+            joint.util.each(attrs, function(attrs, selector) {
                 var $elements = $element.find(selector).addBack().filter(selector);
                 // Make a special case for setting classes.
                 // We do not want to overwrite any existing class.
@@ -1373,7 +1373,7 @@ var joint = {
                 throw new Error('Wrapper must be a function.');
             }
 
-            _.each(methods, function(method) {
+            (methods || []).forEach(function(method) {
                 object[method] = wrapper(object[method]);
             });
         },
@@ -1456,5 +1456,15 @@ var joint = {
 
         isPlainObject: jQuery.isPlainObject,
 
+        each: function(object, callback) {
+
+            if (!object) {
+                return;
+            }
+
+            Object.keys(object).forEach(function(key) {
+            	callback(object[key], key);
+            })
+        }
     }
 };

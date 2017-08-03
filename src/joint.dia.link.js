@@ -403,7 +403,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Cache all children elements for quicker access.
         this._V = {}; // vectorized markup;
-        _.each(children, function(child) {
+        children.forEach((child) => {
 
             var className = child.attr('class');
 
@@ -413,7 +413,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 this._V[$.camelCase(className)] = child;
             }
 
-        }, this);
+        });
 
         // Only the connection path is mandatory
         if (!this._V.connection) throw new Error('link: no connection path in the markup');
@@ -575,7 +575,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
         var markupTemplate = joint.util.template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
 
-        _.each(this.model.get('vertices'), function(vertex, idx) {
+
+        (this.model.get('vertices') || []).forEach(function(vertex, idx) {
 
             $markerVertices.append(V(markupTemplate(Object.assign({ idx: idx }, vertex))).node);
         });
@@ -1416,7 +1417,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var availableMagnets = magnets.filter((magnet) => isMagnetAvailable.call(this, view, magnet));
             if (availableMagnets.length > 0) {
                 // highlight all available magnets
-                _.each(availableMagnets, _.partial(view.highlight, _, { magnetAvailability: true }), view);
+                availableMagnets.forEach(magnet => view.highlight(magnet, { magnetAvailability: true }));
                 // highlight the entire view
                 view.highlight(null, { elementAvailability: true });
 
@@ -1428,13 +1429,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _unmarkAvailableMagnets: function() {
 
-        _.each(this._marked, function(markedMagnets, id) {
+        joint.util.each(this._marked, (markedMagnets, id) => {
             var view = this.paper.findViewByModel(id);
             if (view) {
-                _.each(markedMagnets, _.partial(view.unhighlight, _, { magnetAvailability: true }), view);
+                (markedMagnets || []).forEach(magnet => view.unhighlight(magnet, { magnetAvailability: true }));
                 view.unhighlight(null, { elementAvailability: true });
             }
-        }, this);
+        });
 
         this._marked = null;
     },
@@ -1600,7 +1601,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     var minDistance = Number.MAX_VALUE;
                     var pointer = g.point(x, y);
 
-                    _.each(viewsInArea, function(view) {
+                    viewsInArea.forEach(view => {
 
                         // skip connecting to the element in case '.': { magnet: false } attribute present
                         if (view.el.getAttribute('magnet') !== 'false') {
@@ -1647,7 +1648,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                         });
 
-                    }, this);
+                    });
 
                     if (this._closestView) {
                         this._closestView.highlight(this._closestEnd.selector, {
