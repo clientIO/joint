@@ -228,7 +228,7 @@ var joint = {
         // Copy all the properties to the first argument from the following arguments.
         // All the properties will be overwritten by the properties from the following
         // arguments. Inherited properties are ignored.
-        mixin: _.assign,
+        mixin: Object.assign,
 
         // Copy all properties to the first argument from the following
         // arguments only in case if they don't exists in the first argument.
@@ -293,7 +293,7 @@ var joint = {
 
             return function(callback, context) {
                 return context
-                    ? raf(_.bind(callback, context))
+                    ? raf(callback.bind(context))
                     : raf(callback);
             };
 
@@ -319,8 +319,7 @@ var joint = {
 
             caf = caf || clearTimeout;
 
-            return client ? _.bind(caf, window) : caf;
-
+            return client ? caf.bind(window) : caf;
         })(),
 
         shapePerimeterConnectionPoint: function(linkView, view, magnet, reference) {
@@ -725,7 +724,7 @@ var joint = {
                 // We do not want to overwrite any existing class.
                 if (joint.util.has(attrs, 'class')) {
                     $elements.addClass(attrs['class']);
-                    attrs = _.omit(attrs, 'class');
+                    attrs = joint.util.omit(attrs, 'class');
                 }
                 $elements.attr(attrs);
             });
@@ -1402,7 +1401,7 @@ var joint = {
                         if (opt instanceof joint.dia.Cell) {
                             cells = args;
                         } else if (cells instanceof joint.dia.Cell) {
-                            cells = args.length > 1 ? _.initial(args) : args;
+                            cells = args.length > 1 ? (a => {a.pop();return a})(args) : args;
                         }
                     }
 
@@ -1465,6 +1464,17 @@ var joint = {
             Object.keys(object).forEach(function(key) {
             	callback(object[key], key);
             })
+        },
+
+        omit: function(obj, ...blacklistedKeys) {
+
+            if (!blacklistedKeys) {
+                return Object.assign({}, obj);
+            }
+
+            return Object.keys(obj)
+                .filter((key) => blacklistedKeys.indexOf(key) < 0)
+                .reduce((newObj, key) => Object.assign(newObj, { [key]: obj[key] }), {})
         }
     }
 };

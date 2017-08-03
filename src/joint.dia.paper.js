@@ -1447,7 +1447,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             var args = Array.isArray(options.args) ? options.args : [options.args || {}];
 
-            _.defaults(args[0], _.omit(opt, 'args'));
+            _.defaults(args[0], joint.util.omit(opt, 'args'));
             for (var i = 0; i < args.length; i++) {
                 if (pattern[i]) {
                     Object.assign(pattern[i], args[i]);
@@ -1743,7 +1743,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         if (!this.isDefined(markerId)) {
 
-            var attrs = _.omit(marker, 'type', 'userSpaceOnUse');
+            var attrs = joint.util.omit(marker, 'type', 'userSpaceOnUse');
             var pathMarker = V('marker', {
                 id: markerId,
                 orient: 'auto',

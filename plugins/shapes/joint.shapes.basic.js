@@ -292,7 +292,7 @@ joint.shapes.basic.PortsModelInterface = {
 
         if (this._portSelectors) {
 
-            var newAttrs = _.omit(this.get('attrs'), this._portSelectors);
+            var newAttrs = joint.util.omit(this.get('attrs'), this._portSelectors);
             this.set('attrs', newAttrs, { silent: true });
         }
 
@@ -506,7 +506,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
         if (!joint.env.test('svgforeignobject')) {
 
             // Update everything but the content first.
-            var noTextAttrs = _.omit(renderingOnlyAttrs || model.get('attrs'), '.content');
+            var noTextAttrs = joint.util.omit(renderingOnlyAttrs || model.get('attrs'), '.content');
             joint.dia.ElementView.prototype.update.call(this, model, noTextAttrs);
 
             if (!renderingOnlyAttrs || joint.util.has(renderingOnlyAttrs, '.content')) {
@@ -525,7 +525,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
         // Create copy of the text attributes
         var textAttrs = joint.util.merge({}, (renderingOnlyAttrs || cell.get('attrs'))['.content']);
 
-        textAttrs = _.omit(textAttrs, 'text');
+        textAttrs = joint.util.omit(textAttrs, 'text');
 
         // Break the content to fit the element size taking into account the attributes
         // set on the model.

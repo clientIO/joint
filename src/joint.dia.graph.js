@@ -230,7 +230,7 @@ joint.dia.Graph = Backbone.Model.extend({
         // Make sure that `cells` attribute is handled separately via resetCells().
         if (attrs.hasOwnProperty('cells')) {
             this.resetCells(attrs.cells, opt);
-            attrs = _.omit(attrs, 'cells');
+            attrs = joint.util.omit(attrs, 'cells');
         }
 
         // The rest of the attributes are applied via original set method.

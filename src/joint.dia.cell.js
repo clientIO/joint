@@ -68,7 +68,7 @@ joint.dia.Cell = Backbone.Model.extend({
             });
         });
 
-        var attributes = joint.util.cloneDeep(_.omit(this.attributes, 'attrs'));
+        var attributes = joint.util.cloneDeep(joint.util.omit(this.attributes, 'attrs'));
         //var attributes = JSON.parse(JSON.stringify(_.omit(this.attributes, 'attrs')));
         attributes.attrs = finalAttrs;
 
@@ -988,7 +988,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         var nodeMatrix = V.transformStringToMatrix(nodeTransform);
         var nodePosition = g.Point(nodeMatrix.e, nodeMatrix.f);
         if (nodeTransform) {
-            nodeAttrs = _.omit(nodeAttrs, 'transform');
+            nodeAttrs = joint.util.omit(nodeAttrs, 'transform');
             nodeMatrix.e = nodeMatrix.f = 0;
         }
 
