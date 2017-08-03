@@ -224,8 +224,8 @@ joint.layout.DirectedGraph = {
 
         opt = opt || {};
 
-        var glGraphType = _.pick(opt, 'directed', 'compound', 'multigraph');
-        var glGraph = new graphlib.Graph(glGraphType);
+        const {directed, compound, multigraph} = opt;
+        var glGraph = new graphlib.Graph( {directed, compound, multigraph});
         var setNodeLabel = opt.setNodeLabel || (() => {});
         var setEdgeLabel = opt.setEdgeLabel || (() => {});
         var setEdgeName = opt.setEdgeName || (() => {});

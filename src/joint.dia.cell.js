@@ -51,14 +51,14 @@ joint.dia.Cell = Backbone.Model.extend({
 
                     joint.util.each(value, function(value2, name2) {
 
-                        if (!defaultAttr || !defaultAttr[name] || !_.isEqual(defaultAttr[name][name2], value2)) {
+                        if (!defaultAttr || !defaultAttr[name] || !joint.util.isEqual(defaultAttr[name][name2], value2)) {
 
                             finalAttrs[selector] = finalAttrs[selector] || {};
                             (finalAttrs[selector][name] || (finalAttrs[selector][name] = {}))[name2] = value2;
                         }
                     });
 
-                } else if (!defaultAttr || !_.isEqual(defaultAttr[name], value)) {
+                } else if (!defaultAttr || !joint.util.isEqual(defaultAttr[name], value)) {
                     // `value` is not an object, default attribute for such a selector does not exist
                     // or it is different than the attribute value set on the model.
 
@@ -598,7 +598,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         _(this._transitionIds).keys().filter(pathArray && function(key) {
 
-            return _.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
+            return joint.util.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
 
         }).each(function(key) {
 
@@ -660,7 +660,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
     define: function(type, defaults, protoProps, staticProps) {
 
-        protoProps = _.assign({
+        protoProps = Object.assign({
             defaults: joint.util.defaultsDeep({ type: type }, defaults, this.prototype.defaults)
         }, protoProps);
 
@@ -714,7 +714,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     init: function() {
 
-        _.bindAll(this, 'remove', 'update');
+        joint.util.bindAll(this, 'remove', 'update');
 
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);

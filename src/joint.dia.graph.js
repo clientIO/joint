@@ -324,7 +324,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         if (cells.length) {
 
-            cells = _.flattenDeep(cells);
+            cells = joint.util.flattenDeep(cells);
             opt.position = cells.length;
 
             this.startBatch('add');
@@ -554,13 +554,10 @@ joint.dia.Graph = Backbone.Model.extend({
 
         });
 
-        cellsAncestors = _.sortBy(cellsAncestors, 'length');
+        cellsAncestors = joint.util.sortBy(cellsAncestors, 'length');
 
         var commonAncestor = (cellsAncestors.shift() || []).find(function(ancestor) {
-
-            return _.every(cellsAncestors, function(cellAncestors) {
-                return cellAncestors.includes(ancestor);
-            });
+            return cellsAncestors.every((cellAncestors) => cellAncestors.includes(ancestor));
         });
 
         return this.getCell(commonAncestor);

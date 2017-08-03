@@ -501,7 +501,7 @@
                 elementReferences.push(n);
             });
 
-            var portsGropsByZ = _.groupBy(this.model._portSettingsData.getPorts(), 'z');
+            var portsGropsByZ = joint.util.groupBy(this.model._portSettingsData.getPorts(), 'z');
             var withoutZKey = 'auto';
 
             // render non-z first

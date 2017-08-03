@@ -113,17 +113,11 @@ joint.routers.manhattan = (function(g, _, joint) {
             .map(graph.getCell, graph).value();
 
         // Exclude any embedded elements from the source and the target element.
-        var excludedAncestors = [];
-
         var source = graph.getCell(link.get('source').id);
-        if (source) {
-            excludedAncestors = _.union(excludedAncestors, source.getAncestors().map((cell) => cell.id));
-        }
-
         var target = graph.getCell(link.get('target').id);
-        if (target) {
-            excludedAncestors = _.union(excludedAncestors, target.getAncestors().map((cell) => cell.id));
-        }
+        var sourceAncestors = source ? source.getAncestors().map((cell) => cell.id) : [];
+        var targetAncestors = target ? target.getAncestors().map((cell) => cell.id) : [];
+        var excludedAncestors = new Set(sourceAncestors.concat(targetAncestors));
 
         // builds a map of all elements for quicker obstacle queries (i.e. is a point contained
         // in any obstacle?) (a simplified grid search)
@@ -138,7 +132,7 @@ joint.routers.manhattan = (function(g, _, joint) {
             // remove all elements whose type is listed in excludedTypes array
             .reject(function(element) {
                 // reject any element which is an ancestor of either source or target
-                return (opt.excludeTypes || []).includes(element.get('type')) || excludedAncestors.includes(element.id);
+                return (opt.excludeTypes || []).includes(element.get('type')) || excludedAncestors.has(element.id);
             })
             // change elements (models) to their bounding boxes
             .invoke('getBBox')
@@ -171,9 +165,7 @@ joint.routers.manhattan = (function(g, _, joint) {
 
         var mapKey = point.clone().snapToGrid(this.mapGridSize).toString();
 
-        return _.every(this.map[mapKey], function(obstacle) {
-            return !obstacle.containsPoint(point);
-        });
+        return (this.map[mapKey] || []).every(obstacle => !obstacle.containsPoint(point));
     };
 
     // Sorted Set
@@ -267,21 +259,27 @@ joint.routers.manhattan = (function(g, _, joint) {
 
         var step = opt.step;
         var center = bbox.center();
-        var startPoints = _.chain(opt.directionMap).pick(directionList).map(function(direction) {
+        var startPoints = Object.keys(opt.directionMap).reduce(function(res, key) {
 
-            var x = direction.x * bbox.width / 2;
-            var y = direction.y * bbox.height / 2;
+            if (directionList.includes(key)) {
 
-            var point = center.clone().offset(x, y);
+                let direction = opt.directionMap[key];
 
-            if (bbox.containsPoint(point)) {
+                var x = direction.x * bbox.width / 2;
+                var y = direction.y * bbox.height / 2;
 
-                point.offset(direction.x * step, direction.y * step);
+                var point = center.clone().offset(x, y);
+
+                if (bbox.containsPoint(point)) {
+
+                    point.offset(direction.x * step, direction.y * step);
+                }
+
+                res.push(point.snapToGrid(step));
             }
+            return res;
 
-            return point.snapToGrid(step);
-
-        }).value();
+        }, []);
 
         return startPoints;
     }

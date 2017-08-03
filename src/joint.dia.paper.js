@@ -165,7 +165,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     init: function() {
 
-        _.bindAll(this, 'pointerup');
+        joint.util.bindAll(this, 'pointerup');
 
         var model = this.model = this.options.model || new joint.dia.Graph;
 
@@ -1074,9 +1074,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (typeof highlighterDef === 'undefined') {
 
             // check for built-in types
-            var type = _.chain(opt)
-                .pick('embedding', 'connecting', 'magnetAvailability', 'elementAvailability')
-                .keys().first().value();
+            var type = Object.keys(opt).find((item) => ['embedding', 'connecting', 'magnetAvailability', 'elementAvailability'].includes(item));
 
             highlighterDef = (type && paperOpt.highlighting[type]) || paperOpt.highlighting['default'];
         }
@@ -1560,7 +1558,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var backgroundRepeat = opt.repeat || 'no-repeat';
         var backgroundOpacity = opt.opacity || 1;
         var backgroundQuality = Math.abs(opt.quality) || 1;
-        var backgroundPattern = this.constructor.backgroundPatterns[_.camelCase(backgroundRepeat)];
+        var backgroundPattern = this.constructor.backgroundPatterns[joint.util.camelCase(backgroundRepeat)];
 
         if (typeof backgroundPattern === 'function') {
             // 'flip-x', 'flip-y', 'flip-xy', 'watermark' and custom

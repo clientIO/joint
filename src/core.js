@@ -1496,6 +1496,18 @@ var joint = {
 
         defaults: _.defaults,
 
-        uniqueId: _.uniqueId
+        uniqueId: _.uniqueId,
+
+        bindAll: _.bindAll,
+
+        camelCase: _.camelCase,
+
+        flattenDeep: _.flattenDeep,
+
+        groupBy: _.groupBy,
+
+        sortBy: _.sortBy,
+
+        isEqual: _.isEqual
     }
 };

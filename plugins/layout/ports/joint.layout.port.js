@@ -78,7 +78,7 @@
          */
         absolute: function(ports, elBBox, opt) {
             //TODO v.talas angle
-            return ports.map(_.partial(argPoint, elBBox));
+            return ports.map(() => argPoint(elBBox));
         },
 
         /**
