@@ -1036,7 +1036,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (name) {
             return this._batches[name];
         } else {
-            return _.any(this._batches, function(batches) { return batches > 0; });
+            return Object.values(this._batches).some(function(batches) { return batches > 0; });
         }
     }
 });
