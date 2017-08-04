@@ -571,7 +571,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         };
 
-        var initiator = _.bind(function(callback) {
+        var initiator = callback => {
 
             this.stopTransitions(path);
 
@@ -581,7 +581,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             this.trigger('transition:start', this, path);
 
-        }, this);
+        };
 
         return _.delay(initiator, opt.delay, setter);
     },
