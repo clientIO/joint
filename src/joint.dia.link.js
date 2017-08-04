@@ -1408,25 +1408,26 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var elements = paper.model.getElements();
         this._marked = {};
 
-        _.chain(elements).map(paper.findViewByModel, paper).each(function(view) {
+        elements
+            .map(paper.findViewByModel.bind(paper))
+            .forEach(view => {
 
-            var magnets = Array.prototype.slice.call(view.el.querySelectorAll('[magnet]'));
-            if (view.el.getAttribute('magnet') !== 'false') {
-                // Element wrapping group is also a magnet
-                magnets.push(view.el);
-            }
+                var magnets = Array.prototype.slice.call(view.el.querySelectorAll('[magnet]'));
+                if (view.el.getAttribute('magnet') !== 'false') {
+                    // Element wrapping group is also a magnet
+                    magnets.push(view.el);
+                }
 
-            var availableMagnets = magnets.filter((magnet) => isMagnetAvailable.call(this, view, magnet));
-            if (availableMagnets.length > 0) {
-                // highlight all available magnets
-                availableMagnets.forEach(magnet => view.highlight(magnet, { magnetAvailability: true }));
-                // highlight the entire view
-                view.highlight(null, { elementAvailability: true });
+                var availableMagnets = magnets.filter((magnet) => isMagnetAvailable.call(this, view, magnet));
+                if (availableMagnets.length > 0) {
+                    // highlight all available magnets
+                    availableMagnets.forEach(magnet => view.highlight(magnet, { magnetAvailability: true }));
+                    // highlight the entire view
+                    view.highlight(null, { elementAvailability: true });
 
-                this._marked[view.model.id] = availableMagnets;
-            }
-
-        }, this).value();
+                    this._marked[view.model.id] = availableMagnets;
+                }
+            });
     },
 
     _unmarkAvailableMagnets: function() {
