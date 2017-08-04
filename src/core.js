@@ -1488,21 +1488,21 @@ var joint = {
             return length ? array[length - 1] : undefined;
         },
 
-        result: _.result,
-        uniq: _.uniq,
-        isEmpty: _.isEmpty,
-        defaults: _.defaults,
-        uniqueId: _.uniqueId,
         bindAll: _.bindAll,
         camelCase: _.camelCase,
+        defaults: _.defaults,
+        delay: _.delay,
+        difference: _.difference,
         flattenDeep: _.flattenDeep,
         groupBy: _.groupBy,
-        sortBy: _.sortBy,
+        isEmpty: _.isEmpty,
         isEqual: _.isEqual,
         reject: _.reject,
-        difference: _.difference,
-        without: _.without,
-        delay: _.delay,
-        sortedIndex: _.sortedIndex
+        result: _.result,
+        sortBy: _.sortBy,
+        sortedIndex: _.sortedIndex,
+        uniq: _.uniq,
+        uniqueId: _.uniqueId,
+        without: _.without
     }
 };

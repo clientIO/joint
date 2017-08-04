@@ -107,10 +107,10 @@ joint.routers.manhattan = (function(g, _, joint) {
         var opt = this.options;
 
         // source or target element could be excluded from set of obstacles
-        var excludedEnds = _.chain(opt.excludeEnds)
-            .map(link.get, link)
-            .pluck('id')
-            .map(graph.getCell, graph).value();
+        var excludedEnds = (opt.excludeEnds || []).map(function(item) {
+            let endId = link.get(item).id;
+            return graph.getCell(endId);
+        });
 
         // Exclude any embedded elements from the source and the target element.
         var source = graph.getCell(link.get('source').id);
@@ -126,20 +126,17 @@ joint.routers.manhattan = (function(g, _, joint) {
         // to go through all obstacles, we check only those in a particular cell.
         var mapGridSize = this.mapGridSize;
 
-        _.chain(graph.getElements())
-            // remove source and target element if required
-            .difference(excludedEnds)
-            // remove all elements whose type is listed in excludedTypes array
-            .reject(function(element) {
-                // reject any element which is an ancestor of either source or target
-                return (opt.excludeTypes || []).includes(element.get('type')) || excludedAncestors.has(element.id);
-            })
-            // change elements (models) to their bounding boxes
-            .invoke('getBBox')
-            // expand their boxes by specific padding
-            .invoke('moveAndExpand', opt.paddingBox)
-            // build the map
-            .foldl(function(map, bbox) {
+
+        joint.util.difference(graph.getElements(), excludedEnds)
+
+        graph.getElements().reduce(function(map, element) {
+
+            var isExcluded = (opt.excludeTypes || []).includes(element.get('type')) ||
+                excludedEnds.find(excluded => excluded.id === element.id) ||
+                excludedAncestors.has(element.id);
+
+            if (!isExcluded) {
+                let bbox = element.getBBox().moveAndExpand(opt.paddingBox);
 
                 var origin = bbox.origin().snapToGrid(mapGridSize);
                 var corner = bbox.corner().snapToGrid(mapGridSize);
@@ -154,9 +151,9 @@ joint.routers.manhattan = (function(g, _, joint) {
                     }
                 }
 
-                return map;
-
-            }, this.map).value();
+            }
+            return map;
+        }, this.map);
 
         return this;
     };
