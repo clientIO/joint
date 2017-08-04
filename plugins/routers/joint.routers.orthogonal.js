@@ -110,7 +110,7 @@ joint.routers.orthogonal = (function() {
             // We take the point inside element and move it outside the element in the direction the
             // route is going. Now we can join this point with the current end (using freeJoin).
 
-            p = _.difference(pts, freePts)[0];
+            p = joint.util.difference(pts, freePts)[0];
 
             var p2 = g.point(to).move(p, -boxSize(toBBox, brng) / 2);
             var p1 = freeJoin(p2, from, toBBox);

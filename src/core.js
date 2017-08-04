@@ -1499,6 +1499,10 @@ var joint = {
         groupBy: _.groupBy,
         sortBy: _.sortBy,
         isEqual: _.isEqual,
-        reject: _.reject
+        reject: _.reject,
+        difference: _.difference,
+        without: _.without,
+        delay: _.delay,
+        sortedIndex: _.sortedIndex
     }
 };

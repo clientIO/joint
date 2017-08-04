@@ -166,8 +166,8 @@ joint.layout.DirectedGraph = {
 
         // Update the graph.
         graph.fromGraphLib(glGraph, {
-            importNode: _.partial(this.importElement, opt),
-            importEdge: _.partial(this.importLink, opt)
+            importNode: (v, gl) => this.importElement.call(graph, opt, v, gl),
+            importEdge: (edgeObj, gl) => this.importLink.call(graph, opt, edgeObj, gl)
         });
 
         if (opt.resizeClusters) {

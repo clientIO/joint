@@ -85,7 +85,7 @@ joint.routers.manhattan = (function(g, _, joint) {
             return [point, to];
           },
         */
-        fallbackRoute: _.constant(null),
+        fallbackRoute: () => null,
 
         // if a function is provided, it's used to route the link while dragging an end
         // i.e. function(from, to, opts) { return []; }
@@ -189,9 +189,7 @@ joint.routers.manhattan = (function(g, _, joint) {
 
         this.values[item] = value;
 
-        var index = _.sortedIndex(this.items, item, function(i) {
-            return this.values[i];
-        }, this);
+        var index = joint.util.sortedIndex(this.items, item, i => this.values[i]);
 
         this.items.splice(index, 0, item);
     };

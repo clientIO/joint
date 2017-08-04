@@ -247,7 +247,7 @@ joint.dia.Cell = Backbone.Model.extend({
         this.startBatch('unembed');
 
         cell.unset('parent', opt);
-        this.set('embeds', _.without(this.get('embeds'), cell.id), opt);
+        this.set('embeds', joint.util.without(this.get('embeds'), cell.id), opt);
 
         this.stopBatch('unembed');
 
@@ -583,7 +583,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         };
 
-        return _.delay(initiator, opt.delay, setter);
+        return joint.util.delay(initiator, opt.delay, setter);
     },
 
     getTransitions: function() {

@@ -211,11 +211,11 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         if (this.graph) {
 
-            var cells = _.compact([
+            var cells = [
                 this,
                 this.getSourceElement(), // null if source is a point
                 this.getTargetElement() // null if target is a point
-            ]);
+            ].filter(item => !!item);
 
             connectionAncestor = this.graph.getCommonAncestor.apply(this.graph, cells);
         }
@@ -889,7 +889,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     createWatcher: function(endType) {
 
         // create handler for specific end type (source|target).
-        var onModelChange = _.partial(this.onEndModelChange, endType);
+        const onModelChange = function(endModel, opt) {
+            this.onEndModelChange(endType, endModel, opt);
+        };
 
         function watchEndModel(link, end) {
 
@@ -1126,7 +1128,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         V(this.paper.viewport).append(token);
         V(token).animateAlongPath({ dur: duration + 'ms', repeatCount: 1 }, this._V.connection.node);
-        _.delay(function() { V(token).remove(); callback && callback(); }, duration);
+        joint.util.delay(function() { V(token).remove(); callback && callback(); }, duration);
     },
 
     findRoute: function(oldVertices) {
