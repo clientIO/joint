@@ -1500,8 +1500,8 @@ var joint = {
         reject: _.reject,
         result: _.result,
         sortBy: _.sortBy,
-        sortedIndex: _.sortedIndexBy,
-        uniq: _.uniqBy,
+        sortedIndex: _.sortedIndexBy || _.sortedIndex,
+        uniq: _.uniqBy || _.uniq,
         uniqueId: _.uniqueId,
         without: _.without
     }
