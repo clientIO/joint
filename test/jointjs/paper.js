@@ -1185,11 +1185,11 @@ QUnit.module('paper', function(hooks) {
             var cells = this.graph.getCells();
             assert.ok(cells.length > 0, 'make sure cells are iterated');
 
-            _.each(cells, function(cell) {
+            cells.forEach(cell => {
 
                 var cellView = this.paper.findViewByModel(cell);
                 assert.ok(cellView.options.interactive);
-            }, this);
+            });
         });
 
         QUnit.test('set by function', function(assert) {
@@ -1201,11 +1201,11 @@ QUnit.module('paper', function(hooks) {
             var cells = this.graph.getCells();
             assert.ok(cells.length > 0, 'make sure cells are iterated');
 
-            _.each(cells, function(cell) {
+            cells.forEach(cell => {
 
                 var cellView = this.paper.findViewByModel(cell);
                 assert.equal(cellView.can('manipulate'), cellView.model.isLink(), 'only links can be manipulated');
-            }, this);
+            });
         });
     });
 

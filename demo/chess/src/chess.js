@@ -60,7 +60,7 @@ var Board = joint.dia.Paper.extend({
 
         this.model.resetCells();
 
-        _.each(this.options.startup, this.addPiece, this);
+        _.each(this.options.startup, this.addPiece.bind(this));
     },
 
     at: function(square) {
@@ -127,7 +127,7 @@ var Board = joint.dia.Paper.extend({
                     return g.point(p1).distance(p0);
                 });
             })
-            .each(_.compose(_.partial(this.addPointer, from), this._p2n), this);
+            .each(_.flowRight(_.partial(this.addPointer, from), this._p2n), this);
     },
     
     removePointers: function() {
@@ -214,7 +214,7 @@ var Chessboard = Board.extend({
     getMove: function(from, to) {
 
         var s = from + to;
-        return GenerateValidMoves().find(_.compose(function(m) {
+        return GenerateValidMoves().find(_.flowRight(function(m) {
             return m == s || m == s + 'q';
         }, FormatMove));
     },

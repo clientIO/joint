@@ -728,7 +728,7 @@ QUnit.module('basic', function(hooks) {
 
         a1.toFront({ deep: true });
 
-        equal(_.unique(a1View.$el.prevAll('[data-type="basic.Rect"]').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1, b2 element in the DOM after toFront()');
+        equal(_.uniq(a1View.$el.prevAll('[data-type="basic.Rect"]').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1, b2 element in the DOM after toFront()');
         ok(a4View.$el.prev('[data-type="basic.Rect"]')[0] == a3View.el || a4View.$el.prev('[data-type="basic.Rect"]')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
         ok(a2View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el || a3View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
 
@@ -1453,8 +1453,8 @@ QUnit.module('basic', function(hooks) {
 
         deepEqual(r0.getAncestors(), [], 'A cell that is not part of a collection has no ancestors.');
         deepEqual(r1.getAncestors(), [], 'A cell with no parent has no ancestors.');
-        deepEqual(_.pluck(r2.getAncestors(), 'id'), [r1.id], 'A cell embedded in a parent with no ancestor has exactly one ancestor.');
-        deepEqual(_.pluck(r5.getAncestors(), 'id'), [r2.id, r1.id], 'If a cell has more than one ancestor, the ancesotrs are sorted from the parent to the most distant ancestor.');
+        deepEqual(r2.getAncestors().map(item => item.id), [r1.id], 'A cell embedded in a parent with no ancestor has exactly one ancestor.');
+        deepEqual(r5.getAncestors().map(item => item.id), [r2.id, r1.id], 'If a cell has more than one ancestor, the ancesotrs are sorted from the parent to the most distant ancestor.');
     });
 
     QUnit.test('cellView: element reference wrapped in Vectorizer', function(assert) {
