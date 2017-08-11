@@ -126,9 +126,6 @@ module.exports = function(grunt) {
 
         webpack: {
             joint: {
-                files: {
-                   './build/joint.webpack-bundle.js' : './build/joint.min.js'
-                },
                 entry: './build/joint.min.js',
                 output: {
                     path: './build/',
@@ -140,6 +137,18 @@ module.exports = function(grunt) {
                         g: './geometry.min.js',
                         V: './vectorizer.min.js'
                     }
+                }
+            },
+            dagre: {
+                entry: './node_modules/ciena-dagre/src/index.js',
+                output: {
+                    path: __dirname + '/node_modules/ciena-dagre/dist',
+                    filename: 'index.js',
+                    library: 'dagre',
+                    libraryTarget: 'var'
+                },
+                externals: {
+                    'lodash': '_'
                 }
             }
         },
@@ -757,6 +766,7 @@ module.exports = function(grunt) {
 
     grunt.registerTask('build:plugins', [
         // 'uglify:plugins',
+        'newer:webpack:dagre',
         'cssmin:plugins',
         'concat:plugins'
     ]);
