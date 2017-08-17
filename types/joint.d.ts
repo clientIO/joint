@@ -885,12 +885,19 @@ export namespace shapes {
     }
 
     namespace devs {
+		/**
+		 * @deprecated
+		 */
         interface ModelAttributes extends GenericAttributes<dia.SVGAttributes> {
             inPorts?: string[];
             outPorts?: string[];
             ports?: Object;
         }
-        class Model extends basic.Generic {
+
+		/**
+         * @deprecated
+		 */
+		class Model extends basic.Generic {
             constructor(attributes?: ModelAttributes, options?: Object);
 
             changeInGroup(properties: any, opt?: any): boolean;
@@ -909,9 +916,15 @@ export namespace shapes {
 
             removeInPort(port: string, opt?: any): this;
         }
+		/**
+		 * @deprecated
+		 */
         class Coupled extends Model {
             constructor(attributes?: ModelAttributes, options?: Object);
         }
+		/**
+		 * @deprecated
+		 */
         class Atomic extends Model {
             constructor(attributes?: ModelAttributes, options?: Object);
         }
