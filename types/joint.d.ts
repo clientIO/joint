@@ -192,20 +192,24 @@ export namespace dia {
 
         getEmbeddedCells(options?: {deep?: boolean, breadthFirst?: boolean}): Cell[];
 
-        initialize(options?: {id?: string}): void;
-
         isElement(): boolean;
 
         isEmbedded(): boolean;
-
-        processPorts(): void;
 
         startBatch(name: string, options?: object): this;
 
         stopBatch(name: string, options?: object): this;
 
         unembed(cell: Cell, options?: object): this;
-    }
+
+		/**
+         * @deprecated
+		 */
+		protected processPorts(): void;
+
+		protected initialize(options?: {id?: string}): void;
+
+	}
 
     type Padding = number | {
         top?: number;
@@ -456,24 +460,6 @@ export namespace dia {
         viewport: SVGGElement;
         defs: SVGDefsElement;
 
-        afterRenderViews(): void;
-
-        asyncRenderViews(cells: Cell[], options?: object): void;
-
-        beforeRenderViews(cells: Cell[]): Cell[];
-
-        bindDocumentEvents(): void;
-
-        cellMouseEnter(evt: Event): void;
-
-        cellMouseleave(evt: Event): void;
-
-        cellMouseout(evt: Event): void;
-
-        cellMouseover(evt: Event): void;
-
-        clearGrid(): this;
-
         clientMatrix(): SVGMatrix;
 
         clientToLocalPoint(x: number | g.Point, y?: number): g.Point;
@@ -485,8 +471,6 @@ export namespace dia {
         cloneOptions(): PaperOptions;
 
         cancelRenderViews(): void;
-
-        contextmenu(evt: Event): void;
 
         createViewForModel(cell: Cell): CellView;
 
@@ -527,8 +511,6 @@ export namespace dia {
 
         guard(evt: Event, view: CellView): boolean;
 
-        init(): void;
-
         isDefined(defId: string): boolean;
 
         linkAllowed(linkViewOrModel: LinkView | Link): boolean;
@@ -549,82 +531,93 @@ export namespace dia {
 
         matrix(ctm: SVGMatrix | Vectorizer.Matrix): this;
 
-        mouseclick(evt: Event): void;
+		pageOffset(): g.Point;
 
-        mousedblclick(evt: Event): void;
+		pageToLocalPoint(x: number | g.Point, y?: number): g.Point;
 
-        mousewheel(evt: Event): void;
+		pageToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
 
-        onCellAdded(cell: Cell, graph: Graph, options: {async?: boolean, position?: number}): void;
+		paperToLocalPoint(x: number | g.Point, y?: number): g.Point;
 
-        onCellHighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
+		paperToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
 
-        onCellUnhighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
+		remove(): this;
 
-        onRemove(): void;
+		render(): this;
 
-        pageOffset(): g.Point;
+		scale(): Vectorizer.Scale;
+		scale(sx: number, sy?: number, ox?: number, oy?: number): this;
 
-        pageToLocalPoint(x: number | g.Point, y?: number): g.Point;
+		scaleContentToFit(options?: ScaleContentOptions): void;
 
-        pageToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+		setDimensions(width: number, height: number): void;
 
-        paperToLocalPoint(x: number | g.Point, y?: number): g.Point;
+		setGrid(drawGrid: GridOptions | GridOptions[]): this;
 
-        paperToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+		setGridSize(gridSize: number): this;
 
-        pointerdown(evt: Event): void;
+		setInteractivity(value: any): void;
 
-        pointermove(evt: Event): void;
+		setOrigin(x: number, y: number): this;
 
-        pointerup(evt: Event): void;
+		snapToGrid(x: g.Point | number, y?: number): g.Point;
 
-        remove(): this;
+		sortViews(): void;
 
-        removeView(cell: Cell): CellView;
+		translate(): Vectorizer.Translation;
+		translate(tx: number, ty?: number): this;
 
-        removeViews(): void;
+		update(): void;
 
-        render(): this;
+		protected afterRenderViews(): void;
 
-        renderView(cell: Cell): CellView;
+		protected asyncRenderViews(cells: Cell[], options?: object): void;
 
-        resetViews(cellsCollection: Cell[], options: object): void;
+		protected beforeRenderViews(cells: Cell[]): Cell[];
 
-        resolveHighlighter(opt: {highlighter?: Highlighter}): boolean | {highlighter: Highlighter, options: object, name: string};
+		protected cellMouseEnter(evt: Event): void;
 
-        rotate(): Vectorizer.Rotation;
-        rotate(deg: number, ox?: number, oy?: number): this;      // @todo not released yet though it's in the source code already
+		protected cellMouseleave(evt: Event): void;
 
-        scale(): Vectorizer.Scale;
-        scale(sx: number, sy?: number, ox?: number, oy?: number): this;
+		protected cellMouseout(evt: Event): void;
 
-        scaleContentToFit(options?: ScaleContentOptions): void;
+		protected cellMouseover(evt: Event): void;
 
-        setDimensions(width: number, height: number): void;
+		protected contextmenu(evt: Event): void;
 
-        setGrid(drawGrid: GridOptions | GridOptions[]): this;
+        protected init(): void;
 
-        setGridSize(gridSize: number): this;
+		protected mouseclick(evt: Event): void;
 
-        setInteractivity(value: any): void;
+		protected mousedblclick(evt: Event): void;
 
-        setOrigin(x: number, y: number): this;
+		protected mousewheel(evt: Event): void;
 
-        snapToGrid(x: g.Point | number, y?: number): g.Point;
+		protected onCellAdded(cell: Cell, graph: Graph, options: {async?: boolean, position?: number}): void;
 
-        sortViews(): void;
+		protected onCellHighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
 
-        translate(): Vectorizer.Translation;
-        translate(tx: number, ty?: number): this;
+		protected onCellUnhighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
 
-        unbindDocumentEvents(): void;
+		protected onRemove(): void;
 
-        update(): void;
+		protected pointerdown(evt: Event): void;
 
-        updateBackgroundColor(color: string): void;
+		protected pointermove(evt: Event): void;
 
-        updateBackgroundImage(opt: {position?: any, size?: any}): void;
+		protected pointerup(evt: Event): void;
+
+        protected removeView(cell: Cell): CellView;
+
+		protected removeViews(): void;
+
+		protected renderView(cell: Cell): CellView;
+
+		protected resetViews(cellsCollection: Cell[], options: object): void;
+
+ 		protected updateBackgroundColor(color: string): void;
+
+		protected updateBackgroundImage(opt: {position?: any, size?: any}): void;
     }
 
     //TODO v.talas used in attributes
@@ -693,6 +686,7 @@ export namespace dia {
         "y-alignment"?: 'middle' | 'bottom' | number;
         port?: string;
     }
+
     class ElementView extends CellViewGeneric<Element> {
         scale(sx: number, sy: number): void; // @todo Documented in source but not released
         finalizeEmbedding(options?: {model?: Backbone.Model, paper?: Paper}): void;
