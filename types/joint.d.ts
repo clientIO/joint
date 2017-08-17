@@ -688,44 +688,22 @@ export namespace dia {
     }
 
     class ElementView extends CellViewGeneric<Element> {
-        scale(sx: number, sy: number): void; // @todo Documented in source but not released
-        finalizeEmbedding(options?: {model?: Backbone.Model, paper?: Paper}): void;
 
         getBBox(options?: {useModelGeometry?: boolean}): g.Rect;
 
-        mouseenter(evt: Event): void;
-
-        mouseleave(evt: Event): void;
-
-        pointerdown(evt: Event, x: number, y: number): void;
-
-        pointermove(evt: Event, x: number, y: number): void;
-
-        pointerup(evt: Event, x: number, y: number): void;
-
-        positionRelative(vel: any, bbox: BBox, attributes: ElementViewAttributes, nodesBySelector?: Object): void; // Vectorizer
-
-        prepareEmbedding(options?: {model?: Backbone.Model, paper?: Paper}): void;
-
-        processEmbedding(options?: {model?: Backbone.Model, paper?: Paper}): void;
-
-        renderMarkup(): void;
-
-        resize(): void;
-        // cell and changed are not used in the method, but opt is.
-        resize(cell: any, changed: any, opt: object): void;
-
-        rotate(): void;
-
-        translate(): void;
-        // none of these args are used in the function body.
-        translate(model: Backbone.Model, changes?: any, options?: any): void;
-
         update(cell: Cell, renderingOnlyAttrs?: object): void;
 
-        applyPortTransform(element: Vectorizer,
-                           transformData: {dx: number, dy: number, angle: number,
-                                           attrs: object, x: number, y: number}, initialAngle: number): void;
+		protected mouseenter(evt: Event): void;
+
+		protected mouseleave(evt: Event): void;
+
+		protected pointerdown(evt: Event, x: number, y: number): void;
+
+		protected pointermove(evt: Event, x: number, y: number): void;
+
+		protected pointerup(evt: Event, x: number, y: number): void;
+
+        protected renderMarkup(): void;
     }
 
     class LinkView extends CellViewGeneric<Link> {
@@ -738,71 +716,40 @@ export namespace dia {
             sampleInterval: number
         };
 
-        getConnectionLength(): number;
+		getConnectionLength(): number;
 
-        sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
+		sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
 
-        addVertex(vertex: Point): number;
+		addVertex(vertex: Point): number;
 
-        getPointAtLength(length: number): g.Point; // Marked as public api in source but not in the documents
-        createWatcher(endType: { id: string }): (link: Link, end?: {id: string}) => this;
+		getPointAtLength(length: number): g.Point; // Marked as public api in source but not in the documents
+		createWatcher(endType: { id: string }): (link: Link, end?: {id: string}) => this;
 
-        findRoute(oldVertices: Point[]): Point[];
+		update(model: Cell, attributes: object, options?: object): this;
 
-        getConnectionPoint(end: 'source' | 'target', selectorOrPoint: Element | Point, referenceSelectorOrPoint: Element
-                               | Point): g.Point;
+        protected mouseenter(evt: Event): void;
 
-        getPathData(vertices: Point[]): string;
+		protected mouseleave(evt: Event): void;
 
-        mouseenter(evt: Event): void;
-
-        mouseleave(evt: Event): void;
-
-        onEndModelChange(endType: 'source' | 'target', endModel?: Element,
+		protected onEndModelChange(endType: 'source' | 'target', endModel?: Element,
                          opt?: {cacheOnly?: boolean, handleBy?: string, translateBy?: boolean, tx?: number, ty?: number}): void;
 
-        onLabelsChange(): void;
+		protected onLabelsChange(): void;
 
-        onSourceChange(cell: Cell, sourceEnd: { id: string }, options: object): void;
+		protected onSourceChange(cell: Cell, sourceEnd: { id: string }, options: object): void;
 
-        onTargetChange(cell: Cell, targetEnd: { id: string }, options: object): void;
+		protected onTargetChange(cell: Cell, targetEnd: { id: string }, options: object): void;
 
-        onToolsChange(): void;
+		protected onToolsChange(): void;
 
         // changed is not used in function body.
-        onVerticesChange(cell: Cell, changed: any, options: object): void;
+		protected onVerticesChange(cell: Cell, changed: any, options: object): void;
 
-        pointerdown(evt: Event, x: number, y: number): void;
+		protected pointerdown(evt: Event, x: number, y: number): void;
 
-        pointermove(evt: Event, x: number, y: number): void;
+		protected pointermove(evt: Event, x: number, y: number): void;
 
-        pointerup(evt: Event, x: number, y: number): void;
-
-        removeVertex(idx: number): this;
-
-        renderArrowheadMarkers(): this;
-
-        renderLabels(): this;
-
-        renderTools(): this;
-
-        renderVertexMarkers(): this;
-
-        startArrowheadMove(end: 'source' | 'target', options?: { whenNotAllowed: 'remove' | 'revert' }): void;
-
-        startListening(): void;
-
-        update(model: Cell, attributes: object, options?: object): this;
-
-        updateArrowheadMarkers(): this;
-
-        updateAttributes(): void;
-
-        updateConnection(options?: {translateBy?: any, tx?: number, ty?: number}): void;
-
-        updateLabelPositions(): this;
-
-        updateToolsPosition(): this;
+		protected pointerup(evt: Event, x: number, y: number): void;
     }
 }
 
