@@ -631,7 +631,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Make sure links are always added AFTER elements.
         // They wouldn't find their sources/targets in the DOM otherwise.
-        cells.sort(function(a) { return a instanceof joint.dia.Link ? 1 : -1; });
+        cells.sort(function(a) { return (a.isLink()) ? 1 : -1; });
 
         return cells;
     },
@@ -651,11 +651,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         // `beforeRenderViews()` can return changed cells array (e.g sorted).
         cells = this.beforeRenderViews(cells, opt) || cells;
 
-        if (this._frameId) {
-
-            joint.util.cancelFrame(this._frameId);
-            delete this._frameId;
-        }
+        this.cancelRenderViews();
 
         if (this.options.async) {
 
@@ -669,6 +665,13 @@ joint.dia.Paper = joint.mvc.View.extend({
             // Sort the cells in the DOM manually as we might have changed the order they
             // were added to the DOM (see above).
             this.sortViews();
+        }
+    },
+
+    cancelRenderViews: function() {
+        if (this._frameId) {
+            joint.util.cancelFrame(this._frameId);
+            delete this._frameId;
         }
     },
 

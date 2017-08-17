@@ -484,6 +484,8 @@ export namespace dia {
 
         cloneOptions(): PaperOptions;
 
+        cancelRenderViews(): void;
+
         contextmenu(evt: Event): void;
 
         createViewForModel(cell: Cell): CellView;
