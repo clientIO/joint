@@ -190,49 +190,79 @@ QUnit.module('basic', function(hooks) {
         ok(r3.get('z') < r4.get('z'), 'z index of the third added cell is lower than that of the fourth, newly added, one');
     });
 
-    QUnit.test('position()', function() {
+    QUnit.test('position()', function(assert) {
 
         var r1 = new joint.shapes.basic.Rect({
             position: { x: 100, y: 100 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' } }
+            attrs: { text: { text: 'my rectangle' }}
         });
-
-        this.graph.addCell(r1);
-
-        var pos = r1.position();
-        checkBbox(this.paper, r1, pos.x, pos.y, 120, 80, 'getter "position()" returns the elements position.');
-
-        r1.position(200, 200);
-        checkBbox(this.paper, r1, 200, 200, 120, 80, 'setter "position(a, b)" should move element to the given position.');
-
-        // parentRelative option
-
         var r2 = new joint.shapes.basic.Rect({
             position: { x: 10, y: 10 },
             size: { width: 30, height: 30 }
         });
 
-        throws(function() {
+        r1.addTo(this.graph);
+        checkBbox(
+            this.paper,
+            r1, 100, 100, 120, 80,
+            'getter "position()" returns the elements position.'
+        );
+
+        r1.position(200, 200);
+        checkBbox(
+            this.paper,
+            r1,
+            200, 200, 120, 80,
+            'setter "position(a, b)" should move element to the given position.'
+        );
+
+        // parentRelative option
+
+        assert.throws(function() {
             r2.position(100, 100, { parentRelative: true });
         }, 'getter throws an error if "parentRelative" option passed and the element is not part of any collection.');
 
-        throws(function() {
+        assert.throws(function() {
             r2.position({ parentRelative: true });
         }, 'getter throws an error if "parentRelative" option passed and the element is not part of any collection.');
 
-        this.graph.addCell(r2);
+        r2.addTo(this.graph);
 
-        deepEqual(r2.position({ parentRelative: true }), r2.position(), 'getter with "parentRelative" option works in same way as getter without this option for an unembed element.');
+        assert.deepEqual(
+            r2.position({ parentRelative: true }),
+            r2.position(),
+            'getter with "parentRelative" option works in same way as getter without this option for an unembed element.'
+        );
 
         r1.embed(r2);
-
         r2.position(10, 10, { parentRelative: true });
-        checkBbox(this.paper, r2, 210, 210, 30, 30, 'setter "position(a, b)" with "parentRelative" option should move element to the position relative to its parent.');
+        checkBbox(
+            this.paper,
+            r2,
+            210, 210, 30, 30,
+            'setter "position(a, b)" with "parentRelative" option should move element to the position relative to its parent.'
+        );
 
-        pos = r2.position({ parentRelative: true });
-        deepEqual(pos.toString(), '10@10', 'getter with "parentRelative" option returns position relative to the element parent.');
+        assert.equal(
+            r2.position({ parentRelative: true }).toString(),
+            '10@10',
+            'getter with "parentRelative" option returns position relative to the element parent.'
+        );
 
+        // deep options
+
+        r1.position(30, 30, { deep: true });
+        assert.equal(
+            r1.position().toString(),
+            '30@30',
+            'setter with deep option sets the correct position on the element'
+        );
+        assert.equal(
+            r2.position().toString(),
+            '40@40',
+            'and moves the child to keep the original distance from the element origin'
+        );
     });
 
     QUnit.test('translate()', function() {

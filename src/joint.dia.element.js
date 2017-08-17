@@ -53,7 +53,14 @@ joint.dia.Element = joint.dia.Cell.extend({
                 y += parentPosition.y;
             }
 
-            return this.set('position', { x: x, y: y }, opt);
+            if (opt.deep) {
+                var currentPosition = this.get('position');
+                this.translate(x - currentPosition.x, y - currentPosition.y, opt);
+            } else {
+                this.set('position', { x: x, y: y }, opt);
+            }
+
+            return this;
 
         } else { // Getter returns a geometry point.
 
