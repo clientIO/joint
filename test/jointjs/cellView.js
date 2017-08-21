@@ -444,24 +444,23 @@ QUnit.module('cellView', function(hooks) {
                 function testTextOffset(offset) {
                     var text = cellView.vel.findOne('text');
                     var tspans = text.find('tspan');
-                    Array.prototype.slice.call(tspans).forEach(function(tspan) {
-                        assert.equal(tspan.bbox().x, offset, 'Offset of "' + tspan.node.textContent + '""');
+                    tspans.forEach(function(tspan) {
+                        assert.equal(tspan.bbox(false, cellView.el).x, offset, 'Offset of "' + tspan.node.textContent + '""');
                     });
                 }
 
                 assert.expect(6);
 
-                cell.attr({ text: { x: X, text: 'single line - no refX and with x' }});
+                cell.attr({ text: { refX: null, x: X, text: 'single line - no refX and with x' }}, { dirty: true});
                 testTextOffset(X);
 
-                cell.attr({ text: { refX: X, x: X, text: 'single line - with refX and x' }});
+                cell.attr({ text: { refX: X, x: X, text: 'single line - with refX and x' }}, { dirty: true});
                 testTextOffset(X + X);
 
-                cell.removeAttr('text/refX');
-                cell.attr({ text: { x: X, text: '1. line - no refX and with x\n2. line - no refX and with x' }});
+                cell.attr({ text: { refX: null, x: X, text: '1. line - no refX and with x\n2. line - no refX and with x' }}, { dirty: true});
                 testTextOffset(X);
 
-                cell.attr({ text: { refX: X, x: X, text: '1. line - with refX and x\n2. line - with refX and x' }});
+                cell.attr({ text: { refX: X, x: X, text: '1. line - with refX and x\n2. line - with refX and x' }}, { dirty: true});
                 testTextOffset(X + X);
             });
         });
