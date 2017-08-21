@@ -320,7 +320,7 @@ V = Vectorizer = (function() {
         }
 
         var offset = 0;
-        var x = this.attr('x') || 0;
+        var x = ((opt.x !== undefined) ? opt.x : this.attr('x')) || 0;
 
         // Shift all the <tspan> but first by one line (`1em`)
         var lineHeight = opt.lineHeight || '1em';
@@ -330,10 +330,16 @@ V = Vectorizer = (function() {
 
         for (var i = 0; i < lines.length; i++) {
 
+            var vLineAttributes = { 'class': 'v-line' };
+            if (i === 0) {
+                vLineAttributes.dy = '0em';
+            } else {
+                vLineAttributes.dy = lineHeight;
+                vLineAttributes.x = x;
+            }
+            var vLine = V('tspan', vLineAttributes);
+
             var line = lines[i];
-
-            var vLine = V('tspan', { 'class': 'v-line',  dy: (i == 0 ? '0em' : lineHeight), x: x });
-
             if (line) {
 
                 if (opt.annotations) {

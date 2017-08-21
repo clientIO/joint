@@ -430,5 +430,39 @@ QUnit.module('cellView', function(hooks) {
                 assert.equal(rect.attr('transform'), 'matrix(1,0,0,1,20,0)', 'inline attribute is disregarder');
             });
         });
+
+        QUnit.module('Text', function(hooks) {
+
+            hooks.beforeEach(function() {
+                cell.set('markup', '<rect/><text/>');
+            });
+
+            QUnit.test('attribute "x"', function(assert) {
+
+                var X = 23;
+
+                function testTextOffset(offset) {
+                    var text = cellView.vel.findOne('text');
+                    var tspans = text.find('tspan');
+                    tspans.forEach(function(tspan) {
+                        assert.equal(tspan.bbox(false, cellView.el).x, offset, 'Offset of "' + tspan.node.textContent + '""');
+                    });
+                }
+
+                assert.expect(6);
+
+                cell.attr({ text: { refX: null, x: X, text: 'single line - no refX and with x' }}, { dirty: true});
+                testTextOffset(X);
+
+                cell.attr({ text: { refX: X, x: X, text: 'single line - with refX and x' }}, { dirty: true});
+                testTextOffset(X + X);
+
+                cell.attr({ text: { refX: null, x: X, text: '1. line - no refX and with x\n2. line - no refX and with x' }}, { dirty: true});
+                testTextOffset(X);
+
+                cell.attr({ text: { refX: X, x: X, text: '1. line - with refX and x\n2. line - with refX and x' }}, { dirty: true});
+                testTextOffset(X + X);
+            });
+        });
     });
 });
