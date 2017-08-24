@@ -225,26 +225,6 @@ var joint = {
             return string.replace(/[A-Z]/g, '-$&').toLowerCase();
         },
 
-        // Copy all the properties to the first argument from the following arguments.
-        // All the properties will be overwritten by the properties from the following
-        // arguments. Inherited properties are ignored.
-        mixin: Object.assign,
-
-        // Copy all properties to the first argument from the following
-        // arguments only in case if they don't exists in the first argument.
-        // All the function propererties in the first argument will get
-        // additional property base pointing to the extenders same named
-        // property function's call method.
-        supplement: _.defaults,
-
-        // Same as `mixin()` but deep version.
-        deepMixin: _.mixin,
-
-        // Same as `supplement()` but deep version.
-        deepSupplement: _.defaultsDeep,
-
-        defaultsDeep: _.defaultsDeep,
-
         normalizeEvent: function(evt) {
 
             var touchEvt = evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches[0];
@@ -1451,12 +1431,6 @@ var joint = {
             return Object.hasOwnProperty.call(obj, key);
         },
 
-        merge: function(obj, ...args) {
-            return jQuery.extend(true, obj, ...args);
-        },
-
-        isPlainObject: jQuery.isPlainObject,
-
         each: function(object, callback) {
 
             if (!object) {
@@ -1491,18 +1465,48 @@ var joint = {
         bindAll: _.bindAll,
         camelCase: _.camelCase,
         defaults: _.defaults,
+        defaultsDeep: _.defaultsDeep,
         delay: _.delay,
         difference: _.difference,
         flattenDeep: _.flattenDeep,
         groupBy: _.groupBy,
         isEmpty: _.isEmpty,
+        isPlainObject: _.isPlainObject,
         isEqual: _.isEqual,
         reject: _.reject,
         result: _.result,
         sortBy: _.sortBy,
+        uniqueId: _.uniqueId,
+        without: _.without,
+
+        // Copy all the properties to the first argument from the following arguments.
+        // All the properties will be overwritten by the properties from the following
+        // arguments. Inherited properties are ignored.
+        mixin: Object.assign,
+
+        // Copy all properties to the first argument from the following
+        // arguments only in case if they don't exists in the first argument.
+        // All the function propererties in the first argument will get
+        // additional property base pointing to the extenders same named
+        // property function's call method.
+        supplement: _.defaults,
+
+        // Same as `mixin()` but deep version.
+        deepMixin: _.mixin,
+
+        // Same as `supplement()` but deep version.
+        deepSupplement: _.defaultsDeep,
+
+        // lodash 3 vs 4 incompatible
         sortedIndex: _.sortedIndexBy || _.sortedIndex,
         uniq: _.uniqBy || _.uniq,
-        uniqueId: _.uniqueId,
-        without: _.without
+        merge() {
+            if (_.mergeWith) {
+                return null;
+            }
+            return _.merge.apply(this, arguments);
+        },
+
+
     }
 };
