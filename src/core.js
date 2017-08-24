@@ -1502,7 +1502,11 @@ var joint = {
         uniq: _.uniqBy || _.uniq,
         merge() {
             if (_.mergeWith) {
-                return null;
+                _.mergeWith.apply(this, [...arguments, function(a,b) {
+                    if (Array.isArray(a) && !Array.isArray(b)) {
+                        return b;
+                    }
+                }])
             }
             return _.merge.apply(this, arguments);
         },
