@@ -20,46 +20,46 @@ module.exports = function(grunt) {
     var js = {
 
         core: [
-            'src/core.js',
-            'src/joint.mvc.view.js',
-            'src/joint.dia.graph.js',
-            'src/joint.dia.attributes.js',
-            'src/joint.dia.cell.js',
-            'src/joint.dia.element.js',
-            'src/joint.dia.link.js',
-            'src/joint.dia.paper.js',
-            'src/ports.js',
-            'plugins/shapes/joint.shapes.basic.js',
-            'plugins/routers/*.js',
-            'plugins/connectors/joint.connectors.normal.js',
-            'plugins/connectors/joint.connectors.rounded.js',
-            'plugins/connectors/joint.connectors.smooth.js',
-            'plugins/connectors/joint.connectors.jumpover.js',
-            'plugins/layout/ports/*.js',
-            'plugins/highlighters/*.js'
+            'build/es5/src/core.js',
+            'build/es5/src/joint.mvc.view.js',
+            'build/es5/src/joint.dia.graph.js',
+            'build/es5/src/joint.dia.attributes.js',
+            'build/es5/src/joint.dia.cell.js',
+            'build/es5/src/joint.dia.element.js',
+            'build/es5/src/joint.dia.link.js',
+            'build/es5/src/joint.dia.paper.js',
+            'build/es5/src/ports.js',
+            'build/es5/plugins/shapes/joint.shapes.basic.js',
+            'build/es5/plugins/routers/*.js',
+            'build/es5/plugins/connectors/joint.connectors.normal.js',
+            'build/es5/plugins/connectors/joint.connectors.rounded.js',
+            'build/es5/plugins/connectors/joint.connectors.smooth.js',
+            'build/es5/plugins/connectors/joint.connectors.jumpover.js',
+            'build/es5/plugins/layout/ports/*.js',
+            'build/es5/plugins/highlighters/*.js'
         ],
 
-        geometry: ['src/geometry.js'],
-        vectorizer: ['src/vectorizer.js'],
+        geometry: ['build/es5/src/geometry.js'],
+        vectorizer: ['build/es5/src/vectorizer.js'],
 
         polyfills: [
-            'plugins/polyfills/base64.js',
-            'plugins/polyfills/typedArray.js',
-            'plugins/polyfills/xhrResponse.js'
+            'build/es5/plugins/polyfills/base64.js',
+            'build/es5/plugins/polyfills/typedArray.js',
+            'build/es5/plugins/polyfills/xhrResponse.js'
         ],
 
         plugins: {
 
-            'shapes.erd': ['plugins/shapes/joint.shapes.erd.js'],
-            'shapes.fsa': ['plugins/shapes/joint.shapes.fsa.js'],
-            'shapes.org': ['plugins/shapes/joint.shapes.org.js'],
-            'shapes.chess': ['plugins/shapes/joint.shapes.chess.js'],
-            'shapes.pn': ['plugins/shapes/joint.shapes.pn.js'],
-            'shapes.devs': ['plugins/shapes/joint.shapes.devs.js'],
-            'shapes.uml': ['plugins/shapes/joint.shapes.uml.js'],
-            'shapes.logic': ['plugins/shapes/joint.shapes.logic.js'],
+            'shapes.erd': ['build/es5/plugins/shapes/joint.shapes.erd.js'],
+            'shapes.fsa': ['build/es5/plugins/shapes/joint.shapes.fsa.js'],
+            'shapes.org': ['build/es5/plugins/shapes/joint.shapes.org.js'],
+            'shapes.chess': ['build/es5/plugins/shapes/joint.shapes.chess.js'],
+            'shapes.pn': ['build/es5/plugins/shapes/joint.shapes.pn.js'],
+            'shapes.devs': ['build/es5/plugins/shapes/joint.shapes.devs.js'],
+            'shapes.uml': ['build/es5/plugins/shapes/joint.shapes.uml.js'],
+            'shapes.logic': ['build/es5/plugins/shapes/joint.shapes.logic.js'],
 
-            'layout.DirectedGraph': ['plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js']
+            'layout.DirectedGraph': ['build/es5/plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js']
         }
     };
 
@@ -142,14 +142,40 @@ module.exports = function(grunt) {
             dagre: {
                 entry: './node_modules/ciena-dagre/src/index.js',
                 output: {
-                    path: __dirname + '/node_modules/ciena-dagre/dist',
-                    filename: 'index.js',
+                    path: __dirname + '/build',
+                    filename: 'ciena-dagre.js',
                     library: 'dagre',
                     libraryTarget: 'var'
                 },
                 externals: {
                     'lodash': '_'
                 }
+            }
+        },
+        babel: {
+            joint: {
+                options: {
+                    sourceMap: false,
+                    presets: [
+                        /*
+                            `"modules": false` is needed to prevent `this` from being set to undefined. See:
+                            https://stackoverflow.com/questions/34973442/how-to-stop-babel-from-transpiling-this-to-undefined
+                        */
+                        [ 'babel-preset-es2015', { 'modules': false } ],
+                    ],
+                    plugins: [
+                        // Array.includes for IE
+                        "array-includes"
+                    ]
+                },
+                files: [
+                    {
+                        expand: true,
+                        cwd: './',
+                        src: ['src/**/*.js', 'plugins/**/*.js'],
+                        dest: 'build/es5'
+                    }
+                ]
             }
         },
         browserify: {
@@ -508,7 +534,7 @@ module.exports = function(grunt) {
             },
             deps: {
                 files: {
-                    'build/min/lodash.min.js': 'node_modules/lodash/index.js'
+                    'build/min/lodash.min.js': 'node_modules/lodash/lodash.js'
                 }
             },
             geometry: {
@@ -537,15 +563,7 @@ module.exports = function(grunt) {
                 tasks: ['build:docs']
             },
             joint: {
-                files: [].concat(
-                    js.polyfills,
-                    js.geometry,
-                    js.vectorizer,
-                    js.core,
-                    allJSPlugins(),
-                    css.core,
-                    allCSSPlugins()
-                ),
+                files: ['src/**/*.js', 'plugins/**/*.js'],
                 options: watchOptions,
                 tasks: ['build']
             },
@@ -760,23 +778,23 @@ module.exports = function(grunt) {
         return $('div').html(str).text();
     }
 
-    grunt.registerTask('concat:plugins', allPluginTasks.concat);
+    grunt.registerTask('concat:plugins', ['newer:babel:joint'].concat(allPluginTasks.concat));
     grunt.registerTask('cssmin:plugins', allPluginTasks.cssmin);
-    // grunt.registerTask('uglify:plugins', allPluginTasks.uglify);
+    grunt.registerTask('uglify:plugins', ['newer:babel:joint'].concat(allPluginTasks.uglify));
 
     grunt.registerTask('build:plugins', [
-        // 'uglify:plugins',
-        'newer:webpack:dagre',
+        'uglify:plugins',
+        'webpack:dagre',
         'cssmin:plugins',
         'concat:plugins'
     ]);
 
     grunt.registerTask('build:joint', [
         'build:plugins',
-        // 'newer:uglify:deps',
-        // 'newer:uglify:geometry',
-        // 'newer:uglify:vectorizer',
-        // 'newer:uglify:joint',
+        'newer:uglify:deps',
+        'newer:uglify:geometry',
+        'newer:uglify:vectorizer',
+        'newer:uglify:joint',
         'newer:cssmin:joint',
         'newer:concat:geometry',
         'newer:concat:vectorizer',
@@ -794,13 +812,13 @@ module.exports = function(grunt) {
     grunt.registerTask('build:docs', [
         'compileDocs:all',
         'syntaxHighlighting:docs',
-        // 'newer:copy:docs'
+        'newer:copy:docs'
     ]);
 
     grunt.registerTask('build:all', [
         'build:joint',
         'build:bundles',
-        // 'build:docs'
+        'build:docs'
     ]);
 
     grunt.registerTask('dist', [
