@@ -1483,6 +1483,24 @@ var g = (function() {
             }
 
             return Polyline(hullPoints);
+        },
+
+        bbox: function() {
+            var x1 = Infinity;
+            var x2 = -Infinity;
+            var y1 = Infinity;
+            var y2 = -Infinity;
+            var points = this.points;
+            for (var i = 0, n = points.length; i < n; i++) {
+                var point = points[i];
+                var x = point.x;
+                var y = point.y;
+                if (x < x1) { x1 = x; }
+                if (x > x2) { x2 = x; }
+                if (y < y1) { y1 = y; }
+                if (y > y2) { y2 = y; }
+            }
+            return Rect(x1, y1, x2 - x1, y2 - y1);
         }
     };
 
