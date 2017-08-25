@@ -1,7 +1,7 @@
 if (typeof exports === 'object') {
 
     var graphlib = require('graphlib');
-    var dagre = require('dagre');
+    var dagre = require('./ciena-dagre');
 }
 
 // In the browser, these variables are set to undefined because of JavaScript hoisting.

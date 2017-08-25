@@ -1404,7 +1404,7 @@ var joint = {
 
             let x = (collection || []);
             if (!Array.isArray(x)) {
-                x = Object.values(x);
+                x = Object.keys(x).map(key => x[key]);
             }
 
             return x.map(function(item) {

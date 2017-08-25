@@ -165,14 +165,21 @@ module.exports = function(grunt) {
                     ],
                     plugins: [
                         // Array.includes for IE
-                        "array-includes"
+                        // "array-includes"
                     ]
                 },
                 files: [
                     {
                         expand: true,
                         cwd: './',
-                        src: ['src/**/*.js', 'plugins/**/*.js'],
+                        src: [
+                            'src/**/*.js',
+                            'plugins/**/*.js',
+                            'build/ciena-dagre.js',
+
+                            // for IE11 only
+                            'test/**/*.js'
+                        ],
                         dest: 'build/es5'
                     }
                 ]
@@ -390,7 +397,7 @@ module.exports = function(grunt) {
                     },
                     {
                         nonull: true,
-                        src: 'node_modules/dagre/dist/dagre.min.js',
+                        src: 'build/min/ciena-dagre.min.js',
                         dest: 'build/docs/js/lib/dagre.min.js'
                     },
                     {
@@ -534,7 +541,8 @@ module.exports = function(grunt) {
             },
             deps: {
                 files: {
-                    'build/min/lodash.min.js': 'node_modules/lodash/lodash.js'
+                    'build/min/lodash.min.js': 'node_modules/lodash/lodash.js',
+                    'build/min/ciena-dagre.min.js': 'build/es5/build/ciena-dagre.js',
                 }
             },
             geometry: {
@@ -780,11 +788,10 @@ module.exports = function(grunt) {
 
     grunt.registerTask('concat:plugins', ['newer:babel:joint'].concat(allPluginTasks.concat));
     grunt.registerTask('cssmin:plugins', allPluginTasks.cssmin);
-    grunt.registerTask('uglify:plugins', ['newer:babel:joint'].concat(allPluginTasks.uglify));
+    grunt.registerTask('uglify:plugins', ['webpack:dagre', 'newer:babel:joint'].concat(allPluginTasks.uglify));
 
     grunt.registerTask('build:plugins', [
         'uglify:plugins',
-        'webpack:dagre',
         'cssmin:plugins',
         'concat:plugins'
     ]);

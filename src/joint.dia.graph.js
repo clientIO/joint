@@ -403,12 +403,12 @@ joint.dia.Graph = Backbone.Model.extend({
 
     getElements: function() {
 
-        return Object.entries(this._nodes).map((entry) => this.getCell(entry[0]));
+        return Object.keys(this._nodes).map(this.getCell.bind(this));
     },
 
     getLinks: function() {
 
-        return Object.entries(this._edges).map((entry) => this.getCell(entry[0]));
+        return Object.keys(this._edges).map(this.getCell.bind(this));
     },
 
     getFirstCell: function() {
