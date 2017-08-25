@@ -1279,7 +1279,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             evt.preventDefault();
 
             // Mouse moved counter.
-            var mousemoved = this._mousemoved++;
+            var mousemoved = ++this._mousemoved;
             if (mousemoved > this.options.moveThreshold) {
 
                 evt = joint.util.normalizeEvent(evt);

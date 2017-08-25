@@ -465,6 +465,26 @@ QUnit.module('paper', function(hooks) {
         });
     });
 
+    QUnit.test('paper.options: moveThreshold', function(assert) {
+
+        var graph = this.graph;
+        var paper = this.paper;
+        var el = (new joint.shapes.basic.Rect()).size(100, 100).position(0, 0).addTo(graph);
+        var elView = el.findView(paper);
+        var elRect = elView.el.querySelector('rect');
+        var spy = sinon.spy();
+
+        paper.options.moveThreshold = 2;
+        paper.on('element:pointermove', spy);
+        paper.pointerdown($.Event('mousedown', { target: elRect }));
+        paper.pointermove($.Event('mousemove', { target: elRect })); // Ignored
+        paper.pointermove($.Event('mousemove', { target: elRect })); // Ignored
+        paper.pointermove($.Event('mousemove', { target: elRect })); // Processed
+        paper.pointerup($.Event('mouseup', { target: elRect }));
+
+        assert.equal(spy.callOnce);
+    });
+
     QUnit.test('paper.options: linkPinning', function(assert) {
 
         assert.expect(5);
