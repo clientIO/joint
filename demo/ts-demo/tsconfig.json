@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"module": "es6",
-		"noImplicitAny" : false
+		"noImplicitAny" : true
 	},
 	"compileOnSave": false
 }

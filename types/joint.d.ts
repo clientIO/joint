@@ -192,20 +192,24 @@ export namespace dia {
 
         getEmbeddedCells(options?: {deep?: boolean, breadthFirst?: boolean}): Cell[];
 
-        initialize(options?: {id?: string}): void;
-
         isElement(): boolean;
 
         isEmbedded(): boolean;
-
-        processPorts(): void;
 
         startBatch(name: string, options?: object): this;
 
         stopBatch(name: string, options?: object): this;
 
         unembed(cell: Cell, options?: object): this;
-    }
+
+		/**
+         * @deprecated
+		 */
+		protected processPorts(): void;
+
+		protected initialize(options?: {id?: string}): void;
+
+	}
 
     type Padding = number | {
         top?: number;
@@ -456,24 +460,6 @@ export namespace dia {
         viewport: SVGGElement;
         defs: SVGDefsElement;
 
-        afterRenderViews(): void;
-
-        asyncRenderViews(cells: Cell[], options?: object): void;
-
-        beforeRenderViews(cells: Cell[]): Cell[];
-
-        bindDocumentEvents(): void;
-
-        cellMouseEnter(evt: Event): void;
-
-        cellMouseleave(evt: Event): void;
-
-        cellMouseout(evt: Event): void;
-
-        cellMouseover(evt: Event): void;
-
-        clearGrid(): this;
-
         clientMatrix(): SVGMatrix;
 
         clientToLocalPoint(x: number | g.Point, y?: number): g.Point;
@@ -485,8 +471,6 @@ export namespace dia {
         cloneOptions(): PaperOptions;
 
         cancelRenderViews(): void;
-
-        contextmenu(evt: Event): void;
 
         createViewForModel(cell: Cell): CellView;
 
@@ -527,8 +511,6 @@ export namespace dia {
 
         guard(evt: Event, view: CellView): boolean;
 
-        init(): void;
-
         isDefined(defId: string): boolean;
 
         linkAllowed(linkViewOrModel: LinkView | Link): boolean;
@@ -549,85 +531,96 @@ export namespace dia {
 
         matrix(ctm: SVGMatrix | Vectorizer.Matrix): this;
 
-        mouseclick(evt: Event): void;
+		pageOffset(): g.Point;
 
-        mousedblclick(evt: Event): void;
+		pageToLocalPoint(x: number | g.Point, y?: number): g.Point;
 
-        mousewheel(evt: Event): void;
+		pageToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
 
-        onCellAdded(cell: Cell, graph: Graph, options: {async?: boolean, position?: number}): void;
+		paperToLocalPoint(x: number | g.Point, y?: number): g.Point;
 
-        onCellHighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
+		paperToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
 
-        onCellUnhighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
+		remove(): this;
 
-        onRemove(): void;
+		render(): this;
 
-        pageOffset(): g.Point;
+		scale(): Vectorizer.Scale;
+		scale(sx: number, sy?: number, ox?: number, oy?: number): this;
 
-        pageToLocalPoint(x: number | g.Point, y?: number): g.Point;
+		scaleContentToFit(options?: ScaleContentOptions): void;
 
-        pageToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+		setDimensions(width: number, height: number): void;
 
-        paperToLocalPoint(x: number | g.Point, y?: number): g.Point;
+		setGrid(drawGrid: GridOptions | GridOptions[]): this;
 
-        paperToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+		setGridSize(gridSize: number): this;
 
-        pointerdown(evt: Event): void;
+		setInteractivity(value: any): void;
 
-        pointermove(evt: Event): void;
+		setOrigin(x: number, y: number): this;
 
-        pointerup(evt: Event): void;
+		snapToGrid(x: g.Point | number, y?: number): g.Point;
 
-        remove(): this;
+		sortViews(): void;
 
-        removeView(cell: Cell): CellView;
+		translate(): Vectorizer.Translation;
+		translate(tx: number, ty?: number): this;
 
-        removeViews(): void;
+		update(): void;
 
-        render(): this;
+		protected afterRenderViews(): void;
 
-        renderView(cell: Cell): CellView;
+		protected asyncRenderViews(cells: Cell[], options?: object): void;
 
-        resetViews(cellsCollection: Cell[], options: object): void;
+		protected beforeRenderViews(cells: Cell[]): Cell[];
 
-        resolveHighlighter(opt: {highlighter?: Highlighter}): boolean | {highlighter: Highlighter, options: object, name: string};
+		protected cellMouseEnter(evt: Event): void;
 
-        rotate(): Vectorizer.Rotation;
-        rotate(deg: number, ox?: number, oy?: number): this;      // @todo not released yet though it's in the source code already
+		protected cellMouseleave(evt: Event): void;
 
-        scale(): Vectorizer.Scale;
-        scale(sx: number, sy?: number, ox?: number, oy?: number): this;
+		protected cellMouseout(evt: Event): void;
 
-        scaleContentToFit(options?: ScaleContentOptions): void;
+		protected cellMouseover(evt: Event): void;
 
-        setDimensions(width: number, height: number): void;
+		protected contextmenu(evt: Event): void;
 
-        setGrid(drawGrid: GridOptions | GridOptions[]): this;
+        protected init(): void;
 
-        setGridSize(gridSize: number): this;
+		protected mouseclick(evt: Event): void;
 
-        setInteractivity(value: any): void;
+		protected mousedblclick(evt: Event): void;
 
-        setOrigin(x: number, y: number): this;
+		protected mousewheel(evt: Event): void;
 
-        snapToGrid(x: g.Point | number, y?: number): g.Point;
+		protected onCellAdded(cell: Cell, graph: Graph, options: {async?: boolean, position?: number}): void;
 
-        sortViews(): void;
+		protected onCellHighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
 
-        translate(): Vectorizer.Translation;
-        translate(tx: number, ty?: number): this;
+		protected onCellUnhighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
 
-        unbindDocumentEvents(): void;
+		protected onRemove(): void;
 
-        update(): void;
+		protected pointerdown(evt: Event): void;
 
-        updateBackgroundColor(color: string): void;
+		protected pointermove(evt: Event): void;
 
-        updateBackgroundImage(opt: {position?: any, size?: any}): void;
+		protected pointerup(evt: Event): void;
+
+        protected removeView(cell: Cell): CellView;
+
+		protected removeViews(): void;
+
+		protected renderView(cell: Cell): CellView;
+
+		protected resetViews(cellsCollection: Cell[], options: object): void;
+
+ 		protected updateBackgroundColor(color: string): void;
+
+		protected updateBackgroundImage(opt: {position?: any, size?: any}): void;
     }
 
-
+    //TODO v.talas used in attributes
     interface GradientOptions {
         type: 'linearGradient' | 'radialGradient';
         stops: Array<{
@@ -636,76 +629,43 @@ export namespace dia {
             opacity?: number;
         }>;
     }
-    class CellViewGeneric<T extends Backbone.Model> extends Backbone.View<T> {
-        constructor(options?: {id: string});
 
-        initialize(options?: object): void;
+    abstract class CellViewGeneric<T extends Backbone.Model> extends Backbone.View<T> {
+        constructor(options?: { id: string });
 
-        init(): void;
+        protected mouseover(evt: Event): void;
 
-        getBBox(options?: { useModelGeometry?: boolean }): g.Rect;
+        protected mousewheel(evt: Event, x: number, y: number, delta: number): void
 
-        highlight(el?: any, options?: object): this;
+        protected notify(eventName: string): void;
 
-        unhighlight(el?: any, options?: object): this;
+        protected onSetTheme(oldTheme: string, newTheme: string): void;
 
-        addThemeClassName(theme?: string): this;
+        protected pointerclick(evt: Event, x: number, y: number): void;
 
-        applyFilter(selector: string | HTMLElement, filter: object): void;
+        protected pointerdblclick(evt: Event, x: number, y: number): void;
 
-        applyGradient(selector: string | HTMLElement, attr: 'fill' | 'stroke', gradient: GradientOptions): void;
+        protected pointerdown(evt: Event, x: number, y: number): void;
+
+        protected pointermove(evt: Event, x: number, y: number): void;
+
+        protected pointerup(evt: Event, x: number, y: number): void;
+
+        unhighlight(el?: any, options?: any): this;
 
         can(feature: string): boolean;
 
-        contextmenu(evt: Event, x: number, y: number): void;
-
-        findBySelector(selector: string): JQuery;
-
-        findMagnet(el: SVGElement | JQuery): undefined | JQuery;
-
-        getEventNamespace(): string;
+        findMagnet(el: any): HTMLElement;
 
         getSelector(el: HTMLElement, prevSelector: string): string;
 
-        getStrokeBBox(el?: Vectorizer | string | SVGElement): g.Rect;
-
-        mouseenter(evt: Event): void;
-
-        mouseleave(evt: Event): void;
-
-        mouseout(evt: Event): void;
-
-        mouseover(evt: Event): void;
-
-        mousewheel(evt: Event, x: number, y: number, delta: number): void
-
-        notify(eventName: string, ...notifyArgs: any[]): void;
-
-        onChangeAttrs(cell: Cell, attrs: Backbone.ViewOptions<T>, options?: {dirty?: boolean}): this;
-
-        onSetTheme(oldTheme: string, newTheme: string): void;
-
-        onRemove(): void;
-
-        onRender(): void;
-
-        pointerclick(evt: Event, x: number, y: number): void;
-
-        pointerdblclick(evt: Event, x: number, y: number): void;
-
-        pointerdown(evt: Event, x: number, y: number): void;
-
-        pointermove(evt: Event, x: number, y: number): void;
-
-        pointerup(evt: Event, x: number, y: number): void;
+        getStrokeBBox(el: any): BBox; // string|HTMLElement|Vectorizer
 
         remove(): this;
 
-        removeThemeClassName(theme?: string): this;
-
         setInteractivity(value: any): void;
 
-        setTheme(theme: string, options?: {override?: boolean}): this;
+        setTheme(theme: string, options?: any): this;
     }
 
     class CellView extends CellViewGeneric<Cell> {
@@ -726,45 +686,24 @@ export namespace dia {
         "y-alignment"?: 'middle' | 'bottom' | number;
         port?: string;
     }
+
     class ElementView extends CellViewGeneric<Element> {
-        scale(sx: number, sy: number): void; // @todo Documented in source but not released
-        finalizeEmbedding(options?: {model?: Backbone.Model, paper?: Paper}): void;
 
         getBBox(options?: {useModelGeometry?: boolean}): g.Rect;
 
-        mouseenter(evt: Event): void;
-
-        mouseleave(evt: Event): void;
-
-        pointerdown(evt: Event, x: number, y: number): void;
-
-        pointermove(evt: Event, x: number, y: number): void;
-
-        pointerup(evt: Event, x: number, y: number): void;
-
-        positionRelative(vel: any, bbox: BBox, attributes: ElementViewAttributes, nodesBySelector?: Object): void; // Vectorizer
-
-        prepareEmbedding(options?: {model?: Backbone.Model, paper?: Paper}): void;
-
-        processEmbedding(options?: {model?: Backbone.Model, paper?: Paper}): void;
-
-        renderMarkup(): void;
-
-        resize(): void;
-        // cell and changed are not used in the method, but opt is.
-        resize(cell: any, changed: any, opt: object): void;
-
-        rotate(): void;
-
-        translate(): void;
-        // none of these args are used in the function body.
-        translate(model: Backbone.Model, changes?: any, options?: any): void;
-
         update(cell: Cell, renderingOnlyAttrs?: object): void;
 
-        applyPortTransform(element: Vectorizer,
-                           transformData: {dx: number, dy: number, angle: number,
-                                           attrs: object, x: number, y: number}, initialAngle: number): void;
+		protected mouseenter(evt: Event): void;
+
+		protected mouseleave(evt: Event): void;
+
+		protected pointerdown(evt: Event, x: number, y: number): void;
+
+		protected pointermove(evt: Event, x: number, y: number): void;
+
+		protected pointerup(evt: Event, x: number, y: number): void;
+
+        protected renderMarkup(): void;
     }
 
     class LinkView extends CellViewGeneric<Link> {
@@ -777,71 +716,40 @@ export namespace dia {
             sampleInterval: number
         };
 
-        getConnectionLength(): number;
+		getConnectionLength(): number;
 
-        sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
+		sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
 
-        addVertex(vertex: Point): number;
+		addVertex(vertex: Point): number;
 
-        getPointAtLength(length: number): g.Point; // Marked as public api in source but not in the documents
-        createWatcher(endType: { id: string }): (link: Link, end?: {id: string}) => this;
+		getPointAtLength(length: number): g.Point; // Marked as public api in source but not in the documents
+		createWatcher(endType: { id: string }): (link: Link, end?: {id: string}) => this;
 
-        findRoute(oldVertices: Point[]): Point[];
+		update(model: Cell, attributes: object, options?: object): this;
 
-        getConnectionPoint(end: 'source' | 'target', selectorOrPoint: Element | Point, referenceSelectorOrPoint: Element
-                               | Point): g.Point;
+        protected mouseenter(evt: Event): void;
 
-        getPathData(vertices: Point[]): string;
+		protected mouseleave(evt: Event): void;
 
-        mouseenter(evt: Event): void;
-
-        mouseleave(evt: Event): void;
-
-        onEndModelChange(endType: 'source' | 'target', endModel?: Element,
+		protected onEndModelChange(endType: 'source' | 'target', endModel?: Element,
                          opt?: {cacheOnly?: boolean, handleBy?: string, translateBy?: boolean, tx?: number, ty?: number}): void;
 
-        onLabelsChange(): void;
+		protected onLabelsChange(): void;
 
-        onSourceChange(cell: Cell, sourceEnd: { id: string }, options: object): void;
+		protected onSourceChange(cell: Cell, sourceEnd: { id: string }, options: object): void;
 
-        onTargetChange(cell: Cell, targetEnd: { id: string }, options: object): void;
+		protected onTargetChange(cell: Cell, targetEnd: { id: string }, options: object): void;
 
-        onToolsChange(): void;
+		protected onToolsChange(): void;
 
         // changed is not used in function body.
-        onVerticesChange(cell: Cell, changed: any, options: object): void;
+		protected onVerticesChange(cell: Cell, changed: any, options: object): void;
 
-        pointerdown(evt: Event, x: number, y: number): void;
+		protected pointerdown(evt: Event, x: number, y: number): void;
 
-        pointermove(evt: Event, x: number, y: number): void;
+		protected pointermove(evt: Event, x: number, y: number): void;
 
-        pointerup(evt: Event, x: number, y: number): void;
-
-        removeVertex(idx: number): this;
-
-        renderArrowheadMarkers(): this;
-
-        renderLabels(): this;
-
-        renderTools(): this;
-
-        renderVertexMarkers(): this;
-
-        startArrowheadMove(end: 'source' | 'target', options?: { whenNotAllowed: 'remove' | 'revert' }): void;
-
-        startListening(): void;
-
-        update(model: Cell, attributes: object, options?: object): this;
-
-        updateArrowheadMarkers(): this;
-
-        updateAttributes(): void;
-
-        updateConnection(options?: {translateBy?: any, tx?: number, ty?: number}): void;
-
-        updateLabelPositions(): this;
-
-        updateToolsPosition(): this;
+		protected pointerup(evt: Event, x: number, y: number): void;
     }
 }
 
@@ -977,12 +885,19 @@ export namespace shapes {
     }
 
     namespace devs {
+		/**
+		 * @deprecated
+		 */
         interface ModelAttributes extends GenericAttributes<dia.SVGAttributes> {
             inPorts?: string[];
             outPorts?: string[];
             ports?: Object;
         }
-        class Model extends basic.Generic {
+
+		/**
+         * @deprecated
+		 */
+		class Model extends basic.Generic {
             constructor(attributes?: ModelAttributes, options?: Object);
 
             changeInGroup(properties: any, opt?: any): boolean;
@@ -1001,9 +916,15 @@ export namespace shapes {
 
             removeInPort(port: string, opt?: any): this;
         }
+		/**
+		 * @deprecated
+		 */
         class Coupled extends Model {
             constructor(attributes?: ModelAttributes, options?: Object);
         }
+		/**
+		 * @deprecated
+		 */
         class Atomic extends Model {
             constructor(attributes?: ModelAttributes, options?: Object);
         }
@@ -1289,6 +1210,8 @@ export namespace util {
     export function shapePerimeterConnectionPoint(linkView: dia.LinkView, view: dia.ElementView, magnet: SVGElement, ref: dia.Point): dia.Point;
 
     export function imageToDataUri(url: string, callback: (err: Error, dataUri: string) => void): void;
+
+    export function toggleFullScreen(el?: Element): void;
 
     // Not documented but used in examples
     /** @deprecated use lodash _.defaultsDeep */
