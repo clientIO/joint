@@ -482,7 +482,7 @@ QUnit.module('paper', function(hooks) {
         paper.pointermove($.Event('mousemove', { target: elRect })); // Processed
         paper.pointerup($.Event('mouseup', { target: elRect }));
 
-        assert.equal(spy.callOnce);
+        assert.ok(spy.calledOnce);
     });
 
     QUnit.test('paper.options: linkPinning', function(assert) {
