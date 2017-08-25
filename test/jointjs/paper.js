@@ -831,7 +831,7 @@ QUnit.module('paper', function(hooks) {
 
         var getGridVel = function(paper) {
             var image = paper.$grid.css('backgroundImage').replace(/url\("*|"*\)/g, '').replace('data:image/svg+xml;base64,', '');
-            return V(atob(image));
+            return image !== 'none' ?  V(atob(image)) : '';
         };
 
         var preparePaper = function(drawGrid, paperSettings) {
@@ -853,7 +853,6 @@ QUnit.module('paper', function(hooks) {
 
             return paper;
         };
-
 
         QUnit.test('no grid', function(assert) {
 

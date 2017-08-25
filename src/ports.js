@@ -497,9 +497,9 @@
             var elementReferences = [];
             var elem = this._getContainerElement();
 
-            (elem.node.childNodes || []).forEach(function(n) {
-                elementReferences.push(n);
-            });
+            for (let i = 0, count = elem.node.childNodes.length; i < count; i++) {
+                elementReferences.push(elem.node.childNodes[i]);
+            }
 
             var portsGropsByZ = joint.util.groupBy(this.model._portSettingsData.getPorts(), 'z');
             var withoutZKey = 'auto';
