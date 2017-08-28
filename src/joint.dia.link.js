@@ -1725,6 +1725,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         } else if (this._action === 'arrowhead-move') {
 
+            var model = this.model;
             var paper = this.paper;
             var paperOptions = paper.options;
             var arrowhead = this._arrowhead;
@@ -1766,7 +1767,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     var arrowheadValue = { id: viewUnderPointer.model.id };
                     if (port != null) arrowheadValue.port = port;
                     if (selector != null) arrowheadValue.selector = selector;
-                    this.model.set(arrowhead, arrowheadValue, { ui: true });
+                    model.set(arrowhead, arrowheadValue, { ui: true });
                 }
             }
 
@@ -1776,32 +1777,33 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 switch (this._whenNotAllowed) {
 
                     case 'remove':
-                        this.model.remove();
+                        model.remove({ ui: true });
                         break;
 
                     case 'revert':
                     default:
-                        this.model.set(arrowhead, initialEnd, { ui: true });
+                        model.set(arrowhead, initialEnd, { ui: true });
                         break;
                 }
-            }
 
-            // Reparent the link if embedding is enabled
-            if (paperOptions.embeddingMode && this.model.reparent()) {
-                // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
-                this._z = null;
-            }
+            } else {
 
-            var currentEnd = this.model.prop(arrowhead) || {};
-            var endChanged = !joint.dia.Link.endsEqual(initialEnd, currentEnd);
-
-            if (endChanged) {
-
-                if (initialEnd.id) {
-                    this.notify('link:disconnect', evt, paper.findViewByModel(initialEnd.id), this._initialMagnet, arrowhead);
+                // Reparent the link if embedding is enabled
+                if (paperOptions.embeddingMode && model.reparent()) {
+                    // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
+                    this._z = null;
                 }
-                if (currentEnd.id) {
-                    this.notify('link:connect', evt, paper.findViewByModel(currentEnd.id), magnetUnderPointer, arrowhead);
+
+                var currentEnd = model.prop(arrowhead);
+                var endChanged = currentEnd && !joint.dia.Link.endsEqual(initialEnd, currentEnd);
+                if (endChanged) {
+
+                    if (initialEnd.id) {
+                        this.notify('link:disconnect', evt, paper.findViewByModel(initialEnd.id), this._initialMagnet, arrowhead);
+                    }
+                    if (currentEnd.id) {
+                        this.notify('link:connect', evt, paper.findViewByModel(currentEnd.id), magnetUnderPointer, arrowhead);
+                    }
                 }
             }
 
