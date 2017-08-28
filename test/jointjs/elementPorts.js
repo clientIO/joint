@@ -109,7 +109,7 @@ QUnit.module('element ports', function() {
 
             var idObject = {};
             var ports = [
-                true,
+                {},
                 { id: 'aaa', 'group_id': 'in' },
                 { id: 'xxx', 'group_id': 'in' },
                 { x: 'whatever' },

@@ -73,8 +73,9 @@
 
         _init: function(data) {
 
+            let groupData = data.groups || {};
             // prepare groups
-            Object.entries(data.groups || {}).forEach(pair => { this.groups[pair[0]] = this._evaluateGroup(pair[1]); });
+            Object.keys(groupData).forEach(key => {this.groups[key] = this._evaluateGroup(groupData[key])});
             // prepare ports
             this.ports = (data.items || []).map(this._evaluatePort.bind(this));
         },
@@ -350,6 +351,11 @@
             var ports = portsAttr.items || [];
 
             ports.forEach(p => {
+
+                if (typeof p !== 'object') {
+                    errorMessages.push('Element: invalid port ', p);
+                }
+
                 if (!this._isValidPortId(p.id)) {
                     p.id = joint.util.uuid();
                 }
