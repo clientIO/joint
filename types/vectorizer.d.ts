@@ -21,6 +21,7 @@ export namespace Vectorizer {
         attrs: object;
     }
     interface TextOptions {
+        eol: string,
         lineHeight: number | string;
         textPath: string | object;
         annotations: TextAnnotation[];
