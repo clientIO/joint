@@ -89,7 +89,9 @@ var Jigsaw = {
             model: graph
         }).on({
             'cell:pointerdown': function(pieceView) {
-                pieceView.model.toFront();
+                setTimeout(function() {
+                    pieceView.model.toFront();
+                }, 100);
                 pieceView.highlight('polygon');
             },
             'cell:pointerup': function(pieceView) {
