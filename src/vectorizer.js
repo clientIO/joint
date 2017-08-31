@@ -403,7 +403,7 @@ V = Vectorizer = (function() {
             // See also `http://apike.ca/prog_svg_text_style.html`.
             var y = this.attr('y');
             if (!y || fstLineHeight) {
-                this.attr('y', fstLineHeight || '0.8');
+                this.attr('y', fstLineHeight || '0.8em');
             }
 
             V(textNode).append(vLine);
