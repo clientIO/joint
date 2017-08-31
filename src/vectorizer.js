@@ -250,6 +250,7 @@ V = Vectorizer = (function() {
         // IE would otherwise collapse all spaces into one.
         content = V.sanitizeText(content);
         opt = opt || {};
+        var eol = opt.eol;
         var lines = content.split('\n');
         var tspan;
 
@@ -363,15 +364,15 @@ V = Vectorizer = (function() {
                                 tspan.addClass(annotation.attrs['class']);
                             }
 
-                            if (opt.eol && j === lastJ && i !== lastI) {
-                                annotation.t += opt.eol;
+                            if (eol && j === lastJ && i !== lastI) {
+                                annotation.t += eol;
                             }
                             tspan.node.textContent = annotation.t;
 
                         } else {
 
-                            if (opt.eol && j === lastJ && i !== lastI) {
-                                annotation += opt.eol;
+                            if (eol && j === lastJ && i !== lastI) {
+                                annotation += eol;
                             }
                             tspan = document.createTextNode(annotation || ' ');
                         }
@@ -385,8 +386,8 @@ V = Vectorizer = (function() {
 
                 } else {
 
-                    if (opt.eol && i !== lastI) {
-                        line += opt.eol;
+                    if (eol && i !== lastI) {
+                        line += eol;
                     }
 
                     vLine.node.textContent = line;

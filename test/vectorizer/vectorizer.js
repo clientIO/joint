@@ -184,6 +184,23 @@ QUnit.module('vectorizer', function(hooks) {
             svg.remove();
         });
 
+        QUnit.test('custom EOL', function(assert) {
+
+            var svg = getSvg();
+            var t = V('text', { x: 250, dy: 100, fill: 'black' });
+
+            t.text('abc\ndef', { eol: 'X' });
+
+            assert.equal(t.node.childNodes[0].textContent, 'abcX');
+            assert.equal(t.node.childNodes[1].textContent, 'def');
+
+            t.text('abc\ndef\n', { eol: 'X' });
+
+            assert.equal(t.node.childNodes[0].textContent, 'abcX');
+            assert.equal(t.node.childNodes[1].textContent, 'defX');
+            svg.remove();
+        });
+
         QUnit.test('includeAnnotationIndices', function(assert) {
 
             var svg = getSvg();
