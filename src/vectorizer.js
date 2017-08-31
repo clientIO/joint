@@ -328,7 +328,7 @@ V = Vectorizer = (function() {
             }
             var vLine = V('tspan', vLineAttributes);
 
-            var fstLineHeight = 0;
+            var firstLineHeight = 0;
             var line = lines[i];
             if (line) {
 
@@ -343,7 +343,7 @@ V = Vectorizer = (function() {
                         var annotation = lineAnnotations[j];
                         if (V.isObject(annotation)) {
 
-                            var fontSize = parseInt(annotation.attrs['font-size'], 10);
+                            var fontSize = parseFloat(annotation.attrs['font-size']);
                             if (fontSize && fontSize > maxFontSize) {
                                 maxFontSize = fontSize;
                             }
@@ -380,7 +380,7 @@ V = Vectorizer = (function() {
                 }
 
                 if (i === 0) {
-                    fstLineHeight = maxFontSize || 0;
+                    firstLineHeight = maxFontSize;
                 }
             } else {
 
@@ -402,8 +402,8 @@ V = Vectorizer = (function() {
             // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
             // See also `http://apike.ca/prog_svg_text_style.html`.
             var y = this.attr('y');
-            if (!y || fstLineHeight) {
-                this.attr('y', fstLineHeight || '0.8em');
+            if (!y || firstLineHeight) {
+                this.attr('y', firstLineHeight || '0.8em');
             }
 
             V(textNode).append(vLine);
