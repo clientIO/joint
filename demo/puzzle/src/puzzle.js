@@ -89,6 +89,7 @@ var Jigsaw = {
             model: graph
         }).on({
             'cell:pointerdown': function(pieceView) {
+                // temporary fix for chrome according to https://bugs.chromium.org/p/chromium/issues/detail?id=716694
                 setTimeout(function() {
                     pieceView.model.toFront();
                 }, 100);
