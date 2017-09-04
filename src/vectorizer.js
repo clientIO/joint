@@ -253,17 +253,6 @@ V = Vectorizer = (function() {
         var lines = content.split('\n');
         var tspan;
 
-        // `alignment-baseline` does not work in Firefox.
-        // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
-        // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
-        // in the top left corner we translate the `<text>` element by `0.8em`.
-        // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
-        // See also `http://apike.ca/prog_svg_text_style.html`.
-        var y = this.attr('y');
-        if (!y) {
-            this.attr('y', '0.8em');
-        }
-
         // An empty text gets rendered into the DOM in webkit-based browsers.
         // In order to unify this behaviour across all browsers
         // we rather hide the text element when it's empty.
@@ -328,6 +317,7 @@ V = Vectorizer = (function() {
             lineHeight = '1.5em';
         }
 
+        var firstLineHeight = 0;
         for (var i = 0; i < lines.length; i++) {
 
             var vLineAttributes = { 'class': 'v-line' };
@@ -342,10 +332,9 @@ V = Vectorizer = (function() {
             var line = lines[i];
             if (line) {
 
+                // Get the line height based on the biggest font size in the annotations for this line.
+                var maxFontSize = 0;
                 if (opt.annotations) {
-
-                    // Get the line height based on the biggest font size in the annotations for this line.
-                    var maxFontSize = 0;
 
                     // Find the *compacted* annotations for this line.
                     var lineAnnotations = V.annotateString(lines[i], V.isArray(opt.annotations) ? opt.annotations : [opt.annotations], { offset: -offset, includeAnnotationIndices: opt.includeAnnotationIndices });
@@ -354,7 +343,7 @@ V = Vectorizer = (function() {
                         var annotation = lineAnnotations[j];
                         if (V.isObject(annotation)) {
 
-                            var fontSize = parseInt(annotation.attrs['font-size'], 10);
+                            var fontSize = parseFloat(annotation.attrs['font-size']);
                             if (fontSize && fontSize > maxFontSize) {
                                 maxFontSize = fontSize;
                             }
@@ -390,6 +379,9 @@ V = Vectorizer = (function() {
                     vLine.node.textContent = line;
                 }
 
+                if (i === 0) {
+                    firstLineHeight = maxFontSize;
+                }
             } else {
 
                 // Make sure the textContent is never empty. If it is, add a dummy
@@ -406,6 +398,17 @@ V = Vectorizer = (function() {
             V(textNode).append(vLine);
 
             offset += line.length + 1;      // + 1 = newline character.
+        }
+
+        // `alignment-baseline` does not work in Firefox.
+        // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
+        // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
+        // in the top left corner we translate the `<text>` element by `0.8em`.
+        // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
+        // See also `http://apike.ca/prog_svg_text_style.html`.
+        var y = this.attr('y');
+        if (y === null) {
+            this.attr('y', firstLineHeight || '0.8em');
         }
 
         return this;
