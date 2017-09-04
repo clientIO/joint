@@ -250,6 +250,7 @@ V = Vectorizer = (function() {
         // IE would otherwise collapse all spaces into one.
         content = V.sanitizeText(content);
         opt = opt || {};
+        var eol = opt.eol;
         var lines = content.split('\n');
         var tspan;
 
@@ -329,6 +330,7 @@ V = Vectorizer = (function() {
             }
             var vLine = V('tspan', vLineAttributes);
 
+            var lastI = lines.length - 1;
             var line = lines[i];
             if (line) {
 
@@ -338,6 +340,8 @@ V = Vectorizer = (function() {
 
                     // Find the *compacted* annotations for this line.
                     var lineAnnotations = V.annotateString(lines[i], V.isArray(opt.annotations) ? opt.annotations : [opt.annotations], { offset: -offset, includeAnnotationIndices: opt.includeAnnotationIndices });
+
+                    var lastJ = lineAnnotations.length - 1;
                     for (var j = 0; j < lineAnnotations.length; j++) {
 
                         var annotation = lineAnnotations[j];
@@ -359,12 +363,18 @@ V = Vectorizer = (function() {
                             if (annotation.attrs['class']) {
                                 tspan.addClass(annotation.attrs['class']);
                             }
+
+                            if (eol && j === lastJ && i !== lastI) {
+                                annotation.t += eol;
+                            }
                             tspan.node.textContent = annotation.t;
 
                         } else {
 
+                            if (eol && j === lastJ && i !== lastI) {
+                                annotation += eol;
+                            }
                             tspan = document.createTextNode(annotation || ' ');
-
                         }
                         vLine.append(tspan);
                     }
@@ -375,6 +385,10 @@ V = Vectorizer = (function() {
                     }
 
                 } else {
+
+                    if (eol && i !== lastI) {
+                        line += eol;
+                    }
 
                     vLine.node.textContent = line;
                 }

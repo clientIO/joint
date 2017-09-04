@@ -122,58 +122,120 @@ QUnit.module('vectorizer', function(hooks) {
         assert.equal(V(svgCircle).index(), 1, 'The second node in the group has index 1.');
     });
 
-    QUnit.test('text', function(assert) {
 
-        var svg = V('svg');
-        svg.attr('width', 600);
-        svg.attr('height', 800);
-        $fixture.append(svg.node);
+    QUnit.module('text', function() {
 
-        var t = V('text', { x: 250, dy: 100, fill: 'black' });
-        t.text('abc');
+        var getSvg = function() {
+            var svg = V('svg');
+            svg.attr('width', 600);
+            svg.attr('height', 800);
+            $fixture.append(svg.node);
 
-        assert.equal(t.node.childNodes.length, 1, 'There is only one child node which is a v-line node.');
-        assert.equal(t.node.childNodes[0].childNodes.length, 1, 'There is only one child of that v-line node which is a text node.');
-        assert.equal(serializeNode(t.node.childNodes[0].childNodes[0]), 'abc', 'Generated text is ok for a single line and no annotations.');
-        assert.equal(t.attr('fill'), 'black', 'fill attribute set');
-        assert.equal(t.attr('x'), '250', 'x attribute set');
-        assert.equal(t.attr('dy'), '100', 'dy attribute set');
+            return svg;
+        };
 
-        t.text('abc\ndef');
+        QUnit.test('single line, styles, position', function(assert) {
 
-        assert.equal(t.node.childNodes.length, 2, 'There are two child nodes one for each line.');
+            var svg = getSvg();
+            var t = V('text', { x: 250, dy: 100, fill: 'black' });
 
-        t.text('abcdefgh', { annotations: [
-            { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
-            { start: 2, end: 5, attrs: { fill: 'blue' } }
-        ] });
+            t.text('abc');
 
-        assert.equal(t.find('.v-line').length, 1, 'One .v-line element rendered');
+            assert.equal(t.node.childNodes.length, 1, 'There is only one child node which is a v-line node.');
+            assert.equal(t.node.childNodes[0].childNodes.length, 1, 'There is only one child of that v-line node which is a text node.');
+            assert.equal(serializeNode(t.node.childNodes[0].childNodes[0]), 'abc', 'Generated text is ok for a single line and no annotations.');
+            assert.equal(t.attr('fill'), 'black', 'fill attribute set');
+            assert.equal(t.attr('x'), '250', 'x attribute set');
+            assert.equal(t.attr('dy'), '100', 'dy attribute set');
 
-        assert.equal(t.find('tspan').length, 4, '4 tspans rendered in total');
+            svg.remove();
+        });
 
-        t.text('abcd\nefgh', { annotations: [
-            { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
-            { start: 2, end: 5, attrs: { fill: 'blue' } }
-        ] });
+        QUnit.test('multi-line and annotations', function(assert) {
 
-        assert.equal(t.find('.v-line').length, 2, 'Two .v-line elements rendered');
-        assert.equal(t.find('tspan').length, 5, '5 tspans rendered in total');
+            var svg = getSvg();
+            var t = V('text', { x: 250, dy: 100, fill: 'black' });
 
-        t.text('abcdefgh', { includeAnnotationIndices: true, annotations: [
-            { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
-            { start: 2, end: 5, attrs: { fill: 'blue' } }
-        ] });
-        assert.equal(V(t.find('tspan')[1]).attr('annotations'), '0', 'annotation indices added as an attribute');
-        assert.equal(V(t.find('tspan')[2]).attr('annotations'), '0,1', 'annotation indices added as an attribute');
-        assert.equal(V(t.find('tspan')[3]).attr('annotations'), '1', 'annotation indices added as an attribute');
+            t.text('abc\ndef');
 
-        t.text('');
-        assert.equal(t.attr('display'), 'none');
-        t.text('text');
-        assert.equal(t.attr('display'), null);
+            assert.equal(t.node.childNodes.length, 2, 'There are two child nodes one for each line.');
 
-        svg.remove();
+            t.text('abcdefgh', {
+                annotations: [
+                    { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
+                    { start: 2, end: 5, attrs: { fill: 'blue' } }
+                ]
+            });
+
+            assert.equal(t.find('.v-line').length, 1, 'One .v-line element rendered');
+
+            assert.equal(t.find('tspan').length, 4, '4 tspans rendered in total');
+
+            t.text('abcd\nefgh', {
+                annotations: [
+                    { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
+                    { start: 2, end: 5, attrs: { fill: 'blue' } }
+                ]
+            });
+
+            assert.equal(t.find('.v-line').length, 2, 'Two .v-line elements rendered');
+            assert.equal(t.find('tspan').length, 5, '5 tspans rendered in total');
+
+            svg.remove();
+        });
+
+        QUnit.test('custom EOL', function(assert) {
+
+            var svg = getSvg();
+            var t = V('text', { x: 250, dy: 100, fill: 'black' });
+
+            t.text('abc\ndef', { eol: 'X' });
+
+            assert.equal(t.node.childNodes[0].textContent, 'abcX');
+            assert.equal(t.node.childNodes[1].textContent, 'def');
+
+            t.text('abc\ndef\n', { eol: 'X' });
+
+            assert.equal(t.node.childNodes[0].textContent, 'abcX');
+            assert.equal(t.node.childNodes[1].textContent, 'defX');
+            svg.remove();
+        });
+
+        QUnit.test('includeAnnotationIndices', function(assert) {
+
+            var svg = getSvg();
+            var t = V('text', { x: 250, dy: 100, fill: 'black' });
+
+            t.text('abcdefgh', {
+                includeAnnotationIndices: true, annotations: [
+                    { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
+                    { start: 2, end: 5, attrs: { fill: 'blue' } }
+                ]
+            });
+            assert.equal(V(t.find('tspan')[1]).attr('annotations'), '0', 'annotation indices added as an attribute');
+            assert.equal(V(t.find('tspan')[2]).attr('annotations'), '0,1', 'annotation indices added as an attribute');
+            assert.equal(V(t.find('tspan')[3]).attr('annotations'), '1', 'annotation indices added as an attribute');
+
+            t.text('');
+            assert.equal(t.attr('display'), 'none');
+            t.text('text');
+            assert.equal(t.attr('display'), null);
+
+            svg.remove();
+        });
+
+        QUnit.test('visibility', function(assert) {
+
+            var svg = getSvg();
+            var t = V('text', { x: 250, dy: 100, fill: 'black' });
+
+            t.text('');
+            assert.equal(t.attr('display'), 'none');
+            t.text('text');
+            assert.equal(t.attr('display'), null);
+
+            svg.remove();
+        });
     });
 
     QUnit.test('annotateString', function(assert) {
