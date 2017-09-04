@@ -1,6 +1,6 @@
 var Board = joint.dia.Paper.extend({
 
-    options: _.extend(joint.dia.Paper.prototype.options, {
+    options: Object.assign(joint.dia.Paper.prototype.options, {
 
         letters: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
 
@@ -60,12 +60,12 @@ var Board = joint.dia.Paper.extend({
 
         this.model.resetCells();
 
-        _.each(this.options.startup, this.addPiece, this);
+        _.each(this.options.startup, this.addPiece.bind(this));
     },
 
     at: function(square) {
 
-        return _.pluck(this.findViewsFromPoint(this._mid(this._n2p(square))), 'model');
+        return this.findViewsFromPoint(this._mid(this._n2p(square))).map(({ model }) => model);
     },
 
     addPiece: function(piece, square) {
@@ -81,11 +81,11 @@ var Board = joint.dia.Paper.extend({
 
         if (!this.options.animation || opts.animation === false) {
 
-            _.invoke(pc, 'set', 'position', this._n2p(to));
+            joint.util.invoke(pc, 'set', 'position', this._n2p(to));
 
         } else {
 
-            _.invoke(pc, 'transition', 'position', this._n2p(to), {
+            joint.util.invoke(pc, 'transition', 'position', this._n2p(to), {
                 valueFunction: joint.util.interpolate.object
             });
         }
@@ -127,12 +127,12 @@ var Board = joint.dia.Paper.extend({
                     return g.point(p1).distance(p0);
                 });
             })
-            .each(_.compose(_.partial(this.addPointer, from), this._p2n), this);
+            .each(_.flowRight(_.partial(this.addPointer, from), this._p2n), this);
     },
     
     removePointers: function() {
 
-        _.invoke(this.model.getLinks(), 'remove');
+        joint.util.invoke(this.model.getLinks(), 'remove');
     },
 
     _p2n: function(p) {
@@ -165,7 +165,7 @@ var Chessboard = Board.extend({
         var to = FormatSquare((mv >> 8) & 0xFF);
         var opts = { animation: transition };
 
-        _.invoke(this.at(to), 'remove');
+        joint.util.invoke(this.at(to), 'remove');
 
         board.movePiece(from, to, opts);
 
@@ -173,7 +173,7 @@ var Chessboard = Board.extend({
 
             var promote = _.bind(function(color) {
 
-                _.invoke(this.at(to), 'remove');
+                joint.util.invoke(this.at(to), 'remove');
                 this.addPiece('Queen' + color, to);
 
             }, this, (g_toMove ? 'White' : 'Black'));
@@ -194,7 +194,7 @@ var Chessboard = Board.extend({
 
         } else if (mv & moveflagEPC) {
 
-            _.invoke(this.at(to[0] + from[1]), 'remove');
+            joint.util.invoke(this.at(to[0] + from[1]), 'remove');
 	}
 
         var msg = ['message', g_moveCount, GetMoveSAN(mv), ''];
@@ -214,7 +214,7 @@ var Chessboard = Board.extend({
     getMove: function(from, to) {
 
         var s = from + to;
-        return _.find(GenerateValidMoves(), _.compose(function(m) {
+        return GenerateValidMoves().find(_.flowRight(function(m) {
             return m == s || m == s + 'q';
         }, FormatMove));
     },

@@ -11,10 +11,10 @@ QUnit.module('util', function(hooks) {
         var hexColorInterpolation = joint.util.interpolate.hexColor('#FFFFFF', '#00FF77');
         var unitInterpolation = joint.util.interpolate.unit('1em', '0.50em');
 
-        var numberArray = _.map(values, numberInterpolation);
-        var objectArray = _.map(values, objectInterpolation);
-        var hexColorArray = _.map(values, hexColorInterpolation);
-        var unitArray = _.map(values, unitInterpolation);
+        var numberArray = values.map(numberInterpolation);
+        var objectArray = values.map(objectInterpolation);
+        var hexColorArray = values.map(hexColorInterpolation);
+        var unitArray = values.map(unitInterpolation);
 
         deepEqual(numberArray, [
             0, 25, 50, 75, 100
@@ -75,21 +75,21 @@ QUnit.module('util', function(hooks) {
 
         equal(joint.util.breakText(text, { width: 0, height: 0 }, styles), '', 'A text was correctly broken when zero width and height provided.');
 
-        ok(_.contains(joint.util.breakText(text, { width: 100 }, styles), '\n'),
+        ok(_.includes(joint.util.breakText(text, { width: 100 }, styles), '\n'),
            'A text was broken when width A specified.');
 
-        ok(_.contains(joint.util.breakText(text, { width: 15 }, styles), '\n'), 'A text was broken when width B specified.');
+        ok(_.includes(joint.util.breakText(text, { width: 15 }, styles), '\n'), 'A text was broken when width B specified.');
 
         var brokenText = joint.util.breakText(text, { width: 100, height: 40 }, styles);
 
-        ok(_.contains(brokenText, 'Lorem') && !_.contains(brokenText, 'elit.'), 'A text was trimmed when width & height specified.');
+        ok(_.includes(brokenText, 'Lorem') && !_.includes(brokenText, 'elit.'), 'A text was trimmed when width & height specified.');
 
-        brokenText = joint.util.breakText(text, { width: 100, height: 50 }, _.extend({}, styles, { 'font-size': '18px' }));
+        brokenText = joint.util.breakText(text, { width: 100, height: 50 }, Object.assign({}, styles, { 'font-size': '18px' }));
 
-        ok(_.contains(brokenText, '\n') || !_.contains(brokenText, 'elit.'), 'A text was broken when style specified.');
+        ok(_.includes(brokenText, '\n') || !_.includes(brokenText, 'elit.'), 'A text was broken when style specified.');
 
         throws(function() {
-            joint.util.breakText(text, { width: 100, height: 50 }, _.extend({}, styles, { 'font-size': '18px' }), { svgDocument: 'not-svg' });
+            joint.util.breakText(text, { width: 100, height: 50 }, Object.assign({}, styles, { 'font-size': '18px' }), { svgDocument: 'not-svg' });
         }, /appendChild|undefined/, 'A custom svgDocument provided was recognized.');
     });
 
@@ -374,7 +374,7 @@ QUnit.module('util', function(hooks) {
             assert.equal(joint.util.addClassNamePrefix(undefined), undefined);
             assert.equal(joint.util.addClassNamePrefix(0), 0);
             assert.equal(joint.util.addClassNamePrefix(''), '');
-            assert.ok(_.isNaN(joint.util.addClassNamePrefix(NaN)));
+            assert.ok(Number.isNaN(joint.util.addClassNamePrefix(NaN)));
         });
 
         QUnit.test('non-string value provided', function(assert) {
@@ -406,7 +406,7 @@ QUnit.module('util', function(hooks) {
             assert.equal(joint.util.removeClassNamePrefix(undefined), undefined);
             assert.equal(joint.util.removeClassNamePrefix(0), 0);
             assert.equal(joint.util.removeClassNamePrefix(''), '');
-            assert.ok(_.isNaN(joint.util.removeClassNamePrefix(NaN)));
+            assert.ok(Number.isNaN(joint.util.removeClassNamePrefix(NaN)));
         });
 
         QUnit.test('non-string value provided', function(assert) {
@@ -462,7 +462,7 @@ QUnit.module('util', function(hooks) {
 
             _.each(someObject, function(fn, method) {
 
-                if (_.contains(methods, method)) {
+                if (_.includes(methods, method)) {
                     // Should be wrapped.
                     assert.equal(someObject[method], innerWrapper);
                 } else {
@@ -494,7 +494,7 @@ QUnit.module('util', function(hooks) {
 
             _.each(someObject, function(fn, method) {
 
-                if (_.contains(methods, method)) {
+                if (_.includes(methods, method)) {
                     // Should be wrapped.
                     assert.equal(someObject[method], innerWrapper);
                 } else {
@@ -532,9 +532,9 @@ QUnit.module('util', function(hooks) {
             QUnit.test('fn([cell, cell, cell], opt)', function(assert) {
 
                 var fn = joint.util.wrappers.cells(function(cells, opt) {
-                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(Array.isArray(cells), 'cells is an array');
                     assert.ok(_.isEqual(cells, expected.cells), 'cells is as expected');
-                    assert.ok(_.isObject(opt), 'opt is an object');
+                    assert.ok(joint.util.isObject(opt), 'opt is an object');
                     assert.ok(_.isEqual(opt, expected.opt), 'opt is as expected');
                 });
 
@@ -544,9 +544,9 @@ QUnit.module('util', function(hooks) {
             QUnit.test('fn([cell, cell, cell])', function(assert) {
 
                 var fn = joint.util.wrappers.cells(function(cells, opt) {
-                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(Array.isArray(cells), 'cells is an array');
                     assert.ok(_.isEqual(cells, expected.cells), 'cells is as expected');
-                    assert.ok(_.isObject(opt), 'opt is an object');
+                    assert.ok(joint.util.isObject(opt), 'opt is an object');
                     assert.ok(_.isEqual(opt, {}), 'opt is an empty object');
                 });
 
@@ -556,9 +556,9 @@ QUnit.module('util', function(hooks) {
             QUnit.test('fn(cell, cell, cell)', function(assert) {
 
                 var fn = joint.util.wrappers.cells(function(cells, opt) {
-                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(Array.isArray(cells), 'cells is an array');
                     assert.ok(_.isEqual(cells, expected.cells), 'cells is as expected');
-                    assert.ok(_.isObject(opt), 'opt is an object');
+                    assert.ok(joint.util.isObject(opt), 'opt is an object');
                     assert.ok(_.isEqual(opt, {}), 'opt is an empty object');
                 });
 
@@ -568,9 +568,9 @@ QUnit.module('util', function(hooks) {
             QUnit.test('fn(cell, cell, cell, opt)', function(assert) {
 
                 var fn = joint.util.wrappers.cells(function(cells, opt) {
-                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(Array.isArray(cells), 'cells is an array');
                     assert.ok(_.isEqual(cells, expected.cells), 'cells is as expected');
-                    assert.ok(_.isObject(opt), 'opt is an object');
+                    assert.ok(joint.util.isObject(opt), 'opt is an object');
                     assert.ok(_.isEqual(opt, expected.opt), 'opt is as expected');
                 });
 
@@ -582,9 +582,9 @@ QUnit.module('util', function(hooks) {
                 var cell = _.first(expected.cells);
 
                 var fn = joint.util.wrappers.cells(function(cells, opt) {
-                    assert.ok(_.isArray(cells), 'cells is an array');
+                    assert.ok(Array.isArray(cells), 'cells is an array');
                     assert.ok(_.isEqual(cells, [cell]), 'cells is as expected');
-                    assert.ok(_.isObject(opt), 'opt is an object');
+                    assert.ok(joint.util.isObject(opt), 'opt is an object');
                     assert.ok(_.isEqual(opt, {}), 'opt is an empty object');
                 });
 

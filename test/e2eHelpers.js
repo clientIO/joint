@@ -122,7 +122,7 @@ var e2eHelpers = module.exports = {
     customCommands: {
         waitForNotExist: function (selector, waitTime) {
 
-            if (_.isUndefined(waitTime)) {
+            if (typeof waitTime === 'undefined') {
                 waitTime = config.timeouts['implicit'];
             }
 

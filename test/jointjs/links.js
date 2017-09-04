@@ -79,10 +79,10 @@ QUnit.module('links', function(hooks) {
             markup: '<path class="connection"/>'
         });
 
-        ok(_.isUndefined(l1.get('source').x) && _.isUndefined(l1.get('source').y),
-           'Source connected to an element has no x or y.');
-        ok(_.isUndefined(l1.get('target').x) && _.isUndefined(l1.get('target').y),
-           'Target connected to an element has no x or y.');
+        ok(l1.get('source').x === undefined && l1.get('source').y === undefined,
+            'Source connected to an element has no x or y.');
+        ok(l1.get('target').x === undefined && l1.get('target').y === undefined,
+            'Target connected to an element has no x or y.');
 
         this.graph.addCell(l1);
         var v1 = this.paper.findViewByModel(l1);
@@ -344,16 +344,16 @@ QUnit.module('links', function(hooks) {
         this.graph.addCell(link);
         this.graph.addCell(link2);
 
-        deepEqual(_.pluck(this.graph.getConnectedLinks(myrect), 'id'), [link.id, link2.id], 'getConnectedLinks() returns both links comming out of the source element');
-        deepEqual(_.pluck(this.graph.getConnectedLinks(myrect2), 'id'), [link.id, link2.id], 'getConnectedLinks() returns both links leading to the target element');
+        deepEqual(this.graph.getConnectedLinks(myrect).map(item => item.id), [link.id, link2.id], 'getConnectedLinks() returns both links comming out of the source element');
+        deepEqual(this.graph.getConnectedLinks(myrect2).map(item => item.id), [link.id, link2.id], 'getConnectedLinks() returns both links leading to the target element');
 
         link.disconnect();
 
-        deepEqual(_.pluck(this.graph.getConnectedLinks(myrect), 'id'), [link2.id], 'getConnectedLinks() returns only one link coming out of it after the other has been disconnected');
-        deepEqual(_.pluck(this.graph.getConnectedLinks(myrect2), 'id'), [link2.id], 'getConnectedLinks() returns only one link leading to it after the other has been disconnected');
+        deepEqual(this.graph.getConnectedLinks(myrect).map(item => item.id), [link2.id], 'getConnectedLinks() returns only one link coming out of it after the other has been disconnected');
+        deepEqual(this.graph.getConnectedLinks(myrect2).map(item => item.id), [link2.id], 'getConnectedLinks() returns only one link leading to it after the other has been disconnected');
 
-        deepEqual(_.pluck(this.graph.getConnectedLinks(myrect, { outbound: true }), 'id'), [link2.id], 'getConnectedLinks(outbound) returns only the one link coming out the element');
-        deepEqual(_.pluck(this.graph.getConnectedLinks(myrect, { inbound: true }), 'id'), [], 'getConnectedLinks(inbound) returns no link as the element is not source of any link');
+        deepEqual(this.graph.getConnectedLinks(myrect, { outbound: true }).map(item => item.id), [link2.id], 'getConnectedLinks(outbound) returns only the one link coming out the element');
+        deepEqual(this.graph.getConnectedLinks(myrect, { inbound: true }).map(item => item.id), [], 'getConnectedLinks(inbound) returns no link as the element is not source of any link');
     });
 
     QUnit.test('hasLoop()', function(assert) {

@@ -16,7 +16,7 @@ var g2Rect = new joint.shapes.basic.Rect({
             },
             'reds': {
                 position: function(ports, elBBox, opt) {
-                    return _.map(ports, function(port, index) {
+                    return ports.map(function(port, index) {
                         var step = -Math.PI / 8;
 
                         var y = Math.sin(index * step) * 50;
@@ -77,12 +77,12 @@ var g2Circle = new joint.shapes.basic.Circle({
     }
 });
 
-_.times(4, function() {
+for (let index = 0; index < 4; index++) {
     g2Rect.addPort({ group: 'blacks' });
-});
-_.times(24, function() {
+}
+for (let index = 0; index < 24; index++) {
     g2Rect.addPort({ group: 'reds' });
-});
+}
 g2Rect.addPort({ group: 'reds', attrs: { text: { text: 'fn: sin(x)' } } });
 
 g2Rect.addPort({
@@ -95,9 +95,9 @@ g2Rect.addPort({
     }
 });
 
-_.times(8, function() {
+for (let i = 0; i < 8; i++) {
     g2Circle.addPort({ group: 'blacks' });
-});
+}
 
 paper2.model.addCell(g2Circle);
 paper2.model.addCell(g2Rect);

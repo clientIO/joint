@@ -39,9 +39,9 @@ var g3 = new joint.shapes.basic.Circle({
 });
 
 
-_.times(10, function(index) {
+for (let index = 0; index < 10; index++) {
     g3.addPort({ attrs: { text: { text: 'L ' + index } }, group: 'a' });
-});
+}
 
 g3.addPort({
     group: 'a',
@@ -84,9 +84,9 @@ var g33 = new joint.shapes.basic.Rect({
     }
 });
 
-_.times(3, function(index) {
+for (let index = 0; index < 3; index++) {
     g33.addPort({ attrs: { text: { text: 'L' + index }, circle: { magnet: true } }, group: 'a' });
-});
+}
 
 g33.addPort({
     group: 'a',

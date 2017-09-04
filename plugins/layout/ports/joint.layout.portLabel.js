@@ -2,7 +2,7 @@
 
     function labelAttributes(opt1, opt2) {
 
-        return _.defaultsDeep({}, opt1, opt2, {
+        return joint.util.defaultsDeep({}, opt1, opt2, {
             x: 0,
             y: 0,
             angle: 0,
@@ -18,7 +18,7 @@
 
     function outsideLayout(portPosition, elBBox, autoOrient, opt) {
 
-        opt = _.defaults({}, opt, { offset: 15 });
+        opt = joint.util.defaults({}, opt, { offset: 15 });
         var angle = elBBox.center().theta(portPosition);
         var x = getBBoxAngles(elBBox);
 
@@ -87,7 +87,7 @@
     function insideLayout(portPosition, elBBox, autoOrient, opt) {
 
         var angle = elBBox.center().theta(portPosition);
-        opt = _.defaults({}, opt, { offset: 15 });
+        opt = joint.util.defaults({}, opt, { offset: 15 });
 
         var tx, ty, y, textAnchor;
         var offset = opt.offset;
@@ -143,7 +143,7 @@
 
     function radialLayout(portCenterOffset, autoOrient, opt) {
 
-        opt = _.defaults({}, opt, { offset: 20 });
+        opt = joint.util.defaults({}, opt, { offset: 20 });
 
         var origin = g.point(0, 0);
         var angle = -portCenterOffset.theta(origin);
@@ -184,7 +184,7 @@
 
     joint.layout.PortLabel = {
 
-        manual: _.rearg(labelAttributes, 2),
+        manual: (portPosition, elBBox, opt) => labelAttributes(opt, portPosition),
 
         left: function(portPosition, elBBox, opt) {
             return labelAttributes(opt, { x: -15, attrs: { '.': { y: '.3em', 'text-anchor': 'end' } } });

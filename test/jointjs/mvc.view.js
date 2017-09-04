@@ -51,7 +51,7 @@ QUnit.module('joint.mvc.View', function(hooks) {
 
         var view = new SomeView(instanceOptions);
 
-        var expectedOptions = _.extend(
+        var expectedOptions = Object.assign(
             {},
             joint.mvc.View.prototype.options,
             SomeView.prototype.options,

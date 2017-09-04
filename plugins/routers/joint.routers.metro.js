@@ -1,6 +1,6 @@
 joint.routers.metro = (function() {
 
-    if (!_.isFunction(joint.routers.manhattan)) {
+    if (typeof joint.routers.manhattan !== 'function') {
 
         throw new Error('Metro requires the manhattan router.');
     }
@@ -64,7 +64,7 @@ joint.routers.metro = (function() {
     // public function
     return function(vertices, opts, linkView) {
 
-        return joint.routers.manhattan(vertices, _.extend({}, config, opts), linkView);
+        return joint.routers.manhattan(vertices, Object.assign({}, config, opts), linkView);
     };
 
 })();

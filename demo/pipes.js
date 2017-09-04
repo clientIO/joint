@@ -57,7 +57,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
         joint.util.cancelFrame(this.frameId);
 
-        this.frameId = joint.util.nextFrame(_.bind(this.fillWithPattern, this));
+        this.frameId = joint.util.nextFrame(this.fillWithPattern, this);
 
         return this;
     },
@@ -70,7 +70,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
         var points = [].concat(this.sourcePoint, this.route, this.targetPoint);
 
-        points = _.map(points, function(point) {
+        points = points.map(function(point) {
             return g.point(point.x - bbox.x, point.y - bbox.y);
         });
 

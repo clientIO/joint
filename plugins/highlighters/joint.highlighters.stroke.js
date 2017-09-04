@@ -36,7 +36,7 @@ joint.highlighters.stroke = {
         // Only highlight once.
         if (this._views[id]) return;
 
-        var options = _.defaults(opt || {}, this.defaultOptions);
+        var options = joint.util.defaults(opt || {}, this.defaultOptions);
 
         var magnetVel = V(magnetEl);
         var magnetBBox;
@@ -50,7 +50,7 @@ joint.highlighters.stroke = {
             // Failed to get path data from magnet element.
             // Draw a rectangle around the entire cell view instead.
             magnetBBox = magnetVel.bbox(true/* without transforms */);
-            pathData = V.rectToPath(_.extend({}, options, magnetBBox));
+            pathData = V.rectToPath(Object.assign({}, options, magnetBBox));
         }
 
         var highlightVel = V('path').attr({
@@ -90,7 +90,7 @@ joint.highlighters.stroke = {
         });
 
         // Remove the highlight view when the cell is removed from the graph.
-        var removeHandler = _.bind(this.removeHighlighter, this, id);
+        var removeHandler = ()=> this.removeHighlighter(id);
         var cell = cellView.model;
         highlightView.listenTo(cell, 'remove', removeHandler);
         highlightView.listenTo(cell.graph, 'reset', removeHandler);

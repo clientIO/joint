@@ -139,7 +139,7 @@ joint.shapes.basic.Ball = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><image/></g></g><text/>',
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.Ball',
 	angle: 0,

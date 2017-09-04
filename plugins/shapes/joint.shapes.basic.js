@@ -3,7 +3,7 @@ joint.shapes.basic = {};
 
 joint.shapes.basic.Generic = joint.dia.Element.extend({
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.Generic',
         attrs: {
@@ -17,7 +17,7 @@ joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><rect/></g><text/></g>',
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.Rect',
         attrs: {
@@ -56,7 +56,7 @@ joint.shapes.basic.Text = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><text/></g></g>',
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.Text',
         attrs: {
@@ -73,7 +73,7 @@ joint.shapes.basic.Circle = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><circle/></g><text/></g>',
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.Circle',
         size: { width: 60, height: 60 },
@@ -103,7 +103,7 @@ joint.shapes.basic.Ellipse = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><ellipse/></g><text/></g>',
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.Ellipse',
         size: { width: 60, height: 40 },
@@ -134,7 +134,7 @@ joint.shapes.basic.Polygon = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><polygon/></g><text/></g>',
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.Polygon',
         size: { width: 60, height: 40 },
@@ -161,7 +161,7 @@ joint.shapes.basic.Polyline = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><polyline/></g><text/></g>',
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.Polyline',
         size: { width: 60, height: 40 },
@@ -188,7 +188,7 @@ joint.shapes.basic.Image = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><image/></g><text/></g>',
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.Image',
         attrs: {
@@ -210,7 +210,7 @@ joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><path/></g><text/></g>',
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.Path',
         size: { width: 60, height: 60 },
@@ -235,7 +235,7 @@ joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
 
 joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.Rhombus',
         attrs: {
@@ -292,7 +292,7 @@ joint.shapes.basic.PortsModelInterface = {
 
         if (this._portSelectors) {
 
-            var newAttrs = _.omit(this.get('attrs'), this._portSelectors);
+            var newAttrs = joint.util.omit(this.get('attrs'), this._portSelectors);
             this.set('attrs', newAttrs, { silent: true });
         }
 
@@ -303,17 +303,21 @@ joint.shapes.basic.PortsModelInterface = {
 
         var attrs = {};
 
-        _.each(this.get('inPorts'), function(portName, index, ports) {
-            var portAttributes = this.getPortAttrs(portName, index, ports.length, '.inPorts', 'in');
-            this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
-            _.extend(attrs, portAttributes);
-        }, this);
+        let inPorts = this.get('inPorts') || [];
+        let inPortsCount = inPorts.length;
+        inPorts.forEach((portName, index) => {
+            var portAttributes = this.getPortAttrs(portName, index, inPortsCount, '.inPorts', 'in');
+            this._portSelectors = this._portSelectors.concat(Object.keys(portAttributes));
+            Object.assign(attrs, portAttributes);
+        });
 
-        _.each(this.get('outPorts'), function(portName, index, ports) {
-            var portAttributes = this.getPortAttrs(portName, index, ports.length, '.outPorts', 'out');
-            this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
-            _.extend(attrs, portAttributes);
-        }, this);
+        let outPorts = this.get('outPorts') || [];
+        let outPortsCount = outPorts.length;
+        outPorts.forEach(this.get('outPorts'), (portName, index) => {
+            var portAttributes = this.getPortAttrs(portName, index, outPortsCount, '.outPorts', 'out');
+            this._portSelectors = this._portSelectors.concat(Object.keys(portAttributes));
+            Object.assign(attrs, portAttributes);
+        });
 
         // Silently set `attrs` on the cell so that noone knows the attrs have changed. This makes sure
         // that, for example, command manager does not register `change:attrs` command but only
@@ -366,12 +370,12 @@ joint.shapes.basic.PortsViewInterface = {
 
         var portTemplate = joint.util.template(this.model.portMarkup);
 
-        _.each(_.filter(this.model.ports, function(p) { return p.type === 'in'; }), function(port, index) {
+        this.model.ports.filter(function(p) { return p.type === 'in'; }).forEach(function(port, index) {
 
             $inPorts.append(V(portTemplate({ id: index, port: port })).node);
         });
 
-        _.each(_.filter(this.model.ports, function(p) { return p.type === 'out'; }), function(port, index) {
+        this.model.ports.filter(function(p) { return p.type === 'out'; }).forEach(function(port, index) {
 
             $outPorts.append(V(portTemplate({ id: index, port: port })).node);
         });
@@ -387,7 +391,7 @@ joint.shapes.basic.TextBlock = joint.shapes.basic.Generic.extend({
         '</g>'
     ].join(''),
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.TextBlock',
 
@@ -431,9 +435,9 @@ joint.shapes.basic.TextBlock = joint.shapes.basic.Generic.extend({
         // Selector `foreignObject' doesn't work accross all browsers, we'r using class selector instead.
         // We have to clone size as we don't want attributes.div.style to be same object as attributes.size.
         this.attr({
-            '.fobj': _.clone(size),
+            '.fobj': Object.assign({}, size),
             div: {
-                style: _.clone(size)
+                style: Object.assign({}, size)
             }
         });
     },
@@ -502,10 +506,10 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
         if (!joint.env.test('svgforeignobject')) {
 
             // Update everything but the content first.
-            var noTextAttrs = _.omit(renderingOnlyAttrs || model.get('attrs'), '.content');
+            var noTextAttrs = joint.util.omit(renderingOnlyAttrs || model.get('attrs'), '.content');
             joint.dia.ElementView.prototype.update.call(this, model, noTextAttrs);
 
-            if (!renderingOnlyAttrs || _.has(renderingOnlyAttrs, '.content')) {
+            if (!renderingOnlyAttrs || joint.util.has(renderingOnlyAttrs, '.content')) {
                 // Update the content itself.
                 this.updateContent(model, renderingOnlyAttrs);
             }
@@ -519,9 +523,9 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
     updateContent: function(cell, renderingOnlyAttrs) {
 
         // Create copy of the text attributes
-        var textAttrs = _.merge({}, (renderingOnlyAttrs || cell.get('attrs'))['.content']);
+        var textAttrs = joint.util.merge({}, (renderingOnlyAttrs || cell.get('attrs'))['.content']);
 
-        textAttrs = _.omit(textAttrs, 'text');
+        textAttrs = joint.util.omit(textAttrs, 'text');
 
         // Break the content to fit the element size taking into account the attributes
         // set on the model.

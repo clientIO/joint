@@ -567,23 +567,23 @@ QUnit.module('basic', function(hooks) {
 
         el.prop('array/1/0/value/0', 'baz');
         equal(el.prop('array/1/0/value/0'), 'baz', 'value in nested object in nested array set correctly');
-        ok(_.isArray(el.prop('array/1/0/value')), 'type of the nested array was preserved');
-        ok(_.isObject(el.prop('array/1/0')), 'type of the nested object was preserved');
-        ok(_.isArray(el.prop('array/1')), 'type of the nested array was preserved');
-        ok(_.isArray(el.prop('array')), 'type of the top level array was preserved');
+        ok(Array.isArray(el.prop('array/1/0/value')), 'type of the nested array was preserved');
+        ok(joint.util.isObject(el.prop('array/1/0')), 'type of the nested object was preserved');
+        ok(Array.isArray(el.prop('array/1')), 'type of the nested array was preserved');
+        ok(Array.isArray(el.prop('array')), 'type of the top level array was preserved');
 
         el.prop('array/1/0/value', { s: 'baz' });
         deepEqual(el.prop('array/1/0/value'), { s: 'baz' }, 'value in nested object in nested array set correctly');
-        ok(_.isObject(el.prop('array/1/0/value')), 'type of the object was changed');
+        ok(joint.util.isObject(el.prop('array/1/0/value')), 'type of the object was changed');
 
         el.prop('array/2', 10);
-        ok(_.isArray(el.prop('array')), 'type of the top level array was preserved after adding new item');
+        ok(Array.isArray(el.prop('array')), 'type of the top level array was preserved after adding new item');
         equal(el.prop('array/2'), '10', 'value of the newly added array item is correct');
 
         el.prop({ array: [['foo']] });
-        ok(_.isArray(el.prop('array')), 'type of the top level array was preserved after changing an item');
+        ok(Array.isArray(el.prop('array')), 'type of the top level array was preserved after changing an item');
         equal(el.prop('array/0/0'), 'foo', 'value of the newly added array item is correct');
-        ok(_.isArray(el.prop('array/0')), 'type of the nested array is correct');
+        ok(Array.isArray(el.prop('array/0')), 'type of the nested array is correct');
 
         var called = false;
         el.once('change:array', function(cell, changed, opt) {
@@ -728,7 +728,7 @@ QUnit.module('basic', function(hooks) {
 
         a1.toFront({ deep: true });
 
-        equal(_.unique(a1View.$el.prevAll('[data-type="basic.Rect"]').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1, b2 element in the DOM after toFront()');
+        equal(_.uniq(a1View.$el.prevAll('[data-type="basic.Rect"]').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1, b2 element in the DOM after toFront()');
         ok(a4View.$el.prev('[data-type="basic.Rect"]')[0] == a3View.el || a4View.$el.prev('[data-type="basic.Rect"]')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
         ok(a2View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el || a3View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
 
@@ -832,7 +832,7 @@ QUnit.module('basic', function(hooks) {
         this.setupTestNestedGraph(this.graph);
 
         clones = this.graph.getCell('a').clone({ deep: true });
-        deepEqual(_.map(clones, function(c) {
+        deepEqual(clones.map( function(c) {
             return c.get('name');
         }), ['a', 'aa', 'c', 'l2', 'aaa'], 'clone({ deep: true }) returns clones including all embedded cells');
     });
@@ -1453,8 +1453,8 @@ QUnit.module('basic', function(hooks) {
 
         deepEqual(r0.getAncestors(), [], 'A cell that is not part of a collection has no ancestors.');
         deepEqual(r1.getAncestors(), [], 'A cell with no parent has no ancestors.');
-        deepEqual(_.pluck(r2.getAncestors(), 'id'), [r1.id], 'A cell embedded in a parent with no ancestor has exactly one ancestor.');
-        deepEqual(_.pluck(r5.getAncestors(), 'id'), [r2.id, r1.id], 'If a cell has more than one ancestor, the ancesotrs are sorted from the parent to the most distant ancestor.');
+        deepEqual(r2.getAncestors().map(item => item.id), [r1.id], 'A cell embedded in a parent with no ancestor has exactly one ancestor.');
+        deepEqual(r5.getAncestors().map(item => item.id), [r2.id, r1.id], 'If a cell has more than one ancestor, the ancesotrs are sorted from the parent to the most distant ancestor.');
     });
 
     QUnit.test('cellView: element reference wrapped in Vectorizer', function(assert) {

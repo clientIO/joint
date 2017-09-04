@@ -16,9 +16,9 @@ joint.mvc.View = Backbone.View.extend({
 
         this.requireSetThemeOverride = options && !!options.theme;
 
-        this.options = _.extend({}, this.options, options);
+        this.options = Object.assign({}, this.options, options);
 
-        _.bindAll(this, 'setTheme', 'onSetTheme', 'remove', 'onRemove');
+        joint.util.bindAll(this, 'setTheme', 'onSetTheme', 'remove', 'onRemove');
 
         joint.mvc.views[this.cid] = this;
 
@@ -36,13 +36,13 @@ joint.mvc.View = Backbone.View.extend({
 
             if (!this.el) {
 
-                var attrs = _.extend({ id: this.id }, _.result(this, 'attributes'));
-                if (this.className) attrs['class'] = _.result(this, 'className');
-                el = V(_.result(this, 'tagName'), attrs).node;
+                var attrs = Object.assign({ id: this.id }, joint.util.result(this, 'attributes'));
+                if (this.className) attrs['class'] = joint.util.result(this, 'className');
+                el = V(joint.util.result(this, 'tagName'), attrs).node;
 
             } else {
 
-                el = _.result(this, 'el');
+                el = joint.util.result(this, 'el');
             }
 
             this.setElement(el, false);
@@ -75,7 +75,7 @@ joint.mvc.View = Backbone.View.extend({
 
     _ensureElClassName: function() {
 
-        var className = _.result(this, 'className');
+        var className = joint.util.result(this, 'className');
         var prefixedClassName = joint.util.addClassNamePrefix(className);
 
         this.$el.removeClass(className);
@@ -166,8 +166,8 @@ joint.mvc.View = Backbone.View.extend({
 
         // Deep clone the prototype and static properties objects.
         // This prevents unexpected behavior where some properties are overwritten outside of this function.
-        var protoProps = args[0] && _.clone(args[0]) || {};
-        var staticProps = args[1] && _.clone(args[1]) || {};
+        var protoProps = args[0] && Object.assign({}, args[0]) || {};
+        var staticProps = args[1] && Object.assign({}, args[1]) || {};
 
         // Need the real render method so that we can wrap it and call it later.
         var renderFn = protoProps.render || (this.prototype && this.prototype.render) || null;

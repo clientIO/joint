@@ -831,7 +831,7 @@ QUnit.module('paper', function(hooks) {
 
         var getGridVel = function(paper) {
             var image = paper.$grid.css('backgroundImage').replace(/url\("*|"*\)/g, '').replace('data:image/svg+xml;base64,', '');
-            return V(atob(image));
+            return image !== 'none' ?  V(atob(image)) : '';
         };
 
         var preparePaper = function(drawGrid, paperSettings) {
@@ -853,7 +853,6 @@ QUnit.module('paper', function(hooks) {
 
             return paper;
         };
-
 
         QUnit.test('no grid', function(assert) {
 
@@ -1087,7 +1086,7 @@ QUnit.module('paper', function(hooks) {
                     assert.equal(firstLayer.color, 'red', message + ': color');
                     assert.equal(firstLayer.thickness, 11, message + ': thickness');
                     assert.equal(firstLayer.markup, 'path', message + ': markup');
-                    assert.ok(_.isFunction(firstLayer.update), message + ': update');
+                    assert.ok(typeof firstLayer.update === 'function', message + ': update');
                 };
 
                 paper.setGrid(drawGridTestFixtures[0]);
@@ -1099,7 +1098,7 @@ QUnit.module('paper', function(hooks) {
                 assert.equal(secondLayer.color, 'black', message + ': color');
                 assert.equal(secondLayer.thickness, 55, message + ': thickness');
                 assert.equal(secondLayer.markup, 'path', message + ': markup');
-                assert.ok(_.isFunction(secondLayer.update), message + ': update');
+                assert.ok(typeof secondLayer.update === 'function', message + ': update');
                 check('args: [{}]');
 
                 paper.setGrid(drawGridTestFixtures[2]);
@@ -1115,7 +1114,7 @@ QUnit.module('paper', function(hooks) {
                     markup: 'rect',
                     update: {}
                 }, 'update default');
-                assert.ok(_.isFunction(paper._gridSettings[0].update));
+                assert.ok(typeof paper._gridSettings[0].update === 'function');
             });
 
             QUnit.test('create custom', function(assert) {
@@ -1130,12 +1129,12 @@ QUnit.module('paper', function(hooks) {
                 assert.deepEqual(paper._gridSettings[0], { markup: 'rect', update: 'fnc' }, 'custom markup and update');
 
                 paper.setGrid(drawGridTestFixtures[1]);
-                assert.ok(_.isArray(paper._gridSettings));
+                assert.ok(Array.isArray(paper._gridSettings));
                 assert.deepEqual(paper._gridSettings[0], { markup: 'rect', update: 'fnc' }, 'custom markup and update - first layer');
                 assert.deepEqual(paper._gridSettings[1], { markup: 'rect2', update: 'fnc2' }, 'custom markup and update- second layer');
 
                 paper.setGrid(drawGridTestFixtures[2]);
-                assert.ok(_.isArray(paper._gridSettings));
+                assert.ok(Array.isArray(paper._gridSettings));
                 assert.deepEqual(paper._gridSettings[0], { markup: '<circle/>' }, 'custom grid - minimal setup');
             });
 
@@ -1185,11 +1184,11 @@ QUnit.module('paper', function(hooks) {
             var cells = this.graph.getCells();
             assert.ok(cells.length > 0, 'make sure cells are iterated');
 
-            _.each(cells, function(cell) {
+            cells.forEach(cell => {
 
                 var cellView = this.paper.findViewByModel(cell);
                 assert.ok(cellView.options.interactive);
-            }, this);
+            });
         });
 
         QUnit.test('set by function', function(assert) {
@@ -1201,11 +1200,11 @@ QUnit.module('paper', function(hooks) {
             var cells = this.graph.getCells();
             assert.ok(cells.length > 0, 'make sure cells are iterated');
 
-            _.each(cells, function(cell) {
+            cells.forEach(cell => {
 
                 var cellView = this.paper.findViewByModel(cell);
                 assert.equal(cellView.can('manipulate'), cellView.model.isLink(), 'only links can be manipulated');
-            }, this);
+            });
         });
     });
 

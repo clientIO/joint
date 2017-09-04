@@ -89,15 +89,15 @@ joint.routers.orthogonal = (function() {
         var route = {};
 
         var pts = [g.point(from.x, to.y), g.point(to.x, from.y)];
-        var freePts = _.filter(pts, function(pt) { return !toBBox.containsPoint(pt); });
-        var freeBrngPts = _.filter(freePts, function(pt) { return bearing(pt, from) != brng; });
+        var freePts = pts.filter(function(pt) { return !toBBox.containsPoint(pt); });
+        var freeBrngPts = freePts.filter(function(pt) { return bearing(pt, from) != brng; });
 
         var p;
 
         if (freeBrngPts.length > 0) {
 
             // try to pick a point which bears the same direction as the previous segment
-            p = _.filter(freeBrngPts, function(pt) { return bearing(from, pt) == brng; }).pop();
+            p = freeBrngPts.filter(function(pt) { return bearing(from, pt) == brng; }).pop();
             p = p || freeBrngPts[0];
 
             route.points = [p];
@@ -110,7 +110,7 @@ joint.routers.orthogonal = (function() {
             // We take the point inside element and move it outside the element in the direction the
             // route is going. Now we can join this point with the current end (using freeJoin).
 
-            p = _.difference(pts, freePts)[0];
+            p = joint.util.difference(pts, freePts)[0];
 
             var p2 = g.point(to).move(p, -boxSize(toBBox, brng) / 2);
             var p1 = freeJoin(p2, from, toBBox);
@@ -201,7 +201,7 @@ joint.routers.orthogonal = (function() {
         var sourceBBox = expand(linkView.sourceBBox, padding);
         var targetBBox = expand(linkView.targetBBox, padding);
 
-        vertices = _.map(vertices, g.point);
+        vertices = vertices.map(g.point);
         vertices.unshift(sourceBBox.center());
         vertices.push(targetBBox.center());
 

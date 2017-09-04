@@ -45,7 +45,7 @@ var joint = {
 
         opt = opt || {};
 
-        _.invoke(joint.mvc.views, 'setTheme', theme, opt);
+        joint.util.invoke(joint.mvc.views, 'setTheme', theme, opt);
 
         // Update the default theme on the view prototype.
         joint.mvc.View.prototype.defaultTheme = theme;
@@ -113,7 +113,7 @@ var joint = {
 
         getByPath: function(obj, path, delim) {
 
-            var keys = _.isArray(path) ? path.slice() : path.split(delim || '/');
+            var keys = Array.isArray(path) ? path.slice() : path.split(delim || '/');
             var key;
 
             while (keys.length) {
@@ -129,7 +129,7 @@ var joint = {
 
         setByPath: function(obj, path, value, delim) {
 
-            var keys = _.isArray(path) ? path : path.split(delim || '/');
+            var keys = Array.isArray(path) ? path : path.split(delim || '/');
 
             var diver = obj;
             var i = 0;
@@ -148,7 +148,7 @@ var joint = {
 
             delim = delim || '/';
 
-            var pathArray = _.isArray(path) ? path.slice() : path.split(delim);
+            var pathArray = Array.isArray(path) ? path.slice() : path.split(delim);
 
             var propertyToRemove = pathArray.pop();
             if (pathArray.length > 0) {
@@ -225,24 +225,6 @@ var joint = {
             return string.replace(/[A-Z]/g, '-$&').toLowerCase();
         },
 
-        // Copy all the properties to the first argument from the following arguments.
-        // All the properties will be overwritten by the properties from the following
-        // arguments. Inherited properties are ignored.
-        mixin: _.assign,
-
-        // Copy all properties to the first argument from the following
-        // arguments only in case if they don't exists in the first argument.
-        // All the function propererties in the first argument will get
-        // additional property base pointing to the extenders same named
-        // property function's call method.
-        supplement: _.defaults,
-
-        // Same as `mixin()` but deep version.
-        deepMixin: _.mixin,
-
-        // Same as `supplement()` but deep version.
-        deepSupplement: _.defaultsDeep,
-
         normalizeEvent: function(evt) {
 
             var touchEvt = evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches[0];
@@ -291,7 +273,7 @@ var joint = {
 
             return function(callback, context) {
                 return context
-                    ? raf(_.bind(callback, context))
+                    ? raf(callback.bind(context))
                     : raf(callback);
             };
 
@@ -317,8 +299,7 @@ var joint = {
 
             caf = caf || clearTimeout;
 
-            return client ? _.bind(caf, window) : caf;
-
+            return client ? caf.bind(window) : caf;
         })(),
 
         shapePerimeterConnectionPoint: function(linkView, view, magnet, reference) {
@@ -373,13 +354,13 @@ var joint = {
             restrictUnits = restrictUnits || [];
             var cssNumeric = { value: parseFloat(strValue) };
 
-            if (_.isNaN(cssNumeric.value)) {
+            if (Number.isNaN(cssNumeric.value)) {
                 return null;
             }
 
             var validUnitsExp = restrictUnits.join('|');
 
-            if (_.isString(strValue)) {
+            if (typeof strValue === 'string') {
                 var matches = new RegExp('(\\d+)(' + validUnitsExp + ')$').exec(strValue);
                 if (!matches) {
                     return null;
@@ -717,13 +698,13 @@ var joint = {
 
             var $element = $(element);
 
-            _.each(attrs, function(attrs, selector) {
+            joint.util.each(attrs, function(attrs, selector) {
                 var $elements = $element.find(selector).addBack().filter(selector);
                 // Make a special case for setting classes.
                 // We do not want to overwrite any existing class.
-                if (_.has(attrs, 'class')) {
+                if (joint.util.has(attrs, 'class')) {
                     $elements.addClass(attrs['class']);
-                    attrs = _.omit(attrs, 'class');
+                    attrs = joint.util.omit(attrs, 'class');
                 }
                 $elements.attr(attrs);
             });
@@ -829,7 +810,7 @@ var joint = {
             },
 
             object: function(a, b) {
-                var s = _.keys(a);
+                var s = Object.keys(a);
                 return function(t) {
                     var i, p;
                     var r = {};
@@ -890,12 +871,12 @@ var joint = {
 
                 var tpl = '<filter><feFlood flood-color="${color}" flood-opacity="${opacity}" result="colored"/><feMorphology in="SourceAlpha" result="morphedOuter" operator="dilate" radius="${outerRadius}" /><feMorphology in="SourceAlpha" result="morphedInner" operator="dilate" radius="${innerRadius}" /><feComposite result="morphedOuterColored" in="colored" in2="morphedOuter" operator="in"/><feComposite operator="xor" in="morphedOuterColored" in2="morphedInner" result="outline"/><feMerge><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
 
-                var margin = _.isFinite(args.margin) ? args.margin : 2;
-                var width = _.isFinite(args.width) ? args.width : 1;
+                var margin = Number.isFinite(args.margin) ? args.margin : 2;
+                var width = Number.isFinite(args.width) ? args.width : 1;
 
                 return joint.util.template(tpl)({
                     color: args.color || 'blue',
-                    opacity: _.isFinite(args.opacity) ? args.opacity : 1,
+                    opacity: Number.isFinite(args.opacity) ? args.opacity : 1,
                     outerRadius: margin + width,
                     innerRadius: margin
                 });
@@ -911,9 +892,9 @@ var joint = {
 
                 return joint.util.template(tpl)({
                     color: args.color || 'red',
-                    width: _.isFinite(args.width) ? args.width : 1,
-                    blur: _.isFinite(args.blur) ? args.blur : 0,
-                    opacity: _.isFinite(args.opacity) ? args.opacity : 1
+                    width: Number.isFinite(args.width) ? args.width : 1,
+                    blur: Number.isFinite(args.blur) ? args.blur : 0,
+                    opacity: Number.isFinite(args.opacity) ? args.opacity : 1
                 });
             },
 
@@ -921,10 +902,10 @@ var joint = {
             // `y` ... vertical blur (optional)
             blur: function(args) {
 
-                var x = _.isFinite(args.x) ? args.x : 2;
+                var x = Number.isFinite(args.x) ? args.x : 2;
 
                 return joint.util.template('<filter><feGaussianBlur stdDeviation="${stdDeviation}"/></filter>')({
-                    stdDeviation: _.isFinite(args.y) ? [x, args.y] : x
+                    stdDeviation: Number.isFinite(args.y) ? [x, args.y] : x
                 });
             },
 
@@ -942,16 +923,16 @@ var joint = {
                 return joint.util.template(tpl)({
                     dx: args.dx || 0,
                     dy: args.dy || 0,
-                    opacity: _.isFinite(args.opacity) ? args.opacity : 1,
+                    opacity: Number.isFinite(args.opacity) ? args.opacity : 1,
                     color: args.color || 'black',
-                    blur: _.isFinite(args.blur) ? args.blur : 4
+                    blur: Number.isFinite(args.blur) ? args.blur : 4
                 });
             },
 
             // `amount` ... the proportion of the conversion. A value of 1 is completely grayscale. A value of 0 leaves the input unchanged.
             grayscale: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feColorMatrix type="matrix" values="${a} ${b} ${c} 0 0 ${d} ${e} ${f} 0 0 ${g} ${b} ${h} 0 0 0 0 0 1 0"/></filter>')({
                     a: 0.2126 + 0.7874 * (1 - amount),
@@ -968,7 +949,7 @@ var joint = {
             // `amount` ... the proportion of the conversion. A value of 1 is completely sepia. A value of 0 leaves the input unchanged.
             sepia: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feColorMatrix type="matrix" values="${a} ${b} ${c} 0 0 ${d} ${e} ${f} 0 0 ${g} ${h} ${i} 0 0 0 0 0 1 0"/></filter>')({
                     a: 0.393 + 0.607 * (1 - amount),
@@ -986,7 +967,7 @@ var joint = {
             // `amount` ... the proportion of the conversion. A value of 0 is completely un-saturated. A value of 1 leaves the input unchanged.
             saturate: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feColorMatrix type="saturate" values="${amount}"/></filter>')({
                     amount: 1 - amount
@@ -1004,7 +985,7 @@ var joint = {
             // `amount` ... the proportion of the conversion. A value of 1 is completely inverted. A value of 0 leaves the input unchanged.
             invert: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feComponentTransfer><feFuncR type="table" tableValues="${amount} ${amount2}"/><feFuncG type="table" tableValues="${amount} ${amount2}"/><feFuncB type="table" tableValues="${amount} ${amount2}"/></feComponentTransfer></filter>')({
                     amount: amount,
@@ -1016,14 +997,14 @@ var joint = {
             brightness: function(args) {
 
                 return joint.util.template('<filter><feComponentTransfer><feFuncR type="linear" slope="${amount}"/><feFuncG type="linear" slope="${amount}"/><feFuncB type="linear" slope="${amount}"/></feComponentTransfer></filter>')({
-                    amount: _.isFinite(args.amount) ? args.amount : 1
+                    amount: Number.isFinite(args.amount) ? args.amount : 1
                 });
             },
 
             // `amount` ... proportion of the conversion. A value of 0 will create an image that is completely black. A value of 1 leaves the input unchanged.
             contrast: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feComponentTransfer><feFuncR type="linear" slope="${amount}" intercept="${amount2}"/><feFuncG type="linear" slope="${amount}" intercept="${amount2}"/><feFuncB type="linear" slope="${amount}" intercept="${amount2}"/></feComponentTransfer></filter>')({
                     amount: amount,
@@ -1245,7 +1226,7 @@ var joint = {
 
             prefix: function(value, precision) {
 
-                var prefixes = _.map(['y', 'z', 'a', 'f', 'p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'], function(d, i) {
+                var prefixes = ['y', 'z', 'a', 'f', 'p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'].map(function(d, i) {
                     var k = Math.pow(10, Math.abs(8 - i) * 3);
                     return {
                         scale: i > 8 ? function(d) { return d / k; } : function(d) { return d * k; },
@@ -1282,18 +1263,18 @@ var joint = {
                 return html.replace(regex, function(match) {
 
                     var args = Array.prototype.slice.call(arguments);
-                    var attr = _.find(args.slice(1, 4), function(_attr) {
+                    var attr = args.slice(1, 4).find(function(_attr) {
                         return !!_attr;
                     });
 
                     var attrArray = attr.split('.');
                     var value = data[attrArray.shift()];
 
-                    while (!_.isUndefined(value) && attrArray.length) {
+                    while (typeof value !== 'undefined' && attrArray.length) {
                         value = value[attrArray.shift()];
                     }
 
-                    return !_.isUndefined(value) ? value : '';
+                    return typeof value !== 'undefined' ? value : '';
                 });
             };
         },
@@ -1311,8 +1292,8 @@ var joint = {
                 for (var i = 0; i < prefixes.length; i++) {
                     var prefix = prefixes[i];
                     var propName = prefix ? (prefix + prop) : (prop.substr(0, 1).toLowerCase() + prop.substr(1));
-                    if (!_.isUndefined(el[propName])) {
-                        return _.isFunction(el[propName]) ? el[propName]() : el[propName];
+                    if (el[propName] !== undefined) {
+                        return typeof el[propName] === 'function' ? el[propName]() : el[propName];
                     }
                 }
             }
@@ -1330,7 +1311,7 @@ var joint = {
 
             if (!className) return className;
 
-            return _.map(className.toString().split(' '), function(_className) {
+            return className.toString().split(' ').map(function(_className) {
 
                 if (_className.substr(0, joint.config.classNamePrefix.length) !== joint.config.classNamePrefix) {
                     _className = joint.config.classNamePrefix + _className;
@@ -1345,7 +1326,7 @@ var joint = {
 
             if (!className) return className;
 
-            return _.map(className.toString().split(' '), function(_className) {
+            return className.toString().split(' ').map(function(_className) {
 
                 if (_className.substr(0, joint.config.classNamePrefix.length) === joint.config.classNamePrefix) {
                     _className = _className.substr(joint.config.classNamePrefix.length);
@@ -1358,7 +1339,7 @@ var joint = {
 
         wrapWith: function(object, methods, wrapper) {
 
-            if (_.isString(wrapper)) {
+            if (typeof wrapper === 'string') {
 
                 if (!joint.util.wrappers[wrapper]) {
                     throw new Error('Unknown wrapper: "' + wrapper + '"');
@@ -1367,11 +1348,11 @@ var joint = {
                 wrapper = joint.util.wrappers[wrapper];
             }
 
-            if (!_.isFunction(wrapper)) {
+            if (typeof wrapper !== 'function') {
                 throw new Error('Wrapper must be a function.');
             }
 
-            _.each(methods, function(method) {
+            (methods || []).forEach(function(method) {
                 object[method] = wrapper(object[method]);
             });
         },
@@ -1392,15 +1373,17 @@ var joint = {
                 return function() {
 
                     var args = Array.prototype.slice.call(arguments);
-                    var cells = args.length > 0 && _.first(args) || [];
-                    var opt = args.length > 1 && _.last(args) || {};
+                    var length = args.length;
 
-                    if (!_.isArray(cells)) {
+                    var cells = length > 0 && args[0] || [];
+                    var opt = length > 1 && args[length - 1] || {};
+
+                    if (!Array.isArray(cells)) {
 
                         if (opt instanceof joint.dia.Cell) {
                             cells = args;
                         } else if (cells instanceof joint.dia.Cell) {
-                            cells = args.length > 1 ? _.initial(args) : args;
+                            cells = args.length > 1 ? (a => {a.pop();return a})(args.slice()) : args;
                         }
                     }
 
@@ -1411,6 +1394,123 @@ var joint = {
                     return fn.call(this, cells, opt);
                 };
             }
-        }
+        },
+
+        isObject: function(value) {
+            return !!value && typeof value === 'object';
+        },
+
+        invoke: function(collection, method, ...args) {
+
+            let x = (collection || []);
+            if (!Array.isArray(x)) {
+                x = Object.keys(x).map(key => x[key]);
+            }
+
+            return x.map(function(item) {
+
+                if (!item)  {
+                    return ;
+                }
+        		return item[method].call(item, ...args);
+        	});
+        },
+
+        random: function(min, max) {
+
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min)) + min;
+        },
+
+        cloneDeep: function(obj) {
+            return jQuery.extend(true, {}, obj);
+        },
+
+        has: function(obj, key) {
+            return Object.hasOwnProperty.call(obj, key);
+        },
+
+        each: function(object, callback) {
+
+            if (!object) {
+                return;
+            }
+
+            Object.keys(object).forEach(function(key) {
+            	callback(object[key], key);
+            })
+        },
+
+        omit: function(obj, ...blacklistedKeys) {
+
+            if (!blacklistedKeys) {
+                return Object.assign({}, obj);
+            }
+
+            return Object.keys(obj)
+                .filter((key) => blacklistedKeys.indexOf(key) < 0)
+                .reduce((newObj, key) => Object.assign(newObj, { [key]: obj[key] }), {})
+        },
+
+        first: function(array) {
+            return array ? array[0] : undefined;
+        },
+
+        last: function(array) {
+            var length = array ? array.length : 0;
+            return length ? array[length - 1] : undefined;
+        },
+
+        bindAll: _.bindAll,
+        camelCase: _.camelCase,
+        defaults: _.defaults,
+        defaultsDeep: _.defaultsDeep,
+        delay: _.delay,
+        difference: _.difference,
+        flattenDeep: _.flattenDeep,
+        groupBy: _.groupBy,
+        isEmpty: _.isEmpty,
+        isPlainObject: _.isPlainObject,
+        isEqual: _.isEqual,
+        reject: _.reject,
+        result: _.result,
+        sortBy: _.sortBy,
+        uniqueId: _.uniqueId,
+        without: _.without,
+
+        // Copy all the properties to the first argument from the following arguments.
+        // All the properties will be overwritten by the properties from the following
+        // arguments. Inherited properties are ignored.
+        mixin: Object.assign,
+
+        // Copy all properties to the first argument from the following
+        // arguments only in case if they don't exists in the first argument.
+        // All the function propererties in the first argument will get
+        // additional property base pointing to the extenders same named
+        // property function's call method.
+        supplement: _.defaults,
+
+        // Same as `mixin()` but deep version.
+        deepMixin: _.mixin,
+
+        // Same as `supplement()` but deep version.
+        deepSupplement: _.defaultsDeep,
+
+        // lodash 3 vs 4 incompatible
+        sortedIndex: _.sortedIndexBy || _.sortedIndex,
+        uniq: _.uniqBy || _.uniq,
+        merge() {
+            if (_.mergeWith) {
+                _.mergeWith.apply(this, [...arguments, function(a,b) {
+                    if (Array.isArray(a) && !Array.isArray(b)) {
+                        return b;
+                    }
+                }])
+            }
+            return _.merge.apply(this, arguments);
+        },
+
+
     }
 };

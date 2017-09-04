@@ -10,7 +10,7 @@ joint.dia.Element.define('jigsaw.Piece', {
 }, null , {
     attributes: {
         tabs: { /* [topTab, rightTab, bottomTab, leftTab] */
-            qualify: _.isArray,
+            qualify: Array.isArray,
             set: function(tabs, refBBox) {
                 var tabSize = this.model.prop('tabSize');
                 var points = [];
@@ -40,7 +40,7 @@ joint.dia.Element.define('jigsaw.Piece', {
             }
         },
         image: { /* [imageId, rowIndex, columnIndex] */
-            qualify: _.isArray,
+            qualify: Array.isArray,
             set: function(image) {
                 var paper = this.paper;
                 var model = this.model;

@@ -76,5 +76,5 @@ link.toBack();
 graph.on('change:position', function(cell) {
 
     // has an obstacle been moved? Then reroute the link.
-    if (_.contains(obstacles, cell)) paper.findViewByModel(link).update();
+    if (obstacles.includes(cell)) paper.findViewByModel(link).update();
 });

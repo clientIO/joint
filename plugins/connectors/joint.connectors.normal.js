@@ -3,7 +3,7 @@ joint.connectors.normal = function(sourcePoint, targetPoint, vertices) {
     // Construct the `d` attribute of the `<path>` element.
     var d = ['M', sourcePoint.x, sourcePoint.y];
 
-    _.each(vertices, function(vertex) {
+    vertices.forEach(function(vertex) {
 
         d.push(vertex.x, vertex.y);
     });

@@ -105,10 +105,10 @@ function fireTransition(t, sec) {
     var inbound = graph.getConnectedLinks(t, {inbound: true});
     var outbound = graph.getConnectedLinks(t, {outbound: true});
 
-    var placesBefore = _.map(inbound, function (link) {
+    var placesBefore = inbound.map(function (link) {
         return graph.getCell(link.get('source').id);
     });
-    var placesAfter = _.map(outbound, function (link) {
+    var placesAfter = outbound.map(function (link) {
         return graph.getCell(link.get('target').id);
     });
 
@@ -127,7 +127,7 @@ function fireTransition(t, sec) {
                 p.set('tokens', p.get('tokens') - 1);
             });
 
-            var link = _.find(inbound, function (l) {
+            var link = inbound.find(function (l) {
                 return l.get('source').id === p.id;
             });
             paper.findViewByModel(link).sendToken(V('circle', {r: 5, fill: '#feb662'}).node, sec * 1000);
@@ -135,7 +135,7 @@ function fireTransition(t, sec) {
         });
 
         _.each(placesAfter, function (p) {
-            var link = _.find(outbound, function (l) {
+            var link = outbound.find(function (l) {
                 return l.get('target').id === p.id;
             });
             paper.findViewByModel(link).sendToken(V('circle', {r: 5, fill: '#feb662'}).node, sec * 1000, function () {

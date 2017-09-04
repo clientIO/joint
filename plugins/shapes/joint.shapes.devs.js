@@ -5,7 +5,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
     portMarkup: '<circle class="port-body"/>',
     portLabelMarkup: '<text class="port-label"/>',
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'devs.Model',
         inPorts: [],
@@ -97,13 +97,13 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     updatePortItems: function(model, changed, opt) {
 
         // Make sure all ports are unique.
-        var inPorts = _.uniq(this.get('inPorts'));
-        var outPorts = _.difference(_.uniq(this.get('outPorts')), inPorts);
+        var inPorts = joint.util.uniq(this.get('inPorts'));
+        var outPorts = joint.util.difference(joint.util.uniq(this.get('outPorts')), inPorts);
 
         var inPortItems = this.createPortItems('in', inPorts);
         var outPortItems = this.createPortItems('out', outPorts);
 
-        this.prop('ports/items', inPortItems.concat(outPortItems), _.extend({ rewrite: true }, opt));
+        this.prop('ports/items', inPortItems.concat(outPortItems), Object.assign({ rewrite: true }, opt));
     },
 
     createPortItem: function(group, port) {
@@ -121,13 +121,13 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
     createPortItems: function(group, ports) {
 
-        return _.map(ports, _.bind(this.createPortItem, this, group));
+        return ports.map((port) => this.createPortItem(group, port));
     },
 
     _addGroupPort: function(port, group, opt) {
 
         var ports = this.get(group);
-        return this.set(group, _.isArray(ports) ? ports.concat(port) : [port], opt);
+        return this.set(group, Array.isArray(ports) ? ports.concat(port) : [port], opt);
     },
 
     addOutPort: function(port, opt) {
@@ -142,7 +142,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
     _removeGroupPort: function(port, group, opt) {
 
-        return this.set(group, _.without(this.get(group), port), opt);
+        return this.set(group, joint.util.without(this.get(group), port), opt);
     },
 
     removeOutPort: function(port, opt) {
@@ -157,7 +157,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
     _changeGroup: function(group, properties, opt) {
         
-        return this.prop('ports/groups/' + group, _.isObject(properties) ? properties : {}, opt);
+        return this.prop('ports/groups/' + group, joint.util.isObject(properties) ? properties : {}, opt);
     },
     
     changeInGroup: function(properties, opt) {
@@ -173,7 +173,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
 joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'devs.Atomic',
         size: {
@@ -190,7 +190,7 @@ joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
 
 joint.shapes.devs.Coupled = joint.shapes.devs.Model.extend({
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'devs.Coupled',
         size: {

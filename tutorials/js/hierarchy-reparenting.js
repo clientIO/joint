@@ -41,7 +41,7 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
 
     if (cellViewsBelow.length) {
         // Note that the findViewsFromPoint() returns the view for the `cell` itself.
-        var cellViewBelow = _.find(cellViewsBelow, function(c) { return c.model.id !== cell.id });
+        var cellViewBelow = cellViewsBelow.find(function(c) { return c.model.id !== cell.id });
     
         // Prevent recursive embedding.
         if (cellViewBelow && cellViewBelow.model.get('parent') !== cell.id) {

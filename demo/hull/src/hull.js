@@ -17,11 +17,11 @@
     });
 
     // create circles
-    _.times(10, function(n) {
-        var x = _.random(100, 700);
-        var y = _.random(100, 500);
+    for (let n = 0; n < 10; n++) {
+        var x = joint.util.random(100, 700);
+        var y = joint.util.random(100, 500);
         createCircle(x, y, (n % 3 === 0) ? 'inner' : 'outer').addTo(graph);
-    });
+    }
 
     // create boundaries around elements
     var innerBoundary = createBoundary('#fe854f');
@@ -50,11 +50,11 @@
 
     function getPointsByGroup(group, padding) {
 
-        var elements = _.filter(graph.getElements(), function(el) {
+        var elements = graph.getElements().filter(function(el) {
             return el.get('group') === group;
-        });
+        }) || [];
 
-        return _.reduce(elements, function(res, el) {
+        return elements.reduce(function(res, el) {
             return res.concat(getElementCornerPoints(el, padding));
         }, []);
     }
@@ -64,7 +64,7 @@
 
         padding = padding || 0;
 
-        return _.reduce(inPoints, function(outPoints, point) {
+        return inPoints.reduce(function(outPoints, point) {
             outPoints.push(
                 point.clone().offset(padding, padding),
                 point.clone().offset(-padding, padding),

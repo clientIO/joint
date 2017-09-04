@@ -10,14 +10,14 @@ joint.dia.Cell = Backbone.Model.extend({
 
         var defaults;
         var attrs = attributes || {};
-        this.cid = _.uniqueId('c');
+        this.cid = joint.util.uniqueId('c');
         this.attributes = {};
         if (options && options.collection) this.collection = options.collection;
         if (options && options.parse) attrs = this.parse(attrs, options) || {};
-        if ((defaults = _.result(this, 'defaults'))) {
+        if ((defaults = joint.util.result(this, 'defaults'))) {
             //<custom code>
             // Replaced the call to _.defaults with _.merge.
-            attrs = _.merge({}, defaults, attrs);
+            attrs = joint.util.merge({}, defaults, attrs);
             //</custom code>
         }
         this.set(attrs, options);
@@ -38,26 +38,27 @@ joint.dia.Cell = Backbone.Model.extend({
 
         // Loop through all the attributes and
         // omit the default attributes as they are implicitly reconstructable by the cell 'type'.
-        _.each(attrs, function(attr, selector) {
+
+        joint.util.each(attrs, function(attr, selector) {
 
             var defaultAttr = defaultAttrs[selector];
 
-            _.each(attr, function(value, name) {
+            joint.util.each(attr, function(value, name) {
 
                 // attr is mainly flat though it might have one more level (consider the `style` attribute).
                 // Check if the `value` is object and if yes, go one level deep.
-                if (_.isObject(value) && !_.isArray(value)) {
+                if (joint.util.isObject(value) && !Array.isArray(value)) {
 
-                    _.each(value, function(value2, name2) {
+                    joint.util.each(value, function(value2, name2) {
 
-                        if (!defaultAttr || !defaultAttr[name] || !_.isEqual(defaultAttr[name][name2], value2)) {
+                        if (!defaultAttr || !defaultAttr[name] || !joint.util.isEqual(defaultAttr[name][name2], value2)) {
 
                             finalAttrs[selector] = finalAttrs[selector] || {};
                             (finalAttrs[selector][name] || (finalAttrs[selector][name] = {}))[name2] = value2;
                         }
                     });
 
-                } else if (!defaultAttr || !_.isEqual(defaultAttr[name], value)) {
+                } else if (!defaultAttr || !joint.util.isEqual(defaultAttr[name], value)) {
                     // `value` is not an object, default attribute for such a selector does not exist
                     // or it is different than the attribute value set on the model.
 
@@ -67,7 +68,7 @@ joint.dia.Cell = Backbone.Model.extend({
             });
         });
 
-        var attributes = _.cloneDeep(_.omit(this.attributes, 'attrs'));
+        var attributes = joint.util.cloneDeep(joint.util.omit(this.attributes, 'attrs'));
         //var attributes = JSON.parse(JSON.stringify(_.omit(this.attributes, 'attrs')));
         attributes.attrs = finalAttrs;
 
@@ -102,12 +103,12 @@ joint.dia.Cell = Backbone.Model.extend({
 
         // Collect ports from the `attrs` object.
         var ports = {};
-        _.each(this.get('attrs'), function(attrs, selector) {
+        joint.util.each(this.get('attrs'), function(attrs, selector) {
 
             if (attrs && attrs.port) {
 
                 // `port` can either be directly an `id` or an object containing an `id` (and potentially other data).
-                if (!_.isUndefined(attrs.port.id)) {
+                if (typeof attrs.port.id !== 'undefined') {
                     ports[attrs.port.id] = attrs.port;
                 } else {
                     ports[attrs.port] = { id: attrs.port };
@@ -118,22 +119,22 @@ joint.dia.Cell = Backbone.Model.extend({
         // Collect ports that have been removed (compared to the previous ports) - if any.
         // Use hash table for quick lookup.
         var removedPorts = {};
-        _.each(previousPorts, function(port, id) {
+        joint.util.each(function(port, id) {
 
             if (!ports[id]) removedPorts[id] = true;
         });
 
         // Remove all the incoming/outgoing links that have source/target port set to any of the removed ports.
-        if (this.graph && !_.isEmpty(removedPorts)) {
+        if (this.graph && !joint.util.isEmpty(removedPorts)) {
 
             var inboundLinks = this.graph.getConnectedLinks(this, { inbound: true });
-            _.each(inboundLinks, function(link) {
+            inboundLinks.forEach(function(link) {
 
                 if (removedPorts[link.get('target').port]) link.remove();
             });
 
             var outboundLinks = this.graph.getConnectedLinks(this, { outbound: true });
-            _.each(outboundLinks, function(link) {
+            outboundLinks.forEach(function(link) {
 
                 if (removedPorts[link.get('source').port]) link.remove();
             });
@@ -161,7 +162,7 @@ joint.dia.Cell = Backbone.Model.extend({
             parentCell.unembed(this);
         }
 
-        _.invoke(this.getEmbeddedCells(), 'remove', opt);
+        joint.util.invoke(this.getEmbeddedCells(), 'remove', opt);
 
         this.trigger('remove', this, this.collection, opt);
 
@@ -185,7 +186,7 @@ joint.dia.Cell = Backbone.Model.extend({
             if (opt.deep) {
 
                 var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
-                _.each(cells, function(cell) { cell.set('z', ++z, opt); });
+                cells.forEach(function(cell) { cell.set('z', ++z, opt); });
 
             }
 
@@ -207,8 +208,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
             if (opt.deep) {
 
-                var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
-                _.eachRight(cells, function(cell) { cell.set('z', z--, opt); });
+                var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true }) || [];
+                cells.reverse().forEach(function(cell) { cell.set('z', z--, opt); });
             }
 
             this.set('z', z, opt).stopBatch('to-back');
@@ -227,13 +228,13 @@ joint.dia.Cell = Backbone.Model.extend({
 
             this.startBatch('embed');
 
-            var embeds = _.clone(this.get('embeds') || []);
+            var embeds = (this.get('embeds') || []).slice();
 
             // We keep all element ids after link ids.
             embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
 
             cell.set('parent', this.id, opt);
-            this.set('embeds', _.uniq(embeds), opt);
+            this.set('embeds', joint.util.uniq(embeds), opt);
 
             this.stopBatch('embed');
         }
@@ -246,7 +247,7 @@ joint.dia.Cell = Backbone.Model.extend({
         this.startBatch('unembed');
 
         cell.unset('parent', opt);
-        this.set('embeds', _.without(this.get('embeds'), cell.id), opt);
+        this.set('embeds', joint.util.without(this.get('embeds'), cell.id), opt);
 
         this.stopBatch('unembed');
 
@@ -309,14 +310,14 @@ joint.dia.Cell = Backbone.Model.extend({
 
                     // depthFirst algorithm
                     cells = this.getEmbeddedCells();
-                    _.each(cells, function(cell) {
+                    cells.forEach(function(cell) {
                         cells.push.apply(cells, cell.getEmbeddedCells(opt));
                     });
                 }
 
             } else {
 
-                cells = _.map(this.get('embeds'), this.graph.getCell, this.graph);
+                cells = (this.get('embeds') || []).map((cell) => this.graph.getCell(cell));
             }
 
             return cells;
@@ -326,10 +327,10 @@ joint.dia.Cell = Backbone.Model.extend({
 
     isEmbeddedIn: function(cell, opt) {
 
-        var cellId = _.isString(cell) ? cell : cell.id;
+        var cellId = typeof cell === 'string' ? cell : cell.id;
         var parentId = this.get('parent');
 
-        opt = _.defaults({ deep: true }, opt);
+        opt = joint.util.defaults({ deep: true }, opt);
 
         // See getEmbeddedCells().
         if (this.graph && opt.deep) {
@@ -382,7 +383,7 @@ joint.dia.Cell = Backbone.Model.extend({
             // Deep cloning.
 
             // For a deep clone, simply call `graph.cloneCells()` with the cell and all its embedded cells.
-            return _.values(joint.dia.Graph.prototype.cloneCells.call(null, [this].concat(this.getEmbeddedCells({ deep: true }))));
+            return Object.values(joint.dia.Graph.prototype.cloneCells.call(null, [this].concat(this.getEmbeddedCells({ deep: true }))));
         }
     },
 
@@ -400,9 +401,9 @@ joint.dia.Cell = Backbone.Model.extend({
     prop: function(props, value, opt) {
 
         var delim = '/';
-        var isString = _.isString(props);
+        var isString = typeof props === 'string';
 
-        if (isString || _.isArray(props)) {
+        if (isString || Array.isArray(props)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
 
@@ -442,7 +443,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
                 for (var i = 1; i < pathArrayLength; i++) {
                     var pathItem = pathArray[i];
-                    var isArrayIndex = _.isFinite(isString ? Number(pathItem) : pathItem);
+                    var isArrayIndex = Number.isFinite(isString ? Number(pathItem) : pathItem);
                     initializer = initializer[prevProperty] = isArrayIndex ? [] : {};
                     prevProperty = pathItem;
                 }
@@ -450,13 +451,13 @@ joint.dia.Cell = Backbone.Model.extend({
                 // Fill update with the `value` on `path`.
                 update = joint.util.setByPath(update, pathArray, value, '/');
 
-                var baseAttributes = _.merge({}, this.attributes);
+                var baseAttributes = joint.util.merge({}, this.attributes);
                 // if rewrite mode enabled, we replace value referenced by path with
                 // the new one (we don't merge).
                 opt.rewrite && joint.util.unsetByPath(baseAttributes, path, '/');
 
                 // Merge update with the model attributes.
-                var attributes = _.merge(baseAttributes, update);
+                var attributes = joint.util.merge(baseAttributes, update);
                 // Finally, set the property to the updated attributes.
                 return this.set(property, attributes[property], opt);
 
@@ -466,7 +467,7 @@ joint.dia.Cell = Backbone.Model.extend({
             }
         }
 
-        return this.set(_.merge({}, this.attributes, props), value);
+        return this.set(joint.util.merge({}, this.attributes, props), value);
     },
 
     // A convient way to unset nested properties
@@ -478,7 +479,7 @@ joint.dia.Cell = Backbone.Model.extend({
         opt = opt || {};
         opt.dirty = true;
 
-        var pathArray = _.isArray(path) ? path : path.split('/');
+        var pathArray = Array.isArray(path) ? path : path.split('/');
 
         if (pathArray.length === 1) {
             // A top level property
@@ -488,7 +489,7 @@ joint.dia.Cell = Backbone.Model.extend({
         // A nested property
         var property = pathArray[0];
         var nestedPath = pathArray.slice(1);
-        var propertyValue = _.merge({}, this.get(property));
+        var propertyValue = joint.util.merge({}, this.get(property));
 
         joint.util.unsetByPath(propertyValue, nestedPath, '/');
 
@@ -503,9 +504,9 @@ joint.dia.Cell = Backbone.Model.extend({
             return this.get('attrs');
         }
 
-        if (_.isArray(attrs)) {
+        if (Array.isArray(attrs)) {
             args[0] = ['attrs'].concat(attrs);
-        } else if (_.isString(attrs)) {
+        } else if (typeof attrs === 'string') {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
             args[0] = 'attrs/' + attrs;
@@ -521,7 +522,7 @@ joint.dia.Cell = Backbone.Model.extend({
     // A convenient way to unset nested attributes
     removeAttr: function(path, opt) {
 
-        if (_.isArray(path)) {
+        if (Array.isArray(path)) {
 
             return this.removeProp(['attrs'].concat(path));
         }
@@ -540,12 +541,12 @@ joint.dia.Cell = Backbone.Model.extend({
             valueFunction: joint.util.interpolate.number
         };
 
-        opt = _.extend(defaults, opt);
+        opt = Object.assign(defaults, opt);
 
         var firstFrameTime = 0;
         var interpolatingFunction;
 
-        var setter = _.bind(function(runtime) {
+        var setter = runtime => {
 
             var id, progress, propertyValue;
 
@@ -568,9 +569,9 @@ joint.dia.Cell = Backbone.Model.extend({
 
             if (!id) this.trigger('transition:end', this, path);
 
-        }, this);
+        };
 
-        var initiator = _.bind(function(callback) {
+        var initiator = callback => {
 
             this.stopTransitions(path);
 
@@ -580,13 +581,13 @@ joint.dia.Cell = Backbone.Model.extend({
 
             this.trigger('transition:start', this, path);
 
-        }, this);
+        };
 
-        return _.delay(initiator, opt.delay, setter);
+        return joint.util.delay(initiator, opt.delay, setter);
     },
 
     getTransitions: function() {
-        return _.keys(this._transitionIds);
+        return Object.keys(this._transitionIds);
     },
 
     stopTransitions: function(path, delim) {
@@ -597,7 +598,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         _(this._transitionIds).keys().filter(pathArray && function(key) {
 
-            return _.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
+            return joint.util.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
 
         }).each(function(key) {
 
@@ -639,12 +640,12 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     startBatch: function(name, opt) {
-        if (this.graph) { this.graph.startBatch(name, _.extend({}, opt, { cell: this })); }
+        if (this.graph) { this.graph.startBatch(name, Object.assign({}, opt, { cell: this })); }
         return this;
     },
 
     stopBatch: function(name, opt) {
-        if (this.graph) { this.graph.stopBatch(name, _.extend({}, opt, { cell: this })); }
+        if (this.graph) { this.graph.stopBatch(name, Object.assign({}, opt, { cell: this })); }
         return this;
     }
 
@@ -659,8 +660,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
     define: function(type, defaults, protoProps, staticProps) {
 
-        protoProps = _.assign({
-            defaults: _.defaultsDeep({ type: type }, defaults, this.prototype.defaults)
+        protoProps = Object.assign({
+            defaults: joint.util.defaultsDeep({ type: type }, defaults, this.prototype.defaults)
         }, protoProps);
 
         var Cell = this.extend(protoProps, staticProps);
@@ -687,7 +688,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         if (type) {
 
-            _.each(type.toLowerCase().split('.'), function(value, index, list) {
+            type.toLowerCase().split('.').forEach(function(value, index, list) {
                 classNames.push('type-' + list.slice(0, index + 1).join('-'));
             });
         }
@@ -713,7 +714,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     init: function() {
 
-        _.bindAll(this, 'remove', 'update');
+        joint.util.bindAll(this, 'remove', 'update');
 
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);
@@ -740,12 +741,12 @@ joint.dia.CellView = joint.mvc.View.extend({
     // Example: `can('vertexMove')`, `can('labelMove')`.
     can: function(feature) {
 
-        var interactive = _.isFunction(this.options.interactive)
+        var interactive = typeof this.options.interactive === 'function'
                             ? this.options.interactive(this)
                             : this.options.interactive;
 
-        return (_.isObject(interactive) && interactive[feature] !== false) ||
-                (_.isBoolean(interactive) && interactive !== false);
+        return (joint.util.isObject(interactive) && interactive[feature] !== false) ||
+                (typeof interactive === 'boolean' && interactive !== false);
     },
 
     findBySelector: function(selector, root) {
@@ -887,7 +888,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     setNodeAttributes: function(node, attrs) {
 
-        if (!_.isEmpty(attrs)) {
+        if (!joint.util.isEmpty(attrs)) {
             if (node instanceof SVGElement) {
                 V(node).attr(attrs);
             } else {
@@ -906,8 +907,8 @@ joint.dia.CellView = joint.mvc.View.extend({
             if (!attrs.hasOwnProperty(attrName)) continue;
             attrVal = attrs[attrName];
             def = this.getAttributeDefinition(attrName);
-            if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs))) {
-                if (_.isString(def.set)) {
+            if (def && (typeof def.qualify !== 'function' || def.qualify.call(this, attrVal, node, attrs))) {
+                if (typeof def.set === 'string') {
                     normalAttrs || (normalAttrs = {});
                     normalAttrs[def.set] = attrVal;
                 }
@@ -926,15 +927,15 @@ joint.dia.CellView = joint.mvc.View.extend({
             attrName = relatives[i];
             def = relatives[i+1];
             attrVal = attrs[attrName];
-            if (_.isFunction(def.set)) {
+            if (typeof def.set === 'function') {
                 setAttrs || (setAttrs = {});
                 setAttrs[attrName] = attrVal;
             }
-            if (_.isFunction(def.position)) {
+            if (typeof def.position === 'function') {
                 positionAttrs || (positionAttrs = {});
                 positionAttrs[attrName] = attrVal;
             }
-            if (_.isFunction(def.offset)) {
+            if (typeof def.offset === 'function') {
                 offsetAttrs || (offsetAttrs = {});
                 offsetAttrs[attrName] = attrVal;
             }
@@ -967,8 +968,8 @@ joint.dia.CellView = joint.mvc.View.extend({
             // which will affect the node dimensions based on the reference bounding
             // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
             var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs);
-            if (_.isObject(setResult)) {
-                _.extend(nodeAttrs, setResult);
+            if (joint.util.isObject(setResult)) {
+                Object.assign(nodeAttrs, setResult);
             } else if (setResult !== undefined) {
                 nodeAttrs[attrName] = setResult;
             }
@@ -987,7 +988,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         var nodeMatrix = V.transformStringToMatrix(nodeTransform);
         var nodePosition = g.Point(nodeMatrix.e, nodeMatrix.f);
         if (nodeTransform) {
-            nodeAttrs = _.omit(nodeAttrs, 'transform');
+            nodeAttrs = joint.util.omit(nodeAttrs, 'transform');
             nodeMatrix.e = nodeMatrix.f = 0;
         }
 
@@ -1084,9 +1085,9 @@ joint.dia.CellView = joint.mvc.View.extend({
                 if (prevNodeAttrs) {
                     if (!prevNodeAttrs.merged) {
                         prevNodeAttrs.merged = true;
-                        prevNodeAttrs.attributes = _.cloneDeep(prevNodeAttrs.attributes);
+                        prevNodeAttrs.attributes = joint.util.cloneDeep(prevNodeAttrs.attributes);
                     }
-                    _.merge(prevNodeAttrs.attributes, nodeAttrs);
+                    joint.util.merge(prevNodeAttrs.attributes, nodeAttrs);
                 } else {
                     nodesAttrs[nodeId] = {
                         attributes: nodeAttrs,
@@ -1161,7 +1162,9 @@ joint.dia.CellView = joint.mvc.View.extend({
 
                 // If an element in the list is positioned relative to this one, then
                 // we want to insert this one before it in the list.
-                var itemIndex = _.findIndex(relativeItems, { refNode: node });
+                var itemIndex = relativeItems.findIndex(function(item) {
+                    return item.refNode === node;
+                });
                 if (itemIndex > -1) {
                     relativeItems.splice(itemIndex, 0, item);
                 } else {
@@ -1209,9 +1212,9 @@ joint.dia.CellView = joint.mvc.View.extend({
         processedAttrs.position || (processedAttrs.position = {});
         processedAttrs.offset || (processedAttrs.offset = {});
 
-        _.extend(processedAttrs.set, roProcessedAttrs.set);
-        _.extend(processedAttrs.position, roProcessedAttrs.position);
-        _.extend(processedAttrs.offset, roProcessedAttrs.offset);
+        Object.assign(processedAttrs.set, roProcessedAttrs.set);
+        Object.assign(processedAttrs.position, roProcessedAttrs.position);
+        Object.assign(processedAttrs.offset, roProcessedAttrs.offset);
 
         // Handle also the special transform property.
         var transform = processedAttrs.normal && processedAttrs.normal.transform;

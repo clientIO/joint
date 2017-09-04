@@ -1,7 +1,7 @@
 (function(joint, _, g, $) {
 
     function isPercentage(val) {
-        return _.isString(val) && val.slice(-1) === '%';
+        return typeof val === 'string' && val.slice(-1) === '%';
     }
 
     function setWrapper(attrName, dimension) {
@@ -81,43 +81,43 @@
         },
 
         filter: {
-            qualify: _.isPlainObject,
+            qualify: joint.util.isPlainObject,
             set: function(filter) {
                 return 'url(#' + this.paper.defineFilter(filter) + ')';
             }
         },
 
         fill: {
-            qualify: _.isPlainObject,
+            qualify: joint.util.isPlainObject,
             set: function(fill) {
                 return 'url(#' + this.paper.defineGradient(fill) + ')';
             }
         },
 
         stroke: {
-            qualify: _.isPlainObject,
+            qualify: joint.util.isPlainObject,
             set: function(stroke) {
                 return 'url(#' + this.paper.defineGradient(stroke) + ')';
             }
         },
 
         sourceMarker: {
-            qualify: _.isPlainObject,
+            qualify: joint.util.isPlainObject,
             set: function(marker) {
                 return { 'marker-start': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
 
         targetMarker: {
-            qualify: _.isPlainObject,
+            qualify: joint.util.isPlainObject,
             set: function(marker) {
-                marker = _.assign({ transform: 'rotate(180)' }, marker);
+                marker = Object.assign({ transform: 'rotate(180)' }, marker);
                 return { 'marker-end': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
 
         vertexMarker: {
-            qualify: _.isPlainObject,
+            qualify: joint.util.isPlainObject,
             set: function(marker) {
                 return { 'marker-mid': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
@@ -128,7 +128,8 @@
                 var $node = $(node);
                 var cacheName = 'joint-text';
                 var cache = $node.data(cacheName);
-                var textAttrs = _.pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x');
+                const { lineHeight, annotations, textPath, x } = attrs;
+                var textAttrs = { lineHeight, annotations, textPath, x };
                 var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
                 var textHash = JSON.stringify([text, textAttrs]);
                 // Update the text only if there was a change in the string
@@ -147,7 +148,7 @@
         },
 
         textWrap: {
-            qualify: _.isPlainObject,
+            qualify: joint.util.isPlainObject,
             set: function(value, refBBox, node, attrs) {
                 // option `width`
                 var width = value.width || 0;
@@ -209,7 +210,7 @@
 
         // `style` attribute is special in the sense that it sets the CSS style of the subelement.
         style: {
-            qualify: _.isPlainObject,
+            qualify: joint.util.isPlainObject,
             set: function(styles, refBBox, node) {
                 $(node).css(styles);
             }

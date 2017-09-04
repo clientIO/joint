@@ -242,7 +242,7 @@ joint.connectors.jumpover = (function(_, g) {
             var connector = link.get('connector') || defaultConnector;
 
             // avoid jumping over links with connector type listed in `ignored connectors`.
-            if (_.contains(ignoreConnectors, connector.name)) {
+            if (ignoreConnectors.includes(connector.name)) {
                 return false;
             }
             // filter out links that are above this one and  have the same connector type
@@ -285,13 +285,16 @@ joint.connectors.jumpover = (function(_, g) {
         var jumpingLines = thisLines.reduce(function(resultLines, thisLine) {
             // iterate all links and grab the intersections with this line
             // these are then sorted by distance so the line can be split more easily
-            var intersections = _(links).map(function(link, i) {
+
+            var intersections = links.reduce(function(res, link, i) {
                 // don't intersection with itself
-                if (link === thisModel) {
-                    return null;
+                if (link !== thisModel) {
+                    let lineIntersections = findLineIntersections(thisLine, linkLines[i]);
+                    res.push(...lineIntersections);
                 }
-                return findLineIntersections(thisLine, linkLines[i]);
-            }).flatten().compact().sortBy(_.partial(sortPoints, thisLine.start)).value();
+
+                return res;
+            }, []).sort((a, b) => sortPoints(thisLine.start, a));
 
             if (intersections.length > 0) {
                 // split the line based on found intersection points

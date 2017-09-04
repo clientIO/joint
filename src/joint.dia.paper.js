@@ -165,7 +165,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     init: function() {
 
-        _.bindAll(this, 'pointerup');
+        joint.util.bindAll(this, 'pointerup');
 
         var model = this.model = this.options.model || new joint.dia.Graph;
 
@@ -199,10 +199,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         // This is a fix for the case where two papers share the same options.
         // Changing origin.x for one paper would change the value of origin.x for the other.
         // This prevents that behavior.
-        options.origin = _.clone(options.origin);
-        options.defaultConnector = _.clone(options.defaultConnector);
+        options.origin = Object.assign({}, options.origin);
+        options.defaultConnector = Object.assign({}, options.defaultConnector);
         // Return the default highlighting options into the user specified options.
-        options.highlighting = _.defaultsDeep(
+        options.highlighting = joint.util.defaultsDeep(
             {},
             options.highlighting,
             this.constructor.prototype.options.highlighting
@@ -344,7 +344,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // the content visible.
     fitToContent: function(gridWidth, gridHeight, padding, opt) { // alternatively function(opt)
 
-        if (_.isObject(gridWidth)) {
+        if (joint.util.isObject(gridWidth)) {
             // first parameter is an option object
             opt = gridWidth;
             gridWidth = opt.gridWidth || 1;
@@ -421,7 +421,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         opt = opt || {};
 
-        _.defaults(opt, {
+        joint.util.defaults(opt, {
             padding: 0,
             preserveAspectRatio: true,
             scaleGrid: null,
@@ -529,7 +529,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var restrictedArea;
 
-        if (_.isFunction(this.options.restrictTranslate)) {
+        if (typeof this.options.restrictTranslate === 'function') {
             // A method returning a bounding box
             restrictedArea = this.options.restrictTranslate.apply(this, arguments);
         } else if (this.options.restrictTranslate === true) {
@@ -584,7 +584,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     onCellAdded: function(cell, graph, opt) {
 
-        if (this.options.async && opt.async !== false && _.isNumber(opt.position)) {
+        if (this.options.async && opt.async !== false && typeof opt.position === 'number') {
 
             this._asyncCells = this._asyncCells || [];
             this._asyncCells.push(cell);
@@ -663,7 +663,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         } else {
 
-            _.each(cells, this.renderView, this);
+            cells.forEach(this.renderView.bind(this));
 
             // Sort the cells in the DOM manually as we might have changed the order they
             // were added to the DOM (see above).
@@ -680,12 +680,12 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     removeViews: function() {
 
-        _.invoke(this._views, 'remove');
+        joint.util.invoke(this._views, 'remove');
 
         this._views = {};
     },
 
-    asyncBatchAdded: _.noop,
+    asyncBatchAdded: () => {},
 
     asyncRenderViews: function(cells, opt) {
 
@@ -694,14 +694,14 @@ joint.dia.Paper = joint.mvc.View.extend({
             var batchSize = (this.options.async && this.options.async.batchSize) || 50;
             var batchCells = cells.splice(0, batchSize);
 
-            _.each(batchCells, function(cell) {
+            batchCells.forEach(cell => {
 
                 // The cell has to be part of the graph.
                 // There is a chance in asynchronous rendering
                 // that a cell was removed before it's rendered to the paper.
                 if (cell.graph === this.model) this.renderView(cell);
 
-            }, this);
+            });
 
             this.asyncBatchAdded();
         }
@@ -832,7 +832,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // be a selector or a jQuery object.
     findView: function($el) {
 
-        var el = _.isString($el)
+        var el = typeof $el === 'string'
             ? this.viewport.querySelector($el)
             : $el instanceof $ ? $el[0] : $el;
 
@@ -850,7 +850,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Find a view for a model `cell`. `cell` can also be a string representing a model `id`.
     findViewByModel: function(cell) {
 
-        var id = _.isString(cell) ? cell : cell.id;
+        var id = typeof cell === 'string' ? cell : cell.id;
 
         return this._views[id];
     },
@@ -860,9 +860,9 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         p = g.point(p);
 
-        var views = _.map(this.model.getElements(), this.findViewByModel, this);
+        var views = this.model.getElements().map((element) => this.findViewByModel(element));
 
-        return _.filter(views, function(view) {
+        return views.filter(function(view) {
             return view && g.rect(view.vel.bbox(false, this.viewport)).containsPoint(p);
         }, this);
     },
@@ -870,15 +870,13 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Find all views in given area
     findViewsInArea: function(rect, opt) {
 
-        opt = _.defaults(opt || {}, { strict: false });
+        opt = joint.util.defaults(opt || {}, { strict: false });
         rect = g.rect(rect);
 
-        var views = _.map(this.model.getElements(), this.findViewByModel, this);
+        var views = this.model.getElements().map((element) => this.findViewByModel(element));
         var method = opt.strict ? 'containsRect' : 'intersect';
 
-        return _.filter(views, function(view) {
-            return view && rect[method](g.rect(view.vel.bbox(false, this.viewport)));
-        }, this);
+        return views.filter((view) => view && rect[method](g.rect(view.vel.bbox(false, this.viewport))));
     },
 
     getModelById: function(id) {
@@ -1014,7 +1012,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                         inbound: false
                     });
 
-                    var numSameLinks = _.filter(connectedLinks, function(_link) {
+                    var numSameLinks = connectedLinks.filter(function(_link) {
 
                         var _source = _link.get('source');
                         var _target = _link.get('target');
@@ -1036,8 +1034,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (
             !this.options.linkPinning &&
             (
-                !_.has(link.get('source'), 'id') ||
-                !_.has(link.get('target'), 'id')
+                !joint.util.has(link.get('source'), 'id') ||
+                !joint.util.has(link.get('target'), 'id')
             )
         ) {
             // Link pinning is not allowed and the link is not connected to the target.
@@ -1049,7 +1047,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     getDefaultLink: function(cellView, magnet) {
 
-        return _.isFunction(this.options.defaultLink)
+        return typeof this.options.defaultLink === 'function'
         // default link is a function producing link model
             ? this.options.defaultLink.call(this, cellView, magnet)
         // default link is the Backbone model
@@ -1073,12 +1071,10 @@ joint.dia.Paper = joint.mvc.View.extend({
                 }
             }
         */
-        if (_.isUndefined(highlighterDef)) {
+        if (typeof highlighterDef === 'undefined') {
 
             // check for built-in types
-            var type = _.chain(opt)
-                .pick('embedding', 'connecting', 'magnetAvailability', 'elementAvailability')
-                .keys().first().value();
+            var type = Object.keys(opt).find((item) => ['embedding', 'connecting', 'magnetAvailability', 'elementAvailability'].includes(item));
 
             highlighterDef = (type && paperOpt.highlighting[type]) || paperOpt.highlighting['default'];
         }
@@ -1089,7 +1085,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (!highlighterDef) return false;
 
         // Allow specifying a highlighter by name.
-        if (_.isString(highlighterDef)) {
+        if (typeof highlighterDef === 'string') {
             highlighterDef = {
                 name: highlighterDef
             };
@@ -1128,7 +1124,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (!this._highlights[key]) {
 
             var highlighter = opt.highlighter;
-            highlighter.highlight(cellView, magnetEl, _.clone(opt.options));
+            highlighter.highlight(cellView, magnetEl, Object.assign({}, opt.options));
 
             this._highlights[key] = {
                 cellView: cellView,
@@ -1209,7 +1205,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             return true;
         }
 
-        if (evt.data && !_.isUndefined(evt.data.guarded)) {
+        if (evt.data && typeof evt.data.guarded !== 'undefined') {
             return evt.data.guarded;
         }
 
@@ -1422,22 +1418,22 @@ joint.dia.Paper = joint.mvc.View.extend({
         this._gridCache = null;
         this._gridSettings = [];
 
-        var optionsList = _.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
-        _.each(optionsList, function (item) {
-            this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
-        }, this);
+        var optionsList = Array.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
+        optionsList.forEach((item) =>
+            this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item))
+        );
         return this;
     },
 
     _resolveDrawGridOption: function (opt) {
 
         var namespace = this.constructor.gridPatterns;
-        if (_.isString(opt) && namespace[opt]) {
-            return _.map(namespace[opt], _.clone);
+        if (typeof opt === 'string' && namespace[opt]) {
+            return namespace[opt].map((item) => Object.assign({}, item));
         }
 
         var options = opt || { args: [{}] };
-        var isArray = _.isArray(options);
+        var isArray = Array.isArray(options);
         var name = options.name;
 
         if (!isArray && !name && !options.markup ) {
@@ -1445,14 +1441,14 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
 
         if (name && namespace[name]) {
-            var pattern = _.map(namespace[name], _.clone);
+            var pattern = namespace[name].map((item) => Object.assign({}, item));
 
-            var args = _.isArray(options.args) ? options.args : [options.args || {}];
+            var args = Array.isArray(options.args) ? options.args : [options.args || {}];
 
-            _.defaults(args[0], _.omit(opt, 'args'));
+            joint.util.defaults(args[0], joint.util.omit(opt, 'args'));
             for (var i = 0; i < args.length; i++) {
                 if (pattern[i]) {
-                    _.extend(pattern[i], args[i]);
+                    Object.assign(pattern[i], args[i]);
                 }
             }
             return pattern;
@@ -1468,15 +1464,15 @@ joint.dia.Paper = joint.mvc.View.extend({
             return this.clearGrid();
         }
 
-        var localOptions = _.isArray(opt) ? opt : [opt];
+        var localOptions = Array.isArray(opt) ? opt : [opt];
 
         var ctm = this.matrix();
         var refs = this._getGriRefs();
 
-        _.each(this._gridSettings, function (gridLayerSetting, index) {
+        this._gridSettings.forEach(function (gridLayerSetting, index) {
 
             var id = 'pattern_'  + index;
-            var options = _.merge(gridLayerSetting, localOptions[index], {
+            var options = joint.util.merge(gridLayerSetting, localOptions[index], {
                 sx: ctm.a || 1,
                 sy: ctm.d || 1,
                 ox: ctm.e || 0,
@@ -1492,7 +1488,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             var patternDefVel = refs.get(id);
 
-            if (_.isFunction(options.update)) {
+            if (typeof options.update === 'function') {
                 options.update(patternDefVel.node.childNodes[0], options);
             }
 
@@ -1529,14 +1525,14 @@ joint.dia.Paper = joint.mvc.View.extend({
         var currentTranslate = this.translate();
 
         // backgroundPosition
-        if (_.isObject(backgroundPosition)) {
+        if (joint.util.isObject(backgroundPosition)) {
             var x = currentTranslate.tx + (currentScale.sx * (backgroundPosition.x || 0));
             var y = currentTranslate.ty + (currentScale.sy * (backgroundPosition.y || 0));
             backgroundPosition = x + 'px ' + y + 'px';
         }
 
         // backgroundSize
-        if (_.isObject(backgroundSize)) {
+        if (joint.util.isObject(backgroundSize)) {
             backgroundSize = g.rect(backgroundSize).scale(currentScale.sx, currentScale.sy);
             backgroundSize = backgroundSize.width + 'px ' + backgroundSize.height + 'px';
         }
@@ -1562,9 +1558,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         var backgroundRepeat = opt.repeat || 'no-repeat';
         var backgroundOpacity = opt.opacity || 1;
         var backgroundQuality = Math.abs(opt.quality) || 1;
-        var backgroundPattern = this.constructor.backgroundPatterns[_.camelCase(backgroundRepeat)];
+        var backgroundPattern = this.constructor.backgroundPatterns[joint.util.camelCase(backgroundRepeat)];
 
-        if (_.isFunction(backgroundPattern)) {
+        if (typeof backgroundPattern === 'function') {
             // 'flip-x', 'flip-y', 'flip-xy', 'watermark' and custom
             img.width *= backgroundQuality;
             img.height *= backgroundQuality;
@@ -1575,11 +1571,11 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             backgroundImage = canvas.toDataURL('image/png');
             backgroundRepeat = 'repeat';
-            if (_.isObject(backgroundSize)) {
+            if (joint.util.isObject(backgroundSize)) {
                 // recalculate the tile size if an object passed in
                 backgroundSize.width *= canvas.width / img.width;
                 backgroundSize.height *= canvas.height / img.height;
-            } else if (_.isUndefined(backgroundSize)) {
+            } else if (typeof backgroundSize === 'undefined') {
                 // calcule the tile size if no provided
                 opt.size = {
                     width: canvas.width / backgroundQuality,
@@ -1590,7 +1586,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             // backgroundRepeat:
             // no-repeat', 'round', 'space', 'repeat', 'repeat-x', 'repeat-y'
             backgroundImage = img.src;
-            if (_.isUndefined(backgroundSize)) {
+            if (typeof backgroundSize === 'undefined') {
                 // pass the image size for  the backgroundSize if no size provided
                 opt.size = {
                     width: img.width,
@@ -1620,9 +1616,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.updateBackgroundColor(opt.color);
 
         if (opt.image) {
-            opt = this._background = _.cloneDeep(opt);
+            opt = this._background = joint.util.cloneDeep(opt);
             var img = document.createElement('img');
-            img.onload = _.bind(this.drawBackgroundImage, this, img, opt);
+            img.onload = (evt) => this.drawBackgroundImage(img, opt);
             img.src = opt.image;
         } else {
             this.drawBackgroundImage(null);
@@ -1636,7 +1632,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.options.interactive = value;
 
-        _.invoke(this._views, 'setInteractivity', value);
+        joint.util.invoke(this._views, 'setInteractivity', value);
     },
 
     // Paper Defs
@@ -1647,7 +1643,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     defineFilter: function(filter) {
 
-        if (!_.isObject(filter)) {
+        if (!joint.util.isObject(filter)) {
             throw new TypeError('dia.Paper: defineFilter() requires 1. argument to be an object.');
         }
 
@@ -1671,7 +1667,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             // Set the filter area to be 3x the bounding box of the cell
             // and center the filter around the cell.
-            var filterAttrs = _.extend({
+            var filterAttrs = Object.assign({
                 filterUnits: 'objectBoundingBox',
                 x: -1,
                 y: -1,
@@ -1689,7 +1685,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     defineGradient: function(gradient) {
 
-        if (!_.isObject(gradient)) {
+        if (!joint.util.isObject(gradient)) {
             throw new TypeError('dia.Paper: defineGradient() requires 1. argument to be an object.');
         }
 
@@ -1707,11 +1703,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (!this.isDefined(gradientId)) {
 
             var stopTemplate = joint.util.template('<stop offset="${offset}" stop-color="${color}" stop-opacity="${opacity}"/>');
-            var gradientStopsStrings = _.map(stops, function(stop) {
+            var gradientStopsStrings = stops.map(function(stop) {
                 return stopTemplate({
                     offset: stop.offset,
                     color: stop.color,
-                    opacity: _.isFinite(stop.opacity) ? stop.opacity : 1
+                    opacity: Number.isFinite(stop.opacity) ? stop.opacity : 1
                 });
             });
 
@@ -1721,7 +1717,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 '</' + type + '>'
             ].join('');
 
-            var gradientAttrs = _.extend({ id: gradientId }, gradient.attrs);
+            var gradientAttrs = Object.assign({ id: gradientId }, gradient.attrs);
 
             V(gradientSVGString, gradientAttrs).appendTo(this.defs);
         }
@@ -1731,7 +1727,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     defineMarker: function(marker) {
 
-        if (!_.isObject(marker)) {
+        if (!joint.util.isObject(marker)) {
             throw new TypeError('dia.Paper: defineMarker() requires 1. argument to be an object.');
         }
 
@@ -1745,7 +1741,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         if (!this.isDefined(markerId)) {
 
-            var attrs = _.omit(marker, 'type', 'userSpaceOnUse');
+            var attrs = joint.util.omit(marker, 'type', 'userSpaceOnUse');
             var pathMarker = V('marker', {
                 id: markerId,
                 orient: 'auto',
@@ -1850,7 +1846,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             canvas.height = imgHeight * 3;
 
             var ctx = canvas.getContext('2d');
-            var angle = _.isNumber(opt.watermarkAngle) ? -opt.watermarkAngle : -20;
+            var angle = typeof opt.watermarkAngle === 'number' ? -opt.watermarkAngle : -20;
             var radians = g.toRad(angle);
             var stepX = canvas.width / 4;
             var stepY = canvas.height / 4;

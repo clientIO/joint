@@ -16,7 +16,7 @@
     joint.shapes.html = {};
     joint.shapes.html.Element = joint.shapes.basic.Generic.extend({
         markup: '<rect/>',
-        defaults: _.defaultsDeep({
+        defaults: joint.util.defaultsDeep({
             type: 'html.Element',
             attrs: {
                 rect: {

@@ -29,7 +29,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
     position: function(x, y, opt) {
 
-        var isSetter = _.isNumber(y);
+        var isSetter = typeof y === 'number';
 
         opt = (isSetter ? opt : x) || {};
 
@@ -128,9 +128,9 @@ joint.dia.Element = joint.dia.Cell.extend({
 
         if (opt.transition) {
 
-            if (!_.isObject(opt.transition)) opt.transition = {};
+            if (!joint.util.isObject(opt.transition)) opt.transition = {};
 
-            this.transition('position', translatedPosition, _.extend({}, opt.transition, {
+            this.transition('position', translatedPosition, Object.assign({}, opt.transition, {
                 valueFunction: joint.util.interpolate.object
             }));
 
@@ -140,7 +140,7 @@ joint.dia.Element = joint.dia.Cell.extend({
         }
 
         // Recursively call `translate()` on all the embeds cells.
-        _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
+        joint.util.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
 
         return this;
     },
@@ -158,10 +158,10 @@ joint.dia.Element = joint.dia.Cell.extend({
         }
         // Setter
         // (size, opt) signature
-        if (_.isObject(width)) {
+        if (joint.util.isObject(width)) {
             opt = height;
-            height = _.isNumber(width.height) ? width.height : currentSize.height;
-            width = _.isNumber(width.width) ? width.width : currentSize.width;
+            height = typeof width.height === 'number' ? width.height : currentSize.height;
+            width = typeof width.width === 'number' ? width.width : currentSize.width;
         }
 
         return this.resize(width, height, opt);
@@ -304,7 +304,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             if (opt.deep) {
                 // Recursively apply fitEmbeds on all embeds first.
-                _.invoke(embeddedCells, 'fitEmbeds', opt);
+                joint.util.invoke(embeddedCells, 'fitEmbeds', opt);
             }
 
             // Compute cell's size and position  based on the children bbox
@@ -600,7 +600,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Move to front also all the inbound and outbound links that are connected
         // to any of the element descendant. If we bring to front only embedded elements,
         // links connected to them would stay in the background.
-        _.invoke(connectedLinks, 'set', 'z', maxZ + 1, { ui: true });
+        joint.util.invoke(connectedLinks, 'set', 'z', maxZ + 1, { ui: true });
 
         model.stopBatch('to-front');
 
@@ -689,7 +689,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             delete this._candidateEmbedView;
         }
 
-        _.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
+        joint.util.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
     },
 
     // Interaction. The controller part.

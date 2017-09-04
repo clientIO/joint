@@ -14,7 +14,7 @@ var paper = new joint.dia.Paper({
                 this.addVertex({ x: x, y: y });
             }
         },
-        options: _.extend({}, joint.dia.LinkView.prototype.options, {
+        options: Object.assign({}, joint.dia.LinkView.prototype.options, {
             doubleLinkTools: true,
             linkToolsOffset: 40,
             doubleLinkToolsOffset: 60

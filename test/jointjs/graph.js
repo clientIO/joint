@@ -196,11 +196,11 @@ QUnit.module('graph', function(hooks) {
             var cellsAfter = this.graph.getCells();
 
             var allNewCellsExist = _.every(newCells, function(cell) {
-                return !!_.findWhere(cellsAfter, { id: cell.id });
+                return !!_.find(cellsAfter, { id: cell.id });
             });
 
             var noOldCellsExist = _.every(cells, function(cell) {
-                return !_.findWhere(cellsAfter, { id: cell.id });
+                return !_.find(cellsAfter, { id: cell.id });
             });
 
             assert.ok(allNewCellsExist && noOldCellsExist);
@@ -428,11 +428,11 @@ QUnit.module('graph', function(hooks) {
 
         graph.addCells([r1, r2, l1]);
 
-        assert.deepEqual(_.pluck(graph.getCells(), 'id'), ['r1', 'r2', 'l1'],
+        assert.deepEqual(graph.getCells().map(cell => cell.id), ['r1', 'r2', 'l1'],
                          'getCells() returns all the cells in the graph.');
-        assert.deepEqual(_.pluck(graph.getLinks(), 'id'), ['l1'],
+        assert.deepEqual(graph.getLinks().map(link => link.id), ['l1'],
                          'getLinks() returns only the link in the graph.');
-        assert.deepEqual(_.pluck(graph.getElements(), 'id'), ['r1', 'r2'],
+        assert.deepEqual(graph.getElements().map(element => element.id), ['r1', 'r2'],
                          'getElements() returns only the elements in the graph');
     });
 
@@ -466,25 +466,25 @@ QUnit.module('graph', function(hooks) {
         this.setupTestMixtureGraph(graph);
 
         // Shallow.
-        assert.deepEqual(_.sortBy(_.pluck(graph.getConnectedLinks(graph.getCell('a')), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6']), 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.sortBy(_.pluck(graph.getConnectedLinks(graph.getCell('a'), { inbound: true, outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6']), 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.sortBy(_.pluck(graph.getConnectedLinks(graph.getCell('a'), { outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3']), 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.pluck(graph.getConnectedLinks(graph.getCell('a'), { inbound: true }), 'id'), ['l6'], 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.pluck(graph.getConnectedLinks(graph.getCell('h')), 'id'), [], 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.pluck(graph.getConnectedLinks(graph.getCell('g')), 'id'), ['l8'], 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.pluck(graph.getConnectedLinks(graph.getCell('g'), { inbound: true }), 'id'), ['l8'], 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.pluck(graph.getConnectedLinks(graph.getCell('g'), { outbound: true }), 'id'), [], 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.pluck(graph.getConnectedLinks(graph.getCell('f')), 'id'), ['l7'], 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.pluck(graph.getConnectedLinks(graph.getCell('f'), { outbound: true }), 'id'), ['l7'], 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.pluck(graph.getConnectedLinks(graph.getCell('f'), { inbound: true }), 'id'), [], 'getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a')), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6']), 'getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { inbound: true, outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6']), 'getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3']), 'getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('a'), { inbound: true }), 'id'), ['l6'], 'getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('h')), 'id'), [], 'getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('g')), 'id'), ['l8'], 'getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('g'), { inbound: true }), 'id'), ['l8'], 'getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('g'), { outbound: true }), 'id'), [], 'getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('f')), 'id'), ['l7'], 'getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('f'), { outbound: true }), 'id'), ['l7'], 'getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('f'), { inbound: true }), 'id'), [], 'getConnectedLinks() returns all the connected links to an element.');
 
         // Deep.
-        assert.deepEqual(_.sortBy(_.pluck(graph.getConnectedLinks(graph.getCell('a'), { deep: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6', 'l10', 'l11', 'l12']), 'deep getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.sortBy(_.pluck(graph.getConnectedLinks(graph.getCell('a'), { deep: true, outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l12']), 'deep getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.sortBy(_.pluck(graph.getConnectedLinks(graph.getCell('a'), { deep: true, inbound: true }), 'id')), _.sortBy(['l6', 'l10', 'l11']), 'deep getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.sortBy(_.pluck(graph.getConnectedLinks(graph.getCell('aa'), { deep: true }), 'id')), _.sortBy(['l10', 'l11', 'l12']), 'deep getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.sortBy(_.pluck(graph.getConnectedLinks(graph.getCell('aa'), { deep: true, inbound: true }), 'id')), _.sortBy(['l10', 'l11']), 'deep getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.sortBy(_.pluck(graph.getConnectedLinks(graph.getCell('aaa')), 'id')), _.sortBy(['l11', 'l12', 'l13']), 'deep getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6', 'l10', 'l11', 'l12']), 'deep getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l12']), 'deep getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, inbound: true }), 'id')), _.sortBy(['l6', 'l10', 'l11']), 'deep getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true }), 'id')), _.sortBy(['l10', 'l11', 'l12']), 'deep getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true, inbound: true }), 'id')), _.sortBy(['l10', 'l11']), 'deep getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa')), 'id')), _.sortBy(['l11', 'l12', 'l13']), 'deep getConnectedLinks() returns all the connected links to an element.');
     });
 
     QUnit.test('graph.getSources(), graph.getSinks(), isSource(), isSink()', function(assert) {
@@ -492,8 +492,8 @@ QUnit.module('graph', function(hooks) {
         var graph = this.graph;
         this.setupTestMixtureGraph(graph);
 
-        assert.deepEqual(_.sortBy(_.pluck(graph.getSources(), 'id')), _.sortBy(['f', 'h']), 'getSources() returns all the root elements of the graph.');
-        assert.deepEqual(_.sortBy(_.pluck(graph.getSinks(), 'id')), _.sortBy(['aa', 'b', 'c', 'g', 'h']), 'getSinks() returns all the leaf elements of the graph.');
+        assert.deepEqual(_.sortBy(graph.getSources().map(item => item.id)), _.sortBy(['f', 'h']), 'getSources() returns all the root elements of the graph.');
+        assert.deepEqual(_.sortBy(graph.getSinks().map(item => item.id)), _.sortBy(['aa', 'b', 'c', 'g', 'h']), 'getSinks() returns all the leaf elements of the graph.');
         assert.equal(graph.isSink(graph.getCell('aa')), true, 'isSink() returns true for a root element.');
         assert.equal(graph.isSink(graph.getCell('a')), false, 'isSink() returns false for a non-root element.');
         assert.equal(graph.isSource(graph.getCell('f')), true, 'isSource() returns true for a leaf element.');
@@ -518,11 +518,11 @@ QUnit.module('graph', function(hooks) {
 
         sinks = graph.getSinks();
         assert.equal(sinks.length, 2, 'now we have two sinks in the graph');
-        assert.deepEqual(_.pluck(sinks, 'id').sort(), ['el1', 'el2'], 'both sinks are what we expect');
+        assert.deepEqual(sinks.map(item => item.id).sort(), ['el1', 'el2'], 'both sinks are what we expect');
 
         sources = graph.getSources();
         assert.equal(sources.length, 2, 'now we have two sources in the graph');
-        assert.deepEqual(_.pluck(sources, 'id').sort(), ['el1', 'el2'], 'both sources are what we expect');
+        assert.deepEqual(sources.map(item => item.id).sort(), ['el1', 'el2'], 'both sources are what we expect');
     });
 
     QUnit.test('graph.getSuccessors(), graph.isSuccessor()', function(assert) {
@@ -531,9 +531,9 @@ QUnit.module('graph', function(hooks) {
 
         this.setupTestTreeGraph(graph);
 
-        assert.deepEqual(_.pluck(graph.getSuccessors(graph.getCell('b')), 'id'), ['e', 'n', 'f', 'o', 'g', 'p', 'c', 'h', 'i', 'j'], 'getSuccessors() returns successors of an element in DFS order by default');
-        assert.deepEqual(_.pluck(graph.getSuccessors(graph.getCell('b'), { breadthFirst: true }), 'id'), ['e', 'f', 'g', 'c', 'n', 'o', 'p', 'h', 'i', 'j'], 'getSuccessors() returns successors of an element in BFS order if breadthFirst option is true');
-        assert.deepEqual(_.pluck(graph.getSuccessors(graph.getCell('n')), 'id'), [], 'getSuccessors() returns an empty array for a leaf element');
+        assert.deepEqual(_.map(graph.getSuccessors(graph.getCell('b')), 'id'), ['e', 'n', 'f', 'o', 'g', 'p', 'c', 'h', 'i', 'j'], 'getSuccessors() returns successors of an element in DFS order by default');
+        assert.deepEqual(_.map(graph.getSuccessors(graph.getCell('b'), { breadthFirst: true }), 'id'), ['e', 'f', 'g', 'c', 'n', 'o', 'p', 'h', 'i', 'j'], 'getSuccessors() returns successors of an element in BFS order if breadthFirst option is true');
+        assert.deepEqual(_.map(graph.getSuccessors(graph.getCell('n')), 'id'), [], 'getSuccessors() returns an empty array for a leaf element');
         assert.equal(graph.isSuccessor(graph.getCell('b'), graph.getCell('o')), true, 'isSuccessor() returns true if the element in second argument is a successor of the element in the first argument');
         assert.equal(graph.isSuccessor(graph.getCell('b'), graph.getCell('a')), false, 'isSuccessor() returns false if the element in second argument is not a successor of the element in the first argument');
         assert.equal(graph.isSuccessor(graph.getCell('b'), graph.getCell('b')), false, 'isSuccessor() returns false if the element in second argument is the same as the element in the first argument');
@@ -545,8 +545,8 @@ QUnit.module('graph', function(hooks) {
 
         this.setupTestTreeGraph(graph);
 
-        assert.deepEqual(_.pluck(graph.getPredecessors(graph.getCell('g')), 'id'), ['b', 'a', 'h', 'c'], 'getPredecessors() returns predecessors of an element in DFS order by default');
-        assert.deepEqual(_.pluck(graph.getPredecessors(graph.getCell('a')), 'id'), [], 'getPredecessors() returns an empty array for a root element');
+        assert.deepEqual(_.map(graph.getPredecessors(graph.getCell('g')), 'id'), ['b', 'a', 'h', 'c'], 'getPredecessors() returns predecessors of an element in DFS order by default');
+        assert.deepEqual(_.map(graph.getPredecessors(graph.getCell('a')), 'id'), [], 'getPredecessors() returns an empty array for a root element');
         assert.equal(graph.isPredecessor(graph.getCell('g'), graph.getCell('c')), true, 'isPredecessor() returns true if the element in second argument is a successor of the element in the first argument');
         assert.equal(graph.isPredecessor(graph.getCell('g'), graph.getCell('e')), false, 'isPredecessor() returns false if the element in second argument is not a successor of the element in the first argument');
         assert.equal(graph.isPredecessor(graph.getCell('g'), graph.getCell('g')), false, 'isPredecessor() returns false if the element in second argument is the same as the element in the first argument');
@@ -582,8 +582,8 @@ QUnit.module('graph', function(hooks) {
         this.setupTestTreeGraph(graph);
 
         var clones = graph.cloneCells([graph.getCell('d')].concat(graph.getSuccessors(graph.getCell('d'))));
-        assert.deepEqual(_.map(clones, function(c) { return c.get('name'); }), ['d', 'k', 'l', 'm'], 'cloneCells() returns cloned elements without connected links');
-        assert.ok(_.isObject(clones), 'returned clone map is an object');
+        assert.deepEqual(Object.values(clones).map(function(c) { return c.get('name'); }), ['d', 'k', 'l', 'm'], 'cloneCells() returns cloned elements without connected links');
+        assert.ok(joint.util.isObject(clones), 'returned clone map is an object');
         assert.equal(clones['d'].get('name'), 'd', 'returned clone map maps original ID to the clone');
         assert.notEqual(clones['d'].id, 'd', 'returned clone map maps original ID to the clone');
     });
@@ -594,7 +594,7 @@ QUnit.module('graph', function(hooks) {
         this.setupTestTreeGraph(graph);
 
         var clones = graph.cloneSubgraph([graph.getCell('d')].concat(graph.getSuccessors(graph.getCell('d'))));
-        assert.deepEqual(_.map(clones, function(c) {return c.get('name'); }), ['d', 'k', 'l', 'm', 'l10', 'l11', 'l12'], 'cloneSubgraph() returns cloned elements including connected links');
+        assert.deepEqual(Object.values(clones).map(function(c) {return c.get('name'); }), ['d', 'k', 'l', 'm', 'l10', 'l11', 'l12'], 'cloneSubgraph() returns cloned elements including connected links');
     });
 
     QUnit.test('graph.getSubgraph()', function(assert) {
@@ -603,16 +603,16 @@ QUnit.module('graph', function(hooks) {
         this.setupTestTreeGraph(graph);
 
         var subgraph = graph.getSubgraph([graph.getCell('d')].concat(graph.getSuccessors(graph.getCell('d'))));
-        assert.deepEqual(_.pluck(subgraph, 'id'), ['d', 'k', 'l', 'm', 'l10', 'l11', 'l12'], 'getSubgraph() returns elements including links that are connected to any element passed as argument');
+        assert.deepEqual(subgraph.map(item => item.id), ['d', 'k', 'l', 'm', 'l10', 'l11', 'l12'], 'getSubgraph() returns elements including links that are connected to any element passed as argument');
 
         graph.clear();
         this.setupTestNestedGraph(graph);
 
         subgraph = graph.getSubgraph([graph.getCell('a')], { deep: false });
-        assert.deepEqual(_.pluck(subgraph, 'id'), ['a'], 'getSubgraph() returns only the one element if deep is false');
+        assert.deepEqual(subgraph.map(item => item.id), ['a'], 'getSubgraph() returns only the one element if deep is false');
 
         subgraph = graph.getSubgraph([graph.getCell('a')], { deep: true });
-        assert.deepEqual(_.pluck(subgraph, 'id'), ['a', 'aa', 'c', 'l2', 'aaa', 'l1'], 'getSubgraph() returns all the embedded elements and all the links that connect these elements');
+        assert.deepEqual(subgraph.map(item => item.id), ['a', 'aa', 'c', 'l2', 'aaa', 'l1'], 'getSubgraph() returns all the embedded elements and all the links that connect these elements');
     });
 
     QUnit.test('graph.fetch()', function(assert) {
@@ -714,7 +714,7 @@ QUnit.module('graph', function(hooks) {
         var Element = joint.shapes.basic.Rect;
         var Link = joint.dia.Link;
 
-        function neighbors(el, opt) { return _.chain(graph.getNeighbors(el, opt)).pluck('id').sortBy().value(); }
+        function neighbors(el, opt) { return _.chain(graph.getNeighbors(el, opt)).map(item => item.id).sortBy().value(); }
 
         var r1 = new Element({ id: 'R1' });
         var r2 = new Element({ id: 'R2' });
@@ -1113,7 +1113,7 @@ QUnit.module('graph', function(hooks) {
 
             var cells = this.graph.get('cells').models;
 
-            assert.ok(_.isArray(cells));
+            assert.ok(Array.isArray(cells));
             assert.equal(cells.length, 3);
 
             _.each(cells, function(cell) {
@@ -1158,8 +1158,8 @@ QUnit.module('graph', function(hooks) {
 
             var json = this.graph.toJSON();
 
-            assert.ok(_.isObject(json));
-            assert.ok(_.isArray(json.cells));
+            assert.ok(joint.util.isObject(json));
+            assert.ok(Array.isArray(json.cells));
             assert.equal(json.cells.length, 3);
         });
     });

@@ -4,7 +4,7 @@ QUnit.module('element ports', function() {
 
         markup: '<g class="rotatable"><g class="scalable"><rect class="rectangle"/></g><text/></g>',
         portMarkup: '<circle class="circle-port" />',
-        defaults: _.defaultsDeep({
+        defaults: joint.util.defaultsDeep({
             type: 'basic.Model'
 
         }, joint.dia.Element.prototype.defaults)
@@ -109,7 +109,7 @@ QUnit.module('element ports', function() {
 
             var idObject = {};
             var ports = [
-                true,
+                {},
                 { id: 'aaa', 'group_id': 'in' },
                 { id: 'xxx', 'group_id': 'in' },
                 { x: 'whatever' },
@@ -242,7 +242,7 @@ QUnit.module('element ports', function() {
             var WithoutPorts = joint.dia.Element.extend({
                 markup: '<g class="rotatable"><g class="scalable"><rect class="rectangle"/></g><text/></g>',
                 portMarkup: '<circle class="custom-port-markup"/>',
-                defaults: _.defaultsDeep({ type: 'temp' }, joint.dia.Element.prototype.defaults)
+                defaults: joint.util.defaultsDeep({ type: 'temp' }, joint.dia.Element.prototype.defaults)
             });
 
             var model = new WithoutPorts();
@@ -630,7 +630,7 @@ QUnit.module('element ports', function() {
             shape.portProp('one', ['array', 20], 'array item');
             shape.portProp('one', ['object', '20'], 'object property');
 
-            assert.ok(_.isArray(shape.portProp('one', 'array')));
+            assert.ok(Array.isArray(shape.portProp('one', 'array')));
             assert.equal(shape.portProp('one', 'array')[20], 'array item');
 
             assert.ok(_.isPlainObject(shape.portProp('one', 'object')));

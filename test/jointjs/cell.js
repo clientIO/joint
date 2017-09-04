@@ -77,7 +77,7 @@ QUnit.module('cell', function(hooks) {
 
             QUnit.test('path as array - set array item', function(assert) {
                 el.attr(['array', 123], 'property');
-                assert.ok(_.isArray(attributes.attrs.array));
+                assert.ok(Array.isArray(attributes.attrs.array));
                 assert.equal(attributes.attrs.array[123], 'property');
             });
 
@@ -165,7 +165,7 @@ QUnit.module('cell', function(hooks) {
 
                 el.prop('array/123', 'index');
 
-                assert.ok(_.isArray(attrs.array));
+                assert.ok(Array.isArray(attrs.array));
 
                 assert.equal(attrs.array.length, 124);
                 assert.equal(attrs.array[123], 'index');
@@ -176,7 +176,7 @@ QUnit.module('cell', function(hooks) {
                 el.prop(['array', 123], 'index');
                 var arr = el.get('array');
 
-                assert.ok(_.isArray(arr), 'it is an array');
+                assert.ok(Array.isArray(arr), 'it is an array');
                 assert.equal(arr.length, 124, 'length is set correctly');
                 assert.equal(arr[123], 'index');
 

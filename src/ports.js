@@ -2,7 +2,7 @@
 
     var PortData = function(data) {
 
-        var clonedData = _.cloneDeep(data) || {};
+        var clonedData = joint.util.cloneDeep(data) || {};
         this.ports = [];
         this.groups = {};
         this.portLayoutNamespace = joint.layout.Port;
@@ -23,7 +23,7 @@
 
         getPortsByGroup: function(groupName) {
 
-            return _.filter(this.ports, function(port) {
+            return this.ports.filter(function(port) {
                 return port.group === groupName;
             });
         },
@@ -41,20 +41,22 @@
             }
 
             var groupArgs = groupPosition.args || {};
-            var portsArgs = _.pluck(ports, 'position.args');
+            var portsArgs = ports.map(({ position }) => {
+                return position ? position.args : {};
+            });
             var groupPortTransformations = namespace[groupPositionName](portsArgs, elBBox, groupArgs);
 
-            return _.transform(groupPortTransformations, _.bind(function(result, portTransformation, index) {
+            return groupPortTransformations.map((portTransformation, index) => {
                 var port = ports[index];
-                result.push({
+                return {
                     portId: port.id,
                     portTransformation: portTransformation,
                     labelTransformation: this._getPortLabelLayout(port, g.Point(portTransformation), elBBox),
                     portAttrs: port.attrs,
                     portSize: port.size,
                     labelSize: port.label.size
-                });
-            }, this), []);
+                };
+            });
         },
 
         _getPortLabelLayout: function(port, portPosition, elBBox) {
@@ -71,42 +73,43 @@
 
         _init: function(data) {
 
+            let groupData = data.groups || {};
             // prepare groups
-            _.transform(data.groups || {}, _.bind(this._evaluateGroup, this), this.groups);
+            Object.keys(groupData).forEach(key => {this.groups[key] = this._evaluateGroup(groupData[key])});
             // prepare ports
-            _.transform(data.items || [], _.bind(this._evaluatePort, this), this.ports);
+            this.ports = (data.items || []).map(this._evaluatePort.bind(this));
         },
 
-        _evaluateGroup: function (resultMap, group, key) {
+        _evaluateGroup: function (group) {
 
-            resultMap[key] = _.merge(group, {
+            return joint.util.merge(group, {
                 position: this._getPosition(group.position, true),
                 label: this._getLabel(group, true)
             });
         },
 
-        _evaluatePort: function(resultArray, port) {
+        _evaluatePort(port) {
 
-            var evaluated = _.clone(port);
+            var evaluated = Object.assign({}, port);
 
             var group = this.getGroup(port.group);
 
             evaluated.markup = evaluated.markup || group.markup;
-            evaluated.attrs = _.merge({}, group.attrs, evaluated.attrs);
+            evaluated.attrs = joint.util.merge({}, group.attrs, evaluated.attrs);
             evaluated.position = this._createPositionNode(group, evaluated);
-            evaluated.label = _.merge({}, group.label, this._getLabel(evaluated));
+            evaluated.label = joint.util.merge({}, group.label, this._getLabel(evaluated));
             evaluated.z = this._getZIndex(group, evaluated);
-            evaluated.size = _.extend({}, group.size, evaluated.size);
+            evaluated.size = Object.assign({}, group.size, evaluated.size);
 
-            resultArray.push(evaluated);
+            return evaluated;
         },
 
         _getZIndex: function(group, port) {
 
-            if (_.isNumber(port.z)) {
+            if (typeof port.z === 'number') {
                 return port.z;
             }
-            if (_.isNumber(group.z) || group.z === 'auto') {
+            if (typeof group.z === 'number' || group.z === 'auto') {
                 return group.z;
             }
             return 'auto';
@@ -114,7 +117,7 @@
 
         _createPositionNode: function(group, port) {
 
-            return _.merge({
+            return joint.util.merge({
                 name: 'left',
                 args: {}
             }, group.position, { args: port.args });
@@ -125,20 +128,20 @@
             var args = {};
             var positionName;
 
-            if (_.isFunction(position)) {
+            if (typeof position === 'function') {
                 positionName = 'fn';
                 args.fn = position;
-            } else if (_.isString(position)) {
+            } else if (typeof position === 'string') {
                 positionName = position;
-            } else if (_.isUndefined(position)) {
+            } else if (typeof position === 'undefined') {
                 positionName = setDefault ? 'left' : null;
-            } else if (_.isArray(position)) {
+            } else if (Array.isArray(position)) {
                 positionName = 'absolute';
                 args.x = position[0];
                 args.y = position[1];
-            } else if (_.isObject(position)) {
+            } else if (joint.util.isObject(position)) {
                 positionName = position.name;
-                _.extend(args, position.args);
+                Object.assign(args, position.args);
             }
 
             var result = { args: args };
@@ -160,7 +163,7 @@
         }
     };
 
-    _.extend(joint.dia.Element.prototype, {
+    Object.assign(joint.dia.Element.prototype, {
 
         _initializePorts: function() {
 
@@ -181,30 +184,30 @@
             var current = this.get('ports') || {};
             var currentItemsMap = {};
 
-            _.each(current.items, function(item) {
+            (current.items || []).forEach(function(item) {
                 currentItemsMap[item.id] = true;
             });
 
             var previous = this.previous('ports') || {};
             var removed = {};
 
-            _.each(previous.items, function(item) {
+            (previous.items || []).forEach(function(item) {
                 if (!currentItemsMap[item.id]) {
                     removed[item.id] = true;
                 }
             });
 
             var graph = this.graph;
-            if (graph && !_.isEmpty(removed)) {
+            if (graph && !joint.util.isEmpty(removed)) {
 
                 var inboundLinks = graph.getConnectedLinks(this, { inbound: true });
-                _.each(inboundLinks, function(link) {
+                inboundLinks.forEach(function(link) {
 
                     if (removed[link.get('target').port]) link.remove();
                 });
 
                 var outboundLinks = graph.getConnectedLinks(this, { outbound: true });
-                _.each(outboundLinks, function(link) {
+                outboundLinks.forEach(function(link) {
 
                     if (removed[link.get('source').port]) link.remove();
                 });
@@ -233,7 +236,7 @@
          */
         getPorts: function() {
 
-            return _.cloneDeep(this.prop('ports/items')) || [];
+            return (this.prop('ports/items') || []).map(joint.util.cloneDeep);
         },
 
         /**
@@ -242,7 +245,9 @@
          */
         getPort: function(id) {
 
-            return _.cloneDeep(_.find(this.prop('ports/items'), function(port) {
+            var ports = this.prop('ports/items') || [];
+
+            return joint.util.cloneDeep(ports.find(function(port) {
                 return port.id && port.id === id;
             }));
         },
@@ -253,15 +258,16 @@
          */
         getPortsPositions: function(groupName) {
 
-            var portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, g.Rect(this.size()));
+            const portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, g.Rect(this.size()));
 
-            return _.transform(portsMetrics, function(positions, metrics) {
-                var transformation = metrics.portTransformation;
+            return portsMetrics.reduce(function(positions, metrics) {
+                const transformation = metrics.portTransformation;
                 positions[metrics.portId] = {
                     x: transformation.x,
                     y: transformation.y,
                     angle: transformation.angle
                 };
+                return positions;
             }, {});
         },
 
@@ -271,13 +277,15 @@
          */
         getPortIndex: function(port) {
 
-            var id = _.isObject(port) ? port.id : port;
+            var id = joint.util.isObject(port) ? port.id : port;
 
             if (!this._isValidPortId(id)) {
                 return -1;
             }
 
-            return _.findIndex(this.prop('ports/items'), { id: id });
+            return this.prop('ports/items').findIndex(function(item) {
+            	return item.id === id;
+            });
         },
 
         /**
@@ -287,11 +295,11 @@
          */
         addPort: function(port, opt) {
 
-            if (!_.isObject(port) || _.isArray(port)) {
+            if (!joint.util.isObject(port) || Array.isArray(port)) {
                 throw new Error('Element: addPort requires an object.');
             }
 
-            var ports = _.clone(this.prop('ports/items')) || [];
+            var ports = (this.prop('ports/items') || []).slice();
             ports.push(port);
             this.prop('ports/items', ports, opt);
 
@@ -314,9 +322,9 @@
             }
 
             var args = Array.prototype.slice.call(arguments, 1);
-            if (_.isArray(path)) {
+            if (Array.isArray(path)) {
                 args[0] = ['ports', 'items', index].concat(path);
-            } else if (_.isString(path)) {
+            } else if (typeof path === 'string') {
 
                 // Get/set an attribute by a special path syntax that delimits
                 // nested objects by the colon character.
@@ -325,7 +333,7 @@
             } else {
 
                 args = ['ports/items/' + index];
-                if (_.isPlainObject(path)) {
+                if (joint.util.isPlainObject(path)) {
                     args.push(path);
                     args.push(value);
                 }
@@ -342,13 +350,18 @@
             portsAttr = portsAttr || {};
             var ports = portsAttr.items || [];
 
-            _.each(ports, function(p) {
+            ports.forEach(p => {
+
+                if (typeof p !== 'object') {
+                    errorMessages.push('Element: invalid port ', p);
+                }
+
                 if (!this._isValidPortId(p.id)) {
                     p.id = joint.util.uuid();
                 }
-            }, this);
+            });
 
-            if (_.uniq(ports, 'id').length !== ports.length) {
+            if (joint.util.uniq(ports, 'id').length !== ports.length) {
                 errorMessages.push('Element: found id duplicities in ports.');
             }
 
@@ -362,13 +375,13 @@
          */
         _isValidPortId: function(id) {
 
-            return !_.isNull(id) && !_.isUndefined(id) && !_.isObject(id);
+            return id !== null && id !== undefined && !joint.util.isObject(id);
         },
 
         addPorts: function(ports, opt) {
 
             if (ports.length) {
-                this.prop('ports/items', (_.clone(this.prop('ports/items')) || []).concat(ports), opt);
+                this.prop('ports/items', ((this.prop('ports/items') || []).slice()).concat(ports), opt);
             }
 
             return this;
@@ -377,8 +390,7 @@
         removePort: function(port, opt) {
 
             var options = opt || {};
-            var ports = _.clone(this.prop('ports/items'));
-
+            var ports = (this.prop('ports/items') || []).slice();
             var index = this.getPortIndex(port);
 
             if (index !== -1) {
@@ -416,14 +428,14 @@
             if (prevPortData) {
 
                 // _.filter can be replaced with _.differenceBy in lodash 4
-                var added = _.filter(curPortData, function(item) {
-                    if (!_.find(prevPortData, 'id', item.id)) {
+                var added = curPortData.filter(function(item) {
+                    if (!prevPortData.find((prevPort) => prevPort.id === item.id)) {
                         return item;
                     }
                 });
 
-                var removed = _.filter(prevPortData, function(item) {
-                    if (!_.find(curPortData, 'id', item.id)) {
+                var removed = prevPortData.filter(function(item) {
+                    if (!curPortData.find((curPort) => curPort.id === item.id)) {
                         return item;
                     }
                 });
@@ -439,7 +451,7 @@
         }
     });
 
-    _.extend(joint.dia.ElementView.prototype, {
+    Object.assign(joint.dia.ElementView.prototype, {
 
         portContainerMarkup: '<g class="joint-port"/>',
         portMarkup: '<circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/>',
@@ -490,26 +502,27 @@
             // references to rendered elements without z-index
             var elementReferences = [];
             var elem = this._getContainerElement();
-            _.each(elem.node.childNodes, function(n) {
-                elementReferences.push(n);
-            });
 
-            var portsGropsByZ = _.groupBy(this.model._portSettingsData.getPorts(), 'z');
+            for (let i = 0, count = elem.node.childNodes.length; i < count; i++) {
+                elementReferences.push(elem.node.childNodes[i]);
+            }
+
+            var portsGropsByZ = joint.util.groupBy(this.model._portSettingsData.getPorts(), 'z');
             var withoutZKey = 'auto';
 
             // render non-z first
-            _.each(portsGropsByZ[withoutZKey], function(port) {
+            (portsGropsByZ[withoutZKey] || []).forEach((port) => {
                 var portElement = this._getPortElement(port);
                 elem.append(portElement);
                 elementReferences.push(portElement);
-            }, this);
+            });
 
-            _.each(portsGropsByZ, function(groupPorts, groupName) {
+            joint.util.each(portsGropsByZ, (groupPorts, groupName) => {
                 if (groupName !== withoutZKey) {
                     var z = parseInt(groupName, 10);
                     this._appendPorts(portsGropsByZ[groupName], z, elementReferences);
                 }
-            }, this);
+            });
 
             this._updatePorts();
         },
@@ -532,7 +545,7 @@
         _appendPorts: function(ports, z, refs) {
 
             var containerElement = this._getContainerElement();
-            var portElements = _.map(ports, this._getPortElement, this);
+            var portElements = ports.map(this._getPortElement.bind(this));
 
             if (refs[z] || z < 0) {
                 V(refs[Math.max(z, 0)]).before(portElements);
@@ -563,15 +576,18 @@
             // layout ports without group
             this._updatePortGroup(undefined);
             // layout ports with explicit group
-            var groupsNames = _.keys(this.model._portSettingsData.groups);
-            _.each(groupsNames, this._updatePortGroup, this);
+            var groupsNames = Object.keys(this.model._portSettingsData.groups) || [];
+            groupsNames.forEach(this._updatePortGroup.bind(this));
         },
 
         /**
          * @private
          */
         _removePorts: function() {
-            _.invoke(this._portElementsCache, 'portElement.remove');
+
+            Object.values(this._portElementsCache).forEach(function(entry) {
+                entry.portElement.remove();
+            })
         },
 
         /**

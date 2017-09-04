@@ -1,7 +1,7 @@
 if (typeof exports === 'object') {
 
     var graphlib = require('graphlib');
-    var dagre = require('dagre');
+    var dagre = require('./ciena-dagre');
 }
 
 // In the browser, these variables are set to undefined because of JavaScript hoisting.
@@ -64,7 +64,7 @@ joint.layout.DirectedGraph = {
 
         // check the `setLinkVertices` here for backwards compatibility
         if (opt.setVertices || opt.setLinkVertices) {
-            if (_.isFunction(opt.setVertices)) {
+            if (typeof opt.setVertices === 'function') {
                 opt.setVertices(link, points);
             } else {
                 // Remove the first and last point from points array.
@@ -76,7 +76,7 @@ joint.layout.DirectedGraph = {
 
         if (opt.setLabels && ('x' in glEdge) && ('y' in glEdge)) {
             var labelPosition = { x: glEdge.x, y: glEdge.y};
-            if (_.isFunction(opt.setLabels)) {
+            if (typeof opt.setLabels === 'function') {
                 opt.setLabels(link, labelPosition, points);
             } else {
                 // Convert the absolute label position to a relative position
@@ -109,7 +109,7 @@ joint.layout.DirectedGraph = {
         // This is not needed anymore.
         graphOrCells = null;
 
-        opt = _.defaults(opt || {}, {
+        opt = joint.util.defaults(opt || {}, {
             resizeClusters: true,
             clusterPadding: 10,
             exportElement: this.exportElement,
@@ -166,8 +166,8 @@ joint.layout.DirectedGraph = {
 
         // Update the graph.
         graph.fromGraphLib(glGraph, {
-            importNode: _.partial(this.importElement, opt),
-            importEdge: _.partial(this.importLink, opt)
+            importNode: (v, gl) => this.importElement.call(graph, opt, v, gl),
+            importEdge: (edgeObj, gl) => this.importLink.call(graph, opt, edgeObj, gl)
         });
 
         if (opt.resizeClusters) {
@@ -177,12 +177,13 @@ joint.layout.DirectedGraph = {
             // 2. map id on cells
             // 3. sort cells by their depth (the deepest first)
             // 4. resize cell to fit their direct children only.
-            _.chain(glGraph.nodes())
+
+            var clusters = glGraph.nodes()
                 .filter(function(v) { return glGraph.children(v).length > 0; })
-                .map(graph.getCell, graph)
-                .sortBy(function(cluster) { return -cluster.getAncestors().length; })
-                .invoke('fitEmbeds', { padding: opt.clusterPadding })
-                .value();
+                .map(graph.getCell.bind(graph))
+                .sort(function(cluster) { return -cluster.getAncestors().length; });
+
+            joint.util.invoke(clusters, 'fitEmbeds', { padding: opt.clusterPadding });
         }
 
         graph.stopBatch('layout');
@@ -202,8 +203,8 @@ joint.layout.DirectedGraph = {
 
         opt = opt || {};
 
-        var importNode = opt.importNode || _.noop;
-        var importEdge = opt.importEdge || _.noop;
+        var importNode = opt.importNode || (() => {});
+        var importEdge = opt.importEdge || (() => {});
         var graph = (this instanceof joint.dia.Graph) ? this : new joint.dia.Graph;
 
         // Import all nodes.
@@ -224,11 +225,11 @@ joint.layout.DirectedGraph = {
 
         opt = opt || {};
 
-        var glGraphType = _.pick(opt, 'directed', 'compound', 'multigraph');
-        var glGraph = new graphlib.Graph(glGraphType);
-        var setNodeLabel = opt.setNodeLabel || _.noop;
-        var setEdgeLabel = opt.setEdgeLabel || _.noop;
-        var setEdgeName = opt.setEdgeName || _.noop;
+        const {directed, compound, multigraph} = opt;
+        var glGraph = new graphlib.Graph( {directed, compound, multigraph});
+        var setNodeLabel = opt.setNodeLabel || (() => {});
+        var setEdgeLabel = opt.setEdgeLabel || (() => {});
+        var setEdgeName = opt.setEdgeName || (() => {});
 
         graph.get('cells').each(function(cell) {
 
