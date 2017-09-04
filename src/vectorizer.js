@@ -396,6 +396,7 @@ V = Vectorizer = (function() {
             }
 
             V(textNode).append(vLine);
+
             offset += line.length + 1;      // + 1 = newline character.
         }
 
