@@ -317,6 +317,7 @@ V = Vectorizer = (function() {
             lineHeight = '1.5em';
         }
 
+        var firstLineHeight = 0;
         for (var i = 0; i < lines.length; i++) {
 
             var vLineAttributes = { 'class': 'v-line' };
@@ -328,7 +329,6 @@ V = Vectorizer = (function() {
             }
             var vLine = V('tspan', vLineAttributes);
 
-            var firstLineHeight = 0;
             var line = lines[i];
             if (line) {
 
@@ -395,20 +395,19 @@ V = Vectorizer = (function() {
                 vLine.node.textContent = '-';
             }
 
-            // `alignment-baseline` does not work in Firefox.
-            // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
-            // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
-            // in the top left corner we translate the `<text>` element by `0.8em`.
-            // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
-            // See also `http://apike.ca/prog_svg_text_style.html`.
-            var y = this.attr('y');
-            if (!y || firstLineHeight) {
-                this.attr('y', firstLineHeight || '0.8em');
-            }
-
             V(textNode).append(vLine);
-
             offset += line.length + 1;      // + 1 = newline character.
+        }
+
+        // `alignment-baseline` does not work in Firefox.
+        // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
+        // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
+        // in the top left corner we translate the `<text>` element by `0.8em`.
+        // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
+        // See also `http://apike.ca/prog_svg_text_style.html`.
+        var y = this.attr('y');
+        if (y === null) {
+            this.attr('y', firstLineHeight || '0.8em');
         }
 
         return this;
