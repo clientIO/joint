@@ -395,8 +395,8 @@ var g = (function() {
             if (l instanceof Line) {
                 // Passed in parameter is a line.
 
-                var pt1Dir = Point(this.end.x - this.start.x, this.end.y - this.start.y);
-                var pt2Dir = Point(l.end.x - l.start.x, l.end.y - l.start.y);
+                var pt1Dir = this.vector();
+                var pt2Dir = l.vector();
                 var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
                 var deltaPt = Point(l.start.x - this.start.x, l.start.y - this.start.y);
                 var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
@@ -1501,7 +1501,35 @@ var g = (function() {
                 if (y > y2) { y2 = y; }
             }
             return Rect(x1, y1, x2 - x1, y2 - y1);
+        },
+
+        intersectionWithLineFromCenterToPoint: function(p, angle) {
+            var c = this.bbox().center();
+            return this.intersectionWithLine(Line(c, p), angle);
+        },
+
+        intersectionWithLine: function(l, angle) {
+            var line = Line(l);
+            var p = line.end;
+            var distance = Infinity;
+            var intersection = null;
+            var points = this.points;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var a = points[i];
+                var b = points[i+1];
+                var l2 = Line(a, b);
+                var int = line.intersect(l2);
+                if (int) {
+                    var dist = int.distance(p);
+                    if (dist < distance) {
+                        distance = dist;
+                        intersection = int;
+                    }
+                }
+            }
+            return intersection;
         }
+
     };
 
 
