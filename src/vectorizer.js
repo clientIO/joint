@@ -764,6 +764,7 @@ V = Vectorizer = (function() {
                 }
             }
         }
+        return this;
     };
 
     V.prototype.hasClass = function(className) {

@@ -1116,16 +1116,53 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     },
 
     // Send a token (an SVG element, usually a circle) along the connection path.
-    // Example: `paper.findViewByModel(link).sendToken(V('circle', { r: 7, fill: 'green' }).node)`
-    // `duration` is optional and is a time in milliseconds that the token travels from the source to the target of the link. Default is `1000`.
+    // Example: `link.findView(paper).sendToken(V('circle', { r: 7, fill: 'green' }).node)`
+    // `opt.duration` is optional and is a time in milliseconds that the token travels from the source to the target of the link. Default is `1000`.
+    // `opt.directon` is optional and it determines whether the token goes from source to target or other way round (`reverse`)
     // `callback` is optional and is a function to be called once the token reaches the target.
-    sendToken: function(token, duration, callback) {
+    sendToken: function(token, opt, callback) {
+
+        function onAnimationEnd(vToken, callback) {
+            return function() {
+                vToken.remove();
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            };
+        }
+
+        var duration, isReversed;
+        if (_.isObject(opt)) {
+            duration = opt.duration;
+            isReversed = (opt.direction === 'reverse');
+        } else {
+            // Backwards compatibility
+            duration = opt;
+            isReversed = false;
+        }
 
         duration = duration || 1000;
 
-        V(this.paper.viewport).append(token);
-        V(token).animateAlongPath({ dur: duration + 'ms', repeatCount: 1 }, this._V.connection.node);
-        _.delay(function() { V(token).remove(); callback && callback(); }, duration);
+        var animationAttributes = {
+            dur: duration + 'ms',
+            repeatCount: 1,
+            calcMode: 'linear',
+            fill: 'freeze'
+        };
+
+        if (isReversed) {
+            animationAttributes.keyPoints = '1;0';
+            animationAttributes.keyTimes = '0;1';
+        }
+
+        var vToken = V(token);
+        var vPath = this._V.connection;
+
+        vToken
+            .appendTo(this.paper.viewport)
+            .animateAlongPath(animationAttributes, vPath);
+
+        setTimeout(onAnimationEnd(vToken, callback), duration);
     },
 
     findRoute: function(oldVertices) {
