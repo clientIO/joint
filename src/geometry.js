@@ -729,6 +729,33 @@ var g = (function() {
             return 180 * rad / PI;
         },
 
+        // Compute the angle between vector from me to p1 and the vector from me to p2
+        // ordering of points p1 and p2 is important!
+        // theta function's angle convention:
+        // returns angles between 0 and 180 when the angle is counterclockwise
+        // returns angles between 180 and 360 to convert clockwise angles into counterclockwise ones
+        angleBetween: function(p1, p2) {
+            
+            var angleBetween = this.theta(p2) - this.theta(p1);
+            if (angleBetween < 0) {
+                angleBetween += 360; // correction to keep angleBetween between 0 and 360
+            }
+            return angleBetween;
+
+        },
+
+        // Compute the angle between the vector from 0,0 to me and the vector from 0,0 to p
+        vectorAngle: function(p) {
+            
+            var zero = Point(0,0);
+            var vectorAngle = zero.theta(p) - zero.theta(this);
+            if (vectorAngle < 0) {
+                vectorAngle += 360; // correction to keep vectorAngle between 0 and 360
+            }
+            return vectorAngle;
+
+        },
+
         toJSON: function() {
 
             return { x: this.x, y: this.y };
@@ -758,9 +785,26 @@ var g = (function() {
             return this;
         },
 
+        // Returns the dot product of this point with given other point
         dot: function(p) {
 
             return p ? (this.x * p.x + this.y * p.y) : NaN;
+        },
+
+        // Returns the cross product of this point relative to two other points
+        // this point is the common point
+        // point p1 lies on the first vector, point p2 lies on the second vector
+        // watch out for the ordering of points p1 and p2!
+        // positive result indicates a clockwise ("right") turn from first to second vector
+        // negative result indicates a counterclockwise ("left") turn from first to second vector
+        // note that the above directions are reversed from the usual answer on the Internet
+        // that is because we are in a left-handed coord system (because the y-axis points downward)
+        cross: function(p1, p2) {
+
+            return (((p2.x - this.x) * (p1.y - this.y)) - ((p2.y - this.y) * (p1.x - this.x)));
+
+            // right-handed solution:
+            //return (((p1.x - this.x) * (p2.y - this.y)) - ((p1.y - this.y) * (p2.x - this.x)));
         }
     };
 
@@ -1242,6 +1286,207 @@ var g = (function() {
                 length += lineLength;
             }
             return pointLength;
+        },
+
+        toString: function() {
+            var points = this.points;
+
+            var str = "";
+            for (var i = 0; i < points.length; i++) {
+                str += points[i].toString();
+                if (i !== (points.length - 1)) {
+                    str += ",";
+                }
+            }
+
+            return str;
+        },
+
+        // Returns a convex-hull polyline from this polyline.
+        // this function implements the Graham scan (https://en.wikipedia.org/wiki/Graham_scan)
+        // the resulting polyline starts at rightmost lowest-y point and continues clockwise
+        convexHull: function() {
+            var points = this.points;
+
+            // step 1: find the starting point - point with the lowest y (if equality, highest x)
+            var startPoint;
+            for (var i = 0; i < points.length; i++) {
+                if (startPoint === undefined) {
+                    // if this is the first point we see, set it as start point
+                    startPoint = points[i];
+                } else if (points[i].y < startPoint.y) {
+                    // start point should have lowest y from all points
+                    startPoint = points[i];
+                } else if ((points[i].y === startPoint.y) && (points[i].x > startPoint.x)) {
+                    // if two points have the lowest y, choose the one that has highest x
+                    // solves ambiguity about theta of points to the right of startPoint
+                    // there are no such points now
+                    startPoint = points[i];
+                }
+            }
+
+            // step 2: sort the list of points
+            // sorting by angle between line from startPoint to point and the x-axis (theta)
+            
+            // step 2a: create the point records = [point, originalIndex, angle]
+            var sortedPointRecords = [];
+            for (var i = 0; i < points.length; i++) {
+                var angle = startPoint.theta(points[i]);
+                if (angle === 0) {
+                    angle = 360; // give highest angle to start point
+                    // the start point will end up at end of sorted list
+                    // the start point will end up at beginning of hull points list
+                }
+                
+                var entry = [points[i], i, angle];
+                sortedPointRecords.push(entry);
+            }
+
+            // step 2b: sort the list in place
+            sortedPointRecords.sort(function(record1, record2) {
+                // returning a negative number here sorts record1 before record2
+                // if first angle is smaller than second, first angle should come before second
+                return (record1[2] - record2[2]); // negative if first angle is smaller than second
+            });
+
+            // step 3a: go through sorted points in order and find those with right turns
+            // we want to get our results in clockwise order
+            var insidePoints = []; // list of points with left turns - cannot be on the hull
+            var hullPointRecords = []; // stack of records with right turns - hull point candidates
+            while (sortedPointRecords.length !== 0) {
+                var currentPointRecord = sortedPointRecords.pop();
+                var currentPoint = currentPointRecord[0];
+
+                if (insidePoints.includes(currentPoint)) {
+                    // this point had an incorrect turn at some previous iteration of this loop
+                    // this disqualifies it from possibly being on the hull
+                    continue;
+                }
+
+                var correctTurnFound = false;
+                while (!correctTurnFound) {
+                    if (hullPointRecords.length < 2) {
+                        // not enough points for comparison, just add current point
+                        hullPointRecords.push(currentPointRecord);
+                        correctTurnFound = true;
+                    
+                    } else {
+                        var lastHullPointRecord = hullPointRecords.pop();
+                        var lastHullPoint = lastHullPointRecord[0];
+                        var secondLastHullPointRecord = hullPointRecords.pop();
+                        var secondLastHullPoint = secondLastHullPointRecord[0];
+
+                        var crossProduct = secondLastHullPoint.cross(lastHullPoint, currentPoint);
+
+                        if (crossProduct < 0) {
+                            // found a right turn
+                            hullPointRecords.push(secondLastHullPointRecord);
+                            hullPointRecords.push(lastHullPointRecord);
+                            hullPointRecords.push(currentPointRecord);
+                            correctTurnFound = true;
+
+                        } else if (crossProduct === 0) {
+                            // the three points are collinear
+                            // three options:
+                            // there may be a 180 or 0 degree angle at lastHullPoint
+                            // or at least two of the three points have the same coordinates
+                            var angleBetween = lastHullPoint.angleBetween(secondLastHullPoint, currentPoint);
+                            if (angleBetween === 180) {
+                                // if the cross product is 0 because the angle is 180 degrees
+                                // discard last hull point (add to insidePoints)
+                                insidePoints.unshift(lastHullPoint);
+                                // reenter second-to-last hull point (will be last at next iter)
+                                hullPointRecords.push(secondLastHullPointRecord);
+                                // do not do anything with current point
+                                // correct turn not found
+                            
+                            } else if (lastHullPoint.equals(currentPoint) || secondLastHullPoint.equals(lastHullPoint)) {
+                                // if the cross product is 0 because two points are the same
+                                // discard last hull point (add to insidePoints)
+                                insidePoints.unshift(lastHullPoint);
+                                // reenter second-to-last hull point (will be last at next iter)
+                                hullPointRecords.push(secondLastHullPointRecord);
+                                // do not do anything with current point
+                                // correct turn not found
+                                                        
+                            } else if (angleBetween === 0) {
+                                // if the cross product is 0 because the angle is 0 degrees
+                                // remove last hull point from hull BUT do not discard it
+                                // reenter second-to-last hull point (will be last at next iter)
+                                hullPointRecords.push(secondLastHullPointRecord);
+                                // put last hull point back into the sorted point records list
+                                sortedPointRecords.push(lastHullPointRecord);
+                                // we are switching the order of the 0deg and 180deg points
+                                // correct turn not found
+                            }
+
+                        } else {
+                            // found a left turn
+                            // discard last hull point (add to insidePoints)
+                            insidePoints.unshift(lastHullPoint);
+                            // reenter second-to-last hull point (will be last at next iter of loop)
+                            hullPointRecords.push(secondLastHullPointRecord);
+                            // do not do anything with current point
+                            // correct turn not found
+                        }
+                    }
+                }
+            }
+
+            // step 3b: final check; remove last point of hull polyline if collinear with first one
+            if (hullPointRecords.length >= 3) { // not necessary for 0, 1, or 2 points
+                var firstHullPointRecord = hullPointRecords.shift();
+                var firstHullPoint = firstHullPointRecord[0];
+                var lastHullPointRecord = hullPointRecords.pop();
+                var lastHullPoint = lastHullPointRecord[0];
+                var secondLastHullPointRecord = hullPointRecords.pop();
+                var secondLastHullPoint = secondLastHullPointRecord[0];
+
+                var crossProduct = secondLastHullPoint.cross(lastHullPoint, firstHullPoint);
+
+                // reenter first hull point
+                hullPointRecords.unshift(firstHullPointRecord);
+
+                // reenter second-to-last hull point
+                hullPointRecords.push(secondLastHullPointRecord);
+
+                if (crossProduct !== 0) {
+                    // reenter last hull point
+                    hullPointRecords.push(lastHullPointRecord);
+                }
+                // else only one possibility - the three points are collinear with 180 degrees
+                // in that case, last hull point is not reentered and second-to-last becomes last
+            }
+
+            // step 4: find the lowest-index point record and put it at the beginning of hull points
+            var lowestHullIndex;
+            for (var i = 0; i < hullPointRecords.length; i++) {
+                var currentHullIndex = hullPointRecords[i][1];
+
+                if (lowestHullIndex === undefined || currentHullIndex < lowestHullIndex) {
+                    lowestHullIndex = currentHullIndex;
+                }
+            }
+
+            var indexOfLowestHullIndexRecord = hullPointRecords.findIndex(function(record) {
+                return (record[1] === lowestHullIndex);
+            })
+
+            var hullPointRecordsReordered = [];
+            if (indexOfLowestHullIndexRecord > 0) {
+                var newFirstChunk = hullPointRecords.slice(indexOfLowestHullIndexRecord);
+                var newSecondChunk = hullPointRecords.slice(0, indexOfLowestHullIndexRecord);
+                hullPointRecordsReordered = newFirstChunk.concat(newSecondChunk);
+            } else {
+                hullPointRecordsReordered = hullPointRecords;
+            }
+
+            var hullPoints = [];
+            for (var i = 0; i < hullPointRecordsReordered.length; i++) {
+                hullPoints.push(hullPointRecordsReordered[i][0]);
+            }
+
+            return hullPoints;
         }
     };
 
