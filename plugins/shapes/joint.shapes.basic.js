@@ -38,7 +38,6 @@ joint.shapes.basic.TextView = joint.dia.ElementView.extend({
 });
 
 joint.shapes.basic.Generic.define('basic.Text', {
-    type: 'basic.Text',
     attrs: {
         'text': {
             'font-size': 18,
@@ -50,7 +49,6 @@ joint.shapes.basic.Generic.define('basic.Text', {
 });
 
 joint.shapes.basic.Generic.define('basic.Circle', {
-    type: 'basic.Circle',
     size: { width: 60, height: 60 },
     attrs: {
         'circle': {
@@ -76,7 +74,6 @@ joint.shapes.basic.Generic.define('basic.Circle', {
 });
 
 joint.shapes.basic.Generic.define('basic.Ellipse', {
-    type: 'basic.Ellipse',
     size: { width: 60, height: 40 },
     attrs: {
         'ellipse': {
@@ -103,7 +100,6 @@ joint.shapes.basic.Generic.define('basic.Ellipse', {
 });
 
 joint.shapes.basic.Generic.define('basic.Polygon', {
-    type: 'basic.Polygon',
     size: { width: 60, height: 40 },
     attrs: {
         'polygon': {
@@ -126,7 +122,6 @@ joint.shapes.basic.Generic.define('basic.Polygon', {
 });
 
 joint.shapes.basic.Generic.define('basic.Polyline', {
-    type: 'basic.Polyline',
     size: { width: 60, height: 40 },
     attrs: {
         'polyline': {
@@ -149,7 +144,6 @@ joint.shapes.basic.Generic.define('basic.Polyline', {
 });
 
 joint.shapes.basic.Generic.define('basic.Image', {
-    type: 'basic.Image',
     attrs: {
         'text': {
             'font-size': 14,
@@ -167,8 +161,6 @@ joint.shapes.basic.Generic.define('basic.Image', {
 });
 
 joint.shapes.basic.Generic.define('basic.Path', {
-
-    type: 'basic.Path',
     size: { width: 60, height: 60 },
     attrs: {
         'path': {
@@ -192,7 +184,6 @@ joint.shapes.basic.Generic.define('basic.Path', {
 });
 
 joint.shapes.basic.Path.define('basic.Rhombus', {
-    type: 'basic.Rhombus',
     attrs: {
         'path': {
             d: 'M 30 0 L 60 30 30 60 0 30 z'
