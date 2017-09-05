@@ -60,19 +60,25 @@ joint.highlighters.stroke = {
             'fill': 'none'
         }).attr(options.attrs);
 
-        highlightVel.transform(cellView.el.getCTM().inverse());
-        highlightVel.transform(magnetEl.getCTM());
+        var highlightMatrix = magnetVel.getTransformToElement(cellView.el);
 
+        // Add padding to the highlight element.
         var padding = options.padding;
         if (padding) {
 
             magnetBBox || (magnetBBox = magnetVel.bbox(true));
-            // Add padding to the highlight element.
+
             var cx = magnetBBox.x + (magnetBBox.width / 2);
             var cy = magnetBBox.y + (magnetBBox.height / 2);
-            var sx = (magnetBBox.width + padding) / magnetBBox.width;
-            var sy = (magnetBBox.height + padding) / magnetBBox.height;
-            highlightVel.transform({
+
+            magnetBBox = V.transformRect(magnetBBox, highlightMatrix);
+
+            var width = Math.max(magnetBBox.width, 1);
+            var height = Math.max(magnetBBox.height, 1);
+            var sx = (width + padding) / width;
+            var sy = (height + padding) / height;
+
+            var paddingMatrix = V.createSVGMatrix({
                 a: sx,
                 b: 0,
                 c: 0,
@@ -80,7 +86,11 @@ joint.highlighters.stroke = {
                 e: cx - sx * cx,
                 f: cy - sy * cy
             });
+
+            highlightMatrix = highlightMatrix.multiply(paddingMatrix);
         }
+
+        highlightVel.transform(highlightMatrix);
 
         // joint.mvc.View will handle the theme class name and joint class name prefix.
         var highlightView = this._views[id] = new joint.mvc.View({
