@@ -38,7 +38,6 @@ joint.shapes.basic.Generic.define('pn.Place', {
     markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
 });
 
-
 pn.PlaceView = joint.dia.ElementView.extend({}, {
 
     initialize: function() {
@@ -118,6 +117,5 @@ joint.shapes.basic.Generic.define('pn.Transition', {
 });
 
 joint.dia.Link.define('pn.Link', {
-    type: 'pn.Link',
     attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' } }
 });

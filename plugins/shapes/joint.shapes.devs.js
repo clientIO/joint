@@ -2,7 +2,6 @@
  * @deprecated use the port api insteac
  */
 joint.shapes.basic.Generic.define('devs.Model', {
-
     inPorts: [],
     outPorts: [],
     size: {
@@ -79,7 +78,6 @@ joint.shapes.basic.Generic.define('devs.Model', {
             }
         }
     }
-
 }, {
     markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
     portMarkup: '<circle class="port-body"/>',
@@ -195,7 +193,6 @@ joint.shapes.devs.Model.define('devs.Coupled', {
 });
 
 joint.dia.Link.define('devs.Link', {
-    type: 'devs.Link',
     attrs: {
         '.connection': {
             'stroke-width': 2

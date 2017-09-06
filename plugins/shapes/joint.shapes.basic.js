@@ -329,7 +329,6 @@ joint.shapes.basic.PortsViewInterface = {
     }
 };
 
-
 joint.shapes.basic.Generic.define('basic.TextBlock', {
     // see joint.css for more element styles
     attrs: {
@@ -355,7 +354,6 @@ joint.shapes.basic.Generic.define('basic.TextBlock', {
 
     content: ''
 }, {
-
     markup: [
         '<g class="rotatable">',
         '<g class="scalable"><rect/></g>',
