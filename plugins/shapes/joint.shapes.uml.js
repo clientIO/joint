@@ -83,7 +83,7 @@ joint.shapes.basic.Generic.define('uml.Class', {
 
 });
 
-uml.ClassView = joint.dia.ElementView.extend({}, {
+joint.shapes.uml.ClassView = joint.dia.ElementView.extend({}, {
 
     initialize: function() {
 
@@ -109,7 +109,7 @@ joint.shapes.uml.Class.define('uml.Abstract', {
     }
 
 });
-uml.AbstractView = joint.shapes.uml.ClassView;
+joint.shapes.uml.AbstractView = joint.shapes.uml.ClassView;
 
 joint.shapes.uml.Class.define('uml.Interface', {
     attrs: {
@@ -122,7 +122,7 @@ joint.shapes.uml.Class.define('uml.Interface', {
         return ['<<Interface>>', this.get('name')];
     }
 });
-uml.InterfaceView = joint.shapes.uml.ClassView;
+joint.shapes.uml.InterfaceView = joint.shapes.uml.ClassView;
 
 joint.dia.Link.define('uml.Generalization', {
     attrs: { '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' } }

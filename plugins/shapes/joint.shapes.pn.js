@@ -38,7 +38,7 @@ joint.shapes.basic.Generic.define('pn.Place', {
     markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
 });
 
-pn.PlaceView = joint.dia.ElementView.extend({}, {
+joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({}, {
 
     initialize: function() {
 
