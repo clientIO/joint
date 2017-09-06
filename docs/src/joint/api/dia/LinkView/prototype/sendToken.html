@@ -1,6 +1,9 @@
-<pre class="docs-method-signature"><code>linkView.sendToken(token, [duration], [callback])</code></pre>
-<p>Send a token along the link. <code>token</code> is an SVG element that will be animated along the link path for <code>duration</code> milliseconds (default is 1000ms). <code>callback</code> will be called once the token reaches the end of the link path. Example:</p>
+<pre class="docs-method-signature"><code>linkView.sendToken(token, [options], [callback])</code></pre>
+<p>Send a token along the link. <code>token</code> is an SVG element (or Vectorizer element) that will be animated along the link path for <code>options.duration</code> milliseconds (default is 1000ms). <code>callback</code> will be called once the token reaches the end of the link path. <code>options.direction</code> specifies whether the animation should play fowards (<code>'normal'</code> - from the link source to target, which is the default) or backwards (<code>'reverse'</code>).</p>
 <pre><code>// Send an SVG circle token along the link.
-paper.findViewByModel(link).sendToken(V('circle', { r: 7, fill: 'green' }).node)</code></pre>
+var vCircle = V('circle', { r: 7, fill: 'green' });
+link.findView(paper).sendToken(vCircle, { duration: 500, direction: 'reverse' }, function() {
+  console.log('animation end');
+});</code></pre>
 <p>Note that in the code above, we use the Vectorizer mini-library to create the SVG circle element.</p>
 <p>Please see the <a href="http://jointjs.com/demos/pn">Petri Net simulator demo</a> for a full working example.</p>
