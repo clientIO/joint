@@ -202,15 +202,16 @@ export namespace dia {
 
         unembed(cell: Cell, options?: object): this;
 
-		define(type: string, defaults?: any, protoProps?: any, staticProps?: any): any;
-		/**
+        define(type: string, defaults?: any, protoProps?: any, staticProps?: any): any;
+
+        /**
          * @deprecated
-		 */
-		protected processPorts(): void;
+         */
+        protected processPorts(): void;
 
-		protected initialize(options?: {id?: string}): void;
+        protected initialize(options?: {id?: string}): void;
 
-	}
+    }
 
     type Padding = number | {
         top?: number;
@@ -532,93 +533,93 @@ export namespace dia {
 
         matrix(ctm: SVGMatrix | Vectorizer.Matrix): this;
 
-		pageOffset(): g.Point;
+        pageOffset(): g.Point;
 
-		pageToLocalPoint(x: number | g.Point, y?: number): g.Point;
+        pageToLocalPoint(x: number | g.Point, y?: number): g.Point;
 
-		pageToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+        pageToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
 
-		paperToLocalPoint(x: number | g.Point, y?: number): g.Point;
+        paperToLocalPoint(x: number | g.Point, y?: number): g.Point;
 
-		paperToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+        paperToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
 
-		remove(): this;
+        remove(): this;
 
-		render(): this;
+        render(): this;
 
-		scale(): Vectorizer.Scale;
-		scale(sx: number, sy?: number, ox?: number, oy?: number): this;
+        scale(): Vectorizer.Scale;
+        scale(sx: number, sy?: number, ox?: number, oy?: number): this;
 
-		scaleContentToFit(options?: ScaleContentOptions): void;
+        scaleContentToFit(options?: ScaleContentOptions): void;
 
-		setDimensions(width: number, height: number): void;
+        setDimensions(width: number, height: number): void;
 
-		setGrid(drawGrid: GridOptions | GridOptions[]): this;
+        setGrid(drawGrid: GridOptions | GridOptions[]): this;
 
-		setGridSize(gridSize: number): this;
+        setGridSize(gridSize: number): this;
 
-		setInteractivity(value: any): void;
+        setInteractivity(value: any): void;
 
-		setOrigin(x: number, y: number): this;
+        setOrigin(x: number, y: number): this;
 
-		snapToGrid(x: g.Point | number, y?: number): g.Point;
+        snapToGrid(x: g.Point | number, y?: number): g.Point;
 
-		sortViews(): void;
+        sortViews(): void;
 
-		translate(): Vectorizer.Translation;
-		translate(tx: number, ty?: number): this;
+        translate(): Vectorizer.Translation;
+        translate(tx: number, ty?: number): this;
 
-		update(): void;
+        update(): void;
 
-		protected afterRenderViews(): void;
+        protected afterRenderViews(): void;
 
-		protected asyncRenderViews(cells: Cell[], options?: object): void;
+        protected asyncRenderViews(cells: Cell[], options?: object): void;
 
-		protected beforeRenderViews(cells: Cell[]): Cell[];
+        protected beforeRenderViews(cells: Cell[]): Cell[];
 
-		protected cellMouseEnter(evt: Event): void;
+        protected cellMouseEnter(evt: Event): void;
 
-		protected cellMouseleave(evt: Event): void;
+        protected cellMouseleave(evt: Event): void;
 
-		protected cellMouseout(evt: Event): void;
+        protected cellMouseout(evt: Event): void;
 
-		protected cellMouseover(evt: Event): void;
+        protected cellMouseover(evt: Event): void;
 
-		protected contextmenu(evt: Event): void;
+        protected contextmenu(evt: Event): void;
 
         protected init(): void;
 
-		protected mouseclick(evt: Event): void;
+        protected mouseclick(evt: Event): void;
 
-		protected mousedblclick(evt: Event): void;
+        protected mousedblclick(evt: Event): void;
 
-		protected mousewheel(evt: Event): void;
+        protected mousewheel(evt: Event): void;
 
-		protected onCellAdded(cell: Cell, graph: Graph, options: {async?: boolean, position?: number}): void;
+        protected onCellAdded(cell: Cell, graph: Graph, options: {async?: boolean, position?: number}): void;
 
-		protected onCellHighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
+        protected onCellHighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
 
-		protected onCellUnhighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
+        protected onCellUnhighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
 
-		protected onRemove(): void;
+        protected onRemove(): void;
 
-		protected pointerdown(evt: Event): void;
+        protected pointerdown(evt: Event): void;
 
-		protected pointermove(evt: Event): void;
+        protected pointermove(evt: Event): void;
 
-		protected pointerup(evt: Event): void;
+        protected pointerup(evt: Event): void;
 
         protected removeView(cell: Cell): CellView;
 
-		protected removeViews(): void;
+        protected removeViews(): void;
 
-		protected renderView(cell: Cell): CellView;
+        protected renderView(cell: Cell): CellView;
 
-		protected resetViews(cellsCollection: Cell[], options: object): void;
+        protected resetViews(cellsCollection: Cell[], options: object): void;
 
- 		protected updateBackgroundColor(color: string): void;
+         protected updateBackgroundColor(color: string): void;
 
-		protected updateBackgroundImage(opt: {position?: any, size?: any}): void;
+        protected updateBackgroundImage(opt: {position?: any, size?: any}): void;
     }
 
     //TODO v.talas used in attributes
@@ -694,15 +695,15 @@ export namespace dia {
 
         update(cell: Cell, renderingOnlyAttrs?: object): void;
 
-		protected mouseenter(evt: Event): void;
+        protected mouseenter(evt: Event): void;
 
-		protected mouseleave(evt: Event): void;
+        protected mouseleave(evt: Event): void;
 
-		protected pointerdown(evt: Event, x: number, y: number): void;
+        protected pointerdown(evt: Event, x: number, y: number): void;
 
-		protected pointermove(evt: Event, x: number, y: number): void;
+        protected pointermove(evt: Event, x: number, y: number): void;
 
-		protected pointerup(evt: Event, x: number, y: number): void;
+        protected pointerup(evt: Event, x: number, y: number): void;
 
         protected renderMarkup(): void;
     }
@@ -717,40 +718,40 @@ export namespace dia {
             sampleInterval: number
         };
 
-		getConnectionLength(): number;
+        getConnectionLength(): number;
 
-		sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
+        sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
 
-		addVertex(vertex: Point): number;
+        addVertex(vertex: Point): number;
 
-		getPointAtLength(length: number): g.Point; // Marked as public api in source but not in the documents
-		createWatcher(endType: { id: string }): (link: Link, end?: {id: string}) => this;
+        getPointAtLength(length: number): g.Point; // Marked as public api in source but not in the documents
+        createWatcher(endType: { id: string }): (link: Link, end?: {id: string}) => this;
 
-		update(model: Cell, attributes: object, options?: object): this;
+        update(model: Cell, attributes: object, options?: object): this;
 
         protected mouseenter(evt: Event): void;
 
-		protected mouseleave(evt: Event): void;
+        protected mouseleave(evt: Event): void;
 
-		protected onEndModelChange(endType: 'source' | 'target', endModel?: Element,
+        protected onEndModelChange(endType: 'source' | 'target', endModel?: Element,
                          opt?: {cacheOnly?: boolean, handleBy?: string, translateBy?: boolean, tx?: number, ty?: number}): void;
 
-		protected onLabelsChange(): void;
+        protected onLabelsChange(): void;
 
-		protected onSourceChange(cell: Cell, sourceEnd: { id: string }, options: object): void;
+        protected onSourceChange(cell: Cell, sourceEnd: { id: string }, options: object): void;
 
-		protected onTargetChange(cell: Cell, targetEnd: { id: string }, options: object): void;
+        protected onTargetChange(cell: Cell, targetEnd: { id: string }, options: object): void;
 
-		protected onToolsChange(): void;
+        protected onToolsChange(): void;
 
         // changed is not used in function body.
-		protected onVerticesChange(cell: Cell, changed: any, options: object): void;
+        protected onVerticesChange(cell: Cell, changed: any, options: object): void;
 
-		protected pointerdown(evt: Event, x: number, y: number): void;
+        protected pointerdown(evt: Event, x: number, y: number): void;
 
-		protected pointermove(evt: Event, x: number, y: number): void;
+        protected pointermove(evt: Event, x: number, y: number): void;
 
-		protected pointerup(evt: Event, x: number, y: number): void;
+        protected pointerup(evt: Event, x: number, y: number): void;
     }
 }
 
@@ -886,19 +887,19 @@ export namespace shapes {
     }
 
     namespace devs {
-		/**
-		 * @deprecated
-		 */
+        /**
+         * @deprecated
+         */
         interface ModelAttributes extends GenericAttributes<dia.SVGAttributes> {
             inPorts?: string[];
             outPorts?: string[];
             ports?: Object;
         }
 
-		/**
+        /**
          * @deprecated
-		 */
-		class Model extends basic.Generic {
+         */
+        class Model extends basic.Generic {
             constructor(attributes?: ModelAttributes, options?: Object);
 
             changeInGroup(properties: any, opt?: any): boolean;
@@ -917,15 +918,15 @@ export namespace shapes {
 
             removeInPort(port: string, opt?: any): this;
         }
-		/**
-		 * @deprecated
-		 */
+        /**
+         * @deprecated
+         */
         class Coupled extends Model {
             constructor(attributes?: ModelAttributes, options?: Object);
         }
-		/**
-		 * @deprecated
-		 */
+        /**
+         * @deprecated
+         */
         class Atomic extends Model {
             constructor(attributes?: ModelAttributes, options?: Object);
         }
