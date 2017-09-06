@@ -137,8 +137,60 @@ QUnit.module('point', function() {
 
         });
 
-        QUnit.module('theta(point)', function() {
+        QUnit.module('theta(p)', function() {
 
+            QUnit.test('returns the angle between vector p0@p and the x-axis', function(assert) {
+
+                var p0 = g.point(1, 1)
+
+                assert.equal(p0.theta(p0), 0);
+                assert.equal(p0.theta(g.point(2, 1)), 0);
+                assert.equal(p0.theta(g.point(2, 0)), 45);
+                assert.equal(p0.theta(g.point(1, 0)), 90);
+                assert.equal(p0.theta(g.point(0, 0)), 135);
+                assert.equal(p0.theta(g.point(0, 1)), 180);
+                assert.equal(p0.theta(g.point(0, 2)), 225);
+                assert.equal(p0.theta(g.point(1, 2)), 270);
+                assert.equal(p0.theta(g.point(2, 2)), 315);
+            });
+        });
+
+        QUnit.module('angleBetween(p1, p2)', function() {
+
+            QUnit.test('returns the angle between vectors p0@p1 and p0@p2', function(assert) {
+
+                var p0 = g.point(1, 2)
+                var p1 = g.point(2, 4);
+                var p2 = g.point(4, 3);
+
+                var PRECISION = 10;
+
+                assert.equal(p0.angleBetween(p0, p0).toFixed(PRECISION), '0.0000000000');
+                assert.equal(p0.angleBetween(p1, p0).toFixed(PRECISION), '0.0000000000');
+                assert.equal(p0.angleBetween(p0, p2).toFixed(PRECISION), '0.0000000000');
+                assert.equal(p0.angleBetween(p1, p2).toFixed(PRECISION), '45.0000000000');
+                assert.equal(p0.angleBetween(p2, p1).toFixed(PRECISION), '315.0000000000');
+            });
+        });
+
+        QUnit.module('vectorAngle(p)', function() {
+
+            QUnit.test('returns the angle between vectors zero@p0 and zero@p', function(assert) {
+
+                var p0 = g.point(1, 2);
+                var p = g.point(3, 1)
+                var zero = g.point(0, 0);
+
+                var PRECISION = 10;
+
+                assert.equal(zero.vectorAngle(zero).toFixed(PRECISION), '0.0000000000')
+                assert.equal(p0.vectorAngle(zero).toFixed(PRECISION), '0.0000000000');
+                assert.equal(p.vectorAngle(zero).toFixed(PRECISION), '0.0000000000');
+                assert.equal(zero.vectorAngle(p0).toFixed(PRECISION), '0.0000000000');
+                assert.equal(zero.vectorAngle(p).toFixed(PRECISION), '0.0000000000');
+                assert.equal(p0.vectorAngle(p).toFixed(PRECISION), '45.0000000000');
+                assert.equal(p.vectorAngle(p0).toFixed(PRECISION), '315.0000000000');
+            });
         });
 
         QUnit.module('toJSON()', function() {
@@ -185,6 +237,22 @@ QUnit.module('point', function() {
                 assert.ok(isNaN(p1.dot({})));
                 assert.equal(p1.dot(p2), 178);
                 assert.equal(p2.dot(p1), 178);
+            });
+        });
+
+        QUnit.module('cross(p1, p2)', function() {
+
+            QUnit.test('returns the left-handed cross product of vectors p0@p1 and p0@p2', function(assert) {
+
+                var p0 = g.point(3, 15)
+                var p1 = g.point(4, 17);
+                var p2 = g.point(2, 10);
+
+                assert.ok(isNaN(p0.cross()));
+                assert.ok(isNaN(p0.cross({})));
+                assert.ok(isNaN(p0.cross(p1)));
+                assert.equal(p0.cross(p1, p2), 3);
+                assert.equal(p0.cross(p2, p1), -3);
             });
         });
     });

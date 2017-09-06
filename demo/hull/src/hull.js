@@ -132,7 +132,7 @@
     // Graham scan convex hull algorithm 
     function convexHullAlgorithm(points) {
 
-        return g.Polyline(points).convexHull();
+        return g.Polyline(points).convexHull().points;
 
     }
 

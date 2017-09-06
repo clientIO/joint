@@ -6,6 +6,8 @@ QUnit.module('polyline', function() {
 
         QUnit.test('convex hull', function(assert) {
 
+            assert.ok(g.Polyline([]) instanceof g.Polyline);
+            assert.ok(g.Polyline([g.Point(100,100), g.Point(200,200)]) instanceof g.Polyline);
             assert.equal(g.Polyline([]).convexHull().toString(), "");
             assert.equal(g.Polyline([g.Point(100, 100)]).convexHull().toString(), "100@100");
             assert.equal(g.Polyline([g.Point(100, 100), g.Point(200, 100)]).convexHull().toString(), "100@100,200@100");
