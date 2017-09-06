@@ -233,8 +233,8 @@ QUnit.module('point', function() {
                 var p1 = g.point(4, 17);
                 var p2 = g.point(2, 10);
 
-                assert.ok(isNaN(p1.dot()));
-                assert.ok(isNaN(p1.dot({})));
+                assert.ok(p1.dot() !== p1.dot()); // true if and only if the result is NaN
+                assert.ok(p1.dot({}) !== p1.dot({})); // true if and only if the result is NaN
                 assert.equal(p1.dot(p2), 178);
                 assert.equal(p2.dot(p1), 178);
             });
@@ -248,9 +248,9 @@ QUnit.module('point', function() {
                 var p1 = g.point(4, 17);
                 var p2 = g.point(2, 10);
 
-                assert.ok(isNaN(p0.cross()));
-                assert.ok(isNaN(p0.cross({})));
-                assert.ok(isNaN(p0.cross(p1)));
+                assert.ok(p0.cross() !== p0.cross()); // true if and only if the result is NaN
+                assert.ok(p0.cross({}) !== p0.cross({})); // true if and only if the result is NaN
+                assert.ok(p0.cross(p1) !== p0.cross(p1)); // true if and only if the result is NaN
                 assert.equal(p0.cross(p1, p2), 3);
                 assert.equal(p0.cross(p2, p1), -3);
             });

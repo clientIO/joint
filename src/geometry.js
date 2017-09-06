@@ -717,11 +717,8 @@ var g = (function() {
             // Invert the y-axis.
             var y = -(p.y - this.y);
             var x = p.x - this.x;
-            // Makes sure that the comparison with zero takes rounding errors into account.
-            var PRECISION = 10;
-            // Note that `atan2` is not defined for `x`, `y` both equal zero (zero is returned).
-            var rad = (y.toFixed(PRECISION) == 0 && x.toFixed(PRECISION) == 0) ? 0 : atan2(y, x);
-
+            var rad = atan2(y, x);
+            
             // Correction for III. and IV. quadrant.
             if (rad < 0) {
                 rad = 2 * PI + rad;
@@ -1402,9 +1399,9 @@ var g = (function() {
                             // three options:
                             // there may be a 180 or 0 degree angle at lastHullPoint
                             // or two of the three points are coincident
-                            var PRECISION = 10; // we have to take rounding errors into account
-                            var angleBetween = lastHullPoint.angleBetween(secondLastHullPoint, currentPoint).toFixed(PRECISION);
-                            if (angleBetween == 180) {
+                            var THRESHOLD = 1e-10; // we have to take rounding errors into account
+                            var angleBetween = lastHullPoint.angleBetween(secondLastHullPoint, currentPoint);
+                            if (Math.abs(angleBetween - 180) < THRESHOLD) { // rouding around 180 to 180
                                 // if the cross product is 0 because the angle is 180 degrees
                                 // discard last hull point (add to insidePoints)
                                 //insidePoints.unshift(lastHullPoint);
@@ -1424,7 +1421,7 @@ var g = (function() {
                                 // do not do anything with current point
                                 // correct turn not found
                                                         
-                            } else if (angleBetween == 0) {
+                            } else if (Math.abs(((angleBetween + 1) % 360) - 1) < THRESHOLD) { // rounding around 0 and 360 to 0
                                 // if the cross product is 0 because the angle is 0 degrees
                                 // remove last hull point from hull BUT do not discard it
                                 // reenter second-to-last hull point (will be last at next iter)
