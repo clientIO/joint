@@ -1073,7 +1073,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 }
             }
         */
-        if (_.isUndefined(highlighterDef)) {
+        if (highlighterDef === undefined) {
 
             // check for built-in types
             var type = _.chain(opt)
@@ -1209,7 +1209,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             return true;
         }
 
-        if (evt.data && !_.isUndefined(evt.data.guarded)) {
+        if (evt.data && evt.data.guarded !== undefined) {
             return evt.data.guarded;
         }
 
@@ -1579,7 +1579,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 // recalculate the tile size if an object passed in
                 backgroundSize.width *= canvas.width / img.width;
                 backgroundSize.height *= canvas.height / img.height;
-            } else if (_.isUndefined(backgroundSize)) {
+            } else if (backgroundSize === undefined) {
                 // calcule the tile size if no provided
                 opt.size = {
                     width: canvas.width / backgroundQuality,
@@ -1590,7 +1590,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             // backgroundRepeat:
             // no-repeat', 'round', 'space', 'repeat', 'repeat-x', 'repeat-y'
             backgroundImage = img.src;
-            if (_.isUndefined(backgroundSize)) {
+            if (backgroundSize === undefined) {
                 // pass the image size for  the backgroundSize if no size provided
                 opt.size = {
                     width: img.width,

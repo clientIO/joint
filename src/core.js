@@ -1289,11 +1289,11 @@ var joint = {
                     var attrArray = attr.split('.');
                     var value = data[attrArray.shift()];
 
-                    while (!_.isUndefined(value) && attrArray.length) {
+                    while (value !== undefined && attrArray.length) {
                         value = value[attrArray.shift()];
                     }
 
-                    return !_.isUndefined(value) ? value : '';
+                    return value !== undefined ? value : '';
                 });
             };
         },
@@ -1311,7 +1311,7 @@ var joint = {
                 for (var i = 0; i < prefixes.length; i++) {
                     var prefix = prefixes[i];
                     var propName = prefix ? (prefix + prop) : (prop.substr(0, 1).toLowerCase() + prop.substr(1));
-                    if (!_.isUndefined(el[propName])) {
+                    if (el[propName] !== undefined) {
                         return _.isFunction(el[propName]) ? el[propName]() : el[propName];
                     }
                 }
