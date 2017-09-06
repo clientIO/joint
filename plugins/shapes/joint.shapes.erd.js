@@ -85,7 +85,7 @@ joint.dia.Element.define('erd.Attribute', {
     markup: '<g class="rotatable"><g class="scalable"><ellipse class="outer"/><ellipse class="inner"/></g><text/></g>',
 });
 
-joint.shapes.erd.Attribute.define('erd.Multivalued ', {
+joint.shapes.erd.Attribute.define('erd.Multivalued', {
     attrs: {
         '.inner': { display: 'block' },
         text: { text: 'multivalued' }
