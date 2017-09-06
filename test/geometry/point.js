@@ -248,9 +248,9 @@ QUnit.module('point', function() {
                 var p1 = g.point(4, 17);
                 var p2 = g.point(2, 10);
 
-                assert.ok(p0.cross().toString(), 'NaN');
-                assert.ok(p0.cross({}).toString(), 'NaN');
-                assert.ok(p0.cross(p1).toString(), 'NaN');
+                assert.equal(p0.cross().toString(), 'NaN');
+                assert.equal(p0.cross({}).toString(), 'NaN');
+                assert.equal(p0.cross(p1).toString(), 'NaN');
                 assert.equal(p0.cross(p1, p2), 3);
                 assert.equal(p0.cross(p2, p1), -3);
             });
