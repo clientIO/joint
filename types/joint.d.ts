@@ -202,8 +202,7 @@ export namespace dia {
 
         unembed(cell: Cell, options?: object): this;
 
-		define(type: string, defaults?: any, protoProps?: any, staticProps?: any): dia.Cell
-
+		define(type: string, defaults?: any, protoProps?: any, staticProps?: any): any;
 		/**
          * @deprecated
 		 */
