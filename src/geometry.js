@@ -731,10 +731,10 @@ var g = (function() {
         // theta function's angle convention:
         // returns angles between 0 and 180 when the angle is counterclockwise
         // returns angles between 180 and 360 to convert clockwise angles into counterclockwise ones
-        // returns 0 if any of the points p1, p2 is coincident with this point
+        // returns NaN if any of the points p1, p2 is coincident with this point
         angleBetween: function(p1, p2) {
             
-            var angleBetween = (this.equals(p1) || this.equals(p2)) ? 0 : (this.theta(p2) - this.theta(p1));
+            var angleBetween = (this.equals(p1) || this.equals(p2)) ? NaN : (this.theta(p2) - this.theta(p1));
             if (angleBetween < 0) {
                 angleBetween += 360; // correction to keep angleBetween between 0 and 360
             }
@@ -742,6 +742,7 @@ var g = (function() {
         },
 
         // Compute the angle between the vector from 0,0 to me and the vector from 0,0 to p
+        // Returns NaN if p is at 0,0
         vectorAngle: function(p) {
             
             var zero = Point(0,0);

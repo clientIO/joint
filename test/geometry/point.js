@@ -165,9 +165,9 @@ QUnit.module('point', function() {
 
                 var PRECISION = 10;
 
-                assert.equal(p0.angleBetween(p0, p0).toFixed(PRECISION), '0.0000000000');
-                assert.equal(p0.angleBetween(p1, p0).toFixed(PRECISION), '0.0000000000');
-                assert.equal(p0.angleBetween(p0, p2).toFixed(PRECISION), '0.0000000000');
+                assert.equal(p0.angleBetween(p0, p0).toFixed(PRECISION), 'NaN');
+                assert.equal(p0.angleBetween(p1, p0).toFixed(PRECISION), 'NaN');
+                assert.equal(p0.angleBetween(p0, p2).toFixed(PRECISION), 'NaN');
                 assert.equal(p0.angleBetween(p1, p2).toFixed(PRECISION), '45.0000000000');
                 assert.equal(p0.angleBetween(p2, p1).toFixed(PRECISION), '315.0000000000');
             });
@@ -183,11 +183,11 @@ QUnit.module('point', function() {
 
                 var PRECISION = 10;
 
-                assert.equal(zero.vectorAngle(zero).toFixed(PRECISION), '0.0000000000')
-                assert.equal(p0.vectorAngle(zero).toFixed(PRECISION), '0.0000000000');
-                assert.equal(p.vectorAngle(zero).toFixed(PRECISION), '0.0000000000');
-                assert.equal(zero.vectorAngle(p0).toFixed(PRECISION), '0.0000000000');
-                assert.equal(zero.vectorAngle(p).toFixed(PRECISION), '0.0000000000');
+                assert.equal(zero.vectorAngle(zero).toFixed(PRECISION), 'NaN')
+                assert.equal(p0.vectorAngle(zero).toFixed(PRECISION), 'NaN');
+                assert.equal(p.vectorAngle(zero).toFixed(PRECISION), 'NaN');
+                assert.equal(zero.vectorAngle(p0).toFixed(PRECISION), 'NaN');
+                assert.equal(zero.vectorAngle(p).toFixed(PRECISION), 'NaN');
                 assert.equal(p0.vectorAngle(p).toFixed(PRECISION), '45.0000000000');
                 assert.equal(p.vectorAngle(p0).toFixed(PRECISION), '315.0000000000');
             });
