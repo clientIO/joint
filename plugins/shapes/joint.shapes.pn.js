@@ -1,54 +1,44 @@
+joint.shapes.basic.Generic.define('pn.Place', {
+    size: { width: 50, height: 50 },
+    attrs: {
+        '.root': {
+            r: 25,
+            fill: '#ffffff',
+            stroke: '#000000',
+            transform: 'translate(25, 25)'
+        },
+        '.label': {
+            'text-anchor': 'middle',
+            'ref-x': .5,
+            'ref-y': -20,
+            ref: '.root',
+            fill: '#000000',
+            'font-size': 12
+        },
+        '.tokens > circle': {
+            fill: '#000000',
+            r: 5
+        },
+        '.tokens.one > circle': { transform: 'translate(25, 25)' },
 
-joint.shapes.pn = {};
+        '.tokens.two > circle:nth-child(1)': { transform: 'translate(19, 25)' },
+        '.tokens.two > circle:nth-child(2)': { transform: 'translate(31, 25)' },
 
-joint.shapes.pn.Place = joint.shapes.basic.Generic.extend({
+        '.tokens.three > circle:nth-child(1)': { transform: 'translate(18, 29)' },
+        '.tokens.three > circle:nth-child(2)': { transform: 'translate(25, 19)' },
+        '.tokens.three > circle:nth-child(3)': { transform: 'translate(32, 29)' },
 
-    markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'pn.Place',
-        size: { width: 50, height: 50 },
-        attrs: {
-            '.root': {
-                r: 25,
-                fill: '#ffffff',
-                stroke: '#000000',
-                transform: 'translate(25, 25)'
-            },
-            '.label': {
-                'text-anchor': 'middle',
-                'ref-x': .5,
-                'ref-y': -20,
-                ref: '.root',
-                fill: '#000000',
-                'font-size': 12
-            },
-            '.tokens > circle': {
-                fill: '#000000',
-                r: 5
-            },
-            '.tokens.one > circle': { transform: 'translate(25, 25)' },
-
-            '.tokens.two > circle:nth-child(1)': { transform: 'translate(19, 25)' },
-            '.tokens.two > circle:nth-child(2)': { transform: 'translate(31, 25)' },
-
-            '.tokens.three > circle:nth-child(1)': { transform: 'translate(18, 29)' },
-            '.tokens.three > circle:nth-child(2)': { transform: 'translate(25, 19)' },
-            '.tokens.three > circle:nth-child(3)': { transform: 'translate(32, 29)' },
-
-            '.tokens.alot > text': {
-                transform: 'translate(25, 18)',
-                'text-anchor': 'middle',
-                fill: '#000000'
-            }
+        '.tokens.alot > text': {
+            transform: 'translate(25, 18)',
+            'text-anchor': 'middle',
+            fill: '#000000'
         }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
+    }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
 });
 
-
-joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
+joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({}, {
 
     initialize: function() {
 
@@ -98,46 +88,34 @@ joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
 
             default:
                 $tokens[0].className.baseVal += ' alot';
-                $tokens.append(V('<text/>').text(tokens + '' ).node);
+                $tokens.append(V('<text/>').text(tokens + '').node);
                 break;
         }
     }
 });
 
-joint.shapes.pn.Transition = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><rect class="root"/></g></g><text class="label"/>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'pn.Transition',
-        size: { width: 12, height: 50 },
-        attrs: {
-            'rect': {
-                width: 12,
-                height: 50,
-                fill: '#000000',
-                stroke: '#000000'
-            },
-            '.label': {
-                'text-anchor': 'middle',
-                'ref-x': .5,
-                'ref-y': -20,
-                ref: 'rect',
-                fill: '#000000',
-                'font-size': 12
-            }
+joint.shapes.basic.Generic.define('pn.Transition', {
+    size: { width: 12, height: 50 },
+    attrs: {
+        'rect': {
+            width: 12,
+            height: 50,
+            fill: '#000000',
+            stroke: '#000000'
+        },
+        '.label': {
+            'text-anchor': 'middle',
+            'ref-x': .5,
+            'ref-y': -20,
+            ref: 'rect',
+            fill: '#000000',
+            'font-size': 12
         }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
+    }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><rect class="root"/></g></g><text class="label"/>',
 });
 
-joint.shapes.pn.Link = joint.dia.Link.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'pn.Link',
-        attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
-
-    }, joint.dia.Link.prototype.defaults)
+joint.dia.Link.define('pn.Link', {
+    attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' } }
 });

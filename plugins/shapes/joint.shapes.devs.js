@@ -1,90 +1,87 @@
-joint.shapes.devs = {};
-
-joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
-    portMarkup: '<circle class="port-body"/>',
-    portLabelMarkup: '<text class="port-label"/>',
-    defaults: _.defaultsDeep({
-
-        type: 'devs.Model',
-        inPorts: [],
-        outPorts: [],
-        size: {
-            width: 80,
-            height: 80
+/**
+ * @deprecated use the port api insteac
+ */
+joint.shapes.basic.Generic.define('devs.Model', {
+    inPorts: [],
+    outPorts: [],
+    size: {
+        width: 80,
+        height: 80
+    },
+    attrs: {
+        '.': {
+            magnet: false
         },
-        attrs: {
-            '.': {
-                magnet: false
-            },
-            '.label': {
-                text: 'Model',
-                'ref-x': .5,
-                'ref-y': 10,
-                'font-size': 18,
-                'text-anchor': 'middle',
-                fill: '#000'
-            },
-            '.body': {
-                'ref-width': '100%',
-                'ref-height': '100%',
-                stroke: '#000'
-            }
+        '.label': {
+            text: 'Model',
+            'ref-x': .5,
+            'ref-y': 10,
+            'font-size': 18,
+            'text-anchor': 'middle',
+            fill: '#000'
         },
-        ports: {
-            groups: {
-                'in': {
-                    position: {
-                        name: 'left'
+        '.body': {
+            'ref-width': '100%',
+            'ref-height': '100%',
+            stroke: '#000'
+        }
+    },
+    ports: {
+        groups: {
+            'in': {
+                position: {
+                    name: 'left'
+                },
+                attrs: {
+                    '.port-label': {
+                        fill: '#000'
                     },
-                    attrs: {
-                        '.port-label': {
-                            fill: '#000'
-                        },
-                        '.port-body': {
-                            fill: '#fff',
-                            stroke: '#000',
-                            r: 10,
-                            magnet: true
-                        }
-                    },
-                    label: {
-                        position: {
-                            name: 'left',
-                            args: {
-                                y: 10
-                            }
-                        }
+                    '.port-body': {
+                        fill: '#fff',
+                        stroke: '#000',
+                        r: 10,
+                        magnet: true
                     }
                 },
-                'out': {
+                label: {
                     position: {
-                        name: 'right'
-                    },
-                    attrs: {
-                        '.port-label': {
-                            fill: '#000'
-                        },
-                        '.port-body': {
-                            fill: '#fff',
-                            stroke: '#000',
-                            r: 10,
-                            magnet: true
+                        name: 'left',
+                        args: {
+                            y: 10
                         }
+                    }
+                }
+            },
+            'out': {
+                position: {
+                    name: 'right'
+                },
+                attrs: {
+                    '.port-label': {
+                        fill: '#000'
                     },
-                    label: {
-                        position: {
-                            name: 'right',
-                            args: {
-                                y: 10
-                            }
+                    '.port-body': {
+                        fill: '#fff',
+                        stroke: '#000',
+                        r: 10,
+                        magnet: true
+                    }
+                },
+                label: {
+                    position: {
+                        name: 'right',
+                        args: {
+                            y: 10
                         }
                     }
                 }
             }
         }
-    }, joint.shapes.basic.Generic.prototype.defaults),
+    }
+}, {
+    markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
+    portMarkup: '<circle class="port-body"/>',
+    portLabelMarkup: '<text class="port-label"/>',
 
     initialize: function() {
 
@@ -156,10 +153,10 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     },
 
     _changeGroup: function(group, properties, opt) {
-        
+
         return this.prop('ports/groups/' + group, _.isObject(properties) ? properties : {}, opt);
     },
-    
+
     changeInGroup: function(properties, opt) {
 
         return this._changeGroup('in', properties, opt);
@@ -171,48 +168,34 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     }
 });
 
-joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'devs.Atomic',
-        size: {
-            width: 80,
-            height: 80
-        },
-        attrs: {
-            '.label': {
-                text: 'Atomic'
-            }
+joint.shapes.devs.Model.define('devs.Atomic', {
+    size: {
+        width: 80,
+        height: 80
+    },
+    attrs: {
+        '.label': {
+            text: 'Atomic'
         }
-    }, joint.shapes.devs.Model.prototype.defaults)
+    }
 });
 
-joint.shapes.devs.Coupled = joint.shapes.devs.Model.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'devs.Coupled',
-        size: {
-            width: 200,
-            height: 300
-        },
-        attrs: {
-            '.label': {
-                text: 'Coupled'
-            }
+joint.shapes.devs.Model.define('devs.Coupled', {
+    size: {
+        width: 200,
+        height: 300
+    },
+    attrs: {
+        '.label': {
+            text: 'Coupled'
         }
-    }, joint.shapes.devs.Model.prototype.defaults)
+    }
 });
 
-joint.shapes.devs.Link = joint.dia.Link.extend({
-
-    defaults: {
-        type: 'devs.Link',
-        attrs: {
-            '.connection': {
-                'stroke-width': 2
-            }
+joint.dia.Link.define('devs.Link', {
+    attrs: {
+        '.connection': {
+            'stroke-width': 2
         }
     }
 });
