@@ -310,7 +310,7 @@ joint.dia.Graph = Backbone.Model.extend({
                 cell.set('z', this.maxZIndex() + 1);
             }
 
-        } else if (_.isUndefined(cell.z)) {
+        } else if (cell.z === undefined) {
 
             cell.z = this.maxZIndex() + 1;
         }
@@ -428,7 +428,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var inbound = opt.inbound;
         var outbound = opt.outbound;
-        if (_.isUndefined(inbound) && _.isUndefined(outbound)) {
+        if (inbound === undefined && outbound === undefined) {
             inbound = outbound = true;
         }
 
@@ -500,7 +500,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var inbound = opt.inbound;
         var outbound = opt.outbound;
-        if (_.isUndefined(inbound) && _.isUndefined(outbound)) {
+        if (inbound === undefined && outbound === undefined) {
             inbound = outbound = true;
         }
 
@@ -887,7 +887,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var inbound = opt.inbound;
         var outbound = opt.outbound;
-        if (_.isUndefined(inbound) && _.isUndefined(outbound)) {
+        if (inbound === undefined && outbound === undefined) {
             inbound = outbound = true;
         }
 
