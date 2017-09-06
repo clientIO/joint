@@ -202,6 +202,8 @@ export namespace dia {
 
         unembed(cell: Cell, options?: object): this;
 
+		define(type: string, defaults?: any, protoProps?: any, staticProps?: any): dia.Cell
+
 		/**
          * @deprecated
 		 */
@@ -294,7 +296,7 @@ export namespace dia {
 
         getPortIndex(port: string | Port): number;
 
-        portProp(portId: string, path: any, value?: any, opt?: any): joint.dia.Element;
+        portProp(portId: string, path: any, value?: any, opt?: any): dia.Element;
     }
 
     interface CSSSelector {
