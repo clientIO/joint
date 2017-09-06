@@ -552,9 +552,7 @@ export namespace dia {
 
         setDimensions(width: number, height: number): void;
 
-		
-
-		setGridSize(gridSize: number): this;
+        setGridSize(gridSize: number): this;
 
         setInteractivity(value: any): void;
 
@@ -722,8 +720,7 @@ export namespace dia {
 
         addVertex(vertex: Point): number;
 
-		getPointAtLength(length: number): g.Point; // Marked as public api in source but not in the documents
-		
+        getPointAtLength(length: number): g.Point; // Marked as public api in source but not in the documents
 
         update(model: Cell, attributes: object, options?: object): this;
 
