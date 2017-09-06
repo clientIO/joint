@@ -717,7 +717,7 @@ var g = (function() {
             // Invert the y-axis.
             var y = -(p.y - this.y);
             var x = p.x - this.x;
-            var rad = atan2(y, x);
+            var rad = atan2(y, x); // defined for all 0 corner cases
             
             // Correction for III. and IV. quadrant.
             if (rad < 0) {
@@ -726,7 +726,7 @@ var g = (function() {
             return 180 * rad / PI;
         },
 
-        // Compute the angle between vector from me to p1 and the vector from me to p2
+        // Compute the angle between vector from me to p1 and the vector from me to p2.
         // ordering of points p1 and p2 is important!
         // theta function's angle convention:
         // returns angles between 0 and 180 when the angle is counterclockwise
@@ -741,8 +741,8 @@ var g = (function() {
             return angleBetween;
         },
 
-        // Compute the angle between the vector from 0,0 to me and the vector from 0,0 to p
-        // Returns NaN if p is at 0,0
+        // Compute the angle between the vector from 0,0 to me and the vector from 0,0 to p.
+        // Returns NaN if p is at 0,0.
         vectorAngle: function(p) {
             
             var zero = Point(0,0);

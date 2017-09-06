@@ -165,9 +165,9 @@ QUnit.module('point', function() {
 
                 var PRECISION = 10;
 
-                assert.equal(p0.angleBetween(p0, p0).toFixed(PRECISION), 'NaN');
-                assert.equal(p0.angleBetween(p1, p0).toFixed(PRECISION), 'NaN');
-                assert.equal(p0.angleBetween(p0, p2).toFixed(PRECISION), 'NaN');
+                assert.equal(p0.angleBetween(p0, p0).toString(), 'NaN');
+                assert.equal(p0.angleBetween(p1, p0).toString(), 'NaN');
+                assert.equal(p0.angleBetween(p0, p2).toString(), 'NaN');
                 assert.equal(p0.angleBetween(p1, p2).toFixed(PRECISION), '45.0000000000');
                 assert.equal(p0.angleBetween(p2, p1).toFixed(PRECISION), '315.0000000000');
             });
@@ -183,11 +183,11 @@ QUnit.module('point', function() {
 
                 var PRECISION = 10;
 
-                assert.equal(zero.vectorAngle(zero).toFixed(PRECISION), 'NaN')
-                assert.equal(p0.vectorAngle(zero).toFixed(PRECISION), 'NaN');
-                assert.equal(p.vectorAngle(zero).toFixed(PRECISION), 'NaN');
-                assert.equal(zero.vectorAngle(p0).toFixed(PRECISION), 'NaN');
-                assert.equal(zero.vectorAngle(p).toFixed(PRECISION), 'NaN');
+                assert.equal(zero.vectorAngle(zero).toString(), 'NaN')
+                assert.equal(p0.vectorAngle(zero).toString(), 'NaN');
+                assert.equal(p.vectorAngle(zero).toString(), 'NaN');
+                assert.equal(zero.vectorAngle(p0).toString(), 'NaN');
+                assert.equal(zero.vectorAngle(p).toString(), 'NaN');
                 assert.equal(p0.vectorAngle(p).toFixed(PRECISION), '45.0000000000');
                 assert.equal(p.vectorAngle(p0).toFixed(PRECISION), '315.0000000000');
             });
@@ -233,8 +233,8 @@ QUnit.module('point', function() {
                 var p1 = g.point(4, 17);
                 var p2 = g.point(2, 10);
 
-                assert.ok(p1.dot() !== p1.dot()); // true if and only if the result is NaN
-                assert.ok(p1.dot({}) !== p1.dot({})); // true if and only if the result is NaN
+                assert.equal(p1.dot().toString(), 'NaN');
+                assert.equal(p1.dot({}).toString(), 'NaN');
                 assert.equal(p1.dot(p2), 178);
                 assert.equal(p2.dot(p1), 178);
             });
@@ -248,9 +248,9 @@ QUnit.module('point', function() {
                 var p1 = g.point(4, 17);
                 var p2 = g.point(2, 10);
 
-                assert.ok(p0.cross() !== p0.cross()); // true if and only if the result is NaN
-                assert.ok(p0.cross({}) !== p0.cross({})); // true if and only if the result is NaN
-                assert.ok(p0.cross(p1) !== p0.cross(p1)); // true if and only if the result is NaN
+                assert.ok(p0.cross().toString(), 'NaN');
+                assert.ok(p0.cross({}).toString(), 'NaN');
+                assert.ok(p0.cross(p1).toString(), 'NaN');
                 assert.equal(p0.cross(p1, p2), 3);
                 assert.equal(p0.cross(p2, p1), -3);
             });
