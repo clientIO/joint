@@ -1415,6 +1415,7 @@ var joint = {
 
         isFunction: _.isFunction,
         result: _.result,
+        union: _.union,
 
         bindAll: _.bindAll,
         assign: _.assign,

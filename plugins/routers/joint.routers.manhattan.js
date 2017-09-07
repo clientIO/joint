@@ -117,12 +117,12 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         var source = graph.getCell(link.get('source').id);
         if (source) {
-            excludedAncestors = _.union(excludedAncestors, _.map(source.getAncestors(), 'id'));
+            excludedAncestors = util.union(excludedAncestors, _.map(source.getAncestors(), 'id'));
         }
 
         var target = graph.getCell(link.get('target').id);
         if (target) {
-            excludedAncestors = _.union(excludedAncestors, _.map(target.getAncestors(), 'id'));
+            excludedAncestors = util.union(excludedAncestors, _.map(target.getAncestors(), 'id'));
         }
 
         // builds a map of all elements for quicker obstacle queries (i.e. is a point contained
