@@ -1414,7 +1414,7 @@ var joint = {
         },
 
         bindAll: _.bindAll,
-        assign: _.assign
+        assign: _.assign,
 
         isObject: function(value) {
             return !!value && (typeof value === 'object' || typeof value === 'function');
