@@ -1,4 +1,4 @@
-(function(joint, _, g, $) {
+(function(joint, _, g, $, util) {
 
     function isPercentage(val) {
         return _.isString(val) && val.slice(-1) === '%';
@@ -111,7 +111,7 @@
         targetMarker: {
             qualify: _.isPlainObject,
             set: function(marker) {
-                marker = _.assign({ transform: 'rotate(180)' }, marker);
+                marker = util.assign({ transform: 'rotate(180)' }, marker);
                 return { 'marker-end': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
@@ -308,4 +308,4 @@
     attributesNS['x-alignment'] = attributesNS.xAlignment;
     attributesNS['y-alignment'] = attributesNS.yAlignment;
 
-})(joint, _, g, $);
+})(joint, _, g, $, joint.util);

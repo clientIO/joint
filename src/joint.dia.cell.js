@@ -659,7 +659,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
     define: function(type, defaults, protoProps, staticProps) {
 
-        protoProps = _.assign({
+        protoProps = joint.util.assign({
             defaults: _.defaultsDeep({ type: type }, defaults, this.prototype.defaults)
         }, protoProps);
 

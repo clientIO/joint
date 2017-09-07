@@ -291,7 +291,7 @@
                 throw new Error('Element: addPort requires an object.');
             }
 
-            var ports = _.assign([], this.prop('ports/items')) || [];
+            var ports = util.assign([], this.prop('ports/items')) || [];
             ports.push(port);
             this.prop('ports/items', ports, opt);
 
