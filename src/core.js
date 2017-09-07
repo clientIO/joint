@@ -1417,17 +1417,17 @@ var joint = {
         assign: _.assign
 
         isObject: function(value) {
-            return !!value && typeof value === 'object';
+            return !!value && (typeof value === 'object' || typeof value === 'function');
         },
 
         isNumber: function(value) {
             var toString = Object.prototype.toString;
-            return typeof value ===  'number' || (joint.util.isObject(value) && toString.call(value) === '[object Number]');
+            return typeof value === 'number' || (!!value && typeof value === 'object' && toString.call(value) === '[object Number]');
         },
 
         isString: function(value) {
             var toString = Object.prototype.toString;
-            return typeof value === 'string' || (joint.util.isObject(value) && toString.call(value) === '[object String]');
+            return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === '[object String]');
         }
     }
 };
