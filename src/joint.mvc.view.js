@@ -18,7 +18,7 @@ joint.mvc.View = Backbone.View.extend({
 
         this.options = _.extend({}, this.options, options);
 
-        _.bindAll(this, 'setTheme', 'onSetTheme', 'remove', 'onRemove');
+        joint.util.bindAll(this, 'setTheme', 'onSetTheme', 'remove', 'onRemove');
 
         joint.mvc.views[this.cid] = this;
 

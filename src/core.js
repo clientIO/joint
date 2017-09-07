@@ -1411,6 +1411,8 @@ var joint = {
                     return fn.call(this, cells, opt);
                 };
             }
-        }
+        },
+
+        bindAll: _.bindAll
     }
 };

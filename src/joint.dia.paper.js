@@ -165,7 +165,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     init: function() {
 
-        _.bindAll(this, 'pointerup');
+        joint.util.bindAll(this, 'pointerup');
 
         var model = this.model = this.options.model || new joint.dia.Graph;
 
