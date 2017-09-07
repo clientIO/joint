@@ -1418,6 +1418,11 @@ var joint = {
 
         isObject: function(value) {
             return !!value && typeof value === 'object';
+        },
+
+        isNumber: function(value) {
+            var toString = Object.prototype.toString;
+            return typeof value ===  'number' || (joint.util.isObject(value) && toString.call(value) === '[object Number]');
         }
     }
 };
