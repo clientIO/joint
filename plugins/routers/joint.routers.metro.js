@@ -1,6 +1,6 @@
 joint.routers.metro = (function(util) {
 
-    if (!_.isFunction(joint.routers.manhattan)) {
+    if (!util.isFunction(joint.routers.manhattan)) {
 
         throw new Error('Metro requires the manhattan router.');
     }

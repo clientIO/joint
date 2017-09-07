@@ -740,7 +740,7 @@ joint.dia.CellView = joint.mvc.View.extend({
     // Example: `can('vertexMove')`, `can('labelMove')`.
     can: function(feature) {
 
-        var interactive = _.isFunction(this.options.interactive)
+        var interactive = joint.util.isFunction(this.options.interactive)
                             ? this.options.interactive(this)
                             : this.options.interactive;
 
@@ -906,7 +906,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             if (!attrs.hasOwnProperty(attrName)) continue;
             attrVal = attrs[attrName];
             def = this.getAttributeDefinition(attrName);
-            if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs))) {
+            if (def && (!joint.util.isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs))) {
                 if (joint.util.isString(def.set)) {
                     normalAttrs || (normalAttrs = {});
                     normalAttrs[def.set] = attrVal;
@@ -926,15 +926,15 @@ joint.dia.CellView = joint.mvc.View.extend({
             attrName = relatives[i];
             def = relatives[i+1];
             attrVal = attrs[attrName];
-            if (_.isFunction(def.set)) {
+            if (joint.util.isFunction(def.set)) {
                 setAttrs || (setAttrs = {});
                 setAttrs[attrName] = attrVal;
             }
-            if (_.isFunction(def.position)) {
+            if (joint.util.isFunction(def.position)) {
                 positionAttrs || (positionAttrs = {});
                 positionAttrs[attrName] = attrVal;
             }
-            if (_.isFunction(def.offset)) {
+            if (joint.util.isFunction(def.offset)) {
                 offsetAttrs || (offsetAttrs = {});
                 offsetAttrs[attrName] = attrVal;
             }

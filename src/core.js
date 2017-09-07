@@ -1312,7 +1312,7 @@ var joint = {
                     var prefix = prefixes[i];
                     var propName = prefix ? (prefix + prop) : (prop.substr(0, 1).toLowerCase() + prop.substr(1));
                     if (el[propName] !== undefined) {
-                        return _.isFunction(el[propName]) ? el[propName]() : el[propName];
+                        return joint.util.isFunction(el[propName]) ? el[propName]() : el[propName];
                     }
                 }
             }
@@ -1367,7 +1367,7 @@ var joint = {
                 wrapper = joint.util.wrappers[wrapper];
             }
 
-            if (!_.isFunction(wrapper)) {
+            if (!joint.util.isFunction(wrapper)) {
                 throw new Error('Wrapper must be a function.');
             }
 
