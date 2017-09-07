@@ -46,7 +46,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
                 // attr is mainly flat though it might have one more level (consider the `style` attribute).
                 // Check if the `value` is object and if yes, go one level deep.
-                if (_.isObject(value) && !_.isArray(value)) {
+                if (joint.util.isObject(value) && !Array.isArray(value)) {
 
                     _.each(value, function(value2, name2) {
 
@@ -326,7 +326,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
     isEmbeddedIn: function(cell, opt) {
 
-        var cellId = _.isString(cell) ? cell : cell.id;
+        var cellId = joint.util.isString(cell) ? cell : cell.id;
         var parentId = this.get('parent');
 
         opt = _.defaults({ deep: true }, opt);
@@ -400,9 +400,9 @@ joint.dia.Cell = Backbone.Model.extend({
     prop: function(props, value, opt) {
 
         var delim = '/';
-        var isString = _.isString(props);
+        var isString = joint.util.isString(props);
 
-        if (isString || _.isArray(props)) {
+        if (isString || Array.isArray(props)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
 
@@ -478,7 +478,7 @@ joint.dia.Cell = Backbone.Model.extend({
         opt = opt || {};
         opt.dirty = true;
 
-        var pathArray = _.isArray(path) ? path : path.split('/');
+        var pathArray = Array.isArray(path) ? path : path.split('/');
 
         if (pathArray.length === 1) {
             // A top level property
@@ -503,9 +503,9 @@ joint.dia.Cell = Backbone.Model.extend({
             return this.get('attrs');
         }
 
-        if (_.isArray(attrs)) {
+        if (Array.isArray(attrs)) {
             args[0] = ['attrs'].concat(attrs);
-        } else if (_.isString(attrs)) {
+        } else if (joint.util.isString(attrs)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
             args[0] = 'attrs/' + attrs;
@@ -521,7 +521,7 @@ joint.dia.Cell = Backbone.Model.extend({
     // A convenient way to unset nested attributes
     removeAttr: function(path, opt) {
 
-        if (_.isArray(path)) {
+        if (Array.isArray(path)) {
 
             return this.removeProp(['attrs'].concat(path));
         }
@@ -744,7 +744,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                             ? this.options.interactive(this)
                             : this.options.interactive;
 
-        return (_.isObject(interactive) && interactive[feature] !== false) ||
+        return (joint.util.isObject(interactive) && interactive[feature] !== false) ||
                 (_.isBoolean(interactive) && interactive !== false);
     },
 
@@ -907,7 +907,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             attrVal = attrs[attrName];
             def = this.getAttributeDefinition(attrName);
             if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs))) {
-                if (_.isString(def.set)) {
+                if (joint.util.isString(def.set)) {
                     normalAttrs || (normalAttrs = {});
                     normalAttrs[def.set] = attrVal;
                 }
@@ -967,7 +967,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             // which will affect the node dimensions based on the reference bounding
             // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
             var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs);
-            if (_.isObject(setResult)) {
+            if (joint.util.isObject(setResult)) {
                 joint.util.assign(nodeAttrs, setResult);
             } else if (setResult !== undefined) {
                 nodeAttrs[attrName] = setResult;

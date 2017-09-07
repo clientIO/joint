@@ -103,10 +103,10 @@
 
         _getZIndex: function(group, port) {
 
-            if (_.isNumber(port.z)) {
+            if (util.isNumber(port.z)) {
                 return port.z;
             }
-            if (_.isNumber(group.z) || group.z === 'auto') {
+            if (util.isNumber(group.z) || group.z === 'auto') {
                 return group.z;
             }
             return 'auto';
@@ -128,15 +128,15 @@
             if (_.isFunction(position)) {
                 positionName = 'fn';
                 args.fn = position;
-            } else if (_.isString(position)) {
+            } else if (util.isString(position)) {
                 positionName = position;
             } else if (position === undefined) {
                 positionName = setDefault ? 'left' : null;
-            } else if (_.isArray(position)) {
+            } else if (Array.isArray(position)) {
                 positionName = 'absolute';
                 args.x = position[0];
                 args.y = position[1];
-            } else if (_.isObject(position)) {
+            } else if (util.isObject(position)) {
                 positionName = position.name;
                 util.assign(args, position.args);
             }
@@ -271,7 +271,7 @@
          */
         getPortIndex: function(port) {
 
-            var id = _.isObject(port) ? port.id : port;
+            var id = util.isObject(port) ? port.id : port;
 
             if (!this._isValidPortId(id)) {
                 return -1;
@@ -287,7 +287,7 @@
          */
         addPort: function(port, opt) {
 
-            if (!_.isObject(port) || _.isArray(port)) {
+            if (!util.isObject(port) || Array.isArray(port)) {
                 throw new Error('Element: addPort requires an object.');
             }
 
@@ -314,9 +314,9 @@
             }
 
             var args = Array.prototype.slice.call(arguments, 1);
-            if (_.isArray(path)) {
+            if (Array.isArray(path)) {
                 args[0] = ['ports', 'items', index].concat(path);
-            } else if (_.isString(path)) {
+            } else if (util.isString(path)) {
 
                 // Get/set an attribute by a special path syntax that delimits
                 // nested objects by the colon character.
@@ -362,7 +362,7 @@
          */
         _isValidPortId: function(id) {
 
-            return id !== null && id !== undefined && !_.isObject(id);
+            return id !== null && id !== undefined && !util.isObject(id);
         },
 
         addPorts: function(ports, opt) {

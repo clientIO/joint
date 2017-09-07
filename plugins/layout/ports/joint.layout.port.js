@@ -1,4 +1,4 @@
-(function(_, g, joint) {
+(function(_, g, joint, util) {
 
     function portTransformAttrs(point, angle, opt) {
 
@@ -56,12 +56,12 @@
     function argPoint(bbox, args) {
 
         var x = args.x;
-        if (_.isString(x)) {
+        if (util.isString(x)) {
             x = parseFloat(x) / 100 * bbox.width;
         }
 
         var y = args.y;
-        if (_.isString(y)) {
+        if (util.isString(y)) {
             y = parseFloat(y) / 100 * bbox.height;
         }
 
@@ -178,4 +178,4 @@
         }
     };
 
-})(_, g, joint);
+})(_, g, joint, joint.util);

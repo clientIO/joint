@@ -344,7 +344,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // the content visible.
     fitToContent: function(gridWidth, gridHeight, padding, opt) { // alternatively function(opt)
 
-        if (_.isObject(gridWidth)) {
+        if (joint.util.isObject(gridWidth)) {
             // first parameter is an option object
             opt = gridWidth;
             gridWidth = opt.gridWidth || 1;
@@ -584,7 +584,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     onCellAdded: function(cell, graph, opt) {
 
-        if (this.options.async && opt.async !== false && _.isNumber(opt.position)) {
+        if (this.options.async && opt.async !== false && joint.util.isNumber(opt.position)) {
 
             this._asyncCells = this._asyncCells || [];
             this._asyncCells.push(cell);
@@ -832,7 +832,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // be a selector or a jQuery object.
     findView: function($el) {
 
-        var el = _.isString($el)
+        var el = joint.util.isString($el)
             ? this.viewport.querySelector($el)
             : $el instanceof $ ? $el[0] : $el;
 
@@ -850,7 +850,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Find a view for a model `cell`. `cell` can also be a string representing a model `id`.
     findViewByModel: function(cell) {
 
-        var id = _.isString(cell) ? cell : cell.id;
+        var id = joint.util.isString(cell) ? cell : cell.id;
 
         return this._views[id];
     },
@@ -1089,7 +1089,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (!highlighterDef) return false;
 
         // Allow specifying a highlighter by name.
-        if (_.isString(highlighterDef)) {
+        if (joint.util.isString(highlighterDef)) {
             highlighterDef = {
                 name: highlighterDef
             };
@@ -1422,7 +1422,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         this._gridCache = null;
         this._gridSettings = [];
 
-        var optionsList = _.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
+        var optionsList = Array.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
         _.each(optionsList, function (item) {
             this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
         }, this);
@@ -1432,12 +1432,12 @@ joint.dia.Paper = joint.mvc.View.extend({
     _resolveDrawGridOption: function (opt) {
 
         var namespace = this.constructor.gridPatterns;
-        if (_.isString(opt) && namespace[opt]) {
+        if (joint.util.isString(opt) && namespace[opt]) {
             return _.map(namespace[opt], _.clone);
         }
 
         var options = opt || { args: [{}] };
-        var isArray = _.isArray(options);
+        var isArray = Array.isArray(options);
         var name = options.name;
 
         if (!isArray && !name && !options.markup ) {
@@ -1447,7 +1447,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (name && namespace[name]) {
             var pattern = _.map(namespace[name], _.clone);
 
-            var args = _.isArray(options.args) ? options.args : [options.args || {}];
+            var args = Array.isArray(options.args) ? options.args : [options.args || {}];
 
             _.defaults(args[0], _.omit(opt, 'args'));
             for (var i = 0; i < args.length; i++) {
@@ -1468,7 +1468,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             return this.clearGrid();
         }
 
-        var localOptions = _.isArray(opt) ? opt : [opt];
+        var localOptions = Array.isArray(opt) ? opt : [opt];
 
         var ctm = this.matrix();
         var refs = this._getGriRefs();
@@ -1529,14 +1529,14 @@ joint.dia.Paper = joint.mvc.View.extend({
         var currentTranslate = this.translate();
 
         // backgroundPosition
-        if (_.isObject(backgroundPosition)) {
+        if (joint.util.isObject(backgroundPosition)) {
             var x = currentTranslate.tx + (currentScale.sx * (backgroundPosition.x || 0));
             var y = currentTranslate.ty + (currentScale.sy * (backgroundPosition.y || 0));
             backgroundPosition = x + 'px ' + y + 'px';
         }
 
         // backgroundSize
-        if (_.isObject(backgroundSize)) {
+        if (joint.util.isObject(backgroundSize)) {
             backgroundSize = g.rect(backgroundSize).scale(currentScale.sx, currentScale.sy);
             backgroundSize = backgroundSize.width + 'px ' + backgroundSize.height + 'px';
         }
@@ -1575,7 +1575,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             backgroundImage = canvas.toDataURL('image/png');
             backgroundRepeat = 'repeat';
-            if (_.isObject(backgroundSize)) {
+            if (joint.util.isObject(backgroundSize)) {
                 // recalculate the tile size if an object passed in
                 backgroundSize.width *= canvas.width / img.width;
                 backgroundSize.height *= canvas.height / img.height;
@@ -1647,7 +1647,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     defineFilter: function(filter) {
 
-        if (!_.isObject(filter)) {
+        if (!joint.util.isObject(filter)) {
             throw new TypeError('dia.Paper: defineFilter() requires 1. argument to be an object.');
         }
 
@@ -1689,7 +1689,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     defineGradient: function(gradient) {
 
-        if (!_.isObject(gradient)) {
+        if (!joint.util.isObject(gradient)) {
             throw new TypeError('dia.Paper: defineGradient() requires 1. argument to be an object.');
         }
 
@@ -1731,7 +1731,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     defineMarker: function(marker) {
 
-        if (!_.isObject(marker)) {
+        if (!joint.util.isObject(marker)) {
             throw new TypeError('dia.Paper: defineMarker() requires 1. argument to be an object.');
         }
 
@@ -1850,7 +1850,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             canvas.height = imgHeight * 3;
 
             var ctx = canvas.getContext('2d');
-            var angle = _.isNumber(opt.watermarkAngle) ? -opt.watermarkAngle : -20;
+            var angle = joint.util.isNumber(opt.watermarkAngle) ? -opt.watermarkAngle : -20;
             var radians = g.toRad(angle);
             var stepX = canvas.width / 4;
             var stepY = canvas.height / 4;

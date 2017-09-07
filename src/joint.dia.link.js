@@ -226,7 +226,7 @@ joint.dia.Link = joint.dia.Cell.extend({
     // Is source, target and the link itself embedded in a given element?
     isRelationshipEmbeddedIn: function(element) {
 
-        var elementId = _.isString(element) ? element : element.id;
+        var elementId = joint.util.isString(element) ? element : element.id;
         var ancestor = this.getRelationshipAncestor();
 
         return !!ancestor && (ancestor.id === elementId || ancestor.isEmbeddedIn(elementId));
@@ -399,7 +399,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var children = V(markup);
 
         // custom markup may contain only one children
-        if (!_.isArray(children)) children = [children];
+        if (!Array.isArray(children)) children = [children];
 
         // Cache all children elements for quicker access.
         this._V = {}; // vectorized markup;
@@ -759,7 +759,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             var label = labels[idx];
             var position = label.position;
-            var isPositionObject = _.isObject(position);
+            var isPositionObject = joint.util.isObject(position);
             var labelCoordinates;
 
             var distance = isPositionObject ? position.distance : position;
@@ -775,7 +775,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             labelCoordinates = connectionElement.getPointAtLength(distance);
 
-            if (_.isObject(offset)) {
+            if (joint.util.isObject(offset)) {
 
                 // Just offset the label by the x,y provided in the offset object.
                 labelCoordinates = g.point(labelCoordinates).offset(offset);
@@ -1132,7 +1132,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         var duration, isReversed;
-        if (_.isObject(opt)) {
+        if (joint.util.isObject(opt)) {
             duration = opt.duration;
             isReversed = (opt.direction === 'reverse');
         } else {

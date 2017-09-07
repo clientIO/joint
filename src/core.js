@@ -113,7 +113,7 @@ var joint = {
 
         getByPath: function(obj, path, delim) {
 
-            var keys = _.isArray(path) ? path.slice() : path.split(delim || '/');
+            var keys = Array.isArray(path) ? path.slice() : path.split(delim || '/');
             var key;
 
             while (keys.length) {
@@ -129,7 +129,7 @@ var joint = {
 
         setByPath: function(obj, path, value, delim) {
 
-            var keys = _.isArray(path) ? path : path.split(delim || '/');
+            var keys = Array.isArray(path) ? path : path.split(delim || '/');
 
             var diver = obj;
             var i = 0;
@@ -148,7 +148,7 @@ var joint = {
 
             delim = delim || '/';
 
-            var pathArray = _.isArray(path) ? path.slice() : path.split(delim);
+            var pathArray = Array.isArray(path) ? path.slice() : path.split(delim);
 
             var propertyToRemove = pathArray.pop();
             if (pathArray.length > 0) {
@@ -379,7 +379,7 @@ var joint = {
 
             var validUnitsExp = restrictUnits.join('|');
 
-            if (_.isString(strValue)) {
+            if (joint.util.isString(strValue)) {
                 var matches = new RegExp('(\\d+)(' + validUnitsExp + ')$').exec(strValue);
                 if (!matches) {
                     return null;
@@ -1358,7 +1358,7 @@ var joint = {
 
         wrapWith: function(object, methods, wrapper) {
 
-            if (_.isString(wrapper)) {
+            if (joint.util.isString(wrapper)) {
 
                 if (!joint.util.wrappers[wrapper]) {
                     throw new Error('Unknown wrapper: "' + wrapper + '"');
@@ -1395,7 +1395,7 @@ var joint = {
                     var cells = args.length > 0 && _.first(args) || [];
                     var opt = args.length > 1 && _.last(args) || {};
 
-                    if (!_.isArray(cells)) {
+                    if (!Array.isArray(cells)) {
 
                         if (opt instanceof joint.dia.Cell) {
                             cells = args;
@@ -1414,6 +1414,20 @@ var joint = {
         },
 
         bindAll: _.bindAll,
-        assign: _.assign
+        assign: _.assign,
+
+        isObject: function(value) {
+            return !!value && (typeof value === 'object' || typeof value === 'function');
+        },
+
+        isNumber: function(value) {
+            var toString = Object.prototype.toString;
+            return typeof value === 'number' || (!!value && typeof value === 'object' && toString.call(value) === '[object Number]');
+        },
+
+        isString: function(value) {
+            var toString = Object.prototype.toString;
+            return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === '[object String]');
+        }
     }
 };
