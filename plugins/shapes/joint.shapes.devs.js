@@ -124,7 +124,7 @@ joint.shapes.basic.Generic.define('devs.Model', {
     _addGroupPort: function(port, group, opt) {
 
         var ports = this.get(group);
-        return this.set(group, _.isArray(ports) ? ports.concat(port) : [port], opt);
+        return this.set(group, Array.isArray(ports) ? ports.concat(port) : [port], opt);
     },
 
     addOutPort: function(port, opt) {

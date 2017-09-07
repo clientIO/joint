@@ -399,7 +399,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var children = V(markup);
 
         // custom markup may contain only one children
-        if (!_.isArray(children)) children = [children];
+        if (!Array.isArray(children)) children = [children];
 
         // Cache all children elements for quicker access.
         this._V = {}; // vectorized markup;

@@ -113,7 +113,7 @@ var joint = {
 
         getByPath: function(obj, path, delim) {
 
-            var keys = _.isArray(path) ? path.slice() : path.split(delim || '/');
+            var keys = Array.isArray(path) ? path.slice() : path.split(delim || '/');
             var key;
 
             while (keys.length) {
@@ -129,7 +129,7 @@ var joint = {
 
         setByPath: function(obj, path, value, delim) {
 
-            var keys = _.isArray(path) ? path : path.split(delim || '/');
+            var keys = Array.isArray(path) ? path : path.split(delim || '/');
 
             var diver = obj;
             var i = 0;
@@ -148,7 +148,7 @@ var joint = {
 
             delim = delim || '/';
 
-            var pathArray = _.isArray(path) ? path.slice() : path.split(delim);
+            var pathArray = Array.isArray(path) ? path.slice() : path.split(delim);
 
             var propertyToRemove = pathArray.pop();
             if (pathArray.length > 0) {
@@ -1395,7 +1395,7 @@ var joint = {
                     var cells = args.length > 0 && _.first(args) || [];
                     var opt = args.length > 1 && _.last(args) || {};
 
-                    if (!_.isArray(cells)) {
+                    if (!Array.isArray(cells)) {
 
                         if (opt instanceof joint.dia.Cell) {
                             cells = args;

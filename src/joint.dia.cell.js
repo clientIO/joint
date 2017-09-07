@@ -46,7 +46,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
                 // attr is mainly flat though it might have one more level (consider the `style` attribute).
                 // Check if the `value` is object and if yes, go one level deep.
-                if (joint.util.isObject(value) && !_.isArray(value)) {
+                if (joint.util.isObject(value) && !Array.isArray(value)) {
 
                     _.each(value, function(value2, name2) {
 
@@ -402,7 +402,7 @@ joint.dia.Cell = Backbone.Model.extend({
         var delim = '/';
         var isString = _.isString(props);
 
-        if (isString || _.isArray(props)) {
+        if (isString || Array.isArray(props)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
 
@@ -478,7 +478,7 @@ joint.dia.Cell = Backbone.Model.extend({
         opt = opt || {};
         opt.dirty = true;
 
-        var pathArray = _.isArray(path) ? path : path.split('/');
+        var pathArray = Array.isArray(path) ? path : path.split('/');
 
         if (pathArray.length === 1) {
             // A top level property
@@ -503,7 +503,7 @@ joint.dia.Cell = Backbone.Model.extend({
             return this.get('attrs');
         }
 
-        if (_.isArray(attrs)) {
+        if (Array.isArray(attrs)) {
             args[0] = ['attrs'].concat(attrs);
         } else if (_.isString(attrs)) {
             // Get/set an attribute by a special path syntax that delimits
@@ -521,7 +521,7 @@ joint.dia.Cell = Backbone.Model.extend({
     // A convenient way to unset nested attributes
     removeAttr: function(path, opt) {
 
-        if (_.isArray(path)) {
+        if (Array.isArray(path)) {
 
             return this.removeProp(['attrs'].concat(path));
         }

@@ -1422,7 +1422,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         this._gridCache = null;
         this._gridSettings = [];
 
-        var optionsList = _.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
+        var optionsList = Array.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
         _.each(optionsList, function (item) {
             this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
         }, this);
@@ -1437,7 +1437,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
 
         var options = opt || { args: [{}] };
-        var isArray = _.isArray(options);
+        var isArray = Array.isArray(options);
         var name = options.name;
 
         if (!isArray && !name && !options.markup ) {
@@ -1447,7 +1447,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (name && namespace[name]) {
             var pattern = _.map(namespace[name], _.clone);
 
-            var args = _.isArray(options.args) ? options.args : [options.args || {}];
+            var args = Array.isArray(options.args) ? options.args : [options.args || {}];
 
             _.defaults(args[0], _.omit(opt, 'args'));
             for (var i = 0; i < args.length; i++) {
@@ -1468,7 +1468,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             return this.clearGrid();
         }
 
-        var localOptions = _.isArray(opt) ? opt : [opt];
+        var localOptions = Array.isArray(opt) ? opt : [opt];
 
         var ctm = this.matrix();
         var refs = this._getGriRefs();

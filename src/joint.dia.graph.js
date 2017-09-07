@@ -299,7 +299,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
     addCell: function(cell, opt) {
 
-        if (_.isArray(cell)) {
+        if (Array.isArray(cell)) {
 
             return this.addCells(cell, opt);
         }
