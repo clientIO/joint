@@ -36,13 +36,13 @@ joint.mvc.View = Backbone.View.extend({
 
             if (!this.el) {
 
-                var attrs = joint.util.assign({ id: this.id }, _.result(this, 'attributes'));
-                if (this.className) attrs['class'] = _.result(this, 'className');
-                el = V(_.result(this, 'tagName'), attrs).node;
+                var attrs = joint.util.assign({ id: this.id }, joint.util.result(this, 'attributes'));
+                if (this.className) attrs['class'] = joint.util.result(this, 'className');
+                el = V(joint.util.result(this, 'tagName'), attrs).node;
 
             } else {
 
-                el = _.result(this, 'el');
+                el = joint.util.result(this, 'el');
             }
 
             this.setElement(el, false);
@@ -75,7 +75,7 @@ joint.mvc.View = Backbone.View.extend({
 
     _ensureElClassName: function() {
 
-        var className = _.result(this, 'className');
+        var className = joint.util.result(this, 'className');
         var prefixedClassName = joint.util.addClassNamePrefix(className);
 
         this.$el.removeClass(className);

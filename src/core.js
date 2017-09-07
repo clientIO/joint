@@ -1413,6 +1413,9 @@ var joint = {
             }
         },
 
+        isFunction: _.isFunction,
+        result: _.result,
+
         bindAll: _.bindAll,
         assign: _.assign,
 

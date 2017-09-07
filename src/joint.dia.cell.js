@@ -14,7 +14,7 @@ joint.dia.Cell = Backbone.Model.extend({
         this.attributes = {};
         if (options && options.collection) this.collection = options.collection;
         if (options && options.parse) attrs = this.parse(attrs, options) || {};
-        if ((defaults = _.result(this, 'defaults'))) {
+        if ((defaults = joint.util.result(this, 'defaults'))) {
             //<custom code>
             // Replaced the call to _.defaults with _.merge.
             attrs = _.merge({}, defaults, attrs);

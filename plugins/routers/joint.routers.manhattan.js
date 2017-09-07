@@ -430,9 +430,9 @@ joint.routers.manhattan = (function(g, _, joint, util) {
     // resolve some of the options
     function resolveOptions(opt) {
 
-        opt.directions = _.result(opt, 'directions');
-        opt.penalties = _.result(opt, 'penalties');
-        opt.paddingBox = _.result(opt, 'paddingBox');
+        opt.directions = util.result(opt, 'directions');
+        opt.penalties = util.result(opt, 'penalties');
+        opt.paddingBox = util.result(opt, 'paddingBox');
 
         _.each(opt.directions, function(direction) {
 
