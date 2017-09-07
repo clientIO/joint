@@ -379,7 +379,7 @@ var joint = {
 
             var validUnitsExp = restrictUnits.join('|');
 
-            if (_.isString(strValue)) {
+            if (joint.util.isString(strValue)) {
                 var matches = new RegExp('(\\d+)(' + validUnitsExp + ')$').exec(strValue);
                 if (!matches) {
                     return null;
@@ -1358,7 +1358,7 @@ var joint = {
 
         wrapWith: function(object, methods, wrapper) {
 
-            if (_.isString(wrapper)) {
+            if (joint.util.isString(wrapper)) {
 
                 if (!joint.util.wrappers[wrapper]) {
                     throw new Error('Unknown wrapper: "' + wrapper + '"');
@@ -1423,6 +1423,11 @@ var joint = {
         isNumber: function(value) {
             var toString = Object.prototype.toString;
             return typeof value ===  'number' || (joint.util.isObject(value) && toString.call(value) === '[object Number]');
+        },
+
+        isString: function(value) {
+            var toString = Object.prototype.toString;
+            return typeof value === 'string' || (joint.util.isObject(value) && toString.call(value) === '[object String]');
         }
     }
 };

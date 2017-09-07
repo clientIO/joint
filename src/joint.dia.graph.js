@@ -284,7 +284,7 @@ joint.dia.Graph = Backbone.Model.extend({
             attrs = cell;
         }
 
-        if (!_.isString(attrs.type)) {
+        if (!joint.util.isString(attrs.type)) {
             throw new TypeError('dia.Graph: cell type must be a string.');
         }
 

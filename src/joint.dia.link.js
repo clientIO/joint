@@ -226,7 +226,7 @@ joint.dia.Link = joint.dia.Cell.extend({
     // Is source, target and the link itself embedded in a given element?
     isRelationshipEmbeddedIn: function(element) {
 
-        var elementId = _.isString(element) ? element : element.id;
+        var elementId = joint.util.isString(element) ? element : element.id;
         var ancestor = this.getRelationshipAncestor();
 
         return !!ancestor && (ancestor.id === elementId || ancestor.isEmbeddedIn(elementId));

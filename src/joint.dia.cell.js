@@ -326,7 +326,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
     isEmbeddedIn: function(cell, opt) {
 
-        var cellId = _.isString(cell) ? cell : cell.id;
+        var cellId = joint.util.isString(cell) ? cell : cell.id;
         var parentId = this.get('parent');
 
         opt = _.defaults({ deep: true }, opt);
@@ -400,7 +400,7 @@ joint.dia.Cell = Backbone.Model.extend({
     prop: function(props, value, opt) {
 
         var delim = '/';
-        var isString = _.isString(props);
+        var isString = joint.util.isString(props);
 
         if (isString || Array.isArray(props)) {
             // Get/set an attribute by a special path syntax that delimits
@@ -505,7 +505,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         if (Array.isArray(attrs)) {
             args[0] = ['attrs'].concat(attrs);
-        } else if (_.isString(attrs)) {
+        } else if (joint.util.isString(attrs)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
             args[0] = 'attrs/' + attrs;
@@ -907,7 +907,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             attrVal = attrs[attrName];
             def = this.getAttributeDefinition(attrName);
             if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs))) {
-                if (_.isString(def.set)) {
+                if (joint.util.isString(def.set)) {
                     normalAttrs || (normalAttrs = {});
                     normalAttrs[def.set] = attrVal;
                 }

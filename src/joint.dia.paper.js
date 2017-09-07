@@ -832,7 +832,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // be a selector or a jQuery object.
     findView: function($el) {
 
-        var el = _.isString($el)
+        var el = joint.util.isString($el)
             ? this.viewport.querySelector($el)
             : $el instanceof $ ? $el[0] : $el;
 
@@ -850,7 +850,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Find a view for a model `cell`. `cell` can also be a string representing a model `id`.
     findViewByModel: function(cell) {
 
-        var id = _.isString(cell) ? cell : cell.id;
+        var id = joint.util.isString(cell) ? cell : cell.id;
 
         return this._views[id];
     },
@@ -1089,7 +1089,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (!highlighterDef) return false;
 
         // Allow specifying a highlighter by name.
-        if (_.isString(highlighterDef)) {
+        if (joint.util.isString(highlighterDef)) {
             highlighterDef = {
                 name: highlighterDef
             };
@@ -1432,7 +1432,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     _resolveDrawGridOption: function (opt) {
 
         var namespace = this.constructor.gridPatterns;
-        if (_.isString(opt) && namespace[opt]) {
+        if (joint.util.isString(opt) && namespace[opt]) {
             return _.map(namespace[opt], _.clone);
         }
 
