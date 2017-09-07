@@ -1,4 +1,4 @@
-(function(joint, _) {
+(function(joint, _, util) {
 
     var PortData = function(data) {
 
@@ -87,7 +87,7 @@
 
         _evaluatePort: function(resultArray, port) {
 
-            var evaluated = _.clone(port);
+            var evaluated = util.assign({}, port);
 
             var group = this.getGroup(port.group);
 
@@ -96,7 +96,7 @@
             evaluated.position = this._createPositionNode(group, evaluated);
             evaluated.label = _.merge({}, group.label, this._getLabel(evaluated));
             evaluated.z = this._getZIndex(group, evaluated);
-            evaluated.size = _.extend({}, group.size, evaluated.size);
+            evaluated.size = util.assign({}, group.size, evaluated.size);
 
             resultArray.push(evaluated);
         },
@@ -138,7 +138,7 @@
                 args.y = position[1];
             } else if (_.isObject(position)) {
                 positionName = position.name;
-                _.extend(args, position.args);
+                util.assign(args, position.args);
             }
 
             var result = { args: args };
@@ -160,7 +160,7 @@
         }
     };
 
-    _.extend(joint.dia.Element.prototype, {
+    util.assign(joint.dia.Element.prototype, {
 
         _initializePorts: function() {
 
@@ -291,7 +291,7 @@
                 throw new Error('Element: addPort requires an object.');
             }
 
-            var ports = _.clone(this.prop('ports/items')) || [];
+            var ports = util.assign([], this.prop('ports/items'));
             ports.push(port);
             this.prop('ports/items', ports, opt);
 
@@ -344,7 +344,7 @@
 
             _.each(ports, function(p) {
                 if (!this._isValidPortId(p.id)) {
-                    p.id = joint.util.uuid();
+                    p.id = util.uuid();
                 }
             }, this);
 
@@ -368,7 +368,7 @@
         addPorts: function(ports, opt) {
 
             if (ports.length) {
-                this.prop('ports/items', (_.clone(this.prop('ports/items')) || []).concat(ports), opt);
+                this.prop('ports/items', util.assign([], this.prop('ports/items')).concat(ports), opt);
             }
 
             return this;
@@ -377,7 +377,7 @@
         removePort: function(port, opt) {
 
             var options = opt || {};
-            var ports = _.clone(this.prop('ports/items'));
+            var ports = util.assign([], this.prop('ports/items'));
 
             var index = this.getPortIndex(port);
 
@@ -439,7 +439,7 @@
         }
     });
 
-    _.extend(joint.dia.ElementView.prototype, {
+    util.assign(joint.dia.ElementView.prototype, {
 
         portContainerMarkup: '<g class="joint-port"/>',
         portMarkup: '<circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/>',
@@ -671,4 +671,4 @@
         }
 
     });
-}(joint, _));
+}(joint, _, joint.util));

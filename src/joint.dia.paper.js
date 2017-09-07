@@ -199,8 +199,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         // This is a fix for the case where two papers share the same options.
         // Changing origin.x for one paper would change the value of origin.x for the other.
         // This prevents that behavior.
-        options.origin = _.clone(options.origin);
-        options.defaultConnector = _.clone(options.defaultConnector);
+        options.origin = joint.util.assign({}, options.origin);
+        options.defaultConnector = joint.util.assign({}, options.defaultConnector);
         // Return the default highlighting options into the user specified options.
         options.highlighting = _.defaultsDeep(
             {},
@@ -1128,7 +1128,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (!this._highlights[key]) {
 
             var highlighter = opt.highlighter;
-            highlighter.highlight(cellView, magnetEl, _.clone(opt.options));
+            highlighter.highlight(cellView, magnetEl, joint.util.assign({}, opt.options));
 
             this._highlights[key] = {
                 cellView: cellView,
@@ -1452,7 +1452,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             _.defaults(args[0], _.omit(opt, 'args'));
             for (var i = 0; i < args.length; i++) {
                 if (pattern[i]) {
-                    _.extend(pattern[i], args[i]);
+                    joint.util.assign(pattern[i], args[i]);
                 }
             }
             return pattern;
@@ -1671,7 +1671,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             // Set the filter area to be 3x the bounding box of the cell
             // and center the filter around the cell.
-            var filterAttrs = _.extend({
+            var filterAttrs = joint.util.assign({
                 filterUnits: 'objectBoundingBox',
                 x: -1,
                 y: -1,
@@ -1721,7 +1721,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 '</' + type + '>'
             ].join('');
 
-            var gradientAttrs = _.extend({ id: gradientId }, gradient.attrs);
+            var gradientAttrs = joint.util.assign({ id: gradientId }, gradient.attrs);
 
             V(gradientSVGString, gradientAttrs).appendTo(this.defs);
         }

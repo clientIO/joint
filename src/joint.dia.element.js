@@ -130,7 +130,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             if (!_.isObject(opt.transition)) opt.transition = {};
 
-            this.transition('position', translatedPosition, _.extend({}, opt.transition, {
+            this.transition('position', translatedPosition, joint.util.assign({}, opt.transition, {
                 valueFunction: joint.util.interpolate.object
             }));
 

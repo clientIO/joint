@@ -1,4 +1,4 @@
-joint.routers.metro = (function() {
+joint.routers.metro = (function(util) {
 
     if (!_.isFunction(joint.routers.manhattan)) {
 
@@ -64,7 +64,7 @@ joint.routers.metro = (function() {
     // public function
     return function(vertices, opts, linkView) {
 
-        return joint.routers.manhattan(vertices, _.extend({}, config, opts), linkView);
+        return joint.routers.manhattan(vertices, util.assign({}, config, opts), linkView);
     };
 
-})();
+})(joint.util);

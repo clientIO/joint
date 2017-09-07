@@ -253,13 +253,13 @@ joint.shapes.basic.PortsModelInterface = {
         _.each(this.get('inPorts'), function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.inPorts', 'in');
             this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
-            _.extend(attrs, portAttributes);
+            joint.util.assign(attrs, portAttributes);
         }, this);
 
         _.each(this.get('outPorts'), function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.outPorts', 'out');
             this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
-            _.extend(attrs, portAttributes);
+            joint.util.assign(attrs, portAttributes);
         }, this);
 
         // Silently set `attrs` on the cell so that noone knows the attrs have changed. This makes sure
@@ -375,9 +375,9 @@ joint.shapes.basic.Generic.define('basic.TextBlock', {
         // Selector `foreignObject' doesn't work accross all browsers, we'r using class selector instead.
         // We have to clone size as we don't want attributes.div.style to be same object as attributes.size.
         this.attr({
-            '.fobj': _.clone(size),
+            '.fobj': joint.util.assign({}, size),
             div: {
-                style: _.clone(size)
+                style: joint.util.assign({}, size)
             }
         });
     },
