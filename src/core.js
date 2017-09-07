@@ -1417,11 +1417,6 @@ var joint = {
         result: _.result,
         union: _.union,
         invoke: _.invoke,
-        constant: function(value) {
-            return function() {
-                return value;
-            }
-        },
 
         bindAll: _.bindAll,
         assign: _.assign,

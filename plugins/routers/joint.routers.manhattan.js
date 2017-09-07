@@ -85,7 +85,9 @@ joint.routers.manhattan = (function(g, _, joint, util) {
             return [point, to];
           },
         */
-        fallbackRoute: util.constant(null),
+        fallbackRoute: function() {
+            return null;
+        },
 
         // if a function is provided, it's used to route the link while dragging an end
         // i.e. function(from, to, opts) { return []; }
