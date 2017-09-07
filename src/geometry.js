@@ -1347,7 +1347,7 @@ var g = (function() {
             // step 2c: duplicate start record from the top of the stack to the bottom of the stack
             if (sortedPointRecords.length > 2) {
                 var startPointRecord = sortedPointRecords[sortedPointRecords.length-1];
-                sortedPointRecords.unshift(startPointRecord)
+                sortedPointRecords.unshift(startPointRecord);
             }
 
             // step 3a: go through sorted points in order and find those with right turns
