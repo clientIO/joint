@@ -154,7 +154,7 @@ joint.shapes.basic.Generic.define('devs.Model', {
 
     _changeGroup: function(group, properties, opt) {
 
-        return this.prop('ports/groups/' + group, _.isObject(properties) ? properties : {}, opt);
+        return this.prop('ports/groups/' + group, joint.util.isObject(properties) ? properties : {}, opt);
     },
 
     changeInGroup: function(properties, opt) {

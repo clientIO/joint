@@ -46,7 +46,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
                 // attr is mainly flat though it might have one more level (consider the `style` attribute).
                 // Check if the `value` is object and if yes, go one level deep.
-                if (_.isObject(value) && !_.isArray(value)) {
+                if (joint.util.isObject(value) && !_.isArray(value)) {
 
                     _.each(value, function(value2, name2) {
 
@@ -744,7 +744,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                             ? this.options.interactive(this)
                             : this.options.interactive;
 
-        return (_.isObject(interactive) && interactive[feature] !== false) ||
+        return (joint.util.isObject(interactive) && interactive[feature] !== false) ||
                 (_.isBoolean(interactive) && interactive !== false);
     },
 
@@ -967,7 +967,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             // which will affect the node dimensions based on the reference bounding
             // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
             var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs);
-            if (_.isObject(setResult)) {
+            if (joint.util.isObject(setResult)) {
                 joint.util.assign(nodeAttrs, setResult);
             } else if (setResult !== undefined) {
                 nodeAttrs[attrName] = setResult;

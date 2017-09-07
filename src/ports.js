@@ -136,7 +136,7 @@
                 positionName = 'absolute';
                 args.x = position[0];
                 args.y = position[1];
-            } else if (_.isObject(position)) {
+            } else if (util.isObject(position)) {
                 positionName = position.name;
                 util.assign(args, position.args);
             }
@@ -271,7 +271,7 @@
          */
         getPortIndex: function(port) {
 
-            var id = _.isObject(port) ? port.id : port;
+            var id = util.isObject(port) ? port.id : port;
 
             if (!this._isValidPortId(id)) {
                 return -1;
@@ -287,7 +287,7 @@
          */
         addPort: function(port, opt) {
 
-            if (!_.isObject(port) || _.isArray(port)) {
+            if (!util.isObject(port) || _.isArray(port)) {
                 throw new Error('Element: addPort requires an object.');
             }
 
@@ -362,7 +362,7 @@
          */
         _isValidPortId: function(id) {
 
-            return id !== null && id !== undefined && !_.isObject(id);
+            return id !== null && id !== undefined && !util.isObject(id);
         },
 
         addPorts: function(ports, opt) {
