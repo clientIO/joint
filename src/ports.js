@@ -125,7 +125,7 @@
             var args = {};
             var positionName;
 
-            if (_.isFunction(position)) {
+            if (util.isFunction(position)) {
                 positionName = 'fn';
                 args.fn = position;
             } else if (util.isString(position)) {
@@ -571,7 +571,7 @@
          * @private
          */
         _removePorts: function() {
-            _.invoke(this._portElementsCache, 'portElement.remove');
+            util.invoke(this._portElementsCache, 'portElement.remove');
         },
 
         /**

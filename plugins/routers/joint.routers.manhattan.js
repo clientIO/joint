@@ -1,4 +1,4 @@
-joint.routers.manhattan = (function(g, _, joint) {
+joint.routers.manhattan = (function(g, _, joint, util) {
 
     'use strict';
 
@@ -85,7 +85,9 @@ joint.routers.manhattan = (function(g, _, joint) {
             return [point, to];
           },
         */
-        fallbackRoute: _.constant(null),
+        fallbackRoute: function() {
+            return null;
+        },
 
         // if a function is provided, it's used to route the link while dragging an end
         // i.e. function(from, to, opts) { return []; }
@@ -117,12 +119,12 @@ joint.routers.manhattan = (function(g, _, joint) {
 
         var source = graph.getCell(link.get('source').id);
         if (source) {
-            excludedAncestors = _.union(excludedAncestors, _.map(source.getAncestors(), 'id'));
+            excludedAncestors = util.union(excludedAncestors, _.map(source.getAncestors(), 'id'));
         }
 
         var target = graph.getCell(link.get('target').id);
         if (target) {
-            excludedAncestors = _.union(excludedAncestors, _.map(target.getAncestors(), 'id'));
+            excludedAncestors = util.union(excludedAncestors, _.map(target.getAncestors(), 'id'));
         }
 
         // builds a map of all elements for quicker obstacle queries (i.e. is a point contained
@@ -363,7 +365,7 @@ joint.routers.manhattan = (function(g, _, joint) {
             var dirs = opt.directions;
             var dirLen = dirs.length;
             var loopsRemain = opt.maximumLoops;
-            var endPointsKeys = _.invoke(endPoints, 'toString');
+            var endPointsKeys = util.invoke(endPoints, 'toString');
 
             // main route finding loop
             while (!openSet.isEmpty() && loopsRemain > 0) {
@@ -430,9 +432,9 @@ joint.routers.manhattan = (function(g, _, joint) {
     // resolve some of the options
     function resolveOptions(opt) {
 
-        opt.directions = _.result(opt, 'directions');
-        opt.penalties = _.result(opt, 'penalties');
-        opt.paddingBox = _.result(opt, 'paddingBox');
+        opt.directions = util.result(opt, 'directions');
+        opt.penalties = util.result(opt, 'penalties');
+        opt.paddingBox = util.result(opt, 'paddingBox');
 
         _.each(opt.directions, function(direction) {
 
@@ -478,7 +480,7 @@ joint.routers.manhattan = (function(g, _, joint) {
                 // might use dragging route instead of main routing method if that is enabled.
                 var endingAtPoint = !this.model.get('source').id || !this.model.get('target').id;
 
-                if (endingAtPoint && _.isFunction(opt.draggingRoute)) {
+                if (endingAtPoint && util.isFunction(opt.draggingRoute)) {
                     // Make sure we passing points only (not rects).
                     var dragFrom = from instanceof g.rect ? from.center() : from;
                     partialRoute = opt.draggingRoute(dragFrom, to.origin(), opt);
@@ -491,7 +493,7 @@ joint.routers.manhattan = (function(g, _, joint) {
             if (partialRoute === null) {
                 // The partial route could not be found.
                 // use orthogonal (do not avoid elements) route instead.
-                if (!_.isFunction(joint.routers.orthogonal)) {
+                if (!util.isFunction(joint.routers.orthogonal)) {
                     throw new Error('Manhattan requires the orthogonal router.');
                 }
                 return joint.routers.orthogonal(vertices, opt, this);
@@ -515,7 +517,7 @@ joint.routers.manhattan = (function(g, _, joint) {
     // public function
     return function(vertices, opt, linkView) {
 
-        return router.call(linkView, vertices, joint.util.assign({}, config, opt));
+        return router.call(linkView, vertices, util.assign({}, config, opt));
     };
 
-})(g, _, joint);
+})(g, _, joint, joint.util);

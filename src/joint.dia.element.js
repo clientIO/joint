@@ -140,7 +140,7 @@ joint.dia.Element = joint.dia.Cell.extend({
         }
 
         // Recursively call `translate()` on all the embeds cells.
-        _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
+        joint.util.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
 
         return this;
     },
@@ -304,7 +304,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             if (opt.deep) {
                 // Recursively apply fitEmbeds on all embeds first.
-                _.invoke(embeddedCells, 'fitEmbeds', opt);
+                joint.util.invoke(embeddedCells, 'fitEmbeds', opt);
             }
 
             // Compute cell's size and position  based on the children bbox
@@ -600,7 +600,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Move to front also all the inbound and outbound links that are connected
         // to any of the element descendant. If we bring to front only embedded elements,
         // links connected to them would stay in the background.
-        _.invoke(connectedLinks, 'set', 'z', maxZ + 1, { ui: true });
+        joint.util.invoke(connectedLinks, 'set', 'z', maxZ + 1, { ui: true });
 
         model.stopBatch('to-front');
 
@@ -689,7 +689,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             delete this._candidateEmbedView;
         }
 
-        _.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
+        joint.util.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
     },
 
     // Interaction. The controller part.

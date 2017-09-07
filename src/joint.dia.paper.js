@@ -529,7 +529,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var restrictedArea;
 
-        if (_.isFunction(this.options.restrictTranslate)) {
+        if (joint.util.isFunction(this.options.restrictTranslate)) {
             // A method returning a bounding box
             restrictedArea = this.options.restrictTranslate.apply(this, arguments);
         } else if (this.options.restrictTranslate === true) {
@@ -680,7 +680,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     removeViews: function() {
 
-        _.invoke(this._views, 'remove');
+        joint.util.invoke(this._views, 'remove');
 
         this._views = {};
     },
@@ -1049,7 +1049,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     getDefaultLink: function(cellView, magnet) {
 
-        return _.isFunction(this.options.defaultLink)
+        return joint.util.isFunction(this.options.defaultLink)
         // default link is a function producing link model
             ? this.options.defaultLink.call(this, cellView, magnet)
         // default link is the Backbone model
@@ -1492,7 +1492,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             var patternDefVel = refs.get(id);
 
-            if (_.isFunction(options.update)) {
+            if (joint.util.isFunction(options.update)) {
                 options.update(patternDefVel.node.childNodes[0], options);
             }
 
@@ -1564,7 +1564,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var backgroundQuality = Math.abs(opt.quality) || 1;
         var backgroundPattern = this.constructor.backgroundPatterns[_.camelCase(backgroundRepeat)];
 
-        if (_.isFunction(backgroundPattern)) {
+        if (joint.util.isFunction(backgroundPattern)) {
             // 'flip-x', 'flip-y', 'flip-xy', 'watermark' and custom
             img.width *= backgroundQuality;
             img.height *= backgroundQuality;
@@ -1636,7 +1636,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.options.interactive = value;
 
-        _.invoke(this._views, 'setInteractivity', value);
+        joint.util.invoke(this._views, 'setInteractivity', value);
     },
 
     // Paper Defs

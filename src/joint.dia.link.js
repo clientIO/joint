@@ -109,7 +109,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     applyToPoints: function(fn, opt) {
 
-        if (!_.isFunction(fn)) {
+        if (!joint.util.isFunction(fn)) {
             throw new TypeError('dia.Link: applyToPoints expects its first parameter to be a function.');
         }
 
@@ -1184,9 +1184,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         var args = router.args || {};
-        var routerFn = _.isFunction(router) ? router : namespace[router.name];
+        var routerFn = joint.util.isFunction(router) ? router : namespace[router.name];
 
-        if (!_.isFunction(routerFn)) {
+        if (!joint.util.isFunction(routerFn)) {
             throw new Error('unknown router: "' + router.name + '"');
         }
 
@@ -1213,10 +1213,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
         }
 
-        var connectorFn = _.isFunction(connector) ? connector : namespace[connector.name];
+        var connectorFn = joint.util.isFunction(connector) ? connector : namespace[connector.name];
         var args = connector.args || {};
 
-        if (!_.isFunction(connectorFn)) {
+        if (!joint.util.isFunction(connectorFn)) {
             throw new Error('unknown connector: "' + connector.name + '"');
         }
 
