@@ -571,7 +571,7 @@
          * @private
          */
         _removePorts: function() {
-            _.invoke(this._portElementsCache, 'portElement.remove');
+            util.invoke(this._portElementsCache, 'portElement.remove');
         },
 
         /**

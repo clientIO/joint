@@ -680,7 +680,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     removeViews: function() {
 
-        _.invoke(this._views, 'remove');
+        joint.util.invoke(this._views, 'remove');
 
         this._views = {};
     },
@@ -1636,7 +1636,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.options.interactive = value;
 
-        _.invoke(this._views, 'setInteractivity', value);
+        joint.util.invoke(this._views, 'setInteractivity', value);
     },
 
     // Paper Defs
