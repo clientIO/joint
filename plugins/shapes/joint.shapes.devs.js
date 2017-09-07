@@ -100,7 +100,7 @@ joint.shapes.basic.Generic.define('devs.Model', {
         var inPortItems = this.createPortItems('in', inPorts);
         var outPortItems = this.createPortItems('out', outPorts);
 
-        this.prop('ports/items', inPortItems.concat(outPortItems), _.extend({ rewrite: true }, opt));
+        this.prop('ports/items', inPortItems.concat(outPortItems), joint.util.assign({ rewrite: true }, opt));
     },
 
     createPortItem: function(group, port) {

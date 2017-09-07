@@ -239,7 +239,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
     clear: function(opt) {
 
-        opt = _.extend({}, opt, { clear: true });
+        opt = joint.util.assign({}, opt, { clear: true });
 
         var collection = this.get('cells');
 
@@ -576,7 +576,7 @@ joint.dia.Graph = Backbone.Model.extend({
             if (el !== element) {
                 res.push(el);
             }
-        }, _.extend({}, opt, { outbound: true }));
+        }, joint.util.assign({}, opt, { outbound: true }));
         return res;
     },
 
@@ -742,7 +742,7 @@ joint.dia.Graph = Backbone.Model.extend({
             if (el !== element) {
                 res.push(el);
             }
-        }, _.extend({}, opt, { inbound: true }));
+        }, joint.util.assign({}, opt, { inbound: true }));
         return res;
     },
 
@@ -1021,7 +1021,7 @@ joint.dia.Graph = Backbone.Model.extend({
         data = data || {};
         this._batches[name] = (this._batches[name] || 0) + 1;
 
-        return this.trigger('batch:start', _.extend({}, data, { batchName: name }));
+        return this.trigger('batch:start', joint.util.assign({}, data, { batchName: name }));
     },
 
     stopBatch: function(name, data) {
@@ -1029,7 +1029,7 @@ joint.dia.Graph = Backbone.Model.extend({
         data = data || {};
         this._batches[name] = (this._batches[name] || 0) - 1;
 
-        return this.trigger('batch:stop', _.extend({}, data, { batchName: name }));
+        return this.trigger('batch:stop', joint.util.assign({}, data, { batchName: name }));
     },
 
     hasActiveBatch: function(name) {

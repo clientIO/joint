@@ -227,7 +227,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             this.startBatch('embed');
 
-            var embeds = _.clone(this.get('embeds') || []);
+            var embeds = joint.util.assign([], this.get('embeds'));
 
             // We keep all element ids after link ids.
             embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
@@ -540,7 +540,7 @@ joint.dia.Cell = Backbone.Model.extend({
             valueFunction: joint.util.interpolate.number
         };
 
-        opt = _.extend(defaults, opt);
+        opt = joint.util.assign(defaults, opt);
 
         var firstFrameTime = 0;
         var interpolatingFunction;
@@ -639,12 +639,12 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     startBatch: function(name, opt) {
-        if (this.graph) { this.graph.startBatch(name, _.extend({}, opt, { cell: this })); }
+        if (this.graph) { this.graph.startBatch(name, joint.util.assign({}, opt, { cell: this })); }
         return this;
     },
 
     stopBatch: function(name, opt) {
-        if (this.graph) { this.graph.stopBatch(name, _.extend({}, opt, { cell: this })); }
+        if (this.graph) { this.graph.stopBatch(name, joint.util.assign({}, opt, { cell: this })); }
         return this;
     }
 
@@ -968,7 +968,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
             var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs);
             if (_.isObject(setResult)) {
-                _.extend(nodeAttrs, setResult);
+                joint.util.assign(nodeAttrs, setResult);
             } else if (setResult !== undefined) {
                 nodeAttrs[attrName] = setResult;
             }
@@ -1209,9 +1209,9 @@ joint.dia.CellView = joint.mvc.View.extend({
         processedAttrs.position || (processedAttrs.position = {});
         processedAttrs.offset || (processedAttrs.offset = {});
 
-        _.extend(processedAttrs.set, roProcessedAttrs.set);
-        _.extend(processedAttrs.position, roProcessedAttrs.position);
-        _.extend(processedAttrs.offset, roProcessedAttrs.offset);
+        joint.util.assign(processedAttrs.set, roProcessedAttrs.set);
+        joint.util.assign(processedAttrs.position, roProcessedAttrs.position);
+        joint.util.assign(processedAttrs.offset, roProcessedAttrs.offset);
 
         // Handle also the special transform property.
         var transform = processedAttrs.normal && processedAttrs.normal.transform;

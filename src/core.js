@@ -1413,6 +1413,7 @@ var joint = {
             }
         },
 
-        bindAll: _.bindAll
+        bindAll: _.bindAll,
+        assign: _.assign
     }
 };
