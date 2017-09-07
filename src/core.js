@@ -1416,6 +1416,7 @@ var joint = {
         isFunction: _.isFunction,
         result: _.result,
         union: _.union,
+        invoke: _.invoke,
         constant: function(value) {
             return function() {
                 return value;
