@@ -325,7 +325,7 @@
             } else {
 
                 args = ['ports/items/' + index];
-                if (_.isPlainObject(path)) {
+                if (util.isPlainObject(path)) {
                     args.push(path);
                     args.push(value);
                 }
@@ -563,7 +563,7 @@
             // layout ports without group
             this._updatePortGroup(undefined);
             // layout ports with explicit group
-            var groupsNames = _.keys(this.model._portSettingsData.groups);
+            var groupsNames = Object.keys(this.model._portSettingsData.groups);
             _.each(groupsNames, this._updatePortGroup, this);
         },
 
