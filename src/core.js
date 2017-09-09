@@ -373,7 +373,7 @@ var joint = {
             restrictUnits = restrictUnits || [];
             var cssNumeric = { value: parseFloat(strValue) };
 
-            if (_.isNaN(cssNumeric.value)) {
+            if (Number.isNaN(cssNumeric.value)) {
                 return null;
             }
 
@@ -890,12 +890,12 @@ var joint = {
 
                 var tpl = '<filter><feFlood flood-color="${color}" flood-opacity="${opacity}" result="colored"/><feMorphology in="SourceAlpha" result="morphedOuter" operator="dilate" radius="${outerRadius}" /><feMorphology in="SourceAlpha" result="morphedInner" operator="dilate" radius="${innerRadius}" /><feComposite result="morphedOuterColored" in="colored" in2="morphedOuter" operator="in"/><feComposite operator="xor" in="morphedOuterColored" in2="morphedInner" result="outline"/><feMerge><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
 
-                var margin = _.isFinite(args.margin) ? args.margin : 2;
-                var width = _.isFinite(args.width) ? args.width : 1;
+                var margin = Number.isFinite(args.margin) ? args.margin : 2;
+                var width = Number.isFinite(args.width) ? args.width : 1;
 
                 return joint.util.template(tpl)({
                     color: args.color || 'blue',
-                    opacity: _.isFinite(args.opacity) ? args.opacity : 1,
+                    opacity: Number.isFinite(args.opacity) ? args.opacity : 1,
                     outerRadius: margin + width,
                     innerRadius: margin
                 });
@@ -911,9 +911,9 @@ var joint = {
 
                 return joint.util.template(tpl)({
                     color: args.color || 'red',
-                    width: _.isFinite(args.width) ? args.width : 1,
-                    blur: _.isFinite(args.blur) ? args.blur : 0,
-                    opacity: _.isFinite(args.opacity) ? args.opacity : 1
+                    width: Number.isFinite(args.width) ? args.width : 1,
+                    blur: Number.isFinite(args.blur) ? args.blur : 0,
+                    opacity: Number.isFinite(args.opacity) ? args.opacity : 1
                 });
             },
 
@@ -921,10 +921,10 @@ var joint = {
             // `y` ... vertical blur (optional)
             blur: function(args) {
 
-                var x = _.isFinite(args.x) ? args.x : 2;
+                var x = Number.isFinite(args.x) ? args.x : 2;
 
                 return joint.util.template('<filter><feGaussianBlur stdDeviation="${stdDeviation}"/></filter>')({
-                    stdDeviation: _.isFinite(args.y) ? [x, args.y] : x
+                    stdDeviation: Number.isFinite(args.y) ? [x, args.y] : x
                 });
             },
 
@@ -942,16 +942,16 @@ var joint = {
                 return joint.util.template(tpl)({
                     dx: args.dx || 0,
                     dy: args.dy || 0,
-                    opacity: _.isFinite(args.opacity) ? args.opacity : 1,
+                    opacity: Number.isFinite(args.opacity) ? args.opacity : 1,
                     color: args.color || 'black',
-                    blur: _.isFinite(args.blur) ? args.blur : 4
+                    blur: Number.isFinite(args.blur) ? args.blur : 4
                 });
             },
 
             // `amount` ... the proportion of the conversion. A value of 1 is completely grayscale. A value of 0 leaves the input unchanged.
             grayscale: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feColorMatrix type="matrix" values="${a} ${b} ${c} 0 0 ${d} ${e} ${f} 0 0 ${g} ${b} ${h} 0 0 0 0 0 1 0"/></filter>')({
                     a: 0.2126 + 0.7874 * (1 - amount),
@@ -968,7 +968,7 @@ var joint = {
             // `amount` ... the proportion of the conversion. A value of 1 is completely sepia. A value of 0 leaves the input unchanged.
             sepia: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feColorMatrix type="matrix" values="${a} ${b} ${c} 0 0 ${d} ${e} ${f} 0 0 ${g} ${h} ${i} 0 0 0 0 0 1 0"/></filter>')({
                     a: 0.393 + 0.607 * (1 - amount),
@@ -986,7 +986,7 @@ var joint = {
             // `amount` ... the proportion of the conversion. A value of 0 is completely un-saturated. A value of 1 leaves the input unchanged.
             saturate: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feColorMatrix type="saturate" values="${amount}"/></filter>')({
                     amount: 1 - amount
@@ -1004,7 +1004,7 @@ var joint = {
             // `amount` ... the proportion of the conversion. A value of 1 is completely inverted. A value of 0 leaves the input unchanged.
             invert: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feComponentTransfer><feFuncR type="table" tableValues="${amount} ${amount2}"/><feFuncG type="table" tableValues="${amount} ${amount2}"/><feFuncB type="table" tableValues="${amount} ${amount2}"/></feComponentTransfer></filter>')({
                     amount: amount,
@@ -1016,14 +1016,14 @@ var joint = {
             brightness: function(args) {
 
                 return joint.util.template('<filter><feComponentTransfer><feFuncR type="linear" slope="${amount}"/><feFuncG type="linear" slope="${amount}"/><feFuncB type="linear" slope="${amount}"/></feComponentTransfer></filter>')({
-                    amount: _.isFinite(args.amount) ? args.amount : 1
+                    amount: Number.isFinite(args.amount) ? args.amount : 1
                 });
             },
 
             // `amount` ... proportion of the conversion. A value of 0 will create an image that is completely black. A value of 1 leaves the input unchanged.
             contrast: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feComponentTransfer><feFuncR type="linear" slope="${amount}" intercept="${amount2}"/><feFuncG type="linear" slope="${amount}" intercept="${amount2}"/><feFuncB type="linear" slope="${amount}" intercept="${amount2}"/></feComponentTransfer></filter>')({
                     amount: amount,
@@ -1420,6 +1420,14 @@ var joint = {
 
         bindAll: _.bindAll,
         assign: _.assign,
+        isPlainObject: _.isPlainObject,
+        isEmpty: _.isEmpty,
+        isEqual: _.isEqual,
+
+        isBoolean: function(value) {
+            var toString = Object.prototype.toString;
+            return value === true || value === false || (!!value && typeof value === 'object' && toString.call(value) === '[object Boolean]');
+        },
 
         isObject: function(value) {
             return !!value && (typeof value === 'object' || typeof value === 'function');

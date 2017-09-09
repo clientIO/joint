@@ -50,14 +50,14 @@ joint.dia.Cell = Backbone.Model.extend({
 
                     _.each(value, function(value2, name2) {
 
-                        if (!defaultAttr || !defaultAttr[name] || !_.isEqual(defaultAttr[name][name2], value2)) {
+                        if (!defaultAttr || !defaultAttr[name] || !joint.util.isEqual(defaultAttr[name][name2], value2)) {
 
                             finalAttrs[selector] = finalAttrs[selector] || {};
                             (finalAttrs[selector][name] || (finalAttrs[selector][name] = {}))[name2] = value2;
                         }
                     });
 
-                } else if (!defaultAttr || !_.isEqual(defaultAttr[name], value)) {
+                } else if (!defaultAttr || !joint.util.isEqual(defaultAttr[name], value)) {
                     // `value` is not an object, default attribute for such a selector does not exist
                     // or it is different than the attribute value set on the model.
 
@@ -124,7 +124,7 @@ joint.dia.Cell = Backbone.Model.extend({
         });
 
         // Remove all the incoming/outgoing links that have source/target port set to any of the removed ports.
-        if (this.graph && !_.isEmpty(removedPorts)) {
+        if (this.graph && !joint.util.isEmpty(removedPorts)) {
 
             var inboundLinks = this.graph.getConnectedLinks(this, { inbound: true });
             _.each(inboundLinks, function(link) {
@@ -442,7 +442,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
                 for (var i = 1; i < pathArrayLength; i++) {
                     var pathItem = pathArray[i];
-                    var isArrayIndex = _.isFinite(isString ? Number(pathItem) : pathItem);
+                    var isArrayIndex = Number.isFinite(isString ? Number(pathItem) : pathItem);
                     initializer = initializer[prevProperty] = isArrayIndex ? [] : {};
                     prevProperty = pathItem;
                 }
@@ -597,7 +597,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         _(this._transitionIds).keys().filter(pathArray && function(key) {
 
-            return _.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
+            return joint.util.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
 
         }).each(function(key) {
 
@@ -745,7 +745,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                             : this.options.interactive;
 
         return (joint.util.isObject(interactive) && interactive[feature] !== false) ||
-                (_.isBoolean(interactive) && interactive !== false);
+                (joint.util.isBoolean(interactive) && interactive !== false);
     },
 
     findBySelector: function(selector, root) {
@@ -887,7 +887,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     setNodeAttributes: function(node, attrs) {
 
-        if (!_.isEmpty(attrs)) {
+        if (!joint.util.isEmpty(attrs)) {
             if (node instanceof SVGElement) {
                 V(node).attr(attrs);
             } else {

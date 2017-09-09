@@ -751,7 +751,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
         // In that case we won't update labels at all.
-        if (_.isNaN(connectionLength)) {
+        if (Number.isNaN(connectionLength)) {
             return this;
         }
 
@@ -765,7 +765,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var distance = isPositionObject ? position.distance : position;
             var offset = isPositionObject ? position.offset : { x: 0, y: 0 };
 
-            if (_.isFinite(distance)) {
+            if (Number.isFinite(distance)) {
                 distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
                 distance = (distance < 0) ? connectionLength + distance : distance;
                 distance = (distance > 1) ? distance : connectionLength * distance;
@@ -780,7 +780,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // Just offset the label by the x,y provided in the offset object.
                 labelCoordinates = g.point(labelCoordinates).offset(offset);
 
-            } else if (_.isFinite(offset)) {
+            } else if (Number.isFinite(offset)) {
 
                 if (!samples) {
                     samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
@@ -837,7 +837,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
         // In that case we won't update tools position at all.
-        if (!_.isNaN(connectionLength)) {
+        if (!Number.isNaN(connectionLength)) {
 
             // If the link is too short, make the tools half the size and the offset twice as low.
             if (connectionLength < this.options.shortLinkLength) {
@@ -965,7 +965,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             if (opt.handleBy === this.cid && opt.translateBy &&
                 model.isEmbeddedIn(endModel) &&
-                !_.isEmpty(model.get('vertices'))) {
+                !joint.util.isEmpty(model.get('vertices'))) {
                 // Loop link whose element was translated and that has vertices (that need to be translated with
                 // the parent in which my element is embedded).
                 // If the link is embedded, has a loop and vertices and the end model
@@ -1243,8 +1243,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // If the `selectorOrPoint` (or `referenceSelectorOrPoint`) is `undefined`, the `source`/`target` of the link model is `undefined`.
         // We want to allow this however so that one can create links such as `var link = new joint.dia.Link` and
         // set the `source`/`target` later.
-        _.isEmpty(selectorOrPoint) && (selectorOrPoint = { x: 0, y: 0 });
-        _.isEmpty(referenceSelectorOrPoint) && (referenceSelectorOrPoint = { x: 0, y: 0 });
+        joint.util.isEmpty(selectorOrPoint) && (selectorOrPoint = { x: 0, y: 0 });
+        joint.util.isEmpty(referenceSelectorOrPoint) && (referenceSelectorOrPoint = { x: 0, y: 0 });
 
         if (!selectorOrPoint.id) {
 
@@ -1378,7 +1378,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _afterArrowheadMove: function() {
 
-        if (!_.isNull(this._z)) {
+        if (this._z !== null) {
             this.model.set('z', this._z, { ui: true });
             this._z = null;
         }
