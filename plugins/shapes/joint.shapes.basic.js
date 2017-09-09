@@ -252,13 +252,13 @@ joint.shapes.basic.PortsModelInterface = {
 
         _.each(this.get('inPorts'), function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.inPorts', 'in');
-            this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
+            this._portSelectors = this._portSelectors.concat(Object.keys(portAttributes));
             joint.util.assign(attrs, portAttributes);
         }, this);
 
         _.each(this.get('outPorts'), function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.outPorts', 'out');
-            this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
+            this._portSelectors = this._portSelectors.concat(Object.keys(portAttributes));
             joint.util.assign(attrs, portAttributes);
         }, this);
 
