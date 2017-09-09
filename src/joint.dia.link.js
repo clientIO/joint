@@ -965,7 +965,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             if (opt.handleBy === this.cid && opt.translateBy &&
                 model.isEmbeddedIn(endModel) &&
-                !_.isEmpty(model.get('vertices'))) {
+                !joint.util.isEmpty(model.get('vertices'))) {
                 // Loop link whose element was translated and that has vertices (that need to be translated with
                 // the parent in which my element is embedded).
                 // If the link is embedded, has a loop and vertices and the end model
@@ -1243,8 +1243,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // If the `selectorOrPoint` (or `referenceSelectorOrPoint`) is `undefined`, the `source`/`target` of the link model is `undefined`.
         // We want to allow this however so that one can create links such as `var link = new joint.dia.Link` and
         // set the `source`/`target` later.
-        _.isEmpty(selectorOrPoint) && (selectorOrPoint = { x: 0, y: 0 });
-        _.isEmpty(referenceSelectorOrPoint) && (referenceSelectorOrPoint = { x: 0, y: 0 });
+        joint.util.isEmpty(selectorOrPoint) && (selectorOrPoint = { x: 0, y: 0 });
+        joint.util.isEmpty(referenceSelectorOrPoint) && (referenceSelectorOrPoint = { x: 0, y: 0 });
 
         if (!selectorOrPoint.id) {
 

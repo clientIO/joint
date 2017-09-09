@@ -1420,6 +1420,8 @@ var joint = {
 
         bindAll: _.bindAll,
         assign: _.assign,
+        isPlainObject: _.isPlainObject,
+        isEmpty: _.isEmpty,
 
         isObject: function(value) {
             return !!value && (typeof value === 'object' || typeof value === 'function');

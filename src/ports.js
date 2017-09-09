@@ -195,7 +195,7 @@
             });
 
             var graph = this.graph;
-            if (graph && !_.isEmpty(removed)) {
+            if (graph && !util.isEmpty(removed)) {
 
                 var inboundLinks = graph.getConnectedLinks(this, { inbound: true });
                 _.each(inboundLinks, function(link) {

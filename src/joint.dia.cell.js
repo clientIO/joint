@@ -124,7 +124,7 @@ joint.dia.Cell = Backbone.Model.extend({
         });
 
         // Remove all the incoming/outgoing links that have source/target port set to any of the removed ports.
-        if (this.graph && !_.isEmpty(removedPorts)) {
+        if (this.graph && !joint.util.isEmpty(removedPorts)) {
 
             var inboundLinks = this.graph.getConnectedLinks(this, { inbound: true });
             _.each(inboundLinks, function(link) {
@@ -887,7 +887,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     setNodeAttributes: function(node, attrs) {
 
-        if (!_.isEmpty(attrs)) {
+        if (!joint.util.isEmpty(attrs)) {
             if (node instanceof SVGElement) {
                 V(node).attr(attrs);
             } else {

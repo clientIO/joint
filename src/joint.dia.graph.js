@@ -636,7 +636,7 @@ joint.dia.Graph = Backbone.Model.extend({
                 return newEmbeds;
             }, []);
 
-            if (!_.isEmpty(embeds)) {
+            if (!joint.util.isEmpty(embeds)) {
                 clone.set('embeds', embeds);
             }
         });
@@ -819,7 +819,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var sources = [];
         _.each(this._nodes, function(exists, node) {
-            if (!this._in[node] || _.isEmpty(this._in[node])) {
+            if (!this._in[node] || joint.util.isEmpty(this._in[node])) {
                 sources.push(this.getCell(node));
             }
         }, this);
@@ -831,7 +831,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var sinks = [];
         _.each(this._nodes, function(exists, node) {
-            if (!this._out[node] || _.isEmpty(this._out[node])) {
+            if (!this._out[node] || joint.util.isEmpty(this._out[node])) {
                 sinks.push(this.getCell(node));
             }
         }, this);
@@ -841,13 +841,13 @@ joint.dia.Graph = Backbone.Model.extend({
     // Return `true` if `element` is a root. Time complexity: O(1).
     isSource: function(element) {
 
-        return !this._in[element.id] || _.isEmpty(this._in[element.id]);
+        return !this._in[element.id] || joint.util.isEmpty(this._in[element.id]);
     },
 
     // Return `true` if `element` is a leaf. Time complexity: O(1).
     isSink: function(element) {
 
-        return !this._out[element.id] || _.isEmpty(this._out[element.id]);
+        return !this._out[element.id] || joint.util.isEmpty(this._out[element.id]);
     },
 
     // Return `true` is `elementB` is a successor of `elementA`. Return `false` otherwise.
