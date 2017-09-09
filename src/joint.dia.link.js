@@ -751,7 +751,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
         // In that case we won't update labels at all.
-        if (_.isNaN(connectionLength)) {
+        if (Number.isNaN(connectionLength)) {
             return this;
         }
 
@@ -837,7 +837,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
         // In that case we won't update tools position at all.
-        if (!_.isNaN(connectionLength)) {
+        if (!Number.isNaN(connectionLength)) {
 
             // If the link is too short, make the tools half the size and the offset twice as low.
             if (connectionLength < this.options.shortLinkLength) {

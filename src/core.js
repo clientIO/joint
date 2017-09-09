@@ -373,7 +373,7 @@ var joint = {
             restrictUnits = restrictUnits || [];
             var cssNumeric = { value: parseFloat(strValue) };
 
-            if (_.isNaN(cssNumeric.value)) {
+            if (Number.isNaN(cssNumeric.value)) {
                 return null;
             }
 
