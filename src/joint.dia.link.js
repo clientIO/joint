@@ -1378,7 +1378,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _afterArrowheadMove: function() {
 
-        if (!_.isNull(this._z)) {
+        if (this._z !== null) {
             this.model.set('z', this._z, { ui: true });
             this._z = null;
         }
