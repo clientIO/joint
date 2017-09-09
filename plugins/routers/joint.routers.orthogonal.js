@@ -89,15 +89,15 @@ joint.routers.orthogonal = (function() {
         var route = {};
 
         var pts = [g.point(from.x, to.y), g.point(to.x, from.y)];
-        var freePts = _.filter(pts, function(pt) { return !toBBox.containsPoint(pt); });
-        var freeBrngPts = _.filter(freePts, function(pt) { return bearing(pt, from) != brng; });
+        var freePts = pts.filter(function(pt) { return !toBBox.containsPoint(pt); });
+        var freeBrngPts = freePts.filter(function(pt) { return bearing(pt, from) != brng; });
 
         var p;
 
         if (freeBrngPts.length > 0) {
 
             // try to pick a point which bears the same direction as the previous segment
-            p = _.filter(freeBrngPts, function(pt) { return bearing(from, pt) == brng; }).pop();
+            p = freeBrngPts.filter(function(pt) { return bearing(from, pt) == brng; }).pop();
             p = p || freeBrngPts[0];
 
             route.points = [p];
