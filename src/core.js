@@ -721,9 +721,9 @@ var joint = {
                 var $elements = $element.find(selector).addBack().filter(selector);
                 // Make a special case for setting classes.
                 // We do not want to overwrite any existing class.
-                if (_.has(attrs, 'class')) {
+                if (joint.util.has(attrs, 'class')) {
                     $elements.addClass(attrs['class']);
-                    attrs = _.omit(attrs, 'class');
+                    attrs = joint.util.omit(attrs, 'class');
                 }
                 $elements.attr(attrs);
             });
@@ -1417,7 +1417,10 @@ var joint = {
         result: _.result,
         union: _.union,
         invoke: _.invoke,
-
+        difference: _.difference,
+        omit: _.omit,
+        pick: _.pick,
+        has: _.has,
         bindAll: _.bindAll,
         assign: _.assign,
         isPlainObject: _.isPlainObject,

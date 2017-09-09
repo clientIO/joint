@@ -230,7 +230,7 @@ joint.dia.Graph = Backbone.Model.extend({
         // Make sure that `cells` attribute is handled separately via resetCells().
         if (attrs.hasOwnProperty('cells')) {
             this.resetCells(attrs.cells, opt);
-            attrs = _.omit(attrs, 'cells');
+            attrs = joint.util.omit(attrs, 'cells');
         }
 
         // The rest of the attributes are applied via original set method.
@@ -511,7 +511,7 @@ joint.dia.Graph = Backbone.Model.extend({
             var loop = link.hasLoop(opt);
 
             // Discard if it is a point, or if the neighbor was already added.
-            if (inbound && _.has(source, 'id') && !res[source.id]) {
+            if (inbound && joint.util.has(source, 'id') && !res[source.id]) {
 
                 var sourceElement = this.getCell(source.id);
 
@@ -521,7 +521,7 @@ joint.dia.Graph = Backbone.Model.extend({
             }
 
             // Discard if it is a point, or if the neighbor was already added.
-            if (outbound && _.has(target, 'id') && !res[target.id]) {
+            if (outbound && joint.util.has(target, 'id') && !res[target.id]) {
 
                 var targetElement = this.getCell(target.id);
 
@@ -899,13 +899,13 @@ joint.dia.Graph = Backbone.Model.extend({
             var target = link.get('target');
 
             // Discard if it is a point.
-            if (inbound && _.has(source, 'id') && source.id === elementB.id) {
+            if (inbound && joint.util.has(source, 'id') && source.id === elementB.id) {
                 isNeighbor = true;
                 return false;
             }
 
             // Discard if it is a point, or if the neighbor was already added.
-            if (outbound && _.has(target, 'id') && target.id === elementB.id) {
+            if (outbound && joint.util.has(target, 'id') && target.id === elementB.id) {
                 isNeighbor = true;
                 return false;
             }
