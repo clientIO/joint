@@ -1711,7 +1711,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 return stopTemplate({
                     offset: stop.offset,
                     color: stop.color,
-                    opacity: _.isFinite(stop.opacity) ? stop.opacity : 1
+                    opacity: Number.isFinite(stop.opacity) ? stop.opacity : 1
                 });
             });
 

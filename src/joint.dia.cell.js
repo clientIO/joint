@@ -442,7 +442,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
                 for (var i = 1; i < pathArrayLength; i++) {
                     var pathItem = pathArray[i];
-                    var isArrayIndex = _.isFinite(isString ? Number(pathItem) : pathItem);
+                    var isArrayIndex = Number.isFinite(isString ? Number(pathItem) : pathItem);
                     initializer = initializer[prevProperty] = isArrayIndex ? [] : {};
                     prevProperty = pathItem;
                 }
