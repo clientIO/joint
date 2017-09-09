@@ -745,7 +745,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                             : this.options.interactive;
 
         return (joint.util.isObject(interactive) && interactive[feature] !== false) ||
-                (_.isBoolean(interactive) && interactive !== false);
+                (joint.util.isBoolean(interactive) && interactive !== false);
     },
 
     findBySelector: function(selector, root) {

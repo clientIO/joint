@@ -1422,6 +1422,12 @@ var joint = {
         assign: _.assign,
         isPlainObject: _.isPlainObject,
         isEmpty: _.isEmpty,
+        isEqual: _.isEqual,
+
+        isBoolean: function(value) {
+            var toString = Object.prototype.toString;
+            return value === true || value === false || (!!value && typeof value === 'object' && toString.call(value) === '[object Boolean]');
+        },
 
         isObject: function(value) {
             return !!value && (typeof value === 'object' || typeof value === 'function');
