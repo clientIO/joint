@@ -94,8 +94,8 @@ joint.shapes.basic.Generic.define('devs.Model', {
     updatePortItems: function(model, changed, opt) {
 
         // Make sure all ports are unique.
-        var inPorts = _.uniq(this.get('inPorts'));
-        var outPorts = _.difference(_.uniq(this.get('outPorts')), inPorts);
+        var inPorts = joint.util.uniq(this.get('inPorts'));
+        var outPorts = joint.util.difference(joint.util.uniq(this.get('outPorts')), inPorts);
 
         var inPortItems = this.createPortItems('in', inPorts);
         var outPortItems = this.createPortItems('out', outPorts);
@@ -139,7 +139,7 @@ joint.shapes.basic.Generic.define('devs.Model', {
 
     _removeGroupPort: function(port, group, opt) {
 
-        return this.set(group, _.without(this.get(group), port), opt);
+        return this.set(group, joint.util.without(this.get(group), port), opt);
     },
 
     removeOutPort: function(port, opt) {

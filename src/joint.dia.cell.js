@@ -10,7 +10,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         var defaults;
         var attrs = attributes || {};
-        this.cid = _.uniqueId('c');
+        this.cid = joint.util.uniqueId('c');
         this.attributes = {};
         if (options && options.collection) this.collection = options.collection;
         if (options && options.parse) attrs = this.parse(attrs, options) || {};
@@ -233,7 +233,7 @@ joint.dia.Cell = Backbone.Model.extend({
             embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
 
             cell.set('parent', this.id, opt);
-            this.set('embeds', _.uniq(embeds), opt);
+            this.set('embeds', joint.util.uniq(embeds), opt);
 
             this.stopBatch('embed');
         }
@@ -246,7 +246,7 @@ joint.dia.Cell = Backbone.Model.extend({
         this.startBatch('unembed');
 
         cell.unset('parent', opt);
-        this.set('embeds', _.without(this.get('embeds'), cell.id), opt);
+        this.set('embeds', joint.util.without(this.get('embeds'), cell.id), opt);
 
         this.stopBatch('unembed');
 

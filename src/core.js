@@ -1413,6 +1413,10 @@ var joint = {
             }
         },
 
+        uniq: _.uniqBy || _.uniq,
+        uniqueId: _.uniqueId,
+        without: _.without,
+
         isFunction: _.isFunction,
         result: _.result,
         union: _.union,
@@ -1426,6 +1430,7 @@ var joint = {
         isPlainObject: _.isPlainObject,
         isEmpty: _.isEmpty,
         isEqual: _.isEqual,
+        noop: function() {},
 
         isBoolean: function(value) {
             var toString = Object.prototype.toString;

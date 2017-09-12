@@ -591,7 +591,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // the source and target of the link `L2` is changed to point to `A2` and `B2`.
     cloneCells: function(cells) {
 
-        cells = _.unique(cells);
+        cells = joint.util.uniq(cells);
 
         // A map of the form [original cell ID] -> [clone] helping
         // us to reconstruct references for source/target and parent/embeds.
