@@ -10,7 +10,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         var defaults;
         var attrs = attributes || {};
-        this.cid = _.uniqueId('c');
+        this.cid = joint.util.uniqueId('c');
         this.attributes = {};
         if (options && options.collection) this.collection = options.collection;
         if (options && options.parse) attrs = this.parse(attrs, options) || {};
