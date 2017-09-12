@@ -139,7 +139,7 @@ joint.shapes.basic.Generic.define('devs.Model', {
 
     _removeGroupPort: function(port, group, opt) {
 
-        return this.set(group, _.without(this.get(group), port), opt);
+        return this.set(group, joint.util.without(this.get(group), port), opt);
     },
 
     removeOutPort: function(port, opt) {

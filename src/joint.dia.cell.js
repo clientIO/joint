@@ -246,7 +246,7 @@ joint.dia.Cell = Backbone.Model.extend({
         this.startBatch('unembed');
 
         cell.unset('parent', opt);
-        this.set('embeds', _.without(this.get('embeds'), cell.id), opt);
+        this.set('embeds', joint.util.without(this.get('embeds'), cell.id), opt);
 
         this.stopBatch('unembed');
 
