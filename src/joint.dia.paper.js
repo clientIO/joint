@@ -1448,7 +1448,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         if (name && namespace[name]) {
             var pattern = _.map(namespace[name], function(item) {
-            	return joint.util.assign({}, item);
+                return joint.util.assign({}, item);
             });
 
             var args = Array.isArray(options.args) ? options.args : [options.args || {}];
