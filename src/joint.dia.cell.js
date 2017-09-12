@@ -329,7 +329,7 @@ joint.dia.Cell = Backbone.Model.extend({
         var cellId = joint.util.isString(cell) ? cell : cell.id;
         var parentId = this.get('parent');
 
-        opt = _.defaults({ deep: true }, opt);
+        opt = joint.util.defaults({ deep: true }, opt);
 
         // See getEmbeddedCells().
         if (this.graph && opt.deep) {
@@ -660,7 +660,7 @@ joint.dia.Cell = Backbone.Model.extend({
     define: function(type, defaults, protoProps, staticProps) {
 
         protoProps = joint.util.assign({
-            defaults: _.defaultsDeep({ type: type }, defaults, this.prototype.defaults)
+            defaults: joint.util.defaultsDeep({ type: type }, defaults, this.prototype.defaults)
         }, protoProps);
 
         var Cell = this.extend(protoProps, staticProps);

@@ -1477,7 +1477,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     startArrowheadMove: function(end, opt) {
 
-        opt = _.defaults(opt || {}, { whenNotAllowed: 'revert' });
+        opt = joint.util.defaults(opt || {}, { whenNotAllowed: 'revert' });
         // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
         // move without need to click on the actual arrowhead dom element.
         this._action = 'arrowhead-move';

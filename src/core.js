@@ -1427,6 +1427,8 @@ var joint = {
         has: _.has,
         bindAll: _.bindAll,
         assign: _.assign,
+        defaults: _.defaults,
+        defaultsDeep: _.defaultsDeep,
         isPlainObject: _.isPlainObject,
         isEmpty: _.isEmpty,
         isEqual: _.isEqual,

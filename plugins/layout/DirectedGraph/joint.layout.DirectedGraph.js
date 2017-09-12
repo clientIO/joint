@@ -109,7 +109,7 @@ joint.layout.DirectedGraph = {
         // This is not needed anymore.
         graphOrCells = null;
 
-        opt = _.defaults(opt || {}, {
+        opt = joint.util.defaults(opt || {}, {
             resizeClusters: true,
             clusterPadding: 10,
             exportElement: this.exportElement,

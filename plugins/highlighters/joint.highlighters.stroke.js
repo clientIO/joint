@@ -36,7 +36,7 @@ joint.highlighters.stroke = {
         // Only highlight once.
         if (this._views[id]) return;
 
-        var options = _.defaults(opt || {}, this.defaultOptions);
+        var options = joint.util.defaults(opt || {}, this.defaultOptions);
 
         var magnetVel = V(magnetEl);
         var magnetBBox;
