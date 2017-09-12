@@ -1414,7 +1414,7 @@ var joint = {
         },
 
         uniq: _.uniqBy || _.uniq,
-        unique: _.unique,
+        uniqueId: _.uniqueId,
         without: _.without,
 
         isFunction: _.isFunction,
