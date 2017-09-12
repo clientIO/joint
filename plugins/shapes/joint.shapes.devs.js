@@ -95,7 +95,7 @@ joint.shapes.basic.Generic.define('devs.Model', {
 
         // Make sure all ports are unique.
         var inPorts = _.uniq(this.get('inPorts'));
-        var outPorts = _.difference(_.uniq(this.get('outPorts')), inPorts);
+        var outPorts = joint.util.difference(_.uniq(this.get('outPorts')), inPorts);
 
         var inPortItems = this.createPortItems('in', inPorts);
         var outPortItems = this.createPortItems('out', outPorts);
