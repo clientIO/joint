@@ -267,7 +267,7 @@
             var portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, g.Rect(this.size()));
 
             return portsMetrics.reduce(function(positions, metrics) {
-                const transformation = metrics.portTransformation;
+                var transformation = metrics.portTransformation;
                 positions[metrics.portId] = {
                     x: transformation.x,
                     y: transformation.y,
