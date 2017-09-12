@@ -76,7 +76,6 @@
 
             // prepare groups
             var groups = Object.keys(data.groups || {});
-
             for (var i = 0, groupsCount = groups.length; i < groupsCount; i++) {
                 var key = groups[i];
                 this.groups[key] = this._evaluateGroup((data.groups || {})[key]);
