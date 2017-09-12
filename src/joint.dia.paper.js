@@ -1476,7 +1476,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         _.each(this._gridSettings, function (gridLayerSetting, index) {
 
             var id = 'pattern_'  + index;
-            var options = _.merge(gridLayerSetting, localOptions[index], {
+            var options = joint.util.merge(gridLayerSetting, localOptions[index], {
                 sx: ctm.a || 1,
                 sy: ctm.d || 1,
                 ox: ctm.e || 0,
