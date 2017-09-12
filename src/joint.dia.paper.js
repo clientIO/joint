@@ -1433,7 +1433,9 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var namespace = this.constructor.gridPatterns;
         if (joint.util.isString(opt) && namespace[opt]) {
-            return _.map(namespace[opt], _.clone);
+            return _.map(namespace[opt], function(item) {
+                return joint.util.assign({}, item);
+            });
         }
 
         var options = opt || { args: [{}] };
@@ -1445,7 +1447,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
 
         if (name && namespace[name]) {
-            var pattern = _.map(namespace[name], _.clone);
+            var pattern = _.map(namespace[name], function(item) {
+            	return joint.util.assign({}, item);
+            });
 
             var args = Array.isArray(options.args) ? options.args : [options.args || {}];
 
