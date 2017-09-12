@@ -233,7 +233,7 @@ joint.dia.Cell = Backbone.Model.extend({
             embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
 
             cell.set('parent', this.id, opt);
-            this.set('embeds', _.uniq(embeds), opt);
+            this.set('embeds', joint.util.uniq(embeds), opt);
 
             this.stopBatch('embed');
         }

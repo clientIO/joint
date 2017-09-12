@@ -1413,6 +1413,8 @@ var joint = {
             }
         },
 
+        uniq: _.uniqBy || _.uniq,
+
         isFunction: _.isFunction,
         result: _.result,
         union: _.union,

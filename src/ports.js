@@ -348,7 +348,7 @@
                 }
             }, this);
 
-            if (_.uniq(ports, 'id').length !== ports.length) {
+            if (joint.util.uniq(ports, 'id').length !== ports.length) {
                 errorMessages.push('Element: found id duplicities in ports.');
             }
 
