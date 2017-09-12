@@ -1430,6 +1430,7 @@ var joint = {
         isPlainObject: _.isPlainObject,
         isEmpty: _.isEmpty,
         isEqual: _.isEqual,
+        noop: function() {},
 
         isBoolean: function(value) {
             var toString = Object.prototype.toString;
