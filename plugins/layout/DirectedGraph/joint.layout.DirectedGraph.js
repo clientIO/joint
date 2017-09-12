@@ -202,8 +202,8 @@ joint.layout.DirectedGraph = {
 
         opt = opt || {};
 
-        var importNode = opt.importNode || _.noop;
-        var importEdge = opt.importEdge || _.noop;
+        var importNode = opt.importNode || function() {};
+        var importEdge = opt.importEdge || function() {};
         var graph = (this instanceof joint.dia.Graph) ? this : new joint.dia.Graph;
 
         // Import all nodes.
@@ -226,9 +226,9 @@ joint.layout.DirectedGraph = {
 
         var glGraphType = joint.util.pick(opt, 'directed', 'compound', 'multigraph');
         var glGraph = new graphlib.Graph(glGraphType);
-        var setNodeLabel = opt.setNodeLabel || _.noop;
-        var setEdgeLabel = opt.setEdgeLabel || _.noop;
-        var setEdgeName = opt.setEdgeName || _.noop;
+        var setNodeLabel = opt.setNodeLabel || function() {};
+        var setEdgeLabel = opt.setEdgeLabel || function() {};
+        var setEdgeName = opt.setEdgeName || function() {};
 
         graph.get('cells').each(function(cell) {
 

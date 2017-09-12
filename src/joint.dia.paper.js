@@ -685,7 +685,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         this._views = {};
     },
 
-    asyncBatchAdded: _.noop,
+    asyncBatchAdded: function() {},
 
     asyncRenderViews: function(cells, opt) {
 
