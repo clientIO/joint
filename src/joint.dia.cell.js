@@ -67,7 +67,7 @@ joint.dia.Cell = Backbone.Model.extend({
             });
         });
 
-        var attributes = _.cloneDeep(joint.util.omit(this.attributes, 'attrs'));
+        var attributes = joint.util.cloneDeep(joint.util.omit(this.attributes, 'attrs'));
         //var attributes = JSON.parse(JSON.stringify(_.omit(this.attributes, 'attrs')));
         attributes.attrs = finalAttrs;
 
@@ -1084,7 +1084,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                 if (prevNodeAttrs) {
                     if (!prevNodeAttrs.merged) {
                         prevNodeAttrs.merged = true;
-                        prevNodeAttrs.attributes = _.cloneDeep(prevNodeAttrs.attributes);
+                        prevNodeAttrs.attributes = joint.util.cloneDeep(prevNodeAttrs.attributes);
                     }
                     joint.util.merge(prevNodeAttrs.attributes, nodeAttrs);
                 } else {

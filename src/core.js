@@ -1433,6 +1433,7 @@ var joint = {
         isEmpty: _.isEmpty,
         isEqual: _.isEqual,
         noop: function() {},
+        cloneDeep: _.cloneDeep,
 
         isBoolean: function(value) {
             var toString = Object.prototype.toString;

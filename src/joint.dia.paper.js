@@ -1620,7 +1620,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.updateBackgroundColor(opt.color);
 
         if (opt.image) {
-            opt = this._background = _.cloneDeep(opt);
+            opt = this._background = joint.util.cloneDeep(opt);
             var img = document.createElement('img');
             img.onload = _.bind(this.drawBackgroundImage, this, img, opt);
             img.src = opt.image;
