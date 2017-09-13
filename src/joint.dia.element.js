@@ -507,10 +507,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             return;
         }
 
-        var scalableBbox = scalable.bbox(true);
+        var scalableBBox = this.getGroupBBox(scalable);
         // Make sure `scalableBbox.width` and `scalableBbox.height` are not zero which can happen if the element does not have any content. By making
         // the width/height 1, we prevent HTML errors of the type `scale(Infinity, Infinity)`.
-        scalable.attr('transform', 'scale(' + (size.width / (scalableBbox.width || 1)) + ',' + (size.height / (scalableBbox.height || 1)) + ')');
+        scalable.attr('transform', 'scale(' + (size.width / (scalableBBox.width || 1)) + ',' + (size.height / (scalableBBox.height || 1)) + ')');
 
         // Now the interesting part. The goal is to be able to store the object geometry via just `x`, `y`, `angle`, `width` and `height`
         // Order of transformations is significant but we want to reconstruct the object always in the order:
@@ -526,16 +526,46 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (rotation && rotation !== 'null') {
 
             rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width / 2) + ',' + (size.height / 2) + ')');
-            var rotatableBbox = scalable.bbox(false, this.paper.viewport);
+            var rotatableBBox = scalable.bbox(false, this.paper.viewport);
 
             // Store new x, y and perform rotate() again against the new rotation origin.
-            model.set('position', { x: rotatableBbox.x, y: rotatableBbox.y }, opt);
+            model.set('position', { x: rotatableBBox.x, y: rotatableBBox.y }, opt);
             this.rotate();
         }
 
         // Update must always be called on non-rotated element. Otherwise, relative positioning
         // would work with wrong (rotated) bounding boxes.
         this.update();
+    },
+
+    getGroupBBox: function(group, ancestor) {
+
+        // for recursive call:
+        // initial step: group.child.bbox(false, group) === group.child.bbox(true)
+        // recursive step: group.descendant.bbox(false, group) - relative to inital group's transformations
+        if (ancestor === undefined) {
+            ancestor = group;
+        }
+
+        var outputBBox; // will be a g.Rectangle
+        var children =  group.node.children;
+        for (var i = 0; i < children.length; i++) {
+            var currentChild = V(children[i]);
+
+            var childBBox = currentChild.bbox(false, ancestor); // if this is not a group element, get the bbox of current element
+            if (currentChild.node.children.length !== 0) {
+                childBBox = getGroupBBox(currentChild, ancestor); // recursive call
+            }
+
+            if (!outputBBox) {
+                outputBBox = childBBox;
+            } else {
+                // make a new bounding box rectangle that contains this bounding box and previous bounding box
+                outputBBox = outputBBox.union(childBBox);
+            }
+        }
+
+        return outputBBox;
     },
 
     translate: function(model, changes, opt) {
