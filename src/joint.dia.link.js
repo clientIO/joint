@@ -888,7 +888,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     createWatcher: function(endType) {
 
         // create handler for specific end type (source|target).
-        const onModelChange = function(endModel, opt) {
+        var onModelChange = function(endModel, opt) {
             this.onEndModelChange(endType, endModel, opt);
         };
 
