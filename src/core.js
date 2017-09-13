@@ -1431,6 +1431,19 @@ var joint = {
         isEmpty: _.isEmpty,
         isEqual: _.isEqual,
         noop: function() {},
+        cloneDeep: _.cloneDeep,
+        array: function(val) {
+
+            if (val === undefined || val === null) {
+                return [];
+            }
+
+            if (Array.isArray(val)) {
+                return val;
+            }
+
+            return [val];
+        },
 
         isBoolean: function(value) {
             var toString = Object.prototype.toString;
