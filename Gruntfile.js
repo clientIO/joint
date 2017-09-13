@@ -765,6 +765,7 @@ module.exports = function(grunt) {
 
     grunt.registerTask('build:joint', [
         'build:plugins',
+        'newer:uglify:polyfills',
         'newer:uglify:deps',
         'newer:uglify:geometry',
         'newer:uglify:vectorizer',
