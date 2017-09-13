@@ -1431,7 +1431,6 @@ var joint = {
         isEmpty: _.isEmpty,
         isEqual: _.isEqual,
         noop: function() {},
-        cloneDeep: _.cloneDeep,
         array: function(val) {
 
             if (val === undefined || val === null) {
