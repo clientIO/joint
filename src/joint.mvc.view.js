@@ -162,7 +162,7 @@ joint.mvc.View = Backbone.View.extend({
 
     extend: function() {
 
-        var args = Array.prototype.slice.call(arguments);
+        var args = Array.from(arguments);
 
         // Deep clone the prototype and static properties objects.
         // This prevents unexpected behavior where some properties are overwritten outside of this function.

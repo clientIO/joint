@@ -498,7 +498,7 @@ joint.dia.Cell = Backbone.Model.extend({
     // A convenient way to set nested attributes.
     attr: function(attrs, value, opt) {
 
-        var args = Array.prototype.slice.call(arguments);
+        var args = Array.from(arguments);
         if (args.length === 0) {
             return this.get('attrs');
         }
