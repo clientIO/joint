@@ -1456,7 +1456,7 @@ var joint = {
 
         merge: function() {
             if (_.mergeWith) {
-                var args = (arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments));
+                var args = Array.from(arguments);
                 return _.mergeWith.apply(this, args.concat([function(a, b) {
                     if (Array.isArray(a) && !Array.isArray(b)) {
                         return b;
