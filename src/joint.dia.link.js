@@ -792,7 +792,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // 1. Find the closest sample & its left and right neighbours.
                 var minSqDistance = Infinity;
                 var closestSampleIndex, sample, sqDistance;
-                for (var i = 0; i < samples.length; i++) {
+                for (var i = 0, m = samples.length; i < m; i++) {
                     sample = samples[i];
                     sqDistance = g.line(sample, labelCoordinates).squaredLength();
                     if (sqDistance < minSqDistance) {
@@ -1445,7 +1445,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var views =  elements.map(paper.findViewByModel, paper);
 
-        for (var i = 0; i < views.length; i++) {
+        for (var i = 0, n = views.length; i < n; i++) {
             var view = views[i];
 
             var magnets = Array.prototype.slice.call(view.el.querySelectorAll('[magnet]'));
@@ -1460,7 +1460,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             if (availableMagnets.length > 0) {
                 // highlight all available magnets
-                for (var j = 0; j < availableMagnets.length; j++) {
+                for (var j = 0, m = availableMagnets.length; j < m; j++) {
                     view.highlight(availableMagnets[j], { magnetAvailability: true })
                 }
                 // highlight the entire view
@@ -1477,13 +1477,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var id;
         var markedMagnets;
 
-        for (var i = 0; i < markedKeys.length; i++) {
+        for (var i = 0, n = markedKeys.length; i < n; i++) {
             id = markedKeys[i];
             markedMagnets = this._marked[id];
 
             var view = this.paper.findViewByModel(id);
             if (view) {
-                for (var j = 0; j < markedMagnets.length; j++) {
+                for (var j = 0, m = markedMagnets.length; j < m; j++) {
                     view.unhighlight(markedMagnets[j], { magnetAvailability: true })
                 }
                 view.unhighlight(null, { elementAvailability: true });
@@ -1605,7 +1605,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var closestSampleIndex;
                 var p;
                 var sqDistance;
-                for (var i = 0, len = samples.length; i < len; i++) {
+                for (var i = 0, n = samples.length; i < n; i++) {
                     p = samples[i];
                     sqDistance = g.line(p, dragPoint).squaredLength();
                     if (sqDistance < minSqDistance) {
