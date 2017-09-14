@@ -100,7 +100,7 @@ joint.highlighters.stroke = {
         });
 
         // Remove the highlight view when the cell is removed from the graph.
-        var removeHandler = _.bind(this.removeHighlighter, this, id);
+        var removeHandler = this.removeHighlighter.bind(this, id);
         var cell = cellView.model;
         highlightView.listenTo(cell, 'remove', removeHandler);
         highlightView.listenTo(cell.graph, 'reset', removeHandler);

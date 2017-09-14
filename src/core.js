@@ -291,7 +291,7 @@ var joint = {
 
             return function(callback, context) {
                 return context
-                    ? raf(_.bind(callback, context))
+                    ? raf(callback.bind(context))
                     : raf(callback);
             };
 
@@ -317,7 +317,7 @@ var joint = {
 
             caf = caf || clearTimeout;
 
-            return client ? _.bind(caf, window) : caf;
+            return client ? caf.bind(window) : caf;
 
         })(),
 

@@ -343,7 +343,9 @@ joint.dia.Graph = Backbone.Model.extend({
     // Useful for bulk operations and optimizations.
     resetCells: function(cells, opt) {
 
-        var preparedCells = joint.util.toArray(cells).map(_.bind(this._prepareCell, this, _, opt));
+        var preparedCells = joint.util.toArray(cells).map(function(cell) {
+            return this._prepareCell(cell, opt);
+        }, this);
         this.get('cells').reset(preparedCells, opt);
 
         return this;
