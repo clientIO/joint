@@ -792,7 +792,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // 1. Find the closest sample & its left and right neighbours.
                 var minSqDistance = Infinity;
                 var closestSampleIndex, sample, sqDistance;
-                for (var i = 0; i < samples.length; i++) {
+                for (var i = 0, m = samples.length; i < m; i++) {
                     sample = samples[i];
                     sqDistance = g.line(sample, labelCoordinates).squaredLength();
                     if (sqDistance < minSqDistance) {
@@ -888,7 +888,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     createWatcher: function(endType) {
 
         // create handler for specific end type (source|target).
-        var onModelChange = _.partial(this.onEndModelChange, endType);
+        var onModelChange = function(endModel, opt) {
+            this.onEndModelChange(endType, endModel, opt);
+        };
 
         function watchEndModel(link, end) {
 
@@ -1441,7 +1443,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var elements = paper.model.getElements();
         this._marked = {};
 
-        _.chain(elements).map(paper.findViewByModel, paper).each(function(view) {
+        for (var i = 0, n = elements.length; i < n; i++) {
+            var view = elements[i].findView(paper);
+
+            if (!view) {
+                continue;
+            }
 
             var magnets = Array.prototype.slice.call(view.el.querySelectorAll('[magnet]'));
             if (view.el.getAttribute('magnet') !== 'false') {
@@ -1449,28 +1456,39 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 magnets.push(view.el);
             }
 
-            var availableMagnets = magnets.filter(_.partial(isMagnetAvailable, view), this);
+            var availableMagnets = magnets.filter(isMagnetAvailable.bind(this, view));
+
             if (availableMagnets.length > 0) {
                 // highlight all available magnets
-                _.each(availableMagnets, _.partial(view.highlight, _, { magnetAvailability: true }), view);
+                for (var j = 0, m = availableMagnets.length; j < m; j++) {
+                    view.highlight(availableMagnets[j], { magnetAvailability: true })
+                }
                 // highlight the entire view
                 view.highlight(null, { elementAvailability: true });
 
                 this._marked[view.model.id] = availableMagnets;
             }
-
-        }, this).value();
+        }
     },
 
     _unmarkAvailableMagnets: function() {
 
-        _.each(this._marked, function(markedMagnets, id) {
+        var markedKeys = Object.keys(this._marked);
+        var id;
+        var markedMagnets;
+
+        for (var i = 0, n = markedKeys.length; i < n; i++) {
+            id = markedKeys[i];
+            markedMagnets = this._marked[id];
+
             var view = this.paper.findViewByModel(id);
             if (view) {
-                _.each(markedMagnets, _.partial(view.unhighlight, _, { magnetAvailability: true }), view);
+                for (var j = 0, m = markedMagnets.length; j < m; j++) {
+                    view.unhighlight(markedMagnets[j], { magnetAvailability: true })
+                }
                 view.unhighlight(null, { elementAvailability: true });
             }
-        }, this);
+        }
 
         this._marked = null;
     },
@@ -1587,7 +1605,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var closestSampleIndex;
                 var p;
                 var sqDistance;
-                for (var i = 0, len = samples.length; i < len; i++) {
+                for (var i = 0, n = samples.length; i < n; i++) {
                     p = samples[i];
                     sqDistance = g.line(p, dragPoint).squaredLength();
                     if (sqDistance < minSqDistance) {
