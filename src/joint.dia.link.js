@@ -1675,7 +1675,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                             }
                         }
 
-                        view.$('[magnet]').each(_.bind(function(index, magnet) {
+                        view.$('[magnet]').each(function(index, magnet) {
 
                             var bbox = V(magnet).bbox(false, this.paper.viewport);
 
@@ -1699,7 +1699,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                                 }
                             }
 
-                        }, this));
+                        }.bind(this));
 
                     }, this);
 
