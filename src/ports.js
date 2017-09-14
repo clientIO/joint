@@ -47,10 +47,11 @@
             });
             var groupPortTransformations = namespace[groupPositionName](portsArgs, elBBox, groupArgs);
 
-            var ss = {
+            var accumulator = {
                 ports: ports,
                 result: []
             };
+
             util.toArray(groupPortTransformations).reduce(function(res, portTransformation, index) {
                 var port = res.ports[index];
                 res.result.push({
@@ -62,9 +63,9 @@
                     labelSize: port.label.size
                 });
                 return res;
-            }.bind(this), ss);
+            }.bind(this), accumulator);
 
-            return ss.result;
+            return accumulator.result;
         },
 
         _getPortLabelLayout: function(port, portPosition, elBBox) {
