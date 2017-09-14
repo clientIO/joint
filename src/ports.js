@@ -42,8 +42,7 @@
 
             var groupArgs = groupPosition.args || {};
             var portsArgs = ports.map(function(port) {
-                var position = port.position;
-                return position ? position.args : {};
+                return port.position && port.position.args;
             });
             var groupPortTransformations = namespace[groupPositionName](portsArgs, elBBox, groupArgs);
 
