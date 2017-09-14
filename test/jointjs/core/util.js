@@ -679,5 +679,35 @@ QUnit.module('util', function(hooks) {
                 assert.equal(bBox.height, 80);
             });
         });
-    })
+    });
+
+    QUnit.module('util.array', function() {
+
+        QUnit.test('undefined', function(assert) {
+            var arr = joint.util.array();
+            assert.deepEqual(arr, []);
+        });
+
+        QUnit.test('null', function(assert) {
+            var arr = joint.util.array(null);
+            assert.deepEqual(arr, []);
+        });
+
+        QUnit.test('a', function(assert) {
+            var arr = joint.util.array('a');
+            assert.deepEqual(arr, ['a']);
+        });
+
+        QUnit.test('empty string', function(assert) {
+            var arr = joint.util.array('');
+            assert.deepEqual(arr, ['']);
+        });
+
+        QUnit.test('[a]', function(assert) {
+            var value = ['a'];
+            var arr = joint.util.array(value);
+            assert.deepEqual(arr, ['a']);
+            assert.ok(arr === value);
+        });
+    });
 });
