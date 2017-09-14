@@ -293,8 +293,8 @@ V = Vectorizer = (function() {
             // this happens even if we wrap a single svg element into a group!
             // this option setting makes the function recursively enter all the groups from this and deeper, get bboxes of the elements inside, then return a union of those bboxes
 
-            var children = node.children;
-            if (!children) return this.getBBox({ target: options.target, walkChildren: false });
+            var children = this.children();
+            //if (!children) return this.getBBox({ target: options.target, walkChildren: false });
 
             // recursion's initial pass-through setting:
             // recursive passes-through just keep the target as whatever was set up here during the initial pass-through
@@ -304,11 +304,11 @@ V = Vectorizer = (function() {
             } // else transform children/descendants like target
 
             for (var i = 0; i < children.length; i++) {
-                var currentChild = V(children[i]);
+                var currentChild = children[i];
 
                 // if currentChild is not a group element, get its bbox with a nonrecursive call
                 var childBBox = currentChild.getBBox({ target: options.target, walkChildren: false });
-                if (currentChild.node.children.length !== 0) {
+                if (currentChild.children().length !== 0) {
                     // if currentChild is a group element (determined by checking the number of children), enter it with a recursive call
                     childBBox = currentChild.getBBox({ target: options.target, walkChildren: true });
                 }
@@ -677,6 +677,22 @@ V = Vectorizer = (function() {
         }
 
         return vels;
+    };
+
+    // Returns an array of V elements made from children of this.node.
+    V.prototype.children = function() {
+
+        var children = this.node.children;
+
+        if (!children) {
+            return [];
+        }
+        
+        var outputArray = [];
+        for (var i = 0; i < children.length; i++) {
+            outputArray.push(V(children[i]));
+        }
+        return outputArray;
     };
 
     // Find an index of an element inside its container.

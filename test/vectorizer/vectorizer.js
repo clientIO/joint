@@ -310,8 +310,20 @@ QUnit.module('vectorizer', function(hooks) {
         var found = V(svgContainer).find('circle');
 
         assert.ok(Array.isArray(found), 'The result is an array.');
-        assert.ok(found.length, 'The array is not empty.');
+        assert.ok(found.length > 0, 'The array is not empty.');
         assert.ok(found.reduce(function(memo, vel) { return memo && V.isVElement(vel); }, true), 'Items in the array are wrapped in Vectorizer.');
+    });
+
+    QUnit.test('children()', function(assert) {
+
+        var children = V(svgContainer).children();
+        assert.ok(Array.isArray(children), 'The result is an array.');
+        assert.ok(children.length > 0, 'The array is not empty.');
+        assert.ok(children.reduce(function(memo, vel) { return memo && V.isVElement(vel); }, true), 'Items in the array are wrapped in Vectorizer.');
+
+        var emptyChildren = V(svgCircle).children();
+        assert.ok(Array.isArray(emptyChildren), 'The result is an array.');
+        assert.ok(emptyChildren.length === 0, 'The array is empty.');
     });
 
     QUnit.test('V.transformPoint', function(assert) {
