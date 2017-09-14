@@ -1454,17 +1454,6 @@ var joint = {
             return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === '[object String]');
         },
 
-        merge: function() {
-            if (_.mergeWith) {
-                var args = Array.from(arguments);
-                return _.mergeWith.apply(this, args.concat([function(a, b) {
-                    if (Array.isArray(a) && !Array.isArray(b)) {
-                        return b;
-                    }
-                }]));
-            }
-            return _.merge.apply(this, arguments);
-        }
-
+        merge: _.merge
     }
 };
