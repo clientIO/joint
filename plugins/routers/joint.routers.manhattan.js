@@ -108,23 +108,30 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         var opt = this.options;
 
+
         // source or target element could be excluded from set of obstacles
-        var excludedEnds = _.chain(opt.excludeEnds)
-            .map(link.get, link)
-            .pluck('id')
-            .map(graph.getCell, graph).value();
+        var excludedEnds = util.toArray(opt.excludeEnds).reduce(function(res, item) {
+            var end = link.get(item);
+            if (end) {
+                var cell = graph.getCell(end.id);
+                if (cell) {
+                    res.push(cell);
+                }
+            }
+            return res;
+        }, []);
 
         // Exclude any embedded elements from the source and the target element.
         var excludedAncestors = [];
 
         var source = graph.getCell(link.get('source').id);
         if (source) {
-            excludedAncestors = util.union(excludedAncestors, _.map(source.getAncestors(), 'id'));
+            excludedAncestors = util.union(excludedAncestors, source.getAncestors().map(function(cell) { return cell.id }));
         }
 
         var target = graph.getCell(link.get('target').id);
         if (target) {
-            excludedAncestors = util.union(excludedAncestors, _.map(target.getAncestors(), 'id'));
+            excludedAncestors = util.union(excludedAncestors, target.getAncestors().map(function(cell) { return cell.id }));
         }
 
         // builds a map of all elements for quicker obstacle queries (i.e. is a point contained
@@ -134,37 +141,29 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         // to go through all obstacles, we check only those in a particular cell.
         var mapGridSize = this.mapGridSize;
 
-        _.chain(graph.getElements())
-            // remove source and target element if required
-            .difference(excludedEnds)
-            // remove all elements whose type is listed in excludedTypes array
-            .reject(function(element) {
-                // reject any element which is an ancestor of either source or target
-                return _.contains(opt.excludeTypes, element.get('type')) || _.contains(excludedAncestors, element.id);
-            })
-            // change elements (models) to their bounding boxes
-            .invoke('getBBox')
-            // expand their boxes by specific padding
-            .invoke('moveAndExpand', opt.paddingBox)
-            // build the map
-            .foldl(function(map, bbox) {
+        graph.getElements().reduce(function(map, element) {
 
-                var origin = bbox.origin().snapToGrid(mapGridSize);
-                var corner = bbox.corner().snapToGrid(mapGridSize);
+            var isExcludedType = util.toArray(opt.excludeTypes).includes(element.get('type'));
+            var isExcludedEnd = excludedEnds.find(function(excluded) { return excluded.id === element.id });
+            var isExcludedAncestor = excludedAncestors.includes(element.id);
+
+            var isExcluded = isExcludedType || isExcludedEnd || isExcludedAncestor;
+            if (!isExcluded) {
+                var bBox = element.getBBox().moveAndExpand(opt.paddingBox);
+
+                var origin = bBox.origin().snapToGrid(mapGridSize);
+                var corner = bBox.corner().snapToGrid(mapGridSize);
 
                 for (var x = origin.x; x <= corner.x; x += mapGridSize) {
                     for (var y = origin.y; y <= corner.y; y += mapGridSize) {
-
                         var gridKey = x + '@' + y;
-
                         map[gridKey] = map[gridKey] || [];
-                        map[gridKey].push(bbox);
+                        map[gridKey].push(bBox);
                     }
                 }
-
-                return map;
-
-            }, this.map).value();
+            }
+            return map;
+        }, this.map);
 
         return this;
     };
@@ -173,7 +172,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         var mapKey = point.clone().snapToGrid(this.mapGridSize).toString();
 
-        return _.every(this.map[mapKey], function(obstacle) {
+        return util.toArray(this.map[mapKey]).every( function(obstacle) {
             return !obstacle.containsPoint(point);
         });
     };
@@ -199,7 +198,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         this.values[item] = value;
 
-        var index = _.sortedIndex(this.items, item, function(i) {
+        var index = joint.util.sortedIndex(this.items, item, function(i) {
             return this.values[i];
         }, this);
 
@@ -269,23 +268,29 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         var step = opt.step;
         var center = bbox.center();
-        var startPoints = _.chain(opt.directionMap).pick(directionList).map(function(direction) {
+        var keys = util.isObject(opt.directionMap) ? Object.keys(opt.directionMap) : [];
+        var dirLis = util.toArray(directionList);
+        return keys.reduce(function(res, key) {
 
-            var x = direction.x * bbox.width / 2;
-            var y = direction.y * bbox.height / 2;
+            if (dirLis.includes(key)) {
 
-            var point = center.clone().offset(x, y);
+                var direction = opt.directionMap[key];
 
-            if (bbox.containsPoint(point)) {
+                var x = direction.x * bbox.width / 2;
+                var y = direction.y * bbox.height / 2;
 
-                point.offset(direction.x * step, direction.y * step);
+                var point = center.clone().offset(x, y);
+
+                if (bbox.containsPoint(point)) {
+
+                    point.offset(direction.x * step, direction.y * step);
+                }
+
+                res.push(point.snapToGrid(step));
             }
+            return res;
 
-            return point.snapToGrid(step);
-
-        }).value();
-
-        return startPoints;
+        }, []);
     }
 
     // returns a direction index from start point to end point
@@ -340,8 +345,8 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         }
 
         // take into account only accessible end points
-        startPoints = _.filter(startPoints, map.isPointAccessible, map);
-        endPoints = _.filter(endPoints, map.isPointAccessible, map);
+        startPoints = startPoints.filter(map.isPointAccessible, map);
+        endPoints = endPoints.filter(map.isPointAccessible, map);
 
         // Check if there is a accessible end point.
         // We would have to use a fallback route otherwise.
@@ -354,11 +359,13 @@ joint.routers.manhattan = (function(g, _, joint, util) {
             // Cost from start to a point along best known path.
             var costs = {};
 
-            _.each(startPoints, function(point) {
+            for (var i = 0, n = startPoints.length; i < n; i++) {
+                var point = startPoints[i];
+
                 var key = point.toString();
                 openSet.add(key, estimateCost(point, endPoints));
                 costs[key] = 0;
-            });
+            }
 
             // directions
             var dir, dirChange;
@@ -390,7 +397,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
                 }
 
                 // Go over all possible directions and find neighbors.
-                for (var i = 0; i < dirLen; i++) {
+                for (i = 0; i < dirLen; i++) {
 
                     dir = dirs[i];
                     dirChange = getDirectionChange(currentDirAngle, dir.angle);
@@ -459,7 +466,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         // pathfinding
         var map = (new ObstacleMap(opt)).build(this.paper.model, this.model);
-        var oldVertices = _.map(vertices, g.point);
+        var oldVertices = util.toArray(vertices).map(g.point);
         var newVertices = [];
         var tailPoint = sourceBBox.center().snapToGrid(opt.step);
 
