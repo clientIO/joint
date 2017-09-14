@@ -343,7 +343,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Useful for bulk operations and optimizations.
     resetCells: function(cells, opt) {
 
-        var preparedCells = _.map(cells, _.bind(this._prepareCell, this, _, opt));
+        var preparedCells = joint.util.toArray(cells).map(_.bind(this._prepareCell, this, _, opt));
         this.get('cells').reset(preparedCells, opt);
 
         return this;
@@ -402,13 +402,11 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     getElements: function() {
-
-        return _.map(this._nodes, function(exists, node) { return this.getCell(node); }, this);
+        return Object.keys(this._nodes).map(this.getCell, this);
     },
 
     getLinks: function() {
-
-        return _.map(this._edges, function(exists, edge) { return this.getCell(edge); }, this);
+        return Object.keys(this._edges).map(this.getCell, this);
     },
 
     getFirstCell: function() {
@@ -537,7 +535,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
     getCommonAncestor: function(/* cells */) {
 
-        var cellsAncestors = _.map(arguments, function(cell) {
+        var cellsAncestors = Array.from(arguments).map(function(cell) {
 
             var ancestors = [];
             var parentId = cell.get('parent');
@@ -554,10 +552,9 @@ joint.dia.Graph = Backbone.Model.extend({
 
         cellsAncestors = _.sortBy(cellsAncestors, 'length');
 
-        var commonAncestor = _.find(cellsAncestors.shift(), function(ancestor) {
-
-            return _.every(cellsAncestors, function(cellAncestors) {
-                return _.contains(cellAncestors, ancestor);
+        var commonAncestor = joint.util.toArray(cellsAncestors.shift()).find(function(ancestor) {
+            return cellsAncestors.every(function(cellAncestors) {
+                return cellAncestors.includes(ancestor)
             });
         });
 

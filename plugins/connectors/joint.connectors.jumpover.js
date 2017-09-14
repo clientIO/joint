@@ -1,4 +1,4 @@
-joint.connectors.jumpover = (function(_, g) {
+joint.connectors.jumpover = (function(_, g, util) {
 
     // default size of jump if not specified in options
     var JUMP_SIZE = 5;
@@ -242,7 +242,7 @@ joint.connectors.jumpover = (function(_, g) {
             var connector = link.get('connector') || defaultConnector;
 
             // avoid jumping over links with connector type listed in `ignored connectors`.
-            if (_.contains(ignoreConnectors, connector.name)) {
+            if (util.toArray(ignoreConnectors).includes(connector.name)) {
                 return false;
             }
             // filter out links that are above this one and  have the same connector type
@@ -305,4 +305,4 @@ joint.connectors.jumpover = (function(_, g) {
 
         return buildPath(jumpingLines, jumpSize, jumpType);
     };
-}(_, g));
+}(_, g, joint.util));

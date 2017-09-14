@@ -1432,8 +1432,8 @@ joint.dia.Paper = joint.mvc.View.extend({
     _resolveDrawGridOption: function (opt) {
 
         var namespace = this.constructor.gridPatterns;
-        if (joint.util.isString(opt) && namespace[opt]) {
-            return _.map(namespace[opt], function(item) {
+        if (joint.util.isString(opt) && Array.isArray(namespace[opt])) {
+            return namespace[opt].map(function(item) {
                 return joint.util.assign({}, item);
             });
         }
@@ -1446,8 +1446,8 @@ joint.dia.Paper = joint.mvc.View.extend({
             name = 'dot';
         }
 
-        if (name && namespace[name]) {
-            var pattern = _.map(namespace[name], function(item) {
+        if (name && Array.isArray(namespace[name])) {
+            var pattern = namespace[name].map(function(item) {
                 return joint.util.assign({}, item);
             });
 
@@ -1711,7 +1711,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (!this.isDefined(gradientId)) {
 
             var stopTemplate = joint.util.template('<stop offset="${offset}" stop-color="${color}" stop-opacity="${opacity}"/>');
-            var gradientStopsStrings = _.map(stops, function(stop) {
+            var gradientStopsStrings = joint.util.toArray(stops).map(function(stop) {
                 return stopTemplate({
                     offset: stop.offset,
                     color: stop.color,
