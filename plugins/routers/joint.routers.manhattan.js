@@ -108,21 +108,31 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         var opt = this.options;
 
+
         // source or target element could be excluded from set of obstacles
-        var excludedEnds = util.toArray(opt.excludeEnds).map(function(item) {
-            var endId = link.get(item).id;
-            return graph.getCell(endId);
-        });
+        var excludedEnds = util.toArray(opt.excludeEnds).reduce(function(res, item) {
+            var end = link.get(item);
+            if (end) {
+                var cell = graph.getCell(end.id);
+                if (cell) {
+                    res.push(cell);
+                }
+            }
+            return res;
+        }, []);
 
         // Exclude any embedded elements from the source and the target element.
         var excludedAncestors = [];
 
         var source = graph.getCell(link.get('source').id);
-        var sourceAncestors = source ? source.getAncestors().map(function(cell) { return cell.id }) : [];
-        var target = graph.getCell(link.get('target').id);
-        var targetAncestors = target ? target.getAncestors().map(function(cell) { return cell.id }) : [];
+        if (source) {
+            excludedAncestors = util.union(excludedAncestors, source.getAncestors().map(function(cell) { return cell.id }));
+        }
 
-        excludedAncestors = util.union(excludedAncestors, sourceAncestors, targetAncestors);
+        var target = graph.getCell(link.get('target').id);
+        if (target) {
+            excludedAncestors = util.union(excludedAncestors, target.getAncestors().map(function(cell) { return cell.id }));
+        }
 
         // builds a map of all elements for quicker obstacle queries (i.e. is a point contained
         // in any obstacle?) (a simplified grid search)
@@ -133,21 +143,22 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         graph.getElements().reduce(function(map, element) {
 
-            var isExcluded = util.toArray(opt.excludeTypes).includes(element.get('type')) ||
-                excludedEnds.find(function(excluded) { return excluded.id === element.id }) ||
-                excludedAncestors.includes(element.id);
+            var isExcludedType = util.toArray(opt.excludeTypes).includes(element.get('type'));
+            var isExcludedEnd = excludedEnds.find(function(excluded) { return excluded.id === element.id });
+            var isExcludedAncestor = excludedAncestors.includes(element.id);
 
+            var isExcluded = isExcludedType || isExcludedEnd || isExcludedAncestor;
             if (!isExcluded) {
-                var bbox = element.getBBox().moveAndExpand(opt.paddingBox);
+                var bBox = element.getBBox().moveAndExpand(opt.paddingBox);
 
-                var origin = bbox.origin().snapToGrid(mapGridSize);
-                var corner = bbox.corner().snapToGrid(mapGridSize);
+                var origin = bBox.origin().snapToGrid(mapGridSize);
+                var corner = bBox.corner().snapToGrid(mapGridSize);
 
                 for (var x = origin.x; x <= corner.x; x += mapGridSize) {
                     for (var y = origin.y; y <= corner.y; y += mapGridSize) {
                         var gridKey = x + '@' + y;
                         map[gridKey] = map[gridKey] || [];
-                        map[gridKey].push(bbox);
+                        map[gridKey].push(bBox);
                     }
                 }
             }
