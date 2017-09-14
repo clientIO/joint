@@ -47,17 +47,24 @@
             });
             var groupPortTransformations = namespace[groupPositionName](portsArgs, elBBox, groupArgs);
 
-            return util.toArray(groupPortTransformations).map(function(portTransformation, index) {
-                var port = ports[index];
-                return {
+            var ss = {
+                ports: ports,
+                result: []
+            };
+            util.toArray(groupPortTransformations).reduce(function(res, portTransformation, index) {
+                var port = res.ports[index];
+                res.result.push({
                     portId: port.id,
                     portTransformation: portTransformation,
                     labelTransformation: this._getPortLabelLayout(port, g.Point(portTransformation), elBBox),
                     portAttrs: port.attrs,
                     portSize: port.size,
                     labelSize: port.label.size
-                };
-            }, this);
+                });
+                return res;
+            }.bind(this), ss);
+
+            return ss.result;
         },
 
         _getPortLabelLayout: function(port, portPosition, elBBox) {
