@@ -1456,9 +1456,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 magnets.push(view.el);
             }
 
-            var availableMagnets = magnets.filter(function(magnet) {
-                return isMagnetAvailable.call(this, view, magnet)
-            }, this);
+            var availableMagnets = magnets.filter(isMagnetAvailable.bind(this, view));
 
             if (availableMagnets.length > 0) {
                 // highlight all available magnets
