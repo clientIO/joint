@@ -507,7 +507,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             return;
         }
 
-        var scalableBBox = V(scalable).getBBox({ withoutTransformations: true, walkChildren: true });
+        var scalableBBox = V(scalable).getBBox({ walkChildren: true });
         // Make sure `scalableBbox.width` and `scalableBbox.height` are not zero which can happen if the element does not have any content. By making
         // the width/height 1, we prevent HTML errors of the type `scale(Infinity, Infinity)`.
         scalable.attr('transform', 'scale(' + (size.width / (scalableBBox.width || 1)) + ',' + (size.height / (scalableBBox.height || 1)) + ')');
