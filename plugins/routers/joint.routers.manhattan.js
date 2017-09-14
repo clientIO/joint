@@ -268,10 +268,11 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         var step = opt.step;
         var center = bbox.center();
-        var keys = util.isObject(opt.directionMap) ? Object.keys(opt.directionMap) : {}
+        var keys = util.isObject(opt.directionMap) ? Object.keys(opt.directionMap) : [];
+        var dirLis = util.toArray(directionList);
         return keys.reduce(function(res, key) {
 
-            if (util.toArray(directionList).includes(key)) {
+            if (dirLis.includes(key)) {
 
                 var direction = opt.directionMap[key];
 
