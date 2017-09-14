@@ -82,15 +82,17 @@
         _init: function(data) {
 
             // prepare groups
-            var groups = Object.keys(data.groups || {});
-            for (var i = 0, groupsCount = groups.length; i < groupsCount; i++) {
-                var key = groups[i];
-                this.groups[key] = this._evaluateGroup((data.groups || {})[key]);
+            if (util.isObject(data.groups)) {
+                var groups = Object.keys(data.groups || {});
+                for (var i = 0, n = groups.length; i < n; i++) {
+                    var key = groups[i];
+                    this.groups[key] = this._evaluateGroup(data.groups[key]);
+                }
             }
 
             // prepare ports
             var ports = util.toArray(data.items);
-            for (var j = 0, porsCount = ports.length; j < porsCount; j++) {
+            for (var j = 0, m = ports.length; j < m; j++) {
                 this.ports.push(this._evaluatePort(ports[j]));
             }
         },
