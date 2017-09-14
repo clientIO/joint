@@ -316,7 +316,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             } else {
 
-                cells = _.map(this.get('embeds'), this.graph.getCell, this.graph);
+                cells = joint.util.toArray(this.get('embeds')).map(this.graph.getCell, this.graph);
             }
 
             return cells;

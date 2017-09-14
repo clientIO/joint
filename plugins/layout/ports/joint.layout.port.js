@@ -10,7 +10,7 @@
     }
 
     function lineLayout(ports, p1, p2) {
-        return _.map(ports, function(port, index, ports) {
+        return ports.map(function(port, index, ports) {
             var p = this.pointAt(((index + 0.5) / ports.length));
             // `dx`,`dy` per port offset option
             if (port.dx || port.dy) {
@@ -29,7 +29,7 @@
 
         var ellipse = g.Ellipse.fromRect(elBBox);
 
-        return _.map(ports, function(port, index, ports) {
+        return ports.map(function(port, index, ports) {
 
             var angle = startAngle + stepFn(index, ports.length);
             var p2 = p1.clone()
@@ -78,7 +78,7 @@
          */
         absolute: function(ports, elBBox, opt) {
             //TODO v.talas angle
-            return _.map(ports, _.partial(argPoint, elBBox));
+            return ports.map(_.partial(argPoint, elBBox));
         },
 
         /**

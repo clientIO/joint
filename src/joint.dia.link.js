@@ -127,7 +127,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         var vertices = this.get('vertices');
         if (vertices && vertices.length > 0) {
-            attrs.vertices = _.map(vertices, fn);
+            attrs.vertices = vertices.map(fn);
         }
 
         return this.set(attrs, opt);
@@ -648,7 +648,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var tx = opt.tx || 0;
             var ty = opt.ty || 0;
 
-            route = this.route =  _.map(this.route, function(point) {
+            route = this.route = joint.util.toArray(this.route).map(function(point) {
                 // translate point by point by delta translation
                 return g.point(point).offset(tx, ty);
             });

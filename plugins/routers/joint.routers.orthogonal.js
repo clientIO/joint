@@ -201,7 +201,7 @@ joint.routers.orthogonal = (function(util) {
         var sourceBBox = expand(linkView.sourceBBox, padding);
         var targetBBox = expand(linkView.targetBBox, padding);
 
-        vertices = _.map(vertices, g.point);
+        vertices = util.toArray(vertices).map(g.point);
         vertices.unshift(sourceBBox.center());
         vertices.push(targetBBox.center());
 

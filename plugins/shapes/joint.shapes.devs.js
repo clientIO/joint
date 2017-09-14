@@ -118,7 +118,7 @@ joint.shapes.basic.Generic.define('devs.Model', {
 
     createPortItems: function(group, ports) {
 
-        return _.map(ports, _.bind(this.createPortItem, this, group));
+        return joint.util.toArray(ports).map(_.bind(this.createPortItem, this, group));
     },
 
     _addGroupPort: function(port, group, opt) {
