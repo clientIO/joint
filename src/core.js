@@ -1412,6 +1412,8 @@ var joint = {
                 };
             }
         },
+        // lodash 3 vs 4 incompatible
+        sortedIndex: _.sortedIndexBy || _.sortedIndex,
 
         uniq: _.uniqBy || _.uniq,
         uniqueId: _.uniqueId,
