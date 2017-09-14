@@ -42,7 +42,7 @@
 
             var groupArgs = groupPosition.args || {};
             var portsArgs = ports.map(function(port) {
-                return port.position && port.position.args;
+                return port && port.position && port.position.args;
             });
             var groupPortTransformations = namespace[groupPositionName](portsArgs, elBBox, groupArgs);
 
@@ -83,7 +83,7 @@
 
             // prepare groups
             if (util.isObject(data.groups)) {
-                var groups = Object.keys(data.groups || {});
+                var groups = Object.keys(data.groups);
                 for (var i = 0, n = groups.length; i < n; i++) {
                     var key = groups[i];
                     this.groups[key] = this._evaluateGroup(data.groups[key]);
