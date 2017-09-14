@@ -2,7 +2,7 @@
 
     var PortData = function(data) {
 
-        var clonedData = _.cloneDeep(data) || {};
+        var clonedData = util.cloneDeep(data) || {};
         this.ports = [];
         this.groups = {};
         this.portLayoutNamespace = joint.layout.Port;
@@ -79,7 +79,7 @@
 
         _evaluateGroup: function (resultMap, group, key) {
 
-            resultMap[key] = _.merge(group, {
+            resultMap[key] = util.merge(group, {
                 position: this._getPosition(group.position, true),
                 label: this._getLabel(group, true)
             });
@@ -92,9 +92,9 @@
             var group = this.getGroup(port.group);
 
             evaluated.markup = evaluated.markup || group.markup;
-            evaluated.attrs = _.merge({}, group.attrs, evaluated.attrs);
+            evaluated.attrs = util.merge({}, group.attrs, evaluated.attrs);
             evaluated.position = this._createPositionNode(group, evaluated);
-            evaluated.label = _.merge({}, group.label, this._getLabel(evaluated));
+            evaluated.label = util.merge({}, group.label, this._getLabel(evaluated));
             evaluated.z = this._getZIndex(group, evaluated);
             evaluated.size = util.assign({}, group.size, evaluated.size);
 
@@ -114,7 +114,7 @@
 
         _createPositionNode: function(group, port) {
 
-            return _.merge({
+            return util.merge({
                 name: 'left',
                 args: {}
             }, group.position, { args: port.args });
@@ -233,7 +233,7 @@
          */
         getPorts: function() {
 
-            return _.cloneDeep(this.prop('ports/items')) || [];
+            return util.cloneDeep(this.prop('ports/items')) || [];
         },
 
         /**
@@ -242,7 +242,7 @@
          */
         getPort: function(id) {
 
-            return _.cloneDeep(_.find(this.prop('ports/items'), function(port) {
+            return util.cloneDeep(_.find(this.prop('ports/items'), function(port) {
                 return port.id && port.id === id;
             }));
         },

@@ -463,7 +463,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
     updateContent: function(cell, renderingOnlyAttrs) {
 
         // Create copy of the text attributes
-        var textAttrs = _.merge({}, (renderingOnlyAttrs || cell.get('attrs'))['.content']);
+        var textAttrs = joint.util.merge({}, (renderingOnlyAttrs || cell.get('attrs'))['.content']);
 
         textAttrs = joint.util.omit(textAttrs, 'text');
 

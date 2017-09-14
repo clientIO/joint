@@ -4,7 +4,7 @@
 
 joint.dia.Cell = Backbone.Model.extend({
 
-    // This is the same as Backbone.Model with the only difference that is uses _.merge
+    // This is the same as Backbone.Model with the only difference that is uses joint.util.merge
     // instead of just _.extend. The reason is that we want to mixin attributes set in upper classes.
     constructor: function(attributes, options) {
 
@@ -16,8 +16,8 @@ joint.dia.Cell = Backbone.Model.extend({
         if (options && options.parse) attrs = this.parse(attrs, options) || {};
         if ((defaults = joint.util.result(this, 'defaults'))) {
             //<custom code>
-            // Replaced the call to _.defaults with _.merge.
-            attrs = _.merge({}, defaults, attrs);
+            // Replaced the call to _.defaults with joint.util.merge.
+            attrs = joint.util.merge({}, defaults, attrs);
             //</custom code>
         }
         this.set(attrs, options);
@@ -67,7 +67,7 @@ joint.dia.Cell = Backbone.Model.extend({
             });
         });
 
-        var attributes = _.cloneDeep(joint.util.omit(this.attributes, 'attrs'));
+        var attributes = joint.util.cloneDeep(joint.util.omit(this.attributes, 'attrs'));
         //var attributes = JSON.parse(JSON.stringify(_.omit(this.attributes, 'attrs')));
         attributes.attrs = finalAttrs;
 
@@ -329,7 +329,7 @@ joint.dia.Cell = Backbone.Model.extend({
         var cellId = joint.util.isString(cell) ? cell : cell.id;
         var parentId = this.get('parent');
 
-        opt = _.defaults({ deep: true }, opt);
+        opt = joint.util.defaults({ deep: true }, opt);
 
         // See getEmbeddedCells().
         if (this.graph && opt.deep) {
@@ -450,13 +450,13 @@ joint.dia.Cell = Backbone.Model.extend({
                 // Fill update with the `value` on `path`.
                 update = joint.util.setByPath(update, pathArray, value, '/');
 
-                var baseAttributes = _.merge({}, this.attributes);
+                var baseAttributes = joint.util.merge({}, this.attributes);
                 // if rewrite mode enabled, we replace value referenced by path with
                 // the new one (we don't merge).
                 opt.rewrite && joint.util.unsetByPath(baseAttributes, path, '/');
 
                 // Merge update with the model attributes.
-                var attributes = _.merge(baseAttributes, update);
+                var attributes = joint.util.merge(baseAttributes, update);
                 // Finally, set the property to the updated attributes.
                 return this.set(property, attributes[property], opt);
 
@@ -466,7 +466,7 @@ joint.dia.Cell = Backbone.Model.extend({
             }
         }
 
-        return this.set(_.merge({}, this.attributes, props), value);
+        return this.set(joint.util.merge({}, this.attributes, props), value);
     },
 
     // A convient way to unset nested properties
@@ -488,7 +488,7 @@ joint.dia.Cell = Backbone.Model.extend({
         // A nested property
         var property = pathArray[0];
         var nestedPath = pathArray.slice(1);
-        var propertyValue = _.merge({}, this.get(property));
+        var propertyValue = joint.util.merge({}, this.get(property));
 
         joint.util.unsetByPath(propertyValue, nestedPath, '/');
 
@@ -498,7 +498,7 @@ joint.dia.Cell = Backbone.Model.extend({
     // A convenient way to set nested attributes.
     attr: function(attrs, value, opt) {
 
-        var args = Array.prototype.slice.call(arguments);
+        var args = Array.from(arguments);
         if (args.length === 0) {
             return this.get('attrs');
         }
@@ -660,7 +660,7 @@ joint.dia.Cell = Backbone.Model.extend({
     define: function(type, defaults, protoProps, staticProps) {
 
         protoProps = joint.util.assign({
-            defaults: _.defaultsDeep({ type: type }, defaults, this.prototype.defaults)
+            defaults: joint.util.defaultsDeep({ type: type }, defaults, this.prototype.defaults)
         }, protoProps);
 
         var Cell = this.extend(protoProps, staticProps);
@@ -1084,9 +1084,9 @@ joint.dia.CellView = joint.mvc.View.extend({
                 if (prevNodeAttrs) {
                     if (!prevNodeAttrs.merged) {
                         prevNodeAttrs.merged = true;
-                        prevNodeAttrs.attributes = _.cloneDeep(prevNodeAttrs.attributes);
+                        prevNodeAttrs.attributes = joint.util.cloneDeep(prevNodeAttrs.attributes);
                     }
-                    _.merge(prevNodeAttrs.attributes, nodeAttrs);
+                    joint.util.merge(prevNodeAttrs.attributes, nodeAttrs);
                 } else {
                     nodesAttrs[nodeId] = {
                         attributes: nodeAttrs,

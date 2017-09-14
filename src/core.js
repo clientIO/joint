@@ -1281,7 +1281,7 @@ var joint = {
 
                 return html.replace(regex, function(match) {
 
-                    var args = Array.prototype.slice.call(arguments);
+                    var args = Array.from(arguments);
                     var attr = _.find(args.slice(1, 4), function(_attr) {
                         return !!_attr;
                     });
@@ -1391,7 +1391,7 @@ var joint = {
 
                 return function() {
 
-                    var args = Array.prototype.slice.call(arguments);
+                    var args = Array.from(arguments);
                     var cells = args.length > 0 && _.first(args) || [];
                     var opt = args.length > 1 && _.last(args) || {};
 
@@ -1427,10 +1427,13 @@ var joint = {
         has: _.has,
         bindAll: _.bindAll,
         assign: _.assign,
+        defaults: _.defaults,
+        defaultsDeep: _.defaultsDeep,
         isPlainObject: _.isPlainObject,
         isEmpty: _.isEmpty,
         isEqual: _.isEqual,
         noop: function() {},
+        cloneDeep: _.cloneDeep,
 
         isBoolean: function(value) {
             var toString = Object.prototype.toString;
@@ -1449,6 +1452,8 @@ var joint = {
         isString: function(value) {
             var toString = Object.prototype.toString;
             return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === '[object String]');
-        }
+        },
+
+        merge: _.merge
     }
 };

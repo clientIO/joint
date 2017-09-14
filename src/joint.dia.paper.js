@@ -202,7 +202,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         options.origin = joint.util.assign({}, options.origin);
         options.defaultConnector = joint.util.assign({}, options.defaultConnector);
         // Return the default highlighting options into the user specified options.
-        options.highlighting = _.defaultsDeep(
+        options.highlighting = joint.util.defaultsDeep(
             {},
             options.highlighting,
             this.constructor.prototype.options.highlighting
@@ -421,7 +421,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         opt = opt || {};
 
-        _.defaults(opt, {
+        joint.util.defaults(opt, {
             padding: 0,
             preserveAspectRatio: true,
             scaleGrid: null,
@@ -870,7 +870,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Find all views in given area
     findViewsInArea: function(rect, opt) {
 
-        opt = _.defaults(opt || {}, { strict: false });
+        opt = joint.util.defaults(opt || {}, { strict: false });
         rect = g.rect(rect);
 
         var views = this.model.getElements().map(this.findViewByModel, this);
@@ -1433,7 +1433,9 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var namespace = this.constructor.gridPatterns;
         if (joint.util.isString(opt) && namespace[opt]) {
-            return _.map(namespace[opt], _.clone);
+            return _.map(namespace[opt], function(item) {
+                return joint.util.assign({}, item);
+            });
         }
 
         var options = opt || { args: [{}] };
@@ -1445,11 +1447,13 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
 
         if (name && namespace[name]) {
-            var pattern = _.map(namespace[name], _.clone);
+            var pattern = _.map(namespace[name], function(item) {
+                return joint.util.assign({}, item);
+            });
 
             var args = Array.isArray(options.args) ? options.args : [options.args || {}];
 
-            _.defaults(args[0], joint.util.omit(opt, 'args'));
+            joint.util.defaults(args[0], joint.util.omit(opt, 'args'));
             for (var i = 0; i < args.length; i++) {
                 if (pattern[i]) {
                     joint.util.assign(pattern[i], args[i]);
@@ -1476,7 +1480,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         _.each(this._gridSettings, function (gridLayerSetting, index) {
 
             var id = 'pattern_'  + index;
-            var options = _.merge(gridLayerSetting, localOptions[index], {
+            var options = joint.util.merge(gridLayerSetting, localOptions[index], {
                 sx: ctm.a || 1,
                 sy: ctm.d || 1,
                 ox: ctm.e || 0,
@@ -1620,7 +1624,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.updateBackgroundColor(opt.color);
 
         if (opt.image) {
-            opt = this._background = _.cloneDeep(opt);
+            opt = this._background = joint.util.cloneDeep(opt);
             var img = document.createElement('img');
             img.onload = _.bind(this.drawBackgroundImage, this, img, opt);
             img.src = opt.image;

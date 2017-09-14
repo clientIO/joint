@@ -941,7 +941,7 @@ joint.dia.Graph = Backbone.Model.extend({
     findModelsInArea: function(rect, opt) {
 
         rect = g.rect(rect);
-        opt = _.defaults(opt || {}, { strict: false });
+        opt = joint.util.defaults(opt || {}, { strict: false });
 
         var method = opt.strict ? 'containsRect' : 'intersect';
 
@@ -953,7 +953,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Find all elements under the given element.
     findModelsUnderElement: function(element, opt) {
 
-        opt = _.defaults(opt || {}, { searchBy: 'bbox' });
+        opt = joint.util.defaults(opt || {}, { searchBy: 'bbox' });
 
         var bbox = element.getBBox();
         var elements = (opt.searchBy == 'bbox')
