@@ -507,7 +507,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             return;
         }
 
-        var scalableBBox = this.getGroupBBox(scalable);
+        var scalableBBox = V(scalable).getBBox({ withoutTransformations: true, walkChildren: true });
         // Make sure `scalableBbox.width` and `scalableBbox.height` are not zero which can happen if the element does not have any content. By making
         // the width/height 1, we prevent HTML errors of the type `scale(Infinity, Infinity)`.
         scalable.attr('transform', 'scale(' + (size.width / (scalableBBox.width || 1)) + ',' + (size.height / (scalableBBox.height || 1)) + ')');
@@ -536,36 +536,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Update must always be called on non-rotated element. Otherwise, relative positioning
         // would work with wrong (rotated) bounding boxes.
         this.update();
-    },
-
-    getGroupBBox: function(group, ancestor) {
-
-        // for recursive call:
-        // initial step: group.child.bbox(false, group) === group.child.bbox(true)
-        // recursive step: group.descendant.bbox(false, group) - relative to inital group's transformations
-        if (ancestor === undefined) {
-            ancestor = group;
-        }
-
-        var outputBBox; // will be a g.Rectangle
-        var children =  group.node.children;
-        for (var i = 0; i < children.length; i++) {
-            var currentChild = V(children[i]);
-
-            var childBBox = currentChild.bbox(false, ancestor); // if this is not a group element, get the bbox of current element
-            if (currentChild.node.children.length !== 0) {
-                childBBox = getGroupBBox(currentChild, ancestor); // recursive call
-            }
-
-            if (!outputBBox) {
-                outputBBox = childBBox;
-            } else {
-                // make a new bounding box rectangle that contains this bounding box and previous bounding box
-                outputBBox = outputBBox.union(childBBox);
-            }
-        }
-
-        return outputBBox;
     },
 
     translate: function(model, changes, opt) {

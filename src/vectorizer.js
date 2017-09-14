@@ -243,6 +243,97 @@ V = Vectorizer = (function() {
 
         return V.transformRect(box, matrix);
     };
+    
+    // Returns an SVGRect that contains coordinates and dimensions of the real bounding box,
+    // i.e. after transformations are applied.
+    // Fixes a browser implementation bug that returns incorrect bounding boxes for groups of svg element.
+    // Takes an (object) `options` argument (optional) with the following attributes:
+    // (boolean) `withoutTransformations` (optional): if true, transform bounding boxes relative to this; if false or undefined, transform according to `target`
+    // (boolean) `walkChildren` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox(); 
+    // Takes a (V) `target` argument (optional): if not undefined, transform bounding boxes according to `target`; if undefined, transform according to this.node.ownerSVGElement
+    V.prototype.getBBox = function(options, target) {
+
+        var outputBBox;
+        var node = this.node;
+        var ownerSVGElement = node.ownerSVGElement;
+
+        // If the element is not in the live DOM, it does not have a bounding box defined and
+        // so fall back to 'zero' dimension element.
+        if (!ownerSVGElement) {
+            return g.Rect(0, 0, 0, 0);
+        }
+
+        if (!options) {
+            options = {};
+        }
+
+        if (!options.walkChildren) {
+            try {
+                outputBBox = node.getBBox();
+            } catch (e) {
+                // Fallback for IE.
+                outputBBox = {
+                    x: node.clientLeft,
+                    y: node.clientTop,
+                    width: node.clientWidth,
+                    height: node.clientHeight
+                };
+            }
+
+            if (options.withoutTransformations) {
+                // transform like this (that is, not at all)
+                return g.Rect(outputBBox);
+            } else {
+                // transform like target
+                // if target is undefined, transform like ownerSVGElement
+                if (target === undefined) {
+                    target = ownerSVGElement;
+                }
+                var matrix = this.getTransformToElement(target);
+                return V.transformRect(outputBBox, matrix);
+            }
+        } else { // if we do want to walk through children
+            // browsers report correct bbox around svg elements (one that envelops the path lines tightly)
+            // but some browsers fail to report the same bbox when the elements are in a group (returning a looser bbox that also includes control points, like node.getClientRect())
+            // this happens even if we wrap a single svg element into a group!
+            // this option setting makes the function recursively enter all the groups from this and deeper, get bboxes of the elements inside, then return a union of those bboxes
+
+            // recursion's initial pass-through settings:
+            // recursive calls just keep the target as whatever set up here
+            if (options.withoutTransformations) {
+                // transform children like this
+                target = this;
+            } else {
+                // transform children like target
+                // if target is undefined, transform like ownerSVGElement
+                if (target === undefined) {
+                    target = ownerSVGElement;
+                }
+            }
+
+            var children = node.children;
+            for (var i = 0; i < children.length; i++) {
+                var currentChild = V(children[i]);
+
+                // if currentChild is not a group element, get its bbox with a nonrecursive call
+                var childBBox = currentChild.getBBox({ withoutTransformations: false, walkChildren: false }, target);
+                if (currentChild.node.children.length !== 0) {
+                    // if currentChild is a group element (checked by checking the number of children), enter it with a recursive call
+                    childBBox = currentChild.getBBox({ withoutTransformations: false, walkChildren: true }, target);
+                }
+
+                if (!outputBBox) {
+                    // if this is the first iteration
+                    outputBBox = childBBox;
+                } else {
+                    // make a new bounding box rectangle that contains this child's bounding box and previous bounding box
+                    outputBBox = outputBBox.union(childBBox);
+                }
+            }
+
+            return outputBBox;
+        }
+    };
 
     V.prototype.text = function(content, opt) {
 
