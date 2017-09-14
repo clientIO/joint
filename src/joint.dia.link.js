@@ -1443,10 +1443,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var elements = paper.model.getElements();
         this._marked = {};
 
-        var views =  elements.map(paper.findViewByModel, paper);
+        for (var i = 0, n = elements.length; i < n; i++) {
+            var view = elements[i].findView(paper);
 
-        for (var i = 0, n = views.length; i < n; i++) {
-            var view = views[i];
+            if (!view) {
+                continue;
+            }
 
             var magnets = Array.prototype.slice.call(view.el.querySelectorAll('[magnet]'));
             if (view.el.getAttribute('magnet') !== 'false') {
