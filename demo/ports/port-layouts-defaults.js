@@ -2,7 +2,7 @@
 $('<h2/>').text('Default settings').appendTo('body');
 var graph1 = createPaper().model;
 $('<button/>').text('add port').appendTo('body').on('click', function() {
-    g1.addPort({ attrs: { circle: { magnet: true } } });
+    g1.addPort({ attrs: { circle: { magnet: true, stroke: '#31d0c6', 'stroke-width': 2, fill: '#ffffff' } } });
 });
 $('<button/>').text('remove port').appendTo('body').on('click', function() {
     g1.removePort(g1.getPorts()[0]);
