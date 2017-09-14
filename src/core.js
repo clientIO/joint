@@ -1427,6 +1427,7 @@ var joint = {
         has: _.has,
         bindAll: _.bindAll,
         assign: _.assign,
+        groupBy: _.groupBy,
         isPlainObject: _.isPlainObject,
         isEmpty: _.isEmpty,
         isEqual: _.isEqual,

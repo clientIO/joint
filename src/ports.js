@@ -181,14 +181,14 @@
             var current = this.get('ports') || {};
             var currentItemsMap = {};
 
-            _.each(current.items, function(item) {
+            (current.items || []).forEach(function(item) {
                 currentItemsMap[item.id] = true;
             });
 
             var previous = this.previous('ports') || {};
             var removed = {};
 
-            _.each(previous.items, function(item) {
+            (previous.items || []).forEach(function(item) {
                 if (!currentItemsMap[item.id]) {
                     removed[item.id] = true;
                 }
@@ -198,13 +198,13 @@
             if (graph && !util.isEmpty(removed)) {
 
                 var inboundLinks = graph.getConnectedLinks(this, { inbound: true });
-                _.each(inboundLinks, function(link) {
+                inboundLinks.forEach(function(link) {
 
                     if (removed[link.get('target').port]) link.remove();
                 });
 
                 var outboundLinks = graph.getConnectedLinks(this, { outbound: true });
-                _.each(outboundLinks, function(link) {
+                outboundLinks.forEach(function(link) {
 
                     if (removed[link.get('source').port]) link.remove();
                 });
@@ -342,7 +342,12 @@
             portsAttr = portsAttr || {};
             var ports = portsAttr.items || [];
 
-            _.each(ports, function(p) {
+            ports.forEach(function(p) {
+
+                if (typeof p !== 'object') {
+                    errorMessages.push('Element: invalid port ', p);
+                }
+
                 if (!this._isValidPortId(p.id)) {
                     p.id = util.uuid();
                 }
@@ -490,26 +495,29 @@
             // references to rendered elements without z-index
             var elementReferences = [];
             var elem = this._getContainerElement();
-            _.each(elem.node.childNodes, function(n) {
-                elementReferences.push(n);
-            });
 
-            var portsGropsByZ = _.groupBy(this.model._portSettingsData.getPorts(), 'z');
+            for (var i = 0, count = elem.node.childNodes.length; i < count; i++) {
+                elementReferences.push(elem.node.childNodes[i]);
+            }
+
+            var portsGropsByZ = util.groupBy(this.model._portSettingsData.getPorts(), 'z');
             var withoutZKey = 'auto';
 
             // render non-z first
-            _.each(portsGropsByZ[withoutZKey], function(port) {
+            (portsGropsByZ[withoutZKey] || []).forEach(function(port) {
                 var portElement = this._getPortElement(port);
                 elem.append(portElement);
                 elementReferences.push(portElement);
             }, this);
 
-            _.each(portsGropsByZ, function(groupPorts, groupName) {
+            var groupNames = Object.keys(portsGropsByZ);
+            for (var k = 0; k < groupNames.length; k++) {
+                var groupName = groupNames[k];
                 if (groupName !== withoutZKey) {
                     var z = parseInt(groupName, 10);
                     this._appendPorts(portsGropsByZ[groupName], z, elementReferences);
                 }
-            }, this);
+            }
 
             this._updatePorts();
         },
@@ -564,7 +572,7 @@
             this._updatePortGroup(undefined);
             // layout ports with explicit group
             var groupsNames = Object.keys(this.model._portSettingsData.groups);
-            _.each(groupsNames, this._updatePortGroup, this);
+            groupsNames.forEach(this._updatePortGroup, this);
         },
 
         /**
