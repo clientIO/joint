@@ -954,6 +954,26 @@ QUnit.module('vectorizer', function(hooks) {
         });
     });
 
+    QUnit.module('getBBox()', function() {
+
+        QUnit.test('sanity', function(assert) {
+            assert.ok(V(svgCircle).getBBox() instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({}) instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({ walkChildren: true }) instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({ target: svgCircle }) instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({ target: svgCircle, walkChildren: true }) instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({ target: svgContainer }) instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({ target: svgContainer, walkChildren: true }) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox() instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({}) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ walkChildren: true }) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgCircle }) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgCircle, walkChildren: true }) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgContainer }) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgContainer, walkChildren: true }) instanceof g.Rect);
+        });
+    });
+
     QUnit.module('parseTransformString', function() {
 
         QUnit.test('single value transformations, not the last one', function(assert) {

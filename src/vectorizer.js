@@ -293,6 +293,9 @@ V = Vectorizer = (function() {
             // this happens even if we wrap a single svg element into a group!
             // this option setting makes the function recursively enter all the groups from this and deeper, get bboxes of the elements inside, then return a union of those bboxes
 
+            var children = node.children;
+            if (!children) return this.getBBox({ target: options.target, walkChildren: false });
+
             // recursion's initial pass-through setting:
             // recursive passes-through just keep the target as whatever was set up here during the initial pass-through
             if (!options.target) {
@@ -300,7 +303,6 @@ V = Vectorizer = (function() {
                 options.target = this;
             } // else transform children/descendants like target
 
-            var children = node.children;
             for (var i = 0; i < children.length; i++) {
                 var currentChild = V(children[i]);
 
