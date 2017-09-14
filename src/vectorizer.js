@@ -294,7 +294,9 @@ V = Vectorizer = (function() {
             // this option setting makes the function recursively enter all the groups from this and deeper, get bboxes of the elements inside, then return a union of those bboxes
 
             var children = this.children();
-            //if (!children) return this.getBBox({ target: options.target, walkChildren: false });
+            var n = children.length;
+            
+            if (n === 0) return this.getBBox({ target: options.target, walkChildren: false });
 
             // recursion's initial pass-through setting:
             // recursive passes-through just keep the target as whatever was set up here during the initial pass-through
@@ -303,7 +305,7 @@ V = Vectorizer = (function() {
                 options.target = this;
             } // else transform children/descendants like target
 
-            for (var i = 0; i < children.length; i++) {
+            for (var i = 0; i < n; i++) {
                 var currentChild = children[i];
 
                 // if currentChild is not a group element, get its bbox with a nonrecursive call
@@ -682,15 +684,14 @@ V = Vectorizer = (function() {
     // Returns an array of V elements made from children of this.node.
     V.prototype.children = function() {
 
-        var children = this.node.children;
-
-        if (!children) {
-            return [];
-        }
+        var children = this.node.childNodes;
         
         var outputArray = [];
         for (var i = 0; i < children.length; i++) {
-            outputArray.push(V(children[i]));
+            var currentChild = children[i];
+            if (currentChild.nodeType === 1) {
+                outputArray.push(V(children[i])); 
+            }
         }
         return outputArray;
     };
@@ -763,8 +764,8 @@ V = Vectorizer = (function() {
 
     V.prototype.translateCenterToPoint = function(p) {
 
-        var bbox = this.bbox();
-        var center = g.rect(bbox).center();
+        var bbox = this.getBBox({ target: this.node.ownerSVGElement});
+        var center = bbox.center();
 
         this.translate(p.x - center.x, p.y - center.y);
     };
@@ -786,7 +787,7 @@ V = Vectorizer = (function() {
         this.scale(s.sx, s.sy);
 
         var svg = this.svg().node;
-        var bbox = this.bbox(false, target);
+        var bbox = this.getBBox({ target: target });
 
         // 1. Translate to origin.
         var translateToOrigin = svg.createSVGTransform();
@@ -971,7 +972,7 @@ V = Vectorizer = (function() {
 
         var svg = this.svg().node;
         target = target || svg;
-        var bbox = g.rect(this.bbox(false, target));
+        var bbox = this.getBBox({ target: target });
         var center = bbox.center();
 
         if (!bbox.intersectionWithLineFromCenterToPoint(ref)) return undefined;
