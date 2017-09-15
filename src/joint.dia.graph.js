@@ -439,7 +439,7 @@ joint.dia.Graph = Backbone.Model.extend({
         var edges = {};
 
         if (outbound) {
-            joint.util.each(this.getOutboundEdges(model.id), function(exists, edge) {
+            joint.util.forIn(this.getOutboundEdges(model.id), function(exists, edge) {
                 if (!edges[edge]) {
                     links.push(this.getCell(edge));
                     edges[edge] = true;
@@ -447,7 +447,7 @@ joint.dia.Graph = Backbone.Model.extend({
             }.bind(this));
         }
         if (inbound) {
-            joint.util.each(this.getInboundEdges(model.id), function(exists, edge) {
+            joint.util.forIn(this.getInboundEdges(model.id), function(exists, edge) {
                 // Skip links that were already added. Those must be self-loop links
                 // because they are both inbound and outbond edges of the same element.
                 if (!edges[edge]) {
@@ -473,7 +473,7 @@ joint.dia.Graph = Backbone.Model.extend({
             embeddedCells.forEach(function(cell) {
                 if (cell.isLink()) return;
                 if (outbound) {
-                    joint.util.each(this.getOutboundEdges(cell.id), function(exists, edge) {
+                    joint.util.forIn(this.getOutboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge] && !embeddedEdges[edge]) {
                             links.push(this.getCell(edge));
                             edges[edge] = true;
@@ -481,7 +481,7 @@ joint.dia.Graph = Backbone.Model.extend({
                     }.bind(this));
                 }
                 if (inbound) {
-                    joint.util.each(this.getInboundEdges(cell.id), function(exists, edge) {
+                    joint.util.forIn(this.getInboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge] && !embeddedEdges[edge]) {
                             links.push(this.getCell(edge));
                             edges[edge] = true;
@@ -819,7 +819,7 @@ joint.dia.Graph = Backbone.Model.extend({
     getSources: function() {
 
         var sources = [];
-        joint.util.each(this._nodes, function(exists, node) {
+        joint.util.forIn(this._nodes, function(exists, node) {
             if (!this._in[node] || joint.util.isEmpty(this._in[node])) {
                 sources.push(this.getCell(node));
             }
@@ -831,7 +831,7 @@ joint.dia.Graph = Backbone.Model.extend({
     getSinks: function() {
 
         var sinks = [];
-        joint.util.each(this._nodes, function(exists, node) {
+        joint.util.forIn(this._nodes, function(exists, node) {
             if (!this._out[node] || joint.util.isEmpty(this._out[node])) {
                 sinks.push(this.getCell(node));
             }
