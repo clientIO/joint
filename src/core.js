@@ -357,7 +357,7 @@ var joint = {
 
                 spot = V(magnet).findIntersection(reference, linkView.paper.viewport);
                 if (!spot) {
-                    bbox = g.rect(V(magnet).getBBox({ target: linkView.paper.viewport} ));
+                    bbox = V(magnet).getBBox({ target: linkView.paper.viewport });
                 }
 
             } else {
