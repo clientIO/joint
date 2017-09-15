@@ -56,6 +56,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Prevent the default context menu from being displayed.
         preventContextMenu: true,
+        // Prevent the default action for blank:pointer<action>.
         preventDefaultBlankAction: true,
         // Restrict the translation of elements by given bounding box.
         // Option accepts a boolean:
