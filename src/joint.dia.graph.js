@@ -465,12 +465,12 @@ joint.dia.Graph = Backbone.Model.extend({
             // In the first round, we collect all the embedded edges so that we can exclude
             // them from the final result.
             var embeddedEdges = {};
-            _.each(embeddedCells, function(cell) {
+            embeddedCells.forEach(function(cell) {
                 if (cell.isLink()) {
                     embeddedEdges[cell.id] = true;
                 }
             });
-            _.each(embeddedCells, function(cell) {
+            embeddedCells.forEach(function(cell) {
                 if (cell.isLink()) return;
                 if (outbound) {
                     _.each(this.getOutboundEdges(cell.id), function(exists, edge) {
@@ -683,7 +683,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
             if (opt.deep) {
                 var embeds = cell.getEmbeddedCells({ deep: true });
-                _.each(embeds, function(embed) {
+                embeds.forEach(function(embed) {
                     if (!cellMap[embed.id]) {
                         subgraph.push(embed);
                         cellMap[embed.id] = embed;

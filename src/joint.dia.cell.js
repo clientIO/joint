@@ -185,7 +185,7 @@ joint.dia.Cell = Backbone.Model.extend({
             if (opt.deep) {
 
                 var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
-                _.each(cells, function(cell) { cell.set('z', ++z, opt); });
+                cells.forEach(function(cell) { cell.set('z', ++z, opt); });
 
             }
 
@@ -208,7 +208,7 @@ joint.dia.Cell = Backbone.Model.extend({
             if (opt.deep) {
 
                 var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
-                _.eachRight(cells, function(cell) { cell.set('z', z--, opt); });
+                cells.reverse().forEach(function(cell) { cell.set('z', z--, opt); });
             }
 
             this.set('z', z, opt).stopBatch('to-back');
@@ -309,7 +309,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
                     // depthFirst algorithm
                     cells = this.getEmbeddedCells();
-                    _.each(cells, function(cell) {
+                    cells.forEach(function(cell) {
                         cells.push.apply(cells, cell.getEmbeddedCells(opt));
                     });
                 }
