@@ -506,14 +506,14 @@ joint.routers.manhattan = (function(g, _, joint, util) {
                 return joint.routers.orthogonal(vertices, opt, this);
             }
 
-            var leadPoint = _.first(partialRoute);
+            var leadPoint = partialRoute[0];
 
             if (leadPoint && leadPoint.equals(tailPoint)) {
                 // remove the first point if the previous partial route had the same point as last
                 partialRoute.shift();
             }
 
-            tailPoint = _.last(partialRoute) || tailPoint;
+            tailPoint = partialRoute[partialRoute.length - 1] || tailPoint;
 
             Array.prototype.push.apply(newVertices, partialRoute);
         }

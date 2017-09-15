@@ -184,7 +184,9 @@
 
     joint.layout.PortLabel = {
 
-        manual: _.rearg(labelAttributes, 2),
+        manual: function(portPosition, elBBox, opt) {
+            return labelAttributes(opt, portPosition)
+        },
 
         left: function(portPosition, elBBox, opt) {
             return labelAttributes(opt, { x: -15, attrs: { '.': { y: '.3em', 'text-anchor': 'end' } } });
