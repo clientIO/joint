@@ -1392,8 +1392,9 @@ var joint = {
                 return function() {
 
                     var args = Array.from(arguments);
-                    var cells = args.length > 0 && _.first(args) || [];
-                    var opt = args.length > 1 && _.last(args) || {};
+                    var n = args.length;
+                    var cells = n > 0 && args[0] || [];
+                    var opt = n > 1 && args[n - 1] || {};
 
                     if (!Array.isArray(cells)) {
 
@@ -1437,6 +1438,9 @@ var joint = {
         noop: function() {},
         cloneDeep: _.cloneDeep,
         toArray: _.toArray,
+        flattenDeep: _.flattenDeep,
+        camelCase: _.camelCase,
+        groupBy: _.groupBy,
         forIn: _.forIn,
 
         isBoolean: function(value) {

@@ -324,7 +324,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         if (cells.length) {
 
-            cells = _.flattenDeep(cells);
+            cells = joint.util.flattenDeep(cells);
             opt.position = cells.length;
 
             this.startBatch('add');
@@ -533,7 +533,7 @@ joint.dia.Graph = Backbone.Model.extend({
             return res;
         }.bind(this), {});
 
-        return _.values(neighbors);
+        return joint.util.toArray(neighbors);
     },
 
     getCommonAncestor: function(/* cells */) {
@@ -628,7 +628,7 @@ joint.dia.Graph = Backbone.Model.extend({
             }
 
             // Find the embeds of the original cell
-            var embeds = _.reduce(cell.get('embeds'), function(newEmbeds, embed) {
+            var embeds = joint.util.toArray(cell.get('embeds')).reduce(function(newEmbeds, embed) {
                 // Embedded cells that are not being cloned can not be carried
                 // over with other embedded cells.
                 if (cloneMap[embed]) {
@@ -978,7 +978,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Links are being ignored.
     getCellsBBox: function(cells, opt) {
 
-        return _.reduce(cells, function(memo, cell) {
+        return joint.util.toArray(cells).reduce(function(memo, cell) {
             if (cell.isLink()) return memo;
             if (memo) {
                 return memo.union(cell.getBBox(opt));
@@ -1037,7 +1037,9 @@ joint.dia.Graph = Backbone.Model.extend({
         if (name) {
             return this._batches[name];
         } else {
-            return _.any(this._batches, function(batches) { return batches > 0; });
+            return joint.util.toArray(this._batches).some(function(batches) {
+                return batches > 0;
+            });
         }
     }
 });

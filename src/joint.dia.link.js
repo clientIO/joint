@@ -211,11 +211,13 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         if (this.graph) {
 
-            var cells = _.compact([
+            var cells = [
                 this,
                 this.getSourceElement(), // null if source is a point
                 this.getTargetElement() // null if target is a point
-            ]);
+            ].filter(function(item) {
+                return !!item;
+            });
 
             connectionAncestor = this.graph.getCommonAncestor.apply(this.graph, cells);
         }
@@ -676,14 +678,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // cache source and target points
         var sourcePoint, targetPoint, sourceMarkerPoint, targetMarkerPoint;
+        var verticesArr = joint.util.toArray(vertices);
 
-        var firstVertex = _.first(vertices);
+        var firstVertex = verticesArr[0];
 
         sourcePoint = this.getConnectionPoint(
             'source', this.model.get('source'), firstVertex || this.model.get('target')
         ).round();
 
-        var lastVertex = _.last(vertices);
+        var lastVertex = vertices[vertices.length - 1];
 
         targetPoint = this.getConnectionPoint(
             'target', this.model.get('target'), lastVertex || sourcePoint
@@ -1024,10 +1027,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Make the markers "point" to their sticky points being auto-oriented towards
         // `targetPosition`/`sourcePosition`. And do so only if there is a markup for them.
+        var route = joint.util.toArray(this.route);
         if (sourceArrow) {
             sourceArrow.translateAndAutoOrient(
                 this.sourcePoint,
-                _.first(this.route) || this.targetPoint,
+                route[0] || this.targetPoint,
                 this.paper.viewport
             );
         }
@@ -1035,7 +1039,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (targetArrow) {
             targetArrow.translateAndAutoOrient(
                 this.targetPoint,
-                _.last(this.route) || this.sourcePoint,
+                route[route.length - 1] || this.sourcePoint,
                 this.paper.viewport
             );
         }

@@ -1571,7 +1571,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var backgroundRepeat = opt.repeat || 'no-repeat';
         var backgroundOpacity = opt.opacity || 1;
         var backgroundQuality = Math.abs(opt.quality) || 1;
-        var backgroundPattern = this.constructor.backgroundPatterns[_.camelCase(backgroundRepeat)];
+        var backgroundPattern = this.constructor.backgroundPatterns[joint.util.camelCase(backgroundRepeat)];
 
         if (joint.util.isFunction(backgroundPattern)) {
             // 'flip-x', 'flip-y', 'flip-xy', 'watermark' and custom
