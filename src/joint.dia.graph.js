@@ -697,7 +697,7 @@ joint.dia.Graph = Backbone.Model.extend({
             }
         });
 
-        _.each(links, function(link) {
+        links.forEach(function(link) {
             // For links, return their source & target (if they are elements - not points).
             var source = link.get('source');
             var target = link.get('target');
@@ -715,7 +715,7 @@ joint.dia.Graph = Backbone.Model.extend({
             }
         }, this);
 
-        _.each(elements, function(element) {
+        elements.forEach(function(element) {
             // For elements, include their connected links if their source/target is in the subgraph;
             var links = this.getConnectedLinks(element, opt);
             links.forEach(function(link) {

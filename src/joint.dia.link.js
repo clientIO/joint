@@ -403,7 +403,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Cache all children elements for quicker access.
         this._V = {}; // vectorized markup;
-        _.each(children, function(child) {
+        children.forEach(function(child) {
 
             var className = child.attr('class');
 

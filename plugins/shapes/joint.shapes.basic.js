@@ -314,16 +314,16 @@ joint.shapes.basic.PortsViewInterface = {
         var portTemplate = joint.util.template(this.model.portMarkup);
 
         var ports = this.model.ports || [];
-        _.each(ports.filter(function(p) {
+        ports.filter(function(p) {
             return p.type === 'in';
-        }), function(port, index) {
+        }).forEach(function(port, index) {
 
             $inPorts.append(V(portTemplate({ id: index, port: port })).node);
         });
 
-        _.each(ports.filter(function(p) {
+        ports.filter(function(p) {
             return p.type === 'out';
-        }), function(port, index) {
+        }).forEach(function(port, index) {
 
             $outPorts.append(V(portTemplate({ id: index, port: port })).node);
         });

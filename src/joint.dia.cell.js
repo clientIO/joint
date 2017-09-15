@@ -687,7 +687,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         if (type) {
 
-            _.each(type.toLowerCase().split('.'), function(value, index, list) {
+            type.toLowerCase().split('.').forEach(function(value, index, list) {
                 classNames.push('type-' + list.slice(0, index + 1).join('-'));
             });
         }
