@@ -439,22 +439,22 @@ joint.dia.Graph = Backbone.Model.extend({
         var edges = {};
 
         if (outbound) {
-            _.each(this.getOutboundEdges(model.id), function(exists, edge) {
+            joint.util.each(this.getOutboundEdges(model.id), function(exists, edge) {
                 if (!edges[edge]) {
                     links.push(this.getCell(edge));
                     edges[edge] = true;
                 }
-            }, this);
+            }.bind(this));
         }
         if (inbound) {
-            _.each(this.getInboundEdges(model.id), function(exists, edge) {
+            joint.util.each(this.getInboundEdges(model.id), function(exists, edge) {
                 // Skip links that were already added. Those must be self-loop links
                 // because they are both inbound and outbond edges of the same element.
                 if (!edges[edge]) {
                     links.push(this.getCell(edge));
                     edges[edge] = true;
                 }
-            }, this);
+            }.bind(this));
         }
 
         // If 'deep' option is 'true', return all the links that are connected to any of the descendent cells
@@ -473,20 +473,20 @@ joint.dia.Graph = Backbone.Model.extend({
             embeddedCells.forEach(function(cell) {
                 if (cell.isLink()) return;
                 if (outbound) {
-                    _.each(this.getOutboundEdges(cell.id), function(exists, edge) {
+                    joint.util.each(this.getOutboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge] && !embeddedEdges[edge]) {
                             links.push(this.getCell(edge));
                             edges[edge] = true;
                         }
-                    }, this);
+                    }.bind(this));
                 }
                 if (inbound) {
-                    _.each(this.getInboundEdges(cell.id), function(exists, edge) {
+                    joint.util.each(this.getInboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge] && !embeddedEdges[edge]) {
                             links.push(this.getCell(edge));
                             edges[edge] = true;
                         }
-                    }, this);
+                    }.bind(this));
                 }
             }, this);
         }
@@ -819,11 +819,11 @@ joint.dia.Graph = Backbone.Model.extend({
     getSources: function() {
 
         var sources = [];
-        _.each(this._nodes, function(exists, node) {
+        joint.util.each(this._nodes, function(exists, node) {
             if (!this._in[node] || joint.util.isEmpty(this._in[node])) {
                 sources.push(this.getCell(node));
             }
-        }, this);
+        }.bind(this));
         return sources;
     },
 
@@ -831,11 +831,11 @@ joint.dia.Graph = Backbone.Model.extend({
     getSinks: function() {
 
         var sinks = [];
-        _.each(this._nodes, function(exists, node) {
+        joint.util.each(this._nodes, function(exists, node) {
             if (!this._out[node] || joint.util.isEmpty(this._out[node])) {
                 sinks.push(this.getCell(node));
             }
-        }, this);
+        }.bind(this));
         return sinks;
     },
 

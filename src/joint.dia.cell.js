@@ -38,17 +38,17 @@ joint.dia.Cell = Backbone.Model.extend({
 
         // Loop through all the attributes and
         // omit the default attributes as they are implicitly reconstructable by the cell 'type'.
-        _.each(attrs, function(attr, selector) {
+        joint.util.each(attrs, function(attr, selector) {
 
             var defaultAttr = defaultAttrs[selector];
 
-            _.each(attr, function(value, name) {
+            joint.util.each(attr, function(value, name) {
 
                 // attr is mainly flat though it might have one more level (consider the `style` attribute).
                 // Check if the `value` is object and if yes, go one level deep.
                 if (joint.util.isObject(value) && !Array.isArray(value)) {
 
-                    _.each(value, function(value2, name2) {
+                    joint.util.each(value, function(value2, name2) {
 
                         if (!defaultAttr || !defaultAttr[name] || !joint.util.isEqual(defaultAttr[name][name2], value2)) {
 
@@ -102,7 +102,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         // Collect ports from the `attrs` object.
         var ports = {};
-        _.each(this.get('attrs'), function(attrs, selector) {
+        joint.util.each(this.get('attrs'), function(attrs, selector) {
 
             if (attrs && attrs.port) {
 

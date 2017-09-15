@@ -717,7 +717,7 @@ var joint = {
 
             var $element = $(element);
 
-            _.each(attrs, function(attrs, selector) {
+            joint.util.each(attrs, function(attrs, selector) {
                 var $elements = $element.find(selector).addBack().filter(selector);
                 // Make a special case for setting classes.
                 // We do not want to overwrite any existing class.
@@ -1437,6 +1437,7 @@ var joint = {
         noop: function() {},
         cloneDeep: _.cloneDeep,
         toArray: _.toArray,
+        each: _.each,
 
         isBoolean: function(value) {
             var toString = Object.prototype.toString;
