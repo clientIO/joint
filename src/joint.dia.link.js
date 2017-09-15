@@ -686,7 +686,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             'source', this.model.get('source'), firstVertex || this.model.get('target')
         ).round();
 
-        var lastVertex = vertices[vertices.length - 1];
+        var lastVertex = verticesArr[verticesArr.length - 1];
 
         targetPoint = this.getConnectionPoint(
             'target', this.model.get('target'), lastVertex || sourcePoint
