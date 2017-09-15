@@ -218,13 +218,13 @@
             if (graph && !util.isEmpty(removed)) {
 
                 var inboundLinks = graph.getConnectedLinks(this, { inbound: true });
-                _.each(inboundLinks, function(link) {
+                inboundLinks.forEach(function(link) {
 
                     if (removed[link.get('target').port]) link.remove();
                 });
 
                 var outboundLinks = graph.getConnectedLinks(this, { outbound: true });
-                _.each(outboundLinks, function(link) {
+                outboundLinks.forEach(function(link) {
 
                     if (removed[link.get('source').port]) link.remove();
                 });
