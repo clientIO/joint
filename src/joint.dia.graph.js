@@ -718,7 +718,7 @@ joint.dia.Graph = Backbone.Model.extend({
         _.each(elements, function(element) {
             // For elements, include their connected links if their source/target is in the subgraph;
             var links = this.getConnectedLinks(element, opt);
-            _.each(links, function(link) {
+            links.forEach(function(link) {
                 var source = link.get('source');
                 var target = link.get('target');
                 if (!cellMap[link.id] && source.id && cellMap[source.id] && target.id && cellMap[target.id]) {
@@ -894,7 +894,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var isNeighbor = false;
 
-        _.each(this.getConnectedLinks(elementA, opt), function(link) {
+        this.getConnectedLinks(elementA, opt).forEach(function(link) {
 
             var source = link.get('source');
             var target = link.get('target');
@@ -918,7 +918,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Disconnect links connected to the cell `model`.
     disconnectLinks: function(model, options) {
 
-        _.each(this.getConnectedLinks(model), function(link) {
+        this.getConnectedLinks(model).forEach(function(link) {
 
             link.set(link.get('source').id === model.id ? 'source' : 'target', g.point(0, 0), options);
         });

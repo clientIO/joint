@@ -127,13 +127,13 @@ joint.dia.Cell = Backbone.Model.extend({
         if (this.graph && !joint.util.isEmpty(removedPorts)) {
 
             var inboundLinks = this.graph.getConnectedLinks(this, { inbound: true });
-            _.each(inboundLinks, function(link) {
+            inboundLinks.forEach(function(link) {
 
                 if (removedPorts[link.get('target').port]) link.remove();
             });
 
             var outboundLinks = this.graph.getConnectedLinks(this, { outbound: true });
-            _.each(outboundLinks, function(link) {
+            outboundLinks.forEach(function(link) {
 
                 if (removedPorts[link.get('source').port]) link.remove();
             });
