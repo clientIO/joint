@@ -76,6 +76,10 @@
             set: 'xlink:href'
         },
 
+        xlinkShow: {
+            set: 'xlink:show'
+        },
+
         xmlSpace: {
             set: 'xml:space'
         },
