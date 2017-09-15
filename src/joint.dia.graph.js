@@ -155,7 +155,7 @@ joint.dia.Graph = Backbone.Model.extend({
         this._nodes = {};
         this._edges = {};
 
-        _.each(cells, this._restructureOnAdd, this);
+        cells.forEach(this._restructureOnAdd, this);
     },
 
     _restructureOnChangeSource: function(link) {
@@ -328,7 +328,7 @@ joint.dia.Graph = Backbone.Model.extend({
             opt.position = cells.length;
 
             this.startBatch('add');
-            _.each(cells, function(cell) {
+            cells.forEach(function(cell) {
                 opt.position--;
                 this.addCell(cell, opt);
             }, this);

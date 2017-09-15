@@ -587,7 +587,7 @@
             this._updatePortGroup(undefined);
             // layout ports with explicit group
             var groupsNames = Object.keys(this.model._portSettingsData.groups);
-            _.each(groupsNames, this._updatePortGroup, this);
+            groupsNames.forEach(this._updatePortGroup, this);
         },
 
         /**
