@@ -962,8 +962,8 @@ joint.dia.Graph = Backbone.Model.extend({
             : this.findModelsFromPoint(bbox[opt.searchBy]());
 
         // don't account element itself or any of its descendents
-        return _.reject(elements, function(el) {
-            return element.id == el.id || el.isEmbeddedIn(element);
+        return elements.filter(function(el) {
+            return element.id !== el.id && !el.isEmbeddedIn(element);
         });
     },
 
@@ -991,8 +991,8 @@ joint.dia.Graph = Backbone.Model.extend({
     translate: function(dx, dy, opt) {
 
         // Don't translate cells that are embedded in any other cell.
-        var cells = _.reject(this.getCells(), function(cell) {
-            return cell.isEmbedded();
+        var cells = this.getCells().filter(function(cell) {
+            return !cell.isEmbedded();
         });
 
         joint.util.invoke(cells, 'translate', dx, dy, opt);
