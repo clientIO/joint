@@ -68,7 +68,7 @@ joint.shapes.basic.Generic.define('uml.Class', {
 
         var offsetY = 0;
 
-        _.each(rects, function(rect) {
+        rects.forEach(function(rect) {
 
             var lines = Array.isArray(rect.text) ? rect.text : [rect.text];
             var rectHeight = lines.length * 20 + 20;

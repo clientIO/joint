@@ -403,7 +403,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Cache all children elements for quicker access.
         this._V = {}; // vectorized markup;
-        _.each(children, function(child) {
+        children.forEach(function(child) {
 
             var className = child.attr('class');
 
@@ -1654,7 +1654,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     var minDistance = Number.MAX_VALUE;
                     var pointer = g.point(x, y);
 
-                    _.each(viewsInArea, function(view) {
+                    viewsInArea.forEach(function(view) {
 
                         // skip connecting to the element in case '.': { magnet: false } attribute present
                         if (view.el.getAttribute('magnet') !== 'false') {

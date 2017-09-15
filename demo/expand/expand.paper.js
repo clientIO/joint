@@ -76,7 +76,7 @@ joint.dia.ExpandPaper = joint.dia.Paper.extend({
         var graph = this.model;
         var links = graph.getConnectedLinks(element);
 
-        _.each(links, function(link) {
+        links.forEach(function(link) {
 
             var oppositeCell;
             var r = link.resolveOrientation(element);

@@ -695,7 +695,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             var batchSize = (this.options.async && this.options.async.batchSize) || 50;
             var batchCells = cells.splice(0, batchSize);
 
-            _.each(batchCells, function(cell) {
+            batchCells.forEach(function(cell) {
 
                 // The cell has to be part of the graph.
                 // There is a chance in asynchronous rendering
@@ -1428,7 +1428,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         this._gridSettings = [];
 
         var optionsList = Array.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
-        _.each(optionsList, function (item) {
+        optionsList.forEach(function (item) {
             this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
         }, this);
         return this;
@@ -1482,7 +1482,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var ctm = this.matrix();
         var refs = this._getGriRefs();
 
-        _.each(this._gridSettings, function (gridLayerSetting, index) {
+        this._gridSettings.forEach(function (gridLayerSetting, index) {
 
             var id = 'pattern_'  + index;
             var options = joint.util.merge(gridLayerSetting, localOptions[index], {

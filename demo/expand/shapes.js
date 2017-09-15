@@ -80,7 +80,7 @@ joint.dia.Element.define('toggable.Element', {
         if (portId) {
 
             if (this.isPortCollapsed(portId)) {
-                _.each(this.graph.getConnectedLinks(this), function(link) {
+                this.graph.getConnectedLinks(this).forEach(function(link) {
                     var orientedEnds = link.resolveOrientation(this);
                     if (orientedEnds && orientedEnds.currentEnd.port === portId && orientedEnds.oppositeEnd.id) {
                         this.graph.getCell(orientedEnds.oppositeEnd.id).show();
