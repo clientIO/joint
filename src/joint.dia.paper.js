@@ -56,7 +56,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Prevent the default context menu from being displayed.
         preventContextMenu: true,
-
+        // Prevent the default action for blank:pointer<action>.
+        preventDefaultBlankAction: true,
         // Restrict the translation of elements by given bounding box.
         // Option accepts a boolean:
         //  true - the translation is restricted to the paper area
@@ -1256,19 +1257,23 @@ joint.dia.Paper = joint.mvc.View.extend({
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
 
-        evt.preventDefault();
-
         this._mousemoved = 0;
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
         if (view) {
 
+            evt.preventDefault();
+
             this.sourceView = view;
 
             view.pointerdown(evt, localPoint.x, localPoint.y);
 
         } else {
+
+            if (this.options.preventDefaultBlankAction) {
+                evt.preventDefault();
+            }
 
             this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
         }
