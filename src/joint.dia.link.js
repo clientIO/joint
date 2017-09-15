@@ -577,7 +577,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
         var markupTemplate = joint.util.template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
 
-        _.each(this.model.get('vertices'), function(vertex, idx) {
+        joint.util.toArray(this.model.get('vertices')).forEach(function(vertex, idx) {
 
             $markerVertices.append(V(markupTemplate(joint.util.assign({ idx: idx }, vertex))).node);
         });
