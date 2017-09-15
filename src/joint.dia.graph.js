@@ -787,7 +787,7 @@ joint.dia.Graph = Backbone.Model.extend({
             if (!visited[next.id]) {
                 visited[next.id] = true;
                 if (iteratee(next, distance[next.id]) === false) return;
-                _.each(this.getNeighbors(next, opt), function(neighbor) {
+                this.getNeighbors(next, opt).forEach(function(neighbor) {
                     distance[neighbor.id] = distance[next.id] + 1;
                     queue.push(neighbor);
                 });
@@ -808,7 +808,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (iteratee(element, distance) === false) return;
         visited[element.id] = true;
 
-        _.each(this.getNeighbors(element, opt), function(neighbor) {
+        this.getNeighbors(element, opt).forEach(function(neighbor) {
             if (!visited[neighbor.id]) {
                 this.dfs(neighbor, iteratee, opt, visited, distance + 1);
             }
