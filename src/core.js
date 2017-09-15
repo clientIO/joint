@@ -357,7 +357,7 @@ var joint = {
 
                 spot = V(magnet).findIntersection(reference, linkView.paper.viewport);
                 if (!spot) {
-                    bbox = g.rect(V(magnet).bbox(false, linkView.paper.viewport));
+                    bbox = g.rect(V(magnet).getBBox({ target: linkView.paper.viewport} ));
                 }
 
             } else {
@@ -662,7 +662,8 @@ var joint = {
             // Firefox correction
             if (element.ownerSVGElement) {
 
-                var bbox = V(element).bbox();
+                var vel = V(element);
+                var bbox = vel.getBBox({ target: vel.svg() });
 
                 // if FF getBoundingClientRect includes stroke-width, getBBox doesn't.
                 // To unify this across all browsers we need to adjust the final bBox with `stroke-width` value.

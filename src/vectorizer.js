@@ -247,10 +247,12 @@ V = Vectorizer = (function() {
     // Returns an SVGRect that contains coordinates and dimensions of the real bounding box,
     // i.e. after transformations are applied.
     // Fixes a browser implementation bug that returns incorrect bounding boxes for groups of svg elements.
-    // Takes an (object) `options` argument (optional) with the following attributes:
-    // (V) `target` (optional): if not undefined, transform bounding boxes relative to `target`; if undefined, transform relative to this
+    // Takes an (Object) `opt` argument (optional) with the following attributes:
+    // (Object) `target` (optional): if not undefined, transform bounding boxes relative to `target`; if undefined, transform relative to this
     // (Boolean) `walkChildren` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox(); 
-    V.prototype.getBBox = function(options) {
+    V.prototype.getBBox = function(opt) {
+
+        var options = {};
 
         var outputBBox;
         var node = this.node;
@@ -262,8 +264,13 @@ V = Vectorizer = (function() {
             return g.Rect(0, 0, 0, 0);
         }
 
-        if (!options) {
-            options = {};
+        if (opt) {
+            if (opt.target) { // check if target exists
+                options.target = V.toNode(opt.target); // works for V objects, jquery objects, and node objects
+            }
+            if (opt.walkChildren) {
+                options.walkChildren = opt.walkChildren;
+            }
         }
 
         if (!options.walkChildren) {
@@ -296,13 +303,15 @@ V = Vectorizer = (function() {
             var children = this.children();
             var n = children.length;
             
-            if (n === 0) return this.getBBox({ target: options.target, walkChildren: false });
+            if (n === 0) {
+                return this.getBBox({ target: options.target, walkChildren: false });
+            }
 
             // recursion's initial pass-through setting:
             // recursive passes-through just keep the target as whatever was set up here during the initial pass-through
             if (!options.target) {
                 // transform children/descendants like this (their parent/ancestor)
-                options.target = this;
+                options.target = V.toNode(this); // works for V objects, jquery objects, and node objects
             } // else transform children/descendants like target
 
             for (var i = 0; i < n; i++) {
@@ -764,7 +773,7 @@ V = Vectorizer = (function() {
 
     V.prototype.translateCenterToPoint = function(p) {
 
-        var bbox = this.getBBox({ target: this.node.ownerSVGElement});
+        var bbox = this.getBBox({ target: this.svg() });
         var center = bbox.center();
 
         this.translate(p.x - center.x, p.y - center.y);

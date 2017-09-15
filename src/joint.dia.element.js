@@ -526,7 +526,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (rotation && rotation !== 'null') {
 
             rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width / 2) + ',' + (size.height / 2) + ')');
-            var rotatableBBox = scalable.bbox(false, this.paper.viewport);
+            var rotatableBBox = scalable.getBBox({ target: this.paper.viewport });
 
             // Store new x, y and perform rotate() again against the new rotation origin.
             model.set('position', { x: rotatableBBox.x, y: rotatableBBox.y }, opt);
