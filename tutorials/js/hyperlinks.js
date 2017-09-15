@@ -1,54 +1,98 @@
 (function() {
 
-    var graph = new joint.dia.Graph;
-    var paper = new joint.dia.Paper({ el: $('#paper-hyperlinks'), width: 650, height: 400, gridSize: 1, model: graph });
+    // Create a custom element.
+    // ------------------------
 
-// Create a custom element.
-// ------------------------
-
-    joint.shapes.custom = {};
-// The following custom shape creates a link out of the whole element.
-    joint.shapes.custom.ElementLink = joint.shapes.basic.Rect.extend({
-        // Note the `<a>` SVG element surrounding the rest of the markup.
-        markup: '<a><g class="rotatable"><g class="scalable"><rect/></g><text/></g></a>',
-        defaults: joint.util.deepSupplement({
-            type: 'custom.ElementLink'
-        }, joint.shapes.basic.Rect.prototype.defaults)
-    });
-// The following custom shape creates a link only out of the label inside the element.
-    joint.shapes.custom.ElementLabelLink = joint.shapes.basic.Rect.extend({
-        // Note the `<a>` SVG element surrounding the rest of the markup.
-        markup: '<g class="rotatable"><g class="scalable"><rect/></g><a><text/></a></g>',
-        defaults: joint.util.deepSupplement({
-            type: 'custom.ElementLabelLink'
-        }, joint.shapes.basic.Rect.prototype.defaults)
-    });
-
-// Create JointJS elements and add them to the graph as usual.
-// -----------------------------------------------------------
-
-    var el1 = new joint.shapes.custom.ElementLink({
-        position: { x: 80, y: 80 }, size: { width: 170, height: 100 },
+    var ElementLink = joint.dia.Element.define('custom.ElementLink', {
         attrs: {
-            rect: { fill: '#E67E22', stroke: '#D35400', 'stroke-width': 5 },
-            a: { 'xlink:href': 'http://jointjs.com', 'xlink:show': 'new', cursor: 'pointer' },
-            text: { text: 'Element as a link:\nhttp://jointjs.com', fill: 'white' }
-        }
-    });
-    var el2 = new joint.shapes.custom.ElementLabelLink({
-        position: { x: 370, y: 160 }, size: { width: 170, height: 100 },
-        attrs: {
-            rect: { fill: '#9B59B6', stroke: '#8E44AD', 'stroke-width': 5 },
-            a: { 'xlink:href': 'http://jointjs.com', 'xlink:show': 'new', cursor: 'pointer' },
-            text: { text: 'Only label as a link:\nhttp://jointjs.com', fill: 'white' }
+            rect: {
+                refWidth: '100%',
+                refHeight: '100%',
+                strokeWidth: 5
+            },
+            text: {
+                refX: '50%',
+                refY: '50%',
+                xAlignment: 'middle',
+                yAlignment: 'middle',
+                fill: '#FFFFFF'
+            },
+            a: {
+                xlinkShow: 'new',
+                cursor: 'pointer'
+            }
         }
     });
 
-    var l = new joint.dia.Link({
-        source: { id: el1.id }, target: { id: el2.id },
-        attrs: { '.connection': { 'stroke-width': 5, stroke: '#34495E' } }
+    var ElementLinkView = joint.dia.ElementView.extend({
+        events: {
+            'touchstart a': 'onAnchorTouchStart'
+        },
+        onAnchorTouchStart: function(evt) {
+            // Make sure the default action (opening an <a> tag) is not prevented on touch devices
+            evt.stopPropagation();
+        }
     });
 
-    graph.addCells([el1, el2, l]);
+    // Create JointJS elements and add them to the graph as usual.
+    // -----------------------------------------------------------
+
+    // The following custom shape creates a link out of the whole element.
+    var element1 = new ElementLink({
+        // Note the `<a>` SVG element surrounding the entire markup.
+        markup: '<a><rect/><text/></a>',
+        attrs: {
+            a: {
+                xlinkHref: 'https://jointjs.com'
+            },
+            text: {
+                text: 'Element as a link:\nhttps://jointjs.com'
+            },
+            rect: {
+                fill: '#E67E22',
+                stroke: '#D35400'
+            }
+        }
+    });
+
+    // The following custom shape creates a link only out of the label inside the element.
+    var element2 = new ElementLink({
+        // Note the `<a>` SVG element surrounding only the text markup.
+        markup: '<rect/><a><text/></a>',
+        attrs: {
+            a: {
+                xlinkHref: 'https://jointjs.com'
+            },
+            text: {
+                text: 'Only label as a link:\nhttps://jointjs.com'
+            },
+            rect: {
+                fill: '#9B59B6',
+                stroke: '#8E44AD'
+            }
+        }
+    });
+
+    var link = new joint.dia.Link({
+        attrs: {
+            '.connection': {
+                strokeWidth: 5,
+                stroke: '#34495E'
+            }
+        }
+    });
+
+    var paper = new joint.dia.Paper({
+        el: document.getElementById('paper-hyperlinks'),
+        width: 650,
+        height: 400,
+        elementView: ElementLinkView
+    });
+
+    paper.model.addCells([
+        element1.position(80, 80).size(170, 100),
+        element2.position(370, 160).size(170, 100),
+        link.set('source', { id: element1.id }).set('target', { id: element2.id })
+    ]);
 
 }());
