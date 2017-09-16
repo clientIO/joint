@@ -1035,24 +1035,25 @@ V = Vectorizer = (function() {
 
         var matrix = this.getTransformToElement(target);
         var localRef = V.transformPoint(ref, matrix.inverse());
-
+        var geometryShape = this.toGeometryShape();
         // backwards compatibility
-        if (this.node.localName.toUpperCase() === 'PATH') {
-            var bbox = this.bbox(true);
-            if (bbox.containsPoint(localRef)) {
-                return undefined;
-            }
+        var bbox = geometryShape.bbox();
+        if (bbox.containsPoint(localRef)) {
+            return undefined;
         }
 
         var intersection;
-        var geometryShape = this.toGeometryShape();
-
         // TODO: fix
         if (geometryShape.intersectionWithLineFromCenterToPoint) {
             intersection = geometryShape.intersectionWithLineFromCenterToPoint(localRef);
         } else {
             intersection = geometryShape.closestPoint(localRef);
         }
+
+        //intersection = geometryShape.intersectionWithLineFromCenterToPoint(localRef) || geometryShape.closestPoint(localRef);
+        // if (geometryShape.closestPoint) {
+        //     intersection = geometryShape.closestPoint(localRef);
+        // }
 
         if (intersection) {
             return V.transformPoint(intersection, matrix);

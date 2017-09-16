@@ -1258,7 +1258,7 @@ var g = (function() {
             return this.pointAtLength(this.closestPointLength(p));
         },
 
-        closestPointLength: function(p) {
+        closestPointLength2: function(p) {
             var points = this.points;
             var pointLength;
             var minSqrDistance = Infinity;
@@ -1483,6 +1483,37 @@ var g = (function() {
             }
 
             return Polyline(hullPoints);
+        },
+
+        closestPointLength: function(p) {
+            var points = this.points;
+            var pointLength;
+            var minSqrDistance = Infinity;
+            var minSqrRefDistance = Infinity;
+            var length = 0;
+            var bbox = this.bbox();
+            var c = bbox.center();
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var line = Line(points[i], points[i+1]);
+                var lineLength = line.length();
+                var cpNormalizedLength = line.closestPointNormalizedLength(p);
+                var cp = line.pointAt(cpNormalizedLength);
+                var sqrRefDistance = cp.squaredDistance(p) * 1.1;
+                var sqrCenterDistance = cp.squaredDistance(c);
+                var sqrDistance = sqrCenterDistance + sqrRefDistance;
+                if (sqrDistance < minSqrDistance) {
+                    minSqrDistance = sqrDistance;
+                    pointLength = length + cpNormalizedLength * lineLength;
+                    minSqrRefDistance = sqrRefDistance;
+                } else if (sqrDistance < minSqrDistance + 1) {
+                    if (sqrRefDistance < minSqrRefDistance) {
+                        pointLength = length + cpNormalizedLength * lineLength;
+                        minSqrRefDistance = sqrRefDistance;
+                    }
+                }
+                length += lineLength;
+            }
+            return pointLength;
         },
 
         bbox: function() {
