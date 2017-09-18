@@ -177,12 +177,14 @@ joint.layout.DirectedGraph = {
             // 2. map id on cells
             // 3. sort cells by their depth (the deepest first)
             // 4. resize cell to fit their direct children only.
-            _.chain(glGraph.nodes())
+            var clusters = glGraph.nodes()
                 .filter(function(v) { return glGraph.children(v).length > 0; })
-                .map(graph.getCell, graph)
-                .sortBy(function(cluster) { return -cluster.getAncestors().length; })
-                .invoke('fitEmbeds', { padding: opt.clusterPadding })
-                .value();
+                .map(graph.getCell.bind(graph))
+                .sort(function(aCluster, bCluster) {
+                    return bCluster.getAncestors().length - aCluster.getAncestors().length;
+                });
+
+            joint.util.invoke(clusters, 'fitEmbeds', { padding: opt.clusterPadding });
         }
 
         graph.stopBatch('layout');
