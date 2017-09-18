@@ -76,9 +76,13 @@ joint.connectors.jumpover = (function(_, g, util) {
      * @return {g.point[]} list of intersection points
      */
     function findLineIntersections(line, crossCheckLines) {
-        return _(crossCheckLines).map(function(crossCheckLine) {
-            return line.intersection(crossCheckLine);
-        }).compact().value();
+        return util.toArray(crossCheckLines).reduce(function(res, crossCheckLine) {
+            var intersection = line.intersection(crossCheckLine);
+            if (intersection) {
+                res.push(intersection);
+            }
+            return res;
+        }, []);
     }
 
     /**
@@ -166,7 +170,7 @@ joint.connectors.jumpover = (function(_, g, util) {
         var start = ['M', lines[0].start.x, lines[0].start.y];
 
         // make a paths from lines
-        var paths = _(lines).map(function(line) {
+        var paths = util.toArray(lines).reduce(function(res, line) {
             if (line.isJump) {
                 var diff;
                 if (jumpType === 'arc') {
@@ -174,9 +178,9 @@ joint.connectors.jumpover = (function(_, g, util) {
                     // determine rotation of arc based on difference between points
                     var xAxisRotate = Number(diff.x < 0 && diff.y < 0);
                     // for a jump line we create an arc instead
-                    return ['A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y];
+                    res = res.concat(['A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y]);
                 } else if (jumpType === 'gap') {
-                    return ['M', line.end.x, line.end.y];
+                    res = res.concat(['M', line.end.x, line.end.y]);
                 } else if (jumpType === 'cubic') {
                     diff = line.start.difference(line.end);
                     var angle = line.start.theta(line.end);
@@ -189,13 +193,15 @@ joint.connectors.jumpover = (function(_, g, util) {
                     var controlStartPoint = g.point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
                     var controlEndPoint = g.point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
                     // create a cubic bezier curve
-                    return ['C', controlStartPoint.x, controlStartPoint.y, controlEndPoint.x, controlEndPoint.y, line.end.x, line.end.y];
+                    res = res.concat(['C', controlStartPoint.x, controlStartPoint.y, controlEndPoint.x, controlEndPoint.y, line.end.x, line.end.y]);
                 }
+            } else {
+                res = res.concat(['L', line.end.x, line.end.y]);
             }
-            return ['L', line.end.x, line.end.y];
-        }).flatten().value();
+            return res;
+        }, start);
 
-        return [].concat(start, paths).join(' ');
+        return paths.join(' ');
     }
 
     /**
