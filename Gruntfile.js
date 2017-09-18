@@ -128,12 +128,9 @@ module.exports = function(grunt) {
 
         webpack: {
             joint: {
-                files: {
-                   './build/joint.webpack-bundle.js' : './build/joint.min.js'
-                },
                 entry: './build/joint.min.js',
                 output: {
-                    path: './build/',
+                    path: __dirname + '/build',
                     filename: 'joint.webpack-bundle.js',
                     library: 'joint'
                 },
