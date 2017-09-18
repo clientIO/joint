@@ -1443,7 +1443,6 @@ var joint = {
         groupBy: _.groupBy,
         forIn: _.forIn,
         sortBy: _.sortBy,
-        delay: _.delay,
 
         isBoolean: function(value) {
             var toString = Object.prototype.toString;
