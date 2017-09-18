@@ -285,13 +285,18 @@ joint.connectors.jumpover = (function(_, g, util) {
         var jumpingLines = thisLines.reduce(function(resultLines, thisLine) {
             // iterate all links and grab the intersections with this line
             // these are then sorted by distance so the line can be split more easily
-            var intersections = _(links).map(function(link, i) {
+
+            var intersections = links.reduce(function(res, link, i) {
                 // don't intersection with itself
-                if (link === thisModel) {
-                    return null;
+                if (link !== thisModel) {
+
+                    var lineIntersections = findLineIntersections(thisLine, linkLines[i]);
+                    res.push.apply(res, lineIntersections);
                 }
-                return findLineIntersections(thisLine, linkLines[i]);
-            }).flatten().compact().sortBy(_.partial(sortPoints, thisLine.start)).value();
+                return res;
+            }, []).sort(function(a, b) {
+                return sortPoints(thisLine.start, a) - sortPoints(thisLine.start, b);
+            });
 
             if (intersections.length > 0) {
                 // split the line based on found intersection points
@@ -302,6 +307,7 @@ joint.connectors.jumpover = (function(_, g, util) {
             }
             return resultLines;
         }, []);
+
 
         return buildPath(jumpingLines, jumpSize, jumpType);
     };
