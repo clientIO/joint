@@ -136,6 +136,7 @@ module.exports = function(grunt) {
                 },
                 resolve: {
                     alias: {
+                        underscore: 'lodash',
                         g: './geometry.min.js',
                         V: './vectorizer.min.js'
                     }
@@ -778,7 +779,7 @@ module.exports = function(grunt) {
 
     grunt.registerTask('build:bundles', [
         'newer:browserify',
-        'newer:webpack'
+        'webpack'
     ]);
 
     grunt.registerTask('build:docs', [
