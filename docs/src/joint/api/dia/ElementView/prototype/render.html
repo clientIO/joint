@@ -1,0 +1,9 @@
+<pre class="docs-method-signature"><code>elementView.render()</code></pre>
+<p>
+    The method renders the markup, updates the presentation attributes and resizes, rotates and translates the view.
+    This method is invoked when the element view is added to the paper and also when the <code>attrs</code> attribute is changed together with the <code>dirty</code> flag being passed along.
+    <pre><code>// Render is called here when the graph is connected to a paper.
+model.addTo(graph);
+// Causing the element view to re-render itself.
+model.attr('rect/fill', 'red', { dirty: true })</code></pre>
+</p>

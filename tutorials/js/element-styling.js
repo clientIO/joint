@@ -1,4 +1,4 @@
-(function elementStyling() {
+(function elementStyling(joint) {
 
     var graph = new joint.dia.Graph;
 
@@ -148,4 +148,4 @@
 
     rect5.addTo(graph);
 
-}());
+}(joint));
