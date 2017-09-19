@@ -9,7 +9,7 @@ joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opts) {
     // Construct the `d` attribute of the `<path>` element.
     var d = ['M', sourcePoint.x, sourcePoint.y];
 
-    _.each(vertices, function(vertex, index) {
+    joint.util.toArray(vertices).forEach(function(vertex, index) {
 
         // the closest vertices
         prev = vertices[index - 1] || sourcePoint;

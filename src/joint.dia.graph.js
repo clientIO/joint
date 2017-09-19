@@ -553,7 +553,9 @@ joint.dia.Graph = Backbone.Model.extend({
 
         }, this);
 
-        cellsAncestors = _.sortBy(cellsAncestors, 'length');
+        cellsAncestors = cellsAncestors.sort(function(a, b) {
+            return a.length - b.length;
+        });
 
         var commonAncestor = joint.util.toArray(cellsAncestors.shift()).find(function(ancestor) {
             return cellsAncestors.every(function(cellAncestors) {
@@ -601,7 +603,7 @@ joint.dia.Graph = Backbone.Model.extend({
             return map;
         }, {});
 
-        _.each(cells, function(cell) {
+        joint.util.toArray(cells).forEach(function(cell) {
 
             var clone = cloneMap[cell.id];
             // assert(clone exists)
@@ -670,7 +672,7 @@ joint.dia.Graph = Backbone.Model.extend({
         var elements = [];
         var links = [];
 
-        _.each(cells, function(cell) {
+        joint.util.toArray(cells).forEach(function(cell) {
             if (!cellMap[cell.id]) {
                 subgraph.push(cell);
                 cellMap[cell.id] = cell;

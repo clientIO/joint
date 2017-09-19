@@ -443,7 +443,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         opt.penalties = util.result(opt, 'penalties');
         opt.paddingBox = util.result(opt, 'paddingBox');
 
-        _.each(opt.directions, function(direction) {
+        util.toArray(opt.directions).forEach(function(direction) {
 
             var point1 = g.point(0, 0);
             var point2 = g.point(direction.offsetX, direction.offsetY);

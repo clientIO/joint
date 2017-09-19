@@ -118,7 +118,7 @@ joint.dia.Cell = Backbone.Model.extend({
         // Collect ports that have been removed (compared to the previous ports) - if any.
         // Use hash table for quick lookup.
         var removedPorts = {};
-        _.each(previousPorts, function(port, id) {
+        joint.util.forIn(previousPorts, function(port, id) {
 
             if (!ports[id]) removedPorts[id] = true;
         });

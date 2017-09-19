@@ -664,7 +664,9 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         } else {
 
-            _.each(cells, this.renderView, this);
+            for (var i = 0, n = cells.length; i < n; i++) {
+                this.renderView(cells[i]);
+            }
 
             // Sort the cells in the DOM manually as we might have changed the order they
             // were added to the DOM (see above).
