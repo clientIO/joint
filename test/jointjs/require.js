@@ -1,7 +1,7 @@
 require.config({
     baseUrl: '../../',
     paths: {
-        'qunit': 'lib/qunit/qunit/qunit',
+        'qunit': 'node_modules/qunitjs/qunit/qunit',
 
         // Dependencies for Joint:
         'jquery': 'node_modules/jquery/dist/jquery',
@@ -44,7 +44,7 @@ require(['qunit'], function(QUnit) {
                 buildFile = buildFiles[i];
                 joint = modules[i];
 
-                test('sanity checks for build file: "' + buildFile + '"', function(assert) {
+                QUnit.test('sanity checks for build file: "' + buildFile + '"', function(assert) {
 
                     assert.ok(typeof joint !== 'undefined', 'Should be able to require joint module');
                     assert.ok(typeof joint.dia === 'object', 'Joint should have "dia" object');

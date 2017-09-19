@@ -632,7 +632,7 @@ QUnit.module('paper', function(hooks) {
 
     QUnit.test('getContentBBox()', function(assert) {
 
-        checkBboxApproximately(2/* +- */, this.paper.getContentBBox(), {
+        assert.checkBboxApproximately(2/* +- */, this.paper.getContentBBox(), {
             x: 0,
             y: 0,
             width: 0,
@@ -652,7 +652,7 @@ QUnit.module('paper', function(hooks) {
 
         this.graph.addCell(rect1);
 
-        checkBboxApproximately(2/* +- */, this.paper.getContentBBox(), {
+        assert.checkBboxApproximately(2/* +- */, this.paper.getContentBBox(), {
             x: 20,
             y: 20,
             width: 40,
@@ -672,7 +672,7 @@ QUnit.module('paper', function(hooks) {
 
         this.graph.addCell(rect2);
 
-        checkBboxApproximately(2/* +- */, this.paper.getContentBBox(), {
+        assert.checkBboxApproximately(2/* +- */, this.paper.getContentBBox(), {
             x: 5,
             y: 8,
             width: 55,
@@ -692,7 +692,7 @@ QUnit.module('paper', function(hooks) {
 
         this.graph.addCell(circle1);
 
-        checkBboxApproximately(2/* +- */, this.paper.getContentBBox(), {
+        assert.checkBboxApproximately(2/* +- */, this.paper.getContentBBox(), {
             x: 5,
             y: 5,
             width: 95,
@@ -701,7 +701,7 @@ QUnit.module('paper', function(hooks) {
 
         V(this.paper.viewport).scale(2, 2);
 
-        checkBboxApproximately(4/* +- */, this.paper.getContentBBox(), {
+        assert.checkBboxApproximately(4/* +- */, this.paper.getContentBBox(), {
             x: 10,
             y: 10,
             width: 190,

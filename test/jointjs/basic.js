@@ -52,7 +52,7 @@ QUnit.module('basic', function(hooks) {
         ml('l3', c, d);
     };
 
-    QUnit.test('construction', function() {
+    QUnit.test('construction', function(assert) {
 
         var myrect = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
@@ -62,18 +62,20 @@ QUnit.module('basic', function(hooks) {
 
         this.graph.addCell(myrect);
 
-        strictEqual(myrect.constructor, joint.shapes.basic.Rect, 'myrect.constructor === joint.shapes.basic.Rect');
+        assert.strictEqual(myrect.constructor, joint.shapes.basic.Rect, 'myrect.constructor === joint.shapes.basic.Rect');
 
         var textEls = this.paper.svg.getElementsByTagName('text');
         var rectEls = this.paper.svg.getElementsByTagName('rect');
 
-        equal(textEls.length, 1, 'there is exactly one <text> element in the paper');
-        equal(rectEls.length, 1, 'there is exactly one <rect> element in the paper');
+        assert.equal(textEls.length, 1, 'there is exactly one <text> element in the paper');
+        assert.equal(rectEls.length, 1, 'there is exactly one <rect> element in the paper');
 
-        equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
+        assert.equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
     });
 
-    QUnit.asyncTest('async: resetCells', function() {
+    QUnit.test('async: resetCells', function(assert) {
+
+        var done = assert.async();
 
         var r1 = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
@@ -89,20 +91,20 @@ QUnit.module('basic', function(hooks) {
             var textEls = this.paper.svg.getElementsByTagName('text');
             var rectEls = this.paper.svg.getElementsByTagName('rect');
 
-            equal(textEls.length, 3, 'there is exactly 3 <text> elements in the paper');
-            equal(rectEls.length, 3, 'there is exactly 3 <rect> elements in the paper');
+            assert.equal(textEls.length, 3, 'there is exactly 3 <text> elements in the paper');
+            assert.equal(rectEls.length, 3, 'there is exactly 3 <rect> elements in the paper');
 
-            equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
+            assert.equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
 
-            start();
-
+            done();
         }, this);
 
         this.graph.resetCells([r1, r2, r3]);
     });
 
-    QUnit.asyncTest('async: addCells', function() {
+    QUnit.test('async: addCells', function(assert) {
 
+        var done = assert.async();
         var r1 = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
@@ -121,19 +123,19 @@ QUnit.module('basic', function(hooks) {
             var textEls = this.paper.svg.getElementsByTagName('text');
             var rectEls = this.paper.svg.getElementsByTagName('rect');
 
-            equal(textEls.length, 5, 'there is exactly 5 <text> elements in the paper');
-            equal(rectEls.length, 5, 'there is exactly 5 <rect> elements in the paper');
+            assert.equal(textEls.length, 5, 'there is exactly 5 <text> elements in the paper');
+            assert.equal(rectEls.length, 5, 'there is exactly 5 <rect> elements in the paper');
 
-            equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
+            assert.equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
 
-            start();
+            done();
 
         }, this);
 
         this.graph.addCells([r3, r4, r5]);
     });
 
-    QUnit.test('getBBox()', function() {
+    QUnit.test('getBBox()', function(assert) {
 
         var myrect = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
@@ -146,30 +148,30 @@ QUnit.module('basic', function(hooks) {
         var view = this.paper.findViewByModel(myrect);
         var bbox = view.getBBox();
 
-        equal(bbox.x, 20, 'bbox.x is correct');
-        equal(bbox.y, 30, 'bbox.y is correct');
-        equal(bbox.width, 120, 'bbox.width is correct');
-        equal(bbox.height, 80, 'bbox.height is correct');
+        assert.equal(bbox.x, 20, 'bbox.x is correct');
+        assert.equal(bbox.y, 30, 'bbox.y is correct');
+        assert.equal(bbox.width, 120, 'bbox.width is correct');
+        assert.equal(bbox.height, 80, 'bbox.height is correct');
 
         myrect.attr('text', { ref: 'rect', 'ref-y': 100 });
 
         bbox = view.getBBox({ useModelGeometry: false });
 
-        ok(bbox.height > 80, 'Translating text outside the rect: bbox.width grew.');
-        equal(bbox.x, 20, 'bbox.x is correct');
-        equal(bbox.y, 30, 'bbox.y is correct');
-        equal(bbox.width, 120, 'bbox.width is correct');
+        assert.ok(bbox.height > 80, 'Translating text outside the rect: bbox.width grew.');
+        assert.equal(bbox.x, 20, 'bbox.x is correct');
+        assert.equal(bbox.y, 30, 'bbox.y is correct');
+        assert.equal(bbox.width, 120, 'bbox.width is correct');
 
         bbox = view.getBBox({ useModelGeometry: true });
 
-        equal(bbox.x, 20, 'Using model geometry: bbox.x is correct');
-        equal(bbox.y, 30, 'bbox.y is correct');
-        equal(bbox.width, 120, 'bbox.width is correct');
-        equal(bbox.height, 80, 'bbox.height is correct');
+        assert.equal(bbox.x, 20, 'Using model geometry: bbox.x is correct');
+        assert.equal(bbox.y, 30, 'bbox.y is correct');
+        assert.equal(bbox.width, 120, 'bbox.width is correct');
+        assert.equal(bbox.height, 80, 'bbox.height is correct');
 
     });
 
-    QUnit.test('z index', function() {
+    QUnit.test('z index', function(assert) {
 
         var r1 = new joint.shapes.basic.Rect;
         var r2 = new joint.shapes.basic.Rect;
@@ -179,15 +181,15 @@ QUnit.module('basic', function(hooks) {
         this.graph.addCell(r2);
         this.graph.addCell(r3);
 
-        ok(r1.get('z') < r2.get('z'), 'z index of the first added cell is lower than that of the second one');
-        ok(r2.get('z') < r3.get('z'), 'z index of the second added cell is lower than that of the third one');
+        assert.ok(r1.get('z') < r2.get('z'), 'z index of the first added cell is lower than that of the second one');
+        assert.ok(r2.get('z') < r3.get('z'), 'z index of the second added cell is lower than that of the third one');
 
         // Test removing/adding new cells to cover https://github.com/clientIO/JointJS_plus/issues/21.
         r1.remove();
         var r4 = new joint.shapes.basic.Rect;
         this.graph.addCell(r4);
-        ok(r2.get('z') < r3.get('z'), 'z index of the second added cell is lower than that of the third one');
-        ok(r3.get('z') < r4.get('z'), 'z index of the third added cell is lower than that of the fourth, newly added, one');
+        assert.ok(r2.get('z') < r3.get('z'), 'z index of the second added cell is lower than that of the third one');
+        assert.ok(r3.get('z') < r4.get('z'), 'z index of the third added cell is lower than that of the fourth, newly added, one');
     });
 
     QUnit.test('position()', function(assert) {
@@ -203,14 +205,14 @@ QUnit.module('basic', function(hooks) {
         });
 
         r1.addTo(this.graph);
-        checkBbox(
+        assert.checkBbox(
             this.paper,
             r1, 100, 100, 120, 80,
             'getter "position()" returns the elements position.'
         );
 
         r1.position(200, 200);
-        checkBbox(
+        assert.checkBbox(
             this.paper,
             r1,
             200, 200, 120, 80,
@@ -237,7 +239,7 @@ QUnit.module('basic', function(hooks) {
 
         r1.embed(r2);
         r2.position(10, 10, { parentRelative: true });
-        checkBbox(
+        assert.checkBbox(
             this.paper,
             r2,
             210, 210, 30, 30,
@@ -265,7 +267,7 @@ QUnit.module('basic', function(hooks) {
         );
     });
 
-    QUnit.test('translate()', function() {
+    QUnit.test('translate()', function(assert) {
 
         var myrect = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
@@ -276,16 +278,16 @@ QUnit.module('basic', function(hooks) {
         this.graph.addCell(myrect);
 
         myrect.translate(50);
-        checkBbox(this.paper, myrect, 70, 30, 120, 80, 'translate(50) should translate by 50px in x direction only');
+        assert.checkBbox(this.paper, myrect, 70, 30, 120, 80, 'translate(50) should translate by 50px in x direction only');
 
         myrect.translate(0, 20);
-        checkBbox(this.paper, myrect, 70, 50, 120, 80, 'translate(0, 20) should translate by 20px in y direction only');
+        assert.checkBbox(this.paper, myrect, 70, 50, 120, 80, 'translate(0, 20) should translate by 20px in y direction only');
 
         myrect.translate(10, 10);
-        checkBbox(this.paper, myrect, 80, 60, 120, 80, 'translate(10, 10) should translate by 10px in both x and y directions');
+        assert.checkBbox(this.paper, myrect, 80, 60, 120, 80, 'translate(10, 10) should translate by 10px in both x and y directions');
 
         myrect.translate(-10, -10);
-        checkBbox(this.paper, myrect, 70, 50, 120, 80, 'translate(-10, -10) should translate back by 10px in both x and y directions');
+        assert.checkBbox(this.paper, myrect, 70, 50, 120, 80, 'translate(-10, -10) should translate back by 10px in both x and y directions');
     });
 
     QUnit.test('translate() with restrictedArea option', function(assert) {
@@ -361,7 +363,7 @@ QUnit.module('basic', function(hooks) {
         el.size({ width: 20, height: 20 }, { test: true });
     });
 
-    QUnit.test('resize()', function() {
+    QUnit.test('resize()', function(assert) {
 
         var myrect = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
@@ -372,7 +374,7 @@ QUnit.module('basic', function(hooks) {
         this.graph.addCell(myrect);
 
         myrect.resize(120, 80);
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
             x: 20,
             y: 30,
             width: 120,
@@ -380,7 +382,7 @@ QUnit.module('basic', function(hooks) {
         }, 'resize([same width], [same height]) should not change bbox');
 
         myrect.resize(240, 160);
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
             x: 20,
             y: 30,
             width: 240,
@@ -388,7 +390,7 @@ QUnit.module('basic', function(hooks) {
         }, 'resize([2*width], [2*height]) should scale twice preserving origin as it was');
 
         myrect.resize(120, 80);
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
             x: 20,
             y: 30,
             width: 120,
@@ -396,7 +398,7 @@ QUnit.module('basic', function(hooks) {
         }, 'resize([orig width], [orig height]): should scale back to the original size and origin');
 
         myrect.resize(200, 160, { direction: 'right' });
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
             x: 20,
             y: 30,
             width: 200,
@@ -404,7 +406,7 @@ QUnit.module('basic', function(hooks) {
         }, 'resize([new width], [new height], { direction: "right" }) should scale only width, origin should be unchanged');
 
         myrect.resize(80, 240, { direction: 'bottom' });
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
             x: 20,
             y: 30,
             width: 200,
@@ -412,7 +414,7 @@ QUnit.module('basic', function(hooks) {
         }, 'resize([new width], [new height], { direction: "bottom" }) should scale only height, origin should be unchanged');
 
         myrect.resize(50, 50, { direction: 'bottom-right' });
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
             x: 20,
             y: 30,
             width: 50,
@@ -420,7 +422,7 @@ QUnit.module('basic', function(hooks) {
         }, 'resize([new width], [new height], { direction: "bottom-right" }) should scale both width and height, origin should be unchanged');
 
         myrect.resize(20, 20, { direction: 'top-left' });
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
             x: 50,
             y: 60,
             width: 20,
@@ -428,7 +430,7 @@ QUnit.module('basic', function(hooks) {
         }, 'resize([new width], [new height], { direction: "top-left" }) should scale both width and height, should change position');
     });
 
-    QUnit.test('rotate()', function() {
+    QUnit.test('rotate()', function(assert) {
 
         var myrect = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
@@ -439,20 +441,20 @@ QUnit.module('basic', function(hooks) {
         this.graph.addCell(myrect);
 
         myrect.rotate(90);
-        checkBbox(this.paper, myrect, 40, 10, 80, 120, 'rotate(90) should rotate the object by 90 degrees around its center');
+        assert.checkBbox(this.paper, myrect, 40, 10, 80, 120, 'rotate(90) should rotate the object by 90 degrees around its center');
 
         myrect.rotate(-90);
-        checkBbox(this.paper, myrect, 20, 30, 120, 80, 'rotate(-90) should rotate the object back to its original angle');
+        assert.checkBbox(this.paper, myrect, 20, 30, 120, 80, 'rotate(-90) should rotate the object back to its original angle');
 
         // Rotation around an origin.
         myrect.rotate(180, false, { x: 140, y: 70 });
-        checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) should rotate the object around the middle of its right edge');
+        assert.checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) should rotate the object around the middle of its right edge');
 
         myrect.rotate(180, true, { x: 140, y: 70 });
-        checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) with absolute flag should not rotate the object as it is already rotated');
+        assert.checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) with absolute flag should not rotate the object as it is already rotated');
     });
 
-    QUnit.test('object reconstruction after several transformations', function() {
+    QUnit.test('object reconstruction after several transformations', function(assert) {
 
         var r1 = new joint.shapes.basic.Rect({
             size: { width: 120, height: 80 },
@@ -477,7 +479,7 @@ QUnit.module('basic', function(hooks) {
         var r1Bbox = g.rect(r1View.getBBox()).round();
         var r2Bbox = g.rect(r2View.getBBox()).round();
 
-        deepEqual(
+        assert.deepEqual(
             { x: r1Bbox.x, y: r1Bbox.y, width: r1Bbox.width, height: r1Bbox.height },
             { x: r2Bbox.x, y: r2Bbox.y, width: r2Bbox.width, height: r2Bbox.height },
             'bounding box of the clone of an element that has been severely transformed is the same as of the original element'
@@ -508,7 +510,7 @@ QUnit.module('basic', function(hooks) {
         assert.equal(el.attr(), el.get('attrs'), 'called with no arguments returns all `attrs`');
     });
 
-    QUnit.test('removeAttr()', function() {
+    QUnit.test('removeAttr()', function(assert) {
 
         var el = new joint.shapes.basic.Generic({
             position: { x: 20, y: 30 },
@@ -523,11 +525,11 @@ QUnit.module('basic', function(hooks) {
 
         var elView = this.paper.findViewByModel(el);
 
-        equal(elView.$('.big').attr('stroke'), 'pink', 'A stroke is set on the element');
+        assert.equal(elView.$('.big').attr('stroke'), 'pink', 'A stroke is set on the element');
 
         el.removeAttr('.big/stroke');
 
-        equal(elView.$('.big').attr('stroke'), undefined, 'The stroke was correctly unset from the element by removeAttr()');
+        assert.equal(elView.$('.big').attr('stroke'), undefined, 'The stroke was correctly unset from the element by removeAttr()');
 
         var link = new joint.dia.Link({
             source: { x: 100, y: 100 },
@@ -541,15 +543,15 @@ QUnit.module('basic', function(hooks) {
 
         var linkView = this.paper.findViewByModel(link);
 
-        equal(linkView.$('.connection').attr('stroke-width'), '2', 'A stroke is set on the link');
+        assert.equal(linkView.$('.connection').attr('stroke-width'), '2', 'A stroke is set on the link');
 
         link.removeAttr('.connection/stroke-width');
 
-        equal(linkView.$('.connection').attr('stroke-width'), undefined, 'The stroke was correctly unset from the link by removeAttr()');
+        assert.equal(linkView.$('.connection').attr('stroke-width'), undefined, 'The stroke was correctly unset from the link by removeAttr()');
 
     });
 
-    QUnit.test('prop()', function() {
+    QUnit.test('prop()', function(assert) {
 
         var el = new joint.shapes.basic.Rect({
             flat: 5,
@@ -558,60 +560,60 @@ QUnit.module('basic', function(hooks) {
             a: { b: { c: 1 } }
         });
 
-        equal(el.prop('flat'), 5, 'flat value returned in getter');
-        equal(el.prop('object/nested/value'), 'foo', 'nested object value returned in getter');
-        deepEqual(el.prop('array/0'), [5], 'nested array returned in getter');
-        equal(el.prop('array/0/0'), 5, 'value in nested array returned in getter');
-        deepEqual(el.prop('array/1/0/value'), ['bar'], 'object in nested array returned in getter');
-        equal(el.prop('array/1/0/value/0'), 'bar', 'value in nested object in nested array returned in getter');
+        assert.equal(el.prop('flat'), 5, 'flat value returned in getter');
+        assert.equal(el.prop('object/nested/value'), 'foo', 'nested object value returned in getter');
+        assert.deepEqual(el.prop('array/0'), [5], 'nested array returned in getter');
+        assert.equal(el.prop('array/0/0'), 5, 'value in nested array returned in getter');
+        assert.deepEqual(el.prop('array/1/0/value'), ['bar'], 'object in nested array returned in getter');
+        assert.equal(el.prop('array/1/0/value/0'), 'bar', 'value in nested object in nested array returned in getter');
 
         el.prop('array/1/0/value/0', 'baz');
-        equal(el.prop('array/1/0/value/0'), 'baz', 'value in nested object in nested array set correctly');
-        ok(_.isArray(el.prop('array/1/0/value')), 'type of the nested array was preserved');
-        ok(_.isObject(el.prop('array/1/0')), 'type of the nested object was preserved');
-        ok(_.isArray(el.prop('array/1')), 'type of the nested array was preserved');
-        ok(_.isArray(el.prop('array')), 'type of the top level array was preserved');
+        assert.equal(el.prop('array/1/0/value/0'), 'baz', 'value in nested object in nested array set correctly');
+        assert.ok(_.isArray(el.prop('array/1/0/value')), 'type of the nested array was preserved');
+        assert.ok(_.isObject(el.prop('array/1/0')), 'type of the nested object was preserved');
+        assert.ok(_.isArray(el.prop('array/1')), 'type of the nested array was preserved');
+        assert.ok(_.isArray(el.prop('array')), 'type of the top level array was preserved');
 
         el.prop('array/1/0/value', { s: 'baz' });
-        deepEqual(el.prop('array/1/0/value'), { s: 'baz' }, 'value in nested object in nested array set correctly');
-        ok(_.isObject(el.prop('array/1/0/value')), 'type of the object was changed');
+        assert.deepEqual(el.prop('array/1/0/value'), { s: 'baz' }, 'value in nested object in nested array set correctly');
+        assert.ok(_.isObject(el.prop('array/1/0/value')), 'type of the object was changed');
 
         el.prop('array/2', 10);
-        ok(_.isArray(el.prop('array')), 'type of the top level array was preserved after adding new item');
-        equal(el.prop('array/2'), '10', 'value of the newly added array item is correct');
+        assert.ok(_.isArray(el.prop('array')), 'type of the top level array was preserved after adding new item');
+        assert.equal(el.prop('array/2'), '10', 'value of the newly added array item is correct');
 
         el.prop({ array: [['foo']] });
-        ok(_.isArray(el.prop('array')), 'type of the top level array was preserved after changing an item');
-        equal(el.prop('array/0/0'), 'foo', 'value of the newly added array item is correct');
-        ok(_.isArray(el.prop('array/0')), 'type of the nested array is correct');
+        assert.ok(_.isArray(el.prop('array')), 'type of the top level array was preserved after changing an item');
+        assert.equal(el.prop('array/0/0'), 'foo', 'value of the newly added array item is correct');
+        assert.ok(_.isArray(el.prop('array/0')), 'type of the nested array is correct');
 
         var called = false;
         el.once('change:array', function(cell, changed, opt) {
-            ok(opt.flag, 'options object was correctly passed in path syntax of prop');
+            assert.ok(opt.flag, 'options object was correctly passed in path syntax of prop');
             called = true;
         });
         el.prop('array/0', 'something', { flag: true });
-        ok(called, 'on change callback with options passed was called');
+        assert.ok(called, 'on change callback with options passed was called');
 
         called = false;
         el.once('change:array', function(cell, changed, opt) {
-            ok(opt.flag, 'options object was correctly passed in object syntax of prop');
+            assert.ok(opt.flag, 'options object was correctly passed in object syntax of prop');
             called = true;
         });
         el.prop({ array: ['something else'] }, { flag: true });
-        ok(called, 'on change callback with options passed was called');
+        assert.ok(called, 'on change callback with options passed was called');
 
         el.prop('object/nested', 'baz');
-        deepEqual(el.prop('object/nested2'), { value: 'bar' }, 'value in untouched nested object was preserved');
-        equal(el.prop('object/nested'), 'baz', 'value in nested object was changed');
+        assert.deepEqual(el.prop('object/nested2'), { value: 'bar' }, 'value in untouched nested object was preserved');
+        assert.equal(el.prop('object/nested'), 'baz', 'value in nested object was changed');
 
         el.prop('a/b', { d: 2 }, { rewrite: true });
-        deepEqual(el.prop('a/b'), { d: 2 }, 'rewrite mode doesn\'t merge values');
+        assert.deepEqual(el.prop('a/b'), { d: 2 }, 'rewrite mode doesn\'t merge values');
     });
 
-    QUnit.test('removeProp()', function() {
+    QUnit.test('removeProp()', function(assert) {
 
-        expect(4);
+        assert.expect(4);
 
         var el = new joint.dia.Cell({
             flat: 6,
@@ -620,7 +622,7 @@ QUnit.module('basic', function(hooks) {
 
         el.removeProp('NonExisting');
 
-        deepEqual(el.attributes, {
+        assert.deepEqual(el.attributes, {
             id: el.id,
             flat: 6,
             nested: { a: 4, b: 5 }
@@ -628,20 +630,20 @@ QUnit.module('basic', function(hooks) {
 
         el.removeProp('flat');
 
-        ok(!el.has('flat'), 'A flat property was unset from the model.');
+        assert.ok(!el.has('flat'), 'A flat property was unset from the model.');
 
         el.removeProp('nested/a');
 
-        deepEqual(el.get('nested'), { b: 5 }, 'A nested property was unset from the model.');
+        assert.deepEqual(el.get('nested'), { b: 5 }, 'A nested property was unset from the model.');
 
         el.on('change', function(cell, opt) {
-            ok(opt.OPT_PRESENT, 'Options are propagated to the underlying model method.');
+            assert.ok(opt.OPT_PRESENT, 'Options are propagated to the underlying model method.');
         });
 
         el.removeProp('nested/b', { OPT_PRESENT: true });
     });
 
-    QUnit.test('toBack(), toFront()', function() {
+    QUnit.test('toBack(), toFront()', function(assert) {
 
         var r1 = new joint.shapes.basic.Rect;
         var r2 = new joint.shapes.basic.Rect;
@@ -652,18 +654,18 @@ QUnit.module('basic', function(hooks) {
         var r1View = this.paper.findViewByModel(r1);
         var r2View = this.paper.findViewByModel(r2);
 
-        notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element is before r2 element in the DOM');
+        assert.notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element is before r2 element in the DOM');
 
         r1.toFront();
 
-        equal(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved after r2 element in the DOM after toFront()');
+        assert.equal(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved after r2 element in the DOM after toFront()');
 
         r1.toBack();
 
-        notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved back before r2 element in the DOM after toBack()');
+        assert.notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved back before r2 element in the DOM after toBack()');
     });
 
-    QUnit.test('toBack(), toFront() with active batch', function() {
+    QUnit.test('toBack(), toFront() with active batch', function(assert) {
 
         var r1 = new joint.shapes.basic.Rect;
         var r2 = new joint.shapes.basic.Rect;
@@ -676,33 +678,33 @@ QUnit.module('basic', function(hooks) {
         var r1View = this.paper.findViewByModel(r1);
         var r2View = this.paper.findViewByModel(r2);
 
-        notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element is before r2 element in the DOM');
+        assert.notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element is before r2 element in the DOM');
 
         r1.startBatch('to-front');
         r1.toFront();
 
-        equal(spy.callCount, 0, 'paper not sorted');
-        notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element not moved after r2 element in the DOM after toFront() bacause a batch is running');
+        assert.equal(spy.callCount, 0, 'paper not sorted');
+        assert.notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element not moved after r2 element in the DOM after toFront() bacause a batch is running');
 
         r1.stopBatch('to-front');
 
-        equal(spy.callCount, 1, 'paper sorted exactly once');
-        equal(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved after r2 element in the DOM after stopBatch()');
+        assert.equal(spy.callCount, 1, 'paper sorted exactly once');
+        assert.equal(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved after r2 element in the DOM after stopBatch()');
 
         r1.startBatch('to-back');
         r1.toBack();
 
-        equal(spy.callCount, 1, 'paper not sorted');
-        equal(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element not moved back before r2 element in the DOM after toBack() because a batch is running');
+        assert.equal(spy.callCount, 1, 'paper not sorted');
+        assert.equal(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element not moved back before r2 element in the DOM after toBack() because a batch is running');
 
         r1.stopBatch('to-back');
 
-        equal(spy.callCount, 2, 'paper sorted exactly once');
-        notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved back before r2 element in the DOM after stopBatch()');
+        assert.equal(spy.callCount, 2, 'paper sorted exactly once');
+        assert.notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved back before r2 element in the DOM after stopBatch()');
 
     });
 
-    QUnit.test('toBack(), toFront() with { deep: true } option', function() {
+    QUnit.test('toBack(), toFront() with { deep: true } option', function(assert) {
 
         var a1 = new joint.shapes.basic.Rect;
         var a2 = new joint.shapes.basic.Rect;
@@ -723,20 +725,20 @@ QUnit.module('basic', function(hooks) {
         var b1View = this.paper.findViewByModel(b1);
         var b2View = this.paper.findViewByModel(b2);
 
-        equal(b2View.$el.nextAll('[data-type="basic.Rect"]').length, 0, 'element b2 after a1 element in the DOM');
-        equal(b1View.$el.prevAll('[data-type="basic.Rect"]').length, 0, 'element b1 before a1 element in the DOM');
+        assert.equal(b2View.$el.nextAll('[data-type="basic.Rect"]').length, 0, 'element b2 after a1 element in the DOM');
+        assert.equal(b1View.$el.prevAll('[data-type="basic.Rect"]').length, 0, 'element b1 before a1 element in the DOM');
 
         a1.toFront({ deep: true });
 
-        equal(_.unique(a1View.$el.prevAll('[data-type="basic.Rect"]').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1, b2 element in the DOM after toFront()');
-        ok(a4View.$el.prev('[data-type="basic.Rect"]')[0] == a3View.el || a4View.$el.prev('[data-type="basic.Rect"]')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
-        ok(a2View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el || a3View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
+        assert.equal(_.unique(a1View.$el.prevAll('[data-type="basic.Rect"]').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1, b2 element in the DOM after toFront()');
+        assert.ok(a4View.$el.prev('[data-type="basic.Rect"]')[0] == a3View.el || a4View.$el.prev('[data-type="basic.Rect"]')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
+        assert.ok(a2View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el || a3View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
 
         a1.toBack({ deep: true });
 
-        equal(a1View.$el.prevAll('[data-type="basic.Rect"]').length, 0, 'a1 element moved back before a2, a3, a4, b1, b2 elements in the DOM after toBack()');
-        ok(a4View.$el.prev('[data-type="basic.Rect"]')[0] == a3View.el || a4View.$el.prev('[data-type="basic.Rect"]')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
-        ok(a2View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el || a3View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
+        assert.equal(a1View.$el.prevAll('[data-type="basic.Rect"]').length, 0, 'a1 element moved back before a2, a3, a4, b1, b2 elements in the DOM after toBack()');
+        assert.ok(a4View.$el.prev('[data-type="basic.Rect"]')[0] == a3View.el || a4View.$el.prev('[data-type="basic.Rect"]')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
+        assert.ok(a2View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el || a3View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
 
     });
 
@@ -788,13 +790,13 @@ QUnit.module('basic', function(hooks) {
         var textEls = this.paper.svg.getElementsByTagName('text');
         var rectEls = this.paper.svg.getElementsByTagName('rect');
 
-        equal(textEls.length, 2, 'there are exactly two <text> elements in the paper');
-        equal(rectEls.length, 2, 'there are exactly two <rect> elements in the paper');
+        assert.equal(textEls.length, 2, 'there are exactly two <text> elements in the paper');
+        assert.equal(rectEls.length, 2, 'there are exactly two <rect> elements in the paper');
 
-        equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
-        equal(textEls[1].textContent, V.sanitizeText('my rectangle'), 'text element of the cloned element has a proper content');
+        assert.equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
+        assert.equal(textEls[1].textContent, V.sanitizeText('my rectangle'), 'text element of the cloned element has a proper content');
 
-        checkBbox(this.paper, r2, 20, 30, 120, 80, 'cloned element is at the exact same position as the original element');
+        assert.checkBbox(this.paper, r2, 20, 30, 120, 80, 'cloned element is at the exact same position as the original element');
 
         // Check correct offset of the element when translate() is called before appending the element to the paper.
         // This is critical as in this situation, render() is called after translate() and should therefore
@@ -802,7 +804,7 @@ QUnit.module('basic', function(hooks) {
         var r3 = r1.clone();
         r3.translate(50);
         this.graph.addCell(r3);
-        checkBbox(this.paper, r3, 70, 30, 120, 80, 'cloned element is offset by 50px to the right of the original element if translate() was called before appending it to the paper');
+        assert.checkBbox(this.paper, r3, 70, 30, 120, 80, 'cloned element is offset by 50px to the right of the original element if translate() was called before appending it to the paper');
 
         // Shallow clone of embedded elements
         r1.embed(r2);
@@ -825,19 +827,19 @@ QUnit.module('basic', function(hooks) {
         this.graph.addCell(l);
         var clones = r1.clone({ deep: true });
 
-        equal(clones.length, 3, 'deep clone returned two clones for a parent element with one child not including the link (use graph.cloneSubgraph() if this is desired)');
-        ok((clones[0].id === clones[1].get('parent') || (clones[1].id === clones[0].get('parent'))), 'clone of the embedded element gets a parent attribute set to the clone of the parent element');
+        assert.equal(clones.length, 3, 'deep clone returned two clones for a parent element with one child not including the link (use graph.cloneSubgraph() if this is desired)');
+        assert.ok((clones[0].id === clones[1].get('parent') || (clones[1].id === clones[0].get('parent'))), 'clone of the embedded element gets a parent attribute set to the clone of the parent element');
 
         this.graph.clear();
         this.setupTestNestedGraph(this.graph);
 
         clones = this.graph.getCell('a').clone({ deep: true });
-        deepEqual(_.map(clones, function(c) {
+        assert.deepEqual(_.map(clones, function(c) {
             return c.get('name');
         }), ['a', 'aa', 'c', 'l2', 'aaa'], 'clone({ deep: true }) returns clones including all embedded cells');
     });
 
-    QUnit.test('embed(), unembed()', function() {
+    QUnit.test('embed(), unembed()', function(assert) {
 
         var r1 = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
@@ -854,23 +856,23 @@ QUnit.module('basic', function(hooks) {
 
         r1.translate(50);
 
-        checkBbox(this.paper, r1, 70, 30, 120, 80, 'translate(50) should translate the parent element by 50px');
-        checkBbox(this.paper, r2, 70, 30, 120, 80, 'embedded element should translate the same as the parent element');
-        equal(r2.get('parent'), r1.id, 'embedded element gains the parent attribute pointing to its parent cell');
+        assert.checkBbox(this.paper, r1, 70, 30, 120, 80, 'translate(50) should translate the parent element by 50px');
+        assert.checkBbox(this.paper, r2, 70, 30, 120, 80, 'embedded element should translate the same as the parent element');
+        assert.equal(r2.get('parent'), r1.id, 'embedded element gains the parent attribute pointing to its parent cell');
 
         r1.unembed(r2);
 
         r1.translate(-50);
-        checkBbox(this.paper, r1, 20, 30, 120, 80, 'translate(-50) should translate the parent element by -50px');
-        checkBbox(this.paper, r2, 70, 30, 120, 80, 'unembedded element should stay at the same position when its old parent got translated');
-        equal(r2.get('parent'), undefined, 'embedded element gets its parent attribute pointing to its parent cell removed');
+        assert.checkBbox(this.paper, r1, 20, 30, 120, 80, 'translate(-50) should translate the parent element by -50px');
+        assert.checkBbox(this.paper, r2, 70, 30, 120, 80, 'unembedded element should stay at the same position when its old parent got translated');
+        assert.equal(r2.get('parent'), undefined, 'embedded element gets its parent attribute pointing to its parent cell removed');
 
         r1.embed(r2);
         r2.remove();
-        deepEqual(r1.get('embeds'), [], 'embedded element got removed from the embeds array of its parent when the embedded element remove() was called.');
+        assert.deepEqual(r1.get('embeds'), [], 'embedded element got removed from the embeds array of its parent when the embedded element remove() was called.');
     });
 
-    QUnit.test('isEmbeddedIn()', function() {
+    QUnit.test('isEmbeddedIn()', function(assert) {
 
         var r1 = new joint.shapes.basic.Rect;
         var r2 = r1.clone();
@@ -881,11 +883,11 @@ QUnit.module('basic', function(hooks) {
 
         this.graph.addCells([r1, r2, r3]);
 
-        ok(!r1.isEmbeddedIn(r1), 'We have 3 elements. r3 is embedded in r2, r2 is embedded in r1. | r1 is not child of r1. ');
-        ok(r2.isEmbeddedIn(r1), 'r2 is descendent of r1');
-        ok(r3.isEmbeddedIn(r1), 'r3 is descendent of r1');
-        ok(r3.isEmbeddedIn(r1, { deep: false }), 'r3 is not direct child of r1 (option { deep: false })');
-        ok(!r1.isEmbeddedIn(r3), 'r1 is not descendent of r3');
+        assert.ok(!r1.isEmbeddedIn(r1), 'We have 3 elements. r3 is embedded in r2, r2 is embedded in r1. | r1 is not child of r1. ');
+        assert.ok(r2.isEmbeddedIn(r1), 'r2 is descendent of r1');
+        assert.ok(r3.isEmbeddedIn(r1), 'r3 is descendent of r1');
+        assert.ok(r3.isEmbeddedIn(r1, { deep: false }), 'r3 is not direct child of r1 (option { deep: false })');
+        assert.ok(!r1.isEmbeddedIn(r3), 'r1 is not descendent of r3');
     });
 
     QUnit.test('findMagnet()', function(assert) {
@@ -990,7 +992,7 @@ QUnit.module('basic', function(hooks) {
         });
     });
 
-    QUnit.test('ref-x, ref-y, ref', function() {
+    QUnit.test('ref-x, ref-y, ref', function(assert) {
 
         var el = new joint.shapes.basic.Generic({
             markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
@@ -1010,7 +1012,7 @@ QUnit.module('basic', function(hooks) {
 
         var smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
-        deepEqual(
+        assert.deepEqual(
             { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
             { x: 20, y: 10, width: 10, height: 10 },
             'ref-x: 20, ref-y: 10 attributes should offset the element by 20px in x axis and 10px in y axis'
@@ -1022,7 +1024,7 @@ QUnit.module('basic', function(hooks) {
 
         smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
-        deepEqual(
+        assert.deepEqual(
             { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
             { x: 50, y: 25, width: 10, height: 10 },
             'ref-x: .5, ref-y: .5 attributes should position the element in the center, i.e. at [50, 25] coordinate'
@@ -1034,7 +1036,7 @@ QUnit.module('basic', function(hooks) {
 
         smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
-        deepEqual(
+        assert.deepEqual(
             { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
             { x: 50, y: 25, width: 10, height: 10 },
             'ref-x: "50%", ref-y: "50%" attributes should position the element in the center, i.e. at [50, 25] coordinate'
@@ -1046,7 +1048,7 @@ QUnit.module('basic', function(hooks) {
 
         smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
-        deepEqual(
+        assert.deepEqual(
             { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
             { x: -10, y: -15, width: 10, height: 10 },
             'ref-x: -10, ref-y: -15 attributes should offset the element from the left by 10px and from the top  by 15px'
@@ -1054,7 +1056,7 @@ QUnit.module('basic', function(hooks) {
 
         var smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
 
-        deepEqual(
+        assert.deepEqual(
             {
                 x: smallerRectBbox.x,
                 y: smallerRectBbox.y,
@@ -1065,12 +1067,12 @@ QUnit.module('basic', function(hooks) {
             'ref-x: 20, ref-y: 10 and ref set to .small should offset the element by 20px in x axis and 10px in y axis with respect to the x-y coordinate of the .small element'
         );
 
-        throws(function() {
+        assert.throws(function() {
             el.attr({ '.small': { 'ref': '.not-existing-reference' } });
         }, /dia.ElementView/, 'Use of an invalid reference throws an error.');
     });
 
-    QUnit.test('ref-dx, ref-dy, ref', function() {
+    QUnit.test('ref-dx, ref-dy, ref', function(assert) {
 
         var el = new joint.shapes.basic.Generic({
             markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
@@ -1088,7 +1090,7 @@ QUnit.module('basic', function(hooks) {
 
         var smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
-        deepEqual(
+        assert.deepEqual(
             { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
             { x: 120, y: 60, width: 10, height: 10 },
             'ref-dx: 20, ref-dy: 10 attributes should offset the element by 20px in x axis and 10px in y axis with respect to the right-bottom coordinate of the ref element'
@@ -1096,7 +1098,7 @@ QUnit.module('basic', function(hooks) {
 
         var smallerRectBbox = V(elView.$('.smaller')[0]).bbox(false, elView.el);
 
-        deepEqual(
+        assert.deepEqual(
             {
                 x: smallerRectBbox.x,
                 y: smallerRectBbox.y,
@@ -1113,7 +1115,7 @@ QUnit.module('basic', function(hooks) {
         );
     });
 
-    QUnit.test('ref-width, ref-height', function() {
+    QUnit.test('ref-width, ref-height', function(assert) {
 
         var el = new joint.shapes.basic.Generic({
             markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
@@ -1133,7 +1135,7 @@ QUnit.module('basic', function(hooks) {
 
         // Range [0, 1]
 
-        deepEqual(
+        assert.deepEqual(
             { width: smallRectBbox.width, height: smallRectBbox.height },
             { width: 50, height: 20 },
             'ref-width: .5, ref-height: .4 attributes should set the element size to 50x20.'
@@ -1145,7 +1147,7 @@ QUnit.module('basic', function(hooks) {
 
         el.attr({ '.small': { 'ref-width': '50%', 'ref-height': '40%' } });
 
-        deepEqual(
+        assert.deepEqual(
             { width: smallRectBbox.width, height: smallRectBbox.height },
             { width: 50, height: 20 },
             'ref-width: "50%", ref-height: "40%" attributes should set the element size to 50x20.'
@@ -1155,7 +1157,7 @@ QUnit.module('basic', function(hooks) {
 
         // Range [-x, 0] && [1, x]
 
-        deepEqual(
+        assert.deepEqual(
             { width: smallerRectBbox.width, height: smallerRectBbox.height },
             { width: 60, height: 10 },
             'ref-width: 10, ref-height: -10 attributes referenced to the previous element should set the element size to 60x10.'
@@ -1167,7 +1169,7 @@ QUnit.module('basic', function(hooks) {
 
         smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
-        deepEqual(
+        assert.deepEqual(
             { width: smallRectBbox.width, height: smallRectBbox.height },
             { width: 100, height: 50 },
             'ref-width: 1, ref-height: 1 attributes element should set the exact referenced element size 100x50.'
@@ -1177,11 +1179,11 @@ QUnit.module('basic', function(hooks) {
 
         smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
-        ok(smallRectBbox.width === 0, 'ref-width: 0 attribute element should set its width to 0.');
+        assert.ok(smallRectBbox.width === 0, 'ref-width: 0 attribute element should set its width to 0.');
 
     });
 
-    QUnit.test('x-alignment, y-alignment', function() {
+    QUnit.test('x-alignment, y-alignment', function(assert) {
 
         var el = new joint.shapes.basic.Generic({
             markup: '<rect class="big"/><rect class="small"/>',
@@ -1206,14 +1208,14 @@ QUnit.module('basic', function(hooks) {
 
         var smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
-        deepEqual(
+        assert.deepEqual(
             { x: smallRectBbox.x, y: smallRectBbox.y, width: smallRectBbox.width, height: smallRectBbox.height },
             { x: 40, y: 15, width: 20, height: 20 },
             'ref-x: .5, ref-y: .5, x-alignment: middle, y-alignment: middle aligns the element center with the root center'
         );
     });
 
-    QUnit.test('gradient', function() {
+    QUnit.test('gradient', function(assert) {
 
         var el = new joint.shapes.basic.Rect;
         this.graph.addCell(el);
@@ -1222,7 +1224,7 @@ QUnit.module('basic', function(hooks) {
 
         var defs = this.paper.svg.querySelector('defs');
         var defsChildrenCount = $(defs).children().length;
-        equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
+        assert.equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
 
         el.attr('rect/fill', {
             type: 'linearGradient',
@@ -1235,12 +1237,12 @@ QUnit.module('basic', function(hooks) {
         // PhantomJS fails to lookup linearGradient with `querySelectorAll()` (also with jQuery).
         // Therefore, we use the following trick to check whether the element is in DOM.
         defsChildrenCount = $(defs).children().length;
-        equal(defsChildrenCount, 1, 'one element got created in <defs>.');
+        assert.equal(defsChildrenCount, 1, 'one element got created in <defs>.');
 
         var linearGradient = $(defs).children()[0];
 
-        equal(linearGradient.tagName.toLowerCase(), 'lineargradient', 'one <linearGradient> element got created in <defs>.');
-        equal('url(#' + linearGradient.id + ')', elView.$('rect').attr('fill'), 'fill attribute pointing to the newly created gradient with url()');
+        assert.equal(linearGradient.tagName.toLowerCase(), 'lineargradient', 'one <linearGradient> element got created in <defs>.');
+        assert.equal('url(#' + linearGradient.id + ')', elView.$('rect').attr('fill'), 'fill attribute pointing to the newly created gradient with url()');
 
         el.attr('rect/stroke', {
             type: 'linearGradient',
@@ -1252,15 +1254,15 @@ QUnit.module('basic', function(hooks) {
 
         defsChildrenCount = $(defs).children().length;
 
-        equal(defsChildrenCount, 1, 'one element is in <defs>.');
+        assert.equal(defsChildrenCount, 1, 'one element is in <defs>.');
 
         linearGradient = $(defs).children()[0];
 
-        equal(linearGradient.tagName.toLowerCase(), 'lineargradient', 'still only one <linearGradient> element is in <defs>.');
-        equal('url(#' + linearGradient.id + ')', elView.$('rect').attr('stroke'), 'stroke attribute pointing to the correct gradient with url()');
+        assert.equal(linearGradient.tagName.toLowerCase(), 'lineargradient', 'still only one <linearGradient> element is in <defs>.');
+        assert.equal('url(#' + linearGradient.id + ')', elView.$('rect').attr('stroke'), 'stroke attribute pointing to the correct gradient with url()');
     });
 
-    QUnit.test('filter', function() {
+    QUnit.test('filter', function(assert) {
 
         var el = new joint.shapes.basic.Rect;
         var el2 = new joint.shapes.basic.Rect;
@@ -1273,7 +1275,7 @@ QUnit.module('basic', function(hooks) {
         var defs = this.paper.svg.querySelector('defs');
 
         var defsChildrenCount = $(defs).children().length;
-        equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
+        assert.equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
 
         el.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 } });
 
@@ -1281,37 +1283,39 @@ QUnit.module('basic', function(hooks) {
         // Therefore, we use the following trick to check whether the element is in DOM.
 
         defsChildrenCount = $(defs).children().length;
-        equal(defsChildrenCount, 1, 'one element got created in <defs>.');
+        assert.equal(defsChildrenCount, 1, 'one element got created in <defs>.');
 
         var filter = $(defs).children()[0];
 
-        equal(filter.tagName.toLowerCase(), 'filter', 'one <filter> element got created in <defs>.');
-        checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the newly created filter with url()');
+        assert.equal(filter.tagName.toLowerCase(), 'filter', 'one <filter> element got created in <defs>.');
+        assert.checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the newly created filter with url()');
 
         el2.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 } });
 
         defsChildrenCount = $(defs).children().length;
-        equal(defsChildrenCount, 1, 'one element still in <defs>.');
+        assert.equal(defsChildrenCount, 1, 'one element still in <defs>.');
 
         filter = $(defs).children()[0];
 
-        equal(filter.tagName.toLowerCase(), 'filter', 'still only one <filter> element is in <defs>.');
-        checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the correct gradient with url()');
+        assert.equal(filter.tagName.toLowerCase(), 'filter', 'still only one <filter> element is in <defs>.');
+        assert.checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the correct gradient with url()');
 
         el.attr('rect/filter', { name: 'blur', args: { x: 5 } });
 
         defsChildrenCount = $(defs).children().length;
-        equal(defsChildrenCount, 2, 'now two elements are in <defs>.');
+        assert.equal(defsChildrenCount, 2, 'now two elements are in <defs>.');
         var filter0 = $(defs).children()[0];
         var filter1 = $(defs).children()[1];
-        deepEqual([filter0.tagName.toLowerCase(), filter1.tagName.toLowerCase()], ['filter', 'filter'], 'both elements in <defs> are <filter> elements.');
-        notEqual(filter0.id, filter1.id, 'both <filter> elements have different IDs');
+        assert.deepEqual([filter0.tagName.toLowerCase(), filter1.tagName.toLowerCase()], ['filter', 'filter'], 'both elements in <defs> are <filter> elements.');
+        assert.notEqual(filter0.id, filter1.id, 'both <filter> elements have different IDs');
 
-        checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter0.id + ')', 'filter attribute pointing to the correct gradient with url()');
-        checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter1.id + ')', 'filter attribute pointing to the correct gradient with url()');
+        assert.checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter0.id + ')', 'filter attribute pointing to the correct gradient with url()');
+        assert.checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter1.id + ')', 'filter attribute pointing to the correct gradient with url()');
     });
 
-    QUnit.asyncTest('transition: sanity', 5, function() {
+    QUnit.test('transition: sanity', function(assert) {
+
+        var done = assert.async();
 
         var p0 = true;
         var p1 = true;
@@ -1326,25 +1330,25 @@ QUnit.module('basic', function(hooks) {
         el.transition('property', 3, {
             valueFunction: function(a, b) {
 
-                equal(a, 2, 'The method passes the current value to a valueFunction as start.');
-                equal(b, 3, 'The method passes the requested value to a valueFunction as end.');
+                assert.equal(a, 2, 'The method passes the current value to a valueFunction as start.');
+                assert.equal(b, 3, 'The method passes the requested value to a valueFunction as end.');
 
                 return function(t) {
 
                     if (t < .1 && p0) {
-                        ok(true, 'Transition starts.');
+                        assert.ok(true, 'Transition starts.');
                         p0 = false;
                     }
 
                     if (t > .1 && t < .9 && p1) {
-                        ok(true, 'Transition runs.');
+                        assert.ok(true, 'Transition runs.');
                         p1 = false;
                     }
 
                     if (t > .9 && p2) {
-                        ok(true, 'Transition ends.');
+                        assert.ok(true, 'Transition ends.');
                         p2 = false;
-                        start();
+                        done();
                     }
 
                     return 0;
@@ -1355,7 +1359,9 @@ QUnit.module('basic', function(hooks) {
         el.set('property', 2);
     });
 
-    QUnit.asyncTest('transition: primitive value', function() {
+    QUnit.test('transition: primitive value', function(assert) {
+
+        var done = assert.async();
 
         var el = new joint.shapes.basic.Rect({
             timer: -1
@@ -1383,19 +1389,20 @@ QUnit.module('basic', function(hooks) {
 
             var timerMedian = timerArray[Math.floor(timerArray.length / 2)];
 
-            equal(el.get('timer'), 1, 'The transition sets the primitive property.');
+            assert.equal(el.get('timer'), 1, 'The transition sets the primitive property.');
 
-            deepEqual(timerArray.sort(), timerArray, 'The transition changes the primitive property gradually, ');
+            assert.deepEqual(timerArray.sort(), timerArray, 'The transition changes the primitive property gradually, ');
 
-            ok(0 < timerMedian && timerMedian < 1, 'The transition median value is between min and max.');
+            assert.ok(0 < timerMedian && timerMedian < 1, 'The transition median value is between min and max.');
 
-            start();
+            done();
 
         }, 300);
     });
 
-    QUnit.asyncTest('transition: nested value', function() {
+    QUnit.test('transition: nested value', function(assert) {
 
+        var done = assert.async();
         var el = new joint.shapes.basic.Rect({
             nested: {
                 timer: -1,
@@ -1425,20 +1432,20 @@ QUnit.module('basic', function(hooks) {
 
             var timerMedian = timerArray[Math.floor(timerArray.length / 2)];
 
-            equal(el.get('nested').timer, 1, 'The transition sets the nested property.');
+            assert.equal(el.get('nested').timer, 1, 'The transition sets the nested property.');
 
-            equal(el.get('nested').other, 'nochange', 'The transition affects no other property.');
+            assert.equal(el.get('nested').other, 'nochange', 'The transition affects no other property.');
 
-            deepEqual(timerArray.sort(), timerArray, 'The transition changes the nested property gradually, ');
+            assert.deepEqual(timerArray.sort(), timerArray, 'The transition changes the nested property gradually, ');
 
-            ok(0 < timerMedian && timerMedian < 1, 'The transition median value is between min and max.');
+            assert.ok(0 < timerMedian && timerMedian < 1, 'The transition median value is between min and max.');
 
-            start();
+            done();
 
         }, 300);
     });
 
-    QUnit.test('cell.getAncestors()', function() {
+    QUnit.test('cell.getAncestors()', function(assert) {
 
         var r0 = new joint.shapes.basic.Rect;
         var r1 = new joint.shapes.basic.Rect;
@@ -1451,10 +1458,10 @@ QUnit.module('basic', function(hooks) {
 
         this.graph.addCells([r1, r2, r3, r4, r5]);
 
-        deepEqual(r0.getAncestors(), [], 'A cell that is not part of a collection has no ancestors.');
-        deepEqual(r1.getAncestors(), [], 'A cell with no parent has no ancestors.');
-        deepEqual(_.pluck(r2.getAncestors(), 'id'), [r1.id], 'A cell embedded in a parent with no ancestor has exactly one ancestor.');
-        deepEqual(_.pluck(r5.getAncestors(), 'id'), [r2.id, r1.id], 'If a cell has more than one ancestor, the ancesotrs are sorted from the parent to the most distant ancestor.');
+        assert.deepEqual(r0.getAncestors(), [], 'A cell that is not part of a collection has no ancestors.');
+        assert.deepEqual(r1.getAncestors(), [], 'A cell with no parent has no ancestors.');
+        assert.deepEqual(_.pluck(r2.getAncestors(), 'id'), [r1.id], 'A cell embedded in a parent with no ancestor has exactly one ancestor.');
+        assert.deepEqual(_.pluck(r5.getAncestors(), 'id'), [r2.id, r1.id], 'If a cell has more than one ancestor, the ancesotrs are sorted from the parent to the most distant ancestor.');
     });
 
     QUnit.test('cellView: element reference wrapped in Vectorizer', function(assert) {

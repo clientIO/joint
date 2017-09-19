@@ -18,18 +18,17 @@ function mathRoundBbox(bbox) {
     };
 }
 
-function checkBbox(paper, el, x, y, w, h, msg) {
+QUnit.assert.checkBbox = function(paper, el, x, y, w, h, msg) {
 
     var view = paper.findViewByModel(el);
     var bbox = view.getBBox();
     var bboxObject = mathRoundBbox(bbox);
 
-    deepEqual(bboxObject, { x: x, y: y, width: w, height: h }, msg);
-}
+    return this.deepEqual(bboxObject, { x: x, y: y, width: w, height: h }, msg);
+};
 
-function checkBboxApproximately(plusMinus, actualBBox, expectedBBox, message) {
-
-    ok(
+QUnit.assert.checkBboxApproximately = function(plusMinus, actualBBox, expectedBBox, message) {
+    return this.ok(
         actualBBox.x >= expectedBBox.x - plusMinus &&
         actualBBox.x <= expectedBBox.x + plusMinus &&
         actualBBox.y >= expectedBBox.y - plusMinus &&
@@ -40,12 +39,11 @@ function checkBboxApproximately(plusMinus, actualBBox, expectedBBox, message) {
         actualBBox.height <= expectedBBox.height + plusMinus,
         message
     );
-}
+};
 
-function checkDataPath(actualD, expectedD, message) {
-
-    equal(actualD, normalizeDataPath(expectedD), message);
-}
+QUnit.assert.checkDataPath = function(actualD, expectedD, message) {
+    return this.equal(actualD, normalizeDataPath(expectedD), message);
+};
 
 function normalizeDataPath(d) {
 
@@ -88,10 +86,10 @@ function normalizeDataPath(d) {
     return normalizedD;
 }
 
-function checkSvgAttr(name, vel, expectedValue, message) {
+QUnit.assert.checkSvgAttr = function(name, vel, expectedValue, message) {
 
-    return equal(vel.attr(name), normalizeSvgAttr(name, expectedValue), message);
-}
+    return this.equal(vel.attr(name), normalizeSvgAttr(name, expectedValue), message);
+};
 
 function normalizeSvgAttr(name, value) {
 

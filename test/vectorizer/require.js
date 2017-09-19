@@ -1,7 +1,7 @@
 require.config({
     baseUrl: '../../',
     paths: {
-        'qunit': 'lib/qunit/qunit/qunit',
+        'qunit': 'node_modules/qunitjs/qunit/qunit',
 
         // Dependencies for Vectorizer:
         'g': 'src/geometry'
