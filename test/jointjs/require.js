@@ -1,7 +1,7 @@
 require.config({
     baseUrl: '../../',
     paths: {
-        'qunit': 'lib/qunit/qunit/qunit',
+        'qunit': 'node_modules/qunitjs/qunit/qunit',
 
         // Dependencies for Joint:
         'jquery': 'node_modules/jquery/dist/jquery',
