@@ -71,7 +71,7 @@ QUnit.module('links', function(hooks) {
 
         var v0 = this.paper.findViewByModel(l0);
 
-        checkDataPath(v0.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data starts at the source right-middle point and ends in the target left-middle point');
+        assert.checkDataPath(v0.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data starts at the source right-middle point and ends in the target left-middle point');
 
         var l1 = new joint.dia.Link({
             source: { id: r1.id },
@@ -126,7 +126,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('interaction', function(assert) {
 
-        expect(6);
+        assert.expect(6);
 
         var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
         var r2 = r1.clone().translate(300);
@@ -151,7 +151,7 @@ QUnit.module('links', function(hooks) {
         var v0 = this.paper.findViewByModel(l0);
 
         this.paper.options.validateConnection = function(vs, ms, vt, mt, v) {
-            ok(vs === vr1 && vt === vr3, 'connection validation executed');
+            assert.ok(vs === vr1 && vt === vr3, 'connection validation executed');
             return vt instanceof joint.dia.ElementView;
         };
 
@@ -197,12 +197,12 @@ QUnit.module('links', function(hooks) {
         assert.notOk(highlighted, 'after moving the pointer to coordinates 400, 400 the rectangle is not highlighted anymore');
 
         v0.pointerup();
-        checkDataPath(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 300 100 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400, 400');
+        assert.checkDataPath(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 300 100 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400, 400');
     });
 
     QUnit.test('defaultLink', function(assert) {
 
-        expect(9);
+        assert.expect(9);
 
         this.paper.options.defaultLink = new joint.dia.Link();
 
@@ -296,20 +296,20 @@ QUnit.module('links', function(hooks) {
         assert.ok(link.get('source') instanceof g.point, 'source of the link became a point');
         assert.ok(!(link.get('target') instanceof g.point), 'target of the link is still not a point');
 
-        checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data stayed the same after disconnection');
-        checkDataPath(linkView.$('.connection-wrap').attr('d'), 'M 140 70 320 70', 'link connection-wrap path data is the same as the .connection path data');
+        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data stayed the same after disconnection');
+        assert.checkDataPath(linkView.$('.connection-wrap').attr('d'), 'M 140 70 320 70', 'link connection-wrap path data is the same as the .connection path data');
 
         myrect.translate(-10);
 
-        checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data stayed the same after the disconnected source moved');
+        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data stayed the same after the disconnected source moved');
 
         link.set('source', { id: myrect.id });
 
-        checkDataPath(linkView.$('.connection').attr('d'), 'M 130 70 320 70', 'link path data updated after the disconnected source became re-connected again');
+        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 130 70 320 70', 'link path data updated after the disconnected source became re-connected again');
 
         myrect.translate(10);
 
-        checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data updated after the just connected source moved');
+        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data updated after the just connected source moved');
 
         // disconnect:
         link.set('target', linkView.getConnectionPoint('target', link.previous('target'), link.get('source')));
@@ -524,7 +524,7 @@ QUnit.module('links', function(hooks) {
         );
     });
 
-    QUnit.test('perpendicularLinks', function() {
+    QUnit.test('perpendicularLinks', function(assert) {
 
         this.paper.options.perpendicularLinks = true;
 
@@ -581,7 +581,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.module('Labels', function(assert) {
 
-        QUnit.test('labels', function() {
+        QUnit.test('labels', function(assert) {
 
             var myrect = new joint.shapes.basic.Rect;
             var myrect2 = myrect.clone();
@@ -628,9 +628,9 @@ QUnit.module('links', function(hooks) {
             assert.ok(label1Bbox.x > label2Bbox.x, 'second label is positioned before the first one after changing the first one position');
         });
 
-        QUnit.test('labelMove', function() {
+        QUnit.test('labelMove', function(assert) {
 
-            expect(2);
+            assert.expect(2);
 
             var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 50, height: 50 } });
             var r2 = r1.clone().translate(250);

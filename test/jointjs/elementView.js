@@ -46,7 +46,7 @@ QUnit.module('elementView', function(hooks) {
 
             elementView.model.rotate(0).resize(100, 200).translate(100, 100);
 
-            checkBboxApproximately(1, elementView.getBBox(), {
+            assert.checkBboxApproximately(1, elementView.getBBox(), {
                 x: 100,
                 y: 100,
                 width: 100,
@@ -58,7 +58,7 @@ QUnit.module('elementView', function(hooks) {
 
             elementView.model.rotate(90).resize(100, 200).translate(100, 100);
 
-            checkBboxApproximately(1, elementView.getBBox(), {
+            assert.checkBboxApproximately(1, elementView.getBBox(), {
                 x: 50,
                 y: 150,
                 width: 200,

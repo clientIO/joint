@@ -71,6 +71,7 @@
     "open-sans-fontface": "https://github.com/clientIO/open-sans/archive/1.4.2.tar.gz",
     "phantomjs-prebuilt": "2.1.7",
     "prismjs": "1.5.1",
+    "qunitjs": "2.4.0",
     "selenium-standalone": "5.1.0",
     "serve-static": "1.11.1",
     "should": "11.0.0",

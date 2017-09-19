@@ -205,14 +205,14 @@ QUnit.module('basic', function(hooks) {
         });
 
         r1.addTo(this.graph);
-        checkBbox(
+        assert.checkBbox(
             this.paper,
             r1, 100, 100, 120, 80,
             'getter "position()" returns the elements position.'
         );
 
         r1.position(200, 200);
-        checkBbox(
+        assert.checkBbox(
             this.paper,
             r1,
             200, 200, 120, 80,
@@ -239,7 +239,7 @@ QUnit.module('basic', function(hooks) {
 
         r1.embed(r2);
         r2.position(10, 10, { parentRelative: true });
-        checkBbox(
+        assert.checkBbox(
             this.paper,
             r2,
             210, 210, 30, 30,
@@ -278,16 +278,16 @@ QUnit.module('basic', function(hooks) {
         this.graph.addCell(myrect);
 
         myrect.translate(50);
-        checkBbox(this.paper, myrect, 70, 30, 120, 80, 'translate(50) should translate by 50px in x direction only');
+        assert.checkBbox(this.paper, myrect, 70, 30, 120, 80, 'translate(50) should translate by 50px in x direction only');
 
         myrect.translate(0, 20);
-        checkBbox(this.paper, myrect, 70, 50, 120, 80, 'translate(0, 20) should translate by 20px in y direction only');
+        assert.checkBbox(this.paper, myrect, 70, 50, 120, 80, 'translate(0, 20) should translate by 20px in y direction only');
 
         myrect.translate(10, 10);
-        checkBbox(this.paper, myrect, 80, 60, 120, 80, 'translate(10, 10) should translate by 10px in both x and y directions');
+        assert.checkBbox(this.paper, myrect, 80, 60, 120, 80, 'translate(10, 10) should translate by 10px in both x and y directions');
 
         myrect.translate(-10, -10);
-        checkBbox(this.paper, myrect, 70, 50, 120, 80, 'translate(-10, -10) should translate back by 10px in both x and y directions');
+        assert.checkBbox(this.paper, myrect, 70, 50, 120, 80, 'translate(-10, -10) should translate back by 10px in both x and y directions');
     });
 
     QUnit.test('translate() with restrictedArea option', function(assert) {
@@ -374,7 +374,7 @@ QUnit.module('basic', function(hooks) {
         this.graph.addCell(myrect);
 
         myrect.resize(120, 80);
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
             x: 20,
             y: 30,
             width: 120,
@@ -382,7 +382,7 @@ QUnit.module('basic', function(hooks) {
         }, 'resize([same width], [same height]) should not change bbox');
 
         myrect.resize(240, 160);
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
             x: 20,
             y: 30,
             width: 240,
@@ -390,7 +390,7 @@ QUnit.module('basic', function(hooks) {
         }, 'resize([2*width], [2*height]) should scale twice preserving origin as it was');
 
         myrect.resize(120, 80);
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
             x: 20,
             y: 30,
             width: 120,
@@ -398,7 +398,7 @@ QUnit.module('basic', function(hooks) {
         }, 'resize([orig width], [orig height]): should scale back to the original size and origin');
 
         myrect.resize(200, 160, { direction: 'right' });
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
             x: 20,
             y: 30,
             width: 200,
@@ -406,7 +406,7 @@ QUnit.module('basic', function(hooks) {
         }, 'resize([new width], [new height], { direction: "right" }) should scale only width, origin should be unchanged');
 
         myrect.resize(80, 240, { direction: 'bottom' });
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
             x: 20,
             y: 30,
             width: 200,
@@ -414,7 +414,7 @@ QUnit.module('basic', function(hooks) {
         }, 'resize([new width], [new height], { direction: "bottom" }) should scale only height, origin should be unchanged');
 
         myrect.resize(50, 50, { direction: 'bottom-right' });
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
             x: 20,
             y: 30,
             width: 50,
@@ -422,7 +422,7 @@ QUnit.module('basic', function(hooks) {
         }, 'resize([new width], [new height], { direction: "bottom-right" }) should scale both width and height, origin should be unchanged');
 
         myrect.resize(20, 20, { direction: 'top-left' });
-        checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
             x: 50,
             y: 60,
             width: 20,
@@ -441,17 +441,17 @@ QUnit.module('basic', function(hooks) {
         this.graph.addCell(myrect);
 
         myrect.rotate(90);
-        checkBbox(this.paper, myrect, 40, 10, 80, 120, 'rotate(90) should rotate the object by 90 degrees around its center');
+        assert.checkBbox(this.paper, myrect, 40, 10, 80, 120, 'rotate(90) should rotate the object by 90 degrees around its center');
 
         myrect.rotate(-90);
-        checkBbox(this.paper, myrect, 20, 30, 120, 80, 'rotate(-90) should rotate the object back to its original angle');
+        assert.checkBbox(this.paper, myrect, 20, 30, 120, 80, 'rotate(-90) should rotate the object back to its original angle');
 
         // Rotation around an origin.
         myrect.rotate(180, false, { x: 140, y: 70 });
-        checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) should rotate the object around the middle of its right edge');
+        assert.checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) should rotate the object around the middle of its right edge');
 
         myrect.rotate(180, true, { x: 140, y: 70 });
-        checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) with absolute flag should not rotate the object as it is already rotated');
+        assert.checkBbox(this.paper, myrect, 140, 30, 120, 80, 'rotate(180, 140, 70) with absolute flag should not rotate the object as it is already rotated');
     });
 
     QUnit.test('object reconstruction after several transformations', function(assert) {
@@ -613,7 +613,7 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('removeProp()', function(assert) {
 
-        expect(4);
+        assert.expect(4);
 
         var el = new joint.dia.Cell({
             flat: 6,
@@ -796,7 +796,7 @@ QUnit.module('basic', function(hooks) {
         assert.equal(textEls[0].textContent, V.sanitizeText('my rectangle'), 'text element has a proper content');
         assert.equal(textEls[1].textContent, V.sanitizeText('my rectangle'), 'text element of the cloned element has a proper content');
 
-        checkBbox(this.paper, r2, 20, 30, 120, 80, 'cloned element is at the exact same position as the original element');
+        assert.checkBbox(this.paper, r2, 20, 30, 120, 80, 'cloned element is at the exact same position as the original element');
 
         // Check correct offset of the element when translate() is called before appending the element to the paper.
         // This is critical as in this situation, render() is called after translate() and should therefore
@@ -804,7 +804,7 @@ QUnit.module('basic', function(hooks) {
         var r3 = r1.clone();
         r3.translate(50);
         this.graph.addCell(r3);
-        checkBbox(this.paper, r3, 70, 30, 120, 80, 'cloned element is offset by 50px to the right of the original element if translate() was called before appending it to the paper');
+        assert.checkBbox(this.paper, r3, 70, 30, 120, 80, 'cloned element is offset by 50px to the right of the original element if translate() was called before appending it to the paper');
 
         // Shallow clone of embedded elements
         r1.embed(r2);
@@ -856,15 +856,15 @@ QUnit.module('basic', function(hooks) {
 
         r1.translate(50);
 
-        checkBbox(this.paper, r1, 70, 30, 120, 80, 'translate(50) should translate the parent element by 50px');
-        checkBbox(this.paper, r2, 70, 30, 120, 80, 'embedded element should translate the same as the parent element');
+        assert.checkBbox(this.paper, r1, 70, 30, 120, 80, 'translate(50) should translate the parent element by 50px');
+        assert.checkBbox(this.paper, r2, 70, 30, 120, 80, 'embedded element should translate the same as the parent element');
         assert.equal(r2.get('parent'), r1.id, 'embedded element gains the parent attribute pointing to its parent cell');
 
         r1.unembed(r2);
 
         r1.translate(-50);
-        checkBbox(this.paper, r1, 20, 30, 120, 80, 'translate(-50) should translate the parent element by -50px');
-        checkBbox(this.paper, r2, 70, 30, 120, 80, 'unembedded element should stay at the same position when its old parent got translated');
+        assert.checkBbox(this.paper, r1, 20, 30, 120, 80, 'translate(-50) should translate the parent element by -50px');
+        assert.checkBbox(this.paper, r2, 70, 30, 120, 80, 'unembedded element should stay at the same position when its old parent got translated');
         assert.equal(r2.get('parent'), undefined, 'embedded element gets its parent attribute pointing to its parent cell removed');
 
         r1.embed(r2);
@@ -1067,7 +1067,7 @@ QUnit.module('basic', function(hooks) {
             'ref-x: 20, ref-y: 10 and ref set to .small should offset the element by 20px in x axis and 10px in y axis with respect to the x-y coordinate of the .small element'
         );
 
-        throws(function() {
+        assert.throws(function() {
             el.attr({ '.small': { 'ref': '.not-existing-reference' } });
         }, /dia.ElementView/, 'Use of an invalid reference throws an error.');
     });
@@ -1288,7 +1288,7 @@ QUnit.module('basic', function(hooks) {
         var filter = $(defs).children()[0];
 
         assert.equal(filter.tagName.toLowerCase(), 'filter', 'one <filter> element got created in <defs>.');
-        checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the newly created filter with url()');
+        assert.checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the newly created filter with url()');
 
         el2.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 } });
 
@@ -1298,7 +1298,7 @@ QUnit.module('basic', function(hooks) {
         filter = $(defs).children()[0];
 
         assert.equal(filter.tagName.toLowerCase(), 'filter', 'still only one <filter> element is in <defs>.');
-        checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the correct gradient with url()');
+        assert.checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the correct gradient with url()');
 
         el.attr('rect/filter', { name: 'blur', args: { x: 5 } });
 
@@ -1309,11 +1309,11 @@ QUnit.module('basic', function(hooks) {
         assert.deepEqual([filter0.tagName.toLowerCase(), filter1.tagName.toLowerCase()], ['filter', 'filter'], 'both elements in <defs> are <filter> elements.');
         assert.notEqual(filter0.id, filter1.id, 'both <filter> elements have different IDs');
 
-        checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter0.id + ')', 'filter attribute pointing to the correct gradient with url()');
-        checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter1.id + ')', 'filter attribute pointing to the correct gradient with url()');
+        assert.checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter0.id + ')', 'filter attribute pointing to the correct gradient with url()');
+        assert.checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter1.id + ')', 'filter attribute pointing to the correct gradient with url()');
     });
 
-    QUnit.test('transition: sanity', 5, function(assert) {
+    QUnit.test('transition: sanity', function(assert) {
 
         var done = assert.async();
 
