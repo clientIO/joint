@@ -553,7 +553,9 @@ joint.dia.Graph = Backbone.Model.extend({
 
         }, this);
 
-        cellsAncestors = joint.util.sortBy(cellsAncestors, 'length');
+        cellsAncestors = cellsAncestors.sort(function(a, b) {
+            return a.length - b.length;
+        });
 
         var commonAncestor = joint.util.toArray(cellsAncestors.shift()).find(function(ancestor) {
             return cellsAncestors.every(function(cellAncestors) {
