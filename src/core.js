@@ -1441,8 +1441,7 @@ var joint = {
         flattenDeep: _.flattenDeep,
         camelCase: _.camelCase,
         groupBy: _.groupBy,
-        forIn: _.forIn,
-        sortBy: _.sortBy,
+        forIn: _.forIn
 
         isBoolean: function(value) {
             var toString = Object.prototype.toString;
