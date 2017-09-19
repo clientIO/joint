@@ -1423,7 +1423,7 @@ var joint = {
         isFunction: _.isFunction,
         result: _.result,
         union: _.union,
-        invoke: _.invoke,
+        invoke: _.invokeMap || _.invoke,
         difference: _.difference,
         omit: _.omit,
         pick: _.pick,

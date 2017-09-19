@@ -582,7 +582,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         }.bind(this);
 
-        return _.delay(initiator, opt.delay, setter);
+        return setTimeout(initiator, opt.delay, setter);
     },
 
     getTransitions: function() {

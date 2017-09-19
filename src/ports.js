@@ -438,7 +438,6 @@
 
             if (prevPortData) {
 
-                // _.filter can be replaced with _.differenceBy in lodash 4
                 var added = curPortData.filter(function(item) {
                     if (!prevPortData.find(function(prevPort) { return prevPort.id === item.id;})) {
                         return item;
