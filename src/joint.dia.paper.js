@@ -1390,7 +1390,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (eventName) {
             var view = this.findView(currentTarget);
             if (view && !this.guard(evt, view)) {
-                view.event(evt, eventName);
+                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+                view.event(evt, eventName, localPoint.x, localPoint.y);
             }
         }
     },

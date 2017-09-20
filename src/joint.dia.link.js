@@ -1879,7 +1879,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.notify('link:mouseleave', evt);
     },
 
-    event: function(evt, eventName) {
+    event: function(evt, eventName, x, y) {
 
         // Backwards compatibility
         var linkTool = V(evt.target).findParentByClass('link-tool', this.el);
@@ -1893,8 +1893,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     this.model.remove({ ui: true });
                 } else {
                     // link:options and other cutom events inside the link tools
-                    var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-                    this.notify(eventName, evt, localPoint.x, localPoint.y);
+                    this.notify(eventName, evt, x, y);
                 }
             }
 
