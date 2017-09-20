@@ -1252,20 +1252,6 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
     },
 
-    cellEvent: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-
-        var currentTarget = evt.currentTarget;
-        var eventName = currentTarget.getAttribute('event');
-        if (eventName) {
-            var view = this.findView(currentTarget);
-            if (view && !this.guard(evt, view)) {
-                view.event(evt, eventName);
-            }
-        }
-    },
-
     pointerdown: function(evt) {
 
         this.bindDocumentEvents();
@@ -1392,6 +1378,20 @@ joint.dia.Paper = joint.mvc.View.extend({
         var view = this.findView(evt.target);
         if (view && !this.guard(evt, view)) {
             view.mouseleave(evt);
+        }
+    },
+
+    cellEvent: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var currentTarget = evt.currentTarget;
+        var eventName = currentTarget.getAttribute('event');
+        if (eventName) {
+            var view = this.findView(currentTarget);
+            if (view && !this.guard(evt, view)) {
+                view.event(evt, eventName);
+            }
         }
     },
 

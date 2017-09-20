@@ -1888,10 +1888,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             evt.stopPropagation();
             // Allow `interactive.useLinkTools=false`
             if (this.can('useLinkTools')) {
-                // Built-in remove event
                 if (eventName === 'remove') {
+                    // Built-in remove event
                     this.model.remove({ ui: true });
                 } else {
+                    // link:options and other cutom events inside the link tools
                     var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
                     this.notify(eventName, evt, localPoint.x, localPoint.y);
                 }
