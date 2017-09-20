@@ -1257,10 +1257,12 @@ joint.dia.Paper = joint.mvc.View.extend({
         evt = joint.util.normalizeEvent(evt);
 
         var currentTarget = evt.currentTarget;
-        var view = this.findView(currentTarget);
-        if (!this.guard(evt, view) && view) {
-            var eventName = currentTarget.getAttribute('event');
-            view.event(evt, eventName);
+        var eventName = currentTarget.getAttribute('event');
+        if (eventName) {
+            var view = this.findView(currentTarget);
+            if (view && !this.guard(evt, view)) {
+                view.event(evt, eventName);
+            }
         }
     },
 

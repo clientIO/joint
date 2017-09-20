@@ -5,8 +5,7 @@ var paper = new joint.dia.Paper({
     width: 650,
     height: 400,
     gridSize: 10,
-    model: graph,
-    interactive: { useLinkTools: false }
+    model: graph
 });
 
 // Global special attributes
