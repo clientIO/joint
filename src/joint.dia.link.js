@@ -1892,7 +1892,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     // Built-in remove event
                     this.model.remove({ ui: true });
                 } else {
-                    // link:options and other cutom events inside the link tools
+                    // link:options and other custom events inside the link tools
                     this.notify(eventName, evt, x, y);
                 }
             }
