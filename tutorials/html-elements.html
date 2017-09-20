@@ -27,12 +27,6 @@
     </head>
     <body class="language-javascript tutorial-page">
 
-        <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
-                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
-            };
-        </script>
-
         <div id="html-elements" class="tutorial">
 
             <h2>Using HTML in JointJS elements</h2>

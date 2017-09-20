@@ -1,107 +1,179 @@
-(function() {
+(function(joint, $) {
 
     var graph = new joint.dia.Graph;
-    var paper = new joint.dia.Paper({ el: $('#paper-html-elements'), width: 650, height: 400, gridSize: 1, model: graph });
-
-// Create a custom element.
-// ------------------------
-
-    joint.shapes.html = {};
-    joint.shapes.html.Element = joint.shapes.basic.Rect.extend({
-        defaults: joint.util.deepSupplement({
-            type: 'html.Element',
-            attrs: {
-                rect: { stroke: 'none', 'fill-opacity': 0 }
-            }
-        }, joint.shapes.basic.Rect.prototype.defaults)
+    var paper = new joint.dia.Paper({
+        el: document.getElementById('paper-html-elements'),
+        width: 650,
+        height: 400,
+        gridSize: 20,
+        model: graph,
+        linkConnectionPoint: joint.util.shapePerimeterConnectionPoint
     });
 
-// Create a custom view for that element that displays an HTML div above it.
-// -------------------------------------------------------------------------
+    // Render group for all html views inside the paper
+    paper.$htmlViews = $('<div>').addClass('html-views').appendTo(paper.el);
+    // Update the group transformation based on the current paper scale
+    paper.on('scale', function(sx, sy) {
+        this.$htmlViews.css({
+            transform: 'scale(' + [sx,sy] + ')',
+            transformOrigin: '0 0'
+        });
+    });
+    // Create a custom element.
+    // ------------------------
+
+    joint.dia.Element.define('html.Element', {
+        markup: '<g class="rotatable"><rect/></g>',
+        attrs: {
+            rect: {
+                refWidth: '100%',
+                refHeight: '100%',
+                stroke: 'gray'
+            }
+        }
+    });
+
+    // Create a custom view for that element that displays an HTML div above it.
+    // -------------------------------------------------------------------------
 
     joint.shapes.html.ElementView = joint.dia.ElementView.extend({
 
         template: [
-            '<div class="html-element">',
-            '<button class="delete">x</button>',
-            '<label></label>',
-            '<span></span>', '<br/>',
-            '<select><option>--</option><option>one</option><option>two</option></select>',
-            '<input type="text" value="I\'m HTML input" />',
-            '</div>'
+            '<div class="my-html-element">',
+            '<div data-attribute="mylabel"></div>',
+            '<input data-attribute="myinput" type="text"/>',
+            '<i data-attribute="myinput"></i>',
+            '<div class="delete">x</div>',
+            '</div>',
         ].join(''),
 
-        initialize: function() {
-            _.bindAll(this, 'updateBox');
-            joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+        onBoxChange: function(evt) {
 
-            this.$box = $(_.template(this.template)());
-            // Prevent paper from handling pointerdown.
-            this.$box.find('input,select').on('mousedown click', function(evt) {
-                evt.stopPropagation();
-            });
-            // This is an example of reacting on the input change and storing the input data in the cell model.
-            this.$box.find('input').on('change', _.bind(function(evt) {
-                this.model.set('input', $(evt.target).val());
-            }, this));
-            this.$box.find('select').on('change', _.bind(function(evt) {
-                this.model.set('select', $(evt.target).val());
-            }, this));
-            this.$box.find('select').val(this.model.get('select'));
-            this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));
-            // Update the box position whenever the underlying model changes.
-            this.model.on('change', this.updateBox, this);
-            // Remove the box when the model gets removed from the graph.
-            this.model.on('remove', this.removeBox, this);
-
-            this.updateBox();
+            var input = evt.target;
+            var attribute = input.dataset.attribute;
+            if (attribute) {
+                this.model.set(attribute, input.value);
+            }
         },
-        render: function() {
-            joint.dia.ElementView.prototype.render.apply(this, arguments);
-            this.paper.$el.prepend(this.$box);
+
+        onRender: function() {
+
+            if (this.$box) this.$box.remove();
+
+            var boxMarkup = joint.util.template(this.template)();
+            var $box = this.$box = $(boxMarkup);
+
+            this.$attributes = $box.find('[data-attribute]');
+
+            this.bindEvents();
+
+            $box.appendTo(this.paper.$htmlViews);
+
             this.updateBox();
+
             return this;
         },
+
+        bindEvents: function() {
+
+            var $box = this.$box;
+
+            // React on all box changes. e.g. input change
+            $box.on('change', this.onBoxChange.bind(this));
+            $box.on('mousedown', '.delete', this.onDeleteClick.bind(this));
+
+            // Update the box position whenever the underlying model changes.
+            this.listenTo(this.model, 'change', this.updateBox);
+        },
+
         updateBox: function() {
-            // Set the position and dimension of the box so that it covers the JointJS element.
+
+            // Set the position and the size of the box so that it covers the JointJS element
             var bbox = this.model.getBBox();
-            // Example of updating the HTML with a data stored in the cell model.
-            this.$box.find('label').text(this.model.get('label'));
-            this.$box.find('span').text(this.model.get('select'));
+            var angle = this.model.get('angle');
+
             this.$box.css({
+                transform: 'rotate(' + angle + 'deg)',
                 width: bbox.width,
                 height: bbox.height,
                 left: bbox.x,
-                top: bbox.y,
-                transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)'
+                top: bbox.y
+            });
+
+            this.updateAttributes();
+        },
+
+        updateAttributes: function() {
+
+            var model = this.model;
+
+            this.$attributes.each(function() {
+
+                var value = model.get(this.dataset.attribute);
+
+                switch (this.tagName.toUpperCase()) {
+                    case 'DIV':
+                    case 'I':
+                        this.textContent = value;
+                        break;
+                    case 'INPUT':
+                        this.value = value;
+                        break;
+                }
             });
         },
-        removeBox: function(evt) {
+
+        onRemove: function() {
+
             this.$box.remove();
+        },
+
+        onDeleteClick: function() {
+
+            this.model.remove();
         }
+
     });
 
-// Create JointJS elements and add them to the graph as usual.
-// -----------------------------------------------------------
+    // Create JointJS elements and add them to the graph as usual.
+    // -----------------------------------------------------------
 
     var el1 = new joint.shapes.html.Element({
         position: { x: 80, y: 80 },
-        size: { width: 170, height: 100 },
-        label: 'I am HTML',
-        select: 'one'
+        size: { width: 150, height: 80 },
+        myinput: 'I am an input',
+        mylabel: 'I am a label'
     });
+
     var el2 = new joint.shapes.html.Element({
-        position: { x: 370, y: 160 },
-        size: { width: 170, height: 100 },
-        label: 'Me too',
-        select: 'two'
+        position: { x: 350, y: 150 },
+        size: { width: 150, height: 80 },
+        myinput: 'I am HTML input',
+        mylabel: 'I am HTML label'
     });
+
     var l = new joint.dia.Link({
         source: { id: el1.id },
-        target: { id: el2.id },
-        attrs: { '.connection': { 'stroke-width': 5, stroke: '#34495E' } }
+        target: { id: el2.id }
     });
+
+    el1.rotate(45);
 
     graph.addCells([el1, el2, l]);
 
-}())
+    // Zooming
+    // ------------
+
+    var zoomLevel = 1;
+
+    $('#zoom-in').on('click', function() {
+        zoomLevel = Math.min(3, zoomLevel + 0.2);
+        paper.scale(zoomLevel, zoomLevel);
+    });
+
+    $('#zoom-out').on('click', function() {
+        zoomLevel = Math.max(0.2, zoomLevel - 0.2);
+        paper.scale(zoomLevel, zoomLevel);
+    });
+
+})(joint, $);
