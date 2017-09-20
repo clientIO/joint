@@ -511,12 +511,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Due to a bug in webkit's native SVG .getBBox implementation, the bbox of groups with path children includes the paths' control points.
         // To work around the issue, we need to check whether there are any path elements inside the scalable group.
         var recursive = false;
-        if (V(scalable).node.getElementsByTagName("path").length > 0) {
+        if (scalable.node.getElementsByTagName("path").length > 0) {
             // If scalable has at least one descendant that is a path, we need to switch to recursive bbox calculation.
             // If there are no path descendants, group bbox calculation works and so we can use the (faster) native function directly.
             recursive = true;
         }
-        var scalableBBox = V(scalable).getBBox({ recursive: recursive });
+        var scalableBBox = scalable.getBBox({ recursive: recursive });
 
         // Make sure `scalableBbox.width` and `scalableBbox.height` are not zero which can happen if the element does not have any content. By making
         // the width/height 1, we prevent HTML errors of the type `scale(Infinity, Infinity)`.
