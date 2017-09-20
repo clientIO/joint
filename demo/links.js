@@ -359,7 +359,7 @@ var link7 = new joint.dia.Link({
 });
 graph.addCell(link7);
 
-paper.on('link:options', function(evt, linkView, x, y) {
+paper.on('link:options', function(linkView, evt, x, y) {
 
     alert('Opening options for link ' + linkView.model.id);
 });

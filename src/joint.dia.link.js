@@ -1567,24 +1567,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             default:
 
-                var targetParentEvent = evt.target.parentNode.getAttribute('event');
-                if (targetParentEvent) {
-                    if (this.can('useLinkTools')) {
-                        // `remove` event is built-in. Other custom events are triggered on the paper.
-                        if (targetParentEvent === 'remove') {
-                            this.model.remove();
-                        } else {
-                            this.notify(targetParentEvent, evt, x, y);
-                        }
-                    }
-                } else {
-                    if (this.can('vertexAdd')) {
+                if (this.can('vertexAdd')) {
 
-                        // Store the index at which the new vertex has just been placed.
-                        // We'll be update the very same vertex position in `pointermove()`.
-                        this._vertexIdx = this.addVertex({ x: x, y: y });
-                        this._action = 'vertex-move';
-                    }
+                    // Store the index at which the new vertex has just been placed.
+                    // We'll be update the very same vertex position in `pointermove()`.
+                    this._vertexIdx = this.addVertex({ x: x, y: y });
+                    this._action = 'vertex-move';
                 }
         }
     },
@@ -1889,6 +1877,30 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         joint.dia.CellView.prototype.mouseleave.apply(this, arguments);
         this.notify('link:mouseleave', evt);
+    },
+
+    event: function(evt, eventName) {
+
+        // Backwards compatibility
+        var linkTool = V(evt.target).findParentByClass('link-tool', this.el);
+        if (linkTool) {
+            // No further action to be executed
+            evt.stopPropagation();
+            // Allow `interactive.useLinkTools=false`
+            if (this.can('useLinkTools')) {
+                // Built-in remove event
+                if (eventName === 'remove') {
+                    this.model.remove({ ui: true });
+                } else {
+                    var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+                    this.notify(eventName, evt, localPoint.x, localPoint.y);
+                }
+            }
+
+        } else {
+
+            joint.dia.CellView.prototype.event.apply(this, arguments);
+        }
     }
 
 }, {
