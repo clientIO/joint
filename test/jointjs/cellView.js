@@ -464,5 +464,43 @@ QUnit.module('cellView', function(hooks) {
                 testTextOffset(X + X);
             });
         });
+
+        QUnit.module('Event', function(hooks) {
+
+            hooks.beforeEach(function() {
+                cell.set('markup', '<g class="ab"><rect class="a"/><rect class="b"/></g><rect class="c"/>');
+            });
+
+            QUnit.test('sanity', function(assert) {
+                var paperSpy = sinon.spy();
+                var cellViewSpy = sinon.spy();
+                cell.attr('.ab/event', 'test-event');
+                paper.on('test-event', paperSpy);
+                cellView.on('test-event', cellViewSpy);
+                // Event should be triggered
+                simulate.mousedown({ el: cellView.el.querySelector('.ab') });
+                simulate.mousedown({ el: cellView.el.querySelector('.a') });
+                simulate.mousedown({ el: cellView.el.querySelector('.b') });
+                assert.equal(paperSpy.callCount, 3);
+                assert.equal(cellViewSpy.callCount, 3);
+                assert.ok(paperSpy.alwaysCalledWith(
+                    cellView,
+                    sinon.match.instanceOf($.Event),
+                    sinon.match.number,
+                    sinon.match.number
+                ));
+                assert.ok(cellViewSpy.alwaysCalledWith(
+                    sinon.match.instanceOf($.Event),
+                    sinon.match.number,
+                    sinon.match.number
+                ));
+                // Event should not be triggered
+                paperSpy.reset();
+                cellViewSpy.reset();
+                simulate.mousedown({ el: cellView.el.querySelector('.c') });
+                assert.notOk(paperSpy.called);
+                assert.notOk(cellViewSpy.called);
+            });
+        });
     });
 });
