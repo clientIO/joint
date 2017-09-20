@@ -6,26 +6,31 @@
         width: 650,
         height: 400,
         gridSize: 20,
-        model: graph
+        model: graph,
+        linkConnectionPoint: joint.util.shapePerimeterConnectionPoint
     });
 
-
+    // Render group for all html views inside the paper
+    paper.$htmlViews = $('<div>').addClass('html-views').appendTo(paper.el);
+    // Update the group transformation based on the current paper scale
+    paper.on('scale', function(sx, sy) {
+        this.$htmlViews.css({
+            transform: 'scale(' + [sx,sy] + ')',
+            transformOrigin: '0 0'
+        });
+    });
     // Create a custom element.
     // ------------------------
 
-    joint.shapes.html = {};
-    joint.shapes.html.Element = joint.shapes.basic.Generic.extend({
-        markup: '<rect/>',
-        defaults: _.defaultsDeep({
-            type: 'html.Element',
-            attrs: {
-                rect: {
-                    'ref-width': '100%',
-                    'ref-height': '100%',
-                    'stroke': 'gray'
-                }
+    joint.dia.Element.define('html.Element', {
+        markup: '<g class="rotatable"><rect/></g>',
+        attrs: {
+            rect: {
+                refWidth: '100%',
+                refHeight: '100%',
+                stroke: 'gray'
             }
-        }, joint.shapes.basic.Generic.prototype.defaults)
+        }
     });
 
     // Create a custom view for that element that displays an HTML div above it.
@@ -35,16 +40,12 @@
 
         template: [
             '<div class="my-html-element">',
-            '<label data-attribute="mylabel"></label>',
+            '<div data-attribute="mylabel"></div>',
             '<input data-attribute="myinput" type="text"/>',
-            '</div>'
+            '<i data-attribute="myinput"></i>',
+            '<div class="delete">x</div>',
+            '</div>',
         ].join(''),
-
-        init: function() {
-
-            // Update the box position whenever the underlying model changes.
-            this.listenTo(this.model, 'change', this.updateBox);
-        },
 
         onBoxChange: function(evt) {
 
@@ -64,31 +65,37 @@
 
             this.$attributes = $box.find('[data-attribute]');
 
-            // React on all box changes. e.g. input change
-            $box.on('change', _.bind(this.onBoxChange, this));
+            this.bindEvents();
 
-            // Update the box size and position whenever the paper transformation changes.
-            // Note: there is no paper yet on `init` method.
-            this.listenTo(this.paper, 'scale', this.updateBox);
+            $box.appendTo(this.paper.$htmlViews);
 
-            $box.appendTo(this.paper.el);
             this.updateBox();
 
             return this;
         },
 
+        bindEvents: function() {
+
+            var $box = this.$box;
+
+            // React on all box changes. e.g. input change
+            $box.on('change', this.onBoxChange.bind(this));
+            $box.on('mousedown', '.delete', this.onDelete.bind(this));
+
+            // Update the box position whenever the underlying model changes.
+            this.listenTo(this.model, 'change', this.updateBox);
+        },
+
         updateBox: function() {
 
             // Set the position and the size of the box so that it covers the JointJS element
-            // (taking the paper transformations into account).
-            var bbox = this.getBBox({ useModelGeometry: true });
-            var scale = V(this.paper.viewport).scale();
+            var bbox = this.model.getBBox();
+            var angle = this.model.get('angle');
 
             this.$box.css({
-                transform: 'scale(' + scale.sx + ',' + scale.sy + ')',
-                transformOrigin: '0 0',
-                width: bbox.width / scale.sx,
-                height: bbox.height / scale.sy,
+                transform: 'rotate(' + angle + 'deg)',
+                width: bbox.width,
+                height: bbox.height,
                 left: bbox.x,
                 top: bbox.y
             });
@@ -105,7 +112,8 @@
                 var value = model.get(this.dataset.attribute);
 
                 switch (this.tagName.toUpperCase()) {
-                    case 'LABEL':
+                    case 'DIV':
+                    case 'I':
                         this.textContent = value;
                         break;
                     case 'INPUT':
@@ -118,6 +126,11 @@
         onRemove: function() {
 
             this.$box.remove();
+        },
+
+        onDelete: function() {
+
+            this.model.remove();
         }
 
     });
@@ -143,6 +156,8 @@
         source: { id: el1.id },
         target: { id: el2.id }
     });
+
+    el1.rotate(45);
 
     graph.addCells([el1, el2, l]);
 
