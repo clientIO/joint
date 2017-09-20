@@ -44,7 +44,11 @@
             <p>The good news is that if you setup your custom HTML view properly, you can take advantage
                 of many of the features JointJS has to offer.</p>
 
-            <div id="paper-html-elements"></div>
+            <p>Please note, using this technique will most probably prevent you from exporting the paper into raster / SVG images in the future.</p>
+
+            <div id="paper-html-elements" style="display: block"></div>
+            <button id="html-elements-zoom-in">Zoom In</button>
+            <button id="html-elements-zoom-out">Zoom Out</button>
 
             <p>The code below shows how you can create a custom JointJS view that renders HTML (including
                 functional inputs). The trick is to update the HTML element position and dimension so that it follows

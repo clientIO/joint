@@ -166,12 +166,12 @@
 
     var zoomLevel = 1;
 
-    $('#zoom-in').on('click', function() {
+    $('#html-elements-zoom-in').on('click', function() {
         zoomLevel = Math.min(3, zoomLevel + 0.2);
         paper.scale(zoomLevel, zoomLevel);
     });
 
-    $('#zoom-out').on('click', function() {
+    $('#html-elements-zoom-out').on('click', function() {
         zoomLevel = Math.max(0.2, zoomLevel - 0.2);
         paper.scale(zoomLevel, zoomLevel);
     });
