@@ -317,9 +317,13 @@ V = Vectorizer = (function() {
             for (var i = 0; i < n; i++) {
                 var currentChild = children[i];
 
+                var childBBox;
+
                 // if currentChild is not a group element, get its bbox with a nonrecursive call
-                var childBBox = currentChild.getBBox({ target: options.target, recursive: false });
-                if (currentChild.children().length !== 0) {
+                if (currentChild.children().length === 0) {
+                    childBBox = currentChild.getBBox({ target: options.target, recursive: false });
+                }
+                else {
                     // if currentChild is a group element (determined by checking the number of children), enter it with a recursive call
                     childBBox = currentChild.getBBox({ target: options.target, recursive: true });
                 }

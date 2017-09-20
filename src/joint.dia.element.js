@@ -511,7 +511,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Due to a bug in webkit's native SVG .getBBox implementation, the bbox of groups with path children includes the paths' control points.
         // To work around the issue, we need to check whether there are any path elements inside the scalable group.
         var recursive = false;
-        if (scalable.node.getElementsByTagName("path").length > 0) {
+        if (scalable.node.getElementsByTagName('path').length > 0) {
             // If scalable has at least one descendant that is a path, we need to switch to recursive bbox calculation.
             // If there are no path descendants, group bbox calculation works and so we can use the (faster) native function directly.
             recursive = true;
@@ -520,7 +520,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // Make sure `scalableBbox.width` and `scalableBbox.height` are not zero which can happen if the element does not have any content. By making
         // the width/height 1, we prevent HTML errors of the type `scale(Infinity, Infinity)`.
-        scalable.attr('transform', 'scale(' + (size.width / (scalableBBox.width || 1)) + ',' + (size.height / (scalableBBox.height || 1)) + ')');
+        var sx = (size.width / (scalableBBox.width || 1));
+        var sy = (size.height / (scalableBBox.height || 1));
+        scalable.attr('transform', 'scale(' + sx + ',' + sy + ')');
 
         // Now the interesting part. The goal is to be able to store the object geometry via just `x`, `y`, `angle`, `width` and `height`
         // Order of transformations is significant but we want to reconstruct the object always in the order:

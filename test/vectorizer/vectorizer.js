@@ -14,6 +14,7 @@ QUnit.module('vectorizer', function(hooks) {
     var svgGroup1;
     var svgGroup2;
     var svgGroup3;
+    var svgPath2;
 
     var childrenTagNames = function(vel) {
         var tagNames = [];
@@ -37,6 +38,7 @@ QUnit.module('vectorizer', function(hooks) {
                 '<g id="svg-group-1" class="group-1">' +
                     '<g id="svg-group-2" class="group-2">' +
                         '<g id="svg-group-3" class="group3">' +
+                            '<path id="svg-path-2" d="M 100 100 C 100 100 0 150 100 200 Z"/>' +
                         '</g>' +
                     '</g>' +
                 '</g>';
@@ -54,6 +56,7 @@ QUnit.module('vectorizer', function(hooks) {
         svgGroup1 = document.getElementById('svg-group-1');
         svgGroup2 = document.getElementById('svg-group-2');
         svgGroup3 = document.getElementById('svg-group-3');
+        svgPath2 = document.getElementById('svg-path-2');
     });
 
     function serializeNode(node) {
@@ -1002,18 +1005,25 @@ QUnit.module('vectorizer', function(hooks) {
         QUnit.test('sanity', function(assert) {
             assert.ok(V(svgCircle).getBBox() instanceof g.Rect);
             assert.ok(V(svgCircle).getBBox({}) instanceof g.Rect);
-            assert.ok(V(svgCircle).getBBox({ walkChildren: true }) instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({ recursive: true }) instanceof g.Rect);
             assert.ok(V(svgCircle).getBBox({ target: svgCircle }) instanceof g.Rect);
-            assert.ok(V(svgCircle).getBBox({ target: svgCircle, walkChildren: true }) instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({ target: svgCircle, recursive: true }) instanceof g.Rect);
             assert.ok(V(svgCircle).getBBox({ target: svgContainer }) instanceof g.Rect);
-            assert.ok(V(svgCircle).getBBox({ target: svgContainer, walkChildren: true }) instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({ target: svgContainer, recursive: true }) instanceof g.Rect);
             assert.ok(V('circle', { class: 'not-in-dom' }).getBBox() instanceof g.Rect);
             assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({}) instanceof g.Rect);
-            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ walkChildren: true }) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ recursive: true }) instanceof g.Rect);
             assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgCircle }) instanceof g.Rect);
-            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgCircle, walkChildren: true }) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgCircle, recursive: true }) instanceof g.Rect);
             assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgContainer }) instanceof g.Rect);
-            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgContainer, walkChildren: true }) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgContainer, recursive: true }) instanceof g.Rect);
+        });
+
+        QUnit.test('recursive', function(assert) {
+            assert.equal(V(svgGroup3).getBBox({ recursive: true }).toString(), V(svgPath2).getBBox().toString());
+            assert.equal(V(svgGroup3).getBBox({ recursive: true }).toString(), V(svgPath2).getBBox({ recursive: true }).toString());
+            assert.equal(V(svgGroup3).getBBox({ target: svgGroup1, recursive: true }).toString(), V(svgPath2).getBBox({ target: svgGroup1 }).toString());
+            assert.equal(V(svgGroup3).getBBox({ target: svgGroup1, recursive: true }).toString(), V(svgPath2).getBBox({ target: svgGroup1, recursive: true }).toString());
         });
     });
 
