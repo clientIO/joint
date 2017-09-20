@@ -701,7 +701,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (this._V.markerSource) {
 
-            cache.sourceBBox = cache.sourceBBox || this._V.markerSource.bbox(true);
+            cache.sourceBBox = cache.sourceBBox || this._V.markerSource.getBBox();
 
             sourceMarkerPoint = g.point(sourcePoint).move(
                 firstVertex || targetPoint,
@@ -711,7 +711,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (this._V.markerTarget) {
 
-            cache.targetBBox = cache.targetBBox || this._V.markerTarget.bbox(true);
+            cache.targetBBox = cache.targetBBox || this._V.markerTarget.getBBox();
 
             targetMarkerPoint = g.point(targetPoint).move(
                 lastVertex || sourcePoint,
@@ -1681,7 +1681,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                         view.$('[magnet]').each(function(index, magnet) {
 
-                            var bbox = V(magnet).bbox(false, this.paper.viewport);
+                            var bbox = V(magnet).getBBox({ target: this.paper.viewport });
 
                             distance = pointer.distance({
                                 x: bbox.x + bbox.width / 2,

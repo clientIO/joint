@@ -243,6 +243,103 @@ V = Vectorizer = (function() {
 
         return V.transformRect(box, matrix);
     };
+    
+    // Returns an SVGRect that contains coordinates and dimensions of the real bounding box,
+    // i.e. after transformations are applied.
+    // Fixes a browser implementation bug that returns incorrect bounding boxes for groups of svg elements.
+    // Takes an (Object) `opt` argument (optional) with the following attributes:
+    // (Object) `target` (optional): if not undefined, transform bounding boxes relative to `target`; if undefined, transform relative to this
+    // (Boolean) `recursive` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox();
+    V.prototype.getBBox = function(opt) {
+
+        var options = {};
+
+        var outputBBox;
+        var node = this.node;
+        var ownerSVGElement = node.ownerSVGElement;
+
+        // If the element is not in the live DOM, it does not have a bounding box defined and
+        // so fall back to 'zero' dimension element.
+        if (!ownerSVGElement) {
+            return g.Rect(0, 0, 0, 0);
+        }
+
+        if (opt) {
+            if (opt.target) { // check if target exists
+                options.target = V.toNode(opt.target); // works for V objects, jquery objects, and node objects
+            }
+            if (opt.recursive) {
+                options.recursive = opt.recursive;
+            }
+        }
+
+        if (!options.recursive) {
+            try {
+                outputBBox = node.getBBox();
+            } catch (e) {
+                // Fallback for IE.
+                outputBBox = {
+                    x: node.clientLeft,
+                    y: node.clientTop,
+                    width: node.clientWidth,
+                    height: node.clientHeight
+                };
+            }
+
+            if (!options.target) {
+                // transform like this (that is, not at all)
+                return g.Rect(outputBBox);
+            } else {
+                // transform like target
+                var matrix = this.getTransformToElement(options.target);
+                return V.transformRect(outputBBox, matrix);
+            }
+        } else { // if we want to calculate the bbox recursively
+            // browsers report correct bbox around svg elements (one that envelops the path lines tightly)
+            // but some browsers fail to report the same bbox when the elements are in a group (returning a looser bbox that also includes control points, like node.getClientRect())
+            // this happens even if we wrap a single svg element into a group!
+            // this option setting makes the function recursively enter all the groups from this and deeper, get bboxes of the elements inside, then return a union of those bboxes
+
+            var children = this.children();
+            var n = children.length;
+            
+            if (n === 0) {
+                return this.getBBox({ target: options.target, recursive: false });
+            }
+
+            // recursion's initial pass-through setting:
+            // recursive passes-through just keep the target as whatever was set up here during the initial pass-through
+            if (!options.target) {
+                // transform children/descendants like this (their parent/ancestor)
+                options.target = this;
+            } // else transform children/descendants like target
+
+            for (var i = 0; i < n; i++) {
+                var currentChild = children[i];
+
+                var childBBox;
+
+                // if currentChild is not a group element, get its bbox with a nonrecursive call
+                if (currentChild.children().length === 0) {
+                    childBBox = currentChild.getBBox({ target: options.target, recursive: false });
+                }
+                else {
+                    // if currentChild is a group element (determined by checking the number of children), enter it with a recursive call
+                    childBBox = currentChild.getBBox({ target: options.target, recursive: true });
+                }
+
+                if (!outputBBox) {
+                    // if this is the first iteration
+                    outputBBox = childBBox;
+                } else {
+                    // make a new bounding box rectangle that contains this child's bounding box and previous bounding box
+                    outputBBox = outputBBox.union(childBBox);
+                }
+            }
+
+            return outputBBox;
+        }
+    };
 
     V.prototype.text = function(content, opt) {
 
@@ -597,6 +694,21 @@ V = Vectorizer = (function() {
         return vels;
     };
 
+    // Returns an array of V elements made from children of this.node.
+    V.prototype.children = function() {
+
+        var children = this.node.childNodes;
+        
+        var outputArray = [];
+        for (var i = 0; i < children.length; i++) {
+            var currentChild = children[i];
+            if (currentChild.nodeType === 1) {
+                outputArray.push(V(children[i])); 
+            }
+        }
+        return outputArray;
+    };
+
     // Find an index of an element inside its container.
     V.prototype.index = function() {
 
@@ -665,8 +777,8 @@ V = Vectorizer = (function() {
 
     V.prototype.translateCenterToPoint = function(p) {
 
-        var bbox = this.bbox();
-        var center = g.rect(bbox).center();
+        var bbox = this.getBBox({ target: this.svg() });
+        var center = bbox.center();
 
         this.translate(p.x - center.x, p.y - center.y);
     };
@@ -688,7 +800,7 @@ V = Vectorizer = (function() {
         this.scale(s.sx, s.sy);
 
         var svg = this.svg().node;
-        var bbox = this.bbox(false, target);
+        var bbox = this.getBBox({ target: target });
 
         // 1. Translate to origin.
         var translateToOrigin = svg.createSVGTransform();
@@ -873,7 +985,7 @@ V = Vectorizer = (function() {
 
         var svg = this.svg().node;
         target = target || svg;
-        var bbox = g.rect(this.bbox(false, target));
+        var bbox = this.getBBox({ target: target });
         var center = bbox.center();
 
         if (!bbox.intersectionWithLineFromCenterToPoint(ref)) return undefined;

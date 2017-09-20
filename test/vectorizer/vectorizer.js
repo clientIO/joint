@@ -14,6 +14,7 @@ QUnit.module('vectorizer', function(hooks) {
     var svgGroup1;
     var svgGroup2;
     var svgGroup3;
+    var svgPath2;
 
     var childrenTagNames = function(vel) {
         var tagNames = [];
@@ -37,6 +38,7 @@ QUnit.module('vectorizer', function(hooks) {
                 '<g id="svg-group-1" class="group-1">' +
                     '<g id="svg-group-2" class="group-2">' +
                         '<g id="svg-group-3" class="group3">' +
+                            '<path id="svg-path-2" d="M 100 100 C 100 100 0 150 100 200 Z"/>' +
                         '</g>' +
                     '</g>' +
                 '</g>';
@@ -54,6 +56,7 @@ QUnit.module('vectorizer', function(hooks) {
         svgGroup1 = document.getElementById('svg-group-1');
         svgGroup2 = document.getElementById('svg-group-2');
         svgGroup3 = document.getElementById('svg-group-3');
+        svgPath2 = document.getElementById('svg-path-2');
     });
 
     function serializeNode(node) {
@@ -309,9 +312,52 @@ QUnit.module('vectorizer', function(hooks) {
 
         var found = V(svgContainer).find('circle');
 
-        assert.ok(Array.isArray(found), 'The result is an array.');
-        assert.ok(found.length, 'The array is not empty.');
-        assert.ok(found.reduce(function(memo, vel) { return memo && V.isVElement(vel); }, true), 'Items in the array are wrapped in Vectorizer.');
+        assert.ok(Array.isArray(found), 'The result should be an array.');
+        assert.ok(found.length > 0, 'The array should not be empty.');
+        assert.ok(found.reduce(function(memo, vel) { return memo && V.isVElement(vel); }, true), 'Items in the array should be wrapped in Vectorizer.');
+    });
+
+    QUnit.test('children()', function(assert) {
+
+        var checkChildren = svgGroup.childNodes;
+        assert.ok(checkChildren.length > 0, 'The checkChildren collection should not be empty.');
+        assert.ok(checkChildren.length === 2, 'The checkChildren collection should have two elements.');
+
+        var children = V(svgGroup).children();
+        assert.ok(Array.isArray(children), 'The result should be an array.');
+        assert.ok(children.length > 0, 'The array should not be empty.');
+        assert.ok(children.length === 2, 'The array should have two elements.');
+        assert.ok(children.reduce(function(memo, vel) { return memo && V.isVElement(vel); }, true), 'Items in the array should be wrapped in Vectorizer.');
+
+        var textNode = document.createTextNode('Text node');
+        svgGroup.appendChild(textNode);
+        var comment = document.createComment('Comment');
+        svgGroup.appendChild(comment);
+        var attribute = document.createAttribute('Attribute');
+        attribute.value = 'Hello World';
+        svgGroup.setAttributeNode(attribute);
+
+        var checkChildren2 = svgGroup.childNodes;
+        assert.ok(checkChildren2.length > 0, 'The checkChildren2 collection should not be empty.');
+        assert.ok(checkChildren2.length === 4, 'The checkChildren2 collection should have four child nodes.');
+        var numElements = 0;
+        for (var i = 0; i < checkChildren2.length; i++) {
+            var currentChild = checkChildren2[i];
+            if (currentChild.nodeType === 1) {
+                numElements += 1; 
+            }
+        }
+        assert.ok(numElements === 2, 'The checkChildren2 collection should have two child elements.');
+
+        var children2 = V(svgGroup).children();
+        assert.ok(Array.isArray(children2), 'The result should be an array.');
+        assert.ok(children2.length > 0, 'The array should not be empty.');
+        assert.ok(children2.length === 2, 'The array should have two child elements.');
+        assert.ok(children2.reduce(function(memo, vel) { return memo && V.isVElement(vel); }, true), 'Items in the array should be wrapped in Vectorizer.');
+
+        var emptyChildren = V(svgCircle).children();
+        assert.ok(Array.isArray(emptyChildren), 'The result should be an array.');
+        assert.ok(emptyChildren.length === 0, 'The array should be empty.');
     });
 
     QUnit.test('V.transformPoint', function(assert) {
@@ -951,6 +997,33 @@ QUnit.module('vectorizer', function(hooks) {
             assert.ok(V(svgCircle).bbox(true) instanceof g.Rect);
             assert.ok(V(svgCircle).bbox(false, svgGroup) instanceof g.Rect);
             assert.ok(V('circle', { class: 'not-in-dom' }).bbox() instanceof g.Rect);
+        });
+    });
+
+    QUnit.module('getBBox()', function() {
+
+        QUnit.test('sanity', function(assert) {
+            assert.ok(V(svgCircle).getBBox() instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({}) instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({ recursive: true }) instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({ target: svgCircle }) instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({ target: svgCircle, recursive: true }) instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({ target: svgContainer }) instanceof g.Rect);
+            assert.ok(V(svgCircle).getBBox({ target: svgContainer, recursive: true }) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox() instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({}) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ recursive: true }) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgCircle }) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgCircle, recursive: true }) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgContainer }) instanceof g.Rect);
+            assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgContainer, recursive: true }) instanceof g.Rect);
+        });
+
+        QUnit.test('recursive', function(assert) {
+            assert.equal(V(svgGroup3).getBBox({ recursive: true }).toString(), V(svgPath2).getBBox().toString());
+            assert.equal(V(svgGroup3).getBBox({ recursive: true }).toString(), V(svgPath2).getBBox({ recursive: true }).toString());
+            assert.equal(V(svgGroup3).getBBox({ target: svgGroup1, recursive: true }).toString(), V(svgPath2).getBBox({ target: svgGroup1 }).toString());
+            assert.equal(V(svgGroup3).getBBox({ target: svgGroup1, recursive: true }).toString(), V(svgPath2).getBBox({ target: svgGroup1, recursive: true }).toString());
         });
     });
 

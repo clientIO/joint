@@ -780,7 +780,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         var isMagnet = !!el;
 
         el = el || this.el;
-        var bbox = V(el).bbox(false, this.paper.viewport);
+        var bbox = V(el).getBBox({ target: this.paper.viewport });
 
         var strokeWidth;
         if (isMagnet) {
@@ -799,7 +799,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     getBBox: function() {
 
-        return g.rect(this.vel.bbox());
+        return this.vel.getBBox({ target: this.paper.viewport });
     },
 
     highlight: function(el, opt) {
@@ -1187,7 +1187,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                 // or to the root `<g>` element if no rotatable group present if reference node present.
                 // Uses the bounding box provided.
                 refBBox = bboxCache[refNodeId] = (refNode)
-                    ? V(refNode).bbox(false, (opt.rotatableNode || rootNode))
+                    ? V(refNode).getBBox({ target: (opt.rotatableNode || rootNode) })
                     : opt.rootBBox;
             }
 
