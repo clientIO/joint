@@ -249,7 +249,7 @@ V = Vectorizer = (function() {
     // Fixes a browser implementation bug that returns incorrect bounding boxes for groups of svg elements.
     // Takes an (Object) `opt` argument (optional) with the following attributes:
     // (Object) `target` (optional): if not undefined, transform bounding boxes relative to `target`; if undefined, transform relative to this
-    // (Boolean) `walkChildren` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox(); 
+    // (Boolean) `recursive` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox();
     V.prototype.getBBox = function(opt) {
 
         var options = {};
@@ -268,12 +268,12 @@ V = Vectorizer = (function() {
             if (opt.target) { // check if target exists
                 options.target = V.toNode(opt.target); // works for V objects, jquery objects, and node objects
             }
-            if (opt.walkChildren) {
-                options.walkChildren = opt.walkChildren;
+            if (opt.recursive) {
+                options.recursive = opt.recursive;
             }
         }
 
-        if (!options.walkChildren) {
+        if (!options.recursive) {
             try {
                 outputBBox = node.getBBox();
             } catch (e) {
@@ -294,7 +294,7 @@ V = Vectorizer = (function() {
                 var matrix = this.getTransformToElement(options.target);
                 return V.transformRect(outputBBox, matrix);
             }
-        } else { // if we do want to walk through children
+        } else { // if we want to calculate the bbox recursively
             // browsers report correct bbox around svg elements (one that envelops the path lines tightly)
             // but some browsers fail to report the same bbox when the elements are in a group (returning a looser bbox that also includes control points, like node.getClientRect())
             // this happens even if we wrap a single svg element into a group!
@@ -304,24 +304,24 @@ V = Vectorizer = (function() {
             var n = children.length;
             
             if (n === 0) {
-                return this.getBBox({ target: options.target, walkChildren: false });
+                return this.getBBox({ target: options.target, recursive: false });
             }
 
             // recursion's initial pass-through setting:
             // recursive passes-through just keep the target as whatever was set up here during the initial pass-through
             if (!options.target) {
                 // transform children/descendants like this (their parent/ancestor)
-                options.target = V.toNode(this); // works for V objects, jquery objects, and node objects
+                options.target = this;
             } // else transform children/descendants like target
 
             for (var i = 0; i < n; i++) {
                 var currentChild = children[i];
 
                 // if currentChild is not a group element, get its bbox with a nonrecursive call
-                var childBBox = currentChild.getBBox({ target: options.target, walkChildren: false });
+                var childBBox = currentChild.getBBox({ target: options.target, recursive: false });
                 if (currentChild.children().length !== 0) {
                     // if currentChild is a group element (determined by checking the number of children), enter it with a recursive call
-                    childBBox = currentChild.getBBox({ target: options.target, walkChildren: true });
+                    childBBox = currentChild.getBBox({ target: options.target, recursive: true });
                 }
 
                 if (!outputBBox) {

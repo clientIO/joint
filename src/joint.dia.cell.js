@@ -799,7 +799,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     getBBox: function() {
 
-        return this.vel.getBBox({ target: this.vel.svg() });
+        return this.vel.getBBox({ target: this.paper.viewport });
     },
 
     highlight: function(el, opt) {
