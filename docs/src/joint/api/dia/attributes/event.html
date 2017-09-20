@@ -15,7 +15,7 @@ while the cell view handler is called only with <code>evt</code>, <code>x</code>
   }
 });
 // Binding handler to the event
-paper.on('element:info', function(elementView, evt) {
+paper.on('element:delete', function(elementView, evt) {
   // Stop any further actions with the element view e.g. dragging
   evt.stopPropagation();
   if (confirm('Are you sure you want to delete this element?')) {
