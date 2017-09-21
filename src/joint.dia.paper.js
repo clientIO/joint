@@ -1079,8 +1079,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (highlighterDef === undefined) {
 
             // check for built-in types
-            var type = Object.keys(opt).find(function(item) {
-                return ['embedding', 'connecting', 'magnetAvailability', 'elementAvailability'].includes(item);
+            var type = ['embedding', 'connecting', 'magnetAvailability', 'elementAvailability'].find(function(type) {
+                return !!opt[type];
             });
 
             highlighterDef = (type && paperOpt.highlighting[type]) || paperOpt.highlighting['default'];
