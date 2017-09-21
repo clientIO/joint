@@ -1466,6 +1466,26 @@ var joint = {
             return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === '[object String]');
         },
 
-        merge: _.merge
+        merge: function() {
+            if (_.mergeWith) {
+                var args = Array.from(arguments);
+                var last = args[args.length - 1];
+
+                var customizer =  this.isFunction(last) ? last : this.noop;
+                args.push(function(a,b) {
+                    var customResult = customizer(a, b);
+                    if (customResult !== undefined) {
+                        return customResult;
+                    }
+
+                    if (Array.isArray(a) && !Array.isArray(b)) {
+                        return b;
+                    }
+                });
+
+                return _.mergeWith.apply(this, args)
+            }
+            return _.merge.apply(this, arguments);
+        }
     }
 };

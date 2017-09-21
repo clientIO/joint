@@ -236,6 +236,19 @@ QUnit.module('util', function(hooks) {
                          'If called with an object, the existing sides are copied from the given object and the rest is defaulted to 0.');
     });
 
+    QUnit.test('util.merge', function(assert) {
+
+        var types = joint.util.merge({ a: [99] }, { a: { b: 1 } });
+        assert.deepEqual(types, { a: { b: 1 } }, 'array is not merged with object');
+
+
+        var custom = joint.util.merge({ a: [99] }, { a: { b: 1 } }, function(a) {
+            return "x";
+        });
+        assert.deepEqual(custom, { a: 'x' });
+    });
+
+
     QUnit.test('joint.setTheme()', function(assert) {
 
         assert.ok(typeof joint.setTheme === 'function', 'should be a function');
