@@ -178,7 +178,7 @@ joint.connectors.jumpover = (function(_, g, util) {
                     // determine rotation of arc based on difference between points
                     var xAxisRotate = Number(diff.x < 0 && diff.y < 0);
                     // for a jump line we create an arc instead
-                    res = res.concat(['A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y]);
+                    res.push('A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y);
                 } else if (jumpType === 'gap') {
                     res = res.concat(['M', line.end.x, line.end.y]);
                 } else if (jumpType === 'cubic') {
@@ -193,10 +193,10 @@ joint.connectors.jumpover = (function(_, g, util) {
                     var controlStartPoint = g.point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
                     var controlEndPoint = g.point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
                     // create a cubic bezier curve
-                    res = res.concat(['C', controlStartPoint.x, controlStartPoint.y, controlEndPoint.x, controlEndPoint.y, line.end.x, line.end.y]);
+                    res.push('C', controlStartPoint.x, controlStartPoint.y, controlEndPoint.x, controlEndPoint.y, line.end.x, line.end.y);
                 }
             } else {
-                res = res.concat(['L', line.end.x, line.end.y]);
+                res.push('L', line.end.x, line.end.y);
             }
             return res;
         }, start);
