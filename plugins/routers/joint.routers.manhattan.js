@@ -200,7 +200,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         var index = joint.util.sortedIndex(this.items, item, function(i) {
             return this.values[i];
-        }, this);
+        }.bind(this));
 
         this.items.splice(index, 0, item);
     };
