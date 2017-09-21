@@ -159,7 +159,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         'mousewheel': 'mousewheel',
         'DOMMouseScroll': 'mousewheel',
         'mouseenter .joint-cell': 'cellMouseenter',
-        'mouseleave .joint-cell': 'cellMouseleave'
+        'mouseleave .joint-cell': 'cellMouseleave',
+        'mousedown .joint-cell [event]': 'cellEvent',
+        'touchstart .joint-cell [event]': 'cellEvent'
     },
 
     _highlights: {},
@@ -1376,6 +1378,21 @@ joint.dia.Paper = joint.mvc.View.extend({
         var view = this.findView(evt.target);
         if (view && !this.guard(evt, view)) {
             view.mouseleave(evt);
+        }
+    },
+
+    cellEvent: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var currentTarget = evt.currentTarget;
+        var eventName = currentTarget.getAttribute('event');
+        if (eventName) {
+            var view = this.findView(currentTarget);
+            if (view && !this.guard(evt, view)) {
+                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+                view.event(evt, eventName, localPoint.x, localPoint.y);
+            }
         }
     },
 

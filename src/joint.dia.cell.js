@@ -1301,6 +1301,11 @@ joint.dia.CellView = joint.mvc.View.extend({
         this.notify('cell:contextmenu', evt, x, y);
     },
 
+    event: function(evt, eventName, x, y) {
+
+        this.notify(eventName, evt, x, y);
+    },
+
     setInteractivity: function(value) {
 
         this.options.interactive = value;

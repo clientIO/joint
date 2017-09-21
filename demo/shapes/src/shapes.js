@@ -43,6 +43,7 @@ joint.dia.attributes.fitRef = {
                     d: V.rectToPath(rect)
                 };
         }
+        return {};
     }
 };
 
@@ -139,7 +140,9 @@ var Rectangle = joint.dia.Element.define('custom.Rectangle', {
             stroke: '#000',
             refX: '100%',
             cy: 4,
-            cx: -4
+            cx: -4,
+            event: 'element:delete',
+            cursor: 'pointer'
         },
         '.green': {
             r: 4,
@@ -147,7 +150,8 @@ var Rectangle = joint.dia.Element.define('custom.Rectangle', {
             stroke: '#000',
             refX: '100%',
             d: 'M -10 0 -3 -3 0 -10 3 -3 10 0 3 3 0 10 -3 3 z',
-            transform: 'translate(-4,4)'
+            transform: 'translate(-4,4)',
+            pointerEvents: 'none'
         },
         '.content': {
             textWrap: {
@@ -169,6 +173,13 @@ var rectangle = (new Rectangle())
     .size(100,90)
     .position(250,50)
     .addTo(graph);
+
+paper.on('element:delete', function(elementView, evt) {
+    evt.stopPropagation();
+    if (confirm('Are you sure you want to delete this element?')) {
+        elementView.model.remove();
+    }
+});
 
 var Header = joint.dia.Element.define('custom.Header', {
 

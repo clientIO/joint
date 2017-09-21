@@ -1,0 +1,24 @@
+<p>
+The <code>event</code> attribute makes the selected node and its descendants trigger an arbitrary event when clicked (mousedown/touchstart).
+This event is triggered on the view itself and the paper.
+The paper handler is called with the signature <code>cellView</code>, <code>evt</code>, <code>x</code>, <code>y</code>,
+while the cell view handler is called only with <code>evt</code>, <code>x</code>, <code>y</code>.
+</p>
+
+<pre><code>element.attr({
+  image: {
+    // pointerdown on the image SVG node will trigger the `element:delete` event
+    event: 'element:delete',
+    xlinkHref: 'trash.png'
+    width: 20,
+    height: 20
+  }
+});
+// Binding handler to the event
+paper.on('element:delete', function(elementView, evt) {
+  // Stop any further actions with the element view e.g. dragging
+  evt.stopPropagation();
+  if (confirm('Are you sure you want to delete this element?')) {
+      elementView.model.remove();
+  }
+});</code></pre>
