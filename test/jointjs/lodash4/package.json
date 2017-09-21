@@ -1,0 +1,11 @@
+{
+	"dependencies": {
+		"ciena-dagre": "1.0.10",
+		"graphlib": "2.1.1",
+		"lodash": "4.17.4",
+		"module-alias": "2.0.1"
+	},
+	"_moduleAliases": {
+		"dagre": "ciena-dagre"
+	}
+}
