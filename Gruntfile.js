@@ -827,7 +827,7 @@ module.exports = function(grunt) {
 
     grunt.registerTask('build:bundles', [
         'newer:browserify',
-        'newer:webpack'
+        'webpack'
     ]);
 
     grunt.registerTask('build:docs', [
