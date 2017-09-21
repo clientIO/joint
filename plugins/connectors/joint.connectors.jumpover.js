@@ -76,9 +76,13 @@ joint.connectors.jumpover = (function(_, g, util) {
      * @return {g.point[]} list of intersection points
      */
     function findLineIntersections(line, crossCheckLines) {
-        return _(crossCheckLines).map(function(crossCheckLine) {
-            return line.intersection(crossCheckLine);
-        }).compact().value();
+        return util.toArray(crossCheckLines).reduce(function(res, crossCheckLine) {
+            var intersection = line.intersection(crossCheckLine);
+            if (intersection) {
+                res.push(intersection);
+            }
+            return res;
+        }, []);
     }
 
     /**
@@ -166,7 +170,7 @@ joint.connectors.jumpover = (function(_, g, util) {
         var start = ['M', lines[0].start.x, lines[0].start.y];
 
         // make a paths from lines
-        var paths = _(lines).map(function(line) {
+        var paths = util.toArray(lines).reduce(function(res, line) {
             if (line.isJump) {
                 var diff;
                 if (jumpType === 'arc') {
@@ -174,9 +178,9 @@ joint.connectors.jumpover = (function(_, g, util) {
                     // determine rotation of arc based on difference between points
                     var xAxisRotate = Number(diff.x < 0 && diff.y < 0);
                     // for a jump line we create an arc instead
-                    return ['A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y];
+                    res.push('A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y);
                 } else if (jumpType === 'gap') {
-                    return ['M', line.end.x, line.end.y];
+                    res = res.concat(['M', line.end.x, line.end.y]);
                 } else if (jumpType === 'cubic') {
                     diff = line.start.difference(line.end);
                     var angle = line.start.theta(line.end);
@@ -189,13 +193,15 @@ joint.connectors.jumpover = (function(_, g, util) {
                     var controlStartPoint = g.point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
                     var controlEndPoint = g.point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
                     // create a cubic bezier curve
-                    return ['C', controlStartPoint.x, controlStartPoint.y, controlEndPoint.x, controlEndPoint.y, line.end.x, line.end.y];
+                    res.push('C', controlStartPoint.x, controlStartPoint.y, controlEndPoint.x, controlEndPoint.y, line.end.x, line.end.y);
                 }
+            } else {
+                res.push('L', line.end.x, line.end.y);
             }
-            return ['L', line.end.x, line.end.y];
-        }).flatten().value();
+            return res;
+        }, start);
 
-        return [].concat(start, paths).join(' ');
+        return paths.join(' ');
     }
 
     /**
@@ -285,13 +291,18 @@ joint.connectors.jumpover = (function(_, g, util) {
         var jumpingLines = thisLines.reduce(function(resultLines, thisLine) {
             // iterate all links and grab the intersections with this line
             // these are then sorted by distance so the line can be split more easily
-            var intersections = _(links).map(function(link, i) {
+
+            var intersections = links.reduce(function(res, link, i) {
                 // don't intersection with itself
-                if (link === thisModel) {
-                    return null;
+                if (link !== thisModel) {
+
+                    var lineIntersections = findLineIntersections(thisLine, linkLines[i]);
+                    res.push.apply(res, lineIntersections);
                 }
-                return findLineIntersections(thisLine, linkLines[i]);
-            }).flatten().compact().sortBy(_.partial(sortPoints, thisLine.start)).value();
+                return res;
+            }, []).sort(function(a, b) {
+                return sortPoints(thisLine.start, a) - sortPoints(thisLine.start, b);
+            });
 
             if (intersections.length > 0) {
                 // split the line based on found intersection points
@@ -302,6 +313,7 @@ joint.connectors.jumpover = (function(_, g, util) {
             }
             return resultLines;
         }, []);
+
 
         return buildPath(jumpingLines, jumpSize, jumpType);
     };

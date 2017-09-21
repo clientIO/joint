@@ -595,11 +595,11 @@ joint.dia.Cell = Backbone.Model.extend({
 
         var pathArray = path && path.split(delim);
 
-        _(this._transitionIds).keys().filter(pathArray && function(key) {
+        Object.keys(this._transitionIds).filter(pathArray && function(key) {
 
             return joint.util.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
 
-        }).each(function(key) {
+        }).forEach(function(key) {
 
             joint.util.cancelFrame(this._transitionIds[key]);
 
