@@ -128,17 +128,15 @@ module.exports = function(grunt) {
 
         webpack: {
             joint: {
-                files: {
-                   './build/joint.webpack-bundle.js' : './build/joint.min.js'
-                },
                 entry: './build/joint.min.js',
                 output: {
-                    path: './build/',
+                    path: __dirname + '/build',
                     filename: 'joint.webpack-bundle.js',
                     library: 'joint'
                 },
                 resolve: {
                     alias: {
+                        underscore: 'lodash',
                         g: './geometry.min.js',
                         V: './vectorizer.min.js'
                     }
@@ -781,7 +779,7 @@ module.exports = function(grunt) {
 
     grunt.registerTask('build:bundles', [
         'newer:browserify',
-        'newer:webpack'
+        'webpack'
     ]);
 
     grunt.registerTask('build:docs', [
