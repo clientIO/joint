@@ -470,7 +470,8 @@ module.exports = function(grunt) {
                 'src/**/*.js',
 
                 // Tests:
-                'test/**/*.js'
+                'test/**/*.js',
+                '!test/**/lodash4/**'
             ],
             options: {
                 configFile: '.eslintrc.js'
