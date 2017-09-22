@@ -164,8 +164,18 @@ var g = (function() {
             }
             return function solveInversion(p) {
                 var ct = 3 * l(2, 3)(p1);
-                var c1 = l(1, 3)(p0) / ct;
-                var c2 = -l(2, 3)(p0) / ct;
+
+                var c1;
+                var c2;
+                if (ct !== 0) {
+                    c1 = l(1, 3)(p0) / ct;
+                    c2 = -l(2, 3)(p0) / ct;
+                } else {
+                    // preventing infinities from dividing by 0
+                    c1 = 0;
+                    c2 = 0;
+                }
+
                 var la = c1 * l(3, 1)(p) + c2 * (l(3, 0)(p) + l(2, 1)(p)) + l(2, 0)(p);
                 var lb = c1 * l(3, 0)(p) + c2 * l(2, 0)(p) + l(1, 0)(p);
                 return lb / (lb - la);
