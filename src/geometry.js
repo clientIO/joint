@@ -178,7 +178,14 @@ var g = (function() {
 
                 var la = c1 * l(3, 1)(p) + c2 * (l(3, 0)(p) + l(2, 1)(p)) + l(2, 0)(p);
                 var lb = c1 * l(3, 0)(p) + c2 * l(2, 0)(p) + l(1, 0)(p);
-                return lb / (lb - la);
+
+                var dl = lb - la
+                if (dl !== 0) {
+                    return (lb / dl);
+                } else {
+                    // preventing infinities from dividing by 0
+                    return 0;
+                }
             };
         }
     };
