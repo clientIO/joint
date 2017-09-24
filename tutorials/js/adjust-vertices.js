@@ -11,7 +11,7 @@ function adjustVertices(graph, cell) {
         }).each(function(group, key) {
             // If the member of the group has both source and target model adjust vertices.
             if (key !== 'undefined') adjustVertices(graph, _.first(group));
-        });
+        }).value();
 
         return;
     }
