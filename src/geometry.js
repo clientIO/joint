@@ -1230,54 +1230,6 @@ var g = (function() {
 
     Polyline.prototype = {
 
-        pointAtLength: function(length) {
-            var points = this.points;
-            var l = 0;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
-                var a = points[i];
-                var b = points[i+1];
-                var d = a.distance(b);
-                l += d;
-                if (length <= l) {
-                    return Line(b, a).pointAt(d ? (l - length) / d : 0);
-                }
-            }
-            return null;
-        },
-
-        length: function() {
-            var points = this.points;
-            var length = 0;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
-                length += points[i].distance(points[i+1]);
-            }
-            return length;
-        },
-
-        closestPoint: function(p) {
-            return this.pointAtLength(this.closestPointLength(p));
-        },
-
-        closestPointLength2: function(p) {
-            var points = this.points;
-            var pointLength;
-            var minSqrDistance = Infinity;
-            var length = 0;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
-                var line = Line(points[i], points[i+1]);
-                var lineLength = line.length();
-                var cpNormalizedLength = line.closestPointNormalizedLength(p);
-                var cp = line.pointAt(cpNormalizedLength);
-                var sqrDistance = cp.squaredDistance(p);
-                if (sqrDistance < minSqrDistance) {
-                    minSqrDistance = sqrDistance;
-                    pointLength = length + cpNormalizedLength * lineLength;
-                }
-                length += lineLength;
-            }
-            return pointLength;
-        },
-
         toString: function() {
 
             return this.points + '';
@@ -1485,35 +1437,87 @@ var g = (function() {
             return Polyline(hullPoints);
         },
 
-        closestPointLength: function(p) {
+        pointAtLength: function(length) {
+            var points = this.points;
+            var l = 0;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var a = points[i];
+                var b = points[i+1];
+                var d = a.distance(b);
+                l += d;
+                if (length <= l) {
+                    return Line(b, a).pointAt(d ? (l - length) / d : 0);
+                }
+            }
+            return null;
+        },
+
+        length: function() {
+            var points = this.points;
+            var length = 0;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                length += points[i].distance(points[i+1]);
+            }
+            return length;
+        },
+
+        closestPoint: function(p) {
+            return this.pointAtLength(this.closestPointLength(p));
+        },
+
+        closestPointLength2: function(p) {
             var points = this.points;
             var pointLength;
             var minSqrDistance = Infinity;
-            var minSqrRefDistance = Infinity;
             var length = 0;
-            var bbox = this.bbox();
-            var c = bbox.center();
             for (var i = 0, n = points.length - 1; i < n; i++) {
                 var line = Line(points[i], points[i+1]);
                 var lineLength = line.length();
                 var cpNormalizedLength = line.closestPointNormalizedLength(p);
                 var cp = line.pointAt(cpNormalizedLength);
+                var sqrDistance = cp.squaredDistance(p);
+                if (sqrDistance < minSqrDistance) {
+                    minSqrDistance = sqrDistance;
+                    pointLength = length + cpNormalizedLength * lineLength;
+                }
+                length += lineLength;
+            }
+            return pointLength;
+        },
+
+        closestPointLength: function(p) {
+            var points = this.sample().points;
+            var pointLength;
+            var minSqrDistance = Infinity;
+            var minSqrRefDistance = Infinity;
+            var bbox = this.bbox();
+            var c = bbox.center();
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var cp = points[i];
                 var sqrRefDistance = cp.squaredDistance(p) * 1.1;
                 var sqrCenterDistance = cp.squaredDistance(c);
                 var sqrDistance = sqrCenterDistance + sqrRefDistance;
                 if (sqrDistance < minSqrDistance) {
                     minSqrDistance = sqrDistance;
-                    pointLength = length + cpNormalizedLength * lineLength;
+                    pointLength = i;
                     minSqrRefDistance = sqrRefDistance;
                 } else if (sqrDistance < minSqrDistance + 1) {
                     if (sqrRefDistance < minSqrRefDistance) {
-                        pointLength = length + cpNormalizedLength * lineLength;
+                        pointLength = i;
                         minSqrRefDistance = sqrRefDistance;
                     }
                 }
-                length += lineLength;
             }
             return pointLength;
+        },
+
+        sample: function() {
+            var samples = [];
+            var length = this.length();
+            for (var i = 0; i < length; i++) {
+                samples.push(this.pointAtLength(i));
+            }
+            return Polyline(samples);
         },
 
         bbox: function() {

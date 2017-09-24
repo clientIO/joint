@@ -1044,11 +1044,13 @@ V = Vectorizer = (function() {
 
         var intersection;
         // TODO: fix
-        if (geometryShape.intersectionWithLineFromCenterToPoint) {
-            intersection = geometryShape.intersectionWithLineFromCenterToPoint(localRef);
-        } else {
+        // if (geometryShape.intersectionWithLineFromCenterToPoint) {
+        //     intersection = geometryShape.intersectionWithLineFromCenterToPoint(localRef) || geometryShape.closestPoint(localRef);
+        // } else {
+        //     intersection = geometryShape.closestPoint(localRef);
+        // }
+        if (geometryShape.closestPoint)
             intersection = geometryShape.closestPoint(localRef);
-        }
 
         //intersection = geometryShape.intersectionWithLineFromCenterToPoint(localRef) || geometryShape.closestPoint(localRef);
         // if (geometryShape.closestPoint) {
