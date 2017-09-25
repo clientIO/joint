@@ -1372,7 +1372,7 @@ var joint = {
                 throw new Error('Wrapper must be a function.');
             }
 
-            _.each(methods, function(method) {
+            this.toArray(methods).forEach(function(method) {
                 object[method] = wrapper(object[method]);
             });
         },
@@ -1402,7 +1402,10 @@ var joint = {
                         if (opt instanceof joint.dia.Cell) {
                             cells = args;
                         } else if (cells instanceof joint.dia.Cell) {
-                            cells = args.length > 1 ? _.initial(args) : args;
+                            if (args.length > 1) {
+                                args.pop();
+                            }
+                            cells = args;
                         }
                     }
 
