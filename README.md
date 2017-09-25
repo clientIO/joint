@@ -130,10 +130,6 @@ Copyright (c) 2013 client IO
 
 - [David Durman](https://github.com/DavidDurman)
 - [Roman Bruckner](https://github.com/kumilingus)
-- [Emanuele Palombo](https://github.com/elbowz)
 - [Charles Hill](https://github.com/chill117)
-- [Daniel K.](https://github.com/FredyC)
 - [Vladimir Talas](https://github.com/vtalas)
-- [Petr Skala](https://github.com/pskala)
-- [Ujjwal Reddy](http://github.com/urstruly)
-
+- [Zbynek Stara](https://github.com/zbynekstara)
