@@ -1427,6 +1427,7 @@ var joint = {
         union: _.union,
         invoke: _.invokeMap || _.invoke,
         difference: _.difference,
+        intersection: _.intersection,
         omit: _.omit,
         pick: _.pick,
         has: _.has,
