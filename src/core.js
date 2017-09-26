@@ -1419,11 +1419,9 @@ var joint = {
         },
         // lodash 3 vs 4 incompatible
         sortedIndex: _.sortedIndexBy || _.sortedIndex,
-
         uniq: _.uniqBy || _.uniq,
         uniqueId: _.uniqueId,
-        without: _.without,
-
+        sortBy: _.sortBy,
         isFunction: _.isFunction,
         result: _.result,
         union: _.union,
@@ -1446,6 +1444,7 @@ var joint = {
         camelCase: _.camelCase,
         groupBy: _.groupBy,
         forIn: _.forIn,
+        without: _.without,
 
         isBoolean: function(value) {
             var toString = Object.prototype.toString;
