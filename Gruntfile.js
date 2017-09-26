@@ -47,6 +47,7 @@ module.exports = function(grunt) {
             'plugins/polyfills/typedArray.js',
             'plugins/polyfills/xhrResponse.js',
             'plugins/polyfills/array.js',
+            'plugins/polyfills/string.js',
             'plugins/polyfills/number.js'
         ],
 

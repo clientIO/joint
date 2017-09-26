@@ -1372,7 +1372,7 @@ var joint = {
                 throw new Error('Wrapper must be a function.');
             }
 
-            _.each(methods, function(method) {
+            this.toArray(methods).forEach(function(method) {
                 object[method] = wrapper(object[method]);
             });
         },
@@ -1402,7 +1402,10 @@ var joint = {
                         if (opt instanceof joint.dia.Cell) {
                             cells = args;
                         } else if (cells instanceof joint.dia.Cell) {
-                            cells = args.length > 1 ? _.initial(args) : args;
+                            if (args.length > 1) {
+                                args.pop();
+                            }
+                            cells = args;
                         }
                     }
 
@@ -1416,16 +1419,15 @@ var joint = {
         },
         // lodash 3 vs 4 incompatible
         sortedIndex: _.sortedIndexBy || _.sortedIndex,
-
         uniq: _.uniqBy || _.uniq,
         uniqueId: _.uniqueId,
-        without: _.without,
-
+        sortBy: _.sortBy,
         isFunction: _.isFunction,
         result: _.result,
         union: _.union,
         invoke: _.invokeMap || _.invoke,
         difference: _.difference,
+        intersection: _.intersection,
         omit: _.omit,
         pick: _.pick,
         has: _.has,
@@ -1443,6 +1445,7 @@ var joint = {
         camelCase: _.camelCase,
         groupBy: _.groupBy,
         forIn: _.forIn,
+        without: _.without,
 
         isBoolean: function(value) {
             var toString = Object.prototype.toString;
