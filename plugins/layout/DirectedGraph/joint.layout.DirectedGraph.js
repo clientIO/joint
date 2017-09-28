@@ -231,9 +231,11 @@ joint.layout.DirectedGraph = {
         var setNodeLabel = opt.setNodeLabel || joint.util.noop;
         var setEdgeLabel = opt.setEdgeLabel || joint.util.noop;
         var setEdgeName = opt.setEdgeName || joint.util.noop;
+        var collection = graph.get('cells');
 
-        graph.get('cells').each(function(cell) {
+        for (var i = 0, n = collection.length; i < n; i++) {
 
+            var cell = collection.at(i);
             if (cell.isLink()) {
 
                 var source = cell.get('source');
@@ -252,10 +254,15 @@ joint.layout.DirectedGraph = {
 
                 // For the compound graphs we have to take embeds into account.
                 if (glGraph.isCompound() && cell.has('parent')) {
-                    glGraph.setParent(cell.id, cell.get('parent'));
+                    var parentId = cell.get('parent');
+                    if (collection.has(parentId)) {
+                        // Make sure the parent cell is included in the graph (this can
+                        // happen when the layout is run on part of the graph only).
+                        glGraph.setParent(cell.id, parentId);
+                    }
                 }
             }
-        });
+        }
 
         return glGraph;
     }
