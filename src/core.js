@@ -1446,6 +1446,7 @@ var joint = {
         groupBy: _.groupBy,
         forIn: _.forIn,
         without: _.without,
+        debounce: _.debounce,
 
         isBoolean: function(value) {
             var toString = Object.prototype.toString;
