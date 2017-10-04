@@ -123,6 +123,9 @@ module.exports = function(grunt) {
         interval: 1500
     } : {};
 
+
+    var lodash4TestDir = __dirname + '/test/jointjs/lodash4';
+
     var config = {
 
         pkg: pkg,
@@ -142,6 +145,42 @@ module.exports = function(grunt) {
                         V: './vectorizer.min.js'
                     }
                 }
+            },
+            cienadagre: {
+                entry: lodash4TestDir + '/node_modules/ciena-dagre/src/index.js',
+                output: {
+                    path: lodash4TestDir + '/node_modules/ciena-dagre/build',
+                    filename: 'ciena-dagre.bundle.js',
+                    library: 'dagre',
+                    libraryTarget: 'var'
+                },
+                externals: {
+                    'lodash': '_'
+                }
+            }
+        },
+        babel: {
+            cienadagre: {
+                options: {
+                    sourceMap: false,
+                    presets: [
+                        /*
+                            `"modules": false` is needed to prevent `this` from being set to undefined. See:
+                            https://stackoverflow.com/questions/34973442/how-to-stop-babel-from-transpiling-this-to-undefined
+                        */
+                        [ 'env', { 'modules': false } ]
+                    ]
+                },
+                files: [
+                    {
+                        expand: true,
+                        cwd: lodash4TestDir + '/node_modules/ciena-dagre/build',
+                        src: [
+                            './ciena-dagre.bundle.js'
+                        ],
+                        dest: lodash4TestDir  + '/libs/cienadagre'
+                    }
+                ]
             }
         },
         browserify: {
@@ -431,7 +470,8 @@ module.exports = function(grunt) {
                 'src/**/*.js',
 
                 // Tests:
-                'test/**/*.js'
+                'test/**/*.js',
+                '!test/**/lodash4/**'
             ],
             options: {
                 configFile: '.eslintrc.js'
@@ -460,14 +500,17 @@ module.exports = function(grunt) {
         qunit: {
             all: [
                 'test/**/*.html',
-                '!test/**/coverage.html'
+                '!test/**/coverage.html',
+                '!test/**/node_modules/**'
             ],
             all_coverage: [
-                'test/**/coverage.html'
+                'test/**/coverage.html',
+                '!test/**/node_modules/**'
             ],
             joint: [
                 'test/jointjs/*.html',
-                '!test/jointjs/coverage.html'
+                '!test/jointjs/coverage.html',
+                '!test/**/node_modules/**'
             ],
             geometry: ['test/geometry/*.html'],
             vectorizer: ['test/vectorizer/*.html']
@@ -484,6 +527,11 @@ module.exports = function(grunt) {
                     var cmd = 'cd ' + dir + ' && bower --allow-root install' + flags;
 
                     return cmd;
+                }
+            },
+            lodash4testsInstall: {
+                command: function() {
+                    return 'cd ' + lodash4TestDir + ' && npm install';
                 }
             }
         },
@@ -816,7 +864,13 @@ module.exports = function(grunt) {
         'shell:bowerInstall:.'
     ]);
 
-    grunt.registerTask('install', ['bowerInstall', 'build:all']);
+    grunt.registerTask('lodash4tests', [
+        'shell:lodash4testsInstall',
+        'webpack:cienadagre',
+        'babel:cienadagre'
+    ]);
+
+    grunt.registerTask('install', ['lodash4tests', 'bowerInstall', 'build:all']);
     grunt.registerTask('default', ['install', 'build', 'watch']);
 
     var e2eBrowsers = {
