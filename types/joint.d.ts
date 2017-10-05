@@ -515,8 +515,6 @@ export namespace dia {
 
         isDefined(defId: string): boolean;
 
-        linkAllowed(linkViewOrModel: LinkView | Link): boolean;
-
         localToClientPoint(x: number | g.Point, y?: number): g.Point;
 
         localToClientRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
@@ -553,8 +551,6 @@ export namespace dia {
         scaleContentToFit(options?: ScaleContentOptions): void;
 
         setDimensions(width: number, height: number): void;
-
-        setGrid(drawGrid: GridOptions | GridOptions[]): this;
 
         setGridSize(gridSize: number): this;
 
@@ -725,7 +721,6 @@ export namespace dia {
         addVertex(vertex: Point): number;
 
         getPointAtLength(length: number): g.Point; // Marked as public api in source but not in the documents
-        createWatcher(endType: { id: string }): (link: Link, end?: {id: string}) => this;
 
         update(model: Cell, attributes: object, options?: object): this;
 
