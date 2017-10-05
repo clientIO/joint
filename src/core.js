@@ -1447,6 +1447,7 @@ var joint = {
         forIn: _.forIn,
         without: _.without,
         debounce: _.debounce,
+        clone: _.clone,
 
         isBoolean: function(value) {
             var toString = Object.prototype.toString;
