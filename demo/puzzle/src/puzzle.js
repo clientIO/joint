@@ -87,7 +87,7 @@ var Jigsaw = {
             gridSize: this.GRID,
             model: graph
         }).on({
-            'cell:pointerdown': function(pieceView, evt) {
+            'cell:pointerdown': function(pieceView) {
                 pieceView.model.toFront();
                 pieceView.highlight('polygon');
                 this.pointerMoveCount = 0;
@@ -95,7 +95,7 @@ var Jigsaw = {
             'cell:pointermove': function() {
                 this.pointerMoveCount++;
             },
-            'cell:pointerup': function(pieceView, evt) {
+            'cell:pointerup': function(pieceView) {
                 pieceView.unhighlight('polygon');
                 if (this.pointerMoveCount < this.maxPointerMoves) {
                     // Workaround for an unresolved chrome issue
