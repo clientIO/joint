@@ -89,7 +89,10 @@ var Jigsaw = {
             model: graph
         }).on({
             'cell:pointerdown': function(pieceView) {
-                pieceView.model.toFront();
+                // temporary fix for chrome according to https://bugs.chromium.org/p/chromium/issues/detail?id=716694
+                setTimeout(function() {
+                    pieceView.model.toFront();
+                }, 100);
                 pieceView.highlight('polygon');
             },
             'cell:pointerup': function(pieceView) {
