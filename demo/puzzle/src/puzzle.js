@@ -85,19 +85,27 @@ var Jigsaw = {
         var paper = this.paper = new joint.dia.Paper({
             el: document.getElementById('paper'),
             gridSize: this.GRID,
-            clickThreshold: this.GRID,
             model: graph
         }).on({
             'cell:pointerdown': function(pieceView) {
                 pieceView.model.toFront();
                 pieceView.highlight('polygon');
+                this.pointerMoveCount = 0;
+            },
+            'cell:pointermove': function() {
+                this.pointerMoveCount++;
             },
             'cell:pointerup': function(pieceView) {
                 pieceView.unhighlight('polygon');
-            },
-            'cell:pointerclick': function(pieceView) {
-                pieceView.model.rotate(90);
+                if (this.pointerMoveCount < this.maxPointerMoves) {
+                    // Workaround for an unresolved chrome issue
+                    // https://bugs.chromium.org/p/chromium/issues/detail?id=716694
+                    pieceView.model.rotate(90);
+                }
             }
+        }, {
+            pointerMoveCount: 0,
+            maxPointerMoves: this.GRID
         });
 
         this.vImage = V('image', {
