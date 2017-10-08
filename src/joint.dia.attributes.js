@@ -294,6 +294,15 @@
 
         yAlignment: {
             offset: offsetWrapper('y', 'height', 'bottom')
+        },
+
+        resetOrigin: {
+            offset: function(val, nodeBBox) {
+                return (val)
+                    ? { x: -nodeBBox.x, y: -nodeBBox.y }
+                    : { x: 0, y: 0 };
+            }
+
         }
     };
 
