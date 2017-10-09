@@ -502,5 +502,22 @@ QUnit.module('cellView', function(hooks) {
                 assert.notOk(cellViewSpy.called);
             });
         });
+
+        QUnit.module('resetOffset', function(hooks) {
+
+            hooks.beforeEach(function() {
+                cell.set('markup', 'path');
+            });
+
+            QUnit.test('sanity', function(assert) {
+                cell.attr('path/d', 'M 10 10 20 20');
+                assert.equal(cellView.getBBox().toString(), '10@10 20@20');
+                cell.attr('path/resetOffset', true);
+                assert.equal(cellView.getBBox().toString(), '0@0 10@10');
+                cell.attr('path/resetOffset', false);
+                assert.equal(cellView.getBBox().toString(), '10@10 20@20');
+            });
+        });
+
     });
 });
