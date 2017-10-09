@@ -503,7 +503,7 @@ QUnit.module('cellView', function(hooks) {
             });
         });
 
-        QUnit.module('resetOrigin', function(hooks) {
+        QUnit.module('resetOffset', function(hooks) {
 
             hooks.beforeEach(function() {
                 cell.set('markup', 'path');
@@ -512,9 +512,9 @@ QUnit.module('cellView', function(hooks) {
             QUnit.test('sanity', function(assert) {
                 cell.attr('path/d', 'M 10 10 20 20');
                 assert.equal(cellView.getBBox().toString(), '10@10 20@20');
-                cell.attr('path/resetOrigin', true);
+                cell.attr('path/resetOffset', true);
                 assert.equal(cellView.getBBox().toString(), '0@0 10@10');
-                cell.attr('path/resetOrigin', false);
+                cell.attr('path/resetOffset', false);
                 assert.equal(cellView.getBBox().toString(), '10@10 20@20');
             });
         });

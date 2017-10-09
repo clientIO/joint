@@ -1,4 +1,4 @@
-<p>If set to <code>true</code>, the subelement origin (the most top-left point) will be reset to 0 0 .</p>
+<p>If set to <code>true</code>, the subelement offset (the distance from x0 y0 to the most top-left point) will be reset to x0 y0.</p>
 
 <pre><code>element.attr({
   path: {
@@ -6,7 +6,7 @@
     d: 'M 10 10 20 20',
     // The path bbox will be changed to x0 y0 w10 h10.
     // This has same effect as passing path with `d="M 0 0 10 10"`
-    resetOrigin: true
+    resetOffset: true
   }
 });
 </code></pre>

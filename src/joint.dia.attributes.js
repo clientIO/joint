@@ -296,7 +296,7 @@
             offset: offsetWrapper('y', 'height', 'bottom')
         },
 
-        resetOrigin: {
+        resetOffset: {
             offset: function(val, nodeBBox) {
                 return (val)
                     ? { x: -nodeBBox.x, y: -nodeBBox.y }
