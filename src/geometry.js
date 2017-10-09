@@ -981,6 +981,11 @@ var g = (function() {
             return this;
         },
 
+        // Offset me by the specified amount.
+        offset: function(dx, dy) {
+            return Point.prototype.offset.call(this, dx, dy);
+        },
+
         // inflate by dx and dy, recompute origin [x, y]
         // @param dx {delta_x} representing additional size to x
         // @param dy {delta_y} representing additional size to y -

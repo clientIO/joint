@@ -157,6 +157,22 @@ QUnit.module('rect', function() {
 
         });
 
+        QUnit.module('offset(dx, dy)', function() {
+
+            QUnit.test('changes the x and y values by adding the given dx and dy values respectively', function(assert) {
+
+                var rect = g.Rect(0, 0, 20, 30);
+                rect.offset(2, 3);
+                assert.equal(rect.toString(), '2@3 22@33');
+                rect.offset(-2, 4);
+                assert.equal(rect.toString(), '0@7 20@37');
+                rect.offset(2);
+                assert.equal(rect.toString(), '2@7 22@37');
+                rect.offset(g.rect(5, 3));
+                assert.equal(rect.toString(), '7@10 27@40');
+            });
+        });
+
         QUnit.module('origin()', function() {
 
         });
