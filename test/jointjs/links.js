@@ -293,8 +293,8 @@ QUnit.module('links', function(hooks) {
         // disconnect:
         link.set('source', linkView.getConnectionPoint('source', link.previous('source'), link.get('target')));
 
-        assert.ok(link.get('source') instanceof g.point, 'source of the link became a point');
-        assert.ok(!(link.get('target') instanceof g.point), 'target of the link is still not a point');
+        assert.notOk(link.get('source').id, 'source of the link became a point');
+        assert.ok(link.get('target').id, 'target of the link is still not a point');
 
         assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data stayed the same after disconnection');
         assert.checkDataPath(linkView.$('.connection-wrap').attr('d'), 'M 140 70 320 70', 'link connection-wrap path data is the same as the .connection path data');
@@ -314,18 +314,18 @@ QUnit.module('links', function(hooks) {
         // disconnect:
         link.set('target', linkView.getConnectionPoint('target', link.previous('target'), link.get('source')));
 
-        assert.ok(link.get('target') instanceof g.point, 'target of the link became a point');
-        assert.ok(!(link.get('source') instanceof g.point), 'source of the link is still not a point');
+        assert.notOk(link.get('target').id, 'target of the link became a point');
+        assert.ok(link.get('source').id, 'source of the link is still not a point');
 
         link.set('target', { id: myrect2.id });
 
-        assert.ok(!(link.get('source') instanceof g.point), 'source of the link is still not a point');
-        assert.ok(!(link.get('target') instanceof g.point), 'target of the link stopped being a point');
+        assert.ok(link.get('source').id, 'source of the link is still not a point');
+        assert.ok(link.get('target').id, 'target of the link stopped being a point');
 
         myrect.remove({ disconnectLinks: true });
 
-        assert.ok(link.get('source') instanceof g.point, 'source of the link became a point after the source element has been removed');
-        assert.ok(!(link.get('target') instanceof g.point), 'target of the link is still not a point');
+        assert.notOk(link.get('source').id, 'source of the link became a point after the source element has been removed');
+        assert.ok(link.get('target').id, 'target of the link is still not a point');
     });
 
     QUnit.test('getLinks(), clone()', function(assert) {
