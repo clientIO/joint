@@ -318,10 +318,16 @@ export namespace dia {
         };
     }
 
+    interface LabelPosition {
+      distance: number;
+      offset: number | { x: number; y: number; }
+    }
+
     interface Label {
-        position: number;
+        position: LabelPosition | number;
         attrs?: TextAttrs;
     }
+
     interface LinkAttributes extends CellAttributes {
         source?: Point | { id: string, selector?: string, port?: string };
         target?: Point | { id: string, selector?: string, port?: string };
