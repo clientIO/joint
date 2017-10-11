@@ -208,9 +208,6 @@ export namespace dia {
          * @deprecated
          */
         protected processPorts(): void;
-
-        protected initialize(options?: {id?: string}): void;
-
     }
 
     type Padding = number | {
@@ -454,168 +451,11 @@ export namespace dia {
         options?: object;
     }
 
-    class Paper extends Backbone.View<Graph> {
-        constructor(options?: PaperOptions);
-
-        options: PaperOptions;
-        svg: SVGElement;
-        viewport: SVGGElement;
-        defs: SVGDefsElement;
-
-        clientMatrix(): SVGMatrix;
-
-        clientToLocalPoint(x: number | g.Point, y?: number): g.Point;
-
-        clientToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
-
-        clientOffset(): g.Point;
-
-        cloneOptions(): PaperOptions;
-
-        cancelRenderViews(): void;
-
-        createViewForModel(cell: Cell): CellView;
-
-        defineFilter(filter: object): string;
-
-        defineGradient(gradient: object): string;
-
-        defineMarker(marker: object): string;
-
-        drawBackground(opt?: {color?: string, img?: string}): this;
-
-        drawBackgroundImage(img: HTMLImageElement, opt: object): void;
-
-        drawGrid(options?: {width?: number, height?: number, scaleFactor?: number,
-                            update: any, ox?: number, oy?: number}): this;
-
-        findView<T extends ElementView | LinkView>(element: string | JQuery | SVGElement): T;
-
-        findViewByModel<T extends ElementView | LinkView>(model: Element | string | Link) : T;
-
-        findViewsFromPoint(point: string | Point | g.Point): ElementView[];
-
-        findViewsInArea(rect: g.Rect | BBox, options?: { strict?: boolean }): CellView[];
-
-        fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, options?: any): void;
-
-        fitToContent(options?: FitToContentOptions): void;
-
-        getArea(): g.Rect;
-
-        getContentBBox(): g.Rect;
-
-        getDefaultLink(cellView: CellView, magnet: HTMLElement): Link;
-
-        getModelById(id: string): Cell;
-
-        getRestrictedArea(): g.Rect | undefined;
-
-        guard(evt: Event, view: CellView): boolean;
-
-        isDefined(defId: string): boolean;
-
-        localToClientPoint(x: number | g.Point, y?: number): g.Point;
-
-        localToClientRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
-
-        localToPagePoint(x: number | g.Point, y?: number): g.Point;
-
-        localToPageRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
-
-        localToPaperPoint(x: number | g.Point, y?: number): g.Point;
-
-        localToPaperRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
-
-        matrix(): SVGMatrix;
-
-        matrix(ctm: SVGMatrix | Vectorizer.Matrix): this;
-
-        pageOffset(): g.Point;
-
-        pageToLocalPoint(x: number | g.Point, y?: number): g.Point;
-
-        pageToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
-
-        paperToLocalPoint(x: number | g.Point, y?: number): g.Point;
-
-        paperToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
-
-        remove(): this;
-
-        render(): this;
-
-        scale(): Vectorizer.Scale;
-        scale(sx: number, sy?: number, ox?: number, oy?: number): this;
-
-        scaleContentToFit(options?: ScaleContentOptions): void;
-
-        setDimensions(width: number, height: number): void;
-
-        setGridSize(gridSize: number): this;
-
-        setInteractivity(value: any): void;
-
-        setOrigin(x: number, y: number): this;
-
-        snapToGrid(x: g.Point | number, y?: number): g.Point;
-
-        sortViews(): void;
-
-        translate(): Vectorizer.Translation;
-        translate(tx: number, ty?: number): this;
-
-        update(): void;
-
-        protected afterRenderViews(): void;
-
-        protected asyncRenderViews(cells: Cell[], options?: object): void;
-
-        protected beforeRenderViews(cells: Cell[]): Cell[];
-
-        protected cellMouseEnter(evt: Event): void;
-
-        protected cellMouseleave(evt: Event): void;
-
-        protected cellMouseout(evt: Event): void;
-
-        protected cellMouseover(evt: Event): void;
-
-        protected contextmenu(evt: Event): void;
-
-        protected init(): void;
-
-        protected mouseclick(evt: Event): void;
-
-        protected mousedblclick(evt: Event): void;
-
-        protected mousewheel(evt: Event): void;
-
-        protected onCellAdded(cell: Cell, graph: Graph, options: {async?: boolean, position?: number}): void;
-
-        protected onCellHighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
-
-        protected onCellUnhighlight(cellView: CellView, magnetEl: HTMLElement, options?: {highlighter?: Highlighter}): void;
-
-        protected onRemove(): void;
-
-        protected pointerdown(evt: Event): void;
-
-        protected pointermove(evt: Event): void;
-
-        protected pointerup(evt: Event): void;
-
-        protected removeView(cell: Cell): CellView;
-
-        protected removeViews(): void;
-
-        protected renderView(cell: Cell): CellView;
-
-        protected resetViews(cellsCollection: Cell[], options: object): void;
-
-         protected updateBackgroundColor(color: string): void;
-
-        protected updateBackgroundImage(opt: {position?: any, size?: any}): void;
+    var Paper: PaperStatic;
+
+    interface PaperStatic {
+        new (options: PaperOptions): Paper;
+        new (): Paper;
     }
 
     //TODO v.talas used in attributes
@@ -630,6 +470,22 @@ export namespace dia {
 
     abstract class CellViewGeneric<T extends Backbone.Model> extends Backbone.View<T> {
         constructor(options?: { id: string });
+
+        unhighlight(el?: any, options?: any): this;
+
+        can(feature: string): boolean;
+
+        findMagnet(el: any): HTMLElement;
+
+        getSelector(el: HTMLElement, prevSelector: string): string;
+
+        getStrokeBBox(el: any): BBox; // string|HTMLElement|Vectorizer
+
+        remove(): this;
+
+        setInteractivity(value: any): void;
+
+        setTheme(theme: string, options?: any): this;
 
         protected mouseover(evt: Event): void;
 
@@ -648,22 +504,6 @@ export namespace dia {
         protected pointermove(evt: Event, x: number, y: number): void;
 
         protected pointerup(evt: Event, x: number, y: number): void;
-
-        unhighlight(el?: any, options?: any): this;
-
-        can(feature: string): boolean;
-
-        findMagnet(el: any): HTMLElement;
-
-        getSelector(el: HTMLElement, prevSelector: string): string;
-
-        getStrokeBBox(el: any): BBox; // string|HTMLElement|Vectorizer
-
-        remove(): this;
-
-        setInteractivity(value: any): void;
-
-        setTheme(theme: string, options?: any): this;
     }
 
     class CellView extends CellViewGeneric<Cell> {
@@ -748,6 +588,173 @@ export namespace dia {
 
         protected pointerup(evt: Event, x: number, y: number): void;
     }
+}
+
+interface Paper extends View {
+
+    options: dia.PaperOptions;
+    svg: SVGElement;
+    viewport: SVGGElement;
+    defs: SVGDefsElement;
+
+    clientMatrix(): SVGMatrix;
+
+    clientToLocalPoint(x: number | g.Point, y?: number): g.Point;
+
+    clientToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+
+    clientOffset(): g.Point;
+
+    cloneOptions(): dia.PaperOptions;
+
+    cancelRenderViews(): void;
+
+    createViewForModel(cell: dia.Cell): dia.CellView;
+
+    defineFilter(filter: object): string;
+
+    defineGradient(gradient: object): string;
+
+    defineMarker(marker: object): string;
+
+    drawBackground(opt?: {color?: string, img?: string}): this;
+
+    drawBackgroundImage(img: HTMLImageElement, opt: object): void;
+
+    drawGrid(options?: {width?: number, height?: number, scaleFactor?: number,
+        update: any, ox?: number, oy?: number}): this;
+
+    findView<T extends dia.ElementView | dia.LinkView>(element: string | JQuery | SVGElement): T;
+
+    findViewByModel<T extends dia.ElementView | dia.LinkView>(model: Element | string | dia.Link) : T;
+
+    findViewsFromPoint(point: string | dia.Point | g.Point): dia.ElementView[];
+
+    findViewsInArea(rect: g.Rect | dia.BBox, options?: { strict?: boolean }): dia.CellView[];
+
+    fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, options?: any): void;
+
+    fitToContent(options?: dia.FitToContentOptions): void;
+
+    getArea(): g.Rect;
+
+    getContentBBox(): g.Rect;
+
+    getDefaultLink(cellView: dia.CellView, magnet: HTMLElement): dia.Link;
+
+    getModelById(id: string): dia.Cell;
+
+    getRestrictedArea(): g.Rect | undefined;
+
+    guard(evt: Event, view: dia.CellView): boolean;
+
+    isDefined(defId: string): boolean;
+
+    localToClientPoint(x: number | g.Point, y?: number): g.Point;
+
+    localToClientRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+
+    localToPagePoint(x: number | g.Point, y?: number): g.Point;
+
+    localToPageRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+
+    localToPaperPoint(x: number | g.Point, y?: number): g.Point;
+
+    localToPaperRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+
+    matrix(): SVGMatrix;
+
+    matrix(ctm: SVGMatrix | Vectorizer.Matrix): this;
+
+    pageOffset(): g.Point;
+
+    pageToLocalPoint(x: number | g.Point, y?: number): g.Point;
+
+    pageToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+
+    paperToLocalPoint(x: number | g.Point, y?: number): g.Point;
+
+    paperToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+
+    remove(): this;
+
+    render(): this;
+
+    scale(): Vectorizer.Scale;
+    scale(sx: number, sy?: number, ox?: number, oy?: number): this;
+
+    scaleContentToFit(options?: dia.ScaleContentOptions): void;
+
+    setDimensions(width: number, height: number): void;
+
+    setGridSize(gridSize: number): this;
+
+    setInteractivity(value: any): void;
+
+    setOrigin(x: number, y: number): this;
+
+    snapToGrid(x: g.Point | number, y?: number): g.Point;
+
+    sortViews(): void;
+
+    translate(): Vectorizer.Translation;
+
+    translate(tx: number, ty?: number): this;
+
+    update(): void;
+
+    setGridSize(gridSize: any): void;
+
+    // protected
+    afterRenderViews(): void;
+
+    asyncRenderViews(cells: dia.Cell[], options?: object): void;
+
+    beforeRenderViews(cells: dia.Cell[]): dia.Cell[];
+
+    cellMouseEnter(evt: Event): void;
+
+    cellMouseleave(evt: Event): void;
+
+    cellMouseout(evt: Event): void;
+
+    cellMouseover(evt: Event): void;
+
+    contextmenu(evt: Event): void;
+
+    init(): void;
+
+    mouseclick(evt: Event): void;
+
+    mousedblclick(evt: Event): void;
+
+    mousewheel(evt: Event): void;
+
+    onCellAdded(cell: dia.Cell, graph: dia.Graph, options: { async?: boolean, position?: number }): void;
+
+    onCellHighlight(cellView: dia.CellView, magnetEl: HTMLElement, options?: { highlighter?: dia.Highlighter }): void;
+
+    onCellUnhighlight(cellView: dia.CellView, magnetEl: HTMLElement, options?: { highlighter?: dia.Highlighter }): void;
+
+    onRemove(): void;
+
+    pointerdown(evt: Event): void;
+
+    pointermove(evt: Event): void;
+
+    pointerup(evt: Event): void;
+
+    removeView(cell: dia.Cell): dia.CellView;
+
+    removeViews(): void;
+
+    renderView(cell: dia.Cell): dia.CellView;
+
+    resetViews(cellsCollection: dia.Cell[], options: object): void;
+
+    updateBackgroundColor(color: string): void;
+
+    updateBackgroundImage(opt: { position?: any, size?: any }): void;
 }
 
 export namespace ui {
@@ -1242,4 +1249,33 @@ export namespace layout {
     export namespace DirectedGraph {
         export function layout(graph: dia.Graph | dia.Cell[], options?: LayoutOptions): dia.BBox;
     }
+}
+
+interface View extends Backbone.View<Backbone.Model>, Backbone.Events  {
+
+    theme: string;
+
+    defaultTheme: string;
+
+    setTheme(theme: string, opt: any): void;
+
+    getEventNamespace(): this;
+
+    init(): void;
+
+    onRender(): void;
+
+    onSetTheme(oldTheme:string, newTheme:string): void;
+
+    onRemove(): void;
+}
+
+interface ViewStatic {
+    new(opt: any): View;
+    new(): View;
+}
+
+export namespace mvc {
+
+    var View: ViewStatic;
 }
