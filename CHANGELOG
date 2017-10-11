@@ -1,3 +1,22 @@
+TBD (v1.2.0)
+  * JointJS now compatible with Lodash v4
+  * Geometry - add Polyline with pointAtLength(), length(), closesPointLength(), closestPoint() and convexHull()
+  * Geometry - add cross(), dot(), squaredDistance(), closestPoint(), closestPointNormalizedLenght(), vector(), vectorAngle(), angleBetween() to Point
+  * Vectorizer - add children() and getBBox()
+  * Vectorizer - fix parseTransdoemString() and matrixToTransformString()
+  * Vectorizer - make the text `y` coordinate based on the first line line-height in text()
+  * Vectorizer - add option to define the end-of-line character for text()
+  * layout.DirectedLayout - add ability to position labels
+  * layout.DirectedLayout - fix bug when the elements passed do not include their parents
+  * dia.Paper - add `clickThreshold`, `moveThreshold` and `preventDefaultBlankAction` options
+  * dia.Paper - add cancelRenderViews() for async mode
+  * dia.CellView - do not reset node's transform attribute if no transform applied update()
+  * dia.Element - position() can be called with { deep: true } option to set position of the embeds
+  * dia.attributes - `text` attribute takes `x` into account
+  * dia.attributes - add `event` for easier events handling on CellViews and `resetOffset` for paths to start at 0,0
+  * dia.LinkView: stop triggering link:connect/link:disconnnect when connection not allowed
+  * dia.LinkView - can sendToken() backwards
+  * highlighters.Stroke: fix for magnets inside scalable group and with zero width or height
 31-03-2017 (v1.1.0)
   * add TypeScript definitions
   * update jQuery v3.1.1
