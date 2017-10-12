@@ -852,10 +852,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         return undefined;
     },
 
-    // Find a view for a model `cell`. `cell` can also be a string representing a model `id`.
+    // Find a view for a model `cell`. `cell` can also be a string or number representing a model `id`.
     findViewByModel: function(cell) {
 
-        var id = joint.util.isString(cell) ? cell : cell.id;
+        var id = joint.util.isObject(cell) ? cell.id : cell;
 
         return this._views[id];
     },
