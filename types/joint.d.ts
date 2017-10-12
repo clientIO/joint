@@ -202,7 +202,7 @@ export namespace dia {
 
         unembed(cell: Cell, options?: object): this;
 
-        define(type: string, defaults?: any, protoProps?: any, staticProps?: any): any;
+        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): any;
 
         /**
          * @deprecated
@@ -1375,3 +1375,5 @@ export namespace mvc {
         new(): View;
     }
 }
+
+export function setTheme(theme: string): void;
