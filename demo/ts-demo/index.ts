@@ -24,11 +24,14 @@ const paper = new joint.dia.Paper({
     linkConnectionPoint: joint.util.shapePerimeterConnectionPoint
 });
 
+paper.on('all', function() {
+    console.log('paper: ', arguments);
+})
+
 const a = new joint.shapes.basic.Rect({
     position: {x: 50, y: 50},
     size: {width: 100, height: 40},
     attrs: {text: {text: 'basic.Rect'}}
 });
 graph.addCell(a);
-
 
