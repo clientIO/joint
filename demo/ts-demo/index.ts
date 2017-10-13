@@ -5,7 +5,7 @@ import * as $ from "jquery";
 const body = $('body');
 const svg = joint.V('svg');
 const rect = V('rect').attr({fill: 'red', width: 80, height: 50});
-const ellipse = V('ellipse').attr({fill: 'green', rx: 100, ry: 50, cx: 200, cy: 80, x: 20, y: 30 });
+const ellipse = V('ellipse').attr({fill: 'green', rx: 100, ry: 50, cx: 200, cy: 80, x: 20, y: 30});
 
 svg.append(rect);
 svg.append(ellipse.node);
@@ -23,10 +23,6 @@ const paper = new joint.dia.Paper({
     markAvailable: true,
     linkConnectionPoint: joint.util.shapePerimeterConnectionPoint
 });
-
-paper.on('all', function() {
-    console.log('paper: ', arguments);
-})
 
 const a = new joint.shapes.basic.Rect({
     position: {x: 50, y: 50},
