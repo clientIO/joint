@@ -1,4 +1,4 @@
-export function V(svg: SVGElement | string, attrs?: Object, children?:
+export function V(svg: SVGElement | string, attrs?: {[key: string]: any}, children?:
                       Vectorizer
                       | Vectorizer[]
                       | SVGElement
@@ -84,7 +84,7 @@ export namespace Vectorizer {
 }
 
 export class Vectorizer {
-    constructor(svg: string | SVGElement, attrs?: Object, children?:
+    constructor(svg: string | SVGElement, attrs?: {[key: string]: any}, children?:
                     Vectorizer
                     | Vectorizer[]
                     | SVGElement
@@ -92,7 +92,7 @@ export class Vectorizer {
 
     node: SVGElement;
 
-    animateAlongPath(attrs: Object, path: Vectorizer | SVGElement): void;
+    animateAlongPath(attrs: {[key: string]: any}, path: Vectorizer | SVGElement): void;
 
     append(node: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): this;
 
@@ -230,7 +230,7 @@ export class Vectorizer {
 
     static matrixToTranslate(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Translation;
 
-    static mergeAttrs(a: Object, b: Object): Object;
+    static mergeAttrs(a: any, b: any): any;
 
     static parseTransformString(transform: string): Vectorizer.Transform;
 
