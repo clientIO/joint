@@ -1304,7 +1304,7 @@ var joint = {
          */
         toggleFullScreen: function(el) {
 
-            el = el || document.body;
+            el = el || window.top.document.body;
 
             function prefixedResult(el, prop) {
 
