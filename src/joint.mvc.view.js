@@ -38,7 +38,7 @@ joint.mvc.View = Backbone.View.extend({
 
                 var tagName = joint.util.result(this, 'tagName');
                 var attrs = joint.util.assign({}, joint.util.result(this, 'attributes'));
-                if (this.id) attrs.id = _.result(this, 'id');
+                if (this.id) attrs.id = joint.util.result(this, 'id');
                 if (this.className) attrs['class'] = joint.util.result(this, 'className');
                 el = V(tagName, attrs).node;
 
