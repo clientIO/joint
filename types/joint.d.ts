@@ -457,14 +457,6 @@ export namespace dia {
         options?: object;
     }
 
-    var Paper: PaperStatic;
-
-    interface PaperStatic {
-        new (options: PaperOptions): Paper;
-        new (): Paper;
-    }
-
-    //TODO v.talas used in attributes
     interface GradientOptions {
         type: 'linearGradient' | 'radialGradient';
         stops: Array<{
@@ -595,7 +587,8 @@ export namespace dia {
         protected pointerup(evt: Event, x: number, y: number): void;
     }
 
-    interface Paper extends mvc.View {
+    class Paper extends mvc.View {
+        constructor(options: PaperOptions);
 
         options: dia.PaperOptions;
         svg: SVGElement;
@@ -712,55 +705,55 @@ export namespace dia {
         update(): void;
 
         // protected
-        afterRenderViews(): void;
+        protected afterRenderViews(): void;
 
-        asyncRenderViews(cells: dia.Cell[], options?: object): void;
+        protected asyncRenderViews(cells: dia.Cell[], options?: object): void;
 
-        beforeRenderViews(cells: dia.Cell[]): dia.Cell[];
+        protected beforeRenderViews(cells: dia.Cell[]): dia.Cell[];
 
-        cellMouseEnter(evt: Event): void;
+        protected cellMouseEnter(evt: Event): void;
 
-        cellMouseleave(evt: Event): void;
+        protected cellMouseleave(evt: Event): void;
 
-        cellMouseout(evt: Event): void;
+        protected cellMouseout(evt: Event): void;
 
-        cellMouseover(evt: Event): void;
+        protected cellMouseover(evt: Event): void;
 
-        contextmenu(evt: Event): void;
+        protected contextmenu(evt: Event): void;
 
-        init(): void;
+        protected init(): void;
 
-        mouseclick(evt: Event): void;
+        protected mouseclick(evt: Event): void;
 
-        mousedblclick(evt: Event): void;
+        protected mousedblclick(evt: Event): void;
 
-        mousewheel(evt: Event): void;
+        protected mousewheel(evt: Event): void;
 
-        onCellAdded(cell: dia.Cell, graph: dia.Graph, options: { async?: boolean, position?: number }): void;
+        protected onCellAdded(cell: dia.Cell, graph: dia.Graph, options: { async?: boolean, position?: number }): void;
 
-        onCellHighlight(cellView: dia.CellView, magnetEl: HTMLElement, options?: { highlighter?: dia.Highlighter }): void;
+        protected onCellHighlight(cellView: dia.CellView, magnetEl: HTMLElement, options?: { highlighter?: dia.Highlighter }): void;
 
-        onCellUnhighlight(cellView: dia.CellView, magnetEl: HTMLElement, options?: { highlighter?: dia.Highlighter }): void;
+        protected onCellUnhighlight(cellView: dia.CellView, magnetEl: HTMLElement, options?: { highlighter?: dia.Highlighter }): void;
 
-        onRemove(): void;
+        protected onRemove(): void;
 
-        pointerdown(evt: Event): void;
+        protected pointerdown(evt: Event): void;
 
-        pointermove(evt: Event): void;
+        protected pointermove(evt: Event): void;
 
-        pointerup(evt: Event): void;
+        protected pointerup(evt: Event): void;
 
-        removeView(cell: dia.Cell): dia.CellView;
+        protected removeView(cell: dia.Cell): dia.CellView;
 
-        removeViews(): void;
+        protected removeViews(): void;
 
-        renderView(cell: dia.Cell): dia.CellView;
+        protected renderView(cell: dia.Cell): dia.CellView;
 
-        resetViews(cellsCollection: dia.Cell[], options: object): void;
+        protected resetViews(cellsCollection: dia.Cell[], options: object): void;
 
-        updateBackgroundColor(color: string): void;
+        protected updateBackgroundColor(color: string): void;
 
-        updateBackgroundImage(opt: { position?: any, size?: any }): void;
+        protected updateBackgroundImage(opt: { position?: any, size?: any }): void;
     }
 }
 
@@ -1348,7 +1341,9 @@ export namespace layout {
 
 export namespace mvc {
 
-    interface View extends Backbone.View<Backbone.Model>, Backbone.Events {
+    class View extends Backbone.View<Backbone.Model> {
+        constructor(opt: any);
+        constructor();
 
         theme: string;
 
@@ -1358,21 +1353,13 @@ export namespace mvc {
 
         getEventNamespace(): this;
 
-        init(): void;
+        protected init(): void;
 
-        onRender(): void;
+        protected onRender(): void;
 
-        onSetTheme(oldTheme: string, newTheme: string): void;
+        protected onSetTheme(oldTheme: string, newTheme: string): void;
 
-        onRemove(): void;
-    }
-
-    var View: ViewStatic;
-
-    interface ViewStatic {
-        new(opt: any): View;
-
-        new(): View;
+        protected onRemove(): void;
     }
 }
 
