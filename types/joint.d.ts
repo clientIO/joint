@@ -587,7 +587,7 @@ export namespace dia {
         protected pointerup(evt: Event, x: number, y: number): void;
     }
 
-    class Paper extends mvc.View {
+    class Paper extends mvc.View<Graph> {
         constructor(options: PaperOptions);
 
         options: dia.PaperOptions;
@@ -1341,7 +1341,7 @@ export namespace layout {
 
 export namespace mvc {
 
-    class View extends Backbone.View<Backbone.Model> {
+    class View<T extends Backbone.Model> extends Backbone.View<T> {
         constructor(opt: any);
         constructor();
 
