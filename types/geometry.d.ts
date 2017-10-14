@@ -239,7 +239,7 @@ export namespace g {
 
     namespace bezier {
 
-        interface ICurveDivider {
+        interface IBezierCurve {
             p0: Point;
             p1: Point;
             p2: Point;
@@ -255,7 +255,7 @@ export namespace g {
             p1: string | PlainPoint | Point,
             p2: string | PlainPoint | Point,
             p3: string | PlainPoint | Point
-        ): (t: number) => [ICurveDivider, ICurveDivider];
+        ): (t: number) => [IBezierCurve, IBezierCurve];
 
         export function getFirectControlPoints(rhs: number[]): number[];
 
