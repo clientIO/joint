@@ -1848,6 +1848,8 @@ V = Vectorizer = (function() {
         return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
     };
 
+    V.namespace = ns;
+
     return V;
 
 })();
