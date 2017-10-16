@@ -952,7 +952,7 @@ V = Vectorizer = (function() {
 
     V.prototype.convertToPathData = function() {
 
-        var tagName = this.node.tagName.toUpperCase();
+        var tagName = this.tagName();
 
         switch (tagName) {
             case 'PATH':
@@ -974,6 +974,54 @@ V = Vectorizer = (function() {
         throw new Error(tagName + ' cannot be converted to PATH.');
     };
 
+    V.prototype.tagName = function() {
+        return this.node.localName.toUpperCase();
+    },
+
+    V.prototype.toGeometryShape = function() {
+        var x, y, width, height, cx, cy, r, rx, ry, points;
+        switch (this.tagName()) {
+            case 'RECT':
+                x = parseFloat(this.attr('x')) || 0;
+                y = parseFloat(this.attr('y')) || 0;
+                width = parseFloat(this.attr('width')) || 0;
+                height = parseFloat(this.attr('height')) || 0;
+                return g.Rect(x, y, width, height);
+            case 'CIRCLE':
+                cx = parseFloat(this.attr('cx')) || 0;
+                cy =  parseFloat(this.attr('cy')) || 0;
+                r = parseFloat(this.attr('r')) || 0;
+                return g.Ellipse({ x: cx, y: cy }, r, r);
+            case 'ELLIPSE':
+                cx = parseFloat(this.attr('cx')) || 0;
+                cy =  parseFloat(this.attr('cy')) || 0;
+                rx = parseFloat(this.attr('rx')) || 0;
+                ry = parseFloat(this.attr('ry')) || 0;
+                return g.Ellipse({ x: cx, y: cy }, rx, ry);
+            case 'POLYLINE':
+                points = V.getPointsFromSvgNode(this);
+                return g.Polyline(points);
+            case 'POLYGON':
+                points = V.getPointsFromSvgNode(this);
+                if (points.length > 1) {
+                    points.push(points[0]);
+                }
+                return g.Polyline(points);
+            case 'PATH':
+                points = this.sample();
+                if (points.length > 0) {
+                    var d = this.attr('d') || '';
+                    if (d[d.length - 1].toUpperCase() === 'Z') {
+                        points.push(points[0]);
+                    }
+                }
+                return g.Polyline(points);
+        }
+
+        // Anything else is a rectangle
+        return this.bbox(true);
+    },
+
     // Find the intersection of a line starting in the center
     // of the SVG `node` ending in the point `ref`.
     // `target` is an SVG element to which `node`s transformations are relative to.
@@ -983,79 +1031,37 @@ V = Vectorizer = (function() {
     // an intersection is found. Returns `undefined` otherwise.
     V.prototype.findIntersection = function(ref, target) {
 
-        var svg = this.svg().node;
-        target = target || svg;
-        var bbox = this.getBBox({ target: target });
-        var center = bbox.center();
+        target || (target = this.svg());
 
-        if (!bbox.intersectionWithLineFromCenterToPoint(ref)) return undefined;
-
-        var spot;
-        var tagName = this.node.localName.toUpperCase();
-
-        // Little speed up optimalization for `<rect>` element. We do not do conversion
-        // to path element and sampling but directly calculate the intersection through
-        // a transformed geometrical rectangle.
-        if (tagName === 'RECT') {
-
-            var gRect = g.rect(
-                parseFloat(this.attr('x') || 0),
-                parseFloat(this.attr('y') || 0),
-                parseFloat(this.attr('width')),
-                parseFloat(this.attr('height'))
-            );
-            // Get the rect transformation matrix with regards to the SVG document.
-            var rectMatrix = this.getTransformToElement(target);
-            // Decompose the matrix to find the rotation angle.
-            var rectMatrixComponents = V.decomposeMatrix(rectMatrix);
-            // Now we want to rotate the rectangle back so that we
-            // can use `intersectionWithLineFromCenterToPoint()` passing the angle as the second argument.
-            var resetRotation = svg.createSVGTransform();
-            resetRotation.setRotate(-rectMatrixComponents.rotation, center.x, center.y);
-            var rect = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
-            spot = g.rect(rect).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
-
-        } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
-
-            var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
-            var samples = pathNode.sample();
-            var minDistance = Infinity;
-            var closestSamples = [];
-
-            var i, sample, gp, centerDistance, refDistance, distance;
-
-            for (i = 0; i < samples.length; i++) {
-
-                sample = samples[i];
-                // Convert the sample point in the local coordinate system to the global coordinate system.
-                gp = V.createSVGPoint(sample.x, sample.y);
-                gp = gp.matrixTransform(this.getTransformToElement(target));
-                sample = g.point(gp);
-                centerDistance = sample.distance(center);
-                // Penalize a higher distance to the reference point by 10%.
-                // This gives better results. This is due to
-                // inaccuracies introduced by rounding errors and getPointAtLength() returns.
-                refDistance = sample.distance(ref) * 1.1;
-                distance = centerDistance + refDistance;
-
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestSamples = [{ sample: sample, refDistance: refDistance }];
-                } else if (distance < minDistance + 1) {
-                    closestSamples.push({ sample: sample, refDistance: refDistance });
-                }
-            }
-
-            closestSamples.sort(function(a, b) {
-                return a.refDistance - b.refDistance;
-            });
-
-            if (closestSamples[0]) {
-                spot = closestSamples[0].sample;
-            }
+        var matrix = this.getTransformToElement(target);
+        var localRef = V.transformPoint(ref, matrix.inverse());
+        var geometryShape = this.toGeometryShape();
+        // backwards compatibility
+        var bbox = geometryShape.bbox();
+        if (bbox.containsPoint(localRef)) {
+            return undefined;
         }
 
-        return spot;
+        var intersection;
+        // TODO: fix
+        // if (geometryShape.intersectionWithLineFromCenterToPoint) {
+        //     intersection = geometryShape.intersectionWithLineFromCenterToPoint(localRef) || geometryShape.closestPoint(localRef);
+        // } else {
+        //     intersection = geometryShape.closestPoint(localRef);
+        // }
+        if (geometryShape.closestPoint)
+            intersection = geometryShape.closestPoint(localRef);
+
+        //intersection = geometryShape.intersectionWithLineFromCenterToPoint(localRef) || geometryShape.closestPoint(localRef);
+        // if (geometryShape.closestPoint) {
+        //     intersection = geometryShape.closestPoint(localRef);
+        // }
+
+        if (intersection) {
+            return V.transformPoint(intersection, matrix);
+        }
+
+        return undefined;
     };
 
     /**
@@ -1705,7 +1711,7 @@ V = Vectorizer = (function() {
 
     V.convertPolygonToPathData = function(polygon) {
 
-        var points = V.getPointsFromSvgNode(V(polygon).node);
+        var points = V.getPointsFromSvgNode(polygon);
 
         if (!(points.length > 0)) return null;
 
@@ -1714,7 +1720,7 @@ V = Vectorizer = (function() {
 
     V.convertPolylineToPathData = function(polyline) {
 
-        var points = V.getPointsFromSvgNode(V(polyline).node);
+        var points = V.getPointsFromSvgNode(polyline);
 
         if (!(points.length > 0)) return null;
 
@@ -1723,9 +1729,7 @@ V = Vectorizer = (function() {
 
     V.svgPointsToPath = function(points) {
 
-        var i;
-
-        for (i = 0; i < points.length; i++) {
+        for (var i = 0, n = points.length; i < n; i++) {
             points[i] = points[i].x + ' ' + points[i].y;
         }
 
@@ -1734,11 +1738,11 @@ V = Vectorizer = (function() {
 
     V.getPointsFromSvgNode = function(node) {
 
+        var nodePoints = V.toNode(node).points;
         var points = [];
-        var i;
 
-        for (i = 0; i < node.points.numberOfItems; i++) {
-            points.push(node.points.getItem(i));
+        for (var i = 0, n = nodePoints.numberOfItems; i < n; i++) {
+            points.push(nodePoints.getItem(i));
         }
 
         return points;
