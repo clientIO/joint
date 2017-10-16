@@ -202,12 +202,16 @@ export namespace dia {
 
         unembed(cell: Cell, options?: object): this;
 
-        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): any;
+        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): CellConstructor<Cell>;
 
         /**
          * @deprecated
          */
         protected processPorts(): void;
+    }
+
+    interface CellConstructor<T extends Backbone.Model> {
+        new (options?: { id: string }): T
     }
 
     type Padding = number | {
@@ -294,6 +298,8 @@ export namespace dia {
         getPortIndex(port: string | Port): number;
 
         portProp(portId: string, path: any, value?: any, opt?: any): dia.Element;
+
+        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): CellConstructor<Element>;
     }
 
     interface CSSSelector {
@@ -370,6 +376,8 @@ export namespace dia {
         scale(sx: number, sy: number, origin: Point | g.Point | string, opt?: object): this;
 
         translate(tx: number, ty: number, options?: object): this;
+
+        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): CellConstructor<Link>;
     }
 
     interface ManhattanRouterArgs {
