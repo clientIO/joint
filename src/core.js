@@ -1300,11 +1300,11 @@ var joint = {
         },
 
         /**
-         * @param {Element=} el Element, which content is intent to display in full-screen mode, 'document.body' is default.
+         * @param {Element=} el Element, which content is intent to display in full-screen mode, 'window.top.document.body' is default.
          */
         toggleFullScreen: function(el) {
 
-            el = el || document.body;
+            el = el || window.top.document.body;
 
             function prefixedResult(el, prop) {
 
