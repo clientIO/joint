@@ -3,8 +3,8 @@
         "start": "webpack"
     },
     "devDependencies": {
-        "ts-loader": "2.0.3",
-        "typescript": "2.2.2",
-        "webpack": "2.3.1"
+        "ts-loader": "2.3.7",
+        "typescript": "2.5.3",
+        "webpack": "3.7.1"
     }
 }
