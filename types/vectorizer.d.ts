@@ -11,13 +11,13 @@ export namespace Vectorizer {
     }
 
     interface AnnotateStringOptions {
-        includeAnnotationIndices?: boolean,
-        offset?: number
+        includeAnnotationIndices?: boolean;
+        offset?: number;
     }
 
     interface TextOptions {
-        eol?: string,
-        x?: number,
+        eol?: string;
+        x?: number;
         lineHeight?: number | string;
         textPath?: string | { [key: string]: any };
         annotations?: TextAnnotation[];
@@ -25,8 +25,8 @@ export namespace Vectorizer {
     }
 
     interface GetBBoxOptions {
-        target?: SVGElement | Vectorizer,
-        recursive?: boolean
+        target?: SVGElement | Vectorizer;
+        recursive?: boolean;
     }
 
     interface TransformOptions {
@@ -70,8 +70,8 @@ export namespace Vectorizer {
     }
 
     interface RoundedRect extends g.PlainRect {
-        'rx'?: number
-        'ry'?: number
+        'rx'?: number;
+        'ry'?: number;
         'top-rx'?: number;
         'top-ry'?: number;
         'bottom-rx'?: number;
