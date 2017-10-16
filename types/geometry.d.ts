@@ -1,77 +1,69 @@
 export namespace g {
 
-    type CardinalDirection = 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW' | 'N';
-
-    function normalizeAngle(angle: number): number;
-
-    function snapToGrid(val: number, gridSize: number): number;
-
-    function toDeg(rad: number): number;
-
-    function toRad(deg: number, over360?: boolean): number;
-
-    namespace bezier {
-        function curveThroughPoints(points: dia.Point[] | Point[]): string[];
-
-        export function getCurveControlPoints(points: dia.Point[] | Point[]): [Point[], Point[]];
-
-        interface ICurveDivider {
-            p0: Point;
-            p1: Point;
-            p2: Point;
-            p3: Point;
-        }
-        export function getCurveDivider(p0: string | dia.Point | Point, p1: string | dia.Point | Point, p2:
-                                            string
-                                            | dia.Point
-                                            | Point, p3:
-                                            string
-                                            | dia.Point
-                                            | Point): (t: number) => [ICurveDivider, ICurveDivider];
-
-        export function getFirectControlPoints(rhs: number[]): number[];
-
-        export function getInversionSolver(p0: dia.Point | Point, p1: dia.Point | Point, p2: dia.Point | Point, p3:
-                                               dia.Point
-                                               | Point): (p: dia.Point | Point) => number;
+    export interface PlainPoint {
+        x: number;
+        y: number;
     }
 
+    export interface PlainRect {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }
+
+    type CardinalDirection = 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW' | 'N';
+
+    type RectangleSides = 'left' | 'right' | 'top' | 'bottom';
+
+    export function normalizeAngle(angle: number): number;
+
+    export function snapToGrid(val: number, gridSize: number): number;
+
+    export function toDeg(rad: number): number;
+
+    export function toRad(deg: number, over360?: boolean): number;
+
     class Ellipse {
-        static fromRect(rect: Rect): Ellipse;
 
         x: number;
         y: number;
         a: number;
         b: number;
 
-        constructor(center: Ellipse | Point, a: number, b: number);
+        constructor(center: PlainPoint, a: number, b: number);
+        constructor(ellipse: Ellipse);
 
         bbox(): Rect;
 
         clone(): Ellipse;
 
-        normalizedDistance(point: dia.Point | Point): number;
+        normalizedDistance(point: PlainPoint): number;
 
-        inflate(dx: number, dy: number): this;
+        inflate(dx?: number, dy?: number): this;
 
-        containsPoint(p: dia.Point | Point): boolean;
+        containsPoint(p: PlainPoint): boolean;
 
         center(): Point;
 
-        tangentTheta(p: dia.Point | Point): number;
+        tangentTheta(p: PlainPoint): number;
 
         equals(ellipse: Ellipse): boolean;
 
-        intersectionWithLineFromCenterToPoint(p: dia.Point | Point, angle: number): Point;
+        intersectionWithLineFromCenterToPoint(p: PlainPoint, angle?: number): Point;
 
         toString(): string;
+
+        static fromRect(rect: PlainRect): Ellipse;
     }
 
     class Line {
+
         start: Point;
         end: Point;
 
-        constructor(p1: string | dia.Point | Point, p2: string | dia.Point | Point);
+        constructor(p1: PlainPoint | string, p2: PlainPoint | string);
+        constructor(line: Line);
 
         bearing(): CardinalDirection;
 
@@ -79,8 +71,8 @@ export namespace g {
 
         equals(line: Line): boolean;
 
-        intersect(line: Line): Point | undefined;
-        intersect(rect: Rect): Point[] | undefined;
+        intersect(line: Line): Point | null;
+        intersect(rect: Rect): Point[] | null;
 
         length(): number;
 
@@ -88,89 +80,99 @@ export namespace g {
 
         pointAt(t: number): Point;
 
-        pointOffset(p: dia.Point | Point): number;
+        pointOffset(p: PlainPoint): number;
+
+        vector(): Point;
+
+        closestPoint(p: PlainPoint | string): Point;
+
+        closestPointNormalizedLength(p: PlainPoint | string): number;
 
         squaredLength(): number;
 
         toString(): string;
-
-        vector(): Point;
-
-        closestPoint(p: dia.Point | Point): Point;
-
-        closestPointNormalizedLength(p: dia.Point | Point): number;
     }
 
-    class Point {
-        static fromPolar(distance: number, angle: number, origin?: string | dia.Point | Point): Point;
-
-        static random(x1: number, x2: number, y1: number, y2: number): Point;
+    class Point implements PlainPoint {
 
         x: number;
         y: number;
 
-        constructor(x: number | string | Point, y?: number);
+        constructor(x: number, y: number);
+        constructor(p: PlainPoint | string);
 
         adhereToRect(r: Rect): this;
 
         bearing(p: Point): CardinalDirection;
 
-        changeInAngle(dx: number, dy: number, ref: string | dia.Point | Point): number;
+        changeInAngle(dx: number, dy: number, ref: PlainPoint | string): number;
 
         clone(): Point;
 
-        difference(dx: dia.Point | Point | number, dy?: number): Point;
+        difference(dx: number, dy?: number): Point;
+        difference(p: PlainPoint): Point;
 
-        distance(p: string | dia.Point | Point): number;
+        distance(p: PlainPoint | string): number;
 
-        squaredDistance(p: dia.Point | Point): number;
+        squaredDistance(p: PlainPoint | string): number;
 
         equals(p: Point): boolean;
 
         magnitude(): number;
 
-        manhattanDistance(p: dia.Point | Point): number;
+        manhattanDistance(p: PlainPoint): number;
 
-        move(ref: string | dia.Point | Point, distance: number): this;
+        move(ref: PlainPoint | string, distance: number): this;
 
         normalize(length: number): this;
 
-        offset(dx: number | dia.Point | Point, dy?: number): this;
+        offset(dx: number, dy?: number): this;
+        offset(p: PlainPoint): this;
 
-        reflection(ref: string | dia.Point | Point): Point;
+        reflection(ref: PlainPoint | string): Point;
 
-        rotate(origin: string | dia.Point | Point, angle: number): this;
+        rotate(origin: PlainPoint | string, angle: number): this;
 
-        round(precision: number): this;
+        round(precision?: number): this;
 
-        scale(sx: number, sy: number, origin: string | dia.Point | Point): this;
+        scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
         snapToGrid(gx: number, gy?: number): this;
 
-        theta(p: string | dia.Point | Point): number;
+        theta(p: PlainPoint | string): number;
 
-        toJSON(): dia.Point;
+        angleBetween(p1: PlainPoint, p2: PlainPoint) : number;
 
-        toPolar(origin: string | dia.Point | Point): this;
+        vectorAngle(p: PlainPoint) : number;
+
+        toJSON(): PlainPoint;
+
+        toPolar(origin: PlainPoint | string): this;
 
         toString(): string;
 
-        update(x: number, y: number): this;
+        update(x: number, y?: number): this;
 
-        dot(p: dia.Point | Point): number;
+        dot(p: PlainPoint): number;
+
+        cross(p1: PlainPoint, p2: PlainPoint) : number;
+
+        static fromPolar(distance: number, angle: number, origin?: PlainPoint | string): Point;
+
+        static random(x1: number, x2: number, y1: number, y2: number): Point;
     }
 
-    class Rect {
-        static fromEllipse(e: Ellipse): Rect;
+    class Rect implements PlainRect {
 
         x: number;
         y: number;
         width: number;
         height: number;
 
-        constructor(x?: number | dia.BBox, y?: number, width?: number, height?: number);
+        constructor(x?: number, y?: number, width?: number, height?: number);
+        constructor(r: PlainRect);
 
-        bbox(angle: number): Rect;
+        bbox(angle?: number): Rect;
 
         bottomLeft(): Point;
 
@@ -182,23 +184,26 @@ export namespace g {
 
         clone(): Rect;
 
-        containsPoint(p: string | dia.Point | Point): boolean;
+        containsPoint(p: PlainPoint | string): boolean;
 
-        containsRect(r: dia.BBox | Rect): boolean;
+        containsRect(r: PlainRect): boolean;
 
         corner(): Point;
 
-        equals(r: dia.BBox | Rect): boolean;
+        equals(r: PlainRect): boolean;
 
-        intersect(r: Rect): Rect | undefined;
+        intersect(r: Rect): Rect | null;
 
-        intersectionWithLineFromCenterToPoint(p: string | dia.Point | Point, angle: number): Point;
+        intersectionWithLineFromCenterToPoint(p: PlainPoint | string, angle?: number): Point;
 
         leftLine(): Line;
 
         leftMiddle(): Point;
 
-        moveAndExpand(r: dia.BBox | Rect): this;
+        moveAndExpand(r: PlainRect): this;
+
+        offset(dx: number, dy?: number): this;
+        offset(p: PlainPoint): this;
 
         inflate(dx?: number, dy?: number): this;
 
@@ -206,17 +211,17 @@ export namespace g {
 
         origin(): Point;
 
-        pointNearestToPoint(point: string | dia.Point | Point): Point;
+        pointNearestToPoint(point: PlainPoint | string): Point;
 
         rightLine(): Line;
 
         rightMiddle(): Point;
 
-        round(precision: number): this;
+        round(precision?: number): this;
 
-        scale(sx: number, sy: number, origin?: string | dia.Point | Point): this;
+        scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
-        sideNearestToPoint(point: string | dia.Point | Point): 'left' | 'right' | 'top' | 'bottom';
+        sideNearestToPoint(point: PlainPoint | string): RectangleSides;
 
         snapToGrid(gx: number, gy?: number): this;
 
@@ -226,25 +231,47 @@ export namespace g {
 
         topRight(): Point;
 
-        toJSON(): dia.BBox;
+        toJSON(): PlainRect;
 
         toString(): string;
 
-        union(rect: Rect): Rect;
+        union(rect: PlainRect): Rect;
+
+        static fromEllipse(e: Ellipse): Rect;
+    }
+
+    namespace bezier {
+
+        interface IBezierCurve {
+            p0: Point;
+            p1: Point;
+            p2: Point;
+            p3: Point;
+        }
+
+        export function curveThroughPoints(points: PlainPoint[] | Point[]): string[];
+
+        export function getCurveControlPoints(points: PlainPoint[] | Point[]): [Point[], Point[]];
+
+        export function getCurveDivider(
+            p0: string | PlainPoint,
+            p1: string | PlainPoint,
+            p2: string | PlainPoint,
+            p3: string | PlainPoint
+        ): (t: number) => [IBezierCurve, IBezierCurve];
+
+        export function getFirectControlPoints(rhs: number[]): number[];
+
+        export function getInversionSolver(
+            p0: PlainPoint,
+            p1: PlainPoint,
+            p2: PlainPoint,
+            p3: PlainPoint
+        ): (p: PlainPoint) => number;
     }
 
     namespace scale {
-        function linear(domain: number[], range: number[], value: number): number;
+
+        export function linear(domain: [number, number], range: [number, number], value: number): number;
     }
-
-    function ellipse(c: number, a: number, b: number): Ellipse;
-
-    function line(start: dia.Point | Point, end: dia.Point | Point): Line
-
-    function point(x: number, y: number): Point;
-    function point(xy: string): Point;
-    function point(point: dia.Point): Point;
-
-    function rect(x: number, y: number, width: number, height: number): Rect;
-    function rect(rect: dia.BBox): Rect;
 }

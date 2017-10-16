@@ -294,8 +294,8 @@ var g = (function() {
 
         equals: function(ellipse) {
 
-            ellipse = Ellipse(ellipse);
-            return ellipse.x === this.x &&
+            return !!ellipse &&
+                    ellipse.x === this.x &&
                     ellipse.y === this.y &&
                     ellipse.a === this.a &&
                     ellipse.b === this.b;
@@ -381,7 +381,8 @@ var g = (function() {
 
         equals: function(l) {
 
-            return this.start.x === l.start.x &&
+            return !!l &&
+                    this.start.x === l.start.x &&
                     this.start.y === l.start.y &&
                     this.end.x === l.end.x &&
                     this.end.y === l.end.y;
@@ -417,8 +418,10 @@ var g = (function() {
                         return null;
                     }
                 }
-                return Point(this.start.x + (alpha * pt1Dir.x / det),
-                             this.start.y + (alpha * pt1Dir.y / det));
+                return Point(
+                    this.start.x + (alpha * pt1Dir.x / det),
+                    this.start.y + (alpha * pt1Dir.y / det)
+                );
 
             } else if (l instanceof Rect) {
                 // Passed in parameter is a rectangle.
@@ -451,8 +454,10 @@ var g = (function() {
 
         // @return {point} my midpoint
         midpoint: function() {
-            return Point((this.start.x + this.end.x) / 2,
-                         (this.start.y + this.end.y) / 2);
+            return Point(
+                (this.start.x + this.end.x) / 2,
+                (this.start.y + this.end.y) / 2
+            );
         },
 
         // @return {point} my point at 't' <0,1>
@@ -623,7 +628,7 @@ var g = (function() {
 
         equals: function(p) {
 
-            return this.x === p.x && this.y === p.y;
+            return !!p && this.x === p.x && this.y === p.y;
         },
 
         magnitude: function() {
@@ -1210,6 +1215,7 @@ var g = (function() {
         // @return {rect} representing the union of both rectangles.
         union: function(rect) {
 
+            rect = Rect(rect);
             var myOrigin = this.origin();
             var myCorner = this.corner();
             var rOrigin = rect.origin();
@@ -1492,11 +1498,6 @@ var g = (function() {
     };
 
 
-    var normalizeAngle = g.normalizeAngle = function(angle) {
-
-        return (angle % 360) + (angle < 0 ? 360 : 0);
-    };
-
     g.scale = {
 
         // Return the `value` from the `domain` interval scaled to the `range` interval.
@@ -1506,6 +1507,11 @@ var g = (function() {
             var rangeSpan = range[1] - range[0];
             return (((value - domain[0]) / domainSpan) * rangeSpan + range[0]) || 0;
         }
+    };
+
+    var normalizeAngle = g.normalizeAngle = function(angle) {
+
+        return (angle % 360) + (angle < 0 ? 360 : 0);
     };
 
     var snapToGrid = g.snapToGrid = function(value, gridSize) {
