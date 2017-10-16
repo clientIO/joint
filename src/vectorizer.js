@@ -598,6 +598,11 @@ V = Vectorizer = (function() {
         return this;
     };
 
+    /**
+     * @private
+     * @param {object} attrs
+     * @returns {Vectorizer}
+     */
     V.prototype.setAttributes = function(attrs) {
 
         for (var key in attrs) {
@@ -781,6 +786,7 @@ V = Vectorizer = (function() {
         var center = bbox.center();
 
         this.translate(p.x - center.x, p.y - center.y);
+        return this;
     };
 
     // Efficiently auto-orient an element. This basically implements the orient=auto attribute
@@ -800,7 +806,7 @@ V = Vectorizer = (function() {
         this.scale(s.sx, s.sy);
 
         var svg = this.svg().node;
-        var bbox = this.getBBox({ target: target });
+        var bbox = this.getBBox({ target: target || svg });
 
         // 1. Translate to origin.
         var translateToOrigin = svg.createSVGTransform();
@@ -817,7 +823,7 @@ V = Vectorizer = (function() {
         translateFinal.setTranslate(position.x + (position.x - finalPosition.x), position.y + (position.y - finalPosition.y));
 
         // 4. Apply transformations.
-        var ctm = this.getTransformToElement(target);
+        var ctm = this.getTransformToElement(target || svg);
         var transform = svg.createSVGTransform();
         transform.setMatrix(
             translateFinal.matrix.multiply(
@@ -1105,8 +1111,12 @@ V = Vectorizer = (function() {
         return 'v-' + (++V.idCounter);
     };
 
-    V.ensureId = function(node) {
+    V.toNode = function(el) {
+        return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
+    };
 
+    V.ensureId = function(node) {
+        node = V.toNode(node);
         return node.id || (node.id = V.uniqueId());
     };
     // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
@@ -1734,11 +1744,13 @@ V = Vectorizer = (function() {
 
     V.getPointsFromSvgNode = function(node) {
 
+        node = V.toNode(node);
         var points = [];
-        var i;
-
-        for (i = 0; i < node.points.numberOfItems; i++) {
-            points.push(node.points.getItem(i));
+        var nodePoints = node.points;
+        if (nodePoints) {
+            for (var i = 0; i < nodePoints.numberOfItems; i++) {
+                points.push(nodePoints.getItem(i));
+            }
         }
 
         return points;
@@ -1842,10 +1854,6 @@ V = Vectorizer = (function() {
         }
 
         return d.join(' ');
-    };
-
-    V.toNode = function(el) {
-        return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
     };
 
     V.namespace = ns;

@@ -1,36 +1,48 @@
-export function V(svg: SVGElement | string, attrs?: {[key: string]: any}, children?:
-                      Vectorizer
-                      | Vectorizer[]
-                      | SVGElement
-                      | SVGElement[]): Vectorizer;
+export function V(
+    svg: SVGElement | Vectorizer | string,
+    attrs?: { [key: string]: any },
+    children?: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]
+): Vectorizer;
 
 export namespace Vectorizer {
 
     interface RotateOptions {
-        absolute: boolean;
+        absolute?: boolean;
     }
 
-    interface Sample {
-        x: number;
-        y: number;
-        distance: number;
+    interface AnnotateStringOptions {
+        includeAnnotationIndices?: boolean;
+        offset?: number;
     }
+
+    interface TextOptions {
+        eol?: string;
+        x?: number;
+        lineHeight?: number | string;
+        textPath?: string | { [key: string]: any };
+        annotations?: TextAnnotation[];
+        includeAnnotationIndices?: boolean;
+    }
+
+    interface GetBBoxOptions {
+        target?: SVGElement | Vectorizer;
+        recursive?: boolean;
+    }
+
+    interface TransformOptions {
+        absolute?: boolean;
+    }
+
+    interface ParseXMLOptions {
+        async?: boolean;
+    }
+
     interface TextAnnotation {
         start: number;
         end: number;
-        attrs: object;
+        attrs: { [key: string]: any };
     }
-    interface TextOptions {
-        eol: string,
-        x: number,
-        lineHeight: number | string;
-        textPath: string | object;
-        annotations: TextAnnotation[];
-        includeAnnotationIndices: boolean;
-    }
-    interface TransformOptions {
-        absolute: boolean;
-    }
+
     // modifiable Matrix. SVGMatrix doesn't allow set on properties or a constructor.
     interface Matrix {
         a: number;
@@ -40,6 +52,13 @@ export namespace Vectorizer {
         e: number;
         f: number;
     }
+
+    interface Sample {
+        x: number;
+        y: number;
+        distance: number;
+    }
+
     interface DecomposedTransformation {
         translateX: number;
         translateY: number;
@@ -49,212 +68,225 @@ export namespace Vectorizer {
         skewY: number;
         rotation: number;
     }
-    interface Rect extends dia.BBox {
+
+    interface RoundedRect extends g.PlainRect {
+        'rx'?: number;
+        'ry'?: number;
         'top-rx'?: number;
         'top-ry'?: number;
         'bottom-rx'?: number;
         'bottom-ry'?: number;
     }
+
+    // Backwards compatibility
+    interface Rect extends RoundedRect {}
+
     interface Rotation {
         angle: number;
         cx?: number;
         cy?: number;
     }
+
     interface Translation {
         tx: number;
         ty: number;
     }
+
     interface Scale {
         sx: number;
         sy: number;
     }
+
     interface Transform {
         value: string;
         translate: Translation;
         rotate: Rotation;
         scale: Scale;
     }
-    interface ParseXMLOptions {
-        async: boolean;
-    }
+
     interface QualifiedAttribute {
-        ns?: string;
+        ns: string | null;
         local: string;
     }
 }
 
 export class Vectorizer {
-    constructor(svg: string | SVGElement, attrs?: {[key: string]: any}, children?:
-                    Vectorizer
-                    | Vectorizer[]
-                    | SVGElement
-                    | SVGElement[]);
 
     node: SVGElement;
 
-    animateAlongPath(attrs: {[key: string]: any}, path: Vectorizer | SVGElement): void;
+    constructor(
+        svg: string | SVGElement,
+        attrs?: { [key: string]: any },
+        children?: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]
+    );
 
-    append(node: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): this;
+    getTransformToElement(elem: SVGGElement | Vectorizer): SVGMatrix;
 
-    attr(): object;
-    attr(name: string): string | number | object;
-    attr(name: string, value: string | number): this;
-    attr(attrs: object): this;
+    transform(): SVGMatrix;
+    transform(matrix: SVGMatrix | Vectorizer.Matrix, opt?: Vectorizer.TransformOptions): this;
 
-    addClass(className: string): Vectorizer;
+    translate(): Vectorizer.Translation;
+    translate(tx: number, ty?: number, opt?: Vectorizer.TransformOptions): this;
+
+    rotate(): Vectorizer.Rotation;
+    rotate(angle: number, cx?: number, cy?: number, opt?: Vectorizer.RotateOptions): this;
+
+    scale(): Vectorizer.Scale;
+    scale(sx: number, sy: number): this;
 
     bbox(withoutTransformations?: boolean, target?: SVGElement | Vectorizer): g.Rect;
 
+    getBBox(opt?: Vectorizer.GetBBoxOptions) : g.Rect;
+
+    text(content: string, opt?: Vectorizer.TextOptions): this;
+
+    removeAttr(name: string): this;
+
+    attr(): { [key: string]: string };
+    attr(name: string): string | null;
+    attr(name: string, value: any): this;
+    attr(attrs: { [key: string]: any }): this;
+
+    remove(): this;
+
+    empty(): this;
+
+    append(els: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): this;
+
+    prepend(els: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): this;
+
     before(els: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): this;
+
+    appendTo(el: SVGElement | Vectorizer) : this;
+
+    // returns either this or Vectorizer, no point in specifying this.
+    svg(): Vectorizer;
+
+    defs(): Vectorizer | undefined;
 
     clone(): Vectorizer;
 
-    contains(el: SVGElement): boolean;
+    findOne(selector: string): Vectorizer | undefined;
+
+    find(selector: string): Vectorizer[];
+
+    children(): Vectorizer[];
+
+    index(): number;
+
+    findParentByClass(className: string, terminator?: SVGElement): Vectorizer | null;
+
+    contains(el: SVGElement | Vectorizer): boolean;
+
+    toLocalPoint(x: number, y: number): SVGPoint;
+
+    translateCenterToPoint(p: g.PlainPoint): this;
+
+    translateAndAutoOrient(position: g.PlainPoint, reference: g.PlainPoint, target?: SVGElement | Vectorizer): this;
+
+    animateAlongPath(attrs: { [key: string]: any }, path: SVGElement | Vectorizer): void;
+
+    hasClass(className: string): boolean;
+
+    addClass(className: string): Vectorizer;
+
+    removeClass(className: string): this;
+
+    toggleClass(className: string, switchArg?: boolean): this;
+
+    sample(interval?: number): Vectorizer.Sample[];
 
     convertToPath(): Vectorizer;
 
     convertToPathData(): string;
 
-    defs(): Vectorizer | undefined;
+    findIntersection(ref: g.PlainPoint, target: SVGElement | Vectorizer): g.PlainPoint | undefined;
 
-    empty(): this;
+    private setAttributes(attrs: { [key: string]: any }): this;
 
-    find(selector: string): Vectorizer[];
-
-    findIntersection(ref: dia.Point, target: SVGElement | Vectorizer): dia.Point | undefined;
-
-    findOne(selector: string): Vectorizer | undefined;
-
-    findParentByClass(className: string, ternimator: SVGElement): Vectorizer | undefined;
-
-    getTransformToElement(elem: SVGGElement | Vectorizer): SVGMatrix;
-
-    hasClass(className: string): boolean;
-
-    index(): number;
-
-    prepend(els: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): this;
-
-    remove(): this;
-
-    removeAttr(name: string): this;
-
-    removeClass(className: string): this;
-
-    rotate(): Vectorizer.Rotation;
-
-    rotate(angle: number, cx?: number, cy?: number, opt?: Vectorizer.RotateOptions): this;
-
-    sample(interval: number): Vectorizer.Sample[];
-
-    scale(): Vectorizer.Scale;
-
-    scale(sx: number, sy: number): this;
-
-    setAttribute(name: string, value: string): this;
-
-    setAttributes(attrs: object): this;
-
-    // returns either this or Vectorizer, no point in specifying this.
-    svg(): Vectorizer;
-
-    text(content: string, opt: Vectorizer.TextOptions): this;
-
-    toggleClass(className: string, switchArg?: boolean): this;
-
-    toLocalPoint(x: number, y: number): dia.Point;
-
-    transform(): SVGMatrix;
-
-    transform(matrix: SVGMatrix, opt?: Vectorizer.TransformOptions): this;
-
-    translate(): Vectorizer.Translation;
-
-    translate(tx: number, ty?: number, opt?: Vectorizer.TransformOptions): this;
-
-    translateAndAutoOrient(position: dia.Point, reference: dia.Point, target?: SVGElement): this;
-
-    translateCenterToPoint(p: dia.Point): void;
-
-    static convertCircleToPathData(circle: string | SVGElement): string;
-
-    static convertEllipseToPathData(ellipse: string | SVGElement): string;
-
-    static convertLineToPathData(line: string | SVGElement): string;
-
-    static convertPolylineToPathData(line: string | SVGElement): string;
-
-    static convertPolygonToPathData(line: string | SVGElement): string;
-
-    static convertRectToPathData(rect: string | SVGElement): string;
-
-    static createSlicePathData(innerRadius: number, outRadius: number, startAngle: number, endAngle: number): string;
+    private setAttribute(name: string, value: string): this;
 
     static createSVGDocument(content: string): Document;
 
-    static createSVGMatrix(extension: Vectorizer.Matrix): SVGMatrix;
+    static uniqueId(): string;
 
-    static createSVGPoint(x: number, y: number): SVGPoint;
+    static ensureId(node: SVGElement | Vectorizer): string;
 
-    static createSVGTransform(matrix?: Vectorizer.Matrix | SVGMatrix): SVGTransform;
-
-    static decomposeMatrix(matrix: SVGMatrix): Vectorizer.DecomposedTransformation;
-
-    static deltaTransformPoint(matrix: SVGMatrix | Vectorizer.Matrix, point: SVGPoint | dia.Point): dia.Point;
-
-    static ensureId(node: SVGElement): string;
-
-    static findAnnotationsAtIndex(annotations: Vectorizer.TextAnnotation[], start: number, end: number): Vectorizer.TextAnnotation;
-
-    static findAnnotationsBetweenIndexes(annotations: Vectorizer.TextAnnotation[], start: number, end: number): Vectorizer.TextAnnotation;
-
-    static getPointsFromSvgNode(node: SVGElement): SVGPoint[];
-
-    static isArray(value: any): boolean;
-
-    static isObject(value: any): boolean;
-
-    static isString(value: any): boolean;
+    static sanitizeText(text: string): string;
 
     static isUndefined(value: any): boolean;
 
-    static isV(value: any): boolean;
+    static isString(value: any): boolean;
 
-    static isVElement(object: any): boolean;
+    static isObject(value: any): boolean;
 
-    static matrixToRotate(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Rotation;
-
-    static matrixToScale(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Scale;
-
-    static matrixToTransformString(matrix: SVGMatrix | Vectorizer.Matrix): string;
-
-    static matrixToTranslate(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Translation;
-
-    static mergeAttrs(a: any, b: any): any;
-
-    static parseTransformString(transform: string): Vectorizer.Transform;
+    static isArray(value: any): boolean;
 
     static parseXML(data: string, opt?: Vectorizer.ParseXMLOptions): XMLDocument;
 
     static qualifyAttr(name: string): Vectorizer.QualifiedAttribute;
 
-    static rectToPath(r: Vectorizer.Rect): string;
+    static transformStringToMatrix(transform: string): SVGMatrix;
 
-    static sanitizeText(text: string): string;
+    static matrixToTransformString(matrix: SVGMatrix | Vectorizer.Matrix): string;
+
+    static parseTransformString(transform: string): Vectorizer.Transform;
+
+    static deltaTransformPoint(matrix: SVGMatrix | Vectorizer.Matrix, point: SVGPoint | g.PlainPoint): g.PlainPoint;
+
+    static decomposeMatrix(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.DecomposedTransformation;
+
+    static matrixToScale(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Scale;
+
+    static matrixToRotate(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Rotation;
+
+    static matrixToTranslate(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Translation;
+
+    static isV(value: any): boolean;
+
+    static isVElement(value: any): boolean;
+
+    static createSVGMatrix(matrix: SVGMatrix | Vectorizer.Matrix): SVGMatrix;
+
+    static createSVGTransform(matrix?: SVGMatrix | Vectorizer.Matrix): SVGTransform;
+
+    static createSVGPoint(x: number, y: number): SVGPoint;
+
+    static transformRect(r: g.PlainRect, matrix: SVGMatrix): g.Rect;
+
+    static transformPoint(p: g.PlainPoint, matrix: SVGMatrix): g.Point;
+
+    static styleToObject(styleString: string): { [key: string]: string };
+
+    static createSlicePathData(innerRadius: number, outRadius: number, startAngle: number, endAngle: number): string;
+
+    static mergeAttrs(a: any, b: any): any;
+
+    static annotateString(t: string, annotations: Vectorizer.TextAnnotation[], opt?: Vectorizer.AnnotateStringOptions): Array< string | { [key: string]: any }> ;
+
+    static findAnnotationsAtIndex(annotations: Vectorizer.TextAnnotation[], index: number): Vectorizer.TextAnnotation[];
+
+    static findAnnotationsBetweenIndexes(annotations: Vectorizer.TextAnnotation[], start: number, end: number): Vectorizer.TextAnnotation[];
 
     static shiftAnnotations(annotations: Vectorizer.TextAnnotation[], index: number, offset: number): Vectorizer.TextAnnotation[];
 
-    static styleToObject(styleString: string): object;
+    static convertLineToPathData(line: string | SVGElement | Vectorizer): string;
 
-    static svgPointsToPath(points: dia.Point[] | SVGPoint[]): string;
+    static convertPolygonToPathData(line: string | SVGElement | Vectorizer): string;
 
-    static toNode(el: Vectorizer | SVGElement | SVGElement[]): SVGElement;
+    static convertPolylineToPathData(line: string | SVGElement | Vectorizer): string;
 
-    static transformPoint(p: dia.Point | g.Point, matrix: SVGMatrix): g.Point;
+    static svgPointsToPath(points: g.PlainPoint[] | SVGPoint[]): string;
 
-    static transformRect(r: Vectorizer.Rect, matrix: SVGMatrix): g.Rect;
+    static getPointsFromSvgNode(node: SVGElement | Vectorizer): SVGPoint[];
 
-    static transformStringToMatrix(transform: string): SVGMatrix;
+    static convertCircleToPathData(circle: string | SVGElement | Vectorizer): string;
 
-    static uniqueId(): string;
+    static convertEllipseToPathData(ellipse: string | SVGElement | Vectorizer): string;
+
+    static convertRectToPathData(rect: string | SVGElement | Vectorizer): string;
+
+    static rectToPath(r: Vectorizer.RoundedRect): string;
+
+    static toNode(el: SVGElement | Vectorizer | SVGElement[]): SVGElement;
 }
