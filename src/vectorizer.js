@@ -1112,7 +1112,7 @@ V = Vectorizer = (function() {
     };
 
     V.ensureId = function(node) {
-
+        node = V.toNode(node);
         return node.id || (node.id = V.uniqueId());
     };
     // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
@@ -1740,11 +1740,13 @@ V = Vectorizer = (function() {
 
     V.getPointsFromSvgNode = function(node) {
 
+        node = V.toNode(node);
         var points = [];
-        var i;
-
-        for (i = 0; i < node.points.numberOfItems; i++) {
-            points.push(node.points.getItem(i));
+        var nodePoints = node.points;
+        if (nodePoints) {
+            for (var i = 0; i < nodePoints.numberOfItems; i++) {
+                points.push(nodePoints.getItem(i));
+            }
         }
 
         return points;
