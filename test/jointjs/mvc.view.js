@@ -156,7 +156,7 @@ QUnit.module('joint.mvc.View', function(hooks) {
         var defaultTheme = joint.mvc.View.prototype.defaultTheme;
         var themeClassName = SomeView.prototype.themeClassNamePrefix + defaultTheme;
 
-        assert.equal(view.$el.attr('class'), themeClassName + ' ' + joint.util.addClassNamePrefix(className));
+        assert.equal(view.$el.attr('class'), joint.util.addClassNamePrefix(className) + ' ' + themeClassName);
     });
 
     QUnit.test('mvc.View.extend does not modify prototype or static properties objects', function(assert) {

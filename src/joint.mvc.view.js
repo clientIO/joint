@@ -23,65 +23,58 @@ joint.mvc.View = Backbone.View.extend({
         joint.mvc.views[this.cid] = this;
 
         this.setTheme(this.options.theme || this.defaultTheme);
-        this._ensureElClassName();
         this.init();
     },
 
     // Override the Backbone `_ensureElement()` method in order to create an
     // svg element (e.g., `<g>`) node that wraps all the nodes of the Cell view.
+    // Expose class name setter as a separate method.
     _ensureElement: function() {
-        var el;
-
-        if (this.svgElement) {
-
-            if (!this.el) {
-
-                var tagName = joint.util.result(this, 'tagName');
-                var attrs = joint.util.assign({}, joint.util.result(this, 'attributes'));
-                if (this.id) attrs.id = joint.util.result(this, 'id');
-                if (this.className) attrs['class'] = joint.util.result(this, 'className');
-                el = V(tagName, attrs).node;
-
-            } else {
-
-                el = joint.util.result(this, 'el');
-            }
-
-            this.setElement(el, false);
-
+        if (!this.el) {
+            var tagName = joint.util.result(this, 'tagName');
+            var attrs = joint.util.assign({}, joint.util.result(this, 'attributes'));
+            if (this.id) attrs.id = joint.util.result(this, 'id');
+            this.setElement(this._createElement(tagName));
+            this._setAttributes(attrs);
         } else {
-
-            Backbone.View.prototype._ensureElement.call(this);
-
+            this.setElement(joint.util.result(this, 'el'));
         }
+        this._ensureElClassName();
+    },
 
+    _setAttributes: function(attrs) {
+        if (this.svgElement) {
+            this.vel.attr(attrs);
+        } else {
+            this.$el.attr(attrs);
+        }
+    },
+
+    _createElement: function(tagName) {
+        if (this.svgElement) {
+            return document.createElementNS(V.namespace.xmlns, tagName);
+        } else {
+            return document.createElement(tagName);
+        }
     },
 
     // Utilize an alternative DOM manipulation API by
     // adding an element reference wrapped in Vectorizer.
     _setElement: function(el) {
-
-        if (this.svgElement) {
-
-            this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
-            this.el = this.$el[0];
-            this.vel = V(this.el);
-
-        } else {
-
-            Backbone.View.prototype._setElement.call(this, el);
-
-        }
-
+        this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
+        this.el = this.$el[0];
+        if (this.svgElement) this.vel = V(this.el);
     },
 
     _ensureElClassName: function() {
-
         var className = joint.util.result(this, 'className');
         var prefixedClassName = joint.util.addClassNamePrefix(className);
-
-        this.$el.removeClass(className);
-        this.$el.addClass(prefixedClassName);
+        // Note: className removal here kept for backwards compatibility only
+        if (this.svgElement) {
+            this.vel.removeClass(className).addClass(prefixedClassName);
+        } else {
+            this.$el.removeClass(className).addClass(prefixedClassName);
+        }
     },
 
     init: function() {
