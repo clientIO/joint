@@ -1111,6 +1111,10 @@ V = Vectorizer = (function() {
         return 'v-' + (++V.idCounter);
     };
 
+    V.toNode = function(el) {
+        return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
+    };
+
     V.ensureId = function(node) {
         node = V.toNode(node);
         return node.id || (node.id = V.uniqueId());
@@ -1850,10 +1854,6 @@ V = Vectorizer = (function() {
         }
 
         return d.join(' ');
-    };
-
-    V.toNode = function(el) {
-        return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
     };
 
     V.namespace = ns;
