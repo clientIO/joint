@@ -598,6 +598,11 @@ V = Vectorizer = (function() {
         return this;
     };
 
+    /**
+     * @private
+     * @param {object} attrs
+     * @returns {Vectorizer}
+     */
     V.prototype.setAttributes = function(attrs) {
 
         for (var key in attrs) {
@@ -781,6 +786,7 @@ V = Vectorizer = (function() {
         var center = bbox.center();
 
         this.translate(p.x - center.x, p.y - center.y);
+        return this;
     };
 
     // Efficiently auto-orient an element. This basically implements the orient=auto attribute
@@ -800,7 +806,7 @@ V = Vectorizer = (function() {
         this.scale(s.sx, s.sy);
 
         var svg = this.svg().node;
-        var bbox = this.getBBox({ target: target });
+        var bbox = this.getBBox({ target: target || svg });
 
         // 1. Translate to origin.
         var translateToOrigin = svg.createSVGTransform();
@@ -817,7 +823,7 @@ V = Vectorizer = (function() {
         translateFinal.setTranslate(position.x + (position.x - finalPosition.x), position.y + (position.y - finalPosition.y));
 
         // 4. Apply transformations.
-        var ctm = this.getTransformToElement(target);
+        var ctm = this.getTransformToElement(target || svg);
         var transform = svg.createSVGTransform();
         transform.setMatrix(
             translateFinal.matrix.multiply(
