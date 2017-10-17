@@ -149,6 +149,8 @@ export namespace dia {
 
         id: string;
 
+        graph: dia.Graph;
+
         toJSON(): object;
 
         remove(options?: { disconnectLinks?: boolean }): this;
@@ -1106,7 +1108,7 @@ export namespace shapes {
             operation(input: any): any;
         }
 
-        class Note extends Gate11 {
+        class Not extends Gate11 {
             constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
 
             operation(input: any): boolean;
