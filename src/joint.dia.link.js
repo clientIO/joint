@@ -1721,7 +1721,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                         ? evt.target
                         : document.elementFromPoint(evt.clientX, evt.clientY);
 
-                    if (this._targetEvent !== target) {
+                    if (this._eventTarget !== target) {
                         // Unhighlight the previous view under pointer if there was one.
                         if (this._magnetUnderPointer) {
                             this._viewUnderPointer.unhighlight(this._magnetUnderPointer, {
@@ -1757,7 +1757,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                         }
                     }
 
-                    this._targetEvent = target;
+                    this._eventTarget = target;
 
                     this.model.set(this._arrowhead, { x: x, y: y }, { ui: true });
                 }
@@ -1869,6 +1869,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this._initialMagnet = null;
         this._initialEnd = null;
         this._validateConnectionArgs = null;
+        this._eventTarget = null;
 
         this.notify('link:pointerup', evt, x, y);
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);
