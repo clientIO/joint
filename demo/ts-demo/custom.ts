@@ -43,3 +43,16 @@ joint.shapes.basic.Rect.define('app.CustomRect', {
     }
 });
 
+// demonstrate creating a custom dummy view for the app.CustomRect
+namespace CustomViews {
+
+    export class CustomRectView extends joint.dia.ElementView {
+        initialize() {
+            super.initialize();
+            console.log('CustomRectView called !!!');
+        }
+    }
+}
+
+(<any>Object).assign(joint.shapes.app, CustomViews)
+
