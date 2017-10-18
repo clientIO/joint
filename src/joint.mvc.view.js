@@ -9,14 +9,13 @@ joint.mvc.View = Backbone.View.extend({
 
     constructor: function(options) {
 
+        this.requireSetThemeOverride = options && !!options.theme;
+        this.options = joint.util.assign({}, this.options, options);
+
         Backbone.View.call(this, options);
     },
 
     initialize: function(options) {
-
-        this.requireSetThemeOverride = options && !!options.theme;
-
-        this.options = joint.util.assign({}, this.options, options);
 
         joint.util.bindAll(this, 'setTheme', 'onSetTheme', 'remove', 'onRemove');
 
