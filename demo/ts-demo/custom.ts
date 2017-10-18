@@ -47,8 +47,9 @@ joint.shapes.basic.Rect.define('app.CustomRect', {
 namespace CustomViews {
 
     export class CustomRectView extends joint.dia.ElementView {
+
         initialize() {
-            super.initialize();
+            super.initialize.apply(this, arguments);
             console.log('CustomRectView called !!!');
         }
     }
