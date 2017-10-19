@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf8"/>
+        <title>Directed Graph Layout</title>
+        <link rel="stylesheet" type="text/css" href="../../build/joint.css" />
+        <style>
+         #paper {
+             border: 1px solid lightgray;
+             position: absolute;
+             margin-left: auto;
+             margin-right: auto;
+             left: 0;
+             right: 0;
+             top: 100px;
+         }
+         .controls {
+             margin: auto;
+             text-align: center;
+             padding: 10px 0;
+             border-bottom: 1px solid lightgray;
+         }
+        </style>
+    </head>
+    <template id="link-controls-template">
+        <div id="link-controls" class="controls">
+            <label for="labelpos">LabelPos:</label>
+            <select id="labelpos">
+                <option value="c">c</option>
+                <option value="r">r</option>
+                <option value="l">l</option>
+            </select>
+            <label for="minlen">MinLen:</label>
+            <input id="minlen" type="range" min="1" max="5" value="1"/>
+            <label for="weight">Weight:</label>
+            <input id="weight" type="range" min="1" max="10" value="1"/>
+            <label for="labeloffset">LabelOffset:</label>
+            <input id="labeloffset" type="range" min="1" max="10" value="10"/>
+        </div>     
+    </template>
+    <body>
+        <div id="layout-controls" class="controls">
+            <label for="ranker">Ranker:</label>
+            <select id="ranker">
+                <option value="network-simplex" selected>network-simplex</option>
+                <option value="tight-tree">tight-tree</option>
+                <option value="longest-path">longer-path</option>
+            </select>
+            <label for="rankdir">RankDir:</label>
+            <select id="rankdir">
+                <option value="TB" selected>TB</option>
+                <option value="BT">BT</option>
+                <option value="RL">RL</option>
+                <option value="LR">LR</option>
+            </select>
+            <label for="align">Align:</label>
+            <select id="align">
+                <option value="UL"  selected>UL</option>
+                <option value="UR">UR</option>
+                <option value="DL">DL</option>
+                <option value="DR">DR</option>
+            </select>
+            <label for="ranksep">RankSep:</label>
+            <input id="ranksep" type="range" min="1" max="100" value="50"/>
+            <label for="edgesep">EdgeSep:</label>
+            <input id="edgesep" type="range" min="1" max="100" value="50"/>
+            <label for="nodesep">NodeSep:</label>
+            <input id="nodesep" type="range" min="1" max="100" value="50"/>
+        </div>
+        <div id="paper"></div>
+        <!-- Dependencies: -->
+        <script src="./node_modules/jquery/dist/jquery.js"></script>
+        <script src="./node_modules/lodash/lodash.js"></script>
+        <script src="./node_modules/backbone/backbone.js"></script>
+        <script src="./node_modules/graphlib/dist/graphlib.core.js"></script>
+        <script src="./node_modules/dagre/dagre.js"></script>
+
+        <script src="../../build/joint.js"></script>
+        <script src="./src/layout.js"></script>
+    </body>
+</html>
