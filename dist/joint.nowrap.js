@@ -1,4 +1,4 @@
-/*! JointJS v1.1.1-alpha.1 (2017-06-02) - JavaScript diagramming library
+/*! JointJS v1.2.0-beta (2017-10-19) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -144,6 +144,258 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         }
     });
 })();
+
+// https://tc39.github.io/ecma262/#sec-array.prototype.includes
+if (!Array.prototype.includes) {
+    Object.defineProperty(Array.prototype, 'includes', {
+        value: function(searchElement, fromIndex) {
+
+            // 1. Let O be ? ToObject(this value).
+            if (this == null) {
+                throw new TypeError('"this" is null or not defined');
+            }
+
+            var o = Object(this);
+
+            // 2. Let len be ? ToLength(? Get(O, "length")).
+            var len = o.length >>> 0;
+
+            // 3. If len is 0, return false.
+            if (len === 0) {
+                return false;
+            }
+
+            // 4. Let n be ? ToInteger(fromIndex).
+            //    (If fromIndex is undefined, this step produces the value 0.)
+            var n = fromIndex | 0;
+
+            // 5. If n ≥ 0, then
+            //  a. Let k be n.
+            // 6. Else n < 0,
+            //  a. Let k be len + n.
+            //  b. If k < 0, let k be 0.
+            var k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+
+            function sameValueZero(x, y) {
+                return x === y || (typeof x === 'number' && typeof y === 'number' && isNaN(x) && isNaN(y));
+            }
+
+            // 7. Repeat, while k < len
+            while (k < len) {
+                // a. Let elementK be the result of ? Get(O, ! ToString(k)).
+                // b. If SameValueZero(searchElement, elementK) is true, return true.
+                // c. Increase k by 1.
+                if (sameValueZero(o[k], searchElement)) {
+                    return true;
+                }
+                k++;
+            }
+
+            // 8. Return false
+            return false;
+        }
+    });
+}
+
+// https://tc39.github.io/ecma262/#sec-array.prototype.find
+if (!Array.prototype.find) {
+    Object.defineProperty(Array.prototype, 'find', {
+        value: function(predicate) {
+            // 1. Let O be ? ToObject(this value).
+            if (this == null) {
+                throw new TypeError('"this" is null or not defined');
+            }
+
+            var o = Object(this);
+
+            // 2. Let len be ? ToLength(? Get(O, "length")).
+            var len = o.length >>> 0;
+
+            // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+            if (typeof predicate !== 'function') {
+                throw new TypeError('predicate must be a function');
+            }
+
+            // 4. If thisArg was supplied, let T be thisArg; else let T be undefined.
+            var thisArg = arguments[1];
+
+            // 5. Let k be 0.
+            var k = 0;
+
+            // 6. Repeat, while k < len
+            while (k < len) {
+                // a. Let Pk be ! ToString(k).
+                // b. Let kValue be ? Get(O, Pk).
+                // c. Let testResult be ToBoolean(? Call(predicate, T, « kValue, k, O »)).
+                // d. If testResult is true, return kValue.
+                var kValue = o[k];
+                if (predicate.call(thisArg, kValue, k, o)) {
+                    return kValue;
+                }
+                // e. Increase k by 1.
+                k++;
+            }
+
+            // 7. Return undefined.
+            return undefined;
+        }
+    });
+}
+
+// Production steps of ECMA-262, Edition 6, 22.1.2.1
+if (!Array.from) {
+    Array.from = (function () {
+        var toStr = Object.prototype.toString;
+        var isCallable = function (fn) {
+            return typeof fn === 'function' || toStr.call(fn) === '[object Function]';
+        };
+        var toInteger = function (value) {
+            var number = Number(value);
+            if (isNaN(number)) { return 0; }
+            if (number === 0 || !isFinite(number)) { return number; }
+            return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
+        };
+        var maxSafeInteger = Math.pow(2, 53) - 1;
+        var toLength = function (value) {
+            var len = toInteger(value);
+            return Math.min(Math.max(len, 0), maxSafeInteger);
+        };
+
+        // The length property of the from method is 1.
+        return function from(arrayLike/*, mapFn, thisArg */) {
+            // 1. Let C be the this value.
+            var C = this;
+
+            // 2. Let items be ToObject(arrayLike).
+            var items = Object(arrayLike);
+
+            // 3. ReturnIfAbrupt(items).
+            if (arrayLike == null) {
+                throw new TypeError('Array.from requires an array-like object - not null or undefined');
+            }
+
+            // 4. If mapfn is undefined, then let mapping be false.
+            var mapFn = arguments.length > 1 ? arguments[1] : void undefined;
+            var T;
+            if (typeof mapFn !== 'undefined') {
+                // 5. else
+                // 5. a If IsCallable(mapfn) is false, throw a TypeError exception.
+                if (!isCallable(mapFn)) {
+                    throw new TypeError('Array.from: when provided, the second argument must be a function');
+                }
+
+                // 5. b. If thisArg was supplied, let T be thisArg; else let T be undefined.
+                if (arguments.length > 2) {
+                    T = arguments[2];
+                }
+            }
+
+            // 10. Let lenValue be Get(items, "length").
+            // 11. Let len be ToLength(lenValue).
+            var len = toLength(items.length);
+
+            // 13. If IsConstructor(C) is true, then
+            // 13. a. Let A be the result of calling the [[Construct]] internal method
+            // of C with an argument list containing the single item len.
+            // 14. a. Else, Let A be ArrayCreate(len).
+            var A = isCallable(C) ? Object(new C(len)) : new Array(len);
+
+            // 16. Let k be 0.
+            var k = 0;
+            // 17. Repeat, while k < len… (also steps a - h)
+            var kValue;
+            while (k < len) {
+                kValue = items[k];
+                if (mapFn) {
+                    A[k] = typeof T === 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);
+                } else {
+                    A[k] = kValue;
+                }
+                k += 1;
+            }
+            // 18. Let putStatus be Put(A, "length", len, true).
+            A.length = len;
+            // 20. Return A.
+            return A;
+        };
+    }());
+}
+
+// https://tc39.github.io/ecma262/#sec-array.prototype.findIndex
+if (!Array.prototype.findIndex) {
+    Object.defineProperty(Array.prototype, 'findIndex', {
+        value: function(predicate) {
+            // 1. Let O be ? ToObject(this value).
+            if (this == null) {
+                throw new TypeError('"this" is null or not defined');
+            }
+
+            var o = Object(this);
+
+            // 2. Let len be ? ToLength(? Get(O, "length")).
+            var len = o.length >>> 0;
+
+            // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+            if (typeof predicate !== 'function') {
+                throw new TypeError('predicate must be a function');
+            }
+
+            // 4. If thisArg was supplied, let T be thisArg; else let T be undefined.
+            var thisArg = arguments[1];
+
+            // 5. Let k be 0.
+            var k = 0;
+
+            // 6. Repeat, while k < len
+            while (k < len) {
+                // a. Let Pk be ! ToString(k).
+                // b. Let kValue be ? Get(O, Pk).
+                // c. Let testResult be ToBoolean(? Call(predicate, T, « kValue, k, O »)).
+                // d. If testResult is true, return k.
+                var kValue = o[k];
+                if (predicate.call(thisArg, kValue, k, o)) {
+                    return k;
+                }
+                // e. Increase k by 1.
+                k++;
+            }
+
+            // 7. Return -1.
+            return -1;
+        }
+    });
+}
+
+if (!String.prototype.includes) {
+    String.prototype.includes = function(search, start) {
+        'use strict';
+        if (typeof start !== 'number') {
+            start = 0;
+        }
+
+        if (start + search.length > this.length) {
+            return false;
+        } else {
+            return this.indexOf(search, start) !== -1;
+        }
+    };
+}
+
+if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function(searchString, position){
+        return this.substr(position || 0, searchString.length) === searchString;
+    };
+}
+
+Number.isFinite = Number.isFinite || function(value) {
+    return typeof value === 'number' && isFinite(value);
+};
+
+//The following works because NaN is the only value in javascript which is not equal to itself.
+Number.isNaN = Number.isNaN || function(value) {
+    return value !== value;
+}
+
 
 
 //      Geometry library.
@@ -441,8 +693,8 @@ var g = (function() {
 
         equals: function(ellipse) {
 
-            ellipse = Ellipse(ellipse);
-            return ellipse.x === this.x &&
+            return !!ellipse &&
+                    ellipse.x === this.x &&
                     ellipse.y === this.y &&
                     ellipse.a === this.a &&
                     ellipse.b === this.b;
@@ -488,6 +740,10 @@ var g = (function() {
             return new Line(p1, p2);
         }
 
+        if (p1 instanceof Line) {
+            return Line(p1.start, p1.end);
+        }
+
         this.start = Point(p1);
         this.end = Point(p2);
     };
@@ -519,12 +775,13 @@ var g = (function() {
 
         clone: function() {
 
-            return Line(this);
+            return Line(this.start, this.end);
         },
 
         equals: function(l) {
 
-            return this.start.x === l.start.x &&
+            return !!l &&
+                    this.start.x === l.start.x &&
                     this.start.y === l.start.y &&
                     this.end.x === l.end.x &&
                     this.end.y === l.end.y;
@@ -560,8 +817,10 @@ var g = (function() {
                         return null;
                     }
                 }
-                return Point(this.start.x + (alpha * pt1Dir.x / det),
-                             this.start.y + (alpha * pt1Dir.y / det));
+                return Point(
+                    this.start.x + (alpha * pt1Dir.x / det),
+                    this.start.y + (alpha * pt1Dir.y / det)
+                );
 
             } else if (l instanceof Rect) {
                 // Passed in parameter is a rectangle.
@@ -594,8 +853,10 @@ var g = (function() {
 
         // @return {point} my midpoint
         midpoint: function() {
-            return Point((this.start.x + this.end.x) / 2,
-                         (this.start.y + this.end.y) / 2);
+            return Point(
+                (this.start.x + this.end.x) / 2,
+                (this.start.y + this.end.y) / 2
+            );
         },
 
         // @return {point} my point at 't' <0,1>
@@ -611,6 +872,26 @@ var g = (function() {
 
             // Find the sign of the determinant of vectors (start,end), where p is the query point.
             return ((this.end.x - this.start.x) * (p.y - this.start.y) - (this.end.y - this.start.y) * (p.x - this.start.x)) / 2;
+        },
+
+        // @return vector {point} of the line
+        vector: function() {
+
+            return Point(this.end.x - this.start.x, this.end.y - this.start.y);
+        },
+
+        // @return {point} the closest point on the line to point `p`
+        closestPoint: function(p) {
+
+            return this.pointAt(this.closestPointNormalizedLength(p));
+        },
+
+        // @return {number} the normalized length of the closest point on the line to point `p`
+        closestPointNormalizedLength: function(p) {
+
+            var product = this.vector().dot(Line(this.start, p).vector());
+
+            return Math.min(1, Math.max(0, product / this.squaredLength()));
         },
 
         // @return {integer} length without sqrt
@@ -739,9 +1020,14 @@ var g = (function() {
             return Line(this, p).length();
         },
 
+        squaredDistance: function(p) {
+
+            return Line(this, p).squaredLength();
+        },
+
         equals: function(p) {
 
-            return this.x === p.x && this.y === p.y;
+            return !!p && this.x === p.x && this.y === p.y;
         },
 
         magnitude: function() {
@@ -835,16 +1121,36 @@ var g = (function() {
             // Invert the y-axis.
             var y = -(p.y - this.y);
             var x = p.x - this.x;
-            // Makes sure that the comparison with zero takes rounding errors into account.
-            var PRECISION = 10;
-            // Note that `atan2` is not defined for `x`, `y` both equal zero.
-            var rad = (y.toFixed(PRECISION) == 0 && x.toFixed(PRECISION) == 0) ? 0 : atan2(y, x);
-
+            var rad = atan2(y, x); // defined for all 0 corner cases
+            
             // Correction for III. and IV. quadrant.
             if (rad < 0) {
                 rad = 2 * PI + rad;
             }
             return 180 * rad / PI;
+        },
+
+        // Compute the angle between vector from me to p1 and the vector from me to p2.
+        // ordering of points p1 and p2 is important!
+        // theta function's angle convention:
+        // returns angles between 0 and 180 when the angle is counterclockwise
+        // returns angles between 180 and 360 to convert clockwise angles into counterclockwise ones
+        // returns NaN if any of the points p1, p2 is coincident with this point
+        angleBetween: function(p1, p2) {
+            
+            var angleBetween = (this.equals(p1) || this.equals(p2)) ? NaN : (this.theta(p2) - this.theta(p1));
+            if (angleBetween < 0) {
+                angleBetween += 360; // correction to keep angleBetween between 0 and 360
+            }
+            return angleBetween;
+        },
+
+        // Compute the angle between the vector from 0,0 to me and the vector from 0,0 to p.
+        // Returns NaN if p is at 0,0.
+        vectorAngle: function(p) {
+            
+            var zero = Point(0,0);
+            return zero.angleBetween(this, p);
         },
 
         toJSON: function() {
@@ -874,6 +1180,25 @@ var g = (function() {
             this.x = x || 0;
             this.y = y || 0;
             return this;
+        },
+
+        // Returns the dot product of this point with given other point
+        dot: function(p) {
+
+            return p ? (this.x * p.x + this.y * p.y) : NaN;
+        },
+
+        // Returns the cross product of this point relative to two other points
+        // this point is the common point
+        // point p1 lies on the first vector, point p2 lies on the second vector
+        // watch out for the ordering of points p1 and p2!
+        // positive result indicates a clockwise ("right") turn from first to second vector
+        // negative result indicates a counterclockwise ("left") turn from first to second vector
+        // note that the above directions are reversed from the usual answer on the Internet
+        // that is because we are in a left-handed coord system (because the y-axis points downward)
+        cross: function(p1, p2) {
+
+            return (p1 && p2) ? (((p2.x - this.x) * (p1.y - this.y)) - ((p2.y - this.y) * (p1.x - this.x))) : NaN;
         }
     };
 
@@ -1058,6 +1383,11 @@ var g = (function() {
             this.width += r.width || 0;
             this.height += r.height || 0;
             return this;
+        },
+
+        // Offset me by the specified amount.
+        offset: function(dx, dy) {
+            return Point.prototype.offset.call(this, dx, dy);
         },
 
         // inflate by dx and dy, recompute origin [x, y]
@@ -1284,6 +1614,7 @@ var g = (function() {
         // @return {rect} representing the union of both rectangles.
         union: function(rect) {
 
+            rect = Rect(rect);
             var myOrigin = this.origin();
             var myCorner = this.corner();
             var rOrigin = rect.origin();
@@ -1298,10 +1629,273 @@ var g = (function() {
         }
     };
 
-    var normalizeAngle = g.normalizeAngle = function(angle) {
+    var Polyline = g.Polyline = function(points) {
 
-        return (angle % 360) + (angle < 0 ? 360 : 0);
+        if (!(this instanceof Polyline)) {
+            return new Polyline(points);
+        }
+
+        this.points = (Array.isArray(points)) ? points.map(Point) : [];
     };
+
+    Polyline.prototype = {
+
+        pointAtLength: function(length) {
+            var points = this.points;
+            var l = 0;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var a = points[i];
+                var b = points[i+1];
+                var d = a.distance(b);
+                l += d;
+                if (length <= l) {
+                    return Line(b, a).pointAt(d ? (l - length) / d : 0);
+                }
+            }
+            return null;
+        },
+
+        length: function() {
+            var points = this.points;
+            var length = 0;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                length += points[i].distance(points[i+1]);
+            }
+            return length;
+        },
+
+        closestPoint: function(p) {
+            return this.pointAtLength(this.closestPointLength(p));
+        },
+
+        closestPointLength: function(p) {
+            var points = this.points;
+            var pointLength;
+            var minSqrDistance = Infinity;
+            var length = 0;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var line = Line(points[i], points[i+1]);
+                var lineLength = line.length();
+                var cpNormalizedLength = line.closestPointNormalizedLength(p);
+                var cp = line.pointAt(cpNormalizedLength);
+                var sqrDistance = cp.squaredDistance(p);
+                if (sqrDistance < minSqrDistance) {
+                    minSqrDistance = sqrDistance;
+                    pointLength = length + cpNormalizedLength * lineLength;
+                }
+                length += lineLength;
+            }
+            return pointLength;
+        },
+
+        toString: function() {
+
+            return this.points + '';
+        },
+
+        // Returns a convex-hull polyline from this polyline.
+        // this function implements the Graham scan (https://en.wikipedia.org/wiki/Graham_scan)
+        // output polyline starts at the first element of the original polyline that is on the hull
+        // output polyline then continues clockwise from that point
+        convexHull: function() {
+
+            var i;
+            var n;
+
+            var points = this.points;
+
+            // step 1: find the starting point - point with the lowest y (if equality, highest x)
+            var startPoint;
+            n = points.length;
+            for (i = 0; i < n; i++) {
+                if (startPoint === undefined) {
+                    // if this is the first point we see, set it as start point
+                    startPoint = points[i];
+                } else if (points[i].y < startPoint.y) {
+                    // start point should have lowest y from all points
+                    startPoint = points[i];
+                } else if ((points[i].y === startPoint.y) && (points[i].x > startPoint.x)) {
+                    // if two points have the lowest y, choose the one that has highest x
+                    // there are no points to the right of startPoint - no ambiguity about theta 0
+                    // if there are several coincident start point candidates, first one is reported
+                    startPoint = points[i];
+                }
+            }
+
+            // step 2: sort the list of points
+            // sorting by angle between line from startPoint to point and the x-axis (theta)
+            
+            // step 2a: create the point records = [point, originalIndex, angle]
+            var sortedPointRecords = [];
+            n = points.length;
+            for (i = 0; i < n; i++) {
+                var angle = startPoint.theta(points[i]);
+                if (angle === 0) {
+                    angle = 360; // give highest angle to start point
+                    // the start point will end up at end of sorted list
+                    // the start point will end up at beginning of hull points list
+                }
+                
+                var entry = [points[i], i, angle];
+                sortedPointRecords.push(entry);
+            }
+
+            // step 2b: sort the list in place
+            sortedPointRecords.sort(function(record1, record2) {
+                // returning a negative number here sorts record1 before record2
+                // if first angle is smaller than second, first angle should come before second
+                var sortOutput = record1[2] - record2[2];  // negative if first angle smaller
+                if (sortOutput === 0) {
+                    // if the two angles are equal, sort by originalIndex
+                    sortOutput = record2[1] - record1[1]; // negative if first index larger
+                    // coincident points will be sorted in reverse-numerical order
+                    // so the coincident points with lower original index will be considered first
+                }
+                return sortOutput;
+            });
+
+            // step 2c: duplicate start record from the top of the stack to the bottom of the stack
+            if (sortedPointRecords.length > 2) {
+                var startPointRecord = sortedPointRecords[sortedPointRecords.length-1];
+                sortedPointRecords.unshift(startPointRecord);
+            }
+
+            // step 3a: go through sorted points in order and find those with right turns
+            // we want to get our results in clockwise order
+            var insidePoints = {}; // dictionary of points with left turns - cannot be on the hull
+            var hullPointRecords = []; // stack of records with right turns - hull point candidates
+
+            var currentPointRecord;
+            var currentPoint;
+            var lastHullPointRecord;
+            var lastHullPoint;
+            var secondLastHullPointRecord;
+            var secondLastHullPoint;
+            while (sortedPointRecords.length !== 0) {
+                currentPointRecord = sortedPointRecords.pop();
+                currentPoint = currentPointRecord[0];
+
+                // check if point has already been discarded
+                // keys for insidePoints are stored in the form 'point.x@point.y@@originalIndex'
+                if (insidePoints.hasOwnProperty(currentPointRecord[0] + '@@' + currentPointRecord[1])) {
+                    // this point had an incorrect turn at some previous iteration of this loop
+                    // this disqualifies it from possibly being on the hull
+                    continue;
+                }
+
+                var correctTurnFound = false;
+                while (!correctTurnFound) {
+                    if (hullPointRecords.length < 2) {
+                        // not enough points for comparison, just add current point
+                        hullPointRecords.push(currentPointRecord);
+                        correctTurnFound = true;
+                    
+                    } else {
+                        lastHullPointRecord = hullPointRecords.pop();
+                        lastHullPoint = lastHullPointRecord[0];
+                        secondLastHullPointRecord = hullPointRecords.pop();
+                        secondLastHullPoint = secondLastHullPointRecord[0];
+
+                        var crossProduct = secondLastHullPoint.cross(lastHullPoint, currentPoint);
+
+                        if (crossProduct < 0) {
+                            // found a right turn
+                            hullPointRecords.push(secondLastHullPointRecord);
+                            hullPointRecords.push(lastHullPointRecord);
+                            hullPointRecords.push(currentPointRecord);
+                            correctTurnFound = true;
+
+                        } else if (crossProduct === 0) {
+                            // the three points are collinear
+                            // three options:
+                            // there may be a 180 or 0 degree angle at lastHullPoint
+                            // or two of the three points are coincident
+                            var THRESHOLD = 1e-10; // we have to take rounding errors into account
+                            var angleBetween = lastHullPoint.angleBetween(secondLastHullPoint, currentPoint);
+                            if (Math.abs(angleBetween - 180) < THRESHOLD) { // rouding around 180 to 180
+                                // if the cross product is 0 because the angle is 180 degrees
+                                // discard last hull point (add to insidePoints)
+                                //insidePoints.unshift(lastHullPoint);
+                                insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+                                // reenter second-to-last hull point (will be last at next iter)
+                                hullPointRecords.push(secondLastHullPointRecord);
+                                // do not do anything with current point
+                                // correct turn not found
+                            
+                            } else if (lastHullPoint.equals(currentPoint) || secondLastHullPoint.equals(lastHullPoint)) {
+                                // if the cross product is 0 because two points are the same
+                                // discard last hull point (add to insidePoints)
+                                //insidePoints.unshift(lastHullPoint);
+                                insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+                                // reenter second-to-last hull point (will be last at next iter)
+                                hullPointRecords.push(secondLastHullPointRecord);
+                                // do not do anything with current point
+                                // correct turn not found
+                                                        
+                            } else if (Math.abs(((angleBetween + 1) % 360) - 1) < THRESHOLD) { // rounding around 0 and 360 to 0
+                                // if the cross product is 0 because the angle is 0 degrees
+                                // remove last hull point from hull BUT do not discard it
+                                // reenter second-to-last hull point (will be last at next iter)
+                                hullPointRecords.push(secondLastHullPointRecord);
+                                // put last hull point back into the sorted point records list
+                                sortedPointRecords.push(lastHullPointRecord);
+                                // we are switching the order of the 0deg and 180deg points
+                                // correct turn not found
+                            }
+
+                        } else {
+                            // found a left turn
+                            // discard last hull point (add to insidePoints)
+                            //insidePoints.unshift(lastHullPoint);
+                            insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+                            // reenter second-to-last hull point (will be last at next iter of loop)
+                            hullPointRecords.push(secondLastHullPointRecord);
+                            // do not do anything with current point
+                            // correct turn not found
+                        }
+                    }
+                }
+            }
+            // at this point, hullPointRecords contains the output points in clockwise order
+            // the points start with lowest-y,highest-x startPoint, and end at the same point
+
+            // step 3b: remove duplicated startPointRecord from the end of the array
+            if (hullPointRecords.length > 2) {
+                hullPointRecords.pop();
+            }
+
+            // step 4: find the lowest originalIndex record and put it at the beginning of hull
+            var lowestHullIndex; // the lowest originalIndex on the hull
+            var indexOfLowestHullIndexRecord = -1; // the index of the record with lowestHullIndex
+            n = hullPointRecords.length;
+            for (i = 0; i < n; i++) {
+                var currentHullIndex = hullPointRecords[i][1];
+
+                if (lowestHullIndex === undefined || currentHullIndex < lowestHullIndex) {
+                    lowestHullIndex = currentHullIndex;
+                    indexOfLowestHullIndexRecord = i;
+                }
+            }
+
+            var hullPointRecordsReordered = [];
+            if (indexOfLowestHullIndexRecord > 0) {
+                var newFirstChunk = hullPointRecords.slice(indexOfLowestHullIndexRecord);
+                var newSecondChunk = hullPointRecords.slice(0, indexOfLowestHullIndexRecord);
+                hullPointRecordsReordered = newFirstChunk.concat(newSecondChunk);
+            } else {
+                hullPointRecordsReordered = hullPointRecords;
+            }
+
+            var hullPoints = [];
+            n = hullPointRecordsReordered.length;
+            for (i = 0; i < n; i++) {
+                hullPoints.push(hullPointRecordsReordered[i][0]);
+            }
+
+            return Polyline(hullPoints);
+        }
+    };
+
 
     g.scale = {
 
@@ -1312,6 +1906,11 @@ var g = (function() {
             var rangeSpan = range[1] - range[0];
             return (((value - domain[0]) / domainSpan) * rangeSpan + range[0]) || 0;
         }
+    };
+
+    var normalizeAngle = g.normalizeAngle = function(angle) {
+
+        return (angle % 360) + (angle < 0 ? 360 : 0);
     };
 
     var snapToGrid = g.snapToGrid = function(value, gridSize) {
@@ -1586,6 +2185,103 @@ V = Vectorizer = (function() {
 
         return V.transformRect(box, matrix);
     };
+    
+    // Returns an SVGRect that contains coordinates and dimensions of the real bounding box,
+    // i.e. after transformations are applied.
+    // Fixes a browser implementation bug that returns incorrect bounding boxes for groups of svg elements.
+    // Takes an (Object) `opt` argument (optional) with the following attributes:
+    // (Object) `target` (optional): if not undefined, transform bounding boxes relative to `target`; if undefined, transform relative to this
+    // (Boolean) `recursive` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox();
+    V.prototype.getBBox = function(opt) {
+
+        var options = {};
+
+        var outputBBox;
+        var node = this.node;
+        var ownerSVGElement = node.ownerSVGElement;
+
+        // If the element is not in the live DOM, it does not have a bounding box defined and
+        // so fall back to 'zero' dimension element.
+        if (!ownerSVGElement) {
+            return g.Rect(0, 0, 0, 0);
+        }
+
+        if (opt) {
+            if (opt.target) { // check if target exists
+                options.target = V.toNode(opt.target); // works for V objects, jquery objects, and node objects
+            }
+            if (opt.recursive) {
+                options.recursive = opt.recursive;
+            }
+        }
+
+        if (!options.recursive) {
+            try {
+                outputBBox = node.getBBox();
+            } catch (e) {
+                // Fallback for IE.
+                outputBBox = {
+                    x: node.clientLeft,
+                    y: node.clientTop,
+                    width: node.clientWidth,
+                    height: node.clientHeight
+                };
+            }
+
+            if (!options.target) {
+                // transform like this (that is, not at all)
+                return g.Rect(outputBBox);
+            } else {
+                // transform like target
+                var matrix = this.getTransformToElement(options.target);
+                return V.transformRect(outputBBox, matrix);
+            }
+        } else { // if we want to calculate the bbox recursively
+            // browsers report correct bbox around svg elements (one that envelops the path lines tightly)
+            // but some browsers fail to report the same bbox when the elements are in a group (returning a looser bbox that also includes control points, like node.getClientRect())
+            // this happens even if we wrap a single svg element into a group!
+            // this option setting makes the function recursively enter all the groups from this and deeper, get bboxes of the elements inside, then return a union of those bboxes
+
+            var children = this.children();
+            var n = children.length;
+            
+            if (n === 0) {
+                return this.getBBox({ target: options.target, recursive: false });
+            }
+
+            // recursion's initial pass-through setting:
+            // recursive passes-through just keep the target as whatever was set up here during the initial pass-through
+            if (!options.target) {
+                // transform children/descendants like this (their parent/ancestor)
+                options.target = this;
+            } // else transform children/descendants like target
+
+            for (var i = 0; i < n; i++) {
+                var currentChild = children[i];
+
+                var childBBox;
+
+                // if currentChild is not a group element, get its bbox with a nonrecursive call
+                if (currentChild.children().length === 0) {
+                    childBBox = currentChild.getBBox({ target: options.target, recursive: false });
+                }
+                else {
+                    // if currentChild is a group element (determined by checking the number of children), enter it with a recursive call
+                    childBBox = currentChild.getBBox({ target: options.target, recursive: true });
+                }
+
+                if (!outputBBox) {
+                    // if this is the first iteration
+                    outputBBox = childBBox;
+                } else {
+                    // make a new bounding box rectangle that contains this child's bounding box and previous bounding box
+                    outputBBox = outputBBox.union(childBBox);
+                }
+            }
+
+            return outputBBox;
+        }
+    };
 
     V.prototype.text = function(content, opt) {
 
@@ -1593,19 +2289,9 @@ V = Vectorizer = (function() {
         // IE would otherwise collapse all spaces into one.
         content = V.sanitizeText(content);
         opt = opt || {};
+        var eol = opt.eol;
         var lines = content.split('\n');
         var tspan;
-
-        // `alignment-baseline` does not work in Firefox.
-        // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
-        // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
-        // in the top left corner we translate the `<text>` element by `0.8em`.
-        // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
-        // See also `http://apike.ca/prog_svg_text_style.html`.
-        var y = this.attr('y');
-        if (!y) {
-            this.attr('y', '0.8em');
-        }
 
         // An empty text gets rendered into the DOM in webkit-based browsers.
         // In order to unify this behaviour across all browsers
@@ -1663,7 +2349,7 @@ V = Vectorizer = (function() {
         }
 
         var offset = 0;
-        var x = this.attr('x') || 0;
+        var x = ((opt.x !== undefined) ? opt.x : this.attr('x')) || 0;
 
         // Shift all the <tspan> but first by one line (`1em`)
         var lineHeight = opt.lineHeight || '1em';
@@ -1671,27 +2357,36 @@ V = Vectorizer = (function() {
             lineHeight = '1.5em';
         }
 
+        var firstLineHeight = 0;
         for (var i = 0; i < lines.length; i++) {
 
+            var vLineAttributes = { 'class': 'v-line' };
+            if (i === 0) {
+                vLineAttributes.dy = '0em';
+            } else {
+                vLineAttributes.dy = lineHeight;
+                vLineAttributes.x = x;
+            }
+            var vLine = V('tspan', vLineAttributes);
+
+            var lastI = lines.length - 1;
             var line = lines[i];
-
-            var vLine = V('tspan', { 'class': 'v-line',  dy: (i == 0 ? '0em' : lineHeight), x: x });
-
             if (line) {
 
+                // Get the line height based on the biggest font size in the annotations for this line.
+                var maxFontSize = 0;
                 if (opt.annotations) {
-
-                    // Get the line height based on the biggest font size in the annotations for this line.
-                    var maxFontSize = 0;
 
                     // Find the *compacted* annotations for this line.
                     var lineAnnotations = V.annotateString(lines[i], V.isArray(opt.annotations) ? opt.annotations : [opt.annotations], { offset: -offset, includeAnnotationIndices: opt.includeAnnotationIndices });
+
+                    var lastJ = lineAnnotations.length - 1;
                     for (var j = 0; j < lineAnnotations.length; j++) {
 
                         var annotation = lineAnnotations[j];
                         if (V.isObject(annotation)) {
 
-                            var fontSize = parseInt(annotation.attrs['font-size'], 10);
+                            var fontSize = parseFloat(annotation.attrs['font-size']);
                             if (fontSize && fontSize > maxFontSize) {
                                 maxFontSize = fontSize;
                             }
@@ -1707,12 +2402,18 @@ V = Vectorizer = (function() {
                             if (annotation.attrs['class']) {
                                 tspan.addClass(annotation.attrs['class']);
                             }
+
+                            if (eol && j === lastJ && i !== lastI) {
+                                annotation.t += eol;
+                            }
                             tspan.node.textContent = annotation.t;
 
                         } else {
 
+                            if (eol && j === lastJ && i !== lastI) {
+                                annotation += eol;
+                            }
                             tspan = document.createTextNode(annotation || ' ');
-
                         }
                         vLine.append(tspan);
                     }
@@ -1724,9 +2425,16 @@ V = Vectorizer = (function() {
 
                 } else {
 
+                    if (eol && i !== lastI) {
+                        line += eol;
+                    }
+
                     vLine.node.textContent = line;
                 }
 
+                if (i === 0) {
+                    firstLineHeight = maxFontSize;
+                }
             } else {
 
                 // Make sure the textContent is never empty. If it is, add a dummy
@@ -1743,6 +2451,17 @@ V = Vectorizer = (function() {
             V(textNode).append(vLine);
 
             offset += line.length + 1;      // + 1 = newline character.
+        }
+
+        // `alignment-baseline` does not work in Firefox.
+        // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
+        // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
+        // in the top left corner we translate the `<text>` element by `0.8em`.
+        // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
+        // See also `http://apike.ca/prog_svg_text_style.html`.
+        var y = this.attr('y');
+        if (y === null) {
+            this.attr('y', firstLineHeight || '0.8em');
         }
 
         return this;
@@ -1821,6 +2540,11 @@ V = Vectorizer = (function() {
         return this;
     };
 
+    /**
+     * @private
+     * @param {object} attrs
+     * @returns {Vectorizer}
+     */
     V.prototype.setAttributes = function(attrs) {
 
         for (var key in attrs) {
@@ -1917,6 +2641,21 @@ V = Vectorizer = (function() {
         return vels;
     };
 
+    // Returns an array of V elements made from children of this.node.
+    V.prototype.children = function() {
+
+        var children = this.node.childNodes;
+        
+        var outputArray = [];
+        for (var i = 0; i < children.length; i++) {
+            var currentChild = children[i];
+            if (currentChild.nodeType === 1) {
+                outputArray.push(V(children[i])); 
+            }
+        }
+        return outputArray;
+    };
+
     // Find an index of an element inside its container.
     V.prototype.index = function() {
 
@@ -1985,10 +2724,11 @@ V = Vectorizer = (function() {
 
     V.prototype.translateCenterToPoint = function(p) {
 
-        var bbox = this.bbox();
-        var center = g.rect(bbox).center();
+        var bbox = this.getBBox({ target: this.svg() });
+        var center = bbox.center();
 
         this.translate(p.x - center.x, p.y - center.y);
+        return this;
     };
 
     // Efficiently auto-orient an element. This basically implements the orient=auto attribute
@@ -2008,7 +2748,7 @@ V = Vectorizer = (function() {
         this.scale(s.sx, s.sy);
 
         var svg = this.svg().node;
-        var bbox = this.bbox(false, target);
+        var bbox = this.getBBox({ target: target || svg });
 
         // 1. Translate to origin.
         var translateToOrigin = svg.createSVGTransform();
@@ -2025,7 +2765,7 @@ V = Vectorizer = (function() {
         translateFinal.setTranslate(position.x + (position.x - finalPosition.x), position.y + (position.y - finalPosition.y));
 
         // 4. Apply transformations.
-        var ctm = this.getTransformToElement(target);
+        var ctm = this.getTransformToElement(target || svg);
         var transform = svg.createSVGTransform();
         transform.setMatrix(
             translateFinal.matrix.multiply(
@@ -2084,6 +2824,7 @@ V = Vectorizer = (function() {
                 }
             }
         }
+        return this;
     };
 
     V.prototype.hasClass = function(className) {
@@ -2192,7 +2933,7 @@ V = Vectorizer = (function() {
 
         var svg = this.svg().node;
         target = target || svg;
-        var bbox = g.rect(this.bbox(false, target));
+        var bbox = this.getBBox({ target: target });
         var center = bbox.center();
 
         if (!bbox.intersectionWithLineFromCenterToPoint(ref)) return undefined;
@@ -2312,8 +3053,12 @@ V = Vectorizer = (function() {
         return 'v-' + (++V.idCounter);
     };
 
-    V.ensureId = function(node) {
+    V.toNode = function(el) {
+        return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
+    };
 
+    V.ensureId = function(node) {
+        node = V.toNode(node);
         return node.id || (node.id = V.uniqueId());
     };
     // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
@@ -2460,12 +3205,12 @@ V = Vectorizer = (function() {
         matrix || (matrix = true);
 
         return 'matrix(' +
-            (matrix.a || 1) + ',' +
-            (matrix.b || 0) + ',' +
-            (matrix.c || 0) + ',' +
-            (matrix.d || 1) + ',' +
-            (matrix.e || 0) + ',' +
-            (matrix.f || 0) +
+            (matrix.a !== undefined ? matrix.a : 1) + ',' +
+            (matrix.b !== undefined ? matrix.b : 0) + ',' +
+            (matrix.c !== undefined ? matrix.c : 0) + ',' +
+            (matrix.d !== undefined ? matrix.d : 1) + ',' +
+            (matrix.e !== undefined ? matrix.e : 0) + ',' +
+            (matrix.f !== undefined ? matrix.f : 0) +
             ')';
     };
 
@@ -2941,11 +3686,13 @@ V = Vectorizer = (function() {
 
     V.getPointsFromSvgNode = function(node) {
 
+        node = V.toNode(node);
         var points = [];
-        var i;
-
-        for (i = 0; i < node.points.numberOfItems; i++) {
-            points.push(node.points.getItem(i));
+        var nodePoints = node.points;
+        if (nodePoints) {
+            for (var i = 0; i < nodePoints.numberOfItems; i++) {
+                points.push(nodePoints.getItem(i));
+            }
         }
 
         return points;
@@ -3051,9 +3798,7 @@ V = Vectorizer = (function() {
         return d.join(' ');
     };
 
-    V.toNode = function(el) {
-        return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
-    };
+    V.namespace = ns;
 
     return V;
 
@@ -3064,7 +3809,7 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '1.1.1-alpha.1',
+    version: '1.2.0-beta',
 
     config: {
         // The class name prefix config is for advanced use only.
@@ -3106,7 +3851,7 @@ var joint = {
 
         opt = opt || {};
 
-        _.invoke(joint.mvc.views, 'setTheme', theme, opt);
+        joint.util.invoke(joint.mvc.views, 'setTheme', theme, opt);
 
         // Update the default theme on the view prototype.
         joint.mvc.View.prototype.defaultTheme = theme;
@@ -3174,7 +3919,7 @@ var joint = {
 
         getByPath: function(obj, path, delim) {
 
-            var keys = _.isArray(path) ? path.slice() : path.split(delim || '/');
+            var keys = Array.isArray(path) ? path.slice() : path.split(delim || '/');
             var key;
 
             while (keys.length) {
@@ -3190,7 +3935,7 @@ var joint = {
 
         setByPath: function(obj, path, value, delim) {
 
-            var keys = _.isArray(path) ? path : path.split(delim || '/');
+            var keys = Array.isArray(path) ? path : path.split(delim || '/');
 
             var diver = obj;
             var i = 0;
@@ -3209,7 +3954,7 @@ var joint = {
 
             delim = delim || '/';
 
-            var pathArray = _.isArray(path) ? path.slice() : path.split(delim);
+            var pathArray = Array.isArray(path) ? path.slice() : path.split(delim);
 
             var propertyToRemove = pathArray.pop();
             if (pathArray.length > 0) {
@@ -3352,7 +4097,7 @@ var joint = {
 
             return function(callback, context) {
                 return context
-                    ? raf(_.bind(callback, context))
+                    ? raf(callback.bind(context))
                     : raf(callback);
             };
 
@@ -3378,7 +4123,7 @@ var joint = {
 
             caf = caf || clearTimeout;
 
-            return client ? _.bind(caf, window) : caf;
+            return client ? caf.bind(window) : caf;
 
         })(),
 
@@ -3418,7 +4163,7 @@ var joint = {
 
                 spot = V(magnet).findIntersection(reference, linkView.paper.viewport);
                 if (!spot) {
-                    bbox = g.rect(V(magnet).bbox(false, linkView.paper.viewport));
+                    bbox = V(magnet).getBBox({ target: linkView.paper.viewport });
                 }
 
             } else {
@@ -3434,13 +4179,13 @@ var joint = {
             restrictUnits = restrictUnits || [];
             var cssNumeric = { value: parseFloat(strValue) };
 
-            if (_.isNaN(cssNumeric.value)) {
+            if (Number.isNaN(cssNumeric.value)) {
                 return null;
             }
 
             var validUnitsExp = restrictUnits.join('|');
 
-            if (_.isString(strValue)) {
+            if (joint.util.isString(strValue)) {
                 var matches = new RegExp('(\\d+)(' + validUnitsExp + ')$').exec(strValue);
                 if (!matches) {
                     return null;
@@ -3723,7 +4468,8 @@ var joint = {
             // Firefox correction
             if (element.ownerSVGElement) {
 
-                var bbox = V(element).bbox();
+                var vel = V(element);
+                var bbox = vel.getBBox({ target: vel.svg() });
 
                 // if FF getBoundingClientRect includes stroke-width, getBBox doesn't.
                 // To unify this across all browsers we need to adjust the final bBox with `stroke-width` value.
@@ -3778,13 +4524,13 @@ var joint = {
 
             var $element = $(element);
 
-            _.each(attrs, function(attrs, selector) {
+            joint.util.forIn(attrs, function(attrs, selector) {
                 var $elements = $element.find(selector).addBack().filter(selector);
                 // Make a special case for setting classes.
                 // We do not want to overwrite any existing class.
-                if (_.has(attrs, 'class')) {
+                if (joint.util.has(attrs, 'class')) {
                     $elements.addClass(attrs['class']);
-                    attrs = _.omit(attrs, 'class');
+                    attrs = joint.util.omit(attrs, 'class');
                 }
                 $elements.attr(attrs);
             });
@@ -3890,7 +4636,7 @@ var joint = {
             },
 
             object: function(a, b) {
-                var s = _.keys(a);
+                var s = Object.keys(a);
                 return function(t) {
                     var i, p;
                     var r = {};
@@ -3951,12 +4697,12 @@ var joint = {
 
                 var tpl = '<filter><feFlood flood-color="${color}" flood-opacity="${opacity}" result="colored"/><feMorphology in="SourceAlpha" result="morphedOuter" operator="dilate" radius="${outerRadius}" /><feMorphology in="SourceAlpha" result="morphedInner" operator="dilate" radius="${innerRadius}" /><feComposite result="morphedOuterColored" in="colored" in2="morphedOuter" operator="in"/><feComposite operator="xor" in="morphedOuterColored" in2="morphedInner" result="outline"/><feMerge><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
 
-                var margin = _.isFinite(args.margin) ? args.margin : 2;
-                var width = _.isFinite(args.width) ? args.width : 1;
+                var margin = Number.isFinite(args.margin) ? args.margin : 2;
+                var width = Number.isFinite(args.width) ? args.width : 1;
 
                 return joint.util.template(tpl)({
                     color: args.color || 'blue',
-                    opacity: _.isFinite(args.opacity) ? args.opacity : 1,
+                    opacity: Number.isFinite(args.opacity) ? args.opacity : 1,
                     outerRadius: margin + width,
                     innerRadius: margin
                 });
@@ -3972,9 +4718,9 @@ var joint = {
 
                 return joint.util.template(tpl)({
                     color: args.color || 'red',
-                    width: _.isFinite(args.width) ? args.width : 1,
-                    blur: _.isFinite(args.blur) ? args.blur : 0,
-                    opacity: _.isFinite(args.opacity) ? args.opacity : 1
+                    width: Number.isFinite(args.width) ? args.width : 1,
+                    blur: Number.isFinite(args.blur) ? args.blur : 0,
+                    opacity: Number.isFinite(args.opacity) ? args.opacity : 1
                 });
             },
 
@@ -3982,10 +4728,10 @@ var joint = {
             // `y` ... vertical blur (optional)
             blur: function(args) {
 
-                var x = _.isFinite(args.x) ? args.x : 2;
+                var x = Number.isFinite(args.x) ? args.x : 2;
 
                 return joint.util.template('<filter><feGaussianBlur stdDeviation="${stdDeviation}"/></filter>')({
-                    stdDeviation: _.isFinite(args.y) ? [x, args.y] : x
+                    stdDeviation: Number.isFinite(args.y) ? [x, args.y] : x
                 });
             },
 
@@ -4003,16 +4749,16 @@ var joint = {
                 return joint.util.template(tpl)({
                     dx: args.dx || 0,
                     dy: args.dy || 0,
-                    opacity: _.isFinite(args.opacity) ? args.opacity : 1,
+                    opacity: Number.isFinite(args.opacity) ? args.opacity : 1,
                     color: args.color || 'black',
-                    blur: _.isFinite(args.blur) ? args.blur : 4
+                    blur: Number.isFinite(args.blur) ? args.blur : 4
                 });
             },
 
             // `amount` ... the proportion of the conversion. A value of 1 is completely grayscale. A value of 0 leaves the input unchanged.
             grayscale: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feColorMatrix type="matrix" values="${a} ${b} ${c} 0 0 ${d} ${e} ${f} 0 0 ${g} ${b} ${h} 0 0 0 0 0 1 0"/></filter>')({
                     a: 0.2126 + 0.7874 * (1 - amount),
@@ -4029,7 +4775,7 @@ var joint = {
             // `amount` ... the proportion of the conversion. A value of 1 is completely sepia. A value of 0 leaves the input unchanged.
             sepia: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feColorMatrix type="matrix" values="${a} ${b} ${c} 0 0 ${d} ${e} ${f} 0 0 ${g} ${h} ${i} 0 0 0 0 0 1 0"/></filter>')({
                     a: 0.393 + 0.607 * (1 - amount),
@@ -4047,7 +4793,7 @@ var joint = {
             // `amount` ... the proportion of the conversion. A value of 0 is completely un-saturated. A value of 1 leaves the input unchanged.
             saturate: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feColorMatrix type="saturate" values="${amount}"/></filter>')({
                     amount: 1 - amount
@@ -4065,7 +4811,7 @@ var joint = {
             // `amount` ... the proportion of the conversion. A value of 1 is completely inverted. A value of 0 leaves the input unchanged.
             invert: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feComponentTransfer><feFuncR type="table" tableValues="${amount} ${amount2}"/><feFuncG type="table" tableValues="${amount} ${amount2}"/><feFuncB type="table" tableValues="${amount} ${amount2}"/></feComponentTransfer></filter>')({
                     amount: amount,
@@ -4077,14 +4823,14 @@ var joint = {
             brightness: function(args) {
 
                 return joint.util.template('<filter><feComponentTransfer><feFuncR type="linear" slope="${amount}"/><feFuncG type="linear" slope="${amount}"/><feFuncB type="linear" slope="${amount}"/></feComponentTransfer></filter>')({
-                    amount: _.isFinite(args.amount) ? args.amount : 1
+                    amount: Number.isFinite(args.amount) ? args.amount : 1
                 });
             },
 
             // `amount` ... proportion of the conversion. A value of 0 will create an image that is completely black. A value of 1 leaves the input unchanged.
             contrast: function(args) {
 
-                var amount = _.isFinite(args.amount) ? args.amount : 1;
+                var amount = Number.isFinite(args.amount) ? args.amount : 1;
 
                 return joint.util.template('<filter><feComponentTransfer><feFuncR type="linear" slope="${amount}" intercept="${amount2}"/><feFuncG type="linear" slope="${amount}" intercept="${amount2}"/><feFuncB type="linear" slope="${amount}" intercept="${amount2}"/></feComponentTransfer></filter>')({
                     amount: amount,
@@ -4306,7 +5052,7 @@ var joint = {
 
             prefix: function(value, precision) {
 
-                var prefixes = _.map(['y', 'z', 'a', 'f', 'p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'], function(d, i) {
+                var prefixes = ['y', 'z', 'a', 'f', 'p', 'n', 'µ', 'm', '', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'].map(function(d, i) {
                     var k = Math.pow(10, Math.abs(8 - i) * 3);
                     return {
                         scale: i > 8 ? function(d) { return d / k; } : function(d) { return d * k; },
@@ -4342,29 +5088,29 @@ var joint = {
 
                 return html.replace(regex, function(match) {
 
-                    var args = Array.prototype.slice.call(arguments);
-                    var attr = _.find(args.slice(1, 4), function(_attr) {
+                    var args = Array.from(arguments);
+                    var attr = args.slice(1, 4).find(function(_attr) {
                         return !!_attr;
                     });
 
                     var attrArray = attr.split('.');
                     var value = data[attrArray.shift()];
 
-                    while (!_.isUndefined(value) && attrArray.length) {
+                    while (value !== undefined && attrArray.length) {
                         value = value[attrArray.shift()];
                     }
 
-                    return !_.isUndefined(value) ? value : '';
+                    return value !== undefined ? value : '';
                 });
             };
         },
 
         /**
-         * @param {Element=} el Element, which content is intent to display in full-screen mode, 'document.body' is default.
+         * @param {Element=} el Element, which content is intent to display in full-screen mode, 'window.top.document.body' is default.
          */
         toggleFullScreen: function(el) {
 
-            el = el || document.body;
+            el = el || window.top.document.body;
 
             function prefixedResult(el, prop) {
 
@@ -4372,8 +5118,8 @@ var joint = {
                 for (var i = 0; i < prefixes.length; i++) {
                     var prefix = prefixes[i];
                     var propName = prefix ? (prefix + prop) : (prop.substr(0, 1).toLowerCase() + prop.substr(1));
-                    if (!_.isUndefined(el[propName])) {
-                        return _.isFunction(el[propName]) ? el[propName]() : el[propName];
+                    if (el[propName] !== undefined) {
+                        return joint.util.isFunction(el[propName]) ? el[propName]() : el[propName];
                     }
                 }
             }
@@ -4391,7 +5137,7 @@ var joint = {
 
             if (!className) return className;
 
-            return _.map(className.toString().split(' '), function(_className) {
+            return className.toString().split(' ').map(function(_className) {
 
                 if (_className.substr(0, joint.config.classNamePrefix.length) !== joint.config.classNamePrefix) {
                     _className = joint.config.classNamePrefix + _className;
@@ -4406,7 +5152,7 @@ var joint = {
 
             if (!className) return className;
 
-            return _.map(className.toString().split(' '), function(_className) {
+            return className.toString().split(' ').map(function(_className) {
 
                 if (_className.substr(0, joint.config.classNamePrefix.length) === joint.config.classNamePrefix) {
                     _className = _className.substr(joint.config.classNamePrefix.length);
@@ -4419,7 +5165,7 @@ var joint = {
 
         wrapWith: function(object, methods, wrapper) {
 
-            if (_.isString(wrapper)) {
+            if (joint.util.isString(wrapper)) {
 
                 if (!joint.util.wrappers[wrapper]) {
                     throw new Error('Unknown wrapper: "' + wrapper + '"');
@@ -4428,11 +5174,11 @@ var joint = {
                 wrapper = joint.util.wrappers[wrapper];
             }
 
-            if (!_.isFunction(wrapper)) {
+            if (!joint.util.isFunction(wrapper)) {
                 throw new Error('Wrapper must be a function.');
             }
 
-            _.each(methods, function(method) {
+            this.toArray(methods).forEach(function(method) {
                 object[method] = wrapper(object[method]);
             });
         },
@@ -4452,16 +5198,20 @@ var joint = {
 
                 return function() {
 
-                    var args = Array.prototype.slice.call(arguments);
-                    var cells = args.length > 0 && _.first(args) || [];
-                    var opt = args.length > 1 && _.last(args) || {};
+                    var args = Array.from(arguments);
+                    var n = args.length;
+                    var cells = n > 0 && args[0] || [];
+                    var opt = n > 1 && args[n - 1] || {};
 
-                    if (!_.isArray(cells)) {
+                    if (!Array.isArray(cells)) {
 
                         if (opt instanceof joint.dia.Cell) {
                             cells = args;
                         } else if (cells instanceof joint.dia.Cell) {
-                            cells = args.length > 1 ? _.initial(args) : args;
+                            if (args.length > 1) {
+                                args.pop();
+                            }
+                            cells = args;
                         }
                     }
 
@@ -4472,6 +5222,78 @@ var joint = {
                     return fn.call(this, cells, opt);
                 };
             }
+        },
+        // lodash 3 vs 4 incompatible
+        sortedIndex: _.sortedIndexBy || _.sortedIndex,
+        uniq: _.uniqBy || _.uniq,
+        uniqueId: _.uniqueId,
+        sortBy: _.sortBy,
+        isFunction: _.isFunction,
+        result: _.result,
+        union: _.union,
+        invoke: _.invokeMap || _.invoke,
+        difference: _.difference,
+        intersection: _.intersection,
+        omit: _.omit,
+        pick: _.pick,
+        has: _.has,
+        bindAll: _.bindAll,
+        assign: _.assign,
+        defaults: _.defaults,
+        defaultsDeep: _.defaultsDeep,
+        isPlainObject: _.isPlainObject,
+        isEmpty: _.isEmpty,
+        isEqual: _.isEqual,
+        noop: function() {},
+        cloneDeep: _.cloneDeep,
+        toArray: _.toArray,
+        flattenDeep: _.flattenDeep,
+        camelCase: _.camelCase,
+        groupBy: _.groupBy,
+        forIn: _.forIn,
+        without: _.without,
+        debounce: _.debounce,
+        clone: _.clone,
+
+        isBoolean: function(value) {
+            var toString = Object.prototype.toString;
+            return value === true || value === false || (!!value && typeof value === 'object' && toString.call(value) === '[object Boolean]');
+        },
+
+        isObject: function(value) {
+            return !!value && (typeof value === 'object' || typeof value === 'function');
+        },
+
+        isNumber: function(value) {
+            var toString = Object.prototype.toString;
+            return typeof value === 'number' || (!!value && typeof value === 'object' && toString.call(value) === '[object Number]');
+        },
+
+        isString: function(value) {
+            var toString = Object.prototype.toString;
+            return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === '[object String]');
+        },
+
+        merge: function() {
+            if (_.mergeWith) {
+                var args = Array.from(arguments);
+                var last = args[args.length - 1];
+
+                var customizer =  this.isFunction(last) ? last : this.noop;
+                args.push(function(a,b) {
+                    var customResult = customizer(a, b);
+                    if (customResult !== undefined) {
+                        return customResult;
+                    }
+
+                    if (Array.isArray(a) && !Array.isArray(b)) {
+                        return b;
+                    }
+                });
+
+                return _.mergeWith.apply(this, args)
+            }
+            return _.merge.apply(this, arguments);
         }
     }
 };
@@ -4487,77 +5309,71 @@ joint.mvc.View = Backbone.View.extend({
 
     constructor: function(options) {
 
+        this.requireSetThemeOverride = options && !!options.theme;
+        this.options = joint.util.assign({}, this.options, options);
+
         Backbone.View.call(this, options);
     },
 
     initialize: function(options) {
 
-        this.requireSetThemeOverride = options && !!options.theme;
-
-        this.options = _.extend({}, this.options, options);
-
-        _.bindAll(this, 'setTheme', 'onSetTheme', 'remove', 'onRemove');
+        joint.util.bindAll(this, 'setTheme', 'onSetTheme', 'remove', 'onRemove');
 
         joint.mvc.views[this.cid] = this;
 
         this.setTheme(this.options.theme || this.defaultTheme);
-        this._ensureElClassName();
         this.init();
     },
 
     // Override the Backbone `_ensureElement()` method in order to create an
     // svg element (e.g., `<g>`) node that wraps all the nodes of the Cell view.
+    // Expose class name setter as a separate method.
     _ensureElement: function() {
-        var el;
-
-        if (this.svgElement) {
-
-            if (!this.el) {
-
-                var attrs = _.extend({ id: this.id }, _.result(this, 'attributes'));
-                if (this.className) attrs['class'] = _.result(this, 'className');
-                el = V(_.result(this, 'tagName'), attrs).node;
-
-            } else {
-
-                el = _.result(this, 'el');
-            }
-
-            this.setElement(el, false);
-
+        if (!this.el) {
+            var tagName = joint.util.result(this, 'tagName');
+            var attrs = joint.util.assign({}, joint.util.result(this, 'attributes'));
+            if (this.id) attrs.id = joint.util.result(this, 'id');
+            this.setElement(this._createElement(tagName));
+            this._setAttributes(attrs);
         } else {
-
-            Backbone.View.prototype._ensureElement.call(this);
-
+            this.setElement(joint.util.result(this, 'el'));
         }
+        this._ensureElClassName();
+    },
 
+    _setAttributes: function(attrs) {
+        if (this.svgElement) {
+            this.vel.attr(attrs);
+        } else {
+            this.$el.attr(attrs);
+        }
+    },
+
+    _createElement: function(tagName) {
+        if (this.svgElement) {
+            return document.createElementNS(V.namespace.xmlns, tagName);
+        } else {
+            return document.createElement(tagName);
+        }
     },
 
     // Utilize an alternative DOM manipulation API by
     // adding an element reference wrapped in Vectorizer.
     _setElement: function(el) {
-
-        if (this.svgElement) {
-
-            this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
-            this.el = this.$el[0];
-            this.vel = V(this.el);
-
-        } else {
-
-            Backbone.View.prototype._setElement.call(this, el);
-
-        }
-
+        this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
+        this.el = this.$el[0];
+        if (this.svgElement) this.vel = V(this.el);
     },
 
     _ensureElClassName: function() {
-
-        var className = _.result(this, 'className');
+        var className = joint.util.result(this, 'className');
         var prefixedClassName = joint.util.addClassNamePrefix(className);
-
-        this.$el.removeClass(className);
-        this.$el.addClass(prefixedClassName);
+        // Note: className removal here kept for backwards compatibility only
+        if (this.svgElement) {
+            this.vel.removeClass(className).addClass(prefixedClassName);
+        } else {
+            this.$el.removeClass(className).addClass(prefixedClassName);
+        }
     },
 
     init: function() {
@@ -4640,12 +5456,12 @@ joint.mvc.View = Backbone.View.extend({
 
     extend: function() {
 
-        var args = Array.prototype.slice.call(arguments);
+        var args = Array.from(arguments);
 
         // Deep clone the prototype and static properties objects.
         // This prevents unexpected behavior where some properties are overwritten outside of this function.
-        var protoProps = args[0] && _.clone(args[0]) || {};
-        var staticProps = args[1] && _.clone(args[1]) || {};
+        var protoProps = args[0] && joint.util.assign({}, args[0]) || {};
+        var staticProps = args[1] && joint.util.assign({}, args[1]) || {};
 
         // Need the real render method so that we can wrap it and call it later.
         var renderFn = protoProps.render || (this.prototype && this.prototype.render) || null;
@@ -4831,7 +5647,7 @@ joint.dia.Graph = Backbone.Model.extend({
         this._nodes = {};
         this._edges = {};
 
-        _.each(cells, this._restructureOnAdd, this);
+        cells.forEach(this._restructureOnAdd, this);
     },
 
     _restructureOnChangeSource: function(link) {
@@ -4906,7 +5722,7 @@ joint.dia.Graph = Backbone.Model.extend({
         // Make sure that `cells` attribute is handled separately via resetCells().
         if (attrs.hasOwnProperty('cells')) {
             this.resetCells(attrs.cells, opt);
-            attrs = _.omit(attrs, 'cells');
+            attrs = joint.util.omit(attrs, 'cells');
         }
 
         // The rest of the attributes are applied via original set method.
@@ -4915,7 +5731,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
     clear: function(opt) {
 
-        opt = _.extend({}, opt, { clear: true });
+        opt = joint.util.assign({}, opt, { clear: true });
 
         var collection = this.get('cells');
 
@@ -4960,7 +5776,7 @@ joint.dia.Graph = Backbone.Model.extend({
             attrs = cell;
         }
 
-        if (!_.isString(attrs.type)) {
+        if (!joint.util.isString(attrs.type)) {
             throw new TypeError('dia.Graph: cell type must be a string.');
         }
 
@@ -4975,7 +5791,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
     addCell: function(cell, opt) {
 
-        if (_.isArray(cell)) {
+        if (Array.isArray(cell)) {
 
             return this.addCells(cell, opt);
         }
@@ -4986,7 +5802,7 @@ joint.dia.Graph = Backbone.Model.extend({
                 cell.set('z', this.maxZIndex() + 1);
             }
 
-        } else if (_.isUndefined(cell.z)) {
+        } else if (cell.z === undefined) {
 
             cell.z = this.maxZIndex() + 1;
         }
@@ -5000,11 +5816,11 @@ joint.dia.Graph = Backbone.Model.extend({
 
         if (cells.length) {
 
-            cells = _.flattenDeep(cells);
+            cells = joint.util.flattenDeep(cells);
             opt.position = cells.length;
 
             this.startBatch('add');
-            _.each(cells, function(cell) {
+            cells.forEach(function(cell) {
                 opt.position--;
                 this.addCell(cell, opt);
             }, this);
@@ -5019,7 +5835,9 @@ joint.dia.Graph = Backbone.Model.extend({
     // Useful for bulk operations and optimizations.
     resetCells: function(cells, opt) {
 
-        var preparedCells = _.map(cells, _.bind(this._prepareCell, this, _, opt));
+        var preparedCells = joint.util.toArray(cells).map(function(cell) {
+            return this._prepareCell(cell, opt);
+        }, this);
         this.get('cells').reset(preparedCells, opt);
 
         return this;
@@ -5030,7 +5848,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (cells.length) {
 
             this.startBatch('remove');
-            _.invoke(cells, 'remove', opt);
+            joint.util.invoke(cells, 'remove', opt);
             this.stopBatch('remove');
         }
 
@@ -5078,13 +5896,11 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     getElements: function() {
-
-        return _.map(this._nodes, function(exists, node) { return this.getCell(node); }, this);
+        return Object.keys(this._nodes).map(this.getCell, this);
     },
 
     getLinks: function() {
-
-        return _.map(this._edges, function(exists, edge) { return this.getCell(edge); }, this);
+        return Object.keys(this._edges).map(this.getCell, this);
     },
 
     getFirstCell: function() {
@@ -5104,7 +5920,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var inbound = opt.inbound;
         var outbound = opt.outbound;
-        if (_.isUndefined(inbound) && _.isUndefined(outbound)) {
+        if (inbound === undefined && outbound === undefined) {
             inbound = outbound = true;
         }
 
@@ -5115,22 +5931,22 @@ joint.dia.Graph = Backbone.Model.extend({
         var edges = {};
 
         if (outbound) {
-            _.each(this.getOutboundEdges(model.id), function(exists, edge) {
+            joint.util.forIn(this.getOutboundEdges(model.id), function(exists, edge) {
                 if (!edges[edge]) {
                     links.push(this.getCell(edge));
                     edges[edge] = true;
                 }
-            }, this);
+            }.bind(this));
         }
         if (inbound) {
-            _.each(this.getInboundEdges(model.id), function(exists, edge) {
+            joint.util.forIn(this.getInboundEdges(model.id), function(exists, edge) {
                 // Skip links that were already added. Those must be self-loop links
                 // because they are both inbound and outbond edges of the same element.
                 if (!edges[edge]) {
                     links.push(this.getCell(edge));
                     edges[edge] = true;
                 }
-            }, this);
+            }.bind(this));
         }
 
         // If 'deep' option is 'true', return all the links that are connected to any of the descendent cells
@@ -5141,28 +5957,28 @@ joint.dia.Graph = Backbone.Model.extend({
             // In the first round, we collect all the embedded edges so that we can exclude
             // them from the final result.
             var embeddedEdges = {};
-            _.each(embeddedCells, function(cell) {
+            embeddedCells.forEach(function(cell) {
                 if (cell.isLink()) {
                     embeddedEdges[cell.id] = true;
                 }
             });
-            _.each(embeddedCells, function(cell) {
+            embeddedCells.forEach(function(cell) {
                 if (cell.isLink()) return;
                 if (outbound) {
-                    _.each(this.getOutboundEdges(cell.id), function(exists, edge) {
+                    joint.util.forIn(this.getOutboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge] && !embeddedEdges[edge]) {
                             links.push(this.getCell(edge));
                             edges[edge] = true;
                         }
-                    }, this);
+                    }.bind(this));
                 }
                 if (inbound) {
-                    _.each(this.getInboundEdges(cell.id), function(exists, edge) {
+                    joint.util.forIn(this.getInboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge] && !embeddedEdges[edge]) {
                             links.push(this.getCell(edge));
                             edges[edge] = true;
                         }
-                    }, this);
+                    }.bind(this));
                 }
             }, this);
         }
@@ -5176,18 +5992,18 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var inbound = opt.inbound;
         var outbound = opt.outbound;
-        if (_.isUndefined(inbound) && _.isUndefined(outbound)) {
+        if (inbound === undefined && outbound === undefined) {
             inbound = outbound = true;
         }
 
-        var neighbors = _.transform(this.getConnectedLinks(model, opt), function(res, link) {
+        var neighbors = this.getConnectedLinks(model, opt).reduce(function(res, link) {
 
             var source = link.get('source');
             var target = link.get('target');
             var loop = link.hasLoop(opt);
 
             // Discard if it is a point, or if the neighbor was already added.
-            if (inbound && _.has(source, 'id') && !res[source.id]) {
+            if (inbound && joint.util.has(source, 'id') && !res[source.id]) {
 
                 var sourceElement = this.getCell(source.id);
 
@@ -5197,7 +6013,7 @@ joint.dia.Graph = Backbone.Model.extend({
             }
 
             // Discard if it is a point, or if the neighbor was already added.
-            if (outbound && _.has(target, 'id') && !res[target.id]) {
+            if (outbound && joint.util.has(target, 'id') && !res[target.id]) {
 
                 var targetElement = this.getCell(target.id);
 
@@ -5206,14 +6022,15 @@ joint.dia.Graph = Backbone.Model.extend({
                 }
             }
 
-        }, {}, this);
+            return res;
+        }.bind(this), {});
 
-        return _.values(neighbors);
+        return joint.util.toArray(neighbors);
     },
 
     getCommonAncestor: function(/* cells */) {
 
-        var cellsAncestors = _.map(arguments, function(cell) {
+        var cellsAncestors = Array.from(arguments).map(function(cell) {
 
             var ancestors = [];
             var parentId = cell.get('parent');
@@ -5228,12 +6045,13 @@ joint.dia.Graph = Backbone.Model.extend({
 
         }, this);
 
-        cellsAncestors = _.sortBy(cellsAncestors, 'length');
+        cellsAncestors = cellsAncestors.sort(function(a, b) {
+            return a.length - b.length;
+        });
 
-        var commonAncestor = _.find(cellsAncestors.shift(), function(ancestor) {
-
-            return _.every(cellsAncestors, function(cellAncestors) {
-                return _.contains(cellAncestors, ancestor);
+        var commonAncestor = joint.util.toArray(cellsAncestors.shift()).find(function(ancestor) {
+            return cellsAncestors.every(function(cellAncestors) {
+                return cellAncestors.includes(ancestor)
             });
         });
 
@@ -5252,7 +6070,7 @@ joint.dia.Graph = Backbone.Model.extend({
             if (el !== element) {
                 res.push(el);
             }
-        }, _.extend({}, opt, { outbound: true }));
+        }, joint.util.assign({}, opt, { outbound: true }));
         return res;
     },
 
@@ -5267,16 +6085,17 @@ joint.dia.Graph = Backbone.Model.extend({
     // the source and target of the link `L2` is changed to point to `A2` and `B2`.
     cloneCells: function(cells) {
 
-        cells = _.unique(cells);
+        cells = joint.util.uniq(cells);
 
         // A map of the form [original cell ID] -> [clone] helping
         // us to reconstruct references for source/target and parent/embeds.
         // This is also the returned value.
-        var cloneMap = _.transform(cells, function(map, cell) {
+        var cloneMap = joint.util.toArray(cells).reduce(function(map, cell) {
             map[cell.id] = cell.clone();
+            return map;
         }, {});
 
-        _.each(cells, function(cell) {
+        joint.util.toArray(cells).forEach(function(cell) {
 
             var clone = cloneMap[cell.id];
             // assert(clone exists)
@@ -5303,7 +6122,7 @@ joint.dia.Graph = Backbone.Model.extend({
             }
 
             // Find the embeds of the original cell
-            var embeds = _.reduce(cell.get('embeds'), function(newEmbeds, embed) {
+            var embeds = joint.util.toArray(cell.get('embeds')).reduce(function(newEmbeds, embed) {
                 // Embedded cells that are not being cloned can not be carried
                 // over with other embedded cells.
                 if (cloneMap[embed]) {
@@ -5312,7 +6131,7 @@ joint.dia.Graph = Backbone.Model.extend({
                 return newEmbeds;
             }, []);
 
-            if (!_.isEmpty(embeds)) {
+            if (!joint.util.isEmpty(embeds)) {
                 clone.set('embeds', embeds);
             }
         });
@@ -5345,7 +6164,7 @@ joint.dia.Graph = Backbone.Model.extend({
         var elements = [];
         var links = [];
 
-        _.each(cells, function(cell) {
+        joint.util.toArray(cells).forEach(function(cell) {
             if (!cellMap[cell.id]) {
                 subgraph.push(cell);
                 cellMap[cell.id] = cell;
@@ -5358,7 +6177,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
             if (opt.deep) {
                 var embeds = cell.getEmbeddedCells({ deep: true });
-                _.each(embeds, function(embed) {
+                embeds.forEach(function(embed) {
                     if (!cellMap[embed.id]) {
                         subgraph.push(embed);
                         cellMap[embed.id] = embed;
@@ -5372,7 +6191,7 @@ joint.dia.Graph = Backbone.Model.extend({
             }
         });
 
-        _.each(links, function(link) {
+        links.forEach(function(link) {
             // For links, return their source & target (if they are elements - not points).
             var source = link.get('source');
             var target = link.get('target');
@@ -5390,10 +6209,10 @@ joint.dia.Graph = Backbone.Model.extend({
             }
         }, this);
 
-        _.each(elements, function(element) {
+        elements.forEach(function(element) {
             // For elements, include their connected links if their source/target is in the subgraph;
             var links = this.getConnectedLinks(element, opt);
-            _.each(links, function(link) {
+            links.forEach(function(link) {
                 var source = link.get('source');
                 var target = link.get('target');
                 if (!cellMap[link.id] && source.id && cellMap[source.id] && target.id && cellMap[target.id]) {
@@ -5418,7 +6237,7 @@ joint.dia.Graph = Backbone.Model.extend({
             if (el !== element) {
                 res.push(el);
             }
-        }, _.extend({}, opt, { inbound: true }));
+        }, joint.util.assign({}, opt, { inbound: true }));
         return res;
     },
 
@@ -5462,7 +6281,7 @@ joint.dia.Graph = Backbone.Model.extend({
             if (!visited[next.id]) {
                 visited[next.id] = true;
                 if (iteratee(next, distance[next.id]) === false) return;
-                _.each(this.getNeighbors(next, opt), function(neighbor) {
+                this.getNeighbors(next, opt).forEach(function(neighbor) {
                     distance[neighbor.id] = distance[next.id] + 1;
                     queue.push(neighbor);
                 });
@@ -5483,7 +6302,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (iteratee(element, distance) === false) return;
         visited[element.id] = true;
 
-        _.each(this.getNeighbors(element, opt), function(neighbor) {
+        this.getNeighbors(element, opt).forEach(function(neighbor) {
             if (!visited[neighbor.id]) {
                 this.dfs(neighbor, iteratee, opt, visited, distance + 1);
             }
@@ -5494,11 +6313,11 @@ joint.dia.Graph = Backbone.Model.extend({
     getSources: function() {
 
         var sources = [];
-        _.each(this._nodes, function(exists, node) {
-            if (!this._in[node] || _.isEmpty(this._in[node])) {
+        joint.util.forIn(this._nodes, function(exists, node) {
+            if (!this._in[node] || joint.util.isEmpty(this._in[node])) {
                 sources.push(this.getCell(node));
             }
-        }, this);
+        }.bind(this));
         return sources;
     },
 
@@ -5506,24 +6325,24 @@ joint.dia.Graph = Backbone.Model.extend({
     getSinks: function() {
 
         var sinks = [];
-        _.each(this._nodes, function(exists, node) {
-            if (!this._out[node] || _.isEmpty(this._out[node])) {
+        joint.util.forIn(this._nodes, function(exists, node) {
+            if (!this._out[node] || joint.util.isEmpty(this._out[node])) {
                 sinks.push(this.getCell(node));
             }
-        }, this);
+        }.bind(this));
         return sinks;
     },
 
     // Return `true` if `element` is a root. Time complexity: O(1).
     isSource: function(element) {
 
-        return !this._in[element.id] || _.isEmpty(this._in[element.id]);
+        return !this._in[element.id] || joint.util.isEmpty(this._in[element.id]);
     },
 
     // Return `true` if `element` is a leaf. Time complexity: O(1).
     isSink: function(element) {
 
-        return !this._out[element.id] || _.isEmpty(this._out[element.id]);
+        return !this._out[element.id] || joint.util.isEmpty(this._out[element.id]);
     },
 
     // Return `true` is `elementB` is a successor of `elementA`. Return `false` otherwise.
@@ -5563,25 +6382,25 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var inbound = opt.inbound;
         var outbound = opt.outbound;
-        if (_.isUndefined(inbound) && _.isUndefined(outbound)) {
+        if (inbound === undefined && outbound === undefined) {
             inbound = outbound = true;
         }
 
         var isNeighbor = false;
 
-        _.each(this.getConnectedLinks(elementA, opt), function(link) {
+        this.getConnectedLinks(elementA, opt).forEach(function(link) {
 
             var source = link.get('source');
             var target = link.get('target');
 
             // Discard if it is a point.
-            if (inbound && _.has(source, 'id') && source.id === elementB.id) {
+            if (inbound && joint.util.has(source, 'id') && source.id === elementB.id) {
                 isNeighbor = true;
                 return false;
             }
 
             // Discard if it is a point, or if the neighbor was already added.
-            if (outbound && _.has(target, 'id') && target.id === elementB.id) {
+            if (outbound && joint.util.has(target, 'id') && target.id === elementB.id) {
                 isNeighbor = true;
                 return false;
             }
@@ -5593,22 +6412,22 @@ joint.dia.Graph = Backbone.Model.extend({
     // Disconnect links connected to the cell `model`.
     disconnectLinks: function(model, options) {
 
-        _.each(this.getConnectedLinks(model), function(link) {
+        this.getConnectedLinks(model).forEach(function(link) {
 
-            link.set(link.get('source').id === model.id ? 'source' : 'target', g.point(0, 0), options);
+            link.set(link.get('source').id === model.id ? 'source' : 'target', { x: 0, y: 0 }, options);
         });
     },
 
     // Remove links connected to the cell `model` completely.
     removeLinks: function(model, options) {
 
-        _.invoke(this.getConnectedLinks(model), 'remove', options);
+        joint.util.invoke(this.getConnectedLinks(model), 'remove', options);
     },
 
     // Find all elements at given point
     findModelsFromPoint: function(p) {
 
-        return _.filter(this.getElements(), function(el) {
+        return this.getElements().filter(function(el) {
             return el.getBBox().containsPoint(p);
         });
     },
@@ -5617,11 +6436,11 @@ joint.dia.Graph = Backbone.Model.extend({
     findModelsInArea: function(rect, opt) {
 
         rect = g.rect(rect);
-        opt = _.defaults(opt || {}, { strict: false });
+        opt = joint.util.defaults(opt || {}, { strict: false });
 
         var method = opt.strict ? 'containsRect' : 'intersect';
 
-        return _.filter(this.getElements(), function(el) {
+        return this.getElements().filter(function(el) {
             return rect[method](el.getBBox());
         });
     },
@@ -5629,7 +6448,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Find all elements under the given element.
     findModelsUnderElement: function(element, opt) {
 
-        opt = _.defaults(opt || {}, { searchBy: 'bbox' });
+        opt = joint.util.defaults(opt || {}, { searchBy: 'bbox' });
 
         var bbox = element.getBBox();
         var elements = (opt.searchBy == 'bbox')
@@ -5637,8 +6456,8 @@ joint.dia.Graph = Backbone.Model.extend({
             : this.findModelsFromPoint(bbox[opt.searchBy]());
 
         // don't account element itself or any of its descendents
-        return _.reject(elements, function(el) {
-            return element.id == el.id || el.isEmbeddedIn(element);
+        return elements.filter(function(el) {
+            return element.id !== el.id && !el.isEmbeddedIn(element);
         });
     },
 
@@ -5653,7 +6472,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Links are being ignored.
     getCellsBBox: function(cells, opt) {
 
-        return _.reduce(cells, function(memo, cell) {
+        return joint.util.toArray(cells).reduce(function(memo, cell) {
             if (cell.isLink()) return memo;
             if (memo) {
                 return memo.union(cell.getBBox(opt));
@@ -5666,11 +6485,11 @@ joint.dia.Graph = Backbone.Model.extend({
     translate: function(dx, dy, opt) {
 
         // Don't translate cells that are embedded in any other cell.
-        var cells = _.reject(this.getCells(), function(cell) {
-            return cell.isEmbedded();
+        var cells = this.getCells().filter(function(cell) {
+            return !cell.isEmbedded();
         });
 
-        _.invoke(cells, 'translate', dx, dy, opt);
+        joint.util.invoke(cells, 'translate', dx, dy, opt);
     },
 
     resize: function(width, height, opt) {
@@ -5686,7 +6505,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (bbox) {
             var sx = Math.max(width / bbox.width, 0);
             var sy = Math.max(height / bbox.height, 0);
-            _.invoke(cells, 'scale', sx, sy, bbox.origin(), opt);
+            joint.util.invoke(cells, 'scale', sx, sy, bbox.origin(), opt);
         }
 
         return this;
@@ -5697,7 +6516,7 @@ joint.dia.Graph = Backbone.Model.extend({
         data = data || {};
         this._batches[name] = (this._batches[name] || 0) + 1;
 
-        return this.trigger('batch:start', _.extend({}, data, { batchName: name }));
+        return this.trigger('batch:start', joint.util.assign({}, data, { batchName: name }));
     },
 
     stopBatch: function(name, data) {
@@ -5705,24 +6524,26 @@ joint.dia.Graph = Backbone.Model.extend({
         data = data || {};
         this._batches[name] = (this._batches[name] || 0) - 1;
 
-        return this.trigger('batch:stop', _.extend({}, data, { batchName: name }));
+        return this.trigger('batch:stop', joint.util.assign({}, data, { batchName: name }));
     },
 
     hasActiveBatch: function(name) {
         if (name) {
             return this._batches[name];
         } else {
-            return _.any(this._batches, function(batches) { return batches > 0; });
+            return joint.util.toArray(this._batches).some(function(batches) {
+                return batches > 0;
+            });
         }
     }
 });
 
 joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'removeCells'], 'cells');
 
-(function(joint, _, g, $) {
+(function(joint, _, g, $, util) {
 
     function isPercentage(val) {
-        return _.isString(val) && val.slice(-1) === '%';
+        return util.isString(val) && val.slice(-1) === '%';
     }
 
     function setWrapper(attrName, dimension) {
@@ -5797,48 +6618,52 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
             set: 'xlink:href'
         },
 
+        xlinkShow: {
+            set: 'xlink:show'
+        },
+
         xmlSpace: {
             set: 'xml:space'
         },
 
         filter: {
-            qualify: _.isPlainObject,
+            qualify: util.isPlainObject,
             set: function(filter) {
                 return 'url(#' + this.paper.defineFilter(filter) + ')';
             }
         },
 
         fill: {
-            qualify: _.isPlainObject,
+            qualify: util.isPlainObject,
             set: function(fill) {
                 return 'url(#' + this.paper.defineGradient(fill) + ')';
             }
         },
 
         stroke: {
-            qualify: _.isPlainObject,
+            qualify: util.isPlainObject,
             set: function(stroke) {
                 return 'url(#' + this.paper.defineGradient(stroke) + ')';
             }
         },
 
         sourceMarker: {
-            qualify: _.isPlainObject,
+            qualify: util.isPlainObject,
             set: function(marker) {
                 return { 'marker-start': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
 
         targetMarker: {
-            qualify: _.isPlainObject,
+            qualify: util.isPlainObject,
             set: function(marker) {
-                marker = _.assign({ transform: 'rotate(180)' }, marker);
+                marker = util.assign({ transform: 'rotate(180)' }, marker);
                 return { 'marker-end': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
 
         vertexMarker: {
-            qualify: _.isPlainObject,
+            qualify: util.isPlainObject,
             set: function(marker) {
                 return { 'marker-mid': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
@@ -5849,7 +6674,7 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
                 var $node = $(node);
                 var cacheName = 'joint-text';
                 var cache = $node.data(cacheName);
-                var textAttrs = _.pick(attrs, 'lineHeight', 'annotations', 'textPath');
+                var textAttrs = joint.util.pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'eol');
                 var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
                 var textHash = JSON.stringify([text, textAttrs]);
                 // Update the text only if there was a change in the string
@@ -5868,7 +6693,7 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
         },
 
         textWrap: {
-            qualify: _.isPlainObject,
+            qualify: util.isPlainObject,
             set: function(value, refBBox, node, attrs) {
                 // option `width`
                 var width = value.width || 0;
@@ -5930,7 +6755,7 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
 
         // `style` attribute is special in the sense that it sets the CSS style of the subelement.
         style: {
-            qualify: _.isPlainObject,
+            qualify: util.isPlainObject,
             set: function(styles, refBBox, node) {
                 $(node).css(styles);
             }
@@ -6011,6 +6836,15 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
 
         yAlignment: {
             offset: offsetWrapper('y', 'height', 'bottom')
+        },
+
+        resetOffset: {
+            offset: function(val, nodeBBox) {
+                return (val)
+                    ? { x: -nodeBBox.x, y: -nodeBBox.y }
+                    : { x: 0, y: 0 };
+            }
+
         }
     };
 
@@ -6029,7 +6863,7 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
     attributesNS['x-alignment'] = attributesNS.xAlignment;
     attributesNS['y-alignment'] = attributesNS.yAlignment;
 
-})(joint, _, g, $);
+})(joint, _, g, $, joint.util);
 
 
 // joint.dia.Cell base model.
@@ -6037,20 +6871,20 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
 
 joint.dia.Cell = Backbone.Model.extend({
 
-    // This is the same as Backbone.Model with the only difference that is uses _.merge
+    // This is the same as Backbone.Model with the only difference that is uses joint.util.merge
     // instead of just _.extend. The reason is that we want to mixin attributes set in upper classes.
     constructor: function(attributes, options) {
 
         var defaults;
         var attrs = attributes || {};
-        this.cid = _.uniqueId('c');
+        this.cid = joint.util.uniqueId('c');
         this.attributes = {};
         if (options && options.collection) this.collection = options.collection;
         if (options && options.parse) attrs = this.parse(attrs, options) || {};
-        if ((defaults = _.result(this, 'defaults'))) {
+        if ((defaults = joint.util.result(this, 'defaults'))) {
             //<custom code>
-            // Replaced the call to _.defaults with _.merge.
-            attrs = _.merge({}, defaults, attrs);
+            // Replaced the call to _.defaults with joint.util.merge.
+            attrs = joint.util.merge({}, defaults, attrs);
             //</custom code>
         }
         this.set(attrs, options);
@@ -6071,26 +6905,26 @@ joint.dia.Cell = Backbone.Model.extend({
 
         // Loop through all the attributes and
         // omit the default attributes as they are implicitly reconstructable by the cell 'type'.
-        _.each(attrs, function(attr, selector) {
+        joint.util.forIn(attrs, function(attr, selector) {
 
             var defaultAttr = defaultAttrs[selector];
 
-            _.each(attr, function(value, name) {
+            joint.util.forIn(attr, function(value, name) {
 
                 // attr is mainly flat though it might have one more level (consider the `style` attribute).
                 // Check if the `value` is object and if yes, go one level deep.
-                if (_.isObject(value) && !_.isArray(value)) {
+                if (joint.util.isObject(value) && !Array.isArray(value)) {
 
-                    _.each(value, function(value2, name2) {
+                    joint.util.forIn(value, function(value2, name2) {
 
-                        if (!defaultAttr || !defaultAttr[name] || !_.isEqual(defaultAttr[name][name2], value2)) {
+                        if (!defaultAttr || !defaultAttr[name] || !joint.util.isEqual(defaultAttr[name][name2], value2)) {
 
                             finalAttrs[selector] = finalAttrs[selector] || {};
                             (finalAttrs[selector][name] || (finalAttrs[selector][name] = {}))[name2] = value2;
                         }
                     });
 
-                } else if (!defaultAttr || !_.isEqual(defaultAttr[name], value)) {
+                } else if (!defaultAttr || !joint.util.isEqual(defaultAttr[name], value)) {
                     // `value` is not an object, default attribute for such a selector does not exist
                     // or it is different than the attribute value set on the model.
 
@@ -6100,7 +6934,7 @@ joint.dia.Cell = Backbone.Model.extend({
             });
         });
 
-        var attributes = _.cloneDeep(_.omit(this.attributes, 'attrs'));
+        var attributes = joint.util.cloneDeep(joint.util.omit(this.attributes, 'attrs'));
         //var attributes = JSON.parse(JSON.stringify(_.omit(this.attributes, 'attrs')));
         attributes.attrs = finalAttrs;
 
@@ -6135,12 +6969,12 @@ joint.dia.Cell = Backbone.Model.extend({
 
         // Collect ports from the `attrs` object.
         var ports = {};
-        _.each(this.get('attrs'), function(attrs, selector) {
+        joint.util.forIn(this.get('attrs'), function(attrs, selector) {
 
             if (attrs && attrs.port) {
 
                 // `port` can either be directly an `id` or an object containing an `id` (and potentially other data).
-                if (!_.isUndefined(attrs.port.id)) {
+                if (attrs.port.id !== undefined) {
                     ports[attrs.port.id] = attrs.port;
                 } else {
                     ports[attrs.port] = { id: attrs.port };
@@ -6151,22 +6985,22 @@ joint.dia.Cell = Backbone.Model.extend({
         // Collect ports that have been removed (compared to the previous ports) - if any.
         // Use hash table for quick lookup.
         var removedPorts = {};
-        _.each(previousPorts, function(port, id) {
+        joint.util.forIn(previousPorts, function(port, id) {
 
             if (!ports[id]) removedPorts[id] = true;
         });
 
         // Remove all the incoming/outgoing links that have source/target port set to any of the removed ports.
-        if (this.graph && !_.isEmpty(removedPorts)) {
+        if (this.graph && !joint.util.isEmpty(removedPorts)) {
 
             var inboundLinks = this.graph.getConnectedLinks(this, { inbound: true });
-            _.each(inboundLinks, function(link) {
+            inboundLinks.forEach(function(link) {
 
                 if (removedPorts[link.get('target').port]) link.remove();
             });
 
             var outboundLinks = this.graph.getConnectedLinks(this, { outbound: true });
-            _.each(outboundLinks, function(link) {
+            outboundLinks.forEach(function(link) {
 
                 if (removedPorts[link.get('source').port]) link.remove();
             });
@@ -6194,7 +7028,7 @@ joint.dia.Cell = Backbone.Model.extend({
             parentCell.unembed(this);
         }
 
-        _.invoke(this.getEmbeddedCells(), 'remove', opt);
+        joint.util.invoke(this.getEmbeddedCells(), 'remove', opt);
 
         this.trigger('remove', this, this.collection, opt);
 
@@ -6218,7 +7052,7 @@ joint.dia.Cell = Backbone.Model.extend({
             if (opt.deep) {
 
                 var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
-                _.each(cells, function(cell) { cell.set('z', ++z, opt); });
+                cells.forEach(function(cell) { cell.set('z', ++z, opt); });
 
             }
 
@@ -6241,7 +7075,7 @@ joint.dia.Cell = Backbone.Model.extend({
             if (opt.deep) {
 
                 var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
-                _.eachRight(cells, function(cell) { cell.set('z', z--, opt); });
+                cells.reverse().forEach(function(cell) { cell.set('z', z--, opt); });
             }
 
             this.set('z', z, opt).stopBatch('to-back');
@@ -6260,13 +7094,13 @@ joint.dia.Cell = Backbone.Model.extend({
 
             this.startBatch('embed');
 
-            var embeds = _.clone(this.get('embeds') || []);
+            var embeds = joint.util.assign([], this.get('embeds'));
 
             // We keep all element ids after link ids.
             embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
 
             cell.set('parent', this.id, opt);
-            this.set('embeds', _.uniq(embeds), opt);
+            this.set('embeds', joint.util.uniq(embeds), opt);
 
             this.stopBatch('embed');
         }
@@ -6279,7 +7113,7 @@ joint.dia.Cell = Backbone.Model.extend({
         this.startBatch('unembed');
 
         cell.unset('parent', opt);
-        this.set('embeds', _.without(this.get('embeds'), cell.id), opt);
+        this.set('embeds', joint.util.without(this.get('embeds'), cell.id), opt);
 
         this.stopBatch('unembed');
 
@@ -6342,14 +7176,14 @@ joint.dia.Cell = Backbone.Model.extend({
 
                     // depthFirst algorithm
                     cells = this.getEmbeddedCells();
-                    _.each(cells, function(cell) {
+                    cells.forEach(function(cell) {
                         cells.push.apply(cells, cell.getEmbeddedCells(opt));
                     });
                 }
 
             } else {
 
-                cells = _.map(this.get('embeds'), this.graph.getCell, this.graph);
+                cells = joint.util.toArray(this.get('embeds')).map(this.graph.getCell, this.graph);
             }
 
             return cells;
@@ -6359,10 +7193,10 @@ joint.dia.Cell = Backbone.Model.extend({
 
     isEmbeddedIn: function(cell, opt) {
 
-        var cellId = _.isString(cell) ? cell : cell.id;
+        var cellId = joint.util.isString(cell) ? cell : cell.id;
         var parentId = this.get('parent');
 
-        opt = _.defaults({ deep: true }, opt);
+        opt = joint.util.defaults({ deep: true }, opt);
 
         // See getEmbeddedCells().
         if (this.graph && opt.deep) {
@@ -6415,7 +7249,7 @@ joint.dia.Cell = Backbone.Model.extend({
             // Deep cloning.
 
             // For a deep clone, simply call `graph.cloneCells()` with the cell and all its embedded cells.
-            return _.values(joint.dia.Graph.prototype.cloneCells.call(null, [this].concat(this.getEmbeddedCells({ deep: true }))));
+            return joint.util.toArray(joint.dia.Graph.prototype.cloneCells.call(null, [this].concat(this.getEmbeddedCells({ deep: true }))));
         }
     },
 
@@ -6433,9 +7267,9 @@ joint.dia.Cell = Backbone.Model.extend({
     prop: function(props, value, opt) {
 
         var delim = '/';
-        var isString = _.isString(props);
+        var isString = joint.util.isString(props);
 
-        if (isString || _.isArray(props)) {
+        if (isString || Array.isArray(props)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
 
@@ -6475,7 +7309,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
                 for (var i = 1; i < pathArrayLength; i++) {
                     var pathItem = pathArray[i];
-                    var isArrayIndex = _.isFinite(isString ? Number(pathItem) : pathItem);
+                    var isArrayIndex = Number.isFinite(isString ? Number(pathItem) : pathItem);
                     initializer = initializer[prevProperty] = isArrayIndex ? [] : {};
                     prevProperty = pathItem;
                 }
@@ -6483,13 +7317,13 @@ joint.dia.Cell = Backbone.Model.extend({
                 // Fill update with the `value` on `path`.
                 update = joint.util.setByPath(update, pathArray, value, '/');
 
-                var baseAttributes = _.merge({}, this.attributes);
+                var baseAttributes = joint.util.merge({}, this.attributes);
                 // if rewrite mode enabled, we replace value referenced by path with
                 // the new one (we don't merge).
                 opt.rewrite && joint.util.unsetByPath(baseAttributes, path, '/');
 
                 // Merge update with the model attributes.
-                var attributes = _.merge(baseAttributes, update);
+                var attributes = joint.util.merge(baseAttributes, update);
                 // Finally, set the property to the updated attributes.
                 return this.set(property, attributes[property], opt);
 
@@ -6499,7 +7333,7 @@ joint.dia.Cell = Backbone.Model.extend({
             }
         }
 
-        return this.set(_.merge({}, this.attributes, props), value);
+        return this.set(joint.util.merge({}, this.attributes, props), value);
     },
 
     // A convient way to unset nested properties
@@ -6511,7 +7345,7 @@ joint.dia.Cell = Backbone.Model.extend({
         opt = opt || {};
         opt.dirty = true;
 
-        var pathArray = _.isArray(path) ? path : path.split('/');
+        var pathArray = Array.isArray(path) ? path : path.split('/');
 
         if (pathArray.length === 1) {
             // A top level property
@@ -6521,7 +7355,7 @@ joint.dia.Cell = Backbone.Model.extend({
         // A nested property
         var property = pathArray[0];
         var nestedPath = pathArray.slice(1);
-        var propertyValue = _.merge({}, this.get(property));
+        var propertyValue = joint.util.merge({}, this.get(property));
 
         joint.util.unsetByPath(propertyValue, nestedPath, '/');
 
@@ -6531,14 +7365,14 @@ joint.dia.Cell = Backbone.Model.extend({
     // A convenient way to set nested attributes.
     attr: function(attrs, value, opt) {
 
-        var args = Array.prototype.slice.call(arguments);
+        var args = Array.from(arguments);
         if (args.length === 0) {
             return this.get('attrs');
         }
 
-        if (_.isArray(attrs)) {
+        if (Array.isArray(attrs)) {
             args[0] = ['attrs'].concat(attrs);
-        } else if (_.isString(attrs)) {
+        } else if (joint.util.isString(attrs)) {
             // Get/set an attribute by a special path syntax that delimits
             // nested objects by the colon character.
             args[0] = 'attrs/' + attrs;
@@ -6554,7 +7388,7 @@ joint.dia.Cell = Backbone.Model.extend({
     // A convenient way to unset nested attributes
     removeAttr: function(path, opt) {
 
-        if (_.isArray(path)) {
+        if (Array.isArray(path)) {
 
             return this.removeProp(['attrs'].concat(path));
         }
@@ -6573,12 +7407,12 @@ joint.dia.Cell = Backbone.Model.extend({
             valueFunction: joint.util.interpolate.number
         };
 
-        opt = _.extend(defaults, opt);
+        opt = joint.util.assign(defaults, opt);
 
         var firstFrameTime = 0;
         var interpolatingFunction;
 
-        var setter = _.bind(function(runtime) {
+        var setter = function(runtime) {
 
             var id, progress, propertyValue;
 
@@ -6601,9 +7435,9 @@ joint.dia.Cell = Backbone.Model.extend({
 
             if (!id) this.trigger('transition:end', this, path);
 
-        }, this);
+        }.bind(this);
 
-        var initiator = _.bind(function(callback) {
+        var initiator = function(callback) {
 
             this.stopTransitions(path);
 
@@ -6613,13 +7447,13 @@ joint.dia.Cell = Backbone.Model.extend({
 
             this.trigger('transition:start', this, path);
 
-        }, this);
+        }.bind(this);
 
-        return _.delay(initiator, opt.delay, setter);
+        return setTimeout(initiator, opt.delay, setter);
     },
 
     getTransitions: function() {
-        return _.keys(this._transitionIds);
+        return Object.keys(this._transitionIds);
     },
 
     stopTransitions: function(path, delim) {
@@ -6628,11 +7462,11 @@ joint.dia.Cell = Backbone.Model.extend({
 
         var pathArray = path && path.split(delim);
 
-        _(this._transitionIds).keys().filter(pathArray && function(key) {
+        Object.keys(this._transitionIds).filter(pathArray && function(key) {
 
-            return _.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
+            return joint.util.isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
 
-        }).each(function(key) {
+        }).forEach(function(key) {
 
             joint.util.cancelFrame(this._transitionIds[key]);
 
@@ -6672,12 +7506,12 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     startBatch: function(name, opt) {
-        if (this.graph) { this.graph.startBatch(name, _.extend({}, opt, { cell: this })); }
+        if (this.graph) { this.graph.startBatch(name, joint.util.assign({}, opt, { cell: this })); }
         return this;
     },
 
     stopBatch: function(name, opt) {
-        if (this.graph) { this.graph.stopBatch(name, _.extend({}, opt, { cell: this })); }
+        if (this.graph) { this.graph.stopBatch(name, joint.util.assign({}, opt, { cell: this })); }
         return this;
     }
 
@@ -6692,8 +7526,8 @@ joint.dia.Cell = Backbone.Model.extend({
 
     define: function(type, defaults, protoProps, staticProps) {
 
-        protoProps = _.assign({
-            defaults: _.defaultsDeep({ type: type }, defaults, this.prototype.defaults)
+        protoProps = joint.util.assign({
+            defaults: joint.util.defaultsDeep({ type: type }, defaults, this.prototype.defaults)
         }, protoProps);
 
         var Cell = this.extend(protoProps, staticProps);
@@ -6720,7 +7554,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         if (type) {
 
-            _.each(type.toLowerCase().split('.'), function(value, index, list) {
+            type.toLowerCase().split('.').forEach(function(value, index, list) {
                 classNames.push('type-' + list.slice(0, index + 1).join('-'));
             });
         }
@@ -6746,7 +7580,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     init: function() {
 
-        _.bindAll(this, 'remove', 'update');
+        joint.util.bindAll(this, 'remove', 'update');
 
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);
@@ -6773,12 +7607,12 @@ joint.dia.CellView = joint.mvc.View.extend({
     // Example: `can('vertexMove')`, `can('labelMove')`.
     can: function(feature) {
 
-        var interactive = _.isFunction(this.options.interactive)
+        var interactive = joint.util.isFunction(this.options.interactive)
                             ? this.options.interactive(this)
                             : this.options.interactive;
 
-        return (_.isObject(interactive) && interactive[feature] !== false) ||
-                (_.isBoolean(interactive) && interactive !== false);
+        return (joint.util.isObject(interactive) && interactive[feature] !== false) ||
+                (joint.util.isBoolean(interactive) && interactive !== false);
     },
 
     findBySelector: function(selector, root) {
@@ -6813,7 +7647,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         var isMagnet = !!el;
 
         el = el || this.el;
-        var bbox = V(el).bbox(false, this.paper.viewport);
+        var bbox = V(el).getBBox({ target: this.paper.viewport });
 
         var strokeWidth;
         if (isMagnet) {
@@ -6832,7 +7666,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     getBBox: function() {
 
-        return g.rect(this.vel.bbox());
+        return this.vel.getBBox({ target: this.paper.svg });
     },
 
     highlight: function(el, opt) {
@@ -6920,7 +7754,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     setNodeAttributes: function(node, attrs) {
 
-        if (!_.isEmpty(attrs)) {
+        if (!joint.util.isEmpty(attrs)) {
             if (node instanceof SVGElement) {
                 V(node).attr(attrs);
             } else {
@@ -6939,8 +7773,8 @@ joint.dia.CellView = joint.mvc.View.extend({
             if (!attrs.hasOwnProperty(attrName)) continue;
             attrVal = attrs[attrName];
             def = this.getAttributeDefinition(attrName);
-            if (def && (!_.isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs))) {
-                if (_.isString(def.set)) {
+            if (def && (!joint.util.isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs))) {
+                if (joint.util.isString(def.set)) {
                     normalAttrs || (normalAttrs = {});
                     normalAttrs[def.set] = attrVal;
                 }
@@ -6959,15 +7793,15 @@ joint.dia.CellView = joint.mvc.View.extend({
             attrName = relatives[i];
             def = relatives[i+1];
             attrVal = attrs[attrName];
-            if (_.isFunction(def.set)) {
+            if (joint.util.isFunction(def.set)) {
                 setAttrs || (setAttrs = {});
                 setAttrs[attrName] = attrVal;
             }
-            if (_.isFunction(def.position)) {
+            if (joint.util.isFunction(def.position)) {
                 positionAttrs || (positionAttrs = {});
                 positionAttrs[attrName] = attrVal;
             }
-            if (_.isFunction(def.offset)) {
+            if (joint.util.isFunction(def.offset)) {
                 offsetAttrs || (offsetAttrs = {});
                 offsetAttrs[attrName] = attrVal;
             }
@@ -7000,8 +7834,8 @@ joint.dia.CellView = joint.mvc.View.extend({
             // which will affect the node dimensions based on the reference bounding
             // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
             var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs);
-            if (_.isObject(setResult)) {
-                _.extend(nodeAttrs, setResult);
+            if (joint.util.isObject(setResult)) {
+                joint.util.assign(nodeAttrs, setResult);
             } else if (setResult !== undefined) {
                 nodeAttrs[attrName] = setResult;
             }
@@ -7020,7 +7854,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         var nodeMatrix = V.transformStringToMatrix(nodeTransform);
         var nodePosition = g.Point(nodeMatrix.e, nodeMatrix.f);
         if (nodeTransform) {
-            nodeAttrs = _.omit(nodeAttrs, 'transform');
+            nodeAttrs = joint.util.omit(nodeAttrs, 'transform');
             nodeMatrix.e = nodeMatrix.f = 0;
         }
 
@@ -7117,9 +7951,9 @@ joint.dia.CellView = joint.mvc.View.extend({
                 if (prevNodeAttrs) {
                     if (!prevNodeAttrs.merged) {
                         prevNodeAttrs.merged = true;
-                        prevNodeAttrs.attributes = _.cloneDeep(prevNodeAttrs.attributes);
+                        prevNodeAttrs.attributes = joint.util.cloneDeep(prevNodeAttrs.attributes);
                     }
-                    _.merge(prevNodeAttrs.attributes, nodeAttrs);
+                    joint.util.merge(prevNodeAttrs.attributes, nodeAttrs);
                 } else {
                     nodesAttrs[nodeId] = {
                         attributes: nodeAttrs,
@@ -7194,7 +8028,10 @@ joint.dia.CellView = joint.mvc.View.extend({
 
                 // If an element in the list is positioned relative to this one, then
                 // we want to insert this one before it in the list.
-                var itemIndex = _.findIndex(relativeItems, { refNode: node });
+                var itemIndex = relativeItems.findIndex(function(item) {
+                    return item.refNode === node;
+                });
+
                 if (itemIndex > -1) {
                     relativeItems.splice(itemIndex, 0, item);
                 } else {
@@ -7217,7 +8054,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                 // or to the root `<g>` element if no rotatable group present if reference node present.
                 // Uses the bounding box provided.
                 refBBox = bboxCache[refNodeId] = (refNode)
-                    ? V(refNode).bbox(false, (opt.rotatableNode || rootNode))
+                    ? V(refNode).getBBox({ target: (opt.rotatableNode || rootNode) })
                     : opt.rootBBox;
             }
 
@@ -7242,9 +8079,9 @@ joint.dia.CellView = joint.mvc.View.extend({
         processedAttrs.position || (processedAttrs.position = {});
         processedAttrs.offset || (processedAttrs.offset = {});
 
-        _.extend(processedAttrs.set, roProcessedAttrs.set);
-        _.extend(processedAttrs.position, roProcessedAttrs.position);
-        _.extend(processedAttrs.offset, roProcessedAttrs.offset);
+        joint.util.assign(processedAttrs.set, roProcessedAttrs.set);
+        joint.util.assign(processedAttrs.position, roProcessedAttrs.position);
+        joint.util.assign(processedAttrs.offset, roProcessedAttrs.offset);
 
         // Handle also the special transform property.
         var transform = processedAttrs.normal && processedAttrs.normal.transform;
@@ -7331,6 +8168,11 @@ joint.dia.CellView = joint.mvc.View.extend({
         this.notify('cell:contextmenu', evt, x, y);
     },
 
+    event: function(evt, eventName, x, y) {
+
+        this.notify(eventName, evt, x, y);
+    },
+
     setInteractivity: function(value) {
 
         this.options.interactive = value;
@@ -7368,7 +8210,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
     position: function(x, y, opt) {
 
-        var isSetter = _.isNumber(y);
+        var isSetter = joint.util.isNumber(y);
 
         opt = (isSetter ? opt : x) || {};
 
@@ -7392,7 +8234,14 @@ joint.dia.Element = joint.dia.Cell.extend({
                 y += parentPosition.y;
             }
 
-            return this.set('position', { x: x, y: y }, opt);
+            if (opt.deep) {
+                var currentPosition = this.get('position');
+                this.translate(x - currentPosition.x, y - currentPosition.y, opt);
+            } else {
+                this.set('position', { x: x, y: y }, opt);
+            }
+
+            return this;
 
         } else { // Getter returns a geometry point.
 
@@ -7460,9 +8309,9 @@ joint.dia.Element = joint.dia.Cell.extend({
 
         if (opt.transition) {
 
-            if (!_.isObject(opt.transition)) opt.transition = {};
+            if (!joint.util.isObject(opt.transition)) opt.transition = {};
 
-            this.transition('position', translatedPosition, _.extend({}, opt.transition, {
+            this.transition('position', translatedPosition, joint.util.assign({}, opt.transition, {
                 valueFunction: joint.util.interpolate.object
             }));
 
@@ -7472,7 +8321,7 @@ joint.dia.Element = joint.dia.Cell.extend({
         }
 
         // Recursively call `translate()` on all the embeds cells.
-        _.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
+        joint.util.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
 
         return this;
     },
@@ -7490,10 +8339,10 @@ joint.dia.Element = joint.dia.Cell.extend({
         }
         // Setter
         // (size, opt) signature
-        if (_.isObject(width)) {
+        if (joint.util.isObject(width)) {
             opt = height;
-            height = _.isNumber(width.height) ? width.height : currentSize.height;
-            width = _.isNumber(width.width) ? width.width : currentSize.width;
+            height = joint.util.isNumber(width.height) ? width.height : currentSize.height;
+            width = joint.util.isNumber(width.width) ? width.width : currentSize.width;
         }
 
         return this.resize(width, height, opt);
@@ -7636,7 +8485,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             if (opt.deep) {
                 // Recursively apply fitEmbeds on all embeds first.
-                _.invoke(embeddedCells, 'fitEmbeds', opt);
+                joint.util.invoke(embeddedCells, 'fitEmbeds', opt);
             }
 
             // Compute cell's size and position  based on the children bbox
@@ -7839,10 +8688,22 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             return;
         }
 
-        var scalableBbox = scalable.bbox(true);
+        // Getting scalable group's bbox.
+        // Due to a bug in webkit's native SVG .getBBox implementation, the bbox of groups with path children includes the paths' control points.
+        // To work around the issue, we need to check whether there are any path elements inside the scalable group.
+        var recursive = false;
+        if (scalable.node.getElementsByTagName('path').length > 0) {
+            // If scalable has at least one descendant that is a path, we need to switch to recursive bbox calculation.
+            // If there are no path descendants, group bbox calculation works and so we can use the (faster) native function directly.
+            recursive = true;
+        }
+        var scalableBBox = scalable.getBBox({ recursive: recursive });
+
         // Make sure `scalableBbox.width` and `scalableBbox.height` are not zero which can happen if the element does not have any content. By making
         // the width/height 1, we prevent HTML errors of the type `scale(Infinity, Infinity)`.
-        scalable.attr('transform', 'scale(' + (size.width / (scalableBbox.width || 1)) + ',' + (size.height / (scalableBbox.height || 1)) + ')');
+        var sx = (size.width / (scalableBBox.width || 1));
+        var sy = (size.height / (scalableBBox.height || 1));
+        scalable.attr('transform', 'scale(' + sx + ',' + sy + ')');
 
         // Now the interesting part. The goal is to be able to store the object geometry via just `x`, `y`, `angle`, `width` and `height`
         // Order of transformations is significant but we want to reconstruct the object always in the order:
@@ -7858,10 +8719,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (rotation && rotation !== 'null') {
 
             rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width / 2) + ',' + (size.height / 2) + ')');
-            var rotatableBbox = scalable.bbox(false, this.paper.viewport);
+            var rotatableBBox = scalable.getBBox({ target: this.paper.viewport });
 
             // Store new x, y and perform rotate() again against the new rotation origin.
-            model.set('position', { x: rotatableBbox.x, y: rotatableBbox.y }, opt);
+            model.set('position', { x: rotatableBBox.x, y: rotatableBBox.y }, opt);
             this.rotate();
         }
 
@@ -7932,7 +8793,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Move to front also all the inbound and outbound links that are connected
         // to any of the element descendant. If we bring to front only embedded elements,
         // links connected to them would stay in the background.
-        _.invoke(connectedLinks, 'set', 'z', maxZ + 1, { ui: true });
+        joint.util.invoke(connectedLinks, 'set', 'z', maxZ + 1, { ui: true });
 
         model.stopBatch('to-front');
 
@@ -8021,7 +8882,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             delete this._candidateEmbedView;
         }
 
-        _.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
+        joint.util.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
     },
 
     // Interaction. The controller part.
@@ -8258,7 +9119,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     applyToPoints: function(fn, opt) {
 
-        if (!_.isFunction(fn)) {
+        if (!joint.util.isFunction(fn)) {
             throw new TypeError('dia.Link: applyToPoints expects its first parameter to be a function.');
         }
 
@@ -8276,7 +9137,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         var vertices = this.get('vertices');
         if (vertices && vertices.length > 0) {
-            attrs.vertices = _.map(vertices, fn);
+            attrs.vertices = vertices.map(fn);
         }
 
         return this.set(attrs, opt);
@@ -8360,11 +9221,13 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         if (this.graph) {
 
-            var cells = _.compact([
+            var cells = [
                 this,
                 this.getSourceElement(), // null if source is a point
                 this.getTargetElement() // null if target is a point
-            ]);
+            ].filter(function(item) {
+                return !!item;
+            });
 
             connectionAncestor = this.graph.getCommonAncestor.apply(this.graph, cells);
         }
@@ -8375,7 +9238,7 @@ joint.dia.Link = joint.dia.Cell.extend({
     // Is source, target and the link itself embedded in a given element?
     isRelationshipEmbeddedIn: function(element) {
 
-        var elementId = _.isString(element) ? element : element.id;
+        var elementId = joint.util.isString(element) ? element : element.id;
         var ancestor = this.getRelationshipAncestor();
 
         return !!ancestor && (ancestor.id === elementId || ancestor.isEmbeddedIn(elementId));
@@ -8499,9 +9362,43 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.renderTools().updateToolsPosition();
     },
 
-    onLabelsChange: function() {
+    onLabelsChange: function(link, labels, opt) {
 
-        this.renderLabels().updateLabelPositions();
+        var requireRender = true;
+
+        var previousLabels = this.model.previous('labels');
+
+        if (previousLabels) {
+            // Here is an optimalization for cases when we know, that change does
+            // not require rerendering of all labels.
+            if (('propertyPathArray' in opt) && ('propertyValue' in opt)) {
+                // The label is setting by `prop()` method
+                var pathArray = opt.propertyPathArray || [];
+                var pathLength = pathArray.length;
+                if (pathLength > 1) {
+                    // We are changing a single label here e.g. 'labels/0/position'
+                    var labelExists = !!previousLabels[pathArray[1]];
+                    if (labelExists) {
+                        if (pathLength === 2) {
+                            // We are changing the entire label. Need to check if the
+                            // markup is also being changed.
+                            requireRender = ('markup' in Object(opt.propertyValue));
+                        } else if (pathArray[2] !== 'markup') {
+                            // We are changing a label property but not the markup
+                            requireRender = false;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (requireRender) {
+            this.renderLabels();
+        } else {
+            this.updateLabels();
+        }
+
+        this.updateLabelPositions();
     },
 
     // Rendering
@@ -8521,11 +9418,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var children = V(markup);
 
         // custom markup may contain only one children
-        if (!_.isArray(children)) children = [children];
+        if (!Array.isArray(children)) children = [children];
 
         // Cache all children elements for quicker access.
         this._V = {}; // vectorized markup;
-        _.each(children, function(child) {
+        children.forEach(function(child) {
 
             var className = child.attr('class');
 
@@ -8581,7 +9478,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
         var labelNodeInstance = V(labelTemplate());
-        var canLabelMove = this.can('labelMove');
 
         for (var i = 0; i < labelsCount; i++) {
 
@@ -8594,16 +9490,35 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             vLabelNode
                 .addClass('label')
-                .attr({
-                    'label-idx': i,
-                    'cursor': (canLabelMove ? 'move' : 'default')
-                })
+                .attr('label-idx', i)
                 .appendTo(vLabels);
+        }
+
+        this.updateLabels();
+
+        return this;
+    },
+
+    updateLabels: function() {
+
+        if (!this._V.labels) {
+            return this;
+        }
+
+        var labels = this.model.get('labels') || [];
+        var canLabelMove = this.can('labelMove');
+
+        for (var i = 0, n = labels.length; i < n; i++) {
+
+            var vLabel = this._labelCache[i];
+            var label = labels[i];
+
+            vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
 
             var labelAttrs = label.attrs;
-            if (!labelMarkup) {
+            if (!label.markup) {
                 // Default attributes to maintain backwards compatibility
-                labelAttrs = _.merge({
+                labelAttrs = joint.util.merge({
                     text: {
                         textAnchor: 'middle',
                         fontSize: 14,
@@ -8623,7 +9538,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 }, labelAttrs);
             }
 
-            this.updateDOMSubtreeAttributes(vLabelNode.node, labelAttrs);
+            this.updateDOMSubtreeAttributes(vLabel.node, labelAttrs, {
+                rootBBox: g.Rect(label.size)
+            });
         }
 
         return this;
@@ -8677,9 +9594,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
         var markupTemplate = joint.util.template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
 
-        _.each(this.model.get('vertices'), function(vertex, idx) {
+        joint.util.toArray(this.model.get('vertices')).forEach(function(vertex, idx) {
 
-            $markerVertices.append(V(markupTemplate(_.extend({ idx: idx }, vertex))).node);
+            $markerVertices.append(V(markupTemplate(joint.util.assign({ idx: idx }, vertex))).node);
         });
 
         return this;
@@ -8750,7 +9667,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var tx = opt.tx || 0;
             var ty = opt.ty || 0;
 
-            route = this.route =  _.map(this.route, function(point) {
+            route = this.route = joint.util.toArray(this.route).map(function(point) {
                 // translate point by point by delta translation
                 return g.point(point).offset(tx, ty);
             });
@@ -8778,14 +9695,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // cache source and target points
         var sourcePoint, targetPoint, sourceMarkerPoint, targetMarkerPoint;
+        var verticesArr = joint.util.toArray(vertices);
 
-        var firstVertex = _.first(vertices);
+        var firstVertex = verticesArr[0];
 
         sourcePoint = this.getConnectionPoint(
             'source', this.model.get('source'), firstVertex || this.model.get('target')
         ).round();
 
-        var lastVertex = _.last(vertices);
+        var lastVertex = verticesArr[verticesArr.length - 1];
 
         targetPoint = this.getConnectionPoint(
             'target', this.model.get('target'), lastVertex || sourcePoint
@@ -8800,7 +9718,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (this._V.markerSource) {
 
-            cache.sourceBBox = cache.sourceBBox || this._V.markerSource.bbox(true);
+            cache.sourceBBox = cache.sourceBBox || this._V.markerSource.getBBox();
 
             sourceMarkerPoint = g.point(sourcePoint).move(
                 firstVertex || targetPoint,
@@ -8810,7 +9728,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (this._V.markerTarget) {
 
-            cache.targetBBox = cache.targetBBox || this._V.markerTarget.bbox(true);
+            cache.targetBBox = cache.targetBBox || this._V.markerTarget.getBBox();
 
             targetMarkerPoint = g.point(targetPoint).move(
                 lastVertex || sourcePoint,
@@ -8847,74 +9765,77 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var labels = this.model.get('labels') || [];
         if (!labels.length) return this;
 
+        var samples;
         var connectionElement = this._V.connection.node;
         var connectionLength = connectionElement.getTotalLength();
 
         // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
         // In that case we won't update labels at all.
-        if (!_.isNaN(connectionLength)) {
+        if (Number.isNaN(connectionLength)) {
+            return this;
+        }
 
-            var samples;
+        for (var idx = 0, n = labels.length; idx < n; idx++) {
 
-            _.each(labels, function(label, idx) {
+            var label = labels[idx];
+            var position = label.position;
+            var isPositionObject = joint.util.isObject(position);
+            var labelCoordinates;
 
-                var position = label.position;
-                var distance = _.isObject(position) ? position.distance : position;
-                var offset = _.isObject(position) ? position.offset : { x: 0, y: 0 };
+            var distance = isPositionObject ? position.distance : position;
+            var offset = isPositionObject ? position.offset : { x: 0, y: 0 };
 
-                if (_.isFinite(distance)) {
-                    distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
-                    distance = (distance < 0) ? connectionLength + distance : distance;
-                    distance = (distance > 1) ? distance : connectionLength * distance;
-                } else {
-                    distance = connectionLength / 2;
+            if (Number.isFinite(distance)) {
+                distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
+                distance = (distance < 0) ? connectionLength + distance : distance;
+                distance = (distance > 1) ? distance : connectionLength * distance;
+            } else {
+                distance = connectionLength / 2;
+            }
+
+            labelCoordinates = connectionElement.getPointAtLength(distance);
+
+            if (joint.util.isObject(offset)) {
+
+                // Just offset the label by the x,y provided in the offset object.
+                labelCoordinates = g.point(labelCoordinates).offset(offset);
+
+            } else if (Number.isFinite(offset)) {
+
+                if (!samples) {
+                    samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
                 }
 
-                var labelCoordinates = connectionElement.getPointAtLength(distance);
+                // Offset the label by the amount provided in `offset` to an either
+                // side of the link.
 
-                if (_.isObject(offset)) {
-
-                    // Just offset the label by the x,y provided in the offset object.
-                    labelCoordinates = g.point(labelCoordinates).offset(offset);
-
-                } else if (_.isFinite(offset)) {
-
-                    if (!samples) {
-                        samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
+                // 1. Find the closest sample & its left and right neighbours.
+                var minSqDistance = Infinity;
+                var closestSampleIndex, sample, sqDistance;
+                for (var i = 0, m = samples.length; i < m; i++) {
+                    sample = samples[i];
+                    sqDistance = g.line(sample, labelCoordinates).squaredLength();
+                    if (sqDistance < minSqDistance) {
+                        minSqDistance = sqDistance;
+                        closestSampleIndex = i;
                     }
-
-                    // Offset the label by the amount provided in `offset` to an either
-                    // side of the link.
-
-                    // 1. Find the closest sample & its left and right neighbours.
-                    var minSqDistance = Infinity;
-                    var closestSampleIndex, sample, sqDistance;
-                    for (var i = 0; i < samples.length; i++) {
-                        sample = samples[i];
-                        sqDistance = g.line(sample, labelCoordinates).squaredLength();
-                        if (sqDistance < minSqDistance) {
-                            minSqDistance = sqDistance;
-                            closestSampleIndex = i;
-                        }
-                    }
-                    var prevSample = samples[closestSampleIndex - 1];
-                    var nextSample = samples[closestSampleIndex + 1];
-
-                    // 2. Offset the label on the perpendicular line between
-                    // the current label coordinate ("at `distance`") and
-                    // the next sample.
-                    var angle = 0;
-                    if (nextSample) {
-                        angle = g.point(labelCoordinates).theta(nextSample);
-                    } else if (prevSample) {
-                        angle = g.point(prevSample).theta(labelCoordinates);
-                    }
-                    labelCoordinates = g.point(labelCoordinates).offset(offset).rotate(labelCoordinates, angle - 90);
                 }
+                var prevSample = samples[closestSampleIndex - 1];
+                var nextSample = samples[closestSampleIndex + 1];
 
-                this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
+                // 2. Offset the label on the perpendicular line between
+                // the current label coordinate ("at `distance`") and
+                // the next sample.
+                var angle = 0;
+                if (nextSample) {
+                    angle = g.point(labelCoordinates).theta(nextSample);
+                } else if (prevSample) {
+                    angle = g.point(prevSample).theta(labelCoordinates);
+                }
+                labelCoordinates = g.point(labelCoordinates).offset(offset).rotate(labelCoordinates, angle - 90);
+            }
 
-            }, this);
+            this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
         }
 
         return this;
@@ -8936,7 +9857,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
         // In that case we won't update tools position at all.
-        if (!_.isNaN(connectionLength)) {
+        if (!Number.isNaN(connectionLength)) {
 
             // If the link is too short, make the tools half the size and the offset twice as low.
             if (connectionLength < this.options.shortLinkLength) {
@@ -8987,7 +9908,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     createWatcher: function(endType) {
 
         // create handler for specific end type (source|target).
-        var onModelChange = _.partial(this.onEndModelChange, endType);
+        var onModelChange = function(endModel, opt) {
+            this.onEndModelChange(endType, endModel, opt);
+        };
 
         function watchEndModel(link, end) {
 
@@ -9064,7 +9987,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             if (opt.handleBy === this.cid && opt.translateBy &&
                 model.isEmbeddedIn(endModel) &&
-                !_.isEmpty(model.get('vertices'))) {
+                !joint.util.isEmpty(model.get('vertices'))) {
                 // Loop link whose element was translated and that has vertices (that need to be translated with
                 // the parent in which my element is embedded).
                 // If the link is embedded, has a loop and vertices and the end model
@@ -9121,10 +10044,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // Make the markers "point" to their sticky points being auto-oriented towards
         // `targetPosition`/`sourcePosition`. And do so only if there is a markup for them.
+        var route = joint.util.toArray(this.route);
         if (sourceArrow) {
             sourceArrow.translateAndAutoOrient(
                 this.sourcePoint,
-                _.first(this.route) || this.targetPoint,
+                route[0] || this.targetPoint,
                 this.paper.viewport
             );
         }
@@ -9132,7 +10056,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (targetArrow) {
             targetArrow.translateAndAutoOrient(
                 this.targetPoint,
-                _.last(this.route) || this.sourcePoint,
+                route[route.length - 1] || this.sourcePoint,
                 this.paper.viewport
             );
         }
@@ -9140,7 +10064,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     removeVertex: function(idx) {
 
-        var vertices = _.clone(this.model.get('vertices'));
+        var vertices = joint.util.assign([], this.model.get('vertices'));
 
         if (vertices && vertices.length) {
 
@@ -9215,16 +10139,53 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     },
 
     // Send a token (an SVG element, usually a circle) along the connection path.
-    // Example: `paper.findViewByModel(link).sendToken(V('circle', { r: 7, fill: 'green' }).node)`
-    // `duration` is optional and is a time in milliseconds that the token travels from the source to the target of the link. Default is `1000`.
+    // Example: `link.findView(paper).sendToken(V('circle', { r: 7, fill: 'green' }).node)`
+    // `opt.duration` is optional and is a time in milliseconds that the token travels from the source to the target of the link. Default is `1000`.
+    // `opt.directon` is optional and it determines whether the token goes from source to target or other way round (`reverse`)
     // `callback` is optional and is a function to be called once the token reaches the target.
-    sendToken: function(token, duration, callback) {
+    sendToken: function(token, opt, callback) {
+
+        function onAnimationEnd(vToken, callback) {
+            return function() {
+                vToken.remove();
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            };
+        }
+
+        var duration, isReversed;
+        if (joint.util.isObject(opt)) {
+            duration = opt.duration;
+            isReversed = (opt.direction === 'reverse');
+        } else {
+            // Backwards compatibility
+            duration = opt;
+            isReversed = false;
+        }
 
         duration = duration || 1000;
 
-        V(this.paper.viewport).append(token);
-        V(token).animateAlongPath({ dur: duration + 'ms', repeatCount: 1 }, this._V.connection.node);
-        _.delay(function() { V(token).remove(); callback && callback(); }, duration);
+        var animationAttributes = {
+            dur: duration + 'ms',
+            repeatCount: 1,
+            calcMode: 'linear',
+            fill: 'freeze'
+        };
+
+        if (isReversed) {
+            animationAttributes.keyPoints = '1;0';
+            animationAttributes.keyTimes = '0;1';
+        }
+
+        var vToken = V(token);
+        var vPath = this._V.connection;
+
+        vToken
+            .appendTo(this.paper.viewport)
+            .animateAlongPath(animationAttributes, vPath);
+
+        setTimeout(onAnimationEnd(vToken, callback), duration);
     },
 
     findRoute: function(oldVertices) {
@@ -9246,9 +10207,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         var args = router.args || {};
-        var routerFn = _.isFunction(router) ? router : namespace[router.name];
+        var routerFn = joint.util.isFunction(router) ? router : namespace[router.name];
 
-        if (!_.isFunction(routerFn)) {
+        if (!joint.util.isFunction(routerFn)) {
             throw new Error('unknown router: "' + router.name + '"');
         }
 
@@ -9275,10 +10236,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
         }
 
-        var connectorFn = _.isFunction(connector) ? connector : namespace[connector.name];
+        var connectorFn = joint.util.isFunction(connector) ? connector : namespace[connector.name];
         var args = connector.args || {};
 
-        if (!_.isFunction(connectorFn)) {
+        if (!joint.util.isFunction(connectorFn)) {
             throw new Error('unknown connector: "' + connector.name + '"');
         }
 
@@ -9305,8 +10266,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // If the `selectorOrPoint` (or `referenceSelectorOrPoint`) is `undefined`, the `source`/`target` of the link model is `undefined`.
         // We want to allow this however so that one can create links such as `var link = new joint.dia.Link` and
         // set the `source`/`target` later.
-        _.isEmpty(selectorOrPoint) && (selectorOrPoint = { x: 0, y: 0 });
-        _.isEmpty(referenceSelectorOrPoint) && (referenceSelectorOrPoint = { x: 0, y: 0 });
+        joint.util.isEmpty(selectorOrPoint) && (selectorOrPoint = { x: 0, y: 0 });
+        joint.util.isEmpty(referenceSelectorOrPoint) && (referenceSelectorOrPoint = { x: 0, y: 0 });
 
         if (!selectorOrPoint.id) {
 
@@ -9440,7 +10401,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _afterArrowheadMove: function() {
 
-        if (!_.isNull(this._z)) {
+        if (this._z !== null) {
             this.model.set('z', this._z, { ui: true });
             this._z = null;
         }
@@ -9503,7 +10464,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var elements = paper.model.getElements();
         this._marked = {};
 
-        _.chain(elements).map(paper.findViewByModel, paper).each(function(view) {
+        for (var i = 0, n = elements.length; i < n; i++) {
+            var view = elements[i].findView(paper);
+
+            if (!view) {
+                continue;
+            }
 
             var magnets = Array.prototype.slice.call(view.el.querySelectorAll('[magnet]'));
             if (view.el.getAttribute('magnet') !== 'false') {
@@ -9511,42 +10477,53 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 magnets.push(view.el);
             }
 
-            var availableMagnets = _.filter(magnets, _.partial(isMagnetAvailable, view), this);
+            var availableMagnets = magnets.filter(isMagnetAvailable.bind(this, view));
+
             if (availableMagnets.length > 0) {
                 // highlight all available magnets
-                _.each(availableMagnets, _.partial(view.highlight, _, { magnetAvailability: true }), view);
+                for (var j = 0, m = availableMagnets.length; j < m; j++) {
+                    view.highlight(availableMagnets[j], { magnetAvailability: true })
+                }
                 // highlight the entire view
                 view.highlight(null, { elementAvailability: true });
 
                 this._marked[view.model.id] = availableMagnets;
             }
-
-        }, this).value();
+        }
     },
 
     _unmarkAvailableMagnets: function() {
 
-        _.each(this._marked, function(markedMagnets, id) {
+        var markedKeys = Object.keys(this._marked);
+        var id;
+        var markedMagnets;
+
+        for (var i = 0, n = markedKeys.length; i < n; i++) {
+            id = markedKeys[i];
+            markedMagnets = this._marked[id];
+
             var view = this.paper.findViewByModel(id);
             if (view) {
-                _.each(markedMagnets, _.partial(view.unhighlight, _, { magnetAvailability: true }), view);
+                for (var j = 0, m = markedMagnets.length; j < m; j++) {
+                    view.unhighlight(markedMagnets[j], { magnetAvailability: true })
+                }
                 view.unhighlight(null, { elementAvailability: true });
             }
-        }, this);
+        }
 
         this._marked = null;
     },
 
     startArrowheadMove: function(end, opt) {
 
-        opt = _.defaults(opt || {}, { whenNotAllowed: 'revert' });
+        opt = joint.util.defaults(opt || {}, { whenNotAllowed: 'revert' });
         // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
         // move without need to click on the actual arrowhead dom element.
         this._action = 'arrowhead-move';
         this._whenNotAllowed = opt.whenNotAllowed;
         this._arrowhead = end;
         this._initialMagnet = this[end + 'Magnet'] || (this[end + 'View'] ? this[end + 'View'].el : null);
-        this._initialEnd = _.clone(this.model.get(end)) || { x: 0, y: 0 };
+        this._initialEnd = joint.util.assign({}, this.model.get(end)) || { x: 0, y: 0 };
         this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
         this._beforeArrowheadMove();
     },
@@ -9607,24 +10584,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             default:
 
-                var targetParentEvent = evt.target.parentNode.getAttribute('event');
-                if (targetParentEvent) {
-                    if (this.can('useLinkTools')) {
-                        // `remove` event is built-in. Other custom events are triggered on the paper.
-                        if (targetParentEvent === 'remove') {
-                            this.model.remove();
-                        } else {
-                            this.notify(targetParentEvent, evt, x, y);
-                        }
-                    }
-                } else {
-                    if (this.can('vertexAdd')) {
+                if (this.can('vertexAdd')) {
 
-                        // Store the index at which the new vertex has just been placed.
-                        // We'll be update the very same vertex position in `pointermove()`.
-                        this._vertexIdx = this.addVertex({ x: x, y: y });
-                        this._action = 'vertex-move';
-                    }
+                    // Store the index at which the new vertex has just been placed.
+                    // We'll be update the very same vertex position in `pointermove()`.
+                    this._vertexIdx = this.addVertex({ x: x, y: y });
+                    this._action = 'vertex-move';
                 }
         }
     },
@@ -9635,7 +10600,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             case 'vertex-move':
 
-                var vertices = _.clone(this.model.get('vertices'));
+                var vertices = joint.util.assign([], this.model.get('vertices'));
                 vertices[this._vertexIdx] = { x: x, y: y };
                 this.model.set('vertices', vertices, { ui: true });
                 break;
@@ -9649,7 +10614,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var closestSampleIndex;
                 var p;
                 var sqDistance;
-                for (var i = 0, len = samples.length; i < len; i++) {
+                for (var i = 0, n = samples.length; i < n; i++) {
                     p = samples[i];
                     sqDistance = g.line(p, dragPoint).squaredLength();
                     if (sqDistance < minSqDistance) {
@@ -9698,7 +10663,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     var minDistance = Number.MAX_VALUE;
                     var pointer = g.point(x, y);
 
-                    _.each(viewsInArea, function(view) {
+                    viewsInArea.forEach(function(view) {
 
                         // skip connecting to the element in case '.': { magnet: false } attribute present
                         if (view.el.getAttribute('magnet') !== 'false') {
@@ -9719,9 +10684,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                             }
                         }
 
-                        view.$('[magnet]').each(_.bind(function(index, magnet) {
+                        view.$('[magnet]').each(function(index, magnet) {
 
-                            var bbox = V(magnet).bbox(false, this.paper.viewport);
+                            var bbox = V(magnet).getBBox({ target: this.paper.viewport });
 
                             distance = pointer.distance({
                                 x: bbox.x + bbox.width / 2,
@@ -9743,7 +10708,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                                 }
                             }
 
-                        }, this));
+                        }.bind(this));
 
                     }, this);
 
@@ -9766,7 +10731,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                         ? evt.target
                         : document.elementFromPoint(evt.clientX, evt.clientY);
 
-                    if (this._targetEvent !== target) {
+                    if (this._eventTarget !== target) {
                         // Unhighlight the previous view under pointer if there was one.
                         if (this._magnetUnderPointer) {
                             this._viewUnderPointer.unhighlight(this._magnetUnderPointer, {
@@ -9802,7 +10767,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                         }
                     }
 
-                    this._targetEvent = target;
+                    this._eventTarget = target;
 
                     this.model.set(this._arrowhead, { x: x, y: y }, { ui: true });
                 }
@@ -9824,6 +10789,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         } else if (this._action === 'arrowhead-move') {
 
+            var model = this.model;
             var paper = this.paper;
             var paperOptions = paper.options;
             var arrowhead = this._arrowhead;
@@ -9865,7 +10831,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     var arrowheadValue = { id: viewUnderPointer.model.id };
                     if (port != null) arrowheadValue.port = port;
                     if (selector != null) arrowheadValue.selector = selector;
-                    this.model.set(arrowhead, arrowheadValue, { ui: true });
+                    model.set(arrowhead, arrowheadValue, { ui: true });
                 }
             }
 
@@ -9875,32 +10841,33 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 switch (this._whenNotAllowed) {
 
                     case 'remove':
-                        this.model.remove();
+                        model.remove({ ui: true });
                         break;
 
                     case 'revert':
                     default:
-                        this.model.set(arrowhead, initialEnd, { ui: true });
+                        model.set(arrowhead, initialEnd, { ui: true });
                         break;
                 }
-            }
 
-            // Reparent the link if embedding is enabled
-            if (paperOptions.embeddingMode && this.model.reparent()) {
-                // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
-                this._z = null;
-            }
+            } else {
 
-            var currentEnd = this.model.prop(arrowhead) || {};
-            var endChanged = !joint.dia.Link.endsEqual(initialEnd, currentEnd);
-
-            if (endChanged) {
-
-                if (initialEnd.id) {
-                    this.notify('link:disconnect', evt, paper.findViewByModel(initialEnd.id), this._initialMagnet, arrowhead);
+                // Reparent the link if embedding is enabled
+                if (paperOptions.embeddingMode && model.reparent()) {
+                    // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
+                    this._z = null;
                 }
-                if (currentEnd.id) {
-                    this.notify('link:connect', evt, paper.findViewByModel(currentEnd.id), magnetUnderPointer, arrowhead);
+
+                var currentEnd = model.prop(arrowhead);
+                var endChanged = currentEnd && !joint.dia.Link.endsEqual(initialEnd, currentEnd);
+                if (endChanged) {
+
+                    if (initialEnd.id) {
+                        this.notify('link:disconnect', evt, paper.findViewByModel(initialEnd.id), this._initialMagnet, arrowhead);
+                    }
+                    if (currentEnd.id) {
+                        this.notify('link:connect', evt, paper.findViewByModel(currentEnd.id), magnetUnderPointer, arrowhead);
+                    }
                 }
             }
 
@@ -9912,6 +10879,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this._initialMagnet = null;
         this._initialEnd = null;
         this._validateConnectionArgs = null;
+        this._eventTarget = null;
 
         this.notify('link:pointerup', evt, x, y);
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);
@@ -9927,6 +10895,30 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         joint.dia.CellView.prototype.mouseleave.apply(this, arguments);
         this.notify('link:mouseleave', evt);
+    },
+
+    event: function(evt, eventName, x, y) {
+
+        // Backwards compatibility
+        var linkTool = V(evt.target).findParentByClass('link-tool', this.el);
+        if (linkTool) {
+            // No further action to be executed
+            evt.stopPropagation();
+            // Allow `interactive.useLinkTools=false`
+            if (this.can('useLinkTools')) {
+                if (eventName === 'remove') {
+                    // Built-in remove event
+                    this.model.remove({ ui: true });
+                } else {
+                    // link:options and other custom events inside the link tools
+                    this.notify(eventName, evt, x, y);
+                }
+            }
+
+        } else {
+
+            joint.dia.CellView.prototype.event.apply(this, arguments);
+        }
     }
 
 }, {
@@ -10005,7 +10997,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Prevent the default context menu from being displayed.
         preventContextMenu: true,
-
+        // Prevent the default action for blank:pointer<action>.
+        preventDefaultBlankAction: true,
         // Restrict the translation of elements by given bounding box.
         // Option accepts a boolean:
         //  true - the translation is restricted to the paper area
@@ -10082,6 +11075,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         // Allowed number of mousemove events after which the pointerclick event will be still triggered.
         clickThreshold: 0,
 
+        // Number of required mousemove events before the first pointermove event will be triggered.
+        moveThreshold: 0,
+
         // The namespace, where all the cell views are defined.
         cellViewNamespace: joint.shapes,
 
@@ -10104,14 +11100,16 @@ joint.dia.Paper = joint.mvc.View.extend({
         'mousewheel': 'mousewheel',
         'DOMMouseScroll': 'mousewheel',
         'mouseenter .joint-cell': 'cellMouseenter',
-        'mouseleave .joint-cell': 'cellMouseleave'
+        'mouseleave .joint-cell': 'cellMouseleave',
+        'mousedown .joint-cell [event]': 'cellEvent',
+        'touchstart .joint-cell [event]': 'cellEvent'
     },
 
     _highlights: {},
 
     init: function() {
 
-        _.bindAll(this, 'pointerup');
+        joint.util.bindAll(this, 'pointerup');
 
         var model = this.model = this.options.model || new joint.dia.Graph;
 
@@ -10145,10 +11143,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         // This is a fix for the case where two papers share the same options.
         // Changing origin.x for one paper would change the value of origin.x for the other.
         // This prevents that behavior.
-        options.origin = _.clone(options.origin);
-        options.defaultConnector = _.clone(options.defaultConnector);
+        options.origin = joint.util.assign({}, options.origin);
+        options.defaultConnector = joint.util.assign({}, options.defaultConnector);
         // Return the default highlighting options into the user specified options.
-        options.highlighting = _.defaultsDeep(
+        options.highlighting = joint.util.defaultsDeep(
             {},
             options.highlighting,
             this.constructor.prototype.options.highlighting
@@ -10290,7 +11288,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // the content visible.
     fitToContent: function(gridWidth, gridHeight, padding, opt) { // alternatively function(opt)
 
-        if (_.isObject(gridWidth)) {
+        if (joint.util.isObject(gridWidth)) {
             // first parameter is an option object
             opt = gridWidth;
             gridWidth = opt.gridWidth || 1;
@@ -10308,7 +11306,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         padding = joint.util.normalizeSides(padding);
 
         // Calculate the paper size to accomodate all the graph's elements.
-        var bbox = V(this.viewport).bbox(true, this.svg);
+        var bbox = V(this.viewport).getBBox();
 
         var currentScale = this.scale();
         var currentTranslate = this.translate();
@@ -10367,7 +11365,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         opt = opt || {};
 
-        _.defaults(opt, {
+        joint.util.defaults(opt, {
             padding: 0,
             preserveAspectRatio: true,
             scaleGrid: null,
@@ -10475,7 +11473,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var restrictedArea;
 
-        if (_.isFunction(this.options.restrictTranslate)) {
+        if (joint.util.isFunction(this.options.restrictTranslate)) {
             // A method returning a bounding box
             restrictedArea = this.options.restrictTranslate.apply(this, arguments);
         } else if (this.options.restrictTranslate === true) {
@@ -10530,7 +11528,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     onCellAdded: function(cell, graph, opt) {
 
-        if (this.options.async && opt.async !== false && _.isNumber(opt.position)) {
+        if (this.options.async && opt.async !== false && joint.util.isNumber(opt.position)) {
 
             this._asyncCells = this._asyncCells || [];
             this._asyncCells.push(cell);
@@ -10580,7 +11578,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Make sure links are always added AFTER elements.
         // They wouldn't find their sources/targets in the DOM otherwise.
-        cells.sort(function(a) { return a instanceof joint.dia.Link ? 1 : -1; });
+        cells.sort(function(a) { return (a.isLink()) ? 1 : -1; });
 
         return cells;
     },
@@ -10600,11 +11598,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         // `beforeRenderViews()` can return changed cells array (e.g sorted).
         cells = this.beforeRenderViews(cells, opt) || cells;
 
-        if (this._frameId) {
-
-            joint.util.cancelFrame(this._frameId);
-            delete this._frameId;
-        }
+        this.cancelRenderViews();
 
         if (this.options.async) {
 
@@ -10613,7 +11607,9 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         } else {
 
-            _.each(cells, this.renderView, this);
+            for (var i = 0, n = cells.length; i < n; i++) {
+                this.renderView(cells[i]);
+            }
 
             // Sort the cells in the DOM manually as we might have changed the order they
             // were added to the DOM (see above).
@@ -10621,14 +11617,21 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
     },
 
+    cancelRenderViews: function() {
+        if (this._frameId) {
+            joint.util.cancelFrame(this._frameId);
+            delete this._frameId;
+        }
+    },
+
     removeViews: function() {
 
-        _.invoke(this._views, 'remove');
+        joint.util.invoke(this._views, 'remove');
 
         this._views = {};
     },
 
-    asyncBatchAdded: _.noop,
+    asyncBatchAdded: joint.util.noop,
 
     asyncRenderViews: function(cells, opt) {
 
@@ -10637,7 +11640,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             var batchSize = (this.options.async && this.options.async.batchSize) || 50;
             var batchCells = cells.splice(0, batchSize);
 
-            _.each(batchCells, function(cell) {
+            batchCells.forEach(function(cell) {
 
                 // The cell has to be part of the graph.
                 // There is a chance in asynchronous rendering
@@ -10775,7 +11778,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // be a selector or a jQuery object.
     findView: function($el) {
 
-        var el = _.isString($el)
+        var el = joint.util.isString($el)
             ? this.viewport.querySelector($el)
             : $el instanceof $ ? $el[0] : $el;
 
@@ -10790,10 +11793,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         return undefined;
     },
 
-    // Find a view for a model `cell`. `cell` can also be a string representing a model `id`.
+    // Find a view for a model `cell`. `cell` can also be a string or number representing a model `id`.
     findViewByModel: function(cell) {
 
-        var id = _.isString(cell) ? cell : cell.id;
+        var id = (joint.util.isString(cell) || joint.util.isNumber(cell)) ? cell : (cell && cell.id);
 
         return this._views[id];
     },
@@ -10803,24 +11806,24 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         p = g.point(p);
 
-        var views = _.map(this.model.getElements(), this.findViewByModel, this);
+        var views = this.model.getElements().map(this.findViewByModel, this);
 
-        return _.filter(views, function(view) {
-            return view && g.rect(view.vel.bbox(false, this.viewport)).containsPoint(p);
+        return views.filter(function(view) {
+            return view && view.vel.getBBox({ target: this.viewport }).containsPoint(p);
         }, this);
     },
 
     // Find all views in given area
     findViewsInArea: function(rect, opt) {
 
-        opt = _.defaults(opt || {}, { strict: false });
+        opt = joint.util.defaults(opt || {}, { strict: false });
         rect = g.rect(rect);
 
-        var views = _.map(this.model.getElements(), this.findViewByModel, this);
+        var views = this.model.getElements().map(this.findViewByModel, this);
         var method = opt.strict ? 'containsRect' : 'intersect';
 
-        return _.filter(views, function(view) {
-            return view && rect[method](g.rect(view.vel.bbox(false, this.viewport)));
+        return views.filter(function(view) {
+            return view && rect[method](view.vel.getBBox({ target: this.viewport }));
         }, this);
     },
 
@@ -10957,7 +11960,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                         inbound: false
                     });
 
-                    var numSameLinks = _.filter(connectedLinks, function(_link) {
+                    var numSameLinks = connectedLinks.filter(function(_link) {
 
                         var _source = _link.get('source');
                         var _target = _link.get('target');
@@ -10979,8 +11982,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (
             !this.options.linkPinning &&
             (
-                !_.has(link.get('source'), 'id') ||
-                !_.has(link.get('target'), 'id')
+                !joint.util.has(link.get('source'), 'id') ||
+                !joint.util.has(link.get('target'), 'id')
             )
         ) {
             // Link pinning is not allowed and the link is not connected to the target.
@@ -10992,7 +11995,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     getDefaultLink: function(cellView, magnet) {
 
-        return _.isFunction(this.options.defaultLink)
+        return joint.util.isFunction(this.options.defaultLink)
         // default link is a function producing link model
             ? this.options.defaultLink.call(this, cellView, magnet)
         // default link is the Backbone model
@@ -11016,12 +12019,12 @@ joint.dia.Paper = joint.mvc.View.extend({
                 }
             }
         */
-        if (_.isUndefined(highlighterDef)) {
+        if (highlighterDef === undefined) {
 
             // check for built-in types
-            var type = _.chain(opt)
-                .pick('embedding', 'connecting', 'magnetAvailability', 'elementAvailability')
-                .keys().first().value();
+            var type = ['embedding', 'connecting', 'magnetAvailability', 'elementAvailability'].find(function(type) {
+                return !!opt[type];
+            });
 
             highlighterDef = (type && paperOpt.highlighting[type]) || paperOpt.highlighting['default'];
         }
@@ -11032,7 +12035,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (!highlighterDef) return false;
 
         // Allow specifying a highlighter by name.
-        if (_.isString(highlighterDef)) {
+        if (joint.util.isString(highlighterDef)) {
             highlighterDef = {
                 name: highlighterDef
             };
@@ -11071,7 +12074,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (!this._highlights[key]) {
 
             var highlighter = opt.highlighter;
-            highlighter.highlight(cellView, magnetEl, _.clone(opt.options));
+            highlighter.highlight(cellView, magnetEl, joint.util.assign({}, opt.options));
 
             this._highlights[key] = {
                 cellView: cellView,
@@ -11152,7 +12155,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             return true;
         }
 
-        if (evt.data && !_.isUndefined(evt.data.guarded)) {
+        if (evt.data && evt.data.guarded !== undefined) {
             return evt.data.guarded;
         }
 
@@ -11199,13 +12202,13 @@ joint.dia.Paper = joint.mvc.View.extend({
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
 
-        evt.preventDefault();
-
         this._mousemoved = 0;
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
         if (view) {
+
+            evt.preventDefault();
 
             this.sourceView = view;
 
@@ -11213,23 +12216,30 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         } else {
 
+            if (this.options.preventDefaultBlankAction) {
+                evt.preventDefault();
+            }
+
             this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
         }
     },
 
     pointermove: function(evt) {
 
-        if (this.sourceView) {
+        var view = this.sourceView;
+        if (view) {
 
             evt.preventDefault();
-            evt = joint.util.normalizeEvent(evt);
 
             // Mouse moved counter.
-            this._mousemoved++;
+            var mousemoved = ++this._mousemoved;
+            if (mousemoved > this.options.moveThreshold) {
 
-            var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+                evt = joint.util.normalizeEvent(evt);
 
-            this.sourceView.pointermove(evt, localPoint.x, localPoint.y);
+                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+                view.pointermove(evt, localPoint.x, localPoint.y);
+            }
         }
     },
 
@@ -11312,6 +12322,21 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
     },
 
+    cellEvent: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var currentTarget = evt.currentTarget;
+        var eventName = currentTarget.getAttribute('event');
+        if (eventName) {
+            var view = this.findView(currentTarget);
+            if (view && !this.guard(evt, view)) {
+                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+                view.event(evt, eventName, localPoint.x, localPoint.y);
+            }
+        }
+    },
+
     setGridSize: function(gridSize) {
 
         this.options.gridSize = gridSize;
@@ -11362,8 +12387,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         this._gridCache = null;
         this._gridSettings = [];
 
-        var optionsList = _.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
-        _.each(optionsList, function (item) {
+        var optionsList = Array.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
+        optionsList.forEach(function (item) {
             this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
         }, this);
         return this;
@@ -11372,27 +12397,31 @@ joint.dia.Paper = joint.mvc.View.extend({
     _resolveDrawGridOption: function (opt) {
 
         var namespace = this.constructor.gridPatterns;
-        if (_.isString(opt) && namespace[opt]) {
-            return _.map(namespace[opt], _.clone);
+        if (joint.util.isString(opt) && Array.isArray(namespace[opt])) {
+            return namespace[opt].map(function(item) {
+                return joint.util.assign({}, item);
+            });
         }
 
         var options = opt || { args: [{}] };
-        var isArray = _.isArray(options);
+        var isArray = Array.isArray(options);
         var name = options.name;
 
         if (!isArray && !name && !options.markup ) {
             name = 'dot';
         }
 
-        if (name && namespace[name]) {
-            var pattern = _.map(namespace[name], _.clone);
+        if (name && Array.isArray(namespace[name])) {
+            var pattern = namespace[name].map(function(item) {
+                return joint.util.assign({}, item);
+            });
 
-            var args = _.isArray(options.args) ? options.args : [options.args || {}];
+            var args = Array.isArray(options.args) ? options.args : [options.args || {}];
 
-            _.defaults(args[0], _.omit(opt, 'args'));
+            joint.util.defaults(args[0], joint.util.omit(opt, 'args'));
             for (var i = 0; i < args.length; i++) {
                 if (pattern[i]) {
-                    _.extend(pattern[i], args[i]);
+                    joint.util.assign(pattern[i], args[i]);
                 }
             }
             return pattern;
@@ -11408,15 +12437,15 @@ joint.dia.Paper = joint.mvc.View.extend({
             return this.clearGrid();
         }
 
-        var localOptions = _.isArray(opt) ? opt : [opt];
+        var localOptions = Array.isArray(opt) ? opt : [opt];
 
         var ctm = this.matrix();
         var refs = this._getGriRefs();
 
-        _.each(this._gridSettings, function (gridLayerSetting, index) {
+        this._gridSettings.forEach(function (gridLayerSetting, index) {
 
             var id = 'pattern_'  + index;
-            var options = _.merge(gridLayerSetting, localOptions[index], {
+            var options = joint.util.merge(gridLayerSetting, localOptions[index], {
                 sx: ctm.a || 1,
                 sy: ctm.d || 1,
                 ox: ctm.e || 0,
@@ -11432,7 +12461,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             var patternDefVel = refs.get(id);
 
-            if (_.isFunction(options.update)) {
+            if (joint.util.isFunction(options.update)) {
                 options.update(patternDefVel.node.childNodes[0], options);
             }
 
@@ -11469,14 +12498,14 @@ joint.dia.Paper = joint.mvc.View.extend({
         var currentTranslate = this.translate();
 
         // backgroundPosition
-        if (_.isObject(backgroundPosition)) {
+        if (joint.util.isObject(backgroundPosition)) {
             var x = currentTranslate.tx + (currentScale.sx * (backgroundPosition.x || 0));
             var y = currentTranslate.ty + (currentScale.sy * (backgroundPosition.y || 0));
             backgroundPosition = x + 'px ' + y + 'px';
         }
 
         // backgroundSize
-        if (_.isObject(backgroundSize)) {
+        if (joint.util.isObject(backgroundSize)) {
             backgroundSize = g.rect(backgroundSize).scale(currentScale.sx, currentScale.sy);
             backgroundSize = backgroundSize.width + 'px ' + backgroundSize.height + 'px';
         }
@@ -11502,9 +12531,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         var backgroundRepeat = opt.repeat || 'no-repeat';
         var backgroundOpacity = opt.opacity || 1;
         var backgroundQuality = Math.abs(opt.quality) || 1;
-        var backgroundPattern = this.constructor.backgroundPatterns[_.camelCase(backgroundRepeat)];
+        var backgroundPattern = this.constructor.backgroundPatterns[joint.util.camelCase(backgroundRepeat)];
 
-        if (_.isFunction(backgroundPattern)) {
+        if (joint.util.isFunction(backgroundPattern)) {
             // 'flip-x', 'flip-y', 'flip-xy', 'watermark' and custom
             img.width *= backgroundQuality;
             img.height *= backgroundQuality;
@@ -11515,11 +12544,11 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             backgroundImage = canvas.toDataURL('image/png');
             backgroundRepeat = 'repeat';
-            if (_.isObject(backgroundSize)) {
+            if (joint.util.isObject(backgroundSize)) {
                 // recalculate the tile size if an object passed in
                 backgroundSize.width *= canvas.width / img.width;
                 backgroundSize.height *= canvas.height / img.height;
-            } else if (_.isUndefined(backgroundSize)) {
+            } else if (backgroundSize === undefined) {
                 // calcule the tile size if no provided
                 opt.size = {
                     width: canvas.width / backgroundQuality,
@@ -11530,7 +12559,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             // backgroundRepeat:
             // no-repeat', 'round', 'space', 'repeat', 'repeat-x', 'repeat-y'
             backgroundImage = img.src;
-            if (_.isUndefined(backgroundSize)) {
+            if (backgroundSize === undefined) {
                 // pass the image size for  the backgroundSize if no size provided
                 opt.size = {
                     width: img.width,
@@ -11560,9 +12589,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.updateBackgroundColor(opt.color);
 
         if (opt.image) {
-            opt = this._background = _.cloneDeep(opt);
+            opt = this._background = joint.util.cloneDeep(opt);
             var img = document.createElement('img');
-            img.onload = _.bind(this.drawBackgroundImage, this, img, opt);
+            img.onload = this.drawBackgroundImage.bind(this, img, opt);
             img.src = opt.image;
         } else {
             this.drawBackgroundImage(null);
@@ -11576,7 +12605,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.options.interactive = value;
 
-        _.invoke(this._views, 'setInteractivity', value);
+        joint.util.invoke(this._views, 'setInteractivity', value);
     },
 
     // Paper Defs
@@ -11587,7 +12616,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     defineFilter: function(filter) {
 
-        if (!_.isObject(filter)) {
+        if (!joint.util.isObject(filter)) {
             throw new TypeError('dia.Paper: defineFilter() requires 1. argument to be an object.');
         }
 
@@ -11611,7 +12640,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             // Set the filter area to be 3x the bounding box of the cell
             // and center the filter around the cell.
-            var filterAttrs = _.extend({
+            var filterAttrs = joint.util.assign({
                 filterUnits: 'objectBoundingBox',
                 x: -1,
                 y: -1,
@@ -11629,7 +12658,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     defineGradient: function(gradient) {
 
-        if (!_.isObject(gradient)) {
+        if (!joint.util.isObject(gradient)) {
             throw new TypeError('dia.Paper: defineGradient() requires 1. argument to be an object.');
         }
 
@@ -11647,11 +12676,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (!this.isDefined(gradientId)) {
 
             var stopTemplate = joint.util.template('<stop offset="${offset}" stop-color="${color}" stop-opacity="${opacity}"/>');
-            var gradientStopsStrings = _.map(stops, function(stop) {
+            var gradientStopsStrings = joint.util.toArray(stops).map(function(stop) {
                 return stopTemplate({
                     offset: stop.offset,
                     color: stop.color,
-                    opacity: _.isFinite(stop.opacity) ? stop.opacity : 1
+                    opacity: Number.isFinite(stop.opacity) ? stop.opacity : 1
                 });
             });
 
@@ -11661,7 +12690,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 '</' + type + '>'
             ].join('');
 
-            var gradientAttrs = _.extend({ id: gradientId }, gradient.attrs);
+            var gradientAttrs = joint.util.assign({ id: gradientId }, gradient.attrs);
 
             V(gradientSVGString, gradientAttrs).appendTo(this.defs);
         }
@@ -11671,7 +12700,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     defineMarker: function(marker) {
 
-        if (!_.isObject(marker)) {
+        if (!joint.util.isObject(marker)) {
             throw new TypeError('dia.Paper: defineMarker() requires 1. argument to be an object.');
         }
 
@@ -11685,7 +12714,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         if (!this.isDefined(markerId)) {
 
-            var attrs = _.omit(marker, 'type', 'userSpaceOnUse');
+            var attrs = joint.util.omit(marker, 'type', 'userSpaceOnUse');
             var pathMarker = V('marker', {
                 id: markerId,
                 orient: 'auto',
@@ -11790,7 +12819,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             canvas.height = imgHeight * 3;
 
             var ctx = canvas.getContext('2d');
-            var angle = _.isNumber(opt.watermarkAngle) ? -opt.watermarkAngle : -20;
+            var angle = joint.util.isNumber(opt.watermarkAngle) ? -opt.watermarkAngle : -20;
             var radians = g.toRad(angle);
             var stepX = canvas.width / 4;
             var stepY = canvas.height / 4;
@@ -11895,11 +12924,11 @@ joint.dia.Paper = joint.mvc.View.extend({
     }
 });
 
-(function(joint, _) {
+(function(joint, _, util) {
 
     var PortData = function(data) {
 
-        var clonedData = _.cloneDeep(data) || {};
+        var clonedData = util.cloneDeep(data) || {};
         this.ports = [];
         this.groups = {};
         this.portLayoutNamespace = joint.layout.Port;
@@ -11920,7 +12949,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         getPortsByGroup: function(groupName) {
 
-            return _.filter(this.ports, function(port) {
+            return this.ports.filter(function(port) {
                 return port.group === groupName;
             });
         },
@@ -11938,12 +12967,19 @@ joint.dia.Paper = joint.mvc.View.extend({
             }
 
             var groupArgs = groupPosition.args || {};
-            var portsArgs = _.pluck(ports, 'position.args');
+            var portsArgs = ports.map(function(port) {
+                return port && port.position && port.position.args;
+            });
             var groupPortTransformations = namespace[groupPositionName](portsArgs, elBBox, groupArgs);
 
-            return _.transform(groupPortTransformations, _.bind(function(result, portTransformation, index) {
-                var port = ports[index];
-                result.push({
+            var accumulator = {
+                ports: ports,
+                result: []
+            };
+
+            util.toArray(groupPortTransformations).reduce(function(res, portTransformation, index) {
+                var port = res.ports[index];
+                res.result.push({
                     portId: port.id,
                     portTransformation: portTransformation,
                     labelTransformation: this._getPortLabelLayout(port, g.Point(portTransformation), elBBox),
@@ -11951,7 +12987,10 @@ joint.dia.Paper = joint.mvc.View.extend({
                     portSize: port.size,
                     labelSize: port.label.size
                 });
-            }, this), []);
+                return res;
+            }.bind(this), accumulator);
+
+            return accumulator.result;
         },
 
         _getPortLabelLayout: function(port, portPosition, elBBox) {
@@ -11969,41 +13008,51 @@ joint.dia.Paper = joint.mvc.View.extend({
         _init: function(data) {
 
             // prepare groups
-            _.transform(data.groups || {}, _.bind(this._evaluateGroup, this), this.groups);
+            if (util.isObject(data.groups)) {
+                var groups = Object.keys(data.groups);
+                for (var i = 0, n = groups.length; i < n; i++) {
+                    var key = groups[i];
+                    this.groups[key] = this._evaluateGroup(data.groups[key]);
+                }
+            }
+
             // prepare ports
-            _.transform(data.items || [], _.bind(this._evaluatePort, this), this.ports);
+            var ports = util.toArray(data.items);
+            for (var j = 0, m = ports.length; j < m; j++) {
+                this.ports.push(this._evaluatePort(ports[j]));
+            }
         },
 
-        _evaluateGroup: function (resultMap, group, key) {
+        _evaluateGroup: function(group) {
 
-            resultMap[key] = _.merge(group, {
+            return util.merge(group, {
                 position: this._getPosition(group.position, true),
                 label: this._getLabel(group, true)
             });
         },
 
-        _evaluatePort: function(resultArray, port) {
+        _evaluatePort: function(port) {
 
-            var evaluated = _.clone(port);
+            var evaluated = util.assign({}, port);
 
             var group = this.getGroup(port.group);
 
             evaluated.markup = evaluated.markup || group.markup;
-            evaluated.attrs = _.merge({}, group.attrs, evaluated.attrs);
+            evaluated.attrs = util.merge({}, group.attrs, evaluated.attrs);
             evaluated.position = this._createPositionNode(group, evaluated);
-            evaluated.label = _.merge({}, group.label, this._getLabel(evaluated));
+            evaluated.label = util.merge({}, group.label, this._getLabel(evaluated));
             evaluated.z = this._getZIndex(group, evaluated);
-            evaluated.size = _.extend({}, group.size, evaluated.size);
+            evaluated.size = util.assign({}, group.size, evaluated.size);
 
-            resultArray.push(evaluated);
+            return evaluated;
         },
 
         _getZIndex: function(group, port) {
 
-            if (_.isNumber(port.z)) {
+            if (util.isNumber(port.z)) {
                 return port.z;
             }
-            if (_.isNumber(group.z) || group.z === 'auto') {
+            if (util.isNumber(group.z) || group.z === 'auto') {
                 return group.z;
             }
             return 'auto';
@@ -12011,7 +13060,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         _createPositionNode: function(group, port) {
 
-            return _.merge({
+            return util.merge({
                 name: 'left',
                 args: {}
             }, group.position, { args: port.args });
@@ -12022,20 +13071,20 @@ joint.dia.Paper = joint.mvc.View.extend({
             var args = {};
             var positionName;
 
-            if (_.isFunction(position)) {
+            if (util.isFunction(position)) {
                 positionName = 'fn';
                 args.fn = position;
-            } else if (_.isString(position)) {
+            } else if (util.isString(position)) {
                 positionName = position;
-            } else if (_.isUndefined(position)) {
+            } else if (position === undefined) {
                 positionName = setDefault ? 'left' : null;
-            } else if (_.isArray(position)) {
+            } else if (Array.isArray(position)) {
                 positionName = 'absolute';
                 args.x = position[0];
                 args.y = position[1];
-            } else if (_.isObject(position)) {
+            } else if (util.isObject(position)) {
                 positionName = position.name;
-                _.extend(args, position.args);
+                util.assign(args, position.args);
             }
 
             var result = { args: args };
@@ -12057,7 +13106,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
     };
 
-    _.extend(joint.dia.Element.prototype, {
+    util.assign(joint.dia.Element.prototype, {
 
         _initializePorts: function() {
 
@@ -12078,30 +13127,30 @@ joint.dia.Paper = joint.mvc.View.extend({
             var current = this.get('ports') || {};
             var currentItemsMap = {};
 
-            _.each(current.items, function(item) {
+            util.toArray(current.items).forEach(function(item) {
                 currentItemsMap[item.id] = true;
             });
 
             var previous = this.previous('ports') || {};
             var removed = {};
 
-            _.each(previous.items, function(item) {
+            util.toArray(previous.items).forEach(function(item) {
                 if (!currentItemsMap[item.id]) {
                     removed[item.id] = true;
                 }
             });
 
             var graph = this.graph;
-            if (graph && !_.isEmpty(removed)) {
+            if (graph && !util.isEmpty(removed)) {
 
                 var inboundLinks = graph.getConnectedLinks(this, { inbound: true });
-                _.each(inboundLinks, function(link) {
+                inboundLinks.forEach(function(link) {
 
                     if (removed[link.get('target').port]) link.remove();
                 });
 
                 var outboundLinks = graph.getConnectedLinks(this, { outbound: true });
-                _.each(outboundLinks, function(link) {
+                outboundLinks.forEach(function(link) {
 
                     if (removed[link.get('source').port]) link.remove();
                 });
@@ -12130,7 +13179,7 @@ joint.dia.Paper = joint.mvc.View.extend({
          */
         getPorts: function() {
 
-            return _.cloneDeep(this.prop('ports/items')) || [];
+            return util.cloneDeep(this.prop('ports/items')) || [];
         },
 
         /**
@@ -12139,7 +13188,7 @@ joint.dia.Paper = joint.mvc.View.extend({
          */
         getPort: function(id) {
 
-            return _.cloneDeep(_.find(this.prop('ports/items'), function(port) {
+            return util.cloneDeep(util.toArray(this.prop('ports/items')).find( function(port) {
                 return port.id && port.id === id;
             }));
         },
@@ -12152,13 +13201,14 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             var portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, g.Rect(this.size()));
 
-            return _.transform(portsMetrics, function(positions, metrics) {
+            return portsMetrics.reduce(function(positions, metrics) {
                 var transformation = metrics.portTransformation;
                 positions[metrics.portId] = {
                     x: transformation.x,
                     y: transformation.y,
                     angle: transformation.angle
                 };
+                return positions;
             }, {});
         },
 
@@ -12168,13 +13218,15 @@ joint.dia.Paper = joint.mvc.View.extend({
          */
         getPortIndex: function(port) {
 
-            var id = _.isObject(port) ? port.id : port;
+            var id = util.isObject(port) ? port.id : port;
 
             if (!this._isValidPortId(id)) {
                 return -1;
             }
 
-            return _.findIndex(this.prop('ports/items'), { id: id });
+            return util.toArray(this.prop('ports/items')).findIndex(function(item) {
+                return item.id === id;
+            });
         },
 
         /**
@@ -12184,11 +13236,11 @@ joint.dia.Paper = joint.mvc.View.extend({
          */
         addPort: function(port, opt) {
 
-            if (!_.isObject(port) || _.isArray(port)) {
+            if (!util.isObject(port) || Array.isArray(port)) {
                 throw new Error('Element: addPort requires an object.');
             }
 
-            var ports = _.clone(this.prop('ports/items')) || [];
+            var ports = util.assign([], this.prop('ports/items'));
             ports.push(port);
             this.prop('ports/items', ports, opt);
 
@@ -12211,9 +13263,9 @@ joint.dia.Paper = joint.mvc.View.extend({
             }
 
             var args = Array.prototype.slice.call(arguments, 1);
-            if (_.isArray(path)) {
+            if (Array.isArray(path)) {
                 args[0] = ['ports', 'items', index].concat(path);
-            } else if (_.isString(path)) {
+            } else if (util.isString(path)) {
 
                 // Get/set an attribute by a special path syntax that delimits
                 // nested objects by the colon character.
@@ -12222,7 +13274,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             } else {
 
                 args = ['ports/items/' + index];
-                if (_.isPlainObject(path)) {
+                if (util.isPlainObject(path)) {
                     args.push(path);
                     args.push(value);
                 }
@@ -12237,15 +13289,20 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             var errorMessages = [];
             portsAttr = portsAttr || {};
-            var ports = portsAttr.items || [];
+            var ports = util.toArray(portsAttr.items);
 
-            _.each(ports, function(p) {
+            ports.forEach(function(p) {
+
+                if (typeof p !== 'object') {
+                    errorMessages.push('Element: invalid port ', p);
+                }
+
                 if (!this._isValidPortId(p.id)) {
-                    p.id = joint.util.uuid();
+                    p.id = util.uuid();
                 }
             }, this);
 
-            if (_.uniq(ports, 'id').length !== ports.length) {
+            if (joint.util.uniq(ports, 'id').length !== ports.length) {
                 errorMessages.push('Element: found id duplicities in ports.');
             }
 
@@ -12259,13 +13316,13 @@ joint.dia.Paper = joint.mvc.View.extend({
          */
         _isValidPortId: function(id) {
 
-            return !_.isNull(id) && !_.isUndefined(id) && !_.isObject(id);
+            return id !== null && id !== undefined && !util.isObject(id);
         },
 
         addPorts: function(ports, opt) {
 
             if (ports.length) {
-                this.prop('ports/items', (_.clone(this.prop('ports/items')) || []).concat(ports), opt);
+                this.prop('ports/items', util.assign([], this.prop('ports/items')).concat(ports), opt);
             }
 
             return this;
@@ -12274,7 +13331,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         removePort: function(port, opt) {
 
             var options = opt || {};
-            var ports = _.clone(this.prop('ports/items'));
+            var ports = util.assign([], this.prop('ports/items'));
 
             var index = this.getPortIndex(port);
 
@@ -12312,15 +13369,14 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             if (prevPortData) {
 
-                // _.filter can be replaced with _.differenceBy in lodash 4
-                var added = _.filter(curPortData, function(item) {
-                    if (!_.find(prevPortData, 'id', item.id)) {
+                var added = curPortData.filter(function(item) {
+                    if (!prevPortData.find(function(prevPort) { return prevPort.id === item.id;})) {
                         return item;
                     }
                 });
 
-                var removed = _.filter(prevPortData, function(item) {
-                    if (!_.find(curPortData, 'id', item.id)) {
+                var removed = prevPortData.filter(function(item) {
+                    if (!curPortData.find(function(curPort) { return curPort.id === item.id;})) {
                         return item;
                     }
                 });
@@ -12336,7 +13392,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
     });
 
-    _.extend(joint.dia.ElementView.prototype, {
+    util.assign(joint.dia.ElementView.prototype, {
 
         portContainerMarkup: '<g class="joint-port"/>',
         portMarkup: '<circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/>',
@@ -12387,26 +13443,29 @@ joint.dia.Paper = joint.mvc.View.extend({
             // references to rendered elements without z-index
             var elementReferences = [];
             var elem = this._getContainerElement();
-            _.each(elem.node.childNodes, function(n) {
-                elementReferences.push(n);
-            });
 
-            var portsGropsByZ = _.groupBy(this.model._portSettingsData.getPorts(), 'z');
+            for (var i = 0, count = elem.node.childNodes.length; i < count; i++) {
+                elementReferences.push(elem.node.childNodes[i]);
+            }
+
+            var portsGropsByZ = util.groupBy(this.model._portSettingsData.getPorts(), 'z');
             var withoutZKey = 'auto';
 
             // render non-z first
-            _.each(portsGropsByZ[withoutZKey], function(port) {
+            util.toArray(portsGropsByZ[withoutZKey]).forEach(function(port) {
                 var portElement = this._getPortElement(port);
                 elem.append(portElement);
                 elementReferences.push(portElement);
             }, this);
 
-            _.each(portsGropsByZ, function(groupPorts, groupName) {
+            var groupNames = Object.keys(portsGropsByZ);
+            for (var k = 0; k < groupNames.length; k++) {
+                var groupName = groupNames[k];
                 if (groupName !== withoutZKey) {
                     var z = parseInt(groupName, 10);
                     this._appendPorts(portsGropsByZ[groupName], z, elementReferences);
                 }
-            }, this);
+            }
 
             this._updatePorts();
         },
@@ -12429,7 +13488,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         _appendPorts: function(ports, z, refs) {
 
             var containerElement = this._getContainerElement();
-            var portElements = _.map(ports, this._getPortElement, this);
+            var portElements = util.toArray(ports).map(this._getPortElement, this);
 
             if (refs[z] || z < 0) {
                 V(refs[Math.max(z, 0)]).before(portElements);
@@ -12460,15 +13519,15 @@ joint.dia.Paper = joint.mvc.View.extend({
             // layout ports without group
             this._updatePortGroup(undefined);
             // layout ports with explicit group
-            var groupsNames = _.keys(this.model._portSettingsData.groups);
-            _.each(groupsNames, this._updatePortGroup, this);
+            var groupsNames = Object.keys(this.model._portSettingsData.groups);
+            groupsNames.forEach(this._updatePortGroup, this);
         },
 
         /**
          * @private
          */
         _removePorts: function() {
-            _.invoke(this._portElementsCache, 'portElement.remove');
+            util.invoke(this._portElementsCache, 'portElement.remove');
         },
 
         /**
@@ -12568,50 +13627,35 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
 
     });
-}(joint, _));
+}(joint, _, joint.util));
 
-
-joint.shapes.basic = {};
-
-joint.shapes.basic.Generic = joint.dia.Element.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'basic.Generic',
-        attrs: {
-            '.': { fill: '#ffffff', stroke: 'none' }
-        }
-
-    }, joint.dia.Element.prototype.defaults)
+joint.dia.Element.define('basic.Generic', {
+    attrs: {
+        '.': { fill: '#ffffff', stroke: 'none' }
+    }
 });
 
-joint.shapes.basic.Rect = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><rect/></g><text/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'basic.Rect',
-        attrs: {
-            'rect': {
-                fill: '#ffffff',
-                stroke: '#000000',
-                width: 100,
-                height: 60
-            },
-            'text': {
-                fill: '#000000',
-                text: '',
-                'font-size': 14,
-                'ref-x': .5,
-                'ref-y': .5,
-                'text-anchor': 'middle',
-                'y-alignment': 'middle',
-                'font-family': 'Arial, helvetica, sans-serif'
-            }
+joint.shapes.basic.Generic.define('basic.Rect', {
+    attrs: {
+        'rect': {
+            fill: '#ffffff',
+            stroke: '#000000',
+            width: 100,
+            height: 60
+        },
+        'text': {
+            fill: '#000000',
+            text: '',
+            'font-size': 14,
+            'ref-x': .5,
+            'ref-y': .5,
+            'text-anchor': 'middle',
+            'y-alignment': 'middle',
+            'font-family': 'Arial, helvetica, sans-serif'
         }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
+    }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><rect/></g><text/></g>'
 });
 
 joint.shapes.basic.TextView = joint.dia.ElementView.extend({
@@ -12624,207 +13668,169 @@ joint.shapes.basic.TextView = joint.dia.ElementView.extend({
     }
 });
 
-joint.shapes.basic.Text = joint.shapes.basic.Generic.extend({
-
+joint.shapes.basic.Generic.define('basic.Text', {
+    attrs: {
+        'text': {
+            'font-size': 18,
+            fill: '#000000'
+        }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><text/></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'basic.Text',
-        attrs: {
-            'text': {
-                'font-size': 18,
-                fill: '#000000'
-            }
-        }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
-joint.shapes.basic.Circle = joint.shapes.basic.Generic.extend({
-
+joint.shapes.basic.Generic.define('basic.Circle', {
+    size: { width: 60, height: 60 },
+    attrs: {
+        'circle': {
+            fill: '#ffffff',
+            stroke: '#000000',
+            r: 30,
+            cx: 30,
+            cy: 30
+        },
+        'text': {
+            'font-size': 14,
+            text: '',
+            'text-anchor': 'middle',
+            'ref-x': .5,
+            'ref-y': .5,
+            'y-alignment': 'middle',
+            fill: '#000000',
+            'font-family': 'Arial, helvetica, sans-serif'
+        }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><circle/></g><text/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'basic.Circle',
-        size: { width: 60, height: 60 },
-        attrs: {
-            'circle': {
-                fill: '#ffffff',
-                stroke: '#000000',
-                r: 30,
-                cx: 30,
-                cy: 30
-            },
-            'text': {
-                'font-size': 14,
-                text: '',
-                'text-anchor': 'middle',
-                'ref-x': .5,
-                'ref-y': .5,
-                'y-alignment': 'middle',
-                fill: '#000000',
-                'font-family': 'Arial, helvetica, sans-serif'
-            }
-        }
-    }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
-joint.shapes.basic.Ellipse = joint.shapes.basic.Generic.extend({
-
+joint.shapes.basic.Generic.define('basic.Ellipse', {
+    size: { width: 60, height: 40 },
+    attrs: {
+        'ellipse': {
+            fill: '#ffffff',
+            stroke: '#000000',
+            rx: 30,
+            ry: 20,
+            cx: 30,
+            cy: 20
+        },
+        'text': {
+            'font-size': 14,
+            text: '',
+            'text-anchor': 'middle',
+            'ref-x': .5,
+            'ref-y': .5,
+            'y-alignment': 'middle',
+            fill: '#000000',
+            'font-family': 'Arial, helvetica, sans-serif'
+        }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><ellipse/></g><text/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'basic.Ellipse',
-        size: { width: 60, height: 40 },
-        attrs: {
-            'ellipse': {
-                fill: '#ffffff',
-                stroke: '#000000',
-                rx: 30,
-                ry: 20,
-                cx: 30,
-                cy: 20
-            },
-            'text': {
-                'font-size': 14,
-                text: '',
-                'text-anchor': 'middle',
-                'ref-x': .5,
-                'ref-y': .5,
-                'y-alignment': 'middle',
-                fill: '#000000',
-                'font-family': 'Arial, helvetica, sans-serif'
-            }
-        }
-    }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
-joint.shapes.basic.Polygon = joint.shapes.basic.Generic.extend({
-
+joint.shapes.basic.Generic.define('basic.Polygon', {
+    size: { width: 60, height: 40 },
+    attrs: {
+        'polygon': {
+            fill: '#ffffff',
+            stroke: '#000000'
+        },
+        'text': {
+            'font-size': 14,
+            text: '',
+            'text-anchor': 'middle',
+            'ref-x': .5,
+            'ref-dy': 20,
+            'y-alignment': 'middle',
+            fill: '#000000',
+            'font-family': 'Arial, helvetica, sans-serif'
+        }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><polygon/></g><text/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'basic.Polygon',
-        size: { width: 60, height: 40 },
-        attrs: {
-            'polygon': {
-                fill: '#ffffff',
-                stroke: '#000000'
-            },
-            'text': {
-                'font-size': 14,
-                text: '',
-                'text-anchor': 'middle',
-                'ref-x': .5,
-                'ref-dy': 20,
-                'y-alignment': 'middle',
-                fill: '#000000',
-                'font-family': 'Arial, helvetica, sans-serif'
-            }
-        }
-    }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
-joint.shapes.basic.Polyline = joint.shapes.basic.Generic.extend({
-
+joint.shapes.basic.Generic.define('basic.Polyline', {
+    size: { width: 60, height: 40 },
+    attrs: {
+        'polyline': {
+            fill: '#ffffff',
+            stroke: '#000000'
+        },
+        'text': {
+            'font-size': 14,
+            text: '',
+            'text-anchor': 'middle',
+            'ref-x': .5,
+            'ref-dy': 20,
+            'y-alignment': 'middle',
+            fill: '#000000',
+            'font-family': 'Arial, helvetica, sans-serif'
+        }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><polyline/></g><text/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'basic.Polyline',
-        size: { width: 60, height: 40 },
-        attrs: {
-            'polyline': {
-                fill: '#ffffff',
-                stroke: '#000000'
-            },
-            'text': {
-                'font-size': 14,
-                text: '',
-                'text-anchor': 'middle',
-                'ref-x': .5,
-                'ref-dy': 20,
-                'y-alignment': 'middle',
-                fill: '#000000',
-                'font-family': 'Arial, helvetica, sans-serif'
-            }
-        }
-    }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
-joint.shapes.basic.Image = joint.shapes.basic.Generic.extend({
-
+joint.shapes.basic.Generic.define('basic.Image', {
+    attrs: {
+        'text': {
+            'font-size': 14,
+            text: '',
+            'text-anchor': 'middle',
+            'ref-x': .5,
+            'ref-dy': 20,
+            'y-alignment': 'middle',
+            fill: '#000000',
+            'font-family': 'Arial, helvetica, sans-serif'
+        }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><image/></g><text/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'basic.Image',
-        attrs: {
-            'text': {
-                'font-size': 14,
-                text: '',
-                'text-anchor': 'middle',
-                'ref-x': .5,
-                'ref-dy': 20,
-                'y-alignment': 'middle',
-                fill: '#000000',
-                'font-family': 'Arial, helvetica, sans-serif'
-            }
-        }
-    }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
-joint.shapes.basic.Path = joint.shapes.basic.Generic.extend({
+joint.shapes.basic.Generic.define('basic.Path', {
+    size: { width: 60, height: 60 },
+    attrs: {
+        'path': {
+            fill: '#ffffff',
+            stroke: '#000000'
+        },
+        'text': {
+            'font-size': 14,
+            text: '',
+            'text-anchor': 'middle',
+            'ref': 'path',
+            'ref-x': .5,
+            'ref-dy': 10,
+            fill: '#000000',
+            'font-family': 'Arial, helvetica, sans-serif'
+        }
+    }
 
+}, {
     markup: '<g class="rotatable"><g class="scalable"><path/></g><text/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'basic.Path',
-        size: { width: 60, height: 60 },
-        attrs: {
-            'path': {
-                fill: '#ffffff',
-                stroke: '#000000'
-            },
-            'text': {
-                'font-size': 14,
-                text: '',
-                'text-anchor': 'middle',
-                'ref': 'path',
-                'ref-x': .5,
-                'ref-dy': 10,
-                fill: '#000000',
-                'font-family': 'Arial, helvetica, sans-serif'
-            }
-        }
-    }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
-joint.shapes.basic.Rhombus = joint.shapes.basic.Path.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'basic.Rhombus',
-        attrs: {
-            'path': {
-                d: 'M 30 0 L 60 30 30 60 0 30 z'
-            },
-            'text': {
-                'ref-y': .5,
-                'ref-dy': null,
-                'y-alignment': 'middle'
-            }
+joint.shapes.basic.Path.define('basic.Rhombus', {
+    attrs: {
+        'path': {
+            d: 'M 30 0 L 60 30 30 60 0 30 z'
+        },
+        'text': {
+            'ref-y': .5,
+            'ref-dy': null,
+            'y-alignment': 'middle'
         }
-
-    }, joint.shapes.basic.Path.prototype.defaults)
+    }
 });
 
 
+/**
+ * @deprecated use the port api instead
+ */
 // PortsModelInterface is a common interface for shapes that have ports. This interface makes it easy
 // to create new shapes with ports functionality. It is assumed that the new shapes have
 // `inPorts` and `outPorts` array properties. Only these properties should be used to set ports.
@@ -12864,7 +13870,7 @@ joint.shapes.basic.PortsModelInterface = {
 
         if (this._portSelectors) {
 
-            var newAttrs = _.omit(this.get('attrs'), this._portSelectors);
+            var newAttrs = joint.util.omit(this.get('attrs'), this._portSelectors);
             this.set('attrs', newAttrs, { silent: true });
         }
 
@@ -12875,16 +13881,16 @@ joint.shapes.basic.PortsModelInterface = {
 
         var attrs = {};
 
-        _.each(this.get('inPorts'), function(portName, index, ports) {
+        joint.util.toArray(this.get('inPorts')).forEach(function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.inPorts', 'in');
-            this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
-            _.extend(attrs, portAttributes);
+            this._portSelectors = this._portSelectors.concat(Object.keys(portAttributes));
+            joint.util.assign(attrs, portAttributes);
         }, this);
 
-        _.each(this.get('outPorts'), function(portName, index, ports) {
+        joint.util.toArray(('outPorts')).forEach(function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.outPorts', 'out');
-            this._portSelectors = this._portSelectors.concat(_.keys(portAttributes));
-            _.extend(attrs, portAttributes);
+            this._portSelectors = this._portSelectors.concat(Object.keys(portAttributes));
+            joint.util.assign(attrs, portAttributes);
         }, this);
 
         // Silently set `attrs` on the cell so that noone knows the attrs have changed. This makes sure
@@ -12938,56 +13944,54 @@ joint.shapes.basic.PortsViewInterface = {
 
         var portTemplate = joint.util.template(this.model.portMarkup);
 
-        _.each(_.filter(this.model.ports, function(p) { return p.type === 'in'; }), function(port, index) {
+        var ports = this.model.ports || [];
+        ports.filter(function(p) {
+            return p.type === 'in';
+        }).forEach(function(port, index) {
 
             $inPorts.append(V(portTemplate({ id: index, port: port })).node);
         });
 
-        _.each(_.filter(this.model.ports, function(p) { return p.type === 'out'; }), function(port, index) {
+        ports.filter(function(p) {
+            return p.type === 'out';
+        }).forEach(function(port, index) {
 
             $outPorts.append(V(portTemplate({ id: index, port: port })).node);
         });
     }
 };
 
-joint.shapes.basic.TextBlock = joint.shapes.basic.Generic.extend({
+joint.shapes.basic.Generic.define('basic.TextBlock', {
+    // see joint.css for more element styles
+    attrs: {
+        rect: {
+            fill: '#ffffff',
+            stroke: '#000000',
+            width: 80,
+            height: 100
+        },
+        text: {
+            fill: '#000000',
+            'font-size': 14,
+            'font-family': 'Arial, helvetica, sans-serif'
+        },
+        '.content': {
+            text: '',
+            'ref-x': .5,
+            'ref-y': .5,
+            'y-alignment': 'middle',
+            'x-alignment': 'middle'
+        }
+    },
 
+    content: ''
+}, {
     markup: [
         '<g class="rotatable">',
         '<g class="scalable"><rect/></g>',
         joint.env.test('svgforeignobject') ? '<foreignObject class="fobj"><body xmlns="http://www.w3.org/1999/xhtml"><div class="content"/></body></foreignObject>' : '<text class="content"/>',
         '</g>'
     ].join(''),
-
-    defaults: _.defaultsDeep({
-
-        type: 'basic.TextBlock',
-
-        // see joint.css for more element styles
-        attrs: {
-            rect: {
-                fill: '#ffffff',
-                stroke: '#000000',
-                width: 80,
-                height: 100
-            },
-            text: {
-                fill: '#000000',
-                'font-size': 14,
-                'font-family': 'Arial, helvetica, sans-serif'
-            },
-            '.content': {
-                text: '',
-                'ref-x': .5,
-                'ref-y': .5,
-                'y-alignment': 'middle',
-                'x-alignment': 'middle'
-            }
-        },
-
-        content: ''
-
-    }, joint.shapes.basic.Generic.prototype.defaults),
 
     initialize: function() {
 
@@ -13003,9 +14007,9 @@ joint.shapes.basic.TextBlock = joint.shapes.basic.Generic.extend({
         // Selector `foreignObject' doesn't work accross all browsers, we'r using class selector instead.
         // We have to clone size as we don't want attributes.div.style to be same object as attributes.size.
         this.attr({
-            '.fobj': _.clone(size),
+            '.fobj': joint.util.assign({}, size),
             div: {
-                style: _.clone(size)
+                style: joint.util.assign({}, size)
             }
         });
     },
@@ -13044,7 +14048,6 @@ joint.shapes.basic.TextBlock = joint.shapes.basic.Generic.extend({
 
         this.updateContent.apply(this, arguments);
     }
-
 });
 
 // TextBlockView implements the fallback for IE when no foreignObject exists and
@@ -13074,10 +14077,10 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
         if (!joint.env.test('svgforeignobject')) {
 
             // Update everything but the content first.
-            var noTextAttrs = _.omit(renderingOnlyAttrs || model.get('attrs'), '.content');
+            var noTextAttrs = joint.util.omit(renderingOnlyAttrs || model.get('attrs'), '.content');
             joint.dia.ElementView.prototype.update.call(this, model, noTextAttrs);
 
-            if (!renderingOnlyAttrs || _.has(renderingOnlyAttrs, '.content')) {
+            if (!renderingOnlyAttrs || joint.util.has(renderingOnlyAttrs, '.content')) {
                 // Update the content itself.
                 this.updateContent(model, renderingOnlyAttrs);
             }
@@ -13091,9 +14094,9 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
     updateContent: function(cell, renderingOnlyAttrs) {
 
         // Create copy of the text attributes
-        var textAttrs = _.merge({}, (renderingOnlyAttrs || cell.get('attrs'))['.content']);
+        var textAttrs = joint.util.merge({}, (renderingOnlyAttrs || cell.get('attrs'))['.content']);
 
-        textAttrs = _.omit(textAttrs, 'text');
+        textAttrs = joint.util.omit(textAttrs, 'text');
 
         // Break the content to fit the element size taking into account the attributes
         // set on the model.
@@ -13113,7 +14116,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
     }
 });
 
-joint.routers.manhattan = (function(g, _, joint) {
+joint.routers.manhattan = (function(g, _, joint, util) {
 
     'use strict';
 
@@ -13200,7 +14203,9 @@ joint.routers.manhattan = (function(g, _, joint) {
             return [point, to];
           },
         */
-        fallbackRoute: _.constant(null),
+        fallbackRoute: function() {
+            return null;
+        },
 
         // if a function is provided, it's used to route the link while dragging an end
         // i.e. function(from, to, opts) { return []; }
@@ -13221,23 +14226,30 @@ joint.routers.manhattan = (function(g, _, joint) {
 
         var opt = this.options;
 
+
         // source or target element could be excluded from set of obstacles
-        var excludedEnds = _.chain(opt.excludeEnds)
-            .map(link.get, link)
-            .pluck('id')
-            .map(graph.getCell, graph).value();
+        var excludedEnds = util.toArray(opt.excludeEnds).reduce(function(res, item) {
+            var end = link.get(item);
+            if (end) {
+                var cell = graph.getCell(end.id);
+                if (cell) {
+                    res.push(cell);
+                }
+            }
+            return res;
+        }, []);
 
         // Exclude any embedded elements from the source and the target element.
         var excludedAncestors = [];
 
         var source = graph.getCell(link.get('source').id);
         if (source) {
-            excludedAncestors = _.union(excludedAncestors, _.map(source.getAncestors(), 'id'));
+            excludedAncestors = util.union(excludedAncestors, source.getAncestors().map(function(cell) { return cell.id }));
         }
 
         var target = graph.getCell(link.get('target').id);
         if (target) {
-            excludedAncestors = _.union(excludedAncestors, _.map(target.getAncestors(), 'id'));
+            excludedAncestors = util.union(excludedAncestors, target.getAncestors().map(function(cell) { return cell.id }));
         }
 
         // builds a map of all elements for quicker obstacle queries (i.e. is a point contained
@@ -13247,37 +14259,29 @@ joint.routers.manhattan = (function(g, _, joint) {
         // to go through all obstacles, we check only those in a particular cell.
         var mapGridSize = this.mapGridSize;
 
-        _.chain(graph.getElements())
-            // remove source and target element if required
-            .difference(excludedEnds)
-            // remove all elements whose type is listed in excludedTypes array
-            .reject(function(element) {
-                // reject any element which is an ancestor of either source or target
-                return _.contains(opt.excludeTypes, element.get('type')) || _.contains(excludedAncestors, element.id);
-            })
-            // change elements (models) to their bounding boxes
-            .invoke('getBBox')
-            // expand their boxes by specific padding
-            .invoke('moveAndExpand', opt.paddingBox)
-            // build the map
-            .foldl(function(map, bbox) {
+        graph.getElements().reduce(function(map, element) {
 
-                var origin = bbox.origin().snapToGrid(mapGridSize);
-                var corner = bbox.corner().snapToGrid(mapGridSize);
+            var isExcludedType = util.toArray(opt.excludeTypes).includes(element.get('type'));
+            var isExcludedEnd = excludedEnds.find(function(excluded) { return excluded.id === element.id });
+            var isExcludedAncestor = excludedAncestors.includes(element.id);
+
+            var isExcluded = isExcludedType || isExcludedEnd || isExcludedAncestor;
+            if (!isExcluded) {
+                var bBox = element.getBBox().moveAndExpand(opt.paddingBox);
+
+                var origin = bBox.origin().snapToGrid(mapGridSize);
+                var corner = bBox.corner().snapToGrid(mapGridSize);
 
                 for (var x = origin.x; x <= corner.x; x += mapGridSize) {
                     for (var y = origin.y; y <= corner.y; y += mapGridSize) {
-
                         var gridKey = x + '@' + y;
-
                         map[gridKey] = map[gridKey] || [];
-                        map[gridKey].push(bbox);
+                        map[gridKey].push(bBox);
                     }
                 }
-
-                return map;
-
-            }, this.map).value();
+            }
+            return map;
+        }, this.map);
 
         return this;
     };
@@ -13286,7 +14290,7 @@ joint.routers.manhattan = (function(g, _, joint) {
 
         var mapKey = point.clone().snapToGrid(this.mapGridSize).toString();
 
-        return _.every(this.map[mapKey], function(obstacle) {
+        return util.toArray(this.map[mapKey]).every( function(obstacle) {
             return !obstacle.containsPoint(point);
         });
     };
@@ -13312,9 +14316,9 @@ joint.routers.manhattan = (function(g, _, joint) {
 
         this.values[item] = value;
 
-        var index = _.sortedIndex(this.items, item, function(i) {
+        var index = joint.util.sortedIndex(this.items, item, function(i) {
             return this.values[i];
-        }, this);
+        }.bind(this));
 
         this.items.splice(index, 0, item);
     };
@@ -13382,23 +14386,29 @@ joint.routers.manhattan = (function(g, _, joint) {
 
         var step = opt.step;
         var center = bbox.center();
-        var startPoints = _.chain(opt.directionMap).pick(directionList).map(function(direction) {
+        var keys = util.isObject(opt.directionMap) ? Object.keys(opt.directionMap) : [];
+        var dirLis = util.toArray(directionList);
+        return keys.reduce(function(res, key) {
 
-            var x = direction.x * bbox.width / 2;
-            var y = direction.y * bbox.height / 2;
+            if (dirLis.includes(key)) {
 
-            var point = center.clone().offset(x, y);
+                var direction = opt.directionMap[key];
 
-            if (bbox.containsPoint(point)) {
+                var x = direction.x * bbox.width / 2;
+                var y = direction.y * bbox.height / 2;
 
-                point.offset(direction.x * step, direction.y * step);
+                var point = center.clone().offset(x, y);
+
+                if (bbox.containsPoint(point)) {
+
+                    point.offset(direction.x * step, direction.y * step);
+                }
+
+                res.push(point.snapToGrid(step));
             }
+            return res;
 
-            return point.snapToGrid(step);
-
-        }).value();
-
-        return startPoints;
+        }, []);
     }
 
     // returns a direction index from start point to end point
@@ -13453,8 +14463,8 @@ joint.routers.manhattan = (function(g, _, joint) {
         }
 
         // take into account only accessible end points
-        startPoints = _.filter(startPoints, map.isPointAccessible, map);
-        endPoints = _.filter(endPoints, map.isPointAccessible, map);
+        startPoints = startPoints.filter(map.isPointAccessible, map);
+        endPoints = endPoints.filter(map.isPointAccessible, map);
 
         // Check if there is a accessible end point.
         // We would have to use a fallback route otherwise.
@@ -13467,18 +14477,20 @@ joint.routers.manhattan = (function(g, _, joint) {
             // Cost from start to a point along best known path.
             var costs = {};
 
-            _.each(startPoints, function(point) {
+            for (var i = 0, n = startPoints.length; i < n; i++) {
+                var point = startPoints[i];
+
                 var key = point.toString();
                 openSet.add(key, estimateCost(point, endPoints));
                 costs[key] = 0;
-            });
+            }
 
             // directions
             var dir, dirChange;
             var dirs = opt.directions;
             var dirLen = dirs.length;
             var loopsRemain = opt.maximumLoops;
-            var endPointsKeys = _.invoke(endPoints, 'toString');
+            var endPointsKeys = util.invoke(endPoints, 'toString');
 
             // main route finding loop
             while (!openSet.isEmpty() && loopsRemain > 0) {
@@ -13503,7 +14515,7 @@ joint.routers.manhattan = (function(g, _, joint) {
                 }
 
                 // Go over all possible directions and find neighbors.
-                for (var i = 0; i < dirLen; i++) {
+                for (i = 0; i < dirLen; i++) {
 
                     dir = dirs[i];
                     dirChange = getDirectionChange(currentDirAngle, dir.angle);
@@ -13545,11 +14557,11 @@ joint.routers.manhattan = (function(g, _, joint) {
     // resolve some of the options
     function resolveOptions(opt) {
 
-        opt.directions = _.result(opt, 'directions');
-        opt.penalties = _.result(opt, 'penalties');
-        opt.paddingBox = _.result(opt, 'paddingBox');
+        opt.directions = util.result(opt, 'directions');
+        opt.penalties = util.result(opt, 'penalties');
+        opt.paddingBox = util.result(opt, 'paddingBox');
 
-        _.each(opt.directions, function(direction) {
+        util.toArray(opt.directions).forEach(function(direction) {
 
             var point1 = g.point(0, 0);
             var point2 = g.point(direction.offsetX, direction.offsetY);
@@ -13572,7 +14584,7 @@ joint.routers.manhattan = (function(g, _, joint) {
 
         // pathfinding
         var map = (new ObstacleMap(opt)).build(this.paper.model, this.model);
-        var oldVertices = _.map(vertices, g.point);
+        var oldVertices = util.toArray(vertices).map(g.point);
         var newVertices = [];
         var tailPoint = sourceBBox.center().snapToGrid(opt.step);
 
@@ -13593,7 +14605,7 @@ joint.routers.manhattan = (function(g, _, joint) {
                 // might use dragging route instead of main routing method if that is enabled.
                 var endingAtPoint = !this.model.get('source').id || !this.model.get('target').id;
 
-                if (endingAtPoint && _.isFunction(opt.draggingRoute)) {
+                if (endingAtPoint && util.isFunction(opt.draggingRoute)) {
                     // Make sure we passing points only (not rects).
                     var dragFrom = from instanceof g.rect ? from.center() : from;
                     partialRoute = opt.draggingRoute(dragFrom, to.origin(), opt);
@@ -13606,20 +14618,20 @@ joint.routers.manhattan = (function(g, _, joint) {
             if (partialRoute === null) {
                 // The partial route could not be found.
                 // use orthogonal (do not avoid elements) route instead.
-                if (!_.isFunction(joint.routers.orthogonal)) {
+                if (!util.isFunction(joint.routers.orthogonal)) {
                     throw new Error('Manhattan requires the orthogonal router.');
                 }
                 return joint.routers.orthogonal(vertices, opt, this);
             }
 
-            var leadPoint = _.first(partialRoute);
+            var leadPoint = partialRoute[0];
 
             if (leadPoint && leadPoint.equals(tailPoint)) {
                 // remove the first point if the previous partial route had the same point as last
                 partialRoute.shift();
             }
 
-            tailPoint = _.last(partialRoute) || tailPoint;
+            tailPoint = partialRoute[partialRoute.length - 1] || tailPoint;
 
             Array.prototype.push.apply(newVertices, partialRoute);
         }
@@ -13630,14 +14642,14 @@ joint.routers.manhattan = (function(g, _, joint) {
     // public function
     return function(vertices, opt, linkView) {
 
-        return router.call(linkView, vertices, _.extend({}, config, opt));
+        return router.call(linkView, vertices, util.assign({}, config, opt));
     };
 
-})(g, _, joint);
+})(g, _, joint, joint.util);
 
-joint.routers.metro = (function() {
+joint.routers.metro = (function(util) {
 
-    if (!_.isFunction(joint.routers.manhattan)) {
+    if (!util.isFunction(joint.routers.manhattan)) {
 
         throw new Error('Metro requires the manhattan router.');
     }
@@ -13701,10 +14713,10 @@ joint.routers.metro = (function() {
     // public function
     return function(vertices, opts, linkView) {
 
-        return joint.routers.manhattan(vertices, _.extend({}, config, opts), linkView);
+        return joint.routers.manhattan(vertices, util.assign({}, config, opts), linkView);
     };
 
-})();
+})(joint.util);
 
 // Does not make any changes to vertices.
 // Returns the arguments that are passed to it, unchanged.
@@ -13772,7 +14784,7 @@ joint.routers.oneSide = function(vertices, opt, linkView) {
     return [sourcePoint].concat(vertices, targetPoint);
 };
 
-joint.routers.orthogonal = (function() {
+joint.routers.orthogonal = (function(util) {
 
     // bearing -> opposite bearing
     var opposite = {
@@ -13863,15 +14875,15 @@ joint.routers.orthogonal = (function() {
         var route = {};
 
         var pts = [g.point(from.x, to.y), g.point(to.x, from.y)];
-        var freePts = _.filter(pts, function(pt) { return !toBBox.containsPoint(pt); });
-        var freeBrngPts = _.filter(freePts, function(pt) { return bearing(pt, from) != brng; });
+        var freePts = pts.filter(function(pt) { return !toBBox.containsPoint(pt); });
+        var freeBrngPts = freePts.filter(function(pt) { return bearing(pt, from) != brng; });
 
         var p;
 
         if (freeBrngPts.length > 0) {
 
             // try to pick a point which bears the same direction as the previous segment
-            p = _.filter(freeBrngPts, function(pt) { return bearing(from, pt) == brng; }).pop();
+            p = freeBrngPts.filter(function(pt) { return bearing(from, pt) == brng; }).pop();
             p = p || freeBrngPts[0];
 
             route.points = [p];
@@ -13884,7 +14896,7 @@ joint.routers.orthogonal = (function() {
             // We take the point inside element and move it outside the element in the direction the
             // route is going. Now we can join this point with the current end (using freeJoin).
 
-            p = _.difference(pts, freePts)[0];
+            p = util.difference(pts, freePts)[0];
 
             var p2 = g.point(to).move(p, -boxSize(toBBox, brng) / 2);
             var p1 = freeJoin(p2, from, toBBox);
@@ -13975,7 +14987,7 @@ joint.routers.orthogonal = (function() {
         var sourceBBox = expand(linkView.sourceBBox, padding);
         var targetBBox = expand(linkView.targetBBox, padding);
 
-        vertices = _.map(vertices, g.point);
+        vertices = util.toArray(vertices).map(g.point);
         vertices.unshift(sourceBBox.center());
         vertices.push(targetBBox.center());
 
@@ -14041,14 +15053,14 @@ joint.routers.orthogonal = (function() {
 
     return findOrthogonalRoute;
 
-})();
+})(joint.util);
 
 joint.connectors.normal = function(sourcePoint, targetPoint, vertices) {
 
     // Construct the `d` attribute of the `<path>` element.
     var d = ['M', sourcePoint.x, sourcePoint.y];
 
-    _.each(vertices, function(vertex) {
+    joint.util.toArray(vertices).forEach(function(vertex) {
 
         d.push(vertex.x, vertex.y);
     });
@@ -14069,7 +15081,7 @@ joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opts) {
     // Construct the `d` attribute of the `<path>` element.
     var d = ['M', sourcePoint.x, sourcePoint.y];
 
-    _.each(vertices, function(vertex, index) {
+    joint.util.toArray(vertices).forEach(function(vertex, index) {
 
         // the closest vertices
         prev = vertices[index - 1] || sourcePoint;
@@ -14116,7 +15128,7 @@ joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
     return d.join(' ');
 };
 
-joint.connectors.jumpover = (function(_, g) {
+joint.connectors.jumpover = (function(_, g, util) {
 
     // default size of jump if not specified in options
     var JUMP_SIZE = 5;
@@ -14194,9 +15206,13 @@ joint.connectors.jumpover = (function(_, g) {
      * @return {g.point[]} list of intersection points
      */
     function findLineIntersections(line, crossCheckLines) {
-        return _(crossCheckLines).map(function(crossCheckLine) {
-            return line.intersection(crossCheckLine);
-        }).compact().value();
+        return util.toArray(crossCheckLines).reduce(function(res, crossCheckLine) {
+            var intersection = line.intersection(crossCheckLine);
+            if (intersection) {
+                res.push(intersection);
+            }
+            return res;
+        }, []);
     }
 
     /**
@@ -14284,7 +15300,7 @@ joint.connectors.jumpover = (function(_, g) {
         var start = ['M', lines[0].start.x, lines[0].start.y];
 
         // make a paths from lines
-        var paths = _(lines).map(function(line) {
+        var paths = util.toArray(lines).reduce(function(res, line) {
             if (line.isJump) {
                 var diff;
                 if (jumpType === 'arc') {
@@ -14292,9 +15308,9 @@ joint.connectors.jumpover = (function(_, g) {
                     // determine rotation of arc based on difference between points
                     var xAxisRotate = Number(diff.x < 0 && diff.y < 0);
                     // for a jump line we create an arc instead
-                    return ['A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y];
+                    res.push('A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y);
                 } else if (jumpType === 'gap') {
-                    return ['M', line.end.x, line.end.y];
+                    res = res.concat(['M', line.end.x, line.end.y]);
                 } else if (jumpType === 'cubic') {
                     diff = line.start.difference(line.end);
                     var angle = line.start.theta(line.end);
@@ -14307,13 +15323,15 @@ joint.connectors.jumpover = (function(_, g) {
                     var controlStartPoint = g.point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
                     var controlEndPoint = g.point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
                     // create a cubic bezier curve
-                    return ['C', controlStartPoint.x, controlStartPoint.y, controlEndPoint.x, controlEndPoint.y, line.end.x, line.end.y];
+                    res.push('C', controlStartPoint.x, controlStartPoint.y, controlEndPoint.x, controlEndPoint.y, line.end.x, line.end.y);
                 }
+            } else {
+                res.push('L', line.end.x, line.end.y);
             }
-            return ['L', line.end.x, line.end.y];
-        }).flatten().value();
+            return res;
+        }, start);
 
-        return [].concat(start, paths).join(' ');
+        return paths.join(' ');
     }
 
     /**
@@ -14360,7 +15378,7 @@ joint.connectors.jumpover = (function(_, g) {
             var connector = link.get('connector') || defaultConnector;
 
             // avoid jumping over links with connector type listed in `ignored connectors`.
-            if (_.contains(ignoreConnectors, connector.name)) {
+            if (util.toArray(ignoreConnectors).includes(connector.name)) {
                 return false;
             }
             // filter out links that are above this one and  have the same connector type
@@ -14403,13 +15421,18 @@ joint.connectors.jumpover = (function(_, g) {
         var jumpingLines = thisLines.reduce(function(resultLines, thisLine) {
             // iterate all links and grab the intersections with this line
             // these are then sorted by distance so the line can be split more easily
-            var intersections = _(links).map(function(link, i) {
+
+            var intersections = links.reduce(function(res, link, i) {
                 // don't intersection with itself
-                if (link === thisModel) {
-                    return null;
+                if (link !== thisModel) {
+
+                    var lineIntersections = findLineIntersections(thisLine, linkLines[i]);
+                    res.push.apply(res, lineIntersections);
                 }
-                return findLineIntersections(thisLine, linkLines[i]);
-            }).flatten().compact().sortBy(_.partial(sortPoints, thisLine.start)).value();
+                return res;
+            }, []).sort(function(a, b) {
+                return sortPoints(thisLine.start, a) - sortPoints(thisLine.start, b);
+            });
 
             if (intersections.length > 0) {
                 // split the line based on found intersection points
@@ -14421,11 +15444,12 @@ joint.connectors.jumpover = (function(_, g) {
             return resultLines;
         }, []);
 
+
         return buildPath(jumpingLines, jumpSize, jumpType);
     };
-}(_, g));
+}(_, g, joint.util));
 
-(function(_, g, joint) {
+(function(_, g, joint, util) {
 
     function portTransformAttrs(point, angle, opt) {
 
@@ -14433,11 +15457,11 @@ joint.connectors.jumpover = (function(_, g) {
 
         trans.angle = angle || 0;
 
-        return _.defaults({}, opt, trans);
+        return joint.util.defaults({}, opt, trans);
     }
 
     function lineLayout(ports, p1, p2) {
-        return _.map(ports, function(port, index, ports) {
+        return ports.map(function(port, index, ports) {
             var p = this.pointAt(((index + 0.5) / ports.length));
             // `dx`,`dy` per port offset option
             if (port.dx || port.dy) {
@@ -14456,7 +15480,7 @@ joint.connectors.jumpover = (function(_, g) {
 
         var ellipse = g.Ellipse.fromRect(elBBox);
 
-        return _.map(ports, function(port, index, ports) {
+        return ports.map(function(port, index, ports) {
 
             var angle = startAngle + stepFn(index, ports.length);
             var p2 = p1.clone()
@@ -14483,12 +15507,12 @@ joint.connectors.jumpover = (function(_, g) {
     function argPoint(bbox, args) {
 
         var x = args.x;
-        if (_.isString(x)) {
+        if (util.isString(x)) {
             x = parseFloat(x) / 100 * bbox.width;
         }
 
         var y = args.y;
-        if (_.isString(y)) {
+        if (util.isString(y)) {
             y = parseFloat(y) / 100 * bbox.height;
         }
 
@@ -14505,7 +15529,7 @@ joint.connectors.jumpover = (function(_, g) {
          */
         absolute: function(ports, elBBox, opt) {
             //TODO v.talas angle
-            return _.map(ports, _.partial(argPoint, elBBox));
+            return ports.map(argPoint.bind(null, elBBox));
         },
 
         /**
@@ -14605,13 +15629,13 @@ joint.connectors.jumpover = (function(_, g) {
         }
     };
 
-})(_, g, joint);
+})(_, g, joint, joint.util);
 
-(function(_, g, joint) {
+(function(_, g, joint, util) {
 
     function labelAttributes(opt1, opt2) {
 
-        return _.defaultsDeep({}, opt1, opt2, {
+        return util.defaultsDeep({}, opt1, opt2, {
             x: 0,
             y: 0,
             angle: 0,
@@ -14627,7 +15651,7 @@ joint.connectors.jumpover = (function(_, g) {
 
     function outsideLayout(portPosition, elBBox, autoOrient, opt) {
 
-        opt = _.defaults({}, opt, { offset: 15 });
+        opt = util.defaults({}, opt, { offset: 15 });
         var angle = elBBox.center().theta(portPosition);
         var x = getBBoxAngles(elBBox);
 
@@ -14696,7 +15720,7 @@ joint.connectors.jumpover = (function(_, g) {
     function insideLayout(portPosition, elBBox, autoOrient, opt) {
 
         var angle = elBBox.center().theta(portPosition);
-        opt = _.defaults({}, opt, { offset: 15 });
+        opt = util.defaults({}, opt, { offset: 15 });
 
         var tx, ty, y, textAnchor;
         var offset = opt.offset;
@@ -14752,7 +15776,7 @@ joint.connectors.jumpover = (function(_, g) {
 
     function radialLayout(portCenterOffset, autoOrient, opt) {
 
-        opt = _.defaults({}, opt, { offset: 20 });
+        opt = util.defaults({}, opt, { offset: 20 });
 
         var origin = g.point(0, 0);
         var angle = -portCenterOffset.theta(origin);
@@ -14793,7 +15817,9 @@ joint.connectors.jumpover = (function(_, g) {
 
     joint.layout.PortLabel = {
 
-        manual: _.rearg(labelAttributes, 2),
+        manual: function(portPosition, elBBox, opt) {
+            return labelAttributes(opt, portPosition)
+        },
 
         left: function(portPosition, elBBox, opt) {
             return labelAttributes(opt, { x: -15, attrs: { '.': { y: '.3em', 'text-anchor': 'end' } } });
@@ -14836,7 +15862,7 @@ joint.connectors.jumpover = (function(_, g) {
         }
     };
 
-})(_, g, joint);
+})(_, g, joint, joint.util);
 
 joint.highlighters.addClass = {
 
@@ -14926,7 +15952,7 @@ joint.highlighters.stroke = {
         // Only highlight once.
         if (this._views[id]) return;
 
-        var options = _.defaults(opt || {}, this.defaultOptions);
+        var options = joint.util.defaults(opt || {}, this.defaultOptions);
 
         var magnetVel = V(magnetEl);
         var magnetBBox;
@@ -14940,7 +15966,7 @@ joint.highlighters.stroke = {
             // Failed to get path data from magnet element.
             // Draw a rectangle around the entire cell view instead.
             magnetBBox = magnetVel.bbox(true/* without transforms */);
-            pathData = V.rectToPath(_.extend({}, options, magnetBBox));
+            pathData = V.rectToPath(joint.util.assign({}, options, magnetBBox));
         }
 
         var highlightVel = V('path').attr({
@@ -14950,19 +15976,25 @@ joint.highlighters.stroke = {
             'fill': 'none'
         }).attr(options.attrs);
 
-        highlightVel.transform(cellView.el.getCTM().inverse());
-        highlightVel.transform(magnetEl.getCTM());
+        var highlightMatrix = magnetVel.getTransformToElement(cellView.el);
 
+        // Add padding to the highlight element.
         var padding = options.padding;
         if (padding) {
 
             magnetBBox || (magnetBBox = magnetVel.bbox(true));
-            // Add padding to the highlight element.
+
             var cx = magnetBBox.x + (magnetBBox.width / 2);
             var cy = magnetBBox.y + (magnetBBox.height / 2);
-            var sx = (magnetBBox.width + padding) / magnetBBox.width;
-            var sy = (magnetBBox.height + padding) / magnetBBox.height;
-            highlightVel.transform({
+
+            magnetBBox = V.transformRect(magnetBBox, highlightMatrix);
+
+            var width = Math.max(magnetBBox.width, 1);
+            var height = Math.max(magnetBBox.height, 1);
+            var sx = (width + padding) / width;
+            var sy = (height + padding) / height;
+
+            var paddingMatrix = V.createSVGMatrix({
                 a: sx,
                 b: 0,
                 c: 0,
@@ -14970,7 +16002,11 @@ joint.highlighters.stroke = {
                 e: cx - sx * cx,
                 f: cy - sy * cy
             });
+
+            highlightMatrix = highlightMatrix.multiply(paddingMatrix);
         }
+
+        highlightVel.transform(highlightMatrix);
 
         // joint.mvc.View will handle the theme class name and joint class name prefix.
         var highlightView = this._views[id] = new joint.mvc.View({
@@ -14980,7 +16016,7 @@ joint.highlighters.stroke = {
         });
 
         // Remove the highlight view when the cell is removed from the graph.
-        var removeHandler = _.bind(this.removeHighlighter, this, id);
+        var removeHandler = this.removeHighlighter.bind(this, id);
         var cell = cellView.model;
         highlightView.listenTo(cell, 'remove', removeHandler);
         highlightView.listenTo(cell.graph, 'reset', removeHandler);
@@ -14999,529 +16035,339 @@ joint.highlighters.stroke = {
     }
 };
 
-joint.shapes.erd = {};
-
-joint.shapes.erd.Entity = joint.dia.Element.extend({
-
+joint.dia.Element.define('erd.Entity', {
+    size: { width: 150, height: 60 },
+    attrs: {
+        '.outer': {
+            fill: '#2ECC71', stroke: '#27AE60', 'stroke-width': 2,
+            points: '100,0 100,60 0,60 0,0'
+        },
+        '.inner': {
+            fill: '#2ECC71', stroke: '#27AE60', 'stroke-width': 2,
+            points: '95,5 95,55 5,55 5,5',
+            display: 'none'
+        },
+        text: {
+            text: 'Entity',
+            'font-family': 'Arial', 'font-size': 14,
+            'ref-x': .5, 'ref-y': .5,
+            'y-alignment': 'middle', 'text-anchor': 'middle'
+        }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'erd.Entity',
-        size: { width: 150, height: 60 },
-        attrs: {
-            '.outer': {
-                fill: '#2ECC71', stroke: '#27AE60', 'stroke-width': 2,
-                points: '100,0 100,60 0,60 0,0'
-            },
-            '.inner': {
-                fill: '#2ECC71', stroke: '#27AE60', 'stroke-width': 2,
-                points: '95,5 95,55 5,55 5,5',
-                display: 'none'
-            },
-            text: {
-                text: 'Entity',
-                'font-family': 'Arial', 'font-size': 14,
-                'ref-x': .5, 'ref-y': .5,
-                'y-alignment': 'middle', 'text-anchor': 'middle'
-            }
-        }
-
-    }, joint.dia.Element.prototype.defaults)
 });
 
-joint.shapes.erd.WeakEntity = joint.shapes.erd.Entity.extend({
 
-    defaults: _.defaultsDeep({
-
-        type: 'erd.WeakEntity',
-
-        attrs: {
-            '.inner' : { display: 'auto' },
-            text: { text: 'Weak Entity' }
-        }
-
-    }, joint.shapes.erd.Entity.prototype.defaults)
+joint.shapes.erd.Entity.define('erd.WeakEntity', {
+    attrs: {
+        '.inner': { display: 'auto' },
+        text: { text: 'Weak Entity' }
+    }
 });
 
-joint.shapes.erd.Relationship = joint.dia.Element.extend({
-
+joint.dia.Element.define('erd.Relationship', {
+    size: { width: 80, height: 80 },
+    attrs: {
+        '.outer': {
+            fill: '#3498DB', stroke: '#2980B9', 'stroke-width': 2,
+            points: '40,0 80,40 40,80 0,40'
+        },
+        '.inner': {
+            fill: '#3498DB', stroke: '#2980B9', 'stroke-width': 2,
+            points: '40,5 75,40 40,75 5,40',
+            display: 'none'
+        },
+        text: {
+            text: 'Relationship',
+            'font-family': 'Arial', 'font-size': 12,
+            'ref-x': .5, 'ref-y': .5,
+            'y-alignment': 'middle', 'text-anchor': 'middle'
+        }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'erd.Relationship',
-        size: { width: 80, height: 80 },
-        attrs: {
-            '.outer': {
-                fill: '#3498DB', stroke: '#2980B9', 'stroke-width': 2,
-                points: '40,0 80,40 40,80 0,40'
-            },
-            '.inner': {
-                fill: '#3498DB', stroke: '#2980B9', 'stroke-width': 2,
-                points: '40,5 75,40 40,75 5,40',
-                display: 'none'
-            },
-            text: {
-                text: 'Relationship',
-                'font-family': 'Arial', 'font-size': 12,
-                'ref-x': .5, 'ref-y': .5,
-                'y-alignment': 'middle', 'text-anchor': 'middle'
-            }
-        }
-
-    }, joint.dia.Element.prototype.defaults)
 });
 
-joint.shapes.erd.IdentifyingRelationship = joint.shapes.erd.Relationship.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'erd.IdentifyingRelationship',
-
-        attrs: {
-            '.inner': { display: 'auto' },
-            text: { text: 'Identifying' }
-        }
-
-    }, joint.shapes.erd.Relationship.prototype.defaults)
+joint.shapes.erd.Relationship.define('erd.IdentifyingRelationship', {
+    attrs: {
+        '.inner': { display: 'auto' },
+        text: { text: 'Identifying' }
+    }
 });
 
-joint.shapes.erd.Attribute = joint.dia.Element.extend({
-
+joint.dia.Element.define('erd.Attribute', {
+    size: { width: 100, height: 50 },
+    attrs: {
+        'ellipse': {
+            transform: 'translate(50, 25)'
+        },
+        '.outer': {
+            stroke: '#D35400', 'stroke-width': 2,
+            cx: 0, cy: 0, rx: 50, ry: 25,
+            fill: '#E67E22'
+        },
+        '.inner': {
+            stroke: '#D35400', 'stroke-width': 2,
+            cx: 0, cy: 0, rx: 45, ry: 20,
+            fill: '#E67E22', display: 'none'
+        },
+        text: {
+            'font-family': 'Arial', 'font-size': 14,
+            'ref-x': .5, 'ref-y': .5,
+            'y-alignment': 'middle', 'text-anchor': 'middle'
+        }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><ellipse class="outer"/><ellipse class="inner"/></g><text/></g>',
+});
 
-    defaults: _.defaultsDeep({
+joint.shapes.erd.Attribute.define('erd.Multivalued', {
+    attrs: {
+        '.inner': { display: 'block' },
+        text: { text: 'multivalued' }
+    }
+});
 
-        type: 'erd.Attribute',
-        size: { width: 100, height: 50 },
-        attrs: {
-            'ellipse': {
-                transform: 'translate(50, 25)'
-            },
-            '.outer': {
-                stroke: '#D35400', 'stroke-width': 2,
-                cx: 0, cy: 0, rx: 50, ry: 25,
-                fill: '#E67E22'
-            },
-            '.inner': {
-                stroke: '#D35400', 'stroke-width': 2,
-                cx: 0, cy: 0, rx: 45, ry: 20,
-                fill: '#E67E22', display: 'none'
-            },
-            text: {
-                'font-family': 'Arial', 'font-size': 14,
-                'ref-x': .5, 'ref-y': .5,
-                'y-alignment': 'middle', 'text-anchor': 'middle'
-            }
+joint.shapes.erd.Attribute.define('erd.Derived', {
+    attrs: {
+        '.outer': { 'stroke-dasharray': '3,5' },
+        text: { text: 'derived' }
+    }
+});
+
+joint.shapes.erd.Attribute.define('erd.Key', {
+    attrs: {
+        ellipse: { 'stroke-width': 4 },
+        text: { text: 'key', 'font-weight': '800', 'text-decoration': 'underline' }
+    }
+});
+
+joint.shapes.erd.Attribute.define('erd.Normal', {
+    attrs: { text: { text: 'Normal' } }
+});
+
+joint.dia.Element.define('erd.ISA', {
+    type: 'erd.ISA',
+    size: { width: 100, height: 50 },
+    attrs: {
+        polygon: {
+            points: '0,0 50,50 100,0',
+            fill: '#F1C40F', stroke: '#F39C12', 'stroke-width': 2
+        },
+        text: {
+            text: 'ISA', 'font-size': 18,
+            'ref-x': .5, 'ref-y': .3,
+            'y-alignment': 'middle', 'text-anchor': 'middle'
         }
-
-    }, joint.dia.Element.prototype.defaults)
-
-});
-
-joint.shapes.erd.Multivalued = joint.shapes.erd.Attribute.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'erd.Multivalued',
-
-        attrs: {
-            '.inner': { display: 'block' },
-            text: { text: 'multivalued' }
-        }
-
-    }, joint.shapes.erd.Attribute.prototype.defaults)
-});
-
-joint.shapes.erd.Derived = joint.shapes.erd.Attribute.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'erd.Derived',
-
-        attrs: {
-            '.outer': { 'stroke-dasharray': '3,5' },
-            text: { text: 'derived' }
-        }
-
-    }, joint.shapes.erd.Attribute.prototype.defaults)
-});
-
-joint.shapes.erd.Key = joint.shapes.erd.Attribute.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'erd.Key',
-
-        attrs: {
-            ellipse: { 'stroke-width': 4 },
-            text: { text: 'key', 'font-weight': '800', 'text-decoration': 'underline' }
-        }
-
-    }, joint.shapes.erd.Attribute.prototype.defaults)
-});
-
-joint.shapes.erd.Normal = joint.shapes.erd.Attribute.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'erd.Normal',
-
-        attrs: { text: { text: 'Normal' }}
-
-    }, joint.shapes.erd.Attribute.prototype.defaults)
-});
-
-joint.shapes.erd.ISA = joint.dia.Element.extend({
-
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><polygon/></g><text/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'erd.ISA',
-        size: { width: 100, height: 50 },
-        attrs: {
-            polygon: {
-                points: '0,0 50,50 100,0',
-                fill: '#F1C40F', stroke: '#F39C12', 'stroke-width': 2
-            },
-            text: {
-                text: 'ISA', 'font-size': 18,
-                'ref-x': .5, 'ref-y': .3,
-                'y-alignment': 'middle', 'text-anchor': 'middle'
-            }
-        }
-
-    }, joint.dia.Element.prototype.defaults)
-
 });
 
-joint.shapes.erd.Line = joint.dia.Link.extend({
-
-    defaults: { type: 'erd.Line' },
-
+joint.dia.Link.define('erd.Line', {}, {
     cardinality: function(value) {
-        this.set('labels', [{ position: -20, attrs: { text: { dy: -8, text: value }}}]);
+        this.set('labels', [{ position: -20, attrs: { text: { dy: -8, text: value } } }]);
     }
 });
 
-joint.shapes.fsa = {};
-
-joint.shapes.fsa.State = joint.shapes.basic.Circle.extend({
-    defaults: _.defaultsDeep({
-        type: 'fsa.State',
-        attrs: {
-            circle: { 'stroke-width': 3 },
-            text: { 'font-weight': '800' }
-        }
-    }, joint.shapes.basic.Circle.prototype.defaults)
+joint.shapes.basic.Circle.define('fsa.State', {
+    attrs: {
+        circle: { 'stroke-width': 3 },
+        text: { 'font-weight': '800' }
+    }
 });
 
-joint.shapes.fsa.StartState = joint.dia.Element.extend({
-
+joint.dia.Element.define('fsa.StartState', {
+    size: { width: 20, height: 20 },
+    attrs: {
+        circle: {
+            transform: 'translate(10, 10)',
+            r: 10,
+            fill: '#000000'
+        }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><circle/></g></g>',
+});
 
-    defaults: _.defaultsDeep({
+joint.dia.Element.define('fsa.EndState', {
+    size: { width: 20, height: 20 },
+    attrs: {
+        '.outer': {
+            transform: 'translate(10, 10)',
+            r: 10,
+            fill: '#ffffff',
+            stroke: '#000000'
+        },
 
-        type: 'fsa.StartState',
-        size: { width: 20, height: 20 },
-        attrs: {
-            circle: {
-                transform: 'translate(10, 10)',
-                r: 10,
-                fill: '#000000'
-            }
+        '.inner': {
+            transform: 'translate(10, 10)',
+            r: 6,
+            fill: '#000000'
         }
-
-    }, joint.dia.Element.prototype.defaults)
-});
-
-joint.shapes.fsa.EndState = joint.dia.Element.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'fsa.EndState',
-        size: { width: 20, height: 20 },
-        attrs: {
-            '.outer': {
-                transform: 'translate(10, 10)',
-                r: 10,
-                fill: '#ffffff',
-                stroke: '#000000'
-            },
-
-            '.inner': {
-                transform: 'translate(10, 10)',
-                r: 6,
-                fill: '#000000'
-            }
-        }
-
-    }, joint.dia.Element.prototype.defaults)
-});
-
-joint.shapes.fsa.Arrow = joint.dia.Link.extend({
-
-    defaults: _.defaultsDeep({
-        type: 'fsa.Arrow',
-        attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }},
-        smooth: true
-    }, joint.dia.Link.prototype.defaults)
-});
-
-
-joint.shapes.org = {};
-
-joint.shapes.org.Member = joint.dia.Element.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><rect class="card"/><image/></g><text class="rank"/><text class="name"/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'org.Member',
-        size: { width: 180, height: 70 },
-        attrs: {
-
-            rect: { width: 170, height: 60 },
-
-            '.card': {
-                fill: '#FFFFFF', stroke: '#000000', 'stroke-width': 2,
-                'pointer-events': 'visiblePainted', rx: 10, ry: 10
-            },
-
-            image: {
-                width: 48, height: 48,
-                ref: '.card', 'ref-x': 10, 'ref-y': 5
-            },
-
-            '.rank': {
-                'text-decoration': 'underline',
-                ref: '.card', 'ref-x': 0.9, 'ref-y': 0.2,
-                'font-family': 'Courier New', 'font-size': 14,
-                'text-anchor': 'end'
-            },
-
-            '.name': {
-                'font-weight': '800',
-                ref: '.card', 'ref-x': 0.9, 'ref-y': 0.6,
-                'font-family': 'Courier New', 'font-size': 14,
-                'text-anchor': 'end'
-            }
-        }
-    }, joint.dia.Element.prototype.defaults)
-});
-
-joint.shapes.org.Arrow = joint.dia.Link.extend({
-
-    defaults: {
-        type: 'org.Arrow',
-        source: { selector: '.card' }, target: { selector: '.card' },
-        attrs: { '.connection': { stroke: '#585858', 'stroke-width': 3 }},
-        z: -1
     }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
 });
 
-
-joint.shapes.chess = {};
-
-joint.shapes.chess.KingWhite = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><g style="fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;"><path      d="M 22.5,11.63 L 22.5,6"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path      d="M 20,8 L 25,8"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path      d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25"      style="fill:#ffffff; stroke:#000000; stroke-linecap:butt; stroke-linejoin:miter;" />    <path      d="M 11.5,37 C 17,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 19,16 9.5,13 6.5,19.5 C 3.5,25.5 11.5,29.5 11.5,29.5 L 11.5,37 z "      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 11.5,30 C 17,27 27,27 32.5,30"      style="fill:none; stroke:#000000;" />    <path      d="M 11.5,33.5 C 17,30.5 27,30.5 32.5,33.5"      style="fill:none; stroke:#000000;" />    <path      d="M 11.5,37 C 17,34 27,34 32.5,37"      style="fill:none; stroke:#000000;" />  </g></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'chess.KingWhite',
-        size: { width: 42, height: 38 }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
+joint.dia.Link.define('fsa.Arrow', {
+    attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' } },
+    smooth: true
 });
 
-joint.shapes.chess.KingBlack = joint.shapes.basic.Generic.extend({
+joint.dia.Element.define('org.Member', {
+    size: { width: 180, height: 70 },
+    attrs: {
+        rect: { width: 170, height: 60 },
 
-    markup: '<g class="rotatable"><g class="scalable"><g style="fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path       d="M 22.5,11.63 L 22.5,6"       style="fill:none; stroke:#000000; stroke-linejoin:miter;"       id="path6570" />    <path       d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25"       style="fill:#000000;fill-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;" />    <path       d="M 11.5,37 C 17,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 19,16 9.5,13 6.5,19.5 C 3.5,25.5 11.5,29.5 11.5,29.5 L 11.5,37 z "       style="fill:#000000; stroke:#000000;" />    <path       d="M 20,8 L 25,8"       style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path       d="M 32,29.5 C 32,29.5 40.5,25.5 38.03,19.85 C 34.15,14 25,18 22.5,24.5 L 22.51,26.6 L 22.5,24.5 C 20,18 9.906,14 6.997,19.85 C 4.5,25.5 11.85,28.85 11.85,28.85"       style="fill:none; stroke:#ffffff;" />    <path       d="M 11.5,30 C 17,27 27,27 32.5,30 M 11.5,33.5 C 17,30.5 27,30.5 32.5,33.5 M 11.5,37 C 17,34 27,34 32.5,37"       style="fill:none; stroke:#ffffff;" />  </g></g></g>',
+        '.card': {
+            fill: '#FFFFFF', stroke: '#000000', 'stroke-width': 2,
+            'pointer-events': 'visiblePainted', rx: 10, ry: 10
+        },
 
-    defaults: _.defaultsDeep({
+        image: {
+            width: 48, height: 48,
+            ref: '.card', 'ref-x': 10, 'ref-y': 5
+        },
 
-        type: 'chess.KingBlack',
-        size: { width: 42, height: 38 }
+        '.rank': {
+            'text-decoration': 'underline',
+            ref: '.card', 'ref-x': 0.9, 'ref-y': 0.2,
+            'font-family': 'Courier New', 'font-size': 14,
+            'text-anchor': 'end'
+        },
 
-    }, joint.shapes.basic.Generic.prototype.defaults)
-});
-
-joint.shapes.chess.QueenWhite = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(-1,-1)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(15.5,-5.5)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(32,-1)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(7,-4.5)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(24,-4)" />    <path      d="M 9,26 C 17.5,24.5 30,24.5 36,26 L 38,14 L 31,25 L 31,11 L 25.5,24.5 L 22.5,9.5 L 19.5,24.5 L 14,10.5 L 14,25 L 7,14 L 9,26 z "      style="stroke-linecap:butt;" />    <path      d="M 9,26 C 9,28 10.5,28 11.5,30 C 12.5,31.5 12.5,31 12,33.5 C 10.5,34.5 10.5,36 10.5,36 C 9,37.5 11,38.5 11,38.5 C 17.5,39.5 27.5,39.5 34,38.5 C 34,38.5 35.5,37.5 34,36 C 34,36 34.5,34.5 33,33.5 C 32.5,31 32.5,31.5 33.5,30 C 34.5,28 36,28 36,26 C 27.5,24.5 17.5,24.5 9,26 z "      style="stroke-linecap:butt;" />    <path      d="M 11.5,30 C 15,29 30,29 33.5,30"      style="fill:none;" />    <path      d="M 12,33.5 C 18,32.5 27,32.5 33,33.5"      style="fill:none;" />  </g></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'chess.QueenWhite',
-        size: { width: 42, height: 38 }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
-});
-
-joint.shapes.chess.QueenBlack = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#000000; stroke:none;">      <circle cx="6"    cy="12" r="2.75" />      <circle cx="14"   cy="9"  r="2.75" />      <circle cx="22.5" cy="8"  r="2.75" />      <circle cx="31"   cy="9"  r="2.75" />      <circle cx="39"   cy="12" r="2.75" />    </g>    <path       d="M 9,26 C 17.5,24.5 30,24.5 36,26 L 38.5,13.5 L 31,25 L 30.7,10.9 L 25.5,24.5 L 22.5,10 L 19.5,24.5 L 14.3,10.9 L 14,25 L 6.5,13.5 L 9,26 z"       style="stroke-linecap:butt; stroke:#000000;" />    <path       d="M 9,26 C 9,28 10.5,28 11.5,30 C 12.5,31.5 12.5,31 12,33.5 C 10.5,34.5 10.5,36 10.5,36 C 9,37.5 11,38.5 11,38.5 C 17.5,39.5 27.5,39.5 34,38.5 C 34,38.5 35.5,37.5 34,36 C 34,36 34.5,34.5 33,33.5 C 32.5,31 32.5,31.5 33.5,30 C 34.5,28 36,28 36,26 C 27.5,24.5 17.5,24.5 9,26 z"       style="stroke-linecap:butt;" />    <path       d="M 11,38.5 A 35,35 1 0 0 34,38.5"       style="fill:none; stroke:#000000; stroke-linecap:butt;" />    <path       d="M 11,29 A 35,35 1 0 1 34,29"       style="fill:none; stroke:#ffffff;" />    <path       d="M 12.5,31.5 L 32.5,31.5"       style="fill:none; stroke:#ffffff;" />    <path       d="M 11.5,34.5 A 35,35 1 0 0 33.5,34.5"       style="fill:none; stroke:#ffffff;" />    <path       d="M 10.5,37.5 A 35,35 1 0 0 34.5,37.5"       style="fill:none; stroke:#ffffff;" />  </g></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'chess.QueenBlack',
-        size: { width: 42, height: 38 }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
-});
-
-joint.shapes.chess.RookWhite = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z "      style="stroke-linecap:butt;" />    <path      d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z "      style="stroke-linecap:butt;" />    <path      d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14"      style="stroke-linecap:butt;" />    <path      d="M 34,14 L 31,17 L 14,17 L 11,14" />    <path      d="M 31,17 L 31,29.5 L 14,29.5 L 14,17"      style="stroke-linecap:butt; stroke-linejoin:miter;" />    <path      d="M 31,29.5 L 32.5,32 L 12.5,32 L 14,29.5" />    <path      d="M 11,14 L 34,14"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />  </g></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'chess.RookWhite',
-        size: { width: 32, height: 34 }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
-});
-
-joint.shapes.chess.RookBlack = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z "      style="stroke-linecap:butt;" />    <path      d="M 12.5,32 L 14,29.5 L 31,29.5 L 32.5,32 L 12.5,32 z "      style="stroke-linecap:butt;" />    <path      d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z "      style="stroke-linecap:butt;" />    <path      d="M 14,29.5 L 14,16.5 L 31,16.5 L 31,29.5 L 14,29.5 z "      style="stroke-linecap:butt;stroke-linejoin:miter;" />    <path      d="M 14,16.5 L 11,14 L 34,14 L 31,16.5 L 14,16.5 z "      style="stroke-linecap:butt;" />    <path      d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14 L 11,14 z "      style="stroke-linecap:butt;" />    <path      d="M 12,35.5 L 33,35.5 L 33,35.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 13,31.5 L 32,31.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 14,29.5 L 31,29.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 14,16.5 L 31,16.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 11,14 L 34,14"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />  </g></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'chess.RookBlack',
-        size: { width: 32, height: 34 }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
-});
-
-joint.shapes.chess.BishopWhite = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-rule:evenodd; fill-opacity:1; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#ffffff; stroke:#000000; stroke-linecap:butt;">       <path        d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.646,38.99 6.677,38.97 6,38 C 7.354,36.06 9,36 9,36 z" />      <path        d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z" />      <path        d="M 25 8 A 2.5 2.5 0 1 1  20,8 A 2.5 2.5 0 1 1  25 8 z" />    </g>    <path      d="M 17.5,26 L 27.5,26 M 15,30 L 30,30 M 22.5,15.5 L 22.5,20.5 M 20,18 L 25,18"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />  </g></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'chess.BishopWhite',
-        size: { width: 38, height: 38 }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
-});
-
-joint.shapes.chess.BishopBlack = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-rule:evenodd; fill-opacity:1; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#000000; stroke:#000000; stroke-linecap:butt;">       <path        d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.646,38.99 6.677,38.97 6,38 C 7.354,36.06 9,36 9,36 z" />      <path        d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z" />      <path        d="M 25 8 A 2.5 2.5 0 1 1  20,8 A 2.5 2.5 0 1 1  25 8 z" />    </g>    <path       d="M 17.5,26 L 27.5,26 M 15,30 L 30,30 M 22.5,15.5 L 22.5,20.5 M 20,18 L 25,18"       style="fill:none; stroke:#ffffff; stroke-linejoin:miter;" />  </g></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'chess.BishopBlack',
-        size: { width: 38, height: 38 }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
-});
-
-joint.shapes.chess.KnightWhite = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18"      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10"      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z"      style="fill:#000000; stroke:#000000;" />    <path      d="M 15 15.5 A 0.5 1.5 0 1 1  14,15.5 A 0.5 1.5 0 1 1  15 15.5 z"      transform="matrix(0.866,0.5,-0.5,0.866,9.693,-5.173)"      style="fill:#000000; stroke:#000000;" />  </g></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'chess.KnightWhite',
-        size: { width: 38, height: 37 }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
-});
-
-joint.shapes.chess.KnightBlack = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18"      style="fill:#000000; stroke:#000000;" />    <path      d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10"      style="fill:#000000; stroke:#000000;" />    <path      d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z"      style="fill:#ffffff; stroke:#ffffff;" />    <path      d="M 15 15.5 A 0.5 1.5 0 1 1  14,15.5 A 0.5 1.5 0 1 1  15 15.5 z"      transform="matrix(0.866,0.5,-0.5,0.866,9.693,-5.173)"      style="fill:#ffffff; stroke:#ffffff;" />    <path      d="M 24.55,10.4 L 24.1,11.85 L 24.6,12 C 27.75,13 30.25,14.49 32.5,18.75 C 34.75,23.01 35.75,29.06 35.25,39 L 35.2,39.5 L 37.45,39.5 L 37.5,39 C 38,28.94 36.62,22.15 34.25,17.66 C 31.88,13.17 28.46,11.02 25.06,10.5 L 24.55,10.4 z "      style="fill:#ffffff; stroke:none;" />  </g></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'chess.KnightBlack',
-        size: { width: 38, height: 37 }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
-});
-
-joint.shapes.chess.PawnWhite = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><path d="M 22,9 C 19.79,9 18,10.79 18,13 C 18,13.89 18.29,14.71 18.78,15.38 C 16.83,16.5 15.5,18.59 15.5,21 C 15.5,23.03 16.44,24.84 17.91,26.03 C 14.91,27.09 10.5,31.58 10.5,39.5 L 33.5,39.5 C 33.5,31.58 29.09,27.09 26.09,26.03 C 27.56,24.84 28.5,23.03 28.5,21 C 28.5,18.59 27.17,16.5 25.22,15.38 C 25.71,14.71 26,13.89 26,13 C 26,10.79 24.21,9 22,9 z "  style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:nonzero; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:miter; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;" /></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'chess.PawnWhite',
-        size: { width: 28, height: 33 }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
-});
-
-joint.shapes.chess.PawnBlack = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><path d="M 22,9 C 19.79,9 18,10.79 18,13 C 18,13.89 18.29,14.71 18.78,15.38 C 16.83,16.5 15.5,18.59 15.5,21 C 15.5,23.03 16.44,24.84 17.91,26.03 C 14.91,27.09 10.5,31.58 10.5,39.5 L 33.5,39.5 C 33.5,31.58 29.09,27.09 26.09,26.03 C 27.56,24.84 28.5,23.03 28.5,21 C 28.5,18.59 27.17,16.5 25.22,15.38 C 25.71,14.71 26,13.89 26,13 C 26,10.79 24.21,9 22,9 z "  style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:nonzero; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:miter; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;" /></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'chess.PawnBlack',
-        size: { width: 28, height: 33 }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
-});
-
-
-joint.shapes.pn = {};
-
-joint.shapes.pn.Place = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'pn.Place',
-        size: { width: 50, height: 50 },
-        attrs: {
-            '.root': {
-                r: 25,
-                fill: '#ffffff',
-                stroke: '#000000',
-                transform: 'translate(25, 25)'
-            },
-            '.label': {
-                'text-anchor': 'middle',
-                'ref-x': .5,
-                'ref-y': -20,
-                ref: '.root',
-                fill: '#000000',
-                'font-size': 12
-            },
-            '.tokens > circle': {
-                fill: '#000000',
-                r: 5
-            },
-            '.tokens.one > circle': { transform: 'translate(25, 25)' },
-
-            '.tokens.two > circle:nth-child(1)': { transform: 'translate(19, 25)' },
-            '.tokens.two > circle:nth-child(2)': { transform: 'translate(31, 25)' },
-
-            '.tokens.three > circle:nth-child(1)': { transform: 'translate(18, 29)' },
-            '.tokens.three > circle:nth-child(2)': { transform: 'translate(25, 19)' },
-            '.tokens.three > circle:nth-child(3)': { transform: 'translate(32, 29)' },
-
-            '.tokens.alot > text': {
-                transform: 'translate(25, 18)',
-                'text-anchor': 'middle',
-                fill: '#000000'
-            }
+        '.name': {
+            'font-weight': '800',
+            ref: '.card', 'ref-x': 0.9, 'ref-y': 0.6,
+            'font-family': 'Courier New', 'font-size': 14,
+            'text-anchor': 'end'
         }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
+    }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><rect class="card"/><image/></g><text class="rank"/><text class="name"/></g>',
 });
 
+joint.dia.Link.define('org.Arrow', {
+    source: { selector: '.card' }, target: { selector: '.card' },
+    attrs: { '.connection': { stroke: '#585858', 'stroke-width': 3 } },
+    z: -1
+});
 
-joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
+joint.shapes.basic.Generic.define('chess.KingWhite', {
+    size: { width: 42, height: 38 }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><g style="fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;"><path      d="M 22.5,11.63 L 22.5,6"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path      d="M 20,8 L 25,8"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path      d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25"      style="fill:#ffffff; stroke:#000000; stroke-linecap:butt; stroke-linejoin:miter;" />    <path      d="M 11.5,37 C 17,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 19,16 9.5,13 6.5,19.5 C 3.5,25.5 11.5,29.5 11.5,29.5 L 11.5,37 z "      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 11.5,30 C 17,27 27,27 32.5,30"      style="fill:none; stroke:#000000;" />    <path      d="M 11.5,33.5 C 17,30.5 27,30.5 32.5,33.5"      style="fill:none; stroke:#000000;" />    <path      d="M 11.5,37 C 17,34 27,34 32.5,37"      style="fill:none; stroke:#000000;" />  </g></g></g>'
+});
+
+joint.shapes.basic.Generic.define('chess.KingBlack', {
+    size: { width: 42, height: 38 }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><g style="fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path       d="M 22.5,11.63 L 22.5,6"       style="fill:none; stroke:#000000; stroke-linejoin:miter;"       id="path6570" />    <path       d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25"       style="fill:#000000;fill-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;" />    <path       d="M 11.5,37 C 17,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 19,16 9.5,13 6.5,19.5 C 3.5,25.5 11.5,29.5 11.5,29.5 L 11.5,37 z "       style="fill:#000000; stroke:#000000;" />    <path       d="M 20,8 L 25,8"       style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path       d="M 32,29.5 C 32,29.5 40.5,25.5 38.03,19.85 C 34.15,14 25,18 22.5,24.5 L 22.51,26.6 L 22.5,24.5 C 20,18 9.906,14 6.997,19.85 C 4.5,25.5 11.85,28.85 11.85,28.85"       style="fill:none; stroke:#ffffff;" />    <path       d="M 11.5,30 C 17,27 27,27 32.5,30 M 11.5,33.5 C 17,30.5 27,30.5 32.5,33.5 M 11.5,37 C 17,34 27,34 32.5,37"       style="fill:none; stroke:#ffffff;" />  </g></g></g>'
+});
+
+joint.shapes.basic.Generic.define('chess.QueenWhite', {
+    size: { width: 42, height: 38 }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(-1,-1)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(15.5,-5.5)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(32,-1)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(7,-4.5)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(24,-4)" />    <path      d="M 9,26 C 17.5,24.5 30,24.5 36,26 L 38,14 L 31,25 L 31,11 L 25.5,24.5 L 22.5,9.5 L 19.5,24.5 L 14,10.5 L 14,25 L 7,14 L 9,26 z "      style="stroke-linecap:butt;" />    <path      d="M 9,26 C 9,28 10.5,28 11.5,30 C 12.5,31.5 12.5,31 12,33.5 C 10.5,34.5 10.5,36 10.5,36 C 9,37.5 11,38.5 11,38.5 C 17.5,39.5 27.5,39.5 34,38.5 C 34,38.5 35.5,37.5 34,36 C 34,36 34.5,34.5 33,33.5 C 32.5,31 32.5,31.5 33.5,30 C 34.5,28 36,28 36,26 C 27.5,24.5 17.5,24.5 9,26 z "      style="stroke-linecap:butt;" />    <path      d="M 11.5,30 C 15,29 30,29 33.5,30"      style="fill:none;" />    <path      d="M 12,33.5 C 18,32.5 27,32.5 33,33.5"      style="fill:none;" />  </g></g></g>'
+});
+
+joint.shapes.basic.Generic.define('chess.QueenBlack', {
+    size: { width: 42, height: 38 }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#000000; stroke:none;">      <circle cx="6"    cy="12" r="2.75" />      <circle cx="14"   cy="9"  r="2.75" />      <circle cx="22.5" cy="8"  r="2.75" />      <circle cx="31"   cy="9"  r="2.75" />      <circle cx="39"   cy="12" r="2.75" />    </g>    <path       d="M 9,26 C 17.5,24.5 30,24.5 36,26 L 38.5,13.5 L 31,25 L 30.7,10.9 L 25.5,24.5 L 22.5,10 L 19.5,24.5 L 14.3,10.9 L 14,25 L 6.5,13.5 L 9,26 z"       style="stroke-linecap:butt; stroke:#000000;" />    <path       d="M 9,26 C 9,28 10.5,28 11.5,30 C 12.5,31.5 12.5,31 12,33.5 C 10.5,34.5 10.5,36 10.5,36 C 9,37.5 11,38.5 11,38.5 C 17.5,39.5 27.5,39.5 34,38.5 C 34,38.5 35.5,37.5 34,36 C 34,36 34.5,34.5 33,33.5 C 32.5,31 32.5,31.5 33.5,30 C 34.5,28 36,28 36,26 C 27.5,24.5 17.5,24.5 9,26 z"       style="stroke-linecap:butt;" />    <path       d="M 11,38.5 A 35,35 1 0 0 34,38.5"       style="fill:none; stroke:#000000; stroke-linecap:butt;" />    <path       d="M 11,29 A 35,35 1 0 1 34,29"       style="fill:none; stroke:#ffffff;" />    <path       d="M 12.5,31.5 L 32.5,31.5"       style="fill:none; stroke:#ffffff;" />    <path       d="M 11.5,34.5 A 35,35 1 0 0 33.5,34.5"       style="fill:none; stroke:#ffffff;" />    <path       d="M 10.5,37.5 A 35,35 1 0 0 34.5,37.5"       style="fill:none; stroke:#ffffff;" />  </g></g></g>'
+});
+
+joint.shapes.basic.Generic.define('chess.RookWhite', {
+    size: { width: 32, height: 34 }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z "      style="stroke-linecap:butt;" />    <path      d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z "      style="stroke-linecap:butt;" />    <path      d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14"      style="stroke-linecap:butt;" />    <path      d="M 34,14 L 31,17 L 14,17 L 11,14" />    <path      d="M 31,17 L 31,29.5 L 14,29.5 L 14,17"      style="stroke-linecap:butt; stroke-linejoin:miter;" />    <path      d="M 31,29.5 L 32.5,32 L 12.5,32 L 14,29.5" />    <path      d="M 11,14 L 34,14"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />  </g></g></g>'
+});
+
+joint.shapes.basic.Generic.define('chess.RookBlack', {
+    size: { width: 32, height: 34 }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z "      style="stroke-linecap:butt;" />    <path      d="M 12.5,32 L 14,29.5 L 31,29.5 L 32.5,32 L 12.5,32 z "      style="stroke-linecap:butt;" />    <path      d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z "      style="stroke-linecap:butt;" />    <path      d="M 14,29.5 L 14,16.5 L 31,16.5 L 31,29.5 L 14,29.5 z "      style="stroke-linecap:butt;stroke-linejoin:miter;" />    <path      d="M 14,16.5 L 11,14 L 34,14 L 31,16.5 L 14,16.5 z "      style="stroke-linecap:butt;" />    <path      d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14 L 11,14 z "      style="stroke-linecap:butt;" />    <path      d="M 12,35.5 L 33,35.5 L 33,35.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 13,31.5 L 32,31.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 14,29.5 L 31,29.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 14,16.5 L 31,16.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 11,14 L 34,14"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />  </g></g></g>'
+});
+
+joint.shapes.basic.Generic.define('chess.BishopWhite', {
+    size: { width: 38, height: 38 }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-rule:evenodd; fill-opacity:1; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#ffffff; stroke:#000000; stroke-linecap:butt;">       <path        d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.646,38.99 6.677,38.97 6,38 C 7.354,36.06 9,36 9,36 z" />      <path        d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z" />      <path        d="M 25 8 A 2.5 2.5 0 1 1  20,8 A 2.5 2.5 0 1 1  25 8 z" />    </g>    <path      d="M 17.5,26 L 27.5,26 M 15,30 L 30,30 M 22.5,15.5 L 22.5,20.5 M 20,18 L 25,18"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />  </g></g></g>'
+});
+
+joint.shapes.basic.Generic.define('chess.BishopBlack', {
+    size: { width: 38, height: 38 }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-rule:evenodd; fill-opacity:1; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#000000; stroke:#000000; stroke-linecap:butt;">       <path        d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.646,38.99 6.677,38.97 6,38 C 7.354,36.06 9,36 9,36 z" />      <path        d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z" />      <path        d="M 25 8 A 2.5 2.5 0 1 1  20,8 A 2.5 2.5 0 1 1  25 8 z" />    </g>    <path       d="M 17.5,26 L 27.5,26 M 15,30 L 30,30 M 22.5,15.5 L 22.5,20.5 M 20,18 L 25,18"       style="fill:none; stroke:#ffffff; stroke-linejoin:miter;" />  </g></g></g>'
+});
+
+joint.shapes.basic.Generic.define('chess.KnightWhite', {
+    size: { width: 38, height: 37 }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18"      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10"      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z"      style="fill:#000000; stroke:#000000;" />    <path      d="M 15 15.5 A 0.5 1.5 0 1 1  14,15.5 A 0.5 1.5 0 1 1  15 15.5 z"      transform="matrix(0.866,0.5,-0.5,0.866,9.693,-5.173)"      style="fill:#000000; stroke:#000000;" />  </g></g></g>'
+});
+
+joint.shapes.basic.Generic.define('chess.KnightBlack', {
+    size: { width: 38, height: 37 }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18"      style="fill:#000000; stroke:#000000;" />    <path      d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10"      style="fill:#000000; stroke:#000000;" />    <path      d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z"      style="fill:#ffffff; stroke:#ffffff;" />    <path      d="M 15 15.5 A 0.5 1.5 0 1 1  14,15.5 A 0.5 1.5 0 1 1  15 15.5 z"      transform="matrix(0.866,0.5,-0.5,0.866,9.693,-5.173)"      style="fill:#ffffff; stroke:#ffffff;" />    <path      d="M 24.55,10.4 L 24.1,11.85 L 24.6,12 C 27.75,13 30.25,14.49 32.5,18.75 C 34.75,23.01 35.75,29.06 35.25,39 L 35.2,39.5 L 37.45,39.5 L 37.5,39 C 38,28.94 36.62,22.15 34.25,17.66 C 31.88,13.17 28.46,11.02 25.06,10.5 L 24.55,10.4 z "      style="fill:#ffffff; stroke:none;" />  </g></g></g>'
+});
+
+joint.shapes.basic.Generic.define('chess.PawnWhite', {
+    size: { width: 28, height: 33 }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><path d="M 22,9 C 19.79,9 18,10.79 18,13 C 18,13.89 18.29,14.71 18.78,15.38 C 16.83,16.5 15.5,18.59 15.5,21 C 15.5,23.03 16.44,24.84 17.91,26.03 C 14.91,27.09 10.5,31.58 10.5,39.5 L 33.5,39.5 C 33.5,31.58 29.09,27.09 26.09,26.03 C 27.56,24.84 28.5,23.03 28.5,21 C 28.5,18.59 27.17,16.5 25.22,15.38 C 25.71,14.71 26,13.89 26,13 C 26,10.79 24.21,9 22,9 z "  style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:nonzero; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:miter; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;" /></g></g>'
+});
+
+joint.shapes.basic.Generic.define('chess.PawnBlack', {
+    size: { width: 28, height: 33 }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><path d="M 22,9 C 19.79,9 18,10.79 18,13 C 18,13.89 18.29,14.71 18.78,15.38 C 16.83,16.5 15.5,18.59 15.5,21 C 15.5,23.03 16.44,24.84 17.91,26.03 C 14.91,27.09 10.5,31.58 10.5,39.5 L 33.5,39.5 C 33.5,31.58 29.09,27.09 26.09,26.03 C 27.56,24.84 28.5,23.03 28.5,21 C 28.5,18.59 27.17,16.5 25.22,15.38 C 25.71,14.71 26,13.89 26,13 C 26,10.79 24.21,9 22,9 z "  style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:nonzero; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:miter; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;" /></g></g>'
+});
+
+joint.shapes.basic.Generic.define('pn.Place', {
+    size: { width: 50, height: 50 },
+    attrs: {
+        '.root': {
+            r: 25,
+            fill: '#ffffff',
+            stroke: '#000000',
+            transform: 'translate(25, 25)'
+        },
+        '.label': {
+            'text-anchor': 'middle',
+            'ref-x': .5,
+            'ref-y': -20,
+            ref: '.root',
+            fill: '#000000',
+            'font-size': 12
+        },
+        '.tokens > circle': {
+            fill: '#000000',
+            r: 5
+        },
+        '.tokens.one > circle': { transform: 'translate(25, 25)' },
+
+        '.tokens.two > circle:nth-child(1)': { transform: 'translate(19, 25)' },
+        '.tokens.two > circle:nth-child(2)': { transform: 'translate(31, 25)' },
+
+        '.tokens.three > circle:nth-child(1)': { transform: 'translate(18, 29)' },
+        '.tokens.three > circle:nth-child(2)': { transform: 'translate(25, 19)' },
+        '.tokens.three > circle:nth-child(3)': { transform: 'translate(32, 29)' },
+
+        '.tokens.alot > text': {
+            transform: 'translate(25, 18)',
+            'text-anchor': 'middle',
+            fill: '#000000'
+        }
+    }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
+});
+
+joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({}, {
 
     initialize: function() {
 
@@ -15571,137 +16417,122 @@ joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
 
             default:
                 $tokens[0].className.baseVal += ' alot';
-                $tokens.append(V('<text/>').text(tokens + '' ).node);
+                $tokens.append(V('<text/>').text(tokens + '').node);
                 break;
         }
     }
 });
 
-joint.shapes.pn.Transition = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><g class="scalable"><rect class="root"/></g></g><text class="label"/>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'pn.Transition',
-        size: { width: 12, height: 50 },
-        attrs: {
-            'rect': {
-                width: 12,
-                height: 50,
-                fill: '#000000',
-                stroke: '#000000'
-            },
-            '.label': {
-                'text-anchor': 'middle',
-                'ref-x': .5,
-                'ref-y': -20,
-                ref: 'rect',
-                fill: '#000000',
-                'font-size': 12
-            }
+joint.shapes.basic.Generic.define('pn.Transition', {
+    size: { width: 12, height: 50 },
+    attrs: {
+        'rect': {
+            width: 12,
+            height: 50,
+            fill: '#000000',
+            stroke: '#000000'
+        },
+        '.label': {
+            'text-anchor': 'middle',
+            'ref-x': .5,
+            'ref-y': -20,
+            ref: 'rect',
+            fill: '#000000',
+            'font-size': 12
         }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
+    }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><rect class="root"/></g></g><text class="label"/>',
 });
 
-joint.shapes.pn.Link = joint.dia.Link.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'pn.Link',
-        attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
-
-    }, joint.dia.Link.prototype.defaults)
+joint.dia.Link.define('pn.Link', {
+    attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' } }
 });
 
-joint.shapes.devs = {};
-
-joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
-
-    markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
-    portMarkup: '<circle class="port-body"/>',
-    portLabelMarkup: '<text class="port-label"/>',
-    defaults: _.defaultsDeep({
-
-        type: 'devs.Model',
-        inPorts: [],
-        outPorts: [],
-        size: {
-            width: 80,
-            height: 80
+/**
+ * @deprecated use the port api insteac
+ */
+joint.shapes.basic.Generic.define('devs.Model', {
+    inPorts: [],
+    outPorts: [],
+    size: {
+        width: 80,
+        height: 80
+    },
+    attrs: {
+        '.': {
+            magnet: false
         },
-        attrs: {
-            '.': {
-                magnet: false
-            },
-            '.label': {
-                text: 'Model',
-                'ref-x': .5,
-                'ref-y': 10,
-                'font-size': 18,
-                'text-anchor': 'middle',
-                fill: '#000'
-            },
-            '.body': {
-                'ref-width': '100%',
-                'ref-height': '100%',
-                stroke: '#000'
-            }
+        '.label': {
+            text: 'Model',
+            'ref-x': .5,
+            'ref-y': 10,
+            'font-size': 18,
+            'text-anchor': 'middle',
+            fill: '#000'
         },
-        ports: {
-            groups: {
-                'in': {
-                    position: {
-                        name: 'left'
+        '.body': {
+            'ref-width': '100%',
+            'ref-height': '100%',
+            stroke: '#000'
+        }
+    },
+    ports: {
+        groups: {
+            'in': {
+                position: {
+                    name: 'left'
+                },
+                attrs: {
+                    '.port-label': {
+                        fill: '#000'
                     },
-                    attrs: {
-                        '.port-label': {
-                            fill: '#000'
-                        },
-                        '.port-body': {
-                            fill: '#fff',
-                            stroke: '#000',
-                            r: 10,
-                            magnet: true
-                        }
-                    },
-                    label: {
-                        position: {
-                            name: 'left',
-                            args: {
-                                y: 10
-                            }
-                        }
+                    '.port-body': {
+                        fill: '#fff',
+                        stroke: '#000',
+                        r: 10,
+                        magnet: true
                     }
                 },
-                'out': {
+                label: {
                     position: {
-                        name: 'right'
-                    },
-                    attrs: {
-                        '.port-label': {
-                            fill: '#000'
-                        },
-                        '.port-body': {
-                            fill: '#fff',
-                            stroke: '#000',
-                            r: 10,
-                            magnet: true
+                        name: 'left',
+                        args: {
+                            y: 10
                         }
+                    }
+                }
+            },
+            'out': {
+                position: {
+                    name: 'right'
+                },
+                attrs: {
+                    '.port-label': {
+                        fill: '#000'
                     },
-                    label: {
-                        position: {
-                            name: 'right',
-                            args: {
-                                y: 10
-                            }
+                    '.port-body': {
+                        fill: '#fff',
+                        stroke: '#000',
+                        r: 10,
+                        magnet: true
+                    }
+                },
+                label: {
+                    position: {
+                        name: 'right',
+                        args: {
+                            y: 10
                         }
                     }
                 }
             }
         }
-    }, joint.shapes.basic.Generic.prototype.defaults),
+    }
+}, {
+    markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
+    portMarkup: '<circle class="port-body"/>',
+    portLabelMarkup: '<text class="port-label"/>',
 
     initialize: function() {
 
@@ -15714,13 +16545,13 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     updatePortItems: function(model, changed, opt) {
 
         // Make sure all ports are unique.
-        var inPorts = _.uniq(this.get('inPorts'));
-        var outPorts = _.difference(_.uniq(this.get('outPorts')), inPorts);
+        var inPorts = joint.util.uniq(this.get('inPorts'));
+        var outPorts = joint.util.difference(joint.util.uniq(this.get('outPorts')), inPorts);
 
         var inPortItems = this.createPortItems('in', inPorts);
         var outPortItems = this.createPortItems('out', outPorts);
 
-        this.prop('ports/items', inPortItems.concat(outPortItems), _.extend({ rewrite: true }, opt));
+        this.prop('ports/items', inPortItems.concat(outPortItems), joint.util.assign({ rewrite: true }, opt));
     },
 
     createPortItem: function(group, port) {
@@ -15738,13 +16569,13 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
     createPortItems: function(group, ports) {
 
-        return _.map(ports, _.bind(this.createPortItem, this, group));
+        return joint.util.toArray(ports).map(this.createPortItem.bind(this, group));
     },
 
     _addGroupPort: function(port, group, opt) {
 
         var ports = this.get(group);
-        return this.set(group, _.isArray(ports) ? ports.concat(port) : [port], opt);
+        return this.set(group, Array.isArray(ports) ? ports.concat(port) : [port], opt);
     },
 
     addOutPort: function(port, opt) {
@@ -15759,7 +16590,7 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
 
     _removeGroupPort: function(port, group, opt) {
 
-        return this.set(group, _.without(this.get(group), port), opt);
+        return this.set(group, joint.util.without(this.get(group), port), opt);
     },
 
     removeOutPort: function(port, opt) {
@@ -15773,10 +16604,10 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     },
 
     _changeGroup: function(group, properties, opt) {
-        
-        return this.prop('ports/groups/' + group, _.isObject(properties) ? properties : {}, opt);
+
+        return this.prop('ports/groups/' + group, joint.util.isObject(properties) ? properties : {}, opt);
     },
-    
+
     changeInGroup: function(properties, opt) {
 
         return this._changeGroup('in', properties, opt);
@@ -15788,56 +16619,71 @@ joint.shapes.devs.Model = joint.shapes.basic.Generic.extend({
     }
 });
 
-joint.shapes.devs.Atomic = joint.shapes.devs.Model.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'devs.Atomic',
-        size: {
-            width: 80,
-            height: 80
-        },
-        attrs: {
-            '.label': {
-                text: 'Atomic'
-            }
-        }
-    }, joint.shapes.devs.Model.prototype.defaults)
-});
-
-joint.shapes.devs.Coupled = joint.shapes.devs.Model.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'devs.Coupled',
-        size: {
-            width: 200,
-            height: 300
-        },
-        attrs: {
-            '.label': {
-                text: 'Coupled'
-            }
-        }
-    }, joint.shapes.devs.Model.prototype.defaults)
-});
-
-joint.shapes.devs.Link = joint.dia.Link.extend({
-
-    defaults: {
-        type: 'devs.Link',
-        attrs: {
-            '.connection': {
-                'stroke-width': 2
-            }
+joint.shapes.devs.Model.define('devs.Atomic', {
+    size: {
+        width: 80,
+        height: 80
+    },
+    attrs: {
+        '.label': {
+            text: 'Atomic'
         }
     }
 });
 
-joint.shapes.uml = {};
+joint.shapes.devs.Model.define('devs.Coupled', {
+    size: {
+        width: 200,
+        height: 300
+    },
+    attrs: {
+        '.label': {
+            text: 'Coupled'
+        }
+    }
+});
 
-joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
+joint.dia.Link.define('devs.Link', {
+    attrs: {
+        '.connection': {
+            'stroke-width': 2
+        }
+    }
+});
 
+joint.shapes.basic.Generic.define('uml.Class', {
+    attrs: {
+        rect: { 'width': 200 },
+
+        '.uml-class-name-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#3498db' },
+        '.uml-class-attrs-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
+        '.uml-class-methods-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
+
+        '.uml-class-name-text': {
+            'ref': '.uml-class-name-rect',
+            'ref-y': .5,
+            'ref-x': .5,
+            'text-anchor': 'middle',
+            'y-alignment': 'middle',
+            'font-weight': 'bold',
+            'fill': 'black',
+            'font-size': 12,
+            'font-family': 'Times New Roman'
+        },
+        '.uml-class-attrs-text': {
+            'ref': '.uml-class-attrs-rect', 'ref-y': 5, 'ref-x': 5,
+            'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
+        },
+        '.uml-class-methods-text': {
+            'ref': '.uml-class-methods-rect', 'ref-y': 5, 'ref-x': 5,
+            'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
+        }
+    },
+
+    name: [],
+    attributes: [],
+    methods: []
+}, {
     markup: [
         '<g class="rotatable">',
         '<g class="scalable">',
@@ -15846,37 +16692,6 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
         '<text class="uml-class-name-text"/><text class="uml-class-attrs-text"/><text class="uml-class-methods-text"/>',
         '</g>'
     ].join(''),
-
-    defaults: _.defaultsDeep({
-
-        type: 'uml.Class',
-
-        attrs: {
-            rect: { 'width': 200 },
-
-            '.uml-class-name-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#3498db' },
-            '.uml-class-attrs-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
-            '.uml-class-methods-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
-
-            '.uml-class-name-text': {
-                'ref': '.uml-class-name-rect', 'ref-y': .5, 'ref-x': .5, 'text-anchor': 'middle', 'y-alignment': 'middle', 'font-weight': 'bold',
-                'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
-            },
-            '.uml-class-attrs-text': {
-                'ref': '.uml-class-attrs-rect', 'ref-y': 5, 'ref-x': 5,
-                'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
-            },
-            '.uml-class-methods-text': {
-                'ref': '.uml-class-methods-rect', 'ref-y': 5, 'ref-x': 5,
-                'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
-            }
-        },
-
-        name: [],
-        attributes: [],
-        methods: []
-
-    }, joint.shapes.basic.Generic.prototype.defaults),
 
     initialize: function() {
 
@@ -15906,9 +16721,9 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
 
         var offsetY = 0;
 
-        _.each(rects, function(rect) {
+        rects.forEach(function(rect) {
 
-            var lines = _.isArray(rect.text) ? rect.text : [rect.text];
+            var lines = Array.isArray(rect.text) ? rect.text : [rect.text];
             var rectHeight = lines.length * 20 + 20;
 
             attrs['.uml-class-' + rect.type + '-text'].text = lines.join('\n');
@@ -15921,7 +16736,7 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
 
 });
 
-joint.shapes.uml.ClassView = joint.dia.ElementView.extend({
+joint.shapes.uml.ClassView = joint.dia.ElementView.extend({}, {
 
     initialize: function() {
 
@@ -15934,16 +16749,13 @@ joint.shapes.uml.ClassView = joint.dia.ElementView.extend({
     }
 });
 
-joint.shapes.uml.Abstract = joint.shapes.uml.Class.extend({
-
-    defaults: _.defaultsDeep({
-        type: 'uml.Abstract',
-        attrs: {
-            '.uml-class-name-rect': { fill : '#e74c3c' },
-            '.uml-class-attrs-rect': { fill : '#c0392b' },
-            '.uml-class-methods-rect': { fill : '#c0392b' }
-        }
-    }, joint.shapes.uml.Class.prototype.defaults),
+joint.shapes.uml.Class.define('uml.Abstract', {
+    attrs: {
+        '.uml-class-name-rect': { fill: '#e74c3c' },
+        '.uml-class-attrs-rect': { fill: '#c0392b' },
+        '.uml-class-methods-rect': { fill: '#c0392b' }
+    }
+}, {
 
     getClassName: function() {
         return ['<<Abstract>>', this.get('name')];
@@ -15952,63 +16764,65 @@ joint.shapes.uml.Abstract = joint.shapes.uml.Class.extend({
 });
 joint.shapes.uml.AbstractView = joint.shapes.uml.ClassView;
 
-joint.shapes.uml.Interface = joint.shapes.uml.Class.extend({
-
-    defaults: _.defaultsDeep({
-        type: 'uml.Interface',
-        attrs: {
-            '.uml-class-name-rect': { fill : '#f1c40f' },
-            '.uml-class-attrs-rect': { fill : '#f39c12' },
-            '.uml-class-methods-rect': { fill : '#f39c12' }
-        }
-    }, joint.shapes.uml.Class.prototype.defaults),
-
+joint.shapes.uml.Class.define('uml.Interface', {
+    attrs: {
+        '.uml-class-name-rect': { fill: '#f1c40f' },
+        '.uml-class-attrs-rect': { fill: '#f39c12' },
+        '.uml-class-methods-rect': { fill: '#f39c12' }
+    }
+}, {
     getClassName: function() {
         return ['<<Interface>>', this.get('name')];
     }
-
 });
 joint.shapes.uml.InterfaceView = joint.shapes.uml.ClassView;
 
-joint.shapes.uml.Generalization = joint.dia.Link.extend({
-    defaults: {
-        type: 'uml.Generalization',
-        attrs: { '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' }}
+joint.dia.Link.define('uml.Generalization', {
+    attrs: { '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' } }
+});
+
+joint.dia.Link.define('uml.Implementation', {
+    attrs: {
+        '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' },
+        '.connection': { 'stroke-dasharray': '3,3' }
     }
 });
 
-joint.shapes.uml.Implementation = joint.dia.Link.extend({
-    defaults: {
-        type: 'uml.Implementation',
-        attrs: {
-            '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' },
-            '.connection': { 'stroke-dasharray': '3,3' }
-        }
-    }
+joint.dia.Link.define('uml.Aggregation', {
+    attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'white' } }
 });
 
-joint.shapes.uml.Aggregation = joint.dia.Link.extend({
-    defaults: {
-        type: 'uml.Aggregation',
-        attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'white' }}
-    }
+joint.dia.Link.define('uml.Composition', {
+    attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'black' } }
 });
 
-joint.shapes.uml.Composition = joint.dia.Link.extend({
-    defaults: {
-        type: 'uml.Composition',
-        attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'black' }}
-    }
-});
-
-joint.shapes.uml.Association = joint.dia.Link.extend({
-    defaults: { type: 'uml.Association' }
-});
+joint.dia.Link.define('uml.Association');
 
 // Statechart
 
-joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
+joint.shapes.basic.Generic.define('uml.State', {
+    attrs: {
+        '.uml-state-body': {
+            'width': 200, 'height': 200, 'rx': 10, 'ry': 10,
+            'fill': '#ecf0f1', 'stroke': '#bdc3c7', 'stroke-width': 3
+        },
+        '.uml-state-separator': {
+            'stroke': '#bdc3c7', 'stroke-width': 2
+        },
+        '.uml-state-name': {
+            'ref': '.uml-state-body', 'ref-x': .5, 'ref-y': 5, 'text-anchor': 'middle',
+            'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
+        },
+        '.uml-state-events': {
+            'ref': '.uml-state-separator', 'ref-x': 5, 'ref-y': 5,
+            'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
+        }
+    },
 
+    name: 'State',
+    events: []
+
+}, {
     markup: [
         '<g class="rotatable">',
         '<g class="scalable">',
@@ -16019,33 +16833,6 @@ joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
         '<text class="uml-state-events"/>',
         '</g>'
     ].join(''),
-
-    defaults: _.defaultsDeep({
-
-        type: 'uml.State',
-
-        attrs: {
-            '.uml-state-body': {
-                'width': 200, 'height': 200, 'rx': 10, 'ry': 10,
-                'fill': '#ecf0f1', 'stroke': '#bdc3c7', 'stroke-width': 3
-            },
-            '.uml-state-separator': {
-                'stroke': '#bdc3c7', 'stroke-width': 2
-            },
-            '.uml-state-name': {
-                'ref': '.uml-state-body', 'ref-x': .5, 'ref-y': 5, 'text-anchor': 'middle',
-                'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
-            },
-            '.uml-state-events': {
-                'ref': '.uml-state-separator', 'ref-x': 5, 'ref-y': 5,
-                'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
-            }
-        },
-
-        name: 'State',
-        events: []
-
-    }, joint.shapes.basic.Generic.prototype.defaults),
 
     initialize: function() {
 
@@ -16081,287 +16868,181 @@ joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
         // triggers also an update).
         this.attr('.uml-state-separator/d', d, { silent: true });
     }
-
 });
 
-joint.shapes.uml.StartState = joint.shapes.basic.Circle.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'uml.StartState',
-        attrs: { circle: { 'fill': '#34495e', 'stroke': '#2c3e50', 'stroke-width': 2, 'rx': 1 }}
-
-    }, joint.shapes.basic.Circle.prototype.defaults)
-
+joint.shapes.basic.Circle.define('uml.StartState', {
+    type: 'uml.StartState',
+    attrs: { circle: { 'fill': '#34495e', 'stroke': '#2c3e50', 'stroke-width': 2, 'rx': 1 } }
 });
 
-joint.shapes.uml.EndState = joint.shapes.basic.Generic.extend({
+joint.shapes.basic.Generic.define('uml.EndState', {
+    size: { width: 20, height: 20 },
+    attrs: {
+        'circle.outer': {
+            transform: 'translate(10, 10)',
+            r: 10,
+            fill: '#ffffff',
+            stroke: '#2c3e50'
+        },
 
+        'circle.inner': {
+            transform: 'translate(10, 10)',
+            r: 6,
+            fill: '#34495e'
+        }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'uml.EndState',
-        size: { width: 20, height: 20 },
-        attrs: {
-            'circle.outer': {
-                transform: 'translate(10, 10)',
-                r: 10,
-                fill: '#ffffff',
-                stroke: '#2c3e50'
-            },
-
-            'circle.inner': {
-                transform: 'translate(10, 10)',
-                r: 6,
-                fill: '#34495e'
-            }
-        }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
-
 });
 
-joint.shapes.uml.Transition = joint.dia.Link.extend({
-    defaults: {
-        type: 'uml.Transition',
-        attrs: {
-            '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z', fill: '#34495e', stroke: '#2c3e50' },
-            '.connection': { stroke: '#2c3e50' }
-        }
+joint.dia.Link.define('uml.Transition', {
+    attrs: {
+        '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z', fill: '#34495e', stroke: '#2c3e50' },
+        '.connection': { stroke: '#2c3e50' }
     }
 });
 
-
-joint.shapes.logic = {};
-
-joint.shapes.logic.Gate = joint.shapes.basic.Generic.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'logic.Gate',
-        size: { width: 80, height: 40 },
-        attrs: {
-            '.': { magnet: false },
-            '.body': { width: 100, height: 50 },
-            circle: { r: 7, stroke: 'black', fill: 'transparent', 'stroke-width': 2 }
-        }
-
-    }, joint.shapes.basic.Generic.prototype.defaults),
-
-    operation: function() { return true; }
+joint.shapes.basic.Generic.define('logic.Gate', {
+    size: { width: 80, height: 40 },
+    attrs: {
+        '.': { magnet: false },
+        '.body': { width: 100, height: 50 },
+        circle: { r: 7, stroke: 'black', fill: 'transparent', 'stroke-width': 2 }
+    }
+}, {
+    operation: function() {
+        return true;
+    }
 });
 
-joint.shapes.logic.IO = joint.shapes.logic.Gate.extend({
-
+joint.shapes.logic.Gate.define('logic.IO', {
+    size: { width: 60, height: 30 },
+    attrs: {
+        '.body': { fill: 'white', stroke: 'black', 'stroke-width': 2 },
+        '.wire': { ref: '.body', 'ref-y': .5, stroke: 'black' },
+        text: {
+            fill: 'black',
+            ref: '.body', 'ref-x': .5, 'ref-y': .5, 'y-alignment': 'middle',
+            'text-anchor': 'middle',
+            'font-weight': 'bold',
+            'font-variant': 'small-caps',
+            'text-transform': 'capitalize',
+            'font-size': '14px'
+        }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><path class="wire"/><circle/><text/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'logic.IO',
-        size: { width: 60, height: 30 },
-        attrs: {
-            '.body': { fill: 'white', stroke: 'black', 'stroke-width': 2 },
-            '.wire': { ref: '.body', 'ref-y': .5, stroke: 'black' },
-            text: {
-                fill: 'black',
-                ref: '.body', 'ref-x': .5, 'ref-y': .5, 'y-alignment': 'middle',
-                'text-anchor': 'middle',
-                'font-weight': 'bold',
-                'font-variant': 'small-caps',
-                'text-transform': 'capitalize',
-                'font-size': '14px'
-            }
-        }
-
-    }, joint.shapes.logic.Gate.prototype.defaults)
-
 });
 
-joint.shapes.logic.Input = joint.shapes.logic.IO.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'logic.Input',
-        attrs: {
-            '.wire': { 'ref-dx': 0, d: 'M 0 0 L 23 0' },
-            circle: { ref: '.body', 'ref-dx': 30, 'ref-y': 0.5, magnet: true, 'class': 'output', port: 'out' },
-            text: { text: 'input' }
-        }
-
-    }, joint.shapes.logic.IO.prototype.defaults)
+joint.shapes.logic.IO.define('logic.Input', {
+    attrs: {
+        '.wire': { 'ref-dx': 0, d: 'M 0 0 L 23 0' },
+        circle: { ref: '.body', 'ref-dx': 30, 'ref-y': 0.5, magnet: true, 'class': 'output', port: 'out' },
+        text: { text: 'input' }
+    }
 });
 
-joint.shapes.logic.Output = joint.shapes.logic.IO.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'logic.Output',
-        attrs: {
-            '.wire': { 'ref-x': 0, d: 'M 0 0 L -23 0' },
-            circle: { ref: '.body', 'ref-x': -30, 'ref-y': 0.5, magnet: 'passive', 'class': 'input', port: 'in' },
-            text: { text: 'output' }
-        }
-
-    }, joint.shapes.logic.IO.prototype.defaults)
-
+joint.shapes.logic.IO.define('logic.Output', {
+    attrs: {
+        '.wire': { 'ref-x': 0, d: 'M 0 0 L -23 0' },
+        circle: { ref: '.body', 'ref-x': -30, 'ref-y': 0.5, magnet: 'passive', 'class': 'input', port: 'in' },
+        text: { text: 'output' }
+    }
 });
 
-
-joint.shapes.logic.Gate11 = joint.shapes.logic.Gate.extend({
-
+joint.shapes.logic.Gate.define('logic.Gate11', {
+    attrs: {
+        '.input': { ref: '.body', 'ref-x': -2, 'ref-y': 0.5, magnet: 'passive', port: 'in' },
+        '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input"/><circle class="output"/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'logic.Gate11',
-        attrs: {
-            '.input': { ref: '.body', 'ref-x': -2, 'ref-y': 0.5, magnet: 'passive', port: 'in' },
-            '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
-        }
-
-    }, joint.shapes.logic.Gate.prototype.defaults)
 });
 
-joint.shapes.logic.Gate21 = joint.shapes.logic.Gate.extend({
-
+joint.shapes.logic.Gate.define('logic.Gate21', {
+    attrs: {
+        '.input1': { ref: '.body', 'ref-x': -2, 'ref-y': 0.3, magnet: 'passive', port: 'in1' },
+        '.input2': { ref: '.body', 'ref-x': -2, 'ref-y': 0.7, magnet: 'passive', port: 'in2' },
+        '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input input1"/><circle  class="input input2"/><circle class="output"/></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'logic.Gate21',
-        attrs: {
-            '.input1': { ref: '.body', 'ref-x': -2, 'ref-y': 0.3, magnet: 'passive', port: 'in1' },
-            '.input2': { ref: '.body', 'ref-x': -2, 'ref-y': 0.7, magnet: 'passive', port: 'in2' },
-            '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
-        }
-
-    }, joint.shapes.logic.Gate.prototype.defaults)
-
 });
 
-joint.shapes.logic.Repeater = joint.shapes.logic.Gate11.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'logic.Repeater',
-        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PVCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjgiCiAgICAgaW5rc2NhcGU6Y3g9Ijg0LjY4NTM1MiIKICAgICBpbmtzY2FwZTpjeT0iMTUuMjg4NjI4IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzIuMTU2OTEsMjUgTCA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAyOS4wNDM0NzgsMjUgTCA1LjA0MzQ3ODEsMjUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgZD0iTSAyOC45Njg3NSwyLjU5Mzc1IEwgMjguOTY4NzUsNSBMIDI4Ljk2ODc1LDQ1IEwgMjguOTY4NzUsNDcuNDA2MjUgTCAzMS4xMjUsNDYuMzQzNzUgTCA3Mi4xNTYyNSwyNi4zNDM3NSBMIDcyLjE1NjI1LDIzLjY1NjI1IEwgMzEuMTI1LDMuNjU2MjUgTCAyOC45Njg3NSwyLjU5Mzc1IHogTSAzMS45Njg3NSw3LjQwNjI1IEwgNjguMDkzNzUsMjUgTCAzMS45Njg3NSw0Mi41OTM3NSBMIDMxLjk2ODc1LDcuNDA2MjUgeiIKICAgICAgIGlkPSJwYXRoMjYzOCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2NjY2NjYyIgLz4KICA8L2c+Cjwvc3ZnPgo=' }}
-
-    }, joint.shapes.logic.Gate11.prototype.defaults),
-
+joint.shapes.logic.Gate11.define('logic.Repeater', {
+    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PVCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjgiCiAgICAgaW5rc2NhcGU6Y3g9Ijg0LjY4NTM1MiIKICAgICBpbmtzY2FwZTpjeT0iMTUuMjg4NjI4IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzIuMTU2OTEsMjUgTCA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAyOS4wNDM0NzgsMjUgTCA1LjA0MzQ3ODEsMjUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgZD0iTSAyOC45Njg3NSwyLjU5Mzc1IEwgMjguOTY4NzUsNSBMIDI4Ljk2ODc1LDQ1IEwgMjguOTY4NzUsNDcuNDA2MjUgTCAzMS4xMjUsNDYuMzQzNzUgTCA3Mi4xNTYyNSwyNi4zNDM3NSBMIDcyLjE1NjI1LDIzLjY1NjI1IEwgMzEuMTI1LDMuNjU2MjUgTCAyOC45Njg3NSwyLjU5Mzc1IHogTSAzMS45Njg3NSw3LjQwNjI1IEwgNjguMDkzNzUsMjUgTCAzMS45Njg3NSw0Mi41OTM3NSBMIDMxLjk2ODc1LDcuNDA2MjUgeiIKICAgICAgIGlkPSJwYXRoMjYzOCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2NjY2NjYyIgLz4KICA8L2c+Cjwvc3ZnPgo=' } }
+}, {
     operation: function(input) {
         return input;
     }
-
 });
 
-joint.shapes.logic.Not = joint.shapes.logic.Gate11.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'logic.Not',
-        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PVCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjgiCiAgICAgaW5rc2NhcGU6Y3g9Ijg0LjY4NTM1MiIKICAgICBpbmtzY2FwZTpjeT0iMTUuMjg4NjI4IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzkuMTU2OTEsMjUgTCA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAyOS4wNDM0NzgsMjUgTCA1LjA0MzQ3ODEsMjUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgZD0iTSAyOC45Njg3NSwyLjU5Mzc1IEwgMjguOTY4NzUsNSBMIDI4Ljk2ODc1LDQ1IEwgMjguOTY4NzUsNDcuNDA2MjUgTCAzMS4xMjUsNDYuMzQzNzUgTCA3Mi4xNTYyNSwyNi4zNDM3NSBMIDcyLjE1NjI1LDIzLjY1NjI1IEwgMzEuMTI1LDMuNjU2MjUgTCAyOC45Njg3NSwyLjU5Mzc1IHogTSAzMS45Njg3NSw3LjQwNjI1IEwgNjguMDkzNzUsMjUgTCAzMS45Njg3NSw0Mi41OTM3NSBMIDMxLjk2ODc1LDcuNDA2MjUgeiIKICAgICAgIGlkPSJwYXRoMjYzOCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2NjY2NjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDI2NzEiCiAgICAgICBzb2RpcG9kaTpjeD0iNzYiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA4MCwyNSBBIDQsNCAwIDEgMSA3MiwyNSBBIDQsNCAwIDEgMSA4MCwyNSB6IgogICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEsMCkiIC8+CiAgPC9nPgo8L3N2Zz4K' }}
-
-    }, joint.shapes.logic.Gate11.prototype.defaults),
-
+joint.shapes.logic.Gate11.define('logic.Not', {
+    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PVCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjgiCiAgICAgaW5rc2NhcGU6Y3g9Ijg0LjY4NTM1MiIKICAgICBpbmtzY2FwZTpjeT0iMTUuMjg4NjI4IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzkuMTU2OTEsMjUgTCA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAyOS4wNDM0NzgsMjUgTCA1LjA0MzQ3ODEsMjUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgZD0iTSAyOC45Njg3NSwyLjU5Mzc1IEwgMjguOTY4NzUsNSBMIDI4Ljk2ODc1LDQ1IEwgMjguOTY4NzUsNDcuNDA2MjUgTCAzMS4xMjUsNDYuMzQzNzUgTCA3Mi4xNTYyNSwyNi4zNDM3NSBMIDcyLjE1NjI1LDIzLjY1NjI1IEwgMzEuMTI1LDMuNjU2MjUgTCAyOC45Njg3NSwyLjU5Mzc1IHogTSAzMS45Njg3NSw3LjQwNjI1IEwgNjguMDkzNzUsMjUgTCAzMS45Njg3NSw0Mi41OTM3NSBMIDMxLjk2ODc1LDcuNDA2MjUgeiIKICAgICAgIGlkPSJwYXRoMjYzOCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2NjY2NjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDI2NzEiCiAgICAgICBzb2RpcG9kaTpjeD0iNzYiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA4MCwyNSBBIDQsNCAwIDEgMSA3MiwyNSBBIDQsNCAwIDEgMSA4MCwyNSB6IgogICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEsMCkiIC8+CiAgPC9nPgo8L3N2Zz4K' } }
+}, {
     operation: function(input) {
         return !input;
     }
-
 });
 
-joint.shapes.logic.Or = joint.shapes.logic.Gate21.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'logic.Or',
-        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik9SIEFOU0kuc3ZnIgogICBpbmtzY2FwZTpvdXRwdXRfZXh0ZW5zaW9uPSJvcmcuaW5rc2NhcGUub3V0cHV0LnN2Zy5pbmtzY2FwZSI+CiAgPGRlZnMKICAgICBpZD0iZGVmczQiPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjUwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjI1IDogMTAgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjcxNCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iMSA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMC41IDogMC4zMzMzMzMzMyA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyODA2IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyODE5IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjM3Mi4wNDcyNCA6IDM1MC43ODczOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI3NDQuMDk0NDggOiA1MjYuMTgxMDkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzc3IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49Ijc1IDogNDAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iMTUwIDogNjAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDYwIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTMyNzUiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNTAgOiAzMy4zMzMzMzMgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iMTAwIDogNTAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDUwIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTU1MzMiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzIgOiAyMS4zMzMzMzMgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNjQgOiAzMiA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMzIgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjU1NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDE2LjY2NjY2NyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDI1IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAyNSA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogIDwvZGVmcz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6em9vbT0iNCIKICAgICBpbmtzY2FwZTpjeD0iMTEzLjAwMDM5IgogICAgIGlua3NjYXBlOmN5PSIxMi44OTM3MzEiCiAgICAgaW5rc2NhcGU6ZG9jdW1lbnQtdW5pdHM9InB4IgogICAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9ImcyNTYwIgogICAgIHNob3dncmlkPSJmYWxzZSIKICAgICBpbmtzY2FwZTpncmlkLWJib3g9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1wb2ludHM9InRydWUiCiAgICAgZ3JpZHRvbGVyYW5jZT0iMTAwMDAiCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxMzk5IgogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9Ijg3NCIKICAgICBpbmtzY2FwZTp3aW5kb3cteD0iMzciCiAgICAgaW5rc2NhcGU6d2luZG93LXk9Ii00IgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Im0gNzAsMjUgYyAyMCwwIDI1LDAgMjUsMCIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMSwxNSA1LDE1IgogICAgICAgaWQ9InBhdGgzMDYxIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzIsMzUgNSwzNSIKICAgICAgIGlkPSJwYXRoMzk0NCIgLz4KICAgIDxnCiAgICAgICBpZD0iZzI1NjAiCiAgICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI2LjUsLTM5LjUpIj4KICAgICAgPHBhdGgKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjQwNjI1LDQ0LjUgTCAtMC40MDYyNSw0Ni45Mzc1IEMgLTAuNDA2MjUsNDYuOTM3NSA1LjI1LDUzLjkzNzU0OSA1LjI1LDY0LjUgQyA1LjI1LDc1LjA2MjQ1MSAtMC40MDYyNSw4Mi4wNjI1IC0wLjQwNjI1LDgyLjA2MjUgTCAtMi40MDYyNSw4NC41IEwgMC43NSw4NC41IEwgMTQuNzUsODQuNSBDIDE3LjE1ODA3Niw4NC41MDAwMDEgMjIuNDM5Njk5LDg0LjUyNDUxNCAyOC4zNzUsODIuMDkzNzUgQyAzNC4zMTAzMDEsNzkuNjYyOTg2IDQwLjkxMTUzNiw3NC43NTA0ODQgNDYuMDYyNSw2NS4yMTg3NSBMIDQ0Ljc1LDY0LjUgTCA0Ni4wNjI1LDYzLjc4MTI1IEMgMzUuNzU5Mzg3LDQ0LjcxNTU5IDE5LjUwNjU3NCw0NC41IDE0Ljc1LDQ0LjUgTCAwLjc1LDQ0LjUgTCAtMi40MDYyNSw0NC41IHogTSAzLjQ2ODc1LDQ3LjUgTCAxNC43NSw0Ny41IEMgMTkuNDM0MTczLDQ3LjUgMzMuMDM2ODUsNDcuMzY5NzkzIDQyLjcxODc1LDY0LjUgQyAzNy45NTE5NjQsNzIuOTI5MDc1IDMyLjE5NzQ2OSw3Ny4xODM5MSAyNyw3OS4zMTI1IEMgMjEuNjM5MzM5LDgxLjUwNzkyNCAxNy4xNTgwNzUsODEuNTAwMDAxIDE0Ljc1LDgxLjUgTCAzLjUsODEuNSBDIDUuMzczNTg4NCw3OC4zOTE1NjYgOC4yNSw3Mi40NTA2NSA4LjI1LDY0LjUgQyA4LjI1LDU2LjUyNjY0NiA1LjM0MTQ2ODYsNTAuNTk5ODE1IDMuNDY4NzUsNDcuNSB6IgogICAgICAgICBpZD0icGF0aDQ5NzMiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NzY2NjY3NjY2NjY2NjY2NzY2NzYyIgLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPgo=' }}
-
-    }, joint.shapes.logic.Gate21.prototype.defaults),
-
+joint.shapes.logic.Gate21.define('logic.Or', {
+    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik9SIEFOU0kuc3ZnIgogICBpbmtzY2FwZTpvdXRwdXRfZXh0ZW5zaW9uPSJvcmcuaW5rc2NhcGUub3V0cHV0LnN2Zy5pbmtzY2FwZSI+CiAgPGRlZnMKICAgICBpZD0iZGVmczQiPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjUwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjI1IDogMTAgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjcxNCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iMSA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMC41IDogMC4zMzMzMzMzMyA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyODA2IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyODE5IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjM3Mi4wNDcyNCA6IDM1MC43ODczOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI3NDQuMDk0NDggOiA1MjYuMTgxMDkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzc3IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49Ijc1IDogNDAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iMTUwIDogNjAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDYwIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTMyNzUiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNTAgOiAzMy4zMzMzMzMgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iMTAwIDogNTAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDUwIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTU1MzMiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzIgOiAyMS4zMzMzMzMgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNjQgOiAzMiA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMzIgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjU1NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDE2LjY2NjY2NyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDI1IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAyNSA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogIDwvZGVmcz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6em9vbT0iNCIKICAgICBpbmtzY2FwZTpjeD0iMTEzLjAwMDM5IgogICAgIGlua3NjYXBlOmN5PSIxMi44OTM3MzEiCiAgICAgaW5rc2NhcGU6ZG9jdW1lbnQtdW5pdHM9InB4IgogICAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9ImcyNTYwIgogICAgIHNob3dncmlkPSJmYWxzZSIKICAgICBpbmtzY2FwZTpncmlkLWJib3g9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1wb2ludHM9InRydWUiCiAgICAgZ3JpZHRvbGVyYW5jZT0iMTAwMDAiCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxMzk5IgogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9Ijg3NCIKICAgICBpbmtzY2FwZTp3aW5kb3cteD0iMzciCiAgICAgaW5rc2NhcGU6d2luZG93LXk9Ii00IgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Im0gNzAsMjUgYyAyMCwwIDI1LDAgMjUsMCIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMSwxNSA1LDE1IgogICAgICAgaWQ9InBhdGgzMDYxIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzIsMzUgNSwzNSIKICAgICAgIGlkPSJwYXRoMzk0NCIgLz4KICAgIDxnCiAgICAgICBpZD0iZzI1NjAiCiAgICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI2LjUsLTM5LjUpIj4KICAgICAgPHBhdGgKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjQwNjI1LDQ0LjUgTCAtMC40MDYyNSw0Ni45Mzc1IEMgLTAuNDA2MjUsNDYuOTM3NSA1LjI1LDUzLjkzNzU0OSA1LjI1LDY0LjUgQyA1LjI1LDc1LjA2MjQ1MSAtMC40MDYyNSw4Mi4wNjI1IC0wLjQwNjI1LDgyLjA2MjUgTCAtMi40MDYyNSw4NC41IEwgMC43NSw4NC41IEwgMTQuNzUsODQuNSBDIDE3LjE1ODA3Niw4NC41MDAwMDEgMjIuNDM5Njk5LDg0LjUyNDUxNCAyOC4zNzUsODIuMDkzNzUgQyAzNC4zMTAzMDEsNzkuNjYyOTg2IDQwLjkxMTUzNiw3NC43NTA0ODQgNDYuMDYyNSw2NS4yMTg3NSBMIDQ0Ljc1LDY0LjUgTCA0Ni4wNjI1LDYzLjc4MTI1IEMgMzUuNzU5Mzg3LDQ0LjcxNTU5IDE5LjUwNjU3NCw0NC41IDE0Ljc1LDQ0LjUgTCAwLjc1LDQ0LjUgTCAtMi40MDYyNSw0NC41IHogTSAzLjQ2ODc1LDQ3LjUgTCAxNC43NSw0Ny41IEMgMTkuNDM0MTczLDQ3LjUgMzMuMDM2ODUsNDcuMzY5NzkzIDQyLjcxODc1LDY0LjUgQyAzNy45NTE5NjQsNzIuOTI5MDc1IDMyLjE5NzQ2OSw3Ny4xODM5MSAyNyw3OS4zMTI1IEMgMjEuNjM5MzM5LDgxLjUwNzkyNCAxNy4xNTgwNzUsODEuNTAwMDAxIDE0Ljc1LDgxLjUgTCAzLjUsODEuNSBDIDUuMzczNTg4NCw3OC4zOTE1NjYgOC4yNSw3Mi40NTA2NSA4LjI1LDY0LjUgQyA4LjI1LDU2LjUyNjY0NiA1LjM0MTQ2ODYsNTAuNTk5ODE1IDMuNDY4NzUsNDcuNSB6IgogICAgICAgICBpZD0icGF0aDQ5NzMiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NzY2NjY3NjY2NjY2NjY2NzY2NzYyIgLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPgo=' } }
+}, {
     operation: function(input1, input2) {
         return input1 || input2;
     }
-
 });
 
-joint.shapes.logic.And = joint.shapes.logic.Gate21.extend({
+joint.shapes.logic.Gate21.define('logic.And', {
+    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IkFORCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgPC9kZWZzPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0iYmFzZSIKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTp6b29tPSI4IgogICAgIGlua3NjYXBlOmN4PSI1Ni42OTgzNDgiCiAgICAgaW5rc2NhcGU6Y3k9IjI1LjMyNjg5OSIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJtIDcwLDI1IGMgMjAsMCAyNSwwIDI1LDAiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEsMTUgNSwxNSIKICAgICAgIGlkPSJwYXRoMzA2MSIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjk5OTk5OTg4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMyLDM1IDUsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZvbnQtc2l6ZTptZWRpdW07Zm9udC1zdHlsZTpub3JtYWw7Zm9udC12YXJpYW50Om5vcm1hbDtmb250LXdlaWdodDpub3JtYWw7Zm9udC1zdHJldGNoOm5vcm1hbDt0ZXh0LWluZGVudDowO3RleHQtYWxpZ246c3RhcnQ7dGV4dC1kZWNvcmF0aW9uOm5vbmU7bGluZS1oZWlnaHQ6bm9ybWFsO2xldHRlci1zcGFjaW5nOm5vcm1hbDt3b3JkLXNwYWNpbmc6bm9ybWFsO3RleHQtdHJhbnNmb3JtOm5vbmU7ZGlyZWN0aW9uOmx0cjtibG9jay1wcm9ncmVzc2lvbjp0Yjt3cml0aW5nLW1vZGU6bHItdGI7dGV4dC1hbmNob3I6c3RhcnQ7ZmlsbDojMDAwMDAwO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTpub25lO3N0cm9rZS13aWR0aDozO21hcmtlcjpub25lO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGU7Zm9udC1mYW1pbHk6Qml0c3RyZWFtIFZlcmEgU2FuczstaW5rc2NhcGUtZm9udC1zcGVjaWZpY2F0aW9uOkJpdHN0cmVhbSBWZXJhIFNhbnMiCiAgICAgICBkPSJNIDMwLDUgTCAzMCw2LjQyODU3MTQgTCAzMCw0My41NzE0MjkgTCAzMCw0NSBMIDMxLjQyODU3MSw0NSBMIDUwLjQ3NjE5LDQ1IEMgNjEuNzQ0MDk4LDQ1IDcwLjQ3NjE5LDM1Ljk5OTk1NSA3MC40NzYxOSwyNSBDIDcwLjQ3NjE5LDE0LjAwMDA0NSA2MS43NDQwOTksNS4wMDAwMDAyIDUwLjQ3NjE5LDUgQyA1MC40NzYxOSw1IDUwLjQ3NjE5LDUgMzEuNDI4NTcxLDUgTCAzMCw1IHogTSAzMi44NTcxNDMsNy44NTcxNDI5IEMgNDAuODM0MjY0LDcuODU3MTQyOSA0NS45MTgzNjgsNy44NTcxNDI5IDQ4LjA5NTIzOCw3Ljg1NzE0MjkgQyA0OS4yODU3MTQsNy44NTcxNDI5IDQ5Ljg4MDk1Miw3Ljg1NzE0MjkgNTAuMTc4NTcxLDcuODU3MTQyOSBDIDUwLjMyNzM4MSw3Ljg1NzE0MjkgNTAuNDA5MjI3LDcuODU3MTQyOSA1MC40NDY0MjksNy44NTcxNDI5IEMgNTAuNDY1MDI5LDcuODU3MTQyOSA1MC40NzE1NDMsNy44NTcxNDI5IDUwLjQ3NjE5LDcuODU3MTQyOSBDIDYwLjIzNjg1Myw3Ljg1NzE0MyA2Ny4xNDI4NTcsMTUuNDk3MDk4IDY3LjE0Mjg1NywyNSBDIDY3LjE0Mjg1NywzNC41MDI5MDIgNTkuNzYwNjYyLDQyLjE0Mjg1NyA1MCw0Mi4xNDI4NTcgTCAzMi44NTcxNDMsNDIuMTQyODU3IEwgMzIuODU3MTQzLDcuODU3MTQyOSB6IgogICAgICAgaWQ9InBhdGgyODg0IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2NjY2NzY2NjY3Nzc3NzY2NjIiAvPgogIDwvZz4KPC9zdmc+Cg==' } }
 
-    defaults: _.defaultsDeep({
-
-        type: 'logic.And',
-        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IkFORCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgPC9kZWZzPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0iYmFzZSIKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTp6b29tPSI4IgogICAgIGlua3NjYXBlOmN4PSI1Ni42OTgzNDgiCiAgICAgaW5rc2NhcGU6Y3k9IjI1LjMyNjg5OSIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJtIDcwLDI1IGMgMjAsMCAyNSwwIDI1LDAiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEsMTUgNSwxNSIKICAgICAgIGlkPSJwYXRoMzA2MSIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjk5OTk5OTg4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMyLDM1IDUsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZvbnQtc2l6ZTptZWRpdW07Zm9udC1zdHlsZTpub3JtYWw7Zm9udC12YXJpYW50Om5vcm1hbDtmb250LXdlaWdodDpub3JtYWw7Zm9udC1zdHJldGNoOm5vcm1hbDt0ZXh0LWluZGVudDowO3RleHQtYWxpZ246c3RhcnQ7dGV4dC1kZWNvcmF0aW9uOm5vbmU7bGluZS1oZWlnaHQ6bm9ybWFsO2xldHRlci1zcGFjaW5nOm5vcm1hbDt3b3JkLXNwYWNpbmc6bm9ybWFsO3RleHQtdHJhbnNmb3JtOm5vbmU7ZGlyZWN0aW9uOmx0cjtibG9jay1wcm9ncmVzc2lvbjp0Yjt3cml0aW5nLW1vZGU6bHItdGI7dGV4dC1hbmNob3I6c3RhcnQ7ZmlsbDojMDAwMDAwO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTpub25lO3N0cm9rZS13aWR0aDozO21hcmtlcjpub25lO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGU7Zm9udC1mYW1pbHk6Qml0c3RyZWFtIFZlcmEgU2FuczstaW5rc2NhcGUtZm9udC1zcGVjaWZpY2F0aW9uOkJpdHN0cmVhbSBWZXJhIFNhbnMiCiAgICAgICBkPSJNIDMwLDUgTCAzMCw2LjQyODU3MTQgTCAzMCw0My41NzE0MjkgTCAzMCw0NSBMIDMxLjQyODU3MSw0NSBMIDUwLjQ3NjE5LDQ1IEMgNjEuNzQ0MDk4LDQ1IDcwLjQ3NjE5LDM1Ljk5OTk1NSA3MC40NzYxOSwyNSBDIDcwLjQ3NjE5LDE0LjAwMDA0NSA2MS43NDQwOTksNS4wMDAwMDAyIDUwLjQ3NjE5LDUgQyA1MC40NzYxOSw1IDUwLjQ3NjE5LDUgMzEuNDI4NTcxLDUgTCAzMCw1IHogTSAzMi44NTcxNDMsNy44NTcxNDI5IEMgNDAuODM0MjY0LDcuODU3MTQyOSA0NS45MTgzNjgsNy44NTcxNDI5IDQ4LjA5NTIzOCw3Ljg1NzE0MjkgQyA0OS4yODU3MTQsNy44NTcxNDI5IDQ5Ljg4MDk1Miw3Ljg1NzE0MjkgNTAuMTc4NTcxLDcuODU3MTQyOSBDIDUwLjMyNzM4MSw3Ljg1NzE0MjkgNTAuNDA5MjI3LDcuODU3MTQyOSA1MC40NDY0MjksNy44NTcxNDI5IEMgNTAuNDY1MDI5LDcuODU3MTQyOSA1MC40NzE1NDMsNy44NTcxNDI5IDUwLjQ3NjE5LDcuODU3MTQyOSBDIDYwLjIzNjg1Myw3Ljg1NzE0MyA2Ny4xNDI4NTcsMTUuNDk3MDk4IDY3LjE0Mjg1NywyNSBDIDY3LjE0Mjg1NywzNC41MDI5MDIgNTkuNzYwNjYyLDQyLjE0Mjg1NyA1MCw0Mi4xNDI4NTcgTCAzMi44NTcxNDMsNDIuMTQyODU3IEwgMzIuODU3MTQzLDcuODU3MTQyOSB6IgogICAgICAgaWQ9InBhdGgyODg0IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2NjY2NzY2NjY3Nzc3NzY2NjIiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
-
-    }, joint.shapes.logic.Gate21.prototype.defaults),
-
+}, {
     operation: function(input1, input2) {
         return input1 && input2;
     }
-
 });
 
-joint.shapes.logic.Nor = joint.shapes.logic.Gate21.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'logic.Nor',
-        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PUiBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjEiCiAgICAgaW5rc2NhcGU6Y3g9Ijc4LjY3NzY0NCIKICAgICBpbmtzY2FwZTpjeT0iMjIuMTAyMzQ0IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjM3IgogICAgIGlua3NjYXBlOndpbmRvdy15PSItNCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDc5LDI1IEMgOTksMjUgOTUsMjUgOTUsMjUiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEsMTUgNSwxNSIKICAgICAgIGlkPSJwYXRoMzA2MSIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjk5OTk5OTg4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMyLDM1IDUsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8ZwogICAgICAgaWQ9ImcyNTYwIgogICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNi41LC0zOS41KSI+CiAgICAgIDxwYXRoCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi40MDYyNSw0NC41IEwgLTAuNDA2MjUsNDYuOTM3NSBDIC0wLjQwNjI1LDQ2LjkzNzUgNS4yNSw1My45Mzc1NDkgNS4yNSw2NC41IEMgNS4yNSw3NS4wNjI0NTEgLTAuNDA2MjUsODIuMDYyNSAtMC40MDYyNSw4Mi4wNjI1IEwgLTIuNDA2MjUsODQuNSBMIDAuNzUsODQuNSBMIDE0Ljc1LDg0LjUgQyAxNy4xNTgwNzYsODQuNTAwMDAxIDIyLjQzOTY5OSw4NC41MjQ1MTQgMjguMzc1LDgyLjA5Mzc1IEMgMzQuMzEwMzAxLDc5LjY2Mjk4NiA0MC45MTE1MzYsNzQuNzUwNDg0IDQ2LjA2MjUsNjUuMjE4NzUgTCA0NC43NSw2NC41IEwgNDYuMDYyNSw2My43ODEyNSBDIDM1Ljc1OTM4Nyw0NC43MTU1OSAxOS41MDY1NzQsNDQuNSAxNC43NSw0NC41IEwgMC43NSw0NC41IEwgLTIuNDA2MjUsNDQuNSB6IE0gMy40Njg3NSw0Ny41IEwgMTQuNzUsNDcuNSBDIDE5LjQzNDE3Myw0Ny41IDMzLjAzNjg1LDQ3LjM2OTc5MyA0Mi43MTg3NSw2NC41IEMgMzcuOTUxOTY0LDcyLjkyOTA3NSAzMi4xOTc0NjksNzcuMTgzOTEgMjcsNzkuMzEyNSBDIDIxLjYzOTMzOSw4MS41MDc5MjQgMTcuMTU4MDc1LDgxLjUwMDAwMSAxNC43NSw4MS41IEwgMy41LDgxLjUgQyA1LjM3MzU4ODQsNzguMzkxNTY2IDguMjUsNzIuNDUwNjUgOC4yNSw2NC41IEMgOC4yNSw1Ni41MjY2NDYgNS4zNDE0Njg2LDUwLjU5OTgxNSAzLjQ2ODc1LDQ3LjUgeiIKICAgICAgICAgaWQ9InBhdGg0OTczIgogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjc2NjY2NzY2NjY2NjY2Njc2Njc2MiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIHNvZGlwb2RpOnR5cGU9ImFyYyIKICAgICAgICAgc3R5bGU9ImZpbGw6bm9uZTtmaWxsLW9wYWNpdHk6MTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgICBpZD0icGF0aDI2MDQiCiAgICAgICAgIHNvZGlwb2RpOmN4PSI3NSIKICAgICAgICAgc29kaXBvZGk6Y3k9IjI1IgogICAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgICAgc29kaXBvZGk6cnk9IjQiCiAgICAgICAgIGQ9Ik0gNzksMjUgQSA0LDQgMCAxIDEgNzEsMjUgQSA0LDQgMCAxIDEgNzksMjUgeiIKICAgICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTI2LjUsMzkuNSkiIC8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K' }}
-
-    }, joint.shapes.logic.Gate21.prototype.defaults),
-
+joint.shapes.logic.Gate21.define('logic.Nor', {
+    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PUiBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjEiCiAgICAgaW5rc2NhcGU6Y3g9Ijc4LjY3NzY0NCIKICAgICBpbmtzY2FwZTpjeT0iMjIuMTAyMzQ0IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjM3IgogICAgIGlua3NjYXBlOndpbmRvdy15PSItNCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDc5LDI1IEMgOTksMjUgOTUsMjUgOTUsMjUiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEsMTUgNSwxNSIKICAgICAgIGlkPSJwYXRoMzA2MSIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjk5OTk5OTg4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMyLDM1IDUsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8ZwogICAgICAgaWQ9ImcyNTYwIgogICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNi41LC0zOS41KSI+CiAgICAgIDxwYXRoCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi40MDYyNSw0NC41IEwgLTAuNDA2MjUsNDYuOTM3NSBDIC0wLjQwNjI1LDQ2LjkzNzUgNS4yNSw1My45Mzc1NDkgNS4yNSw2NC41IEMgNS4yNSw3NS4wNjI0NTEgLTAuNDA2MjUsODIuMDYyNSAtMC40MDYyNSw4Mi4wNjI1IEwgLTIuNDA2MjUsODQuNSBMIDAuNzUsODQuNSBMIDE0Ljc1LDg0LjUgQyAxNy4xNTgwNzYsODQuNTAwMDAxIDIyLjQzOTY5OSw4NC41MjQ1MTQgMjguMzc1LDgyLjA5Mzc1IEMgMzQuMzEwMzAxLDc5LjY2Mjk4NiA0MC45MTE1MzYsNzQuNzUwNDg0IDQ2LjA2MjUsNjUuMjE4NzUgTCA0NC43NSw2NC41IEwgNDYuMDYyNSw2My43ODEyNSBDIDM1Ljc1OTM4Nyw0NC43MTU1OSAxOS41MDY1NzQsNDQuNSAxNC43NSw0NC41IEwgMC43NSw0NC41IEwgLTIuNDA2MjUsNDQuNSB6IE0gMy40Njg3NSw0Ny41IEwgMTQuNzUsNDcuNSBDIDE5LjQzNDE3Myw0Ny41IDMzLjAzNjg1LDQ3LjM2OTc5MyA0Mi43MTg3NSw2NC41IEMgMzcuOTUxOTY0LDcyLjkyOTA3NSAzMi4xOTc0NjksNzcuMTgzOTEgMjcsNzkuMzEyNSBDIDIxLjYzOTMzOSw4MS41MDc5MjQgMTcuMTU4MDc1LDgxLjUwMDAwMSAxNC43NSw4MS41IEwgMy41LDgxLjUgQyA1LjM3MzU4ODQsNzguMzkxNTY2IDguMjUsNzIuNDUwNjUgOC4yNSw2NC41IEMgOC4yNSw1Ni41MjY2NDYgNS4zNDE0Njg2LDUwLjU5OTgxNSAzLjQ2ODc1LDQ3LjUgeiIKICAgICAgICAgaWQ9InBhdGg0OTczIgogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjc2NjY2NzY2NjY2NjY2Njc2Njc2MiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIHNvZGlwb2RpOnR5cGU9ImFyYyIKICAgICAgICAgc3R5bGU9ImZpbGw6bm9uZTtmaWxsLW9wYWNpdHk6MTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgICBpZD0icGF0aDI2MDQiCiAgICAgICAgIHNvZGlwb2RpOmN4PSI3NSIKICAgICAgICAgc29kaXBvZGk6Y3k9IjI1IgogICAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgICAgc29kaXBvZGk6cnk9IjQiCiAgICAgICAgIGQ9Ik0gNzksMjUgQSA0LDQgMCAxIDEgNzEsMjUgQSA0LDQgMCAxIDEgNzksMjUgeiIKICAgICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTI2LjUsMzkuNSkiIC8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K' } }
+}, {
     operation: function(input1, input2) {
         return !(input1 || input2);
     }
-
 });
 
-joint.shapes.logic.Nand = joint.shapes.logic.Gate21.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'logic.Nand',
-        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5BTkQgQU5TSS5zdmciCiAgIGlua3NjYXBlOm91dHB1dF9leHRlbnNpb249Im9yZy5pbmtzY2FwZS5vdXRwdXQuc3ZnLmlua3NjYXBlIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCI+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxMCA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzE0IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIwLjUgOiAwLjMzMzMzMzMzIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MDYiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MTkiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9Ijc0NC4wOTQ0OCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3NzciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNzUgOiA0MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxNTAgOiA2MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNjAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMzI3NSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI1MCA6IDMzLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxMDAgOiA1MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlNTUzMyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzMiA6IDIxLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI2NCA6IDMyIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAzMiA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogIDwvZGVmcz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6em9vbT0iMTYiCiAgICAgaW5rc2NhcGU6Y3g9Ijc4LjI4MzMwNyIKICAgICBpbmtzY2FwZTpjeT0iMTYuNDQyODQzIgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzksMjUgQyA5MS44LDI1IDk1LDI1IDk1LDI1IgogICAgICAgaWQ9InBhdGgzMDU5IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMxLDE1IDUsMTUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk4ODtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMiwzNSA1LDM1IgogICAgICAgaWQ9InBhdGgzOTQ0IiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmb250LXNpemU6bWVkaXVtO2ZvbnQtc3R5bGU6bm9ybWFsO2ZvbnQtdmFyaWFudDpub3JtYWw7Zm9udC13ZWlnaHQ6bm9ybWFsO2ZvbnQtc3RyZXRjaDpub3JtYWw7dGV4dC1pbmRlbnQ6MDt0ZXh0LWFsaWduOnN0YXJ0O3RleHQtZGVjb3JhdGlvbjpub25lO2xpbmUtaGVpZ2h0Om5vcm1hbDtsZXR0ZXItc3BhY2luZzpub3JtYWw7d29yZC1zcGFjaW5nOm5vcm1hbDt0ZXh0LXRyYW5zZm9ybTpub25lO2RpcmVjdGlvbjpsdHI7YmxvY2stcHJvZ3Jlc3Npb246dGI7d3JpdGluZy1tb2RlOmxyLXRiO3RleHQtYW5jaG9yOnN0YXJ0O2ZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MzttYXJrZXI6bm9uZTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlO2ZvbnQtZmFtaWx5OkJpdHN0cmVhbSBWZXJhIFNhbnM7LWlua3NjYXBlLWZvbnQtc3BlY2lmaWNhdGlvbjpCaXRzdHJlYW0gVmVyYSBTYW5zIgogICAgICAgZD0iTSAzMCw1IEwgMzAsNi40Mjg1NzE0IEwgMzAsNDMuNTcxNDI5IEwgMzAsNDUgTCAzMS40Mjg1NzEsNDUgTCA1MC40NzYxOSw0NSBDIDYxLjc0NDA5OCw0NSA3MC40NzYxOSwzNS45OTk5NTUgNzAuNDc2MTksMjUgQyA3MC40NzYxOSwxNC4wMDAwNDUgNjEuNzQ0MDk5LDUuMDAwMDAwMiA1MC40NzYxOSw1IEMgNTAuNDc2MTksNSA1MC40NzYxOSw1IDMxLjQyODU3MSw1IEwgMzAsNSB6IE0gMzIuODU3MTQzLDcuODU3MTQyOSBDIDQwLjgzNDI2NCw3Ljg1NzE0MjkgNDUuOTE4MzY4LDcuODU3MTQyOSA0OC4wOTUyMzgsNy44NTcxNDI5IEMgNDkuMjg1NzE0LDcuODU3MTQyOSA0OS44ODA5NTIsNy44NTcxNDI5IDUwLjE3ODU3MSw3Ljg1NzE0MjkgQyA1MC4zMjczODEsNy44NTcxNDI5IDUwLjQwOTIyNyw3Ljg1NzE0MjkgNTAuNDQ2NDI5LDcuODU3MTQyOSBDIDUwLjQ2NTAyOSw3Ljg1NzE0MjkgNTAuNDcxNTQzLDcuODU3MTQyOSA1MC40NzYxOSw3Ljg1NzE0MjkgQyA2MC4yMzY4NTMsNy44NTcxNDMgNjcuMTQyODU3LDE1LjQ5NzA5OCA2Ny4xNDI4NTcsMjUgQyA2Ny4xNDI4NTcsMzQuNTAyOTAyIDU5Ljc2MDY2Miw0Mi4xNDI4NTcgNTAsNDIuMTQyODU3IEwgMzIuODU3MTQzLDQyLjE0Mjg1NyBMIDMyLjg1NzE0Myw3Ljg1NzE0MjkgeiIKICAgICAgIGlkPSJwYXRoMjg4NCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2Njc2NjY2Nzc3Nzc2NjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDQwMDgiCiAgICAgICBzb2RpcG9kaTpjeD0iNzUiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA3OSwyNSBBIDQsNCAwIDEgMSA3MSwyNSBBIDQsNCAwIDEgMSA3OSwyNSB6IiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
-
-    }, joint.shapes.logic.Gate21.prototype.defaults),
-
+joint.shapes.logic.Gate21.define('logic.Nand', {
+    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5BTkQgQU5TSS5zdmciCiAgIGlua3NjYXBlOm91dHB1dF9leHRlbnNpb249Im9yZy5pbmtzY2FwZS5vdXRwdXQuc3ZnLmlua3NjYXBlIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCI+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxMCA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzE0IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIwLjUgOiAwLjMzMzMzMzMzIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MDYiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MTkiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9Ijc0NC4wOTQ0OCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3NzciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNzUgOiA0MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxNTAgOiA2MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNjAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMzI3NSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI1MCA6IDMzLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxMDAgOiA1MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlNTUzMyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzMiA6IDIxLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI2NCA6IDMyIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAzMiA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogIDwvZGVmcz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6em9vbT0iMTYiCiAgICAgaW5rc2NhcGU6Y3g9Ijc4LjI4MzMwNyIKICAgICBpbmtzY2FwZTpjeT0iMTYuNDQyODQzIgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzksMjUgQyA5MS44LDI1IDk1LDI1IDk1LDI1IgogICAgICAgaWQ9InBhdGgzMDU5IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMxLDE1IDUsMTUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk4ODtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMiwzNSA1LDM1IgogICAgICAgaWQ9InBhdGgzOTQ0IiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmb250LXNpemU6bWVkaXVtO2ZvbnQtc3R5bGU6bm9ybWFsO2ZvbnQtdmFyaWFudDpub3JtYWw7Zm9udC13ZWlnaHQ6bm9ybWFsO2ZvbnQtc3RyZXRjaDpub3JtYWw7dGV4dC1pbmRlbnQ6MDt0ZXh0LWFsaWduOnN0YXJ0O3RleHQtZGVjb3JhdGlvbjpub25lO2xpbmUtaGVpZ2h0Om5vcm1hbDtsZXR0ZXItc3BhY2luZzpub3JtYWw7d29yZC1zcGFjaW5nOm5vcm1hbDt0ZXh0LXRyYW5zZm9ybTpub25lO2RpcmVjdGlvbjpsdHI7YmxvY2stcHJvZ3Jlc3Npb246dGI7d3JpdGluZy1tb2RlOmxyLXRiO3RleHQtYW5jaG9yOnN0YXJ0O2ZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MzttYXJrZXI6bm9uZTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlO2ZvbnQtZmFtaWx5OkJpdHN0cmVhbSBWZXJhIFNhbnM7LWlua3NjYXBlLWZvbnQtc3BlY2lmaWNhdGlvbjpCaXRzdHJlYW0gVmVyYSBTYW5zIgogICAgICAgZD0iTSAzMCw1IEwgMzAsNi40Mjg1NzE0IEwgMzAsNDMuNTcxNDI5IEwgMzAsNDUgTCAzMS40Mjg1NzEsNDUgTCA1MC40NzYxOSw0NSBDIDYxLjc0NDA5OCw0NSA3MC40NzYxOSwzNS45OTk5NTUgNzAuNDc2MTksMjUgQyA3MC40NzYxOSwxNC4wMDAwNDUgNjEuNzQ0MDk5LDUuMDAwMDAwMiA1MC40NzYxOSw1IEMgNTAuNDc2MTksNSA1MC40NzYxOSw1IDMxLjQyODU3MSw1IEwgMzAsNSB6IE0gMzIuODU3MTQzLDcuODU3MTQyOSBDIDQwLjgzNDI2NCw3Ljg1NzE0MjkgNDUuOTE4MzY4LDcuODU3MTQyOSA0OC4wOTUyMzgsNy44NTcxNDI5IEMgNDkuMjg1NzE0LDcuODU3MTQyOSA0OS44ODA5NTIsNy44NTcxNDI5IDUwLjE3ODU3MSw3Ljg1NzE0MjkgQyA1MC4zMjczODEsNy44NTcxNDI5IDUwLjQwOTIyNyw3Ljg1NzE0MjkgNTAuNDQ2NDI5LDcuODU3MTQyOSBDIDUwLjQ2NTAyOSw3Ljg1NzE0MjkgNTAuNDcxNTQzLDcuODU3MTQyOSA1MC40NzYxOSw3Ljg1NzE0MjkgQyA2MC4yMzY4NTMsNy44NTcxNDMgNjcuMTQyODU3LDE1LjQ5NzA5OCA2Ny4xNDI4NTcsMjUgQyA2Ny4xNDI4NTcsMzQuNTAyOTAyIDU5Ljc2MDY2Miw0Mi4xNDI4NTcgNTAsNDIuMTQyODU3IEwgMzIuODU3MTQzLDQyLjE0Mjg1NyBMIDMyLjg1NzE0Myw3Ljg1NzE0MjkgeiIKICAgICAgIGlkPSJwYXRoMjg4NCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2Njc2NjY2Nzc3Nzc2NjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDQwMDgiCiAgICAgICBzb2RpcG9kaTpjeD0iNzUiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA3OSwyNSBBIDQsNCAwIDEgMSA3MSwyNSBBIDQsNCAwIDEgMSA3OSwyNSB6IiAvPgogIDwvZz4KPC9zdmc+Cg==' } }
+}, {
     operation: function(input1, input2) {
         return !(input1 && input2);
     }
-
 });
 
-joint.shapes.logic.Xor = joint.shapes.logic.Gate21.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'logic.Xor',
-        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IlhPUiBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjUuNjU2ODU0MiIKICAgICBpbmtzY2FwZTpjeD0iMjUuOTM4MTE2IgogICAgIGlua3NjYXBlOmN5PSIxNy4yMzAwNSIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJtIDcwLDI1IGMgMjAsMCAyNSwwIDI1LDAiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzAuMzg1NzE3LDE1IEwgNC45OTk5OTk4LDE1IgogICAgICAgaWQ9InBhdGgzMDYxIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5NzY7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEuMzYyMDkxLDM1IEwgNC45OTk5OTk4LDM1IgogICAgICAgaWQ9InBhdGgzOTQ0IiAvPgogICAgPGcKICAgICAgIGlkPSJnMjU2MCIKICAgICAgIGlua3NjYXBlOmxhYmVsPSJMYXllciAxIgogICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjYuNSwtMzkuNSkiPgogICAgICA8cGF0aAogICAgICAgICBpZD0icGF0aDM1MTYiCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi4yNSw4MS41MDAwMDUgQyAtMy44NDczNzQsODQuMTQ0NDA1IC00LjUsODQuNTAwMDA1IC00LjUsODQuNTAwMDA1IEwgLTguMTU2MjUsODQuNTAwMDA1IEwgLTYuMTU2MjUsODIuMDYyNTA1IEMgLTYuMTU2MjUsODIuMDYyNTA1IC0wLjUsNzUuMDYyNDUxIC0wLjUsNjQuNSBDIC0wLjUsNTMuOTM3NTQ5IC02LjE1NjI1LDQ2LjkzNzUgLTYuMTU2MjUsNDYuOTM3NSBMIC04LjE1NjI1LDQ0LjUgTCAtNC41LDQ0LjUgQyAtMy43MTg3NSw0NS40Mzc1IC0zLjA3ODEyNSw0Ni4xNTYyNSAtMi4yODEyNSw0Ny41IEMgLTAuNDA4NTMxLDUwLjU5OTgxNSAyLjUsNTYuNTI2NjQ2IDIuNSw2NC41IEMgMi41LDcyLjQ1MDY1IC0wLjM5NjY5Nyw3OC4zNzk0MjUgLTIuMjUsODEuNTAwMDA1IHoiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY3NjY2Njc2MiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi40MDYyNSw0NC41IEwgLTAuNDA2MjUsNDYuOTM3NSBDIC0wLjQwNjI1LDQ2LjkzNzUgNS4yNSw1My45Mzc1NDkgNS4yNSw2NC41IEMgNS4yNSw3NS4wNjI0NTEgLTAuNDA2MjUsODIuMDYyNSAtMC40MDYyNSw4Mi4wNjI1IEwgLTIuNDA2MjUsODQuNSBMIDAuNzUsODQuNSBMIDE0Ljc1LDg0LjUgQyAxNy4xNTgwNzYsODQuNTAwMDAxIDIyLjQzOTY5OSw4NC41MjQ1MTQgMjguMzc1LDgyLjA5Mzc1IEMgMzQuMzEwMzAxLDc5LjY2Mjk4NiA0MC45MTE1MzYsNzQuNzUwNDg0IDQ2LjA2MjUsNjUuMjE4NzUgTCA0NC43NSw2NC41IEwgNDYuMDYyNSw2My43ODEyNSBDIDM1Ljc1OTM4Nyw0NC43MTU1OSAxOS41MDY1NzQsNDQuNSAxNC43NSw0NC41IEwgMC43NSw0NC41IEwgLTIuNDA2MjUsNDQuNSB6IE0gMy40Njg3NSw0Ny41IEwgMTQuNzUsNDcuNSBDIDE5LjQzNDE3Myw0Ny41IDMzLjAzNjg1LDQ3LjM2OTc5MyA0Mi43MTg3NSw2NC41IEMgMzcuOTUxOTY0LDcyLjkyOTA3NSAzMi4xOTc0NjksNzcuMTgzOTEgMjcsNzkuMzEyNSBDIDIxLjYzOTMzOSw4MS41MDc5MjQgMTcuMTU4MDc1LDgxLjUwMDAwMSAxNC43NSw4MS41IEwgMy41LDgxLjUgQyA1LjM3MzU4ODQsNzguMzkxNTY2IDguMjUsNzIuNDUwNjUgOC4yNSw2NC41IEMgOC4yNSw1Ni41MjY2NDYgNS4zNDE0Njg2LDUwLjU5OTgxNSAzLjQ2ODc1LDQ3LjUgeiIKICAgICAgICAgaWQ9InBhdGg0OTczIgogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjc2NjY2NzY2NjY2NjY2Njc2Njc2MiIC8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K' }}
-
-    }, joint.shapes.logic.Gate21.prototype.defaults),
-
+joint.shapes.logic.Gate21.define('logic.Xor', {
+    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IlhPUiBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjUuNjU2ODU0MiIKICAgICBpbmtzY2FwZTpjeD0iMjUuOTM4MTE2IgogICAgIGlua3NjYXBlOmN5PSIxNy4yMzAwNSIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJtIDcwLDI1IGMgMjAsMCAyNSwwIDI1LDAiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzAuMzg1NzE3LDE1IEwgNC45OTk5OTk4LDE1IgogICAgICAgaWQ9InBhdGgzMDYxIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5NzY7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEuMzYyMDkxLDM1IEwgNC45OTk5OTk4LDM1IgogICAgICAgaWQ9InBhdGgzOTQ0IiAvPgogICAgPGcKICAgICAgIGlkPSJnMjU2MCIKICAgICAgIGlua3NjYXBlOmxhYmVsPSJMYXllciAxIgogICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjYuNSwtMzkuNSkiPgogICAgICA8cGF0aAogICAgICAgICBpZD0icGF0aDM1MTYiCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi4yNSw4MS41MDAwMDUgQyAtMy44NDczNzQsODQuMTQ0NDA1IC00LjUsODQuNTAwMDA1IC00LjUsODQuNTAwMDA1IEwgLTguMTU2MjUsODQuNTAwMDA1IEwgLTYuMTU2MjUsODIuMDYyNTA1IEMgLTYuMTU2MjUsODIuMDYyNTA1IC0wLjUsNzUuMDYyNDUxIC0wLjUsNjQuNSBDIC0wLjUsNTMuOTM3NTQ5IC02LjE1NjI1LDQ2LjkzNzUgLTYuMTU2MjUsNDYuOTM3NSBMIC04LjE1NjI1LDQ0LjUgTCAtNC41LDQ0LjUgQyAtMy43MTg3NSw0NS40Mzc1IC0zLjA3ODEyNSw0Ni4xNTYyNSAtMi4yODEyNSw0Ny41IEMgLTAuNDA4NTMxLDUwLjU5OTgxNSAyLjUsNTYuNTI2NjQ2IDIuNSw2NC41IEMgMi41LDcyLjQ1MDY1IC0wLjM5NjY5Nyw3OC4zNzk0MjUgLTIuMjUsODEuNTAwMDA1IHoiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY3NjY2Njc2MiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi40MDYyNSw0NC41IEwgLTAuNDA2MjUsNDYuOTM3NSBDIC0wLjQwNjI1LDQ2LjkzNzUgNS4yNSw1My45Mzc1NDkgNS4yNSw2NC41IEMgNS4yNSw3NS4wNjI0NTEgLTAuNDA2MjUsODIuMDYyNSAtMC40MDYyNSw4Mi4wNjI1IEwgLTIuNDA2MjUsODQuNSBMIDAuNzUsODQuNSBMIDE0Ljc1LDg0LjUgQyAxNy4xNTgwNzYsODQuNTAwMDAxIDIyLjQzOTY5OSw4NC41MjQ1MTQgMjguMzc1LDgyLjA5Mzc1IEMgMzQuMzEwMzAxLDc5LjY2Mjk4NiA0MC45MTE1MzYsNzQuNzUwNDg0IDQ2LjA2MjUsNjUuMjE4NzUgTCA0NC43NSw2NC41IEwgNDYuMDYyNSw2My43ODEyNSBDIDM1Ljc1OTM4Nyw0NC43MTU1OSAxOS41MDY1NzQsNDQuNSAxNC43NSw0NC41IEwgMC43NSw0NC41IEwgLTIuNDA2MjUsNDQuNSB6IE0gMy40Njg3NSw0Ny41IEwgMTQuNzUsNDcuNSBDIDE5LjQzNDE3Myw0Ny41IDMzLjAzNjg1LDQ3LjM2OTc5MyA0Mi43MTg3NSw2NC41IEMgMzcuOTUxOTY0LDcyLjkyOTA3NSAzMi4xOTc0NjksNzcuMTgzOTEgMjcsNzkuMzEyNSBDIDIxLjYzOTMzOSw4MS41MDc5MjQgMTcuMTU4MDc1LDgxLjUwMDAwMSAxNC43NSw4MS41IEwgMy41LDgxLjUgQyA1LjM3MzU4ODQsNzguMzkxNTY2IDguMjUsNzIuNDUwNjUgOC4yNSw2NC41IEMgOC4yNSw1Ni41MjY2NDYgNS4zNDE0Njg2LDUwLjU5OTgxNSAzLjQ2ODc1LDQ3LjUgeiIKICAgICAgICAgaWQ9InBhdGg0OTczIgogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjc2NjY2NzY2NjY2NjY2Njc2Njc2MiIC8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K' } }
+}, {
     operation: function(input1, input2) {
         return (!input1 || input2) && (input1 || !input2);
     }
-
 });
 
-joint.shapes.logic.Xnor = joint.shapes.logic.Gate21.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'logic.Xnor',
-        attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IlhOT1IgQU5TSS5zdmciCiAgIGlua3NjYXBlOm91dHB1dF9leHRlbnNpb249Im9yZy5pbmtzY2FwZS5vdXRwdXQuc3ZnLmlua3NjYXBlIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCI+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxMCA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzE0IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIwLjUgOiAwLjMzMzMzMzMzIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MDYiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MTkiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9Ijc0NC4wOTQ0OCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3NzciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNzUgOiA0MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxNTAgOiA2MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNjAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMzI3NSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI1MCA6IDMzLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxMDAgOiA1MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlNTUzMyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzMiA6IDIxLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI2NCA6IDMyIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAzMiA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNTU3IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjI1IDogMTYuNjY2NjY3IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjUwIDogMjUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDI1IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgPC9kZWZzPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0iYmFzZSIKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTp6b29tPSI0IgogICAgIGlua3NjYXBlOmN4PSI5NS43MjM2NiIKICAgICBpbmtzY2FwZTpjeT0iLTI2Ljc3NTAyMyIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyLjAwMDAwMDI0O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDc4LjMzMzMzMiwyNSBDIDkxLjY2NjY2NiwyNSA5NSwyNSA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk4ODtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMC4zODU3MTcsMTUgTCA0Ljk5OTk5OTgsMTUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk3NjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMS4zNjIwOTEsMzUgTCA0Ljk5OTk5OTgsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8ZwogICAgICAgaWQ9ImcyNTYwIgogICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNi41LC0zOS41KSI+CiAgICAgIDxwYXRoCiAgICAgICAgIGlkPSJwYXRoMzUxNiIKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjI1LDgxLjUwMDAwNSBDIC0zLjg0NzM3NCw4NC4xNDQ0MDUgLTQuNSw4NC41MDAwMDUgLTQuNSw4NC41MDAwMDUgTCAtOC4xNTYyNSw4NC41MDAwMDUgTCAtNi4xNTYyNSw4Mi4wNjI1MDUgQyAtNi4xNTYyNSw4Mi4wNjI1MDUgLTAuNSw3NS4wNjI0NTEgLTAuNSw2NC41IEMgLTAuNSw1My45Mzc1NDkgLTYuMTU2MjUsNDYuOTM3NSAtNi4xNTYyNSw0Ni45Mzc1IEwgLTguMTU2MjUsNDQuNSBMIC00LjUsNDQuNSBDIC0zLjcxODc1LDQ1LjQzNzUgLTMuMDc4MTI1LDQ2LjE1NjI1IC0yLjI4MTI1LDQ3LjUgQyAtMC40MDg1MzEsNTAuNTk5ODE1IDIuNSw1Ni41MjY2NDYgMi41LDY0LjUgQyAyLjUsNzIuNDUwNjUgLTAuMzk2Njk3LDc4LjM3OTQyNSAtMi4yNSw4MS41MDAwMDUgeiIKICAgICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2Njc2NjY2NzYyIgLz4KICAgICAgPHBhdGgKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjQwNjI1LDQ0LjUgTCAtMC40MDYyNSw0Ni45Mzc1IEMgLTAuNDA2MjUsNDYuOTM3NSA1LjI1LDUzLjkzNzU0OSA1LjI1LDY0LjUgQyA1LjI1LDc1LjA2MjQ1MSAtMC40MDYyNSw4Mi4wNjI1IC0wLjQwNjI1LDgyLjA2MjUgTCAtMi40MDYyNSw4NC41IEwgMC43NSw4NC41IEwgMTQuNzUsODQuNSBDIDE3LjE1ODA3Niw4NC41MDAwMDEgMjIuNDM5Njk5LDg0LjUyNDUxNCAyOC4zNzUsODIuMDkzNzUgQyAzNC4zMTAzMDEsNzkuNjYyOTg2IDQwLjkxMTUzNiw3NC43NTA0ODQgNDYuMDYyNSw2NS4yMTg3NSBMIDQ0Ljc1LDY0LjUgTCA0Ni4wNjI1LDYzLjc4MTI1IEMgMzUuNzU5Mzg3LDQ0LjcxNTU5IDE5LjUwNjU3NCw0NC41IDE0Ljc1LDQ0LjUgTCAwLjc1LDQ0LjUgTCAtMi40MDYyNSw0NC41IHogTSAzLjQ2ODc1LDQ3LjUgTCAxNC43NSw0Ny41IEMgMTkuNDM0MTczLDQ3LjUgMzMuMDM2ODUsNDcuMzY5NzkzIDQyLjcxODc1LDY0LjUgQyAzNy45NTE5NjQsNzIuOTI5MDc1IDMyLjE5NzQ2OSw3Ny4xODM5MSAyNyw3OS4zMTI1IEMgMjEuNjM5MzM5LDgxLjUwNzkyNCAxNy4xNTgwNzUsODEuNTAwMDAxIDE0Ljc1LDgxLjUgTCAzLjUsODEuNSBDIDUuMzczNTg4NCw3OC4zOTE1NjYgOC4yNSw3Mi40NTA2NSA4LjI1LDY0LjUgQyA4LjI1LDU2LjUyNjY0NiA1LjM0MTQ2ODYsNTAuNTk5ODE1IDMuNDY4NzUsNDcuNSB6IgogICAgICAgICBpZD0icGF0aDQ5NzMiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NzY2NjY3NjY2NjY2NjY2NzY2NzYyIgLz4KICAgIDwvZz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDM1NTEiCiAgICAgICBzb2RpcG9kaTpjeD0iNzUiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA3OSwyNSBBIDQsNCAwIDEgMSA3MSwyNSBBIDQsNCAwIDEgMSA3OSwyNSB6IiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
-
-    }, joint.shapes.logic.Gate21.prototype.defaults),
-
+joint.shapes.logic.Gate21.define('logic.Xnor', {
+    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IlhOT1IgQU5TSS5zdmciCiAgIGlua3NjYXBlOm91dHB1dF9leHRlbnNpb249Im9yZy5pbmtzY2FwZS5vdXRwdXQuc3ZnLmlua3NjYXBlIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCI+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxMCA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzE0IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIwLjUgOiAwLjMzMzMzMzMzIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MDYiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MTkiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9Ijc0NC4wOTQ0OCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3NzciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNzUgOiA0MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxNTAgOiA2MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNjAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMzI3NSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI1MCA6IDMzLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxMDAgOiA1MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlNTUzMyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzMiA6IDIxLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI2NCA6IDMyIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAzMiA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNTU3IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjI1IDogMTYuNjY2NjY3IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjUwIDogMjUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDI1IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgPC9kZWZzPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0iYmFzZSIKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTp6b29tPSI0IgogICAgIGlua3NjYXBlOmN4PSI5NS43MjM2NiIKICAgICBpbmtzY2FwZTpjeT0iLTI2Ljc3NTAyMyIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyLjAwMDAwMDI0O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDc4LjMzMzMzMiwyNSBDIDkxLjY2NjY2NiwyNSA5NSwyNSA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk4ODtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMC4zODU3MTcsMTUgTCA0Ljk5OTk5OTgsMTUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk3NjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMS4zNjIwOTEsMzUgTCA0Ljk5OTk5OTgsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8ZwogICAgICAgaWQ9ImcyNTYwIgogICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNi41LC0zOS41KSI+CiAgICAgIDxwYXRoCiAgICAgICAgIGlkPSJwYXRoMzUxNiIKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjI1LDgxLjUwMDAwNSBDIC0zLjg0NzM3NCw4NC4xNDQ0MDUgLTQuNSw4NC41MDAwMDUgLTQuNSw4NC41MDAwMDUgTCAtOC4xNTYyNSw4NC41MDAwMDUgTCAtNi4xNTYyNSw4Mi4wNjI1MDUgQyAtNi4xNTYyNSw4Mi4wNjI1MDUgLTAuNSw3NS4wNjI0NTEgLTAuNSw2NC41IEMgLTAuNSw1My45Mzc1NDkgLTYuMTU2MjUsNDYuOTM3NSAtNi4xNTYyNSw0Ni45Mzc1IEwgLTguMTU2MjUsNDQuNSBMIC00LjUsNDQuNSBDIC0zLjcxODc1LDQ1LjQzNzUgLTMuMDc4MTI1LDQ2LjE1NjI1IC0yLjI4MTI1LDQ3LjUgQyAtMC40MDg1MzEsNTAuNTk5ODE1IDIuNSw1Ni41MjY2NDYgMi41LDY0LjUgQyAyLjUsNzIuNDUwNjUgLTAuMzk2Njk3LDc4LjM3OTQyNSAtMi4yNSw4MS41MDAwMDUgeiIKICAgICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2Njc2NjY2NzYyIgLz4KICAgICAgPHBhdGgKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjQwNjI1LDQ0LjUgTCAtMC40MDYyNSw0Ni45Mzc1IEMgLTAuNDA2MjUsNDYuOTM3NSA1LjI1LDUzLjkzNzU0OSA1LjI1LDY0LjUgQyA1LjI1LDc1LjA2MjQ1MSAtMC40MDYyNSw4Mi4wNjI1IC0wLjQwNjI1LDgyLjA2MjUgTCAtMi40MDYyNSw4NC41IEwgMC43NSw4NC41IEwgMTQuNzUsODQuNSBDIDE3LjE1ODA3Niw4NC41MDAwMDEgMjIuNDM5Njk5LDg0LjUyNDUxNCAyOC4zNzUsODIuMDkzNzUgQyAzNC4zMTAzMDEsNzkuNjYyOTg2IDQwLjkxMTUzNiw3NC43NTA0ODQgNDYuMDYyNSw2NS4yMTg3NSBMIDQ0Ljc1LDY0LjUgTCA0Ni4wNjI1LDYzLjc4MTI1IEMgMzUuNzU5Mzg3LDQ0LjcxNTU5IDE5LjUwNjU3NCw0NC41IDE0Ljc1LDQ0LjUgTCAwLjc1LDQ0LjUgTCAtMi40MDYyNSw0NC41IHogTSAzLjQ2ODc1LDQ3LjUgTCAxNC43NSw0Ny41IEMgMTkuNDM0MTczLDQ3LjUgMzMuMDM2ODUsNDcuMzY5NzkzIDQyLjcxODc1LDY0LjUgQyAzNy45NTE5NjQsNzIuOTI5MDc1IDMyLjE5NzQ2OSw3Ny4xODM5MSAyNyw3OS4zMTI1IEMgMjEuNjM5MzM5LDgxLjUwNzkyNCAxNy4xNTgwNzUsODEuNTAwMDAxIDE0Ljc1LDgxLjUgTCAzLjUsODEuNSBDIDUuMzczNTg4NCw3OC4zOTE1NjYgOC4yNSw3Mi40NTA2NSA4LjI1LDY0LjUgQyA4LjI1LDU2LjUyNjY0NiA1LjM0MTQ2ODYsNTAuNTk5ODE1IDMuNDY4NzUsNDcuNSB6IgogICAgICAgICBpZD0icGF0aDQ5NzMiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NzY2NjY3NjY2NjY2NjY2NzY2NzYyIgLz4KICAgIDwvZz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDM1NTEiCiAgICAgICBzb2RpcG9kaTpjeD0iNzUiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA3OSwyNSBBIDQsNCAwIDEgMSA3MSwyNSBBIDQsNCAwIDEgMSA3OSwyNSB6IiAvPgogIDwvZz4KPC9zdmc+Cg==' } }
+}, {
     operation: function(input1, input2) {
         return (!input1 || !input2) && (input1 || input2);
     }
-
 });
 
-joint.shapes.logic.Wire = joint.dia.Link.extend({
+joint.dia.Link.define('logic.Wire', {
+    attrs: {
+        '.connection': { 'stroke-width': 2 },
+        '.marker-vertex': { r: 7 }
+    },
 
+    router: { name: 'orthogonal' },
+    connector: { name: 'rounded', args: { radius: 10 } }
+}, {
     arrowheadMarkup: [
         '<g class="marker-arrowhead-group marker-arrowhead-group-<%= end %>">',
         '<circle class="marker-arrowhead" end="<%= end %>" r="7"/>',
@@ -16378,22 +17059,7 @@ joint.shapes.logic.Wire = joint.dia.Link.extend({
         '</path>',
         '</g>',
         '</g>'
-    ].join(''),
-
-    defaults: _.defaultsDeep({
-
-        type: 'logic.Wire',
-
-        attrs: {
-            '.connection': { 'stroke-width': 2 },
-            '.marker-vertex': { r: 7 }
-        },
-
-        router: { name: 'orthogonal' },
-        connector: { name: 'rounded', args: { radius: 10 }}
-
-    }, joint.dia.Link.prototype.defaults)
-
+    ].join('')
 });
 
 if (typeof exports === 'object') {
@@ -16409,6 +17075,90 @@ dagre = dagre || (typeof window !== 'undefined' && window.dagre);
 
 joint.layout.DirectedGraph = {
 
+    exportElement: function(element) {
+
+        // The width and height of the element.
+        return element.size();
+    },
+
+    exportLink: function(link) {
+
+        var labelSize = link.get('labelSize') || {};
+        var edge = {
+            // The number of ranks to keep between the source and target of the edge.
+            minLen: link.get('minLen') || 1,
+            // The weight to assign edges. Higher weight edges are generally
+            // made shorter and straighter than lower weight edges.
+            weight: link.get('weight') || 1,
+            // Where to place the label relative to the edge.
+            // l = left, c = center r = right.
+            labelpos: link.get('labelPosition') || 'c',
+            // How many pixels to move the label away from the edge.
+            // Applies only when labelpos is l or r.
+            labeloffset: link.get('labelOffset') || 0,
+            // The width of the edge label in pixels.
+            width: labelSize.width || 0,
+            // The height of the edge label in pixels.
+            height: labelSize.height || 0
+        };
+
+        return edge;
+    },
+
+    importElement: function(opt, v, gl) {
+
+        var element = this.getCell(v);
+        var glNode = gl.node(v);
+
+        if (opt.setPosition) {
+            opt.setPosition(element, glNode);
+        } else {
+            element.set('position', {
+                x: glNode.x - glNode.width / 2,
+                y: glNode.y - glNode.height / 2
+            });
+        }
+    },
+
+    importLink: function(opt, edgeObj, gl) {
+
+        var link = this.getCell(edgeObj.name);
+        var glEdge = gl.edge(edgeObj);
+        var points = glEdge.points || [];
+
+        // check the `setLinkVertices` here for backwards compatibility
+        if (opt.setVertices || opt.setLinkVertices) {
+            if (joint.util.isFunction(opt.setVertices)) {
+                opt.setVertices(link, points);
+            } else {
+                // Remove the first and last point from points array.
+                // Those are source/target element connection points
+                // ie. they lies on the edge of connected elements.
+                link.set('vertices', points.slice(1, points.length - 1));
+            }
+        }
+
+        if (opt.setLabels && ('x' in glEdge) && ('y' in glEdge)) {
+            var labelPosition = { x: glEdge.x, y: glEdge.y};
+            if (joint.util.isFunction(opt.setLabels)) {
+                opt.setLabels(link, labelPosition, points);
+            } else {
+                // Convert the absolute label position to a relative position
+                // towards the closest point on the edge
+                var polyline = g.Polyline(points);
+                var length = polyline.closestPointLength(labelPosition);
+                var closestPoint = polyline.pointAtLength(length);
+                var distance = length / polyline.length();
+                link.label(0, {
+                    position: {
+                        distance: distance,
+                        offset: g.Point(labelPosition).difference(closestPoint).toJSON()
+                    }
+                });
+            }
+        }
+    },
+
     layout: function(graphOrCells, opt) {
 
         var graph;
@@ -16423,9 +17173,11 @@ joint.layout.DirectedGraph = {
         // This is not needed anymore.
         graphOrCells = null;
 
-        opt = _.defaults(opt || {}, {
+        opt = joint.util.defaults(opt || {}, {
             resizeClusters: true,
-            clusterPadding: 10
+            clusterPadding: 10,
+            exportElement: this.exportElement,
+            exportLink: this.exportLink
         });
 
         // create a graphlib.Graph that represents the joint.dia.Graph
@@ -16435,18 +17187,8 @@ joint.layout.DirectedGraph = {
             multigraph: true,
             // We are able to layout graphs with embeds.
             compound: true,
-            setNodeLabel: function(element) {
-                return {
-                    width: element.get('size').width,
-                    height: element.get('size').height,
-                    rank: element.get('rank')
-                };
-            },
-            setEdgeLabel: function(link) {
-                return {
-                    minLen: link.get('minLen') || 1
-                };
-            },
+            setNodeLabel: opt.exportElement,
+            setEdgeLabel: opt.exportLink,
             setEdgeName: function(link) {
                 // Graphlib edges have no ids. We use edge name property
                 // to store and retrieve ids instead.
@@ -16469,6 +17211,9 @@ joint.layout.DirectedGraph = {
         if (opt.edgeSep) glLabel.edgesep = opt.edgeSep;
         // Number of pixels between each rank in the layout.
         if (opt.rankSep) glLabel.ranksep = opt.rankSep;
+        // Type of algorithm to assign a rank to each node in the input graph.
+        // Possible values: network-simplex, tight-tree or longest-path
+        if (opt.ranker) glLabel.ranker = opt.ranker;
         // Number of pixels to use as a margin around the left and right of the graph.
         if (marginX) glLabel.marginx = marginX;
         // Number of pixels to use as a margin around the top and bottom of the graph.
@@ -16485,37 +17230,8 @@ joint.layout.DirectedGraph = {
 
         // Update the graph.
         graph.fromGraphLib(glGraph, {
-            importNode: function(v, gl) {
-
-                var element = this.getCell(v);
-                var glNode = gl.node(v);
-
-                if (opt.setPosition) {
-                    opt.setPosition(element, glNode);
-                } else {
-                    element.set('position', {
-                        x: glNode.x - glNode.width / 2,
-                        y: glNode.y - glNode.height / 2
-                    });
-                }
-            },
-            importEdge: function(edgeObj, gl) {
-
-                var link = this.getCell(edgeObj.name);
-                var glEdge = gl.edge(edgeObj);
-                var points = glEdge.points || [];
-
-                if (opt.setLinkVertices) {
-                    if (opt.setVertices) {
-                        opt.setVertices(link, points);
-                    } else {
-                        // Remove the first and last point from points array.
-                        // Those are source/target element connection points
-                        // ie. they lies on the edge of connected elements.
-                        link.set('vertices', points.slice(1, points.length - 1));
-                    }
-                }
-            }
+            importNode: this.importElement.bind(graph, opt),
+            importEdge: this.importLink.bind(graph, opt)
         });
 
         if (opt.resizeClusters) {
@@ -16525,12 +17241,14 @@ joint.layout.DirectedGraph = {
             // 2. map id on cells
             // 3. sort cells by their depth (the deepest first)
             // 4. resize cell to fit their direct children only.
-            _.chain(glGraph.nodes())
+            var clusters = glGraph.nodes()
                 .filter(function(v) { return glGraph.children(v).length > 0; })
-                .map(graph.getCell, graph)
-                .sortBy(function(cluster) { return -cluster.getAncestors().length; })
-                .invoke('fitEmbeds', { padding: opt.clusterPadding })
-                .value();
+                .map(graph.getCell.bind(graph))
+                .sort(function(aCluster, bCluster) {
+                    return bCluster.getAncestors().length - aCluster.getAncestors().length;
+                });
+
+            joint.util.invoke(clusters, 'fitEmbeds', { padding: opt.clusterPadding });
         }
 
         graph.stopBatch('layout');
@@ -16550,8 +17268,8 @@ joint.layout.DirectedGraph = {
 
         opt = opt || {};
 
-        var importNode = opt.importNode || _.noop;
-        var importEdge = opt.importEdge || _.noop;
+        var importNode = opt.importNode || joint.util.noop;
+        var importEdge = opt.importEdge || joint.util.noop;
         var graph = (this instanceof joint.dia.Graph) ? this : new joint.dia.Graph;
 
         // Import all nodes.
@@ -16572,14 +17290,16 @@ joint.layout.DirectedGraph = {
 
         opt = opt || {};
 
-        var glGraphType = _.pick(opt, 'directed', 'compound', 'multigraph');
+        var glGraphType = joint.util.pick(opt, 'directed', 'compound', 'multigraph');
         var glGraph = new graphlib.Graph(glGraphType);
-        var setNodeLabel = opt.setNodeLabel || _.noop;
-        var setEdgeLabel = opt.setEdgeLabel || _.noop;
-        var setEdgeName = opt.setEdgeName || _.noop;
+        var setNodeLabel = opt.setNodeLabel || joint.util.noop;
+        var setEdgeLabel = opt.setEdgeLabel || joint.util.noop;
+        var setEdgeName = opt.setEdgeName || joint.util.noop;
+        var collection = graph.get('cells');
 
-        graph.get('cells').each(function(cell) {
+        for (var i = 0, n = collection.length; i < n; i++) {
 
+            var cell = collection.at(i);
             if (cell.isLink()) {
 
                 var source = cell.get('source');
@@ -16598,10 +17318,15 @@ joint.layout.DirectedGraph = {
 
                 // For the compound graphs we have to take embeds into account.
                 if (glGraph.isCompound() && cell.has('parent')) {
-                    glGraph.setParent(cell.id, cell.get('parent'));
+                    var parentId = cell.get('parent');
+                    if (collection.has(parentId)) {
+                        // Make sure the parent cell is included in the graph (this can
+                        // happen when the layout is run on part of the graph only).
+                        glGraph.setParent(cell.id, parentId);
+                    }
                 }
             }
-        });
+        }
 
         return glGraph;
     }
