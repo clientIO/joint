@@ -632,7 +632,9 @@ export namespace dia {
         drawGrid(options?: {
             width?: number, height?: number, scaleFactor?: number,
             update: any, ox?: number, oy?: number
-        }): Paper;
+        }): this;
+
+        clearGrid(): this;
 
         findView<T extends dia.ElementView | dia.LinkView>(element: string | JQuery | SVGElement): T;
 
