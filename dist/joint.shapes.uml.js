@@ -1,14 +1,43 @@
-/*! JointJS v1.1.1-alpha.1 (2017-06-02) - JavaScript diagramming library
+/*! JointJS v1.1.1-alpha.1 (2017-10-19) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
-joint.shapes.uml = {};
+joint.shapes.basic.Generic.define('uml.Class', {
+    attrs: {
+        rect: { 'width': 200 },
 
-joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
+        '.uml-class-name-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#3498db' },
+        '.uml-class-attrs-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
+        '.uml-class-methods-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
 
+        '.uml-class-name-text': {
+            'ref': '.uml-class-name-rect',
+            'ref-y': .5,
+            'ref-x': .5,
+            'text-anchor': 'middle',
+            'y-alignment': 'middle',
+            'font-weight': 'bold',
+            'fill': 'black',
+            'font-size': 12,
+            'font-family': 'Times New Roman'
+        },
+        '.uml-class-attrs-text': {
+            'ref': '.uml-class-attrs-rect', 'ref-y': 5, 'ref-x': 5,
+            'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
+        },
+        '.uml-class-methods-text': {
+            'ref': '.uml-class-methods-rect', 'ref-y': 5, 'ref-x': 5,
+            'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
+        }
+    },
+
+    name: [],
+    attributes: [],
+    methods: []
+}, {
     markup: [
         '<g class="rotatable">',
         '<g class="scalable">',
@@ -17,37 +46,6 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
         '<text class="uml-class-name-text"/><text class="uml-class-attrs-text"/><text class="uml-class-methods-text"/>',
         '</g>'
     ].join(''),
-
-    defaults: _.defaultsDeep({
-
-        type: 'uml.Class',
-
-        attrs: {
-            rect: { 'width': 200 },
-
-            '.uml-class-name-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#3498db' },
-            '.uml-class-attrs-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
-            '.uml-class-methods-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
-
-            '.uml-class-name-text': {
-                'ref': '.uml-class-name-rect', 'ref-y': .5, 'ref-x': .5, 'text-anchor': 'middle', 'y-alignment': 'middle', 'font-weight': 'bold',
-                'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
-            },
-            '.uml-class-attrs-text': {
-                'ref': '.uml-class-attrs-rect', 'ref-y': 5, 'ref-x': 5,
-                'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
-            },
-            '.uml-class-methods-text': {
-                'ref': '.uml-class-methods-rect', 'ref-y': 5, 'ref-x': 5,
-                'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
-            }
-        },
-
-        name: [],
-        attributes: [],
-        methods: []
-
-    }, joint.shapes.basic.Generic.prototype.defaults),
 
     initialize: function() {
 
@@ -77,9 +75,9 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
 
         var offsetY = 0;
 
-        _.each(rects, function(rect) {
+        rects.forEach(function(rect) {
 
-            var lines = _.isArray(rect.text) ? rect.text : [rect.text];
+            var lines = Array.isArray(rect.text) ? rect.text : [rect.text];
             var rectHeight = lines.length * 20 + 20;
 
             attrs['.uml-class-' + rect.type + '-text'].text = lines.join('\n');
@@ -92,7 +90,7 @@ joint.shapes.uml.Class = joint.shapes.basic.Generic.extend({
 
 });
 
-joint.shapes.uml.ClassView = joint.dia.ElementView.extend({
+joint.shapes.uml.ClassView = joint.dia.ElementView.extend({}, {
 
     initialize: function() {
 
@@ -105,16 +103,13 @@ joint.shapes.uml.ClassView = joint.dia.ElementView.extend({
     }
 });
 
-joint.shapes.uml.Abstract = joint.shapes.uml.Class.extend({
-
-    defaults: _.defaultsDeep({
-        type: 'uml.Abstract',
-        attrs: {
-            '.uml-class-name-rect': { fill : '#e74c3c' },
-            '.uml-class-attrs-rect': { fill : '#c0392b' },
-            '.uml-class-methods-rect': { fill : '#c0392b' }
-        }
-    }, joint.shapes.uml.Class.prototype.defaults),
+joint.shapes.uml.Class.define('uml.Abstract', {
+    attrs: {
+        '.uml-class-name-rect': { fill: '#e74c3c' },
+        '.uml-class-attrs-rect': { fill: '#c0392b' },
+        '.uml-class-methods-rect': { fill: '#c0392b' }
+    }
+}, {
 
     getClassName: function() {
         return ['<<Abstract>>', this.get('name')];
@@ -123,63 +118,65 @@ joint.shapes.uml.Abstract = joint.shapes.uml.Class.extend({
 });
 joint.shapes.uml.AbstractView = joint.shapes.uml.ClassView;
 
-joint.shapes.uml.Interface = joint.shapes.uml.Class.extend({
-
-    defaults: _.defaultsDeep({
-        type: 'uml.Interface',
-        attrs: {
-            '.uml-class-name-rect': { fill : '#f1c40f' },
-            '.uml-class-attrs-rect': { fill : '#f39c12' },
-            '.uml-class-methods-rect': { fill : '#f39c12' }
-        }
-    }, joint.shapes.uml.Class.prototype.defaults),
-
+joint.shapes.uml.Class.define('uml.Interface', {
+    attrs: {
+        '.uml-class-name-rect': { fill: '#f1c40f' },
+        '.uml-class-attrs-rect': { fill: '#f39c12' },
+        '.uml-class-methods-rect': { fill: '#f39c12' }
+    }
+}, {
     getClassName: function() {
         return ['<<Interface>>', this.get('name')];
     }
-
 });
 joint.shapes.uml.InterfaceView = joint.shapes.uml.ClassView;
 
-joint.shapes.uml.Generalization = joint.dia.Link.extend({
-    defaults: {
-        type: 'uml.Generalization',
-        attrs: { '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' }}
+joint.dia.Link.define('uml.Generalization', {
+    attrs: { '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' } }
+});
+
+joint.dia.Link.define('uml.Implementation', {
+    attrs: {
+        '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' },
+        '.connection': { 'stroke-dasharray': '3,3' }
     }
 });
 
-joint.shapes.uml.Implementation = joint.dia.Link.extend({
-    defaults: {
-        type: 'uml.Implementation',
-        attrs: {
-            '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' },
-            '.connection': { 'stroke-dasharray': '3,3' }
-        }
-    }
+joint.dia.Link.define('uml.Aggregation', {
+    attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'white' } }
 });
 
-joint.shapes.uml.Aggregation = joint.dia.Link.extend({
-    defaults: {
-        type: 'uml.Aggregation',
-        attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'white' }}
-    }
+joint.dia.Link.define('uml.Composition', {
+    attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'black' } }
 });
 
-joint.shapes.uml.Composition = joint.dia.Link.extend({
-    defaults: {
-        type: 'uml.Composition',
-        attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'black' }}
-    }
-});
-
-joint.shapes.uml.Association = joint.dia.Link.extend({
-    defaults: { type: 'uml.Association' }
-});
+joint.dia.Link.define('uml.Association');
 
 // Statechart
 
-joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
+joint.shapes.basic.Generic.define('uml.State', {
+    attrs: {
+        '.uml-state-body': {
+            'width': 200, 'height': 200, 'rx': 10, 'ry': 10,
+            'fill': '#ecf0f1', 'stroke': '#bdc3c7', 'stroke-width': 3
+        },
+        '.uml-state-separator': {
+            'stroke': '#bdc3c7', 'stroke-width': 2
+        },
+        '.uml-state-name': {
+            'ref': '.uml-state-body', 'ref-x': .5, 'ref-y': 5, 'text-anchor': 'middle',
+            'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
+        },
+        '.uml-state-events': {
+            'ref': '.uml-state-separator', 'ref-x': 5, 'ref-y': 5,
+            'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
+        }
+    },
 
+    name: 'State',
+    events: []
+
+}, {
     markup: [
         '<g class="rotatable">',
         '<g class="scalable">',
@@ -190,33 +187,6 @@ joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
         '<text class="uml-state-events"/>',
         '</g>'
     ].join(''),
-
-    defaults: _.defaultsDeep({
-
-        type: 'uml.State',
-
-        attrs: {
-            '.uml-state-body': {
-                'width': 200, 'height': 200, 'rx': 10, 'ry': 10,
-                'fill': '#ecf0f1', 'stroke': '#bdc3c7', 'stroke-width': 3
-            },
-            '.uml-state-separator': {
-                'stroke': '#bdc3c7', 'stroke-width': 2
-            },
-            '.uml-state-name': {
-                'ref': '.uml-state-body', 'ref-x': .5, 'ref-y': 5, 'text-anchor': 'middle',
-                'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
-            },
-            '.uml-state-events': {
-                'ref': '.uml-state-separator', 'ref-x': 5, 'ref-y': 5,
-                'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
-            }
-        },
-
-        name: 'State',
-        events: []
-
-    }, joint.shapes.basic.Generic.prototype.defaults),
 
     initialize: function() {
 
@@ -252,53 +222,36 @@ joint.shapes.uml.State = joint.shapes.basic.Generic.extend({
         // triggers also an update).
         this.attr('.uml-state-separator/d', d, { silent: true });
     }
-
 });
 
-joint.shapes.uml.StartState = joint.shapes.basic.Circle.extend({
-
-    defaults: _.defaultsDeep({
-
-        type: 'uml.StartState',
-        attrs: { circle: { 'fill': '#34495e', 'stroke': '#2c3e50', 'stroke-width': 2, 'rx': 1 }}
-
-    }, joint.shapes.basic.Circle.prototype.defaults)
-
+joint.shapes.basic.Circle.define('uml.StartState', {
+    type: 'uml.StartState',
+    attrs: { circle: { 'fill': '#34495e', 'stroke': '#2c3e50', 'stroke-width': 2, 'rx': 1 } }
 });
 
-joint.shapes.uml.EndState = joint.shapes.basic.Generic.extend({
+joint.shapes.basic.Generic.define('uml.EndState', {
+    size: { width: 20, height: 20 },
+    attrs: {
+        'circle.outer': {
+            transform: 'translate(10, 10)',
+            r: 10,
+            fill: '#ffffff',
+            stroke: '#2c3e50'
+        },
 
+        'circle.inner': {
+            transform: 'translate(10, 10)',
+            r: 6,
+            fill: '#34495e'
+        }
+    }
+}, {
     markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
-
-    defaults: _.defaultsDeep({
-
-        type: 'uml.EndState',
-        size: { width: 20, height: 20 },
-        attrs: {
-            'circle.outer': {
-                transform: 'translate(10, 10)',
-                r: 10,
-                fill: '#ffffff',
-                stroke: '#2c3e50'
-            },
-
-            'circle.inner': {
-                transform: 'translate(10, 10)',
-                r: 6,
-                fill: '#34495e'
-            }
-        }
-
-    }, joint.shapes.basic.Generic.prototype.defaults)
-
 });
 
-joint.shapes.uml.Transition = joint.dia.Link.extend({
-    defaults: {
-        type: 'uml.Transition',
-        attrs: {
-            '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z', fill: '#34495e', stroke: '#2c3e50' },
-            '.connection': { stroke: '#2c3e50' }
-        }
+joint.dia.Link.define('uml.Transition', {
+    attrs: {
+        '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z', fill: '#34495e', stroke: '#2c3e50' },
+        '.connection': { stroke: '#2c3e50' }
     }
 });

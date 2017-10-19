@@ -1,4 +1,4 @@
-/*! JointJS v1.1.1-alpha.1 (2017-06-02) - JavaScript diagramming library
+/*! JointJS v1.1.1-alpha.1 (2017-10-19) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -278,6 +278,103 @@ V = Vectorizer = (function() {
 
         return V.transformRect(box, matrix);
     };
+    
+    // Returns an SVGRect that contains coordinates and dimensions of the real bounding box,
+    // i.e. after transformations are applied.
+    // Fixes a browser implementation bug that returns incorrect bounding boxes for groups of svg elements.
+    // Takes an (Object) `opt` argument (optional) with the following attributes:
+    // (Object) `target` (optional): if not undefined, transform bounding boxes relative to `target`; if undefined, transform relative to this
+    // (Boolean) `recursive` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox();
+    V.prototype.getBBox = function(opt) {
+
+        var options = {};
+
+        var outputBBox;
+        var node = this.node;
+        var ownerSVGElement = node.ownerSVGElement;
+
+        // If the element is not in the live DOM, it does not have a bounding box defined and
+        // so fall back to 'zero' dimension element.
+        if (!ownerSVGElement) {
+            return g.Rect(0, 0, 0, 0);
+        }
+
+        if (opt) {
+            if (opt.target) { // check if target exists
+                options.target = V.toNode(opt.target); // works for V objects, jquery objects, and node objects
+            }
+            if (opt.recursive) {
+                options.recursive = opt.recursive;
+            }
+        }
+
+        if (!options.recursive) {
+            try {
+                outputBBox = node.getBBox();
+            } catch (e) {
+                // Fallback for IE.
+                outputBBox = {
+                    x: node.clientLeft,
+                    y: node.clientTop,
+                    width: node.clientWidth,
+                    height: node.clientHeight
+                };
+            }
+
+            if (!options.target) {
+                // transform like this (that is, not at all)
+                return g.Rect(outputBBox);
+            } else {
+                // transform like target
+                var matrix = this.getTransformToElement(options.target);
+                return V.transformRect(outputBBox, matrix);
+            }
+        } else { // if we want to calculate the bbox recursively
+            // browsers report correct bbox around svg elements (one that envelops the path lines tightly)
+            // but some browsers fail to report the same bbox when the elements are in a group (returning a looser bbox that also includes control points, like node.getClientRect())
+            // this happens even if we wrap a single svg element into a group!
+            // this option setting makes the function recursively enter all the groups from this and deeper, get bboxes of the elements inside, then return a union of those bboxes
+
+            var children = this.children();
+            var n = children.length;
+            
+            if (n === 0) {
+                return this.getBBox({ target: options.target, recursive: false });
+            }
+
+            // recursion's initial pass-through setting:
+            // recursive passes-through just keep the target as whatever was set up here during the initial pass-through
+            if (!options.target) {
+                // transform children/descendants like this (their parent/ancestor)
+                options.target = this;
+            } // else transform children/descendants like target
+
+            for (var i = 0; i < n; i++) {
+                var currentChild = children[i];
+
+                var childBBox;
+
+                // if currentChild is not a group element, get its bbox with a nonrecursive call
+                if (currentChild.children().length === 0) {
+                    childBBox = currentChild.getBBox({ target: options.target, recursive: false });
+                }
+                else {
+                    // if currentChild is a group element (determined by checking the number of children), enter it with a recursive call
+                    childBBox = currentChild.getBBox({ target: options.target, recursive: true });
+                }
+
+                if (!outputBBox) {
+                    // if this is the first iteration
+                    outputBBox = childBBox;
+                } else {
+                    // make a new bounding box rectangle that contains this child's bounding box and previous bounding box
+                    outputBBox = outputBBox.union(childBBox);
+                }
+            }
+
+            return outputBBox;
+        }
+    };
 
     V.prototype.text = function(content, opt) {
 
@@ -285,19 +382,9 @@ V = Vectorizer = (function() {
         // IE would otherwise collapse all spaces into one.
         content = V.sanitizeText(content);
         opt = opt || {};
+        var eol = opt.eol;
         var lines = content.split('\n');
         var tspan;
-
-        // `alignment-baseline` does not work in Firefox.
-        // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
-        // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
-        // in the top left corner we translate the `<text>` element by `0.8em`.
-        // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
-        // See also `http://apike.ca/prog_svg_text_style.html`.
-        var y = this.attr('y');
-        if (!y) {
-            this.attr('y', '0.8em');
-        }
 
         // An empty text gets rendered into the DOM in webkit-based browsers.
         // In order to unify this behaviour across all browsers
@@ -355,7 +442,7 @@ V = Vectorizer = (function() {
         }
 
         var offset = 0;
-        var x = this.attr('x') || 0;
+        var x = ((opt.x !== undefined) ? opt.x : this.attr('x')) || 0;
 
         // Shift all the <tspan> but first by one line (`1em`)
         var lineHeight = opt.lineHeight || '1em';
@@ -363,27 +450,36 @@ V = Vectorizer = (function() {
             lineHeight = '1.5em';
         }
 
+        var firstLineHeight = 0;
         for (var i = 0; i < lines.length; i++) {
 
+            var vLineAttributes = { 'class': 'v-line' };
+            if (i === 0) {
+                vLineAttributes.dy = '0em';
+            } else {
+                vLineAttributes.dy = lineHeight;
+                vLineAttributes.x = x;
+            }
+            var vLine = V('tspan', vLineAttributes);
+
+            var lastI = lines.length - 1;
             var line = lines[i];
-
-            var vLine = V('tspan', { 'class': 'v-line',  dy: (i == 0 ? '0em' : lineHeight), x: x });
-
             if (line) {
 
+                // Get the line height based on the biggest font size in the annotations for this line.
+                var maxFontSize = 0;
                 if (opt.annotations) {
-
-                    // Get the line height based on the biggest font size in the annotations for this line.
-                    var maxFontSize = 0;
 
                     // Find the *compacted* annotations for this line.
                     var lineAnnotations = V.annotateString(lines[i], V.isArray(opt.annotations) ? opt.annotations : [opt.annotations], { offset: -offset, includeAnnotationIndices: opt.includeAnnotationIndices });
+
+                    var lastJ = lineAnnotations.length - 1;
                     for (var j = 0; j < lineAnnotations.length; j++) {
 
                         var annotation = lineAnnotations[j];
                         if (V.isObject(annotation)) {
 
-                            var fontSize = parseInt(annotation.attrs['font-size'], 10);
+                            var fontSize = parseFloat(annotation.attrs['font-size']);
                             if (fontSize && fontSize > maxFontSize) {
                                 maxFontSize = fontSize;
                             }
@@ -399,12 +495,18 @@ V = Vectorizer = (function() {
                             if (annotation.attrs['class']) {
                                 tspan.addClass(annotation.attrs['class']);
                             }
+
+                            if (eol && j === lastJ && i !== lastI) {
+                                annotation.t += eol;
+                            }
                             tspan.node.textContent = annotation.t;
 
                         } else {
 
+                            if (eol && j === lastJ && i !== lastI) {
+                                annotation += eol;
+                            }
                             tspan = document.createTextNode(annotation || ' ');
-
                         }
                         vLine.append(tspan);
                     }
@@ -416,9 +518,16 @@ V = Vectorizer = (function() {
 
                 } else {
 
+                    if (eol && i !== lastI) {
+                        line += eol;
+                    }
+
                     vLine.node.textContent = line;
                 }
 
+                if (i === 0) {
+                    firstLineHeight = maxFontSize;
+                }
             } else {
 
                 // Make sure the textContent is never empty. If it is, add a dummy
@@ -435,6 +544,17 @@ V = Vectorizer = (function() {
             V(textNode).append(vLine);
 
             offset += line.length + 1;      // + 1 = newline character.
+        }
+
+        // `alignment-baseline` does not work in Firefox.
+        // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
+        // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
+        // in the top left corner we translate the `<text>` element by `0.8em`.
+        // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
+        // See also `http://apike.ca/prog_svg_text_style.html`.
+        var y = this.attr('y');
+        if (y === null) {
+            this.attr('y', firstLineHeight || '0.8em');
         }
 
         return this;
@@ -513,6 +633,11 @@ V = Vectorizer = (function() {
         return this;
     };
 
+    /**
+     * @private
+     * @param {object} attrs
+     * @returns {Vectorizer}
+     */
     V.prototype.setAttributes = function(attrs) {
 
         for (var key in attrs) {
@@ -609,6 +734,21 @@ V = Vectorizer = (function() {
         return vels;
     };
 
+    // Returns an array of V elements made from children of this.node.
+    V.prototype.children = function() {
+
+        var children = this.node.childNodes;
+        
+        var outputArray = [];
+        for (var i = 0; i < children.length; i++) {
+            var currentChild = children[i];
+            if (currentChild.nodeType === 1) {
+                outputArray.push(V(children[i])); 
+            }
+        }
+        return outputArray;
+    };
+
     // Find an index of an element inside its container.
     V.prototype.index = function() {
 
@@ -677,10 +817,11 @@ V = Vectorizer = (function() {
 
     V.prototype.translateCenterToPoint = function(p) {
 
-        var bbox = this.bbox();
-        var center = g.rect(bbox).center();
+        var bbox = this.getBBox({ target: this.svg() });
+        var center = bbox.center();
 
         this.translate(p.x - center.x, p.y - center.y);
+        return this;
     };
 
     // Efficiently auto-orient an element. This basically implements the orient=auto attribute
@@ -700,7 +841,7 @@ V = Vectorizer = (function() {
         this.scale(s.sx, s.sy);
 
         var svg = this.svg().node;
-        var bbox = this.bbox(false, target);
+        var bbox = this.getBBox({ target: target || svg });
 
         // 1. Translate to origin.
         var translateToOrigin = svg.createSVGTransform();
@@ -717,7 +858,7 @@ V = Vectorizer = (function() {
         translateFinal.setTranslate(position.x + (position.x - finalPosition.x), position.y + (position.y - finalPosition.y));
 
         // 4. Apply transformations.
-        var ctm = this.getTransformToElement(target);
+        var ctm = this.getTransformToElement(target || svg);
         var transform = svg.createSVGTransform();
         transform.setMatrix(
             translateFinal.matrix.multiply(
@@ -776,6 +917,7 @@ V = Vectorizer = (function() {
                 }
             }
         }
+        return this;
     };
 
     V.prototype.hasClass = function(className) {
@@ -884,7 +1026,7 @@ V = Vectorizer = (function() {
 
         var svg = this.svg().node;
         target = target || svg;
-        var bbox = g.rect(this.bbox(false, target));
+        var bbox = this.getBBox({ target: target });
         var center = bbox.center();
 
         if (!bbox.intersectionWithLineFromCenterToPoint(ref)) return undefined;
@@ -1004,8 +1146,12 @@ V = Vectorizer = (function() {
         return 'v-' + (++V.idCounter);
     };
 
-    V.ensureId = function(node) {
+    V.toNode = function(el) {
+        return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
+    };
 
+    V.ensureId = function(node) {
+        node = V.toNode(node);
         return node.id || (node.id = V.uniqueId());
     };
     // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
@@ -1152,12 +1298,12 @@ V = Vectorizer = (function() {
         matrix || (matrix = true);
 
         return 'matrix(' +
-            (matrix.a || 1) + ',' +
-            (matrix.b || 0) + ',' +
-            (matrix.c || 0) + ',' +
-            (matrix.d || 1) + ',' +
-            (matrix.e || 0) + ',' +
-            (matrix.f || 0) +
+            (matrix.a !== undefined ? matrix.a : 1) + ',' +
+            (matrix.b !== undefined ? matrix.b : 0) + ',' +
+            (matrix.c !== undefined ? matrix.c : 0) + ',' +
+            (matrix.d !== undefined ? matrix.d : 1) + ',' +
+            (matrix.e !== undefined ? matrix.e : 0) + ',' +
+            (matrix.f !== undefined ? matrix.f : 0) +
             ')';
     };
 
@@ -1633,11 +1779,13 @@ V = Vectorizer = (function() {
 
     V.getPointsFromSvgNode = function(node) {
 
+        node = V.toNode(node);
         var points = [];
-        var i;
-
-        for (i = 0; i < node.points.numberOfItems; i++) {
-            points.push(node.points.getItem(i));
+        var nodePoints = node.points;
+        if (nodePoints) {
+            for (var i = 0; i < nodePoints.numberOfItems; i++) {
+                points.push(nodePoints.getItem(i));
+            }
         }
 
         return points;
@@ -1743,9 +1891,7 @@ V = Vectorizer = (function() {
         return d.join(' ');
     };
 
-    V.toNode = function(el) {
-        return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
-    };
+    V.namespace = ns;
 
     return V;
 
