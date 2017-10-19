@@ -1,6 +1,6 @@
 {
     "dependencies": {
-        "dagre": "clientIO/dagre",
+        "dagre": "clientIO/dagre#v1.2-joint",
         "graphlib": "2.1.1",
         "lodash": "4.17.4"
     }
