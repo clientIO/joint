@@ -1,4 +1,4 @@
-/*! JointJS v1.1.1-alpha.1 (2017-10-19) - JavaScript diagramming library
+/*! JointJS v1.2.0-beta (2017-10-19) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -3847,7 +3847,7 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '1.1.1-alpha.1',
+    version: '1.2.0-beta',
 
     config: {
         // The class name prefix config is for advanced use only.
