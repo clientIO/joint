@@ -251,6 +251,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         if (this.options.drawGrid) {
             this.drawGrid();
+        } else {
+            this.clearGrid();
         }
 
         if (this._background) {
