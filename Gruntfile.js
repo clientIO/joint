@@ -145,42 +145,6 @@ module.exports = function(grunt) {
                         V: './vectorizer.min.js'
                     }
                 }
-            },
-            cienadagre: {
-                entry: lodash4TestDir + '/node_modules/ciena-dagre/src/index.js',
-                output: {
-                    path: lodash4TestDir + '/node_modules/ciena-dagre/build',
-                    filename: 'ciena-dagre.bundle.js',
-                    library: 'dagre',
-                    libraryTarget: 'var'
-                },
-                externals: {
-                    'lodash': '_'
-                }
-            }
-        },
-        babel: {
-            cienadagre: {
-                options: {
-                    sourceMap: false,
-                    presets: [
-                        /*
-                            `"modules": false` is needed to prevent `this` from being set to undefined. See:
-                            https://stackoverflow.com/questions/34973442/how-to-stop-babel-from-transpiling-this-to-undefined
-                        */
-                        [ 'env', { 'modules': false } ]
-                    ]
-                },
-                files: [
-                    {
-                        expand: true,
-                        cwd: lodash4TestDir + '/node_modules/ciena-dagre/build',
-                        src: [
-                            './ciena-dagre.bundle.js'
-                        ],
-                        dest: lodash4TestDir  + '/libs/cienadagre'
-                    }
-                ]
             }
         },
         browserify: {
@@ -865,9 +829,7 @@ module.exports = function(grunt) {
     ]);
 
     grunt.registerTask('lodash4tests', [
-        'shell:lodash4testsInstall',
-        'webpack:cienadagre',
-        'babel:cienadagre'
+        'shell:lodash4testsInstall'
     ]);
 
     grunt.registerTask('install', ['lodash4tests', 'bowerInstall', 'build:all']);

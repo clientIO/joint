@@ -1352,8 +1352,8 @@ export namespace layout {
 export namespace mvc {
 
     class View<T extends Backbone.Model> extends Backbone.View<T> {
-        constructor(opt: any);
-        constructor();
+
+        constructor(opt: Backbone.ViewOptions<T>);
 
         theme: string;
 
