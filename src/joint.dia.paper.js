@@ -256,6 +256,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (this._background) {
             this.updateBackgroundImage(this._background);
         }
+
+        return this;
     },
 
     // For storing the current transformation matrix (CTM) of the paper's viewport.
