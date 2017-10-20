@@ -383,13 +383,13 @@ export namespace dia {
 
     // dia.Link
 
-    interface LabelPosition {
+    interface LinkLabelPosition {
         distance: number;
         offset: number | { x: number; y: number; }
     }
 
-    interface Label {
-        position: LabelPosition | number;
+    interface LinkLabel {
+        position: LinkLabelPosition | number;
         attrs?: Selectors;
         size?: Size;
     }
@@ -397,10 +397,12 @@ export namespace dia {
     interface LinkAttributes extends CellAttributes {
         source?: Point | { id: string, selector?: string, port?: string };
         target?: Point | { id: string, selector?: string, port?: string };
-        labels?: Label[];
+        labels?: LinkLabel[];
         vertices?: Point[];
         smooth?: boolean;
         attrs?: Selectors;
+        router?: {[key: string]: any};
+        connector?: {[key: string]: any};
     }
 
     class Link extends Cell {
@@ -416,7 +418,7 @@ export namespace dia {
         disconnect(): this;
 
         label(index?: number): any;
-        label(index: number, value: Label, opt?: { [key: string]: any }): this;
+        label(index: number, value: LinkLabel, opt?: { [key: string]: any }): this;
 
         reparent(opt?: { [key: string]: any }): Element;
 
@@ -441,11 +443,11 @@ export namespace dia {
 
     // dia.CellView
 
-    interface CellViewOptions<T> extends mvc.ViewOptions<T> {
-        id?: string
+    interface CellViewOptions<T extends Cell> extends mvc.ViewOptions<T> {
+         id?: string
     }
 
-    abstract class CellViewGeneric<T extends Backbone.Model> extends mvc.View<T> {
+    abstract class CellViewGeneric<T extends Cell> extends mvc.View<T> {
 
         constructor(opt?: CellViewOptions<T>);
 
@@ -517,7 +519,7 @@ export namespace dia {
 
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 
-        protected onLabelsChange(link: Link, labels: Label[], opt: { [key: string]: any }): void;
+        protected onLabelsChange(link: Link, labels: LinkLabel[], opt: { [key: string]: any }): void;
 
         protected onToolsChange(link: Link, toolsMarkup: string, opt: { [key: string]: any }): void;
 
@@ -808,9 +810,6 @@ export namespace dia {
 
         protected updateBackgroundImage(opt: { position?: any, size?: any }): void;
     }
-}
-
-export namespace ui {
 }
 
 export namespace shapes {
@@ -1186,13 +1185,8 @@ export namespace shapes {
             operation(input1: any, input2: any): boolean;
         }
 
-        interface WireArgs extends dia.LinkAttributes {
-            router?: {[key: string]: any};
-            connector?: {[key: string]: any};
-        }
-
         class Wire extends dia.Link {
-            constructor(attributes?: WireArgs, opt?: {[key: string]: any});
+            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
         }
     }
 
@@ -1410,12 +1404,8 @@ export namespace layout {
 
 export namespace mvc {
 
-    interface ViewOptions<T> extends Backbone.ViewOptions<T> {
+    interface ViewOptions<T extends Backbone.Model> extends Backbone.ViewOptions<T> {
         theme?: string;
-    }
-
-    interface SetThemeOptions {
-        override?: boolean
     }
 
     class View<T extends Backbone.Model> extends Backbone.View<T> {
@@ -1430,7 +1420,7 @@ export namespace mvc {
 
         requireSetThemeOverride: boolean;
 
-        setTheme(theme: string, opt?: SetThemeOptions): this;
+        setTheme(theme: string, opt?: { override?: boolean }): this;
 
         getEventNamespace(): string;
 
