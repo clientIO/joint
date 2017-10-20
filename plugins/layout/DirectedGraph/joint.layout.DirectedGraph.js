@@ -242,7 +242,7 @@ joint.layout.DirectedGraph = {
                 var target = cell.get('target');
 
                 // Links that end at a point are ignored.
-                if (!source.id || !target.id) return;
+                if (!source.id || !target.id) break;
 
                 // Note that if we are creating a multigraph we can name the edges. If
                 // we try to name edges on a non-multigraph an exception is thrown.
