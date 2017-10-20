@@ -1382,17 +1382,25 @@ export namespace layout {
 
 export namespace mvc {
 
+    interface SetThemeOptions {
+        override?: boolean
+    }
+
     class View<T extends Backbone.Model> extends Backbone.View<T> {
 
-        constructor(opt: Backbone.ViewOptions<T>);
+        constructor(opt?: Backbone.ViewOptions<T>);
 
         theme: string;
 
+        themeClassNamePrefix: string
+
         defaultTheme: string;
 
-        setTheme(theme: string, opt: any): void;
+        requireSetThemeOverride: boolean;
 
-        getEventNamespace(): this;
+        setTheme(theme: string, opt?: SetThemeOptions): this;
+
+        getEventNamespace(): string;
 
         protected init(): void;
 
