@@ -47,6 +47,7 @@ export namespace dia {
     }
 
     class Graph extends Backbone.Model {
+
         constructor(attributes?: any, options?: { cellNamespace: any, cellModel: typeof Cell });
 
         addCell(cell: Cell | Cell[], opt?: object): this;
@@ -1334,25 +1335,42 @@ export namespace util {
 
 export namespace layout {
 
-    interface LayoutOptions {
-        nodeSep?: number;
-        edgeSep?: number;
-        rankSep?: number;
-        rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
-        ranker?: string;
-        marginX?: number;
-        marginY?: number;
-        resizeCluster?: boolean;
-        clusterPadding?: dia.Padding;
-        setPosition?: (element: dia.Element, position: dia.BBox) => void;
-        setVertices?: boolean | ((link: dia.Link, vertices: Position[]) => void);
-        setLabels?: boolean | ((link: dia.Link, position: dia.Point, points: dia.Point[]) => void);
-        debugTiming?: boolean;
-        // deprecated
-        setLinkVertices?: boolean;
-    }
-
     export namespace DirectedGraph {
+
+        interface Edge {
+            minLen?: number;
+            weight?: number;
+            labelpos?: 'l' | 'c' | 'r';
+            labeloffset?: number;
+            width?: number;
+            height?: number;
+        }
+
+        interface Node {
+            width?: number;
+            height?: number;
+        }
+
+        interface LayoutOptions {
+            rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
+            ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
+            nodeSep?: number;
+            edgeSep?: number;
+            rankSep?: number;
+            marginX?: number;
+            marginY?: number;
+            resizeCluster?: boolean;
+            clusterPadding?: dia.Padding;
+            setPosition?: (element: dia.Element, position: dia.BBox) => void;
+            setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
+            setLabels?: boolean | ((link: dia.Link, position: dia.Point, points: dia.Point[]) => void);
+            debugTiming?: boolean;
+            exportElement?: (element: dia.Element) => Node;
+            exportLink?: (link: dia.Link) => Edge;
+            // deprecated
+            setLinkVertices?: boolean;
+        }
+
         export function layout(graph: dia.Graph | dia.Cell[], options?: LayoutOptions): g.Rect;
     }
 }
