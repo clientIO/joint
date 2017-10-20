@@ -328,7 +328,7 @@ export namespace dia {
 
         getPortIndex(port: string | Port): number;
 
-        portProp(portId: string, path: any, value?: any, opt?: any): dia.Element;
+        portProp(portId: string, path: any, value?: any, opt?: { [key: string]: any }): dia.Element;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): CellConstructor<Element>;
     }
