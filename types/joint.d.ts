@@ -332,7 +332,8 @@ export namespace dia {
         position?: Point;
         size?: Size;
         angle?: number;
-        attrs?: Selectors;
+        attrs?: Selectors
+        ports?: {[key: string]: any};
     }
 
     class Element extends Cell {
@@ -440,9 +441,13 @@ export namespace dia {
 
     // dia.CellView
 
+    interface CellViewOptions<T> extends mvc.ViewOptions<T> {
+        id?: string
+    }
+
     abstract class CellViewGeneric<T extends Backbone.Model> extends mvc.View<T> {
 
-        constructor(opt?: { id: string });
+        constructor(opt?: CellViewOptions<T>);
 
         highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
 
@@ -539,8 +544,7 @@ export namespace dia {
         args?: Array<{ [key: string]: any }> | { [key: string]: any };
     }
 
-    interface PaperOptions extends Backbone.ViewOptions<Graph> {
-        el?: string | JQuery | HTMLElement;
+    interface PaperOptions extends mvc.ViewOptions<Graph> {
         width?: number | string;
         height?: number | string;
         origin?: Point;
@@ -620,6 +624,7 @@ export namespace dia {
     }
 
     class Paper extends mvc.View<Graph> {
+
         constructor(opt: PaperOptions);
 
         options: dia.PaperOptions;
@@ -1391,13 +1396,18 @@ export namespace layout {
 
 export namespace mvc {
 
+    interface ViewOptions<T> extends Backbone.ViewOptions<T> {
+        theme?: string;
+        el?: string | JQuery | HTMLElement;        
+    }
+
     interface SetThemeOptions {
         override?: boolean
     }
 
     class View<T extends Backbone.Model> extends Backbone.View<T> {
 
-        constructor(opt?: Backbone.ViewOptions<T>);
+        constructor(opt?: ViewOptions<T>);
 
         theme: string;
 
