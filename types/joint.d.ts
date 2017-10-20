@@ -201,6 +201,7 @@ export namespace dia {
         xAlignment?: 'middle' | 'right' | number | string;
         yAlignment?: 'middle' | 'bottom' | number | string;
         event?: string;
+        magnet?: boolean | string;
         // Backwards compatibility
         'ref-x'?: string | number;
         'ref-y'?: string | number;
