@@ -559,7 +559,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var commonAncestor = joint.util.toArray(cellsAncestors.shift()).find(function(ancestor) {
             return cellsAncestors.every(function(cellAncestors) {
-                return cellAncestors.includes(ancestor)
+                return cellAncestors.includes(ancestor);
             });
         });
 
@@ -918,18 +918,18 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     // Disconnect links connected to the cell `model`.
-    disconnectLinks: function(model, options) {
+    disconnectLinks: function(model, opt) {
 
         this.getConnectedLinks(model).forEach(function(link) {
 
-            link.set(link.get('source').id === model.id ? 'source' : 'target', { x: 0, y: 0 }, options);
+            link.set(link.get('source').id === model.id ? 'source' : 'target', { x: 0, y: 0 }, opt);
         });
     },
 
     // Remove links connected to the cell `model` completely.
-    removeLinks: function(model, options) {
+    removeLinks: function(model, opt) {
 
-        joint.util.invoke(this.getConnectedLinks(model), 'remove', options);
+        joint.util.invoke(this.getConnectedLinks(model), 'remove', opt);
     },
 
     // Find all elements at given point
@@ -959,7 +959,7 @@ joint.dia.Graph = Backbone.Model.extend({
         opt = joint.util.defaults(opt || {}, { searchBy: 'bbox' });
 
         var bbox = element.getBBox();
-        var elements = (opt.searchBy == 'bbox')
+        var elements = (opt.searchBy === 'bbox')
             ? this.findModelsInArea(bbox)
             : this.findModelsFromPoint(bbox[opt.searchBy]());
 
@@ -998,6 +998,8 @@ joint.dia.Graph = Backbone.Model.extend({
         });
 
         joint.util.invoke(cells, 'translate', dx, dy, opt);
+
+        return this;
     },
 
     resize: function(width, height, opt) {
@@ -1037,7 +1039,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
     hasActiveBatch: function(name) {
         if (name) {
-            return this._batches[name];
+            return !!this._batches[name];
         } else {
             return joint.util.toArray(this._batches).some(function(batches) {
                 return batches > 0;

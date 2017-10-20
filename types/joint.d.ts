@@ -31,15 +31,21 @@ export namespace dia {
         valueFunction?: (a: any, b: any) => (t: number) => any;
     }
 
-    interface DfsBfsOptions {
-        inbound?: boolean;
-        outbound?: boolean;
+    interface EmbeddableOptions {
         deep?: boolean;
     }
 
-    interface ExploreOptions {
+    interface ConnectionOptions extends EmbeddableOptions {
+        inbound?: boolean;
+        outbound?: boolean;
+    }
+
+    interface DisconnectableOptions {
+        disconnectLinks?: boolean;
+    }
+
+    interface ExploreOptions extends ConnectionOptions {
         breadthFirst?: boolean;
-        deep?: boolean;
     }
 
     interface EdgeMap {
@@ -50,13 +56,13 @@ export namespace dia {
 
         constructor(attributes?: any, options?: { cellNamespace: any, cellModel: typeof Cell });
 
-        addCell(cell: Cell | Cell[], opt?: object): this;
+        addCell(cell: Cell | Cell[], opt?: { [key: string]: any }): this;
 
-        addCells(cells: Cell[], opt: object): this;
+        addCells(cells: Cell[], opt?: { [key: string]: any }): this;
 
-        resetCells(cells: Cell[], options?: object): this;
+        resetCells(cells: Cell[], opt?: { [key: string]: any }): this;
 
-        getCell(id: string): Cell;
+        getCell(id: string | number | Cell): Cell;
 
         getElements(): Element[];
 
@@ -64,33 +70,33 @@ export namespace dia {
 
         getCells(): Cell[];
 
-        getFirstCell(): Cell;
+        getFirstCell(): Cell | undefined;
 
-        getLastCell(): Cell;
+        getLastCell(): Cell | undefined;
 
-        getConnectedLinks(element: Cell, options?: { inbound?: boolean, outbound?: boolean, deep?: boolean }): Link[];
+        getConnectedLinks(cell: Cell, opt?: ConnectionOptions): Link[];
 
-        disconnectLinks(cell: Cell, options?: object): void;
+        disconnectLinks(cell: Cell, opt?: { [key: string]: any }): void;
 
-        removeLinks(cell: Cell, options?: object): void;
+        removeLinks(cell: Cell, opt?: { [key: string]: any }): void;
 
-        translate(tx: number, ty?: number, options?: TranslateOptions): void;
+        translate(tx: number, ty?: number, opt?: TranslateOptions): this;
 
         cloneCells(cells: Cell[]): { [id: string]: Cell };
 
-        getSubgraph(cells: Cell[], options?: { deep?: boolean }): Cell[];
+        getSubgraph(cells: Cell[], opt?: EmbeddableOptions): Cell[];
 
-        cloneSubgraph(cells: Cell[], options?: { deep?: boolean }): { [id: string]: Cell };
+        cloneSubgraph(cells: Cell[], opt?: EmbeddableOptions): { [id: string]: Cell };
 
-        dfs(element: Element, iteratee: (element: Element, distance: number) => boolean, options?: DfsBfsOptions, visited?: any, distance?: number): void;
+        dfs(element: Element, iteratee: (element: Element, distance: number) => boolean, opt?: ConnectionOptions): void;
 
-        bfs(element: Element, iteratee: (element: Element, distance: number) => boolean, options?: DfsBfsOptions): void;
+        bfs(element: Element, iteratee: (element: Element, distance: number) => boolean, opt?: ConnectionOptions): void;
 
-        search(element: Element, iteratee: (element: Element, distance: number) => boolean, options?: { breadthFirst?: boolean }): void;
+        search(element: Element, iteratee: (element: Element, distance: number) => boolean, opt?: ExploreOptions): void;
 
-        getSuccessors(element: Element, options?: ExploreOptions): Element[];
+        getSuccessors(element: Element, opt?: ExploreOptions): Element[];
 
-        getPredecessors(element: Element, options?: ExploreOptions): Element[];
+        getPredecessors(element: Element, opt?: ExploreOptions): Element[];
 
         isSuccessor(elementA: Element, elementB: Element): boolean;
 
@@ -104,57 +110,54 @@ export namespace dia {
 
         getSinks(): Element[];
 
-        getNeighbors(element: Element, options?: DfsBfsOptions): Element[];
+        getNeighbors(element: Element, opt?: ConnectionOptions): Element[];
 
-        isNeighbor(elementA: Element, elementB: Element, options?: { inbound?: boolean, outbound?: boolean; }): boolean;
+        isNeighbor(elementA: Element, elementB: Element, opt?: ConnectionOptions): boolean;
 
-        getCommonAncestor(...cells: Cell[]): Element;
+        getCommonAncestor(...cells: Cell[]): Element | undefined;
 
-        toJSON(): object;
+        toJSON(): any;
 
-        fromJSON(json: { cells: Cell[] }, options?: object): this;
+        fromJSON(json: any, opt?: { [key: string]: any }): this;
 
-        clear(options?: object): this;
+        clear(opt?: { [key: string]: any }): this;
 
         findModelsFromPoint(p: Point): Element[];
 
-        findModelsUnderElement(element: Element, options?: {
-            searchBy?: 'bottomLeft' | 'bottomMiddle' | 'center' |
+        findModelsInArea(rect: g.PlainRect, opt?: { strict?: boolean }): Element[];
+
+        findModelsUnderElement(element: Element, opt?: {
+            searchBy?:
+                'bottomLeft' | 'bottomMiddle' | 'center' |
                 'corner' | 'leftMiddle' | 'origin' | 'rightMiddle' |
-                'topMiddle' | 'topRight'
+                'topMiddle' | 'topRight' | 'bbox'
         }): Element[];
 
-        getBBox(elements: Element[], options?: { deep?: boolean }): g.Rect;
+        getBBox(cells?: Cell[], opt?: EmbeddableOptions): g.Rect | null;
 
-        findModelsInArea(rect: g.Rect | BBox, options?: { strict?: boolean }): BBox | boolean;
+        getCellsBBox(cells: Cell[], opt?: EmbeddableOptions): g.Rect | null;
 
-        getCellsBBox(cells: Cell[], options?: { deep?: boolean }): g.Rect;
-
-        getInboundEdges(node: string): EdgeMap;
-
-        getOutboundEdges(node: string): EdgeMap;
-
-        hasActiveBatch(name?: string): number | boolean;
+        hasActiveBatch(name?: string): boolean;
 
         maxZIndex(): number;
 
-        removeCells(cells: Cell[], options?: object): this;
+        removeCells(cells: Cell[], opt?: DisconnectableOptions): this;
 
-        resize(width: number, height: number, options?: object): this;
+        resize(width: number, height: number, opt?: { [key: string]: any }): this;
 
-        resizeCells(width: number, height: number, cells: Cell[], options?: object): this;
+        resizeCells(width: number, height: number, cells: Cell[], opt?: { [key: string]: any }): this;
 
-        set(key: object | string, value: any, options?: object): this;
+        startBatch(name: string, data?: {[key: string]: any}): this;
 
-        startBatch(name: string, data?: {[key: string]: any}): any;
-
-        stopBatch(name: string, data?: {[key: string]: any}): any;
-
-        // Graphlib support
+        stopBatch(name: string, data?: {[key: string]: any}): this;
 
         toGraphLib(opt?: { [key: string]: any }): any;
 
         fromGraphLib(glGraph: any, opt?: { [key: string]: any }): this;
+
+        protected getInboundEdges(node: string): EdgeMap;
+
+        protected getOutboundEdges(node: string): EdgeMap;
     }
 
     class Cell extends Backbone.Model {
@@ -166,11 +169,11 @@ export namespace dia {
 
         toJSON(): object;
 
-        remove(options?: { disconnectLinks?: boolean }): this;
+        remove(options?: DisconnectableOptions): this;
 
-        toFront(options?: { deep?: boolean }): this;
+        toFront(options?: EmbeddableOptions): this;
 
-        toBack(options?: { deep?: boolean }): this;
+        toBack(options?: EmbeddableOptions): this;
 
         getAncestors(): Cell[];
 
@@ -187,7 +190,7 @@ export namespace dia {
         attr(key: string, value: any): this;
 
         clone(): Cell;
-        clone(opt: { deep?: boolean }): Cell | Cell[];
+        clone(opt: EmbeddableOptions): Cell | Cell[];
 
         removeAttr(path: string | string[], options?: object): this;
 
@@ -281,7 +284,7 @@ export namespace dia {
 
         fitEmbeds(options?: { deep?: boolean, padding?: Padding }): this;
 
-        getBBox(options?: { deep?: boolean }): g.Rect;
+        getBBox(options?: EmbeddableOptions): g.Rect;
 
         isElement(): boolean;
 
@@ -371,7 +374,7 @@ export namespace dia {
 
         getTargetElement(): undefined | Element | Graph;
 
-        hasLoop(options?: { deep?: boolean }): boolean;
+        hasLoop(options?: EmbeddableOptions): boolean;
 
         applyToPoints(fn: Function, options?: any): this;
 
