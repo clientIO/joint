@@ -162,8 +162,54 @@ export namespace dia {
 
     // dia.Cell
 
-    interface SVGAttributes {
+    interface NativeSVGAttributes {
         [key: string]: any;
+    }
+
+    interface SVGAttributes extends NativeSVGAttributes {
+        xlinkHref?: string;
+        xlinkShow?: string;
+        xmlSpace?: string;
+        filter?: string | { [key: string]: any };
+        fill?: string | { [key: string]: any };
+        stroke?: string | { [key: string]: any };
+        sourceMarker?: { [key: string]: any };
+        targetMarker?: { [key: string]: any };
+        vertexMarker?: { [key: string]: any };
+        text?: string;
+        textWrap?: { [key: string]: any };
+        lineHeight?: number | string;
+        textPath?: any;
+        annotations?: any;
+        port?: string;
+        style?: string;
+        html?: string;
+        ref?: string;
+        refX?: string | number;
+        refy?: string | number;
+        refX2?: string | number;
+        refy2?: string | number;
+        refDx?: string | number;
+        refDy?: string | number;
+        refWidth?: string | number;
+        refHeight?: string | number;
+        refRx?: string | number;
+        refRy?: string | number;
+        refCx?: string | number;
+        refCy?: string | number;
+        resetOffset?: boolean;
+        xAlignment?: 'middle' | 'right' | number | string;
+        yAlignment?: 'middle' | 'bottom' | number | string;
+        event?: string;
+        // Backwards compatibility
+        'ref-x'?: string | number;
+        'ref-y'?: string | number;
+        'ref-dx'?: string | number;
+        'ref-dy'?: string | number;
+        'ref-width'?: string | number;
+        'ref-height'?: string | number;
+        'x-alignment'?: 'middle' | 'right' | number | string;
+        'y-alignment'?: 'middle' | 'bottom' | number | string;
     }
 
     interface Selectors {
@@ -391,6 +437,93 @@ export namespace dia {
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): CellConstructor<Link>;
     }
 
+    // dia.CellView
+
+    abstract class CellViewGeneric<T extends Backbone.Model> extends mvc.View<T> {
+
+        constructor(opt?: { id: string });
+
+        highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
+
+        unhighlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
+
+        can(feature: string): boolean;
+
+        setInteractivity(value: any): void;
+
+        findMagnet(el: SVGElement | JQuery | string): SVGElement | undefined;
+
+        getSelector(el: SVGElement, prevSelector?: string): string;
+
+        getStrokeBBox(el?: SVGElement): g.Rect;
+
+        notify(eventName: string): void;
+
+        protected mouseover(evt: JQuery.Event): void;
+
+        protected mousewheel(evt: JQuery.Event, x: number, y: number, delta: number): void
+
+        protected pointerclick(evt: JQuery.Event, x: number, y: number): void;
+
+        protected pointerdblclick(evt: JQuery.Event, x: number, y: number): void;
+
+        protected pointerdown(evt: JQuery.Event, x: number, y: number): void;
+
+        protected pointermove(evt: JQuery.Event, x: number, y: number): void;
+
+        protected pointerup(evt: JQuery.Event, x: number, y: number): void;
+    }
+
+    class CellView extends CellViewGeneric<Cell> {}
+
+    // dia.ElementView
+
+    class ElementView extends CellViewGeneric<Element> {
+
+        getBBox(opt?: { useModelGeometry?: boolean }): g.Rect;
+
+        update(element: Element, renderingOnlyAttrs?: { [key: string]: any }): void;
+
+        protected renderMarkup(): void;
+    }
+
+    // dia.LinkView
+
+    class LinkView extends CellViewGeneric<Link> {
+
+        options: {
+            shortLinkLength?: number,
+            doubleLinkTools?: boolean,
+            longLinkLength?: number,
+            linkToolsOffset?: number,
+            doubleLinkToolsOffset?: number,
+            sampleInterval?: number
+        };
+
+        sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
+        sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; }, callback?: () => void): void;
+
+        addVertex(vertex: Point): number;
+
+        getConnectionLength(): number;
+
+        getPointAtLength(length: number): g.Point;
+
+        update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
+
+        protected onLabelsChange(link: Link, labels: Label[], opt: { [key: string]: any }): void;
+
+        protected onToolsChange(link: Link, toolsMarkup: string, opt: { [key: string]: any }): void;
+
+        protected onVerticesChange(link: Link, vertices: Point[], opt: { [key: string]: any }): void;
+
+        protected onSourceChange(element: Element, sourceEnd: any, opt: { [key: string]: any }): void;
+
+        protected onTargetChange(element: Element, targetEnd: any, opt: { [key: string]: any }): void;
+    }
+
+    // dia.Paper
+
     interface ManhattanRouterArgs {
         excludeTypes?: string[];
         excludeEnds?: 'source' | 'target';
@@ -485,131 +618,8 @@ export namespace dia {
         }>;
     }
 
-    abstract class CellViewGeneric<T extends Backbone.Model> extends Backbone.View<T> {
-
-        constructor(opt?: { id: string });
-
-        unhighlight(el?: any, opt?: any): this;
-
-        can(feature: string): boolean;
-
-        findMagnet(el: any): HTMLElement;
-
-        getSelector(el: HTMLElement, prevSelector: string): string;
-
-        getStrokeBBox(el: any): BBox; // string|HTMLElement|Vectorizer
-
-        remove(): this;
-
-        setInteractivity(value: any): void;
-
-        setTheme(theme: string, opt?: any): this;
-
-        protected mouseover(evt: Event): void;
-
-        protected mousewheel(evt: Event, x: number, y: number, delta: number): void
-
-        protected notify(eventName: string): void;
-
-        protected onSetTheme(oldTheme: string, newTheme: string): void;
-
-        protected pointerclick(evt: Event, x: number, y: number): void;
-
-        protected pointerdblclick(evt: Event, x: number, y: number): void;
-
-        protected pointerdown(evt: Event, x: number, y: number): void;
-
-        protected pointermove(evt: Event, x: number, y: number): void;
-
-        protected pointerup(evt: Event, x: number, y: number): void;
-    }
-
-    class CellView extends CellViewGeneric<Cell> {
-    }
-
-    interface ElementViewAttributes {
-        style?: string;
-        text?: string;
-        html?: string;
-        "ref-x"?: string | number;
-        "ref-y"?: string | number;
-        "ref-dx"?: number;
-        "ref-dy"?: number;
-        "ref-width"?: string | number;
-        "ref-height"?: string | number;
-        ref?: string;
-        "x-alignment"?: 'middle' | 'right' | number;
-        "y-alignment"?: 'middle' | 'bottom' | number;
-        port?: string;
-    }
-
-    class ElementView extends CellViewGeneric<Element> {
-
-        getBBox(opt?: { useModelGeometry?: boolean }): g.Rect;
-
-        update(cell: Cell, renderingOnlyAttrs?: { [key: string]: any }): void;
-
-        protected mouseenter(evt: Event): void;
-
-        protected mouseleave(evt: Event): void;
-
-        protected pointerdown(evt: Event, x: number, y: number): void;
-
-        protected pointermove(evt: Event, x: number, y: number): void;
-
-        protected pointerup(evt: Event, x: number, y: number): void;
-
-        protected renderMarkup(): void;
-    }
-
-    class LinkView extends CellViewGeneric<Link> {
-
-        options: {
-            shortLinkLength?: number,
-            doubleLinkTools?: boolean,
-            longLinkLength?: number,
-            linkToolsOffset?: number,
-            doubleLinkToolsOffset?: number,
-            sampleInterval: number
-        };
-
-        getConnectionLength(): number;
-
-        sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
-
-        addVertex(vertex: Point): number;
-
-        getPointAtLength(length: number): g.Point; // Marked as public api in source but not in the documents
-
-        update(model: Cell, attributes: { [key: string]: any }, opt?: { [key: string]: any }): this;
-
-        protected mouseenter(evt: Event): void;
-
-        protected mouseleave(evt: Event): void;
-
-        protected onEndModelChange(endType: 'source' | 'target', endModel?: Element,
-                                   opt?: { cacheOnly?: boolean, handleBy?: string, translateBy?: boolean, tx?: number, ty?: number }): void;
-
-        protected onLabelsChange(): void;
-
-        protected onSourceChange(cell: Cell, sourceEnd: { id: string }, options: { [key: string]: any }): void;
-
-        protected onTargetChange(cell: Cell, targetEnd: { id: string }, options: { [key: string]: any }): void;
-
-        protected onToolsChange(): void;
-
-        // changed is not used in function body.
-        protected onVerticesChange(cell: Cell, changed: any, options: { [key: string]: any }): void;
-
-        protected pointerdown(evt: Event, x: number, y: number): void;
-
-        protected pointermove(evt: Event, x: number, y: number): void;
-
-        protected pointerup(evt: Event, x: number, y: number): void;
-    }
-
     class Paper extends mvc.View<Graph> {
-        constructor(options: PaperOptions);
+        constructor(opt: PaperOptions);
 
         options: dia.PaperOptions;
         svg: SVGElement;
@@ -752,7 +762,7 @@ export namespace dia {
 
         protected mousewheel(evt: Event): void;
 
-        protected onCellAdded(cell: dia.Cell, graph: dia.Graph, options: { async?: boolean, position?: number }): void;
+        protected onCellAdded(cell: dia.Cell, graph: dia.Graph, opt: { async?: boolean, position?: number }): void;
 
         protected onCellHighlight(cellView: dia.CellView, magnetEl: HTMLElement, opt?: { highlighter?: dia.Highlighter }): void;
 
@@ -772,7 +782,7 @@ export namespace dia {
 
         protected renderView(cell: dia.Cell): dia.CellView;
 
-        protected resetViews(cellsCollection: dia.Cell[], options: { [key: string]: any }): void;
+        protected resetViews(cellsCollection: dia.Cell[], opt: { [key: string]: any }): void;
 
         protected updateBackgroundColor(color: string): void;
 
@@ -784,6 +794,7 @@ export namespace ui {
 }
 
 export namespace shapes {
+
     interface GenericAttributes<T> extends dia.CellAttributes {
         position?: dia.Point;
         size?: dia.Size;
@@ -792,8 +803,6 @@ export namespace shapes {
     }
 
     interface ShapeAttrs extends dia.SVGAttributes {
-        fill?: string;
-        stroke?: string;
         r?: string | number;
         rx?: string | number;
         ry?: string | number;
@@ -804,9 +813,6 @@ export namespace shapes {
         transform?: string;
         points?: string;
         'stroke-width'?: string | number;
-        'ref-x'?: string | number;
-        'ref-y'?: string | number;
-        ref?: string
     }
 
     interface TextAttrs extends dia.Selectors {
@@ -1075,19 +1081,9 @@ export namespace shapes {
     }
 
     namespace logic {
-        interface LogicAttrs extends ShapeAttrs {
-            ref?: string;
-            'ref-x'?: number | string;
-            'ref-dx'?: number | string;
-            'ref-y'?: number | string;
-            'ref-dy'?: number | string;
-            magnet?: boolean;
-            'class'?: string;
-            port?: string;
-        }
 
         interface IOAttrs extends TextAttrs {
-            circle?: LogicAttrs;
+            circle?: ShapeAttrs;
         }
 
         class Gate extends basic.Generic {
@@ -1118,7 +1114,7 @@ export namespace shapes {
             'xlink:href'?: string;
         }
 
-        interface ImageAttrs extends LogicAttrs {
+        interface ImageAttrs extends ShapeAttrs {
             image?: Image;
         }
 
@@ -1317,7 +1313,7 @@ export namespace util {
 
     export function unsetByPath(object: {[key: string]: any}, path: string, delim: string): any;
 
-    export function breakText(text: string, size: dia.Size, attrs?: dia.SVGAttributes, opt?: { svgDocument?: SVGElement }): string;
+    export function breakText(text: string, size: dia.Size, attrs?: dia.NativeSVGAttributes, opt?: { svgDocument?: SVGElement }): string;
 
     export function normalizeSides(box: number | { x?: number, y?: number, height?: number, width?: number }): dia.BBox;
 

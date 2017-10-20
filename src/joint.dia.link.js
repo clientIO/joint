@@ -1472,7 +1472,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             if (availableMagnets.length > 0) {
                 // highlight all available magnets
                 for (var j = 0, m = availableMagnets.length; j < m; j++) {
-                    view.highlight(availableMagnets[j], { magnetAvailability: true })
+                    view.highlight(availableMagnets[j], { magnetAvailability: true });
                 }
                 // highlight the entire view
                 view.highlight(null, { elementAvailability: true });
@@ -1495,7 +1495,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var view = this.paper.findViewByModel(id);
             if (view) {
                 for (var j = 0, m = markedMagnets.length; j < m; j++) {
-                    view.unhighlight(markedMagnets[j], { magnetAvailability: true })
+                    view.unhighlight(markedMagnets[j], { magnetAvailability: true });
                 }
                 view.unhighlight(null, { elementAvailability: true });
             }
