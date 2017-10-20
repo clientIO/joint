@@ -1,4 +1,5 @@
 export namespace dia {
+
     interface Size {
         width: number;
         height: number;
@@ -9,8 +10,14 @@ export namespace dia {
         y: number;
     }
 
-    interface BBox extends Point, Size {
-    }
+    type Padding = number | {
+        top?: number;
+        right?: number;
+        bottom?: number;
+        left?: number
+    };
+
+    interface BBox extends Point, Size {}
 
     interface TranslateOptions {
         restrictedArea?: BBox;
@@ -215,13 +222,6 @@ export namespace dia {
     interface CellConstructor<T extends Backbone.Model> {
         new (options?: { id: string }): T
     }
-
-    type Padding = number | {
-        top?: number;
-        right?: number;
-        bottom?: number;
-        left?: number
-    };
 
     type Direction = 'left'
                     | 'right'
@@ -1339,15 +1339,21 @@ export namespace layout {
         edgeSep?: number;
         rankSep?: number;
         rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
+        ranker?: string;
         marginX?: number;
         marginY?: number;
         resizeCluster?: boolean;
+        clusterPadding?: dia.Padding;
         setPosition?: (element: dia.Element, position: dia.BBox) => void;
-        setLinkVertices?: (link: dia.Link, vertices: Position[]) => void;
+        setVertices?: boolean | ((link: dia.Link, vertices: Position[]) => void);
+        setLabels?: boolean | ((link: dia.Link, position: dia.Point, points: dia.Point[]) => void);
+        debugTiming?: boolean;
+        // deprecated
+        setLinkVertices?: boolean;
     }
 
     export namespace DirectedGraph {
-        export function layout(graph: dia.Graph | dia.Cell[], options?: LayoutOptions): dia.BBox;
+        export function layout(graph: dia.Graph | dia.Cell[], options?: LayoutOptions): g.Rect;
     }
 }
 
