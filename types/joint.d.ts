@@ -250,7 +250,16 @@ export namespace dia {
 
     // dia.Element
 
-    type Direction = 'left' | 'right' | 'top' | 'bottom'| 'top-right' | 'top-left' | 'bottom-left'| 'bottom-right';
+    const enum Direction {
+        Left = 'left',
+        Right = 'right',
+        Top = 'top',
+        Bottom = 'bottom',
+        TopRight = 'top-right',
+        TopLeft = 'top-left',
+        BottomLeft = 'bottom-left',
+        BottomRight = 'bottom-right'
+    }
 
     interface Port {
         id?: string;
@@ -430,8 +439,8 @@ export namespace dia {
         restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
         guard?: (evt: Event, view: CellView) => boolean;
         multiLinks?: boolean;
-        cellViewNamespace?: { [key: string]: any };
-        highlighterNamespace?: { [key: string]: any };
+        cellViewNamespace?: any;
+        highlighterNamespace?: any;
         /** useful undocumented option */
         clickThreshold?: number;
         highlighting?: any;
@@ -1308,7 +1317,7 @@ export namespace util {
 
     export function unsetByPath(object: {[key: string]: any}, path: string, delim: string): any;
 
-    export function breakText(text: string, size: dia.Size, attrs?: dia.Selectors, opt?: { svgDocument?: SVGElement }): string;
+    export function breakText(text: string, size: dia.Size, attrs?: dia.SVGAttributes, opt?: { svgDocument?: SVGElement }): string;
 
     export function normalizeSides(box: number | { x?: number, y?: number, height?: number, width?: number }): dia.BBox;
 
