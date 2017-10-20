@@ -225,13 +225,13 @@ joint.dia.Link = joint.dia.Cell.extend({
         return connectionAncestor || null;
     },
 
-    // Is source, target and the link itself embedded in a given element?
-    isRelationshipEmbeddedIn: function(element) {
+    // Is source, target and the link itself embedded in a given cell?
+    isRelationshipEmbeddedIn: function(cell) {
 
-        var elementId = joint.util.isString(element) ? element : element.id;
+        var cellId = (joint.util.isString(cell) || joint.util.isNumber(cell)) ? cell : cell.id;
         var ancestor = this.getRelationshipAncestor();
 
-        return !!ancestor && (ancestor.id === elementId || ancestor.isEmbeddedIn(elementId));
+        return !!ancestor && (ancestor.id === cellId || ancestor.isEmbeddedIn(cellId));
     }
 },
     {

@@ -54,7 +54,7 @@ export namespace dia {
 
     class Graph extends Backbone.Model {
 
-        constructor(attributes?: any, options?: { cellNamespace: any, cellModel: typeof Cell });
+        constructor(attributes?: any, opt?: { cellNamespace: any, cellModel: typeof Cell });
 
         addCell(cell: Cell | Cell[], opt?: { [key: string]: any }): this;
 
@@ -160,65 +160,85 @@ export namespace dia {
         protected getOutboundEdges(node: string): EdgeMap;
     }
 
-    class Cell extends Backbone.Model {
-        constructor(attributes?: object, options?: object);
+    // dia.Cell
 
-        id: string;
+    interface SVGAttributes {
+        [key: string]: any;
+    }
+
+    interface Selectors {
+        [selector: string]: SVGAttributes;
+    }
+
+    interface CellAttributes {
+        [key: string]: any;
+        z?: number;
+    }
+
+    interface CellConstructor<T extends Backbone.Model> {
+        new (options?: { id: string }): T
+    }
+
+    class Cell extends Backbone.Model {
+
+        constructor(attributes?: CellAttributes, opt?: { [key: string]: any });
+
+        id: string | number;
 
         graph: dia.Graph;
 
-        toJSON(): object;
+        toJSON(): any;
 
-        remove(options?: DisconnectableOptions): this;
+        remove(opt?: DisconnectableOptions): this;
 
-        toFront(options?: EmbeddableOptions): this;
+        toFront(opt?: EmbeddableOptions): this;
 
-        toBack(options?: EmbeddableOptions): this;
+        toBack(opt?: EmbeddableOptions): this;
 
         getAncestors(): Cell[];
 
-        isEmbeddedIn(element: Element, options?: { deep: boolean }): boolean;
+        getEmbeddedCells(opt?: { deep?: boolean, breadthFirst?: boolean }): Cell[];
+
+        isEmbeddedIn(cell: Cell, opt?: EmbeddableOptions): boolean;
+
+        isEmbedded(): boolean;
 
         prop(key: string | string[]): any;
-        prop(object: object): this;
-        prop(key: string | string[], value: any, options?: object): this;
+        prop(object: CellAttributes): this;
+        prop(key: string | string[], value: any, opt?: { [key: string]: any }): this;
 
-        removeProp(path: string | string[], options?: object): this;
+        removeProp(path: string | string[], opt?: { [key: string]: any }): this;
 
-        attr(key: string): any;
-        attr(object: SVGAttributes): this;
+        attr(key?: string): any;
+        attr(object: Selectors): this;
         attr(key: string, value: any): this;
 
         clone(): Cell;
         clone(opt: EmbeddableOptions): Cell | Cell[];
 
-        removeAttr(path: string | string[], options?: object): this;
+        removeAttr(path: string | string[], opt?: { [key: string]: any }): this;
 
-        transition(path: string, value?: any, options?: TransitionOptions, delim?: string): number;
+        transition(path: string, value?: any, opt?: TransitionOptions, delim?: string): number;
 
         getTransitions(): string[];
 
         stopTransitions(path?: string, delim?: string): this;
 
-        addTo(graph: Graph, options?: object): this;
+        embed(cell: Cell, opt?: { [key: string]: any }): this;
 
-        isLink(): boolean;
+        unembed(cell: Cell, opt?: { [key: string]: any }): this;
 
-        embed(cell: Cell, options?: object): this;
+        addTo(graph: Graph, opt?: { [key: string]: any }): this;
 
         findView(paper: Paper): CellView;
 
-        getEmbeddedCells(options?: { deep?: boolean, breadthFirst?: boolean }): Cell[];
+        isLink(): boolean;
 
         isElement(): boolean;
 
-        isEmbedded(): boolean;
+        startBatch(name: string, opt?: { [key: string]: any }): this;
 
-        startBatch(name: string, options?: object): this;
-
-        stopBatch(name: string, options?: object): this;
-
-        unembed(cell: Cell, options?: object): this;
+        stopBatch(name: string, opt?: { [key: string]: any }): this;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): CellConstructor<Cell>;
 
@@ -228,25 +248,25 @@ export namespace dia {
         protected processPorts(): void;
     }
 
-    interface CellConstructor<T extends Backbone.Model> {
-        new (options?: { id: string }): T
-    }
+    // dia.Element
 
-    type Direction = 'left'
-                    | 'right'
-                    | 'top'
-                    | 'bottom'
-                    | 'top-right'
-                    | 'top-left'
-                    | 'bottom-left'
-                    | 'bottom-right';
+    const enum Direction {
+        Left = 'left',
+        Right = 'right',
+        Top = 'top',
+        Bottom = 'bottom',
+        TopRight = 'top-right',
+        TopLeft = 'top-left',
+        BottomLeft = 'bottom-left',
+        BottomRight = 'bottom-right'
+    }
 
     interface Port {
         id?: string;
         markup?: string;
         group?: string;
-        attrs?: object;
-        args?: object;
+        attrs?: Selectors;
+        args?: { [key: string]: any };
         size?: Size;
         label: {
             size?: Size;
@@ -261,40 +281,40 @@ export namespace dia {
         angle: number;
     }
 
+    interface ElementAttributes extends CellAttributes {
+        position?: Point;
+        size?: Size;
+        angle?: number;
+        attrs?: Selectors;
+    }
+
     class Element extends Cell {
-        constructor(attributes?: object, options?: object);
 
-        translate(tx: number, ty?: number, options?: TranslateOptions): this;
+        constructor(attributes?: ElementAttributes, opt?: { [key: string]: any });
 
-        position(options?: { parentRelative: boolean }): g.Point;
-        position(x: number, y: number, options?: { parentRelative?: boolean }): this;
+        translate(tx: number, ty?: number, opt?: TranslateOptions): this;
+
+        position(opt?: { parentRelative?: boolean, [key: string]: any }): g.Point;
+        position(x: number, y: number, opt?: { parentRelative?: boolean, deep?: boolean, [key: string]: any }): this;
 
         size(): Size;
-        size(width: number, height?: number, options?: { direction?: Direction }): this;
+        size(width: number, height?: number, opt?: { direction?: Direction, [key: string]: any }): this;
 
-        resize(width: number, height: number, options?: { direction?: Direction }): this;
+        resize(width: number, height: number, opt?: { direction?: Direction, [key: string]: any }): this;
 
-        rotate(deg: number, absolute?: boolean, origin?: Point, opt?: { parentRelative?: boolean }): this;
+        rotate(deg: number, absolute?: boolean, origin?: Point, opt?: { [key: string]: any }): this;
 
-        embed(cell: Cell): this;
+        scale(scaleX: number, scaleY: number, origin?: Point, opt?: { [key: string]: any }): this;
 
-        unembed(cell: Cell): this;
+        fitEmbeds(opt?: { deep?: boolean, padding?: Padding }): this;
 
-        getEmbeddedCells(options?: ExploreOptions): Cell[];
+        getBBox(opt?: EmbeddableOptions): g.Rect;
 
-        fitEmbeds(options?: { deep?: boolean, padding?: Padding }): this;
+        addPort(port: Port, opt?: { [key: string]: any }): this;
 
-        getBBox(options?: EmbeddableOptions): g.Rect;
+        addPorts(ports: Port[], opt?: { [key: string]: any }): this;
 
-        isElement(): boolean;
-
-        scale(scaleX: number, scaleY: number, origin?: Point, options?: { direction?: Direction, parentRelative?: boolean }): this;
-
-        addPort(port: Port, opt?: object): this;
-
-        addPorts(ports: Port[], opt?: object): this;
-
-        removePort(port: string | Port, opt?: object): this;
+        removePort(port: string | Port, opt?: { [key: string]: any }): this;
 
         hasPorts(): boolean;
 
@@ -308,38 +328,22 @@ export namespace dia {
 
         getPortIndex(port: string | Port): number;
 
-        portProp(portId: string, path: any, value?: any, opt?: any): dia.Element;
+        portProp(portId: string, path: any, value?: any, opt?: { [key: string]: any }): dia.Element;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): CellConstructor<Element>;
     }
 
-    interface CSSSelector {
-        [key: string]: string | number | Object; // Object added to support special attributes like filter http://jointjs.com/api#SpecialAttributes:filter
-    }
-
-    interface SVGAttributes {
-        [selector: string]: CSSSelector;
-    }
-
-    interface CellAttributes {
-        [key: string]: any;
-    }
-
-    interface TextAttrs extends SVGAttributes {
-        text?: {
-            [key: string]: string | number;
-            text?: string;
-        };
-    }
+    // dia.Link
 
     interface LabelPosition {
-      distance: number;
-      offset: number | { x: number; y: number; }
+        distance: number;
+        offset: number | { x: number; y: number; }
     }
 
     interface Label {
         position: LabelPosition | number;
-        attrs?: TextAttrs;
+        attrs?: Selectors;
+        size?: Size;
     }
 
     interface LinkAttributes extends CellAttributes {
@@ -348,45 +352,41 @@ export namespace dia {
         labels?: Label[];
         vertices?: Point[];
         smooth?: boolean;
-        attrs?: TextAttrs;
-        z?: number;
+        attrs?: Selectors;
     }
 
     class Link extends Cell {
+
         markup: string;
         labelMarkup: string;
         toolMarkup: string;
         vertexMarkup: string;
         arrowHeadMarkup: string;
 
-        constructor(attributes?: LinkAttributes, options?: {[key: string]: any});
-
-        applyToPoints(fn: (p: Point) => Point, opt?: object): this;
+        constructor(attributes?: LinkAttributes, opt?: { [key: string]: any });
 
         disconnect(): this;
 
         label(index?: number): any;
-        label(index: number, value: Label, opt?: object): this;
+        label(index: number, value: Label, opt?: { [key: string]: any }): this;
 
-        reparent(options?: object): Element;
+        reparent(opt?: { [key: string]: any }): Element;
 
-        getSourceElement(): undefined | Element | Graph;
+        getSourceElement(): null | Element;
 
-        getTargetElement(): undefined | Element | Graph;
+        getTargetElement(): null | Element;
 
-        hasLoop(options?: EmbeddableOptions): boolean;
-
-        applyToPoints(fn: Function, options?: any): this;
+        hasLoop(opt?: EmbeddableOptions): boolean;
 
         getRelationshipAncestor(): undefined | Element;
 
-        isLink(): boolean;
+        isRelationshipEmbeddedIn(cell: Cell): boolean;
 
-        isRelationshipEmbeddedIn(element: Element): boolean;
+        applyToPoints(fn: (p: Point) => Point, opt?: { [key: string]: any }): this;
 
-        scale(sx: number, sy: number, origin: Point | g.Point | string, opt?: object): this;
+        scale(sx: number, sy: number, origin?: Point, opt?: { [key: string]: any }): this;
 
-        translate(tx: number, ty: number, options?: object): this;
+        translate(tx: number, ty: number, opt?: { [key: string]: any }): this;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): CellConstructor<Link>;
     }
@@ -402,7 +402,7 @@ export namespace dia {
         color?: string;
         thickness?: number;
         name?: 'dot' | 'fixedDot' | 'mesh' | 'doubleMesh';
-        args?: object[] | object;
+        args?: Array<{ [key: string]: any }> | { [key: string]: any };
     }
 
     interface PaperOptions extends Backbone.ViewOptions<Graph> {
@@ -439,8 +439,8 @@ export namespace dia {
         restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
         guard?: (evt: Event, view: CellView) => boolean;
         multiLinks?: boolean;
-        cellViewNamespace?: object;
-        highlighterNamespace?: object;
+        cellViewNamespace?: any;
+        highlighterNamespace?: any;
         /** useful undocumented option */
         clickThreshold?: number;
         highlighting?: any;
@@ -473,7 +473,7 @@ export namespace dia {
 
     interface Highlighter {
         name: string;
-        options?: object;
+        opt?: { [key: string]: any };
     }
 
     interface GradientOptions {
@@ -486,9 +486,10 @@ export namespace dia {
     }
 
     abstract class CellViewGeneric<T extends Backbone.Model> extends Backbone.View<T> {
-        constructor(options?: { id: string });
 
-        unhighlight(el?: any, options?: any): this;
+        constructor(opt?: { id: string });
+
+        unhighlight(el?: any, opt?: any): this;
 
         can(feature: string): boolean;
 
@@ -502,7 +503,7 @@ export namespace dia {
 
         setInteractivity(value: any): void;
 
-        setTheme(theme: string, options?: any): this;
+        setTheme(theme: string, opt?: any): this;
 
         protected mouseover(evt: Event): void;
 
@@ -544,9 +545,9 @@ export namespace dia {
 
     class ElementView extends CellViewGeneric<Element> {
 
-        getBBox(options?: { useModelGeometry?: boolean }): g.Rect;
+        getBBox(opt?: { useModelGeometry?: boolean }): g.Rect;
 
-        update(cell: Cell, renderingOnlyAttrs?: object): void;
+        update(cell: Cell, renderingOnlyAttrs?: { [key: string]: any }): void;
 
         protected mouseenter(evt: Event): void;
 
@@ -562,6 +563,7 @@ export namespace dia {
     }
 
     class LinkView extends CellViewGeneric<Link> {
+
         options: {
             shortLinkLength?: number,
             doubleLinkTools?: boolean,
@@ -579,7 +581,7 @@ export namespace dia {
 
         getPointAtLength(length: number): g.Point; // Marked as public api in source but not in the documents
 
-        update(model: Cell, attributes: object, options?: object): this;
+        update(model: Cell, attributes: { [key: string]: any }, opt?: { [key: string]: any }): this;
 
         protected mouseenter(evt: Event): void;
 
@@ -590,14 +592,14 @@ export namespace dia {
 
         protected onLabelsChange(): void;
 
-        protected onSourceChange(cell: Cell, sourceEnd: { id: string }, options: object): void;
+        protected onSourceChange(cell: Cell, sourceEnd: { id: string }, options: { [key: string]: any }): void;
 
-        protected onTargetChange(cell: Cell, targetEnd: { id: string }, options: object): void;
+        protected onTargetChange(cell: Cell, targetEnd: { id: string }, options: { [key: string]: any }): void;
 
         protected onToolsChange(): void;
 
         // changed is not used in function body.
-        protected onVerticesChange(cell: Cell, changed: any, options: object): void;
+        protected onVerticesChange(cell: Cell, changed: any, options: { [key: string]: any }): void;
 
         protected pointerdown(evt: Event, x: number, y: number): void;
 
@@ -628,17 +630,17 @@ export namespace dia {
 
         createViewForModel(cell: dia.Cell): dia.CellView;
 
-        defineFilter(filter: object): string;
+        defineFilter(filter: { [key: string]: any }): string;
 
-        defineGradient(gradient: object): string;
+        defineGradient(gradient: { [key: string]: any }): string;
 
-        defineMarker(marker: object): string;
+        defineMarker(marker: { [key: string]: any }): string;
 
         drawBackground(opt?: { color?: string, img?: string }): Paper;
 
-        drawBackgroundImage(img: HTMLImageElement, opt: object): void;
+        drawBackgroundImage(img: HTMLImageElement, opt: { [key: string]: any }): void;
 
-        drawGrid(options?: {
+        drawGrid(opt?: {
             width?: number, height?: number, scaleFactor?: number,
             update: any, ox?: number, oy?: number
         }): this;
@@ -651,11 +653,11 @@ export namespace dia {
 
         findViewsFromPoint(point: string | dia.Point | g.Point): dia.ElementView[];
 
-        findViewsInArea(rect: g.Rect | dia.BBox, options?: { strict?: boolean }): dia.CellView[];
+        findViewsInArea(rect: g.Rect | dia.BBox, opt?: { strict?: boolean }): dia.CellView[];
 
-        fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, options?: any): void;
+        fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, opt?: any): void;
 
-        fitToContent(options?: dia.FitToContentOptions): void;
+        fitToContent(opt?: dia.FitToContentOptions): void;
 
         getArea(): g.Rect;
 
@@ -705,7 +707,7 @@ export namespace dia {
 
         scale(sx: number, sy?: number, ox?: number, oy?: number): Paper;
 
-        scaleContentToFit(options?: dia.ScaleContentOptions): void;
+        scaleContentToFit(opt?: dia.ScaleContentOptions): void;
 
         setDimensions(width: number, height: number): void;
 
@@ -728,7 +730,7 @@ export namespace dia {
         // protected
         protected afterRenderViews(): void;
 
-        protected asyncRenderViews(cells: dia.Cell[], options?: object): void;
+        protected asyncRenderViews(cells: dia.Cell[], opt?: { [key: string]: any }): void;
 
         protected beforeRenderViews(cells: dia.Cell[]): dia.Cell[];
 
@@ -752,9 +754,9 @@ export namespace dia {
 
         protected onCellAdded(cell: dia.Cell, graph: dia.Graph, options: { async?: boolean, position?: number }): void;
 
-        protected onCellHighlight(cellView: dia.CellView, magnetEl: HTMLElement, options?: { highlighter?: dia.Highlighter }): void;
+        protected onCellHighlight(cellView: dia.CellView, magnetEl: HTMLElement, opt?: { highlighter?: dia.Highlighter }): void;
 
-        protected onCellUnhighlight(cellView: dia.CellView, magnetEl: HTMLElement, options?: { highlighter?: dia.Highlighter }): void;
+        protected onCellUnhighlight(cellView: dia.CellView, magnetEl: HTMLElement, opt?: { highlighter?: dia.Highlighter }): void;
 
         protected onRemove(): void;
 
@@ -770,7 +772,7 @@ export namespace dia {
 
         protected renderView(cell: dia.Cell): dia.CellView;
 
-        protected resetViews(cellsCollection: dia.Cell[], options: object): void;
+        protected resetViews(cellsCollection: dia.Cell[], options: { [key: string]: any }): void;
 
         protected updateBackgroundColor(color: string): void;
 
@@ -789,7 +791,7 @@ export namespace shapes {
         attrs?: T;
     }
 
-    interface ShapeAttrs extends dia.CSSSelector {
+    interface ShapeAttrs extends dia.SVGAttributes {
         fill?: string;
         stroke?: string;
         r?: string | number;
@@ -807,81 +809,88 @@ export namespace shapes {
         ref?: string
     }
 
+    interface TextAttrs extends dia.Selectors {
+        text?: {
+            text?: string;
+            [key: string]: any;
+        };
+    }
+
     namespace basic {
         class Generic extends dia.Element {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
-        interface RectAttrs extends dia.TextAttrs {
+        interface RectAttrs extends TextAttrs {
             rect?: ShapeAttrs;
         }
 
         class Rect extends Generic {
-            constructor(attributes?: GenericAttributes<RectAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<RectAttrs>, opt?: {[key: string]: any});
         }
 
         class Text extends Generic {
-            constructor(attributes?: GenericAttributes<dia.TextAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<TextAttrs>, opt?: {[key: string]: any});
         }
 
-        interface CircleAttrs extends dia.TextAttrs {
+        interface CircleAttrs extends TextAttrs {
             circle?: ShapeAttrs;
         }
 
         class Circle extends Generic {
-            constructor(attributes?: GenericAttributes<CircleAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<CircleAttrs>, opt?: {[key: string]: any});
         }
 
-        interface EllipseAttrs extends dia.TextAttrs {
+        interface EllipseAttrs extends TextAttrs {
             ellipse?: ShapeAttrs;
         }
 
         class Ellipse extends Generic {
-            constructor(attributes?: GenericAttributes<EllipseAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<EllipseAttrs>, opt?: {[key: string]: any});
         }
 
-        interface PolygonAttrs extends dia.TextAttrs {
+        interface PolygonAttrs extends TextAttrs {
             polygon?: ShapeAttrs;
         }
 
         class Polygon extends Generic {
-            constructor(attributes?: GenericAttributes<PolygonAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<PolygonAttrs>, opt?: {[key: string]: any});
         }
 
-        interface PolylineAttrs extends dia.TextAttrs {
+        interface PolylineAttrs extends TextAttrs {
             polyline?: ShapeAttrs;
         }
 
         class Polyline extends Generic {
-            constructor(attributes?: GenericAttributes<PolylineAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<PolylineAttrs>, opt?: {[key: string]: any});
         }
 
         class Image extends Generic {
-            constructor(attributes?: GenericAttributes<dia.TextAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<TextAttrs>, opt?: {[key: string]: any});
         }
 
-        interface PathAttrs extends dia.TextAttrs {
+        interface PathAttrs extends TextAttrs {
             path?: ShapeAttrs;
         }
 
         class Path extends Generic {
-            constructor(attributes?: GenericAttributes<PathAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<PathAttrs>, opt?: {[key: string]: any});
         }
 
-        interface RhombusAttrs extends dia.TextAttrs {
+        interface RhombusAttrs extends TextAttrs {
             path?: ShapeAttrs;
         }
 
         class Rhombus extends Generic {
-            constructor(attributes?: GenericAttributes<RhombusAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<RhombusAttrs>, opt?: {[key: string]: any});
         }
 
-        interface TextBlockAttrs extends dia.TextAttrs {
+        interface TextBlockAttrs extends TextAttrs {
             rect?: ShapeAttrs;
         }
 
         class TextBlock extends Generic {
-            constructor(attributes?: GenericAttributes<TextBlockAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<TextBlockAttrs>, opt?: {[key: string]: any});
 
             updateSize(cell: dia.Cell, size: dia.Size): void;
 
@@ -891,51 +900,51 @@ export namespace shapes {
 
     namespace chess {
         class KingWhite extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
         class KingBlack extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
         class QueenWhite extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
         class QueenBlack extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
         class RookWhite extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
         class RookBlack extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
         class BishopWhite extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
         class BishopBlack extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
         class KnightWhite extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
         class KnightBlack extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
         class PawnWhite extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
         class PawnBlack extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
     }
 
@@ -943,7 +952,7 @@ export namespace shapes {
         /**
          * @deprecated
          */
-        interface ModelAttributes extends GenericAttributes<dia.SVGAttributes> {
+        interface ModelAttributes extends GenericAttributes<dia.Selectors> {
             inPorts?: string[];
             outPorts?: string[];
             ports?: {[key: string]: any};
@@ -953,7 +962,7 @@ export namespace shapes {
          * @deprecated
          */
         class Model extends basic.Generic {
-            constructor(attributes?: ModelAttributes, options?: {[key: string]: any});
+            constructor(attributes?: ModelAttributes, opt?: {[key: string]: any});
 
             changeInGroup(properties: any, opt?: any): boolean;
 
@@ -976,60 +985,60 @@ export namespace shapes {
          * @deprecated
          */
         class Coupled extends Model {
-            constructor(attributes?: ModelAttributes, options?: {[key: string]: any});
+            constructor(attributes?: ModelAttributes, opt?: {[key: string]: any});
         }
 
         /**
          * @deprecated
          */
         class Atomic extends Model {
-            constructor(attributes?: ModelAttributes, options?: {[key: string]: any});
+            constructor(attributes?: ModelAttributes, opt?: {[key: string]: any});
         }
 
         class Link extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
         }
     }
 
     namespace erd {
         class Entity extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.TextAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<TextAttrs>, opt?: {[key: string]: any});
         }
 
         class WeakEntity extends Entity {
-            constructor(attributes?: GenericAttributes<dia.TextAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<TextAttrs>, opt?: {[key: string]: any});
         }
 
         class Relationship extends dia.Element {
-            constructor(attributes?: GenericAttributes<dia.TextAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<TextAttrs>, opt?: {[key: string]: any});
         }
 
         class IdentifyingRelationship extends Relationship {
-            constructor(attributes?: GenericAttributes<dia.TextAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<TextAttrs>, opt?: {[key: string]: any});
         }
 
-        interface AttributeAttrs extends dia.TextAttrs {
+        interface AttributeAttrs extends TextAttrs {
             ellipse?: ShapeAttrs;
         }
 
         class Attribute extends dia.Element {
-            constructor(attributes?: GenericAttributes<AttributeAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<AttributeAttrs>, opt?: {[key: string]: any});
         }
 
         class Multivalued extends Attribute {
-            constructor(attributes?: GenericAttributes<AttributeAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<AttributeAttrs>, opt?: {[key: string]: any});
         }
 
         class Derived extends Attribute {
-            constructor(attributes?: GenericAttributes<AttributeAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<AttributeAttrs>, opt?: {[key: string]: any});
         }
 
         class Key extends Attribute {
-            constructor(attributes?: GenericAttributes<AttributeAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<AttributeAttrs>, opt?: {[key: string]: any});
         }
 
         class Normal extends Attribute {
-            constructor(attributes?: GenericAttributes<AttributeAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<AttributeAttrs>, opt?: {[key: string]: any});
         }
 
         interface ISAAttrs extends dia.Element {
@@ -1037,11 +1046,11 @@ export namespace shapes {
         }
 
         class ISA extends dia.Element {
-            constructor(attributes?: GenericAttributes<ISAAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<ISAAttrs>, opt?: {[key: string]: any});
         }
 
         class Line extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
 
             cardinality(value: string | number): void;
         }
@@ -1049,19 +1058,19 @@ export namespace shapes {
 
     namespace fsa {
         class State extends basic.Circle {
-            constructor(attributes?: GenericAttributes<basic.CircleAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<basic.CircleAttrs>, opt?: {[key: string]: any});
         }
 
         class StartState extends dia.Element {
-            constructor(attributes?: GenericAttributes<basic.CircleAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<basic.CircleAttrs>, opt?: {[key: string]: any});
         }
 
         class EndState extends dia.Element {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
         class Arrow extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
         }
     }
 
@@ -1077,32 +1086,32 @@ export namespace shapes {
             port?: string;
         }
 
-        interface IOAttrs extends dia.TextAttrs {
+        interface IOAttrs extends TextAttrs {
             circle?: LogicAttrs;
         }
 
         class Gate extends basic.Generic {
-            constructor(attributes?: GenericAttributes<IOAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<IOAttrs>, opt?: {[key: string]: any});
         }
 
         class IO extends Gate {
-            constructor(attributes?: GenericAttributes<IOAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<IOAttrs>, opt?: {[key: string]: any});
         }
 
         class Input extends IO {
-            constructor(attributes?: GenericAttributes<IOAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<IOAttrs>, opt?: {[key: string]: any});
         }
 
         class Output extends IO {
-            constructor(attributes?: GenericAttributes<IOAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<IOAttrs>, opt?: {[key: string]: any});
         }
 
         class Gate11 extends Gate {
-            constructor(attributes?: GenericAttributes<IOAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<IOAttrs>, opt?: {[key: string]: any});
         }
 
         class Gate21 extends Gate {
-            constructor(attributes?: GenericAttributes<IOAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<IOAttrs>, opt?: {[key: string]: any});
         }
 
         interface Image {
@@ -1114,49 +1123,49 @@ export namespace shapes {
         }
 
         class Repeater extends Gate11 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<ImageAttrs>, opt?: {[key: string]: any});
 
             operation(input: any): any;
         }
 
         class Not extends Gate11 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<ImageAttrs>, opt?: {[key: string]: any});
 
             operation(input: any): boolean;
         }
 
         class Or extends Gate21 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<ImageAttrs>, opt?: {[key: string]: any});
 
             operation(input1: any, input2: any): boolean;
         }
 
         class And extends Gate21 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<ImageAttrs>, opt?: {[key: string]: any});
 
             operation(input1: any, input2: any): boolean;
         }
 
         class Nor extends Gate21 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<ImageAttrs>, opt?: {[key: string]: any});
 
             operation(input1: any, input2: any): boolean;
         }
 
         class Nand extends Gate21 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<ImageAttrs>, opt?: {[key: string]: any});
 
             operation(input1: any, input2: any): boolean;
         }
 
         class Xor extends Gate21 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<ImageAttrs>, opt?: {[key: string]: any});
 
             operation(input1: any, input2: any): boolean;
         }
 
         class Xnor extends Gate21 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<ImageAttrs>, opt?: {[key: string]: any});
 
             operation(input1: any, input2: any): boolean;
         }
@@ -1167,7 +1176,7 @@ export namespace shapes {
         }
 
         class Wire extends dia.Link {
-            constructor(attributes?: WireArgs, options?: {[key: string]: any});
+            constructor(attributes?: WireArgs, opt?: {[key: string]: any});
         }
     }
 
@@ -1178,17 +1187,17 @@ export namespace shapes {
         }
 
         class Member extends dia.Element {
-            constructor(attributes?: GenericAttributes<MemberAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<MemberAttrs>, opt?: {[key: string]: any});
         }
 
         class Arrow extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
         }
     }
 
     namespace pn {
         class Place extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
         class PlaceView extends dia.ElementView {
@@ -1196,11 +1205,11 @@ export namespace shapes {
         }
 
         class Transition extends basic.Generic {
-            constructor(attributes?: GenericAttributes<basic.RectAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<basic.RectAttrs>, opt?: {[key: string]: any});
         }
 
         class Link extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
         }
     }
 
@@ -1212,7 +1221,7 @@ export namespace shapes {
         }
 
         class Class extends basic.Generic {
-            constructor(attributes?: ClassAttributes, options?: {[key: string]: any});
+            constructor(attributes?: ClassAttributes, opt?: {[key: string]: any});
 
             getClassName(): string[];
 
@@ -1223,39 +1232,39 @@ export namespace shapes {
         }
 
         class Abstract extends Class {
-            constructor(attributes?: ClassAttributes, options?: {[key: string]: any});
+            constructor(attributes?: ClassAttributes, opt?: {[key: string]: any});
         }
 
         class AbstractView extends ClassView {
-            constructor(attributes?: ClassAttributes, options?: {[key: string]: any});
+            constructor(attributes?: ClassAttributes, opt?: {[key: string]: any});
         }
 
         class Interface extends Class {
-            constructor(attributes?: ClassAttributes, options?: {[key: string]: any});
+            constructor(attributes?: ClassAttributes, opt?: {[key: string]: any});
         }
 
         class InterfaceView extends ClassView {
-            constructor(attributes?: ClassAttributes, options?: {[key: string]: any});
+            constructor(attributes?: ClassAttributes, opt?: {[key: string]: any});
         }
 
         class Generalization extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
         }
 
         class Implementation extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
         }
 
         class Aggregation extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
         }
 
         class Composition extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
         }
 
         class Association extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
         }
 
         interface StateAttributes extends GenericAttributes<ShapeAttrs> {
@@ -1263,7 +1272,7 @@ export namespace shapes {
         }
 
         class State extends basic.Generic {
-            constructor(attributes?: GenericAttributes<basic.CircleAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<basic.CircleAttrs>, opt?: {[key: string]: any});
 
             updateName(): void;
 
@@ -1273,15 +1282,15 @@ export namespace shapes {
         }
 
         class StartState extends basic.Circle {
-            constructor(attributes?: GenericAttributes<basic.CircleAttrs>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<basic.CircleAttrs>, opt?: {[key: string]: any});
         }
 
         class EndState extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: GenericAttributes<dia.Selectors>, opt?: {[key: string]: any});
         }
 
         class Transition extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
         }
     }
 }
@@ -1308,13 +1317,13 @@ export namespace util {
 
     export function unsetByPath(object: {[key: string]: any}, path: string, delim: string): any;
 
-    export function breakText(text: string, size: dia.Size, attrs?: dia.SVGAttributes, options?: { svgDocument?: SVGElement }): string;
+    export function breakText(text: string, size: dia.Size, attrs?: dia.SVGAttributes, opt?: { svgDocument?: SVGElement }): string;
 
     export function normalizeSides(box: number | { x?: number, y?: number, height?: number, width?: number }): dia.BBox;
 
     export function getElementBBox(el: Element): dia.BBox;
 
-    export function setAttributesBySelector(el: Element, attrs: dia.SVGAttributes): void;
+    export function setAttributesBySelector(el: Element, attrs: dia.Selectors): void;
 
     export function sortElements(elements: Element[]
         | string
@@ -1379,7 +1388,7 @@ export namespace layout {
             setLinkVertices?: boolean;
         }
 
-        export function layout(graph: dia.Graph | dia.Cell[], options?: LayoutOptions): g.Rect;
+        export function layout(graph: dia.Graph | dia.Cell[], opt?: LayoutOptions): g.Rect;
     }
 }
 
