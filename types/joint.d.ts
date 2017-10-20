@@ -126,7 +126,6 @@ export namespace dia {
 
         getBBox(elements: Element[], options?: { deep?: boolean }): g.Rect;
 
-        toGraphLib(): object; // graphlib graph object
         findModelsInArea(rect: g.Rect | BBox, options?: { strict?: boolean }): BBox | boolean;
 
         getCellsBBox(cells: Cell[], options?: { deep?: boolean }): g.Rect;
@@ -150,6 +149,12 @@ export namespace dia {
         startBatch(name: string, data?: {[key: string]: any}): any;
 
         stopBatch(name: string, data?: {[key: string]: any}): any;
+
+        // Graphlib support
+
+        toGraphLib(opt?: { [key: string]: any }): any;
+
+        fromGraphLib(glGraph: any, opt?: { [key: string]: any }): this;
     }
 
     class Cell extends Backbone.Model {
