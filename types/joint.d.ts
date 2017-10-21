@@ -568,16 +568,17 @@ export namespace dia {
         opt?: { [key: string]: any };
     }
 
-    interface GradientOptions {
-        type: 'linearGradient' | 'radialGradient';
-        stops: Array<{
-            offset: string;
-            color: string;
-            opacity?: number;
-        }>;
-    }
-
     export namespace Paper {
+
+        interface GradientOptions {
+            id?: string;
+            type: 'linearGradient' | 'radialGradient';
+            stops: Array<{
+                offset: string;
+                color: string;
+                opacity?: number;
+            }>;
+        }
 
         interface GridOptions {
             color?: string;
@@ -598,42 +599,49 @@ export namespace dia {
         }
 
         interface Options extends mvc.ViewOptions<Graph> {
+            // appearance
             width?: number;
             height?: number;
             origin?: Point;
-            gridSize?: number;
+            perpendicularLinks?: boolean;
+            linkConnectionPoint?: (linkView: LinkView, view: ElementView, magnet: SVGElement, reference: Point) => Point;
             drawGrid?: boolean | GridOptions | GridOptions[];
             background?: BackgroundOptions;
-            perpendicularLinks?: boolean;
+            async?: boolean | { batchSize: number };
+            // interactions
+            gridSize?: number;
+            highlighting?: { [type: string]: Highlighter };
+            interactive?: ((cellView: CellView, event: string) => boolean) | boolean | CellView.InteractivityOptions
+            snapLinks?: boolean | { radius: number };
+            markAvailable?: boolean;
+            // validations
+            validateMagnet?: (cellView: CellView, magnet: SVGElement) => boolean;
+            validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end: 'source' | 'target', linkView: LinkView) => boolean;
+            restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
+            multiLinks?: boolean;
+            linkPinning?: boolean;
+            // events
+            guard?: (evt: JQuery.Event, view: CellView) => boolean;
+            preventContextMenu?: boolean;
+            preventDefaultBlankAction?: boolean;
+            clickThreshold?: number;
+            moveThreshold?: number;
+            // views
             elementView?: (element: Element) => typeof ElementView | typeof ElementView;
             linkView?: (link: Link) => typeof LinkView | typeof LinkView;
-            defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
-            defaultRouter?: ((vertices: Point[], args: {[key: string]: any}, linkView: LinkView) => Point[])
-                | { name: string, args?: ManhattanRouterArgs };
-            defaultConnector?:
-                ((sourcePoint: Point, targetPoint: Point, vertices: Point[], args: {[key: string]: any}, linkView: LinkView) => string)
-                | { name: string, args?: { radius?: number } };
-            interactive?: ((cellView: CellView, event: string) => boolean) | boolean | CellView.InteractivityOptions
-            validateMagnet?: (cellView: CellView, magnet: SVGElement) => boolean;
-            validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end:
-                                  'source'
-                                  | 'target', linkView: LinkView) => boolean;
-            linkConnectionPoint?: (linkView: LinkView, view: ElementView, magnet: SVGElement, reference: Point) => Point;
-            snapLinks?: boolean | { radius: number };
-            linkPinning?: boolean;
-            markAvailable?: boolean;
-            async?: boolean | { batchSize: number };
+            // embedding
             embeddingMode?: boolean;
             findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft';
             validateEmbedding?: (childView: ElementView, parentView: ElementView) => boolean;
-            restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
-            guard?: (evt: Event, view: CellView) => boolean;
-            multiLinks?: boolean;
+            // default views, models & attributes
             cellViewNamespace?: any;
             highlighterNamespace?: any;
-            clickThreshold?: number;
-            highlighting?: { [type: string]: Highlighter };
-            preventContextMenu?: boolean;
+            defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
+            defaultRouter?: ((vertices: Point[], args: {[key: string]: any}, linkView: LinkView) => Point[])
+                | { name: string, args?: { [key: string]: any } };
+            defaultConnector?:
+                ((sourcePoint: Point, targetPoint: Point, vertices: Point[], args: {[key: string]: any}, linkView: LinkView) => string)
+                | { name: string, args?: { radius?: number, [key: string]: any } };
         }
 
         interface ScaleContentOptions {
@@ -721,7 +729,7 @@ export namespace dia {
 
         defineFilter(filter: { [key: string]: any }): string;
 
-        defineGradient(gradient: { [key: string]: any }): string;
+        defineGradient(gradient: Paper.GradientOptions): string;
 
         defineMarker(marker: { [key: string]: any }): string;
 
@@ -791,23 +799,23 @@ export namespace dia {
 
         protected beforeRenderViews(cells: Cell[]): Cell[];
 
-        protected cellMouseEnter(evt: Event): void;
+        protected cellMouseEnter(evt: JQuery.Event): void;
 
-        protected cellMouseleave(evt: Event): void;
+        protected cellMouseleave(evt: JQuery.Event): void;
 
-        protected cellMouseout(evt: Event): void;
+        protected cellMouseout(evt: JQuery.Event): void;
 
-        protected cellMouseover(evt: Event): void;
+        protected cellMouseover(evt: JQuery.Event): void;
 
-        protected contextmenu(evt: Event): void;
+        protected contextmenu(evt: JQuery.Event): void;
 
         protected init(): void;
 
-        protected mouseclick(evt: Event): void;
+        protected mouseclick(evt: JQuery.Event): void;
 
-        protected mousedblclick(evt: Event): void;
+        protected mousedblclick(evt: JQuery.Event): void;
 
-        protected mousewheel(evt: Event): void;
+        protected mousewheel(evt: JQuery.Event): void;
 
         protected onCellAdded(cell: Cell, graph: Graph, opt: { async?: boolean, position?: number }): void;
 
@@ -817,11 +825,11 @@ export namespace dia {
 
         protected onRemove(): void;
 
-        protected pointerdown(evt: Event): void;
+        protected pointerdown(evt: JQuery.Event): void;
 
-        protected pointermove(evt: Event): void;
+        protected pointermove(evt: JQuery.Event): void;
 
-        protected pointerup(evt: Event): void;
+        protected pointerup(evt: JQuery.Event): void;
 
         protected removeView(cell: Cell): CellView;
 
