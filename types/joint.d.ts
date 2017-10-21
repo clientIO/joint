@@ -443,13 +443,27 @@ export namespace dia {
 
     // dia.CellView
 
-    interface CellViewOptions<T extends Cell> extends mvc.ViewOptions<T> {
-         id?: string
+    export namespace CellView {
+
+        interface Options<T extends Cell> extends mvc.ViewOptions<T> {
+            id?: string
+        }
+
+        interface InteractivityOptions {
+            vertexAdd?: boolean,
+            vertexMove?: boolean,
+            vertexRemove?: boolean;
+            arrowheadMove?: boolean;
+            labelMove?: boolean;
+            useLinkTOols?: boolean;
+            elementMove?: boolean;
+            addLinkFromMagnet?: boolean;
+        }
     }
 
     abstract class CellViewGeneric<T extends Cell> extends mvc.View<T> {
 
-        constructor(opt?: CellViewOptions<T>);
+        constructor(opt?: CellView.Options<T>);
 
         highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
 
@@ -457,7 +471,7 @@ export namespace dia {
 
         can(feature: string): boolean;
 
-        setInteractivity(value: any): void;
+        setInteractivity(value: boolean | CellView.InteractivityOptions): void;
 
         findMagnet(el: SVGElement | JQuery | string): SVGElement | undefined;
 
@@ -532,95 +546,12 @@ export namespace dia {
 
     // dia.Paper
 
+
     interface ManhattanRouterArgs {
         excludeTypes?: string[];
         excludeEnds?: 'source' | 'target';
         startDirections?: ['left' | 'right' | 'top' | 'bottom'];
         endDirections?: ['left' | 'right' | 'top' | 'bottom'];
-    }
-
-    interface PaperGridOptions {
-        color?: string;
-        thickness?: number;
-        name?: 'dot' | 'fixedDot' | 'mesh' | 'doubleMesh';
-        args?: Array<{ [key: string]: any }> | { [key: string]: any };
-    }
-
-    interface PaperBackgroundOptions {
-        color?: string;
-        image?: string;
-        quality?: number;
-        position?: Point | string;
-        size?: Size | string;
-        repeat?: string;
-        opacity?: number;
-        waterMarkAngle?: number;
-    }
-
-    interface PaperOptions extends mvc.ViewOptions<Graph> {
-        width?: number;
-        height?: number;
-        origin?: Point;
-        gridSize?: number;
-        drawGrid?: boolean | PaperGridOptions | PaperGridOptions[];
-        background?: PaperBackgroundOptions;
-        perpendicularLinks?: boolean;
-        elementView?: (element: Element) => typeof ElementView | typeof ElementView;
-        linkView?: (link: Link) => typeof LinkView | typeof LinkView;
-        defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
-        defaultRouter?: ((vertices: Point[], args: {[key: string]: any}, linkView: LinkView) => Point[])
-            | { name: string, args?: ManhattanRouterArgs };
-        defaultConnector?:
-            ((sourcePoint: Point, targetPoint: Point, vertices: Point[], args: {[key: string]: any}, linkView: LinkView) => string)
-            | { name: string, args?: { radius?: number } };
-        interactive?: ((cellView: CellView, event: string) => boolean)
-            | boolean
-            | { vertexAdd?: boolean, vertexMove?: boolean, vertexRemove?: boolean, arrowheadMove?: boolean };
-        validateMagnet?: (cellView: CellView, magnet: SVGElement) => boolean;
-        validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end:
-                                  'source'
-                                  | 'target', linkView: LinkView) => boolean;
-        linkConnectionPoint?: (linkView: LinkView, view: ElementView, magnet: SVGElement, reference: Point) => Point;
-        snapLinks?: boolean | { radius: number };
-        linkPinning?: boolean;
-        markAvailable?: boolean;
-        async?: boolean | { batchSize: number };
-        embeddingMode?: boolean;
-        findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft';
-        validateEmbedding?: (childView: ElementView, parentView: ElementView) => boolean;
-        restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
-        guard?: (evt: Event, view: CellView) => boolean;
-        multiLinks?: boolean;
-        cellViewNamespace?: any;
-        highlighterNamespace?: any;
-        /** useful undocumented option */
-        clickThreshold?: number;
-        highlighting?: any;
-        preventContextMenu?: boolean;
-    }
-
-    interface ScaleContentOptions {
-        padding?: number;
-        preserveAspectRatio?: boolean;
-        minScale?: number;
-        minScaleX?: number;
-        minScaleY?: number;
-        maxScale?: number;
-        maxScaleX?: number;
-        maxScaleY?: number;
-        scaleGrid?: number;
-        fittingBBox?: BBox;
-    }
-
-    interface FitToContentOptions {
-        gridWidth?: number;
-        gridHeight?: number;
-        padding?: Padding;
-        allowNewOrigin?: 'negative' | 'positive' | 'any';
-        minWidth?: number;
-        minHeight?: number;
-        maxWidth?: number;
-        maxHeight?: number;
     }
 
     interface Highlighter {
@@ -637,11 +568,96 @@ export namespace dia {
         }>;
     }
 
+    export namespace Paper {
+
+        interface GridOptions {
+            color?: string;
+            thickness?: number;
+            name?: 'dot' | 'fixedDot' | 'mesh' | 'doubleMesh';
+            args?: Array<{ [key: string]: any }> | { [key: string]: any };
+        }
+
+        interface BackgroundOptions {
+            color?: string;
+            image?: string;
+            quality?: number;
+            position?: Point | string;
+            size?: Size | string;
+            repeat?: string;
+            opacity?: number;
+            waterMarkAngle?: number;
+        }
+
+        interface Options extends mvc.ViewOptions<Graph> {
+            width?: number;
+            height?: number;
+            origin?: Point;
+            gridSize?: number;
+            drawGrid?: boolean | GridOptions | GridOptions[];
+            background?: BackgroundOptions;
+            perpendicularLinks?: boolean;
+            elementView?: (element: Element) => typeof ElementView | typeof ElementView;
+            linkView?: (link: Link) => typeof LinkView | typeof LinkView;
+            defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
+            defaultRouter?: ((vertices: Point[], args: {[key: string]: any}, linkView: LinkView) => Point[])
+                | { name: string, args?: ManhattanRouterArgs };
+            defaultConnector?:
+                ((sourcePoint: Point, targetPoint: Point, vertices: Point[], args: {[key: string]: any}, linkView: LinkView) => string)
+                | { name: string, args?: { radius?: number } };
+            interactive?: ((cellView: CellView, event: string) => boolean) | boolean | CellView.InteractivityOptions
+            validateMagnet?: (cellView: CellView, magnet: SVGElement) => boolean;
+            validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end:
+                                  'source'
+                                  | 'target', linkView: LinkView) => boolean;
+            linkConnectionPoint?: (linkView: LinkView, view: ElementView, magnet: SVGElement, reference: Point) => Point;
+            snapLinks?: boolean | { radius: number };
+            linkPinning?: boolean;
+            markAvailable?: boolean;
+            async?: boolean | { batchSize: number };
+            embeddingMode?: boolean;
+            findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft';
+            validateEmbedding?: (childView: ElementView, parentView: ElementView) => boolean;
+            restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
+            guard?: (evt: Event, view: CellView) => boolean;
+            multiLinks?: boolean;
+            cellViewNamespace?: any;
+            highlighterNamespace?: any;
+            clickThreshold?: number;
+            highlighting?: { [type: string]: Highlighter };
+            preventContextMenu?: boolean;
+        }
+
+        interface ScaleContentOptions {
+            padding?: number;
+            preserveAspectRatio?: boolean;
+            minScale?: number;
+            minScaleX?: number;
+            minScaleY?: number;
+            maxScale?: number;
+            maxScaleX?: number;
+            maxScaleY?: number;
+            scaleGrid?: number;
+            fittingBBox?: BBox;
+        }
+
+        interface FitToContentOptions {
+            gridWidth?: number;
+            gridHeight?: number;
+            padding?: Padding;
+            allowNewOrigin?: 'negative' | 'positive' | 'any';
+            minWidth?: number;
+            minHeight?: number;
+            maxWidth?: number;
+            maxHeight?: number;
+        }
+
+    }
+
     class Paper extends mvc.View<Graph> {
 
-        constructor(opt: PaperOptions);
+        constructor(opt: Paper.Options);
 
-        options: dia.PaperOptions;
+        options: Paper.Options;
         svg: SVGElement;
         viewport: SVGGElement;
         defs: SVGDefsElement;
@@ -716,16 +732,16 @@ export namespace dia {
 
         findViewsInArea(rect: g.PlainRect, opt?: { strict?: boolean }): ElementView[];
 
-        fitToContent(opt?: FitToContentOptions): void;
+        fitToContent(opt?: Paper.FitToContentOptions): void;
         fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, opt?: any): void;
 
-        scaleContentToFit(opt?: ScaleContentOptions): void;
+        scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
 
         cancelRenderViews(): void;
 
-        drawBackground(opt?: PaperBackgroundOptions): this;
+        drawBackground(opt?: Paper.BackgroundOptions): this;
 
-        drawGrid(opt?: PaperGridOptions | PaperGridOptions[]): this;
+        drawGrid(opt?: Paper.GridOptions | Paper.GridOptions[]): this;
 
         clearGrid(): this;
 
@@ -758,7 +774,7 @@ export namespace dia {
 
         protected createViewForModel(cell: Cell): CellView;
 
-        protected cloneOptions(): PaperOptions;
+        protected cloneOptions(): Paper.Options;
 
         protected afterRenderViews(): void;
 

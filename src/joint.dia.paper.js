@@ -1517,7 +1517,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             options.height = gridSize * (ctm.d || 1) * (options.scaleFactor || 1);
 
             if (!refs.exist(id)) {
-                refs.add(id, V('pattern', { id: id, patternUnits: 'userSpaceOnUse' }, V(options.markup)))
+                refs.add(id, V('pattern', { id: id, patternUnits: 'userSpaceOnUse' }, V(options.markup)));
             }
 
             var patternDefVel = refs.get(id);
