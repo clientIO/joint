@@ -10,6 +10,8 @@ export namespace dia {
         y: number;
     }
 
+    interface BBox extends Point, Size {}
+
     type Padding = number | {
         top?: number;
         right?: number;
@@ -17,39 +19,27 @@ export namespace dia {
         left?: number
     };
 
-    interface BBox extends Point, Size {}
-
-    interface TranslateOptions {
-        restrictedArea?: BBox;
-        transition?: TransitionOptions;
+    const enum Direction {
+        Left = 'left',
+        Right = 'right',
+        Top = 'top',
+        Bottom = 'bottom',
+        TopRight = 'top-right',
+        TopLeft = 'top-left',
+        BottomLeft = 'bottom-left',
+        BottomRight = 'bottom-right'
     }
 
-    interface TransitionOptions {
-        delay?: number;
-        duration?: number;
-        timingFunction?: (t: number) => number;
-        valueFunction?: (a: any, b: any) => (t: number) => any;
-    }
+    export namespace Graph {
 
-    interface EmbeddableOptions {
-        deep?: boolean;
-    }
+        interface ConnectionOptions extends Cell.EmbeddableOptions {
+            inbound?: boolean;
+            outbound?: boolean;
+        }
 
-    interface ConnectionOptions extends EmbeddableOptions {
-        inbound?: boolean;
-        outbound?: boolean;
-    }
-
-    interface DisconnectableOptions {
-        disconnectLinks?: boolean;
-    }
-
-    interface ExploreOptions extends ConnectionOptions {
-        breadthFirst?: boolean;
-    }
-
-    interface EdgeMap {
-        [key: string]: boolean;
+        interface ExploreOptions extends ConnectionOptions {
+            breadthFirst?: boolean;
+        }
     }
 
     class Graph extends Backbone.Model {
@@ -74,29 +64,29 @@ export namespace dia {
 
         getLastCell(): Cell | undefined;
 
-        getConnectedLinks(cell: Cell, opt?: ConnectionOptions): Link[];
+        getConnectedLinks(cell: Cell, opt?: Graph.ConnectionOptions): Link[];
 
         disconnectLinks(cell: Cell, opt?: { [key: string]: any }): void;
 
         removeLinks(cell: Cell, opt?: { [key: string]: any }): void;
 
-        translate(tx: number, ty?: number, opt?: TranslateOptions): this;
+        translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
         cloneCells(cells: Cell[]): { [id: string]: Cell };
 
-        getSubgraph(cells: Cell[], opt?: EmbeddableOptions): Cell[];
+        getSubgraph(cells: Cell[], opt?: Cell.EmbeddableOptions): Cell[];
 
-        cloneSubgraph(cells: Cell[], opt?: EmbeddableOptions): { [id: string]: Cell };
+        cloneSubgraph(cells: Cell[], opt?: Cell.EmbeddableOptions): { [id: string]: Cell };
 
-        dfs(element: Element, iteratee: (element: Element, distance: number) => boolean, opt?: ConnectionOptions): void;
+        dfs(element: Element, iteratee: (element: Element, distance: number) => boolean, opt?: Graph.ConnectionOptions): void;
 
-        bfs(element: Element, iteratee: (element: Element, distance: number) => boolean, opt?: ConnectionOptions): void;
+        bfs(element: Element, iteratee: (element: Element, distance: number) => boolean, opt?: Graph.ConnectionOptions): void;
 
-        search(element: Element, iteratee: (element: Element, distance: number) => boolean, opt?: ExploreOptions): void;
+        search(element: Element, iteratee: (element: Element, distance: number) => boolean, opt?: Graph.ExploreOptions): void;
 
-        getSuccessors(element: Element, opt?: ExploreOptions): Element[];
+        getSuccessors(element: Element, opt?: Graph.ExploreOptions): Element[];
 
-        getPredecessors(element: Element, opt?: ExploreOptions): Element[];
+        getPredecessors(element: Element, opt?: Graph.ExploreOptions): Element[];
 
         isSuccessor(elementA: Element, elementB: Element): boolean;
 
@@ -110,9 +100,9 @@ export namespace dia {
 
         getSinks(): Element[];
 
-        getNeighbors(element: Element, opt?: ConnectionOptions): Element[];
+        getNeighbors(element: Element, opt?: Graph.ConnectionOptions): Element[];
 
-        isNeighbor(elementA: Element, elementB: Element, opt?: ConnectionOptions): boolean;
+        isNeighbor(elementA: Element, elementB: Element, opt?: Graph.ConnectionOptions): boolean;
 
         getCommonAncestor(...cells: Cell[]): Element | undefined;
 
@@ -133,15 +123,15 @@ export namespace dia {
                 'topMiddle' | 'topRight' | 'bbox'
         }): Element[];
 
-        getBBox(cells?: Cell[], opt?: EmbeddableOptions): g.Rect | null;
+        getBBox(cells?: Cell[], opt?: Cell.EmbeddableOptions): g.Rect | null;
 
-        getCellsBBox(cells: Cell[], opt?: EmbeddableOptions): g.Rect | null;
+        getCellsBBox(cells: Cell[], opt?: Cell.EmbeddableOptions): g.Rect | null;
 
         hasActiveBatch(name?: string): boolean;
 
         maxZIndex(): number;
 
-        removeCells(cells: Cell[], opt?: DisconnectableOptions): this;
+        removeCells(cells: Cell[], opt?: Cell.DisconnectableOptions): this;
 
         resize(width: number, height: number, opt?: { [key: string]: any }): this;
 
@@ -154,10 +144,6 @@ export namespace dia {
         toGraphLib(opt?: { [key: string]: any }): any;
 
         fromGraphLib(glGraph: any, opt?: { [key: string]: any }): this;
-
-        protected getInboundEdges(node: string): EdgeMap;
-
-        protected getOutboundEdges(node: string): EdgeMap;
     }
 
     // dia.Cell
@@ -227,6 +213,21 @@ export namespace dia {
         interface Constructor<T extends Backbone.Model> {
             new (options?: { id: string }): T
         }
+
+        interface EmbeddableOptions {
+            deep?: boolean;
+        }
+
+        interface DisconnectableOptions {
+            disconnectLinks?: boolean;
+        }
+
+        interface TransitionOptions {
+            delay?: number;
+            duration?: number;
+            timingFunction?: (t: number) => number;
+            valueFunction?: (a: any, b: any) => (t: number) => any;
+        }
     }
 
     class Cell extends Backbone.Model {
@@ -235,21 +236,21 @@ export namespace dia {
 
         id: string | number;
 
-        graph: dia.Graph;
+        graph: Graph;
 
         toJSON(): any;
 
-        remove(opt?: DisconnectableOptions): this;
+        remove(opt?: Cell.DisconnectableOptions): this;
 
-        toFront(opt?: EmbeddableOptions): this;
+        toFront(opt?: Cell.EmbeddableOptions): this;
 
-        toBack(opt?: EmbeddableOptions): this;
+        toBack(opt?: Cell.EmbeddableOptions): this;
 
         getAncestors(): Cell[];
 
         getEmbeddedCells(opt?: { deep?: boolean, breadthFirst?: boolean }): Cell[];
 
-        isEmbeddedIn(cell: Cell, opt?: EmbeddableOptions): boolean;
+        isEmbeddedIn(cell: Cell, opt?: Cell.EmbeddableOptions): boolean;
 
         isEmbedded(): boolean;
 
@@ -264,11 +265,11 @@ export namespace dia {
         attr(key: string, value: any): this;
 
         clone(): Cell;
-        clone(opt: EmbeddableOptions): Cell | Cell[];
+        clone(opt: Cell.EmbeddableOptions): Cell | Cell[];
 
         removeAttr(path: string | string[], opt?: { [key: string]: any }): this;
 
-        transition(path: string, value?: any, opt?: TransitionOptions, delim?: string): number;
+        transition(path: string, value?: any, opt?: Cell.TransitionOptions, delim?: string): number;
 
         getTransitions(): string[];
 
@@ -300,37 +301,6 @@ export namespace dia {
 
     // dia.Element
 
-    const enum Direction {
-        Left = 'left',
-        Right = 'right',
-        Top = 'top',
-        Bottom = 'bottom',
-        TopRight = 'top-right',
-        TopLeft = 'top-left',
-        BottomLeft = 'bottom-left',
-        BottomRight = 'bottom-right'
-    }
-
-    interface Port {
-        id?: string;
-        markup?: string;
-        group?: string;
-        attrs?: Selectors;
-        args?: { [key: string]: any };
-        size?: Size;
-        label: {
-            size?: Size;
-            markup?: string;
-            position?: any;
-            args?: any;
-        }
-        z?: number | 'auto';
-    }
-
-    interface PortPosition extends Point {
-        angle: number;
-    }
-
     export namespace Element {
 
         interface Attributes extends Cell.Attributes {
@@ -338,7 +308,35 @@ export namespace dia {
             size?: Size;
             angle?: number;
             attrs?: Selectors
-            ports?: {[key: string]: any};
+            ports?: {
+                groups?: { [key: string]: Port },
+                items?: Port[]
+            }
+        }
+
+        interface Port {
+            id?: string;
+            markup?: string;
+            group?: string;
+            attrs?: Selectors;
+            args?: { [key: string]: any };
+            size?: Size;
+            label: {
+                size?: Size;
+                markup?: string;
+                position?: any;
+                args?: any;
+            }
+            z?: number | 'auto';
+        }
+
+        interface PortPosition extends Point {
+            angle: number;
+        }
+
+        interface TranslateOptions {
+            restrictedArea?: BBox;
+            transition?: Cell.TransitionOptions;
         }
     }
 
@@ -346,7 +344,7 @@ export namespace dia {
 
         constructor(attributes?: Element.Attributes, opt?: { [key: string]: any });
 
-        translate(tx: number, ty?: number, opt?: TranslateOptions): this;
+        translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
         position(opt?: { parentRelative?: boolean, [key: string]: any }): g.Point;
         position(x: number, y: number, opt?: { parentRelative?: boolean, deep?: boolean, [key: string]: any }): this;
@@ -362,27 +360,27 @@ export namespace dia {
 
         fitEmbeds(opt?: { deep?: boolean, padding?: Padding }): this;
 
-        getBBox(opt?: EmbeddableOptions): g.Rect;
+        getBBox(opt?: Cell.EmbeddableOptions): g.Rect;
 
-        addPort(port: Port, opt?: { [key: string]: any }): this;
+        addPort(port: Element.Port, opt?: { [key: string]: any }): this;
 
-        addPorts(ports: Port[], opt?: { [key: string]: any }): this;
+        addPorts(ports: Element.Port[], opt?: { [key: string]: any }): this;
 
-        removePort(port: string | Port, opt?: { [key: string]: any }): this;
+        removePort(port: string | Element.Port, opt?: { [key: string]: any }): this;
 
         hasPorts(): boolean;
 
         hasPort(id: string): boolean;
 
-        getPorts(): Port[];
+        getPorts(): Element.Port[];
 
-        getPort(id: string): Port;
+        getPort(id: string): Element.Port;
 
-        getPortsPositions(groupName: string): { [id: string]: PortPosition };
+        getPortsPositions(groupName: string): { [id: string]: Element.PortPosition };
 
-        getPortIndex(port: string | Port): number;
+        getPortIndex(port: string | Element.Port): number;
 
-        portProp(portId: string, path: any, value?: any, opt?: { [key: string]: any }): dia.Element;
+        portProp(portId: string, path: any, value?: any, opt?: { [key: string]: any }): Element;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Element>;
     }
@@ -435,7 +433,7 @@ export namespace dia {
 
         getTargetElement(): null | Element;
 
-        hasLoop(opt?: EmbeddableOptions): boolean;
+        hasLoop(opt?: Cell.EmbeddableOptions): boolean;
 
         getRelationshipAncestor(): undefined | Element;
 
