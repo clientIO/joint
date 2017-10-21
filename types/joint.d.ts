@@ -217,18 +217,21 @@ export namespace dia {
         [selector: string]: SVGAttributes;
     }
 
-    interface CellAttributes {
-        [key: string]: any;
-        z?: number;
-    }
+    export namespace Cell {
 
-    interface CellConstructor<T extends Backbone.Model> {
-        new (options?: { id: string }): T
+        interface Attributes {
+            [key: string]: any;
+            z?: number;
+        }
+
+        interface Constructor<T extends Backbone.Model> {
+            new (options?: { id: string }): T
+        }
     }
 
     class Cell extends Backbone.Model {
 
-        constructor(attributes?: CellAttributes, opt?: { [key: string]: any });
+        constructor(attributes?: Cell.Attributes, opt?: { [key: string]: any });
 
         id: string | number;
 
@@ -251,7 +254,7 @@ export namespace dia {
         isEmbedded(): boolean;
 
         prop(key: string | string[]): any;
-        prop(object: CellAttributes): this;
+        prop(object: Cell.Attributes): this;
         prop(key: string | string[], value: any, opt?: { [key: string]: any }): this;
 
         removeProp(path: string | string[], opt?: { [key: string]: any }): this;
@@ -287,7 +290,7 @@ export namespace dia {
 
         stopBatch(name: string, opt?: { [key: string]: any }): this;
 
-        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): CellConstructor<Cell>;
+        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Cell>;
 
         /**
          * @deprecated
@@ -328,17 +331,20 @@ export namespace dia {
         angle: number;
     }
 
-    interface ElementAttributes extends CellAttributes {
-        position?: Point;
-        size?: Size;
-        angle?: number;
-        attrs?: Selectors
-        ports?: {[key: string]: any};
+    export namespace Element {
+
+        interface Attributes extends Cell.Attributes {
+            position?: Point;
+            size?: Size;
+            angle?: number;
+            attrs?: Selectors
+            ports?: {[key: string]: any};
+        }
     }
 
     class Element extends Cell {
 
-        constructor(attributes?: ElementAttributes, opt?: { [key: string]: any });
+        constructor(attributes?: Element.Attributes, opt?: { [key: string]: any });
 
         translate(tx: number, ty?: number, opt?: TranslateOptions): this;
 
@@ -378,31 +384,34 @@ export namespace dia {
 
         portProp(portId: string, path: any, value?: any, opt?: { [key: string]: any }): dia.Element;
 
-        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): CellConstructor<Element>;
+        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Element>;
     }
 
     // dia.Link
 
-    interface LinkLabelPosition {
-        distance: number;
-        offset: number | { x: number; y: number; }
-    }
+    export namespace Link {
 
-    interface LinkLabel {
-        position: LinkLabelPosition | number;
-        attrs?: Selectors;
-        size?: Size;
-    }
+        interface LabelPosition {
+            distance: number;
+            offset: number | { x: number; y: number; }
+        }
 
-    interface LinkAttributes extends CellAttributes {
-        source?: Point | { id: string, selector?: string, port?: string };
-        target?: Point | { id: string, selector?: string, port?: string };
-        labels?: LinkLabel[];
-        vertices?: Point[];
-        smooth?: boolean;
-        attrs?: Selectors;
-        router?: {[key: string]: any};
-        connector?: {[key: string]: any};
+        interface Label {
+            position: LabelPosition | number;
+            attrs?: Selectors;
+            size?: Size;
+        }
+
+        interface Attributes extends Cell.Attributes {
+            source?: Point | { id: string, selector?: string, port?: string };
+            target?: Point | { id: string, selector?: string, port?: string };
+            labels?: Label[];
+            vertices?: Point[];
+            smooth?: boolean;
+            attrs?: Selectors;
+            router?: {[key: string]: any};
+            connector?: {[key: string]: any};
+        }
     }
 
     class Link extends Cell {
@@ -413,12 +422,12 @@ export namespace dia {
         vertexMarkup: string;
         arrowHeadMarkup: string;
 
-        constructor(attributes?: LinkAttributes, opt?: { [key: string]: any });
+        constructor(attributes?: Link.Attributes, opt?: { [key: string]: any });
 
         disconnect(): this;
 
         label(index?: number): any;
-        label(index: number, value: LinkLabel, opt?: { [key: string]: any }): this;
+        label(index: number, value: Link.Label, opt?: { [key: string]: any }): this;
 
         reparent(opt?: { [key: string]: any }): Element;
 
@@ -438,7 +447,7 @@ export namespace dia {
 
         translate(tx: number, ty: number, opt?: { [key: string]: any }): this;
 
-        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): CellConstructor<Link>;
+        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Link>;
     }
 
     // dia.CellView
@@ -533,7 +542,7 @@ export namespace dia {
 
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 
-        protected onLabelsChange(link: Link, labels: LinkLabel[], opt: { [key: string]: any }): void;
+        protected onLabelsChange(link: Link, labels: Link.Label[], opt: { [key: string]: any }): void;
 
         protected onToolsChange(link: Link, toolsMarkup: string, opt: { [key: string]: any }): void;
 
@@ -830,7 +839,7 @@ export namespace dia {
 
 export namespace shapes {
 
-    interface GenericAttributes<T> extends dia.CellAttributes {
+    interface GenericAttributes<T> extends dia.Cell.Attributes {
         position?: dia.Point;
         size?: dia.Size;
         angle?: number;
@@ -1037,7 +1046,7 @@ export namespace shapes {
         }
 
         class Link extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
+            constructor(attributes?: dia.Link.Attributes, opt?: {[key: string]: any});
         }
     }
 
@@ -1091,7 +1100,7 @@ export namespace shapes {
         }
 
         class Line extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
+            constructor(attributes?: dia.Link.Attributes, opt?: {[key: string]: any});
 
             cardinality(value: string | number): void;
         }
@@ -1111,7 +1120,7 @@ export namespace shapes {
         }
 
         class Arrow extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
+            constructor(attributes?: dia.Link.Attributes, opt?: {[key: string]: any});
         }
     }
 
@@ -1202,7 +1211,7 @@ export namespace shapes {
         }
 
         class Wire extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
+            constructor(attributes?: dia.Link.Attributes, opt?: {[key: string]: any});
         }
     }
 
@@ -1217,7 +1226,7 @@ export namespace shapes {
         }
 
         class Arrow extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
+            constructor(attributes?: dia.Link.Attributes, opt?: {[key: string]: any});
         }
     }
 
@@ -1235,7 +1244,7 @@ export namespace shapes {
         }
 
         class Link extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
+            constructor(attributes?: dia.Link.Attributes, opt?: {[key: string]: any});
         }
     }
 
@@ -1274,23 +1283,23 @@ export namespace shapes {
         }
 
         class Generalization extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
+            constructor(attributes?: dia.Link.Attributes, opt?: {[key: string]: any});
         }
 
         class Implementation extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
+            constructor(attributes?: dia.Link.Attributes, opt?: {[key: string]: any});
         }
 
         class Aggregation extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
+            constructor(attributes?: dia.Link.Attributes, opt?: {[key: string]: any});
         }
 
         class Composition extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
+            constructor(attributes?: dia.Link.Attributes, opt?: {[key: string]: any});
         }
 
         class Association extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
+            constructor(attributes?: dia.Link.Attributes, opt?: {[key: string]: any});
         }
 
         interface StateAttributes extends GenericAttributes<ShapeAttrs> {
@@ -1316,7 +1325,7 @@ export namespace shapes {
         }
 
         class Transition extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, opt?: {[key: string]: any});
+            constructor(attributes?: dia.Link.Attributes, opt?: {[key: string]: any});
         }
     }
 }
