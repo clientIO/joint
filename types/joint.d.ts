@@ -540,6 +540,16 @@ export namespace dia {
             labelMove?: boolean;
             useLinkTools?: boolean;
         }
+
+        interface GetConnectionPoint {
+            (
+                linkView: LinkView,
+                view: ElementView,
+                magnet: SVGElement,
+                reference: g.PlainPoint,
+                end: 'source' | 'target'
+            ): g.PlainPoint;
+        }
     }
 
     class LinkView extends CellViewGeneric<Link> {
@@ -615,7 +625,7 @@ export namespace dia {
             height?: number;
             origin?: Point;
             perpendicularLinks?: boolean;
-            linkConnectionPoint?: (linkView: LinkView, view: ElementView, magnet: SVGElement, reference: Point) => Point;
+            linkConnectionPoint?: LinkView.GetConnectionPoint;
             drawGrid?: boolean | GridOptions | GridOptions[];
             background?: BackgroundOptions;
             async?: boolean | { batchSize: number };
@@ -1371,11 +1381,12 @@ export namespace util {
 
     export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any }}): void;
 
-    export function sortElements(elements: Element[]
-        | string
-        | JQuery, comparator: (a: Element, b: Element) => number): Element[];
+    export function sortElements(
+        elements: Element[] | string | JQuery,
+        comparator: (a: Element, b: Element) => number
+    ): Element[];
 
-    export function shapePerimeterConnectionPoint(linkView: dia.LinkView, view: dia.ElementView, magnet: SVGElement, ref: dia.Point): dia.Point;
+    export var shapePerimeterConnectionPoint: dia.LinkView.GetConnectionPoint;
 
     export function imageToDataUri(url: string, callback: (err: Error, dataUri: string) => void): void;
 

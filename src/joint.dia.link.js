@@ -1344,10 +1344,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             } else if (paperOptions.linkConnectionPoint) {
 
-                var view = end === 'target' ? this.targetView : this.sourceView;
-                var magnet = end === 'target' ? this.targetMagnet : this.sourceMagnet;
+                var view = (end === 'target') ? this.targetView : this.sourceView;
+                var magnet = (end === 'target') ? this.targetMagnet : this.sourceMagnet;
 
-                spot = paperOptions.linkConnectionPoint(this, view, magnet, reference);
+                spot = paperOptions.linkConnectionPoint(this, view, magnet, reference, end);
 
             } else {
 
