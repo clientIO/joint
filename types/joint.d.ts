@@ -976,66 +976,54 @@ export namespace shapes {
     namespace chess {
 
         class KingWhite extends basic.Generic {
-            constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
         }
 
         class KingBlack extends basic.Generic {
-            constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
         }
 
         class QueenWhite extends basic.Generic {
-            constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
         }
 
         class QueenBlack extends basic.Generic {
-            constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
         }
 
         class RookWhite extends basic.Generic {
-            constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
         }
 
         class RookBlack extends basic.Generic {
-            constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
         }
 
         class BishopWhite extends basic.Generic {
-            constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
         }
 
         class BishopBlack extends basic.Generic {
-            constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
         }
 
         class KnightWhite extends basic.Generic {
-            constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
         }
 
         class KnightBlack extends basic.Generic {
-            constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
         }
 
         class PawnWhite extends basic.Generic {
-            constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
         }
 
         class PawnBlack extends basic.Generic {
-            constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
         }
     }
 
     namespace devs {
-        /**
-         * @deprecated
-         */
-        interface ModelAttributes extends dia.Element.Attributes {
+
+        interface ModelSelectors extends dia.Cell.Selectors {
+            ',label'?: attributes.SVGTextAttributes;
+            '.body'?: attributes.SVGRectAttributes;
+        }
+
+        interface ModelAttributes extends dia.Element.GenericAttributes<ModelSelectors> {
             inPorts?: string[];
             outPorts?: string[];
         }
 
-        /**
-         * @deprecated
-         */
         class Model extends basic.Generic {
 
             constructor(attributes?: ModelAttributes, opt?: { [key: string]: any });
@@ -1057,16 +1045,10 @@ export namespace shapes {
             removeInPort(port: string, opt?: any): this;
         }
 
-        /**
-         * @deprecated
-         */
         class Coupled extends Model {
             constructor(attributes?: ModelAttributes, opt?: { [key: string]: any });
         }
 
-        /**
-         * @deprecated
-         */
         class Atomic extends Model {
             constructor(attributes?: ModelAttributes, opt?: { [key: string]: any });
         }
@@ -1077,61 +1059,87 @@ export namespace shapes {
     }
 
     namespace erd {
+
         class Entity extends basic.Generic {
-            constructor(attributes?: dia.Element.GenericAttributes<SVGTextSelector>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<SVGTextSelector>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class WeakEntity extends Entity {
-            constructor(attributes?: dia.Element.GenericAttributes<SVGTextSelector>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<SVGTextSelector>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Relationship extends dia.Element {
-            constructor(attributes?: dia.Element.GenericAttributes<SVGTextSelector>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<SVGTextSelector>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class IdentifyingRelationship extends Relationship {
-            constructor(attributes?: dia.Element.GenericAttributes<SVGTextSelector>, opt?: { [key: string]: any });
-        }
-
-        interface AttributeAttrs extends SVGTextSelector {
-            ellipse?: ShapeAttrs;
+            constructor(
+                attributes?: dia.Element.GenericAttributes<SVGTextSelector>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Attribute extends dia.Element {
-            constructor(attributes?: dia.Element.GenericAttributes<AttributeAttrs>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.EllipseSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Multivalued extends Attribute {
-            constructor(attributes?: dia.Element.GenericAttributes<AttributeAttrs>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.EllipseSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Derived extends Attribute {
-            constructor(attributes?: dia.Element.GenericAttributes<AttributeAttrs>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.EllipseSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Key extends Attribute {
-            constructor(attributes?: dia.Element.GenericAttributes<AttributeAttrs>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.EllipseSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Normal extends Attribute {
-            constructor(attributes?: dia.Element.GenericAttributes<AttributeAttrs>, opt?: { [key: string]: any });
-        }
-
-        interface ISAAttrs extends dia.Element {
-            polygon?: ShapeAttrs;
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.EllipseSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class ISA extends dia.Element {
-            constructor(attributes?: dia.Element.GenericAttributes<ISAAttrs>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.PolygonSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Line extends dia.Link {
+
             constructor(attributes?: dia.Link.Attributes, opt?: { [key: string]: any });
 
             cardinality(value: string | number): void;
         }
     }
-namespace fsa {
+
+    namespace fsa {
+
         class State extends basic.Circle {
             constructor(attributes?: dia.Element.GenericAttributes<SVGCircleSelector>, opt?: { [key: string]: any });
         }
@@ -1151,103 +1159,150 @@ namespace fsa {
 
     namespace logic {
 
-        interface IOAttrs extends SVGTextSelector {
-            circle?: ShapeAttrs;
-        }
-
         class Gate extends basic.Generic {
-            constructor(attributes?: dia.Element.GenericAttributes<IOAttrs>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.CircleSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class IO extends Gate {
-            constructor(attributes?: dia.Element.GenericAttributes<IOAttrs>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.CircleSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Input extends IO {
-            constructor(attributes?: dia.Element.GenericAttributes<IOAttrs>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.CircleSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Output extends IO {
-            constructor(attributes?: dia.Element.GenericAttributes<IOAttrs>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.CircleSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Gate11 extends Gate {
-            constructor(attributes?: dia.Element.GenericAttributes<IOAttrs>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.CircleSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Gate21 extends Gate {
-            constructor(attributes?: dia.Element.GenericAttributes<IOAttrs>, opt?: { [key: string]: any });
-        }
-
-        interface Image {
-            'xlink:href'?: string;
-        }
-
-        interface ImageAttrs extends ShapeAttrs {
-            image?: Image;
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.CircleSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Repeater extends Gate11 {
-            constructor(attributes?: dia.Element.GenericAttributes<ImageAttrs>, opt?: { [key: string]: any });
+
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.ImageSelectors>,
+                opt?: { [key: string]: any }
+            );
 
             operation(input: any): any;
         }
 
         class Not extends Gate11 {
-            constructor(attributes?: dia.Element.GenericAttributes<ImageAttrs>, opt?: { [key: string]: any });
+
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.ImageSelectors>,
+                opt?: { [key: string]: any }
+            );
 
             operation(input: any): boolean;
         }
 
         class Or extends Gate21 {
-            constructor(attributes?: dia.Element.GenericAttributes<ImageAttrs>, opt?: { [key: string]: any });
+
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.ImageSelectors>,
+                opt?: { [key: string]: any }
+            );
 
             operation(input1: any, input2: any): boolean;
         }
 
         class And extends Gate21 {
-            constructor(attributes?: dia.Element.GenericAttributes<ImageAttrs>, opt?: { [key: string]: any });
+
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.ImageSelectors>,
+                opt?: { [key: string]: any }
+            );
 
             operation(input1: any, input2: any): boolean;
         }
 
         class Nor extends Gate21 {
-            constructor(attributes?: dia.Element.GenericAttributes<ImageAttrs>, opt?: { [key: string]: any });
+
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.ImageSelectors>,
+                opt?: { [key: string]: any }
+            );
 
             operation(input1: any, input2: any): boolean;
         }
 
         class Nand extends Gate21 {
-            constructor(attributes?: dia.Element.GenericAttributes<ImageAttrs>, opt?: { [key: string]: any });
+
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.ImageSelectors>,
+                opt?: { [key: string]: any }
+            );
 
             operation(input1: any, input2: any): boolean;
         }
 
         class Xor extends Gate21 {
-            constructor(attributes?: dia.Element.GenericAttributes<ImageAttrs>, opt?: { [key: string]: any });
+
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.ImageSelectors>,
+                opt?: { [key: string]: any }
+            );
 
             operation(input1: any, input2: any): boolean;
         }
 
         class Xnor extends Gate21 {
-            constructor(attributes?: dia.Element.GenericAttributes<ImageAttrs>, opt?: { [key: string]: any });
+
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.ImageSelectors>,
+                opt?: { [key: string]: any }
+            );
 
             operation(input1: any, input2: any): boolean;
         }
 
         class Wire extends dia.Link {
-            constructor(attributes?: dia.Link.Attributes, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Link.Attributes,
+                opt?: { [key: string]: any }
+            );
         }
     }
 
     namespace org {
-        interface MemberAttrs {
-            rect?: ShapeAttrs;
-            image?: ShapeAttrs;
+
+        interface MemberSelectors extends dia.Cell.Selectors {
+            '.card'?: attributes.SVGRectAttributes;
+            '.rank'?: attributes.SVGTextAttributes;
+            '.name'?: attributes.SVGTextAttributes;
+            'image'?: attributes.SVGImageAttributes;
         }
 
         class Member extends dia.Element {
-            constructor(attributes?: dia.Element.GenericAttributes<MemberAttrs>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<MemberSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Arrow extends dia.Link {
@@ -1256,6 +1311,7 @@ namespace fsa {
     }
 
     namespace pn {
+
         class Place extends basic.Generic {
             constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
         }
@@ -1282,14 +1338,16 @@ namespace fsa {
         }
 
         class Class extends basic.Generic {
+
             constructor(attributes?: ClassAttributes, opt?: { [key: string]: any });
 
             getClassName(): string[];
 
-            updateRectangles(): void;
+            protected updateRectangles(): void;
         }
 
         class ClassView extends dia.ElementView {
+
         }
 
         class Abstract extends Class {
@@ -1333,7 +1391,11 @@ namespace fsa {
         }
 
         class State extends basic.Generic {
-            constructor(attributes?: dia.Element.GenericAttributes<SVGCircleSelector>, opt?: { [key: string]: any });
+
+            constructor(
+                attributes?: dia.Element.GenericAttributes<SVGCircleSelector>,
+                opt?: { [key: string]: any }
+            );
 
             updateName(): void;
 
@@ -1343,7 +1405,10 @@ namespace fsa {
         }
 
         class StartState extends basic.Circle {
-            constructor(attributes?: dia.Element.GenericAttributes<SVGCircleSelector>, opt?: { [key: string]: any });
+            constructor(
+                attributes?: dia.Element.GenericAttributes<SVGCircleSelector>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class EndState extends basic.Generic {
@@ -1649,10 +1714,97 @@ export namespace highlighters {
 
 export namespace attributes {
 
-    interface NativeSVGAttributes {
+    interface SVGCoreAttributes {
+        'id'?: string;
+        'xml:base'?: string;
+        'xml:lang'?: string;
+        'xml:space'?: string;
+        'tabindex'?: string;
+    }
+
+    interface SVGConditionalProcessingAttributes {
+        'requiredExtensions'?: boolean;
+        'requiredFeatures'?: string;
+        'systemLanguage'?: string;
+    }
+
+    interface SVGXLinkAttributes {
+        'xlink:href'?: string;
+        'xlink:type'?: string;
+        'xlink:role'?: string;
+        'xlink:arcrole'?: string;
+        'xlink:title'?: string;
+        'xlink:show'?: string;
+        'xlink:actuate'?: string;
+    }
+
+    interface SVGPresentationAttributes {
+        'alignment-baseline'?: any;
+        'baseline-shift'?: any;
+        'clip'?: any;
+        'clip-path'?: any;
+        'clip-rule'?: any;
+        'color'?: any;
+        'color-interpolation'?: any;
+        'color-interpolation-filters'?: any;
+        'color-profile'?: any;
+        'color-rendering'?: any;
+        'cursor'?: any;
+        'direction'?: any;
+        'display'?: any;
+        'dominant-baseline'?: any;
+        'enable-background'?: any;
+        'fill'?: any;
+        'fill-opacity'?: any;
+        'fill-rule'?: any;
+        'filter'?: any;
+        'flood-color'?: any;
+        'flood-opacity'?: any;
+        'font-family'?: any;
+        'font-size'?: any;
+        'font-size-adjust'?: any;
+        'font-stretch'?: any;
+        'font-style'?: any;
+        'font-variant'?: any;
+        'font-weight'?: any;
+        'glyph-orientation-horizontal'?: any;
+        'glyph-orientation-vertical'?: any;
+        'image-rendering'?: any;
+        'kerning'?: any;
+        'letter-spacing'?: any;
+        'lighting-color'?: any;
+        'marker-end'?: any;
+        'marker-mid'?: any;
+        'marker-start'?: any;
+        'mask'?: any;
+        'opacity'?: any;
+        'overflow'?: any;
+        'pointer-events'?: any;
+        'shape-rendering'?: any;
+        'stop-color'?: any;
+        'stop-opacity'?: any;
+        'stroke'?: any;
+        'stroke-dasharray'?: any;
+        'stroke-dashoffset'?: any;
+        'stroke-linecap'?: any;
+        'stroke-linejoin'?: any;
+        'stroke-miterlimit'?: any;
+        'stroke-opacity'?: any;
+        'stroke-width'?: any;
+        'text-anchor'?: any;
+        'text-decoration'?: any;
+        'text-rendering'?: any;
+        'unicode-bidi'?: any;
+        'visibility'?: any;
+        'word-spacing'?: any;
+        'writing-mode'?: any;
+    }
+
+    interface NativeSVGAttributes extends SVGCoreAttributes, SVGPresentationAttributes, SVGConditionalProcessingAttributes, SVGXLinkAttributes {
         'class'?: string;
-        transform?: string;
-        externalResourcesRequired?: boolean;
+        'style'?: string;
+        'transform'?: string;
+        'externalResourcesRequired'?: boolean;
         [key: string]: any;
     }
 
