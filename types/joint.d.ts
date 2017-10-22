@@ -10,7 +10,9 @@ export namespace dia {
         y: number;
     }
 
-    interface BBox extends Point, Size {}
+    interface BBox extends Point, Size {
+
+    }
 
     type Padding = number | {
         top?: number;
@@ -44,7 +46,7 @@ export namespace dia {
 
     class Graph extends Backbone.Model {
 
-        constructor(attributes?: any, opt?: { cellNamespace: any, cellModel: typeof Cell });
+        constructor(attributes?: any, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
         addCell(cell: Cell | Cell[], opt?: { [key: string]: any }): this;
 
@@ -199,15 +201,15 @@ export namespace dia {
         'y-alignment'?: 'middle' | 'bottom' | number | string;
     }
 
-    interface Selectors {
-        [selector: string]: SVGAttributes;
-    }
-
     export namespace Cell {
 
         interface GenericAttributes<T> {
             attrs?: T;
             z?: number;
+        }
+
+        interface Selectors {
+            [selector: string]: SVGAttributes;
         }
 
         interface Attributes extends GenericAttributes<Selectors> {
@@ -265,7 +267,7 @@ export namespace dia {
         removeProp(path: string | string[], opt?: { [key: string]: any }): this;
 
         attr(key?: string): any;
-        attr(object: Selectors): this;
+        attr(object: Cell.Selectors): this;
         attr(key: string, value: any): this;
 
         clone(): Cell;
@@ -317,7 +319,7 @@ export namespace dia {
             }
         }
 
-        interface Attributes extends GenericAttributes<Selectors> {
+        interface Attributes extends GenericAttributes<Cell.Selectors> {
             [key: string]: any
         }
 
@@ -325,7 +327,7 @@ export namespace dia {
             id?: string;
             markup?: string;
             group?: string;
-            attrs?: Selectors;
+            attrs?: Cell.Selectors;
             args?: { [key: string]: any };
             size?: Size;
             label: {
@@ -402,8 +404,8 @@ export namespace dia {
             labels?: Label[];
             vertices?: Point[];
             smooth?: boolean;
-            router?: { [key: string]: any };
-            connector?: { [key: string]: any };
+            router?: routers.RouterJSON;
+            connector?: connectors.ConnectorJSON;
         }
 
         interface Attributes extends Cell.Attributes {
@@ -417,7 +419,7 @@ export namespace dia {
 
         interface Label {
             position: LabelPosition | number;
-            attrs?: Selectors;
+            attrs?: Cell.Selectors;
             size?: Size;
         }
     }
@@ -466,15 +468,8 @@ export namespace dia {
             id?: string
         }
 
-        interface InteractivityOptions {
-            vertexAdd?: boolean,
-            vertexMove?: boolean,
-            vertexRemove?: boolean;
-            arrowheadMove?: boolean;
-            labelMove?: boolean;
-            useLinkTOols?: boolean;
-            elementMove?: boolean;
-            addLinkFromMagnet?: boolean;
+        interface InteractivityOptions extends ElementView.InteractivityOptions, LinkView.InteractivityOptions {
+
         }
     }
 
@@ -488,15 +483,15 @@ export namespace dia {
 
         can(feature: string): boolean;
 
-        setInteractivity(value: boolean | CellView.InteractivityOptions): void;
-
         findMagnet(el: SVGElement | JQuery | string): SVGElement | undefined;
+
+        findBySelector(selector: string, root?: SVGElement | JQuery | string): JQuery;
 
         getSelector(el: SVGElement, prevSelector?: string): string;
 
         getStrokeBBox(el?: SVGElement): g.Rect;
 
-        notify(eventName: string): void;
+        notify(eventName: string, ...eventArguments: any[]): void;
 
         protected mouseover(evt: JQuery.Event): void;
 
@@ -513,9 +508,20 @@ export namespace dia {
         protected pointerup(evt: JQuery.Event, x: number, y: number): void;
     }
 
-    class CellView extends CellViewGeneric<Cell> {}
+    class CellView extends CellViewGeneric<Cell> {
+
+    }
 
     // dia.ElementView
+
+
+    export namespace ElementView {
+
+        interface InteractivityOptions {
+            elementMove?: boolean;
+            addLinkFromMagnet?: boolean;
+        }
+    }
 
     class ElementView extends CellViewGeneric<Element> {
 
@@ -523,10 +529,25 @@ export namespace dia {
 
         update(element: Element, renderingOnlyAttrs?: { [key: string]: any }): void;
 
+        setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
+
         protected renderMarkup(): void;
     }
 
     // dia.LinkView
+
+
+    export namespace LinkView {
+
+        interface InteractivityOptions {
+            vertexAdd?: boolean,
+            vertexMove?: boolean,
+            vertexRemove?: boolean;
+            arrowheadMove?: boolean;
+            labelMove?: boolean;
+            useLinkTools?: boolean;
+        }
+    }
 
     class LinkView extends CellViewGeneric<Link> {
 
@@ -536,7 +557,7 @@ export namespace dia {
             longLinkLength?: number,
             linkToolsOffset?: number,
             doubleLinkToolsOffset?: number,
-            sampleInterval?: number
+            sampleInterval?: number,
         };
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
@@ -550,6 +571,8 @@ export namespace dia {
 
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 
+        setInteractivity(value: boolean | LinkView.InteractivityOptions): void;
+
         protected onLabelsChange(link: Link, labels: Link.Label[], opt: { [key: string]: any }): void;
 
         protected onToolsChange(link: Link, toolsMarkup: string, opt: { [key: string]: any }): void;
@@ -562,14 +585,6 @@ export namespace dia {
     }
 
     // dia.Paper
-
-
-    interface ManhattanRouterArgs {
-        excludeTypes?: string[];
-        excludeEnds?: 'source' | 'target';
-        startDirections?: ['left' | 'right' | 'top' | 'bottom'];
-        endDirections?: ['left' | 'right' | 'top' | 'bottom'];
-    }
 
     interface Highlighter {
         name: string;
@@ -645,11 +660,8 @@ export namespace dia {
             cellViewNamespace?: any;
             highlighterNamespace?: any;
             defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
-            defaultRouter?: ((vertices: Point[], args: {[key: string]: any}, linkView: LinkView) => Point[])
-                | { name: string, args?: { [key: string]: any } };
-            defaultConnector?:
-                ((sourcePoint: Point, targetPoint: Point, vertices: Point[], args: {[key: string]: any}, linkView: LinkView) => string)
-                | { name: string, args?: { radius?: number, [key: string]: any } };
+            defaultRouter?: routers.Router | routers.RouterJSON;
+            defaultConnector?: connectors.Connector | connectors.ConnectorJSON;
         }
 
         interface ScaleContentOptions {
@@ -868,7 +880,7 @@ export namespace shapes {
         'stroke-width'?: string | number;
     }
 
-    interface TextAttrs extends dia.Selectors {
+    interface TextAttrs extends dia.Cell.Selectors {
         text?: {
             text?: string;
             [key: string]: any;
@@ -876,6 +888,7 @@ export namespace shapes {
     }
 
     namespace basic {
+
         class Generic extends dia.Element {
             constructor(attributes?: dia.Element.Attributes, opt?: {[key: string]: any});
         }
@@ -949,15 +962,17 @@ export namespace shapes {
         }
 
         class TextBlock extends Generic {
+
             constructor(attributes?: dia.Element.GenericAttributes<TextBlockAttrs>, opt?: {[key: string]: any});
 
-            updateSize(cell: dia.Cell, size: dia.Size): void;
+            protected updateSize(cell: dia.Cell, size: dia.Size): void;
 
-            updateContent(cell: dia.Cell, content: string): void;
+            protected updateContent(cell: dia.Cell, content: string): void;
         }
     }
 
     namespace chess {
+
         class KingWhite extends basic.Generic {
             constructor(attributes?: dia.Element.Attributes, opt?: {[key: string]: any});
         }
@@ -1367,7 +1382,7 @@ export namespace util {
 
     export function getElementBBox(el: Element): dia.BBox;
 
-    export function setAttributesBySelector(el: Element, attrs: dia.Selectors): void;
+    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any }}): void;
 
     export function sortElements(elements: Element[]
         | string
@@ -1466,6 +1481,117 @@ export namespace mvc {
 
         protected onRemove(): void;
     }
+}
+
+export namespace routers {
+
+    interface NormalRouterArguments {
+
+    }
+
+    interface ManhattanRouterArguments {
+        excludeTypes?: string[];
+        excludeEnds?: 'source' | 'target';
+        startDirections?: ['left' | 'right' | 'top' | 'bottom'];
+        endDirections?: ['left' | 'right' | 'top' | 'bottom'];
+        step?: number;
+        maximumLoops?: number;
+    }
+
+    interface OrthogonalRouterArguments {
+        elementPadding?: number;
+    }
+
+    interface OneSideRouterArguments {
+        side?: 'bottom' | 'top' | 'left' | 'right';
+        padding?: number;
+    }
+
+    interface RouterArgumentsMap {
+        'normal': NormalRouterArguments;
+        'manhattan': ManhattanRouterArguments;
+        'metro': ManhattanRouterArguments;
+        'orthogonal': OrthogonalRouterArguments;
+        'oneSide': OneSideRouterArguments;
+    }
+
+    type RouterType = string & keyof RouterArgumentsMap;
+
+    interface GenericRouter<K extends RouterType> {
+        (
+            points: g.PlainPoint[],
+            args?: RouterArgumentsMap[K],
+            linkView?: dia.LinkView
+        ): g.PlainPoint[];
+    }
+
+    interface GenericRouterJSON<K extends RouterType> {
+        name: K;
+        args?: RouterArgumentsMap[K];
+    }
+
+    type Router = GenericRouter<RouterType>;
+
+    type RouterJSON = GenericRouterJSON<RouterType>;
+
+    export var manhattan: GenericRouter<'manhattan'>;
+    export var metro: GenericRouter<'metro'>;
+    export var normal: GenericRouter<'normal'>;
+    export var orthogonal: GenericRouter<'orthogonal'>;
+    export var oneSide: GenericRouter<'oneSide'>;
+}
+
+export namespace connectors {
+
+    interface NormalConnectorArguments {
+
+    }
+
+    interface RoundedConnectorArguments {
+        radius?: number
+    }
+
+    interface SmoothConnectorArguments {
+
+    }
+
+    interface JumpOverConnectorArguments {
+        size?: number;
+        jump?: 'arc' | 'gap' | 'cubic'
+    }
+
+    interface ConnectorArgumentsMap {
+        'normal': NormalConnectorArguments;
+        'rounded': RoundedConnectorArguments;
+        'smooth': SmoothConnectorArguments;
+        'jumpover': JumpOverConnectorArguments;
+    }
+
+    type ConnectorType = string & keyof ConnectorArgumentsMap;
+
+    interface GenericConnector<K extends ConnectorType> {
+        (
+            sourcePoint: g.PlainPoint,
+            targetPoint: g.PlainPoint,
+            vertices: g.PlainPoint[],
+            args?: ConnectorArgumentsMap[K],
+            linkView?: dia.LinkView
+        ): string;
+    }
+
+    interface GenericConnectorJSON<K extends ConnectorType> {
+        name: K;
+        args: ConnectorArgumentsMap[K];
+    }
+
+    type Connector = GenericConnector<ConnectorType>;
+
+    type ConnectorJSON = GenericConnectorJSON<ConnectorType>;
+
+    export var normal: GenericConnector<'normal'>;
+    export var rounded: GenericConnector<'rounded'>;
+    export var smooth: GenericConnector<'smooth'>;
+    export var jumpover: GenericConnector<'jumpover'>;
 }
 
 export function setTheme(theme: string): void;
