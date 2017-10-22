@@ -21,16 +21,9 @@ export namespace dia {
         left?: number
     };
 
-    const enum Direction {
-        Left = 'left',
-        Right = 'right',
-        Top = 'top',
-        Bottom = 'bottom',
-        TopRight = 'top-right',
-        TopLeft = 'top-left',
-        BottomLeft = 'bottom-left',
-        BottomRight = 'bottom-right'
-    }
+    type Direction =
+        'left' | 'right' | 'top' | 'bottom' | 'top-right' |
+        'top-left' | 'bottom-left' | 'bottom-right';
 
     export namespace Graph {
 
@@ -557,7 +550,7 @@ export namespace dia {
             longLinkLength?: number,
             linkToolsOffset?: number,
             doubleLinkToolsOffset?: number,
-            sampleInterval?: number,
+            sampleInterval?: number
         };
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
@@ -585,11 +578,6 @@ export namespace dia {
     }
 
     // dia.Paper
-
-    interface Highlighter {
-        name: string;
-        opt?: { [key: string]: any };
-    }
 
     export namespace Paper {
 
@@ -633,7 +621,7 @@ export namespace dia {
             async?: boolean | { batchSize: number };
             // interactions
             gridSize?: number;
-            highlighting?: { [type: string]: Highlighter };
+            highlighting?: { [type: string]: highlighters.HighlighterJSON };
             interactive?: ((cellView: CellView, event: string) => boolean) | boolean | CellView.InteractivityOptions
             snapLinks?: boolean | { radius: number };
             markAvailable?: boolean;
@@ -650,8 +638,8 @@ export namespace dia {
             clickThreshold?: number;
             moveThreshold?: number;
             // views
-            elementView?: (element: Element) => typeof ElementView | typeof ElementView;
-            linkView?: (link: Link) => typeof LinkView | typeof LinkView;
+            elementView?: (element: Element) => ElementView;
+            linkView?: (link: Link) => LinkView;
             // embedding
             embeddingMode?: boolean;
             findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft';
@@ -782,7 +770,7 @@ export namespace dia {
 
         clearGrid(): this;
 
-        getDefaultLink(cellView: CellView, magnet: HTMLElement): Link;
+        getDefaultLink(cellView: CellView, magnet: SVGElement): Link;
 
         getModelById(id: string | number | Cell): Cell;
 
@@ -839,9 +827,9 @@ export namespace dia {
 
         protected onCellAdded(cell: Cell, graph: Graph, opt: { async?: boolean, position?: number }): void;
 
-        protected onCellHighlight(cellView: CellView, magnetEl: HTMLElement, opt?: { highlighter?: Highlighter }): void;
+        protected onCellHighlight(cellView: CellView, magnetEl: SVGElement, opt?: { highlighter?: highlighters.HighlighterJSON }): void;
 
-        protected onCellUnhighlight(cellView: CellView, magnetEl: HTMLElement, opt?: { highlighter?: Highlighter }): void;
+        protected onCellUnhighlight(cellView: CellView, magnetEl: SVGElement, opt?: { highlighter?: highlighters.HighlighterJSON }): void;
 
         protected onRemove(): void;
 
@@ -1483,6 +1471,8 @@ export namespace mvc {
     }
 }
 
+// routers
+
 export namespace routers {
 
     interface NormalRouterArguments {
@@ -1541,6 +1531,8 @@ export namespace routers {
     export var oneSide: GenericRouter<'oneSide'>;
 }
 
+// connectors
+
 export namespace connectors {
 
     interface NormalConnectorArguments {
@@ -1581,7 +1573,7 @@ export namespace connectors {
 
     interface GenericConnectorJSON<K extends ConnectorType> {
         name: K;
-        args: ConnectorArgumentsMap[K];
+        args?: ConnectorArgumentsMap[K];
     }
 
     type Connector = GenericConnector<ConnectorType>;
@@ -1592,6 +1584,52 @@ export namespace connectors {
     export var rounded: GenericConnector<'rounded'>;
     export var smooth: GenericConnector<'smooth'>;
     export var jumpover: GenericConnector<'jumpover'>;
+}
+
+// highlighters
+
+export namespace highlighters {
+
+    interface AddClassHighlighterArguments {
+        className?: string;
+    }
+
+    interface OpacityHighlighterArguments {
+
+    }
+
+    interface StrokeHighlighterArguments {
+        padding?: number;
+        rx?: number;
+        ry?: number;
+        attrs?: dia.NativeSVGAttributes;
+    }
+
+    interface HighlighterArgumentsMap {
+        'addClass': AddClassHighlighterArguments;
+        'opacity': OpacityHighlighterArguments;
+        'stroke': StrokeHighlighterArguments;
+    }
+
+    type HighlighterType = string & keyof HighlighterArgumentsMap;
+
+    interface GenericHighlighterJSON<K extends HighlighterType> {
+        name: K;
+        opt?: HighlighterArgumentsMap[K];
+    }
+
+    interface GenericHighlighter<K extends HighlighterType> {
+        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: HighlighterArgumentsMap[K]): void;
+        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: HighlighterArgumentsMap[K]): void;
+    }
+
+    type Highlighter = GenericHighlighter<HighlighterType>;
+
+    type HighlighterJSON = GenericHighlighterJSON<HighlighterType>;
+
+    export var addClass: GenericHighlighter<'addClass'>;
+    export var opacity: GenericHighlighter<'opacity'>;
+    export var stroke: GenericHighlighter<'stroke'>;
 }
 
 export function setTheme(theme: string): void;
