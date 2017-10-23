@@ -272,7 +272,7 @@ export namespace dia {
             attrs?: Cell.Selectors;
             args?: { [key: string]: any };
             size?: Size;
-            label: {
+            label?: {
                 size?: Size;
                 markup?: string;
                 position?: any;
