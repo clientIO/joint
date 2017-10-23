@@ -1,4 +1,4 @@
-/*! JointJS v1.2.0-beta (2017-10-19) - JavaScript diagramming library
+/*! JointJS v2.0.0 (2017-10-23) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -380,9 +380,6 @@ export namespace Vectorizer {
         'bottom-ry'?: number;
     }
 
-    // Backwards compatibility
-    interface Rect extends RoundedRect {}
-
     interface Rotation {
         angle: number;
         cx?: number;
@@ -594,56 +591,49 @@ export class Vectorizer {
 }
 
 export namespace dia {
-    interface Size {
-        width: number;
-        height: number;
-    }
 
-    interface Point {
-        x: number;
-        y: number;
-    }
+    type Point = g.PlainPoint;
 
-    interface BBox extends Point, Size {
-    }
+    type BBox = g.PlainRect;
 
-    interface TranslateOptions {
-        restrictedArea?: BBox;
-        transition?: TransitionOptions;
-    }
+    type Size = Pick<BBox, 'width' | 'height'>;
 
-    interface TransitionOptions {
-        delay?: number;
-        duration?: number;
-        timingFunction?: (t: number) => number;
-        valueFunction?: (a: any, b: any) => (t: number) => any;
-    }
+    type PaddingJSON = {
+        top?: number;
+        right?: number;
+        bottom?: number;
+        left?: number
+    };
 
-    interface DfsBfsOptions {
-        inbound?: boolean;
-        outbound?: boolean;
-        deep?: boolean;
-    }
+    type Padding = number | PaddingJSON;
 
-    interface ExploreOptions {
-        breadthFirst?: boolean;
-        deep?: boolean;
-    }
+    type Direction =
+        'left' | 'right' | 'top' | 'bottom' | 'top-right' |
+        'top-left' | 'bottom-left' | 'bottom-right';
 
-    interface EdgeMap {
-        [key: string]: boolean;
+    export namespace Graph {
+
+        interface ConnectionOptions extends Cell.EmbeddableOptions {
+            inbound?: boolean;
+            outbound?: boolean;
+        }
+
+        interface ExploreOptions extends ConnectionOptions {
+            breadthFirst?: boolean;
+        }
     }
 
     class Graph extends Backbone.Model {
-        constructor(attributes?: any, options?: { cellNamespace: any, cellModel: typeof Cell });
 
-        addCell(cell: Cell | Cell[], opt?: object): this;
+        constructor(attributes?: any, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
-        addCells(cells: Cell[], opt: object): this;
+        addCell(cell: Cell | Cell[], opt?: { [key: string]: any }): this;
 
-        resetCells(cells: Cell[], options?: object): this;
+        addCells(cells: Cell[], opt?: { [key: string]: any }): this;
 
-        getCell(id: string): Cell;
+        resetCells(cells: Cell[], opt?: { [key: string]: any }): this;
+
+        getCell(id: string | number | Cell): Cell;
 
         getElements(): Element[];
 
@@ -651,33 +641,33 @@ export namespace dia {
 
         getCells(): Cell[];
 
-        getFirstCell(): Cell;
+        getFirstCell(): Cell | undefined;
 
-        getLastCell(): Cell;
+        getLastCell(): Cell | undefined;
 
-        getConnectedLinks(element: Cell, options?: { inbound?: boolean, outbound?: boolean, deep?: boolean }): Link[];
+        getConnectedLinks(cell: Cell, opt?: Graph.ConnectionOptions): Link[];
 
-        disconnectLinks(cell: Cell, options?: object): void;
+        disconnectLinks(cell: Cell, opt?: { [key: string]: any }): void;
 
-        removeLinks(cell: Cell, options?: object): void;
+        removeLinks(cell: Cell, opt?: { [key: string]: any }): void;
 
-        translate(tx: number, ty?: number, options?: TranslateOptions): void;
+        translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
         cloneCells(cells: Cell[]): { [id: string]: Cell };
 
-        getSubgraph(cells: Cell[], options?: { deep?: boolean }): Cell[];
+        getSubgraph(cells: Cell[], opt?: Cell.EmbeddableOptions): Cell[];
 
-        cloneSubgraph(cells: Cell[], options?: { deep?: boolean }): { [id: string]: Cell };
+        cloneSubgraph(cells: Cell[], opt?: Cell.EmbeddableOptions): { [id: string]: Cell };
 
-        dfs(element: Element, iteratee: (element: Element, distance: number) => boolean, options?: DfsBfsOptions, visited?: any, distance?: number): void;
+        dfs(element: Element, iteratee: (element: Element, distance: number) => boolean, opt?: Graph.ConnectionOptions): void;
 
-        bfs(element: Element, iteratee: (element: Element, distance: number) => boolean, options?: DfsBfsOptions): void;
+        bfs(element: Element, iteratee: (element: Element, distance: number) => boolean, opt?: Graph.ConnectionOptions): void;
 
-        search(element: Element, iteratee: (element: Element, distance: number) => boolean, options?: { breadthFirst?: boolean }): void;
+        search(element: Element, iteratee: (element: Element, distance: number) => boolean, opt?: Graph.ExploreOptions): void;
 
-        getSuccessors(element: Element, options?: ExploreOptions): Element[];
+        getSuccessors(element: Element, opt?: Graph.ExploreOptions): Element[];
 
-        getPredecessors(element: Element, options?: ExploreOptions): Element[];
+        getPredecessors(element: Element, opt?: Graph.ExploreOptions): Element[];
 
         isSuccessor(elementA: Element, elementB: Element): boolean;
 
@@ -691,115 +681,150 @@ export namespace dia {
 
         getSinks(): Element[];
 
-        getNeighbors(element: Element, options?: DfsBfsOptions): Element[];
+        getNeighbors(element: Element, opt?: Graph.ConnectionOptions): Element[];
 
-        isNeighbor(elementA: Element, elementB: Element, options?: { inbound?: boolean, outbound?: boolean; }): boolean;
+        isNeighbor(elementA: Element, elementB: Element, opt?: Graph.ConnectionOptions): boolean;
 
-        getCommonAncestor(...cells: Cell[]): Element;
+        getCommonAncestor(...cells: Cell[]): Element | undefined;
 
-        toJSON(): object;
+        toJSON(): any;
 
-        fromJSON(json: { cells: Cell[] }, options?: object): this;
+        fromJSON(json: any, opt?: { [key: string]: any }): this;
 
-        clear(options?: object): this;
+        clear(opt?: { [key: string]: any }): this;
 
         findModelsFromPoint(p: Point): Element[];
 
-        findModelsUnderElement(element: Element, options?: {
+        findModelsInArea(rect: BBox, opt?: { strict?: boolean }): Element[];
+
+        findModelsUnderElement(element: Element, opt?: {
             searchBy?: 'bottomLeft' | 'bottomMiddle' | 'center' |
                 'corner' | 'leftMiddle' | 'origin' | 'rightMiddle' |
-                'topMiddle' | 'topRight'
+                'topMiddle' | 'topRight' | 'bbox'
         }): Element[];
 
-        getBBox(elements: Element[], options?: { deep?: boolean }): g.Rect;
+        getBBox(cells?: Cell[], opt?: Cell.EmbeddableOptions): g.Rect | null;
 
-        toGraphLib(): object; // graphlib graph object
-        findModelsInArea(rect: g.Rect | BBox, options?: { strict?: boolean }): BBox | boolean;
+        getCellsBBox(cells: Cell[], opt?: Cell.EmbeddableOptions): g.Rect | null;
 
-        getCellsBBox(cells: Cell[], options?: { deep?: boolean }): g.Rect;
-
-        getInboundEdges(node: string): EdgeMap;
-
-        getOutboundEdges(node: string): EdgeMap;
-
-        hasActiveBatch(name?: string): number | boolean;
+        hasActiveBatch(name?: string): boolean;
 
         maxZIndex(): number;
 
-        removeCells(cells: Cell[], options?: object): this;
+        removeCells(cells: Cell[], opt?: Cell.DisconnectableOptions): this;
 
-        resize(width: number, height: number, options?: object): this;
+        resize(width: number, height: number, opt?: { [key: string]: any }): this;
 
-        resizeCells(width: number, height: number, cells: Cell[], options?: object): this;
+        resizeCells(width: number, height: number, cells: Cell[], opt?: { [key: string]: any }): this;
 
-        set(key: object | string, value: any, options?: object): this;
+        startBatch(name: string, data?: { [key: string]: any }): this;
 
-        startBatch(name: string, data?: {[key: string]: any}): any;
+        stopBatch(name: string, data?: { [key: string]: any }): this;
 
-        stopBatch(name: string, data?: {[key: string]: any}): any;
+        toGraphLib(opt?: { [key: string]: any }): any;
+
+        fromGraphLib(glGraph: any, opt?: { [key: string]: any }): this;
+    }
+
+    // dia.Cell
+
+    export namespace Cell {
+
+        interface GenericAttributes<T> {
+            attrs?: T;
+            z?: number;
+        }
+
+        interface Selectors {
+            [selector: string]: attributes.SVGAttributes;
+        }
+
+        interface Attributes extends GenericAttributes<Selectors> {
+            [key: string]: any;
+        }
+
+        interface Constructor<T extends Backbone.Model> {
+            new (options?: { id: string }): T
+        }
+
+        interface EmbeddableOptions {
+            deep?: boolean;
+        }
+
+        interface DisconnectableOptions {
+            disconnectLinks?: boolean;
+        }
+
+        interface TransitionOptions {
+            delay?: number;
+            duration?: number;
+            timingFunction?: util.timing.TimingFunction;
+            valueFunction?: util.interpolate.InterpolateFunction<any>;
+        }
     }
 
     class Cell extends Backbone.Model {
-        constructor(attributes?: object, options?: object);
 
-        id: string;
+        constructor(attributes?: Cell.Attributes, opt?: { [key: string]: any });
 
-        graph: dia.Graph;
+        id: string | number;
 
-        toJSON(): object;
+        graph: Graph;
 
-        remove(options?: { disconnectLinks?: boolean }): this;
+        toJSON(): any;
 
-        toFront(options?: { deep?: boolean }): this;
+        remove(opt?: Cell.DisconnectableOptions): this;
 
-        toBack(options?: { deep?: boolean }): this;
+        toFront(opt?: Cell.EmbeddableOptions): this;
+
+        toBack(opt?: Cell.EmbeddableOptions): this;
 
         getAncestors(): Cell[];
 
-        isEmbeddedIn(element: Element, options?: { deep: boolean }): boolean;
+        getEmbeddedCells(opt?: { deep?: boolean, breadthFirst?: boolean }): Cell[];
+
+        isEmbeddedIn(cell: Cell, opt?: Cell.EmbeddableOptions): boolean;
+
+        isEmbedded(): boolean;
 
         prop(key: string | string[]): any;
-        prop(object: object): this;
-        prop(key: string | string[], value: any, options?: object): this;
+        prop(object: Cell.Attributes): this;
+        prop(key: string | string[], value: any, opt?: { [key: string]: any }): this;
 
-        removeProp(path: string | string[], options?: object): this;
+        removeProp(path: string | string[], opt?: { [key: string]: any }): this;
 
-        attr(key: string): any;
-        attr(object: SVGAttributes): this;
+        attr(key?: string): any;
+        attr(object: Cell.Selectors): this;
         attr(key: string, value: any): this;
 
         clone(): Cell;
-        clone(opt: { deep?: boolean }): Cell | Cell[];
+        clone(opt: Cell.EmbeddableOptions): Cell | Cell[];
 
-        removeAttr(path: string | string[], options?: object): this;
+        removeAttr(path: string | string[], opt?: { [key: string]: any }): this;
 
-        transition(path: string, value?: any, options?: TransitionOptions, delim?: string): number;
+        transition(path: string, value?: any, opt?: Cell.TransitionOptions, delim?: string): number;
 
         getTransitions(): string[];
 
         stopTransitions(path?: string, delim?: string): this;
 
-        addTo(graph: Graph, options?: object): this;
+        embed(cell: Cell, opt?: { [key: string]: any }): this;
 
-        isLink(): boolean;
+        unembed(cell: Cell, opt?: { [key: string]: any }): this;
 
-        embed(cell: Cell, options?: object): this;
+        addTo(graph: Graph, opt?: { [key: string]: any }): this;
 
         findView(paper: Paper): CellView;
 
-        getEmbeddedCells(options?: { deep?: boolean, breadthFirst?: boolean }): Cell[];
+        isLink(): boolean;
 
         isElement(): boolean;
 
-        isEmbedded(): boolean;
+        startBatch(name: string, opt?: { [key: string]: any }): this;
 
-        startBatch(name: string, options?: object): this;
+        stopBatch(name: string, opt?: { [key: string]: any }): this;
 
-        stopBatch(name: string, options?: object): this;
-
-        unembed(cell: Cell, options?: object): this;
-
-        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): CellConstructor<Cell>;
+        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Cell>;
 
         /**
          * @deprecated
@@ -807,554 +832,575 @@ export namespace dia {
         protected processPorts(): void;
     }
 
-    interface CellConstructor<T extends Backbone.Model> {
-        new (options?: { id: string }): T
-    }
+    // dia.Element
 
-    type Padding = number | {
-        top?: number;
-        right?: number;
-        bottom?: number;
-        left?: number
-    };
+    export namespace Element {
 
-    type Direction = 'left'
-                    | 'right'
-                    | 'top'
-                    | 'bottom'
-                    | 'top-right'
-                    | 'top-left'
-                    | 'bottom-left'
-                    | 'bottom-right';
-
-    interface Port {
-        id?: string;
-        markup?: string;
-        group?: string;
-        attrs?: object;
-        args?: object;
-        size?: Size;
-        label: {
+        interface GenericAttributes<T> extends Cell.GenericAttributes<T> {
+            position?: Point;
             size?: Size;
-            markup?: string;
-            position?: any;
-            args?: any;
+            angle?: number;
+            ports?: {
+                groups?: { [key: string]: Port },
+                items?: Port[]
+            }
         }
-        z?: number | 'auto';
-    }
 
-    interface PortPosition extends Point {
-        angle: number;
+        interface Attributes extends GenericAttributes<Cell.Selectors> {
+            [key: string]: any
+        }
+
+        interface Port {
+            id?: string;
+            markup?: string;
+            group?: string;
+            attrs?: Cell.Selectors;
+            args?: { [key: string]: any };
+            size?: Size;
+            label?: {
+                size?: Size;
+                markup?: string;
+                position?: any;
+                args?: any;
+            }
+            z?: number | 'auto';
+        }
+
+        interface PortPosition extends Point {
+            angle: number;
+        }
+
+        interface TranslateOptions {
+            restrictedArea?: BBox;
+            transition?: Cell.TransitionOptions;
+        }
     }
 
     class Element extends Cell {
-        constructor(attributes?: object, options?: object);
 
-        translate(tx: number, ty?: number, options?: TranslateOptions): this;
+        constructor(attributes?: Element.Attributes, opt?: { [key: string]: any });
 
-        position(options?: { parentRelative: boolean }): g.Point;
-        position(x: number, y: number, options?: { parentRelative?: boolean }): this;
+        translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
+
+        position(opt?: { parentRelative?: boolean, [key: string]: any }): g.Point;
+        position(x: number, y: number, opt?: { parentRelative?: boolean, deep?: boolean, [key: string]: any }): this;
 
         size(): Size;
-        size(width: number, height?: number, options?: { direction?: Direction }): this;
+        size(width: number, height?: number, opt?: { direction?: Direction, [key: string]: any }): this;
 
-        resize(width: number, height: number, options?: { direction?: Direction }): this;
+        resize(width: number, height: number, opt?: { direction?: Direction, [key: string]: any }): this;
 
-        rotate(deg: number, absolute?: boolean, origin?: Point, opt?: { parentRelative?: boolean }): this;
+        rotate(deg: number, absolute?: boolean, origin?: Point, opt?: { [key: string]: any }): this;
 
-        embed(cell: Cell): this;
+        scale(scaleX: number, scaleY: number, origin?: Point, opt?: { [key: string]: any }): this;
 
-        unembed(cell: Cell): this;
+        fitEmbeds(opt?: { deep?: boolean, padding?: Padding }): this;
 
-        getEmbeddedCells(options?: ExploreOptions): Cell[];
+        getBBox(opt?: Cell.EmbeddableOptions): g.Rect;
 
-        fitEmbeds(options?: { deep?: boolean, padding?: Padding }): this;
+        addPort(port: Element.Port, opt?: { [key: string]: any }): this;
 
-        getBBox(options?: { deep?: boolean }): g.Rect;
+        addPorts(ports: Element.Port[], opt?: { [key: string]: any }): this;
 
-        isElement(): boolean;
-
-        scale(scaleX: number, scaleY: number, origin?: Point, options?: { direction?: Direction, parentRelative?: boolean }): this;
-
-        addPort(port: Port, opt?: object): this;
-
-        addPorts(ports: Port[], opt?: object): this;
-
-        removePort(port: string | Port, opt?: object): this;
+        removePort(port: string | Element.Port, opt?: { [key: string]: any }): this;
 
         hasPorts(): boolean;
 
         hasPort(id: string): boolean;
 
-        getPorts(): Port[];
+        getPorts(): Element.Port[];
 
-        getPort(id: string): Port;
+        getPort(id: string): Element.Port;
 
-        getPortsPositions(groupName: string): { [id: string]: PortPosition };
+        getPortsPositions(groupName: string): { [id: string]: Element.PortPosition };
 
-        getPortIndex(port: string | Port): number;
+        getPortIndex(port: string | Element.Port): number;
 
-        portProp(portId: string, path: any, value?: any, opt?: any): dia.Element;
+        portProp(portId: string, path: any, value?: any, opt?: { [key: string]: any }): Element;
 
-        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): CellConstructor<Element>;
+        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Element>;
     }
 
-    interface CSSSelector {
-        [key: string]: string | number | Object; // Object added to support special attributes like filter http://jointjs.com/api#SpecialAttributes:filter
-    }
+    // dia.Link
 
-    interface SVGAttributes {
-        [selector: string]: CSSSelector;
-    }
+    export namespace Link {
 
-    interface CellAttributes {
-        [key: string]: any;
-    }
+        interface GenericAttributes<T> extends Cell.GenericAttributes<T> {
+            source?: Point | { id: string, selector?: string, port?: string };
+            target?: Point | { id: string, selector?: string, port?: string };
+            labels?: Label[];
+            vertices?: Point[];
+            smooth?: boolean;
+            router?: routers.RouterJSON;
+            connector?: connectors.ConnectorJSON;
+        }
 
-    interface TextAttrs extends SVGAttributes {
-        text?: {
-            [key: string]: string | number;
-            text?: string;
-        };
-    }
+        interface LinkSelectors extends Cell.Selectors {
+            '.connection'?: attributes.SVGPathAttributes;
+            '.connection-wrap'?: attributes.SVGPathAttributes;
+            '.marker-source'?: attributes.SVGPathAttributes;
+            '.marker-target'?: attributes.SVGPathAttributes;
+            '.labels'?: attributes.SVGAttributes;
+            '.marker-vertices'?: attributes.SVGAttributes;
+            '.marker-arrowheads'?: attributes.SVGAttributes;
+            '.link-tools'?: attributes.SVGAttributes;
+        }
 
-    interface LabelPosition {
-      distance: number;
-      offset: number | { x: number; y: number; }
-    }
+        interface Attributes extends Cell.GenericAttributes<LinkSelectors> {
+            [key: string]: any;
+        }
 
-    interface Label {
-        position: LabelPosition | number;
-        attrs?: TextAttrs;
-    }
+        interface LabelPosition {
+            distance: number;
+            offset: number | { x: number; y: number; }
+        }
 
-    interface LinkAttributes extends CellAttributes {
-        source?: Point | { id: string, selector?: string, port?: string };
-        target?: Point | { id: string, selector?: string, port?: string };
-        labels?: Label[];
-        vertices?: Point[];
-        smooth?: boolean;
-        attrs?: TextAttrs;
-        z?: number;
+        interface Label {
+            position: LabelPosition | number;
+            attrs?: Cell.Selectors;
+            size?: Size;
+        }
     }
 
     class Link extends Cell {
+
         markup: string;
         labelMarkup: string;
         toolMarkup: string;
         vertexMarkup: string;
         arrowHeadMarkup: string;
 
-        constructor(attributes?: LinkAttributes, options?: {[key: string]: any});
-
-        applyToPoints(fn: (p: Point) => Point, opt?: object): this;
+        constructor(attributes?: Link.Attributes, opt?: { [key: string]: any });
 
         disconnect(): this;
 
         label(index?: number): any;
-        label(index: number, value: Label, opt?: object): this;
+        label(index: number, value: Link.Label, opt?: { [key: string]: any }): this;
 
-        reparent(options?: object): Element;
+        reparent(opt?: { [key: string]: any }): Element;
 
-        getSourceElement(): undefined | Element | Graph;
+        getSourceElement(): null | Element;
 
-        getTargetElement(): undefined | Element | Graph;
+        getTargetElement(): null | Element;
 
-        hasLoop(options?: { deep?: boolean }): boolean;
-
-        applyToPoints(fn: Function, options?: any): this;
+        hasLoop(opt?: Cell.EmbeddableOptions): boolean;
 
         getRelationshipAncestor(): undefined | Element;
 
-        isLink(): boolean;
+        isRelationshipEmbeddedIn(cell: Cell): boolean;
 
-        isRelationshipEmbeddedIn(element: Element): boolean;
+        applyToPoints(fn: (p: Point) => Point, opt?: { [key: string]: any }): this;
 
-        scale(sx: number, sy: number, origin: Point | g.Point | string, opt?: object): this;
+        scale(sx: number, sy: number, origin?: Point, opt?: { [key: string]: any }): this;
 
-        translate(tx: number, ty: number, options?: object): this;
+        translate(tx: number, ty: number, opt?: { [key: string]: any }): this;
 
-        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): CellConstructor<Link>;
+        static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Link>;
     }
 
-    interface ManhattanRouterArgs {
-        excludeTypes?: string[];
-        excludeEnds?: 'source' | 'target';
-        startDirections?: ['left' | 'right' | 'top' | 'bottom'];
-        endDirections?: ['left' | 'right' | 'top' | 'bottom'];
+    // dia.CellView
+
+    export namespace CellView {
+
+        interface Options<T extends Cell> extends mvc.ViewOptions<T> {
+            id?: string
+        }
+
+        interface InteractivityOptions extends ElementView.InteractivityOptions, LinkView.InteractivityOptions {
+
+        }
     }
 
-    interface GridOptions {
-        color?: string;
-        thickness?: number;
-        name?: 'dot' | 'fixedDot' | 'mesh' | 'doubleMesh';
-        args?: object[] | object;
-    }
+    abstract class CellViewGeneric<T extends Cell> extends mvc.View<T> {
 
-    interface PaperOptions extends Backbone.ViewOptions<Graph> {
-        el?: string | JQuery | HTMLElement;
-        width?: number | string;
-        height?: number | string;
-        origin?: Point;
-        gridSize?: number;
-        drawGrid?: boolean | GridOptions;
-        perpendicularLinks?: boolean;
-        elementView?: (element: Element) => typeof ElementView | typeof ElementView;
-        linkView?: (link: Link) => typeof LinkView | typeof LinkView;
-        defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
-        defaultRouter?: ((vertices: Point[], args: {[key: string]: any}, linkView: LinkView) => Point[])
-            | { name: string, args?: ManhattanRouterArgs };
-        defaultConnector?:
-            ((sourcePoint: Point, targetPoint: Point, vertices: Point[], args: {[key: string]: any}, linkView: LinkView) => string)
-            | { name: string, args?: { radius?: number } };
-        interactive?: ((cellView: CellView, event: string) => boolean)
-            | boolean
-            | { vertexAdd?: boolean, vertexMove?: boolean, vertexRemove?: boolean, arrowheadMove?: boolean };
-        validateMagnet?: (cellView: CellView, magnet: SVGElement) => boolean;
-        validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end:
-                                  'source'
-                                  | 'target', linkView: LinkView) => boolean;
-        linkConnectionPoint?: (linkView: LinkView, view: ElementView, magnet: SVGElement, reference: Point) => Point;
-        snapLinks?: boolean | { radius: number };
-        linkPinning?: boolean;
-        markAvailable?: boolean;
-        async?: boolean | { batchZise: number };
-        embeddingMode?: boolean;
-        findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft';
-        validateEmbedding?: (childView: ElementView, parentView: ElementView) => boolean;
-        restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
-        guard?: (evt: Event, view: CellView) => boolean;
-        multiLinks?: boolean;
-        cellViewNamespace?: object;
-        highlighterNamespace?: object;
-        /** useful undocumented option */
-        clickThreshold?: number;
-        highlighting?: any;
-        preventContextMenu?: boolean;
-    }
+        constructor(opt?: CellView.Options<T>);
 
-    interface ScaleContentOptions {
-        padding?: number;
-        preserveAspectRatio?: boolean;
-        minScale?: number;
-        minScaleX?: number;
-        minScaleY?: number;
-        maxScale?: number;
-        maxScaleX?: number;
-        maxScaleY?: number;
-        scaleGrid?: number;
-        fittingBBox?: BBox;
-    }
+        highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
 
-    interface FitToContentOptions {
-        gridWidth?: number;
-        gridHeight?: number;
-        padding?: Padding;
-        allowNewOrigin?: 'negative' | 'positive' | 'any';
-        minWidth?: number;
-        minHeight?: number;
-        maxWidth?: number;
-        maxHeight?: number;
-    }
-
-    interface Highlighter {
-        name: string;
-        options?: object;
-    }
-
-    interface GradientOptions {
-        type: 'linearGradient' | 'radialGradient';
-        stops: Array<{
-            offset: string;
-            color: string;
-            opacity?: number;
-        }>;
-    }
-
-    abstract class CellViewGeneric<T extends Backbone.Model> extends Backbone.View<T> {
-        constructor(options?: { id: string });
-
-        unhighlight(el?: any, options?: any): this;
+        unhighlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
 
         can(feature: string): boolean;
 
-        findMagnet(el: any): HTMLElement;
+        findMagnet(el: SVGElement | JQuery | string): SVGElement | undefined;
 
-        getSelector(el: HTMLElement, prevSelector: string): string;
+        findBySelector(selector: string, root?: SVGElement | JQuery | string): JQuery;
 
-        getStrokeBBox(el: any): BBox; // string|HTMLElement|Vectorizer
+        getSelector(el: SVGElement, prevSelector?: string): string;
 
-        remove(): this;
+        getStrokeBBox(el?: SVGElement): g.Rect;
 
-        setInteractivity(value: any): void;
+        notify(eventName: string, ...eventArguments: any[]): void;
 
-        setTheme(theme: string, options?: any): this;
+        protected mouseover(evt: JQuery.Event): void;
 
-        protected mouseover(evt: Event): void;
+        protected mousewheel(evt: JQuery.Event, x: number, y: number, delta: number): void
 
-        protected mousewheel(evt: Event, x: number, y: number, delta: number): void
+        protected pointerclick(evt: JQuery.Event, x: number, y: number): void;
 
-        protected notify(eventName: string): void;
+        protected pointerdblclick(evt: JQuery.Event, x: number, y: number): void;
 
-        protected onSetTheme(oldTheme: string, newTheme: string): void;
+        protected pointerdown(evt: JQuery.Event, x: number, y: number): void;
 
-        protected pointerclick(evt: Event, x: number, y: number): void;
+        protected pointermove(evt: JQuery.Event, x: number, y: number): void;
 
-        protected pointerdblclick(evt: Event, x: number, y: number): void;
-
-        protected pointerdown(evt: Event, x: number, y: number): void;
-
-        protected pointermove(evt: Event, x: number, y: number): void;
-
-        protected pointerup(evt: Event, x: number, y: number): void;
+        protected pointerup(evt: JQuery.Event, x: number, y: number): void;
     }
 
     class CellView extends CellViewGeneric<Cell> {
+
     }
 
-    interface ElementViewAttributes {
-        style?: string;
-        text?: string;
-        html?: string;
-        "ref-x"?: string | number;
-        "ref-y"?: string | number;
-        "ref-dx"?: number;
-        "ref-dy"?: number;
-        "ref-width"?: string | number;
-        "ref-height"?: string | number;
-        ref?: string;
-        "x-alignment"?: 'middle' | 'right' | number;
-        "y-alignment"?: 'middle' | 'bottom' | number;
-        port?: string;
+    // dia.ElementView
+
+
+    export namespace ElementView {
+
+        interface InteractivityOptions {
+            elementMove?: boolean;
+            addLinkFromMagnet?: boolean;
+        }
     }
 
     class ElementView extends CellViewGeneric<Element> {
 
-        getBBox(options?: { useModelGeometry?: boolean }): g.Rect;
+        getBBox(opt?: { useModelGeometry?: boolean }): g.Rect;
 
-        update(cell: Cell, renderingOnlyAttrs?: object): void;
+        update(element: Element, renderingOnlyAttrs?: { [key: string]: any }): void;
 
-        protected mouseenter(evt: Event): void;
-
-        protected mouseleave(evt: Event): void;
-
-        protected pointerdown(evt: Event, x: number, y: number): void;
-
-        protected pointermove(evt: Event, x: number, y: number): void;
-
-        protected pointerup(evt: Event, x: number, y: number): void;
+        setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
 
         protected renderMarkup(): void;
     }
 
+    // dia.LinkView
+
+
+    export namespace LinkView {
+
+        interface InteractivityOptions {
+            vertexAdd?: boolean,
+            vertexMove?: boolean,
+            vertexRemove?: boolean;
+            arrowheadMove?: boolean;
+            labelMove?: boolean;
+            useLinkTools?: boolean;
+        }
+
+        interface GetConnectionPoint {
+            (
+                linkView: LinkView,
+                view: ElementView,
+                magnet: SVGElement,
+                reference: Point,
+                end: 'source' | 'target'
+            ): Point;
+        }
+    }
+
     class LinkView extends CellViewGeneric<Link> {
+
         options: {
             shortLinkLength?: number,
             doubleLinkTools?: boolean,
             longLinkLength?: number,
             linkToolsOffset?: number,
             doubleLinkToolsOffset?: number,
-            sampleInterval: number
+            sampleInterval?: number
         };
 
-        getConnectionLength(): number;
-
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
+        sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; }, callback?: () => void): void;
 
         addVertex(vertex: Point): number;
 
-        getPointAtLength(length: number): g.Point; // Marked as public api in source but not in the documents
+        getConnectionLength(): number;
 
-        update(model: Cell, attributes: object, options?: object): this;
+        getPointAtLength(length: number): g.Point;
 
-        protected mouseenter(evt: Event): void;
+        update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 
-        protected mouseleave(evt: Event): void;
+        setInteractivity(value: boolean | LinkView.InteractivityOptions): void;
 
-        protected onEndModelChange(endType: 'source' | 'target', endModel?: Element,
-                                   opt?: { cacheOnly?: boolean, handleBy?: string, translateBy?: boolean, tx?: number, ty?: number }): void;
+        protected onLabelsChange(link: Link, labels: Link.Label[], opt: { [key: string]: any }): void;
 
-        protected onLabelsChange(): void;
+        protected onToolsChange(link: Link, toolsMarkup: string, opt: { [key: string]: any }): void;
 
-        protected onSourceChange(cell: Cell, sourceEnd: { id: string }, options: object): void;
+        protected onVerticesChange(link: Link, vertices: Point[], opt: { [key: string]: any }): void;
 
-        protected onTargetChange(cell: Cell, targetEnd: { id: string }, options: object): void;
+        protected onSourceChange(element: Element, sourceEnd: any, opt: { [key: string]: any }): void;
 
-        protected onToolsChange(): void;
+        protected onTargetChange(element: Element, targetEnd: any, opt: { [key: string]: any }): void;
+    }
 
-        // changed is not used in function body.
-        protected onVerticesChange(cell: Cell, changed: any, options: object): void;
+    // dia.Paper
 
-        protected pointerdown(evt: Event, x: number, y: number): void;
+    export namespace Paper {
 
-        protected pointermove(evt: Event, x: number, y: number): void;
+        interface GradientOptions {
+            id?: string;
+            type: 'linearGradient' | 'radialGradient';
+            stops: Array<{
+                offset: string;
+                color: string;
+                opacity?: number;
+            }>;
+        }
 
-        protected pointerup(evt: Event, x: number, y: number): void;
+        interface GridOptions {
+            color?: string;
+            thickness?: number;
+            name?: 'dot' | 'fixedDot' | 'mesh' | 'doubleMesh';
+            args?: Array<{ [key: string]: any }> | { [key: string]: any };
+        }
+
+        interface BackgroundOptions {
+            color?: string;
+            image?: string;
+            quality?: number;
+            position?: Point | string;
+            size?: Size | string;
+            repeat?: string;
+            opacity?: number;
+            waterMarkAngle?: number;
+        }
+
+        interface Options extends mvc.ViewOptions<Graph> {
+            // appearance
+            width?: number;
+            height?: number;
+            origin?: Point;
+            perpendicularLinks?: boolean;
+            linkConnectionPoint?: LinkView.GetConnectionPoint;
+            drawGrid?: boolean | GridOptions | GridOptions[];
+            background?: BackgroundOptions;
+            async?: boolean | { batchSize: number };
+            // interactions
+            gridSize?: number;
+            highlighting?: { [type: string]: highlighters.HighlighterJSON };
+            interactive?: ((cellView: CellView, event: string) => boolean) | boolean | CellView.InteractivityOptions
+            snapLinks?: boolean | { radius: number };
+            markAvailable?: boolean;
+            // validations
+            validateMagnet?: (cellView: CellView, magnet: SVGElement) => boolean;
+            validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end: 'source' | 'target', linkView: LinkView) => boolean;
+            restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
+            multiLinks?: boolean;
+            linkPinning?: boolean;
+            // events
+            guard?: (evt: JQuery.Event, view: CellView) => boolean;
+            preventContextMenu?: boolean;
+            preventDefaultBlankAction?: boolean;
+            clickThreshold?: number;
+            moveThreshold?: number;
+            // views
+            elementView?: typeof ElementView | ((element: Element) => typeof ElementView);
+            linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
+            // embedding
+            embeddingMode?: boolean;
+            findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft';
+            validateEmbedding?: (childView: ElementView, parentView: ElementView) => boolean;
+            // default views, models & attributes
+            cellViewNamespace?: any;
+            highlighterNamespace?: any;
+            defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
+            defaultRouter?: routers.Router | routers.RouterJSON;
+            defaultConnector?: connectors.Connector | connectors.ConnectorJSON;
+        }
+
+        interface ScaleContentOptions {
+            padding?: number;
+            preserveAspectRatio?: boolean;
+            minScale?: number;
+            minScaleX?: number;
+            minScaleY?: number;
+            maxScale?: number;
+            maxScaleX?: number;
+            maxScaleY?: number;
+            scaleGrid?: number;
+            fittingBBox?: BBox;
+        }
+
+        interface FitToContentOptions {
+            gridWidth?: number;
+            gridHeight?: number;
+            padding?: Padding;
+            allowNewOrigin?: 'negative' | 'positive' | 'any';
+            minWidth?: number;
+            minHeight?: number;
+            maxWidth?: number;
+            maxHeight?: number;
+        }
+
     }
 
     class Paper extends mvc.View<Graph> {
-        constructor(options: PaperOptions);
 
-        options: dia.PaperOptions;
+        constructor(opt: Paper.Options);
+
+        options: Paper.Options;
         svg: SVGElement;
         viewport: SVGGElement;
         defs: SVGDefsElement;
 
+        matrix(): SVGMatrix;
+        matrix(ctm: SVGMatrix | Vectorizer.Matrix): this;
+
         clientMatrix(): SVGMatrix;
-
-        clientToLocalPoint(x: number | g.Point, y?: number): g.Point;
-
-        clientToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
 
         clientOffset(): g.Point;
 
-        cloneOptions(): dia.PaperOptions;
+        pageOffset(): g.Point;
 
-        cancelRenderViews(): void;
+        clientToLocalPoint(x: number, y: number): g.Point;
+        clientToLocalPoint(point: Point): g.Point;
 
-        createViewForModel(cell: dia.Cell): dia.CellView;
+        clientToLocalRect(x: number, y: number, width: number, height: number): g.Rect;
+        clientToLocalRect(rect: BBox): g.Rect;
 
-        defineFilter(filter: object): string;
+        localToClientPoint(x: number, y: number): g.Point;
+        localToClientPoint(point: Point): g.Point;
 
-        defineGradient(gradient: object): string;
+        localToClientRect(x: number, y: number, width: number, height: number): g.Rect;
+        localToClientRect(rect: BBox): g.Rect;
 
-        defineMarker(marker: object): string;
+        localToPagePoint(x: number, y: number): g.Point;
+        localToPagePoint(point: Point): g.Point;
 
-        drawBackground(opt?: { color?: string, img?: string }): Paper;
+        localToPageRect(x: number, y: number, width: number, height: number): g.Rect;
+        localToPageRect(rect: BBox): g.Rect;
 
-        drawBackgroundImage(img: HTMLImageElement, opt: object): void;
+        localToPaperPoint(x: number, y: number): g.Point;
+        localToPaperPoint(point: Point): g.Point;
 
-        drawGrid(options?: {
-            width?: number, height?: number, scaleFactor?: number,
-            update: any, ox?: number, oy?: number
-        }): Paper;
+        localToPaperRect(x: number, y: number, width: number, height: number): g.Rect;
+        localToPaperRect(rect: BBox): g.Rect;
 
-        findView<T extends dia.ElementView | dia.LinkView>(element: string | JQuery | SVGElement): T;
+        pageToLocalPoint(x: number, y: number): g.Point;
+        pageToLocalPoint(point: Point): g.Point;
 
-        findViewByModel<T extends dia.ElementView | dia.LinkView>(model: Element | string | dia.Link): T;
+        pageToLocalRect(x: number, y: number, width: number, height: number): g.Rect;
+        pageToLocalRect(rect: BBox): g.Rect;
 
-        findViewsFromPoint(point: string | dia.Point | g.Point): dia.ElementView[];
+        paperToLocalPoint(x: number, y: number): g.Point;
+        paperToLocalPoint(point: Point): g.Point;
 
-        findViewsInArea(rect: g.Rect | dia.BBox, options?: { strict?: boolean }): dia.CellView[];
+        paperToLocalRect(x: number, y: number, width: number, height: number): g.Rect;
+        paperToLocalRect(x: BBox): g.Rect;
 
-        fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, options?: any): void;
+        snapToGrid(x: number, y: number): g.Point;
+        snapToGrid(point: Point): g.Point;
 
-        fitToContent(options?: dia.FitToContentOptions): void;
+        defineFilter(filter: { [key: string]: any }): string;
 
-        getArea(): g.Rect;
+        defineGradient(gradient: Paper.GradientOptions): string;
 
-        getContentBBox(): g.Rect;
-
-        getDefaultLink(cellView: dia.CellView, magnet: HTMLElement): dia.Link;
-
-        getModelById(id: string): dia.Cell;
-
-        getRestrictedArea(): g.Rect | undefined;
-
-        guard(evt: Event, view: dia.CellView): boolean;
+        defineMarker(marker: { [key: string]: any }): string;
 
         isDefined(defId: string): boolean;
 
-        localToClientPoint(x: number | g.Point, y?: number): g.Point;
+        getArea(): g.Rect;
 
-        localToClientRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+        getRestrictedArea(): g.Rect | undefined;
 
-        localToPagePoint(x: number | g.Point, y?: number): g.Point;
+        getContentBBox(): g.Rect;
 
-        localToPageRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+        findView<T extends ElementView | LinkView>(element: string | JQuery | SVGElement): T;
 
-        localToPaperPoint(x: number | g.Point, y?: number): g.Point;
+        findViewByModel<T extends ElementView | LinkView>(model: Cell | string | number): T;
 
-        localToPaperRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+        findViewsFromPoint(point: string | Point): ElementView[];
 
-        matrix(): SVGMatrix;
+        findViewsInArea(rect: BBox, opt?: { strict?: boolean }): ElementView[];
 
-        matrix(ctm: SVGMatrix | Vectorizer.Matrix): Paper;
+        fitToContent(opt?: Paper.FitToContentOptions): void;
+        fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, opt?: any): void;
 
-        pageOffset(): g.Point;
+        scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
 
-        pageToLocalPoint(x: number | g.Point, y?: number): g.Point;
+        cancelRenderViews(): void;
 
-        pageToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+        drawBackground(opt?: Paper.BackgroundOptions): this;
 
-        paperToLocalPoint(x: number | g.Point, y?: number): g.Point;
+        drawGrid(opt?: Paper.GridOptions | Paper.GridOptions[]): this;
 
-        paperToLocalRect(x: number | g.Rect, y?: number, width?: number, height?: number): g.Rect;
+        clearGrid(): this;
 
-        remove(): Paper;
+        getDefaultLink(cellView: CellView, magnet: SVGElement): Link;
 
-        render(): Paper;
-
-        scale(): Vectorizer.Scale;
-
-        scale(sx: number, sy?: number, ox?: number, oy?: number): Paper;
-
-        scaleContentToFit(options?: dia.ScaleContentOptions): void;
+        getModelById(id: string | number | Cell): Cell;
 
         setDimensions(width: number, height: number): void;
 
-        setGridSize(gridSize: number): Paper;
+        setGridSize(gridSize: number): this;
 
         setInteractivity(value: any): void;
 
-        setOrigin(x: number, y: number): Paper;
+        setOrigin(x: number, y: number): this;
 
-        snapToGrid(x: g.Point | number, y?: number): g.Point;
-
-        sortViews(): void;
+        scale(): Vectorizer.Scale;
+        scale(sx: number, sy?: number, ox?: number, oy?: number): this;
 
         translate(): Vectorizer.Translation;
+        translate(tx: number, ty?: number): this;
 
-        translate(tx: number, ty?: number): Paper;
-
-        update(): void;
+        update(): this;
 
         // protected
+        protected guard(evt: JQuery.Event, view: CellView): boolean;
+
+        protected sortViews(): void;
+
+        protected drawBackgroundImage(img: HTMLImageElement, opt: { [key: string]: any }): void;
+
+        protected createViewForModel(cell: Cell): CellView;
+
+        protected cloneOptions(): Paper.Options;
+
         protected afterRenderViews(): void;
 
-        protected asyncRenderViews(cells: dia.Cell[], options?: object): void;
+        protected asyncRenderViews(cells: Cell[], opt?: { [key: string]: any }): void;
 
-        protected beforeRenderViews(cells: dia.Cell[]): dia.Cell[];
+        protected beforeRenderViews(cells: Cell[]): Cell[];
 
-        protected cellMouseEnter(evt: Event): void;
+        protected cellMouseEnter(evt: JQuery.Event): void;
 
-        protected cellMouseleave(evt: Event): void;
+        protected cellMouseleave(evt: JQuery.Event): void;
 
-        protected cellMouseout(evt: Event): void;
+        protected cellMouseout(evt: JQuery.Event): void;
 
-        protected cellMouseover(evt: Event): void;
+        protected cellMouseover(evt: JQuery.Event): void;
 
-        protected contextmenu(evt: Event): void;
+        protected contextmenu(evt: JQuery.Event): void;
 
         protected init(): void;
 
-        protected mouseclick(evt: Event): void;
+        protected mouseclick(evt: JQuery.Event): void;
 
-        protected mousedblclick(evt: Event): void;
+        protected mousedblclick(evt: JQuery.Event): void;
 
-        protected mousewheel(evt: Event): void;
+        protected mousewheel(evt: JQuery.Event): void;
 
-        protected onCellAdded(cell: dia.Cell, graph: dia.Graph, options: { async?: boolean, position?: number }): void;
+        protected onCellAdded(cell: Cell, graph: Graph, opt: { async?: boolean, position?: number }): void;
 
-        protected onCellHighlight(cellView: dia.CellView, magnetEl: HTMLElement, options?: { highlighter?: dia.Highlighter }): void;
+        protected onCellHighlight(cellView: CellView, magnetEl: SVGElement, opt?: { highlighter?: highlighters.HighlighterJSON }): void;
 
-        protected onCellUnhighlight(cellView: dia.CellView, magnetEl: HTMLElement, options?: { highlighter?: dia.Highlighter }): void;
+        protected onCellUnhighlight(cellView: CellView, magnetEl: SVGElement, opt?: { highlighter?: highlighters.HighlighterJSON }): void;
 
         protected onRemove(): void;
 
-        protected pointerdown(evt: Event): void;
+        protected pointerdown(evt: JQuery.Event): void;
 
-        protected pointermove(evt: Event): void;
+        protected pointermove(evt: JQuery.Event): void;
 
-        protected pointerup(evt: Event): void;
+        protected pointerup(evt: JQuery.Event): void;
 
-        protected removeView(cell: dia.Cell): dia.CellView;
+        protected removeView(cell: Cell): CellView;
 
         protected removeViews(): void;
 
-        protected renderView(cell: dia.Cell): dia.CellView;
+        protected renderView(cell: Cell): CellView;
 
-        protected resetViews(cellsCollection: dia.Cell[], options: object): void;
+        protected resetViews(cellsCollection: Cell[], opt: { [key: string]: any }): void;
 
         protected updateBackgroundColor(color: string): void;
 
@@ -1362,182 +1408,217 @@ export namespace dia {
     }
 }
 
-export namespace ui {
-}
-
 export namespace shapes {
-    interface GenericAttributes<T> extends dia.CellAttributes {
-        position?: dia.Point;
-        size?: dia.Size;
-        angle?: number;
-        attrs?: T;
+
+    interface SVGTextSelector extends dia.Cell.Selectors {
+        text?: attributes.SVGTextAttributes;
     }
 
-    interface ShapeAttrs extends dia.CSSSelector {
-        fill?: string;
-        stroke?: string;
-        r?: string | number;
-        rx?: string | number;
-        ry?: string | number;
-        cx?: string | number;
-        cy?: string | number;
-        height?: string | number;
-        width?: string | number;
-        transform?: string;
-        points?: string;
-        'stroke-width'?: string | number;
-        'ref-x'?: string | number;
-        'ref-y'?: string | number;
-        ref?: string
+    interface SVGRectSelector extends dia.Cell.Selectors {
+        rect?: attributes.SVGRectAttributes;
+    }
+
+    interface SVGCircleSelector extends dia.Cell.Selectors {
+        circle?: attributes.SVGCircleAttributes;
+    }
+
+    interface SVGEllipseSelector extends dia.Cell.Selectors {
+        ellipse?: attributes.SVGEllipseAttributes;
+    }
+
+    interface SVGPolygonSelector extends dia.Cell.Selectors {
+        polygon?: attributes.SVGPolygonAttributes;
+    }
+
+    interface SVGPolylineSelector extends dia.Cell.Selectors {
+        polyline?: attributes.SVGPolylineAttributes;
+    }
+
+    interface SVGImageSelector extends dia.Cell.Selectors {
+        image?: attributes.SVGImageAttributes;
+    }
+
+    interface SVGPathSelector extends dia.Cell.Selectors {
+        path?: attributes.SVGPathAttributes;
     }
 
     namespace basic {
+
         class Generic extends dia.Element {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
-        }
 
-        interface RectAttrs extends dia.TextAttrs {
-            rect?: ShapeAttrs;
-        }
-
-        class Rect extends Generic {
-            constructor(attributes?: GenericAttributes<RectAttrs>, options?: {[key: string]: any});
         }
 
         class Text extends Generic {
-            constructor(attributes?: GenericAttributes<dia.TextAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<SVGTextSelector>,
+                opt?: { [key: string]: any }
+            );
         }
 
-        interface CircleAttrs extends dia.TextAttrs {
-            circle?: ShapeAttrs;
+        interface RectSelectors extends SVGTextSelector, SVGRectSelector {
+
+        }
+
+        class Rect extends Generic {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<RectSelectors>,
+                opt?: { [key: string]: any }
+            );
+        }
+
+        interface CircleSelectors extends SVGTextSelector, SVGCircleSelector {
+
         }
 
         class Circle extends Generic {
-            constructor(attributes?: GenericAttributes<CircleAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<CircleSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
-        interface EllipseAttrs extends dia.TextAttrs {
-            ellipse?: ShapeAttrs;
+        interface EllipseSelectors extends SVGTextSelector, SVGEllipseSelector {
+
         }
+
 
         class Ellipse extends Generic {
-            constructor(attributes?: GenericAttributes<EllipseAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<EllipseSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
-        interface PolygonAttrs extends dia.TextAttrs {
-            polygon?: ShapeAttrs;
+        interface PolygonSelectors extends SVGTextSelector, SVGPolygonSelector {
+
         }
+
 
         class Polygon extends Generic {
-            constructor(attributes?: GenericAttributes<PolygonAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PolygonSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
-        interface PolylineAttrs extends dia.TextAttrs {
-            polyline?: ShapeAttrs;
+        interface PolylineSelectors extends SVGTextSelector, SVGPolylineSelector {
+
         }
 
         class Polyline extends Generic {
-            constructor(attributes?: GenericAttributes<PolylineAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PolylineSelectors>,
+                opt?: { [key: string]: any }
+            );
+        }
+
+        interface ImageSelectors extends SVGTextSelector, SVGImageSelector {
+
         }
 
         class Image extends Generic {
-            constructor(attributes?: GenericAttributes<dia.TextAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<ImageSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
-        interface PathAttrs extends dia.TextAttrs {
-            path?: ShapeAttrs;
+        interface PathSelectors extends SVGTextSelector, SVGPathSelector {
+
         }
 
         class Path extends Generic {
-            constructor(attributes?: GenericAttributes<PathAttrs>, options?: {[key: string]: any});
-        }
-
-        interface RhombusAttrs extends dia.TextAttrs {
-            path?: ShapeAttrs;
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PathSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Rhombus extends Generic {
-            constructor(attributes?: GenericAttributes<RhombusAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PathSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
-        interface TextBlockAttrs extends dia.TextAttrs {
-            rect?: ShapeAttrs;
+        interface TextBlockSelectors extends SVGTextSelector, SVGRectSelector {
+            '.content'?: attributes.SVGTextAttributes;
         }
 
         class TextBlock extends Generic {
-            constructor(attributes?: GenericAttributes<TextBlockAttrs>, options?: {[key: string]: any});
-
-            updateSize(cell: dia.Cell, size: dia.Size): void;
-
-            updateContent(cell: dia.Cell, content: string): void;
+            constructor(
+                attributes?: dia.Element.GenericAttributes<TextBlockSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
     }
 
     namespace chess {
+
         class KingWhite extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+
         }
 
         class KingBlack extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+
         }
 
         class QueenWhite extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+
         }
 
         class QueenBlack extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+
         }
 
         class RookWhite extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+
         }
 
         class RookBlack extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+
         }
 
         class BishopWhite extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+
         }
 
         class BishopBlack extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+
         }
 
         class KnightWhite extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+
         }
 
         class KnightBlack extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+
         }
 
         class PawnWhite extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+
         }
 
         class PawnBlack extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+
         }
     }
 
     namespace devs {
-        /**
-         * @deprecated
-         */
-        interface ModelAttributes extends GenericAttributes<dia.SVGAttributes> {
-            inPorts?: string[];
-            outPorts?: string[];
-            ports?: {[key: string]: any};
+
+        interface ModelSelectors extends dia.Cell.Selectors {
+            '.label'?: attributes.SVGTextAttributes;
+            '.body'?: attributes.SVGRectAttributes;
         }
 
-        /**
-         * @deprecated
-         */
+        interface ModelAttributes extends dia.Element.GenericAttributes<ModelSelectors> {
+            inPorts?: string[];
+            outPorts?: string[];
+        }
+
         class Model extends basic.Generic {
-            constructor(attributes?: ModelAttributes, options?: {[key: string]: any});
+
+            constructor(attributes?: ModelAttributes, opt?: { [key: string]: any });
 
             changeInGroup(properties: any, opt?: any): boolean;
 
@@ -1556,223 +1637,249 @@ export namespace shapes {
             removeInPort(port: string, opt?: any): this;
         }
 
-        /**
-         * @deprecated
-         */
         class Coupled extends Model {
-            constructor(attributes?: ModelAttributes, options?: {[key: string]: any});
+
         }
 
-        /**
-         * @deprecated
-         */
         class Atomic extends Model {
-            constructor(attributes?: ModelAttributes, options?: {[key: string]: any});
+
         }
 
         class Link extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+
         }
     }
 
     namespace erd {
+
+        interface PolygonalSelectors extends dia.Cell.Selectors {
+            '.label'?: attributes.SVGPolygonAttributes;
+            '.body'?: attributes.SVGPolygonAttributes;
+            'text'?: attributes.SVGTextAttributes;
+        }
+
+        interface EllipsoidSelectors extends dia.Cell.Selectors {
+            '.label'?: attributes.SVGEllipseAttributes;
+            '.body'?: attributes.SVGEllipseAttributes;
+            'text'?: attributes.SVGTextAttributes;
+        }
+
         class Entity extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.TextAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PolygonalSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class WeakEntity extends Entity {
-            constructor(attributes?: GenericAttributes<dia.TextAttrs>, options?: {[key: string]: any});
+
         }
 
         class Relationship extends dia.Element {
-            constructor(attributes?: GenericAttributes<dia.TextAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PolygonalSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class IdentifyingRelationship extends Relationship {
-            constructor(attributes?: GenericAttributes<dia.TextAttrs>, options?: {[key: string]: any});
-        }
 
-        interface AttributeAttrs extends dia.TextAttrs {
-            ellipse?: ShapeAttrs;
         }
 
         class Attribute extends dia.Element {
-            constructor(attributes?: GenericAttributes<AttributeAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<EllipsoidSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Multivalued extends Attribute {
-            constructor(attributes?: GenericAttributes<AttributeAttrs>, options?: {[key: string]: any});
+
         }
 
         class Derived extends Attribute {
-            constructor(attributes?: GenericAttributes<AttributeAttrs>, options?: {[key: string]: any});
+
         }
 
         class Key extends Attribute {
-            constructor(attributes?: GenericAttributes<AttributeAttrs>, options?: {[key: string]: any});
+
         }
 
         class Normal extends Attribute {
-            constructor(attributes?: GenericAttributes<AttributeAttrs>, options?: {[key: string]: any});
-        }
 
-        interface ISAAttrs extends dia.Element {
-            polygon?: ShapeAttrs;
         }
 
         class ISA extends dia.Element {
-            constructor(attributes?: GenericAttributes<ISAAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.PolygonSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Line extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
 
             cardinality(value: string | number): void;
         }
     }
 
     namespace fsa {
+
         class State extends basic.Circle {
-            constructor(attributes?: GenericAttributes<basic.CircleAttrs>, options?: {[key: string]: any});
+
         }
 
         class StartState extends dia.Element {
-            constructor(attributes?: GenericAttributes<basic.CircleAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<SVGCircleSelector>,
+                opt?: { [key: string]: any }
+            );
+        }
+
+        interface CirculoidSelectors extends dia.Cell.Selectors {
+            '.outer'?: attributes.SVGCircleAttributes;
+            '.inner'?: attributes.SVGCircleAttributes;
         }
 
         class EndState extends dia.Element {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<CirculoidSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Arrow extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+
         }
     }
 
     namespace logic {
-        interface LogicAttrs extends ShapeAttrs {
-            ref?: string;
-            'ref-x'?: number | string;
-            'ref-dx'?: number | string;
-            'ref-y'?: number | string;
-            'ref-dy'?: number | string;
-            magnet?: boolean;
-            'class'?: string;
-            port?: string;
+
+        abstract class Gate extends basic.Generic {
+
         }
 
-        interface IOAttrs extends dia.TextAttrs {
-            circle?: LogicAttrs;
-        }
-
-        class Gate extends basic.Generic {
-            constructor(attributes?: GenericAttributes<IOAttrs>, options?: {[key: string]: any});
+        interface GateSelectors extends dia.Cell.Selectors {
+            '.body'?: attributes.SVGRectAttributes;
+            '.wire'?: attributes.SVGPathAttributes;
+            'circle'?: attributes.SVGCircleAttributes;
+            'text'?: attributes.SVGTextAttributes;
         }
 
         class IO extends Gate {
-            constructor(attributes?: GenericAttributes<IOAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.CircleSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Input extends IO {
-            constructor(attributes?: GenericAttributes<IOAttrs>, options?: {[key: string]: any});
+
         }
 
         class Output extends IO {
-            constructor(attributes?: GenericAttributes<IOAttrs>, options?: {[key: string]: any});
+
+        }
+
+        interface Gate11Selectors extends dia.Cell.Selectors {
+            '.input'?: attributes.SVGCircleAttributes;
+            '.output'?: attributes.SVGCircleAttributes;
+            '.body'?: attributes.SVGImageAttributes;
+            'image'?: attributes.SVGImageAttributes;
         }
 
         class Gate11 extends Gate {
-            constructor(attributes?: GenericAttributes<IOAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<Gate11Selectors>,
+                opt?: { [key: string]: any }
+            );
+        }
+
+        interface Gate21Selectors extends dia.Cell.Selectors {
+            '.input'?: attributes.SVGCircleAttributes;
+            '.input1'?: attributes.SVGCircleAttributes;
+            '.input2'?: attributes.SVGCircleAttributes;
+            '.output'?: attributes.SVGCircleAttributes;
+            '.body'?: attributes.SVGImageAttributes;
+            'image'?: attributes.SVGImageAttributes;
         }
 
         class Gate21 extends Gate {
-            constructor(attributes?: GenericAttributes<IOAttrs>, options?: {[key: string]: any});
-        }
-
-        interface Image {
-            'xlink:href'?: string;
-        }
-
-        interface ImageAttrs extends LogicAttrs {
-            image?: Image;
+            constructor(
+                attributes?: dia.Element.GenericAttributes<Gate21Selectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Repeater extends Gate11 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
 
             operation(input: any): any;
         }
 
         class Not extends Gate11 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
 
             operation(input: any): boolean;
         }
 
         class Or extends Gate21 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
 
             operation(input1: any, input2: any): boolean;
         }
 
         class And extends Gate21 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
 
             operation(input1: any, input2: any): boolean;
         }
 
         class Nor extends Gate21 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
 
             operation(input1: any, input2: any): boolean;
         }
 
         class Nand extends Gate21 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
 
             operation(input1: any, input2: any): boolean;
         }
 
         class Xor extends Gate21 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
 
             operation(input1: any, input2: any): boolean;
         }
 
         class Xnor extends Gate21 {
-            constructor(attributes?: GenericAttributes<ImageAttrs>, options?: {[key: string]: any});
 
             operation(input1: any, input2: any): boolean;
         }
 
-        interface WireArgs extends dia.LinkAttributes {
-            router?: {[key: string]: any};
-            connector?: {[key: string]: any};
-        }
-
         class Wire extends dia.Link {
-            constructor(attributes?: WireArgs, options?: {[key: string]: any});
+
         }
     }
 
     namespace org {
-        interface MemberAttrs {
-            rect?: ShapeAttrs;
-            image?: ShapeAttrs;
+
+        interface MemberSelectors extends dia.Cell.Selectors {
+            '.card'?: attributes.SVGRectAttributes;
+            '.rank'?: attributes.SVGTextAttributes;
+            '.name'?: attributes.SVGTextAttributes;
+            'image'?: attributes.SVGImageAttributes;
         }
 
         class Member extends dia.Element {
-            constructor(attributes?: GenericAttributes<MemberAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<MemberSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Arrow extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+
         }
     }
 
     namespace pn {
+
         class Place extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
         }
 
         class PlaceView extends dia.ElementView {
@@ -1780,135 +1887,286 @@ export namespace shapes {
         }
 
         class Transition extends basic.Generic {
-            constructor(attributes?: GenericAttributes<basic.RectAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<SVGRectSelector>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Link extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+
         }
     }
 
     namespace uml {
-        interface ClassAttributes extends GenericAttributes<basic.RectAttrs> {
+
+        interface ClassAttributes extends dia.Element.GenericAttributes<SVGRectSelector> {
             name: string[];
             attributes: string[];
             methods: string[];
         }
 
         class Class extends basic.Generic {
-            constructor(attributes?: ClassAttributes, options?: {[key: string]: any});
+
+            constructor(attributes?: ClassAttributes, opt?: { [key: string]: any });
 
             getClassName(): string[];
 
-            updateRectangles(): void;
+            protected updateRectangles(): void;
         }
 
         class ClassView extends dia.ElementView {
+
         }
 
         class Abstract extends Class {
-            constructor(attributes?: ClassAttributes, options?: {[key: string]: any});
+            constructor(attributes?: ClassAttributes, opt?: { [key: string]: any });
         }
 
         class AbstractView extends ClassView {
-            constructor(attributes?: ClassAttributes, options?: {[key: string]: any});
+            constructor(attributes?: ClassAttributes, opt?: { [key: string]: any });
         }
 
         class Interface extends Class {
-            constructor(attributes?: ClassAttributes, options?: {[key: string]: any});
+            constructor(attributes?: ClassAttributes, opt?: { [key: string]: any });
         }
 
         class InterfaceView extends ClassView {
-            constructor(attributes?: ClassAttributes, options?: {[key: string]: any});
+            constructor(attributes?: ClassAttributes, opt?: { [key: string]: any });
         }
 
         class Generalization extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+
         }
 
         class Implementation extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+
         }
 
         class Aggregation extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+
         }
 
         class Composition extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+
         }
 
         class Association extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+
         }
 
-        interface StateAttributes extends GenericAttributes<ShapeAttrs> {
-            events?: string[];
+        interface StateSelectors extends dia.Cell.Selectors {
+            '.uml-state-body'?: attributes.SVGRectAttributes;
+            '.uml-state-separator'?: attributes.SVGPathAttributes;
+            '.uml-state-name'?: attributes.SVGTextAttributes;
+            '.uml-state-events'?: attributes.SVGTextAttributes;
         }
 
         class State extends basic.Generic {
-            constructor(attributes?: GenericAttributes<basic.CircleAttrs>, options?: {[key: string]: any});
 
-            updateName(): void;
+            constructor(
+                attributes?: dia.Element.GenericAttributes<StateSelectors>,
+                opt?: { [key: string]: any }
+            );
 
-            updateEvents(): void;
+            protected updateName(): void;
 
-            updatePath(): void;
+            protected updateEvents(): void;
+
+            protected updatePath(): void;
         }
 
         class StartState extends basic.Circle {
-            constructor(attributes?: GenericAttributes<basic.CircleAttrs>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<basic.CircleSelectors>,
+                opt?: { [key: string]: any }
+            );
+        }
+
+        interface EndStateSelectors extends dia.Cell.Selectors {
+            'circle.outer'?: attributes.SVGCircleAttributes;
+            'circle.inner'?: attributes.SVGCircleAttributes;
         }
 
         class EndState extends basic.Generic {
-            constructor(attributes?: GenericAttributes<dia.SVGAttributes>, options?: {[key: string]: any});
+            constructor(
+                attributes?: dia.Element.GenericAttributes<EndStateSelectors>,
+                opt?: { [key: string]: any }
+            );
         }
 
         class Transition extends dia.Link {
-            constructor(attributes?: dia.LinkAttributes, options?: {[key: string]: any});
+
         }
     }
 }
 
+// util
+
 export namespace util {
 
-    namespace format {
-        export function number(specifier: string, value: number): string;
-    }
+    export function hashCode(str: string): string;
+
+    export function getByPath(object: { [key: string]: any }, path: string | string[], delim?: string): any;
+
+    export function setByPath(object: { [key: string]: any }, path: string | string[], value: any, delim?: string): any;
+
+    export function unsetByPath(object: { [key: string]: any }, path: string | string[], delim?: string): any;
+
+    export function flattenObject(object: { [key: string]: any }, delim?: string, stop?: (node: any) => boolean): any;
 
     export function uuid(): string;
 
-    export function guid(obj?: {[key: string]: any}): string;
+    export function guid(obj?: { [key: string]: any }): string;
 
-    export function nextFrame(callback: () => void, context?: {[key: string]: any}): number;
+    export function toKebabCase(str: string): string;
+
+    export function normalizeEvent(evt: JQuery.Event): JQuery.Event;
+
+    export function nextFrame(callback: () => void, context?: { [key: string]: any }): number;
 
     export function cancelFrame(requestId: number): void;
 
-    export function flattenObject(object: {[key: string]: any}, delim: string, stop: (node: any) => boolean): any;
+    export var shapePerimeterConnectionPoint: dia.LinkView.GetConnectionPoint;
 
-    export function getByPath(object: {[key: string]: any}, path: string, delim: string): any;
+    export function parseCssNumber(str: string, restrictUnits?: string[]): { value: number; unit?: string; };
 
-    export function setByPath(object: {[key: string]: any}, path: string, value: any, delim: string): any;
-
-    export function unsetByPath(object: {[key: string]: any}, path: string, delim: string): any;
-
-    export function breakText(text: string, size: dia.Size, attrs?: dia.SVGAttributes, options?: { svgDocument?: SVGElement }): string;
-
-    export function normalizeSides(box: number | { x?: number, y?: number, height?: number, width?: number }): dia.BBox;
-
-    export function getElementBBox(el: Element): dia.BBox;
-
-    export function setAttributesBySelector(el: Element, attrs: dia.SVGAttributes): void;
-
-    export function sortElements(elements: Element[]
-        | string
-        | JQuery, comparator: (a: Element, b: Element) => number): Element[];
-
-    export function shapePerimeterConnectionPoint(linkView: dia.LinkView, view: dia.ElementView, magnet: SVGElement, ref: dia.Point): dia.Point;
+    export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: { svgDocument?: SVGElement }): string;
 
     export function imageToDataUri(url: string, callback: (err: Error, dataUri: string) => void): void;
 
+    export function getElementBBox(el: Element): dia.BBox;
+
+    export function sortElements(
+        elements: Element[] | string | JQuery,
+        comparator: (a: Element, b: Element) => number
+    ): Element[];
+
+    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any } }): void;
+
+    export function normalizeSides(sides: number | { top?: number, bottom?: number, left?: number, right?: number }): dia.PaddingJSON;
+
+    export function template(html: string): (data: any) => string;
+
     export function toggleFullScreen(el?: Element): void;
+
+    export namespace timing {
+
+        type TimingFunction = (time: number) => number;
+
+        export var linear: TimingFunction;
+        export var quad: TimingFunction;
+        export var cubic: TimingFunction;
+        export var inout: TimingFunction;
+        export var exponential: TimingFunction;
+        export var bounce: TimingFunction;
+
+        export function reverse(f: TimingFunction): TimingFunction;
+
+        export function reflect(f: TimingFunction): TimingFunction;
+
+        export function clamp(f: TimingFunction, min?: number, max?: number): TimingFunction;
+
+        export function back(s?: number): TimingFunction;
+
+        export function elastic(x?: number): TimingFunction;
+    }
+
+    export namespace interpolate {
+
+        type InterpolateFunction<T> = (start: T, end: T) => ((time: number) => T);
+
+        export var number: InterpolateFunction<number>;
+        export var object: InterpolateFunction<{ [key: string]: any }>;
+        export var hexColor: InterpolateFunction<string>;
+        export var unit: InterpolateFunction<string>;
+    }
+
+    export namespace filter {
+
+        interface FilterArgumentsMap {
+            'outline': {
+                color?: string;
+                opacity?: number;
+                margin?: number;
+                width?: number;
+            };
+            'highlight': {
+                color?: string;
+                blur?: number;
+                opacity?: number;
+                width?: number;
+            };
+            'blur': {
+                x?: number;
+                y?: number;
+            };
+            'dropShadow': {
+                dx?: number;
+                dy?: number;
+                opacity?: number;
+                color?: string;
+                blur?: number;
+            };
+            'grayscale': {
+                amount?: number;
+            };
+            'sepia': {
+                amount?: number;
+            };
+            'saturate': {
+                amount?: number;
+            };
+            'hueRotate': {
+                angle?: number;
+            };
+            'invert': {
+                amount?: number;
+            };
+            'brightness': {
+                amount?: number;
+            };
+            'contrast': {
+                amount?: number;
+            };
+        }
+
+        type FilterFunction<K extends keyof FilterArgumentsMap> = (args: FilterArgumentsMap[K]) => string;
+
+        export var outline: FilterFunction<'outline'>;
+        export var highlight: FilterFunction<'highlight'>;
+        export var blur: FilterFunction<'blur'>;
+        export var dropShadow: FilterFunction<'dropShadow'>;
+        export var grayscale: FilterFunction<'grayscale'>;
+        export var sepia: FilterFunction<'sepia'>;
+        export var saturate: FilterFunction<'saturate'>;
+        export var hueRotate: FilterFunction<'hueRotate'>;
+        export var invert: FilterFunction<'invert'>;
+        export var brightness: FilterFunction<'brightness'>;
+        export var contrast: FilterFunction<'contrast'>;
+    }
+
+    namespace format {
+
+        interface NumberLocale {
+            currency: [string, string],
+            decimal: string,
+            thousands: string,
+            grouping: number[]
+        }
+
+        export function number(specifier: string, value: number, locale?: NumberLocale): string;
+
+        export function string(str: string, value: string): string;
+
+        export function convert(type: string, value: number, precision: number): string;
+
+        export function round(value: number, precision?: number): number
+
+        export function precision(value: number, precision: number): number;
+
+        export function prefix(value: number, precision: number): { scale: (d: number) => number; symbol: string; } | undefined
+    }
 
     // Not documented but used in examples
     /** @deprecated use lodash _.defaultsDeep */
@@ -1923,40 +2181,85 @@ export namespace util {
 
     /** @deprecated use lodash _.mixin  */
     export function deepMixin(objects: any[]): any;
+
 }
+
+// env
+
+export namespace env {
+
+    export function addTest(name: string, fn: () => boolean): void;
+
+    export function test(name: string): boolean;
+}
+
+// layout
 
 export namespace layout {
 
-    interface LayoutOptions {
-        nodeSep?: number;
-        edgeSep?: number;
-        rankSep?: number;
-        rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
-        marginX?: number;
-        marginY?: number;
-        resizeCluster?: boolean;
-        setPosition?: (element: dia.Element, position: dia.BBox) => void;
-        setLinkVertices?: (link: dia.Link, vertices: Position[]) => void;
-    }
-
     export namespace DirectedGraph {
-        export function layout(graph: dia.Graph | dia.Cell[], options?: LayoutOptions): dia.BBox;
+
+        interface Edge {
+            minLen?: number;
+            weight?: number;
+            labelpos?: 'l' | 'c' | 'r';
+            labeloffset?: number;
+            width?: number;
+            height?: number;
+        }
+
+        interface Node {
+            width?: number;
+            height?: number;
+        }
+
+        interface LayoutOptions {
+            rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
+            ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
+            nodeSep?: number;
+            edgeSep?: number;
+            rankSep?: number;
+            marginX?: number;
+            marginY?: number;
+            resizeCluster?: boolean;
+            clusterPadding?: dia.Padding;
+            setPosition?: (element: dia.Element, position: dia.BBox) => void;
+            setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
+            setLabels?: boolean | ((link: dia.Link, position: dia.Point, points: dia.Point[]) => void);
+            debugTiming?: boolean;
+            exportElement?: (element: dia.Element) => Node;
+            exportLink?: (link: dia.Link) => Edge;
+            // deprecated
+            setLinkVertices?: boolean;
+        }
+
+        export function layout(graph: dia.Graph | dia.Cell[], opt?: LayoutOptions): g.Rect;
     }
 }
 
+// mvc
+
 export namespace mvc {
 
+    interface ViewOptions<T extends Backbone.Model> extends Backbone.ViewOptions<T> {
+        theme?: string;
+    }
+
     class View<T extends Backbone.Model> extends Backbone.View<T> {
-        constructor(opt: any);
-        constructor();
+
+        constructor(opt?: ViewOptions<T>);
 
         theme: string;
 
+        themeClassNamePrefix: string
+
         defaultTheme: string;
 
-        setTheme(theme: string, opt: any): void;
+        requireSetThemeOverride: boolean;
 
-        getEventNamespace(): this;
+        setTheme(theme: string, opt?: { override?: boolean }): this;
+
+        getEventNamespace(): string;
 
         protected init(): void;
 
@@ -1966,6 +2269,427 @@ export namespace mvc {
 
         protected onRemove(): void;
     }
+}
+
+// routers
+
+export namespace routers {
+
+    interface NormalRouterArguments {
+
+    }
+
+    interface ManhattanRouterArguments {
+        excludeTypes?: string[];
+        excludeEnds?: 'source' | 'target';
+        startDirections?: ['left' | 'right' | 'top' | 'bottom'];
+        endDirections?: ['left' | 'right' | 'top' | 'bottom'];
+        step?: number;
+        maximumLoops?: number;
+    }
+
+    interface OrthogonalRouterArguments {
+        elementPadding?: number;
+    }
+
+    interface OneSideRouterArguments {
+        side?: 'bottom' | 'top' | 'left' | 'right';
+        padding?: number;
+    }
+
+    interface RouterArgumentsMap {
+        'normal': NormalRouterArguments;
+        'manhattan': ManhattanRouterArguments;
+        'metro': ManhattanRouterArguments;
+        'orthogonal': OrthogonalRouterArguments;
+        'oneSide': OneSideRouterArguments;
+    }
+
+    type RouterType = string & keyof RouterArgumentsMap;
+
+    interface GenericRouter<K extends RouterType> {
+        (
+            points: dia.Point[],
+            args?: RouterArgumentsMap[K],
+            linkView?: dia.LinkView
+        ): dia.Point[];
+    }
+
+    interface GenericRouterJSON<K extends RouterType> {
+        name: K;
+        args?: RouterArgumentsMap[K];
+    }
+
+    type Router = GenericRouter<RouterType>;
+
+    type RouterJSON = GenericRouterJSON<RouterType>;
+
+    export var manhattan: GenericRouter<'manhattan'>;
+    export var metro: GenericRouter<'metro'>;
+    export var normal: GenericRouter<'normal'>;
+    export var orthogonal: GenericRouter<'orthogonal'>;
+    export var oneSide: GenericRouter<'oneSide'>;
+}
+
+// connectors
+
+export namespace connectors {
+
+    interface NormalConnectorArguments {
+
+    }
+
+    interface RoundedConnectorArguments {
+        radius?: number
+    }
+
+    interface SmoothConnectorArguments {
+
+    }
+
+    interface JumpOverConnectorArguments {
+        size?: number;
+        jump?: 'arc' | 'gap' | 'cubic'
+    }
+
+    interface ConnectorArgumentsMap {
+        'normal': NormalConnectorArguments;
+        'rounded': RoundedConnectorArguments;
+        'smooth': SmoothConnectorArguments;
+        'jumpover': JumpOverConnectorArguments;
+    }
+
+    type ConnectorType = string & keyof ConnectorArgumentsMap;
+
+    interface GenericConnector<K extends ConnectorType> {
+        (
+            sourcePoint: dia.Point,
+            targetPoint: dia.Point,
+            vertices: dia.Point[],
+            args?: ConnectorArgumentsMap[K],
+            linkView?: dia.LinkView
+        ): string;
+    }
+
+    interface GenericConnectorJSON<K extends ConnectorType> {
+        name: K;
+        args?: ConnectorArgumentsMap[K];
+    }
+
+    type Connector = GenericConnector<ConnectorType>;
+
+    type ConnectorJSON = GenericConnectorJSON<ConnectorType>;
+
+    export var normal: GenericConnector<'normal'>;
+    export var rounded: GenericConnector<'rounded'>;
+    export var smooth: GenericConnector<'smooth'>;
+    export var jumpover: GenericConnector<'jumpover'>;
+}
+
+// highlighters
+
+export namespace highlighters {
+
+    interface AddClassHighlighterArguments {
+        className?: string;
+    }
+
+    interface OpacityHighlighterArguments {
+
+    }
+
+    interface StrokeHighlighterArguments {
+        padding?: number;
+        rx?: number;
+        ry?: number;
+        attrs?: attributes.NativeSVGAttributes;
+    }
+
+    interface HighlighterArgumentsMap {
+        'addClass': AddClassHighlighterArguments;
+        'opacity': OpacityHighlighterArguments;
+        'stroke': StrokeHighlighterArguments;
+    }
+
+    type HighlighterType = string & keyof HighlighterArgumentsMap;
+
+    interface GenericHighlighterJSON<K extends HighlighterType> {
+        name: K;
+        opt?: HighlighterArgumentsMap[K];
+    }
+
+    interface GenericHighlighter<K extends HighlighterType> {
+        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: HighlighterArgumentsMap[K]): void;
+
+        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: HighlighterArgumentsMap[K]): void;
+    }
+
+    type Highlighter = GenericHighlighter<HighlighterType>;
+
+    type HighlighterJSON = GenericHighlighterJSON<HighlighterType>;
+
+    export var addClass: GenericHighlighter<'addClass'>;
+    export var opacity: GenericHighlighter<'opacity'>;
+    export var stroke: GenericHighlighter<'stroke'>;
+}
+
+export namespace attributes {
+
+    interface SVGCoreAttributes {
+        'id'?: string;
+        'xml:base'?: string;
+        'xml:lang'?: string;
+        'xml:space'?: string;
+        'tabindex'?: number;
+    }
+
+    interface SVGConditionalProcessingAttributes {
+        'requiredExtensions'?: boolean;
+        'requiredFeatures'?: string;
+        'systemLanguage'?: string;
+    }
+
+    interface SVGXLinkAttributes {
+        'xlink:href'?: string;
+        'xlink:type'?: string;
+        'xlink:role'?: string;
+        'xlink:arcrole'?: string;
+        'xlink:title'?: string;
+        'xlink:show'?: string;
+        'xlink:actuate'?: string;
+    }
+
+    interface SVGPresentationAttributes {
+        'alignment-baseline'?: any;
+        'baseline-shift'?: any;
+        'clip'?: any;
+        'clip-path'?: any;
+        'clip-rule'?: any;
+        'color'?: any;
+        'color-interpolation'?: any;
+        'color-interpolation-filters'?: any;
+        'color-profile'?: any;
+        'color-rendering'?: any;
+        'cursor'?: any;
+        'direction'?: any;
+        'display'?: any;
+        'dominant-baseline'?: any;
+        'enable-background'?: any;
+        'fill'?: any;
+        'fill-opacity'?: any;
+        'fill-rule'?: any;
+        'filter'?: any;
+        'flood-color'?: any;
+        'flood-opacity'?: any;
+        'font-family'?: any;
+        'font-size'?: any;
+        'font-size-adjust'?: any;
+        'font-stretch'?: any;
+        'font-style'?: any;
+        'font-variant'?: any;
+        'font-weight'?: any;
+        'glyph-orientation-horizontal'?: any;
+        'glyph-orientation-vertical'?: any;
+        'image-rendering'?: any;
+        'kerning'?: any;
+        'letter-spacing'?: any;
+        'lighting-color'?: any;
+        'marker-end'?: any;
+        'marker-mid'?: any;
+        'marker-start'?: any;
+        'mask'?: any;
+        'opacity'?: any;
+        'overflow'?: any;
+        'pointer-events'?: any;
+        'shape-rendering'?: any;
+        'stop-color'?: any;
+        'stop-opacity'?: any;
+        'stroke'?: any;
+        'stroke-dasharray'?: any;
+        'stroke-dashoffset'?: any;
+        'stroke-linecap'?: any;
+        'stroke-linejoin'?: any;
+        'stroke-miterlimit'?: any;
+        'stroke-opacity'?: any;
+        'stroke-width'?: any;
+        'text-anchor'?: any;
+        'text-decoration'?: any;
+        'text-rendering'?: any;
+        'unicode-bidi'?: any;
+        'visibility'?: any;
+        'word-spacing'?: any;
+        'writing-mode'?: any;
+    }
+
+    interface NativeSVGAttributes extends SVGCoreAttributes, SVGPresentationAttributes, SVGConditionalProcessingAttributes, SVGXLinkAttributes {
+        'class'?: string;
+        'style'?: string;
+        'transform'?: string;
+        'externalResourcesRequired'?: boolean;
+
+        [key: string]: any;
+    }
+
+    interface SVGAttributes extends NativeSVGAttributes {
+        // Special attributes
+        filter?: string | { [key: string]: any };
+        fill?: string | { [key: string]: any };
+        stroke?: string | { [key: string]: any };
+        sourceMarker?: { [key: string]: any };
+        targetMarker?: { [key: string]: any };
+        vertexMarker?: { [key: string]: any };
+        text?: string;
+        textWrap?: { [key: string]: any };
+        lineHeight?: number | string;
+        textPath?: any;
+        annotations?: any;
+        port?: string;
+        style?: string;
+        html?: string;
+        ref?: string;
+        refX?: string | number;
+        refy?: string | number;
+        refX2?: string | number;
+        refy2?: string | number;
+        refDx?: string | number;
+        refDy?: string | number;
+        refWidth?: string | number;
+        refHeight?: string | number;
+        refRx?: string | number;
+        refRy?: string | number;
+        refCx?: string | number;
+        refCy?: string | number;
+        resetOffset?: boolean;
+        xAlignment?: 'middle' | 'right' | number | string;
+        yAlignment?: 'middle' | 'bottom' | number | string;
+        event?: string;
+        magnet?: boolean | string;
+        // CamelCase variants of native attributes
+        alignmentBaseline?: any;
+        baselineShift?: any;
+        clipPath?: any;
+        clipRule?: any;
+        colorInterpolation?: any;
+        colorInterpolationFilters?: any;
+        colorProfile?: any;
+        colorRendering?: any;
+        dominantBaseline?: any;
+        enableBackground?: any;
+        fillOpacity?: any;
+        fillRule?: any;
+        floodColor?: any;
+        floodOpacity?: any;
+        fontFamily?: any;
+        fontSize?: any;
+        fontSizeAdjust?: any;
+        fontStretch?: any;
+        fontStyle?: any;
+        fontVariant?: any;
+        fontWeight?: any;
+        glyphOrientationHorizontal?: any;
+        glyphOrientationVertical?: any;
+        imageRendering?: any;
+        letterSpacing?: any;
+        lightingColor?: any;
+        markerEnd?: any;
+        markerMid?: any;
+        markerStart?: any;
+        pointerEvents?: any;
+        shapeRendering?: any;
+        stopColor?: any;
+        stopOpacity?: any;
+        strokeDasharray?: any;
+        strokeDashoffset?: any;
+        strokeLinecap?: any;
+        strokeLinejoin?: any;
+        strokeMiterlimit?: any;
+        strokeOpacity?: any;
+        strokeWidth?: any;
+        textAnchor?: any;
+        textDecoration?: any;
+        textRendering?: any;
+        unicodeBidi?: any;
+        wordSpacing?: any;
+        writingMode?: any;
+        xlinkHref?: string;
+        xlinkShow?: string;
+        xlinkType?: string;
+        xlinkRole?: string;
+        xlinkArcrole?: string;
+        xlinkTitle?: string;
+        xlinkActuate?: string;
+        xmlSpace?: string;
+        xmlBase?: string;
+        xmlLang?: string;
+        // Backwards compatibility
+        'ref-x'?: string | number;
+        'ref-y'?: string | number;
+        'ref-dx'?: string | number;
+        'ref-dy'?: string | number;
+        'ref-width'?: string | number;
+        'ref-height'?: string | number;
+        'x-alignment'?: 'middle' | 'right' | number | string;
+        'y-alignment'?: 'middle' | 'bottom' | number | string;
+    }
+
+    interface SVGTextAttributes extends SVGAttributes {
+        x?: string | number;
+        y?: string | number;
+        dx?: string | number;
+        dy?: string | number;
+        rotate?: string;
+        textAnchor?: string;
+        textLength?: number;
+        lengthAdjust?: string;
+        'text-anchor'?: string;
+        'text-lenght'?: number;
+        'length-adjust'?: string;
+    }
+
+    interface SVGRectAttributes extends SVGAttributes {
+        x?: string | number;
+        y?: string | number;
+        width?: string | number;
+        height?: string | number;
+        ry?: string | number;
+        rx?: string | number;
+    }
+
+    interface SVGCircleAttributes extends SVGAttributes {
+        cx?: string | number;
+        cy?: string | number;
+        r?: string | number;
+    }
+
+    interface SVGEllipseAttributes extends SVGAttributes {
+        cx?: string | number;
+        cy?: string | number;
+        rx?: string | number;
+        ry?: string | number;
+    }
+
+    interface SVGPolygonAttributes extends SVGAttributes {
+        points?: string;
+    }
+
+    interface SVGPolylineAttributes extends SVGAttributes {
+        points?: string;
+    }
+
+    interface SVGImageAttributes extends SVGAttributes {
+        x?: string | number;
+        y?: string | number;
+        width?: string | number;
+        height?: string | number;
+        preserveAspectRatio?: string;
+    }
+
+    interface SVGPathAttributes extends SVGAttributes {
+        d?: string;
+        pathLength?: number;
+        'path-length'?: number;
+    }
+
 }
 
 export function setTheme(theme: string): void;

@@ -1,4 +1,4 @@
-/*! JointJS v1.2.0-beta (2017-10-19) - JavaScript diagramming library
+/*! JointJS v2.0.0 (2017-10-23) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -3847,7 +3847,7 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '1.2.0-beta',
+    version: '2.0.0',
 
     config: {
         // The class name prefix config is for advanced use only.
@@ -6089,7 +6089,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var commonAncestor = joint.util.toArray(cellsAncestors.shift()).find(function(ancestor) {
             return cellsAncestors.every(function(cellAncestors) {
-                return cellAncestors.includes(ancestor)
+                return cellAncestors.includes(ancestor);
             });
         });
 
@@ -6448,18 +6448,18 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     // Disconnect links connected to the cell `model`.
-    disconnectLinks: function(model, options) {
+    disconnectLinks: function(model, opt) {
 
         this.getConnectedLinks(model).forEach(function(link) {
 
-            link.set(link.get('source').id === model.id ? 'source' : 'target', { x: 0, y: 0 }, options);
+            link.set(link.get('source').id === model.id ? 'source' : 'target', { x: 0, y: 0 }, opt);
         });
     },
 
     // Remove links connected to the cell `model` completely.
-    removeLinks: function(model, options) {
+    removeLinks: function(model, opt) {
 
-        joint.util.invoke(this.getConnectedLinks(model), 'remove', options);
+        joint.util.invoke(this.getConnectedLinks(model), 'remove', opt);
     },
 
     // Find all elements at given point
@@ -6489,7 +6489,7 @@ joint.dia.Graph = Backbone.Model.extend({
         opt = joint.util.defaults(opt || {}, { searchBy: 'bbox' });
 
         var bbox = element.getBBox();
-        var elements = (opt.searchBy == 'bbox')
+        var elements = (opt.searchBy === 'bbox')
             ? this.findModelsInArea(bbox)
             : this.findModelsFromPoint(bbox[opt.searchBy]());
 
@@ -6528,6 +6528,8 @@ joint.dia.Graph = Backbone.Model.extend({
         });
 
         joint.util.invoke(cells, 'translate', dx, dy, opt);
+
+        return this;
     },
 
     resize: function(width, height, opt) {
@@ -6567,7 +6569,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
     hasActiveBatch: function(name) {
         if (name) {
-            return this._batches[name];
+            return !!this._batches[name];
         } else {
             return joint.util.toArray(this._batches).some(function(batches) {
                 return batches > 0;
@@ -6660,8 +6662,56 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
             set: 'xlink:show'
         },
 
+        xlinkRole: {
+            set: 'xlink:role'
+        },
+
+        xlinkType: {
+            set: 'xlink:type'
+        },
+
+        xlinkArcrole: {
+            set: 'xlink:arcrole'
+        },
+
+        xlinkTitle: {
+            set: 'xlink:title'
+        },
+
+        xlinkActuate: {
+            set: 'xlink:actuate'
+        },
+
         xmlSpace: {
             set: 'xml:space'
+        },
+
+        xmlBase: {
+            set: 'xml:base'
+        },
+
+        xmlLang: {
+            set: 'xml:lang'
+        },
+
+        preserveAspectRatio: {
+            set: 'preserveAspectRatio'
+        },
+
+        requiredExtension: {
+            set: 'requiredExtension'
+        },
+
+        requiredFeatures: {
+            set: 'requiredFeatures'
+        },
+
+        systemLanguage: {
+            set: 'systemLanguage'
+        },
+
+        externalResourcesRequired: {
+            set: 'externalResourceRequired'
         },
 
         filter: {
@@ -9273,13 +9323,13 @@ joint.dia.Link = joint.dia.Cell.extend({
         return connectionAncestor || null;
     },
 
-    // Is source, target and the link itself embedded in a given element?
-    isRelationshipEmbeddedIn: function(element) {
+    // Is source, target and the link itself embedded in a given cell?
+    isRelationshipEmbeddedIn: function(cell) {
 
-        var elementId = joint.util.isString(element) ? element : element.id;
+        var cellId = (joint.util.isString(cell) || joint.util.isNumber(cell)) ? cell : cell.id;
         var ancestor = this.getRelationshipAncestor();
 
-        return !!ancestor && (ancestor.id === elementId || ancestor.isEmbeddedIn(elementId));
+        return !!ancestor && (ancestor.id === cellId || ancestor.isEmbeddedIn(cellId));
     }
 },
     {
@@ -10392,10 +10442,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             } else if (paperOptions.linkConnectionPoint) {
 
-                var view = end === 'target' ? this.targetView : this.sourceView;
-                var magnet = end === 'target' ? this.targetMagnet : this.sourceMagnet;
+                var view = (end === 'target') ? this.targetView : this.sourceView;
+                var magnet = (end === 'target') ? this.targetMagnet : this.sourceMagnet;
 
-                spot = paperOptions.linkConnectionPoint(this, view, magnet, reference);
+                spot = paperOptions.linkConnectionPoint(this, view, magnet, reference, end);
 
             } else {
 
@@ -10520,7 +10570,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             if (availableMagnets.length > 0) {
                 // highlight all available magnets
                 for (var j = 0, m = availableMagnets.length; j < m; j++) {
-                    view.highlight(availableMagnets[j], { magnetAvailability: true })
+                    view.highlight(availableMagnets[j], { magnetAvailability: true });
                 }
                 // highlight the entire view
                 view.highlight(null, { elementAvailability: true });
@@ -10543,7 +10593,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var view = this.paper.findViewByModel(id);
             if (view) {
                 for (var j = 0, m = markedMagnets.length; j < m; j++) {
-                    view.unhighlight(markedMagnets[j], { magnetAvailability: true })
+                    view.unhighlight(markedMagnets[j], { magnetAvailability: true });
                 }
                 view.unhighlight(null, { elementAvailability: true });
             }
@@ -11235,6 +11285,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (this._background) {
             this.updateBackgroundImage(this._background);
         }
+
+        return this;
     },
 
     // For storing the current transformation matrix (CTM) of the paper's viewport.
@@ -12494,7 +12546,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             options.height = gridSize * (ctm.d || 1) * (options.scaleFactor || 1);
 
             if (!refs.exist(id)) {
-                refs.add(id, V('pattern', { id: id, patternUnits: 'userSpaceOnUse' }, V(options.markup)))
+                refs.add(id, V('pattern', { id: id, patternUnits: 'userSpaceOnUse' }, V(options.markup)));
             }
 
             var patternDefVel = refs.get(id);
@@ -17344,7 +17396,7 @@ joint.layout.DirectedGraph = {
                 var target = cell.get('target');
 
                 // Links that end at a point are ignored.
-                if (!source.id || !target.id) return;
+                if (!source.id || !target.id) break;
 
                 // Note that if we are creating a multigraph we can name the edges. If
                 // we try to name edges on a non-multigraph an exception is thrown.
