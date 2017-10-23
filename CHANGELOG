@@ -1,5 +1,6 @@
-TBD (v1.2.0)
-  * JointJS now compatible with Lodash v4
+23-10-2017 (v2.0.0)
+  * Typescript definitions refactored (breaking change of the release)
+  * JointJS now compatible with Lodash v4 (see `demo/lodash4` for instructions)
   * Geometry - add Polyline with pointAtLength(), length(), closesPointLength(), closestPoint() and convexHull()
   * Geometry - add cross(), dot(), squaredDistance(), closestPoint(), closestPointNormalizedLenght(), vector(), vectorAngle(), angleBetween() to Point
   * Vectorizer - add children() and getBBox()
