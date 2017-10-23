@@ -4,8 +4,8 @@
   * Geometry - add Polyline with pointAtLength(), length(), closesPointLength(), closestPoint() and convexHull()
   * Geometry - add cross(), dot(), squaredDistance(), closestPoint(), closestPointNormalizedLenght(), vector(), vectorAngle(), angleBetween() to Point
   * Vectorizer - add children() and getBBox()
-  * Vectorizer - fix parseTransdoemString() and matrixToTransformString()
-  * Vectorizer - make the text `y` coordinate based on the first line line-height in text()
+  * Vectorizer - fix parseTransformString() and matrixToTransformString()
+  * Vectorizer - make the text `y` coordinate based on the first line `line-height` in text()
   * Vectorizer - add option to define the end-of-line character for text()
   * layout.DirectedLayout - add ability to position labels
   * layout.DirectedLayout - fix bug when the elements passed do not include their parents
@@ -18,6 +18,7 @@
   * dia.LinkView: stop triggering link:connect/link:disconnnect when connection not allowed
   * dia.LinkView - can sendToken() backwards
   * highlighters.Stroke: fix for magnets inside scalable group and with zero width or height
+
 31-03-2017 (v1.1.0)
   * add TypeScript definitions
   * update jQuery v3.1.1
