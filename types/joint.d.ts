@@ -608,8 +608,8 @@ export namespace dia {
             clickThreshold?: number;
             moveThreshold?: number;
             // views
-            elementView?: (element: Element) => ElementView;
-            linkView?: (link: Link) => LinkView;
+            elementView?: typeof ElementView | ((element: Element) => typeof ElementView);
+            linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
             // embedding
             embeddingMode?: boolean;
             findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft';
