@@ -963,39 +963,51 @@ export namespace shapes {
     namespace chess {
 
         class KingWhite extends basic.Generic {
+
         }
 
         class KingBlack extends basic.Generic {
+
         }
 
         class QueenWhite extends basic.Generic {
+
         }
 
         class QueenBlack extends basic.Generic {
+
         }
 
         class RookWhite extends basic.Generic {
+
         }
 
         class RookBlack extends basic.Generic {
+
         }
 
         class BishopWhite extends basic.Generic {
+
         }
 
         class BishopBlack extends basic.Generic {
+
         }
 
         class KnightWhite extends basic.Generic {
+
         }
 
         class KnightBlack extends basic.Generic {
+
         }
 
         class PawnWhite extends basic.Generic {
+
         }
 
         class PawnBlack extends basic.Generic {
+
         }
     }
 
@@ -1041,7 +1053,7 @@ export namespace shapes {
         }
 
         class Link extends dia.Link {
-            constructor(attributes?: dia.Link.Attributes, opt?: { [key: string]: any });
+
         }
     }
 
@@ -1113,8 +1125,6 @@ export namespace shapes {
 
         class Line extends dia.Link {
 
-            constructor(attributes?: dia.Link.Attributes, opt?: { [key: string]: any });
-
             cardinality(value: string | number): void;
         }
     }
@@ -1145,7 +1155,7 @@ export namespace shapes {
         }
 
         class Arrow extends dia.Link {
-            constructor(attributes?: dia.Link.Attributes, opt?: { [key: string]: any });
+
         }
     }
 
@@ -1248,7 +1258,7 @@ export namespace shapes {
         }
 
         class Wire extends dia.Link {
-            constructor(attributes?: dia.Link.Attributes, opt?: { [key: string]: any });
+
         }
     }
 
@@ -1269,7 +1279,7 @@ export namespace shapes {
         }
 
         class Arrow extends dia.Link {
-            constructor(attributes?: dia.Link.Attributes, opt?: { [key: string]: any });
+
         }
     }
 
@@ -1291,7 +1301,7 @@ export namespace shapes {
         }
 
         class Link extends dia.Link {
-            constructor(attributes?: dia.Link.Attributes, opt?: { [key: string]: any });
+
         }
     }
 
@@ -1333,23 +1343,23 @@ export namespace shapes {
         }
 
         class Generalization extends dia.Link {
-            constructor(attributes?: dia.Link.Attributes, opt?: { [key: string]: any });
+
         }
 
         class Implementation extends dia.Link {
-            constructor(attributes?: dia.Link.Attributes, opt?: { [key: string]: any });
+
         }
 
         class Aggregation extends dia.Link {
-            constructor(attributes?: dia.Link.Attributes, opt?: { [key: string]: any });
+
         }
 
         class Composition extends dia.Link {
-            constructor(attributes?: dia.Link.Attributes, opt?: { [key: string]: any });
+
         }
 
         class Association extends dia.Link {
-            constructor(attributes?: dia.Link.Attributes, opt?: { [key: string]: any });
+
         }
 
         interface StateSelectors extends dia.Cell.Selectors {
@@ -1393,7 +1403,7 @@ export namespace shapes {
         }
 
         class Transition extends dia.Link {
-            constructor(attributes?: dia.Link.Attributes, opt?: { [key: string]: any });
+
         }
     }
 }
