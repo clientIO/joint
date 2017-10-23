@@ -14,12 +14,14 @@ export namespace dia {
 
     }
 
-    type Padding = number | {
+    type PaddingJSON = {
         top?: number;
         right?: number;
         bottom?: number;
         left?: number
     };
+
+    type Padding = number | PaddingJSON;
 
     type Direction =
         'left' | 'right' | 'top' | 'bottom' | 'top-right' |
@@ -173,8 +175,8 @@ export namespace dia {
         interface TransitionOptions {
             delay?: number;
             duration?: number;
-            timingFunction?: (t: number) => number;
-            valueFunction?: (a: any, b: any) => (t: number) => any;
+            timingFunction?: util.timing.TimingFunction;
+            valueFunction?: util.interpolate.InterpolateFunction<any>;
         }
     }
 
@@ -1416,46 +1418,168 @@ export namespace shapes {
     }
 }
 
+// util
+
 export namespace util {
 
-    namespace format {
-        export function number(specifier: string, value: number): string;
-    }
+    export function hashCode(str: string): string;
+
+    export function getByPath(object: { [key: string]: any }, path: string | string[], delim?: string): any;
+
+    export function setByPath(object: { [key: string]: any }, path: string | string[], value: any, delim?: string): any;
+
+    export function unsetByPath(object: { [key: string]: any }, path: string | string[], delim?: string): any;
+
+    export function flattenObject(object: { [key: string]: any }, delim?: string, stop?: (node: any) => boolean): any;
 
     export function uuid(): string;
 
     export function guid(obj?: { [key: string]: any }): string;
 
+    export function toKebabCase(str: string): string;
+
+    export function normalizeEvent(evt: JQuery.Event): JQuery.Event;
+
     export function nextFrame(callback: () => void, context?: { [key: string]: any }): number;
 
     export function cancelFrame(requestId: number): void;
 
-    export function flattenObject(object: { [key: string]: any }, delim: string, stop: (node: any) => boolean): any;
+    export var shapePerimeterConnectionPoint: dia.LinkView.GetConnectionPoint;
 
-    export function getByPath(object: { [key: string]: any }, path: string, delim: string): any;
-
-    export function setByPath(object: { [key: string]: any }, path: string, value: any, delim: string): any;
-
-    export function unsetByPath(object: { [key: string]: any }, path: string, delim: string): any;
+    export function parseCssNumber(str: string, restrictUnits?: string[]): { value: number; unit?: string; };
 
     export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: { svgDocument?: SVGElement }): string;
 
-    export function normalizeSides(box: number | { x?: number, y?: number, height?: number, width?: number }): dia.BBox;
+    export function imageToDataUri(url: string, callback: (err: Error, dataUri: string) => void): void;
 
     export function getElementBBox(el: Element): dia.BBox;
-
-    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any }}): void;
 
     export function sortElements(
         elements: Element[] | string | JQuery,
         comparator: (a: Element, b: Element) => number
     ): Element[];
 
-    export var shapePerimeterConnectionPoint: dia.LinkView.GetConnectionPoint;
+    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any }}): void;
 
-    export function imageToDataUri(url: string, callback: (err: Error, dataUri: string) => void): void;
+    export function normalizeSides(sides: number | { top?: number, bottom?: number, left?: number, right?: number }): dia.PaddingJSON;
+
+    export function template(html: string): (data: any) => string;
 
     export function toggleFullScreen(el?: Element): void;
+
+    export namespace timing {
+
+        type TimingFunction = (time: number) => number;
+
+        export var linear: TimingFunction;
+        export var quad: TimingFunction;
+        export var cubic: TimingFunction;
+        export var inout: TimingFunction;
+        export var exponential: TimingFunction;
+        export var bounce: TimingFunction;
+
+        export function reverse(f: TimingFunction): TimingFunction;
+        export function reflect(f: TimingFunction): TimingFunction;
+        export function clamp(f: TimingFunction, min?: number, max?: number): TimingFunction;
+        export function back(s?: number): TimingFunction;
+        export function elastic(x?: number): TimingFunction;
+    }
+
+    export namespace interpolate {
+
+        type InterpolateFunction<T> = (start: T, end: T) => ((time: number) => T);
+
+        export var number: InterpolateFunction<number>;
+        export var object: InterpolateFunction<{ [key: string]: any }>;
+        export var hexColor: InterpolateFunction<string>;
+        export var unit: InterpolateFunction<string>;
+    }
+
+    export namespace filter {
+
+        interface FilterArgumentsMap {
+            'outline': {
+                color?: string;
+                opacity?: number;
+                margin?: number;
+                width?: number;
+            };
+            'highlight': {
+                color?: string;
+                blur?: number;
+                opacity?: number;
+                width?: number;
+            };
+            'blur': {
+                x?: number;
+                y?: number;
+            };
+            'dropShadow': {
+                dx?: number;
+                dy?: number;
+                opacity?: number;
+                color?: string;
+                blur?: number;
+            };
+            'grayscale': {
+                amount?: number;
+            };
+            'sepia': {
+                amount?: number;
+            };
+            'saturate': {
+                amount?: number;
+            };
+            'hueRotate': {
+                angle?: number;
+            };
+            'invert': {
+                amount?: number;
+            };
+            'brightness': {
+                amount?: number;
+            };
+            'contrast': {
+                amount?: number;
+            };
+        }
+
+        type FilterFunction<K extends keyof FilterArgumentsMap> = (args: FilterArgumentsMap[K]) => string;
+
+        export var outline: FilterFunction<'outline'>;
+        export var highlight: FilterFunction<'highlight'>;
+        export var blur: FilterFunction<'blur'>;
+        export var dropShadow: FilterFunction<'dropShadow'>;
+        export var grayscale: FilterFunction<'grayscale'>;
+        export var sepia: FilterFunction<'sepia'>;
+        export var saturate: FilterFunction<'saturate'>;
+        export var hueRotate: FilterFunction<'hueRotate'>;
+        export var invert: FilterFunction<'invert'>;
+        export var brightness: FilterFunction<'brightness'>;
+        export var contrast: FilterFunction<'contrast'>;
+    }
+
+    namespace format {
+
+        interface NumberLocale {
+            currency: [string, string],
+            decimal: string,
+            thousands: string,
+            grouping: number[]
+        }
+
+        export function number(specifier: string, value: number, locale?: NumberLocale): string;
+
+        export function string(str: string, value: string): string;
+
+        export function convert(type: string, value: number, precision: number): string;
+
+        export function round(value: number, precision?: number): number
+
+        export function precision(value: number, precision: number): number;
+
+        export function prefix(value: number, precision: number): { scale: (d: number) => number; symbol: string; } | undefined
+    }
 
     // Not documented but used in examples
     /** @deprecated use lodash _.defaultsDeep */
@@ -1470,7 +1594,19 @@ export namespace util {
 
     /** @deprecated use lodash _.mixin  */
     export function deepMixin(objects: any[]): any;
+
 }
+
+// env
+
+export namespace env {
+
+    export function addTest(name: string, fn: () => boolean): void;
+
+    export function test(name: string): boolean;
+}
+
+// layout
 
 export namespace layout {
 
@@ -1513,6 +1649,8 @@ export namespace layout {
         export function layout(graph: dia.Graph | dia.Cell[], opt?: LayoutOptions): g.Rect;
     }
 }
+
+// mvc
 
 export namespace mvc {
 
