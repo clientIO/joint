@@ -106,8 +106,7 @@ export namespace dia {
         findModelsInArea(rect: BBox, opt?: { strict?: boolean }): Element[];
 
         findModelsUnderElement(element: Element, opt?: {
-            searchBy?:
-                'bottomLeft' | 'bottomMiddle' | 'center' |
+            searchBy?: 'bottomLeft' | 'bottomMiddle' | 'center' |
                 'corner' | 'leftMiddle' | 'origin' | 'rightMiddle' |
                 'topMiddle' | 'topRight' | 'bbox'
         }): Element[];
@@ -1451,7 +1450,7 @@ export namespace util {
         comparator: (a: Element, b: Element) => number
     ): Element[];
 
-    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any }}): void;
+    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any } }): void;
 
     export function normalizeSides(sides: number | { top?: number, bottom?: number, left?: number, right?: number }): dia.PaddingJSON;
 
@@ -1471,9 +1470,13 @@ export namespace util {
         export var bounce: TimingFunction;
 
         export function reverse(f: TimingFunction): TimingFunction;
+
         export function reflect(f: TimingFunction): TimingFunction;
+
         export function clamp(f: TimingFunction, min?: number, max?: number): TimingFunction;
+
         export function back(s?: number): TimingFunction;
+
         export function elastic(x?: number): TimingFunction;
     }
 
@@ -1825,6 +1828,7 @@ export namespace highlighters {
 
     interface GenericHighlighter<K extends HighlighterType> {
         highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: HighlighterArgumentsMap[K]): void;
+
         unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: HighlighterArgumentsMap[K]): void;
     }
 
@@ -1930,6 +1934,7 @@ export namespace attributes {
         'style'?: string;
         'transform'?: string;
         'externalResourcesRequired'?: boolean;
+
         [key: string]: any;
     }
 
