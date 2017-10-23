@@ -1,4 +1,4 @@
-/*! JointJS v1.2.0-beta (2017-10-19) - JavaScript diagramming library
+/*! JointJS v2.0.0 (2017-10-23) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -249,7 +249,7 @@ joint.layout.DirectedGraph = {
                 var target = cell.get('target');
 
                 // Links that end at a point are ignored.
-                if (!source.id || !target.id) return;
+                if (!source.id || !target.id) break;
 
                 // Note that if we are creating a multigraph we can name the edges. If
                 // we try to name edges on a non-multigraph an exception is thrown.

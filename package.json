@@ -11,7 +11,7 @@
   "scripts": {
     "test": "grunt test"
   },
-  "version": "1.2.0-beta",
+  "version": "2.0.0",
   "main": "./dist/joint.min.js",
   "style": "./dist/joint.min.css",
   "types": "./dist/joint.d.ts",
@@ -24,7 +24,8 @@
     "David Durman <daviddurman@gmail.com> (https://github.com/DavidDurman)",
     "Roman Bruckner <bruckner.roman@gmail.com> (https://github.com/kumilingus)",
     "Charles Hill <chill@degreesofzero.com> (https://github.com/chill117)",
-    "Vladimir Talas (https://github.com/vtalas)"
+    "Vladimir Talas (https://github.com/vtalas)",
+    "Zbynek Stara (https://github.com/zbynekstara)"
   ],
   "repository": {
     "type": "git",
