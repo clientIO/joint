@@ -2,7 +2,7 @@
   * Typescript definitions refactored (breaking change of the release)
   * JointJS now compatible with Lodash v4 (see `demo/lodash4` for instructions)
   * Geometry - add Polyline with pointAtLength(), length(), closesPointLength(), closestPoint() and convexHull()
-  * Geometry - add cross(), dot(), squaredDistance(), closestPoint(), closestPointNormalizedLenght(), vector(), vectorAngle(), angleBetween() to Point
+  * Geometry - add cross(), dot(), squaredDistance(), closestPoint(), closestPointNormalizedLength(), vector(), vectorAngle(), angleBetween() to Point
   * Vectorizer - add children() and getBBox()
   * Vectorizer - fix parseTransformString() and matrixToTransformString()
   * Vectorizer - make the text `y` coordinate based on the first line `line-height` in text()
@@ -15,9 +15,9 @@
   * dia.Element - position() can be called with { deep: true } option to set position of the embeds
   * dia.attributes - `text` attribute takes `x` into account
   * dia.attributes - add `event` for easier events handling on CellViews and `resetOffset` for paths to start at 0,0
-  * dia.LinkView: stop triggering link:connect/link:disconnnect when connection not allowed
+  * dia.LinkView - stop triggering link:connect/link:disconnnect when connection not allowed
   * dia.LinkView - can sendToken() backwards
-  * highlighters.Stroke: fix for magnets inside scalable group and with zero width or height
+  * highlighters.Stroke - fix for magnets inside scalable group and with zero width or height
 
 31-03-2017 (v1.1.0)
   * add TypeScript definitions
