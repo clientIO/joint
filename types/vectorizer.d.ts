@@ -78,9 +78,6 @@ export namespace Vectorizer {
         'bottom-ry'?: number;
     }
 
-    // Backwards compatibility
-    interface Rect extends RoundedRect {}
-
     interface Rotation {
         angle: number;
         cx?: number;

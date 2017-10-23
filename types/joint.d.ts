@@ -1,18 +1,10 @@
 export namespace dia {
 
-    interface Size {
-        width: number;
-        height: number;
-    }
+    type Point = g.PlainPoint;
 
-    interface Point {
-        x: number;
-        y: number;
-    }
+    type BBox = g.PlainRect;
 
-    interface BBox extends Point, Size {
-
-    }
+    type Size = Pick<BBox, 'width' | 'height'>;
 
     type PaddingJSON = {
         top?: number;
@@ -111,7 +103,7 @@ export namespace dia {
 
         findModelsFromPoint(p: Point): Element[];
 
-        findModelsInArea(rect: g.PlainRect, opt?: { strict?: boolean }): Element[];
+        findModelsInArea(rect: BBox, opt?: { strict?: boolean }): Element[];
 
         findModelsUnderElement(element: Element, opt?: {
             searchBy?:
@@ -508,9 +500,9 @@ export namespace dia {
                 linkView: LinkView,
                 view: ElementView,
                 magnet: SVGElement,
-                reference: g.PlainPoint,
+                reference: Point,
                 end: 'source' | 'target'
-            ): g.PlainPoint;
+            ): Point;
         }
     }
 
@@ -669,43 +661,43 @@ export namespace dia {
         pageOffset(): g.Point;
 
         clientToLocalPoint(x: number, y: number): g.Point;
-        clientToLocalPoint(point: g.PlainPoint): g.Point;
+        clientToLocalPoint(point: Point): g.Point;
 
         clientToLocalRect(x: number, y: number, width: number, height: number): g.Rect;
-        clientToLocalRect(rect: g.PlainRect): g.Rect;
+        clientToLocalRect(rect: BBox): g.Rect;
 
         localToClientPoint(x: number, y: number): g.Point;
-        localToClientPoint(point: g.PlainPoint): g.Point;
+        localToClientPoint(point: Point): g.Point;
 
         localToClientRect(x: number, y: number, width: number, height: number): g.Rect;
-        localToClientRect(rect: g.PlainRect): g.Rect;
+        localToClientRect(rect: BBox): g.Rect;
 
         localToPagePoint(x: number, y: number): g.Point;
-        localToPagePoint(point: g.PlainPoint): g.Point;
+        localToPagePoint(point: Point): g.Point;
 
         localToPageRect(x: number, y: number, width: number, height: number): g.Rect;
-        localToPageRect(rect: g.PlainRect): g.Rect;
+        localToPageRect(rect: BBox): g.Rect;
 
         localToPaperPoint(x: number, y: number): g.Point;
-        localToPaperPoint(point: g.PlainPoint): g.Point;
+        localToPaperPoint(point: Point): g.Point;
 
         localToPaperRect(x: number, y: number, width: number, height: number): g.Rect;
-        localToPaperRect(rect: g.PlainRect): g.Rect;
+        localToPaperRect(rect: BBox): g.Rect;
 
         pageToLocalPoint(x: number, y: number): g.Point;
-        pageToLocalPoint(point: g.PlainPoint): g.Point;
+        pageToLocalPoint(point: Point): g.Point;
 
         pageToLocalRect(x: number, y: number, width: number, height: number): g.Rect;
-        pageToLocalRect(rect: g.PlainRect): g.Rect;
+        pageToLocalRect(rect: BBox): g.Rect;
 
         paperToLocalPoint(x: number, y: number): g.Point;
-        paperToLocalPoint(point: g.PlainPoint): g.Point;
+        paperToLocalPoint(point: Point): g.Point;
 
         paperToLocalRect(x: number, y: number, width: number, height: number): g.Rect;
-        paperToLocalRect(x: g.PlainRect): g.Rect;
+        paperToLocalRect(x: BBox): g.Rect;
 
         snapToGrid(x: number, y: number): g.Point;
-        snapToGrid(point: g.PlainPoint): g.Point;
+        snapToGrid(point: Point): g.Point;
 
         defineFilter(filter: { [key: string]: any }): string;
 
@@ -725,9 +717,9 @@ export namespace dia {
 
         findViewByModel<T extends ElementView | LinkView>(model: Cell | string | number): T;
 
-        findViewsFromPoint(point: string | g.PlainPoint): ElementView[];
+        findViewsFromPoint(point: string | Point): ElementView[];
 
-        findViewsInArea(rect: g.PlainRect, opt?: { strict?: boolean }): ElementView[];
+        findViewsInArea(rect: BBox, opt?: { strict?: boolean }): ElementView[];
 
         fitToContent(opt?: Paper.FitToContentOptions): void;
         fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, opt?: any): void;
@@ -1722,10 +1714,10 @@ export namespace routers {
 
     interface GenericRouter<K extends RouterType> {
         (
-            points: g.PlainPoint[],
+            points: dia.Point[],
             args?: RouterArgumentsMap[K],
             linkView?: dia.LinkView
-        ): g.PlainPoint[];
+        ): dia.Point[];
     }
 
     interface GenericRouterJSON<K extends RouterType> {
@@ -1776,9 +1768,9 @@ export namespace connectors {
 
     interface GenericConnector<K extends ConnectorType> {
         (
-            sourcePoint: g.PlainPoint,
-            targetPoint: g.PlainPoint,
-            vertices: g.PlainPoint[],
+            sourcePoint: dia.Point,
+            targetPoint: dia.Point,
+            vertices: dia.Point[],
             args?: ConnectorArgumentsMap[K],
             linkView?: dia.LinkView
         ): string;
