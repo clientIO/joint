@@ -1719,7 +1719,7 @@ export namespace attributes {
         'xml:base'?: string;
         'xml:lang'?: string;
         'xml:space'?: string;
-        'tabindex'?: string;
+        'tabindex'?: number;
     }
 
     interface SVGConditionalProcessingAttributes {
@@ -1809,9 +1809,7 @@ export namespace attributes {
     }
 
     interface SVGAttributes extends NativeSVGAttributes {
-        xlinkHref?: string;
-        xlinkShow?: string;
-        xmlSpace?: string;
+        // Special attributes
         filter?: string | { [key: string]: any };
         fill?: string | { [key: string]: any };
         stroke?: string | { [key: string]: any };
@@ -1844,6 +1842,63 @@ export namespace attributes {
         yAlignment?: 'middle' | 'bottom' | number | string;
         event?: string;
         magnet?: boolean | string;
+        // CamelCase variants of native attributes
+        alignmentBaseline?: any;
+        baselineShift?: any;
+        clipPath?: any;
+        clipRule?: any;
+        colorInterpolation?: any;
+        colorInterpolationFilters?: any;
+        colorProfile?: any;
+        colorRendering?: any;
+        dominantBaseline?: any;
+        enableBackground?: any;
+        fillOpacity?: any;
+        fillRule?: any;
+        floodColor?: any;
+        floodOpacity?: any;
+        fontFamily?: any;
+        fontSize?: any;
+        fontSizeAdjust?: any;
+        fontStretch?: any;
+        fontStyle?: any;
+        fontVariant?: any;
+        fontWeight?: any;
+        glyphOrientationHorizontal?: any;
+        glyphOrientationVertical?: any;
+        imageRendering?: any;
+        letterSpacing?: any;
+        lightingColor?: any;
+        markerEnd?: any;
+        markerMid?: any;
+        markerStart?: any;
+        pointerEvents?: any;
+        shapeRendering?: any;
+        stopColor?: any;
+        stopOpacity?: any;
+        strokeDasharray?: any;
+        strokeDashoffset?: any;
+        strokeLinecap?: any;
+        strokeLinejoin?: any;
+        strokeMiterlimit?: any;
+        strokeOpacity?: any;
+        strokeWidth?: any;
+        textAnchor?: any;
+        textDecoration?: any;
+        textRendering?: any;
+        unicodeBidi?: any;
+        wordSpacing?: any;
+        writingMode?: any;
+        xlinkHref?: string;
+        xlinkShow?: string;
+        xlinkType?: string;
+        xlinkRole?: string;
+        xlinkArcrole?: string;
+        xlinkTitle?: string;
+        xlinkActuate?: string;
+        xmlSpace?: string;
+        xmlBase?: string;
+        xmlLang?: string;
         // Backwards compatibility
         'ref-x'?: string | number;
         'ref-y'?: string | number;
@@ -1860,11 +1915,13 @@ export namespace attributes {
         y?: string | number;
         dx?: string | number;
         dy?: string | number;
-        textAnchor?: string;
         rotate?: string;
+        textAnchor?: string;
         textLength?: number;
         lengthAdjust?: string;
-        fontSize?: string | number;
+        'text-anchor'?: string;
+        'text-lenght'?: number;
+        'length-adjust'?: string;
     }
 
     interface SVGRectAttributes extends SVGAttributes {
@@ -1903,7 +1960,6 @@ export namespace attributes {
         width?: string | number;
         height?: string | number;
         preserveAspectRatio?: string;
-        'xlink:href'?: string;
     }
 
     interface SVGPathAttributes extends SVGAttributes {
