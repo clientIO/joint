@@ -80,8 +80,56 @@
             set: 'xlink:show'
         },
 
+        xlinkRole: {
+            set: 'xlink:role'
+        },
+
+        xlinkType: {
+            set: 'xlink:type'
+        },
+
+        xlinkArcrole: {
+            set: 'xlink:arcrole'
+        },
+
+        xlinkTitle: {
+            set: 'xlink:title'
+        },
+
+        xlinkActuate: {
+            set: 'xlink:actuate'
+        },
+
         xmlSpace: {
             set: 'xml:space'
+        },
+
+        xmlBase: {
+            set: 'xml:base'
+        },
+
+        xmlLang: {
+            set: 'xml:lang'
+        },
+
+        preserveAspectRatio: {
+            set: 'preserveAspectRatio'
+        },
+
+        requiredExtension: {
+            set: 'requiredExtension'
+        },
+
+        requiredFeatures: {
+            set: 'requiredFeatures'
+        },
+
+        systemLanguage: {
+            set: 'systemLanguage'
+        },
+
+        externalResourcesRequired: {
+            set: 'externalResourceRequired'
         },
 
         filter: {
