@@ -860,10 +860,7 @@ export namespace shapes {
     namespace basic {
 
         class Generic extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<dia.Cell.Selectors>,
-                opt?: { [key: string]: any }
-            );
+
         }
 
         class Text extends Generic {
