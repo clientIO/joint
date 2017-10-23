@@ -350,7 +350,18 @@ export namespace dia {
             connector?: connectors.ConnectorJSON;
         }
 
-        interface Attributes extends Cell.Attributes {
+        interface LinkSelectors extends Cell.Selectors {
+            '.connection'?: attributes.SVGPathAttributes;
+            '.connection-wrap'?: attributes.SVGPathAttributes;
+            '.marker-source'?: attributes.SVGPathAttributes;
+            '.marker-target'?: attributes.SVGPathAttributes;
+            '.labels'?: attributes.SVGAttributes;
+            '.marker-vertices'?: attributes.SVGAttributes;
+            '.marker-arrowheads'?: attributes.SVGAttributes;
+            '.link-tools'?: attributes.SVGAttributes;
+        }
+
+        interface Attributes extends Cell.GenericAttributes<LinkSelectors> {
             [key: string]: any;
         }
 
@@ -1952,6 +1963,7 @@ export namespace attributes {
     interface SVGPathAttributes extends SVGAttributes {
         d?: string;
         pathLength?: number;
+        'path-length'?: number;
     }
 
 }
