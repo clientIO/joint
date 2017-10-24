@@ -1304,7 +1304,8 @@ var joint = {
          */
         toggleFullScreen: function(el) {
 
-            el = el || window.top.document.body;
+            var topDocument = window.top.document;
+            el = el || topDocument.body;
 
             function prefixedResult(el, prop) {
 
@@ -1318,9 +1319,9 @@ var joint = {
                 }
             }
 
-            if (prefixedResult(document, 'FullscreenElement') || prefixedResult(document, 'FullScreenElement')) {
-                prefixedResult(document, 'ExitFullscreen') || // Spec.
-                prefixedResult(document, 'CancelFullScreen'); // Firefox
+            if (prefixedResult(topDocument, 'FullscreenElement') || prefixedResult(topDocument, 'FullScreenElement')) {
+                prefixedResult(topDocument, 'ExitFullscreen') || // Spec.
+                prefixedResult(topDocument, 'CancelFullScreen'); // Firefox
             } else {
                 prefixedResult(el, 'RequestFullscreen') || // Spec.
                 prefixedResult(el, 'RequestFullScreen'); // Firefox
