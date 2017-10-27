@@ -488,7 +488,7 @@ joint.dia.Cell = Backbone.Model.extend({
         // A nested property
         var property = pathArray[0];
         var nestedPath = pathArray.slice(1);
-        var propertyValue = joint.util.merge({}, this.get(property));
+        var propertyValue = joint.util.cloneDeep(this.get(property));
 
         joint.util.unsetByPath(propertyValue, nestedPath, '/');
 

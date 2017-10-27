@@ -643,6 +643,20 @@ QUnit.module('basic', function(hooks) {
         el.removeProp('nested/b', { OPT_PRESENT: true });
     });
 
+    QUnit.test('removeProp()', function(assert) {
+
+        var el = new joint.dia.Cell({
+            flat: [1, 2, 3],
+            nested: { a: [1, 2, 3] }
+        });
+
+        el.removeProp('flat/2');
+        assert.deepEqual(el.get('flat'), [1, 2, undefined]);
+
+        el.removeProp('nested/a/2');
+        assert.deepEqual(el.get('nested'), { a: [1, 2, undefined] });
+    });
+
     QUnit.test('toBack(), toFront()', function(assert) {
 
         var r1 = new joint.shapes.basic.Rect;
