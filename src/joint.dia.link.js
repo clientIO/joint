@@ -512,12 +512,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     text: {
                         textAnchor: 'middle',
                         fontSize: 14,
+                        fill: '#000000',
                         pointerEvents: 'none',
                         yAlignment: 'middle'
                     },
                     rect: {
                         ref: 'text',
-                        fill: 'white',
+                        fill: '#ffffff',
                         rx: 3,
                         ry: 3,
                         refWidth: 1,
