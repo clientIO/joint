@@ -1,3 +1,8 @@
+30-10-2017 (v2.0.1)
+  * toggleFullscreen() - fix canceling fullscreen in an iframe
+  * dia.Link - fix default label font color (IE)
+  * dia.Cell - fix removeProp() on arrays
+
 23-10-2017 (v2.0.0)
   * Typescript definitions refactored (breaking change of the release)
   * JointJS now compatible with Lodash v4 (see `demo/lodash4` for instructions)
