@@ -1856,6 +1856,200 @@ V = Vectorizer = (function() {
         return d.join(' ');
     };
 
+    // Take the data of a normalized path
+    // Return the bbox of the (untransformed) path as a g.Rect
+    V.normalizedPathBBox = function(normalizedPathData) {
+
+        // exit if an invalid character is present
+        if (new RegExp('[^0-9MLCZ .-]').test(normalizedPathData)) return;
+        // exit if the path does not begin with M and end with Z
+        if (!(new RegExp('^M.*Z$').test(normalizedPathData))) return;
+
+        function getLinetoBBox(startPoint, endPoint) {
+
+            var x = startPoint.x;
+            var y = startPoint.y;
+            var w = endPoint.x - startPoint.x;
+            var h = endPoint.y - startPoint.y;
+
+            return g.Rect(x, y, w, h);
+        }
+
+        // Adapted from CODE 1 in https://stackoverflow.com/a/14429749
+        // Original version by NISHIO Hirokazu, modified by Timo Kahkonen
+        function getCurvetoBBox(startPoint, controlPoint1, controlPoint2, endPoint) {
+
+            var math = Math;
+            var sqrt = math.sqrt;
+            var min = math.min;
+            var max = math.max;
+            var abs = math.abs;
+
+            var x0 = startPoint.x;
+            var y0 = startPoint.y;
+            var x1 = controlPoint1.x;
+            var y1 = controlPoint1.y;
+            var x2 = controlPoint2.x;
+            var y2 = controlPoint2.y;
+            var x3 = endPoint.x;
+            var y3 = endPoint.y;
+
+            var points = new Array(); // local extremes
+            var tvalues = new Array(); // t values of local extremes
+            var bounds = [new Array(), new Array()];
+
+            var a;
+            var b;
+            var c;
+            var t;
+            var t1;
+            var t2;
+            var b2ac;
+            var sqrtb2ac;
+
+            for (var i = 0; i < 2; ++i) {
+
+                if (i === 0) {
+                    b = 6 * x0 - 12 * x1 + 6 * x2;
+                    a = -3 * x0 + 9 * x1 - 9 * x2 + 3 * x3;
+                    c = 3 * x1 - 3 * x0;
+
+                } else {
+                    b = 6 * y0 - 12 * y1 + 6 * y2;
+                    a = -3 * y0 + 9 * y1 - 9 * y2 + 3 * y3;
+                    c = 3 * y1 - 3 * y0;
+                }
+
+                if (abs(a) < 1e-12) { // Numerical robustness
+                    if (abs(b) < 1e-12) { // Numerical robustness
+                        continue;
+                    }
+
+                    t = -c / b;
+
+                    if (0 < t && t < 1) {
+                        tvalues.push(t);
+                    }
+
+                    continue;
+                }
+
+                b2ac = b * b - 4 * c * a;
+                sqrtb2ac = sqrt(b2ac);
+
+                if (b2ac < 0) continue;
+
+                t1 = (-b + sqrtb2ac) / (2 * a);
+                if (0 < t1 && t1 < 1) {
+                    tvalues.push(t1);
+                }
+
+                t2 = (-b - sqrtb2ac) / (2 * a);
+                if (0 < t2 && t2 < 1) {
+                    tvalues.push(t2);
+                }
+            }
+
+            var j = tvalues.length;
+            var jlen = j;
+            var mt;
+            var x;
+            var y;
+
+            while (j--) {
+                t = tvalues[j];
+                mt = 1 - t;
+
+                x = (mt * mt * mt * x0) + (3 * mt * mt * t * x1) + (3 * mt * t * t * x2) + (t * t * t * x3);
+                bounds[0][j] = x;
+
+                y = (mt * mt * mt * y0) + (3 * mt * mt * t * y1) + (3 * mt * t * t * y2) + (t * t * t * y3);
+                bounds[1][j] = y;
+
+                points[j] = { X: x, Y: y };
+            }
+
+            tvalues[jlen] = 0;
+            tvalues[jlen + 1] = 1;
+
+            points[jlen] = { X: x0, Y: y0 };
+            points[jlen + 1] = { X: x3, Y: y3 };
+
+            bounds[0][jlen] = x0;
+            bounds[1][jlen] = y0;
+
+            bounds[0][jlen + 1] = x3;
+            bounds[1][jlen + 1] = y3;
+
+            tvalues.length = bounds[0].length = bounds[1].length = points.length = jlen + 2;
+
+            var left = min.apply(null, bounds[0]);
+            var top = min.apply(null, bounds[1]);
+            var right = max.apply(null, bounds[0]);
+            var bottom = max.apply(null, bounds[1]);
+
+            var resultX = left;
+            var resultY = top;
+            var resultW = right - left;
+            var resultH = bottom - top;
+
+            return g.Rect(resultX, resultY, resultW, resultH);
+        }
+
+        var bbox;
+
+        var pathSegments = normalizedPathData.split(new RegExp(' (?=[MLCZ])'));
+
+        var lastPoint = g.Point(0, 0);
+
+        for (var i = 0; i < pathSegments.length; i++) {
+
+            var currentPathSeg = pathSegments[i];
+
+            var segCoords = currentPathSeg.split(' '); // first element is segType
+            var segType = segCoords.shift(); // after this, segCoords only contain coordinates
+
+            var endPoint;
+            var segBBox;
+
+            switch (segType) {
+                case 'M':
+                    // invisible, does not have a bbox
+
+                    endPoint = g.Point(segCoords[0], segCoords[1]);
+
+                    break;
+
+                case 'L':
+                    endPoint = g.Point(segCoords[0], segCoords[1]);
+
+                    segBBox = getLinetoBBox(lastPoint, endPoint);
+
+                    bbox = bbox ? bbox.union(segBBox) : segBBox;
+                    break;
+
+                case 'C':
+                    endPoint = g.Point(segCoords[0], segCoords[1]);
+
+                    var controlPoint1 = g.Point(segCoords[2], segCoords[3]);
+                    var controlPoint2 = g.Point(segCoords[4], segCoords[5]);
+
+                    segBBox = getCurvetoBBox(lastPoint, controlPoint1, controlPoint2, endPoint);
+
+                    bbox = bbox ? bbox.union(segBBox) : segBBox;
+                    break;
+
+                case 'Z':
+                    // by definition must be within curent bbox area
+                    break;
+            }
+
+            lastPoint = endPoint; // undefined for Z
+        }
+
+        return bbox;
+    };
+
     V.namespace = ns;
 
     return V;
