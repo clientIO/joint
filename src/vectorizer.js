@@ -1857,7 +1857,7 @@ V = Vectorizer = (function() {
     };
 
     // Take the data of a normalized path
-    // Return the bbox of the (untransformed) path as a g.Rect
+    // Return the bbox of the path as a g.Rect (in native SVG units)
     V.normalizedPathBBox = function(normalizedPathData) {
 
         // exit if an invalid character is present
@@ -1867,12 +1867,16 @@ V = Vectorizer = (function() {
 
         function getLinetoBBox(startPoint, endPoint) {
 
-            var x = startPoint.x;
-            var y = startPoint.y;
-            var w = endPoint.x - startPoint.x;
-            var h = endPoint.y - startPoint.y;
+            var math = Math;
+            var min = math.min;
+            var abs = math.abs;
 
-            return g.Rect(x, y, w, h);
+            var bboxX = min(startPoint.x, endPoint.x);
+            var bboxY = min(startPoint.y, endPoint.y);
+            var bboxW = abs(endPoint.x - startPoint.x);
+            var bboxH = abs(endPoint.y - startPoint.y);
+
+            return g.Rect(bboxX, bboxY, bboxW, bboxH);
         }
 
         // Adapted from CODE 1 in https://stackoverflow.com/a/14429749
@@ -1988,19 +1992,19 @@ V = Vectorizer = (function() {
             var right = max.apply(null, bounds[0]);
             var bottom = max.apply(null, bounds[1]);
 
-            var resultX = left;
-            var resultY = top;
-            var resultW = right - left;
-            var resultH = bottom - top;
+            var bboxX = left;
+            var bboxY = top;
+            var bboxW = right - left;
+            var bboxH = bottom - top;
 
-            return g.Rect(resultX, resultY, resultW, resultH);
+            return g.Rect(bboxX, bboxY, bboxW, bboxH);
         }
 
         var bbox;
 
         var pathSegments = normalizedPathData.split(new RegExp(' (?=[MLCZ])'));
 
-        var lastPoint = g.Point(0, 0);
+        var prevEndPoint = g.Point(0, 0);
 
         for (var i = 0; i < pathSegments.length; i++) {
 
@@ -2015,26 +2019,24 @@ V = Vectorizer = (function() {
             switch (segType) {
                 case 'M':
                     // invisible, does not have a bbox
-
-                    endPoint = g.Point(segCoords[0], segCoords[1]);
-
+                    endPoint = g.Point(Number(segCoords[0]), Number(segCoords[1]));
                     break;
 
                 case 'L':
-                    endPoint = g.Point(segCoords[0], segCoords[1]);
+                    endPoint = g.Point(Number(segCoords[0]), Number(segCoords[1]));
 
-                    segBBox = getLinetoBBox(lastPoint, endPoint);
+                    segBBox = getLinetoBBox(prevEndPoint, endPoint);
 
                     bbox = bbox ? bbox.union(segBBox) : segBBox;
                     break;
 
                 case 'C':
-                    endPoint = g.Point(segCoords[0], segCoords[1]);
+                    endPoint = g.Point(Number(segCoords[0]), Number(segCoords[1]));
 
-                    var controlPoint1 = g.Point(segCoords[2], segCoords[3]);
-                    var controlPoint2 = g.Point(segCoords[4], segCoords[5]);
+                    var controlPoint1 = g.Point(Number(segCoords[2]), Number(segCoords[3]));
+                    var controlPoint2 = g.Point(Number(segCoords[4]), Number(segCoords[5]));
 
-                    segBBox = getCurvetoBBox(lastPoint, controlPoint1, controlPoint2, endPoint);
+                    segBBox = getCurvetoBBox(prevEndPoint, controlPoint1, controlPoint2, endPoint);
 
                     bbox = bbox ? bbox.union(segBBox) : segBBox;
                     break;
@@ -2044,7 +2046,7 @@ V = Vectorizer = (function() {
                     break;
             }
 
-            lastPoint = endPoint; // undefined for Z
+            prevEndPoint = endPoint; // undefined for Z but that is okay
         }
 
         return bbox;
