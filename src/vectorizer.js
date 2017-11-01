@@ -1860,6 +1860,7 @@ V = Vectorizer = (function() {
     // Return the bbox of the path as a g.Rect (in native SVG units)
     // Return undefined if the path has no bbox (only M and Z segments)
     V.pathBBox = function(pathData) {
+
         return V.normalizedPathBBox(V.normalizePathData(pathData));
     };
 
