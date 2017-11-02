@@ -1094,6 +1094,16 @@ V = Vectorizer = (function() {
         return this;
     };
 
+    // Calculate the bbox of this vel
+    // Return a g.Rect with the bounding box (in native SVG units)
+    V.prototype.calculateBBox = function() {
+
+        var path = this.convertToPath();
+        var d = path.attr('d');
+
+        return V.pathBBox(d);
+    };
+
     // Create an SVG document element.
     // If `content` is passed, it will be used as the SVG content of the `<svg>` root element.
     V.createSvgDocument = function(content) {
