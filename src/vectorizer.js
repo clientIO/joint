@@ -210,7 +210,6 @@ V = Vectorizer = (function() {
     // If `target` is specified, bounding box will be computed relatively to `target` element.
     V.prototype.bbox = function(withoutTransformations, target) {
 
-        var box;
         var node = this.node;
         var ownerSVGElement = node.ownerSVGElement;
 
@@ -220,14 +219,14 @@ V = Vectorizer = (function() {
             return g.Rect(0, 0, 0, 0);
         }
 
-        try {
+        var bbox;
 
-            box = node.getBBox();
+        try {
+            bbox = node.getBBox();
 
         } catch (e) {
-
             // Fallback for IE.
-            box = {
+            bbox = {
                 x: node.clientLeft,
                 y: node.clientTop,
                 width: node.clientWidth,
@@ -236,49 +235,59 @@ V = Vectorizer = (function() {
         }
 
         if (withoutTransformations) {
-            return g.Rect(box);
+            return g.Rect(bbox);
+
+        } else {
+            var matrix = this.getTransformToElement(target || ownerSVGElement);
+            return V.transformRect(bbox, matrix);
         }
-
-        var matrix = this.getTransformToElement(target || ownerSVGElement);
-
-        return V.transformRect(box, matrix);
     };
     
-    // Returns an SVGRect that contains coordinates and dimensions of the real bounding box,
-    // i.e. after transformations are applied.
+    // Returns an SVGRect that contains coordinates and dimensions of the real bounding box, i.e. after transformations are applied.
     // Fixes a browser implementation bug that returns incorrect bounding boxes for groups of svg elements.
+    // If this element is a <path> with only M segments, returns a bbox with dimensions of 0 and coords of the last M.
     // Takes an (Object) `opt` argument (optional) with the following attributes:
     // (Object) `target` (optional): if not undefined, transform bounding boxes relative to `target`; if undefined, transform relative to this
-    // (Boolean) `recursive` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox();
+    // (Boolean) `calculated` (optional): if true, use V.calculateBBox function instead of node.getBBox (works outside DOM as well)
+    // (Boolean) `recursive` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox() directly;
     V.prototype.getBBox = function(opt) {
 
         var options = {};
 
-        var outputBBox;
         var node = this.node;
         var ownerSVGElement = node.ownerSVGElement;
+        var isInDOM = !!ownerSVGElement;
 
-        // If the element is not in the live DOM, it does not have a bounding box defined and
-        // so fall back to 'zero' dimension element.
-        if (!ownerSVGElement) {
-            return g.Rect(0, 0, 0, 0);
-        }
+        var children = this.children();
+        var numChildren = children.length;
+        var isGroupElement = !!numChildren;
 
         if (opt) {
-            if (opt.target) { // check if target exists
-                options.target = V.toNode(opt.target); // works for V objects, jquery objects, and node objects
+            if (opt.target) {
+                options.target = V.toNode(opt.target); // accepts V objects, jquery objects, and node objects
+            }
+            if (opt.calculated) {
+                options.calculated = opt.calculated;
             }
             if (opt.recursive) {
                 options.recursive = opt.recursive;
             }
         }
 
-        if (!options.recursive) {
+        if (options.calculated) return this.calculateBBox(options.target);
+
+        // If the element is not in live DOM, native function thinks it has no bbox.
+        if (!isInDOM) return g.Rect(0, 0, 0, 0);
+
+        var bbox;
+
+        if (!isGroupElement || !options.recursive) {
             try {
-                outputBBox = node.getBBox();
+                bbox = node.getBBox();
+
             } catch (e) {
                 // Fallback for IE.
-                outputBBox = {
+                bbox = {
                     x: node.clientLeft,
                     y: node.clientTop,
                     width: node.clientWidth,
@@ -287,57 +296,77 @@ V = Vectorizer = (function() {
             }
 
             if (!options.target) {
-                // transform like this (that is, not at all)
-                return g.Rect(outputBBox);
+                return g.Rect(bbox);
+
             } else {
                 // transform like target
                 var matrix = this.getTransformToElement(options.target);
-                return V.transformRect(outputBBox, matrix);
+                return V.transformRect(bbox, matrix);
             }
-        } else { // if we want to calculate the bbox recursively
+
+        } else { // if isGroupElement && options.recursive
             // browsers report correct bbox around svg elements (one that envelops the path lines tightly)
             // but some browsers fail to report the same bbox when the elements are in a group (returning a looser bbox that also includes control points, like node.getClientRect())
             // this happens even if we wrap a single svg element into a group!
             // this option setting makes the function recursively enter all the groups from this and deeper, get bboxes of the elements inside, then return a union of those bboxes
 
-            var children = this.children();
-            var n = children.length;
-            
-            if (n === 0) {
-                return this.getBBox({ target: options.target, recursive: false });
-            }
+            if (!options.target) options.target = this;  // initial setting for recursion if target was undefined
 
-            // recursion's initial pass-through setting:
-            // recursive passes-through just keep the target as whatever was set up here during the initial pass-through
-            if (!options.target) {
-                // transform children/descendants like this (their parent/ancestor)
-                options.target = this;
-            } // else transform children/descendants like target
-
-            for (var i = 0; i < n; i++) {
+            for (var i = 0; i < numChildren; i++) {
                 var currentChild = children[i];
+                var childBBox = currentChild.getBBox({ target: options.target, recursive: true});
 
-                var childBBox;
-
-                // if currentChild is not a group element, get its bbox with a nonrecursive call
-                if (currentChild.children().length === 0) {
-                    childBBox = currentChild.getBBox({ target: options.target, recursive: false });
-                }
-                else {
-                    // if currentChild is a group element (determined by checking the number of children), enter it with a recursive call
-                    childBBox = currentChild.getBBox({ target: options.target, recursive: true });
-                }
-
-                if (!outputBBox) {
-                    // if this is the first iteration
-                    outputBBox = childBBox;
-                } else {
-                    // make a new bounding box rectangle that contains this child's bounding box and previous bounding box
-                    outputBBox = outputBBox.union(childBBox);
-                }
+                bbox = (bbox ? bbox.union(childBBox) : childBBox);
             }
 
-            return outputBBox;
+            return bbox;
+        }
+    };
+
+    // Calculate the bbox of this vel based on path data of individual components
+    // Return a g.Rect with the bounding box (in SVG units)
+    V.prototype.calculateBBox = function(opt) {
+
+        var options = {};
+
+        var children = this.children();
+        var numChildren = children.length;
+        var isGroupElement = !!numChildren;
+
+        if (opt) {
+            if (opt.target) {
+                options.target = V.toNode(opt.target); // accepts V objects, jquery objects, and node objects
+            }
+        }
+
+        var bbox;
+
+        if (!isGroupElement) {
+            var path = this.convertToPath();
+            var d = path.attr('d');
+
+            bbox = V.pathBBox(d);
+
+            if (!options.target) {
+                return g.Rect(bbox);
+
+            } else {
+                // transform like target
+                var matrix = this.getTransformToElement(options.target);
+                return V.transformRect(bbox, matrix);
+            }
+
+        } else {
+            if (!options.target) options.target = this; // initial setting for recursion if target was undefined
+
+            for (var i = 0; i < numChildren; i++) {
+                var currentChild = children[i];
+                var childBBox = currentChild.calculateBBox({ target: options.target });
+
+                bbox = (bbox ? bbox.union(childBBox) : childBBox);
+            }
+
+            return bbox;
         }
     };
 
@@ -1094,16 +1123,6 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    // Calculate the bbox of this vel
-    // Return a g.Rect with the bounding box (in native SVG units)
-    V.prototype.calculateBBox = function() {
-
-        var path = this.convertToPath();
-        var d = path.attr('d');
-
-        return V.pathBBox(d);
-    };
-
     // Create an SVG document element.
     // If `content` is passed, it will be used as the SVG content of the `<svg>` root element.
     V.createSvgDocument = function(content) {
@@ -1122,13 +1141,16 @@ V = Vectorizer = (function() {
     };
 
     V.toNode = function(el) {
+
         return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
     };
 
     V.ensureId = function(node) {
+
         node = V.toNode(node);
         return node.id || (node.id = V.uniqueId());
     };
+
     // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
     // IE would otherwise collapse all spaces into one. This is used in the text() method but it is
     // also exposed so that the programmer can use it in case he needs to. This is useful e.g. in tests
@@ -1867,7 +1889,7 @@ V = Vectorizer = (function() {
     };
 
     // Take the data of a path (string)
-    // Return the bbox of the path as a g.Rect (in native SVG units)
+    // Return the bbox of the path as a g.Rect (in SVG units)
     // Return undefined if the path has no bbox (only M and Z segments)
     V.pathBBox = function(pathData) {
 
@@ -1875,7 +1897,7 @@ V = Vectorizer = (function() {
     };
 
     // Take the data of a normalized path (string)
-    // Return the bbox of the path as a g.Rect (in native SVG units)
+    // Return the bbox of the path as a g.Rect (in SVG units)
     // Return undefined if the path has no bbox (only M and Z segments)
     V.normalizedPathBBox = function(normalizedPathData) {
 
@@ -2014,7 +2036,7 @@ V = Vectorizer = (function() {
 
         var pathSegments = normalizedPathData.split(new RegExp(' (?=[MLCZ])'));
 
-        var prevEndPoint = g.Point(0, 0);
+        var prevEndPoint;
 
         for (var i = 0; i < pathSegments.length; i++) {
 
@@ -2062,7 +2084,8 @@ V = Vectorizer = (function() {
             prevEndPoint = endPoint;
         }
 
-        return bbox; // undefined if never encountered any 'L' or 'C' segment
+        if (bbox) return bbox;
+        else return g.Rect(prevEndPoint.x, prevEndPoint.y, 0, 0); // if the path has only M segments
     };
 
     // Take the data of a path (string)
@@ -2235,7 +2258,7 @@ V = Vectorizer = (function() {
 
         function pathToAbsolute(pathArray) {
 
-            if (!_.isArray(pathArray) || !_.isArray(pathArray && pathArray[0])) { // rough assumption
+            if (!Array.isArray(pathArray) || !Array.isArray(pathArray && pathArray[0])) { // rough assumption
                 pathArray = parsePathString(pathArray);
             }
 

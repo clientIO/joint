@@ -26,7 +26,7 @@ QUnit.module('vectorizer', function(hooks) {
 
     hooks.beforeEach(function() {
 
-        var svgContent = '<path id="svg-path" d="M10 10"/>' +
+        var svgContent = '<path id="svg-path" d="M 10 10 M 30 30"/>' +
                 '<!-- comment -->' +
                 '<g id="svg-group">' +
                     '<ellipse id="svg-ellipse" x="10" y="10" rx="30" ry="30"/>' +
@@ -1024,6 +1024,28 @@ QUnit.module('vectorizer', function(hooks) {
             assert.equal(V(svgGroup3).getBBox({ recursive: true }).toString(), V(svgPath2).getBBox({ recursive: true }).toString());
             assert.equal(V(svgGroup3).getBBox({ target: svgGroup1, recursive: true }).toString(), V(svgPath2).getBBox({ target: svgGroup1 }).toString());
             assert.equal(V(svgGroup3).getBBox({ target: svgGroup1, recursive: true }).toString(), V(svgPath2).getBBox({ target: svgGroup1, recursive: true }).toString());
+        });
+    });
+
+    QUnit.module('calculateBBox()', function() {
+
+        QUnit.test('sanity', function(assert) {
+            assert.ok(V(svgPath).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgCircle).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgEllipse).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgPolygon).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgRectangle).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgPath2).calculateBBox() instanceof g.Rect);
+        });
+
+        QUnit.test('check against getBBox()', function(assert) {
+            assert.ok(V(svgPath).getBBox().equals(V(svgPath).calculateBBox()));
+            assert.ok(V(svgCircle).getBBox().equals(V(svgCircle).calculateBBox()));
+            assert.ok(V(svgEllipse).getBBox().equals(V(svgEllipse).calculateBBox()));
+            assert.ok(V(svgPolygon).getBBox().equals(V(svgPolygon).calculateBBox()));
+            assert.ok(V(svgRectangle).getBBox().equals(V(svgRectangle).calculateBBox()));
+
+            assert.ok(V(svgPath2).getBBox().equalsApprox(V(svgPath2).calculateBBox(), 5));
         });
     });
 

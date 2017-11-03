@@ -915,6 +915,25 @@ var g = (function() {
             return mr.x === nr.x && mr.y === nr.y && mr.width === nr.width && mr.height === nr.height;
         },
 
+        equalsApprox: function(r, precision) {
+
+            var mr = Rect(this).normalize();
+            var nr = Rect(r).normalize();
+
+            if (precision === undefined) precision = 12;
+
+            function round(number, precision) {
+
+                var pow = Math.pow(10, precision);
+                return Math.round(number * pow) / pow;
+            }
+
+            return round(mr.x, precision) === round(nr.x, precision) &&
+                round(mr.y, precision) === round(nr.y, precision) &&
+                round(mr.width, precision) === round(nr.width, precision) &&
+                round(mr.height, precision) === round(nr.height, precision);
+        },
+
         // @return {rect} if rectangles intersect, {null} if not.
         intersect: function(r) {
 
