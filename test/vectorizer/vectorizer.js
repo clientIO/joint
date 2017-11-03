@@ -1039,13 +1039,13 @@ QUnit.module('vectorizer', function(hooks) {
         });
 
         QUnit.test('check against getBBox()', function(assert) {
-            assert.ok(V(svgPath).getBBox().equals(V(svgPath).calculateBBox()));
-            assert.ok(V(svgCircle).getBBox().equals(V(svgCircle).calculateBBox()));
-            assert.ok(V(svgEllipse).getBBox().equals(V(svgEllipse).calculateBBox()));
-            assert.ok(V(svgPolygon).getBBox().equals(V(svgPolygon).calculateBBox()));
-            assert.ok(V(svgRectangle).getBBox().equals(V(svgRectangle).calculateBBox()));
+            assert.ok(V(svgPath).getBBox().equals(V(svgPath).getBBox({ calculated: true })));
+            assert.ok(V(svgCircle).getBBox().equals(V(svgCircle).getBBox({ calculated: true })));
+            assert.ok(V(svgEllipse).getBBox().equals(V(svgEllipse).getBBox({ calculated: true })));
+            assert.ok(V(svgPolygon).getBBox().equals(V(svgPolygon).getBBox({ calculated: true })));
+            assert.ok(V(svgRectangle).getBBox().equals(V(svgRectangle).getBBox({ calculated: true })));
 
-            assert.ok(V(svgPath2).getBBox().equalsApprox(V(svgPath2).calculateBBox(), 5));
+            assert.ok(V(svgPath2).getBBox().equalsApprox(V(svgPath2).getBBox({ calculated: true }), 5));
         });
     });
 

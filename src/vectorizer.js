@@ -274,7 +274,7 @@ V = Vectorizer = (function() {
             }
         }
 
-        if (options.calculated) return this.calculateBBox(options.target);
+        if (options.calculated) return this.calculateBBox({ target: options.target });
 
         // If the element is not in live DOM, native function thinks it has no bbox.
         if (!isInDOM) return g.Rect(0, 0, 0, 0);
