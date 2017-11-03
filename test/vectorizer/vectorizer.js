@@ -26,7 +26,7 @@ QUnit.module('vectorizer', function(hooks) {
 
     hooks.beforeEach(function() {
 
-        var svgContent = '<path id="svg-path" d="M 10 10 M 30 30"/>' +
+        var svgContent = '<path id="svg-path" d="M 10 10"/>' +
                 '<!-- comment -->' +
                 '<g id="svg-group">' +
                     '<ellipse id="svg-ellipse" x="10" y="10" rx="30" ry="30"/>' +
