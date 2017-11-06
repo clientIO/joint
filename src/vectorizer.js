@@ -248,8 +248,8 @@ V = Vectorizer = (function() {
     // If this element is a <path> with only M segments, returns a bbox with dimensions of 0 and coords of the last M.
     // Takes an (Object) `opt` argument (optional) with the following attributes:
     // (Object) `target` (optional): if not undefined, transform bounding boxes relative to `target`; if undefined, transform relative to this
-    // (Boolean) `calculated` (optional): if true, use V.calculateBBox function instead of node.getBBox (works outside DOM as well)
     // (Boolean) `recursive` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox() directly;
+    // (Boolean) `calculated` (optional): if true, use V.calculateBBox function instead of node.getBBox (works outside DOM as well)
     V.prototype.getBBox = function(opt) {
 
         var options = {};
@@ -266,33 +266,38 @@ V = Vectorizer = (function() {
             if (opt.target) {
                 options.target = V.toNode(opt.target); // accepts V objects, jquery objects, and node objects
             }
-            if (opt.calculated) {
-                options.calculated = opt.calculated;
-            }
             if (opt.recursive) {
                 options.recursive = opt.recursive;
             }
+            if (opt.calculated) {
+                options.calculated = opt.calculated;
+            }
         }
 
-        if (options.calculated) return this.calculateBBox({ target: options.target });
-
         // If the element is not in live DOM, native function thinks it has no bbox.
-        if (!isInDOM) return g.Rect(0, 0, 0, 0);
+        if (!isInDOM && !options.calculated) return g.Rect(0, 0, 0, 0);
+
+        if (isGroupElement && !options.recursive && options.calculated) throw new Error('Group SVGElements cannot be calculated directly. Set opt.recursive to true.')
 
         var bbox;
 
         if (!isGroupElement || !options.recursive) {
-            try {
-                bbox = node.getBBox();
+            if (options.calculated) {
+                bbox = this.calculateBBox();
 
-            } catch (e) {
-                // Fallback for IE.
-                bbox = {
-                    x: node.clientLeft,
-                    y: node.clientTop,
-                    width: node.clientWidth,
-                    height: node.clientHeight
-                };
+            } else {
+                try {
+                    bbox = node.getBBox();
+
+                } catch (e) {
+                    // Fallback for IE.
+                    bbox = {
+                        x: node.clientLeft,
+                        y: node.clientTop,
+                        width: node.clientWidth,
+                        height: node.clientHeight
+                    };
+                }
             }
 
             if (!options.target) {
@@ -314,7 +319,7 @@ V = Vectorizer = (function() {
 
             for (var i = 0; i < numChildren; i++) {
                 var currentChild = children[i];
-                var childBBox = currentChild.getBBox({ target: options.target, recursive: true});
+                var childBBox = currentChild.getBBox({ target: options.target, recursive: true, calculated: options.calculated });
 
                 bbox = (bbox ? bbox.union(childBBox) : childBBox);
             }
@@ -323,51 +328,15 @@ V = Vectorizer = (function() {
         }
     };
 
-    // Calculate the bbox of this vel based on path data of individual components
+    // Calculate the bbox of this vel
     // Return a g.Rect with the bounding box (in SVG units)
-    V.prototype.calculateBBox = function(opt) {
+    V.prototype.calculateBBox = function() {
 
-        var options = {};
+        var path = this.convertToPath();
+        var d = path.attr('d');
 
-        var children = this.children();
-        var numChildren = children.length;
-        var isGroupElement = !!numChildren;
-
-        if (opt) {
-            if (opt.target) {
-                options.target = V.toNode(opt.target); // accepts V objects, jquery objects, and node objects
-            }
-        }
-
-        var bbox;
-
-        if (!isGroupElement) {
-            var path = this.convertToPath();
-            var d = path.attr('d');
-
-            bbox = V.pathBBox(d);
-
-            if (!options.target) {
-                return g.Rect(bbox);
-
-            } else {
-                // transform like target
-                var matrix = this.getTransformToElement(options.target);
-                return V.transformRect(bbox, matrix);
-            }
-
-        } else {
-            if (!options.target) options.target = this; // initial setting for recursion if target was undefined
-
-            for (var i = 0; i < numChildren; i++) {
-                var currentChild = children[i];
-                var childBBox = currentChild.calculateBBox({ target: options.target });
-
-                bbox = (bbox ? bbox.union(childBBox) : childBBox);
-            }
-
-            return bbox;
-        }
+        var bbox = V.pathBBox(d);
+        return g.Rect(bbox);
     };
 
     V.prototype.text = function(content, opt) {

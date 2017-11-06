@@ -1046,6 +1046,8 @@ QUnit.module('vectorizer', function(hooks) {
             assert.ok(V(svgRectangle).getBBox().equals(V(svgRectangle).getBBox({ calculated: true })));
 
             assert.ok(V(svgPath2).getBBox().equalsApprox(V(svgPath2).getBBox({ calculated: true }), 5));
+
+            assert.ok(V(svgGroup1).getBBox({ recursive: true }).equals(V(svgGroup1).getBBox({ recursive: true, calculated: true })));
         });
     });
 
