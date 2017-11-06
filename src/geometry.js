@@ -351,6 +351,20 @@ var g = (function() {
 
     g.Line.prototype = {
 
+        bbox: function() {
+
+            var math = Math;
+            var max = math.max;
+            var min = math.min;
+
+            var x1 = min(this.start.x, this.end.x);
+            var y1 = min(this.start.y, this.end.y);
+            var x2 = max(this.start.x, this.end.x);
+            var y2 = max(this.start.y, this.end.y);
+
+            return Rect(x1, y1, (x2 - x1), (y2 - y1));
+        },
+
         // @return the bearing (cardinal direction) of the line. For example N, W, or SE.
         // @returns {String} One of the following bearings : NE, E, SE, S, SW, W, NW, N.
         bearing: function() {
@@ -834,6 +848,8 @@ var g = (function() {
         // @return r {rectangle} representing a bounding box
         bbox: function(angle) {
 
+            if (!angle) return this.clone(); // if angle not specified, returns a copy of itself
+
             var theta = toRad(angle || 0);
             var st = abs(sin(theta));
             var ct = abs(cos(theta));
@@ -1259,6 +1275,22 @@ var g = (function() {
     };
 
     Polyline.prototype = {
+
+        bbox: function() {
+
+            var bbox;
+
+            var points = this.points;
+            for (var i = 0; i < points.length; i++) {
+
+                var point = points[i];
+                var rect = Rect(point.x, point.y, 0, 0);
+
+                bbox = (bbox ? bbox.union(rect) : rect);
+            }
+
+            return (bbox ? bbox : Rect(0, 0, 0, 0));
+        },
 
         pointAtLength: function(length) {
             var points = this.points;

@@ -332,11 +332,87 @@ V = Vectorizer = (function() {
     // Return a g.Rect with the bounding box (in SVG units)
     V.prototype.calculateBBox = function() {
 
-        var path = this.convertToPath();
-        var d = path.attr('d');
+        var tagName = this.node.tagName.toUpperCase();
 
-        var bbox = V.pathBBox(d);
-        return g.Rect(bbox);
+        var math = Math;
+        var max = math.max;
+        var min = math.min;
+
+        var x, y, w, h;
+        var cx, cy, r, rx, ry;
+        var x1, y1, x2, y2;
+        var points;
+
+        function pointsBBox(points) {
+
+            var bbox;
+
+            for (var i = 0; i < points.length; i++) {
+                var pt = points[i];
+                var rect = g.Rect(pt.x, pt.y, 0, 0);
+                bbox = (bbox ? bbox.union(rect) : rect);
+            }
+
+            return (bbox ? bbox : g.Rect(0, 0, 0, 0));
+        }
+
+        switch (tagName) {
+            case 'RECT':
+                x = parseFloat(this.attr('x')) || 0;
+                y = parseFloat(this.attr('y')) || 0;
+                w = parseFloat(this.attr('width')) || 0;
+                h = parseFloat(this.attr('height')) || 0;
+                return g.Rect(x, y, w, h);
+
+            case 'CIRCLE':
+                cx = parseFloat(this.attr('cx')) || 0;
+                cy =  parseFloat(this.attr('cy')) || 0;
+                r = parseFloat(this.attr('r')) || 0;
+
+                x = cx - r;
+                y = cy - r;
+                w = r * 2;
+                h = r * 2;
+                return g.Rect(x, y, w, h);
+
+            case 'ELLIPSE':
+                cx = parseFloat(this.attr('cx')) || 0;
+                cy =  parseFloat(this.attr('cy')) || 0;
+                rx = parseFloat(this.attr('rx')) || 0;
+                ry = parseFloat(this.attr('ry')) || 0;
+
+                x = cx - rx;
+                y = cy - ry;
+                w = rx * 2;
+                h = ry * 2;
+                return g.Rect(x, y, w, h);
+
+            case 'LINE':
+                x1 = parseFloat(this.attr('x1')) || 0;
+                y1 = parseFloat(this.attr('y1')) || 0;
+                x2 = parseFloat(this.attr('x2')) || 0;
+                y2 = parseFloat(this.attr('y2')) || 0;
+
+                x = min(x1, x2);
+                y = min(y1, y2);
+                w = max(x1, x2) - x;
+                h = max(y1, y2) - y;
+                return g.Rect(x, y, w, h);
+
+            case 'PATH':
+                return V.pathBBox(this.attr('d'));
+
+            case 'POLYLINE':
+                points = V.getPointsFromSvgNode(this);
+                return pointsBBox(points);
+
+            case 'POLYGON':
+                points = V.getPointsFromSvgNode(this);
+                return pointsBBox(points);
+
+            default:
+                throw new Error(tagName + " not supported by calculateBBox.")
+        }
     };
 
     V.prototype.text = function(content, opt) {
@@ -1909,14 +1985,9 @@ V = Vectorizer = (function() {
             var tvalues = new Array(); // t values of local extremes
             var bounds = [new Array(), new Array()];
 
-            var a;
-            var b;
-            var c;
-            var t;
-            var t1;
-            var t2;
-            var b2ac;
-            var sqrtb2ac;
+            var a, b, c, t;
+            var t1, t2;
+            var b2ac, sqrtb2ac;
 
             for (var i = 0; i < 2; ++i) {
 
@@ -1957,8 +2028,7 @@ V = Vectorizer = (function() {
             var j = tvalues.length;
             var jlen = j;
             var mt;
-            var x;
-            var y;
+            var x, y;
 
             while (j--) {
                 t = tvalues[j];
@@ -2053,8 +2123,8 @@ V = Vectorizer = (function() {
             prevEndPoint = endPoint;
         }
 
-        if (bbox) return bbox;
-        else return g.Rect(prevEndPoint.x, prevEndPoint.y, 0, 0); // if the path has only M segments
+        // if the path has only M segments, return a bbox for the last M point
+        return (bbox ? bbox : g.Rect(prevEndPoint.x, prevEndPoint.y, 0, 0));
     };
 
     // Take the data of a path (string)
@@ -2262,8 +2332,8 @@ V = Vectorizer = (function() {
                 if (pa0 != pa0.toUpperCase()) {
                     r[0] = pa0.toUpperCase();
 
-                    var j;
                     var jj;
+                    var j;
                     switch (r[0]) {
                         case 'A':
                             r[1] = pa[1];
@@ -2343,8 +2413,7 @@ V = Vectorizer = (function() {
 
             function processPath(path, d, pcom) {
 
-                var nx;
-                var ny;
+                var nx, ny;
 
                 if (!path) return ['C', d.x, d.y, d.x, d.y, d.x, d.y];
 
