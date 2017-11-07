@@ -394,13 +394,14 @@ var joint = {
         breakText: function(text, size, styles, opt) {
 
             opt = opt || {};
+            styles = styles || {};
 
             var width = size.width;
             var height = size.height;
 
             var svgDocument = opt.svgDocument || V('svg').node;
-            var textElement = V('<text><tspan></tspan></text>').attr(styles || {}).node;
-            var textSpan = textElement.firstChild;
+            var textSpan = V('tspan').node;
+            var textElement = V('text').attr(styles).append(textSpan).node;
             var textNode = document.createTextNode('');
 
             // Prevent flickering
