@@ -334,27 +334,10 @@ V = Vectorizer = (function() {
 
         var tagName = this.node.tagName.toUpperCase();
 
-        var math = Math;
-        var max = math.max;
-        var min = math.min;
-
         var x, y, w, h;
         var cx, cy, r, rx, ry;
         var x1, y1, x2, y2;
         var points;
-
-        function pointsBBox(points) {
-
-            var bbox;
-
-            for (var i = 0; i < points.length; i++) {
-                var pt = points[i];
-                var rect = g.Rect(pt.x, pt.y, 0, 0);
-                bbox = (bbox ? bbox.union(rect) : rect);
-            }
-
-            return (bbox ? bbox : g.Rect(0, 0, 0, 0));
-        }
 
         switch (tagName) {
             case 'RECT':
@@ -368,12 +351,7 @@ V = Vectorizer = (function() {
                 cx = parseFloat(this.attr('cx')) || 0;
                 cy =  parseFloat(this.attr('cy')) || 0;
                 r = parseFloat(this.attr('r')) || 0;
-
-                x = cx - r;
-                y = cy - r;
-                w = r * 2;
-                h = r * 2;
-                return g.Rect(x, y, w, h);
+                return g.Ellipse({ x: cx, y: cy }, r, r).bbox();
 
             case 'ELLIPSE':
                 cx = parseFloat(this.attr('cx')) || 0;
@@ -381,11 +359,7 @@ V = Vectorizer = (function() {
                 rx = parseFloat(this.attr('rx')) || 0;
                 ry = parseFloat(this.attr('ry')) || 0;
 
-                x = cx - rx;
-                y = cy - ry;
-                w = rx * 2;
-                h = ry * 2;
-                return g.Rect(x, y, w, h);
+                return g.Ellipse({ x: cx, y: cy }, rx, ry).bbox();
 
             case 'LINE':
                 x1 = parseFloat(this.attr('x1')) || 0;
@@ -393,22 +367,20 @@ V = Vectorizer = (function() {
                 x2 = parseFloat(this.attr('x2')) || 0;
                 y2 = parseFloat(this.attr('y2')) || 0;
 
-                x = min(x1, x2);
-                y = min(y1, y2);
-                w = max(x1, x2) - x;
-                h = max(y1, y2) - y;
-                return g.Rect(x, y, w, h);
+                return g.Line({ x: x1, y: y1 }, { x: x2, y: y2 }).bbox();
 
             case 'PATH':
                 return V.pathBBox(this.attr('d'));
 
             case 'POLYLINE':
                 points = V.getPointsFromSvgNode(this);
-                return pointsBBox(points);
+                return g.Polyline(points).bbox();
 
             case 'POLYGON':
                 points = V.getPointsFromSvgNode(this);
-                return pointsBBox(points);
+                return g.Polyline(points).bbox();
+
+            // TODO case 'TEXT':
 
             default:
                 throw new Error(tagName + " not supported by calculateBBox.")

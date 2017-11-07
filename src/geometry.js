@@ -200,7 +200,11 @@ var g = (function() {
 
         bbox: function() {
 
-            return Rect(this.x - this.a, this.y - this.b, 2 * this.a, 2 * this.b);
+            x = this.x - this.a;
+            y = this.y - this.b;
+            w = 2 * this.a;
+            h = 2 * this.b;
+            return Rect(x, y, w, h);
         },
 
         clone: function() {
@@ -1278,18 +1282,26 @@ var g = (function() {
 
         bbox: function() {
 
-            var bbox;
+            var x1 = Infinity;
+            var x2 = -Infinity;
+            var y1 = Infinity;
+            var y2 = -Infinity;
 
             var points = this.points;
-            for (var i = 0; i < points.length; i++) {
 
+            var n = points.length;
+            for (var i = 0; i < n; i++) {
                 var point = points[i];
-                var rect = Rect(point.x, point.y, 0, 0);
+                var x = point.x;
+                var y = point.y;
 
-                bbox = (bbox ? bbox.union(rect) : rect);
+                if (x < x1) x1 = x;
+                if (x > x2) x2 = x;
+                if (y < y1) y1 = y;
+                if (y > y2) y2 = y;
             }
 
-            return (bbox ? bbox : Rect(0, 0, 0, 0));
+            return Rect(x1, y1, x2 - x1, y2 - y1);
         },
 
         pointAtLength: function(length) {
