@@ -1823,7 +1823,7 @@ export namespace highlighters {
 
     interface GenericHighlighterJSON<K extends HighlighterType> {
         name: K;
-        opt?: HighlighterArgumentsMap[K];
+        options?: HighlighterArgumentsMap[K];
     }
 
     interface GenericHighlighter<K extends HighlighterType> {
