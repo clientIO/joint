@@ -1905,17 +1905,180 @@ V = Vectorizer = (function() {
         return d.join(' ');
     };
 
-    // Take the data of a path (string)
+    // Take a path data string
+    // Return a list of path segments in the form [{ type: segType, points: [p1, ...]}, ...]
+    V.getNormalizedPathSegments = function(normalizedPathData) {
+
+        var pathSegments = [];
+
+        var pathSegs = normalizedPathData.split(new RegExp(' (?=[MLCZ])'));
+
+        var n = pathSegs.length;
+        for (var i = 0; i < n; i++) {
+
+            var currentSeg = pathSegs[i];
+
+            var pathSegment = {};
+
+            var segCoords = currentSeg.split(' '); // first element is segType
+            var segType = segCoords[0]; // after this, segCoords only contain coordinates
+
+            pathSegment.type = segType;
+            pathSegment.points = [];
+
+            switch (segType) {
+                case 'M':
+                    pathSegment.points.push(g.Point(+segCoords[1], +segCoords[2]));
+                    break;
+
+                case 'L':
+                    pathSegment.points.push(g.Point(+segCoords[1], +segCoords[2]));
+                    break;
+
+                case 'C':
+                    pathSegment.points.push(g.Point(+segCoords[1], +segCoords[2]));
+                    pathSegment.points.push(g.Point(+segCoords[3], +segCoords[4]));
+                    pathSegment.points.push(g.Point(+segCoords[5], +segCoords[6]));
+                    break;
+
+                // case 'Z' has no points
+            }
+
+            pathSegments.push(pathSegment);
+        }
+
+        return pathSegments;
+    };
+
+    // Take a list of normalized path segments (e.g. the output of V.getNormalizedPathSegments)
+    // Return a normalized path data string
+    V.flattenNormalizedPathSegments = function(normalizedPathSegments) {
+
+        var pathData = '';
+
+        var ii = normalizedPathSegments.length;
+        for (var i = 0; i < ii; i++) {
+
+            var currentSegment = normalizedPathSegments[i];
+
+            pathData += currentSegment.type + ' ';
+
+            var points = currentSegment.points;
+
+            var jj = points.length;
+            for (var j = 0; j < jj; j++) {
+
+                var currentPoint = points[j];
+                pathData += currentPoint.x + ' ' + currentPoint.y + ' ';
+            }
+        }
+
+        pathData = pathData.substring(0, pathData.length - 1); // cut off the last space
+
+        return pathData;
+    };
+
+    // Take a list of pathSegments (e.g. the output of V.geNormalizedPathSegments)
+    // Return a list of pathSegments in which all points are scaled according to sx, sy, origin
+    V.scaleNormalizedPathSegments = function(normalizedPathSegments, sx, sy, origin) {
+
+        var scaledPathSegments = [];
+
+        var ii = normalizedPathSegments.length;
+        for (var i = 0; i < ii; i++) {
+
+            var currentSegment = normalizedPathSegments[i];
+
+            var scaledPathSegment = { type: currentSegment.type, points: [] };
+
+            var jj = currentSegment.points.length;
+            for (var j = 0; j < jj; j++) {
+
+                var scaledPoint = currentSegment.points[j].clone();
+                scaledPoint.scale(sx, sy, origin);
+
+                scaledPathSegment.points.push(scaledPoint);
+            }
+
+            scaledPathSegments.push(scaledPathSegment);
+        }
+
+        return scaledPathSegments;
+    };
+
+    // Take a path data string
+    // Return a normalized path data string in which all points are scaled according to sx, sy, origin
+    V.scalePathData = function(pathData, sx, sy, origin) {
+
+        var normalizedPathData = V.normalizePathData(pathData);
+        return V.scaleNormalizedPathData(normalizedPathData, sx, sy, origin);
+    };
+
+    // Take a normalized path data string
+    // Return a normalized path data string in which all points are scaled according to sx, sy, origin
+    V.scaleNormalizedPathData = function(normalizedPathData, sx, sy, origin) {
+
+        var normalizedPathSegments = V.getNormalizedPathSegments(normalizedPathData);
+        var scaledPathSegments = V.scaleNormalizedPathSegments(normalizedPathSegments, sx, sy, origin);
+        return V.flattenNormalizedPathSegments(scaledPathSegments);
+    };
+
+    // Take a list of pathSegments (e.g. the output of V.geNormalizedPathSegments)
+    // Return a list of pathSegments in which all points are translated according to tx, ty
+    V.translateNormalizedPathSegments = function(normalizedPathSegments, tx, ty) {
+
+        var translatedPathSegments = [];
+
+        var ii = normalizedPathSegments.length;
+        for (var i = 0; i < ii; i++) {
+
+            var currentSegment = normalizedPathSegments[i];
+
+            var translatedPathSegment = { type: currentSegment.type, points: [] };
+
+            var jj = currentSegment.points.length;
+            for (var j = 0; j < jj; j++) {
+
+                var translatedPoint = currentSegment.points[j].clone();
+                translatedPoint.translate(tx, ty);
+
+                translatedPathSegment.points.push(translatedPoint);
+            }
+
+            translatedPathSegments.push(translatedPathSegment);
+        }
+
+        return translatedPathSegments;
+    };
+
+    // Take a path data string
+    // Return a normalized path data string in which all points are translated according to tx, ty
+    V.translatePathData = function(pathData, tx, ty) {
+
+        var normalizedPathData = V.normalizePathData(pathData);
+        return V.translateNormalizedPathData(normalizedPathData, tx, ty);
+    };
+
+    // Take a normalized path data string
+    // Return a normalized path data string in which all points are translated according to tx, ty
+    V.translateNormalizedPathData = function(normalizedPathData, tx, ty) {
+
+        var normalizedPathSegments = V.getNormalizedPathSegments(normalizedPathData);
+        var translatedPathSegments = V.translateNormalizedPathSegments(normalizedPathSegments, tx, ty);
+        return V.flattenNormalizedPathSegments(translatedPathSegments);
+    };
+
+    // Take a path data string
     // Return the bbox of the path as a g.Rect (in SVG units)
-    // Return undefined if the path has no bbox (only M and Z segments)
+    // If there are only M and Z segments, return a zero-area bbox with position of the last M
     V.pathBBox = function(pathData) {
 
         return V.normalizedPathBBox(V.normalizePathData(pathData));
     };
 
-    // Take the data of a normalized path (string)
+    // Take a normalized path data string
     // Return the bbox of the path as a g.Rect (in SVG units)
-    // Return undefined if the path has no bbox (only M and Z segments)
+    // If there are only M and Z segments, return a zero-area bbox with position of the last M
     V.normalizedPathBBox = function(normalizedPathData) {
 
         var bbox;
@@ -2045,29 +2208,27 @@ V = Vectorizer = (function() {
             return g.Rect(bboxX, bboxY, bboxW, bboxH);
         }
 
-        var pathSegments = normalizedPathData.split(new RegExp(' (?=[MLCZ])'));
+        var pathSegments = V.getNormalizedPathSegments(normalizedPathData);
 
         var prevEndPoint;
 
-        for (var i = 0; i < pathSegments.length; i++) {
+        var n = pathSegments.length;
+        for (var i = 0; i < n; i++) {
 
-            var currentPathSeg = pathSegments[i];
-
-            var segCoords = currentPathSeg.split(' '); // first element is segType
-            var segType = segCoords.shift(); // after this, segCoords only contain coordinates
+            var currentSegment = pathSegments[i];
 
             var endPoint;
             var segBBox;
 
-            switch (segType) {
+            switch (currentSegment.type) {
                 case 'M':
-                    endPoint = g.Point(+segCoords[0], +segCoords[1]); // move pointer
+                    endPoint = currentSegment.points[0]; // move pointer
 
                     // invisible, does not have a bbox
                     break;
 
                 case 'L':
-                    endPoint = g.Point(+segCoords[0], +segCoords[1]);
+                    endPoint = currentSegment.points[0];
 
                     segBBox = getLinetoBBox(prevEndPoint, endPoint);
 
@@ -2075,10 +2236,10 @@ V = Vectorizer = (function() {
                     break;
 
                 case 'C':
-                    var controlPoint1 = g.Point(+segCoords[0], +segCoords[1]);
-                    var controlPoint2 = g.Point(+segCoords[2], +segCoords[3]);
+                    var controlPoint1 = currentSegment.points[0];
+                    var controlPoint2 = currentSegment.points[1];
 
-                    endPoint = g.Point(+segCoords[4], +segCoords[5]);
+                    endPoint = currentSegment.points[2];
 
                     segBBox = getCurvetoBBox(prevEndPoint, controlPoint1, controlPoint2, endPoint);
 
@@ -2099,8 +2260,8 @@ V = Vectorizer = (function() {
         return (bbox ? bbox : g.Rect(prevEndPoint.x, prevEndPoint.y, 0, 0));
     };
 
-    // Take the data of a path (string)
-    // Return normalized path data (string)
+    // Take a path data string
+    // Return a normalized path data string
     // If data cannot be parsed, return 'M 0 0'
     // Highly inspired by Raphael Library (www.raphael.com).
     V.normalizePathData = function(pathData) {

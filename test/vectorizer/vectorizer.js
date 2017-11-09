@@ -1038,6 +1038,16 @@ QUnit.module('vectorizer', function(hooks) {
             assert.ok(V(svgPath2).calculateBBox() instanceof g.Rect);
         });
 
+        QUnit.test('path segment reconstruction', function(assert) {
+            var normalizedPath1 = V.normalizePathData(V(svgPath).attr('d'));
+            var reconstructedPath1 = V.reconstructPathData(V.getNormalizedPathSegments(normalizedPath1));
+            assert.ok(normalizedPath1 === reconstructedPath1);
+
+            var normalizedPath2 = V.normalizePathData(V(svgPath2).attr('d'));
+            var reconstructedPath2 = V.reconstructPathData(V.getNormalizedPathSegments(normalizedPath2));
+            assert.ok(normalizedPath2 === reconstructedPath2);
+        });
+
         QUnit.test('check against getBBox()', function(assert) {
             assert.ok(V(svgPath).getBBox().equals(V(svgPath).getBBox({ calculated: true })));
             assert.ok(V(svgCircle).getBBox().equals(V(svgCircle).getBBox({ calculated: true })));

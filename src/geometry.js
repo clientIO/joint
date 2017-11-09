@@ -794,6 +794,13 @@ var g = (function() {
             return this.x + '@' + this.y;
         },
 
+        translate: function(tx, ty) {
+
+            this.x += tx || 0;
+            this.y += ty || 0;
+            return this;
+        },
+
         update: function(x, y) {
 
             this.x = x || 0;
