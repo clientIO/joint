@@ -2040,7 +2040,7 @@ V = Vectorizer = (function() {
             for (var j = 0; j < jj; j++) {
 
                 var translatedPoint = currentSegment.points[j].clone();
-                translatedPoint.translate(tx, ty);
+                translatedPoint.offset(tx, ty);
 
                 translatedPathSegment.points.push(translatedPoint);
             }

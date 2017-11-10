@@ -190,13 +190,13 @@ var g = (function() {
         this.b = b;
     };
 
-    g.Ellipse.fromRect = function(rect) {
+    Ellipse.fromRect = function(rect) {
 
         rect = Rect(rect);
         return Ellipse(rect.center(), rect.width / 2, rect.height / 2);
     };
 
-    g.Ellipse.prototype = {
+    Ellipse.prototype = {
 
         bbox: function() {
 
@@ -353,7 +353,7 @@ var g = (function() {
         this.end = Point(p2);
     };
 
-    g.Line.prototype = {
+    Line.prototype = {
 
         bbox: function() {
 
@@ -529,7 +529,7 @@ var g = (function() {
     };
 
     // For backwards compatibility:
-    g.Line.prototype.intersection = g.Line.prototype.intersect;
+    Line.prototype.intersection = Line.prototype.intersect;
 
     /*
         Point is the most basic object consisting of x/y coordinate.
@@ -563,7 +563,7 @@ var g = (function() {
     // @param {number} Distance.
     // @param {number} Angle in radians.
     // @param {point} [optional] Origin.
-    g.Point.fromPolar = function(distance, angle, origin) {
+    Point.fromPolar = function(distance, angle, origin) {
 
         origin = (origin && Point(origin)) || Point(0, 0);
         var x = abs(distance * cos(angle));
@@ -583,12 +583,12 @@ var g = (function() {
     };
 
     // Create a point with random coordinates that fall into the range `[x1, x2]` and `[y1, y2]`.
-    g.Point.random = function(x1, x2, y1, y2) {
+    Point.random = function(x1, x2, y1, y2) {
 
         return Point(floor(random() * (x2 - x1 + 1) + x1), floor(random() * (y2 - y1 + 1) + y1));
     };
 
-    g.Point.prototype = {
+    Point.prototype = {
 
         // If point lies outside rectangle `r`, return the nearest point on the boundary of rect `r`,
         // otherwise return point itself.
@@ -794,13 +794,6 @@ var g = (function() {
             return this.x + '@' + this.y;
         },
 
-        translate: function(tx, ty) {
-
-            this.x += tx || 0;
-            this.y += ty || 0;
-            return this;
-        },
-
         update: function(x, y) {
 
             this.x = x || 0;
@@ -847,13 +840,13 @@ var g = (function() {
         this.height = h === undefined ? 0 : h;
     };
 
-    g.Rect.fromEllipse = function(e) {
+    Rect.fromEllipse = function(e) {
 
         e = Ellipse(e);
         return Rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
     };
 
-    g.Rect.prototype = {
+    Rect.prototype = {
 
         // Find my bounding box when I'm rotated with the center of rotation in the center of me.
         // @return r {rectangle} representing a bounding box
@@ -1602,10 +1595,10 @@ var g = (function() {
     };
 
     // For backwards compatibility:
-    g.ellipse = g.Ellipse;
-    g.line = g.Line;
-    g.point = g.Point;
-    g.rect = g.Rect;
+    g.ellipse = Ellipse;
+    g.line = Line;
+    g.point = Point;
+    g.rect = Rect;
 
     return g;
 
