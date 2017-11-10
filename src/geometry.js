@@ -531,6 +531,62 @@ var g = (function() {
     // For backwards compatibility:
     Line.prototype.intersection = Line.prototype.intersect;
 
+    var Curve = g.Curve = function(p1, p2, p3, p4) {
+
+        if (!(this instanceof Curve)) {
+            return new Curve(p1, p2, p3, p4);
+        }
+
+        if (p1 instanceof Curve) {
+            return Curve(p1.start, p1.controlPoint1, p1.controlPoint2, p1.end);
+        }
+
+        this.start = Point(p1);
+        this.controlPoint1 = Point(p2);
+        this.controlPoint2 = Point(p3);
+        this.end = Point(p4);
+    };
+
+    Curve.prototype = {
+        // TODO
+    };
+
+    var Moveto = g.Moveto = function(p1, p2) {
+
+        if (!(this instanceof Moveto)) {
+            return new Moveto(p1, p2);
+        }
+
+        if (p1 instanceof Moveto) {
+            return Moveto(p1.start, p1.end);
+        }
+
+        this.start = Point(p1);
+        this.end = Point(p2);
+    };
+
+    Moveto.prototype = {
+        // TODO
+    };
+
+    var Closepath = g.Closepath = function(p1, p2) {
+
+        if (!(this instanceof Closepath)) {
+            return new Closepath(p1, p2);
+        }
+
+        if (p1 instanceof Closepath) {
+            return Closepath(p1.start, p1.end);
+        }
+
+        this.start = Point(p1);
+        this.end = Point(p2);
+    };
+
+    Closepath.prototype = {
+        // TODO
+    };
+
     /*
         Point is the most basic object consisting of x/y coordinate.
 
@@ -1269,6 +1325,68 @@ var g = (function() {
         }
     };
 
+    var Path = g.Path = function(normalizedPathData) {
+
+        if (!(this instanceof Path)) {
+            return new Path(normalizedPathData);
+        }
+
+        function getPathSegments(normalizedPathData) {
+
+            var pathSegments = [];
+
+            var pathSegs = normalizedPathData.split(new RegExp(' (?=[MLCZ])'));
+
+            var prevEndPoint = Point(0, 0);
+            var lastMoveto;
+
+            var n = pathSegs.length;
+            for (var i = 0; i < n; i++) {
+
+                var currentSeg = pathSegs[i];
+
+                var segCoords = currentSeg.split(' '); // first element is segType
+
+                var endPoint;
+                var currentSegment;
+
+                var segType = segCoords[0];
+                switch (segType) {
+                    case 'M':
+                        endPoint = Point(+segCoords[1], +segCoords[2]);
+                        currentSegment = Moveto(prevEndPoint, endPoint);
+                        lastMoveto = currentSegment;
+                        break;
+
+                    case 'L':
+                        endPoint = Point(+segCoords[1], +segCoords[2]);
+                        currentSegment = Line(prevEndPoint, endPoint);
+                        break;
+
+                    case 'C':
+                        var controlPoint1 = Point(+segCoords[1], +segCoords[2]);
+                        var controlPoint2 = Point(+segCoords[3], +segCoords[4]);
+                        endPoint = Point(+segCoords[5], +segCoords[6]);
+                        currentSegment = Curve(prevEndPoint, controlPoint1, controlPoint2, endPoint);
+                        break;
+
+                    case 'Z':
+                        endPoint = lastMoveto.start;
+                        currentSegment = Closepath(prevEndPoint, endPoint);
+                        break;
+
+                    default:
+                        throw new Error(segType + ' is not supported.');
+                }
+
+                pathSegments.push(currentSegment);
+                prevEndPoint = endPoint;
+            }
+        }
+
+        this.pathSegments = getPathSegments(normalizedPathData);
+    }
+
     var Polyline = g.Polyline = function(points) {
 
         if (!(this instanceof Polyline)) {
@@ -1559,7 +1677,6 @@ var g = (function() {
             return Polyline(hullPoints);
         }
     };
-
 
     g.scale = {
 
