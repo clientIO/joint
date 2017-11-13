@@ -2,6 +2,7 @@
   * toggleFullscreen() - fix canceling fullscreen in an iframe
   * dia.Link - fix default label font color (IE)
   * dia.Cell - fix removeProp() on arrays
+  * dia.Graph - fromJSON() does not ignore dry option anymore
 
 23-10-2017 (v2.0.0)
   * Typescript definitions refactored (breaking change of the release)
