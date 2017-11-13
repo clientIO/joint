@@ -163,6 +163,7 @@ var g = (function() {
                 };
             }
             return function solveInversion(p) {
+
                 var ct = 3 * l(2, 3)(p1);
                 var c1 = l(1, 3)(p0) / ct;
                 var c2 = -l(2, 3)(p0) / ct;
@@ -233,6 +234,7 @@ var g = (function() {
         // @param dy {delta_y} representing additional size to y -
         // dy param is not required -> in that case y is sized by dx
         inflate: function(dx, dy) {
+
             if (dx === undefined) {
                 dx = 0;
             }
@@ -246,7 +248,6 @@ var g = (function() {
 
             return this;
         },
-
 
         /**
          * @param {g.Point} p
@@ -349,6 +350,7 @@ var g = (function() {
             return Line(p1.start, p1.end);
         }
 
+        this.type = 'L';
         this.start = Point(p1);
         this.end = Point(p2);
     };
@@ -361,12 +363,12 @@ var g = (function() {
             var max = math.max;
             var min = math.min;
 
-            var x1 = min(this.start.x, this.end.x);
-            var y1 = min(this.start.y, this.end.y);
-            var x2 = max(this.start.x, this.end.x);
-            var y2 = max(this.start.y, this.end.y);
+            var left = min(this.start.x, this.end.x);
+            var top = min(this.start.y, this.end.y);
+            var right = max(this.start.x, this.end.x);
+            var bottom = max(this.start.y, this.end.y);
 
-            return Rect(x1, y1, (x2 - x1), (y2 - y1));
+            return Rect(left, top, (right - left), (bottom - top));
         },
 
         // @return the bearing (cardinal direction) of the line. For example N, W, or SE.
@@ -467,11 +469,13 @@ var g = (function() {
 
         // @return {double} length of the line
         length: function() {
+
             return sqrt(this.squaredLength());
         },
 
         // @return {point} my midpoint
         midpoint: function() {
+
             return Point(
                 (this.start.x + this.end.x) / 2,
                 (this.start.y + this.end.y) / 2
@@ -491,6 +495,20 @@ var g = (function() {
 
             // Find the sign of the determinant of vectors (start,end), where p is the query point.
             return ((this.end.x - this.start.x) * (p.y - this.start.y) - (this.end.y - this.start.y) * (p.x - this.start.x)) / 2;
+        },
+
+        scale: function(sx, sy, origin) {
+
+            this.start.scale(sx, sy, origin);
+            this.end.scale(sx, sy, origin);
+            return this;
+        },
+
+        translate: function(tx, ty) {
+
+            this.start.offset(tx, ty);
+            this.end.offset(tx, ty);
+            return this;
         },
 
         // @return vector {point} of the line
@@ -516,6 +534,7 @@ var g = (function() {
         // @return {integer} length without sqrt
         // @note for applications where the exact length is not necessary (e.g. compare only)
         squaredLength: function() {
+
             var x0 = this.start.x;
             var y0 = this.start.y;
             var x1 = this.end.x;
@@ -523,7 +542,14 @@ var g = (function() {
             return (x0 -= x1) * x0 + (y0 -= y1) * y0;
         },
 
+        getPathData: function() {
+
+            var end = this.end.x + ' ' + this.end.y;
+            return this.type + ' ' + end;
+        },
+
         toString: function() {
+
             return this.start.toString() + ' ' + this.end.toString();
         }
     };
@@ -541,6 +567,7 @@ var g = (function() {
             return Curve(p1.start, p1.controlPoint1, p1.controlPoint2, p1.end);
         }
 
+        this.type = 'C';
         this.start = Point(p1);
         this.controlPoint1 = Point(p2);
         this.controlPoint2 = Point(p3);
@@ -548,7 +575,146 @@ var g = (function() {
     };
 
     Curve.prototype = {
-        // TODO
+
+        bbox: function() {
+
+            var math = Math;
+            var sqrt = math.sqrt;
+            var min = math.min;
+            var max = math.max;
+            var abs = math.abs;
+
+            var start = this.start;
+            var controlPoint1 = this.controlPoint1;
+            var controlPoint2 = this.controlPoint2;
+            var end = this.end;
+
+            var x0 = start.x;
+            var y0 = start.y;
+            var x1 = controlPoint1.x;
+            var y1 = controlPoint1.y;
+            var x2 = controlPoint2.x;
+            var y2 = controlPoint2.y;
+            var x3 = end.x;
+            var y3 = end.y;
+
+            var points = new Array(); // local extremes
+            var tvalues = new Array(); // t values of local extremes
+            var bounds = [new Array(), new Array()];
+
+            var a, b, c, t;
+            var t1, t2;
+            var b2ac, sqrtb2ac;
+
+            for (var i = 0; i < 2; ++i) {
+
+                if (i === 0) {
+                    b = 6 * x0 - 12 * x1 + 6 * x2;
+                    a = -3 * x0 + 9 * x1 - 9 * x2 + 3 * x3;
+                    c = 3 * x1 - 3 * x0;
+
+                } else {
+                    b = 6 * y0 - 12 * y1 + 6 * y2;
+                    a = -3 * y0 + 9 * y1 - 9 * y2 + 3 * y3;
+                    c = 3 * y1 - 3 * y0;
+                }
+
+                if (abs(a) < 1e-12) { // Numerical robustness
+                    if (abs(b) < 1e-12) { // Numerical robustness
+                        continue;
+                    }
+
+                    t = -c / b;
+                    if ((0 < t) && (t < 1)) tvalues.push(t);
+
+                    continue;
+                }
+
+                b2ac = b * b - 4 * c * a;
+                sqrtb2ac = sqrt(b2ac);
+
+                if (b2ac < 0) continue;
+
+                t1 = (-b + sqrtb2ac) / (2 * a);
+                if ((0 < t1) && (t1 < 1)) tvalues.push(t1);
+
+                t2 = (-b - sqrtb2ac) / (2 * a);
+                if ((0 < t2) && (t2 < 1)) tvalues.push(t2);
+            }
+
+            var j = tvalues.length;
+            var jlen = j;
+            var mt;
+            var x, y;
+
+            while (j--) {
+                t = tvalues[j];
+                mt = 1 - t;
+
+                x = (mt * mt * mt * x0) + (3 * mt * mt * t * x1) + (3 * mt * t * t * x2) + (t * t * t * x3);
+                bounds[0][j] = x;
+
+                y = (mt * mt * mt * y0) + (3 * mt * mt * t * y1) + (3 * mt * t * t * y2) + (t * t * t * y3);
+                bounds[1][j] = y;
+
+                points[j] = { X: x, Y: y };
+            }
+
+            tvalues[jlen] = 0;
+            tvalues[jlen + 1] = 1;
+
+            points[jlen] = { X: x0, Y: y0 };
+            points[jlen + 1] = { X: x3, Y: y3 };
+
+            bounds[0][jlen] = x0;
+            bounds[1][jlen] = y0;
+
+            bounds[0][jlen + 1] = x3;
+            bounds[1][jlen + 1] = y3;
+
+            tvalues.length = jlen + 2;
+            bounds[0].length = jlen + 2;
+            bounds[1].length = jlen + 2;
+            points.length = jlen + 2;
+
+            var left = min.apply(null, bounds[0]);
+            var top = min.apply(null, bounds[1]);
+            var right = max.apply(null, bounds[0]);
+            var bottom = max.apply(null, bounds[1]);
+
+            return g.Rect(left, top, (right - left), (bottom - top));
+        },
+
+        scale: function(sx, sy, origin) {
+
+            this.start.scale(sx, sy, origin);
+            this.controlPoint1.scale(sx, sy, origin);
+            this.controlPoint2.scale(sx, sy, origin);
+            this.end.scale(sx, sy, origin);
+            return this;
+        },
+
+        translate: function(tx, ty) {
+
+            this.start.translate(tx, ty);
+            this.controlPoint1.translate(tx, ty);
+            this.controlPoint2.translate(tx, ty);
+            this.end.translate(tx, ty);
+            return this;
+        },
+
+        getPathData: function() {
+
+            var controlPoint1 = this.controlPoint1.x + ' ' + this.controlPoint1.y;
+            var controlPoint2 = this.controlPoint2.x + ' ' + this.controlPoint2.y;
+            var end = this.end.x + ' ' + this.end.y;
+            return this.type + ' ' + controlPoint1 + ' ' + controlPoint2 + ' ' + end;
+        },
+
+        toString: function() {
+
+            return this.type + ' ' + this.start.toString() + ' ' + this.controlPoint1.toString() + ' ' + this.controlPoint2.toString() + ' ' + this.end.toString();
+        }
     };
 
     var Moveto = g.Moveto = function(p1, p2) {
@@ -561,12 +727,32 @@ var g = (function() {
             return Moveto(p1.start, p1.end);
         }
 
+        this.type = 'M';
         this.start = Point(p1);
         this.end = Point(p2);
     };
 
     Moveto.prototype = {
-        // TODO
+
+        bbox: function() {
+
+            return null;
+        },
+
+        scale: Line.prototype.scale,
+
+        translate: Line.prototype.translate,
+
+        getPathData: function() {
+
+            var end = this.end.x + ' ' + this.end.y;
+            return this.type + ' ' + end;
+        },
+
+        toString: function() {
+
+            return this.type + ' ' + this.start.toString() + ' ' + this.end.toString();
+        }
     };
 
     var Closepath = g.Closepath = function(p1, p2) {
@@ -579,12 +765,28 @@ var g = (function() {
             return Closepath(p1.start, p1.end);
         }
 
+        this.type = 'Z';
         this.start = Point(p1);
         this.end = Point(p2);
     };
 
     Closepath.prototype = {
-        // TODO
+
+        bbox: Line.prototype.bbox,
+
+        scale: Line.prototype.scale,
+
+        translate: Line.prototype.translate,
+
+        getPathData: function() {
+
+            return this.type;
+        },
+
+        toString: function() {
+
+            return this.type + ' ' + this.start.toString() + ' ' + this.end.toString();
+        }
     };
 
     /*
@@ -797,7 +999,7 @@ var g = (function() {
             var y = -(p.y - this.y);
             var x = p.x - this.x;
             var rad = atan2(y, x); // defined for all 0 corner cases
-            
+
             // Correction for III. and IV. quadrant.
             if (rad < 0) {
                 rad = 2 * PI + rad;
@@ -812,7 +1014,7 @@ var g = (function() {
         // returns angles between 180 and 360 to convert clockwise angles into counterclockwise ones
         // returns NaN if any of the points p1, p2 is coincident with this point
         angleBetween: function(p1, p2) {
-            
+
             var angleBetween = (this.equals(p1) || this.equals(p2)) ? NaN : (this.theta(p2) - this.theta(p1));
             if (angleBetween < 0) {
                 angleBetween += 360; // correction to keep angleBetween between 0 and 360
@@ -823,7 +1025,7 @@ var g = (function() {
         // Compute the angle between the vector from 0,0 to me and the vector from 0,0 to p.
         // Returns NaN if p is at 0,0.
         vectorAngle: function(p) {
-            
+
             var zero = Point(0,0);
             return zero.angleBetween(this, p);
         },
@@ -1083,6 +1285,7 @@ var g = (function() {
 
         // Offset me by the specified amount.
         offset: function(dx, dy) {
+
             return Point.prototype.offset.call(this, dx, dy);
         },
 
@@ -1091,6 +1294,7 @@ var g = (function() {
         // @param dy {delta_y} representing additional size to y -
         // dy param is not required -> in that case y is sized by dx
         inflate: function(dx, dy) {
+
             if (dx === undefined) {
                 dx = 0;
             }
@@ -1371,7 +1575,7 @@ var g = (function() {
                         break;
 
                     case 'Z':
-                        endPoint = lastMoveto.start;
+                        endPoint = lastMoveto.end;
                         currentSegment = Closepath(prevEndPoint, endPoint);
                         break;
 
@@ -1382,10 +1586,94 @@ var g = (function() {
                 pathSegments.push(currentSegment);
                 prevEndPoint = endPoint;
             }
+
+            return pathSegments;
         }
 
         this.pathSegments = getPathSegments(normalizedPathData);
     }
+
+    Path.prototype = {
+
+        bbox: function() {
+
+            var bbox;
+            var lastMoveto;
+
+            var pathSegments = this.pathSegments;
+            var n = pathSegments.length;
+            for (var i = 0; i < n; i++) {
+
+                var seg = pathSegments[i];
+
+                if (seg.type === 'M') {
+                    // moveto segments are invisible
+                    lastMoveto = seg; // only adds bbox if this is the only segment
+                    continue;
+                }
+
+                if (seg.type === 'Z') {
+                    // closepath segments connect existing segments
+                    // if the segments have bboxes, this one does not add information
+                    // if the segments do not have bboxes, this one would add a zero-size box
+                    // therefore, do not add Z bboxes
+                    continue;
+                }
+
+                var segBBox = seg.bbox();
+                bbox = bbox ? bbox.union(segBBox) : segBBox;
+            }
+
+            // if the path has only M and Z segments, return bbox for last M
+            var lastMovetoBBox = Rect(lastMoveto.end.x, lastMoveto.end.y, 0, 0);
+            return (bbox ? bbox : lastMovetoBBox);
+        },
+
+        scale: function(sx, sy, origin) {
+
+            var pathSegments = this.pathSegments;
+            var n = pathSegments.length;
+            for (var i = 0; i < n; i++) {
+
+                var seg = pathSegments[i];
+                seg.scale(sx, sy, origin);
+            }
+
+            return this;
+        },
+
+        translate: function(tx, ty) {
+
+            var pathSegments = this.pathSegments;
+            var n = pathSegments.length;
+            for (var i = 0; i < n; i++) {
+
+                var seg = pathSegments[i];
+                seg.translate(tx, ty);
+            }
+
+            return this;
+        },
+
+        getPathData: function() {
+
+            var pathData = '';
+
+            var pathSegments = this.pathSegments;
+            var n = pathSegments.length;
+            for (var i = 0; i < n; i++) {
+
+                var seg = pathSegments[i];
+
+                if (i > 0) pathData += ' ';
+                pathData += seg.getPathData();
+            }
+
+            return pathData;
+        }
+    };
+
+    Path.prototype.toString = Path.prototype.getPathData;
 
     var Polyline = g.Polyline = function(points) {
 
@@ -1423,6 +1711,7 @@ var g = (function() {
         },
 
         pointAtLength: function(length) {
+
             var points = this.points;
             var l = 0;
             for (var i = 0, n = points.length - 1; i < n; i++) {
@@ -1438,6 +1727,7 @@ var g = (function() {
         },
 
         length: function() {
+
             var points = this.points;
             var length = 0;
             for (var i = 0, n = points.length - 1; i < n; i++) {
@@ -1447,10 +1737,12 @@ var g = (function() {
         },
 
         closestPoint: function(p) {
+
             return this.pointAtLength(this.closestPointLength(p));
         },
 
         closestPointLength: function(p) {
+
             var points = this.points;
             var pointLength;
             var minSqrDistance = Infinity;
@@ -1506,7 +1798,7 @@ var g = (function() {
 
             // step 2: sort the list of points
             // sorting by angle between line from startPoint to point and the x-axis (theta)
-            
+
             // step 2a: create the point records = [point, originalIndex, angle]
             var sortedPointRecords = [];
             n = points.length;
@@ -1517,7 +1809,7 @@ var g = (function() {
                     // the start point will end up at end of sorted list
                     // the start point will end up at beginning of hull points list
                 }
-                
+
                 var entry = [points[i], i, angle];
                 sortedPointRecords.push(entry);
             }
@@ -1571,7 +1863,7 @@ var g = (function() {
                         // not enough points for comparison, just add current point
                         hullPointRecords.push(currentPointRecord);
                         correctTurnFound = true;
-                    
+
                     } else {
                         lastHullPointRecord = hullPointRecords.pop();
                         lastHullPoint = lastHullPointRecord[0];
@@ -1603,7 +1895,7 @@ var g = (function() {
                                 hullPointRecords.push(secondLastHullPointRecord);
                                 // do not do anything with current point
                                 // correct turn not found
-                            
+
                             } else if (lastHullPoint.equals(currentPoint) || secondLastHullPoint.equals(lastHullPoint)) {
                                 // if the cross product is 0 because two points are the same
                                 // discard last hull point (add to insidePoints)
@@ -1613,7 +1905,7 @@ var g = (function() {
                                 hullPointRecords.push(secondLastHullPointRecord);
                                 // do not do anything with current point
                                 // correct turn not found
-                                                        
+
                             } else if (Math.abs(((angleBetween + 1) % 360) - 1) < THRESHOLD) { // rounding around 0 and 360 to 0
                                 // if the cross product is 0 because the angle is 0 degrees
                                 // remove last hull point from hull BUT do not discard it

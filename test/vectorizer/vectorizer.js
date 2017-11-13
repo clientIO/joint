@@ -1040,11 +1040,11 @@ QUnit.module('vectorizer', function(hooks) {
 
         QUnit.test('path segment reconstruction', function(assert) {
             var normalizedPath1 = V.normalizePathData(V(svgPath).attr('d'));
-            var reconstructedPath1 = V.flattenNormalizedPathSegments(V.getNormalizedPathSegments(normalizedPath1));
+            var reconstructedPath1 = g.Path(normalizedPath1).getPathData();
             assert.equal(normalizedPath1, reconstructedPath1);
 
             var normalizedPath2 = V.normalizePathData(V(svgPath2).attr('d'));
-            var reconstructedPath2 = V.flattenNormalizedPathSegments(V.getNormalizedPathSegments(normalizedPath2));
+            var reconstructedPath2 = g.Path(normalizedPath2).getPathData();
             assert.equal(normalizedPath2, reconstructedPath2);
         });
 
