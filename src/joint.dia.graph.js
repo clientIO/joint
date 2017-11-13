@@ -13,9 +13,9 @@ joint.dia.GraphCells = Backbone.Collection.extend({
         this.graph = opt.graph;
     },
 
-    model: function(attrs, options) {
+    model: function(attrs, opt) {
 
-        var collection = options.collection;
+        var collection = opt.collection;
         var namespace = collection.cellNamespace;
 
         // Find the model class in the namespace or use the default one.
@@ -23,10 +23,12 @@ joint.dia.GraphCells = Backbone.Collection.extend({
             ? joint.dia.Link
             : joint.util.getByPath(namespace, attrs.type, '.') || joint.dia.Element;
 
-        var cell = new ModelClass(attrs, options);
+        var cell = new ModelClass(attrs, opt);
         // Add a reference to the graph. It is necessary to do this here because this is the earliest place
         // where a new model is created from a plain JS object. For other objects, see `joint.dia.Graph>>_prepareCell()`.
-        cell.graph = collection.graph;
+        if (!opt.dry) {
+            cell.graph = collection.graph;
+        }
 
         return cell;
     },
