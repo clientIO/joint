@@ -293,7 +293,7 @@ var g = (function() {
                 y = ( b * b / (y0 - n)) - (b * b * (x0 - m) * (x - m)) / (a * a * (y0 - n)) + n;
             }
 
-            return g.point(x, y).theta(p);
+            return Point(x, y).theta(p);
 
         },
 
@@ -664,7 +664,7 @@ var g = (function() {
             var right = max.apply(null, bounds[0]);
             var bottom = max.apply(null, bounds[1]);
 
-            return g.Rect(left, top, (right - left), (bottom - top));
+            return Rect(left, top, (right - left), (bottom - top));
         },
 
         scale: function(sx, sy, origin) {
