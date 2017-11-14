@@ -37,7 +37,7 @@ var Path = joint.shapes.basic.Generic.define('custom.Path', {
     resetModel: function() {
 
         var d = this.attr('path/refD') || this.attr('path/refDKeepOffset') || this.attr('path/refDResetOffset');
-        var modelBBox = V.pathBBox(d);
+        var modelBBox = g.Path(V.normalizePathData(d)).bbox();
 
         this.position(modelBBox.x, modelBBox.y);
         this.size(modelBBox.width, modelBBox.height);

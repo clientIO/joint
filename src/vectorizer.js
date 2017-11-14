@@ -249,7 +249,7 @@ V = Vectorizer = (function() {
     // Takes an (Object) `opt` argument (optional) with the following attributes:
     // (Object) `target` (optional): if not undefined, transform bounding boxes relative to `target`; if undefined, transform relative to this
     // (Boolean) `recursive` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox() directly;
-    // (Boolean) `calculated` (optional): if true, use V.calculateBBox function instead of node.getBBox (works outside DOM as well)
+    // (Boolean) `calculate` (optional): if true, use V.calculateBBox function instead of node.getBBox (works outside DOM as well)
     V.prototype.getBBox = function(opt) {
 
         var options = {};
@@ -269,20 +269,20 @@ V = Vectorizer = (function() {
             if (opt.recursive) {
                 options.recursive = opt.recursive;
             }
-            if (opt.calculated) {
-                options.calculated = opt.calculated;
+            if (opt.calculate) {
+                options.calculate = opt.calculate;
             }
         }
 
         // If the element is not in live DOM, native function thinks it has no bbox.
-        if (!isInDOM && !options.calculated) return g.Rect(0, 0, 0, 0);
+        if (!isInDOM && !options.calculate) return g.Rect(0, 0, 0, 0);
 
-        if (isGroupElement && !options.recursive && options.calculated) throw new Error('Group SVGElements cannot be calculated directly. Set opt.recursive to true.')
+        if (isGroupElement && !options.recursive && options.calculate) throw new Error('Group SVGElements cannot be calculated directly. Set opt.recursive to true.')
 
         var bbox;
 
         if (!isGroupElement || !options.recursive) {
-            if (options.calculated) {
+            if (options.calculate) {
                 bbox = this.calculateBBox();
 
             } else {
@@ -319,7 +319,7 @@ V = Vectorizer = (function() {
 
             for (var i = 0; i < numChildren; i++) {
                 var currentChild = children[i];
-                var childBBox = currentChild.getBBox({ target: options.target, recursive: true, calculated: options.calculated });
+                var childBBox = currentChild.getBBox({ target: options.target, recursive: true, calculate: options.calculate });
 
                 bbox = (bbox ? bbox.union(childBBox) : childBBox);
             }
@@ -1910,9 +1910,9 @@ V = Vectorizer = (function() {
     // Take a path data string
     // Return a normalized path data string
     // If data cannot be parsed, return 'M 0 0'
-    // Adapted from Rappid normalizePath polyfill.
-    // Highly inspired by Raphael Library (www.raphael.com).
-    V.normalizePathData = function(pathData) {
+    // Adapted from Rappid normalizePath polyfill
+    // Highly inspired by Raphael Library (www.raphael.com)
+    V.normalizePathData = (function() {
 
         var spaces = '\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029';
         var pathCommand = new RegExp('([a-z])[' + spaces + ',]*((-?\\d*\\.?\\d*(?:e[\\-+]?\\d+)?[' + spaces + ']*,?[' + spaces + ']*)+)', 'ig');
@@ -2311,8 +2311,10 @@ V = Vectorizer = (function() {
             return p;
         }
 
-        return normalize(pathData).join(',').split(',').join(' ');
-    };
+        return function(pathData) {
+            return normalize(pathData).join(',').split(',').join(' ');
+        };
+    })();
 
     V.namespace = ns;
 

@@ -76,25 +76,18 @@
             var cacheName = 'joint-refD';
             var cache = $node.data(cacheName);
 
-            if (cache && cache.refD === value && cache.refBBox.equals(refBBox)) {
-                // neither refD nor refBBox has changed
-                // do nothing
-
-                return;
-            }
-
             if (!cache || cache.refD !== value) {
                 // only recalculate if refD has changed
 
-                var cachedNormalizedD = V.normalizePathData(value);
-                var cachedPathBBox = V.normalizedPathBBox(cachedNormalizedD);
+                var cachedPath = g.Path(V.normalizePathData(value));
+                var cachedPathBBox = cachedPath.bbox();
 
-                cache = { refD: value, refBBox: refBBox, normalizedD: cachedNormalizedD, pathBBox: cachedPathBBox };
+                cache = { refD: value, refBBox: refBBox, path: cachedPath, pathBBox: cachedPathBBox };
 
                 $node.data(cacheName, cache);
             }
 
-            var normalizedD = cache.normalizedD;
+            var path = cache.path.clone();
             var pathBBox = cache.pathBBox.clone();
 
             var pathOrigin = pathBBox.origin().clone();
@@ -107,17 +100,17 @@
             var sx = isFinite(fitScale.sx) ? fitScale.sx : 1;
             var sy = isFinite(fitScale.sy) ? fitScale.sy : 1;
 
-            var scaledPathData = V.scaleNormalizedPathData(normalizedD, sx, sy, pathOrigin);
+            var scaledPath = path.scale(sx, sy, pathOrigin);
 
-            if (!resetOffset) return { d: scaledPathData };
+            if (!resetOffset) return { d: scaledPath.getPathData() };
 
             // else translate path as if resetOffset was present
             var tx = -pathOrigin.x;
             var ty = -pathOrigin.y;
 
-            var translatedPathData = V.translateNormalizedPathData(scaledPathData, tx, ty);
+            var translatedPath = path.translate(tx, ty);
 
-            return { d: translatedPathData };
+            return { d: translatedPath.getPathData() };
         };
     }
 
