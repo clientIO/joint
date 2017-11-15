@@ -1,7 +1,13 @@
+15-11-2017 (v2.0.1)
+  * toggleFullscreen() - fix canceling fullscreen in an iframe
+  * dia.Link - fix default label font color (IE)
+  * dia.Cell - fix removeProp() on arrays
+  * dia.Graph - fromJSON() does not ignore dry option anymore
+
 23-10-2017 (v2.0.0)
   * Typescript definitions refactored (breaking change of the release)
   * JointJS now compatible with Lodash v4 (see `demo/lodash4` for instructions)
-  * Geometry - add Polyline with pointAtLength(), length(), closesPointLength(), closestPoint() and convexHull()
+  * Geometry - add Polyline with pointAtLength(), length(), closestPointLength(), closestPoint() and convexHull()
   * Geometry - add cross(), dot(), squaredDistance(), closestPoint(), closestPointNormalizedLength(), vector(), vectorAngle(), angleBetween() to Point
   * Vectorizer - add children() and getBBox()
   * Vectorizer - fix parseTransformString() and matrixToTransformString()

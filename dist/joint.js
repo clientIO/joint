@@ -1,4 +1,4 @@
-/*! JointJS v2.0.0 (2017-10-23) - JavaScript diagramming library
+/*! JointJS v2.0.1 (2017-11-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -3847,7 +3847,7 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '2.0.0',
+    version: '2.0.1',
 
     config: {
         // The class name prefix config is for advanced use only.
@@ -5148,7 +5148,8 @@ var joint = {
          */
         toggleFullScreen: function(el) {
 
-            el = el || window.top.document.body;
+            var topDocument = window.top.document;
+            el = el || topDocument.body;
 
             function prefixedResult(el, prop) {
 
@@ -5162,9 +5163,9 @@ var joint = {
                 }
             }
 
-            if (prefixedResult(document, 'FullscreenElement') || prefixedResult(document, 'FullScreenElement')) {
-                prefixedResult(document, 'ExitFullscreen') || // Spec.
-                prefixedResult(document, 'CancelFullScreen'); // Firefox
+            if (prefixedResult(topDocument, 'FullscreenElement') || prefixedResult(topDocument, 'FullScreenElement')) {
+                prefixedResult(topDocument, 'ExitFullscreen') || // Spec.
+                prefixedResult(topDocument, 'CancelFullScreen'); // Firefox
             } else {
                 prefixedResult(el, 'RequestFullscreen') || // Spec.
                 prefixedResult(el, 'RequestFullScreen'); // Firefox
@@ -7443,7 +7444,7 @@ joint.dia.Cell = Backbone.Model.extend({
         // A nested property
         var property = pathArray[0];
         var nestedPath = pathArray.slice(1);
-        var propertyValue = joint.util.merge({}, this.get(property));
+        var propertyValue = joint.util.cloneDeep(this.get(property));
 
         joint.util.unsetByPath(propertyValue, nestedPath, '/');
 
@@ -9610,12 +9611,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     text: {
                         textAnchor: 'middle',
                         fontSize: 14,
+                        fill: '#000000',
                         pointerEvents: 'none',
                         yAlignment: 'middle'
                     },
                     rect: {
                         ref: 'text',
-                        fill: 'white',
+                        fill: '#ffffff',
                         rx: 3,
                         ry: 3,
                         refWidth: 1,
