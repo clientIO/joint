@@ -961,7 +961,7 @@ joint.dia.Graph = Backbone.Model.extend({
         var bbox = element.getBBox();
         var elements = (opt.searchBy === 'bbox')
             ? this.findModelsInArea(bbox, opt)
-            : this.findModelsFromPoint(bbox[opt.searchBy](opt));
+            : this.findModelsFromPoint(bbox[opt.searchBy](), opt);
 
         // don't account element itself or any of its descendents
         return elements.filter(function(el) {
