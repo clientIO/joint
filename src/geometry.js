@@ -705,20 +705,21 @@ var g = (function() {
 
         var pathSegments = [];
 
-        var pathSegs = normalizedPathData.split(new RegExp(' (?=[LCMZ])'));
+        var detectedSegTypes = Object.keys(Path.segments).join('');
+        var pathSnippets = normalizedPathData.split(new RegExp(' (?=[' + detectedSegTypes + '])'));
 
         var prevSegment;
         var baseSegment; // last moveto segment
 
-        var n = pathSegs.length;
+        var n = pathSnippets.length;
         for (var i = 0; i < n; i++) {
 
-            var currentSeg = pathSegs[i];
+            var currentSnippet = pathSnippets[i];
 
-            var segCoords = currentSeg.split(' '); // first element is segType
+            var segCoords = currentSnippet.split(' '); // first element is segType
             var segType = segCoords.shift(); // after this, only coords left
 
-            currentSegment = Path.segments[segType].fromCoords(segCoords, prevSegment, baseSegment);
+            var currentSegment = Path.segments[segType].fromCoords(segCoords, prevSegment, baseSegment);
             pathSegments.push(currentSegment);
             
             prevSegment = currentSegment;
@@ -733,7 +734,7 @@ var g = (function() {
         bbox: function() {
 
             var bbox;
-            var lastMoveto;
+            var baseSegment; // last moveto segment
 
             var pathSegments = this.pathSegments;
             var n = pathSegments.length;
@@ -741,27 +742,17 @@ var g = (function() {
 
                 var seg = pathSegments[i];
 
-                if (seg.type === 'M') {
-                    // moveto segments are invisible
-                    lastMoveto = seg; // only adds bbox if this is the only segment
-                    continue;
-                }
+                if (seg.recordBaseSegment) baseSegment = seg;
 
-                if (seg.type === 'Z') {
-                    // closepath segments connect existing segments
-                    // if the segments have bboxes, this one does not add information
-                    // if the segments do not have bboxes, this one would add a zero-size box
-                    // therefore, do not add Z bboxes
-                    continue;
+                if (seg.recordBBox) {
+                    var segBBox = seg.bbox();
+                    bbox = bbox ? bbox.union(segBBox) : segBBox;
                 }
-
-                var segBBox = seg.bbox();
-                bbox = bbox ? bbox.union(segBBox) : segBBox;
             }
 
             // if the path has only M and Z segments, return bbox for last M
-            var lastMovetoBBox = Rect(lastMoveto.end.x, lastMoveto.end.y, 0, 0);
-            return (bbox ? bbox : lastMovetoBBox);
+            var baseSegmentBBox = Rect(baseSegment.end.x, baseSegment.end.y, 0, 0);
+            return (bbox ? bbox : baseSegmentBBox);
         },
 
         clone: function() {
@@ -874,6 +865,8 @@ var g = (function() {
 
         equals: Line.prototype.equals,
 
+        recordBBox: true,
+
         scale: Line.prototype.scale,
 
         translate: Line.prototype.translate,
@@ -882,8 +875,8 @@ var g = (function() {
 
         getPathData: function() {
 
-            var end = this.end.x + ' ' + this.end.y;
-            return this.type + ' ' + end;
+            var end = this.end;
+            return this.type + ' ' + end.x + ' ' + end.y;
         },
 
         toString: function() {
@@ -932,6 +925,8 @@ var g = (function() {
 
         equals: Curve.prototype.equals,
 
+        recordBBox: true,
+
         scale: Curve.prototype.scale,
 
         translate: Curve.prototype.translate,
@@ -940,10 +935,10 @@ var g = (function() {
 
         getPathData: function() {
 
-            var controlPoint1 = this.controlPoint1.x + ' ' + this.controlPoint1.y;
-            var controlPoint2 = this.controlPoint2.x + ' ' + this.controlPoint2.y;
-            var end = this.end.x + ' ' + this.end.y;
-            return this.type + ' ' + controlPoint1 + ' ' + controlPoint2 + ' ' + end;
+            var c1 = this.controlPoint1;
+            var c2 = this.controlPoint2;
+            var end = this.end;
+            return this.type + ' ' + c1.x + ' ' + c1.y + ' ' + c2.x + ' ' + c2.y + ' ' + end.x + ' ' + end.y;
         },
 
         toString: function() {
@@ -1001,8 +996,8 @@ var g = (function() {
 
         getPathData: function() {
 
-            var end = this.end.x + ' ' + this.end.y;
-            return this.type + ' ' + end;
+            var end = this.end;
+            return this.type + ' ' + end.x + ' ' + end.y;
         },
 
         toString: function() {

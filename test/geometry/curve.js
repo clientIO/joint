@@ -44,7 +44,7 @@ QUnit.module('curve', function() {
 
             QUnit.test('should return the curve\'s bounding box', function(assert) {
 
-                assert.equals(g.Curve('10 10', '10 40', '50 40', '50 10').bbox() + '', '55.55555555555556@100 100@200');
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').bbox().toString(), '10@10 50@32.5');
             });
         });
 
@@ -75,25 +75,25 @@ QUnit.module('curve', function() {
 
             QUnit.test('should return a scaled version of self', function(assert) {
 
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(0, 0).equals(g.Curve('0 0', '0 0', '0 0', '0 0')));
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(0, 0, g.Point('0 0')).equals(g.Curve('0 0', '0 0', '0 0', '0 0')));
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(0, 0, g.Point('10 10')).equals(g.Curve('0 0', '0 0', '0 0', '0 0')));
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(0, 0).toString(), g.Curve('0 0', '0 0', '0 0', '0 0').toString());
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(0, 0, g.Point('0 0')).toString(), g.Curve('0 0', '0 0', '0 0', '0 0').toString());
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(0, 0, g.Point('10 10')).toString(), g.Curve('10 10', '10 10', '10 10', '10 10').toString());
 
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(0, 1).equals(g.Curve('0 10', '0 40', '0 40', '0 10')));
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(0, 1, g.Point('0 0')).equals(g.Curve('0 10', '0 40', '0 40', '0 10')));
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(0, 1, g.Point('10 10')).equals(g.Curve('0 10', '0 40', '0 40', '0 10')));
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(0, 1).toString(), g.Curve('0 10', '0 40', '0 40', '0 10').toString());
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(0, 1, g.Point('0 0')).toString(), g.Curve('0 10', '0 40', '0 40', '0 10').toString());
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(0, 1, g.Point('10 10')).toString(), g.Curve('10 10', '10 40', '10 40', '10 10').toString());
 
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(1, 0).equals(g.Curve('10 0', '10 0', '50 0', '50 0')));
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(1, 0, g.Point('0 0')).equals(g.Curve('10 0', '10 0', '50 0', '50 0')));
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(1, 0, g.Point('10 10')).equals(g.Curve('10 0', '10 0', '50 0', '50 0')));
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(1, 0).toString(), g.Curve('10 0', '10 0', '50 0', '50 0').toString());
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(1, 0, g.Point('0 0')).toString(), g.Curve('10 0', '10 0', '50 0', '50 0').toString());
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(1, 0, g.Point('10 10')).toString(), g.Curve('10 10', '10 10', '50 10', '50 10').toString());
 
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(1, 1).equals(g.Curve('10 10', '10 40', '50 40', '50 10')));
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(1, 1, g.Point('0 0')).equals(g.Curve('10 10', '10 40', '50 40', '50 10')));
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(1, 1, g.Point('10 10')).equals(g.Curve('10 10', '10 40', '50 40', '50 10')));
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(1, 1).toString(), g.Curve('10 10', '10 40', '50 40', '50 10').toString());
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(1, 1, g.Point('0 0')).toString(), g.Curve('10 10', '10 40', '50 40', '50 10').toString());
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(1, 1, g.Point('10 10')).toString(), g.Curve('10 10', '10 40', '50 40', '50 10').toString());
 
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(10, 10).equals(g.Curve('100 100', '100 400', '500 400', '500 100')));
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(10, 10, g.Point('0 0')).equals(g.Curve('100 100', '100 400', '500 400', '500 100')));
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').scale(10, 10, g.Point('10 10')).equals(g.Curve('10 10', '10 310', '410 310', '410 10')));
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(10, 10).toString(), g.Curve('100 100', '100 400', '500 400', '500 100').toString());
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(10, 10, g.Point('0 0')).toString(), g.Curve('100 100', '100 400', '500 400', '500 100').toString());
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').scale(10, 10, g.Point('10 10')).toString(), g.Curve('10 10', '10 310', '410 310', '410 10').toString());
             });
         });
 
@@ -109,10 +109,10 @@ QUnit.module('curve', function() {
 
             QUnit.test('should return a translated version of self', function(assert) {
 
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').translate(0, 0).equals(g.Curve('10 10', '10 40', '50 40', '50 10')));
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').translate(0, 10).equals(g.Curve('10 20', '10 50', '50 50', '50 20')));
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').translate(10, 0).equals(g.Curve('20 10', '20 40', '60 40', '60 10')));
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').translate(10, 10).equals(g.Curve('20 20', '20 50', '60 50', '60 20')));
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').translate(0, 0).toString(), g.Curve('10 10', '10 40', '50 40', '50 10').toString());
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').translate(0, 10).toString(), g.Curve('10 20', '10 50', '50 50', '50 20').toString());
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').translate(10, 0).toString(), g.Curve('20 10', '20 40', '60 40', '60 10').toString());
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').translate(10, 10).toString(), g.Curve('20 20', '20 50', '60 50', '60 20').toString());
             });
         });
 

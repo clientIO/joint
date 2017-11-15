@@ -46,15 +46,15 @@ QUnit.module('line', function() {
 
             QUnit.test('should return the line\'s bounding box', function(assert) {
 
-                assert.ok(g.Line('0 0', '0 0').bbox().equals(g.Rect(0, 0, 0, 0)));
+                assert.equal(g.Line('0 0', '0 0').bbox().toString(), g.Rect(0, 0, 0, 0).toString());
 
-                assert.ok(g.Line('0 0', '10 0').bbox().equals(g.Rect(0, 0, 10, 0)));
-                assert.ok(g.Line('0 0', '0 10').bbox().equals(g.Rect(0, 0, 0, 10)));
-                assert.ok(g.Line('0 0', '10 10').bbox().equals(g.Rect(0, 0, 10, 10)));
+                assert.equal(g.Line('0 0', '10 0').bbox().toString(), g.Rect(0, 0, 10, 0).toString());
+                assert.equal(g.Line('0 0', '0 10').bbox().toString(), g.Rect(0, 0, 0, 10).toString());
+                assert.equal(g.Line('0 0', '10 10').bbox().toString(), g.Rect(0, 0, 10, 10).toString());
 
-                assert.ok(g.Line('0 0', '-10 0').bbox().equals(g.Rect(-10, 0, 10, 0)));
-                assert.ok(g.Line('0 0', '0 -10').bbox().equals(g.Rect(0, -10, 0, 10)));
-                assert.ok(g.Line('0 0', '-10 -10').bbox().equals(g.Rect(-10, -10, 10, 10)));
+                assert.equal(g.Line('0 0', '-10 0').bbox().toString(), g.Rect(-10, 0, 10, 0).toString());
+                assert.equal(g.Line('0 0', '0 -10').bbox().toString(), g.Rect(0, -10, 0, 10).toString());
+                assert.equal(g.Line('0 0', '-10 -10').bbox().toString(), g.Rect(-10, -10, 10, 10).toString());
             });
         });
 
@@ -222,25 +222,25 @@ QUnit.module('line', function() {
 
             QUnit.test('should return a scaled version of self', function(assert) {
 
-                assert.ok(g.Line('5 5', '20 20').scale(0, 0).equals(g.Line('0 0', '0 0')));
-                assert.ok(g.Line('5 5', '20 20').scale(0, 0, g.Point('0 0')).equals(g.Line('0 0', '0 0')));
-                assert.ok(g.Line('5 5', '20 20').scale(0, 0, g.Point('10 10')).equals(g.Line('0 0', '0 0')));
+                assert.equal(g.Line('5 5', '20 20').scale(0, 0).toString(), g.Line('0 0', '0 0').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(0, 0, g.Point('0 0')).toString(), g.Line('0 0', '0 0').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(0, 0, g.Point('10 10')).toString(), g.Line('10 10', '10 10').toString());
 
-                assert.ok(g.Line('5 5', '20 20').scale(0, 1).equals(g.Line('0 5', '0 20')));
-                assert.ok(g.Line('5 5', '20 20').scale(0, 1, g.Point('0 0')).equals(g.Line('0 5', '0 20')));
-                assert.ok(g.Line('5 5', '20 20').scale(0, 1, g.Point('10 10')).equals(g.Line('0 5', '0 20')));
+                assert.equal(g.Line('5 5', '20 20').scale(0, 1).toString(), g.Line('0 5', '0 20').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(0, 1, g.Point('0 0')).toString(), g.Line('0 5', '0 20').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(0, 1, g.Point('10 10')).toString(), g.Line('10 5', '10 20').toString());
 
-                assert.ok(g.Line('5 5', '20 20').scale(1, 0).equals(g.Line('5 0', '20 0')));
-                assert.ok(g.Line('5 5', '20 20').scale(1, 0, g.Point('0 0')).equals(g.Line('5 0', '20 0')));
-                assert.ok(g.Line('5 5', '20 20').scale(1, 0, g.Point('10 10')).equals(g.Line('5 0', '20 0')));
+                assert.equal(g.Line('5 5', '20 20').scale(1, 0).toString(), g.Line('5 0', '20 0').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(1, 0, g.Point('0 0')).toString(), g.Line('5 0', '20 0').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(1, 0, g.Point('10 10')).toString(), g.Line('5 10', '20 10').toString());
 
-                assert.ok(g.Line('5 5', '20 20').scale(1, 1).equals(g.Line('5 5', '20 20')));
-                assert.ok(g.Line('5 5', '20 20').scale(1, 1, g.Point('0 0')).equals(g.Line('5 5', '20 20')));
-                assert.ok(g.Line('5 5', '20 20').scale(1, 1, g.Point('10 10')).equals(g.Line('5 5', '20 20')));
+                assert.equal(g.Line('5 5', '20 20').scale(1, 1).toString(), g.Line('5 5', '20 20').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(1, 1, g.Point('0 0')).toString(), g.Line('5 5', '20 20').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(1, 1, g.Point('10 10')).toString(), g.Line('5 5', '20 20').toString());
 
-                assert.ok(g.Line('5 5', '20 20').scale(10, 10).equals(g.Line('50 50', '200 200')));
-                assert.ok(g.Line('5 5', '20 20').scale(10, 10, g.Point('0 0')).equals(g.Line('50 50', '200 200')));
-                assert.ok(g.Line('5 5', '20 20').scale(10, 10, g.Point('10 10')).equals(g.Line('-40 -40', '110 110')));
+                assert.equal(g.Line('5 5', '20 20').scale(10, 10).toString(), g.Line('50 50', '200 200').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(10, 10, g.Point('0 0')).toString(), g.Line('50 50', '200 200').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(10, 10, g.Point('10 10')).toString(), g.Line('-40 -40', '110 110').toString());
             });
         });
 
@@ -256,10 +256,10 @@ QUnit.module('line', function() {
 
             QUnit.test('should return a translated version of self', function(assert) {
 
-                assert.ok(g.Line('5 5', '20 20').translate(0, 0).equals(g.Line('5 5', '20 20')));
-                assert.ok(g.Line('5 5', '20 20').translate(0, 10).equals(g.Line('5 15', '20 30')));
-                assert.ok(g.Line('5 5', '20 20').translate(10, 0).equals(g.Line('15 5', '30 20')));
-                assert.ok(g.Line('5 5', '20 20').translate(10, 10).equals(g.Line('15 15', '30 30')));
+                assert.equal(g.Line('5 5', '20 20').translate(0, 0).toString(), g.Line('5 5', '20 20').toString());
+                assert.equal(g.Line('5 5', '20 20').translate(0, 10).toString(), g.Line('5 15', '20 30').toString());
+                assert.equal(g.Line('5 5', '20 20').translate(10, 0).toString(), g.Line('15 5', '30 20').toString());
+                assert.equal(g.Line('5 5', '20 20').translate(10, 10).toString(), g.Line('15 15', '30 30').toString());
             });
         });
 
