@@ -705,8 +705,7 @@ var g = (function() {
 
         var pathSegments = [];
 
-        var detectedSegTypes = Object.keys(Path.segments).join('');
-        var pathSnippets = normalizedPathData.split(new RegExp(' (?=[' + detectedSegTypes + '])'));
+        var pathSnippets = normalizedPathData.split(new RegExp(' (?=[a-zA-Z])'));
 
         var prevSegment;
         var baseSegment; // last moveto segment
@@ -751,8 +750,7 @@ var g = (function() {
             }
 
             // if the path has only M and Z segments, return bbox for last M
-            var baseSegmentBBox = Rect(baseSegment.end.x, baseSegment.end.y, 0, 0);
-            return (bbox ? bbox : baseSegmentBBox);
+            return (bbox ? bbox : Rect(baseSegment.end.x, baseSegment.end.y, 0, 0));
         },
 
         clone: function() {
