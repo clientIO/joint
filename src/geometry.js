@@ -294,6 +294,19 @@ var g = (function() {
             return Rect(left, top, (right - left), (bottom - top));
         },
 
+        equals: function(c) {
+
+            return !!c &&
+                    this.start.x === c.start.x &&
+                    this.start.y === c.start.y &&
+                    this.controlPoint1.x === c.controlPoint1.x &&
+                    this.controlPoint1.y === c.controlPoint1.y &&
+                    this.controlPoint2.x === c.controlPoint2.x &&
+                    this.controlPoint2.y === c.controlPoint2.y &&
+                    this.end.x === c.end.x &&
+                    this.end.y === c.end.y;
+        },
+
         scale: function(sx, sy, origin) {
 
             this.start.scale(sx, sy, origin);
@@ -756,6 +769,29 @@ var g = (function() {
             return Path(this.getPathData());
         },
 
+        equals: function(p) {
+
+            if (!p) return false;
+
+            var pathSegments = this.pathSegments;
+            var n = pathSegments.length;
+
+            // if the two paths have different number of segments, they cannot be equal
+            if (pathSegments && p.pathSegments && (p.pathSegments.length !== n)) return false;
+
+            // as soon as an inequality is found in pathSegments, return false
+            for (var i = 0; i < n; i++) {
+
+                var seg = pathSegments[i];
+                var otherSeg = p.pathSegments[i];
+
+                if ((seg.type !== otherSeg.type) || (!seg.equals(otherSeg))) return false;
+            }
+
+            // if no inequality found in pathSegments, return true
+            return true;
+        },
+
         scale: function(sx, sy, origin) {
 
             var pathSegments = this.pathSegments;
@@ -836,6 +872,8 @@ var g = (function() {
 
         bbox: Line.prototype.bbox,
 
+        equals: Line.prototype.equals,
+
         scale: Line.prototype.scale,
 
         translate: Line.prototype.translate,
@@ -891,6 +929,8 @@ var g = (function() {
     Curveto.prototype = {
 
         bbox: Curve.prototype.bbox,
+
+        equals: Curve.prototype.equals,
 
         scale: Curve.prototype.scale,
 
@@ -949,6 +989,8 @@ var g = (function() {
             return null;
         },
 
+        equals: Line.prototype.equals,
+
         recordBaseSegment: true,
 
         scale: Line.prototype.scale,
@@ -1002,6 +1044,8 @@ var g = (function() {
     Closepath.prototype = {
 
         bbox: Line.prototype.bbox,
+
+        equals: Line.prototype.equals,
 
         scale: Line.prototype.scale,
 
