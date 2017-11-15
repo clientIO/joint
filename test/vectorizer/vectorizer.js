@@ -26,7 +26,7 @@ QUnit.module('vectorizer', function(hooks) {
 
     hooks.beforeEach(function() {
 
-        var svgContent = '<path id="svg-path" d="M10 10"/>' +
+        var svgContent = '<path id="svg-path" d="M 10 10"/>' +
                 '<!-- comment -->' +
                 '<g id="svg-group">' +
                     '<ellipse id="svg-ellipse" x="10" y="10" rx="30" ry="30"/>' +
@@ -1027,7 +1027,51 @@ QUnit.module('vectorizer', function(hooks) {
         });
     });
 
-    QUnit.module('parseTransformString', function() {
+    QUnit.module('calculateBBox()', function() {
+
+        QUnit.test('sanity', function(assert) {
+            assert.ok(V(svgPath).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgCircle).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgEllipse).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgPolygon).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgRectangle).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgPath2).calculateBBox() instanceof g.Rect);
+        });
+
+        QUnit.test('check against getBBox()', function(assert) {
+            assert.ok(V(svgPath).getBBox().equals(V(svgPath).getBBox({ calculated: true })));
+            assert.ok(V(svgCircle).getBBox().equals(V(svgCircle).getBBox({ calculated: true })));
+            assert.ok(V(svgEllipse).getBBox().equals(V(svgEllipse).getBBox({ calculated: true })));
+            assert.ok(V(svgPolygon).getBBox().equals(V(svgPolygon).getBBox({ calculated: true })));
+            assert.ok(V(svgRectangle).getBBox().equals(V(svgRectangle).getBBox({ calculated: true })));
+
+            assert.ok(V(svgPath2).getBBox().equalsApprox(V(svgPath2).getBBox({ calculated: true }), 5));
+
+            assert.ok(V(svgGroup1).getBBox({ recursive: true }).equals(V(svgGroup1).getBBox({ recursive: true, calculated: true })));
+        });
+    });
+
+    QUnit.module('normalizePathData()', function () {
+
+        QUnit.test('path segment reconstruction', function(assert) {
+            var path1 = 'M 10 10';
+            var normalizedPath1 = V.normalizePathData(path1);
+            var reconstructedPath1 = g.Path(normalizedPath1).getPathData();
+            assert.equal(normalizedPath1, reconstructedPath1);
+
+            var path2 = 'M 100 100 C 100 100 0 150 100 200 Z';
+            var normalizedPath2 = V.normalizePathData(path2);
+            var reconstructedPath2 = g.Path(normalizedPath2).getPathData();
+            assert.equal(normalizedPath2, reconstructedPath2);
+
+            var path3 = 'M285.8,83V52.7h8.3v31c0,3.2-1,5.8-3,7.7c-2,1.9-4.4,2.8-7.2,2.8c-2.9,0-5.6-1.2-8.1-3.5l3.8-6.1c1.1,1.3,2.3,1.9,3.7,1.9c0.7,0,1.3-0.3,1.8-0.9C285.5,85,285.8,84.2,285.8,83z';
+            var normalizedPath3 = V.normalizePathData(path3);
+            var reconstructedPath3 = g.Path(normalizedPath3).getPathData();
+            assert.equal(normalizedPath3, reconstructedPath3);
+        });
+    });
+
+    QUnit.module('parseTransformString()', function() {
 
         QUnit.test('single value transformations, not the last one', function(assert) {
 

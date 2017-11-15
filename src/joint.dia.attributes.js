@@ -70,6 +70,50 @@
         };
     }
 
+    function dWrapper(resetOffset) {
+        return function(value, refBBox, node) {
+            var $node = $(node);
+            var cacheName = 'joint-refD';
+            var cache = $node.data(cacheName);
+
+            if (!cache || cache.refD !== value) {
+                // only recalculate if refD has changed
+
+                var cachedPath = g.Path(V.normalizePathData(value));
+                var cachedPathBBox = cachedPath.bbox();
+
+                cache = { refD: value, refBBox: refBBox, path: cachedPath, pathBBox: cachedPathBBox };
+
+                $node.data(cacheName, cache);
+            }
+
+            var path = cache.path.clone();
+            var pathBBox = cache.pathBBox.clone();
+
+            var pathOrigin = pathBBox.origin().clone();
+            var refOrigin = refBBox.origin();
+
+            pathBBox.x = refOrigin.x;
+            pathBBox.y = refOrigin.y;
+
+            var fitScale = refBBox.maxRectScaleToFit(pathBBox, refOrigin); // can give Infinity if width or height is 0
+            var sx = isFinite(fitScale.sx) ? fitScale.sx : 1;
+            var sy = isFinite(fitScale.sy) ? fitScale.sy : 1;
+
+            var scaledPath = path.scale(sx, sy, pathOrigin);
+
+            if (!resetOffset) return { d: scaledPath.getPathData() };
+
+            // else translate path as if resetOffset was present
+            var tx = -pathOrigin.x;
+            var ty = -pathOrigin.y;
+
+            var translatedPath = path.translate(tx, ty);
+
+            return { d: translatedPath.getPathData() };
+        };
+    }
+
     var attributesNS = joint.dia.attributes = {
 
         xlinkHref: {
@@ -330,6 +374,14 @@
             set: setWrapper('cy', 'height')
         },
 
+        refDResetOffset: {
+            set: dWrapper(true)
+        },
+
+        refDKeepOffset: {
+            set: dWrapper(false)
+        },
+
         // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
         // `x-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
 
@@ -353,6 +405,9 @@
 
         }
     };
+
+    // Default refD alias
+    attributesNS.refD = attributesNS.refDResetOffset;
 
     // This allows to combine both absolute and relative positioning
     // refX: 50%, refX2: 20

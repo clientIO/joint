@@ -210,7 +210,6 @@ V = Vectorizer = (function() {
     // If `target` is specified, bounding box will be computed relatively to `target` element.
     V.prototype.bbox = function(withoutTransformations, target) {
 
-        var box;
         var node = this.node;
         var ownerSVGElement = node.ownerSVGElement;
 
@@ -220,14 +219,14 @@ V = Vectorizer = (function() {
             return g.Rect(0, 0, 0, 0);
         }
 
-        try {
+        var bbox;
 
-            box = node.getBBox();
+        try {
+            bbox = node.getBBox();
 
         } catch (e) {
-
             // Fallback for IE.
-            box = {
+            bbox = {
                 x: node.clientLeft,
                 y: node.clientTop,
                 width: node.clientWidth,
@@ -236,108 +235,157 @@ V = Vectorizer = (function() {
         }
 
         if (withoutTransformations) {
-            return g.Rect(box);
+            return g.Rect(bbox);
+
+        } else {
+            var matrix = this.getTransformToElement(target || ownerSVGElement);
+            return V.transformRect(bbox, matrix);
         }
-
-        var matrix = this.getTransformToElement(target || ownerSVGElement);
-
-        return V.transformRect(box, matrix);
     };
     
-    // Returns an SVGRect that contains coordinates and dimensions of the real bounding box,
-    // i.e. after transformations are applied.
+    // Returns an SVGRect that contains coordinates and dimensions of the real bounding box, i.e. after transformations are applied.
     // Fixes a browser implementation bug that returns incorrect bounding boxes for groups of svg elements.
+    // If this element is a <path> with only M segments, returns a bbox with dimensions of 0 and coords of the last M.
     // Takes an (Object) `opt` argument (optional) with the following attributes:
     // (Object) `target` (optional): if not undefined, transform bounding boxes relative to `target`; if undefined, transform relative to this
-    // (Boolean) `recursive` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox();
+    // (Boolean) `recursive` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox() directly;
+    // (Boolean) `calculate` (optional): if true, use V.calculateBBox function instead of node.getBBox (works outside DOM as well)
     V.prototype.getBBox = function(opt) {
 
         var options = {};
 
-        var outputBBox;
         var node = this.node;
         var ownerSVGElement = node.ownerSVGElement;
+        var isInDOM = !!ownerSVGElement;
 
-        // If the element is not in the live DOM, it does not have a bounding box defined and
-        // so fall back to 'zero' dimension element.
-        if (!ownerSVGElement) {
-            return g.Rect(0, 0, 0, 0);
-        }
+        var children = this.children();
+        var numChildren = children.length;
+        var isGroupElement = !!numChildren;
 
         if (opt) {
-            if (opt.target) { // check if target exists
-                options.target = V.toNode(opt.target); // works for V objects, jquery objects, and node objects
+            if (opt.target) {
+                options.target = V.toNode(opt.target); // accepts V objects, jquery objects, and node objects
             }
             if (opt.recursive) {
                 options.recursive = opt.recursive;
             }
+            if (opt.calculate) {
+                options.calculate = opt.calculate;
+            }
         }
 
-        if (!options.recursive) {
-            try {
-                outputBBox = node.getBBox();
-            } catch (e) {
-                // Fallback for IE.
-                outputBBox = {
-                    x: node.clientLeft,
-                    y: node.clientTop,
-                    width: node.clientWidth,
-                    height: node.clientHeight
-                };
+        // If the element is not in live DOM, native function thinks it has no bbox.
+        if (!isInDOM && !options.calculate) return g.Rect(0, 0, 0, 0);
+
+        if (isGroupElement && !options.recursive && options.calculate) throw new Error('Group SVGElements cannot be calculated directly. Set opt.recursive to true.')
+
+        var bbox;
+
+        if (!isGroupElement || !options.recursive) {
+            if (options.calculate) {
+                bbox = this.calculateBBox();
+
+            } else {
+                try {
+                    bbox = node.getBBox();
+
+                } catch (e) {
+                    // Fallback for IE.
+                    bbox = {
+                        x: node.clientLeft,
+                        y: node.clientTop,
+                        width: node.clientWidth,
+                        height: node.clientHeight
+                    };
+                }
             }
 
             if (!options.target) {
-                // transform like this (that is, not at all)
-                return g.Rect(outputBBox);
+                return g.Rect(bbox);
+
             } else {
                 // transform like target
                 var matrix = this.getTransformToElement(options.target);
-                return V.transformRect(outputBBox, matrix);
+                return V.transformRect(bbox, matrix);
             }
-        } else { // if we want to calculate the bbox recursively
+
+        } else { // if isGroupElement && options.recursive
             // browsers report correct bbox around svg elements (one that envelops the path lines tightly)
             // but some browsers fail to report the same bbox when the elements are in a group (returning a looser bbox that also includes control points, like node.getClientRect())
             // this happens even if we wrap a single svg element into a group!
             // this option setting makes the function recursively enter all the groups from this and deeper, get bboxes of the elements inside, then return a union of those bboxes
 
-            var children = this.children();
-            var n = children.length;
-            
-            if (n === 0) {
-                return this.getBBox({ target: options.target, recursive: false });
-            }
+            if (!options.target) options.target = this;  // initial setting for recursion if target was undefined
 
-            // recursion's initial pass-through setting:
-            // recursive passes-through just keep the target as whatever was set up here during the initial pass-through
-            if (!options.target) {
-                // transform children/descendants like this (their parent/ancestor)
-                options.target = this;
-            } // else transform children/descendants like target
-
-            for (var i = 0; i < n; i++) {
+            for (var i = 0; i < numChildren; i++) {
                 var currentChild = children[i];
+                var childBBox = currentChild.getBBox({ target: options.target, recursive: true, calculate: options.calculate });
 
-                var childBBox;
-
-                // if currentChild is not a group element, get its bbox with a nonrecursive call
-                if (currentChild.children().length === 0) {
-                    childBBox = currentChild.getBBox({ target: options.target, recursive: false });
-                }
-                else {
-                    // if currentChild is a group element (determined by checking the number of children), enter it with a recursive call
-                    childBBox = currentChild.getBBox({ target: options.target, recursive: true });
-                }
-
-                if (!outputBBox) {
-                    // if this is the first iteration
-                    outputBBox = childBBox;
-                } else {
-                    // make a new bounding box rectangle that contains this child's bounding box and previous bounding box
-                    outputBBox = outputBBox.union(childBBox);
-                }
+                bbox = (bbox ? bbox.union(childBBox) : childBBox);
             }
 
-            return outputBBox;
+            return bbox;
+        }
+    };
+
+    // Calculate the bbox of this vel
+    // Return a g.Rect with the bounding box (in SVG units)
+    V.prototype.calculateBBox = function() {
+
+        var tagName = this.node.tagName.toUpperCase();
+
+        var x, y, w, h;
+        var cx, cy, r, rx, ry;
+        var x1, y1, x2, y2;
+        var normalizedPathData;
+        var points;
+
+        switch (tagName) {
+            case 'RECT':
+                x = parseFloat(this.attr('x')) || 0;
+                y = parseFloat(this.attr('y')) || 0;
+                w = parseFloat(this.attr('width')) || 0;
+                h = parseFloat(this.attr('height')) || 0;
+                return g.Rect(x, y, w, h);
+
+            case 'CIRCLE':
+                cx = parseFloat(this.attr('cx')) || 0;
+                cy =  parseFloat(this.attr('cy')) || 0;
+                r = parseFloat(this.attr('r')) || 0;
+                return g.Ellipse({ x: cx, y: cy }, r, r).bbox();
+
+            case 'ELLIPSE':
+                cx = parseFloat(this.attr('cx')) || 0;
+                cy =  parseFloat(this.attr('cy')) || 0;
+                rx = parseFloat(this.attr('rx')) || 0;
+                ry = parseFloat(this.attr('ry')) || 0;
+
+                return g.Ellipse({ x: cx, y: cy }, rx, ry).bbox();
+
+            case 'LINE':
+                x1 = parseFloat(this.attr('x1')) || 0;
+                y1 = parseFloat(this.attr('y1')) || 0;
+                x2 = parseFloat(this.attr('x2')) || 0;
+                y2 = parseFloat(this.attr('y2')) || 0;
+
+                return g.Line({ x: x1, y: y1 }, { x: x2, y: y2 }).bbox();
+
+            case 'PATH':
+                normalizedPathData = V.normalizePathData(this.attr('d'));
+                return g.Path(normalizedPathData).bbox();
+
+            case 'POLYLINE':
+                points = V.getPointsFromSvgNode(this);
+                return g.Polyline(points).bbox();
+
+            case 'POLYGON':
+                points = V.getPointsFromSvgNode(this);
+                return g.Polyline(points).bbox();
+
+            // TODO case 'TEXT':
+
+            default:
+                throw new Error(tagName + " not supported by calculateBBox.")
         }
     };
 
@@ -1112,13 +1160,16 @@ V = Vectorizer = (function() {
     };
 
     V.toNode = function(el) {
+
         return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
     };
 
     V.ensureId = function(node) {
+
         node = V.toNode(node);
         return node.id || (node.id = V.uniqueId());
     };
+
     // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
     // IE would otherwise collapse all spaces into one. This is used in the text() method but it is
     // also exposed so that the programmer can use it in case he needs to. This is useful e.g. in tests
@@ -1855,6 +1906,415 @@ V = Vectorizer = (function() {
 
         return d.join(' ');
     };
+
+    // Take a path data string
+    // Return a normalized path data string
+    // If data cannot be parsed, return 'M 0 0'
+    // Adapted from Rappid normalizePath polyfill
+    // Highly inspired by Raphael Library (www.raphael.com)
+    V.normalizePathData = (function() {
+
+        var spaces = '\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029';
+        var pathCommand = new RegExp('([a-z])[' + spaces + ',]*((-?\\d*\\.?\\d*(?:e[\\-+]?\\d+)?[' + spaces + ']*,?[' + spaces + ']*)+)', 'ig');
+        var pathValues = new RegExp('(-?\\d*\\.?\\d*(?:e[\\-+]?\\d+)?)[' + spaces + ']*,?[' + spaces + ']*', 'ig');
+
+        var math = Math;
+        var PI = math.PI;
+        var sin = math.sin;
+        var cos = math.cos;
+        var tan = math.tan;
+        var asin = math.asin;
+        var sqrt = math.sqrt;
+        var abs = math.abs;
+
+        function q2c(x1, y1, ax, ay, x2, y2) {
+
+            var _13 = 1 / 3;
+            var _23 = 2 / 3;
+            return [(_13 * x1) + (_23 * ax), (_13 * y1) + (_23 * ay), (_13 * x2) + (_23 * ax), (_13 * y2) + (_23 * ay), x2, y2];
+        }
+
+        function a2c(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
+            // for more information of where this math came from visit:
+            // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
+
+            var _120 = (PI * 120) / 180;
+            var rad = (PI / 180) * (+angle || 0);
+            var res = [];
+            var xy;
+
+            var rotate = function(x, y, rad) {
+
+                var X = (x * cos(rad)) - (y * sin(rad));
+                var Y = (x * sin(rad)) + (y * cos(rad));
+                return { x: X, y: Y };
+            };
+
+            if (!recursive) {
+                xy = rotate(x1, y1, -rad);
+                x1 = xy.x;
+                y1 = xy.y;
+
+                xy = rotate(x2, y2, -rad);
+                x2 = xy.x;
+                y2 = xy.y;
+
+                var x = (x1 - x2) / 2;
+                var y = (y1 - y2) / 2;
+                var h = ((x * x) / (rx * rx)) + ((y * y) / (ry * ry));
+
+                if (h > 1) {
+                    h = sqrt(h);
+                    rx = h * rx;
+                    ry = h * ry;
+                }
+
+                var rx2 = rx * rx;
+                var ry2 = ry * ry;
+
+                var k = ((large_arc_flag == sweep_flag) ? -1 : 1) * sqrt(abs(((rx2 * ry2) - (rx2 * y * y) - (ry2 * x * x)) / ((rx2 * y * y) + (ry2 * x * x))));
+
+                var cx = ((k * rx * y) / ry) + ((x1 + x2) / 2);
+                var cy = ((k * -ry * x) / rx) + ((y1 + y2) / 2);
+
+                var f1 = asin(((y1 - cy) / ry).toFixed(9));
+                var f2 = asin(((y2 - cy) / ry).toFixed(9));
+
+                f1 = (x1 < cx) ? (PI - f1) : f1;
+                f2 = (x2 < cx) ? (PI - f2) : f2;
+
+                if (f1 < 0) f1 = (PI * 2) + f1;
+                if (f2 < 0) f2 = (PI * 2) + f2;
+
+                if (sweep_flag && (f1 > f2)) f1 = f1 - (PI * 2);
+                if (!sweep_flag && (f2 > f1)) f2 = f2 - (PI * 2);
+
+            } else {
+                f1 = recursive[0];
+                f2 = recursive[1];
+                cx = recursive[2];
+                cy = recursive[3];
+            }
+
+            var df = f2 - f1;
+
+            if (abs(df) > _120) {
+                var f2old = f2;
+                var x2old = x2;
+                var y2old = y2;
+
+                f2 = f1 + _120 * (sweep_flag && ((f2 > f1) ? 1 : -1));
+                x2 = cx + rx * cos(f2);
+                y2 = cy + ry * sin(f2);
+
+                res = a2c(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
+            }
+
+            df = f2 - f1;
+
+            var c1 = cos(f1);
+            var s1 = sin(f1);
+            var c2 = cos(f2);
+            var s2 = sin(f2);
+
+            var t = tan(df / 4);
+
+            var hx = (4 / 3) * (rx * t);
+            var hy = (4 / 3) * (ry * t);
+
+            var m1 = [x1, y1];
+            var m2 = [x1 + (hx * s1), y1 - (hy * c1)];
+            var m3 = [x2 + (hx * s2), y2 - (hy * c2)];
+            var m4 = [x2, y2];
+
+            m2[0] = (2 * m1[0]) - m2[0];
+            m2[1] = (2 * m1[1]) - m2[1];
+
+            if (recursive) {
+                return [m2, m3, m4].concat(res);
+
+            } else {
+                res = [m2, m3, m4].concat(res).join().split(',');
+
+                var newres = [];
+                var ii = res.length;
+                for (var i = 0; i < ii; i++) {
+                    newres[i] = (i % 2) ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
+                }
+
+                return newres;
+            }
+        }
+
+        function parsePathString(pathString) {
+
+            if (!pathString) return null;
+
+            var paramCounts = { a: 7, c: 6, h: 1, l: 2, m: 2, q: 4, s: 4, t: 2, v: 1, z: 0 };
+            var data = [];
+
+            String(pathString).replace(pathCommand, function (a, b, c) {
+
+                var params = [];
+                var name = b.toLowerCase();
+                c.replace(pathValues, function (a, b) {
+                    if (b) params.push(+b);
+                });
+
+                if ((name === 'm') && (params.length > 2)) {
+                    data.push([b].concat(params.splice(0, 2)));
+                    name = 'l';
+                    b = ((b === 'm') ? 'l' : 'L');
+                }
+
+                while (params.length >= paramCounts[name]) {
+                    data.push([b].concat(params.splice(0, paramCounts[name])));
+                    if (!paramCounts[name]) break;
+                }
+            });
+
+            return data;
+        }
+
+        function pathToAbsolute(pathArray) {
+
+            if (!Array.isArray(pathArray) || !Array.isArray(pathArray && pathArray[0])) { // rough assumption
+                pathArray = parsePathString(pathArray);
+            }
+
+            if (!pathArray || !pathArray.length) return [['M', 0, 0]];
+
+            var res = [];
+            var x = 0;
+            var y = 0;
+            var mx = 0;
+            var my = 0;
+            var start = 0;
+            var pa0;
+
+            if (pathArray[0][0] === 'M') {
+                x = +pathArray[0][1];
+                y = +pathArray[0][2];
+                mx = x;
+                my = y;
+                start += 1;
+                res[0] = ['M', x, y];
+            }
+
+            var ii = pathArray.length;
+            for (var i = start; i < ii; i++) {
+
+                var r = [];
+                res.push(r);
+
+                var pa = pathArray[i];
+                pa0 = pa[0];
+
+                if (pa0 != pa0.toUpperCase()) {
+                    r[0] = pa0.toUpperCase();
+
+                    var jj;
+                    var j;
+                    switch (r[0]) {
+                        case 'A':
+                            r[1] = pa[1];
+                            r[2] = pa[2];
+                            r[3] = pa[3];
+                            r[4] = pa[4];
+                            r[5] = pa[5];
+                            r[6] = +pa[6] + x;
+                            r[7] = +pa[7] + y;
+                            break;
+
+                        case 'V':
+                            r[1] = +pa[1] + y;
+                            break;
+
+                        case 'H':
+                            r[1] = +pa[1] + x;
+                            break;
+
+                        case 'M':
+                            mx = +pa[1] + x;
+                            my = +pa[2] + y;
+
+                            jj = pa.length;
+                            for (j = 1; j < jj; j++) {
+                                r[j] = +pa[j] + ((j % 2) ? x : y);
+                            }
+                            break;
+
+                        default:
+                            jj = pa.length;
+                            for (j = 1; j < jj; j++) {
+                                r[j] = +pa[j] + ((j % 2) ? x : y);
+                            }
+                    }
+                } else {
+                    var kk = pa.length;
+                    for (var k = 0; k < kk; k++) {
+                        r[k] = pa[k];
+                    }
+                }
+
+                switch (r[0]) {
+                    case 'Z':
+                        x = +mx;
+                        y = +my;
+                        break;
+
+                    case 'H':
+                        x = r[1];
+                        break;
+
+                    case 'V':
+                        y = r[1];
+                        break;
+
+                    case 'M':
+                        mx = r[r.length - 2];
+                        my = r[r.length - 1];
+                        x = r[r.length - 2];
+                        y = r[r.length - 1];
+                        break;
+
+                    default:
+                        x = r[r.length - 2];
+                        y = r[r.length - 1];
+                }
+            }
+
+            return res;
+        }
+
+        function normalize(path) {
+
+            var p = pathToAbsolute(path);
+            var attrs = { x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null };
+
+            function processPath(path, d, pcom) {
+
+                var nx, ny;
+
+                if (!path) return ['C', d.x, d.y, d.x, d.y, d.x, d.y];
+
+                if (!(path[0] in { T: 1, Q: 1 })) {
+                    d.qx = null;
+                    d.qy = null;
+                }
+
+                switch (path[0]) {
+                    case 'M':
+                        d.X = path[1];
+                        d.Y = path[2];
+                        break;
+
+                    case 'A':
+                        path = ['C'].concat(a2c.apply(0, [d.x, d.y].concat(path.slice(1))));
+                        break;
+
+                    case 'S':
+                        if (pcom === 'C' || pcom === 'S') { // In 'S' case we have to take into account, if the previous command is C/S.
+                            nx = (d.x * 2) - d.bx;          // And reflect the previous
+                            ny = (d.y * 2) - d.by;          // command's control point relative to the current point.
+                        }
+                        else {                            // or some else or nothing
+                            nx = d.x;
+                            ny = d.y;
+                        }
+                        path = ['C', nx, ny].concat(path.slice(1));
+                        break;
+
+                    case 'T':
+                        if (pcom === 'Q' || pcom === 'T') { // In 'T' case we have to take into account, if the previous command is Q/T.
+                            d.qx = (d.x * 2) - d.qx;        // And make a reflection similar
+                            d.qy = (d.y * 2) - d.qy;        // to case 'S'.
+                        }
+                        else {                            // or something else or nothing
+                            d.qx = d.x;
+                            d.qy = d.y;
+                        }
+                        path = ['C'].concat(q2c(d.x, d.y, d.qx, d.qy, path[1], path[2]));
+                        break;
+
+                    case 'Q':
+                        d.qx = path[1];
+                        d.qy = path[2];
+                        path = ['C'].concat(q2c(d.x, d.y, path[1], path[2], path[3], path[4]));
+                        break;
+
+                    case 'H':
+                        path = ['L'].concat(path[1], d.y);
+                        break;
+
+                    case 'V':
+                        path = ['L'].concat(d.x, path[1]);
+                        break;
+
+                    case 'L':
+                    case 'Z':
+                        // leave 'L' & 'Z' commands as they were
+                        break;
+                }
+
+                return path;
+            }
+
+            function fixArc(pp, i) {
+
+                if (pp[i].length > 7) {
+
+                    pp[i].shift();
+                    var pi = pp[i];
+
+                    while (pi.length) {
+                        pcoms[i] = 'A'; // if created multiple 'C's, their original seg is saved
+                        pp.splice(i++, 0, ['C'].concat(pi.splice(0, 6)));
+                    }
+
+                    pp.splice(i, 1);
+                    ii = p.length;
+                }
+            }
+
+            var pcoms = []; // path commands of original path p
+            var pfirst = ''; // temporary holder for original path command
+            var pcom = ''; // holder for previous path command of original path
+
+            var ii = p.length;
+            for (var i = 0; i < ii; i++) {
+                if (p[i]) pfirst = p[i][0]; // save current path command
+
+                if (pfirst !== 'C') { // C is not saved yet, because it may be result of conversion
+                    pcoms[i] = pfirst; // Save current path command
+                    if (i > 0) pcom = pcoms[i - 1]; // Get previous path command pcom
+                }
+
+                p[i] = processPath(p[i], attrs, pcom); // Previous path command is inputted to processPath
+
+                if (pcoms[i] !== 'A' && pfirst === 'C') pcoms[i] = 'C'; // 'A' is the only command
+                // which may produce multiple 'C's
+                // so we have to make sure that 'C' is also 'C' in original path
+
+                fixArc(p, i); // fixArc adds also the right amount of 'A's to pcoms
+
+                var seg = p[i];
+                var seglen = seg.length;
+
+                attrs.x = seg[seglen - 2];
+                attrs.y = seg[seglen - 1];
+
+                attrs.bx = parseFloat(seg[seglen - 4]) || attrs.x;
+                attrs.by = parseFloat(seg[seglen - 3]) || attrs.y;
+            }
+
+            return p;
+        }
+
+        return function(pathData) {
+            return normalize(pathData).join(',').split(',').join(' ');
+        };
+    })();
 
     V.namespace = ns;
 
