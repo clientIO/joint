@@ -834,6 +834,8 @@ var g = (function() {
         // @return r {rectangle} representing a bounding box
         bbox: function(angle) {
 
+            if (!angle) return this.clone(); // if angle not specified, returns a copy of itself
+
             var theta = toRad(angle || 0);
             var st = abs(sin(theta));
             var ct = abs(cos(theta));
@@ -1240,6 +1242,32 @@ var g = (function() {
     };
 
     Polyline.prototype = {
+
+        bbox: function() {
+
+            var points = this.points;
+            var n = points.length;
+
+            if (n === 0) return null;
+
+            var x1 = Infinity;
+            var x2 = -Infinity;
+            var y1 = Infinity;
+            var y2 = -Infinity;
+
+            for (var i = 0; i < n; i++) {
+                var point = points[i];
+                var x = point.x;
+                var y = point.y;
+
+                if (x < x1) x1 = x;
+                if (x > x2) x2 = x;
+                if (y < y1) y1 = y;
+                if (y > y2) y2 = y;
+            }
+
+            return Rect(x1, y1, x2 - x1, y2 - y1);
+        },
 
         pointAtLength: function(length) {
             var points = this.points;

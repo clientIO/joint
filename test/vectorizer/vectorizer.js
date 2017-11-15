@@ -26,7 +26,7 @@ QUnit.module('vectorizer', function(hooks) {
 
     hooks.beforeEach(function() {
 
-        var svgContent = '<path id="svg-path" d="M10 10"/>' +
+        var svgContent = '<path id="svg-path" d="M 10 10"/>' +
                 '<!-- comment -->' +
                 '<g id="svg-group">' +
                     '<ellipse id="svg-ellipse" x="10" y="10" rx="30" ry="30"/>' +
@@ -1024,6 +1024,30 @@ QUnit.module('vectorizer', function(hooks) {
             assert.equal(V(svgGroup3).getBBox({ recursive: true }).toString(), V(svgPath2).getBBox({ recursive: true }).toString());
             assert.equal(V(svgGroup3).getBBox({ target: svgGroup1, recursive: true }).toString(), V(svgPath2).getBBox({ target: svgGroup1 }).toString());
             assert.equal(V(svgGroup3).getBBox({ target: svgGroup1, recursive: true }).toString(), V(svgPath2).getBBox({ target: svgGroup1, recursive: true }).toString());
+        });
+    });
+
+    QUnit.module('calculateBBox()', function() {
+
+        QUnit.test('sanity', function(assert) {
+            assert.ok(V(svgPath).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgCircle).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgEllipse).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgPolygon).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgRectangle).calculateBBox() instanceof g.Rect);
+            assert.ok(V(svgPath2).calculateBBox() instanceof g.Rect);
+        });
+
+        QUnit.test('check against getBBox()', function(assert) {
+            assert.equal(V(svgPath).getBBox().toString(), V(svgPath).getBBox({ calculated: true }).toString());
+            assert.equal(V(svgCircle).getBBox().toString(), V(svgCircle).getBBox({ calculated: true }).toString());
+            assert.equal(V(svgEllipse).getBBox().toString(), V(svgEllipse).getBBox({ calculated: true }).toString());
+            assert.equal(V(svgPolygon).getBBox().toString(), V(svgPolygon).getBBox({ calculated: true }).toString());
+            assert.equal(V(svgRectangle).getBBox().toString(), V(svgRectangle).getBBox({ calculated: true }).toString());
+
+            assert.equal(V(svgPath2).getBBox().round(5).toString(), V(svgPath2).getBBox({ calculated: true }).round(5).toString());
+
+            assert.equal(V(svgGroup1).getBBox({ recursive: true }), V(svgGroup1).getBBox({ recursive: true, calculated: true }).toString());
         });
     });
 

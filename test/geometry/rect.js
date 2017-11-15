@@ -33,6 +33,16 @@ QUnit.module('rect', function() {
 
         QUnit.module('bbox()', function() {
 
+            QUnit.test('sanity', function(assert) {
+
+                assert.ok(g.Rect(10, 20, 30, 40).bbox() instanceof g.Rect);
+            });
+
+            QUnit.test('should return the rectangle\'s bounding box', function(assert) {
+
+                assert.equal(g.Rect(10, 20, 30, 40).bbox().toString(), '10@20 40@60');
+                assert.ok(g.Rect(10, 20, 30, 40).bbox().equals(g.Rect(10, 20, 30, 40).clone()));
+            });
         });
 
         QUnit.module('bottomLeft()', function() {
