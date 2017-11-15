@@ -173,6 +173,164 @@ var g = (function() {
         }
     };
 
+    var Curve = g.Curve = function(p1, p2, p3, p4) {
+
+        if (!(this instanceof Curve)) {
+            return new Curve(p1, p2, p3, p4);
+        }
+
+        if (p1 instanceof Curve) {
+            return Curve(p1.start, p1.controlPoint1, p1.controlPoint2, p1.end);
+        }
+
+        this.start = Point(p1);
+        this.controlPoint1 = Point(p2);
+        this.controlPoint2 = Point(p3);
+        this.end = Point(p4);
+    };
+
+    Curve.prototype = {
+
+        bbox: function() {
+
+            var start = this.start;
+            var controlPoint1 = this.controlPoint1;
+            var controlPoint2 = this.controlPoint2;
+            var end = this.end;
+
+            var x0 = start.x;
+            var y0 = start.y;
+            var x1 = controlPoint1.x;
+            var y1 = controlPoint1.y;
+            var x2 = controlPoint2.x;
+            var y2 = controlPoint2.y;
+            var x3 = end.x;
+            var y3 = end.y;
+
+            var points = new Array(); // local extremes
+            var tvalues = new Array(); // t values of local extremes
+            var bounds = [new Array(), new Array()];
+
+            var a, b, c, t;
+            var t1, t2;
+            var b2ac, sqrtb2ac;
+
+            for (var i = 0; i < 2; ++i) {
+
+                if (i === 0) {
+                    b = 6 * x0 - 12 * x1 + 6 * x2;
+                    a = -3 * x0 + 9 * x1 - 9 * x2 + 3 * x3;
+                    c = 3 * x1 - 3 * x0;
+
+                } else {
+                    b = 6 * y0 - 12 * y1 + 6 * y2;
+                    a = -3 * y0 + 9 * y1 - 9 * y2 + 3 * y3;
+                    c = 3 * y1 - 3 * y0;
+                }
+
+                if (abs(a) < 1e-12) { // Numerical robustness
+                    if (abs(b) < 1e-12) { // Numerical robustness
+                        continue;
+                    }
+
+                    t = -c / b;
+                    if ((0 < t) && (t < 1)) tvalues.push(t);
+
+                    continue;
+                }
+
+                b2ac = b * b - 4 * c * a;
+                sqrtb2ac = sqrt(b2ac);
+
+                if (b2ac < 0) continue;
+
+                t1 = (-b + sqrtb2ac) / (2 * a);
+                if ((0 < t1) && (t1 < 1)) tvalues.push(t1);
+
+                t2 = (-b - sqrtb2ac) / (2 * a);
+                if ((0 < t2) && (t2 < 1)) tvalues.push(t2);
+            }
+
+            var j = tvalues.length;
+            var jlen = j;
+            var mt;
+            var x, y;
+
+            while (j--) {
+                t = tvalues[j];
+                mt = 1 - t;
+
+                x = (mt * mt * mt * x0) + (3 * mt * mt * t * x1) + (3 * mt * t * t * x2) + (t * t * t * x3);
+                bounds[0][j] = x;
+
+                y = (mt * mt * mt * y0) + (3 * mt * mt * t * y1) + (3 * mt * t * t * y2) + (t * t * t * y3);
+                bounds[1][j] = y;
+
+                points[j] = { X: x, Y: y };
+            }
+
+            tvalues[jlen] = 0;
+            tvalues[jlen + 1] = 1;
+
+            points[jlen] = { X: x0, Y: y0 };
+            points[jlen + 1] = { X: x3, Y: y3 };
+
+            bounds[0][jlen] = x0;
+            bounds[1][jlen] = y0;
+
+            bounds[0][jlen + 1] = x3;
+            bounds[1][jlen + 1] = y3;
+
+            tvalues.length = jlen + 2;
+            bounds[0].length = jlen + 2;
+            bounds[1].length = jlen + 2;
+            points.length = jlen + 2;
+
+            var left = mmin.apply(null, bounds[0]);
+            var top = mmin.apply(null, bounds[1]);
+            var right = mmax.apply(null, bounds[0]);
+            var bottom = mmax.apply(null, bounds[1]);
+
+            return Rect(left, top, (right - left), (bottom - top));
+        },
+
+        equals: function(c) {
+
+            return !!c &&
+                    this.start.x === c.start.x &&
+                    this.start.y === c.start.y &&
+                    this.controlPoint1.x === c.controlPoint1.x &&
+                    this.controlPoint1.y === c.controlPoint1.y &&
+                    this.controlPoint2.x === c.controlPoint2.x &&
+                    this.controlPoint2.y === c.controlPoint2.y &&
+                    this.end.x === c.end.x &&
+                    this.end.y === c.end.y;
+        },
+
+        scale: function(sx, sy, origin) {
+
+            this.start.scale(sx, sy, origin);
+            this.controlPoint1.scale(sx, sy, origin);
+            this.controlPoint2.scale(sx, sy, origin);
+            this.end.scale(sx, sy, origin);
+            return this;
+        },
+
+        translate: function(tx, ty) {
+
+            this.start.offset(tx, ty);
+            this.controlPoint1.offset(tx, ty);
+            this.controlPoint2.offset(tx, ty);
+            this.end.offset(tx, ty);
+            return this;
+        },
+
+        toString: function() {
+
+            return this.type + ' ' + this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
+        }
+    };
+
     var Ellipse = g.Ellipse = function(c, a, b) {
 
         if (!(this instanceof Ellipse)) {
@@ -351,6 +509,16 @@ var g = (function() {
 
     g.Line.prototype = {
 
+        bbox: function() {
+
+            var left = mmin(this.start.x, this.end.x);
+            var top = mmin(this.start.y, this.end.y);
+            var right = mmax(this.start.x, this.end.x);
+            var bottom = mmax(this.start.y, this.end.y);
+
+            return Rect(left, top, (right - left), (bottom - top));
+        },
+
         // @return the bearing (cardinal direction) of the line. For example N, W, or SE.
         // @returns {String} One of the following bearings : NE, E, SE, S, SW, W, NW, N.
         bearing: function() {
@@ -475,6 +643,20 @@ var g = (function() {
             return ((this.end.x - this.start.x) * (p.y - this.start.y) - (this.end.y - this.start.y) * (p.x - this.start.x)) / 2;
         },
 
+        scale: function(sx, sy, origin) {
+
+            this.start.scale(sx, sy, origin);
+            this.end.scale(sx, sy, origin);
+            return this;
+        },
+
+        translate: function(tx, ty) {
+
+            this.start.offset(tx, ty);
+            this.end.offset(tx, ty);
+            return this;
+        },
+
         // @return vector {point} of the line
         vector: function() {
 
@@ -512,6 +694,375 @@ var g = (function() {
 
     // For backwards compatibility:
     g.Line.prototype.intersection = g.Line.prototype.intersect;
+
+    var Path = g.Path = function(normalizedPathData) {
+
+        if (!(this instanceof Path)) {
+            return new Path(normalizedPathData);
+        }
+
+        // create path segments:
+
+        var pathSegments = [];
+
+        var pathSnippets = normalizedPathData.split(new RegExp(' (?=[a-zA-Z])'));
+
+        var prevSegment;
+        var baseSegment; // last moveto segment
+
+        var n = pathSnippets.length;
+        for (var i = 0; i < n; i++) {
+
+            var currentSnippet = pathSnippets[i];
+
+            var segCoords = currentSnippet.split(' '); // first element is segType
+            var segType = segCoords.shift(); // after this, only coords left
+
+            var currentSegment = Path.segments[segType].fromCoords(segCoords, prevSegment, baseSegment);
+            pathSegments.push(currentSegment);
+            
+            prevSegment = currentSegment;
+            if (currentSegment.recordBaseSegment) baseSegment = currentSegment;
+        }
+
+        this.pathSegments = pathSegments;
+    }
+
+    Path.prototype = {
+
+        bbox: function() {
+
+            var bbox;
+            var baseSegment; // last moveto segment
+
+            var pathSegments = this.pathSegments;
+            var n = pathSegments.length;
+            for (var i = 0; i < n; i++) {
+
+                var seg = pathSegments[i];
+
+                if (seg.recordBaseSegment) baseSegment = seg;
+
+                if (seg.recordBBox) {
+                    var segBBox = seg.bbox();
+                    bbox = bbox ? bbox.union(segBBox) : segBBox;
+                }
+            }
+
+            // if the path has only M and Z segments, return bbox for last M
+            return (bbox ? bbox : Rect(baseSegment.end.x, baseSegment.end.y, 0, 0));
+        },
+
+        clone: function() {
+
+            return Path(this.getPathData());
+        },
+
+        equals: function(p) {
+
+            if (!p) return false;
+
+            var pathSegments = this.pathSegments;
+            var n = pathSegments.length;
+
+            // if the two paths have different number of segments, they cannot be equal
+            if (pathSegments && p.pathSegments && (p.pathSegments.length !== n)) return false;
+
+            // as soon as an inequality is found in pathSegments, return false
+            for (var i = 0; i < n; i++) {
+
+                var seg = pathSegments[i];
+                var otherSeg = p.pathSegments[i];
+
+                if ((seg.type !== otherSeg.type) || (!seg.equals(otherSeg))) return false;
+            }
+
+            // if no inequality found in pathSegments, return true
+            return true;
+        },
+
+        scale: function(sx, sy, origin) {
+
+            var pathSegments = this.pathSegments;
+            var n = pathSegments.length;
+            for (var i = 0; i < n; i++) {
+
+                var seg = pathSegments[i];
+                seg.scale(sx, sy, origin);
+            }
+
+            return this;
+        },
+
+        translate: function(tx, ty) {
+
+            var pathSegments = this.pathSegments;
+            var n = pathSegments.length;
+            for (var i = 0; i < n; i++) {
+
+                var seg = pathSegments[i];
+                seg.translate(tx, ty);
+            }
+
+            return this;
+        },
+
+        getPathData: function() {
+
+            var pathData = '';
+
+            var pathSegments = this.pathSegments;
+            var n = pathSegments.length;
+            for (var i = 0; i < n; i++) {
+
+                var seg = pathSegments[i];
+
+                if (i > 0) pathData += ' ';
+                pathData += seg.getPathData();
+            }
+
+            return pathData;
+        }
+    };
+
+    Path.prototype.toString = Path.prototype.getPathData;
+
+    var Lineto = function(p1, p2) {
+
+        if (!(this instanceof Lineto)) {
+            return new Lineto(p1, p2);
+        }
+
+        if (p1 instanceof Lineto) {
+            return Lineto(p1.start, p1.end);
+        }
+
+        if (p1 instanceof Line) {
+            return Lineto(p1.start, p1.end);
+        }
+
+        this.start = Point(p1);
+        this.end = Point(p2);
+    };
+
+    Lineto.fromCoords = function(coords, prevSegment, baseSegment) {
+
+        if (coords.length !== 2) {
+            throw new Error('Wrong number of coordinates provided (expects 2).')
+        }
+
+        var p1 = Point(prevSegment.end);
+        var p2 = Point(+coords[0], +coords[1]);
+
+        return Lineto(p1, p2);
+    };
+
+    Lineto.prototype = {
+
+        bbox: Line.prototype.bbox,
+
+        equals: Line.prototype.equals,
+
+        recordBBox: true,
+
+        scale: Line.prototype.scale,
+
+        translate: Line.prototype.translate,
+
+        type: 'L',
+
+        getPathData: function() {
+
+            var end = this.end;
+            return this.type + ' ' + end.x + ' ' + end.y;
+        },
+
+        toString: function() {
+
+            return this.type + ' ' + this.start + ' ' + this.end;
+        }
+    };
+
+    var Curveto = function(p1, p2, p3, p4) {
+
+        if (!(this instanceof Curveto)) {
+            return new Curveto(p1, p2, p3, p4);
+        }
+
+        if (p1 instanceof Curveto) {
+            return Curveto(p1.start, p1.controlPoint1, p1.controlPoint2, p1.end);
+        }
+
+        if (p1 instanceof Curve) {
+            return Curveto(p1.start, p1.controlPoint1, p1.controlPoint2, p1.end);
+        }
+
+        this.start = Point(p1);
+        this.controlPoint1 = Point(p2);
+        this.controlPoint2 = Point(p3);
+        this.end = Point(p4);
+    };
+
+    Curveto.fromCoords = function(coords, prevSegment, baseSegment) {
+
+        if (coords.length !== 6) {
+            throw new Error('Wrong number of coordinates provided (expects 6).')
+        }
+
+        var p1 = Point(prevSegment.end);
+        var p2 = Point(+coords[0], +coords[1]);
+        var p3 = Point(+coords[2], +coords[3]);
+        var p4 = Point(+coords[4], +coords[5]);
+
+        return Curveto(p1, p2, p3, p4);
+    };
+
+    Curveto.prototype = {
+
+        bbox: Curve.prototype.bbox,
+
+        equals: Curve.prototype.equals,
+
+        recordBBox: true,
+
+        scale: Curve.prototype.scale,
+
+        translate: Curve.prototype.translate,
+
+        type: 'C',
+
+        getPathData: function() {
+
+            var c1 = this.controlPoint1;
+            var c2 = this.controlPoint2;
+            var end = this.end;
+            return this.type + ' ' + c1.x + ' ' + c1.y + ' ' + c2.x + ' ' + c2.y + ' ' + end.x + ' ' + end.y;
+        },
+
+        toString: function() {
+
+            return this.type + ' ' + this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
+        }
+    };
+
+    var Moveto = function(p1, p2) {
+
+        if (!(this instanceof Moveto)) {
+            return new Moveto(p1, p2);
+        }
+
+        if (p1 instanceof Moveto) {
+            return Moveto(p1.start, p1.end);
+        }
+
+        if (p1 instanceof Line) {
+            return Moveto(p1.start, p1.end);
+        }
+
+        this.start = Point(p1);
+        this.end = Point(p2);
+    };
+
+    Moveto.fromCoords = function(coords, prevSegment, baseSegment) {
+
+        if (coords.length !== 2) {
+            throw new Error('Wrong number of coordinates provided (expects 2).')
+        }
+
+        var p1 = prevSegment ? Point(prevSegment.end) : Point(0, 0);
+        var p2 = Point(+coords[0], +coords[1]);
+
+        return Moveto(p1, p2);
+    };
+
+    Moveto.prototype = {
+
+        bbox: function() {
+
+            return null;
+        },
+
+        equals: Line.prototype.equals,
+
+        recordBaseSegment: true,
+
+        scale: Line.prototype.scale,
+
+        translate: Line.prototype.translate,
+
+        type: 'M',
+
+        getPathData: function() {
+
+            var end = this.end;
+            return this.type + ' ' + end.x + ' ' + end.y;
+        },
+
+        toString: function() {
+
+            return this.type + ' ' + this.start + ' ' + this.end;
+        }
+    };
+
+    var Closepath = function(p1, p2) {
+
+        if (!(this instanceof Closepath)) {
+            return new Closepath(p1, p2);
+        }
+
+        if (p1 instanceof Closepath) {
+            return Closepath(p1.start, p1.end);
+        }
+
+        if (p1 instanceof Line) {
+            return Moveto(p1.start, p1.end);
+        }
+
+        this.start = Point(p1);
+        this.end = Point(p2);
+    };
+
+    Closepath.fromCoords = function(coords, prevSegment, baseSegment) {
+
+        if (coords.length !== 0) {
+            throw new Error('Wrong number of coordinates provided (expects 0).')
+        }
+
+        var p1 = Point(prevSegment.end);
+        var p2 = Point(baseSegment.end);
+
+        return Closepath(p1, p2);
+    };
+
+    Closepath.prototype = {
+
+        bbox: Line.prototype.bbox,
+
+        equals: Line.prototype.equals,
+
+        scale: Line.prototype.scale,
+
+        translate: Line.prototype.translate,
+
+        type: 'Z',
+
+        getPathData: function() {
+
+            return this.type;
+        },
+
+        toString: function() {
+
+            return this.type + ' ' + this.start + ' ' + this.end;
+        }
+    };
+
+    Path.segments = {
+        L: Lineto,
+        C: Curveto,
+        M: Moveto,
+        Z: Closepath
+    };
 
     /*
         Point is the most basic object consisting of x/y coordinate.

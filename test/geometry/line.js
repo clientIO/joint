@@ -6,19 +6,57 @@ QUnit.module('line', function() {
 
         QUnit.test('creates a new Line object', function(assert) {
 
-            var line = g.line(g.point(), g.point(3, 8));
-            assert.ok(line, 'returns instance of g.line');
+            assert.ok(g.Line() instanceof g.Line, 'no arguments provided');
+
+            var line = g.Line(g.Point(), g.Point(3, 8));
+            assert.ok(line, 'returns instance of g.Line');
             assert.ok(typeof line.start !== 'undefined', 'has "start" property');
             assert.ok(typeof line.end !== 'undefined', 'has "end" property');
             assert.equal(line.start.x, 0, 'start.x is correct');
             assert.equal(line.start.y, 0, 'start.y is correct');
             assert.equal(line.end.x, 3, 'end.x is correct');
             assert.equal(line.end.y, 8, 'end.y is correct');
-            assert.ok(g.line() instanceof g.line, 'no arguments provided');
+
+            var line2 = g.Line(line);
+            assert.ok(line2, 'returns instance of g.Line');
+            assert.ok(typeof line2.start !== 'undefined', 'has "start" property');
+            assert.ok(typeof line2.end !== 'undefined', 'has "end" property');
+            assert.notOk(line === line2);
+            assert.equal(line.toString(), line2.toString());
+            assert.ok(line.equals(line2));
         });
     });
 
     QUnit.module('prototype', function() {
+
+        QUnit.module('bbox()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                assert.ok(g.Line('0 0', '0 0').bbox() instanceof g.Rect);
+
+                assert.ok(g.Line('0 0', '10 0').bbox() instanceof g.Rect);
+                assert.ok(g.Line('0 0', '0 10').bbox() instanceof g.Rect);
+                assert.ok(g.Line('0 0', '10 10').bbox() instanceof g.Rect);
+
+                assert.ok(g.Line('0 0', '-10 0').bbox() instanceof g.Rect);
+                assert.ok(g.Line('0 0', '0 -10').bbox() instanceof g.Rect);
+                assert.ok(g.Line('0 0', '-10 -10').bbox() instanceof g.Rect);
+            });
+
+            QUnit.test('should return the line\'s bounding box', function(assert) {
+
+                assert.equal(g.Line('0 0', '0 0').bbox().toString(), g.Rect(0, 0, 0, 0).toString());
+
+                assert.equal(g.Line('0 0', '10 0').bbox().toString(), g.Rect(0, 0, 10, 0).toString());
+                assert.equal(g.Line('0 0', '0 10').bbox().toString(), g.Rect(0, 0, 0, 10).toString());
+                assert.equal(g.Line('0 0', '10 10').bbox().toString(), g.Rect(0, 0, 10, 10).toString());
+
+                assert.equal(g.Line('0 0', '-10 0').bbox().toString(), g.Rect(-10, 0, 10, 0).toString());
+                assert.equal(g.Line('0 0', '0 -10').bbox().toString(), g.Rect(0, -10, 0, 10).toString());
+                assert.equal(g.Line('0 0', '-10 -10').bbox().toString(), g.Rect(-10, -10, 10, 10).toString());
+            });
+        });
 
         QUnit.module('bearing()', function() {
 
@@ -37,12 +75,18 @@ QUnit.module('line', function() {
 
         QUnit.module('clone()', function() {
 
+            QUnit.test('sanity', function(assert) {
+
+                assert.ok(g.Line('1 2', '3 4').clone() instanceof g.Line);
+            });
+
             QUnit.test('returns a clone', function(assert) {
 
                 var l1 = g.Line('1 2', '3 4');
                 var l2 = l1.clone();
                 assert.notOk(l1 === l2);
                 assert.equal(l1.toString(), l2.toString());
+                assert.ok(l1.equals(l2));
             });
         });
 
@@ -151,6 +195,74 @@ QUnit.module('line', function() {
             });
         });
 
+        QUnit.module('scale()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                assert.ok(g.Line('5 5', '20 20').scale(0, 0) instanceof g.Line);
+                assert.ok(g.Line('5 5', '20 20').scale(0, 0, g.Point('0 0')) instanceof g.Line);
+                assert.ok(g.Line('5 5', '20 20').scale(0, 0, g.Point('10 10')) instanceof g.Line);
+
+                assert.ok(g.Line('5 5', '20 20').scale(0, 1) instanceof g.Line);
+                assert.ok(g.Line('5 5', '20 20').scale(0, 1, g.Point('0 0')) instanceof g.Line);
+                assert.ok(g.Line('5 5', '20 20').scale(0, 1, g.Point('10 10')) instanceof g.Line);
+
+                assert.ok(g.Line('5 5', '20 20').scale(1, 0) instanceof g.Line);
+                assert.ok(g.Line('5 5', '20 20').scale(1, 0, g.Point('0 0')) instanceof g.Line);
+                assert.ok(g.Line('5 5', '20 20').scale(1, 0, g.Point('10 10')) instanceof g.Line);
+
+                assert.ok(g.Line('5 5', '20 20').scale(1, 1) instanceof g.Line);
+                assert.ok(g.Line('5 5', '20 20').scale(1, 1, g.Point('0 0')) instanceof g.Line);
+                assert.ok(g.Line('5 5', '20 20').scale(1, 1, g.Point('10 10')) instanceof g.Line);
+
+                assert.ok(g.Line('5 5', '20 20').scale(10, 10) instanceof g.Line);
+                assert.ok(g.Line('5 5', '20 20').scale(10, 10, g.Point('0 0')) instanceof g.Line);
+                assert.ok(g.Line('5 5', '20 20').scale(10, 10, g.Point('10 10')) instanceof g.Line);
+            });
+
+            QUnit.test('should return a scaled version of self', function(assert) {
+
+                assert.equal(g.Line('5 5', '20 20').scale(0, 0).toString(), g.Line('0 0', '0 0').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(0, 0, g.Point('0 0')).toString(), g.Line('0 0', '0 0').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(0, 0, g.Point('10 10')).toString(), g.Line('10 10', '10 10').toString());
+
+                assert.equal(g.Line('5 5', '20 20').scale(0, 1).toString(), g.Line('0 5', '0 20').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(0, 1, g.Point('0 0')).toString(), g.Line('0 5', '0 20').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(0, 1, g.Point('10 10')).toString(), g.Line('10 5', '10 20').toString());
+
+                assert.equal(g.Line('5 5', '20 20').scale(1, 0).toString(), g.Line('5 0', '20 0').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(1, 0, g.Point('0 0')).toString(), g.Line('5 0', '20 0').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(1, 0, g.Point('10 10')).toString(), g.Line('5 10', '20 10').toString());
+
+                assert.equal(g.Line('5 5', '20 20').scale(1, 1).toString(), g.Line('5 5', '20 20').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(1, 1, g.Point('0 0')).toString(), g.Line('5 5', '20 20').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(1, 1, g.Point('10 10')).toString(), g.Line('5 5', '20 20').toString());
+
+                assert.equal(g.Line('5 5', '20 20').scale(10, 10).toString(), g.Line('50 50', '200 200').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(10, 10, g.Point('0 0')).toString(), g.Line('50 50', '200 200').toString());
+                assert.equal(g.Line('5 5', '20 20').scale(10, 10, g.Point('10 10')).toString(), g.Line('-40 -40', '110 110').toString());
+            });
+        });
+
+        QUnit.module('translate()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                assert.ok(g.Line('5 5', '20 20').translate(0, 0) instanceof g.Line);
+                assert.ok(g.Line('5 5', '20 20').translate(0, 10) instanceof g.Line);
+                assert.ok(g.Line('5 5', '20 20').translate(10, 0) instanceof g.Line);
+                assert.ok(g.Line('5 5', '20 20').translate(10, 10) instanceof g.Line);
+            });
+
+            QUnit.test('should return a translated version of self', function(assert) {
+
+                assert.equal(g.Line('5 5', '20 20').translate(0, 0).toString(), g.Line('5 5', '20 20').toString());
+                assert.equal(g.Line('5 5', '20 20').translate(0, 10).toString(), g.Line('5 15', '20 30').toString());
+                assert.equal(g.Line('5 5', '20 20').translate(10, 0).toString(), g.Line('15 5', '30 20').toString());
+                assert.equal(g.Line('5 5', '20 20').translate(10, 10).toString(), g.Line('15 15', '30 30').toString());
+            });
+        });
+
         QUnit.module('vector()', function() {
 
             QUnit.test('returns the vector of the line', function(assert) {
@@ -162,9 +274,9 @@ QUnit.module('line', function() {
 
         });
 
-        QUnit.module('closestPointNormalizedLenght(p)', function() {
+        QUnit.module('closestPointNormalizedLength(p)', function() {
 
-            QUnit.test('returns the normalized lentgh of the closest point', function(assert) {
+            QUnit.test('returns the normalized length of the closest point', function(assert) {
 
                 assert.equal(g.Line('10 0', '20 0').closestPointNormalizedLength(g.Point(15,0)), .5);
                 assert.equal(g.Line('10 0', '20 0').closestPointNormalizedLength(g.Point(15,20)), .5);
