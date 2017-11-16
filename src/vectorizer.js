@@ -4,7 +4,6 @@
 // A tiny library for making your life easier when dealing with SVG.
 // The only Vectorizer dependency is the Geometry library.
 
-
 var V;
 var Vectorizer;
 
@@ -579,6 +578,13 @@ V = Vectorizer = (function() {
 
         return this;
     };
+
+    V.prototype.normalizePath = function() {
+
+        this.attr('d', V.normalizePathData(this.attr('d')));
+
+        return this;
+    }
 
     V.prototype.remove = function() {
 
@@ -1929,14 +1935,14 @@ V = Vectorizer = (function() {
                 var f1 = asin(((y1 - cy) / ry).toFixed(9));
                 var f2 = asin(((y2 - cy) / ry).toFixed(9));
 
-                f1 = (x1 < cx) ? (PI - f1) : f1;
-                f2 = (x2 < cx) ? (PI - f2) : f2;
+                f1 = ((x1 < cx) ? (PI - f1) : f1);
+                f2 = ((x2 < cx) ? (PI - f2) : f2);
 
                 if (f1 < 0) f1 = (PI * 2) + f1;
                 if (f2 < 0) f2 = (PI * 2) + f2;
 
-                if (sweep_flag && (f1 > f2)) f1 = f1 - (PI * 2);
-                if (!sweep_flag && (f2 > f1)) f2 = f2 - (PI * 2);
+                if ((sweep_flag && f1) > f2) f1 = f1 - (PI * 2);
+                if ((!sweep_flag && f2) > f1) f2 = f2 - (PI * 2);
 
             } else {
                 f1 = recursive[0];
@@ -1952,9 +1958,9 @@ V = Vectorizer = (function() {
                 var x2old = x2;
                 var y2old = y2;
 
-                f2 = f1 + _120 * (sweep_flag && ((f2 > f1) ? 1 : -1));
-                x2 = cx + rx * cos(f2);
-                y2 = cy + ry * sin(f2);
+                f2 = f1 + (_120 * (((sweep_flag && f2) > f1) ? 1 : -1));
+                x2 = cx + (rx * cos(f2));
+                y2 = cy + (ry * sin(f2));
 
                 res = a2c(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
             }
@@ -2031,7 +2037,7 @@ V = Vectorizer = (function() {
                 pathArray = parsePathString(pathArray);
             }
 
-            if (!pathArray || !pathArray.length) return [['M', 0, 0]];
+            if (!pathArray || !pathArray.length) return [[]];
 
             var res = [];
             var x = 0;
@@ -2040,15 +2046,6 @@ V = Vectorizer = (function() {
             var my = 0;
             var start = 0;
             var pa0;
-
-            if (pathArray[0][0] === 'M') {
-                x = +pathArray[0][1];
-                y = +pathArray[0][2];
-                mx = x;
-                my = y;
-                start += 1;
-                res[0] = ['M', x, y];
-            }
 
             var ii = pathArray.length;
             for (var i = start; i < ii; i++) {
@@ -2260,6 +2257,10 @@ V = Vectorizer = (function() {
 
                 attrs.bx = parseFloat(seg[seglen - 4]) || attrs.x;
                 attrs.by = parseFloat(seg[seglen - 3]) || attrs.y;
+            }
+
+            if (p[0][0] && p[0][0] !== 'M') {
+                p.unshift(['M', 0, 0]);
             }
 
             return p;

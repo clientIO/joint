@@ -705,10 +705,11 @@ var g = (function() {
 
         var pathSegments = [];
 
+        normalizedPathData = normalizedPathData ? normalizedPathData : 'M 0 0'; // path data must start with M
         var pathSnippets = normalizedPathData.split(new RegExp(' (?=[a-zA-Z])'));
 
         var prevSegment;
-        var baseSegment; // last moveto segment
+        var subpathStartSegment; // last moveto segment
 
         var n = pathSnippets.length;
         for (var i = 0; i < n; i++) {
@@ -718,11 +719,11 @@ var g = (function() {
             var segCoords = currentSnippet.split(' '); // first element is segType
             var segType = segCoords.shift(); // after this, only coords left
 
-            var currentSegment = Path.segments[segType].fromCoords(segCoords, prevSegment, baseSegment);
+            var currentSegment = Path.segments[segType].fromCoords(segCoords, prevSegment, subpathStartSegment);
             pathSegments.push(currentSegment);
             
             prevSegment = currentSegment;
-            if (currentSegment.recordBaseSegment) baseSegment = currentSegment;
+            if (currentSegment.recordSubpathStartSegment) subpathStartSegment = currentSegment;
         }
 
         this.pathSegments = pathSegments;
@@ -733,7 +734,7 @@ var g = (function() {
         bbox: function() {
 
             var bbox;
-            var baseSegment; // last moveto segment
+            var subpathStartSegment; // last moveto segment
 
             var pathSegments = this.pathSegments;
             var n = pathSegments.length;
@@ -741,7 +742,7 @@ var g = (function() {
 
                 var seg = pathSegments[i];
 
-                if (seg.recordBaseSegment) baseSegment = seg;
+                if (seg.recordSubpathStartSegment) subpathStartSegment = seg;
 
                 if (seg.recordBBox) {
                     var segBBox = seg.bbox();
@@ -750,7 +751,7 @@ var g = (function() {
             }
 
             // if the path has only M and Z segments, return bbox for last M
-            return (bbox ? bbox : Rect(baseSegment.end.x, baseSegment.end.y, 0, 0));
+            return (bbox ? bbox : Rect(subpathStartSegment.end.x, subpathStartSegment.end.y, 0, 0));
         },
 
         clone: function() {
@@ -845,10 +846,14 @@ var g = (function() {
         this.end = Point(p2);
     };
 
-    Lineto.fromCoords = function(coords, prevSegment, baseSegment) {
+    Lineto.fromCoords = function(coords, prevSegment, subpathStartSegment) {
 
         if (coords.length !== 2) {
             throw new Error('Wrong number of coordinates provided (expects 2).')
+        }
+
+        if (!prevSegment) {
+            throw new Error('No previous segment provided (path must start with a moveto segment).')
         }
 
         var p1 = Point(prevSegment.end);
@@ -903,10 +908,14 @@ var g = (function() {
         this.end = Point(p4);
     };
 
-    Curveto.fromCoords = function(coords, prevSegment, baseSegment) {
+    Curveto.fromCoords = function(coords, prevSegment, subpathStartSegment) {
 
         if (coords.length !== 6) {
             throw new Error('Wrong number of coordinates provided (expects 6).')
+        }
+
+        if (!prevSegment) {
+            throw new Error('No previous segment provided (path must start with a moveto segment).')
         }
 
         var p1 = Point(prevSegment.end);
@@ -963,7 +972,7 @@ var g = (function() {
         this.end = Point(p2);
     };
 
-    Moveto.fromCoords = function(coords, prevSegment, baseSegment) {
+    Moveto.fromCoords = function(coords, prevSegment, subpathStartSegment) {
 
         if (coords.length !== 2) {
             throw new Error('Wrong number of coordinates provided (expects 2).')
@@ -984,7 +993,7 @@ var g = (function() {
 
         equals: Line.prototype.equals,
 
-        recordBaseSegment: true,
+        recordSubpathStartSegment: true,
 
         scale: Line.prototype.scale,
 
@@ -1022,14 +1031,22 @@ var g = (function() {
         this.end = Point(p2);
     };
 
-    Closepath.fromCoords = function(coords, prevSegment, baseSegment) {
+    Closepath.fromCoords = function(coords, prevSegment, subpathStartSegment) {
 
         if (coords.length !== 0) {
             throw new Error('Wrong number of coordinates provided (expects 0).')
         }
 
+        if (!prevSegment) {
+            throw new Error('No previous segment provided (path must start with a moveto segment).')
+        }
+
+        if (!subpathStartSegment) {
+            throw new Error('No subpath start segment provided (current subpath must start with a moveto segment).')
+        }
+
         var p1 = Point(prevSegment.end);
-        var p2 = Point(baseSegment.end);
+        var p2 = Point(subpathStartSegment.end);
 
         return Closepath(p1, p2);
     };
