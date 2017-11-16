@@ -70,6 +70,72 @@
         };
     }
 
+    function shapeWrapper(shapeConstructor, resetOffset) {
+        var cacheName = 'joint-shape';
+        return function(value, refBBox, node) {
+            var $node = $(node);
+            var cache = $node.data(cacheName);
+            if (!cache || cache.value !== value) {
+                // only recalculate if value has changed
+                var cachedShape = shapeConstructor(value);
+                cache = {
+                    value: value,
+                    shape: cachedShape,
+                    shapeBBox: cachedShape.bbox()
+                };
+                $node.data(cacheName, cache);
+            }
+
+            var shape = cache.shape.clone();
+            var shapeBBox = cache.shapeBBox.clone();
+            var shapeOrigin = shapeBBox.origin();
+            var refOrigin = refBBox.origin();
+
+            shapeBBox.x = refOrigin.x;
+            shapeBBox.y = refOrigin.y;
+
+            var fitScale = refBBox.maxRectScaleToFit(shapeBBox, refOrigin);
+            // `maxRectScaleToFit` can give Infinity if width or height is 0
+            var sx = isFinite(fitScale.sx) ? fitScale.sx : 1;
+            var sy = isFinite(fitScale.sy) ? fitScale.sy : 1;
+
+            shape.scale(sx, sy, shapeOrigin);
+            if (resetOffset) {
+                shape.translate(-shapeOrigin.x, -shapeOrigin.y);
+            }
+
+            return shape;
+        };
+    }
+
+    function pathConstructor(value) {
+        var d = V.normalizePathData(value);
+        return new g.Path(d);
+    }
+
+    function polylineConstructor(value) {
+        var points = [];
+        var coords = value.split(/\s|,/);
+        for (var i = 0, n = coords.length; i < n; i+=2) {
+            points.push({ x: +coords[i], y: +coords[i + 1] });
+        }
+        return new g.Polyline(points);
+    }
+
+    function dWrapper(resetOffset) {
+        var path = shapeWrapper(pathConstructor, resetOffset);
+        return {
+            d: path.getPathData()
+        };
+    }
+
+    function pointsWrapper(resetOffset) {
+        var polyline = shapeWrapper(polylineConstructor, resetOffset);
+        return {
+            points: polyline.toString()
+        };
+    }
+
     var attributesNS = joint.dia.attributes = {
 
         xlinkHref: {
@@ -351,8 +417,28 @@
                     : { x: 0, y: 0 };
             }
 
+        },
+
+        refDResetOffset: {
+            set: dWrapper(true)
+        },
+
+        refDKeepOffset: {
+            set: dWrapper(false)
+        },
+
+        refPointsResetOffset: {
+            set: pointsWrapper(true)
+        },
+
+        refPointsKeepOffset: {
+            set: pointsWrapper(false)
         }
     };
+
+    // Aliases
+    attributesNS.refD = attributesNS.refDResetOffset;
+    attributesNS.refPoints = attributesNS.refPointsResetOffset;
 
     // This allows to combine both absolute and relative positioning
     // refX: 50%, refX2: 20
