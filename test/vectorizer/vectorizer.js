@@ -1027,6 +1027,97 @@ QUnit.module('vectorizer', function(hooks) {
         });
     });
 
+    QUnit.module('normalizePathData()', function () {
+
+        QUnit.test('sanity', function(assert) {
+
+            assert.equal(typeof V.normalizePathData('M 10 10 H 20'), 'string');
+            assert.equal(typeof V.normalizePathData('M 10 10 V 20'), 'string');
+            assert.equal(typeof V.normalizePathData('M 10 20 C 10 10 25 10 25 20 S 40 30 40 20'), 'string');
+            assert.equal(typeof V.normalizePathData('M 20 20 Q 40 0 60 20'), 'string');
+            assert.equal(typeof V.normalizePathData('M 20 20 Q 40 0 60 20 T 100 20'), 'string');
+            assert.equal(typeof V.normalizePathData('M 30 15 A 15 15 0 0 0 15 30'), 'string');
+
+            assert.equal(typeof V.normalizePathData('m 10 10'), 'string');
+            assert.equal(typeof V.normalizePathData('M 10 10 m 10 10'), 'string');
+            assert.equal(typeof V.normalizePathData('M 10 10 l 10 10'), 'string');
+            assert.equal(typeof V.normalizePathData('M 10 10 c 0 10 10 10 10 0'), 'string');
+            assert.equal(typeof V.normalizePathData('M 10 10 z'), 'string');
+
+            assert.equal(typeof V.normalizePathData('M 10 10 20 20'), 'string');
+            assert.equal(typeof V.normalizePathData('M 10 10 L 20 20 30 30'), 'string');
+            assert.equal(typeof V.normalizePathData('M 10 10 C 10 20 20 20 20 10 20 0 30 0 30 10'), 'string');
+
+            assert.equal(typeof V.normalizePathData('L 10 10'), 'string');
+            assert.equal(typeof V.normalizePathData('C 0 10 10 10 10 0'), 'string');
+            assert.equal(typeof V.normalizePathData('Z'), 'string');
+
+            assert.equal(typeof V.normalizePathData(''), 'string');
+            assert.equal(typeof V.normalizePathData('bbb'), 'string');
+
+            assert.equal(typeof V.normalizePathData('M'), 'string');
+            assert.equal(typeof V.normalizePathData('M 10'), 'string');
+            assert.equal(typeof V.normalizePathData('M 10 10 20'), 'string');
+
+            assert.equal(typeof V.normalizePathData('bbb M 10 10'), 'string');
+            assert.equal(typeof V.normalizePathData('bbb M 10 10 bbb L 20 20'), 'string');
+        });
+
+        QUnit.test('normalizations', function(assert) {
+
+            assert.equal(V.normalizePathData('M 10 10 H 20'), 'M 10 10 L 20 10');
+            assert.equal(V.normalizePathData('M 10 10 V 20'), 'M 10 10 L 10 20');
+            assert.equal(V.normalizePathData('M 10 20 C 10 10 25 10 25 20 S 40 30 40 20'), 'M 10 20 C 10 10 25 10 25 20 C 25 30 40 30 40 20');
+            assert.equal(V.normalizePathData('M 20 20 Q 40 0 60 20'), 'M 20 20 C 33.33333333333333 6.666666666666666 46.666666666666664 6.666666666666666 60 20');
+            assert.equal(V.normalizePathData('M 20 20 Q 40 0 60 20 T 100 20'), 'M 20 20 C 33.33333333333333 6.666666666666666 46.666666666666664 6.666666666666666 60 20 C 73.33333333333333 33.33333333333333 86.66666666666666 33.33333333333333 100 20');
+            assert.equal(V.normalizePathData('M 30 15 A 15 15 0 0 0 15 30'), 'M 30 15 C 21.715728752538098 15.000000000000002 14.999999999999998 21.715728752538098 15 30');
+
+            assert.equal(V.normalizePathData('m 10 10'), 'M 10 10');
+            assert.equal(V.normalizePathData('M 10 10 m 10 10'), 'M 10 10 M 20 20');
+            assert.equal(V.normalizePathData('M 10 10 l 10 10'), 'M 10 10 L 20 20');
+            assert.equal(V.normalizePathData('M 10 10 c 0 10 10 10 10 0'), 'M 10 10 C 10 20 20 20 20 10');
+            assert.equal(V.normalizePathData('M 10 10 z'), 'M 10 10 Z');
+
+            assert.equal(V.normalizePathData('M 10 10 20 20'), 'M 10 10 L 20 20');
+            assert.equal(V.normalizePathData('M 10 10 L 20 20 30 30'), 'M 10 10 L 20 20 L 30 30');
+            assert.equal(V.normalizePathData('M 10 10 C 10 20 20 20 20 10 20 0 30 0 30 10'), 'M 10 10 C 10 20 20 20 20 10 C 20 0 30 0 30 10');
+        });
+
+        QUnit.test('edge cases', function(assert) {
+
+            assert.equal(V.normalizePathData('L 10 10'), 'M 0 0 L 10 10');
+            assert.equal(V.normalizePathData('C 0 10 10 10 10 0'), 'M 0 0 C 0 10 10 10 10 0');
+            assert.equal(V.normalizePathData('Z'), 'M 0 0 Z');
+
+            assert.equal(V.normalizePathData(''), ''); // empty string
+            assert.equal(V.normalizePathData('bbb'), ''); // invalid command
+
+            assert.equal(V.normalizePathData('M'), ''); // no arguments for a command that needs them
+            assert.equal(V.normalizePathData('M 10'), ''); // too few arguments
+            assert.equal(V.normalizePathData('M 10 10 20'), 'M 10 10'); // too many arguments
+
+            assert.equal(V.normalizePathData('bbb M 10 10'), 'M 10 10'); // mixing invalid and valid commands
+            assert.equal(V.normalizePathData('bbb M 10 10 bbb L 20 20'), 'M 10 10 L 20 20'); // invalid commands interspersed with valid commands
+        });
+
+        QUnit.test('path segment reconstruction', function(assert) {
+            var path1 = 'M 10 10';
+            var normalizedPath1 = V.normalizePathData(path1);
+            var reconstructedPath1 = g.Path(normalizedPath1).getPathData();
+            assert.equal(normalizedPath1, reconstructedPath1);
+
+            var path2 = 'M 100 100 C 100 100 0 150 100 200 Z';
+            var normalizedPath2 = V.normalizePathData(path2);
+            var reconstructedPath2 = g.Path(normalizedPath2).getPathData();
+            assert.equal(normalizedPath2, reconstructedPath2);
+
+            var path3 = 'M285.8,83V52.7h8.3v31c0,3.2-1,5.8-3,7.7c-2,1.9-4.4,2.8-7.2,2.8c-2.9,0-5.6-1.2-8.1-3.5l3.8-6.1c1.1,1.3,2.3,1.9,3.7,1.9c0.7,0,1.3-0.3,1.8-0.9C285.5,85,285.8,84.2,285.8,83z';
+            var normalizedPath3 = V.normalizePathData(path3);
+            var reconstructedPath3 = g.Path(normalizedPath3).getPathData();
+            assert.equal(normalizedPath3, reconstructedPath3);
+        });
+    });
+
     QUnit.module('parseTransformString', function() {
 
         QUnit.test('single value transformations, not the last one', function(assert) {
