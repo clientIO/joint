@@ -1,4 +1,4 @@
-(function(joint, _, g, $, util) {
+(function(joint, V, g, $, util) {
 
     function isPercentage(val) {
         return util.isString(val) && val.slice(-1) === '%';
@@ -70,8 +70,9 @@
         };
     }
 
-    function shapeWrapper(shapeConstructor, resetOffset) {
+    function shapeWrapper(shapeConstructor, opt) {
         var cacheName = 'joint-shape';
+        var resetOffset = opt && opt.resetOffset;
         return function(value, refBBox, node) {
             var $node = $(node);
             var cache = $node.data(cacheName);
@@ -108,22 +109,11 @@
         };
     }
 
-    function pathConstructor(value) {
-        var d = V.normalizePathData(value);
-        return new g.Path(d);
-    }
-
-    function polylineConstructor(value) {
-        var points = [];
-        var coords = value.split(/\s|,/);
-        for (var i = 0, n = coords.length; i < n; i+=2) {
-            points.push({ x: +coords[i], y: +coords[i + 1] });
+    function dWrapper(opt) {
+        function pathConstructor(value) {
+            return new g.Path(V.normalizePathData(value));
         }
-        return new g.Polyline(points);
-    }
-
-    function dWrapper(resetOffset) {
-        var shape = shapeWrapper(pathConstructor, resetOffset)();
+        var shape = shapeWrapper(pathConstructor, opt);
         return function(value, refBBox, node) {
             var path = shape(value, refBBox, node);
             return {
@@ -132,12 +122,12 @@
         };
     }
 
-    function pointsWrapper(resetOffset) {
-        var shape = shapeWrapper(polylineConstructor, resetOffset);
+    function pointsWrapper(opt) {
+        var shape = shapeWrapper(g.Polyline, opt);
         return function(value, refBBox, node) {
             var polyline = shape(value, refBBox, node);
             return {
-                points: polyline.toString()
+                points: polyline.toSVGString()
             };
         };
     }
@@ -426,19 +416,19 @@
         },
 
         refDResetOffset: {
-            set: dWrapper(true)
+            set: dWrapper({ resetOffset: true })
         },
 
         refDKeepOffset: {
-            set: dWrapper(false)
+            set: dWrapper({ resetOffset: false })
         },
 
         refPointsResetOffset: {
-            set: pointsWrapper(true)
+            set: pointsWrapper({ resetOffset: true })
         },
 
         refPointsKeepOffset: {
-            set: pointsWrapper(false)
+            set: pointsWrapper({ resetOffset: false })
         }
     };
 
@@ -461,4 +451,4 @@
     attributesNS['x-alignment'] = attributesNS.xAlignment;
     attributesNS['y-alignment'] = attributesNS.yAlignment;
 
-})(joint, _, g, $, joint.util);
+})(joint, V, g, $, joint.util);

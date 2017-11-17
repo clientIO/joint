@@ -1804,10 +1804,54 @@ var g = (function() {
             return new Polyline(points);
         }
 
+        if (typeof points === 'string') {
+            return Polyline.fromSVGString(points);
+        }
+
         this.points = (Array.isArray(points)) ? points.map(Point) : [];
     };
 
+    Polyline.fromSVGString = function(svgString) {
+        var points = [];
+        var coords = svgString.split(/\s|,/);
+        for (var i = 0, n = coords.length; i < n; i+=2) {
+            points.push({ x: +coords[i], y: +coords[i + 1] });
+        }
+        return new g.Polyline(points);
+    };
+
     Polyline.prototype = {
+
+        bbox: function() {
+
+            var x1 = Infinity;
+            var x2 = -Infinity;
+            var y1 = Infinity;
+            var y2 = -Infinity;
+
+            var points = this.points;
+
+            var n = points.length;
+
+            if (n === 0) return null;
+
+            for (var i = 0; i < n; i++) {
+                var point = points[i];
+                var x = point.x;
+                var y = point.y;
+
+                if (x < x1) x1 = x;
+                if (x > x2) x2 = x;
+                if (y < y1) y1 = y;
+                if (y > y2) y2 = y;
+            }
+
+            return Rect(x1, y1, x2 - x1, y2 - y1);
+        },
+
+        clone: function() {
+            return new Polyline(this.points);
+        },
 
         pointAtLength: function(length) {
             var points = this.points;
@@ -2062,6 +2106,26 @@ var g = (function() {
             }
 
             return Polyline(hullPoints);
+        },
+
+        scale: function(sx, sy, origin) {
+            var points = this.points;
+            for (var i = 0, n = points.length; i < n; i++) {
+                points[i].scale(sx, sy, origin);
+            }
+            return this;
+        },
+
+        translate: function(tx, ty) {
+            var points = this.points;
+            for (var i = 0, n = points.length; i < n; i++) {
+                points[i].offset(tx, ty);
+            }
+            return this;
+        },
+
+        toSVGString: function() {
+            return this.toString().replace(/,/g, ' ').replace(/@/g, ',');
         }
     };
 
