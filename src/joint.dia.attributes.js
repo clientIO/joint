@@ -123,16 +123,22 @@
     }
 
     function dWrapper(resetOffset) {
-        var path = shapeWrapper(pathConstructor, resetOffset);
-        return {
-            d: path.getPathData()
+        var shape = shapeWrapper(pathConstructor, resetOffset)();
+        return function(value, refBBox, node) {
+            var path = shape(value, refBBox, node);
+            return {
+                d: path.getPathData()
+            };
         };
     }
 
     function pointsWrapper(resetOffset) {
-        var polyline = shapeWrapper(polylineConstructor, resetOffset);
-        return {
-            points: polyline.toString()
+        var shape = shapeWrapper(polylineConstructor, resetOffset);
+        return function(value, refBBox, node) {
+            var polyline = shape(value, refBBox, node);
+            return {
+                points: polyline.toString()
+            };
         };
     }
 
