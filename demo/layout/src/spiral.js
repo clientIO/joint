@@ -23,7 +23,7 @@
         return array[Math.floor(Math.random() * array.length)];
     }
 
-    var Ellipse = joint.dia.Element.define('Circle', {
+    var Ellipse = joint.dia.Element.define('Ellipse', {
         attrs: {
             ellipse: {
                 refRx: '50%',
