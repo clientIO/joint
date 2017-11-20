@@ -695,24 +695,31 @@ var g = (function() {
     // For backwards compatibility:
     g.Line.prototype.intersection = g.Line.prototype.intersect;
 
-    var Path = g.Path = function(normalizedPathData) {
+    var Path = g.Path = function(pathSegments) {
 
         if (!(this instanceof Path)) {
-            return new Path(normalizedPathData);
+            return new Path(pathSegments);
         }
 
-        // create path segments:
+        if (typeof pathSegments === 'string') {
+            // create path segments:
+            return Path.parse(pathSegments);
+        }
+
+        this.pathSegments = pathSegments;
+    };
+
+    Path.parse = function(normalizedPathData) {
 
         var pathSegments = [];
 
-        normalizedPathData = normalizedPathData ? normalizedPathData : 'M 0 0'; // path data must start with M
+        normalizedPathData = normalizedPathData || 'M 0 0'; // path data must start with M
         var pathSnippets = normalizedPathData.split(new RegExp(' (?=[a-zA-Z])'));
 
         var prevSegment;
         var subpathStartSegment; // last moveto segment
 
-        var n = pathSnippets.length;
-        for (var i = 0; i < n; i++) {
+        for (var i = 0, n = pathSnippets.length; i < n; i++) {
 
             var currentSnippet = pathSnippets[i];
 
@@ -726,8 +733,8 @@ var g = (function() {
             if (currentSegment.recordSubpathStartSegment) subpathStartSegment = currentSegment;
         }
 
-        this.pathSegments = pathSegments;
-    }
+        return new Path(pathSegments);
+    };
 
     Path.prototype = {
 
@@ -756,7 +763,7 @@ var g = (function() {
 
         clone: function() {
 
-            return Path(this.getPathData());
+            return Path(this.serialize());
         },
 
         equals: function(p) {
@@ -808,7 +815,7 @@ var g = (function() {
             return this;
         },
 
-        getPathData: function() {
+        serialize: function() {
 
             var pathData = '';
 
@@ -818,15 +825,14 @@ var g = (function() {
 
                 var seg = pathSegments[i];
 
-                if (i > 0) pathData += ' ';
-                pathData += seg.getPathData();
+                pathData += seg.serialize() + ' ';
             }
 
-            return pathData;
+            return pathData.trim();
         }
     };
 
-    Path.prototype.toString = Path.prototype.getPathData;
+    Path.prototype.toString = Path.prototype.serialize;
 
     var Lineto = function(p1, p2) {
 
@@ -849,11 +855,11 @@ var g = (function() {
     Lineto.fromCoords = function(coords, prevSegment, subpathStartSegment) {
 
         if (coords.length !== 2) {
-            throw new Error('Wrong number of coordinates provided (expects 2).')
+            throw new Error('Wrong number of coordinates provided (expects 2).');
         }
 
         if (!prevSegment) {
-            throw new Error('No previous segment provided (path must start with a moveto segment).')
+            throw new Error('No previous segment provided (path must start with a moveto segment).');
         }
 
         var p1 = Point(prevSegment.end);
@@ -876,7 +882,7 @@ var g = (function() {
 
         type: 'L',
 
-        getPathData: function() {
+        serialize: function() {
 
             var end = this.end;
             return this.type + ' ' + end.x + ' ' + end.y;
@@ -911,11 +917,11 @@ var g = (function() {
     Curveto.fromCoords = function(coords, prevSegment, subpathStartSegment) {
 
         if (coords.length !== 6) {
-            throw new Error('Wrong number of coordinates provided (expects 6).')
+            throw new Error('Wrong number of coordinates provided (expects 6).');
         }
 
         if (!prevSegment) {
-            throw new Error('No previous segment provided (path must start with a moveto segment).')
+            throw new Error('No previous segment provided (path must start with a moveto segment).');
         }
 
         var p1 = Point(prevSegment.end);
@@ -940,7 +946,7 @@ var g = (function() {
 
         type: 'C',
 
-        getPathData: function() {
+        serialize: function() {
 
             var c1 = this.controlPoint1;
             var c2 = this.controlPoint2;
@@ -975,7 +981,7 @@ var g = (function() {
     Moveto.fromCoords = function(coords, prevSegment, subpathStartSegment) {
 
         if (coords.length !== 2) {
-            throw new Error('Wrong number of coordinates provided (expects 2).')
+            throw new Error('Wrong number of coordinates provided (expects 2).');
         }
 
         var p1 = prevSegment ? Point(prevSegment.end) : Point(0, 0);
@@ -1001,7 +1007,7 @@ var g = (function() {
 
         type: 'M',
 
-        getPathData: function() {
+        serialize: function() {
 
             var end = this.end;
             return this.type + ' ' + end.x + ' ' + end.y;
@@ -1034,15 +1040,15 @@ var g = (function() {
     Closepath.fromCoords = function(coords, prevSegment, subpathStartSegment) {
 
         if (coords.length !== 0) {
-            throw new Error('Wrong number of coordinates provided (expects 0).')
+            throw new Error('Wrong number of coordinates provided (expects 0).');
         }
 
         if (!prevSegment) {
-            throw new Error('No previous segment provided (path must start with a moveto segment).')
+            throw new Error('No previous segment provided (path must start with a moveto segment).');
         }
 
         if (!subpathStartSegment) {
-            throw new Error('No subpath start segment provided (current subpath must start with a moveto segment).')
+            throw new Error('No subpath start segment provided (path must start with a moveto segment).');
         }
 
         var p1 = Point(prevSegment.end);
@@ -1063,7 +1069,7 @@ var g = (function() {
 
         type: 'Z',
 
-        getPathData: function() {
+        serialize: function() {
 
             return this.type;
         },
@@ -1401,6 +1407,8 @@ var g = (function() {
         // Find my bounding box when I'm rotated with the center of rotation in the center of me.
         // @return r {rectangle} representing a bounding box
         bbox: function(angle) {
+
+            if (!angle) return this.clone();
 
             var theta = toRad(angle || 0);
             var st = abs(sin(theta));
@@ -1804,10 +1812,54 @@ var g = (function() {
             return new Polyline(points);
         }
 
+        if (typeof points === 'string') {
+            return new Polyline.parse(points);
+        }
+
         this.points = (Array.isArray(points)) ? points.map(Point) : [];
     };
 
+    Polyline.parse = function(svgString) {
+        var points = [];
+        var coords = svgString.split(/\s|,/);
+        for (var i = 0, n = coords.length; i < n; i+=2) {
+            points.push({ x: +coords[i], y: +coords[i + 1] });
+        }
+        return Polyline(points);
+    };
+
     Polyline.prototype = {
+
+        bbox: function() {
+
+            var x1 = Infinity;
+            var x2 = -Infinity;
+            var y1 = Infinity;
+            var y2 = -Infinity;
+
+            var points = this.points;
+
+            var n = points.length;
+
+            if (n === 0) return null;
+
+            for (var i = 0; i < n; i++) {
+                var point = points[i];
+                var x = point.x;
+                var y = point.y;
+
+                if (x < x1) x1 = x;
+                if (x > x2) x2 = x;
+                if (y < y1) y1 = y;
+                if (y > y2) y2 = y;
+            }
+
+            return Rect(x1, y1, x2 - x1, y2 - y1);
+        },
+
+        clone: function() {
+            return new Polyline(this.points);
+        },
 
         pointAtLength: function(length) {
             var points = this.points;
@@ -2062,6 +2114,32 @@ var g = (function() {
             }
 
             return Polyline(hullPoints);
+        },
+
+        scale: function(sx, sy, origin) {
+            var points = this.points;
+            for (var i = 0, n = points.length; i < n; i++) {
+                points[i].scale(sx, sy, origin);
+            }
+            return this;
+        },
+
+        translate: function(tx, ty) {
+            var points = this.points;
+            for (var i = 0, n = points.length; i < n; i++) {
+                points[i].offset(tx, ty);
+            }
+            return this;
+        },
+
+        serialize: function() {
+            var string = '';
+            var points = this.points;
+            for (var i = 0, n = points.length; i < n; i++) {
+                var point = points[i];
+                string += point.x + ',' + point.y + ' ';
+            }
+            return string.trim();
         }
     };
 

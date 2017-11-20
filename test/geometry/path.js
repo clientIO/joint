@@ -127,11 +127,11 @@ QUnit.module('path', function() {
             });
         });
 
-        QUnit.module('getPathData()', function(assert) {
+        QUnit.module('serialize()', function(assert) {
 
             QUnit.test('sanity', function(assert) {
 
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').getPathData(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').serialize(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
             });
         });
     });

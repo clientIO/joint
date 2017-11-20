@@ -1,4 +1,4 @@
-(function(joint, _, g, $, util) {
+(function(joint, V, g, $, util) {
 
     function isPercentage(val) {
         return util.isString(val) && val.slice(-1) === '%';
@@ -67,6 +67,70 @@
             var point = g.Point();
             point[axis] = -(nodeBBox[axis] + delta);
             return point;
+        };
+    }
+
+    function shapeWrapper(shapeConstructor, opt) {
+        var cacheName = 'joint-shape';
+        var resetOffset = opt && opt.resetOffset;
+        return function(value, refBBox, node) {
+            var $node = $(node);
+            var cache = $node.data(cacheName);
+            if (!cache || cache.value !== value) {
+                // only recalculate if value has changed
+                var cachedShape = shapeConstructor(value);
+                cache = {
+                    value: value,
+                    shape: cachedShape,
+                    shapeBBox: cachedShape.bbox()
+                };
+                $node.data(cacheName, cache);
+            }
+
+            var shape = cache.shape.clone();
+            var shapeBBox = cache.shapeBBox.clone();
+            var shapeOrigin = shapeBBox.origin();
+            var refOrigin = refBBox.origin();
+
+            shapeBBox.x = refOrigin.x;
+            shapeBBox.y = refOrigin.y;
+
+            var fitScale = refBBox.maxRectScaleToFit(shapeBBox, refOrigin);
+            // `maxRectScaleToFit` can give Infinity if width or height is 0
+            var sx = (shapeBBox.width === 0 || refBBox.width === 0) ? 1 : fitScale.sx;
+            var sy = (shapeBBox.height === 0 || refBBox.height === 0) ? 1 : fitScale.sy;
+
+            shape.scale(sx, sy, shapeOrigin);
+            if (resetOffset) {
+                shape.translate(-shapeOrigin.x, -shapeOrigin.y);
+            }
+
+            return shape;
+        };
+    }
+
+    // `d` attribute for SVGPaths
+    function dWrapper(opt) {
+        function pathConstructor(value) {
+            return new g.Path(V.normalizePathData(value));
+        }
+        var shape = shapeWrapper(pathConstructor, opt);
+        return function(value, refBBox, node) {
+            var path = shape(value, refBBox, node);
+            return {
+                d: path.serialize()
+            };
+        };
+    }
+
+    // `points` attribute for SVGPolylines and SVGPolygons
+    function pointsWrapper(opt) {
+        var shape = shapeWrapper(g.Polyline, opt);
+        return function(value, refBBox, node) {
+            var polyline = shape(value, refBBox, node);
+            return {
+                points: polyline.serialize()
+            };
         };
     }
 
@@ -351,8 +415,28 @@
                     : { x: 0, y: 0 };
             }
 
+        },
+
+        refDResetOffset: {
+            set: dWrapper({ resetOffset: true })
+        },
+
+        refDKeepOffset: {
+            set: dWrapper({ resetOffset: false })
+        },
+
+        refPointsResetOffset: {
+            set: pointsWrapper({ resetOffset: true })
+        },
+
+        refPointsKeepOffset: {
+            set: pointsWrapper({ resetOffset: false })
         }
     };
+
+    // Aliases
+    attributesNS.refD = attributesNS.refDResetOffset;
+    attributesNS.refPoints = attributesNS.refPointsResetOffset;
 
     // This allows to combine both absolute and relative positioning
     // refX: 50%, refX2: 20
@@ -369,4 +453,4 @@
     attributesNS['x-alignment'] = attributesNS.xAlignment;
     attributesNS['y-alignment'] = attributesNS.yAlignment;
 
-})(joint, _, g, $, joint.util);
+})(joint, V, g, $, joint.util);
