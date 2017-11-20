@@ -1770,7 +1770,7 @@ V = Vectorizer = (function() {
         return points;
     };
 
-    V.KAPPA = 0.5522847498307935;
+    V.KAPPA = 0.551784;
 
     V.convertCircleToPathData = function(circle) {
 
