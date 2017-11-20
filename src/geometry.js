@@ -1043,8 +1043,12 @@ var g = (function() {
             throw new Error('Wrong number of coordinates provided (expects 0).');
         }
 
-        if (!prevSegment || !subpathStartSegment) {
+        if (!prevSegment) {
             throw new Error('No previous segment provided (path must start with a moveto segment).');
+        }
+        
+        if (!subpathStartSegment) {
+            throw new Error('No subpath start segment provided (path must start with a moveto segment).');
         }
 
         var p1 = Point(prevSegment.end);
