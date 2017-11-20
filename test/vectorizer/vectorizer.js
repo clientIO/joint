@@ -1071,20 +1071,20 @@ QUnit.module('vectorizer', function(hooks) {
 
         QUnit.test('sanity', function(assert) {
 
-            assert.ok(V(svgPath).normalizePath() instanceof V, 'string');
-            assert.ok(V(svgPath2).normalizePath() instanceof V, 'string');
-            assert.ok(V(svgPath3).normalizePath() instanceof V, 'string');
+            assert.ok(V(svgPath).normalizePath() instanceof V);
+            assert.ok(V(svgPath2).normalizePath() instanceof V);
+            assert.ok(V(svgPath3).normalizePath() instanceof V);
 
-            assert.ok(V(svgContainer).normalizePath() instanceof V, 'string');
-            assert.ok(V(svgGroup).normalizePath() instanceof V, 'string');
-            assert.ok(V(svgCircle).normalizePath() instanceof V, 'string');
-            assert.ok(V(svgEllipse).normalizePath() instanceof V, 'string');
-            assert.ok(V(svgPolygon).normalizePath() instanceof V, 'string');
-            assert.ok(V(svgText).normalizePath() instanceof V, 'string');
-            assert.ok(V(svgRectangle).normalizePath() instanceof V, 'string');
-            assert.ok(V(svgGroup1).normalizePath() instanceof V, 'string');
-            assert.ok(V(svgGroup2).normalizePath() instanceof V, 'string');
-            assert.ok(V(svgGroup3).normalizePath() instanceof V, 'string');
+            assert.ok(V(svgContainer).normalizePath() instanceof V);
+            assert.ok(V(svgGroup).normalizePath() instanceof V);
+            assert.ok(V(svgCircle).normalizePath() instanceof V);
+            assert.ok(V(svgEllipse).normalizePath() instanceof V);
+            assert.ok(V(svgPolygon).normalizePath() instanceof V);
+            assert.ok(V(svgText).normalizePath() instanceof V);
+            assert.ok(V(svgRectangle).normalizePath() instanceof V);
+            assert.ok(V(svgGroup1).normalizePath() instanceof V);
+            assert.ok(V(svgGroup2).normalizePath() instanceof V);
+            assert.ok(V(svgGroup3).normalizePath() instanceof V);
         });
 
         QUnit.test('normalizations', function(assert) {
