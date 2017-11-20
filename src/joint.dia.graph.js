@@ -935,10 +935,10 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     // Find all elements at given point
-    findModelsFromPoint: function(p) {
+    findModelsFromPoint: function(p, opt) {
 
         return this.getElements().filter(function(el) {
-            return el.getBBox().containsPoint(p);
+            return el.getBBox(opt).containsPoint(p);
         });
     },
 
@@ -951,7 +951,7 @@ joint.dia.Graph = Backbone.Model.extend({
         var method = opt.strict ? 'containsRect' : 'intersect';
 
         return this.getElements().filter(function(el) {
-            return rect[method](el.getBBox());
+            return rect[method](el.getBBox(opt));
         });
     },
 
@@ -962,8 +962,8 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var bbox = element.getBBox();
         var elements = (opt.searchBy === 'bbox')
-            ? this.findModelsInArea(bbox)
-            : this.findModelsFromPoint(bbox[opt.searchBy]());
+            ? this.findModelsInArea(bbox, opt)
+            : this.findModelsFromPoint(bbox[opt.searchBy](), opt);
 
         // don't account element itself or any of its descendents
         return elements.filter(function(el) {
