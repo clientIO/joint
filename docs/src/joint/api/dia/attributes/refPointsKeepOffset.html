@@ -1,0 +1,17 @@
+<p>Make an SVGPolygon or SVGPolyline subelement with an arbitrary points fit the reference element's (specified by <code>'ref'</code> attribute) width and height. The original points offset is preserved.</p>
+
+<pre><code>var Polygon = joint.dia.Element.define('examples.Polygon', {
+    attrs: {
+        polygon: {
+            refPoints: '10,10 30,10 30,30', // will set `points` attribute, point's offset is 10,10
+            fill: 'red',
+            stroke: 'black'
+        }
+    }
+}, {
+    markup: 'polygon'
+});
+
+(new Polygon()).resize(40, 40).addTo(graph);
+// the actual `points` polygon's attribute is '10,10 50,10 50,50',
+</code></pre>

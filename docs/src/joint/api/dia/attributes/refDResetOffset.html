@@ -1,0 +1,18 @@
+<p><i>alias:</i> <b>refD</b></p>
+<p>Make an SVGPath subelement with an arbitrary path data fit the reference element's (specified by <code>'ref'</code> attribute) bounding box.</p>
+
+<pre><code>var Path = joint.dia.Element.define('examples.Path', {
+    attrs: {
+        path: {
+            refD: 'M 10 10 30 10 30 30 z', // will set `d` attribute
+            fill: 'red',
+            stroke: 'black'
+        }
+    }
+}, {
+    markup: 'path'
+});
+
+(new Path()).resize(40, 40).addTo(graph);
+// the actual `d` path's attribute is 'M 0 0 40 0 40 40 z',
+</code></pre>

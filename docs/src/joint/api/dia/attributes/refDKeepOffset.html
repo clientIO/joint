@@ -1,0 +1,17 @@
+<p>Make an SVGPath subelement with an arbitrary path data fit the reference element's (specified by <code>'ref'</code> attribute) width and height. The original path data offset is preserved.</p>
+
+<pre><code>var Path = joint.dia.Element.define('examples.Path', {
+    attrs: {
+        path: {
+            refD: 'M 10 10 30 10 30 30 z', // will set `d` attribute, path's offset is 10,10
+            fill: 'red',
+            stroke: 'black'
+        }
+    }
+}, {
+    markup: 'path'
+});
+
+(new Path()).resize(40, 40).addTo(graph);
+// the actual `d` path's attribute is 'M 10 10 50 10 50 50 z',
+</code></pre>
