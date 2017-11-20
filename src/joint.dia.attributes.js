@@ -97,8 +97,8 @@
 
             var fitScale = refBBox.maxRectScaleToFit(shapeBBox, refOrigin);
             // `maxRectScaleToFit` can give Infinity if width or height is 0
-            var sx = (shapeBBox.width === 0 || refBBox.width === 0) ? fitScale.sx : 1;
-            var sy = (shapeBBox.height === 0 || refBBox.height === 0) ? fitScale.sy : 1;
+            var sx = (shapeBBox.width === 0 || refBBox.width === 0) ? 1 : fitScale.sx;
+            var sy = (shapeBBox.height === 0 || refBBox.height === 0) ? 1 : fitScale.sy;
 
             shape.scale(sx, sy, shapeOrigin);
             if (resetOffset) {

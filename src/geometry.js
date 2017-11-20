@@ -695,24 +695,31 @@ var g = (function() {
     // For backwards compatibility:
     g.Line.prototype.intersection = g.Line.prototype.intersect;
 
-    var Path = g.Path = function(normalizedPathData) {
+    var Path = g.Path = function(pathSegments) {
 
         if (!(this instanceof Path)) {
-            return new Path(normalizedPathData);
+            return new Path(pathSegments);
         }
 
-        // create path segments:
+        if (typeof pathSegments === 'string') {
+            // create path segments:
+            return Path.parse(pathSegments);
+        }
+
+        this.pathSegments = pathSegments;
+    };
+
+    Path.parse = function(normalizedPathData) {
 
         var pathSegments = [];
 
-        normalizedPathData = normalizedPathData ? normalizedPathData : 'M 0 0'; // path data must start with M
+        normalizedPathData = normalizedPathData || 'M 0 0'; // path data must start with M
         var pathSnippets = normalizedPathData.split(new RegExp(' (?=[a-zA-Z])'));
 
         var prevSegment;
         var subpathStartSegment; // last moveto segment
 
-        var n = pathSnippets.length;
-        for (var i = 0; i < n; i++) {
+        for (var i = 0, n = pathSnippets.length; i < n; i++) {
 
             var currentSnippet = pathSnippets[i];
 
@@ -726,8 +733,8 @@ var g = (function() {
             if (currentSegment.recordSubpathStartSegment) subpathStartSegment = currentSegment;
         }
 
-        this.pathSegments = pathSegments;
-    }
+        return new Path(pathSegments);
+    };
 
     Path.prototype = {
 
@@ -1807,19 +1814,19 @@ var g = (function() {
         }
 
         if (typeof points === 'string') {
-            return Polyline.fromSVGString(points);
+            return new Polyline.parse(points);
         }
 
         this.points = (Array.isArray(points)) ? points.map(Point) : [];
     };
 
-    Polyline.fromSVGString = function(svgString) {
+    Polyline.parse = function(svgString) {
         var points = [];
         var coords = svgString.split(/\s|,/);
         for (var i = 0, n = coords.length; i < n; i+=2) {
             points.push({ x: +coords[i], y: +coords[i + 1] });
         }
-        return new g.Polyline(points);
+        return Polyline(points);
     };
 
     Polyline.prototype = {
