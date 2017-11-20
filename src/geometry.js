@@ -825,11 +825,10 @@ var g = (function() {
 
                 var seg = pathSegments[i];
 
-                if (i > 0) pathData += ' ';
-                pathData += seg.serialize();
+                pathData += seg.serialize() + ' ';
             }
 
-            return pathData;
+            return pathData.trim();
         }
     };
 
@@ -1044,12 +1043,8 @@ var g = (function() {
             throw new Error('Wrong number of coordinates provided (expects 0).');
         }
 
-        if (!prevSegment) {
+        if (!prevSegment || !subpathStartSegment) {
             throw new Error('No previous segment provided (path must start with a moveto segment).');
-        }
-
-        if (!subpathStartSegment) {
-            throw new Error('No subpath start segment provided (current subpath must start with a moveto segment).');
         }
 
         var p1 = Point(prevSegment.end);
