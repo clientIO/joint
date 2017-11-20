@@ -109,6 +109,7 @@
         };
     }
 
+    // `d` attribute for SVGPaths
     function dWrapper(opt) {
         function pathConstructor(value) {
             return new g.Path(V.normalizePathData(value));
@@ -117,17 +118,18 @@
         return function(value, refBBox, node) {
             var path = shape(value, refBBox, node);
             return {
-                d: path.getPathData()
+                d: path.serialize()
             };
         };
     }
 
+    // `points` attribute for SVGPolylines and SVGPolygons
     function pointsWrapper(opt) {
         var shape = shapeWrapper(g.Polyline, opt);
         return function(value, refBBox, node) {
             var polyline = shape(value, refBBox, node);
             return {
-                points: polyline.toSVGString()
+                points: polyline.serialize()
             };
         };
     }

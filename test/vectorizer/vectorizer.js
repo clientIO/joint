@@ -1103,17 +1103,17 @@ QUnit.module('vectorizer', function(hooks) {
         QUnit.test('path segment reconstruction', function(assert) {
             var path1 = 'M 10 10';
             var normalizedPath1 = V.normalizePathData(path1);
-            var reconstructedPath1 = g.Path(normalizedPath1).getPathData();
+            var reconstructedPath1 = g.Path(normalizedPath1).serialize();
             assert.equal(normalizedPath1, reconstructedPath1);
 
             var path2 = 'M 100 100 C 100 100 0 150 100 200 Z';
             var normalizedPath2 = V.normalizePathData(path2);
-            var reconstructedPath2 = g.Path(normalizedPath2).getPathData();
+            var reconstructedPath2 = g.Path(normalizedPath2).serialize();
             assert.equal(normalizedPath2, reconstructedPath2);
 
             var path3 = 'M285.8,83V52.7h8.3v31c0,3.2-1,5.8-3,7.7c-2,1.9-4.4,2.8-7.2,2.8c-2.9,0-5.6-1.2-8.1-3.5l3.8-6.1c1.1,1.3,2.3,1.9,3.7,1.9c0.7,0,1.3-0.3,1.8-0.9C285.5,85,285.8,84.2,285.8,83z';
             var normalizedPath3 = V.normalizePathData(path3);
-            var reconstructedPath3 = g.Path(normalizedPath3).getPathData();
+            var reconstructedPath3 = g.Path(normalizedPath3).serialize();
             assert.equal(normalizedPath3, reconstructedPath3);
         });
     });
