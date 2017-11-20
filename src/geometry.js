@@ -1046,7 +1046,7 @@ var g = (function() {
         if (!prevSegment) {
             throw new Error('No previous segment provided (path must start with a moveto segment).');
         }
-        
+
         if (!subpathStartSegment) {
             throw new Error('No subpath start segment provided (path must start with a moveto segment).');
         }
