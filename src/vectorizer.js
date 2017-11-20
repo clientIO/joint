@@ -581,7 +581,10 @@ V = Vectorizer = (function() {
 
     V.prototype.normalizePath = function() {
 
-        this.attr('d', V.normalizePathData(this.attr('d')));
+        var tagName = this.tagName();
+        if (tagName === 'PATH') {
+            this.attr('d', V.normalizePathData(this.attr('d')));
+        }
 
         return this;
     }
@@ -666,6 +669,11 @@ V = Vectorizer = (function() {
     V.prototype.svg = function() {
 
         return this.node instanceof window.SVGSVGElement ? this : V(this.node.ownerSVGElement);
+    };
+
+    V.prototype.tagName = function() {
+
+        return this.node.tagName.toUpperCase();
     };
 
     V.prototype.defs = function() {
@@ -964,7 +972,7 @@ V = Vectorizer = (function() {
 
     V.prototype.convertToPathData = function() {
 
-        var tagName = this.node.tagName.toUpperCase();
+        var tagName = this.tagName();
 
         switch (tagName) {
             case 'PATH':
@@ -1003,7 +1011,7 @@ V = Vectorizer = (function() {
         if (!bbox.intersectionWithLineFromCenterToPoint(ref)) return undefined;
 
         var spot;
-        var tagName = this.node.localName.toUpperCase();
+        var tagName = this.tagName();
 
         // Little speed up optimalization for `<rect>` element. We do not do conversion
         // to path element and sampling but directly calculate the intersection through
@@ -2037,7 +2045,8 @@ V = Vectorizer = (function() {
                 pathArray = parsePathString(pathArray);
             }
 
-            if (!pathArray || !pathArray.length) return [[]];
+            // if invalid string, return 'M 0 0'
+            if (!pathArray || !pathArray.length) return [['M', 0, 0]];
 
             var res = [];
             var x = 0;
@@ -2259,7 +2268,8 @@ V = Vectorizer = (function() {
                 attrs.by = parseFloat(seg[seglen - 3]) || attrs.y;
             }
 
-            if (p[0][0] && p[0][0] !== 'M') {
+            // make sure normalized path data string starts with an M segment
+            if (!p[0][0] || p[0][0] !== 'M') {
                 p.unshift(['M', 0, 0]);
             }
 
