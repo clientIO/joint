@@ -210,7 +210,10 @@ var paper = new joint.dia.FastPaper({
     width: canvasWidth,
     height: canvasHeight,
     model: graph,
-    async: true
+    async: true,
+    background: {
+        color: '#000000'
+    }
 });
 
 // efficient drawing
@@ -245,7 +248,7 @@ var updateConveyor = function() {
         var fps = Math.round((frames * 1000) / (time - prevTime));
         prevTime = time;
         frames = 0;
-        fpsElement.textContent = `FPS: ${fps}`;
+        fpsElement.textContent = 'FPS: ' + fps;
     }
 };
 
