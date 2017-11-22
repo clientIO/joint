@@ -294,6 +294,41 @@ var g = (function() {
             return Rect(left, top, (right - left), (bottom - top));
         },
 
+        // Distance between the four control points
+        controlPointLength: function() {
+
+            var start = this.start;
+            var control1 = this.controlPoint1;
+            var control2 = this.controlPoint2;
+            var end = this.end;
+
+            var length1 = Line(start, control1).length();
+            var length2 = Line(control1, control2).length();
+            var length3 = Line(control2, end).length();
+
+            return length1 + length2 + length3;
+        },
+
+        // Divide curve into two at point defined by `t` between 0 and 1.
+        // Using de Casteljau's algorithm (http://math.stackexchange.com/a/317867).
+        // Additional resource: https://pomax.github.io/bezierinfo/#decasteljau
+        divide: function(t) {
+
+            var start = this.start;
+            var control1 = this.controlPoint1;
+            var control2 = this.controlPoint2;
+            var end = this.end;
+
+            var dividerPoints = this.getDividerPoints(t);
+
+            var dividerControl1 = dividerPoints.dividerControlPoint1;
+            var divider = dividerPoints.divider;
+            var dividerControl2 = dividerPoints.dividerControlPoint2;
+
+            // return array with two new curves
+            return [Curve(start, control1, dividerControl1, divider), Curve(divider, dividerControl2, control2, end)];
+        },
+
         equals: function(c) {
 
             return !!c &&
@@ -307,6 +342,100 @@ var g = (function() {
                     this.end.y === c.end.y;
         },
 
+        getDividerPoints: function(t) {
+
+            var start = this.start;
+            var control1 = this.controlPoint1;
+            var control2 = this.controlPoint2;
+            var end = this.end;
+
+            var helper1 = Line(start, control1).pointAt(t);
+            var helper2 = Line(control1, control2).pointAt(t);
+            var helper3 = Line(control2, end).pointAt(t);
+
+            var subControl1 = Line(helper1, helper2).pointAt(t);
+            var subControl2 = Line(helper2, helper3).pointAt(t);
+
+            var divider = Line(subControl1, subControl2).pointAt(t);
+
+            return { dividerControlPoint1: subControl1, divider: divider, dividerControlPoint2: subControl2 };
+        },
+
+        // Flattened length with precision better than `precision`.
+        // Default precision = 3
+        // That is, observed improvement between recursions is less than 10^(-3) = 0.001 = 0.1%
+        // (Good proxy measure for error between observed and actual length of the curve)
+        // (An error of over 0.1% is noticeable by users)
+        // As a rule of thumb, increasing required precision by 1 requires two more recursions (2^2 times more segments)
+        // - Precision 1 (<10% error) requires 2 divisions (2^2 = 4 segments)
+        // - Precision 2 (<1% error) requires 4 divisions (16 segments)
+        // - Precision 3 (<0.1% error) requires 6 divisions (64 segments)
+        // - Precision 4 (<0.01% error) requires 8 divisions (256 segments)
+        // etc.
+        // Variation of 1 recursion worse or better is possible, depending on the curve
+        length: function(precision) {
+
+            precision = precision || 3;
+
+            var start = this.start;
+            var end = this.end;
+
+            var previousLength = start.distance(end);
+
+            // TODO incorporate this section into the loop and refactor
+            var subCurves = this.divide(0.5);
+            var curve1 = subCurves[0];
+            var curve2 = subCurves[1];
+
+            var combinedLength = curve1.start.distance(curve1.end) + curve2.start.distance(curve2.end);
+
+            // TODO change to do-while
+            while (((combinedLength - previousLength) / combinedLength) < pow(10, -precision)) {
+
+                // TODO move to end of block
+                // use old lemgth as previous length
+                previousLength = combinedLength;
+                combinedLength = 0;
+
+                // subdivide
+                var currentSubCurve;
+                var subSubCurves;
+                var newSubCurves = [];
+                var ii = subCurves.length;
+                for (var i = 0; i < ii; i++) {
+
+                    currentSubCurve = subCurves[i];
+
+                    subSubCurves = currentSubCurve.divide(0.5);
+                    newSubCurves = newSubCurves.concat(subSubCurves);
+                }
+
+                // measure new length
+                var currentNewSubCurve;
+                var jj = newSubCurves.length;
+                for (var j = 0; j < jj; j++) {
+
+                    currentNewSubCurve = newSubCurves[i];
+
+                    combinedLength += currentNewSubCurve.start.distance(currentNewSubCurve.end);
+                }
+
+                subCurves = newSubCurves;
+            }
+
+            return combinedLength;
+        },
+
+        pointAt: function(t) {
+
+            return this.getDividerPoints(t).divider;
+        },
+
+        pointAtLength: function(length, precision) {
+
+            // TODO
+        },
+
         scale: function(sx, sy, origin) {
 
             this.start.scale(sx, sy, origin);
@@ -315,6 +444,21 @@ var g = (function() {
             this.end.scale(sx, sy, origin);
             return this;
         },
+
+        /*sample: function(segmentCount) {
+
+            var step = 1 / segmentCount;
+
+            var samplePoints = [this.start];
+            for (var i = 1; i < segmentCount; i++) {
+
+                var t = i * step;
+                samplePoints.push(this.pointAt(t));
+            }
+            samplePoints.push(this.end);
+
+            return samplePoints;
+        },*/
 
         translate: function(tx, ty) {
 
@@ -789,6 +933,21 @@ var g = (function() {
             return true;
         },
 
+        length: function(segmentCount) {
+
+            var length = 0;
+
+            var pathSegments = this.pathSegments;
+            var n = pathSegments.length;
+            for (var i = 0; i < n; i++) {
+
+                var seg = pathSegments[i];
+                length += seg.length(segmentCount);
+            }
+
+            return length;
+        },
+
         scale: function(sx, sy, origin) {
 
             var pathSegments = this.pathSegments;
@@ -874,6 +1033,8 @@ var g = (function() {
 
         equals: Line.prototype.equals,
 
+        length: Line.prototype.length,
+
         recordBBox: true,
 
         scale: Line.prototype.scale,
@@ -938,6 +1099,8 @@ var g = (function() {
 
         equals: Curve.prototype.equals,
 
+        length: Curve.prototype.length,
+
         recordBBox: true,
 
         scale: Curve.prototype.scale,
@@ -998,6 +1161,11 @@ var g = (function() {
         },
 
         equals: Line.prototype.equals,
+
+        length: function() {
+
+            return 0;
+        },
 
         recordSubpathStartSegment: true,
 
@@ -1062,6 +1230,8 @@ var g = (function() {
         bbox: Line.prototype.bbox,
 
         equals: Line.prototype.equals,
+
+        length: Line.prototype.length,
 
         scale: Line.prototype.scale,
 
@@ -1858,54 +2028,74 @@ var g = (function() {
         },
 
         clone: function() {
+
             return new Polyline(this.points);
         },
 
         pointAtLength: function(length) {
+
             var points = this.points;
+
             var l = 0;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
+            var n = points.length - 1;
+            for (var i = 0; i < n; i++) {
+
                 var a = points[i];
                 var b = points[i+1];
                 var d = a.distance(b);
+
                 l += d;
                 if (length <= l) {
-                    return Line(b, a).pointAt(d ? (l - length) / d : 0);
+                    return Line(b, a).pointAt(d ? ((l - length) / d) : 0);
                 }
             }
+
             return null;
         },
 
         length: function() {
+
             var points = this.points;
+
             var length = 0;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
+            var n = points.length - 1;
+            for (var i = 0; i < n; i++) {
                 length += points[i].distance(points[i+1]);
             }
+
             return length;
         },
 
         closestPoint: function(p) {
+
             return this.pointAtLength(this.closestPointLength(p));
         },
 
         closestPointLength: function(p) {
+
             var points = this.points;
+
             var pointLength;
             var minSqrDistance = Infinity;
             var length = 0;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
+            var n = points.length - 1;
+            for (var i = 0; i < n; i++) {
+
                 var line = Line(points[i], points[i+1]);
                 var lineLength = line.length();
+
                 var cpNormalizedLength = line.closestPointNormalizedLength(p);
                 var cp = line.pointAt(cpNormalizedLength);
+
                 var sqrDistance = cp.squaredDistance(p);
                 if (sqrDistance < minSqrDistance) {
                     minSqrDistance = sqrDistance;
                     pointLength = length + cpNormalizedLength * lineLength;
                 }
+
                 length += lineLength;
             }
+
             return pointLength;
         },
 
