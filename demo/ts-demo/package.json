@@ -1,6 +1,6 @@
 {
     "scripts": {
-        "cp-libs": "cpx ../../dist/joint.d.ts build & cpx ../../dist/joint.js build & cpx ../../dist/joint.css build",
+        "cp-libs": "cpx ../../dist/joint.{d.ts,js,css} build",
         "build": "npm run cp-libs & webpack",
         "start": "npm run build && live-server ./ --open=index.html --cors"
     },
