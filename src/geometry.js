@@ -191,6 +191,11 @@ var g = (function() {
 
     Curve.prototype = {
 
+        baseline: function() {
+
+            return Line(this.start, this.end);
+        },
+
         bbox: function() {
 
             var start = this.start;
@@ -294,21 +299,6 @@ var g = (function() {
             return Rect(left, top, (right - left), (bottom - top));
         },
 
-        /*// Distance between the four control points
-        controlPointLength: function() {
-
-            var start = this.start;
-            var control1 = this.controlPoint1;
-            var control2 = this.controlPoint2;
-            var end = this.end;
-
-            var length1 = Line(start, control1).length();
-            var length2 = Line(control1, control2).length();
-            var length3 = Line(control2, end).length();
-
-            return length1 + length2 + length3;
-        },*/
-
         // Divide curve into two at point defined by `t` between 0 and 1.
         // Using de Casteljau's algorithm (http://math.stackexchange.com/a/317867).
         // Additional resource: https://pomax.github.io/bezierinfo/#decasteljau
@@ -331,7 +321,7 @@ var g = (function() {
 
         endpointDistance: function() {
 
-            return this.start.distance(this.end);
+            return this.baseline().length();
         },
 
         equals: function(c) {
@@ -382,14 +372,14 @@ var g = (function() {
         // Variation of 1 recursion worse or better is possible, depending on the curve
         length: function(precision) {
 
-            precision = precision || 3;
-            var precisionRatio = pow(10, -precision);
-
             var iteration = 0;
+
             var subdivisions = [this];
             var previousLength = this.endpointDistance();
 
-            if (precision === 0) return previousLength;
+            if (precision && precision === 0) return previousLength;
+            precision = precision || 3;
+            var precisionRatio = pow(10, -precision);
 
             while (true) {
                 iteration += 1;
@@ -419,7 +409,9 @@ var g = (function() {
 
                 // check if we have reached required observed precision
                 // sine-like curves may have the same length in iteration 0 and 1 - skip iteration 1
-                // not a problem for further iterations because cubic curves can only have two local extrema
+                // not a problem for further iterations because cubic curves cannot have more than two local extrema
+                // (i.e. cubic curves cannot intersect the baseline more than once)
+                // therefore two subsequent iterations cannot produce sampling with equal length
                 if (iteration > 1 && ((length - previousLength) / length) < precisionRatio) {
                     return length;
                 }
@@ -438,38 +430,87 @@ var g = (function() {
 
         pointAtLength: function(length, precision) {
 
+            // subdivide:
             var subdivisions = this.subdivide(precision);
 
-            var subdivisionWithPoint;
-            var flattenedPoint;
+            // obtain `l`, the total curve length at given precision level
+            // and identify the subdivision that contains the point at requested `length`:
+            var investigatedSubdivision;
+            //var baseline; // straightened version of subdivision to investigate
+            //var baselinePoint; // point on the baseline that is the requested distance away from start
+            var baselinePointDistFromStart; // distance of baselinePoint from start of baseline
+            var baselinePointDistFromEnd; // distance of baselinePoint from end of baseline
             var l = 0;
             var n = subdivisions.length;
-            for (var i = 0; i < n; i++) {
+            for (var i = 0; i < n; i++) { // go through all subdivisions to also get total curve length `l`
 
                 var currentSubdivision = subdivisions[i];
                 var d = currentSubdivision.endpointDistance();
 
                 if (length <= (l + d)) {
-                    subdivisionWithPoint = currentSubdivision;
-                    flattenedPoint = Line(currentSubdivision.start, currentSubdivision.end).pointAtLength(length - l);
-                    break;
+                    investigatedSubdivision = currentSubdivision;
+
+                    baselinePointDistFromStart = length - l;
+                    baselinePointDistFromEnd = d - baselinePointDistFromStart;
                 }
 
                 l += d;
             }
 
-            if (!subdivisionWithPoint) return null;
+            if (!investigatedSubdivision) return null; // length requested is out of range
+            // note that precision affects what length is recorded
+            // (imprecise measurements underestimate length by up to 10^(-precision) of the precise length)
+            // e.g. at precision 1, the length may be underestimated by up to 10% and cause this function to return null
 
-            var distFlattenedToStart = subdivisionWithPoint.start.distance(flattenedPoint);
-            var distFlattenedToEnd = subdivisionWithPoint.end.distance(flattenedPoint);
+            // recursively subdivide investigated subdivision:
+            // until precision is within `precision` - 10^(-precision)
+            // slightly different definition of precision - distance between baselinePoint and closest path endpoint divided by total curve length
+            // then return the closest endpoint of the subdivision
 
-            // TODO needs to be precise according to precision!
-            // case in point - 1000px long straight bezier curve with 4 subdivisions:
-            // ~250px increments are not granular enough!
-            // (returned point could be up to ~12.5% off the correct position!)
-            // needs to minimize distance to flattenedPoint as much as possible/necessary
-            if (distFlattenedToStart >= distFlattenedToEnd) return subdivisionWithPoint.start;
-            else return subdivisionWithPoint.end;
+            // shortcut for precision 0
+            // up to 50% imprecision!
+            // will not use midpoint - that requires precision 1
+            if (precision && precision === 0) {
+                if (baselinePointDistFromStart <= baselinePointDistFromEnd) return investigatedSubdivision.start;
+                else return investigatedSubdivision.end;
+            }
+
+            precision = precision || 3;
+            var precisionRatio = pow(10, -precision);
+
+            while (true) {
+
+                // check if we have reached required observed precision
+                if ((baselinePointDistFromStart / l) < precisionRatio) return investigatedSubdivision.start;
+                else if ((baselinePointDistFromEnd / l) < precisionRatio) return investigatedSubdivision.end;
+
+                // otherwise, set up for next iteration
+                var newBaselinePointDistFromStart;
+                var newBaselinePointDistFromEnd;
+
+                var divided = investigatedSubdivision.divide(0.5);
+                var baseline1 = divided[0].baseline();
+                var baseline2 = divided[1].baseline();
+
+                var baseline1Length = baseline1.length();
+                var baseline2Length = baseline2.length();
+
+                if (baselinePointDistFromStart <= baseline1Length) { // point at requested length is inside divided[0]
+                    investigatedSubdivision = divided[0];
+
+                    newBaselinePointDistFromStart = baselinePointDistFromStart;
+                    newBaselinePointDistFromEnd = baseline1Length - newBaselinePointDistFromStart;
+
+                } else { // point at requested length is inside divided[1]
+                    investigatedSubdivision = divided[1];
+
+                    newBaselinePointDistFromStart = baselinePointDistFromStart - baseline1Length;
+                    newBaselinePointDistFromEnd = baseline2Length - newBaselinePointDistFromStart;
+                }
+
+                baselinePointDistFromStart = newBaselinePointDistFromStart;
+                baselinePointDistFromEnd = newBaselinePointDistFromEnd;
+            }
         },
 
         scale: function(sx, sy, origin) {
@@ -485,14 +526,14 @@ var g = (function() {
         // flattened length is no more than 10^(-precision) away from real curve length
         subdivide: function(precision) {
 
-            precision = precision || 3;
-            var precisionRatio = pow(10, -precision);
-
             var iteration = 0;
+
             var subdivisions = [this];
             var previousLength = this.endpointDistance();
 
-            if (precision === 0) return subdivisions;
+            if (precision && precision === 0) return subdivisions;
+            precision = precision || 3;
+            var precisionRatio = pow(10, -precision);
 
             while (true) {
                 iteration += 1;
@@ -522,7 +563,9 @@ var g = (function() {
 
                 // check if we have reached required observed precision
                 // sine-like curves may have the same length in iteration 0 and 1 - skip iteration 1
-                // not a problem for further iterations because cubic curves can only have two local extrema
+                // not a problem for further iterations because cubic curves cannot have more than two local extrema
+                // (i.e. cubic curves cannot intersect the baseline more than once)
+                // therefore two subsequent iterations cannot produce sampling with equal length
                 if (iteration > 1 && ((length - previousLength) / length) < precisionRatio) {
                     return subdivisions;
                 }
@@ -545,15 +588,18 @@ var g = (function() {
         // flattened length is no more than 10^(-precision) away from real curve length
         toPoints: function(precision) {
 
-            precision = precision || 3;
-            var precisionRatio = pow(10, -precision);
-
             var iteration = 0;
+
+            var start = this.start;
+            var end = this.end;
+
             var subdivisions = [this];
             var points = [start, end];
             var previousLength = this.endpointDistance();
 
-            if (precision === 0) return points;
+            if (precision && precision === 0) return points;
+            precision = precision || 3;
+            var precisionRatio = pow(10, -precision);
 
             while (true) {
                 iteration += 1;
@@ -586,7 +632,9 @@ var g = (function() {
 
                 // check if we have reached required observed precision
                 // sine-like curves may have the same length in iteration 0 and 1 - skip iteration 1
-                // not a problem for further iterations because cubic curves can only have two local extrema
+                // not a problem for further iterations because cubic curves cannot have more than two local extrema
+                // (i.e. cubic curves cannot intersect the baseline more than once)
+                // therefore two subsequent iterations cannot produce sampling with equal length
                 if (iteration > 1 && ((length - previousLength) / length) < precisionRatio) {
                     return points;
                 }
