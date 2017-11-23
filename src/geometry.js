@@ -191,11 +191,6 @@ var g = (function() {
 
     Curve.prototype = {
 
-        baseline: function() {
-
-            return Line(this.start, this.end);
-        },
-
         bbox: function() {
 
             var start = this.start;
@@ -305,23 +300,23 @@ var g = (function() {
         divide: function(t) {
 
             var start = this.start;
-            var control1 = this.controlPoint1;
-            var control2 = this.controlPoint2;
             var end = this.end;
 
-            var dividerPoints = this.getDividerPoints(t);
+            var dividerPoints = this.getSkeletonPoints(t);
 
-            var dividerControl1 = dividerPoints.dividerControlPoint1;
+            var startControl1 = dividerPoints.startControlPoint1;
+            var startControl2 = dividerPoints.startControlPoint2;
             var divider = dividerPoints.divider;
+            var dividerControl1 = dividerPoints.dividerControlPoint1;
             var dividerControl2 = dividerPoints.dividerControlPoint2;
 
             // return array with two new curves
-            return [Curve(start, control1, dividerControl1, divider), Curve(divider, dividerControl2, control2, end)];
+            return [Curve(start, startControl1, startControl2, divider), Curve(divider, dividerControl1, dividerControl2, end)];
         },
 
         endpointDistance: function() {
 
-            return this.baseline().length();
+            return this.start.distance(this.end);
         },
 
         equals: function(c) {
@@ -337,56 +332,62 @@ var g = (function() {
                     this.end.y === c.end.y;
         },
 
-        getDividerPoints: function(t) {
+        getSkeletonPoints: function(t) {
 
             var start = this.start;
             var control1 = this.controlPoint1;
             var control2 = this.controlPoint2;
             var end = this.end;
 
-            var helper1 = Line(start, control1).pointAt(t);
-            var helper2 = Line(control1, control2).pointAt(t);
-            var helper3 = Line(control2, end).pointAt(t);
+            var midpoint1 = Line(start, control1).pointAt(t);
+            var midpoint2 = Line(control1, control2).pointAt(t);
+            var midpoint3 = Line(control2, end).pointAt(t);
 
-            var subControl1 = Line(helper1, helper2).pointAt(t);
-            var subControl2 = Line(helper2, helper3).pointAt(t);
+            var subControl1 = Line(midpoint1, midpoint2).pointAt(t);
+            var subControl2 = Line(midpoint2, midpoint3).pointAt(t);
 
             var divider = Line(subControl1, subControl2).pointAt(t);
 
-            return { dividerControlPoint1: subControl1, divider: divider, dividerControlPoint2: subControl2 };
+            var output = {
+                startControlPoint1: midpoint1,
+                startControlPoint2: subControl1,
+                divider: divider,
+                dividerControlPoint1: subControl2,
+                dividerControlPoint2: midpoint3
+            };
+
+            return output;
         },
 
-        // Flattened length with precision better than `precision`.
+        // Returns a list of curves whose flattened length is better than `precision`
         // Default precision = 3
         // That is, observed difference in length between recursions is less than 10^(-3) = 0.001 = 0.1%
-        // (Observed difference is different from real precision, but close enough)
-        // (An error of over 0.1% is noticeable by users when drawing - precision 3)
-        // (Error of 0.01% is considered high resolution - precision 4)
-        // (Lower precisions are acceptable for less accurate tasks)
-        // As a rule of thumb, increasing required precision by 1 requires two more subdivisions
-        // - Precision 1 (<10% error) requires 2 subdivisions (2^2 = 4 segments)
-        // - Precision 2 (<1% error) requires 4 subdivisions (16 segments)
-        // - Precision 3 (<0.1% error) requires 6 subdivisions (64 segments)
-        // - Precision 4 (<0.01% error) requires 8 subdivisions (256 segments)
-        // etc.
-        // Variation of 1 recursion worse or better is possible, depending on the curve
-        length: function(precision) {
+        // (Observed difference is not real precision, but close enough as long as special cases are covered)
+        // (That is why skipping iteration 1 is important)
+        // As a rule of thumb, increasing `precision` by 1 requires two more division operations
+        // - Precision 0 (endpointDistance) - total of 2^0 - 1 = 0 operations
+        // - Precision 1 (<10% error) - total of 2^2 - 1 = 3 operations
+        // - Precision 2 (<1% error) - total of 2^4 - 1 = 15 operations requires 4 division operations on all elements (15 operations total) (16 subdivisions)
+        // - Precision 3 (<0.1% error) - total of 2^6 - 1 = 63 operations - acceptable when drawing
+        // - Precision 4 (<0.01% error) - total of 2^8 - 1 = 255 operations - high resolution, can be used to interpolate `t`
+        // (Variation of 1 recursion worse or better is possible depending on the curve, doubling/halving the number of operations accordingly)
+        getSubdivisions: function(precision) {
 
             var iteration = 0;
 
             var subdivisions = [this];
             var previousLength = this.endpointDistance();
 
-            if (precision && precision === 0) return previousLength;
+            if (precision === 0) return subdivisions;
+
             precision = precision || 3;
             var precisionRatio = pow(10, -precision);
-
             while (true) {
                 iteration += 1;
 
                 var currentSubdivision;
 
-                // subdivide
+                // divide all subdivisions
                 var newSubdivisions = [];
                 var ii = subdivisions.length;
                 for (var i = 0; i < ii; i++) {
@@ -412,8 +413,9 @@ var g = (function() {
                 // not a problem for further iterations because cubic curves cannot have more than two local extrema
                 // (i.e. cubic curves cannot intersect the baseline more than once)
                 // therefore two subsequent iterations cannot produce sampling with equal length
-                if (iteration > 1 && ((length - previousLength) / length) < precisionRatio) {
-                    return length;
+                var observedPrecisionRatio = (length - previousLength) / length;
+                if (iteration > 1 && observedPrecisionRatio < precisionRatio) {
+                    return subdivisions;
                 }
 
                 // otherwise, set up for next iteration
@@ -421,37 +423,73 @@ var g = (function() {
             }
         },
 
-        // `t` does not track distance along line as it does in lines!
-        // non-linear relationship
-        pointAt: function(t) {
+        // Flattened length with precision better than `precision`.
+        length: function(precision) {
 
-            return this.getDividerPoints(t).divider;
+            var subdivisions = this.getSubdivisions(precision);
+
+            var length = 0;
+            var n = subdivisions.length;
+            for (var i = 0; i < n; i++) {
+
+                var currentSubdivision = subdivisions[i];
+                length += currentSubdivision.endpointDistance();
+            }
+
+            return length;
         },
 
+        // @return {point} my point at `ratio` <0,1>
+        // mirrors Line.pointAt function
+        // for a function that tracks `t`, use tPoint
+        pointAt: function(ratio, precision) {
+
+            var length = this.length(precision) * ratio;
+            return this.pointAtLength(length, precision);
+        },
+
+        // Point at requested `length` with precision better than requested `precision`
+        // Default precision = 3
+        // Uses `precision` to approximate length within `precision` (always underestimates)
+        // Then uses a binary search to find a subdivision endpoint that is close (within `precision`) to the `length`, if the curve was as long as approximated
+        // The length error and position error add up on top of each other - subcalculations need to have precision level that is one higher than `precision`
+        // As a rule of thumb, increasing `precision` by 1 causes the algorithm to go 2^(precision - 1) deeper
+        // - Precision 0 (chooses one of 5 points at 25% intervals) - 1 level
+        // - Precision 1 (<10% error) - 3 levels
+        // - Precision 2 (<1% error) - 7 levels
+        // - Precision 3 (<0.1% error) - 15 levels
+        // - Precision 4 (<0.01% error) - 31 levels
         pointAtLength: function(length, precision) {
 
-            // subdivide:
-            var subdivisions = this.subdivide(precision);
+            if (precision !== 0) precision = precision || 3; // assign 3 if precision undefined
+            precision += 1; // increment precision
+
+            // get subdivisions:
+            var subdivisions = this.getSubdivisions(precision);
 
             // obtain `l`, the total curve length at given precision level
-            // and identify the subdivision that contains the point at requested `length`:
+            // var l = this.length(precision);
+
+            // identify the subdivision that contains the point at requested `length`:
             var investigatedSubdivision;
             //var baseline; // straightened version of subdivision to investigate
             //var baselinePoint; // point on the baseline that is the requested distance away from start
             var baselinePointDistFromStart; // distance of baselinePoint from start of baseline
             var baselinePointDistFromEnd; // distance of baselinePoint from end of baseline
-            var l = 0;
+            var curveLength = 0;
             var n = subdivisions.length;
             for (var i = 0; i < n; i++) { // go through all subdivisions to also get total curve length `l`
 
                 var currentSubdivision = subdivisions[i];
                 var d = currentSubdivision.endpointDistance();
 
-                if (length <= (l + d)) {
+                if (length <= (curveLength + d)) {
                     investigatedSubdivision = currentSubdivision;
 
-                    baselinePointDistFromStart = length - l;
+                    baselinePointDistFromStart = length - curveLength;
                     baselinePointDistFromEnd = d - baselinePointDistFromStart;
+
+                    //break;
                 }
 
                 l += d;
@@ -462,38 +500,27 @@ var g = (function() {
             // (imprecise measurements underestimate length by up to 10^(-precision) of the precise length)
             // e.g. at precision 1, the length may be underestimated by up to 10% and cause this function to return null
 
-            // recursively subdivide investigated subdivision:
-            // until precision is within `precision` - 10^(-precision)
-            // slightly different definition of precision - distance between baselinePoint and closest path endpoint divided by total curve length
-            // then return the closest endpoint of the subdivision
-
-            // shortcut for precision 0
-            // up to 50% imprecision!
-            // will not use midpoint - that requires precision 1
-            if (precision && precision === 0) {
-                if (baselinePointDistFromStart <= baselinePointDistFromEnd) return investigatedSubdivision.start;
-                else return investigatedSubdivision.end;
-            }
-
-            precision = precision || 3;
+            // recursively divide investigated subdivision:
+            // until distance between baselinePoint and closest path endpoint is within 10^(-precision)
+            // then return the closest endpoint of that final subdivision
             var precisionRatio = pow(10, -precision);
-
             while (true) {
 
                 // check if we have reached required observed precision
-                if ((baselinePointDistFromStart / l) < precisionRatio) return investigatedSubdivision.start;
-                else if ((baselinePointDistFromEnd / l) < precisionRatio) return investigatedSubdivision.end;
+                var observedPrecisionRatio;
+
+                observedPrecisionRatio = baselinePointDistFromStart / curveLength;
+                if (observedPrecisionRatio < precisionRatio) return investigatedSubdivision.start;
+                observedPrecisionRatio = baselinePointDistFromEnd / curveLength;
+                if (observedPrecisionRatio < precisionRatio) return investigatedSubdivision.end;
 
                 // otherwise, set up for next iteration
                 var newBaselinePointDistFromStart;
                 var newBaselinePointDistFromEnd;
 
                 var divided = investigatedSubdivision.divide(0.5);
-                var baseline1 = divided[0].baseline();
-                var baseline2 = divided[1].baseline();
-
-                var baseline1Length = baseline1.length();
-                var baseline2Length = baseline2.length();
+                var baseline1Length = divided[0].endpointDistance();
+                var baseline2Length = divided[1].endpointDistance();
 
                 if (baselinePointDistFromStart <= baseline1Length) { // point at requested length is inside divided[0]
                     investigatedSubdivision = divided[0];
@@ -522,57 +549,12 @@ var g = (function() {
             return this;
         },
 
-        // returns a list of curves
-        // flattened length is no more than 10^(-precision) away from real curve length
-        subdivide: function(precision) {
+        // `t` does not track distance along curve as it does in Line objects
+        // non-linear relationship, speeds up and slows down as curve warps
+        // for linear solution, use Curve.pointAt
+        tPoint: function(t) {
 
-            var iteration = 0;
-
-            var subdivisions = [this];
-            var previousLength = this.endpointDistance();
-
-            if (precision && precision === 0) return subdivisions;
-            precision = precision || 3;
-            var precisionRatio = pow(10, -precision);
-
-            while (true) {
-                iteration += 1;
-
-                var currentSubdivision;
-
-                // subdivide
-                var newSubdivisions = [];
-                var ii = subdivisions.length;
-                for (var i = 0; i < ii; i++) {
-
-                    currentSubdivision = subdivisions[i];
-                    var divided = currentSubdivision.divide(0.5);
-                    newSubdivisions.push(divided[0], divided[1]);
-                }
-
-                subdivisions = newSubdivisions;
-                var length = 0;
-
-                // measure new length
-                var jj = subdivisions.length;
-                for (var j = 0; j < jj; j++) {
-
-                    currentSubdivision = subdivisions[j];
-                    length += currentSubdivision.endpointDistance();
-                }
-
-                // check if we have reached required observed precision
-                // sine-like curves may have the same length in iteration 0 and 1 - skip iteration 1
-                // not a problem for further iterations because cubic curves cannot have more than two local extrema
-                // (i.e. cubic curves cannot intersect the baseline more than once)
-                // therefore two subsequent iterations cannot produce sampling with equal length
-                if (iteration > 1 && ((length - previousLength) / length) < precisionRatio) {
-                    return subdivisions;
-                }
-
-                // otherwise, set up for next iteration
-                previousLength = length;
-            }
+            return this.getSkeletonPoints(t).divider;
         },
 
         translate: function(tx, ty) {
@@ -584,67 +566,24 @@ var g = (function() {
             return this;
         },
 
-        // returns a list of points that represents curve when flattened
+        // returns a list of points that represents the curve when flattened
         // flattened length is no more than 10^(-precision) away from real curve length
         toPoints: function(precision) {
 
-            var iteration = 0;
+            var subdivisions = this.getSubdivisions(precision);
 
-            var start = this.start;
-            var end = this.end;
+            var points = [subdivisions[0].start];
+            var n = subdivisions.length;
+            for (var i = 0; i < n; i++) {
 
-            var subdivisions = [this];
-            var points = [start, end];
-            var previousLength = this.endpointDistance();
-
-            if (precision && precision === 0) return points;
-            precision = precision || 3;
-            var precisionRatio = pow(10, -precision);
-
-            while (true) {
-                iteration += 1;
-
-                var currentSubdivision;
-
-                // subdivide
-                var newSubdivisions = [];
-                var newPoints = [];
-                var ii = subdivisions.length;
-                for (var i = 0; i < ii; i++) {
-
-                    currentSubdivision = subdivisions[i];
-                    var divided = currentSubdivision.divide(0.5);
-                    newSubdivisions.push(divided[0], divided[1]);
-                    newPoints.push(divided[0].start, divided[0].end, divided[1].start, divided[1].end);
-                }
-
-                subdivisions = newSubdivisions;
-                points = newPoints;
-                var length = 0;
-
-                // measure new length
-                var jj = subdivisions.length;
-                for (var j = 0; j < jj; j++) {
-
-                    currentSubdivision = subdivisions[j];
-                    length += currentSubdivision.endpointDistance();
-                }
-
-                // check if we have reached required observed precision
-                // sine-like curves may have the same length in iteration 0 and 1 - skip iteration 1
-                // not a problem for further iterations because cubic curves cannot have more than two local extrema
-                // (i.e. cubic curves cannot intersect the baseline more than once)
-                // therefore two subsequent iterations cannot produce sampling with equal length
-                if (iteration > 1 && ((length - previousLength) / length) < precisionRatio) {
-                    return points;
-                }
-
-                // otherwise, set up for next iteration
-                previousLength = length;
+                var currentSubdivision = subdivisions[i];
+                points.push(currentSubdivision.end);
             }
+
+            return points;
         },
 
-        // returns a polyline that represents curve when flattened
+        // returns a polyline that represents the curve when flattened
         // flattened length is no more than 10^(-precision) away from real curve length
         toPolyline: function(precision) {
 
