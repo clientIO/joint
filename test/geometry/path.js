@@ -36,7 +36,7 @@ QUnit.module('path', function() {
                 assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').bbox() instanceof g.Rect);
             });
 
-            QUnit.test('should return the curve\'s bounding box', function(assert) {
+            QUnit.test('returns tight bounding box of the path', function(assert) {
 
                 assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').bbox().toString(), '55.55555555555556@100 150@200');
             });
@@ -56,6 +56,71 @@ QUnit.module('path', function() {
                 assert.notOk(p1 === p2);
                 assert.equal(p1.toString(), p2.toString());
                 assert.ok(p1.equals(p2));
+            });
+        });
+
+        QUnit.module('equals()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                // TODO
+            });
+
+            QUnit.test('checks whether two paths are exactly the same', function(assert) {
+
+                // TODO
+            });
+        });
+
+        QUnit.module('getSegmentSubdivisions()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                // TODO
+            });
+
+            QUnit.test('returns an array of segment subdivisions', function(assert) {
+
+                // TODO
+            });
+        });
+
+        QUnit.module('length()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                // TODO
+            });
+
+            QUnit.test('returns the length of the path up to precision', function(assert) {
+
+                // TODO
+            });
+        });
+
+        QUnit.module('pointAt()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                // TODO
+            });
+
+            QUnit.test('returns a point at given length ratio up to precision', function(assert) {
+
+                // TODO
+            });
+        });
+
+        QUnit.module('pointAtLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                // TODO
+            });
+
+            QUnit.test('returns a point at given length up to precision', function(assert) {
+
+                // TODO
             });
         });
 

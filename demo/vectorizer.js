@@ -40,19 +40,34 @@ var rectSharpPath = rectSharp.convertToPath();
 rectSharpPath.translate(100);
 svg.append(rectSharpPath);
 
-var polygon = V('polygon', { points: '25,390 30,400 50,380 80,410', stroke: 'green', fill: 'none' });
+var polygon = V('polygon', { points: '25,390 30,400 50,380 75,410', stroke: 'green', fill: 'none' });
 svg.append(polygon);
 console.log(polygon.convertToPathData());
 var polygonPath = polygon.convertToPath();
 polygonPath.translate(100);
 svg.append(polygonPath);
 
-var polyline = V('polyline', { points: '25,440 30,450 50,430 80,460', stroke: 'green', fill: 'none' });
+var polyline = V('polyline', { points: '25,450 30,460 50,440 75,470', stroke: 'green', fill: 'none' });
 svg.append(polyline);
 console.log(polyline.convertToPathData());
 var polylinePath = polyline.convertToPath();
 polylinePath.translate(100);
 svg.append(polylinePath);
+
+var gPath = new g.Path('M 25 500 C 25 540 75 540 75 500');
+
+var getColor = joint.util.interpolate.hexColor('#FF0000', '#008000');
+var numPoints = 30;
+for (var i = 0; i < numPoints; i++) {
+    var t = i / (numPoints - 1);
+    var point = gPath.pointAt(t);
+    svg.append(V('circle', { cx: point.x, cy: point.y, r: 1, fill: getColor(t) }));
+}
+
+var path = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
+console.log(path.convertToPathData());
+path.translate(100);
+svg.append(path);
 
 var text = V('text', { x: 250, y: 150, fill: 'black' });
 
