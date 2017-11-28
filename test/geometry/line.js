@@ -195,6 +195,32 @@ QUnit.module('line', function() {
             });
         });
 
+        QUnit.module('pointAt()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                // TODO
+            });
+
+            QUnit.test('should return a translated version of self', function(assert) {
+
+                // TODO
+            });
+        });
+
+        QUnit.module('pointAtLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                // TODO
+            });
+
+            QUnit.test('should return a translated version of self', function(assert) {
+
+                // TODO
+            });
+        });
+
         QUnit.module('scale()', function() {
 
             QUnit.test('sanity', function(assert) {
@@ -307,10 +333,6 @@ QUnit.module('line', function() {
         });
 
         QUnit.module('midpoint()', function() {
-
-        });
-
-        QUnit.module('pointAt(t)', function() {
 
         });
 

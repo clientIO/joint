@@ -393,7 +393,6 @@ var g = (function() {
         },
 
         // Returns a list of curves whose flattened length is better than `opt.precision`.
-        // Default precision = 3
         // That is, observed difference in length between recursions is less than 10^(-3) = 0.001 = 0.1%
         // (Observed difference is not real precision, but close enough as long as special cases are covered)
         // (That is why skipping iteration 1 is important)
@@ -406,6 +405,7 @@ var g = (function() {
         // (Variation of 1 recursion worse or better is possible depending on the curve, doubling/halving the number of operations accordingly)
         getSubdivisions: function(opt) {
 
+            opt = opt || {};
             var precision = opt.precision;
 
             var iteration = 0;
@@ -415,7 +415,7 @@ var g = (function() {
 
             if (precision === 0) return subdivisions;
 
-            precision = precision || 3;
+            precision = precision || this.PRECISION; // assign PRECISION if undefined
             var precisionRatio = pow(10, -precision);
             while (true) {
                 iteration += 1;
@@ -459,9 +459,9 @@ var g = (function() {
         },
 
         // Returns flattened length of the curve with precision better than `opt.precision`; or using `opt.subdivisions` provided.
-        // Default precision = 3
         length: function(opt) {
 
+            opt = opt || {};
             var precision = opt.precision; // this.getSubdivisions() can take care of undefined/null precision
             var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
 
@@ -477,7 +477,6 @@ var g = (function() {
         },
 
         // Returns point at requested `ratio` between 0 and 1 with precision better than `opt.precision`; optionally using `opt.subdivisions` provided.
-        // Default precision = 3
         // Mirrors Line.pointAt() function.
         // For a function that tracks `t`, use Curve.tPoint().
         pointAt: function(ratio, opt) {
@@ -485,8 +484,9 @@ var g = (function() {
             if (ratio <= 0) return this.start;
             else if (ratio >= 1) return this.end;
 
+            opt = opt || {};
             var precision = opt.precision; // this.getSubdivisions() can take care of undefined/null precision
-            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
+            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: (precision + 1) }); // precision is incremented in pointAtLength
 
             var curveLength = this.length({ subdivisions: subdivisions });
             var length = curveLength * ratio;
@@ -495,7 +495,6 @@ var g = (function() {
         },
 
         // Returns point at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
-        // Default precision = 3
         // Uses `precision` to approximate length within `precision` (always underestimates)
         // Then uses a binary search to find a subdivision endpoint that is close (within `precision`) to the `length`, if the curve was as long as approximated
         // The length error and position error add up on top of each other - subcalculations need to have precision level that is one higher than `precision`
@@ -509,9 +508,11 @@ var g = (function() {
 
             if (length <= 0) return this.start; // length requested is smaller than 0 - return curve start point
 
+            opt = opt || {};
+
             // get precision
             var precision = opt.precision;
-            if (precision !== 0) precision = precision || 3; // assign 3 if precision undefined
+            if (precision !== 0) precision = precision || this.PRECISION; // assign PRECISION if precision undefined
             precision += 1; // increment precision
 
             // get subdivisions
@@ -590,6 +591,9 @@ var g = (function() {
             }
         },
 
+        // Default precision
+        PRECISION: 2,
+
         scale: function(sx, sy, origin) {
 
             this.start.scale(sx, sy, origin);
@@ -620,11 +624,22 @@ var g = (function() {
             return this;
         },
 
+        // Returns a path
+        toPath: function() {
+
+            var start = this.start;
+            var c1 = this.controlPoint1;
+            var c2 = this.controlPoint2;
+            var end = this.ed;
+
+            return 'M ' + start.x + ' ' + start.y + ' C ' + c1.x + ' ' + c1.y + ' ' + c2.x + ' ' + c2.y + ' ' + end.x + ' ' + end.y;
+        },
+
         // Returns an array of points that represents the curve when flattened, up to `opt.precision`; or using `opt.subdivisions` provided.
-        // Default precision = 3
         // Flattened length is no more than 10^(-precision) away from real curve length.
         toPoints: function(opt) {
 
+            opt = opt || {};
             var precision = opt.precision; // this.getSubdivisions() can take care of undefined/null precision
             var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
 
@@ -640,7 +655,6 @@ var g = (function() {
         },
 
         // Returns a polyline that represents the curve when flattened, up to `opt.precision`; or using `opt.subdivisions` provided.
-        // Default precision = 3
         // Flattened length is no more than 10^(-precision) away from real curve length.
         toPolyline: function(opt) {
 
@@ -953,15 +967,27 @@ var g = (function() {
         // @return {point} my point at 't' <0,1>
         pointAt: function(t) {
 
-            var x = (1 - t) * this.start.x + t * this.end.x;
-            var y = (1 - t) * this.start.y + t * this.end.y;
+            var start = this.start;
+            var end = this.end;
+
+            if (t <= 0) return start.clone();
+            if (t >= 1) return end.clone();
+
+            var x = (1 - t) * start.x + t * end.x;
+            var y = (1 - t) * start.y + t * end.y;
             return Point(x, y);
         },
 
         pointAtLength: function(length) {
 
-            var d = this.length();
-            return this.pointAt(d ? (length / d) : 0);
+            var start = this.start;
+            var end = this.end;
+            var lineLength = this.length(); 
+
+            if (length <= 0) return start.clone();
+            if (length >= lineLength) return end.clone();
+
+            return this.pointAt(lineLength);
         },
 
         // @return {number} the offset of the point `p` from the line. + if the point `p` is on the right side of the line, - if on the left and 0 if on the line.
@@ -1144,7 +1170,6 @@ var g = (function() {
         },
 
         // Returns an array of segment subdivisions, with precision better than requested `opt.precision`.
-        // Default precision = 3
         getSegmentSubdivisions: function(opt) {
 
             var pathSegments = this.pathSegments;
@@ -1165,7 +1190,6 @@ var g = (function() {
         },
 
         // Returns length of the path, with precision better than requested `opt.precision`; or using `opt.segmentSubdivisions` provided.
-        // Default precision = 3
         // If path has no segments, returns 0.
         length: function(opt) {
 
@@ -1174,6 +1198,7 @@ var g = (function() {
             // if pathSegments is undefined or null
             if (!pathSegments) return 0;
 
+            opt = opt || {};
             var precision = opt.precision; // this.getSegmentSubdivisions() can take care of undefined/null precision
             var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
 
@@ -1190,14 +1215,14 @@ var g = (function() {
         },
 
         // Returns point at requested `ratio` between 0 and 1, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
-        // Default precision = 3
         pointAt: function(ratio, opt) {
 
             if (ratio < 0) ratio = 0;
             else if (ratio > 1) ratio = 1;
 
+            opt = opt || {};
             var precision = opt.precision; // this.getSegmentSubdivisions() can take care of undefined/null precision
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: (precision + 1) }); // precision is incremented in pointAtLength
 
             var pathLength = this.length({ segmentSubdivisions: segmentSubdivisions });
             var length = pathLength * ratio;
@@ -1206,7 +1231,6 @@ var g = (function() {
         },
 
         // Returns point at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
-        // Default precision = 3
         pointAtLength: function(length, opt) {
 
             if (length < 0) length = 0;
@@ -1216,8 +1240,9 @@ var g = (function() {
             // if pathSegments is undefined or null
             if (!pathSegments) return null;
 
+            opt = opt || {};
             var precision = opt.precision; // this.getSegmentSubdivisions() can take care of undefined/null precision
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: (precision + 1) }); // precision is incremented in pointAtLength
 
             var lastVisibleSegment;
             var l = 0; // length so far
@@ -1247,6 +1272,9 @@ var g = (function() {
             var lastSegment = pathSegments[n - 1];
             return lastSegment.end;
         },
+
+        // Default precision
+        PRECISION: 2,
 
         scale: function(sx, sy, origin) {
 
