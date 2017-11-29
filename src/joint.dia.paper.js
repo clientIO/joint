@@ -214,7 +214,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     bindDocumentEvents: function() {
         var eventNS = this.getEventNamespace();
-        this.$document.on('mouseup' + eventNS + ' touchend' + eventNS, this.pointerup);
+        this.$document.on('mouseup' + eventNS + ' touchend' + eventNS + ' touchcancel' + eventNS, this.pointerup);
     },
 
     unbindDocumentEvents: function() {
