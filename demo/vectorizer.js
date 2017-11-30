@@ -75,7 +75,7 @@ var getColor = joint.util.interpolate.hexColor('#FF0000', '#008000');
 
 // Path:
 var gPath = new g.Path('M 25 500 C 25 540 75 540 75 500');
-n = 100;
+n = 17;
 for (i = 0; i < n; i++) {
     t = i / (n - 1);
     var pathPoint = gPath.pointAt(t);
@@ -89,7 +89,7 @@ svg.append(path);
 
 // Curve:
 var gCurve = new g.Curve('25 590', '37.5 610', '62.5 570', '75 590');
-var curvePoints = gCurve.toPoints({ precision: 4 });
+var curvePoints = gCurve.toPoints({ precision: 2 });
 n = curvePoints.length;
 for (i = 0; i < n; i++) {
     t = i / (n - 1);
@@ -97,7 +97,7 @@ for (i = 0; i < n; i++) {
     svg.append(V('circle', { cx: curvePoint.x, cy: curvePoint.y, r: 1, fill: getColor(t) }));
 }
 
-var curvePolyline = V('polyline', { points: gCurve.toPolyline({ precision: 4 }).serialize(), stroke: 'green', fill: 'none' });
+var curvePolyline = V('polyline', { points: gCurve.toPolyline({ precision: 2 }).serialize(), stroke: 'green', fill: 'none' });
 console.log(curvePolyline.convertToPathData());
 curvePolyline.translate(100);
 svg.append(curvePolyline);

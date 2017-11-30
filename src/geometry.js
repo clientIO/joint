@@ -355,20 +355,20 @@ var g = (function() {
             // shortcuts for `t` values that are out of range
             if (t <= 0) {
                 return {
-                    startControlPoint1: start,
-                    startControlPoint2: start,
-                    divider: start,
-                    dividerControlPoint1: control1,
-                    dividerControlPoint2: control2
+                    startControlPoint1: start.clone(),
+                    startControlPoint2: start.clone(),
+                    divider: start.clone(),
+                    dividerControlPoint1: control1.clone(),
+                    dividerControlPoint2: control2.clone()
                 };
 
             } else if (t >= 1) {
                 return {
-                    startControlPoint1: control1,
-                    startControlPoint2: control2,
-                    divider: end,
-                    dividerControlPoint1: end,
-                    dividerControlPoint2: end
+                    startControlPoint1: control1.clone(),
+                    startControlPoint2: control2.clone(),
+                    divider: end.clone(),
+                    dividerControlPoint1: end.clone(),
+                    dividerControlPoint2: end.clone()
                 };
             }
 
@@ -481,17 +481,19 @@ var g = (function() {
         // For a function that tracks `t`, use Curve.tPoint().
         pointAt: function(ratio, opt) {
 
-            if (ratio <= 0) return this.start;
-            else if (ratio >= 1) return this.end;
+            if (ratio <= 0) return this.start.clone();
+            else if (ratio >= 1) return this.end.clone();
 
             opt = opt || {};
-            var precision = opt.precision; // this.getSubdivisions() can take care of undefined/null precision
-            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: (precision + 1) }); // precision is incremented in pointAtLength
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION;
 
-            var curveLength = this.length({ subdivisions: subdivisions });
+            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: (precision + 1) }); // increment precision
+            var curveLength = this.length({ subdivisions: subdivisions }); // incremented precision
+
             var length = curveLength * ratio;
 
-            return this.pointAtLength(length, { subdivisions: subdivisions });
+            return this.pointAtLength(length, { precision: precision, subdivisions: subdivisions }); // pointAtLength increments precision but not subdivisions
         },
 
         // Returns point at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
@@ -506,20 +508,16 @@ var g = (function() {
         // - Precision 4 (<0.01% error) - 31 levels
         pointAtLength: function(length, opt) {
 
-            if (length <= 0) return this.start; // length requested is smaller than 0 - return curve start point
+            if (length <= 0) return this.start.clone(); // length requested is smaller than 0 - return curve start point
 
             opt = opt || {};
-
-            // get precision
             var precision = opt.precision;
             if (precision !== 0) precision = precision || this.PRECISION; // assign PRECISION if precision undefined
+
             precision += 1; // increment precision
 
-            // get subdivisions
-            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
-
-            // obtain total curve length at given precision level
-            var curveLength = this.length({ subdivisions: subdivisions });
+            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision }); // incremented precision
+            var curveLength = this.length({ subdivisions: subdivisions }); // incremented precision
 
             // identify the subdivision that contains the point at requested `length`:
             var investigatedSubdivision;
@@ -546,7 +544,7 @@ var g = (function() {
                 l += d;
             }
 
-            if (!investigatedSubdivision) return this.end; // length requested is out of range - return curve end point
+            if (!investigatedSubdivision) return this.end.clone(); // length requested is out of range - return curve end point
             // note that precision affects what length is recorded
             // (imprecise measurements underestimate length by up to 10^(-precision) of the precise length)
             // e.g. at precision 1, the length may be underestimated by up to 10% and cause this function to return curve end point
@@ -561,9 +559,9 @@ var g = (function() {
                 var observedPrecisionRatio;
 
                 observedPrecisionRatio = baselinePointDistFromStart / curveLength;
-                if (observedPrecisionRatio < precisionRatio) return investigatedSubdivision.start;
+                if (observedPrecisionRatio < precisionRatio) return investigatedSubdivision.start.clone();
                 observedPrecisionRatio = baselinePointDistFromEnd / curveLength;
-                if (observedPrecisionRatio < precisionRatio) return investigatedSubdivision.end;
+                if (observedPrecisionRatio < precisionRatio) return investigatedSubdivision.end.clone();
 
                 // otherwise, set up for next iteration
                 var newBaselinePointDistFromStart;
@@ -627,10 +625,16 @@ var g = (function() {
         // Returns a path
         toPath: function() {
 
+            return Path(this.toPathData());
+        },
+
+        // Returns path data
+        toPathData: function() {
+
             var start = this.start;
             var c1 = this.controlPoint1;
             var c2 = this.controlPoint2;
-            var end = this.ed;
+            var end = this.end;
 
             return 'M ' + start.x + ' ' + start.y + ' C ' + c1.x + ' ' + c1.y + ' ' + c2.x + ' ' + c2.y + ' ' + end.x + ' ' + end.y;
         },
@@ -648,7 +652,7 @@ var g = (function() {
             for (var i = 0; i < n; i++) {
 
                 var currentSubdivision = subdivisions[i];
-                points.push(currentSubdivision.end);
+                points.push(currentSubdivision.end.clone());
             }
 
             return points;
@@ -987,7 +991,9 @@ var g = (function() {
             if (length <= 0) return start.clone();
             if (length >= lineLength) return end.clone();
 
-            return this.pointAt(lineLength);
+            if (lineLength === 0) return end.clone();
+
+            return this.pointAt(length / lineLength);
         },
 
         // @return {number} the offset of the point `p` from the line. + if the point `p` is on the right side of the line, - if on the left and 0 if on the line.
@@ -1221,13 +1227,15 @@ var g = (function() {
             else if (ratio > 1) ratio = 1;
 
             opt = opt || {};
-            var precision = opt.precision; // this.getSegmentSubdivisions() can take care of undefined/null precision
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: (precision + 1) }); // precision is incremented in pointAtLength
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION;
 
-            var pathLength = this.length({ segmentSubdivisions: segmentSubdivisions });
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: (precision + 1) }); // increment precision
+            var pathLength = this.length({ segmentSubdivisions: segmentSubdivisions }); // incremented precision
+
             var length = pathLength * ratio;
 
-            return this.pointAtLength(length, { segmentSubdivisions: segmentSubdivisions });
+            return this.pointAtLength(length, { precision: precision, segmentSubdivisions: segmentSubdivisions }); // pointAtLength increments precision but not segmentSubdivisions
         },
 
         // Returns point at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
@@ -1241,8 +1249,10 @@ var g = (function() {
             if (!pathSegments) return null;
 
             opt = opt || {};
-            var precision = opt.precision; // this.getSegmentSubdivisions() can take care of undefined/null precision
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: (precision + 1) }); // precision is incremented in pointAtLength
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION;
+
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: (precision + 1) }); // increment precision
 
             var lastVisibleSegment;
             var l = 0; // length so far
@@ -1256,7 +1266,7 @@ var g = (function() {
                 if (!seg.invisible) {
                     if (length <= (l + d)) {
                         // if length is smaller than 0, return first visible segment start point
-                        return p = seg.pointAtLength((length - l), { subdivisions: subdivisions });
+                        return seg.pointAtLength((length - l), { precision: precision, subdivisions: subdivisions }); // pointAtLength increments precision but not segmentSubdivisions
                     }
 
                     lastVisibleSegment = seg;
@@ -1270,7 +1280,7 @@ var g = (function() {
 
             // if no visible segment, return last segment end point
             var lastSegment = pathSegments[n - 1];
-            return lastSegment.end;
+            return lastSegment.end.clone();
         },
 
         // Default precision
@@ -1485,9 +1495,14 @@ var g = (function() {
             return 0;
         },
 
+        pointAt: function() {
+
+            return this.end.clone();
+        },
+
         pointAtLength: function() {
 
-            return this.end;
+            return this.end.clone();
         },
 
         recordSubpathStartSegment: true,

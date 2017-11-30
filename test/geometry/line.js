@@ -90,6 +90,27 @@ QUnit.module('line', function() {
             });
         });
 
+        QUnit.module('equals()', function() {
+
+            QUnit.test('checks whether two lines are exactly the same', function(assert) {
+
+                var p1;
+                var p2;
+
+                p1 = g.Line('100@100', '200@200');
+                p2 = g.Line('100@100', '200@200');
+                assert.equal(p1.equals(p2), true);
+
+                p1 = g.Line('100@100', '200@200');
+                p2 = g.Line('100@100', '100@200');
+                assert.equal(p1.equals(p2), false);
+
+                p1 = g.Line('100@100', '200@200');
+                p2 = g.Line('200@200', '100@100');
+                assert.equal(p1.equals(p2), false);
+            });
+        });
+
         // Kept for backwards compatibility
         QUnit.module('intersection(line)', function() {
 
@@ -199,12 +220,20 @@ QUnit.module('line', function() {
 
             QUnit.test('sanity', function(assert) {
 
-                // TODO
+                var line = g.Line('0 0', '100 0');
+                assert.ok(line.pointAt(0.4) instanceof g.Point);
+                assert.ok(line.pointAt(0.4, { precision: 0 }) instanceof g.Point);
+                assert.ok(line.pointAt(-1) instanceof g.Point);
+                assert.ok(line.pointAt(10) instanceof g.Point);
             });
 
-            QUnit.test('should return a translated version of self', function(assert) {
+            QUnit.test('returns a point at given length ratio', function(assert) {
 
-                // TODO
+                var line = g.Line('0 0', '100 0');
+                assert.equal(line.pointAt(0.4).toString(), '40@0');
+                assert.equal(line.pointAt(0.4, { precision: 0 }).toString(), '40@0');
+                assert.equal(line.pointAt(-1).toString(), '0@0');
+                assert.equal(line.pointAt(10).toString(), '100@0');
             });
         });
 
@@ -212,12 +241,20 @@ QUnit.module('line', function() {
 
             QUnit.test('sanity', function(assert) {
 
-                // TODO
+                var line = g.Line('0 0', '100 0');
+                assert.ok(line.pointAtLength(50) instanceof g.Point);
+                assert.ok(line.pointAtLength(50, { precision: 0 }) instanceof g.Point);
+                assert.ok(line.pointAtLength(-1) instanceof g.Point);
+                assert.ok(line.pointAtLength(10000) instanceof g.Point);
             });
 
-            QUnit.test('should return a translated version of self', function(assert) {
+            QUnit.test('returns a point at given length', function(assert) {
 
-                // TODO
+                var line = g.Line('0 0', '100 0');
+                assert.equal(line.pointAtLength(50).toString(), '50@0');
+                assert.equal(line.pointAtLength(50, { precision: 0 }).toString(), '50@0');
+                assert.equal(line.pointAtLength(-1).toString(), '0@0');
+                assert.equal(line.pointAtLength(10000).toString(), '100@0');
             });
         });
 
