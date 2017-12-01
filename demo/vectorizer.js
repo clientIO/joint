@@ -97,10 +97,10 @@ for (i = 0; i < n; i++) {
     svg.append(V('circle', { cx: curvePoint.x, cy: curvePoint.y, r: 1, fill: getColor(t) }));
 }
 
-var curvePolyline = V('polyline', { points: gCurve.toPolyline({ precision: 2 }).serialize(), stroke: 'green', fill: 'none' });
-console.log(curvePolyline.convertToPathData());
-curvePolyline.translate(100);
-svg.append(curvePolyline);
+var curvePath = V('path', { d: gCurve.toPath().serialize(), stroke: 'green', fill: 'none' });
+console.log(curvePath.convertToPathData());
+curvePath.translate(100);
+svg.append(curvePath);
 
 // Text
 var text = V('text', { x: 250, y: 150, fill: 'black' });
