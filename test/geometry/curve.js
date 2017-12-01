@@ -279,12 +279,63 @@ QUnit.module('curve', function() {
 
             QUnit.test('sanity', function(assert) {
 
-                // TODO
+                assert.equal(Array.isArray(g.Curve('0 100', '50 200', '150 0', '200 100').getSubdivisions()), true);
+                assert.equal(Array.isArray(g.Curve('0 100', '50 200', '150 0', '200 100').getSubdivisions({ precision: 0 })), true);
+                assert.equal(Array.isArray(g.Curve('0 100', '50 200', '150 0', '200 100').getSubdivisions({ precision: 1 })), true);
+                assert.equal(Array.isArray(g.Curve('0 100', '50 200', '150 0', '200 100').getSubdivisions({ precision: 2 })), true);
             });
 
             QUnit.test('returns an array with curve subdivisions up to precision', function(assert) {
 
-                // TODO
+                assert.deepEqual(g.Curve('0 100', '50 200', '150 0', '200 100').getSubdivisions(), [
+                    g.Curve(g.Point(0, 100), g.Point(3.125, 106.25), g.Point(6.4453125, 111.328125), g.Point(9.9365234375, 115.380859375)),
+                    g.Curve(g.Point(9.9365234375, 115.380859375), g.Point(13.427734375, 119.43359375), g.Point(17.08984375, 122.4609375), g.Point(20.8984375, 124.609375)),
+                    g.Curve(g.Point(20.8984375, 124.609375), g.Point(24.70703125, 126.7578125), g.Point(28.662109375, 128.02734375), g.Point(32.7392578125, 128.564453125)),
+                    g.Curve(g.Point(32.7392578125, 128.564453125), g.Point(36.81640625, 129.1015625), g.Point(41.015625, 128.90625), g.Point(45.3125, 128.125)),
+                    g.Curve(g.Point(45.3125, 128.125), g.Point(49.609375, 127.34375), g.Point(54.00390625, 125.9765625), g.Point(58.4716796875, 124.169921875)),
+                    g.Curve(g.Point(58.4716796875, 124.169921875), g.Point(62.939453125, 122.36328125), g.Point(67.48046875, 120.1171875), g.Point(72.0703125, 117.578125)),
+                    g.Curve(g.Point(72.0703125, 117.578125), g.Point(76.66015625, 115.0390625), g.Point(81.298828125, 112.20703125), g.Point(85.9619140625, 109.228515625)),
+                    g.Curve(g.Point(85.9619140625, 109.228515625), g.Point(90.625, 106.25), g.Point(95.3125, 103.125), g.Point(100, 100)),
+                    g.Curve(g.Point(100, 100), g.Point(104.6875, 96.875), g.Point(109.375, 93.75), g.Point(114.0380859375, 90.771484375)),
+                    g.Curve(g.Point(114.0380859375, 90.771484375), g.Point(118.701171875, 87.79296875), g.Point(123.33984375, 84.9609375), g.Point(127.9296875, 82.421875)),
+                    g.Curve(g.Point(127.9296875, 82.421875), g.Point(132.51953125, 79.8828125), g.Point(137.060546875, 77.63671875), g.Point(141.5283203125, 75.830078125)),
+                    g.Curve(g.Point(141.5283203125, 75.830078125), g.Point(145.99609375, 74.0234375), g.Point(150.390625, 72.65625), g.Point(154.6875, 71.875)),
+                    g.Curve(g.Point(154.6875, 71.875), g.Point(158.984375, 71.09375), g.Point(163.18359375, 70.8984375), g.Point(167.2607421875, 71.435546875)),
+                    g.Curve(g.Point(167.2607421875, 71.435546875), g.Point(171.337890625, 71.97265625), g.Point(175.29296875, 73.2421875), g.Point(179.1015625, 75.390625)),
+                    g.Curve(g.Point(179.1015625, 75.390625), g.Point(182.91015625, 77.5390625), g.Point(186.572265625, 80.56640625), g.Point(190.0634765625, 84.619140625)),
+                    g.Curve(g.Point(190.0634765625, 84.619140625), g.Point(193.5546875, 88.671875), g.Point(196.875, 93.75), g.Point(200, 100))
+                ]);
+                assert.deepEqual(g.Curve('0 100', '50 200', '150 0', '200 100').getSubdivisions({ precision: 0 }), [
+                    g.Curve(g.Point(0, 100), g.Point(50, 200), g.Point(150, 0), g.Point(200, 100))
+                ]);
+                assert.deepEqual(g.Curve('0 100', '50 200', '150 0', '200 100').getSubdivisions({ precision: 1 }), [
+                    g.Curve(g.Point(0, 100), g.Point(6.25, 112.5), g.Point(13.28125, 120.3125), g.Point(20.8984375, 124.609375)),
+                    g.Curve(g.Point(20.8984375, 124.609375), g.Point(28.515625, 128.90625), g.Point(36.71875, 129.6875), g.Point(45.3125, 128.125)),
+                    g.Curve(g.Point(45.3125, 128.125), g.Point(53.90625, 126.5625), g.Point(62.890625, 122.65625), g.Point(72.0703125, 117.578125)),
+                    g.Curve(g.Point(72.0703125, 117.578125), g.Point(81.25, 112.5), g.Point(90.625, 106.25), g.Point(100, 100)),
+                    g.Curve(g.Point(100, 100), g.Point(109.375, 93.75), g.Point(118.75, 87.5), g.Point(127.9296875, 82.421875)),
+                    g.Curve(g.Point(127.9296875, 82.421875), g.Point(137.109375, 77.34375), g.Point(146.09375, 73.4375), g.Point(154.6875, 71.875)),
+                    g.Curve(g.Point(154.6875, 71.875), g.Point(163.28125, 70.3125), g.Point(171.484375, 71.09375), g.Point(179.1015625, 75.390625)),
+                    g.Curve(g.Point(179.1015625, 75.390625), g.Point(186.71875, 79.6875), g.Point(193.75, 87.5), g.Point(200, 100))
+                ]);
+                assert.deepEqual(g.Curve('0 100', '50 200', '150 0', '200 100').getSubdivisions({ precision: 2 }), [
+                    g.Curve(g.Point(0, 100), g.Point(3.125, 106.25), g.Point(6.4453125, 111.328125), g.Point(9.9365234375, 115.380859375)),
+                    g.Curve(g.Point(9.9365234375, 115.380859375), g.Point(13.427734375, 119.43359375), g.Point(17.08984375, 122.4609375), g.Point(20.8984375, 124.609375)),
+                    g.Curve(g.Point(20.8984375, 124.609375), g.Point(24.70703125, 126.7578125), g.Point(28.662109375, 128.02734375), g.Point(32.7392578125, 128.564453125)),
+                    g.Curve(g.Point(32.7392578125, 128.564453125), g.Point(36.81640625, 129.1015625), g.Point(41.015625, 128.90625), g.Point(45.3125, 128.125)),
+                    g.Curve(g.Point(45.3125, 128.125), g.Point(49.609375, 127.34375), g.Point(54.00390625, 125.9765625), g.Point(58.4716796875, 124.169921875)),
+                    g.Curve(g.Point(58.4716796875, 124.169921875), g.Point(62.939453125, 122.36328125), g.Point(67.48046875, 120.1171875), g.Point(72.0703125, 117.578125)),
+                    g.Curve(g.Point(72.0703125, 117.578125), g.Point(76.66015625, 115.0390625), g.Point(81.298828125, 112.20703125), g.Point(85.9619140625, 109.228515625)),
+                    g.Curve(g.Point(85.9619140625, 109.228515625), g.Point(90.625, 106.25), g.Point(95.3125, 103.125), g.Point(100, 100)),
+                    g.Curve(g.Point(100, 100), g.Point(104.6875, 96.875), g.Point(109.375, 93.75), g.Point(114.0380859375, 90.771484375)),
+                    g.Curve(g.Point(114.0380859375, 90.771484375), g.Point(118.701171875, 87.79296875), g.Point(123.33984375, 84.9609375), g.Point(127.9296875, 82.421875)),
+                    g.Curve(g.Point(127.9296875, 82.421875), g.Point(132.51953125, 79.8828125), g.Point(137.060546875, 77.63671875), g.Point(141.5283203125, 75.830078125)),
+                    g.Curve(g.Point(141.5283203125, 75.830078125), g.Point(145.99609375, 74.0234375), g.Point(150.390625, 72.65625), g.Point(154.6875, 71.875)),
+                    g.Curve(g.Point(154.6875, 71.875), g.Point(158.984375, 71.09375), g.Point(163.18359375, 70.8984375), g.Point(167.2607421875, 71.435546875)),
+                    g.Curve(g.Point(167.2607421875, 71.435546875), g.Point(171.337890625, 71.97265625), g.Point(175.29296875, 73.2421875), g.Point(179.1015625, 75.390625)),
+                    g.Curve(g.Point(179.1015625, 75.390625), g.Point(182.91015625, 77.5390625), g.Point(186.572265625, 80.56640625), g.Point(190.0634765625, 84.619140625)),
+                    g.Curve(g.Point(190.0634765625, 84.619140625), g.Point(193.5546875, 88.671875), g.Point(196.875, 93.75), g.Point(200, 100))
+                ]);
             });
         });
 
@@ -499,12 +550,22 @@ QUnit.module('curve', function() {
 
             QUnit.test('sanity', function(assert) {
 
-                // TODO
+                var curve;
+
+                curve = g.Curve('0 100', '50 200', '150 0', '200 100');
+                assert.ok(curve.tPoint(0.4) instanceof g.Point);
+                assert.ok(curve.tPoint(-1) instanceof g.Point);
+                assert.ok(curve.tPoint(10) instanceof g.Point);
             });
 
             QUnit.test('returns a point at given `t` value', function(assert) {
 
-                // TODO
+                var curve;
+
+                curve = g.Curve('0 100', '50 200', '150 0', '200 100');
+                assert.equal(curve.tPoint(0.4).toString(), '77.6@114.4');
+                assert.equal(curve.tPoint(-1).toString(), '0@100');
+                assert.equal(curve.tPoint(10).toString(), '200@100');
             });
         });
 
@@ -531,12 +592,12 @@ QUnit.module('curve', function() {
 
             QUnit.test('sanity', function(assert) {
 
-                // TODO
+                assert.ok(g.Curve('0 100', '50 200', '150 0', '200 100').toPath() instanceof g.Path);
             });
 
             QUnit.test('returns the curve as a path', function(assert) {
 
-                // TODO
+                assert.equal(g.Curve('0 100', '50 200', '150 0', '200 100').toPath().toString(), 'M 0 100 C 50 200 150 0 200 100');
             });
         });
 
@@ -544,12 +605,12 @@ QUnit.module('curve', function() {
 
             QUnit.test('sanity', function(assert) {
 
-                // TODO
+                assert.equal(typeof g.Curve('0 100', '50 200', '150 0', '200 100').toPathData(), 'string');
             });
 
             QUnit.test('returns the curve as path data', function(assert) {
 
-                // TODO
+                assert.equal(g.Curve('0 100', '50 200', '150 0', '200 100').toPath().toString(), 'M 0 100 C 50 200 150 0 200 100');
             });
         });
 
@@ -557,12 +618,67 @@ QUnit.module('curve', function() {
 
             QUnit.test('sanity', function(assert) {
 
-                // TODO
+                assert.equal(Array.isArray(g.Curve('0 100', '50 200', '150 0', '200 100').toPoints()), true);
+                assert.equal(Array.isArray(g.Curve('0 100', '50 200', '150 0', '200 100').toPoints({ precision: 0 })), true);
+                assert.equal(Array.isArray(g.Curve('0 100', '50 200', '150 0', '200 100').toPoints({ precision: 1 })), true);
+                assert.equal(Array.isArray(g.Curve('0 100', '50 200', '150 0', '200 100').toPoints({ precision: 2 })), true);
             });
 
             QUnit.test('returns the curve as an array of points up to precision', function(assert) {
 
-                // TODO
+                assert.deepEqual(g.Curve('0 100', '50 200', '150 0', '200 100').toPoints(), [
+                    g.Point(0, 100),
+                    g.Point(9.9365234375, 115.380859375),
+                    g.Point(20.8984375, 124.609375),
+                    g.Point(32.7392578125, 128.564453125),
+                    g.Point(45.3125, 128.125),
+                    g.Point(58.4716796875, 124.169921875),
+                    g.Point(72.0703125, 117.578125),
+                    g.Point(85.9619140625, 109.228515625),
+                    g.Point(100, 100),
+                    g.Point(114.0380859375, 90.771484375),
+                    g.Point(127.9296875, 82.421875),
+                    g.Point(141.5283203125, 75.830078125),
+                    g.Point(154.6875, 71.875),
+                    g.Point(167.2607421875, 71.435546875),
+                    g.Point(179.1015625, 75.390625),
+                    g.Point(190.0634765625, 84.619140625),
+                    g.Point(200, 100)
+                ]);
+                assert.deepEqual(g.Curve('0 100', '50 200', '150 0', '200 100').toPoints({ precision: 0 }), [
+                    g.Point(0, 100),
+                    g.Point(200, 100)
+                ]);
+                assert.deepEqual(g.Curve('0 100', '50 200', '150 0', '200 100').toPoints({ precision: 1 }), [
+                    g.Point(0, 100),
+                    g.Point(20.8984375, 124.609375),
+                    g.Point(45.3125, 128.125),
+                    g.Point(72.0703125, 117.578125),
+                    g.Point(100, 100),
+                    g.Point(127.9296875, 82.421875),
+                    g.Point(154.6875, 71.875),
+                    g.Point(179.1015625, 75.390625),
+                    g.Point(200, 100)
+                ]);
+                assert.deepEqual(g.Curve('0 100', '50 200', '150 0', '200 100').toPoints({ precision: 2 }), [
+                    g.Point(0, 100),
+                    g.Point(9.9365234375, 115.380859375),
+                    g.Point(20.8984375, 124.609375),
+                    g.Point(32.7392578125, 128.564453125),
+                    g.Point(45.3125, 128.125),
+                    g.Point(58.4716796875, 124.169921875),
+                    g.Point(72.0703125, 117.578125),
+                    g.Point(85.9619140625, 109.228515625),
+                    g.Point(100, 100),
+                    g.Point(114.0380859375, 90.771484375),
+                    g.Point(127.9296875, 82.421875),
+                    g.Point(141.5283203125, 75.830078125),
+                    g.Point(154.6875, 71.875),
+                    g.Point(167.2607421875, 71.435546875),
+                    g.Point(179.1015625, 75.390625),
+                    g.Point(190.0634765625, 84.619140625),
+                    g.Point(200, 100)
+                ]);
             });
         });
 
@@ -570,12 +686,18 @@ QUnit.module('curve', function() {
 
             QUnit.test('sanity', function(assert) {
 
-                // TODO
+                assert.ok(g.Curve('0 100', '50 200', '150 0', '200 100').toPolyline() instanceof g.Polyline);
+                assert.ok(g.Curve('0 100', '50 200', '150 0', '200 100').toPolyline({ precision: 0 }) instanceof g.Polyline);
+                assert.ok(g.Curve('0 100', '50 200', '150 0', '200 100').toPolyline({ precision: 1 }) instanceof g.Polyline);
+                assert.ok(g.Curve('0 100', '50 200', '150 0', '200 100').toPolyline({ precision: 2 }) instanceof g.Polyline);
             });
 
             QUnit.test('returns the curve as a polyline up to precision', function(assert) {
 
-                // TODO
+                assert.deepEqual(g.Curve('0 100', '50 200', '150 0', '200 100').toPolyline().serialize(), '0,100 9.9365234375,115.380859375 20.8984375,124.609375 32.7392578125,128.564453125 45.3125,128.125 58.4716796875,124.169921875 72.0703125,117.578125 85.9619140625,109.228515625 100,100 114.0380859375,90.771484375 127.9296875,82.421875 141.5283203125,75.830078125 154.6875,71.875 167.2607421875,71.435546875 179.1015625,75.390625 190.0634765625,84.619140625 200,100');
+                assert.deepEqual(g.Curve('0 100', '50 200', '150 0', '200 100').toPolyline({ precision: 0 }).serialize(), '0,100 200,100');
+                assert.deepEqual(g.Curve('0 100', '50 200', '150 0', '200 100').toPolyline({ precision: 1 }).serialize(), '0,100 20.8984375,124.609375 45.3125,128.125 72.0703125,117.578125 100,100 127.9296875,82.421875 154.6875,71.875 179.1015625,75.390625 200,100');
+                assert.deepEqual(g.Curve('0 100', '50 200', '150 0', '200 100').toPolyline({ precision: 2 }).serialize(), '0,100 9.9365234375,115.380859375 20.8984375,124.609375 32.7392578125,128.564453125 45.3125,128.125 58.4716796875,124.169921875 72.0703125,117.578125 85.9619140625,109.228515625 100,100 114.0380859375,90.771484375 127.9296875,82.421875 141.5283203125,75.830078125 154.6875,71.875 167.2607421875,71.435546875 179.1015625,75.390625 190.0634765625,84.619140625 200,100');
             });
         });
 

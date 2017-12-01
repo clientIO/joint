@@ -410,7 +410,7 @@ var g = (function() {
 
             var iteration = 0;
 
-            var subdivisions = [this];
+            var subdivisions = [this.clone()];
             var previousLength = this.endpointDistance();
 
             if (precision === 0) return subdivisions;
