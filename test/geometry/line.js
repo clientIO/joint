@@ -307,6 +307,21 @@ QUnit.module('line', function() {
             });
         });
 
+        QUnit.module('tangent()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                assert.ok(g.Line('10 10', '20 20').tangent() instanceof g.Line);
+
+                assert.equal(g.Line('10 10', '10 10').tangent(), null);
+            });
+
+            QUnit.test('should return a tangent to itself', function(assert) {
+
+                assert.equal(g.Line('10 10', '20 20').tangent().toString(), g.Line('10 10', '20 20').toString());
+            });
+        });
+
         QUnit.module('translate()', function() {
 
             QUnit.test('sanity', function(assert) {
