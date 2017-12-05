@@ -405,17 +405,17 @@ var g = (function() {
         // (Variation of 1 recursion worse or better is possible depending on the curve, doubling/halving the number of operations accordingly)
         getSubdivisions: function(opt) {
 
-            opt = opt || {};
-            var precision = opt.precision;
-
             var iteration = 0;
 
             var subdivisions = [this.clone()];
             var previousLength = this.endpointDistance();
 
+            opt = opt || {};
+            var precision = opt.precision;
             if (precision === 0) return subdivisions;
+            precision = precision || this.PRECISION; // assign PRECISION if precision undefined
+            // not using opt.subdivisions
 
-            precision = precision || this.PRECISION; // assign PRECISION if undefined
             var precisionRatio = pow(10, -precision);
             while (true) {
                 iteration += 1;
@@ -462,7 +462,8 @@ var g = (function() {
         length: function(opt) {
 
             opt = opt || {};
-            var precision = opt.precision; // this.getSubdivisions() can take care of undefined/null precision
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION; // assign PRECISION if precision undefined
             var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
 
             var length = 0;
@@ -476,18 +477,18 @@ var g = (function() {
             return length;
         },
 
-        // Returns distance along the curve up to `t` with precision better than requested `opt.precision`.
+        // Returns distance along the curve up to `t` with precision better than requested `opt.precision`. (Not using `opt.subdivisions`.)
         lengthAtT: function(t, opt) {
 
             if (t <= 0) return 0;
 
             opt = opt || {};
-            var subCurveOpt = {};
-            subCurveOpt.precision = opt.precision;
-            // do not copy subdivisions over! it is a different curve
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION; // assign PRECISION if precision undefined
+            // not using subdivisions - it is a different curve
 
             var subCurve = this.divide(t)[0];
-            var subCurveLength = subCurve.length(subCurveOpt);
+            var subCurveLength = subCurve.length({ precision: precision });
 
             return subCurveLength;
         },
@@ -500,16 +501,9 @@ var g = (function() {
             if (ratio <= 0) return this.start.clone();
             else if (ratio >= 1) return this.end.clone();
 
-            opt = opt || {};
-            var precision = opt.precision;
-            if (precision !== 0) precision = precision || this.PRECISION;
+            var t = this.tAt(ratio, opt);
 
-            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: (precision + 1) }); // increment precision
-            var curveLength = this.length({ subdivisions: subdivisions }); // incremented precision
-
-            var length = curveLength * ratio;
-
-            return this.pointAtLength(length, { precision: precision, subdivisions: subdivisions }); // pointAtLength increments precision but not subdivisions
+            return this.pointAtT(t);
         },
 
         // Returns point at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
@@ -517,7 +511,9 @@ var g = (function() {
 
             if (length <= 0) return this.start.clone(); // length requested is smaller than 0 - return curve start point
 
-            return this.pointAtT(this.tAtLength(length, opt));
+            var t = this.tAtLength(length, opt);
+
+            return this.pointAtT(t);
         },
 
         // Returns the point at provided `t` between 0 and 1.
@@ -544,30 +540,74 @@ var g = (function() {
             return this;
         },
 
-        tangent: function(t) {
+        // Returns a tangent line at requested `ratio` with precision better than requested `opt.precision`; or using `opt.subdivisions` provided.
+        tangentAt: function(ratio, opt) {
+
+            if (ratio < 0) ratio = 0;
+            else if (ratio > 1) ratio = 1;
+
+            var t = this.tAt(ratio, opt);
+
+            return this.tangentAtT(t);
+        },
+
+        // Returns a tangent line at requested `length` with precision better than requested `opt.precision`; or using `opt.subdivisions` provided.
+        tangentAtLength: function(length, opt) {
+
+            if (length < 0) length = 0;
+
+            var t = this.tAtLength(length, opt);
+
+            return this.tangentAtT(t);
+        },
+
+        // Returns a tangent line at requested `t`.
+        tangentAtT: function(t) {
 
             if (t < 0) t = 0;
             else if (t > 1) t = 1;
 
             var skeletonPoints = this.getSkeletonPoints(t);
 
-            var start = skeletonPoints.startControlPoint2;
-            var end = skeletonPoints.dividerControlPoint1;
+            var p1 = skeletonPoints.startControlPoint2;
+            var p2 = skeletonPoints.dividerControlPoint1;
 
-            if (start.equals(end)) return null; // if start and end are the same, we cannot know what the slope is (curve is a point)
-            else return Line(start, end);
+            if (p1.equals(p2)) return null; // if start and end are the same, we cannot know what the slope is (curve is a point)
+
+            var tangentStart = skeletonPoints.divider;
+
+            var tangentLine = Line(p1, p2);
+            tangentLine.translate(tangentStart.x - p1.x, tangentStart.y - p1.y); // move so that tangent line starts at the point requested
+
+            return tangentLine;
+        },
+
+        // Returns `t` at requested `ratio` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
+        tAt: function(ratio, opt) {
+
+            if (ratio <= 0) return 0;
+            else if (ratio >= 1) return 1;
+
+            opt = opt || {};
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION;
+            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
+
+            var curveLength = this.length({ subdivisions: subdivisions });
+            var length = curveLength * ratio;
+
+            return this.tAtLength(length, { precision: precision, subdivisions: subdivisions });
         },
 
         // Returns `t` at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
         // Uses `precision` to approximate length within `precision` (always underestimates)
         // Then uses a binary search to find the `t` of a subdivision endpoint that is close (within `precision`) to the `length`, if the curve was as long as approximated
-        // The length error and position error add up on top of each other - subcalculations need to have precision level that is one higher than `precision`
         // As a rule of thumb, increasing `precision` by 1 causes the algorithm to go 2^(precision - 1) deeper
-        // - Precision 0 (chooses one of 5 points at 25% intervals) - 1 level
-        // - Precision 1 (<10% error) - 3 levels
-        // - Precision 2 (<1% error) - 7 levels
-        // - Precision 3 (<0.1% error) - 15 levels
-        // - Precision 4 (<0.01% error) - 31 levels
+        // - Precision 0 (chooses one of the two endpoints) - 0 levels
+        // - Precision 1 (chooses one of 5 points, <10% error) - 1 level
+        // - Precision 2 (<1% error) - 3 levels
+        // - Precision 3 (<0.1% error) - 7 levels
+        // - Precision 4 (<0.01% error) - 15 levels
         tAtLength: function(length, opt) {
 
             if (length <= 0) return 0; // length requested is smaller than 0 - return minimum t
@@ -575,11 +615,9 @@ var g = (function() {
             opt = opt || {};
             var precision = opt.precision;
             if (precision !== 0) precision = precision || this.PRECISION; // assign PRECISION if precision undefined
+            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
 
-            precision += 1; // increment precision
-
-            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision }); // incremented precision
-            var curveLength = this.length({ subdivisions: subdivisions }); // incremented precision
+            var curveLength = this.length({ subdivisions: subdivisions });
 
             // identify the subdivision that contains the point at requested `length`:
             var investigatedSubdivision;
@@ -669,11 +707,9 @@ var g = (function() {
             opt = opt || {};
             var precision = opt.precision;
             if (precision !== 0) precision = precision || this.PRECISION; // assign PRECISION if precision undefined
+            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
 
-            precision += 1; // increment precision
-
-            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision }); // incremented precision
-            var curveLength = this.length({ subdivisions: subdivisions }); // incremented precision
+            var curveLength = this.length({ subdivisions: subdivisions });
 
             // identify the subdivision that contains the point:
             var investigatedSubdivision;
@@ -1114,11 +1150,13 @@ var g = (function() {
 
         // @return {double} length of the line
         length: function() {
+
             return sqrt(this.squaredLength());
         },
 
         // @return {point} my midpoint
         midpoint: function() {
+
             return Point(
                 (this.start.x + this.end.x) / 2,
                 (this.start.y + this.end.y) / 2
@@ -1148,8 +1186,6 @@ var g = (function() {
             if (length <= 0) return start.clone();
             if (length >= lineLength) return end.clone();
 
-            if (lineLength === 0) return end.clone();
-
             return this.pointAt(length / lineLength);
         },
 
@@ -1167,13 +1203,34 @@ var g = (function() {
             return this;
         },
 
-        tangent: function() {
+        tangentAt: function(t) {
 
-            var start = this.start;
-            var end = this.end;
+            var p1 = this.start;
+            var p2 = this.end;
 
-            if (start.equals(end)) return null; // if start and end are the same, we cannot know what the slope is (line is a point)
-            else return Line(start, end);
+            if (p1.equals(p2)) return null; // if start and end are the same, we cannot know what the slope is (line is a point)
+
+            var tangentStart = this.pointAt(t); // constrains `t` between 0 and 1
+
+            var tangentLine = Line(p1, p2);
+            tangentLine.translate(tangentStart.x - p1.x, tangentStart.y - p1.y); // move so that tangent line starts at the point requested
+
+            return tangentLine;
+        },
+
+        tangentAtLength: function(length) {
+
+            var p1 = this.start;
+            var p2 = this.end;
+
+            if (p1.equals(p2)) return null; // if start and end are the same, we cannot know what the slope is (line is a point)
+
+            var tangentStart = this.pointAtLength(length); // constrains `length` between 0 and line length
+
+            var tangentLine = Line(p1, p2);
+            tangentLine.translate(tangentStart.x - p1.x, tangentStart.y - p1.y); // move so that tangent line starts at the point requested
+
+            return tangentLine;
         },
 
         translate: function(tx, ty) {
@@ -1206,6 +1263,7 @@ var g = (function() {
         // @return {integer} length without sqrt
         // @note for applications where the exact length is not necessary (e.g. compare only)
         squaredLength: function() {
+
             var x0 = this.start.x;
             var y0 = this.start.y;
             var x1 = this.end.x;
@@ -1214,6 +1272,7 @@ var g = (function() {
         },
 
         toString: function() {
+
             return this.start.toString() + ' ' + this.end.toString();
         }
     };
@@ -1371,7 +1430,8 @@ var g = (function() {
             if (!pathSegments) return 0;
 
             opt = opt || {};
-            var precision = opt.precision; // this.getSegmentSubdivisions() can take care of undefined/null precision
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION;
             var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
 
             var length = 0;
@@ -1395,13 +1455,12 @@ var g = (function() {
             opt = opt || {};
             var precision = opt.precision;
             if (precision !== 0) precision = precision || this.PRECISION;
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
 
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: (precision + 1) }); // increment precision
-            var pathLength = this.length({ segmentSubdivisions: segmentSubdivisions }); // incremented precision
-
+            var pathLength = this.length({ segmentSubdivisions: segmentSubdivisions });
             var length = pathLength * ratio;
 
-            return this.pointAtLength(length, { precision: precision, segmentSubdivisions: segmentSubdivisions }); // pointAtLength increments precision but not segmentSubdivisions
+            return this.pointAtLength(length, { precision: precision, segmentSubdivisions: segmentSubdivisions });
         },
 
         // Returns point at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
@@ -1417,8 +1476,7 @@ var g = (function() {
             opt = opt || {};
             var precision = opt.precision;
             if (precision !== 0) precision = precision || this.PRECISION;
-
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: (precision + 1) }); // increment precision
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
 
             var lastVisibleSegment;
             var l = 0; // length so far
@@ -1432,7 +1490,7 @@ var g = (function() {
                 if (!seg.invisible) {
                     if (length <= (l + d)) {
                         // if length is smaller than 0, return first visible segment start point
-                        return seg.pointAtLength((length - l), { precision: precision, subdivisions: subdivisions }); // pointAtLength increments precision but not segmentSubdivisions
+                        return seg.pointAtLength((length - l), { precision: precision, subdivisions: subdivisions });
                     }
 
                     lastVisibleSegment = seg;
@@ -1468,6 +1526,7 @@ var g = (function() {
             return this;
         },
 
+        // Returns tangent line at requested `ratio` between 0 and 1, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
         tangentAt: function(ratio, opt) {
 
             if (ratio < 0) ratio = 0;
@@ -1476,15 +1535,15 @@ var g = (function() {
             opt = opt || {};
             var precision = opt.precision;
             if (precision !== 0) precision = precision || this.PRECISION;
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
 
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: (precision + 1) }); // increment precision
-            var pathLength = this.length({ segmentSubdivisions: segmentSubdivisions }); // incremented precision
-
+            var pathLength = this.length({ segmentSubdivisions: segmentSubdivisions });
             var length = pathLength * ratio;
 
-            return this.tangentAtLength(length, { precision: precision, segmentSubdivisions: segmentSubdivisions }); // tangentAtLength increments precision but not segmentSubdivisions
+            return this.tangentAtLength(length, { precision: precision, segmentSubdivisions: segmentSubdivisions });
         },
 
+        // Returns tangent line at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
         tangentAtLength: function(length, opt) {
 
             if (length < 0) length = 0;
@@ -1497,10 +1556,8 @@ var g = (function() {
             opt = opt || {};
             var precision = opt.precision;
             if (precision !== 0) precision = precision || this.PRECISION;
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
 
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: (precision + 1) }); // increment precision
-
-            var t;
             var tangent;
 
             var lastValidSegment; // visible AND differentiable (with a tangent)
@@ -1513,8 +1570,7 @@ var g = (function() {
                 var d = seg.length({ subdivisions: subdivisions });
 
                 if (!seg.invisible) {
-                    t = seg.tAtLength ? seg.tAtLength((length - l), { precision: precision, subdivisions: subdivisions }) : null; // check if the function exists
-                    tangent = seg.tangent(t);
+                    tangent = seg.tangentAtLength((length - l), { precision: precision, subdivisions: subdivisions });
 
                     if (tangent) { // has a tangent (its length is not 0)
                         if (length <= (l + d)) {
@@ -1531,8 +1587,7 @@ var g = (function() {
 
             // if length requested is higher than the length of the path, return tangent of end of last valid segment
             if (lastValidSegment) {
-                t = lastValidSegment.tAtLength ? lastValidSegment.tAtLength(1) : null; // check if the function exists
-                tangent = lastValidSegment.tangent(t);
+                tangent = lastValidSegment.tangentAt(1);
                 return tangent;
             }
 

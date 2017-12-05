@@ -459,13 +459,13 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.pointAt(10).toString(), '100@0');
 
                 path = g.Path('M 0 0 C 0 200 200 200 200 0');
-                assert.equal(path.pointAt(0.4).toString(), '61.63853108882904@139.72549438476562');
-                assert.equal(path.pointAt(0.4, { precision: 0 }).toString(), '100@150');
-                assert.equal(path.pointAt(0.4, { precision: 1 }).toString(), '63.28125@140.625');
-                assert.equal(path.pointAt(0.4, { precision: 2 }).toString(), '61.63853108882904@139.72549438476562');
-                assert.equal(path.pointAt(0.4, { precision: 3 }).toString(), '61.775019159540534@139.80202674865723');
+                assert.equal(path.pointAt(0.4).toString(), '63.28125@140.625');
+                assert.equal(path.pointAt(0.4, { precision: 0 }).toString(), '0@0');
+                assert.equal(path.pointAt(0.4, { precision: 1 }).toString(), '100@150');
+                assert.equal(path.pointAt(0.4, { precision: 2 }).toString(), '63.28125@140.625');
+                assert.equal(path.pointAt(0.4, { precision: 3 }).toString(), '61.63853108882904@139.72549438476562');
                 assert.equal(path.pointAt(0.4, { precision: 4 }).toString(), '61.775019159540534@139.80202674865723');
-                assert.equal(path.pointAt(0.4, { precision: 5 }).toString(), '61.77288595901035@139.800833130721');
+                assert.equal(path.pointAt(0.4, { precision: 5 }).toString(), '61.775019159540534@139.80202674865723');
                 assert.equal(path.pointAt(-1).toString(), '0@0');
                 assert.equal(path.pointAt(10).toString(), '200@0');
 
@@ -586,13 +586,13 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.pointAtLength(10000).toString(), '100@0');
 
                 path = g.Path('M 0 0 C 0 200 200 200 200 0');
-                assert.equal(path.pointAtLength(250).toString(), '146.40367031097412@134.6099853515625');
-                assert.equal(path.pointAtLength(250, { precision: 0 }).toString(), '168.75@112.5');
-                assert.equal(path.pointAtLength(250, { precision: 1 }).toString(), '145.34912109375@135.3515625');
-                assert.equal(path.pointAtLength(250, { precision: 2 }).toString(), '146.40367031097412@134.6099853515625');
-                assert.equal(path.pointAtLength(250, { precision: 3 }).toString(), '146.66639678180218@134.4217300415039');
-                assert.equal(path.pointAtLength(250, { precision: 4 }).toString(), '146.65819215043712@134.42763034254313');
-                assert.equal(path.pointAtLength(250, { precision: 5 }).toString(), '146.6556281292854@134.42947395742522');
+                assert.equal(path.pointAtLength(250).toString(), '145.34912109375@135.3515625');
+                assert.equal(path.pointAtLength(250, { precision: 0 }).toString(), '200@0');
+                assert.equal(path.pointAtLength(250, { precision: 1 }).toString(), '168.75@112.5');
+                assert.equal(path.pointAtLength(250, { precision: 2 }).toString(), '145.34912109375@135.3515625');
+                assert.equal(path.pointAtLength(250, { precision: 3 }).toString(), '146.40367031097412@134.6099853515625');
+                assert.equal(path.pointAtLength(250, { precision: 4 }).toString(), '146.66639678180218@134.4217300415039');
+                assert.equal(path.pointAtLength(250, { precision: 5 }).toString(), '146.65819215043712@134.42763034254313');
                 assert.equal(path.pointAtLength(-1).toString(), '0@0');
                 assert.equal(path.pointAtLength(10000).toString(), '200@0');
 
@@ -664,7 +664,7 @@ QUnit.module('path', function(hooks) {
                 path = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
                 svg.append(path);
 
-                p1 = gPath.pointAtLength(250, { precision: 3 });
+                p1 = gPath.pointAtLength(250, { precision: 4 });
                 x1 = Math.round(p1.x);
                 y1 = Math.round(p1.y);
                 p2 = path.node.getPointAtLength(250);
@@ -828,52 +828,52 @@ QUnit.module('path', function(hooks) {
 
                 path = g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
                 // first lineto
-                assert.equal(path.tangentAt(0.1).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAt(0.1, { precision: 0 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAt(0.1, { precision: 1 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAt(0.1, { precision: 2 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAt(0.1, { precision: 3 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAt(0.1, { precision: 4 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAt(0.1, { precision: 5 }).toString(), g.Line('0 200', '0 0').toString());
+                assert.equal(path.tangentAt(0.1).toString(), g.Line(g.Point(0, 100.06137466311782), g.Point(0, -99.93862533688218)).toString());
+                assert.equal(path.tangentAt(0.1, { precision: 0 }).toString(), g.Line(g.Point(0, 120), g.Point(0, -80)).toString());
+                assert.equal(path.tangentAt(0.1, { precision: 1 }).toString(), g.Line(g.Point(0, 100.98561777698616), g.Point(0, -99.01438222301384)).toString());
+                assert.equal(path.tangentAt(0.1, { precision: 2 }).toString(), g.Line(g.Point(0, 100.06137466311782), g.Point(0, -99.93862533688218)).toString());
+                assert.equal(path.tangentAt(0.1, { precision: 3 }).toString(), g.Line(g.Point(0, 100.00383501229652), g.Point(0, -99.99616498770348)).toString());
+                assert.equal(path.tangentAt(0.1, { precision: 4 }).toString(), g.Line(g.Point(0, 100.000958741763), g.Point(0, -99.999041258237)).toString());
+                assert.equal(path.tangentAt(0.1, { precision: 5 }).toString(), g.Line(g.Point(0, 100.00005992113927), g.Point(0, -99.99994007886073)).toString());
 
                 // point of discontinuity
-                assert.equal(path.tangentAt(0.2).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAt(0.2, { precision: 0 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAt(0.2, { precision: 1 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAt(0.2, { precision: 2 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAt(0.2, { precision: 3 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAt(0.2, { precision: 4 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAt(0.2, { precision: 5 }).toString(), g.Line('0 200', '0 0').toString());
+                assert.equal(path.tangentAt(0.2).toString(), g.Line(g.Point(0, 0.1227493262356063), g.Point(0, -199.8772506737644)).toString());
+                assert.equal(path.tangentAt(0.2, { precision: 0 }).toString(), g.Line(g.Point(0, 40), g.Point(0, -160)).toString());
+                assert.equal(path.tangentAt(0.2, { precision: 1 }).toString(), g.Line(g.Point(0, 1.9712355539722920), g.Point(0, -198.0287644460277)).toString());
+                assert.equal(path.tangentAt(0.2, { precision: 2 }).toString(), g.Line(g.Point(0, 0.1227493262356063), g.Point(0, -199.8772506737644)).toString());
+                assert.equal(path.tangentAt(0.2, { precision: 3 }).toString(), g.Line(g.Point(0, 0.0076700245930396704), g.Point(0, -199.99232997540696)).toString());
+                assert.equal(path.tangentAt(0.2, { precision: 4 }).toString(), g.Line(g.Point(0, 0.0019174835259718748), g.Point(0, -199.99808251647403)).toString());
+                assert.equal(path.tangentAt(0.2, { precision: 5 }).toString(), g.Line(g.Point(0, 0.0001198422785364528), g.Point(0, -199.99988015772146)).toString());
 
                 // curveto midpoint
-                assert.equal(path.tangentAt(0.4).toString(), g.Line('50 150', '150 150').toString());
-                assert.equal(path.tangentAt(0.4, { precision: 0 }).toString(), g.Line('50 150', '150 150').toString());
-                assert.equal(path.tangentAt(0.4, { precision: 1 }).toString(), g.Line('50 150', '150 150').toString());
-                assert.equal(path.tangentAt(0.4, { precision: 2 }).toString(), g.Line('50 150', '150 150').toString());
-                assert.equal(path.tangentAt(0.4, { precision: 3 }).toString(), g.Line('50 150', '150 150').toString());
-                assert.equal(path.tangentAt(0.4, { precision: 4 }).toString(), g.Line('50 150', '150 150').toString());
-                assert.equal(path.tangentAt(0.4, { precision: 5 }).toString(), g.Line('50 150', '150 150').toString());
+                assert.equal(path.tangentAt(0.4).toString(), g.Line(g.Point(100, 150), g.Point(200, 150)).toString());
+                assert.equal(path.tangentAt(0.4, { precision: 0 }).toString(), g.Line(g.Point(0, 0), g.Point(0, 200)).toString());
+                assert.equal(path.tangentAt(0.4, { precision: 1 }).toString(), g.Line(g.Point(100, 150), g.Point(200, 150)).toString());
+                assert.equal(path.tangentAt(0.4, { precision: 2 }).toString(), g.Line(g.Point(100, 150), g.Point(200, 150)).toString());
+                assert.equal(path.tangentAt(0.4, { precision: 3 }).toString(), g.Line(g.Point(100, 150), g.Point(200, 150)).toString());
+                assert.equal(path.tangentAt(0.4, { precision: 4 }).toString(), g.Line(g.Point(100, 150), g.Point(200, 150)).toString());
+                assert.equal(path.tangentAt(0.4, { precision: 5 }).toString(), g.Line(g.Point(100, 150), g.Point(200, 150)).toString());
 
                 // arbitrary curveto point
-                assert.equal(path.tangentAt(0.5).toString(), g.Line(g.Point(127.62527465820312, 191.90597534179688), g.Point(191.90597534179688, 72.37472534179688)).toString());
-                assert.equal(path.tangentAt(0.5, { precision: 0 }).toString(), g.Line(g.Point(112.5, 187.5), g.Point(187.5, 87.5)).toString());
-                assert.equal(path.tangentAt(0.5, { precision: 1 }).toString(), g.Line(g.Point(127.001953125, 191.748046875), g.Point(191.748046875, 72.998046875)).toString());
-                assert.equal(path.tangentAt(0.5, { precision: 2 }).toString(), g.Line(g.Point(127.62527465820312, 191.90597534179688), g.Point(191.90597534179688, 72.37472534179688)).toString());
-                assert.equal(path.tangentAt(0.5, { precision: 3 }).toString(), g.Line(g.Point(127.39135026931763, 191.84693098068237), g.Point(191.84693098068237, 72.60864973068237)).toString());
-                assert.equal(path.tangentAt(0.5, { precision: 4 }).toString(), g.Line(g.Point(127.37186625599861, 191.8420009315014), g.Point(191.8420009315014, 72.62813374400139)).toString());
-                assert.equal(path.tangentAt(0.5, { precision: 5 }).toString(), g.Line(g.Point(127.37247510885936, 191.84215501809376), g.Point(191.84215501809376, 72.62752489114064)).toString());
+                assert.equal(path.tangentAt(0.5).toString(), g.Line(g.Point(178.59649658203125, 97.119140625), g.Point(243.34259033203125, -21.630859375)).toString());
+                assert.equal(path.tangentAt(0.5, { precision: 0 }).toString(), g.Line(g.Point(200, 0), g.Point(200, -200)).toString());
+                assert.equal(path.tangentAt(0.5, { precision: 1 }).toString(), g.Line(g.Point(168.75, 112.5), g.Point(243.75, 12.5)).toString());
+                assert.equal(path.tangentAt(0.5, { precision: 2 }).toString(), g.Line(g.Point(178.59649658203125, 97.119140625), g.Point(243.34259033203125, -21.630859375)).toString());
+                assert.equal(path.tangentAt(0.5, { precision: 3 }).toString(), g.Line(g.Point(178.97450625896454, 96.42105102539062), g.Point(243.2552069425583, -23.110198974609375)).toString());
+                assert.equal(path.tangentAt(0.5, { precision: 4 }).toString(), g.Line(g.Point(178.83307227748446, 96.68337106704712), g.Point(243.2886529888492, -22.55491018295288)).toString());
+                assert.equal(path.tangentAt(0.5, { precision: 5 }).toString(), g.Line(g.Point(178.82126877566407, 96.70520201325417), g.Point(243.29140345116684, -22.508665174245834)).toString());
 
                 // closepath
-                assert.equal(path.tangentAt(0.9).toString(), g.Line('200 200', '0 200').toString());
-                assert.equal(path.tangentAt(0.9, { precision: 0 }).toString(), g.Line('200 200', '0 200').toString());
-                assert.equal(path.tangentAt(0.9, { precision: 1 }).toString(), g.Line('200 200', '0 200').toString());
-                assert.equal(path.tangentAt(0.9, { precision: 2 }).toString(), g.Line('200 200', '0 200').toString());
-                assert.equal(path.tangentAt(0.9, { precision: 3 }).toString(), g.Line('200 200', '0 200').toString());
-                assert.equal(path.tangentAt(0.9, { precision: 4 }).toString(), g.Line('200 200', '0 200').toString());
-                assert.equal(path.tangentAt(0.9, { precision: 5 }).toString(), g.Line('200 200', '0 200').toString());
+                assert.equal(path.tangentAt(0.9).toString(), g.Line(g.Point(99.93862533688218, 200), g.Point(-100.06137466311782, 200)).toString());
+                assert.equal(path.tangentAt(0.9, { precision: 0 }).toString(), g.Line(g.Point(80, 200), g.Point(-120, 200)).toString());
+                assert.equal(path.tangentAt(0.9, { precision: 1 }).toString(), g.Line(g.Point(99.01438222301387, 200), g.Point(-100.98561777698613, 200)).toString());
+                assert.equal(path.tangentAt(0.9, { precision: 2 }).toString(), g.Line(g.Point(99.93862533688218, 200), g.Point(-100.06137466311782, 200)).toString());
+                assert.equal(path.tangentAt(0.9, { precision: 3 }).toString(), g.Line(g.Point(99.99616498770342, 200), g.Point(-100.00383501229658, 200)).toString());
+                assert.equal(path.tangentAt(0.9, { precision: 4 }).toString(), g.Line(g.Point(99.99904125823696, 200), g.Point(-100.00095874176304, 200)).toString());
+                assert.equal(path.tangentAt(0.9, { precision: 5 }).toString(), g.Line(g.Point(99.99994007886073, 200), g.Point(-100.00005992113927, 200)).toString());
 
                 assert.equal(path.tangentAt(-1).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAt(10).toString(), g.Line('200 200', '0 200').toString());
+                assert.equal(path.tangentAt(10).toString(), g.Line('0 200', '-200 200').toString());
             });
         });
 
@@ -950,52 +950,52 @@ QUnit.module('path', function(hooks) {
 
                 path = g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
                 // first lineto
-                assert.equal(path.tangentAtLength(100).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAtLength(100, { precision: 0 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAtLength(100, { precision: 1 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAtLength(100, { precision: 2 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAtLength(100, { precision: 3 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAtLength(100, { precision: 4 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAtLength(100, { precision: 5 }).toString(), g.Line('0 200', '0 0').toString());
+                assert.equal(path.tangentAtLength(100).toString(), g.Line('0 100', '0 -100').toString());
+                assert.equal(path.tangentAtLength(100, { precision: 0 }).toString(), g.Line('0 100', '0 -100').toString());
+                assert.equal(path.tangentAtLength(100, { precision: 1 }).toString(), g.Line('0 100', '0 -100').toString());
+                assert.equal(path.tangentAtLength(100, { precision: 2 }).toString(), g.Line('0 100', '0 -100').toString());
+                assert.equal(path.tangentAtLength(100, { precision: 3 }).toString(), g.Line('0 100', '0 -100').toString());
+                assert.equal(path.tangentAtLength(100, { precision: 4 }).toString(), g.Line('0 100', '0 -100').toString());
+                assert.equal(path.tangentAtLength(100, { precision: 5 }).toString(), g.Line('0 100', '0 -100').toString());
 
                 // point of discontinuity
-                assert.equal(path.tangentAtLength(200).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAtLength(200, { precision: 0 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAtLength(200, { precision: 1 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAtLength(200, { precision: 2 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAtLength(200, { precision: 3 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAtLength(200, { precision: 4 }).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAtLength(200, { precision: 5 }).toString(), g.Line('0 200', '0 0').toString());
+                assert.equal(path.tangentAtLength(200).toString(), g.Line('0 0', '0 -200').toString());
+                assert.equal(path.tangentAtLength(200, { precision: 0 }).toString(), g.Line('0 0', '0 -200').toString());
+                assert.equal(path.tangentAtLength(200, { precision: 1 }).toString(), g.Line('0 0', '0 -200').toString());
+                assert.equal(path.tangentAtLength(200, { precision: 2 }).toString(), g.Line('0 0', '0 -200').toString());
+                assert.equal(path.tangentAtLength(200, { precision: 3 }).toString(), g.Line('0 0', '0 -200').toString());
+                assert.equal(path.tangentAtLength(200, { precision: 4 }).toString(), g.Line('0 0', '0 -200').toString());
+                assert.equal(path.tangentAtLength(200, { precision: 5 }).toString(), g.Line('0 0', '0 -200').toString());
 
                 // curveto midpoint
-                assert.equal(path.tangentAtLength(400).toString(), g.Line('50 150', '150 150').toString());
-                assert.equal(path.tangentAtLength(400, { precision: 0 }).toString(), g.Line('50 150', '150 150').toString());
-                assert.equal(path.tangentAtLength(400, { precision: 1 }).toString(), g.Line('50 150', '150 150').toString());
-                assert.equal(path.tangentAtLength(400, { precision: 2 }).toString(), g.Line('50 150', '150 150').toString());
-                assert.equal(path.tangentAtLength(400, { precision: 3 }).toString(), g.Line('50 150', '150 150').toString());
-                assert.equal(path.tangentAtLength(400, { precision: 4 }).toString(), g.Line('50 150', '150 150').toString());
-                assert.equal(path.tangentAtLength(400, { precision: 5 }).toString(), g.Line('50 150', '150 150').toString());
+                assert.equal(path.tangentAtLength(400).toString(), g.Line('100 150', '200 150').toString());
+                assert.equal(path.tangentAtLength(400, { precision: 0 }).toString(), g.Line('200 0', '200 -200').toString());
+                assert.equal(path.tangentAtLength(400, { precision: 1 }).toString(), g.Line('100 150', '200 150').toString());
+                assert.equal(path.tangentAtLength(400, { precision: 2 }).toString(), g.Line('100 150', '200 150').toString());
+                assert.equal(path.tangentAtLength(400, { precision: 3 }).toString(), g.Line('100 150', '200 150').toString());
+                assert.equal(path.tangentAtLength(400, { precision: 4 }).toString(), g.Line('100 150', '200 150').toString());
+                assert.equal(path.tangentAtLength(400, { precision: 5 }).toString(), g.Line('100 150', '200 150').toString());
 
                 // arbitrary curveto point
-                assert.equal(path.tangentAtLength(500).toString(), g.Line(g.Point(127.62527465820312, 191.90597534179688), g.Point(191.90597534179688, 72.37472534179688)).toString());
-                assert.equal(path.tangentAtLength(500, { precision: 0 }).toString(), g.Line(g.Point(112.5, 187.5), g.Point(187.5, 87.5)).toString());
-                assert.equal(path.tangentAtLength(500, { precision: 1 }).toString(), g.Line(g.Point(127.001953125, 191.748046875), g.Point(191.748046875, 72.998046875)).toString());
-                assert.equal(path.tangentAtLength(500, { precision: 2 }).toString(), g.Line(g.Point(127.62527465820312, 191.90597534179688), g.Point(191.90597534179688, 72.37472534179688)).toString());
-                assert.equal(path.tangentAtLength(500, { precision: 3 }).toString(), g.Line(g.Point(127.39135026931763, 191.84693098068237), g.Point(191.84693098068237, 72.60864973068237)).toString());
-                assert.equal(path.tangentAtLength(500, { precision: 4 }).toString(), g.Line(g.Point(127.37186625599861, 191.8420009315014), g.Point(191.8420009315014, 72.62813374400139)).toString());
-                assert.equal(path.tangentAtLength(500, { precision: 5 }).toString(), g.Line(g.Point(127.37247510885936, 191.84215501809376), g.Point(191.84215501809376, 72.62752489114064)).toString());
+                assert.equal(path.tangentAtLength(500).toString(), g.Line(g.Point(178.59649658203125, 97.119140625), g.Point(243.34259033203125, -21.630859375)).toString());
+                assert.equal(path.tangentAtLength(500, { precision: 0 }).toString(), g.Line(g.Point(200, 100), g.Point(200, 300)).toString());
+                assert.equal(path.tangentAtLength(500, { precision: 1 }).toString(), g.Line(g.Point(168.75, 112.5), g.Point(243.75, 12.5)).toString());
+                assert.equal(path.tangentAtLength(500, { precision: 2 }).toString(), g.Line(g.Point(178.59649658203125, 97.119140625), g.Point(243.34259033203125, -21.630859375)).toString());
+                assert.equal(path.tangentAtLength(500, { precision: 3 }).toString(), g.Line(g.Point(178.97450625896454, 96.42105102539062), g.Point(243.2552069425583, -23.110198974609375)).toString());
+                assert.equal(path.tangentAtLength(500, { precision: 4 }).toString(), g.Line(g.Point(178.83307227748446, 96.68337106704712), g.Point(243.2886529888492, -22.55491018295288)).toString());
+                assert.equal(path.tangentAtLength(500, { precision: 5 }).toString(), g.Line(g.Point(178.82126877566407, 96.70520201325417), g.Point(243.29140345116684, -22.508665174245834)).toString());
 
                 // closepath
-                assert.equal(path.tangentAtLength(900).toString(), g.Line('200 200', '0 200').toString());
-                assert.equal(path.tangentAtLength(900, { precision: 0 }).toString(), g.Line('200 200', '0 200').toString());
-                assert.equal(path.tangentAtLength(900, { precision: 1 }).toString(), g.Line('200 200', '0 200').toString());
-                assert.equal(path.tangentAtLength(900, { precision: 2 }).toString(), g.Line('200 200', '0 200').toString());
-                assert.equal(path.tangentAtLength(900, { precision: 3 }).toString(), g.Line('200 200', '0 200').toString());
-                assert.equal(path.tangentAtLength(900, { precision: 4 }).toString(), g.Line('200 200', '0 200').toString());
-                assert.equal(path.tangentAtLength(900, { precision: 5 }).toString(), g.Line('200 200', '0 200').toString());
+                assert.equal(path.tangentAtLength(900).toString(), g.Line(g.Point(99.38625336882194, 200), g.Point(-100.61374663117806, 200)).toString());
+                assert.equal(path.tangentAtLength(900, { precision: 0 }).toString(), g.Line(g.Point(0, 200), g.Point(-200, 200)).toString());
+                assert.equal(path.tangentAtLength(900, { precision: 1 }).toString(), g.Line(g.Point(90.14382223013841, 200), g.Point(-109.85617776986159, 200)).toString());
+                assert.equal(path.tangentAtLength(900, { precision: 2 }).toString(), g.Line(g.Point(99.38625336882194, 200), g.Point(-100.61374663117806, 200)).toString());
+                assert.equal(path.tangentAtLength(900, { precision: 3 }).toString(), g.Line(g.Point(99.96164987703469, 200), g.Point(-100.03835012296531, 200)).toString());
+                assert.equal(path.tangentAtLength(900, { precision: 4 }).toString(), g.Line(g.Point(99.99041258237003, 200), g.Point(-100.00958741762997, 200)).toString());
+                assert.equal(path.tangentAtLength(900, { precision: 5 }).toString(), g.Line(g.Point(99.9994007886072, 200), g.Point(-100.0005992113928, 200)).toString());
 
                 assert.equal(path.tangentAtLength(-1).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAtLength(10000).toString(), g.Line('200 200', '0 200').toString());
+                assert.equal(path.tangentAtLength(10000).toString(), g.Line('0 200', '-200 200').toString());
             });
         });
 

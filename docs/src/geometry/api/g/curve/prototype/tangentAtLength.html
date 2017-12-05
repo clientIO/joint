@@ -1,0 +1,6 @@
+<pre class="docs-method-signature"><code>curve.tangentAtLength(length [, opt])</code></pre>
+<p>Return a line that is tangent to the curve at a point that lies <code>length</code> away from the beginning of the curve.</p>
+
+<p>If the <code>length</code> requested does not lie on the curve (either because it is smaller than 0 or because it is higher than curve length), a line tangent to the closest curve endpoint is returned instead.</p>
+
+<p>The tangent line starts at the specified point. The direction from <code>start</code> to <code>end</code> is the same as the direction of the curve at the specified point. If the control points of the curve all lie at the same coordinates, <code>null</code> is returned (it is impossible to determine the slope of a point).</p>

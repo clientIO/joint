@@ -307,18 +307,41 @@ QUnit.module('line', function() {
             });
         });
 
-        QUnit.module('tangent()', function() {
+        QUnit.module('tangentAt()', function() {
 
             QUnit.test('sanity', function(assert) {
 
-                assert.ok(g.Line('10 10', '20 20').tangent() instanceof g.Line);
+                assert.ok(g.Line('10 10', '20 20').tangentAt(0.4) instanceof g.Line);
+                assert.ok(g.Line('10 10', '20 20').tangentAt(-1) instanceof g.Line);
+                assert.ok(g.Line('10 10', '20 20').tangentAt(10) instanceof g.Line);
 
-                assert.equal(g.Line('10 10', '10 10').tangent(), null);
+                assert.equal(g.Line('10 10', '10 10').tangentAt(0.4), null);
             });
 
-            QUnit.test('should return a tangent to itself', function(assert) {
+            QUnit.test('should return a line tangent to line at given length ratio', function(assert) {
 
-                assert.equal(g.Line('10 10', '20 20').tangent().toString(), g.Line('10 10', '20 20').toString());
+                assert.equal(g.Line('10 10', '20 20').tangentAt(0.4).toString(), g.Line('14 14', '24 24').toString());
+                assert.equal(g.Line('10 10', '20 20').tangentAt(-1).toString(), g.Line('10 10', '20 20').toString());
+                assert.equal(g.Line('10 10', '20 20').tangentAt(10).toString(), g.Line('20 20', '30 30').toString());
+            });
+        });
+
+        QUnit.module('tangentAtLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                assert.ok(g.Line('10 10', '20 20').tangentAtLength(4) instanceof g.Line);
+                assert.ok(g.Line('10 10', '20 20').tangentAtLength(-1) instanceof g.Line);
+                assert.ok(g.Line('10 10', '20 20').tangentAtLength(10000) instanceof g.Line);
+
+                assert.equal(g.Line('10 10', '10 10').tangentAtLength(), null);
+            });
+
+            QUnit.test('should return a line tangent to line at given length', function(assert) {
+
+                assert.equal(g.Line('10 10', '20 20').tangentAtLength(4).toString(), g.Line(g.Point(12.82842712474619, 12.82842712474619), g.Point(22.82842712474619, 22.82842712474619)).toString());
+                assert.equal(g.Line('10 10', '20 20').tangentAtLength(-1).toString(), g.Line('10 10', '20 20').toString());
+                assert.equal(g.Line('10 10', '20 20').tangentAtLength(10000).toString(), g.Line('20 20', '30 30').toString());
             });
         });
 
