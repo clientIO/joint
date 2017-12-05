@@ -1236,7 +1236,7 @@ var g = (function() {
             throw new Error('Invalid pathSegments (expects a non-empty array).')
         }
 
-        if (!pathSegments[0].type === 'M' || !pathSegments[0].start.equals(Point(0,0))) {
+        if (pathSegments[0].type !== 'M' || !pathSegments[0].start.equals(Point(0,0))) {
             throw new Error('Invalid pathSegments (path must begin with a moveto segment starting at 0,0).')
         }
 
