@@ -1375,7 +1375,6 @@ var g = (function() {
 
         // Checks whether two paths are exactly the same.
         // If `p` is undefined or null, returns false.
-        // If either path has no path segments, returns false.
         equals: function(p) {
 
             if (!p) return false;
@@ -2630,10 +2629,13 @@ var g = (function() {
 
     Polyline.parse = function(svgString) {
 
-        var points = [];
+        if (svgString === '') return Polyline([]);
+
         var coords = svgString.split(/\s|,/);
 
-        for (var i = 0, n = coords.length; i < n; i+=2) {
+        var points = [];
+        var n = coords.length;
+        for (var i = 0; i < n; i += 2) {
             points.push({ x: +coords[i], y: +coords[i + 1] });
         }
 
@@ -2879,6 +2881,32 @@ var g = (function() {
             }
 
             return Polyline(hullPoints);
+        },
+
+        // Checks whether two polylines are exactly the same.
+        // If `p` is undefined or null, returns false.
+        equals: function(p) {
+
+            if (!p) return false;
+
+            var points = this.points;
+            if (!points || !p.points) return false; // if either points array is undefined or null
+
+            var numPoints = points.length;
+            if (p.points && (p.points.length !== numPoints)) return false; // if the two polylines have different number of points, they cannot be equal
+
+            // as soon as an inequality is found in points, return false
+            var n = numPoints;
+            for (var i = 0; i < n; i++) {
+
+                var point = points[i];
+                var otherPoint = p.points[i];
+
+                if (!point.equals(otherPoint)) return false;
+            }
+
+            // if no inequality found in points, return true
+            return true;
         },
 
         length: function() {
