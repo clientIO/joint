@@ -415,11 +415,7 @@ QUnit.module('curve', function() {
                 assert.equal(curve.lengthAtT(0.4, { precision: 5 }), 169.5998564446829);
 
                 assert.equal(curve.lengthAtT(-1), 0);
-            });
 
-            QUnit.test('compare to length', function(assert) {
-
-                var curve = g.Curve('0 0', '0 200', '200 200', '200 0');
                 assert.equal(curve.lengthAtT(10), 399.38625336882194);
                 assert.equal(curve.lengthAtT(10, { precision: 0 }), 200);
                 assert.equal(curve.lengthAtT(10, { precision: 1 }), 390.1438222301384);
@@ -427,6 +423,18 @@ QUnit.module('curve', function() {
                 assert.equal(curve.lengthAtT(10, { precision: 3 }), 399.96164987703463);
                 assert.equal(curve.lengthAtT(10, { precision: 4 }), 399.99041258236997);
                 assert.equal(curve.lengthAtT(10, { precision: 5 }), 399.9994007886072);
+            });
+
+            QUnit.test('compare to length', function(assert) {
+
+                var curve = g.Curve('0 0', '0 200', '200 200', '200 0');
+                assert.equal(curve.lengthAtT(10), curve.length());
+                assert.equal(curve.lengthAtT(10, { precision: 0 }), curve.length({ precision: 0 }));
+                assert.equal(curve.lengthAtT(10, { precision: 1 }), curve.length({ precision: 1 }));
+                assert.equal(curve.lengthAtT(10, { precision: 2 }), curve.length({ precision: 2 }));
+                assert.equal(curve.lengthAtT(10, { precision: 3 }), curve.length({ precision: 3 }));
+                assert.equal(curve.lengthAtT(10, { precision: 4 }), curve.length({ precision: 4 }));
+                assert.equal(curve.lengthAtT(10, { precision: 5 }), curve.length({ precision: 5 }));
             });
         });
 
@@ -442,6 +450,7 @@ QUnit.module('curve', function() {
                 assert.ok(curve.pointAt(0.4, { precision: 3 }) instanceof g.Point);
                 assert.ok(curve.pointAt(0.4, { precision: 4 }) instanceof g.Point);
                 assert.ok(curve.pointAt(0.4, { precision: 5 }) instanceof g.Point);
+
                 assert.ok(curve.pointAt(-1) instanceof g.Point);
                 assert.ok(curve.pointAt(10) instanceof g.Point);
             });
@@ -456,6 +465,7 @@ QUnit.module('curve', function() {
                 assert.equal(curve.pointAt(0.4, { precision: 3 }).toString(), '61.63853108882904@139.72549438476562');
                 assert.equal(curve.pointAt(0.4, { precision: 4 }).toString(), '61.775019159540534@139.80202674865723');
                 assert.equal(curve.pointAt(0.4, { precision: 5 }).toString(), '61.775019159540534@139.80202674865723');
+
                 assert.equal(curve.pointAt(-1).toString(), '0@0');
                 assert.equal(curve.pointAt(10).toString(), '200@0');
             });
@@ -473,8 +483,16 @@ QUnit.module('curve', function() {
                 assert.ok(curve.pointAtLength(250, { precision: 3 }) instanceof g.Point);
                 assert.ok(curve.pointAtLength(250, { precision: 4 }) instanceof g.Point);
                 assert.ok(curve.pointAtLength(250, { precision: 5 }) instanceof g.Point);
-                assert.ok(curve.pointAtLength(-1) instanceof g.Point);
                 assert.ok(curve.pointAtLength(10000) instanceof g.Point);
+
+                assert.ok(curve.pointAtLength(-250) instanceof g.Point);
+                assert.ok(curve.pointAtLength(-250, { precision: 0 }) instanceof g.Point);
+                assert.ok(curve.pointAtLength(-250, { precision: 1 }) instanceof g.Point);
+                assert.ok(curve.pointAtLength(-250, { precision: 2 }) instanceof g.Point);
+                assert.ok(curve.pointAtLength(-250, { precision: 3 }) instanceof g.Point);
+                assert.ok(curve.pointAtLength(-250, { precision: 4 }) instanceof g.Point);
+                assert.ok(curve.pointAtLength(-250, { precision: 5 }) instanceof g.Point);
+                assert.ok(curve.pointAtLength(-10000) instanceof g.Point);
             });
 
             QUnit.test('returns a point at given length up to precision', function(assert) {
@@ -487,8 +505,16 @@ QUnit.module('curve', function() {
                 assert.equal(curve.pointAtLength(250, { precision: 3 }).toString(), '146.40367031097412@134.6099853515625');
                 assert.equal(curve.pointAtLength(250, { precision: 4 }).toString(), '146.66639678180218@134.4217300415039');
                 assert.equal(curve.pointAtLength(250, { precision: 5 }).toString(), '146.65819215043712@134.42763034254313');
-                assert.equal(curve.pointAtLength(-1).toString(), '0@0');
                 assert.equal(curve.pointAtLength(10000).toString(), '200@0');
+
+                assert.equal(curve.pointAtLength(-250).toString(), '54.65087890625@135.3515625');
+                assert.equal(curve.pointAtLength(-250, { precision: 0 }).toString(), '0@0');
+                assert.equal(curve.pointAtLength(-250, { precision: 1 }).toString(), '31.25@112.5');
+                assert.equal(curve.pointAtLength(-250, { precision: 2 }).toString(), '54.65087890625@135.3515625');
+                assert.equal(curve.pointAtLength(-250, { precision: 3 }).toString(), '53.59632968902588@134.6099853515625');
+                assert.equal(curve.pointAtLength(-250, { precision: 4 }).toString(), '53.33360321819782@134.4217300415039');
+                assert.equal(curve.pointAtLength(-250, { precision: 5 }).toString(), '53.34180784956288@134.42763034254313');
+                assert.equal(curve.pointAtLength(-10000).toString(), '0@0');
             });
 
             QUnit.test('compare to browser implementation', function(assert) {
@@ -552,20 +578,18 @@ QUnit.module('curve', function() {
 
             QUnit.test('sanity', function(assert) {
 
-                var curve;
-
-                curve = g.Curve('0 100', '50 200', '150 0', '200 100');
+                var curve = g.Curve('0 100', '50 200', '150 0', '200 100');
                 assert.ok(curve.pointAtT(0.4) instanceof g.Point);
+
                 assert.ok(curve.pointAtT(-1) instanceof g.Point);
                 assert.ok(curve.pointAtT(10) instanceof g.Point);
             });
 
             QUnit.test('returns a point at given `t` value', function(assert) {
 
-                var curve;
-
-                curve = g.Curve('0 100', '50 200', '150 0', '200 100');
+                var curve = g.Curve('0 100', '50 200', '150 0', '200 100');
                 assert.equal(curve.pointAtT(0.4).toString(), '77.6@114.4');
+
                 assert.equal(curve.pointAtT(-1).toString(), '0@100');
                 assert.equal(curve.pointAtT(10).toString(), '200@100');
             });
@@ -625,6 +649,7 @@ QUnit.module('curve', function() {
             QUnit.test('sanity', function(assert) {
 
                 assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAt(0.4) instanceof g.Line);
+
                 assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAt(-1) instanceof g.Line);
                 assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAt(10) instanceof g.Line);
             });
@@ -632,6 +657,7 @@ QUnit.module('curve', function() {
             QUnit.test('should return a line tangent to curve at given length ratio', function(assert) {
 
                 assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAt(0.4).toString(), g.Line(g.Point(23.54217529296875, 31.42333984375 ), g.Point(42.58514404296875, 37.98583984375)).toString());
+
                 assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAt(-1).toString(), g.Line(g.Point(10, 10), g.Point(10, 40)).toString());
                 assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAt(10).toString(), g.Line(g.Point(50, 10), g.Point(50, -20)).toString());
             });
@@ -642,15 +668,19 @@ QUnit.module('curve', function() {
             QUnit.test('sanity', function(assert) {
 
                 assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAtLength(40) instanceof g.Line);
-                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAtLength(-1) instanceof g.Line);
                 assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAtLength(10000) instanceof g.Line);
+
+                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAtLength(-40) instanceof g.Line);
+                assert.ok(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAtLength(-10000) instanceof g.Line);
             });
 
             QUnit.test('should return a line tangent to curve at given length', function(assert) {
 
                 assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAtLength(15).toString(), g.Line(g.Point(13.69140625, 23.7109375), g.Point(25.87890625, 42.4609375)).toString());
-                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAtLength(-1).toString(), g.Line(g.Point(10, 10), g.Point(10, 40)).toString());
                 assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAtLength(10000).toString(), g.Line(g.Point(50, 10), g.Point(50, -20)).toString());
+
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAtLength(-15).toString(), g.Line(g.Point(46.30859375, 23.7109375), g.Point(58.49609375, 4.9609375)).toString());
+                assert.equal(g.Curve('10 10', '10 40', '50 40', '50 10').tangentAtLength(-10000).toString(), g.Line(g.Point(10, 10), g.Point(10, 40)).toString());
             });
         });
 
@@ -683,6 +713,7 @@ QUnit.module('curve', function() {
                 assert.equal(typeof curve.tAt(0.4, { precision: 3 }), 'number');
                 assert.equal(typeof curve.tAt(0.4, { precision: 4 }), 'number');
                 assert.equal(typeof curve.tAt(0.4, { precision: 5 }), 'number');
+
                 assert.equal(typeof curve.tAt(-1), 'number');
                 assert.equal(typeof curve.tAt(10), 'number');
             });
@@ -697,6 +728,7 @@ QUnit.module('curve', function() {
                 assert.equal(curve.tAt(0.4, { precision: 3 }), 0.369140625);
                 assert.equal(curve.tAt(0.4, { precision: 4 }), 0.36962890625);
                 assert.equal(curve.tAt(0.4, { precision: 5 }), 0.36962890625);
+
                 assert.equal(curve.tAt(-1), 0);
                 assert.equal(curve.tAt(10), 1);
             });
@@ -714,8 +746,16 @@ QUnit.module('curve', function() {
                 assert.equal(typeof curve.tAtLength(250, { precision: 3 }), 'number');
                 assert.equal(typeof curve.tAtLength(250, { precision: 4 }), 'number');
                 assert.equal(typeof curve.tAtLength(250, { precision: 5 }), 'number');
-                assert.equal(typeof curve.tAtLength(-1), 'number');
                 assert.equal(typeof curve.tAtLength(10000), 'number');
+
+                assert.equal(typeof curve.tAtLength(-250), 'number');
+                assert.equal(typeof curve.tAtLength(-250, { precision: 0 }), 'number');
+                assert.equal(typeof curve.tAtLength(-250, { precision: 1 }), 'number');
+                assert.equal(typeof curve.tAtLength(-250, { precision: 2 }), 'number');
+                assert.equal(typeof curve.tAtLength(-250, { precision: 3 }), 'number');
+                assert.equal(typeof curve.tAtLength(-250, { precision: 4 }), 'number');
+                assert.equal(typeof curve.tAtLength(-250, { precision: 5 }), 'number');
+                assert.equal(typeof curve.tAtLength(-10000), 'number');
             });
 
             QUnit.test('returns t at given length up to precision', function(assert) {
@@ -728,8 +768,16 @@ QUnit.module('curve', function() {
                 assert.equal(curve.tAtLength(250, { precision: 3 }), 0.66015625);
                 assert.equal(curve.tAtLength(250, { precision: 4 }), 0.6611328125);
                 assert.equal(curve.tAtLength(250, { precision: 5 }), 0.661102294921875);
-                assert.equal(curve.tAtLength(-1), 0);
                 assert.equal(curve.tAtLength(10000), 1);
+
+                assert.equal(curve.tAtLength(-250), 0.34375);
+                assert.equal(curve.tAtLength(-250, { precision: 0 }), 0);
+                assert.equal(curve.tAtLength(-250, { precision: 1 }), 0.25);
+                assert.equal(curve.tAtLength(-250, { precision: 2 }), 0.34375);
+                assert.equal(curve.tAtLength(-250, { precision: 3 }), 0.33984375);
+                assert.equal(curve.tAtLength(-250, { precision: 4 }), 0.3388671875);
+                assert.equal(curve.tAtLength(-250, { precision: 5 }), 0.338897705078125);
+                assert.equal(curve.tAtLength(-10000), 0);
             });
         });
 

@@ -223,6 +223,7 @@ QUnit.module('line', function() {
                 var line = g.Line('0 0', '100 0');
                 assert.ok(line.pointAt(0.4) instanceof g.Point);
                 assert.ok(line.pointAt(0.4, { precision: 0 }) instanceof g.Point);
+
                 assert.ok(line.pointAt(-1) instanceof g.Point);
                 assert.ok(line.pointAt(10) instanceof g.Point);
             });
@@ -232,6 +233,7 @@ QUnit.module('line', function() {
                 var line = g.Line('0 0', '100 0');
                 assert.equal(line.pointAt(0.4).toString(), '40@0');
                 assert.equal(line.pointAt(0.4, { precision: 0 }).toString(), '40@0');
+
                 assert.equal(line.pointAt(-1).toString(), '0@0');
                 assert.equal(line.pointAt(10).toString(), '100@0');
             });
@@ -242,19 +244,25 @@ QUnit.module('line', function() {
             QUnit.test('sanity', function(assert) {
 
                 var line = g.Line('0 0', '100 0');
-                assert.ok(line.pointAtLength(50) instanceof g.Point);
-                assert.ok(line.pointAtLength(50, { precision: 0 }) instanceof g.Point);
-                assert.ok(line.pointAtLength(-1) instanceof g.Point);
+                assert.ok(line.pointAtLength(40) instanceof g.Point);
+                assert.ok(line.pointAtLength(40, { precision: 0 }) instanceof g.Point);
                 assert.ok(line.pointAtLength(10000) instanceof g.Point);
+
+                assert.ok(line.pointAtLength(-40) instanceof g.Point);
+                assert.ok(line.pointAtLength(-40, { precision: 0 }) instanceof g.Point);
+                assert.ok(line.pointAtLength(-10000) instanceof g.Point);
             });
 
             QUnit.test('returns a point at given length', function(assert) {
 
                 var line = g.Line('0 0', '100 0');
-                assert.equal(line.pointAtLength(50).toString(), '50@0');
-                assert.equal(line.pointAtLength(50, { precision: 0 }).toString(), '50@0');
-                assert.equal(line.pointAtLength(-1).toString(), '0@0');
+                assert.equal(line.pointAtLength(40).toString(), '40@0');
+                assert.equal(line.pointAtLength(40, { precision: 0 }).toString(), '40@0');
                 assert.equal(line.pointAtLength(10000).toString(), '100@0');
+
+                assert.equal(line.pointAtLength(-40).toString(), '60@0');
+                assert.equal(line.pointAtLength(-40, { precision: 0 }).toString(), '60@0');
+                assert.equal(line.pointAtLength(-10000).toString(), '0@0');
             });
         });
 
@@ -312,6 +320,7 @@ QUnit.module('line', function() {
             QUnit.test('sanity', function(assert) {
 
                 assert.ok(g.Line('10 10', '20 20').tangentAt(0.4) instanceof g.Line);
+
                 assert.ok(g.Line('10 10', '20 20').tangentAt(-1) instanceof g.Line);
                 assert.ok(g.Line('10 10', '20 20').tangentAt(10) instanceof g.Line);
 
@@ -321,6 +330,7 @@ QUnit.module('line', function() {
             QUnit.test('should return a line tangent to line at given length ratio', function(assert) {
 
                 assert.equal(g.Line('10 10', '20 20').tangentAt(0.4).toString(), g.Line('14 14', '24 24').toString());
+
                 assert.equal(g.Line('10 10', '20 20').tangentAt(-1).toString(), g.Line('10 10', '20 20').toString());
                 assert.equal(g.Line('10 10', '20 20').tangentAt(10).toString(), g.Line('20 20', '30 30').toString());
             });
@@ -331,8 +341,10 @@ QUnit.module('line', function() {
             QUnit.test('sanity', function(assert) {
 
                 assert.ok(g.Line('10 10', '20 20').tangentAtLength(4) instanceof g.Line);
-                assert.ok(g.Line('10 10', '20 20').tangentAtLength(-1) instanceof g.Line);
                 assert.ok(g.Line('10 10', '20 20').tangentAtLength(10000) instanceof g.Line);
+
+                assert.ok(g.Line('10 10', '20 20').tangentAtLength(-4) instanceof g.Line);
+                assert.ok(g.Line('10 10', '20 20').tangentAtLength(-10000) instanceof g.Line);
 
                 assert.equal(g.Line('10 10', '10 10').tangentAtLength(), null);
             });
@@ -340,8 +352,10 @@ QUnit.module('line', function() {
             QUnit.test('should return a line tangent to line at given length', function(assert) {
 
                 assert.equal(g.Line('10 10', '20 20').tangentAtLength(4).toString(), g.Line(g.Point(12.82842712474619, 12.82842712474619), g.Point(22.82842712474619, 22.82842712474619)).toString());
-                assert.equal(g.Line('10 10', '20 20').tangentAtLength(-1).toString(), g.Line('10 10', '20 20').toString());
                 assert.equal(g.Line('10 10', '20 20').tangentAtLength(10000).toString(), g.Line('20 20', '30 30').toString());
+
+                assert.equal(g.Line('10 10', '20 20').tangentAtLength(-4).toString(), g.Line(g.Point(17.17157287525381, 17.17157287525381), g.Point(27.17157287525381, 27.17157287525381)).toString());
+                assert.equal(g.Line('10 10', '20 20').tangentAtLength(-10000).toString(), g.Line('10 10', '20 20').toString());
             });
         });
 
