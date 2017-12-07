@@ -1,7 +1,7 @@
 <pre class="docs-method-signature"><code>path.length([opt])</code></pre>
 <p>Return the length of the path.</p>
 
-<p>The path length is a sum of the lengths of visible path segments; invisible path segments (e.g. moveto segments) have a length of 0. If the path has no segments at all, <code>0</code> is returned.</p>
+<p>The path length is a sum of the lengths of visible path segments; invisible segments (e.g. moveto segments) have a length of 0. If the path has no segments at all, <code>0</code> is returned.</p>
 
 <p>Although calculating the length of linear segments (e.g. lineto and closepath segments) is straightforward, determining the length of curved segments is complex. Refer to <code>curve.length()</code> <a href="geometry.html#g.curve.prototype.length">documentation</a> for more information.</p>
 

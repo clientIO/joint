@@ -448,7 +448,7 @@ var g = (function() {
                 // not a problem for further iterations because cubic curves cannot have more than two local extrema
                 // (i.e. cubic curves cannot intersect the baseline more than once)
                 // therefore two subsequent iterations cannot produce sampling with equal length
-                var observedPrecisionRatio = (length - previousLength) / length;
+                var observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
                 if (iteration > 1 && observedPrecisionRatio < precisionRatio) {
                     return subdivisions;
                 }
@@ -520,14 +520,14 @@ var g = (function() {
         // For linear length-based solution, use Curve.pointAt().
         pointAtT: function(t) {
 
-            if (t <= 0) return this.start;
-            else if (t >= 1) return this.end;
+            if (t <= 0) return this.start.clone();
+            else if (t >= 1) return this.end.clone();
 
             return this.getSkeletonPoints(t).divider;
         },
 
         // Default precision
-        PRECISION: 2,
+        PRECISION: 3,
 
         scale: function(sx, sy, origin) {
 
@@ -664,9 +664,9 @@ var g = (function() {
                 // check if we have reached required observed precision
                 var observedPrecisionRatio;
 
-                observedPrecisionRatio = baselinePointDistFromStart / curveLength;
+                observedPrecisionRatio = ((curveLength !== 0) ? (baselinePointDistFromStart / curveLength) : 0)
                 if (observedPrecisionRatio < precisionRatio) return investigatedSubdivisionStartT;
-                observedPrecisionRatio = baselinePointDistFromEnd / curveLength;
+                observedPrecisionRatio = ((curveLength !== 0) ? (baselinePointDistFromEnd / curveLength) : 0)
                 if (observedPrecisionRatio < precisionRatio) return investigatedSubdivisionEndT;
 
                 // otherwise, set up for next iteration
@@ -755,9 +755,9 @@ var g = (function() {
                 // check if we have reached required observed precision
                 var observedPrecisionRatio;
 
-                observedPrecisionRatio = distFromStart / curveLength;
+                observedPrecisionRatio = ((curveLength !== 0) ? (distFromStart / curveLength) : 0)
                 if (observedPrecisionRatio < precisionRatio) return investigatedSubdivisionStartT;
-                observedPrecisionRatio = distFromEnd / curveLength;
+                observedPrecisionRatio = ((curveLength !== 0) ? (distFromEnd / curveLength) : 0)
                 if (observedPrecisionRatio < precisionRatio) return investigatedSubdivisionEndT;
 
                 // otherwise, set up for next iteration
@@ -1286,73 +1286,94 @@ var g = (function() {
     // For backwards compatibility:
     g.Line.prototype.intersection = g.Line.prototype.intersect;
 
-    var Path = g.Path = function(pathSegments) {
+    var Path = g.Path = function(segments) {
 
         if (!(this instanceof Path)) {
-            return new Path(pathSegments);
+            return new Path(segments);
         }
 
-        if (typeof pathSegments === 'string') {
-            // create path segments:
-            return Path.parse(pathSegments);
+        if (typeof segments === 'string') {
+            return new Path.parse(segments);
         }
 
-        if (!pathSegments || !Array.isArray(pathSegments) || pathSegments.length === 0) {
-            throw new Error('Invalid pathSegments (expects a non-empty array).')
-        }
-
-        if (pathSegments[0].type !== 'M' || !pathSegments[0].start.equals(Point(0,0))) {
-            throw new Error('Invalid pathSegments (path must begin with a moveto segment starting at 0,0).')
-        }
-
-        this.pathSegments = pathSegments;
+        this.segments = (Array.isArray(segments) ? segments : []);
     };
 
     Path.parse = function(normalizedPathData) {
 
-        var pathSegments = [];
+        if (!normalizedPathData) {
+            throw new Error('Invalid path segments. Path data string cannot be empty.');
+        }
 
-        normalizedPathData = normalizedPathData || 'M 0 0'; // path data must start with M
         var pathSnippets = normalizedPathData.split(new RegExp(' (?=[a-zA-Z])'));
 
-        var prevSegment;
-        var subpathStartSegment; // last moveto segment
+        var prevSeg;
+        var subpathStartSeg; // last moveto segment
 
-        for (var i = 0, n = pathSnippets.length; i < n; i++) {
+        var path = new Path([]);
+        var n = pathSnippets.length;
+        for (var i = 0; i < n; i++) {
 
             var currentSnippet = pathSnippets[i];
 
             var segCoords = currentSnippet.split(' '); // first element is segType
-            var segType = segCoords.shift(); // after this, only coords left
+            var segType = segCoords.shift(); // after this, only coords left in segCoords array
 
-            var currentSegment = Path.segments[segType].fromCoords(segCoords, prevSegment, subpathStartSegment);
-            pathSegments.push(currentSegment);
+            var segDefinition = Path.segmentTypes[segType];
+            if (!segDefinition) {
+                throw new Error('Invalid path segments. ' + segType + ' is not a recognized path segment type.');
+            }
+
+            var seg = segDefinition.fromCoords(segCoords, prevSeg, subpathStartSeg);
+
+            if (i === 0 && seg.type !== 'M' && !seg.start.equals(Point(0, 0))) {
+                throw new Error('Invalid path segments. The path must start with an M segment starting at 0,0.');
+            }
+
+            if (prevSeg && !seg.start.equals(prevSeg.end)) {
+                throw new Error('Invalid path segments. Path segment endpoints must connect.');
+            }
+
+            path.appendSegment(seg);
             
-            prevSegment = currentSegment;
-            if (currentSegment.recordSubpathStartSegment) subpathStartSegment = currentSegment;
+            prevSeg = seg;
+            if (seg.recordSubpathStartSegment) subpathStartSeg = seg;
         }
 
-        return new Path(pathSegments);
+        return path;
     };
 
     Path.prototype = {
+
+        appendSegment: function(seg) {
+
+            if (!Array.isArray(seg)) {
+                this.segments.push(seg);
+
+            } else {
+                var n = seg.length;
+                for (var i = 0; i < n; i++) {
+                    this.segments.push(seg[i]);
+                }
+            }
+        },
 
         // Returns the bbox of the path.
         // If path has no segments, returns null.
         // If path has only invisible segments, returns bbox of the end point of last segment.
         bbox: function() {
 
-            var pathSegments = this.pathSegments;
-            if (!pathSegments) return null; // if pathSegments is undefined or null
+            var segments = this.segments;
+            if (!segments) return null; // if segments is undefined or null
 
-            var numSegments = pathSegments.length;
-            if (numSegments === 0) return null; // if pathSegments is an empty array
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
 
             var bbox;
             var n = numSegments;
             for (var i = 0; i < n; i++) {
 
-                var seg = pathSegments[i];
+                var seg = this.getSegment(i);
 
                 if (!seg.invisible) {
                     var segBBox = seg.bbox();
@@ -1363,7 +1384,7 @@ var g = (function() {
             if (bbox) return bbox;
 
             // if the path has only invisible elements, return end point of last segment
-            var lastSegment = pathSegments[n - 1];
+            var lastSegment = this.getSegment(n - 1);
             return Rect(lastSegment.end.x, lastSegment.end.y, 0, 0);
         },
 
@@ -1379,37 +1400,42 @@ var g = (function() {
 
             if (!p) return false;
 
-            var pathSegments = this.pathSegments;
-            if (!pathSegments || !p.pathSegments) return false; // if either pathSegments is undefined or null
+            var segments = this.segments;
+            if (!segments || !p.segments) return false; // if either segments is undefined or null
 
-            var numSegments = pathSegments.length;
-            if (p.pathSegments && (p.pathSegments.length !== numSegments)) return false; // if the two paths have different number of segments, they cannot be equal
+            var numSegments = segments.length;
+            if (p.segments && (p.segments.length !== numSegments)) return false; // if the two paths have different number of segments, they cannot be equal
 
-            // as soon as an inequality is found in pathSegments, return false
+            // as soon as an inequality is found in segments, return false
             var n = numSegments;
             for (var i = 0; i < n; i++) {
 
-                var seg = pathSegments[i];
-                var otherSeg = p.pathSegments[i];
+                var seg = this.getSegment(i);
+                var otherSeg = p.getSegment(i);
 
                 if ((seg.type !== otherSeg.type) || (!seg.equals(otherSeg))) return false;
             }
 
-            // if no inequality found in pathSegments, return true
+            // if no inequality found in segments, return true
             return true;
+        },
+
+        getSegment: function(index) {
+
+            return this.segments[index];
         },
 
         // Returns an array of segment subdivisions, with precision better than requested `opt.precision`.
         getSegmentSubdivisions: function(opt) {
 
-            var pathSegments = this.pathSegments;
-            if (!pathSegments) return []; // if pathSegments is undefined or null
+            var segments = this.segments;
+            if (!segments) return []; // if segments is undefined or null
 
             var segmentSubdivisions = [];
-            var n = pathSegments.length;
+            var n = segments.length;
             for (var i = 0; i < n; i++) {
 
-                var seg = pathSegments[i];
+                var seg = this.getSegment(i);
                 var subdivisions = seg.getSubdivisions(opt);
                 segmentSubdivisions.push(subdivisions);
             }
@@ -1417,12 +1443,25 @@ var g = (function() {
             return segmentSubdivisions;
         },
 
+        insertSegment: function(index, seg) {
+
+            if (!Array.isArray(seg)) {
+                this.segments.splice(index, 0, seg);
+
+            } else {
+                var n = seg.length;
+                for (var i = 0; i < n; i++) {
+                    this.segments.splice(index, 0, seg[i]);
+                }
+            }
+        },
+
         // Returns length of the path, with precision better than requested `opt.precision`; or using `opt.segmentSubdivisions` provided.
         // If path has no segments, returns 0.
         length: function(opt) {
 
-            var pathSegments = this.pathSegments;
-            if (!pathSegments) return 0; // if pathSegments is undefined or null
+            var segments = this.segments;
+            if (!segments) return 0; // if segments is undefined or null
 
             opt = opt || {};
             var precision = opt.precision;
@@ -1430,10 +1469,10 @@ var g = (function() {
             var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
 
             var length = 0;
-            var n = pathSegments.length;
+            var n = segments.length;
             for (var i = 0; i < n; i++) {
 
-                var seg = pathSegments[i];
+                var seg = this.getSegment(i);
                 var subdivisions = segmentSubdivisions[i];
                 length += seg.length({ subdivisions: subdivisions });
             }
@@ -1444,8 +1483,8 @@ var g = (function() {
         // Returns point at requested `ratio` between 0 and 1, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
         pointAt: function(ratio, opt) {
 
-            var pathSegments = this.pathSegments;
-            if (!pathSegments) return null; // if pathSegments is undefined or null
+            var segments = this.segments;
+            if (!segments) return null; // if segments is undefined or null
 
             if (ratio < 0) ratio = 0;
             else if (ratio > 1) ratio = 1;
@@ -1464,8 +1503,8 @@ var g = (function() {
         // Returns point at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
         pointAtLength: function(length, opt) {
 
-            var pathSegments = this.pathSegments;
-            if (!pathSegments) return null; // if pathSegments is undefined or null
+            var segments = this.segments;
+            if (!segments) return null; // if segments is undefined or null
 
             var fromStart = true;
             if (length < 0) {
@@ -1480,10 +1519,10 @@ var g = (function() {
 
             var lastVisibleSegment;
             var l = 0; // length so far
-            var n = pathSegments.length;
+            var n = segments.length;
             for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
 
-                var seg = pathSegments[i];
+                var seg = this.getSegment(i);
                 var subdivisions = segmentSubdivisions[i];
                 var d = seg.length({ subdivisions: subdivisions });
 
@@ -1502,33 +1541,129 @@ var g = (function() {
             if (lastVisibleSegment) return (fromStart ? lastVisibleSegment.end : lastVisibleSegment.start);
 
             // if no visible segment, return last segment end point (no matter if fromStart or no)
-            var lastSegment = pathSegments[n - 1];
+            var lastSegment = this.getSegment(n - 1);
             return lastSegment.end.clone();
         },
 
         // Default precision
-        PRECISION: 2,
+        PRECISION: 3,
+
+        removeSegment: function(index) {
+
+            return this.segments.splice(index, 1);
+        },
+
+        replaceSegment: function(index, seg) {
+
+            if (!Array.isArray(seg)) {
+                this.segments.splice(index, 1, seg);
+
+            } else {
+                var n = seg.length;
+                for (var i = 0; i < n; i++) {
+                    this.segments.splice(index, 1, seg[i]);
+                }
+            }
+        },
 
         scale: function(sx, sy, origin) {
 
-            var pathSegments = this.pathSegments;
-            if (!pathSegments) return this; // if pathSegments is undefined or null
+            var segments = this.segments;
+            if (!segments) return this; // if segments is undefined or null
 
-            var n = pathSegments.length;
+            var n = segments.length;
             for (var i = 0; i < n; i++) {
 
-                var seg = pathSegments[i];
+                var seg = this.getSegment(i);
                 seg.scale(sx, sy, origin);
             }
 
             return this;
         },
 
+        segmentAt: function(ratio, opt) {
+
+            var index = this.segmentIndexAt(ratio, opt);
+            if (!index) return null;
+
+            return this.getSegment(index);
+        },
+
+        segmentAtLength: function(length, opt) {
+
+            var index = this.segmentIndexAtLength(length, opt);
+            if (!index) return null;
+
+            return this.getSegment(index);
+        },
+
+        segmentIndexAt: function(ratio, opt) {
+
+            var segments = this.segments;
+            if (!segments) return null; // if segments is undefined or null
+
+            if (ratio < 0) ratio = 0;
+            else if (ratio > 1) ratio = 1;
+
+            opt = opt || {};
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION;
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+
+            var pathLength = this.length({ segmentSubdivisions: segmentSubdivisions });
+            var length = pathLength * ratio;
+
+            return this.segmentAtLength(length, { precision: precision, segmentSubdivisions: segmentSubdivisions });
+        },
+
+        segmentIndexAtLength: function(length, opt) {
+
+            var segments = this.segments;
+            if (!segments) return null; // if segments is undefined or null
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            opt = opt || {};
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION;
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+
+            var lastVisibleSegmentIndex;
+            var l = 0; // length so far
+            var n = segments.length;
+            for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+
+                var seg = this.getSegment(i);
+                var subdivisions = segmentSubdivisions[i];
+                var d = seg.length({ subdivisions: subdivisions });
+
+                if (!seg.invisible) {
+                    if (length <= (l + d)) {
+                        return i;
+                    }
+
+                    lastVisibleSegmentIndex = i;
+                }
+
+                l += d;
+            }
+
+            // if length requested is higher than the length of the path, return last visible segment index
+            if (lastVisibleSegmentIndex) return lastVisibleSegmentIndex;
+
+            // if no visible segment, return null
+            return null;
+        },
+
         // Returns tangent line at requested `ratio` between 0 and 1, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
         tangentAt: function(ratio, opt) {
 
-            var pathSegments = this.pathSegments;
-            if (!pathSegments) return null; // if pathSegments is undefined or null
+            var segments = this.segments;
+            if (!segments) return null; // if segments is undefined or null
 
             if (ratio < 0) ratio = 0;
             else if (ratio > 1) ratio = 1;
@@ -1547,8 +1682,8 @@ var g = (function() {
         // Returns tangent line at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
         tangentAtLength: function(length, opt) {
 
-            var pathSegments = this.pathSegments;
-            if (!pathSegments) return null; // if pathSegments is undefined or null
+            var segments = this.segments;
+            if (!segments) return null; // if segments is undefined or null
 
             var fromStart = true;
             if (length < 0) {
@@ -1563,10 +1698,10 @@ var g = (function() {
 
             var lastValidSegment; // visible AND differentiable (with a tangent)
             var l = 0; // length so far
-            var n = pathSegments.length;
+            var n = segments.length;
             for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
 
-                var seg = pathSegments[i];
+                var seg = this.getSegment(i);
                 var subdivisions = segmentSubdivisions[i];
                 var d = seg.length({ subdivisions: subdivisions });
 
@@ -1597,13 +1732,13 @@ var g = (function() {
 
         translate: function(tx, ty) {
 
-            var pathSegments = this.pathSegments;
-            if (!pathSegments) return this; // if pathSegments is undefined or null
+            var segments = this.segments;
+            if (!segments) return this; // if segments is undefined or null
 
-            var n = pathSegments.length;
+            var n = segments.length;
             for (var i = 0; i < n; i++) {
 
-                var seg = pathSegments[i];
+                var seg = this.getSegment(i);
                 seg.translate(tx, ty);
             }
 
@@ -1611,16 +1746,48 @@ var g = (function() {
         },
 
         // Returns a string that can be used to reconstruct the path.
+        // Addidional error checking compared to toString.
         serialize: function() {
 
-            var pathSegments = this.pathSegments;
-            if (!pathSegments) return ''; // if pathSegments is undefined or null
+            var segments = this.segments;
+
+            if (!segments) {
+                throw new Error('Invalid path segments. The path must start with an M segment starting at 0,0.'); // if segments is undefined or null
+            }
 
             var pathData = '';
-            var n = pathSegments.length;
+            var prevSeg;
+            var n = segments.length;
             for (var i = 0; i < n; i++) {
 
-                var seg = pathSegments[i];
+                var seg = this.getSegment(i);
+
+                if (i === 0 && seg.type !== 'M' && !seg.start.equals(Point(0, 0))) {
+                    throw new Error('Invalid path segments. The path must start with an M segment starting at 0,0.');
+                }
+
+                if (prevSeg && !seg.start.equals(prevSeg.end)) {
+                    throw new Error('Invalid path segments. Path segment endpoints must connect.');
+                }
+
+                pathData += seg.serialize() + ' ';
+
+                prevSeg = seg;
+            }
+
+            return pathData.trim();
+        },
+
+        toString: function() {
+
+            var segments = this.segments;
+            if (!segments) return ''; // if segments is undefined or null
+
+            var pathData = '';
+            var n = segments.length;
+            for (var i = 0; i < n; i++) {
+
+                var seg = this.getSegment(i);
 
                 pathData += seg.serialize() + ' ';
             }
@@ -1628,8 +1795,6 @@ var g = (function() {
             return pathData.trim();
         }
     };
-
-    Path.prototype.toString = Path.prototype.serialize;
 
     var Lineto = function(p1, p2) {
 
@@ -1888,7 +2053,7 @@ var g = (function() {
 
     Closepath.prototype = extendObject(Object.create(Line.prototype), closepathPrototype);
 
-    Path.segments = {
+    Path.segmentTypes = {
         L: Lineto,
         C: Curveto,
         M: Moveto,
@@ -2624,7 +2789,7 @@ var g = (function() {
             return new Polyline.parse(points);
         }
 
-        this.points = (Array.isArray(points)) ? points.map(Point) : [];
+        this.points = (Array.isArray(points) ? points.map(Point) : []);
     };
 
     Polyline.parse = function(svgString) {
@@ -2951,7 +3116,7 @@ var g = (function() {
 
             var numPoints = points.length;
             if (numPoints === 0) return null; // if points array is empty
-            else if (numPoints === 1) return points[0]; // if there is only one point
+            else if (numPoints === 1) return points[0].clone(); // if there is only one point
 
             var fromStart = true;
             if (length < 0) {

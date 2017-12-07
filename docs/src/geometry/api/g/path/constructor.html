@@ -1,6 +1,4 @@
-<pre class="docs-method-signature"><code>g.Path(pathSegments)</code></pre>
-<p>Return a new path object with path segments given by the <code>pathSegments</code> array.</p>
+<pre class="docs-method-signature"><code>g.Path(segments)</code></pre>
+<p>Return a new path object consisting of <code>segments</code>.</p>
 
-<p>The path segments array must not be empty, and its first element has to be a moveto segment with <code>start</code> at 0,0.</p>
-
-<p>The constructor also accepts a normalized path data string as an argument. The path data information is parsed and corresponding path segments are generated.</p>
+<p>The constructor also accepts a normalized path data string as an argument. The path data information is parsed and corresponding segments are generated. An error is thrown if the provided string has an incorrect format.</p>
