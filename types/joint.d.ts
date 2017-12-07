@@ -1972,6 +1972,7 @@ export namespace attributes {
         yAlignment?: 'middle' | 'bottom' | number | string;
         event?: string;
         magnet?: boolean | string;
+        title?: string;
         // CamelCase variants of native attributes
         alignmentBaseline?: any;
         baselineShift?: any;
