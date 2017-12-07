@@ -191,6 +191,7 @@ var g = (function() {
 
     Curve.prototype = {
 
+        // Returns a bbox that tightly envelops the curve.
         bbox: function() {
 
             var start = this.start;
@@ -294,6 +295,42 @@ var g = (function() {
             return Rect(left, top, (right - left), (bottom - top));
         },
 
+        clone: function() {
+
+            return Curve(this.start, this.controlPoint1, this.controlPoint2, this.end);
+        },
+
+        // Divides the curve into two at point defined by `t` between 0 and 1.
+        // Using de Casteljau's algorithm (http://math.stackexchange.com/a/317867).
+        // Additional resource: https://pomax.github.io/bezierinfo/#decasteljau
+        divide: function(t) {
+
+            var start = this.start;
+            var end = this.end;
+
+            // shortcuts for `t` values that are out of range
+            if (t <= 0) return [Curve(start, start, start, start), this.clone()];
+            else if (t >= 1) return [this.clone(), Curve(end, end, end, end)];
+
+            var dividerPoints = this.getSkeletonPoints(t);
+
+            var startControl1 = dividerPoints.startControlPoint1;
+            var startControl2 = dividerPoints.startControlPoint2;
+            var divider = dividerPoints.divider;
+            var dividerControl1 = dividerPoints.dividerControlPoint1;
+            var dividerControl2 = dividerPoints.dividerControlPoint2;
+
+            // return array with two new curves
+            return [Curve(start, startControl1, startControl2, divider), Curve(divider, dividerControl1, dividerControl2, end)];
+        },
+
+        // Returns the distance between the curve's start and end points.
+        endpointDistance: function() {
+
+            return this.start.distance(this.end);
+        },
+
+        // Checks whether two curves are exactly the same.
         equals: function(c) {
 
             return !!c &&
@@ -307,6 +344,191 @@ var g = (function() {
                     this.end.y === c.end.y;
         },
 
+        // Returns five helper points necessary for curve division.
+        getSkeletonPoints: function(t) {
+
+            var start = this.start;
+            var control1 = this.controlPoint1;
+            var control2 = this.controlPoint2;
+            var end = this.end;
+
+            // shortcuts for `t` values that are out of range
+            if (t <= 0) {
+                return {
+                    startControlPoint1: start.clone(),
+                    startControlPoint2: start.clone(),
+                    divider: start.clone(),
+                    dividerControlPoint1: control1.clone(),
+                    dividerControlPoint2: control2.clone()
+                };
+
+            } else if (t >= 1) {
+                return {
+                    startControlPoint1: control1.clone(),
+                    startControlPoint2: control2.clone(),
+                    divider: end.clone(),
+                    dividerControlPoint1: end.clone(),
+                    dividerControlPoint2: end.clone()
+                };
+            }
+
+            var midpoint1 = Line(start, control1).pointAt(t);
+            var midpoint2 = Line(control1, control2).pointAt(t);
+            var midpoint3 = Line(control2, end).pointAt(t);
+
+            var subControl1 = Line(midpoint1, midpoint2).pointAt(t);
+            var subControl2 = Line(midpoint2, midpoint3).pointAt(t);
+
+            var divider = Line(subControl1, subControl2).pointAt(t);
+
+            var output = {
+                startControlPoint1: midpoint1,
+                startControlPoint2: subControl1,
+                divider: divider,
+                dividerControlPoint1: subControl2,
+                dividerControlPoint2: midpoint3
+            };
+
+            return output;
+        },
+
+        // Returns a list of curves whose flattened length is better than `opt.precision`.
+        // That is, observed difference in length between recursions is less than 10^(-3) = 0.001 = 0.1%
+        // (Observed difference is not real precision, but close enough as long as special cases are covered)
+        // (That is why skipping iteration 1 is important)
+        // As a rule of thumb, increasing `precision` by 1 requires two more division operations
+        // - Precision 0 (endpointDistance) - total of 2^0 - 1 = 0 operations (1 subdivision)
+        // - Precision 1 (<10% error) - total of 2^2 - 1 = 3 operations (4 subdivisions)
+        // - Precision 2 (<1% error) - total of 2^4 - 1 = 15 operations requires 4 division operations on all elements (15 operations total) (16 subdivisions)
+        // - Precision 3 (<0.1% error) - total of 2^6 - 1 = 63 operations - acceptable when drawing (64 subdivisions)
+        // - Precision 4 (<0.01% error) - total of 2^8 - 1 = 255 operations - high resolution, can be used to interpolate `t` (256 subdivisions)
+        // (Variation of 1 recursion worse or better is possible depending on the curve, doubling/halving the number of operations accordingly)
+        getSubdivisions: function(opt) {
+
+            var iteration = 0;
+
+            var subdivisions = [this.clone()];
+            var previousLength = this.endpointDistance();
+
+            opt = opt || {};
+            var precision = opt.precision;
+            if (precision === 0) return subdivisions;
+            precision = precision || this.PRECISION; // assign PRECISION if precision undefined
+            // not using opt.subdivisions
+
+            var precisionRatio = pow(10, -precision);
+            while (true) {
+                iteration += 1;
+
+                var currentSubdivision;
+
+                // divide all subdivisions
+                var newSubdivisions = [];
+                var ii = subdivisions.length;
+                for (var i = 0; i < ii; i++) {
+
+                    currentSubdivision = subdivisions[i];
+                    var divided = currentSubdivision.divide(0.5);
+                    newSubdivisions.push(divided[0], divided[1]);
+                }
+
+                subdivisions = newSubdivisions;
+                var length = 0;
+
+                // measure new length
+                var jj = subdivisions.length;
+                for (var j = 0; j < jj; j++) {
+
+                    currentSubdivision = subdivisions[j];
+                    length += currentSubdivision.endpointDistance();
+                }
+
+                // check if we have reached required observed precision
+                // sine-like curves may have the same observed length in iteration 0 and 1 - skip iteration 1
+                // not a problem for further iterations because cubic curves cannot have more than two local extrema
+                // (i.e. cubic curves cannot intersect the baseline more than once)
+                // therefore two subsequent iterations cannot produce sampling with equal length
+                var observedPrecisionRatio = (length - previousLength) / length;
+                if (iteration > 1 && observedPrecisionRatio < precisionRatio) {
+                    return subdivisions;
+                }
+
+                // otherwise, set up for next iteration
+                previousLength = length;
+            }
+        },
+
+        // Returns flattened length of the curve with precision better than `opt.precision`; or using `opt.subdivisions` provided.
+        length: function(opt) {
+
+            opt = opt || {};
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION; // assign PRECISION if precision undefined
+            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
+
+            var length = 0;
+            var n = subdivisions.length;
+            for (var i = 0; i < n; i++) {
+
+                var currentSubdivision = subdivisions[i];
+                length += currentSubdivision.endpointDistance();
+            }
+
+            return length;
+        },
+
+        // Returns distance along the curve up to `t` with precision better than requested `opt.precision`. (Not using `opt.subdivisions`.)
+        lengthAtT: function(t, opt) {
+
+            if (t <= 0) return 0;
+
+            opt = opt || {};
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION; // assign PRECISION if precision undefined
+            // not using subdivisions - it is a different curve
+
+            var subCurve = this.divide(t)[0];
+            var subCurveLength = subCurve.length({ precision: precision });
+
+            return subCurveLength;
+        },
+
+        // Returns point at requested `ratio` between 0 and 1 with precision better than `opt.precision`; optionally using `opt.subdivisions` provided.
+        // Mirrors Line.pointAt() function.
+        // For a function that tracks `t`, use Curve.pointAtT().
+        pointAt: function(ratio, opt) {
+
+            if (ratio <= 0) return this.start.clone();
+            else if (ratio >= 1) return this.end.clone();
+
+            var t = this.tAt(ratio, opt);
+
+            return this.pointAtT(t);
+        },
+
+        // Returns point at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
+        pointAtLength: function(length, opt) {
+
+            var t = this.tAtLength(length, opt);
+
+            return this.pointAtT(t);
+        },
+
+        // Returns the point at provided `t` between 0 and 1.
+        // `t` does not track distance along curve as it does in Line objects.
+        // Non-linear relationship, speeds up and slows down as curve warps!
+        // For linear length-based solution, use Curve.pointAt().
+        pointAtT: function(t) {
+
+            if (t <= 0) return this.start;
+            else if (t >= 1) return this.end;
+
+            return this.getSkeletonPoints(t).divider;
+        },
+
+        // Default precision
+        PRECISION: 2,
+
         scale: function(sx, sy, origin) {
 
             this.start.scale(sx, sy, origin);
@@ -314,6 +536,274 @@ var g = (function() {
             this.controlPoint2.scale(sx, sy, origin);
             this.end.scale(sx, sy, origin);
             return this;
+        },
+
+        // Returns a tangent line at requested `ratio` with precision better than requested `opt.precision`; or using `opt.subdivisions` provided.
+        tangentAt: function(ratio, opt) {
+
+            if (ratio < 0) ratio = 0;
+            else if (ratio > 1) ratio = 1;
+
+            var t = this.tAt(ratio, opt);
+
+            return this.tangentAtT(t);
+        },
+
+        // Returns a tangent line at requested `length` with precision better than requested `opt.precision`; or using `opt.subdivisions` provided.
+        tangentAtLength: function(length, opt) {
+
+            var t = this.tAtLength(length, opt);
+
+            return this.tangentAtT(t);
+        },
+
+        // Returns a tangent line at requested `t`.
+        tangentAtT: function(t) {
+
+            if (t < 0) t = 0;
+            else if (t > 1) t = 1;
+
+            var skeletonPoints = this.getSkeletonPoints(t);
+
+            var p1 = skeletonPoints.startControlPoint2;
+            var p2 = skeletonPoints.dividerControlPoint1;
+
+            if (p1.equals(p2)) return null; // if start and end are the same, we cannot know what the slope is (curve is a point)
+
+            var tangentStart = skeletonPoints.divider;
+
+            var tangentLine = Line(p1, p2);
+            tangentLine.translate(tangentStart.x - p1.x, tangentStart.y - p1.y); // move so that tangent line starts at the point requested
+
+            return tangentLine;
+        },
+
+        // Returns `t` at requested `ratio` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
+        tAt: function(ratio, opt) {
+
+            if (ratio <= 0) return 0;
+            else if (ratio >= 1) return 1;
+
+            opt = opt || {};
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION;
+            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
+
+            var curveLength = this.length({ subdivisions: subdivisions });
+            var length = curveLength * ratio;
+
+            return this.tAtLength(length, { precision: precision, subdivisions: subdivisions });
+        },
+
+        // Returns `t` at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
+        // Uses `precision` to approximate length within `precision` (always underestimates)
+        // Then uses a binary search to find the `t` of a subdivision endpoint that is close (within `precision`) to the `length`, if the curve was as long as approximated
+        // As a rule of thumb, increasing `precision` by 1 causes the algorithm to go 2^(precision - 1) deeper
+        // - Precision 0 (chooses one of the two endpoints) - 0 levels
+        // - Precision 1 (chooses one of 5 points, <10% error) - 1 level
+        // - Precision 2 (<1% error) - 3 levels
+        // - Precision 3 (<0.1% error) - 7 levels
+        // - Precision 4 (<0.01% error) - 15 levels
+        tAtLength: function(length, opt) {
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            opt = opt || {};
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION; // assign PRECISION if precision undefined
+            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
+
+            // identify the subdivision that contains the point at requested `length`:
+            var investigatedSubdivision;
+            var investigatedSubdivisionStartT; // assume that subdivisions are evenly spaced
+            var investigatedSubdivisionEndT;
+            //var baseline; // straightened version of subdivision to investigate
+            //var baselinePoint; // point on the baseline that is the requested distance away from start
+            var baselinePointDistFromStart; // distance of baselinePoint from start of baseline
+            var baselinePointDistFromEnd; // distance of baselinePoint from end of baseline
+            var l = 0; // length so far
+            var n = subdivisions.length;
+            var subdivisionSize = 1 / n;
+            for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+
+                var currentSubdivision = subdivisions[i];
+                var d = currentSubdivision.endpointDistance();
+
+                if (length <= (l + d)) {
+                    investigatedSubdivision = currentSubdivision;
+
+                    investigatedSubdivisionStartT = i * subdivisionSize;
+                    investigatedSubdivisionEndT = (i + 1) * subdivisionSize;
+
+                    baselinePointDistFromStart = (fromStart ? (length - l) : ((d + l) - length));
+                    baselinePointDistFromEnd = (fromStart ? ((d + l) - length) : (length - l));
+
+                    break;
+                }
+
+                l += d;
+            }
+
+            if (!investigatedSubdivision) return (fromStart ? 1 : 0); // length requested is out of range - return maximum t
+            // note that precision affects what length is recorded
+            // (imprecise measurements underestimate length by up to 10^(-precision) of the precise length)
+            // e.g. at precision 1, the length may be underestimated by up to 10% and cause this function to return 1
+
+            var curveLength = this.length({ subdivisions: subdivisions });
+
+            // recursively divide investigated subdivision:
+            // until distance between baselinePoint and closest path endpoint is within 10^(-precision)
+            // then return the closest endpoint of that final subdivision
+            var precisionRatio = pow(10, -precision);
+            while (true) {
+
+                // check if we have reached required observed precision
+                var observedPrecisionRatio;
+
+                observedPrecisionRatio = baselinePointDistFromStart / curveLength;
+                if (observedPrecisionRatio < precisionRatio) return investigatedSubdivisionStartT;
+                observedPrecisionRatio = baselinePointDistFromEnd / curveLength;
+                if (observedPrecisionRatio < precisionRatio) return investigatedSubdivisionEndT;
+
+                // otherwise, set up for next iteration
+                var newBaselinePointDistFromStart;
+                var newBaselinePointDistFromEnd;
+
+                var divided = investigatedSubdivision.divide(0.5);
+                subdivisionSize /= 2;
+
+                var baseline1Length = divided[0].endpointDistance();
+                var baseline2Length = divided[1].endpointDistance();
+
+                if (baselinePointDistFromStart <= baseline1Length) { // point at requested length is inside divided[0]
+                    investigatedSubdivision = divided[0];
+
+                    investigatedSubdivisionEndT -= subdivisionSize; // sudivisionSize was already halved
+
+                    newBaselinePointDistFromStart = baselinePointDistFromStart;
+                    newBaselinePointDistFromEnd = baseline1Length - newBaselinePointDistFromStart;
+
+                } else { // point at requested length is inside divided[1]
+                    investigatedSubdivision = divided[1];
+
+                    investigatedSubdivisionStartT += subdivisionSize; // subdivisionSize was already halved
+
+                    newBaselinePointDistFromStart = baselinePointDistFromStart - baseline1Length;
+                    newBaselinePointDistFromEnd = baseline2Length - newBaselinePointDistFromStart;
+                }
+
+                baselinePointDistFromStart = newBaselinePointDistFromStart;
+                baselinePointDistFromEnd = newBaselinePointDistFromEnd;
+            }
+        },
+
+        // Returns `t` at given point `p`
+        tAtPoint: function(p, opt) {
+
+            opt = opt || {};
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION; // assign PRECISION if precision undefined
+            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
+
+            // identify the subdivision that contains the point:
+            var investigatedSubdivision;
+            var investigatedSubdivisionStartT; // assume that subdivisions are evenly spaced
+            var investigatedSubdivisionEndT;
+            var distFromStart; // distance of point from start of baseline
+            var distFromEnd; // distance of point from end of baseline
+            var minSumDist; // lowest observed sum of the two distances
+            var n = subdivisions.length;
+            var subdivisionSize = 1 / n;
+            for (var i = 0; i < n; i++) {
+
+                var currentSubdivision = subdivisions[i];
+                var d = currentSubdivision.endpointDistance();
+
+                var startDist = currentSubdivision.start.distance(p);
+                var endDist = currentSubdivision.end.distance(p);
+                var sumDist = startDist + endDist;
+
+                // check that the point is close enough to either one of the endpoints to possibly lie on the curve
+                // and check that the point is closest to current subdivision and not any other
+                if (((startDist <= d) || (endDist <= d)) && (!minSumDist || (sumDist < minSumDist))) {
+                    investigatedSubdivision = currentSubdivision;
+
+                    investigatedSubdivisionStartT = i * subdivisionSize;
+                    investigatedSubdivisionEndT = (i + 1) * subdivisionSize;
+
+                    distFromStart = startDist;
+                    distFromEnd = endDist;
+
+                    minSumDist = sumDist;
+                }
+            }
+
+            if (!investigatedSubdivision) return null; // the point is not close to the line
+
+            var curveLength = this.length({ subdivisions: subdivisions });
+
+            // recursively divide investigated subdivision:
+            // until distance between baselinePoint and closest path endpoint is within 10^(-precision)
+            // then return the closest endpoint of that final subdivision
+            var precisionRatio = pow(10, -precision);
+            while (true) {
+
+                // check if we have reached required observed precision
+                var observedPrecisionRatio;
+
+                observedPrecisionRatio = distFromStart / curveLength;
+                if (observedPrecisionRatio < precisionRatio) return investigatedSubdivisionStartT;
+                observedPrecisionRatio = distFromEnd / curveLength;
+                if (observedPrecisionRatio < precisionRatio) return investigatedSubdivisionEndT;
+
+                // otherwise, set up for next iteration
+                var divided = investigatedSubdivision.divide(0.5);
+                subdivisionSize /= 2;
+
+                var baseline1Length = divided[0].endpointDistance();
+                var startDist1 = divided[0].start.distance(p);
+                var endDist1 = divided[0].end.distance(p);
+                var sumDist1 = null;
+
+                if ((startDist1 <= baseline1Length) || (endDist1 <= baseline1Length)) {
+                    sumDist1 = startDist1 + endDist1;
+                }
+
+                var baseline2Length = divided[1].endpointDistance();
+                var startDist2 = divided[1].start.distance(p);
+                var endDist2 = divided[1].end.distance(p);
+                var sumDist2 = null;
+
+                if ((startDist2 <= baseline2Length) || (endDist2 <= baseline2Length)) {
+                    sumDist2 = startDist2 + endDist2;
+                }
+
+                if (!sumDist1 && !sumDist2) {
+                    return null; // the point is not at all close to the subdivision
+                }
+
+                if ((sumDist1 && !sumDist2) || (sumDist1 && (sumDist1 <= sumDist2))) {
+                    investigatedSubdivision = divided[0];
+
+                    investigatedSubdivisionEndT -= subdivisionSize; // subdivisionSize was already halved
+
+                    distFromStart = startDist1;
+                    distFromEnd = endDist1;
+                }
+
+                if ((sumDist2 && !sumDist1) || (sumDist2 && (sumDist2 < sumDist1))) {
+                    investigatedSubdivision = divided[1];
+
+                    investigatedSubdivisionStartT += subdivisionSize; // subbdivisionSize was already halved
+
+                    distFromStart = startDist2;
+                    distFromEnd = endDist2;
+                }
+            }
         },
 
         translate: function(tx, ty) {
@@ -325,9 +815,52 @@ var g = (function() {
             return this;
         },
 
+        // Returns a path
+        toPath: function() {
+
+            return Path(this.toPathData());
+        },
+
+        // Returns path data
+        toPathData: function() {
+
+            var start = this.start;
+            var c1 = this.controlPoint1;
+            var c2 = this.controlPoint2;
+            var end = this.end;
+
+            return 'M ' + start.x + ' ' + start.y + ' C ' + c1.x + ' ' + c1.y + ' ' + c2.x + ' ' + c2.y + ' ' + end.x + ' ' + end.y;
+        },
+
+        // Returns an array of points that represents the curve when flattened, up to `opt.precision`; or using `opt.subdivisions` provided.
+        // Flattened length is no more than 10^(-precision) away from real curve length.
+        toPoints: function(opt) {
+
+            opt = opt || {};
+            var precision = opt.precision; // this.getSubdivisions() can take care of undefined/null precision
+            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
+
+            var points = [subdivisions[0].start];
+            var n = subdivisions.length;
+            for (var i = 0; i < n; i++) {
+
+                var currentSubdivision = subdivisions[i];
+                points.push(currentSubdivision.end.clone());
+            }
+
+            return points;
+        },
+
+        // Returns a polyline that represents the curve when flattened, up to `opt.precision`; or using `opt.subdivisions` provided.
+        // Flattened length is no more than 10^(-precision) away from real curve length.
+        toPolyline: function(opt) {
+
+            return Polyline(this.toPoints(opt));
+        },
+
         toString: function() {
 
-            return this.type + ' ' + this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
+            return 'C' + ' ' + this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
         }
     };
 
@@ -617,11 +1150,13 @@ var g = (function() {
 
         // @return {double} length of the line
         length: function() {
+
             return sqrt(this.squaredLength());
         },
 
         // @return {point} my midpoint
         midpoint: function() {
+
             return Point(
                 (this.start.x + this.end.x) / 2,
                 (this.start.y + this.end.y) / 2
@@ -631,9 +1166,33 @@ var g = (function() {
         // @return {point} my point at 't' <0,1>
         pointAt: function(t) {
 
-            var x = (1 - t) * this.start.x + t * this.end.x;
-            var y = (1 - t) * this.start.y + t * this.end.y;
+            var start = this.start;
+            var end = this.end;
+
+            if (t <= 0) return start.clone();
+            if (t >= 1) return end.clone();
+
+            var x = (1 - t) * start.x + t * end.x;
+            var y = (1 - t) * start.y + t * end.y;
             return Point(x, y);
+        },
+
+        pointAtLength: function(length) {
+
+            var start = this.start;
+            var end = this.end;
+
+            fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            var lineLength = this.length();
+
+            if (length >= lineLength) return (fromStart ? end.clone() : start.clone());
+
+            return this.pointAt((fromStart ? (length) : (lineLength - length)) / lineLength);
         },
 
         // @return {number} the offset of the point `p` from the line. + if the point `p` is on the right side of the line, - if on the left and 0 if on the line.
@@ -648,6 +1207,36 @@ var g = (function() {
             this.start.scale(sx, sy, origin);
             this.end.scale(sx, sy, origin);
             return this;
+        },
+
+        tangentAt: function(t) {
+
+            var start = this.start;
+            var end = this.end;
+
+            if (start.equals(end)) return null; // if start and end are the same, we cannot know what the slope is (line is a point)
+
+            var tangentStart = this.pointAt(t); // constrains `t` between 0 and 1
+
+            var tangentLine = Line(start.clone(), end.clone());
+            tangentLine.translate(tangentStart.x - start.x, tangentStart.y - start.y); // move so that tangent line starts at the point requested
+
+            return tangentLine;
+        },
+
+        tangentAtLength: function(length) {
+
+            var start = this.start;
+            var end = this.end;
+
+            if (start.equals(end)) return null; // if start and end are the same, we cannot know what the slope is (line is a point)
+
+            var tangentStart = this.pointAtLength(length);
+
+            var tangentLine = Line(start.clone(), end.clone());
+            tangentLine.translate(tangentStart.x - start.x, tangentStart.y - start.y); // move so that tangent line starts at the point requested
+
+            return tangentLine;
         },
 
         translate: function(tx, ty) {
@@ -680,6 +1269,7 @@ var g = (function() {
         // @return {integer} length without sqrt
         // @note for applications where the exact length is not necessary (e.g. compare only)
         squaredLength: function() {
+
             var x0 = this.start.x;
             var y0 = this.start.y;
             var x1 = this.end.x;
@@ -688,6 +1278,7 @@ var g = (function() {
         },
 
         toString: function() {
+
             return this.start.toString() + ' ' + this.end.toString();
         }
     };
@@ -704,6 +1295,14 @@ var g = (function() {
         if (typeof pathSegments === 'string') {
             // create path segments:
             return Path.parse(pathSegments);
+        }
+
+        if (!pathSegments || !Array.isArray(pathSegments) || pathSegments.length === 0) {
+            throw new Error('Invalid pathSegments (expects a non-empty array).')
+        }
+
+        if (pathSegments[0].type !== 'M' || !pathSegments[0].start.equals(Point(0,0))) {
+            throw new Error('Invalid pathSegments (path must begin with a moveto segment starting at 0,0).')
         }
 
         this.pathSegments = pathSegments;
@@ -738,45 +1337,56 @@ var g = (function() {
 
     Path.prototype = {
 
+        // Returns the bbox of the path.
+        // If path has no segments, returns null.
+        // If path has only invisible segments, returns bbox of the end point of last segment.
         bbox: function() {
 
-            var bbox;
-            var subpathStartSegment; // last moveto segment
-
             var pathSegments = this.pathSegments;
-            var n = pathSegments.length;
+            if (!pathSegments) return null; // if pathSegments is undefined or null
+
+            var numSegments = pathSegments.length;
+            if (numSegments === 0) return null; // if pathSegments is an empty array
+
+            var bbox;
+            var n = numSegments;
             for (var i = 0; i < n; i++) {
 
                 var seg = pathSegments[i];
 
-                if (seg.recordSubpathStartSegment) subpathStartSegment = seg;
-
-                if (seg.recordBBox) {
+                if (!seg.invisible) {
                     var segBBox = seg.bbox();
                     bbox = bbox ? bbox.union(segBBox) : segBBox;
                 }
             }
 
-            // if the path has only M and Z segments, return bbox for last M
-            return (bbox ? bbox : Rect(subpathStartSegment.end.x, subpathStartSegment.end.y, 0, 0));
+            if (bbox) return bbox;
+
+            // if the path has only invisible elements, return end point of last segment
+            var lastSegment = pathSegments[n - 1];
+            return Rect(lastSegment.end.x, lastSegment.end.y, 0, 0);
         },
 
+        // Returns a new path by serializing this path and then parsing it.
         clone: function() {
 
             return Path(this.serialize());
         },
 
+        // Checks whether two paths are exactly the same.
+        // If `p` is undefined or null, returns false.
         equals: function(p) {
 
             if (!p) return false;
 
             var pathSegments = this.pathSegments;
-            var n = pathSegments.length;
+            if (!pathSegments || !p.pathSegments) return false; // if either pathSegments is undefined or null
 
-            // if the two paths have different number of segments, they cannot be equal
-            if (pathSegments && p.pathSegments && (p.pathSegments.length !== n)) return false;
+            var numSegments = pathSegments.length;
+            if (p.pathSegments && (p.pathSegments.length !== numSegments)) return false; // if the two paths have different number of segments, they cannot be equal
 
             // as soon as an inequality is found in pathSegments, return false
+            var n = numSegments;
             for (var i = 0; i < n; i++) {
 
                 var seg = pathSegments[i];
@@ -789,9 +1399,121 @@ var g = (function() {
             return true;
         },
 
+        // Returns an array of segment subdivisions, with precision better than requested `opt.precision`.
+        getSegmentSubdivisions: function(opt) {
+
+            var pathSegments = this.pathSegments;
+            if (!pathSegments) return []; // if pathSegments is undefined or null
+
+            var segmentSubdivisions = [];
+            var n = pathSegments.length;
+            for (var i = 0; i < n; i++) {
+
+                var seg = pathSegments[i];
+                var subdivisions = seg.getSubdivisions(opt);
+                segmentSubdivisions.push(subdivisions);
+            }
+
+            return segmentSubdivisions;
+        },
+
+        // Returns length of the path, with precision better than requested `opt.precision`; or using `opt.segmentSubdivisions` provided.
+        // If path has no segments, returns 0.
+        length: function(opt) {
+
+            var pathSegments = this.pathSegments;
+            if (!pathSegments) return 0; // if pathSegments is undefined or null
+
+            opt = opt || {};
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION;
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+
+            var length = 0;
+            var n = pathSegments.length;
+            for (var i = 0; i < n; i++) {
+
+                var seg = pathSegments[i];
+                var subdivisions = segmentSubdivisions[i];
+                length += seg.length({ subdivisions: subdivisions });
+            }
+
+            return length;
+        },
+
+        // Returns point at requested `ratio` between 0 and 1, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
+        pointAt: function(ratio, opt) {
+
+            var pathSegments = this.pathSegments;
+            if (!pathSegments) return null; // if pathSegments is undefined or null
+
+            if (ratio < 0) ratio = 0;
+            else if (ratio > 1) ratio = 1;
+
+            opt = opt || {};
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION;
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+
+            var pathLength = this.length({ segmentSubdivisions: segmentSubdivisions });
+            var length = pathLength * ratio;
+
+            return this.pointAtLength(length, { precision: precision, segmentSubdivisions: segmentSubdivisions });
+        },
+
+        // Returns point at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
+        pointAtLength: function(length, opt) {
+
+            var pathSegments = this.pathSegments;
+            if (!pathSegments) return null; // if pathSegments is undefined or null
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            opt = opt || {};
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION;
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+
+            var lastVisibleSegment;
+            var l = 0; // length so far
+            var n = pathSegments.length;
+            for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+
+                var seg = pathSegments[i];
+                var subdivisions = segmentSubdivisions[i];
+                var d = seg.length({ subdivisions: subdivisions });
+
+                if (!seg.invisible) {
+                    if (length <= (l + d)) {
+                        return seg.pointAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
+                    }
+
+                    lastVisibleSegment = seg;
+                }
+
+                l += d;
+            }
+
+            // if length requested is higher than the length of the path, return last visible segment endpoint
+            if (lastVisibleSegment) return (fromStart ? lastVisibleSegment.end : lastVisibleSegment.start);
+
+            // if no visible segment, return last segment end point (no matter if fromStart or no)
+            var lastSegment = pathSegments[n - 1];
+            return lastSegment.end.clone();
+        },
+
+        // Default precision
+        PRECISION: 2,
+
         scale: function(sx, sy, origin) {
 
             var pathSegments = this.pathSegments;
+            if (!pathSegments) return this; // if pathSegments is undefined or null
+
             var n = pathSegments.length;
             for (var i = 0; i < n; i++) {
 
@@ -802,9 +1524,82 @@ var g = (function() {
             return this;
         },
 
+        // Returns tangent line at requested `ratio` between 0 and 1, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
+        tangentAt: function(ratio, opt) {
+
+            var pathSegments = this.pathSegments;
+            if (!pathSegments) return null; // if pathSegments is undefined or null
+
+            if (ratio < 0) ratio = 0;
+            else if (ratio > 1) ratio = 1;
+
+            opt = opt || {};
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION;
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+
+            var pathLength = this.length({ segmentSubdivisions: segmentSubdivisions });
+            var length = pathLength * ratio;
+
+            return this.tangentAtLength(length, { precision: precision, segmentSubdivisions: segmentSubdivisions });
+        },
+
+        // Returns tangent line at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
+        tangentAtLength: function(length, opt) {
+
+            var pathSegments = this.pathSegments;
+            if (!pathSegments) return null; // if pathSegments is undefined or null
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            opt = opt || {};
+            var precision = opt.precision;
+            if (precision !== 0) precision = precision || this.PRECISION;
+            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+
+            var lastValidSegment; // visible AND differentiable (with a tangent)
+            var l = 0; // length so far
+            var n = pathSegments.length;
+            for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+
+                var seg = pathSegments[i];
+                var subdivisions = segmentSubdivisions[i];
+                var d = seg.length({ subdivisions: subdivisions });
+
+                if (!seg.invisible) {
+                    var tangent = seg.tangentAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
+
+                    if (tangent) { // has a tangent (segment length is not 0)
+                        if (length <= (l + d)) {
+                            return tangent;
+                        }
+
+                        lastValidSegment = seg;
+                    }
+                }
+
+                l += d;
+            }
+
+            // if length requested is higher than the length of the path, return tangent of endpoint of last valid segment
+            if (lastValidSegment) {
+                var ratio = (fromStart ? 1 : 0);
+                return lastValidSegment.tangentAt(ratio);
+            }
+
+            // if no valid segment, return null
+            return null;
+        },
+
         translate: function(tx, ty) {
 
             var pathSegments = this.pathSegments;
+            if (!pathSegments) return this; // if pathSegments is undefined or null
+
             var n = pathSegments.length;
             for (var i = 0; i < n; i++) {
 
@@ -815,11 +1610,13 @@ var g = (function() {
             return this;
         },
 
+        // Returns a string that can be used to reconstruct the path.
         serialize: function() {
 
-            var pathData = '';
-
             var pathSegments = this.pathSegments;
+            if (!pathSegments) return ''; // if pathSegments is undefined or null
+
+            var pathData = '';
             var n = pathSegments.length;
             for (var i = 0; i < n; i++) {
 
@@ -868,17 +1665,12 @@ var g = (function() {
         return Lineto(p1, p2);
     };
 
-    Lineto.prototype = {
+    var linetoPrototype = {
 
-        bbox: Line.prototype.bbox,
+        getSubdivisions: function() {
 
-        equals: Line.prototype.equals,
-
-        recordBBox: true,
-
-        scale: Line.prototype.scale,
-
-        translate: Line.prototype.translate,
+            return [];
+        },
 
         type: 'L',
 
@@ -893,6 +1685,8 @@ var g = (function() {
             return this.type + ' ' + this.start + ' ' + this.end;
         }
     };
+
+    Lineto.prototype = extendObject(Object.create(Line.prototype), linetoPrototype);
 
     var Curveto = function(p1, p2, p3, p4) {
 
@@ -932,17 +1726,7 @@ var g = (function() {
         return Curveto(p1, p2, p3, p4);
     };
 
-    Curveto.prototype = {
-
-        bbox: Curve.prototype.bbox,
-
-        equals: Curve.prototype.equals,
-
-        recordBBox: true,
-
-        scale: Curve.prototype.scale,
-
-        translate: Curve.prototype.translate,
+    var curvetoPrototype = {
 
         type: 'C',
 
@@ -959,6 +1743,8 @@ var g = (function() {
             return this.type + ' ' + this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
         }
     };
+
+    Curveto.prototype = extendObject(Object.create(Curve.prototype), curvetoPrototype);
 
     var Moveto = function(p1, p2) {
 
@@ -990,20 +1776,41 @@ var g = (function() {
         return Moveto(p1, p2);
     };
 
-    Moveto.prototype = {
+    var movetoPrototype = {
 
         bbox: function() {
 
             return null;
         },
 
-        equals: Line.prototype.equals,
+        getSubdivisions: function() {
+
+            return [];
+        },
+
+        invisible: true,
+
+        length: function() {
+
+            return 0;
+        },
+
+        pointAt: function() {
+
+            return this.end.clone();
+        },
+
+        pointAtLength: function() {
+
+            return this.end.clone();
+        },
 
         recordSubpathStartSegment: true,
 
-        scale: Line.prototype.scale,
+        tangent: function() {
 
-        translate: Line.prototype.translate,
+            return null;
+        },
 
         type: 'M',
 
@@ -1018,6 +1825,8 @@ var g = (function() {
             return this.type + ' ' + this.start + ' ' + this.end;
         }
     };
+
+    Moveto.prototype = extendObject(Object.create(Line.prototype), movetoPrototype);
 
     var Closepath = function(p1, p2) {
 
@@ -1057,15 +1866,12 @@ var g = (function() {
         return Closepath(p1, p2);
     };
 
-    Closepath.prototype = {
+    var closepathPrototype = {
 
-        bbox: Line.prototype.bbox,
+        getSubdivisions: function() {
 
-        equals: Line.prototype.equals,
-
-        scale: Line.prototype.scale,
-
-        translate: Line.prototype.translate,
+            return [];
+        },
 
         type: 'Z',
 
@@ -1079,6 +1885,8 @@ var g = (function() {
             return this.type + ' ' + this.start + ' ' + this.end;
         }
     };
+
+    Closepath.prototype = extendObject(Object.create(Line.prototype), closepathPrototype);
 
     Path.segments = {
         L: Lineto,
@@ -1820,11 +2628,17 @@ var g = (function() {
     };
 
     Polyline.parse = function(svgString) {
-        var points = [];
+
+        if (svgString === '') return Polyline([]);
+
         var coords = svgString.split(/\s|,/);
-        for (var i = 0, n = coords.length; i < n; i+=2) {
+
+        var points = [];
+        var n = coords.length;
+        for (var i = 0; i < n; i += 2) {
             points.push({ x: +coords[i], y: +coords[i + 1] });
         }
+
         return Polyline(points);
     };
 
@@ -1838,11 +2652,12 @@ var g = (function() {
             var y2 = -Infinity;
 
             var points = this.points;
+            if (!points) return null; // if points array is undefined or null
 
-            var n = points.length;
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
 
-            if (n === 0) return null;
-
+            var n = numPoints;
             for (var i = 0; i < n; i++) {
                 var point = points[i];
                 var x = point.x;
@@ -1858,60 +2673,8 @@ var g = (function() {
         },
 
         clone: function() {
+
             return new Polyline(this.points);
-        },
-
-        pointAtLength: function(length) {
-            var points = this.points;
-            var l = 0;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
-                var a = points[i];
-                var b = points[i+1];
-                var d = a.distance(b);
-                l += d;
-                if (length <= l) {
-                    return Line(b, a).pointAt(d ? (l - length) / d : 0);
-                }
-            }
-            return null;
-        },
-
-        length: function() {
-            var points = this.points;
-            var length = 0;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
-                length += points[i].distance(points[i+1]);
-            }
-            return length;
-        },
-
-        closestPoint: function(p) {
-            return this.pointAtLength(this.closestPointLength(p));
-        },
-
-        closestPointLength: function(p) {
-            var points = this.points;
-            var pointLength;
-            var minSqrDistance = Infinity;
-            var length = 0;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
-                var line = Line(points[i], points[i+1]);
-                var lineLength = line.length();
-                var cpNormalizedLength = line.closestPointNormalizedLength(p);
-                var cp = line.pointAt(cpNormalizedLength);
-                var sqrDistance = cp.squaredDistance(p);
-                if (sqrDistance < minSqrDistance) {
-                    minSqrDistance = sqrDistance;
-                    pointLength = length + cpNormalizedLength * lineLength;
-                }
-                length += lineLength;
-            }
-            return pointLength;
-        },
-
-        toString: function() {
-
-            return this.points + '';
         },
 
         // Returns a convex-hull polyline from this polyline.
@@ -1924,6 +2687,10 @@ var g = (function() {
             var n;
 
             var points = this.points;
+            if (!points) return Polyline([]); // if points array is undefined or null
+
+            var numPoints = points.length;
+            if (numPoints === 0) return Polyline([]); // if points array is empty
 
             // step 1: find the starting point - point with the lowest y (if equality, highest x)
             var startPoint;
@@ -2116,30 +2883,264 @@ var g = (function() {
             return Polyline(hullPoints);
         },
 
-        scale: function(sx, sy, origin) {
+        // Checks whether two polylines are exactly the same.
+        // If `p` is undefined or null, returns false.
+        equals: function(p) {
+
+            if (!p) return false;
+
             var points = this.points;
-            for (var i = 0, n = points.length; i < n; i++) {
+            if (!points || !p.points) return false; // if either points array is undefined or null
+
+            var numPoints = points.length;
+            if (p.points && (p.points.length !== numPoints)) return false; // if the two polylines have different number of points, they cannot be equal
+
+            // as soon as an inequality is found in points, return false
+            var n = numPoints;
+            for (var i = 0; i < n; i++) {
+
+                var point = points[i];
+                var otherPoint = p.points[i];
+
+                if (!point.equals(otherPoint)) return false;
+            }
+
+            // if no inequality found in points, return true
+            return true;
+        },
+
+        length: function() {
+
+            var points = this.points;
+            if (!points) return 0; // if points array is undefined or null
+
+            var numPoints = points.length;
+            if (numPoints === 0) return 0; // if points array is empty
+
+            var length = 0;
+            var n = numPoints - 1;
+            for (var i = 0; i < n; i++) {
+                length += points[i].distance(points[i + 1]);
+            }
+
+            return length;
+        },
+
+        pointAt: function(ratio) {
+
+            var points = this.points;
+            if (!points) return null; // if points array is undefined or null
+
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+            else if (numPoints === 1) return points[0]; // if there is only one point
+
+            if (ratio <= 0) return points[0].clone();
+            else if (ratio >= 1) return points[numPoints - 1].clone();
+
+            var polylineLength = this.length();
+            var length = polylineLength * ratio;
+
+            return this.pointAtLength(length);
+        },
+
+        pointAtLength: function(length) {
+
+            var points = this.points;
+            if (!points) return null; // if points array is undefined or null
+
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+            else if (numPoints === 1) return points[0]; // if there is only one point
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            var polylineLength = this.length();
+            if (length > polylineLength) return (fromStart ? points[numPoints - 1].clone() : points[0].clone());
+
+            var l = 0;
+            var n = numPoints - 1;
+            for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+
+                var a = points[i];
+                var b = points[i + 1];
+                var line = Line(a, b);
+                var d = a.distance(b);
+
+                if (length <= (l + d)) {
+                    return line.pointAtLength((fromStart ? 1 : -1) * (length - l));
+                }
+
+                l += d;
+            }
+
+            // if length requested is higher than the length of the polyline, return endpoint
+            return (fromStart ? points[numPoints - 1].clone() : points[0].clone());
+        },
+
+        scale: function(sx, sy, origin) {
+
+            var points = this.points;
+            if (!points) return this; // if points array is undefined or null
+
+            var numPoints = points.length;
+            if (numPoints === 0) return this; // if points array is empty
+
+            var n = numPoints;
+            for (var i = 0; i < n; i++) {
                 points[i].scale(sx, sy, origin);
             }
+
             return this;
+        },
+
+        tangentAt: function(ratio) {
+
+            var points = this.points;
+            if (!points) return null; // if points array is undefined or null
+
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+            else if (numPoints === 1) return null; // if there is only one point
+
+            if (ratio < 0) ratio = 0;
+            else if (ratio > 1) ratio = 1;
+
+            var polylineLength = this.length();
+            var length = polylineLength * ratio;
+
+            return this.tangentAtLength(length);
+        },
+
+        tangentAtLength: function(length) {
+
+            var points = this.points;
+            if (!points) return null; // if points array is undefined or null
+
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+            else if (numPoints === 1) return null; // if there is only one point
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            var lastValidLine; // differentiable (with a tangent)
+            var l = 0; // length so far
+            var n = numPoints - 1;
+            for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+
+                var a = points[i];
+                var b = points[i + 1];
+                var line = Line(a, b);
+                var d = a.distance(b);
+
+                var tangent = line.tangentAtLength((fromStart ? 1 : -1) * (length - l));
+
+                if (tangent) { // has a tangent (line length is not 0)
+                    if (length <= (l + d)) {
+                        return tangent;
+                    }
+
+                    lastValidLine = line;
+                }
+
+                l += d;
+            }
+
+            // if length requested is higher than the length of the polyline, return last valid endpoint
+            if (lastValidLine) {
+                var ratio = (fromStart ? 1 : 0);
+                return lastValidLine.tangentAt(ratio);
+            }
+
+            // if no valid line, return null
+            return null;
         },
 
         translate: function(tx, ty) {
+
             var points = this.points;
-            for (var i = 0, n = points.length; i < n; i++) {
+            if (!points) return this; // if points array is undefined or null
+
+            var numPoints = points.length;
+            if (numPoints === 0) return this; // if points array is empty
+
+            var n = numPoints;
+            for (var i = 0; i < n; i++) {
                 points[i].offset(tx, ty);
             }
+
             return this;
         },
 
-        serialize: function() {
-            var string = '';
+        closestPoint: function(p) {
+
+            var length = this.closestPointLength(p);
+            if (!length) return null;
+
+            return this.pointAtLength(length);
+        },
+
+        closestPointLength: function(p) {
+
             var points = this.points;
-            for (var i = 0, n = points.length; i < n; i++) {
-                var point = points[i];
-                string += point.x + ',' + point.y + ' ';
+            if (!points) return null; // if points array is undefined or null
+
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+
+            var pointLength;
+            var minSqrDistance = Infinity;
+            var length = 0;
+            var n = points.length - 1;
+            for (var i = 0; i < n; i++) {
+
+                var line = Line(points[i], points[i + 1]);
+                var lineLength = line.length();
+
+                var cpNormalizedLength = line.closestPointNormalizedLength(p);
+                var cp = line.pointAt(cpNormalizedLength);
+
+                var sqrDistance = cp.squaredDistance(p);
+                if (sqrDistance < minSqrDistance) {
+                    minSqrDistance = sqrDistance;
+                    pointLength = length + cpNormalizedLength * lineLength;
+                }
+
+                length += lineLength;
             }
-            return string.trim();
+
+            return pointLength;
+        },
+
+        serialize: function() {
+
+            var points = this.points;
+            if (!points) return ''; // if points array is undefined or null
+
+            var numPoints = points.length;
+            if (numPoints === 0) return ''; // if points array is empty
+
+            var output = '';
+            var n = numPoints;
+            for (var i = 0; i < n; i++) {
+                var point = points[i];
+                output += point.x + ',' + point.y + ' ';
+            }
+
+            return output.trim();
+        },
+
+        toString: function() {
+
+            return this.points + '';
         }
     };
 
@@ -2182,6 +3183,13 @@ var g = (function() {
     g.line = g.Line;
     g.point = g.Point;
     g.rect = g.Rect;
+
+    function extendObject(obj, src) {
+        for (var key in src) {
+            if (src.hasOwnProperty(key)) obj[key] = src[key];
+        }
+        return obj;
+    }
 
     return g;
 
