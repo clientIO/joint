@@ -98,24 +98,6 @@ var g = (function() {
             return [firstControlPoints, secondControlPoints];
         },
 
-        // Divide a Bezier curve into two at point defined by value 't' <0,1>.
-        // Using deCasteljau algorithm. http://math.stackexchange.com/a/317867
-        // @param control points (start, control start, control end, end)
-        // @return a function accepts t and returns 2 curves each defined by 4 control points.
-        getCurveDivider: function(p0, p1, p2, p3) {
-
-            return function divideCurve(t) {
-
-                var l = Line(p0, p1).pointAt(t);
-                var m = Line(p1, p2).pointAt(t);
-                var n = Line(p2, p3).pointAt(t);
-                var p = Line(l, m).pointAt(t);
-                var q = Line(m, n).pointAt(t);
-                var r = Line(p, q).pointAt(t);
-                return [{ p0: p0, p1: l, p2: p, p3: r }, { p0: r, p1: q, p2: n, p3: p3 }];
-            };
-        },
-
         // Solves a tridiagonal system for one of coordinates (x or y) of first Bezier control points.
         // @param rhs Right hand side vector.
         // @return Solution vector.
@@ -139,6 +121,24 @@ var g = (function() {
                 x[n - i - 1] -= tmp[n - i] * x[n - i];
             }
             return x;
+        },
+
+        // Divide a Bezier curve into two at point defined by value 't' <0,1>.
+        // Using deCasteljau algorithm. http://math.stackexchange.com/a/317867
+        // @param control points (start, control start, control end, end)
+        // @return a function accepts t and returns 2 curves each defined by 4 control points.
+        getCurveDivider: function(p0, p1, p2, p3) {
+
+            return function divideCurve(t) {
+
+                var l = Line(p0, p1).pointAt(t);
+                var m = Line(p1, p2).pointAt(t);
+                var n = Line(p2, p3).pointAt(t);
+                var p = Line(l, m).pointAt(t);
+                var q = Line(m, n).pointAt(t);
+                var r = Line(p, q).pointAt(t);
+                return [{ p0: p0, p1: l, p2: p, p3: r }, { p0: r, p1: q, p2: n, p3: p3 }];
+            };
         },
 
         // Solves an inversion problem -- Given the (x, y) coordinates of a point which lies on
@@ -306,11 +306,23 @@ var g = (function() {
         divide: function(t) {
 
             var start = this.start;
+            var controlPoint1 = this.controlPoint1;
+            var controlPoint2 = this.controlPoint2;
             var end = this.end;
 
             // shortcuts for `t` values that are out of range
-            if (t <= 0) return [Curve(start, start, start, start), this.clone()];
-            else if (t >= 1) return [this.clone(), Curve(end, end, end, end)];
+            if (t <= 0) {
+                return [
+                    Curve(start.clone(), start.clone(), start.clone(), start.clone()),
+                    Curve(start.clone(), controlPoint1.clone(), controlPoint2.clone(), end).clone()
+                ];
+
+            } else if (t >= 1) {
+                return [
+                    Curve(start.clone(), controlPoint1.clone(), controlPoint2.clone(), end.clone()),
+                    Curve(end.clone(), end.clone(), end.clone(), end.clone())
+                ];
+            }
 
             var dividerPoints = this.getSkeletonPoints(t);
 
@@ -321,7 +333,10 @@ var g = (function() {
             var dividerControl2 = dividerPoints.dividerControlPoint2;
 
             // return array with two new curves
-            return [Curve(start, startControl1, startControl2, divider), Curve(divider, dividerControl1, dividerControl2, end)];
+            return [
+                Curve(start, startControl1, startControl2, divider),
+                Curve(divider, dividerControl1, dividerControl2, end)
+            ];
         },
 
         // Returns the distance between the curve's start and end points.
@@ -407,7 +422,7 @@ var g = (function() {
 
             var iteration = 0;
 
-            var subdivisions = [this.clone()];
+            var subdivisions = [Curve(this.start, this.controlPoint1, this.controlPoint2, this.end)];
             var previousLength = this.endpointDistance();
 
             opt = opt || {};
@@ -1345,15 +1360,57 @@ var g = (function() {
 
     Path.prototype = {
 
+        // Getter for the first visible endpoint of the path.
+        get start() {
+
+            var segments = this.segments;
+            if (!segments) return null;
+
+            var numSegments = segments.length;
+            if (numSegments === 0) return null;
+
+            var n = numSegments;
+            for (var i = 0; i < n; i++) {
+
+                var seg = segments[i];
+                if (!seg.invisible) return seg.start;
+            }
+
+            // if no visible segment, return last segment end point
+            return segments[numSegments - 1].end;
+        },
+
+        // Getter for the last visible endpoint of the path.
+        get end() {
+
+            var segments = this.segments;
+            if (!segments) return null;
+
+            var numSegments = segments.length;
+            if (numSegments === 0) return null;
+
+            var n = numSegments;
+            for (var i = n - 1; i >= 0; i--) {
+
+                var seg = segments[i];
+                if (!seg.invisible) return seg.end;
+            }
+
+            // if no visible segment, return last segment end point
+            return segments[numSegments - 1].end;
+        },
+
         appendSegment: function(seg) {
 
+            var segments = this.segments;
+
             if (!Array.isArray(seg)) {
-                this.segments.push(seg);
+                segments.push(seg);
 
             } else {
                 var n = seg.length;
                 for (var i = 0; i < n; i++) {
-                    this.segments.push(seg[i]);
+                    segments.push(seg[i]);
                 }
             }
         },
@@ -1373,7 +1430,7 @@ var g = (function() {
             var n = numSegments;
             for (var i = 0; i < n; i++) {
 
-                var seg = this.getSegment(i);
+                var seg = segments[i];
 
                 if (!seg.invisible) {
                     var segBBox = seg.bbox();
@@ -1384,14 +1441,25 @@ var g = (function() {
             if (bbox) return bbox;
 
             // if the path has only invisible elements, return end point of last segment
-            var lastSegment = this.getSegment(n - 1);
+            var lastSegment = segments[n - 1];
             return Rect(lastSegment.end.x, lastSegment.end.y, 0, 0);
         },
 
-        // Returns a new path by serializing this path and then parsing it.
+        // Returns a new path that is a clone of this path.
         clone: function() {
 
-            return Path(this.serialize());
+            var segments = this.segments;
+            if (!segments) return new Path([]);
+
+            var path = new Path([]);
+            var n = segments.length;
+            for (var i = 0; i < n; i++) {
+
+                var seg = segments[i].clone();
+                path.appendSegment(seg);
+            }
+
+            return path;
         },
 
         // Checks whether two paths are exactly the same.
@@ -1401,17 +1469,18 @@ var g = (function() {
             if (!p) return false;
 
             var segments = this.segments;
-            if (!segments || !p.segments) return false; // if either segments is undefined or null
+            var otherSegments = p.segments;
+            if (!segments || !otherSegments) return false; // if either segments is undefined or null
 
             var numSegments = segments.length;
-            if (p.segments && (p.segments.length !== numSegments)) return false; // if the two paths have different number of segments, they cannot be equal
+            if (p.segments && (otherSegments.length !== numSegments)) return false; // if the two paths have different number of segments, they cannot be equal
 
             // as soon as an inequality is found in segments, return false
             var n = numSegments;
             for (var i = 0; i < n; i++) {
 
-                var seg = this.getSegment(i);
-                var otherSeg = p.getSegment(i);
+                var seg = segments[i];
+                var otherSeg = otherSegments[i];
 
                 if ((seg.type !== otherSeg.type) || (!seg.equals(otherSeg))) return false;
             }
@@ -1435,7 +1504,7 @@ var g = (function() {
             var n = segments.length;
             for (var i = 0; i < n; i++) {
 
-                var seg = this.getSegment(i);
+                var seg = segments[i];
                 var subdivisions = seg.getSubdivisions(opt);
                 segmentSubdivisions.push(subdivisions);
             }
@@ -1445,13 +1514,15 @@ var g = (function() {
 
         insertSegment: function(index, seg) {
 
+            var segments = this.segments;
+
             if (!Array.isArray(seg)) {
-                this.segments.splice(index, 0, seg);
+                segments.splice(index, 0, seg);
 
             } else {
                 var n = seg.length;
                 for (var i = 0; i < n; i++) {
-                    this.segments.splice(index, 0, seg[i]);
+                    segments.splice(index, 0, seg[i]);
                 }
             }
         },
@@ -1472,7 +1543,7 @@ var g = (function() {
             var n = segments.length;
             for (var i = 0; i < n; i++) {
 
-                var seg = this.getSegment(i);
+                var seg = segments[i];
                 var subdivisions = segmentSubdivisions[i];
                 length += seg.length({ subdivisions: subdivisions });
             }
@@ -1486,8 +1557,8 @@ var g = (function() {
             var segments = this.segments;
             if (!segments) return null; // if segments is undefined or null
 
-            if (ratio < 0) ratio = 0;
-            else if (ratio > 1) ratio = 1;
+            if (ratio <= 0) return this.start.clone();
+            else if (ratio >= 1) return this.end.clone();
 
             opt = opt || {};
             var precision = opt.precision;
@@ -1506,6 +1577,8 @@ var g = (function() {
             var segments = this.segments;
             if (!segments) return null; // if segments is undefined or null
 
+            if (length === 0) return this.start.clone();
+
             var fromStart = true;
             if (length < 0) {
                 fromStart = false; // negative lengths mean start calculation from end point
@@ -1522,7 +1595,7 @@ var g = (function() {
             var n = segments.length;
             for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
 
-                var seg = this.getSegment(i);
+                var seg = segments[i];
                 var subdivisions = segmentSubdivisions[i];
                 var d = seg.length({ subdivisions: subdivisions });
 
@@ -1538,10 +1611,10 @@ var g = (function() {
             }
 
             // if length requested is higher than the length of the path, return last visible segment endpoint
-            if (lastVisibleSegment) return (fromStart ? lastVisibleSegment.end : lastVisibleSegment.start);
+            if (lastVisibleSegment) return (fromStart ? lastVisibleSegment.end.clone() : lastVisibleSegment.start.clone());
 
             // if no visible segment, return last segment end point (no matter if fromStart or no)
-            var lastSegment = this.getSegment(n - 1);
+            var lastSegment = segments[n - 1];
             return lastSegment.end.clone();
         },
 
@@ -1555,13 +1628,15 @@ var g = (function() {
 
         replaceSegment: function(index, seg) {
 
+            var segments = this.segments;
+
             if (!Array.isArray(seg)) {
-                this.segments.splice(index, 1, seg);
+                segments.splice(index, 1, seg);
 
             } else {
                 var n = seg.length;
                 for (var i = 0; i < n; i++) {
-                    this.segments.splice(index, 1, seg[i]);
+                    segments.splice(index, 1, seg[i]);
                 }
             }
         },
@@ -1574,7 +1649,7 @@ var g = (function() {
             var n = segments.length;
             for (var i = 0; i < n; i++) {
 
-                var seg = this.getSegment(i);
+                var seg = segments[i];
                 seg.scale(sx, sy, origin);
             }
 
@@ -1637,7 +1712,7 @@ var g = (function() {
             var n = segments.length;
             for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
 
-                var seg = this.getSegment(i);
+                var seg = segments[i];
                 var subdivisions = segmentSubdivisions[i];
                 var d = seg.length({ subdivisions: subdivisions });
 
@@ -1701,7 +1776,7 @@ var g = (function() {
             var n = segments.length;
             for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
 
-                var seg = this.getSegment(i);
+                var seg = segments[i];
                 var subdivisions = segmentSubdivisions[i];
                 var d = seg.length({ subdivisions: subdivisions });
 
@@ -1738,7 +1813,7 @@ var g = (function() {
             var n = segments.length;
             for (var i = 0; i < n; i++) {
 
-                var seg = this.getSegment(i);
+                var seg = segments[i];
                 seg.translate(tx, ty);
             }
 
@@ -1760,7 +1835,7 @@ var g = (function() {
             var n = segments.length;
             for (var i = 0; i < n; i++) {
 
-                var seg = this.getSegment(i);
+                var seg = segments[i];
 
                 if (i === 0 && seg.type !== 'M' && !seg.start.equals(Point(0, 0))) {
                     throw new Error('Invalid path segments. The path must start with an M segment starting at 0,0.');
@@ -1787,7 +1862,7 @@ var g = (function() {
             var n = segments.length;
             for (var i = 0; i < n; i++) {
 
-                var seg = this.getSegment(i);
+                var seg = segments[i];
 
                 pathData += seg.serialize() + ' ';
             }
@@ -1831,6 +1906,11 @@ var g = (function() {
     };
 
     var linetoPrototype = {
+
+        clone: function() {
+
+            return new Lineto(this.start, this.end);
+        },
 
         getSubdivisions: function() {
 
@@ -1893,6 +1973,11 @@ var g = (function() {
 
     var curvetoPrototype = {
 
+        clone: function() {
+
+            return new Curveto(this.start, this.controlPoint1, this.controlPoint2, this.end);
+        },
+
         type: 'C',
 
         serialize: function() {
@@ -1946,6 +2031,11 @@ var g = (function() {
         bbox: function() {
 
             return null;
+        },
+
+        clone: function() {
+
+            return new Moveto(this.start, this.end);
         },
 
         getSubdivisions: function() {
@@ -2032,6 +2122,11 @@ var g = (function() {
     };
 
     var closepathPrototype = {
+
+        clone: function() {
+
+            return new Closepath(this.start, this.end);
+        },
 
         getSubdivisions: function() {
 
@@ -2809,6 +2904,30 @@ var g = (function() {
 
     Polyline.prototype = {
 
+        // Getter for the first point of the polyline.
+        get start() {
+
+            var points = this.points;
+            if (!points) return null; // if points array is undefined or null
+
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+
+            return this.points[0];
+        },
+
+        // Getter for the last point of the polyline
+        get end() {
+
+            var points = this.points;
+            if (!points) return null; // if points array is undefined or null
+
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+
+            return this.points[numPoints - 1];
+        },
+
         bbox: function() {
 
             var x1 = Infinity;
@@ -3098,7 +3217,7 @@ var g = (function() {
 
             var numPoints = points.length;
             if (numPoints === 0) return null; // if points array is empty
-            else if (numPoints === 1) return points[0]; // if there is only one point
+            else if (numPoints === 1) return points[0].clone(); // if there is only one point
 
             if (ratio <= 0) return points[0].clone();
             else if (ratio >= 1) return points[numPoints - 1].clone();
@@ -3283,6 +3402,32 @@ var g = (function() {
             }
 
             return pointLength;
+        },
+
+        toPath: function() {
+
+            var points = this.points;
+            if (!points) return new Path([]); // if points array is undefined or null
+
+            var numPoints = points.length;
+            if (numPoints === 0) return new Path([]); // if points array is empty
+
+            var path = new Path([]);
+
+            var prevSeg = null;
+            var n = numPoints;
+            for (var i = 0; i < n; i++) {
+
+                var point = points[i];
+
+                var segDefinition = ((i === 0) ? Path.segmentTypes['M'] : Path.segmentTypes['L']);
+                var seg = segDefinition.fromCoords([point.x, point.y], prevSeg, null);
+                path.appendSegment(seg);
+
+                prevSeg = seg;
+            }
+
+            return path;
         },
 
         serialize: function() {

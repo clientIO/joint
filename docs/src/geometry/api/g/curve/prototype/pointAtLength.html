@@ -5,7 +5,7 @@
 
 <p>The curve is first subdivided, according to <code>opt.precision</code> (refer to <code>curve.length()</code> <a href="geometry.html#g.curve.prototype.length">documentation</a> for more information about precision and curve flattening). Then, one subdivision is identified which contains the point at <code>length</code>. A binary search is then performed on that subdivision, until a curve is found whose endpoint lies within <code>opt.precision</code> away from <code>length</code>. That endpoint is returned by the function.</p>
 
-<p>The default value for <code>opt.precision</code> is 2; this corresponds to maximum observed error of 1%.</p>
+<p>The default value for <code>opt.precision</code> is 3; this corresponds to maximum observed error of 0.1%.</p>
 
 <p>As a rule of thumb, increasing precision by 1 doubles the number of operations needed to find the point to be returned (this is on top of the cost of curve subdivision); exact numbers vary for every individual curve, however.</p>
 

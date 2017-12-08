@@ -5,7 +5,7 @@
 
 <p>The <code>opt.precision</code> property is logarithmic, which means that increasing precision by 1 decreases observed error in length by a factor of 10. (For example, precision 3 leads to an observed error of less than 0.1%, precision 4 guarantees an observed error of less than 0.01%, etc.)</p>
 
-<p>The default value for <code>opt.precision</code> is 2; this corresponds to maximum observed error of 1%.</p>
+<p>The default value for <code>opt.precision</code> is 3; this corresponds to maximum observed error of 0.1%.</p>
 
 <p>As a rule of thumb, increasing precision by 1 quadruples the number of operations needed to determine the length; exact numbers vary for every individual curve, however. Precision 3 is considered good enough when drawing curve approximations, and precision 4 is considered good enough for mapping curve <code>t</code> values to curve length. (Precision 4 should be the highest necessary for any practical use.) Due to JavaScript's floating point precision, maximum precision is 13 (<code>opt.precision</code> accepts higher values, but the result generally does not change).</p>
 
