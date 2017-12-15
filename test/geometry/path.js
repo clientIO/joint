@@ -17,35 +17,6 @@ QUnit.module('path', function(hooks) {
 
         QUnit.test('creates a new Path object', function(assert) {
 
-            var error;
-
-            // empty string
-            try {
-                g.Path('');
-            } catch (e) {
-                error = e;
-            }
-
-            assert.ok(typeof error !== 'undefined', 'Should throw an error when trying to construct a Path with an empty string.');
-
-            // path segments array that does not start with a moveto segment
-            try {
-                g.Path([g.Path.segments.L('150 100', '100 100')]);
-            } catch (e) {
-                error = e;
-            }
-
-            assert.ok(typeof error !== 'undefined', 'Should throw an error when trying to construct a Path with invalid path segments array.');
-
-            // path segments array that starts with a moveto segment that does not start at 0,0
-            try {
-                g.Path([g.Path.segments.M('150 100', '100 100')]);
-            } catch (e) {
-                error = e;
-            }
-
-            assert.ok(typeof error !== 'undefined', 'Should throw an error when trying to construct a Path with invalid path segments array.');
-
             var path;
 
             // no arguments
@@ -69,7 +40,6 @@ QUnit.module('path', function(hooks) {
             assert.ok(path.segments[1] instanceof g.Path.segmentTypes.L);
             assert.ok(path.segments[2] instanceof g.Path.segmentTypes.C);
             assert.ok(path.segments[3] instanceof g.Path.segmentTypes.Z);
-            assert.equal(path.segments[0].start.toString(), g.Point(0, 0).toString());
             assert.equal(path.segments[0].end.toString(), g.Point(150, 100).toString());
             assert.equal(path.segments[1].start.toString(), g.Point(150, 100).toString());
             assert.equal(path.segments[1].end.toString(), g.Point(100, 100).toString());
@@ -81,7 +51,7 @@ QUnit.module('path', function(hooks) {
             assert.equal(path.segments[3].end.toString(), g.Point(150, 100).toString());
 
             // path segments array
-            path = g.Path([g.Path.segmentTypes.M('0 0', '150 100'), g.Path.segmentTypes.L('150 100', '100 100'), g.Path.segmentTypes.C('100 100', '100 100', '0 150', '100 200'), g.Path.segmentTypes.Z('100 200', '150 100')]);
+            path = g.Path([g.Path.createSegment('M', 150, 100), g.Path.createSegment('L', 100, 100), g.Path.createSegment('C', 100, 100, 0, 150, 100, 200), g.Path.createSegment('Z')]);
             assert.ok(path, 'returns instance of g.Path');
             assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
             assert.equal(path.segments.length, 4);
@@ -89,7 +59,6 @@ QUnit.module('path', function(hooks) {
             assert.ok(path.segments[1] instanceof g.Path.segmentTypes.L);
             assert.ok(path.segments[2] instanceof g.Path.segmentTypes.C);
             assert.ok(path.segments[3] instanceof g.Path.segmentTypes.Z);
-            assert.equal(path.segments[0].start.toString(), g.Point(0, 0).toString());
             assert.equal(path.segments[0].end.toString(), g.Point(150, 100).toString());
             assert.equal(path.segments[1].start.toString(), g.Point(150, 100).toString());
             assert.equal(path.segments[1].end.toString(), g.Point(100, 100).toString());
@@ -330,20 +299,15 @@ QUnit.module('path', function(hooks) {
 
             QUnit.test('compare to segment parent functions', function(assert) {
 
-                var seg;
                 var path;
 
-                seg = g.Path.segmentTypes.M('0 0', '100 0');
-                path = g.Path('M 0 0 M 100 0');
-                assert.equal(path.length(), seg.length());
-
-                seg = g.Path.segmentTypes.C('0 0', '0 200', '200 200', '200 0');
+                var curve = g.Curve('0 0', '0 200', '200 200', '200 0');
                 path = g.Path('M 0 0 C 0 200 200 200 200 0');
-                assert.equal(path.length(), seg.length());
+                assert.equal(path.length(), curve.length());
 
-                seg = g.Path.segmentTypes.L('0 0', '100 0');
+                var line = g.Line('0 0', '100 0');
                 path = g.Path('M 0 0 L 100 0');
-                assert.equal(path.length(), seg.length());
+                assert.equal(path.length(), line.length());
             });
 
             QUnit.test('compare to browser implementation', function(assert) {
@@ -468,37 +432,28 @@ QUnit.module('path', function(hooks) {
 
             QUnit.test('compare to segment parent functions', function(assert) {
 
-                var seg;
                 var path;
 
-                seg = g.Path.segmentTypes.M('0 0', '100 0');
-                path = g.Path('M 0 0 M 100 0');
-                assert.equal(path.pointAt(0.4).toString(), seg.pointAt(0.4).toString());
-                assert.equal(path.pointAt(0.4, { precision: 0 }).toString(), seg.pointAt(0.4, { precision: 0 }).toString());
-
-                assert.equal(path.pointAt(-1).toString(), seg.pointAt(-1).toString());
-                assert.equal(path.pointAt(10).toString(), seg.pointAt(10).toString());
-
-                seg = g.Path.segmentTypes.C('0 0', '0 200', '200 200', '200 0');
+                var curve = g.Curve('0 0', '0 200', '200 200', '200 0');
                 path = g.Path('M 0 0 C 0 200 200 200 200 0');
-                assert.equal(path.pointAt(0.4).toString(), seg.pointAt(0.4).toString());
-                assert.equal(path.pointAt(0.4, { precision: 0 }).toString(), seg.pointAt(0.4, { precision: 0 }).toString());
-                assert.equal(path.pointAt(0.4, { precision: 1 }).toString(), seg.pointAt(0.4, { precision: 1 }).toString());
-                assert.equal(path.pointAt(0.4, { precision: 2 }).toString(), seg.pointAt(0.4, { precision: 2 }).toString());
-                assert.equal(path.pointAt(0.4, { precision: 3 }).toString(), seg.pointAt(0.4, { precision: 3 }).toString());
-                assert.equal(path.pointAt(0.4, { precision: 4 }).toString(), seg.pointAt(0.4, { precision: 4 }).toString());
-                assert.equal(path.pointAt(0.4, { precision: 5 }).toString(), seg.pointAt(0.4, { precision: 5 }).toString());
+                assert.equal(path.pointAt(0.4).toString(), curve.pointAt(0.4).toString());
+                assert.equal(path.pointAt(0.4, { precision: 0 }).toString(), curve.pointAt(0.4, { precision: 0 }).toString());
+                assert.equal(path.pointAt(0.4, { precision: 1 }).toString(), curve.pointAt(0.4, { precision: 1 }).toString());
+                assert.equal(path.pointAt(0.4, { precision: 2 }).toString(), curve.pointAt(0.4, { precision: 2 }).toString());
+                assert.equal(path.pointAt(0.4, { precision: 3 }).toString(), curve.pointAt(0.4, { precision: 3 }).toString());
+                assert.equal(path.pointAt(0.4, { precision: 4 }).toString(), curve.pointAt(0.4, { precision: 4 }).toString());
+                assert.equal(path.pointAt(0.4, { precision: 5 }).toString(), curve.pointAt(0.4, { precision: 5 }).toString());
 
-                assert.equal(path.pointAt(-1).toString(), seg.pointAt(-1).toString());
-                assert.equal(path.pointAt(10).toString(), seg.pointAt(10).toString());
+                assert.equal(path.pointAt(-1).toString(), curve.pointAt(-1).toString());
+                assert.equal(path.pointAt(10).toString(), curve.pointAt(10).toString());
 
-                seg = g.Path.segmentTypes.L('0 0', '100 0');
+                var line = g.Line('0 0', '100 0');
                 path = g.Path('M 0 0 L 100 0');
-                assert.equal(path.pointAt(0.4).toString(), seg.pointAt(0.4).toString());
-                assert.equal(path.pointAt(0.4, { precision: 0 }).toString(), seg.pointAt(0.4, { precision: 0 }).toString());
+                assert.equal(path.pointAt(0.4).toString(), line.pointAt(0.4).toString());
+                assert.equal(path.pointAt(0.4, { precision: 0 }).toString(), line.pointAt(0.4, { precision: 0 }).toString());
 
-                assert.equal(path.pointAt(-1).toString(), seg.pointAt(-1).toString());
-                assert.equal(path.pointAt(10).toString(), seg.pointAt(10).toString());
+                assert.equal(path.pointAt(-1).toString(), line.pointAt(-1).toString());
+                assert.equal(path.pointAt(10).toString(), line.pointAt(10).toString());
             });
         });
 
@@ -644,48 +599,37 @@ QUnit.module('path', function(hooks) {
 
             QUnit.test('compare to segment parent functions', function(assert) {
 
-                var seg;
                 var path;
 
-                seg = g.Path.segmentTypes.M('0 0', '100 0');
-                path = g.Path('M 0 0 M 100 0');
-                assert.equal(path.pointAtLength(40).toString(), seg.pointAtLength(40).toString());
-                assert.equal(path.pointAtLength(40, { precision: 0 }).toString(), seg.pointAtLength(40, { precision: 0 }).toString());
-                assert.equal(path.pointAtLength(10000).toString(), seg.pointAtLength(10000).toString());
-
-                assert.equal(path.pointAtLength(-40).toString(), seg.pointAtLength(-40).toString());
-                assert.equal(path.pointAtLength(-40, { precision: 0 }).toString(), seg.pointAtLength(-40, { precision: 0 }).toString());
-                assert.equal(path.pointAtLength(-10000).toString(), seg.pointAtLength(-10000).toString());
-
-                seg = g.Path.segmentTypes.C('0 0', '0 200', '200 200', '200 0');
+                var curve = g.Curve('0 0', '0 200', '200 200', '200 0');
                 path = g.Path('M 0 0 C 0 200 200 200 200 0');
-                assert.equal(path.pointAtLength(250).toString(), seg.pointAtLength(250).toString());
-                assert.equal(path.pointAtLength(250, { precision: 0 }).toString(), seg.pointAtLength(250, { precision: 0 }).toString());
-                assert.equal(path.pointAtLength(250, { precision: 1 }).toString(), seg.pointAtLength(250, { precision: 1 }).toString());
-                assert.equal(path.pointAtLength(250, { precision: 2 }).toString(), seg.pointAtLength(250, { precision: 2 }).toString());
-                assert.equal(path.pointAtLength(250, { precision: 3 }).toString(), seg.pointAtLength(250, { precision: 3 }).toString());
-                assert.equal(path.pointAtLength(250, { precision: 4 }).toString(), seg.pointAtLength(250, { precision: 4 }).toString());
-                assert.equal(path.pointAtLength(250, { precision: 5 }).toString(), seg.pointAtLength(250, { precision: 5 }).toString());
-                assert.equal(path.pointAtLength(10000).toString(), seg.pointAtLength(10000).toString());
+                assert.equal(path.pointAtLength(250).toString(), curve.pointAtLength(250).toString());
+                assert.equal(path.pointAtLength(250, { precision: 0 }).toString(), curve.pointAtLength(250, { precision: 0 }).toString());
+                assert.equal(path.pointAtLength(250, { precision: 1 }).toString(), curve.pointAtLength(250, { precision: 1 }).toString());
+                assert.equal(path.pointAtLength(250, { precision: 2 }).toString(), curve.pointAtLength(250, { precision: 2 }).toString());
+                assert.equal(path.pointAtLength(250, { precision: 3 }).toString(), curve.pointAtLength(250, { precision: 3 }).toString());
+                assert.equal(path.pointAtLength(250, { precision: 4 }).toString(), curve.pointAtLength(250, { precision: 4 }).toString());
+                assert.equal(path.pointAtLength(250, { precision: 5 }).toString(), curve.pointAtLength(250, { precision: 5 }).toString());
+                assert.equal(path.pointAtLength(10000).toString(), curve.pointAtLength(10000).toString());
 
-                assert.equal(path.pointAtLength(-250).toString(), seg.pointAtLength(-250).toString());
-                assert.equal(path.pointAtLength(-250, { precision: 0 }).toString(), seg.pointAtLength(-250, { precision: 0 }).toString());
-                assert.equal(path.pointAtLength(-250, { precision: 1 }).toString(), seg.pointAtLength(-250, { precision: 1 }).toString());
-                assert.equal(path.pointAtLength(-250, { precision: 2 }).toString(), seg.pointAtLength(-250, { precision: 2 }).toString());
-                assert.equal(path.pointAtLength(-250, { precision: 3 }).toString(), seg.pointAtLength(-250, { precision: 3 }).toString());
-                assert.equal(path.pointAtLength(-250, { precision: 4 }).toString(), seg.pointAtLength(-250, { precision: 4 }).toString());
-                assert.equal(path.pointAtLength(-250, { precision: 5 }).toString(), seg.pointAtLength(-250, { precision: 5 }).toString());
-                assert.equal(path.pointAtLength(-10000).toString(), seg.pointAtLength(-10000).toString());
+                assert.equal(path.pointAtLength(-250).toString(), curve.pointAtLength(-250).toString());
+                assert.equal(path.pointAtLength(-250, { precision: 0 }).toString(), curve.pointAtLength(-250, { precision: 0 }).toString());
+                assert.equal(path.pointAtLength(-250, { precision: 1 }).toString(), curve.pointAtLength(-250, { precision: 1 }).toString());
+                assert.equal(path.pointAtLength(-250, { precision: 2 }).toString(), curve.pointAtLength(-250, { precision: 2 }).toString());
+                assert.equal(path.pointAtLength(-250, { precision: 3 }).toString(), curve.pointAtLength(-250, { precision: 3 }).toString());
+                assert.equal(path.pointAtLength(-250, { precision: 4 }).toString(), curve.pointAtLength(-250, { precision: 4 }).toString());
+                assert.equal(path.pointAtLength(-250, { precision: 5 }).toString(), curve.pointAtLength(-250, { precision: 5 }).toString());
+                assert.equal(path.pointAtLength(-10000).toString(), curve.pointAtLength(-10000).toString());
 
-                seg = g.Path.segmentTypes.L('0 0', '100 0');
+                var line = g.Line('0 0', '100 0');
                 path = g.Path('M 0 0 L 100 0');
-                assert.equal(path.pointAtLength(40).toString(), seg.pointAtLength(40).toString());
-                assert.equal(path.pointAtLength(40, { precision: 0 }).toString(), seg.pointAtLength(40, { precision: 0 }).toString());
-                assert.equal(path.pointAtLength(10000).toString(), seg.pointAtLength(10000).toString());
+                assert.equal(path.pointAtLength(40).toString(), line.pointAtLength(40).toString());
+                assert.equal(path.pointAtLength(40, { precision: 0 }).toString(), line.pointAtLength(40, { precision: 0 }).toString());
+                assert.equal(path.pointAtLength(10000).toString(), line.pointAtLength(10000).toString());
 
-                assert.equal(path.pointAtLength(-40).toString(), seg.pointAtLength(-40).toString());
-                assert.equal(path.pointAtLength(-40, { precision: 0 }).toString(), seg.pointAtLength(-40, { precision: 0 }).toString());
-                assert.equal(path.pointAtLength(-10000).toString(), seg.pointAtLength(-10000).toString());
+                assert.equal(path.pointAtLength(-40).toString(), line.pointAtLength(-40).toString());
+                assert.equal(path.pointAtLength(-40, { precision: 0 }).toString(), line.pointAtLength(-40, { precision: 0 }).toString());
+                assert.equal(path.pointAtLength(-10000).toString(), line.pointAtLength(-10000).toString());
             });
 
             QUnit.test('compare to browser implementation', function(assert) {

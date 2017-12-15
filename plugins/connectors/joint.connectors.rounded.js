@@ -23,7 +23,7 @@ joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opts) {
         c1 = g.point(vertex).move(prev, -Math.min(offset, d1)).round();
         c2 = g.point(vertex).move(next, -Math.min(offset, d2)).round();
 
-        d.push(c1.x, c1.y, 'S', vertex.x, vertex.y, c2.x, c2.y, 'L');
+        d.push(c1.x, c1.y, 'Q', vertex.x, vertex.y, c2.x, c2.y, 'L');
     });
 
     d.push(targetPoint.x, targetPoint.y);
