@@ -301,9 +301,9 @@ var link = new joint.dia.Link({
             },
             vertexMarker: {
                 type: 'circle',
-                fill: '#f00',
+                fill: '#666',
                 stroke: '#333',
-                r: 1
+                r: 5
             }
         }
     }
