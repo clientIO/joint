@@ -2236,7 +2236,8 @@ var g = (function() {
         move: function(ref, distance) {
 
             var theta = toRad(Point(ref).theta(this));
-            return this.offset(cos(theta) * distance, -sin(theta) * distance);
+            var offset = this.offset(cos(theta) * distance, -sin(theta) * distance);
+            return offset;
         },
 
         // Scales x and y such that the distance between the point and the origin (0,0) is equal to the given length.
