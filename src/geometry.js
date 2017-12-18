@@ -1309,6 +1309,13 @@ var g = (function() {
             return ((this.end.x - this.start.x) * (p.y - this.start.y) - (this.end.y - this.start.y) * (p.x - this.start.x)) / 2;
         },
 
+        rotate: function(origin, angle) {
+
+            this.start.rotate(origin, angle);
+            this.end.rotate(origin, angle);
+            return this;
+        },
+
         scale: function(sx, sy, origin) {
 
             this.start.scale(sx, sy, origin);

@@ -254,10 +254,9 @@ header.transition('size', { width: 160, height: 100 }, {
 var link = new joint.dia.Link({
     source: { id: circle.id },
     target: { id: rectangle.id },
-    /*router: {
+    router: {
         name: 'orthogonal'
-    },*/
-    smooth: true,
+    },
     labels: [{
         position: 0.5,
         markup: '<path/>',
@@ -302,9 +301,9 @@ var link = new joint.dia.Link({
             },
             vertexMarker: {
                 type: 'circle',
-                fill: '#666',
+                fill: '#f00',
                 stroke: '#333',
-                r: 5
+                r: 1
             }
         }
     }

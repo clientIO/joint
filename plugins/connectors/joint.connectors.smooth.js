@@ -16,7 +16,7 @@ joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
         // targetControlPoint.Y being equal to targetPoint.Y
         // this produces an S-like curve
 
-        path = new g.Path([]);
+        path = new g.Path();
 
         var segment;
 

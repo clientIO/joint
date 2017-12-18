@@ -4,7 +4,7 @@ joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opt) {
 
     var offset = opt.radius || 10;
 
-    var path = new g.Path([]);
+    var path = new g.Path();
     var segment;
 
     segment = g.Path.createSegment('M', sourcePoint);
@@ -13,6 +13,7 @@ joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opt) {
     var _13 = 1 / 3;
     var _23 = 2 / 3;
 
+    var curr;
     var prev, next;
     var prevDistance, nextDistance;
     var startMove, endMove;
@@ -20,20 +21,22 @@ joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opt) {
     var control1, control2;
     joint.util.toArray(vertices).forEach(function(vertex, index) {
 
+        curr = new g.Point(vertex);
+
         prev = vertices[index - 1] || sourcePoint;
         next = vertices[index + 1] || targetPoint;
 
-        prevDistance = nextDistance || (vertex.distance(prev) / 2);
-        nextDistance = vertex.distance(next) / 2;
+        prevDistance = nextDistance || (curr.distance(prev) / 2);
+        nextDistance = curr.distance(next) / 2;
 
         startMove = -Math.min(offset, prevDistance);
         endMove = -Math.min(offset, nextDistance);
 
-        roundedStart = (new g.Point(vertex)).move(prev, startMove).round();
-        roundedEnd = (new g.Point(vertex)).move(next, endMove).round();
+        roundedStart = curr.clone().move(prev, startMove).round();
+        roundedEnd = curr.clone().move(next, endMove).round();
 
-        control1 = new g.Point((_13 * roundedStart.x) + (_23 * vertex.x), (_23 * vertex.y) + (_13 * roundedStart.y));
-        control2 = new g.Point((_13 * roundedEnd.x) + (_23 * vertex.x), (_23 * vertex.y) + (_13 * roundedEnd.y));
+        control1 = new g.Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
+        control2 = new g.Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
 
         segment = g.Path.createSegment('L', roundedStart);
         path.appendSegment(segment);
