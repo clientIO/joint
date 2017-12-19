@@ -922,23 +922,6 @@ var g = (function() {
             return this;
         },
 
-        // Returns a path
-        toPath: function() {
-
-            return Path(this.toPathData());
-        },
-
-        // Returns path data
-        toPathData: function() {
-
-            var start = this.start;
-            var c1 = this.controlPoint1;
-            var c2 = this.controlPoint2;
-            var end = this.end;
-
-            return 'M ' + start.x + ' ' + start.y + ' C ' + c1.x + ' ' + c1.y + ' ' + c2.x + ' ' + c2.y + ' ' + end.x + ' ' + end.y;
-        },
-
         // Returns an array of points that represents the curve when flattened, up to `opt.precision`; or using `opt.subdivisions` provided.
         // Flattened length is no more than 10^(-precision) away from real curve length.
         toPoints: function(opt) {
@@ -967,7 +950,7 @@ var g = (function() {
 
         toString: function() {
 
-            return 'C' + ' ' + this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
+            return this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
         }
     };
 
@@ -1400,24 +1383,25 @@ var g = (function() {
     // For backwards compatibility:
     g.Line.prototype.intersection = g.Line.prototype.intersect;
 
-    // Accepts normalized path data string, array of segments, or array of Curves and/or Lines.
-    // Path created is not guaranteed to be a valid (serializable) path (might not start with an M, segments might not be connected).
+    // Accepts path data string, array of segments, array of Curves and/or Lines, or a Polyline.
+    // Path created is not guaranteed to be a valid (serializable) path (might not start with an M).
     var Path = g.Path = function(arg) {
 
         if (!(this instanceof Path)) {
             return new Path(arg);
         }
 
-        if (typeof arg === 'string') { // create from path data string
+        if (typeof arg === 'string') { // create from a path data string
             return new Path.parse(arg);
         }
 
         this.segments = [];
 
+        var i;
+        var n;
         if (Array.isArray(arg) && arg.length !== 0) { // if arg is a non-empty array
-            var i;
-            var n = arg.length;
-            if (arg[0].isSegment) { // create from array of segments
+            n = arg.length;
+            if (arg[0].isSegment) { // create from an array of segments
                 for (i = 0; i < n; i++) {
 
                     var segment = arg[i];
@@ -1425,7 +1409,7 @@ var g = (function() {
                     this.appendSegment(segment);
                 }
 
-            } else { // create from array of Curves and/or Lines
+            } else { // create from an array of Curves and/or Lines
                 for (i = 0; i < n; i++) {
 
                     var obj = arg[i];
@@ -1443,6 +1427,24 @@ var g = (function() {
                     }
                 }
             }
+
+        } else if (arg instanceof Line) { // create from a single Line
+            this.appendSegment(Path.createSegment('M', arg.start));
+            this.appendSegment(Path.createSegment('L', arg.end));
+
+        } else if (arg instanceof Curve) { // create from a single Curve
+            this.appendSegment(Path.createSegment('M', arg.start));
+            this.appendSegment(Path.createSegment('C', arg.controlPoint1, arg.controlPoint2, arg.end));
+
+        } else if (arg instanceof Polyline && arg.points && arg.points.length !== 0) { // create from a Polyline
+            n = arg.points.length;
+            for (i = 0; i < n; i++) {
+
+                var point = arg.points[i];
+
+                if (i === 0) this.appendSegment(Path.createSegment('M', point));
+                this.appendSegment(Path.createSegment('L', point));
+            }
         }
     };
 
@@ -1454,9 +1456,9 @@ var g = (function() {
     // Throws an error if an unrecognized path command is provided (according to Path.segmentTypes). Only a subset of SVG commands is currently supported (L, C, M, Z).
     Path.parse = function(pathData) {
 
-        if (!pathData) return new Path([]);
+        if (!pathData) return new Path();
 
-        var path = new Path([]);
+        var path = new Path();
 
         var commandRe = /(?:[a-zA-Z] *)(?:(?:-?\d+(?:\.\d+)? *,? *)|(?:-?\.\d+ *,? *))+|(?:[a-zA-Z] *)(?! |\d|-|\.)/g;
         var commandReArray = pathData.match(commandRe);
@@ -1537,6 +1539,7 @@ var g = (function() {
             return segments[numSegments - 1].end;
         },
 
+        // Accepts one segment or an array of segments as argument.
         appendSegment: function(arg) {
 
             var segments = this.segments;
@@ -1597,9 +1600,9 @@ var g = (function() {
         clone: function() {
 
             var segments = this.segments;
-            if (!segments) return new Path([]);
+            if (!segments) return new Path();
 
-            var path = new Path([]);
+            var path = new Path();
             var n = segments.length;
             for (var i = 0; i < n; i++) {
 
@@ -1667,6 +1670,8 @@ var g = (function() {
             return segmentSubdivisions;
         },
 
+        // Accepts negative indices.
+        // Accepts one segment or an array of segments as argument.
         insertSegment: function(index, arg) {
 
             var segments = this.segments || [];
@@ -1699,12 +1704,10 @@ var g = (function() {
         },
 
         // Checks whether current path segments are valid.
-        // Note that d is allowed to be empty - should disable rendering of the path (but some browsers do not support the behavior due to bugs).
+        // Note that d is allowed to be empty - should disable rendering of the path.
         isValid: function() {
 
             var segments = this.segments;
-            if (!segments || segments.length === 0) return false;
-
             if (segments[0].type !== 'M') return false;
             else return true;
         },
@@ -1864,6 +1867,8 @@ var g = (function() {
             }
         },
 
+        // Accepts negative indices.
+        // Accepts one segment or an array of segments as argument
         replaceSegment: function(index, arg) {
 
             var segments = this.segments;
@@ -1960,7 +1965,7 @@ var g = (function() {
             if (precision !== 0) precision = precision || this.PRECISION;
             var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
 
-            var lastVisibleSegmentIndex;
+            var lastVisibleSegmentIndex = null;
             var l = 0; // length so far
             var n = segments.length;
             for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
@@ -2074,7 +2079,7 @@ var g = (function() {
         },
 
         // Returns a string that can be used to reconstruct the path.
-        // Additional error checking compared to toString (must have segments, must start with M segment).
+        // Additional error checking compared to toString (must start with M segment).
         serialize: function() {
 
             var segments = this.segments;
@@ -2589,6 +2594,7 @@ var g = (function() {
 
         // Offset me by the specified amount.
         offset: function(dx, dy) {
+
             return Point.prototype.offset.call(this, dx, dy);
         },
 
@@ -2597,6 +2603,7 @@ var g = (function() {
         // @param dy {delta_y} representing additional size to y -
         // dy param is not required -> in that case y is sized by dx
         inflate: function(dx, dy) {
+
             if (dx === undefined) {
                 dx = 0;
             }
@@ -2846,7 +2853,7 @@ var g = (function() {
 
     Polyline.parse = function(svgString) {
 
-        if (svgString === '') return Polyline([]);
+        if (svgString === '') return new Polyline();
 
         var coords = svgString.split(/\s|,/);
 
@@ -2916,10 +2923,10 @@ var g = (function() {
         clone: function() {
 
             var points = this.points;
-            if (!points) return new Polyline([]); // if points array is undefined or null
+            if (!points) return new Polyline(); // if points array is undefined or null
 
             var numPoints = points.length;
-            if (numPoints === 0) return new Polyline([]); // if points array is empty
+            if (numPoints === 0) return new Polyline(); // if points array is empty
 
             var newPoints = [];
             var n = numPoints;
@@ -2942,10 +2949,10 @@ var g = (function() {
             var n;
 
             var points = this.points;
-            if (!points) return new Polyline([]); // if points array is undefined or null
+            if (!points) return new Polyline(); // if points array is undefined or null
 
             var numPoints = points.length;
-            if (numPoints === 0) return new Polyline([]); // if points array is empty
+            if (numPoints === 0) return new Polyline(); // if points array is empty
 
             // step 1: find the starting point - point with the lowest y (if equality, highest x)
             var startPoint;
@@ -3373,29 +3380,6 @@ var g = (function() {
             }
 
             return pointLength;
-        },
-
-        toPath: function() {
-
-            var points = this.points;
-            if (!points) return new Path([]); // if points array is undefined or null
-
-            var numPoints = points.length;
-            if (numPoints === 0) return new Path([]); // if points array is empty
-
-            var path = new Path([]);
-
-            var n = numPoints;
-            for (var i = 0; i < n; i++) {
-
-                var point = points[i];
-
-                var type = (i === 0) ? 'M' : 'L';
-                var segment = Path.createSegment(type, point);
-                path.appendSegment(segment);
-            }
-
-            return path;
         },
 
         serialize: function() {

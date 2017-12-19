@@ -1,7 +1,7 @@
 <pre class="docs-method-signature"><code>path.pointAt(ratio [, opt])</code></pre>
 <p>Return a point on the path that lies <code>ratio</code> (normalized length) away from the beginning of the path.</p>
 
-<p>The function expects <code>ratio</code> to lie between 0 and 1; values outside the range are constrained to 0 and 1, respectively. Invisible segments (e.g. moveto segments) have no length and are therefore skipped by the algorithm. If the path contains no visible segments, the <code>end</code> point of the last segment is returned. If the path has no segments at all, <code>null</code> is returned.</p>
+<p>The function expects <code>ratio</code> to lie between 0 and 1; values outside the range are constrained to 0 and 1, respectively. Invisible segments (e.g. Moveto segments) have no length and are therefore skipped by the algorithm. If the path contains no visible segments, the <code>end</code> point of the last segment is returned. If the path has no segments at all, <code>null</code> is returned.</p>
 
 <p>The function uses the same algorithm as the <code>path.pointAtLength()</code> <a href="geometry.html#g.path.prototype.pointAtLength">function</a>. It finds a visible segment which contains the point at length that corresponds to given <code>ratio</code> and then calls the segment's <code>pointAtLength()</code> function.</p>
 

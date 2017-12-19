@@ -97,7 +97,8 @@ for (i = 0; i < n; i++) {
     svg.append(V('circle', { cx: curvePoint.x, cy: curvePoint.y, r: 1, fill: getColor(t) }));
 }
 
-var curvePath = V('path', { d: gCurve.toPath().serialize(), stroke: 'green', fill: 'none' });
+var gCurvePath = new g.Path(gCurve);
+var curvePath = V('path', { d: gCurvePath.serialize(), stroke: 'green', fill: 'none' });
 console.log(curvePath.convertToPathData());
 curvePath.translate(100);
 svg.append(curvePath);

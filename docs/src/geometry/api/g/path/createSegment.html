@@ -1,0 +1,18 @@
+<pre class="docs-method-signature"><code>g.Path.createSegment(type [, arg1, arg2...])</code></pre>
+<p>Return a new path segment with specified <code>type</code> and (optionally) any further arguments.</p>
+
+<p>The function throws an error if type is not recognized; only a limited subset of  SVG path commands is supported (absolute versions of Moveto, Lineto, Curveto and Closepath).</p>
+
+<p>Every path segment type expects a different number of arguments. Moveto expects 1 point, Lineto expects 1 point, Curveto expects 3 points, and Closepath expects no arguments. Chaining of arguments is allowed, so multiples of these numbers are accepted (e.g. 3 points for Lineto and 9 points for Curveto). An error is thrown if an incorrect number of points is provided (e.g. 2 points for Curveto). Examples:</p>
+
+<pre><code>var segment = g.Path.createSegment('M', new g.Point(100, 0));
+var segment = g.Path.createSegment('L', new g.Point(100, 100), new g.Point(200, 200), new g.Point(300, 300));
+var segment = g.Path.createSegment('C', new g.Point(10, 10), new g.Point(20, 10), new g.Point(20, 0), new g.Point(20, -10), new g.Point(30, -10), new g.Point(30, 0));
+var segment = g.Path.createSegment('Z');</code></pre>
+
+<p>Instead of points, segments may be created with pairs of coordinates. That is, instead of providing 1 point to construct a Lineto segment, 2 strings or numbers may be provided. An error is thrown if an incorrect number of coordinates is provided. Examples:</p>
+
+<pre><code>var segment = g.Path.createSegment('M', 100, 0);
+var segment = g.Path.createSegment('L', 100, 100, 200, 200, 300, 300);
+var segment = g.Path.createSegment('C', 10, 10, 20, 10, 20, 0, 20, -10, 30, -10, 30, 0);
+var segment = g.Path.createSegment('Z');</code></pre>

@@ -6,7 +6,8 @@ joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
 
         var points = [sourcePoint].concat(vertices).concat([targetPoint]);
 
-        path = new g.Path(g.Curve.throughPoints(points));
+        var curves = g.Curve.throughPoints(points);
+        path = new g.Path(curves);
 
     } else {
         // if we have no vertices, use a default cubic bezier curve
