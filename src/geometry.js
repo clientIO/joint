@@ -1416,11 +1416,11 @@ var g = (function() {
 
                     if (obj instanceof g.Line) {
                         if (i === 0) this.appendSegment(Path.createSegment('M', obj.start));
-                        this.appendSegment(Path.createSegment('L', obj.end));
+                        else this.appendSegment(Path.createSegment('L', obj.end));
 
                     } else if (obj instanceof g.Curve) {
                         if (i === 0) this.appendSegment(Path.createSegment('M', obj.start));
-                        this.appendSegment(Path.createSegment('C', obj.controlPoint1, obj.controlPoint2, obj.end));
+                        else this.appendSegment(Path.createSegment('C', obj.controlPoint1, obj.controlPoint2, obj.end));
 
                     } else {
                         throw new Error('Cannot construct a path segment from the provided object.');
@@ -1443,7 +1443,7 @@ var g = (function() {
                 var point = arg.points[i];
 
                 if (i === 0) this.appendSegment(Path.createSegment('M', point));
-                this.appendSegment(Path.createSegment('L', point));
+                else this.appendSegment(Path.createSegment('L', point));
             }
         }
     };
@@ -2302,7 +2302,7 @@ var g = (function() {
         // Scale point with origin.
         scale: function(sx, sy, origin) {
 
-            origin = (origin && Point(origin)) || Point(0, 0);
+            origin = (origin && Point(origin)) || new Point(0, 0);
             this.x = origin.x + sx * (this.x - origin.x);
             this.y = origin.y + sy * (this.y - origin.y);
             return this;
@@ -2352,7 +2352,7 @@ var g = (function() {
         // Returns NaN if p is at 0,0.
         vectorAngle: function(p) {
             
-            var zero = Point(0,0);
+            var zero = new Point(0,0);
             return zero.angleBetween(this, p);
         },
 
@@ -2365,7 +2365,7 @@ var g = (function() {
         // An origin can be specified, otherwise it's 0@0.
         toPolar: function(o) {
 
-            o = (o && Point(o)) || Point(0, 0);
+            o = (o && Point(o)) || new Point(0, 0);
             var x = this.x;
             var y = this.y;
             this.x = sqrt((x - o.x) * (x - o.x) + (y - o.y) * (y - o.y)); // r
