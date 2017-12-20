@@ -168,7 +168,6 @@ joint.connectors.jumpover = (function(_, g, util) {
      */
     function buildPath(lines, jumpSize, jumpType) {
 
-
         var path = new g.Path();
         var segment;
 
