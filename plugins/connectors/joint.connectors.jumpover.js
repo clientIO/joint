@@ -194,7 +194,7 @@ joint.connectors.jumpover = (function(_, g, util) {
                     var midpoint = line.midpoint();
                     var centerLine = new g.Line(midpoint, line.end).rotate(midpoint, angle);
 
-                    var halfLine
+                    var halfLine;
 
                     // first half
                     halfLine = new g.Line(line.start, midpoint);

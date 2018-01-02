@@ -17,7 +17,7 @@ QUnit.module('curve', function() {
 
         QUnit.test('creates a new Curve object', function(assert) {
 
-            var curve = new g.Curve()
+            var curve = new g.Curve();
             assert.ok(curve instanceof g.Curve, 'no arguments provided');
 
             var curve1 = new g.Curve('10 10', '10 40', '50 40', '50 10');
@@ -785,7 +785,7 @@ QUnit.module('curve', function() {
 
             QUnit.test('should return a line tangent to curve at given length ratio', function(assert) {
 
-                var curve = new g.Curve('10 10', '10 40', '50 40', '50 10')
+                var curve = new g.Curve('10 10', '10 40', '50 40', '50 10');
                 assert.equal(curve.tangentAt(0.4).toString(), '23.43069612979889@31.384544372558594 42.43918001651764@38.064231872558594');
 
                 assert.equal(curve.tangentAt(-1).toString(), '10@10 10@40');
@@ -840,7 +840,7 @@ QUnit.module('curve', function() {
             QUnit.test('sanity', function(assert) {
 
                 var curve = new g.Curve('0 0', '0 200', '200 200', '200 0');
-                var ratio = 0.4; 
+                var ratio = 0.4;
                 assert.equal(typeof curve.tAt(ratio), 'number');
                 assert.equal(typeof curve.tAt(ratio, { precision: 0 }), 'number');
                 assert.equal(typeof curve.tAt(ratio, { precision: 1 }), 'number');

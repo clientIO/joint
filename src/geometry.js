@@ -157,7 +157,7 @@ var g = (function() {
 
             return function divideCurve(t) {
 
-                var divided = curve.divide(t)
+                var divided = curve.divide(t);
 
                 return [{
                     p0: divided[0].start,
@@ -1278,7 +1278,7 @@ var g = (function() {
                 var dedupeArr = [];
                 var pt, i;
 
-                var n = rectLines.length
+                var n = rectLines.length;
                 for (i = 0; i < n; i ++) {
 
                     pt = this.intersect(rectLines[i]);
@@ -1497,7 +1497,7 @@ var g = (function() {
             }
 
         } else if (arg.isSegment) { // create from a single segment
-            this.appendSegment(arg)
+            this.appendSegment(arg);
 
         } else if (arg instanceof Line) { // create from a single Line
             this.appendSegment(Path.createSegment('M', arg.start));
@@ -1635,7 +1635,7 @@ var g = (function() {
             }
 
             if (!Array.isArray(arg)) { // arg is a segment
-                if (!arg.isSegment) throw new Error('Segment required.')
+                if (!arg.isSegment) throw new Error('Segment required.');
 
                 currentSegment = this.prepareSegment(arg, previousSegment, nextSegment);
                 segments.push(currentSegment);
@@ -1645,7 +1645,7 @@ var g = (function() {
                 for (var i = 0; i < n; i++) {
 
                     currentArg = arg[i];
-                    if (!currentArg.isSegment) throw new Error('Segments required.')
+                    if (!currentArg.isSegment) throw new Error('Segments required.');
 
                     currentSegment = this.prepareSegment(currentArg, previousSegment, nextSegment);
                     segments.push(currentSegment);
@@ -1793,7 +1793,7 @@ var g = (function() {
             }
 
             if (!Array.isArray(arg)) {
-                if (!arg || !arg.isSegment) throw new Error('Segment required.')
+                if (!arg || !arg.isSegment) throw new Error('Segment required.');
 
                 currentSegment = this.prepareSegment(arg, previousSegment, nextSegment);
                 segments.splice(index, 0, currentSegment);
@@ -1987,7 +1987,7 @@ var g = (function() {
             var updateSubpathStart = replacedSegment.isSubpathStart;
 
             if (!Array.isArray(arg)) {
-                if (!arg || !arg.isSegment) throw new Error('Segment required.')
+                if (!arg || !arg.isSegment) throw new Error('Segment required.');
 
                 currentSegment = this.prepareSegment(arg, previousSegment, nextSegment);
                 segments.splice(index, 1, currentSegment); // directly replace
@@ -4051,7 +4051,7 @@ var g = (function() {
         }
 
         if (n > 0) {
-            throw new Error('Closepath constructor expects no arguments.')
+            throw new Error('Closepath constructor expects no arguments.');
         }
 
         return this;

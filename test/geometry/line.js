@@ -6,7 +6,7 @@ QUnit.module('line', function() {
 
         QUnit.test('creates a new Line object', function(assert) {
 
-            var line = new g.Line()
+            var line = new g.Line();
             assert.ok(line instanceof g.Line, 'no arguments provided');
 
             var line1 = new g.Line(new g.Point(), new g.Point(3, 8));
