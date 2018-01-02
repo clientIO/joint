@@ -19,59 +19,798 @@ QUnit.module('path', function(hooks) {
 
             var path;
 
-            // no arguments
-            path = g.Path();
-            assert.ok(path, 'returns instance of g.Path');
+            // no arguments (invalid)
+            path = new g.Path();
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
             assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
             assert.equal(path.segments.length, 0);
 
-            // invalid argument
-            path = g.Path();
-            assert.ok(path, 'returns instance of g.Path');
+            // path data string -> g.Path.parse()
+
+            // path segments array
+            path = new g.Path([
+                g.Path.createSegment('M', 0, 100),
+                g.Path.createSegment('L', 100, 100),
+                g.Path.createSegment('C', 150, 150, 250, 50, 300, 100),
+                g.Path.createSegment('Z')
+            ]);
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
             assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 4);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.Z);
+            assert.equal(path.segments[0].end.toString(), '0@100');
+            assert.equal(path.segments[1].start.toString(), '0@100');
+            assert.equal(path.segments[1].end.toString(), '100@100');
+            assert.equal(path.segments[2].start.toString(), '100@100');
+            assert.equal(path.segments[2].controlPoint1.toString(), '150@150');
+            assert.equal(path.segments[2].controlPoint2.toString(), '250@50');
+            assert.equal(path.segments[2].end.toString(), '300@100');
+            assert.equal(path.segments[3].start.toString(), '300@100');
+            assert.equal(path.segments[3].end.toString(), '0@100');
+
+            // array of lines (linked)
+            path = new g.Path([
+                new g.Line(new g.Point(10, 10), new g.Point(11, 11)),
+                new g.Line(new g.Point(11, 11), new g.Point(21, 21))
+            ]);
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 3);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.L);
+            assert.equal(path.segments[0].end.toString(), '10@10');
+            assert.equal(path.segments[1].start.toString(), '10@10');
+            assert.equal(path.segments[1].end.toString(), '11@11');
+            assert.equal(path.segments[2].start.toString(), '11@11');
+            assert.equal(path.segments[2].end.toString(), '21@21');
+
+            // array of lines (unlinked)
+            path = new g.Path([
+                new g.Line(new g.Point(10, 10), new g.Point(11, 11)),
+                new g.Line(new g.Point(20, 20), new g.Point(21, 21))
+            ]);
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 4);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.L);
+            assert.equal(path.segments[0].end.toString(), '10@10');
+            assert.equal(path.segments[1].start.toString(), '10@10');
+            assert.equal(path.segments[1].end.toString(), '11@11');
+            assert.equal(path.segments[2].end.toString(), '20@20');
+            assert.equal(path.segments[3].start.toString(), '20@20');
+            assert.equal(path.segments[3].end.toString(), '21@21');
+
+            // array of curves (linked)
+            path = new g.Path([
+                new g.Curve(new g.Point(10, 10), new g.Point(11, 11), new g.Point(12, 12), new g.Point(13, 13)),
+                new g.Curve(new g.Point(13, 13), new g.Point(21, 21), new g.Point(22, 22), new g.Point(23, 23))
+            ]);
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 3);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.C);
+            assert.equal(path.segments[0].end.toString(), '10@10');
+            assert.equal(path.segments[1].start.toString(), '10@10');
+            assert.equal(path.segments[1].controlPoint1.toString(), '11@11');
+            assert.equal(path.segments[1].controlPoint2.toString(), '12@12');
+            assert.equal(path.segments[1].end.toString(), '13@13');
+            assert.equal(path.segments[2].start.toString(), '13@13');
+            assert.equal(path.segments[2].controlPoint1.toString(), '21@21');
+            assert.equal(path.segments[2].controlPoint2.toString(), '22@22');
+            assert.equal(path.segments[2].end.toString(), '23@23');
+
+            // array of curves (unlinked)
+            path = new g.Path([
+                new g.Curve(new g.Point(10, 10), new g.Point(11, 11), new g.Point(12, 12), new g.Point(13, 13)),
+                new g.Curve(new g.Point(20, 20), new g.Point(21, 21), new g.Point(22, 22), new g.Point(23, 23))
+            ]);
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 4);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.C);
+            assert.equal(path.segments[0].end.toString(), '10@10');
+            assert.equal(path.segments[1].start.toString(), '10@10');
+            assert.equal(path.segments[1].controlPoint1.toString(), '11@11');
+            assert.equal(path.segments[1].controlPoint2.toString(), '12@12');
+            assert.equal(path.segments[1].end.toString(), '13@13');
+            assert.equal(path.segments[2].end.toString(), '20@20');
+            assert.equal(path.segments[3].start.toString(), '20@20');
+            assert.equal(path.segments[3].controlPoint1.toString(), '21@21');
+            assert.equal(path.segments[3].controlPoint2.toString(), '22@22');
+            assert.equal(path.segments[3].end.toString(), '23@23');
+
+            // array of curves from g.Curve.throughPoints (linked)
+            path = new g.Path(g.Curve.throughPoints([
+                new g.Point(0, 100),
+                new g.Point(45.3125, 128.125),
+                new g.Point(154.6875, 71.875),
+                new g.Point(200, 100)
+            ]));
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 4);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.C);
+            assert.equal(path.segments[0].end.toString(), '0@100');
+            assert.equal(path.segments[1].start.toString(), '0@100');
+            assert.equal(path.segments[1].controlPoint1.toString(), '7.986111111111107@118.75');
+            assert.equal(path.segments[1].controlPoint2.toString(), '15.972222222222214@137.5');
+            assert.equal(path.segments[1].end.toString(), '45.3125@128.125');
+            assert.equal(path.segments[2].start.toString(), '45.3125@128.125');
+            assert.equal(path.segments[2].controlPoint1.toString(), '74.65277777777779@118.75');
+            assert.equal(path.segments[2].controlPoint2.toString(), '125.34722222222223@81.25');
+            assert.equal(path.segments[2].end.toString(), '154.6875@71.875');
+            assert.equal(path.segments[3].start.toString(), '154.6875@71.875');
+            assert.equal(path.segments[3].controlPoint1.toString(), '184.02777777777777@62.49999999999999');
+            assert.equal(path.segments[3].controlPoint2.toString(), '192.01388888888889@81.25');
+            assert.equal(path.segments[3].end.toString(), '200@100');
+
+            // array of lines and curves (linked)
+            path = new g.Path([
+                new g.Curve(new g.Point(10, 10), new g.Point(11, 11), new g.Point(12, 12), new g.Point(13, 13)),
+                new g.Line(new g.Point(13, 13), new g.Point(21, 21))
+            ]);
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 3);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.L);
+            assert.equal(path.segments[0].end.toString(), '10@10');
+            assert.equal(path.segments[1].start.toString(), '10@10');
+            assert.equal(path.segments[1].controlPoint1.toString(), '11@11');
+            assert.equal(path.segments[1].controlPoint2.toString(), '12@12');
+            assert.equal(path.segments[1].end.toString(), '13@13');
+            assert.equal(path.segments[2].start.toString(), '13@13');
+            assert.equal(path.segments[2].end.toString(), '21@21');
+
+            // array of lines and curves (unlinked)
+            path = new g.Path([
+                new g.Curve(new g.Point(10, 10), new g.Point(11, 11), new g.Point(12, 12), new g.Point(13, 13)),
+                new g.Line(new g.Point(20, 20), new g.Point(21, 21))
+            ]);
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 4);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.L);
+            assert.equal(path.segments[0].end.toString(), '10@10');
+            assert.equal(path.segments[1].start.toString(), '10@10');
+            assert.equal(path.segments[1].controlPoint1.toString(), '11@11');
+            assert.equal(path.segments[1].controlPoint2.toString(), '12@12');
+            assert.equal(path.segments[1].end.toString(), '13@13');
+            assert.equal(path.segments[2].end.toString(), '20@20');
+            assert.equal(path.segments[3].start.toString(), '20@20');
+            assert.equal(path.segments[3].end.toString(), '21@21');
+
+            // single segment
+            path = new g.Path(g.Path.createSegment('L', 100, 100));
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 1);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.L);
+            assert.equal(path.segments[0].end.toString(), '100@100');
+
+            // single line
+            path = new g.Path(new g.Line(new g.Point(100, 100), new g.Point(200, 200)));
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 2);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.L);
+            assert.equal(path.segments[0].end.toString(), '100@100');
+            assert.equal(path.segments[1].start.toString(), '100@100');
+            assert.equal(path.segments[1].end.toString(), '200@200');
+
+            // single curve
+            path = new g.Path(new g.Curve(new g.Point(100, 100), new g.Point(100, 200), new g.Point(200, 200), new g.Point(200, 100)));
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 2);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.C);
+            assert.equal(path.segments[0].end.toString(), '100@100');
+            assert.equal(path.segments[1].start.toString(), '100@100');
+            assert.equal(path.segments[1].controlPoint1.toString(), '100@200');
+            assert.equal(path.segments[1].controlPoint2.toString(), '200@200');
+            assert.equal(path.segments[1].end.toString(), '200@100');
+
+            // polyline with points
+            path = new g.Path(new g.Polyline([
+                new g.Point(0, 100),
+                new g.Point(50, 200),
+                new g.Point(150, 0),
+                new g.Point(200, 100)
+            ]));
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 4);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.L);
+            assert.equal(path.segments[0].end.toString(), '0@100');
+            assert.equal(path.segments[1].start.toString(), '0@100');
+            assert.equal(path.segments[1].end.toString(), '50@200');
+            assert.equal(path.segments[2].start.toString(), '50@200');
+            assert.equal(path.segments[2].end.toString(), '150@0');
+            assert.equal(path.segments[3].start.toString(), '150@0');
+            assert.equal(path.segments[3].end.toString(), '200@100');
+
+            // polyline with no points (invalid)
+            path = new g.Path(new g.Polyline());
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 0);
+        });
+    });
+
+    QUnit.module('parse()', function() {
+
+        QUnit.test('creates a new Path object from string', function(assert) {
+
+            var path;
+
+            // empty string (invalid)
+            path = new g.Path('');
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
             assert.equal(path.segments.length, 0);
 
             // normalized path data string
-            path = g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
-            assert.ok(path, 'returns instance of g.Path');
+            path = new g.Path('M 0 100 L 100 100 C 150 150 250 50 300 100 Z');
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
             assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
             assert.equal(path.segments.length, 4);
             assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
             assert.ok(path.segments[1] instanceof g.Path.segmentTypes.L);
             assert.ok(path.segments[2] instanceof g.Path.segmentTypes.C);
             assert.ok(path.segments[3] instanceof g.Path.segmentTypes.Z);
-            assert.equal(path.segments[0].end.toString(), g.Point(150, 100).toString());
-            assert.equal(path.segments[1].start.toString(), g.Point(150, 100).toString());
-            assert.equal(path.segments[1].end.toString(), g.Point(100, 100).toString());
-            assert.equal(path.segments[2].start.toString(), g.Point(100, 100).toString());
-            assert.equal(path.segments[2].controlPoint1.toString(), g.Point(100, 100).toString());
-            assert.equal(path.segments[2].controlPoint2.toString(), g.Point(0, 150).toString());
-            assert.equal(path.segments[2].end.toString(), g.Point(100, 200).toString());
-            assert.equal(path.segments[3].start.toString(), g.Point(100, 200).toString());
-            assert.equal(path.segments[3].end.toString(), g.Point(150, 100).toString());
+            assert.equal(path.segments[0].end.toString(), '0@100');
+            assert.equal(path.segments[1].start.toString(), '0@100');
+            assert.equal(path.segments[1].end.toString(), '100@100');
+            assert.equal(path.segments[2].start.toString(), '100@100');
+            assert.equal(path.segments[2].controlPoint1.toString(), '150@150');
+            assert.equal(path.segments[2].controlPoint2.toString(), '250@50');
+            assert.equal(path.segments[2].end.toString(), '300@100');
+            assert.equal(path.segments[3].start.toString(), '300@100');
+            assert.equal(path.segments[3].end.toString(), '0@100');
 
-            // path segments array
-            path = g.Path([g.Path.createSegment('M', 150, 100), g.Path.createSegment('L', 100, 100), g.Path.createSegment('C', 100, 100, 0, 150, 100, 200), g.Path.createSegment('Z')]);
-            assert.ok(path, 'returns instance of g.Path');
+            // path data string without starting moveto (invalid)
+            path = new g.Path('L 100 100');
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
             assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
-            assert.equal(path.segments.length, 4);
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 1);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.L);
+            assert.equal(path.segments[0].end.toString(), '100@100');
+
+            // valid unnormalized path data string
+            path = new g.Path('M100-200L1.6.8ZM10,10C-.6,-.7,4.1 0.2.4-3');
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 5);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.Z);
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[4] instanceof g.Path.segmentTypes.C);
+            assert.equal(path.segments[0].end.toString(), '100@-200');
+            assert.equal(path.segments[1].start.toString(), '100@-200');
+            assert.equal(path.segments[1].end.toString(), '1.6@0.8');
+            assert.equal(path.segments[2].start.toString(), '1.6@0.8');
+            assert.equal(path.segments[2].end.toString(), '100@-200');
+            assert.equal(path.segments[3].end.toString(), '10@10');
+            assert.equal(path.segments[4].start.toString(), '10@10');
+            assert.equal(path.segments[4].controlPoint1.toString(), '-0.6@-0.7');
+            assert.equal(path.segments[4].controlPoint2.toString(), '4.1@0.2');
+            assert.equal(path.segments[4].end.toString(), '0.4@-3');
+
+            // valid unnormalized path data string with chained coordinates
+            path = new g.Path('M 11 11 21 21 C 31 31 32 32 33 33 41 41 42 42 43 43 L 51 51 52 52');
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 6);
             assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
             assert.ok(path.segments[1] instanceof g.Path.segmentTypes.L);
             assert.ok(path.segments[2] instanceof g.Path.segmentTypes.C);
-            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.Z);
-            assert.equal(path.segments[0].end.toString(), g.Point(150, 100).toString());
-            assert.equal(path.segments[1].start.toString(), g.Point(150, 100).toString());
-            assert.equal(path.segments[1].end.toString(), g.Point(100, 100).toString());
-            assert.equal(path.segments[2].start.toString(), g.Point(100, 100).toString());
-            assert.equal(path.segments[2].controlPoint1.toString(), g.Point(100, 100).toString());
-            assert.equal(path.segments[2].controlPoint2.toString(), g.Point(0, 150).toString());
-            assert.equal(path.segments[2].end.toString(), g.Point(100, 200).toString());
-            assert.equal(path.segments[3].start.toString(), g.Point(100, 200).toString());
-            assert.equal(path.segments[3].end.toString(), g.Point(150, 100).toString());
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[4] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[5] instanceof g.Path.segmentTypes.L);
+            assert.equal(path.segments[0].end.toString(), '11@11');
+            assert.equal(path.segments[1].start.toString(), '11@11');
+            assert.equal(path.segments[1].end.toString(), '21@21');
+            assert.equal(path.segments[2].start.toString(), '21@21');
+            assert.equal(path.segments[2].controlPoint1.toString(), '31@31');
+            assert.equal(path.segments[2].controlPoint2.toString(), '32@32');
+            assert.equal(path.segments[2].end.toString(), '33@33');
+            assert.equal(path.segments[3].start.toString(), '33@33');
+            assert.equal(path.segments[3].controlPoint1.toString(), '41@41');
+            assert.equal(path.segments[3].controlPoint2.toString(), '42@42');
+            assert.equal(path.segments[3].end.toString(), '43@43');
+            assert.equal(path.segments[4].start.toString(), '43@43');
+            assert.equal(path.segments[4].end.toString(), '51@51');
+            assert.equal(path.segments[5].start.toString(), '51@51');
+            assert.equal(path.segments[5].end.toString(), '52@52');
+        });
+    });
+
+    QUnit.module('createSegment()', function() {
+
+        QUnit.test('incorrect type', function(assert) {
+
+            var error;
+
+            // no type
+            try {
+                segment = g.Path.createSegment();
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when called with no type.');
+
+            // unrecognized type
+            try {
+                segment = g.Path.createSegment('X');
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an unrecognized type.');
+        });
+
+        QUnit.test('moveto', function(assert) {
+
+            var segment;
+            var path = new g.Path();
+            var clonedPath;
+
+            var error;
+
+            // moveto -> lowercase
+            try {
+                segment = g.Path.createSegment('m');
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when called with lowercase `m` as type.');
+
+            // moveto -> no arguments (incorrect)
+            try {
+                segment = g.Path.createSegment('M');
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when M called with no arguments.');
+
+            // moveto -> 1 point (correct)
+            segment = g.Path.createSegment('M', new g.Point(10, 10));
+            assert.ok(segment instanceof g.Path.segmentTypes.M);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'M 10 10');
+
+            // moveto -> 2 points (correct)
+            segment = g.Path.createSegment('M', new g.Point(10, 10), new g.Point(11, 11));
+            assert.ok(Array.isArray(segment));
+            assert.ok(segment[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(segment[1] instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'M 10 10 L 11 11');
+
+            // moveto -> 1 string coordinate (incorrect)
+            try {
+                segment = g.Path.createSegment('M', '10');
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when M called with 1 string coordinate.');
+
+            // moveto -> 1 number coordinate (incorrect)
+            try {
+                segment = g.Path.createSegment('M', 10);
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when M called with 1 number coordinate.');
+
+            // moveto -> 2 string coordinates (correct)
+            segment = g.Path.createSegment('M', '10', '10');
+            assert.ok(segment instanceof g.Path.segmentTypes.M);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'M 10 10');
+
+            // moveto -> 2 number coordinates (correct)
+            segment = g.Path.createSegment('M', 10, 10);
+            assert.ok(segment instanceof g.Path.segmentTypes.M);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'M 10 10');
+
+            // moveto -> 2 mixed coordinates (correct)
+            segment = g.Path.createSegment('M', '10', 10);
+            assert.ok(segment instanceof g.Path.segmentTypes.M);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'M 10 10');
+
+            // moveto -> 3 coordinates (incorrect)
+            try {
+                segment = g.Path.createSegment('M', '10', '10', '10');
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when M called with 3 coordinates.');
+
+            // moveto -> 4 coordinates (correct)
+            segment = g.Path.createSegment('M', '10', '10', '11', '11');
+            assert.ok(Array.isArray(segment));
+            assert.ok(segment[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(segment[1] instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'M 10 10 L 11 11');
+        });
+
+        QUnit.test('lineto', function(assert) {
+
+            var segment;
+            var path = new g.Path();
+            var clonedPath;
+
+            var error;
+
+            // lineto -> lowercase
+            try {
+                segment = g.Path.createSegment('l');
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when called with lowercase `l` as type.');
+
+            // lineto -> no arguments (incorrect)
+            try {
+                segment = g.Path.createSegment('L');
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when L called with no arguments.');
+
+            // lineto -> 1 point (correct)
+            segment = g.Path.createSegment('L', new g.Point(10, 10));
+            assert.ok(segment instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'L 10 10');
+
+            // lineto -> 2 points (correct)
+            segment = g.Path.createSegment('L', new g.Point(10, 10), new g.Point(11, 11));
+            assert.ok(Array.isArray(segment));
+            assert.ok(segment[0] instanceof g.Path.segmentTypes.L);
+            assert.ok(segment[1] instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'L 10 10 L 11 11');
+
+            // lineto -> 1 string coordinate (incorrect)
+            try {
+                segment = g.Path.createSegment('L', '10');
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when L called with 1 string coordinate.');
+
+            // lineto -> 1 number coordinate (incorrect)
+            try {
+                segment = g.Path.createSegment('L', 10);
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when L called with 1 number coordinate.');
+
+            // lineto -> 2 string coordinates (correct)
+            segment = g.Path.createSegment('L', '10', '10');
+            assert.ok(segment instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'L 10 10');
+
+            // lineto -> 2 number coordinates (correct)
+            segment = g.Path.createSegment('L', 10, 10);
+            assert.ok(segment instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'L 10 10');
+
+            // lineto -> 2 mixed coordinates (correct)
+            segment = g.Path.createSegment('L', '10', 10);
+            assert.ok(segment instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'L 10 10');
+
+            // lineto -> 3 coordinates (incorrect)
+            try {
+                segment = g.Path.createSegment('L', '10', '10', '10');
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when L called with 3 coordinates.');
+
+            // lineto -> 4 coordinates (correct)
+            segment = g.Path.createSegment('L', '10', '10', '11', '11');
+            assert.ok(Array.isArray(segment));
+            assert.ok(segment[0] instanceof g.Path.segmentTypes.L);
+            assert.ok(segment[1] instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'L 10 10 L 11 11');
+        });
+
+        QUnit.test('curveto', function(assert) {
+
+            var segment;
+            var path = new g.Path();
+            var clonedPath;
+
+            var error;
+
+            // curveto -> lowercase
+            try {
+                segment = g.Path.createSegment('c');
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when called with lowercase `c` as type.');
+
+            // curveto -> no arguments (incorrect)
+            try {
+                segment = g.Path.createSegment('C');
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when C called with no arguments.');
+
+            // curveto -> 2 points (incorrect)
+            try {
+                segment = g.Path.createSegment('C', new g.Point(10, 10), new g.Point(11, 11));
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when C called with 2 points.');
+
+            // curveto -> 3 points (correct)
+            segment = g.Path.createSegment('C', new g.Point(10, 10), new g.Point(11, 11), new g.Point(12, 12));
+            assert.ok(segment instanceof g.Path.segmentTypes.C);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'C 10 10 11 11 12 12');
+
+            // curveto -> 5 points (incorrect)
+            try {
+                segment = g.Path.createSegment('C', new g.Point(10, 10), new g.Point(11, 11), new g.Point(12, 12), new g.Point(13, 13), new g.Point(14, 14));
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when C called with 5 points.');
+
+            // curveto -> 6 points (correct)
+            segment = g.Path.createSegment('C', new g.Point(10, 10), new g.Point(11, 11), new g.Point(12, 12), new g.Point(13, 13), new g.Point(14, 14), new g.Point(15, 15));
+            assert.ok(Array.isArray(segment));
+            assert.ok(segment[0] instanceof g.Path.segmentTypes.C);
+            assert.ok(segment[1] instanceof g.Path.segmentTypes.C);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'C 10 10 11 11 12 12 C 13 13 14 14 15 15');
+
+            // curveto -> 5 string coordinates (incorrect)
+            try {
+                segment = g.Path.createSegment('C', '1', '2', '3', '4', '5');
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when C called with 5 string coordinates.');
+
+            // curveto -> 5 number coordinates (incorrect)
+            try {
+                segment = g.Path.createSegment('C', 1, 2, 3, 4, 5);
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when C called with 5 number coordinates.');
+
+            // curveto -> 6 string coordinates (correct)
+            segment = g.Path.createSegment('C', '10', '10', '11', '11', '12', '12');
+            assert.ok(segment instanceof g.Path.segmentTypes.C);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'C 10 10 11 11 12 12');
+
+            // curveto -> 6 number coordinates (correct)
+            segment = g.Path.createSegment('C', 10, 10, 11, 11, 12, 12);
+            assert.ok(segment instanceof g.Path.segmentTypes.C);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'C 10 10 11 11 12 12');
+
+            // curveto -> 6 mixed coordinates (correct)
+            segment = g.Path.createSegment('C', 10, '10', '11', '11', 12, 12);
+            assert.ok(segment instanceof g.Path.segmentTypes.C);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'C 10 10 11 11 12 12');
+
+            // curveto -> 11 coordinates (incorrect)
+            try {
+                segment = g.Path.createSegment('C', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when C called with 11 coordinates.');
+
+            // curveto -> 12 coordinates (correct)
+            segment = g.Path.createSegment('C', 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15);
+            assert.ok(Array.isArray(segment));
+            assert.ok(segment[0] instanceof g.Path.segmentTypes.C);
+            assert.ok(segment[1] instanceof g.Path.segmentTypes.C);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'C 10 10 11 11 12 12 C 13 13 14 14 15 15');
+        })
+
+        QUnit.test('closepath', function(assert) {
+
+            var segment;
+            var path = new g.Path();
+            var clonedPath;
+
+            var error;
+
+            // closepath -> lowercase
+            try {
+                segment = g.Path.createSegment('z');
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when called with lowercase `z` as type.');
+
+            // closepath -> no arguments (correct)
+            segment = g.Path.createSegment('Z');
+            assert.ok(segment instanceof g.Path.segmentTypes.Z);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'Z');
+
+            // closepath -> arguments (incorrect)
+            try {
+                segment = g.Path.createSegment('Z', 10);
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when Z called with any arguments.');
         });
     });
 
     QUnit.module('prototype', function() {
+
+        QUnit.module('appendSegment()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+                var segment;
+
+                var error;
+
+                try {
+                    path = new g.Path();
+                    segment = null;
+                    path.appendSegment(segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment.');
+
+                try {
+                    path = new g.Path();
+                    segment = 1;
+                    path.appendSegment(segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment.');
+
+                try {
+                    path = new g.Path();
+                    segment = 'hello';
+                    path.appendSegment(segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment.');
+
+                try {
+                    path = new g.Path();
+                    segment = [null, null];
+                    path.appendSegment(segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment array.');
+
+                try {
+                    path = new g.Path();
+                    segment = [1, 1];
+                    path.appendSegment(segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment array.');
+
+                try {
+                    path = new g.Path();
+                    segment = ['hello', 'hello'];
+                    path.appendSegment(segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment array.');
+            });
+
+            QUnit.test('append a segment', function(assert) {
+
+                var path = new g.Path();
+                var segment = g.Path.createSegment('M', 100, 100);
+                path.appendSegment(segment);
+                assert.equal(path.toString(), 'M 100 100');
+            });
+
+            QUnit.test('append a segment array', function(assert) {
+
+                var path = new g.Path();
+                var segment = [
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200)
+                ];
+                path.appendSegment(segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200');
+            });
+        });
 
         QUnit.module('bbox()', function() {
 
@@ -166,6 +905,79 @@ QUnit.module('path', function(hooks) {
             });
         });
 
+        QUnit.module('getSegment()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+                var segment;
+
+                var error;
+
+                try {
+                    path = new g.Path();
+                    segment = path.getSegment(0);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called on an empty path.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = path.getSegment(1);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an index out of range.');
+
+                try {
+                    path = new g.Path();
+                    segment = path.getSegment(-2);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with a negative index out of range.');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200)
+                ]);
+                segment = path.getSegment(0);
+                assert.equal(segment.isSegment, true);
+                assert.equal(segment.type, 'M');
+                assert.ok(segment instanceof g.Path.segmentTypes.M);
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200)
+                ]);
+                segment = path.getSegment(-1);
+                assert.equal(segment.isSegment, true);
+                assert.equal(segment.type, 'L');
+                assert.ok(segment instanceof g.Path.segmentTypes.L);
+            });
+
+            QUnit.test('get a segment', function(assert) {
+
+                var path;
+                var segment;
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200)
+                ]);
+                segment = path.getSegment(0);
+                assert.equal(segment.toString(), 'M 100@100');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200)
+                ]);
+                segment = path.getSegment(-1);
+                assert.equal(segment.toString(), 'L 100@100 200@200');
+            });
+        });
+
         QUnit.module('getSegmentSubdivisions()', function() {
 
             QUnit.test('sanity', function(assert) {
@@ -224,6 +1036,271 @@ QUnit.module('path', function(hooks) {
                         g.Curve(g.Point(190.0634765625, 84.619140625), g.Point(193.5546875, 88.671875), g.Point(196.875, 93.75), g.Point(200, 100))
                     ]
                 ]);
+            });
+        });
+
+        QUnit.module('insertSegment()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+                var segment;
+
+                var error;
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = g.Path.createSegment('L', 200, 200);
+                    path.insertSegment(2, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an index out of range.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = g.Path.createSegment('L', 200, 200);
+                    path.insertSegment(-3, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with a negative index out of range.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = null;
+                    path.insertSegment(1, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = 1;
+                    path.insertSegment(1, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = 'hello';
+                    path.insertSegment(1, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = [null, null];
+                    path.insertSegment(1, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment array.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = [1, 1];
+                    path.insertSegment(1, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment array.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = ['hello', 'hello'];
+                    path.insertSegment(1, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment array.');
+            });
+
+            QUnit.test('insert a segment', function(assert) {
+
+                var path;
+                var segment;
+
+                path = new g.Path();
+                segment = g.Path.createSegment('M', 100, 100);
+                path.insertSegment(0, segment);
+                assert.equal(path.toString(), 'M 100 100');
+
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
+                segment = g.Path.createSegment('L', 200, 200);
+                path.insertSegment(1, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200');
+                assert.equal(path.getSegment(1).start.toString(), '100@100');
+
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
+                segment = g.Path.createSegment('L', 200, 200);
+                path.insertSegment(-1, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200');
+                assert.equal(path.getSegment(-1).start.toString(), '100@100');
+
+                path = new g.Path(g.Path.createSegment('L', 200, 200));
+                segment = g.Path.createSegment('M', 100, 100);
+                path.insertSegment(0, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200');
+                assert.equal(path.getSegment(1).start.toString(), '100@100');
+
+                path = new g.Path(g.Path.createSegment('L', 200, 200));
+                segment = g.Path.createSegment('M', 100, 100);
+                path.insertSegment(-2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200');
+                assert.equal(path.getSegment(-1).start.toString(), '100@100');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                segment = g.Path.createSegment('M', 300, 300);
+                path.insertSegment(2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 M 300 300 L 400 400 Z');
+                assert.equal(path.getSegment(3).start.toString(), '300@300');
+                assert.equal(path.getSegment(4).end.toString(), '300@300');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                segment = g.Path.createSegment('M', 300, 300);
+                path.insertSegment(-3, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 M 300 300 L 400 400 Z');
+                assert.equal(path.getSegment(-2).start.toString(), '300@300');
+                assert.equal(path.getSegment(-1).end.toString(), '300@300');
+            });
+
+            QUnit.test('insert a segment array', function(assert) {
+
+                var path;
+                var segment;
+
+                path = new g.Path();
+                segment = [
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200)
+                ];
+                path.insertSegment(0, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200');
+
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
+                segment = [
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 300, 300)
+                ];
+                path.insertSegment(1, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 L 300 300');
+                assert.equal(path.getSegment(1).start.toString(), '100@100');
+
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
+                segment = [
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 300, 300)
+                ];
+                path.insertSegment(-1, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 L 300 300');
+                assert.equal(path.getSegment(-2).start.toString(), '100@100');
+
+                path = new g.Path(g.Path.createSegment('L', 300, 300));
+                segment = [
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200)
+                ];
+                path.insertSegment(0, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 L 300 300');
+                assert.equal(path.getSegment(2).start.toString(), '200@200');
+
+                path = new g.Path(g.Path.createSegment('L', 300, 300));
+                segment = [
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200)
+                ];
+                path.insertSegment(-2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 L 300 300');
+                assert.equal(path.getSegment(-1).start.toString(), '200@200');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 500, 500),
+                    g.Path.createSegment('Z')
+                ]);
+                segment = [
+                    g.Path.createSegment('M', 300, 300),
+                    g.Path.createSegment('L', 400, 400)
+                ];
+                path.insertSegment(2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 M 300 300 L 400 400 L 500 500 Z');
+                assert.equal(path.getSegment(4).start.toString(), '400@400');
+                assert.equal(path.getSegment(5).end.toString(), '300@300');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 500, 500),
+                    g.Path.createSegment('Z')
+                ]);
+                segment = [
+                    g.Path.createSegment('M', 300, 300),
+                    g.Path.createSegment('L', 400, 400)
+                ];
+                path.insertSegment(-3, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 M 300 300 L 400 400 L 500 500 Z');
+                assert.equal(path.getSegment(-2).start.toString(), '400@400');
+                assert.equal(path.getSegment(-1).end.toString(), '300@300');
+            });
+        });
+
+        QUnit.module('isValid()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+
+                path = g.Path();
+                assert.equal(typeof path.isValid(), 'boolean');
+
+                path = g.Path(g.Path.createSegment('M', 100, 100));
+                assert.equal(typeof path.isValid(), 'boolean');
+
+                path = g.Path(g.Path.createSegment('L', 100, 100));
+                assert.equal(typeof path.isValid(), 'boolean');
+
+                path = g.Path(g.Path.createSegment('C', 100, 110, 110, 110, 110, 100));
+                assert.equal(typeof path.isValid(), 'boolean');
+
+                path = g.Path(g.Path.createSegment('Z'));
+                assert.equal(typeof path.isValid(), 'boolean');
+            });
+
+            QUnit.test('insert a segment', function(assert) {
+
+                var path;
+
+                path = g.Path();
+                assert.equal(path.isValid(), true);
+
+                path = g.Path(g.Path.createSegment('M', 100, 100));
+                assert.equal(path.isValid(), true);
+
+                path = g.Path(g.Path.createSegment('L', 100, 100));
+                assert.equal(path.isValid(), false);
+
+                path = g.Path(g.Path.createSegment('C', 100, 110, 110, 110, 110, 100));
+                assert.equal(path.isValid(), false);
+
+                path = g.Path(g.Path.createSegment('Z'));
+                assert.equal(path.isValid(), false);
             });
         });
 
@@ -686,6 +1763,387 @@ QUnit.module('path', function(hooks) {
                 assert.equal(x1 + '@' + y1, x2 + '@' + y2);
 
                 svg.remove();
+            });
+        });
+
+        QUnit.module('removeSegment()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+
+                var error;
+
+                try {
+                    path = new g.Path();
+                    path.removeSegment(0);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called on an empty path.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    path.removeSegment(1);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an index out of range.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    path.removeSegment(-2);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with a negative index out of range.');
+            });
+
+            QUnit.test('remove a segment', function(assert) {
+
+                var path;
+
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
+                path.removeSegment(0);
+                assert.equal(path.toString(), '');
+
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
+                path.removeSegment(-1);
+                assert.equal(path.toString(), '');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 300, 300)
+                ]);
+                path.removeSegment(1);
+                assert.equal(path.toString(), 'M 100 100 L 300 300');
+                assert.equal(path.getSegment(1).start.toString(), '100@100');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 300, 300)
+                ]);
+                path.removeSegment(-2);
+                assert.equal(path.toString(), 'M 100 100 L 300 300');
+                assert.equal(path.getSegment(-1).start.toString(), '100@100');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('M', 300, 300),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                path.removeSegment(2);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 L 400 400 Z');
+                assert.equal(path.getSegment(2).start.toString(), '200@200');
+                assert.equal(path.getSegment(3).end.toString(), '100@100');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('M', 300, 300),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                path.removeSegment(-3);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 L 400 400 Z');
+                assert.equal(path.getSegment(-2).start.toString(), '200@200');
+                assert.equal(path.getSegment(-1).end.toString(), '100@100');
+            });
+        });
+
+        QUnit.module('replaceSegment()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+                var segment;
+
+                var error;
+
+                try {
+                    path = new g.Path();
+                    segment = g.Path.createSegment('L', 200, 200);
+                    path.replaceSegment(0, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called on an empty path.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = g.Path.createSegment('L', 200, 200);
+                    path.replaceSegment(1, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an index out of range.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = g.Path.createSegment('L', 200, 200);
+                    path.replaceSegment(-2, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with a negative index out of range.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = null;
+                    path.replaceSegment(0, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = 1;
+                    path.replaceSegment(0, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = 'hello';
+                    path.replaceSegment(0, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = [null, null];
+                    path.replaceSegment(0, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment array.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = [1, 1];
+                    path.replaceSegment(0, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment array.');
+
+                try {
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
+                    segment = ['hello', 'hello'];
+                    path.replaceSegment(0, segment);
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an argument that is not a segment array.');
+            });
+
+            QUnit.test('replace a segment with a segment', function(assert) {
+
+                var path;
+                var segment;
+
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
+                segment = g.Path.createSegment('M', 111, 111);
+                path.replaceSegment(0, segment);
+                assert.equal(path.toString(), 'M 111 111');
+
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
+                segment = g.Path.createSegment('M', 111, 111);
+                path.replaceSegment(-1, segment);
+                assert.equal(path.toString(), 'M 111 111');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 300, 300)
+                ]);
+                segment = g.Path.createSegment('L', 222, 222);
+                path.replaceSegment(1, segment);
+                assert.equal(path.toString(), 'M 100 100 L 222 222 L 300 300');
+                assert.equal(path.getSegment(2).start.toString(), '222@222');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 300, 300)
+                ]);
+                segment = g.Path.createSegment('L', 222, 222);
+                path.replaceSegment(-2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 222 222 L 300 300');
+                assert.equal(path.getSegment(-1).start.toString(), '222@222');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('M', 300, 300),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                segment = g.Path.createSegment('L', 333, 333);
+                path.replaceSegment(2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 L 333 333 L 400 400 Z');
+                assert.equal(path.getSegment(3).start.toString(), '333@333');
+                assert.equal(path.getSegment(4).end.toString(), '100@100');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('M', 300, 300),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                segment = g.Path.createSegment('L', 333, 333);
+                path.replaceSegment(-3, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 L 333 333 L 400 400 Z');
+                assert.equal(path.getSegment(-2).start.toString(), '333@333');
+                assert.equal(path.getSegment(-1).end.toString(), '100@100');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 300, 300),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                segment = g.Path.createSegment('M', 333, 333);
+                path.replaceSegment(2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 M 333 333 L 400 400 Z');
+                assert.equal(path.getSegment(3).start.toString(), '333@333');
+                assert.equal(path.getSegment(4).end.toString(), '333@333');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 300, 300),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                segment = g.Path.createSegment('M', 333, 333);
+                path.replaceSegment(-3, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 M 333 333 L 400 400 Z');
+                assert.equal(path.getSegment(-2).start.toString(), '333@333');
+                assert.equal(path.getSegment(-1).end.toString(), '333@333');
+            });
+
+            QUnit.test('replace a segment with a segment array', function(assert) {
+
+                var path;
+                var segment;
+
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
+                segment = [
+                    g.Path.createSegment('M', 111, 111),
+                    g.Path.createSegment('L', 199, 199)
+                ];
+                path.replaceSegment(0, segment);
+                assert.equal(path.toString(), 'M 111 111 L 199 199');
+
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
+                segment = [
+                    g.Path.createSegment('M', 111, 111),
+                    g.Path.createSegment('L', 199, 199)
+                ];
+                path.replaceSegment(-1, segment);
+                assert.equal(path.toString(), 'M 111 111 L 199 199');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 300, 300)
+                ]);
+                segment = [
+                    g.Path.createSegment('L', 222, 222),
+                    g.Path.createSegment('L', 299, 299)
+                ];
+                path.replaceSegment(1, segment);
+                assert.equal(path.toString(), 'M 100 100 L 222 222 L 299 299 L 300 300');
+                assert.equal(path.getSegment(3).start.toString(), '299@299');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 300, 300)
+                ]);
+                segment = [
+                    g.Path.createSegment('L', 222, 222),
+                    g.Path.createSegment('L', 299, 299)
+                ];
+                path.replaceSegment(-2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 222 222 L 299 299 L 300 300');
+                assert.equal(path.getSegment(-1).start.toString(), '299@299');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('M', 300, 300),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                segment = [
+                    g.Path.createSegment('L', 333, 333),
+                    g.Path.createSegment('L', 399, 399)
+                ];
+                path.replaceSegment(2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 L 333 333 L 399 399 L 400 400 Z');
+                assert.equal(path.getSegment(4).start.toString(), '399@399');
+                assert.equal(path.getSegment(5).end.toString(), '100@100');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('M', 300, 300),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                segment = [
+                    g.Path.createSegment('L', 333, 333),
+                    g.Path.createSegment('L', 399, 399)
+                ];
+                path.replaceSegment(-3, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 L 333 333 L 399 399 L 400 400 Z');
+                assert.equal(path.getSegment(-2).start.toString(), '399@399');
+                assert.equal(path.getSegment(-1).end.toString(), '100@100');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 300, 300),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                segment = [
+                    g.Path.createSegment('M', 333, 333),
+                    g.Path.createSegment('L', 399, 399)
+                ];
+                path.replaceSegment(2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 M 333 333 L 399 399 L 400 400 Z');
+                assert.equal(path.getSegment(4).start.toString(), '399@399');
+                assert.equal(path.getSegment(5).end.toString(), '333@333');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 300, 300),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                segment = [
+                    g.Path.createSegment('M', 333, 333),
+                    g.Path.createSegment('L', 399, 399)
+                ];
+                path.replaceSegment(-3, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 M 333 333 L 399 399 L 400 400 Z');
+                assert.equal(path.getSegment(-2).start.toString(), '399@399');
+                assert.equal(path.getSegment(-1).end.toString(), '333@333');
             });
         });
 

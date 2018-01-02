@@ -133,6 +133,27 @@ QUnit.module('point', function() {
             });
         });
 
+        QUnit.module('translate(tx, ty)', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var point = new g.Point('5 5');
+                assert.ok(point.clone().translate(0, 0) instanceof g.Point);
+                assert.ok(point.clone().translate(0, 10) instanceof g.Point);
+                assert.ok(point.clone().translate(10, 0) instanceof g.Point);
+                assert.ok(point.clone().translate(10, 10) instanceof g.Point);
+            });
+
+            QUnit.test('should return a translated version of self', function(assert) {
+
+                var point = new g.Point('5 5');
+                assert.equal(point.clone().translate(0, 0).toString(), '5@5');
+                assert.equal(point.clone().translate(0, 10).toString(), '5@15');
+                assert.equal(point.clone().translate(10, 0).toString(), '15@5');
+                assert.equal(point.clone().translate(10, 10).toString(), '15@15');
+            });
+        });
+
         QUnit.module('snapToGrid(gx, gy)', function() {
 
         });

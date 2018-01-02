@@ -60,6 +60,30 @@ QUnit.module('polyline', function() {
         });
     });
 
+    QUnit.module('parse', function() {
+
+        QUnit.test('creates a new Polyline object from string', function(assert) {
+
+            var polyline;
+
+            // empty string
+            polyline = new g.Polyline('');
+            assert.ok(polyline instanceof g.Polyline, 'returns instance of g.Polyline');
+            assert.ok(typeof polyline.points !== 'undefined', 'has "points" property');
+            assert.ok(Array.isArray(polyline.points));
+            assert.equal(polyline.points.length, 0);
+
+            // svg string
+            polyline = new g.Polyline('10,10 20,20');
+            assert.ok(polyline instanceof g.Polyline, 'returns instance of g.Polyline');
+            assert.ok(typeof polyline.points !== 'undefined', 'has "points" property');
+            assert.ok(Array.isArray(polyline.points));
+            assert.equal(polyline.points.length, 2);
+            assert.equal(polyline.points[0].toString(), '10@10');
+            assert.equal(polyline.points[1].toString(), '20@20');
+        });
+    });
+
     QUnit.module('prototype', function() {
 
         QUnit.module('bbox()', function() {
@@ -71,7 +95,7 @@ QUnit.module('polyline', function() {
                 assert.equal(g.Polyline([]).bbox(), null);
             });
 
-            QUnit.test('returns tight bounding box of the curve', function(assert) {
+            QUnit.test('returns tight bounding box of the polyline', function(assert) {
 
                 assert.equal(g.Polyline(['10 10', '10 40', '50 40', '50 10']).bbox().toString(), '10@10 50@40');
             });

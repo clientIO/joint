@@ -321,15 +321,20 @@ var g = (function() {
 
         return function(points) {
 
-            var controlPoints = getCurveControlPoints(points);
-            var curves = [];
+            if (!points || (Array.isArray(points) && points.length < 2)) {
+                throw new Error('At least 2 points are required');
+            }
 
-            for (var i = 0; i < controlPoints[0].length; i++) {
+            var controlPoints = getCurveControlPoints(points);
+
+            var curves = [];
+            var n = controlPoints[0].length;
+            for (var i = 0; i < n; i++) {
 
                 var controlPoint1 = new Point(controlPoints[0][i].x, controlPoints[0][i].y);
                 var controlPoint2 = new Point(controlPoints[1][i].x, controlPoints[1][i].y);
 
-                curves.push(new Curve(points[0], controlPoint1, controlPoint2, points[i + 1]));
+                curves.push(new Curve(points[i], controlPoint1, controlPoint2, points[i + 1]));
             }
 
             return curves;
@@ -469,7 +474,7 @@ var g = (function() {
             var distFromEnd; // distance of point from end of baseline
             var minSumDist; // lowest observed sum of the two distances
             var n = subdivisions.length;
-            var subdivisionSize = 1 / n;
+            var subdivisionSize = (n ? (1 / n) : 0);
             for (var i = 0; i < n; i++) {
 
                 var currentSubdivision = subdivisions[i];
@@ -499,12 +504,14 @@ var g = (function() {
             while (true) {
 
                 // check if we have reached required observed precision
-                var observedPrecisionRatio;
+                var startPrecisionRatio;
+                var endPrecisionRatio;
 
-                observedPrecisionRatio = abs(distFromStart - distFromEnd) / distFromStart;
-                if (observedPrecisionRatio < precisionRatio) return investigatedSubdivisionStartT;
-                observedPrecisionRatio = abs(distFromStart - distFromEnd) / distFromStart;
-                if (observedPrecisionRatio < precisionRatio) return investigatedSubdivisionEndT;
+                startPrecisionRatio = (distFromStart ? (abs(distFromStart - distFromEnd) / distFromStart) : 0);
+                endPrecisionRatio = (distFromEnd ? (abs(distFromStart - distFromEnd) / distFromEnd) : 0);
+                if ((startPrecisionRatio < precisionRatio) || (endPrecisionRatio) < precisionRatio) {
+                    return ((distFromStart <= distFromEnd) ? investigatedSubdivisionStartT : investigatedSubdivisionEndT);
+                }
 
                 // otherwise, set up for next iteration
                 var divided = investigatedSubdivision.divide(0.5);
@@ -1449,7 +1456,11 @@ var g = (function() {
 
         var i;
         var n;
-        if (Array.isArray(arg) && arg.length !== 0) { // if arg is a non-empty array
+
+        if (!arg) {
+            // don't do anything
+
+        } else if (Array.isArray(arg) && arg.length !== 0) { // if arg is a non-empty array
             n = arg.length;
             if (arg[0].isSegment) { // create from an array of segments
                 for (i = 0; i < n; i++) {
@@ -1460,23 +1471,33 @@ var g = (function() {
                 }
 
             } else { // create from an array of Curves and/or Lines
+                var previousObj = null;
                 for (i = 0; i < n; i++) {
 
                     var obj = arg[i];
 
-                    if (obj instanceof Line) {
-                        if (i === 0) this.appendSegment(Path.createSegment('M', obj.start));
-                        else this.appendSegment(Path.createSegment('L', obj.end));
-
-                    } else if (obj instanceof Curve) {
-                        if (i === 0) this.appendSegment(Path.createSegment('M', obj.start));
-                        else this.appendSegment(Path.createSegment('C', obj.controlPoint1, obj.controlPoint2, obj.end));
-
-                    } else {
+                    if (!((obj instanceof Line) || (obj instanceof Curve))) {
                         throw new Error('Cannot construct a path segment from the provided object.');
                     }
+
+                    if (i === 0) this.appendSegment(Path.createSegment('M', obj.start));
+
+                    // if objects do not link up, moveto segments are inserted to cover the gaps
+                    if (previousObj && !previousObj.end.equals(obj.start)) this.appendSegment(Path.createSegment('M', obj.start));
+
+                    if (obj instanceof Line) {
+                        this.appendSegment(Path.createSegment('L', obj.end));
+
+                    } else if (obj instanceof Curve) {
+                        this.appendSegment(Path.createSegment('C', obj.controlPoint1, obj.controlPoint2, obj.end));
+                    }
+
+                    previousObj = obj;
                 }
             }
+
+        } else if (arg.isSegment) { // create from a single segment
+            this.appendSegment(arg)
 
         } else if (arg instanceof Line) { // create from a single Line
             this.appendSegment(Path.createSegment('M', arg.start));
@@ -1537,6 +1558,7 @@ var g = (function() {
     };
 
     // Create a segment or an array of segments.
+    // Accepts unlimited points/coords arguments after `type`.
     Path.createSegment = function(type) {
 
         if (!type) throw new Error('Type must be provided.');
@@ -1544,7 +1566,14 @@ var g = (function() {
         var segmentConstructor = Path.segmentTypes[type];
         if (!segmentConstructor) throw new Error(type + ' is not a recognized path segment type.');
 
-        return new (Function.bind.apply(segmentConstructor, arguments)); // use unlimited number of arguments with `new` - https://stackoverflow.com/a/8843181/2263595
+        var args = [];
+        var i;
+        var n = arguments.length;
+        for (i = 1; i < n; i++) { // do not add first element (`type`) to args array
+            args.push(arguments[i]);
+        }
+
+        return applyToNew(segmentConstructor, args);
     },
 
     Path.prototype = {
@@ -1590,18 +1619,24 @@ var g = (function() {
         },
 
         // Accepts one segment or an array of segments as argument.
+        // Throws an error if argument is not a segment or an array of segments.
         appendSegment: function(arg) {
 
             var segments = this.segments;
             // works even if path has no segments
 
-            // get previous segment = last path segment
+            var currentArg;
             var currentSegment;
+
             var previousSegment = null;
-            if (segments && segments.length !== 0) previousSegment = this.getSegment(-1);
             var nextSegment = null;
+            if (segments && segments.length !== 0) {
+                previousSegment = this.getSegment(-1);
+            }
 
             if (!Array.isArray(arg)) { // arg is a segment
+                if (!arg.isSegment) throw new Error('Segment required.')
+
                 currentSegment = this.prepareSegment(arg, previousSegment, nextSegment);
                 segments.push(currentSegment);
 
@@ -1609,7 +1644,10 @@ var g = (function() {
                 var n = arg.length;
                 for (var i = 0; i < n; i++) {
 
-                    currentSegment = this.prepareSegment(arg[i], previousSegment, nextSegment);
+                    currentArg = arg[i];
+                    if (!currentArg.isSegment) throw new Error('Segments required.')
+
+                    currentSegment = this.prepareSegment(currentArg, previousSegment, nextSegment);
                     segments.push(currentSegment);
                     previousSegment = currentSegment;
                 }
@@ -1692,6 +1730,8 @@ var g = (function() {
         },
 
         // Accepts negative indices.
+        // Throws an error if path has no segments.
+        // Throws an error if index is out of range.
         getSegment: function(index) {
 
             var segments = this.segments;
@@ -1722,25 +1762,39 @@ var g = (function() {
             return segmentSubdivisions;
         },
 
-        // Accepts negative indices.
+        // Insert `arg` at given `index`.
+        // `index = 0` means insert at the beginning.
+        // `index = segments.length` means insert at the end.
+        // Accepts negative indices, from `-1` to `-(segments.length + 1)`.
         // Accepts one segment or an array of segments as argument.
+        // Throws an error if index is out of range.
+        // Throws an error if argument is not a segment or an array of segments.
         insertSegment: function(index, arg) {
 
             var segments = this.segments || [];
             // works even if path has no segments
 
-            if (index < 0) index = segments.length + index; // convert negative indices to positive
-            if (index >= segments.length || index < 0) throw new Error('Index out of range.');
+            if (index < 0) index = segments.length + index + 1; // convert negative indices to positive
+            if (index > segments.length || index < 0) throw new Error('Index out of range.');
 
-            // get previous segment = segment at index before `index`
+            var currentArg;
             var currentSegment;
+
             var previousSegment = null;
-            if (segments && segments.length !== 0 && index > 1) previousSegment = this.getSegment(index - 1);
             var nextSegment = null;
-            if (previousSegment) nextSegment = previousSegment.nextSegment;
-            else if (segments.length !== 0) nextSegment = this.getSegment(0);
+            if (segments.length !== 0) {
+                if (index >= 1) {
+                    previousSegment = this.getSegment(index - 1);
+                    nextSegment = previousSegment.nextSegment;
+
+                } else { // if index === 0
+                    nextSegment = this.getSegment(0);
+                }
+            }
 
             if (!Array.isArray(arg)) {
+                if (!arg || !arg.isSegment) throw new Error('Segment required.')
+
                 currentSegment = this.prepareSegment(arg, previousSegment, nextSegment);
                 segments.splice(index, 0, currentSegment);
 
@@ -1748,7 +1802,10 @@ var g = (function() {
                 var n = arg.length;
                 for (var i = 0; i < n; i++) {
 
-                    currentSegment = this.prepareSegment(arg[i], previousSegment, nextSegment);
+                    currentArg = arg[i];
+                    if (!currentArg.isSegment) throw new Error('Segments required.');
+
+                    currentSegment = this.prepareSegment(currentArg, previousSegment, nextSegment);
                     segments.splice((index + i), 0, currentSegment); // incrementing index to insert subsequent segments after inserted segments
                     previousSegment = currentSegment;
                 }
@@ -1760,7 +1817,7 @@ var g = (function() {
         isValid: function() {
 
             var segments = this.segments;
-            if (segments[0].type !== 'M') return false;
+            if (segments && segments.length > 0 && segments[0].type !== 'M') return false;
             else return true;
         },
 
@@ -1809,6 +1866,7 @@ var g = (function() {
         },
 
         // Returns point at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
+        // Accepts negative length.
         pointAtLength: function(length, opt) {
 
             var segments = this.segments;
@@ -1864,22 +1922,14 @@ var g = (function() {
             if (previousSegment) previousSegment.nextSegment = segment;
             if (nextSegment) nextSegment.previousSegment = segment;
 
-            // if segment starts a new subpath, update all subsequent segments until a new subpath start segment is reached
+            var updateSubpathStart = segment;
             if (segment.isSubpathStart) {
-                segment.subpathStartSegment = segment; // the segment itself
-
-                var subsequentSegment = nextSegment;
-                while (subsequentSegment && !subsequentSegment.isSubpathStart) {
-
-                    subsequentSegment.subpathStartSegment = segment;
-
-                    subsequentSegment = subsequentSegment.nextSegment; // move on to the segment after etc.
-                }
-
-            } else { // if segment does not start a new subpath, adopt previous segment's subpath start segment
-                if (previousSegment) segment.subpathStartSegment = previousSegment.subpathStartSegment;
-                else segment.subpathStartSegment = null; // if segment has no previous segment and does not start a subpath, assign null - creates an invalid path!
+                segment.subpathStartSegment = segment; // assign self as subpath start segment
+                updateSubpathStart = nextSegment; // start updating from next segment
             }
+
+            // assign previous segment's subpath start (or self if it is a subpath start) to subsequent segments
+            if (updateSubpathStart) this.updateSubpathStartSegment(updateSubpathStart);
 
             return segment;
         },
@@ -1887,7 +1937,10 @@ var g = (function() {
         // Default precision
         PRECISION: 3,
 
-        // Accepts negative indices.
+        // Remove the segment at `index`.
+        // Accepts negative indices, from `-1` to `-segments.length`.
+        // Throws an error if path has no segments.
+        // Throws an error if index is out of range.
         removeSegment: function(index) {
 
             var segments = this.segments;
@@ -1896,31 +1949,26 @@ var g = (function() {
             if (index < 0) index = segments.length + index; // convert negative indices to positive
             if (index >= segments.length || index < 0) throw new Error('Index out of range.');
 
-            // get the removed segment
             var removedSegment = segments.splice(index, 1)[0];
             var previousSegment = removedSegment.previousSegment;
             var nextSegment = removedSegment.nextSegment;
+
+            var updateSubpathStart = removedSegment.isSubpathStart;
 
             // link the previous and next segments together (if present)
             if (previousSegment) previousSegment.nextSegment = nextSegment; // may be null
             if (nextSegment) nextSegment.previousSegment = previousSegment; // may be null
 
-            // if this segment used to start a new subpath, update all subsequent segments until a new subpath start segment is reached
-            if (removedSegment.isSubpathStart) {
-                var subsequentSegment = nextSegment;
-                while (subsequentSegment && !subsequentSegment.isSubpathStart) {
-
-                    if (previousSegment) subsequentSegment.subpathStartSegment = previousSegment.subpathStartSegment; // may be null
-                    else subsequentSegment.subpathStartSegment = null; // if segment had no previous segment, assign null - creates an invalid path!
-
-                    previousSegment = subsequentSegment;
-                    subsequentSegment = subsequentSegment.nextSegment; // move on to the segment after etc.
-                }
-            }
+            // if removed segment used to start a subpath, update all subsequent segments until another subpath start segment is reached
+            if (updateSubpathStart && nextSegment) this.updateSubpathStartSegment(nextSegment);
         },
 
-        // Accepts negative indices.
-        // Accepts one segment or an array of segments as argument
+        // Replace the segment at `index` with `arg`.
+        // Accepts negative indices, from `-1` to `-segments.length`.
+        // Accepts one segment or an array of segments as argument.
+        // Throws an error if path has no segments.
+        // Throws an error if index is out of range.
+        // Throws an error if argument is not a segment or an array of segments.
         replaceSegment: function(index, arg) {
 
             var segments = this.segments;
@@ -1929,26 +1977,48 @@ var g = (function() {
             if (index < 0) index = segments.length + index; // convert negative indices to positive
             if (index >= segments.length || index < 0) throw new Error('Index out of range.');
 
-            // get the removed segment
-            var removedSegment = this.getSegment(index);
-            var previousSegment = removedSegment.previousSegment;
-            var nextSegment = removedSegment.nextSegment;
+            var currentArg;
+            var currentSegment;
+
+            var replacedSegment = this.getSegment(index);
+            var previousSegment = replacedSegment.previousSegment;
+            var nextSegment = replacedSegment.nextSegment;
+
+            var updateSubpathStart = replacedSegment.isSubpathStart;
 
             if (!Array.isArray(arg)) {
+                if (!arg || !arg.isSegment) throw new Error('Segment required.')
+
                 currentSegment = this.prepareSegment(arg, previousSegment, nextSegment);
                 segments.splice(index, 1, currentSegment); // directly replace
 
+                if (updateSubpathStart && currentSegment.isSubpathStart) updateSubpathStart = false; // already updated by `prepareSegment`
+
             } else {
-                segments.splice(index, 1); // delete first (insert array members in a loop later)
-
+                var i;
                 var n = arg.length;
-                for (var i = 0; i < n; i++) {
 
-                    currentSegment = this.prepareSegment(arg[i], previousSegment, nextSegment);
+                for (i = 0; i < n; i++) { // error-check in a loop as first step
+
+                    currentArg = arg[i];
+                    if (!currentArg.isSegment) throw new Error('Segments required.');
+                }
+
+                segments.splice(index, 1); // delete as second step
+
+                for (i = 0; i < n; i++) { // insert in a loop as last step
+
+                    currentArg = arg[i];
+                    currentSegment = this.prepareSegment(currentArg, previousSegment, nextSegment);
                     segments.splice((index + i), 0, currentSegment); // incrementing index to insert subsequent segments after inserted segments
                     previousSegment = currentSegment;
+
+                    if (updateSubpathStart && currentSegment.isSubpathStart) updateSubpathStart = false; // already updated by `prepareSegment`
                 }
             }
+
+            // if replaced segment used to start a subpath and no new subpath start was added, update all subsequent segments until another subpath start segment is reached
+            if (updateSubpathStart && nextSegment) this.updateSubpathStartSegment(nextSegment);
         },
 
         scale: function(sx, sy, origin) {
@@ -1974,6 +2044,7 @@ var g = (function() {
             return this.getSegment(index);
         },
 
+        // Accepts negative length.
         segmentAtLength: function(length, opt) {
 
             var index = this.segmentIndexAtLength(length, opt);
@@ -2001,6 +2072,7 @@ var g = (function() {
             return this.segmentAtLength(length, { precision: precision, segmentSubdivisions: segmentSubdivisions });
         },
 
+        // Accepts negative length.
         segmentIndexAtLength: function(length, opt) {
 
             var segments = this.segments;
@@ -2038,10 +2110,8 @@ var g = (function() {
             }
 
             // if length requested is higher than the length of the path, return last visible segment index
-            if (lastVisibleSegmentIndex) return lastVisibleSegmentIndex;
-
             // if no visible segment, return null
-            return null;
+            return lastVisibleSegmentIndex;
         },
 
         // Returns tangent line at requested `ratio` between 0 and 1, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
@@ -2065,6 +2135,7 @@ var g = (function() {
         },
 
         // Returns tangent line at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
+        // Accepts negative length.
         tangentAtLength: function(length, opt) {
 
             var segments = this.segments;
@@ -2128,6 +2199,22 @@ var g = (function() {
             }
 
             return this;
+        },
+
+        // Helper method for updating subpath start of segments, starting with the one provided.
+        updateSubpathStartSegment: function(segment) {
+
+            var previousSegment = segment.previousSegment;
+
+            while (segment && !segment.isSubpathStart) {
+
+                // assign previous segment's subpath start segment to this segment
+                if (previousSegment) segment.subpathStartSegment = previousSegment.subpathStartSegment; // may be null
+                else segment.subpathStartSegment = null; // if segment had no previous segment, assign null - creates an invalid path!
+
+                previousSegment = segment;
+                segment = segment.nextSegment; // move on to the segment after etc.
+            }
         },
 
         // Returns a string that can be used to reconstruct the path.
@@ -3519,17 +3606,72 @@ var g = (function() {
     g.point = g.Point;
     g.rect = g.Rect;
 
-    function extendObject(obj, src) {
+    // Use an array of arguments to call a constructor (function called with `new`).
+    // Adapted from https://stackoverflow.com/a/8843181/2263595
+    // It is not necessary to use this function if the arguments can be passed separately (i.e. if the number of arguments is limited).
+    // - If that is the case, use `new constructor(arg1, arg2)`, for example.
+    // It is not necessary to use this function if the function that needs an array of arguments is not supposed to be used as a constructor.
+    // - If that is the case, use `f.apply(thisArg, [arg1, arg2...])`, for example.
+    function applyToNew(constructor, argsArray) {
+        // The `new` keyword can only be applied to functions that take a limited number of arguments.
+        // - We can fake that with .bind().
+        // - It calls a function (`constructor`, here) with the arguments that were provided to it - effectively transforming an unlimited number of arguments into limited.
+        // - So `new (constructor.bind(thisArg, arg1, arg2...))`
+        // - `thisArg` can be anything (e.g. null) because `new` keyword resets context to the constructor object.
+        // We need to pass in a variable number of arguments to the bind() call.
+        // - We can use .apply().
+        // - So `new (constructor.bind.apply(constructor, [thisArg, arg1, arg2...]))`
+        // - `thisArg` can still be anything because `new` overwrites it.
+        // Finally, to make sure that constructor.bind overwriting is not a problem, we switch to `Function.prototype.bind`.
+        // - So, the final version is `new (Function.prototype.bind.apply(constructor, [thisArg, arg1, arg2...]))`
 
-        for (var key in src) {
+        // The function expects `argsArray[0]` to be `thisArg`.
+        // - This means that whatever is sent as the first element will be ignored.
+        // - The constructor will only see arguments starting from argsArray[1].
+        // - So, a new dummy element is inserted at the start of the array.
+        argsArray.unshift(null);
 
-            if (src.hasOwnProperty(key)) {
-                delete obj[key]; // delete original property
-                Object.defineProperty(obj, key, Object.getOwnPropertyDescriptor(src, key)); // replace with new property (including getter/setter methods)
+        return new (Function.prototype.bind.apply(constructor, argsArray));
+    }
+
+    // Add properties from arguments on top of properties from `obj`.
+    // This allows for rudimentary inheritance.
+    // - The `obj` argument acts as parent.
+    // - This function modifies `obj` so that acts as child. It inherits all `obj` properties and adds/overwrites properties from `src`
+    // Modifies `obj` object.
+    // To create a new object from an existing prototype, use `Object.create(objPrototype)`, then extend it as much as necessary.
+    function extend(obj) {
+
+        var i;
+        var n;
+
+        var args = [];
+        n = arguments.length;
+        for (i = 1; i < n; i++) { // skip over obj
+            args.push(arguments[i]);
+        }
+
+        if (!obj) throw new Error('Missing a parent object.');
+        var child = Object.create(obj);
+
+        n = args.length;
+        for (i = 0; i < n; i++) {
+
+            var src = args[i];
+
+            var inheritedProperty;
+            var key;
+            for (key in src) {
+
+                if (src.hasOwnProperty(key)) {
+                    delete child[key]; // delete property inherited from parent
+                    inheritedProperty = Object.getOwnPropertyDescriptor(src, key); // get new definition of property from src
+                    Object.defineProperty(child, key, inheritedProperty); // re-add property with new definition (includes getter/setter methods)
+                }
             }
         }
 
-        return obj;
+        return child;
     }
 
     // Path segment definitions:
@@ -3549,12 +3691,12 @@ var g = (function() {
         var args = [];
         var i;
         var n = arguments.length;
-        for (i = 0; i < n; i++) { // copy arguments object into a normal array to enable JS engine optimizations
+        for (i = 0; i < n; i++) {
             args.push(arguments[i]);
         }
 
         if (!(this instanceof Lineto)) { // switching context of `this` to Lineto when called without `new`
-            return new (Function.bind.apply(Lineto, [null].concat(args))); // use unlimited number of arguments with `new` - https://stackoverflow.com/a/8843181/2263595
+            return applyToNew(Lineto, args);
         }
 
         if (n === 0) {
@@ -3572,11 +3714,12 @@ var g = (function() {
                 throw new Error('Lineto constructor expects 1 point or 2 coordinates (' + n + ' coordinates provided).');
 
             } else { // this is a poly-line segment
+                var segmentCoords;
                 outputArray = [];
-                for (i = 0; i < n; i += 2) {
+                for (i = 0; i < n; i += 2) { // coords come in groups of two
 
-                    var segmentArgs = args.slice(i, i + 2);
-                    outputArray.push(new (Function.bind.apply(Lineto, [null].concat(segmentArgs)))); // use unlimited number of arguments with `new` - https://stackoverflow.com/a/8843181/2263595
+                    segmentCoords = args.slice(i, i + 2); // will send one coord if args.length not divisible by 2
+                    outputArray.push(applyToNew(Lineto, segmentCoords));
                 }
                 return outputArray;
             }
@@ -3587,11 +3730,12 @@ var g = (function() {
                 return this;
 
             } else { // this is a poly-line segment
+                var segmentPoint;
                 outputArray = [];
                 for (i = 0; i < n; i += 1) {
 
-                    var arg = args[i];
-                    outputArray.push(new Lineto(arg));
+                    segmentPoint = args[i];
+                    outputArray.push(new Lineto(segmentPoint));
                 }
                 return outputArray;
             }
@@ -3643,19 +3787,19 @@ var g = (function() {
         }
     };
 
-    Lineto.prototype = extendObject(extendObject(Object.create(Line.prototype), segmentPrototype), linetoPrototype);
+    Lineto.prototype = extend(Line.prototype, segmentPrototype, linetoPrototype);
 
     var Curveto = function() {
 
         var args = [];
         var i;
         var n = arguments.length;
-        for (i = 0; i < n; i++) { // copy arguments object into a normal array to enable JS engine optimizations
+        for (i = 0; i < n; i++) {
             args.push(arguments[i]);
         }
 
         if (!(this instanceof Curveto)) { // switching context of `this` to Curveto when called without `new`
-            return new (Function.bind.apply(Curveto, [null].concat(args))); // use unlimited number of arguments with `new` - https://stackoverflow.com/a/8843181/2263595
+            return applyToNew(Curveto, args);
         }
 
         if (n === 0) {
@@ -3663,7 +3807,6 @@ var g = (function() {
         }
 
         var outputArray;
-        var segmentArgs;
 
         if (typeof args[0] === 'string' || typeof args[0] === 'number') { // coordinates provided
             if (n === 6) {
@@ -3676,11 +3819,12 @@ var g = (function() {
                 throw new Error('Curveto constructor expects 3 points or 6 coordinates (' + n + ' coordinates provided).');
 
             } else { // this is a poly-bezier segment
+                var segmentCoords;
                 outputArray = [];
-                for (i = 0; i < n; i += 6) {
+                for (i = 0; i < n; i += 6) { // coords come in groups of six
 
-                    segmentArgs = args.slice(i, i + 6);
-                    outputArray.push(new (Function.bind.apply(Curveto, [null].concat(segmentArgs)))); // use unlimited number of arguments with `new` - https://stackoverflow.com/a/8843181/2263595
+                    segmentCoords = args.slice(i, i + 6); // will send fewer than six coords if args.length not divisible by 6
+                    outputArray.push(applyToNew(Curveto, segmentCoords));
                 }
                 return outputArray;
             }
@@ -3696,11 +3840,12 @@ var g = (function() {
                 throw new Error('Curveto constructor expects 3 points or 6 coordinates (' + n + ' points provided).');
 
             } else { // this is a poly-bezier segment
+                var segmentPoints;
                 outputArray = [];
-                for (i = 0; i < n; i += 3) {
+                for (i = 0; i < n; i += 3) { // points come in groups of three
 
-                    segmentArgs = args.slice(i, i + 3);
-                    outputArray.push(new (Function.bind.apply(Curveto, [null].concat(segmentArgs)))); // use unlimited number of arguments with `new` - https://stackoverflow.com/a/8843181/2263595
+                    segmentPoints = args.slice(i, i + 3); // will send fewer than three points if args.length is not divisible by 3
+                    outputArray.push(applyToNew(Curveto, segmentPoints));
                 }
                 return outputArray;
             }
@@ -3753,19 +3898,19 @@ var g = (function() {
         }
     };
 
-    Curveto.prototype = extendObject(extendObject(Object.create(Curve.prototype), segmentPrototype), curvetoPrototype);
+    Curveto.prototype = extend(Curve.prototype, segmentPrototype, curvetoPrototype);
 
     var Moveto = function() {
 
         var args = [];
         var i;
         var n = arguments.length;
-        for (i = 0; i < n; i++) { // copy arguments object into a normal array to enable JS engine optimizations
+        for (i = 0; i < n; i++) {
             args.push(arguments[i]);
         }
 
         if (!(this instanceof Moveto)) { // switching context of `this` to Moveto when called without `new`
-            return new (Function.bind.apply(Moveto, [null].concat(args))); // use unlimited number of arguments with `new` - https://stackoverflow.com/a/8843181/2263595
+            return applyToNew(Moveto, args);
         }
 
         if (n === 0) {
@@ -3783,12 +3928,13 @@ var g = (function() {
                 throw new Error('Moveto constructor expects 1 point or 2 coordinates (' + n + ' coordinates provided).');
 
             } else { // this is a moveto-with-subsequent-poly-line segment
+                var segmentCoords;
                 outputArray = [];
-                for (i = 0; i < n; i += 2) {
+                for (i = 0; i < n; i += 2) { // coords come in groups of two
 
-                    var segmentArgs = args.slice(i, i + 2);
-                    if (i === 0) outputArray.push(new (Function.bind.apply(Moveto, [null].concat(segmentArgs)))); // use unlimited number of arguments with `new` - https://stackoverflow.com/a/8843181/2263595
-                    else outputArray.push(new (Function.bind.apply(Lineto, [null].concat(segmentArgs)))); // use unlimited number of arguments with `new` - https://stackoverflow.com/a/8843181/2263595
+                    segmentCoords = args.slice(i, i + 2); // will send one coord if args.length not divisible by 2
+                    if (i === 0) outputArray.push(applyToNew(Moveto, segmentCoords));
+                    else outputArray.push(applyToNew(Lineto, segmentCoords));
                 }
                 return outputArray;
             }
@@ -3799,12 +3945,13 @@ var g = (function() {
                 return this;
 
             } else { // this is a moveto-with-subsequent-poly-line segment
+                var segmentPoint;
                 outputArray = [];
-                for (i = 0; i < n; i += 1) {
+                for (i = 0; i < n; i += 1) { // points come one by one
 
-                    var arg = args[i];
-                    if (i === 0) outputArray.push(new Moveto(arg));
-                    else outputArray.push(new Lineto(arg));
+                    segmentPoint = args[i];
+                    if (i === 0) outputArray.push(new Moveto(segmentPoint));
+                    else outputArray.push(new Lineto(segmentPoint));
                 }
                 return outputArray;
             }
@@ -3884,23 +4031,23 @@ var g = (function() {
 
         toString: function() {
 
-            return this.type + ' ' + this.start + ' ' + this.end;
+            return this.type + ' ' + this.end;
         }
     };
 
-    Moveto.prototype = extendObject(Object.create(segmentPrototype), movetoPrototype); // does not inherit from any other geometry object
+    Moveto.prototype = extend(segmentPrototype, movetoPrototype); // does not inherit from any other geometry object
 
     var Closepath = function() {
 
         var args = [];
         var i;
         var n = arguments.length;
-        for (i = 0; i < n; i++) { // copy arguments object into a normal array to enable JS engine optimizations
+        for (i = 0; i < n; i++) {
             args.push(arguments[i]);
         }
 
         if (!(this instanceof Closepath)) { // switching context of `this` to Closepath when called without `new`
-            return new (Function.bind.apply(Closepath, [null].concat(args))); // use unlimited number of arguments with `new` - https://stackoverflow.com/a/8843181/2263595
+            return applyToNew(Closepath, args);
         }
 
         if (n > 0) {
@@ -3959,7 +4106,7 @@ var g = (function() {
         }
     };
 
-    Closepath.prototype = extendObject(extendObject(Object.create(Line.prototype), segmentPrototype), closepathPrototype);
+    Closepath.prototype = extend(Line.prototype, segmentPrototype, closepathPrototype);
 
     Path.segmentTypes = {
         L: Lineto,

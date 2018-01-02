@@ -6,24 +6,25 @@ QUnit.module('line', function() {
 
         QUnit.test('creates a new Line object', function(assert) {
 
-            assert.ok(g.Line() instanceof g.Line, 'no arguments provided');
+            var line = new g.Line()
+            assert.ok(line instanceof g.Line, 'no arguments provided');
 
-            var line = g.Line(g.Point(), g.Point(3, 8));
-            assert.ok(line, 'returns instance of g.Line');
-            assert.ok(typeof line.start !== 'undefined', 'has "start" property');
-            assert.ok(typeof line.end !== 'undefined', 'has "end" property');
-            assert.equal(line.start.x, 0, 'start.x is correct');
-            assert.equal(line.start.y, 0, 'start.y is correct');
-            assert.equal(line.end.x, 3, 'end.x is correct');
-            assert.equal(line.end.y, 8, 'end.y is correct');
+            var line1 = new g.Line(new g.Point(), new g.Point(3, 8));
+            assert.ok(line1 instanceof g.Line, 'returns instance of g.Line');
+            assert.ok(typeof line1.start !== 'undefined', 'has "start" property');
+            assert.ok(typeof line1.end !== 'undefined', 'has "end" property');
+            assert.equal(line1.start.x, 0, 'start.x is correct');
+            assert.equal(line1.start.y, 0, 'start.y is correct');
+            assert.equal(line1.end.x, 3, 'end.x is correct');
+            assert.equal(line1.end.y, 8, 'end.y is correct');
 
-            var line2 = g.Line(line);
-            assert.ok(line2, 'returns instance of g.Line');
+            var line2 = new g.Line(line1);
+            assert.ok(line2 instanceof g.Line, 'returns instance of g.Line');
             assert.ok(typeof line2.start !== 'undefined', 'has "start" property');
             assert.ok(typeof line2.end !== 'undefined', 'has "end" property');
-            assert.notOk(line === line2);
-            assert.equal(line.toString(), line2.toString());
-            assert.ok(line.equals(line2));
+            assert.notOk(line1 === line2);
+            assert.equal(line1.toString(), line2.toString());
+            assert.ok(line1.equals(line2));
         });
     });
 
@@ -266,52 +267,141 @@ QUnit.module('line', function() {
             });
         });
 
+        QUnit.module('rotate()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var line = new g.Line('5 5', '20 20');
+                var angle;
+
+                var nullPoint = null;
+                var zeroPoint = new g.Point('0 0');
+                var startPoint = line.start;
+                var arbitraryPoint = new g.Point('14 6');
+
+                angle = 0;
+                assert.ok(line.clone().rotate(nullPoint, angle) instanceof g.Line);
+                assert.ok(line.clone().rotate(zeroPoint, angle) instanceof g.Line);
+                assert.ok(line.clone().rotate(startPoint, angle) instanceof g.Line);
+                assert.ok(line.clone().rotate(arbitraryPoint, angle) instanceof g.Line);
+
+                angle = 154;
+                assert.ok(line.clone().rotate(nullPoint, angle) instanceof g.Line);
+                assert.ok(line.clone().rotate(zeroPoint, angle) instanceof g.Line);
+                assert.ok(line.clone().rotate(startPoint, angle) instanceof g.Line);
+                assert.ok(line.clone().rotate(arbitraryPoint, angle) instanceof g.Line);
+
+                angle = 360;
+                assert.ok(line.clone().rotate(nullPoint, angle) instanceof g.Line);
+                assert.ok(line.clone().rotate(zeroPoint, angle) instanceof g.Line);
+                assert.ok(line.clone().rotate(startPoint, angle) instanceof g.Line);
+                assert.ok(line.clone().rotate(arbitraryPoint, angle) instanceof g.Line);
+
+                angle = 1080;
+                assert.ok(line.clone().rotate(nullPoint, angle) instanceof g.Line);
+                assert.ok(line.clone().rotate(zeroPoint, angle) instanceof g.Line);
+                assert.ok(line.clone().rotate(startPoint, angle) instanceof g.Line);
+                assert.ok(line.clone().rotate(arbitraryPoint, angle) instanceof g.Line);
+            });
+
+            QUnit.test('should return a rotated version of self', function(assert) {
+
+                var line = new g.Line('5 5', '20 20');
+                var angle;
+
+                var nullPoint = null;
+                var zeroPoint = new g.Point('0 0');
+                var startPoint = line.start;
+                var arbitraryPoint = new g.Point('14 6');
+
+                angle = 0;
+                assert.equal(line.clone().rotate(nullPoint, angle).toString(), '5@5.000000000000001 20@20.000000000000004');
+                assert.equal(line.clone().rotate(zeroPoint, angle).toString(), '5@5.000000000000001 20@20.000000000000004');
+                assert.equal(line.clone().rotate(startPoint, angle).toString(), '5@5 20@20.000000000000004');
+                assert.equal(line.clone().rotate(arbitraryPoint, angle).toString(), '5@5.000000000000001 19.999999999999996@20');
+
+                angle = 154;
+                assert.equal(line.clone().rotate(nullPoint, angle).toString(), '-2.30211449755045@-6.6858259654412215 -9.2084579902018@-26.743303861764886');
+                assert.equal(line.clone().rotate(zeroPoint, angle).toString(), '-2.30211449755045@-6.6858259654412215 -9.2084579902018@-26.743303861764886');
+                assert.equal(line.clone().rotate(startPoint, angle).toString(), '5@5 -1.9063434926513505@-15.057477896323665');
+                assert.equal(line.clone().rotate(arbitraryPoint, angle).toString(), '21.650775269903427@10.844134367400862 14.744431777252077@-9.213343528922803');
+            });
+
+            QUnit.test('assert rotation 0 = 360 = 1080', function(assert) {
+
+                var line = new g.Line('5 5', '20 20');
+                var angle1;
+                var angle2;
+
+                var nullPoint = null;
+                var zeroPoint = new g.Point('0 0');
+                var startPoint = line.start;
+                var arbitraryPoint = new g.Point('14 6');
+
+                angle1 = 0;
+                angle2 = 360;
+                assert.equal(line.clone().rotate(nullPoint, angle1).toString(), line.clone().rotate(nullPoint, angle2).toString());
+                assert.equal(line.clone().rotate(zeroPoint, angle1).toString(), line.clone().rotate(zeroPoint, angle2).toString());
+                assert.equal(line.clone().rotate(startPoint, angle1).toString(), line.clone().rotate(startPoint, angle2).toString());
+                assert.equal(line.clone().rotate(arbitraryPoint, angle1).toString(), line.clone().rotate(arbitraryPoint, angle2).toString());
+
+                angle1 = 0;
+                angle2 = 1080;
+                assert.equal(line.clone().rotate(nullPoint, angle1).toString(), line.clone().rotate(nullPoint, angle2).toString());
+                assert.equal(line.clone().rotate(zeroPoint, angle1).toString(), line.clone().rotate(zeroPoint, angle2).toString());
+                assert.equal(line.clone().rotate(startPoint, angle1).toString(), line.clone().rotate(startPoint, angle2).toString());
+                assert.equal(line.clone().rotate(arbitraryPoint, angle1).toString(), line.clone().rotate(arbitraryPoint, angle2).toString());
+            });
+        });
+
         QUnit.module('scale()', function() {
 
             QUnit.test('sanity', function(assert) {
 
-                assert.ok(g.Line('5 5', '20 20').scale(0, 0) instanceof g.Line);
-                assert.ok(g.Line('5 5', '20 20').scale(0, 0, g.Point('0 0')) instanceof g.Line);
-                assert.ok(g.Line('5 5', '20 20').scale(0, 0, g.Point('10 10')) instanceof g.Line);
+                var line = new g.Line('5 5', '20 20');
+                assert.ok(line.clone().scale(0, 0) instanceof g.Line);
+                assert.ok(line.clone().scale(0, 0, g.Point('0 0')) instanceof g.Line);
+                assert.ok(line.clone().scale(0, 0, g.Point('10 10')) instanceof g.Line);
 
-                assert.ok(g.Line('5 5', '20 20').scale(0, 1) instanceof g.Line);
-                assert.ok(g.Line('5 5', '20 20').scale(0, 1, g.Point('0 0')) instanceof g.Line);
-                assert.ok(g.Line('5 5', '20 20').scale(0, 1, g.Point('10 10')) instanceof g.Line);
+                assert.ok(line.clone().scale(0, 1) instanceof g.Line);
+                assert.ok(line.clone().scale(0, 1, g.Point('0 0')) instanceof g.Line);
+                assert.ok(line.clone().scale(0, 1, g.Point('10 10')) instanceof g.Line);
 
-                assert.ok(g.Line('5 5', '20 20').scale(1, 0) instanceof g.Line);
-                assert.ok(g.Line('5 5', '20 20').scale(1, 0, g.Point('0 0')) instanceof g.Line);
-                assert.ok(g.Line('5 5', '20 20').scale(1, 0, g.Point('10 10')) instanceof g.Line);
+                assert.ok(line.clone().scale(1, 0) instanceof g.Line);
+                assert.ok(line.clone().scale(1, 0, g.Point('0 0')) instanceof g.Line);
+                assert.ok(line.clone().scale(1, 0, g.Point('10 10')) instanceof g.Line);
 
-                assert.ok(g.Line('5 5', '20 20').scale(1, 1) instanceof g.Line);
-                assert.ok(g.Line('5 5', '20 20').scale(1, 1, g.Point('0 0')) instanceof g.Line);
-                assert.ok(g.Line('5 5', '20 20').scale(1, 1, g.Point('10 10')) instanceof g.Line);
+                assert.ok(line.clone().scale(1, 1) instanceof g.Line);
+                assert.ok(line.clone().scale(1, 1, g.Point('0 0')) instanceof g.Line);
+                assert.ok(line.clone().scale(1, 1, g.Point('10 10')) instanceof g.Line);
 
-                assert.ok(g.Line('5 5', '20 20').scale(10, 10) instanceof g.Line);
-                assert.ok(g.Line('5 5', '20 20').scale(10, 10, g.Point('0 0')) instanceof g.Line);
+                assert.ok(line.clone().scale(10, 10) instanceof g.Line);
+                assert.ok(line.clone().scale(10, 10, g.Point('0 0')) instanceof g.Line);
                 assert.ok(g.Line('5 5', '20 20').scale(10, 10, g.Point('10 10')) instanceof g.Line);
             });
 
             QUnit.test('should return a scaled version of self', function(assert) {
 
-                assert.equal(g.Line('5 5', '20 20').scale(0, 0).toString(), g.Line('0 0', '0 0').toString());
-                assert.equal(g.Line('5 5', '20 20').scale(0, 0, g.Point('0 0')).toString(), g.Line('0 0', '0 0').toString());
-                assert.equal(g.Line('5 5', '20 20').scale(0, 0, g.Point('10 10')).toString(), g.Line('10 10', '10 10').toString());
+                var line = new g.Line('5 5', '20 20');
+                assert.equal(line.clone().scale(0, 0).toString(), g.Line('0 0', '0 0').toString());
+                assert.equal(line.clone().scale(0, 0, g.Point('0 0')).toString(), g.Line('0 0', '0 0').toString());
+                assert.equal(line.clone().scale(0, 0, g.Point('10 10')).toString(), g.Line('10 10', '10 10').toString());
 
-                assert.equal(g.Line('5 5', '20 20').scale(0, 1).toString(), g.Line('0 5', '0 20').toString());
-                assert.equal(g.Line('5 5', '20 20').scale(0, 1, g.Point('0 0')).toString(), g.Line('0 5', '0 20').toString());
-                assert.equal(g.Line('5 5', '20 20').scale(0, 1, g.Point('10 10')).toString(), g.Line('10 5', '10 20').toString());
+                assert.equal(line.clone().scale(0, 1).toString(), g.Line('0 5', '0 20').toString());
+                assert.equal(line.clone().scale(0, 1, g.Point('0 0')).toString(), g.Line('0 5', '0 20').toString());
+                assert.equal(line.clone().scale(0, 1, g.Point('10 10')).toString(), g.Line('10 5', '10 20').toString());
 
-                assert.equal(g.Line('5 5', '20 20').scale(1, 0).toString(), g.Line('5 0', '20 0').toString());
-                assert.equal(g.Line('5 5', '20 20').scale(1, 0, g.Point('0 0')).toString(), g.Line('5 0', '20 0').toString());
-                assert.equal(g.Line('5 5', '20 20').scale(1, 0, g.Point('10 10')).toString(), g.Line('5 10', '20 10').toString());
+                assert.equal(line.clone().scale(1, 0).toString(), g.Line('5 0', '20 0').toString());
+                assert.equal(line.clone().scale(1, 0, g.Point('0 0')).toString(), g.Line('5 0', '20 0').toString());
+                assert.equal(line.clone().scale(1, 0, g.Point('10 10')).toString(), g.Line('5 10', '20 10').toString());
 
-                assert.equal(g.Line('5 5', '20 20').scale(1, 1).toString(), g.Line('5 5', '20 20').toString());
-                assert.equal(g.Line('5 5', '20 20').scale(1, 1, g.Point('0 0')).toString(), g.Line('5 5', '20 20').toString());
-                assert.equal(g.Line('5 5', '20 20').scale(1, 1, g.Point('10 10')).toString(), g.Line('5 5', '20 20').toString());
+                assert.equal(line.clone().scale(1, 1).toString(), g.Line('5 5', '20 20').toString());
+                assert.equal(line.clone().scale(1, 1, g.Point('0 0')).toString(), g.Line('5 5', '20 20').toString());
+                assert.equal(line.clone().scale(1, 1, g.Point('10 10')).toString(), g.Line('5 5', '20 20').toString());
 
-                assert.equal(g.Line('5 5', '20 20').scale(10, 10).toString(), g.Line('50 50', '200 200').toString());
-                assert.equal(g.Line('5 5', '20 20').scale(10, 10, g.Point('0 0')).toString(), g.Line('50 50', '200 200').toString());
-                assert.equal(g.Line('5 5', '20 20').scale(10, 10, g.Point('10 10')).toString(), g.Line('-40 -40', '110 110').toString());
+                assert.equal(line.clone().scale(10, 10).toString(), g.Line('50 50', '200 200').toString());
+                assert.equal(line.clone().scale(10, 10, g.Point('0 0')).toString(), g.Line('50 50', '200 200').toString());
+                assert.equal(line.clone().scale(10, 10, g.Point('10 10')).toString(), g.Line('-40 -40', '110 110').toString());
             });
         });
 
@@ -363,18 +453,20 @@ QUnit.module('line', function() {
 
             QUnit.test('sanity', function(assert) {
 
-                assert.ok(g.Line('5 5', '20 20').translate(0, 0) instanceof g.Line);
-                assert.ok(g.Line('5 5', '20 20').translate(0, 10) instanceof g.Line);
-                assert.ok(g.Line('5 5', '20 20').translate(10, 0) instanceof g.Line);
-                assert.ok(g.Line('5 5', '20 20').translate(10, 10) instanceof g.Line);
+                var line = new g.Line('5 5', '20 20');
+                assert.ok(line.clone().translate(0, 0) instanceof g.Line);
+                assert.ok(line.clone().translate(0, 10) instanceof g.Line);
+                assert.ok(line.clone().translate(10, 0) instanceof g.Line);
+                assert.ok(line.clone().translate(10, 10) instanceof g.Line);
             });
 
             QUnit.test('should return a translated version of self', function(assert) {
 
-                assert.equal(g.Line('5 5', '20 20').translate(0, 0).toString(), g.Line('5 5', '20 20').toString());
-                assert.equal(g.Line('5 5', '20 20').translate(0, 10).toString(), g.Line('5 15', '20 30').toString());
-                assert.equal(g.Line('5 5', '20 20').translate(10, 0).toString(), g.Line('15 5', '30 20').toString());
-                assert.equal(g.Line('5 5', '20 20').translate(10, 10).toString(), g.Line('15 15', '30 30').toString());
+                var line = new g.Line('5 5', '20 20');
+                assert.equal(line.clone().translate(0, 0).toString(), '5@5 20@20');
+                assert.equal(line.clone().translate(0, 10).toString(), '5@15 20@30');
+                assert.equal(line.clone().translate(10, 0).toString(), '15@5 30@20');
+                assert.equal(line.clone().translate(10, 10).toString(), '15@15 30@30');
             });
         });
 
