@@ -816,20 +816,27 @@ QUnit.module('path', function(hooks) {
 
             QUnit.test('sanity', function(assert) {
 
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').bbox() instanceof g.Rect);
+                var path;
 
-                assert.ok(g.Path('M 150 100 M 100 200').bbox() instanceof g.Rect);
+                path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.ok(path.bbox() instanceof g.Rect);
 
-                var path = g.Path('M 0 0');
-                path.segments = [];
+                path = new g.Path('M 150 100 M 100 200');
+                assert.ok(path.bbox() instanceof g.Rect);
+
+                path = new g.Path();
                 assert.equal(path.bbox(), null);
             });
 
             QUnit.test('returns tight bounding box of the path', function(assert) {
 
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').bbox().toString(), '55.55555555555556@100 150@200');
+                var path;
 
-                assert.equal(g.Path('M 150 100 M 100 200').bbox().toString(), '100@200 100@200');
+                path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(path.bbox().toString(), '55.55555555555556@100 150@200');
+
+                path = new g.Path('M 150 100 M 100 200');
+                assert.equal(path.bbox().toString(), '100@200 100@200');
             });
         });
 
@@ -837,12 +844,13 @@ QUnit.module('path', function(hooks) {
 
             QUnit.test('sanity', function(assert) {
 
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').clone() instanceof g.Path);
+                var path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.ok(path.clone() instanceof g.Path);
             });
 
             QUnit.test('returns a clone', function(assert) {
 
-                var path1 = g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                var path1 = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
                 var path2 = path1.clone();
                 assert.notOk(path1 === path2);
                 assert.equal(path1.toString(), path2.toString());
@@ -857,49 +865,47 @@ QUnit.module('path', function(hooks) {
                 var path1;
                 var path2;
 
-                path1 = g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
-                path2 = g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                path1 = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                path2 = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
                 assert.equal(path1.equals(path2), true);
 
-                path1 = g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
-                path2 = g.Path('M 100 100');
+                path1 = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                path2 = new g.Path('M 100 100');
                 assert.equal(path1.equals(path2), false);
 
-                path1 = g.Path('M 0 0');
-                path1.segments = [];
-                path2 = g.Path('M 0 0');
-                path2.segments = [];
+                path1 = new g.Path();
+                path2 = new g.Path();
                 assert.equal(path1.equals(path2), true);
 
-                path1 = g.Path('M 100 100');
-                path2 = g.Path('M 0 0');
+                path1 = new g.Path('M 100 100');
+                path2 = new g.Path('M 0 0');
                 path2.segments = null;
                 assert.equal(path1.equals(path2), false);
 
-                path1 = g.Path('M 0 0');
+                path1 = new g.Path('M 0 0');
                 path1.segments = null;
-                path2 = g.Path('M 100 100');
+                path2 = new g.Path('M 100 100');
                 assert.equal(path1.equals(path2), false);
 
-                path1 = g.Path('M 0 0');
+                path1 = new g.Path('M 0 0');
                 path1.segments = null;
-                path2 = g.Path('M 0 0');
+                path2 = new g.Path('M 0 0');
                 path2.segments = null;
                 assert.equal(path1.equals(path2), false);
 
-                path1 = g.Path('M 100 100');
-                path2 = g.Path('M 0 0');
+                path1 = new g.Path('M 100 100');
+                path2 = new g.Path('M 0 0');
                 path2.segments = undefined;
                 assert.equal(path1.equals(path2), false);
 
-                path1 = g.Path('M 0 0');
+                path1 = new g.Path('M 0 0');
                 path1.segments = undefined;
-                path2 = g.Path('M 100 100');
+                path2 = new g.Path('M 100 100');
                 assert.equal(path1.equals(path2), false);
 
-                path1 = g.Path('M 0 0');
+                path1 = new g.Path('M 0 0');
                 path1.segments = undefined;
-                path2 = g.Path('M 0 0');
+                path2 = new g.Path('M 0 0');
                 path2.segments = undefined;
                 assert.equal(path1.equals(path2), false);
             });
@@ -982,58 +988,60 @@ QUnit.module('path', function(hooks) {
 
             QUnit.test('sanity', function(assert) {
 
-                assert.equal(Array.isArray(g.Path('M 0 0 L 0 100 C 50 200 150 0 200 100').getSegmentSubdivisions()), true);
-                assert.equal(Array.isArray(g.Path('M 0 0 L 0 100 C 50 200 150 0 200 100').getSegmentSubdivisions({ precision: 0 })), true);
-                assert.equal(Array.isArray(g.Path('M 0 0 L 0 100 C 50 200 150 0 200 100').getSegmentSubdivisions({ precision: 1 })), true);
-                assert.equal(Array.isArray(g.Path('M 0 0 L 0 100 C 50 200 150 0 200 100').getSegmentSubdivisions({ precision: 2 })), true);
-                assert.equal(Array.isArray(g.Path('M 0 0 L 0 100 C 50 200 150 0 200 100').getSegmentSubdivisions({ precision: 3 })), true);
-                assert.equal(Array.isArray(g.Path('M 0 0 L 0 100 C 50 200 150 0 200 100').getSegmentSubdivisions({ precision: 4 })), true);
-                assert.equal(Array.isArray(g.Path('M 0 0 L 0 100 C 50 200 150 0 200 100').getSegmentSubdivisions({ precision: 5 })), true);
+                var path = new g.Path('M 0 0 L 0 100 C 50 200 150 0 200 100');
+                assert.equal(Array.isArray(path.getSegmentSubdivisions()), true);
+                assert.equal(Array.isArray(path.getSegmentSubdivisions({ precision: 0 })), true);
+                assert.equal(Array.isArray(path.getSegmentSubdivisions({ precision: 1 })), true);
+                assert.equal(Array.isArray(path.getSegmentSubdivisions({ precision: 2 })), true);
+                assert.equal(Array.isArray(path.getSegmentSubdivisions({ precision: 3 })), true);
+                assert.equal(Array.isArray(path.getSegmentSubdivisions({ precision: 4 })), true);
+                assert.equal(Array.isArray(path.getSegmentSubdivisions({ precision: 5 })), true);
             });
 
             QUnit.test('returns an array of segment subdivisions', function(assert) {
 
-                assert.deepEqual(g.Path('M 0 0 L 0 100 C 50 200 150 0 200 100').getSegmentSubdivisions({ precision: 0 }), [
+                var path = new g.Path('M 0 0 L 0 100 C 50 200 150 0 200 100');
+                assert.deepEqual(path.getSegmentSubdivisions({ precision: 0 }), [
                     [],
                     [],
                     [
-                        g.Curve(g.Point(0, 100), g.Point(50, 200), g.Point(150, 0), g.Point(200, 100))
+                        new g.Curve(new g.Point(0, 100), new g.Point(50, 200), new g.Point(150, 0), new g.Point(200, 100))
                     ]
                 ]);
-                assert.deepEqual(g.Path('M 0 0 L 0 100 C 50 200 150 0 200 100').getSegmentSubdivisions({ precision: 1 }), [
+                assert.deepEqual(path.getSegmentSubdivisions({ precision: 1 }), [
                     [],
                     [],
                     [
-                        g.Curve(g.Point(0, 100), g.Point(6.25, 112.5), g.Point(13.28125, 120.3125), g.Point(20.8984375, 124.609375)),
-                        g.Curve(g.Point(20.8984375, 124.609375), g.Point(28.515625, 128.90625), g.Point(36.71875, 129.6875), g.Point(45.3125, 128.125)),
-                        g.Curve(g.Point(45.3125, 128.125), g.Point(53.90625, 126.5625), g.Point(62.890625, 122.65625), g.Point(72.0703125, 117.578125)),
-                        g.Curve(g.Point(72.0703125, 117.578125), g.Point(81.25, 112.5), g.Point(90.625, 106.25), g.Point(100, 100)),
-                        g.Curve(g.Point(100, 100), g.Point(109.375, 93.75), g.Point(118.75, 87.5), g.Point(127.9296875, 82.421875)),
-                        g.Curve(g.Point(127.9296875, 82.421875), g.Point(137.109375, 77.34375), g.Point(146.09375, 73.4375), g.Point(154.6875, 71.875)),
-                        g.Curve(g.Point(154.6875, 71.875), g.Point(163.28125, 70.3125), g.Point(171.484375, 71.09375), g.Point(179.1015625, 75.390625)),
-                        g.Curve(g.Point(179.1015625, 75.390625), g.Point(186.71875, 79.6875), g.Point(193.75, 87.5), g.Point(200, 100))
+                        new g.Curve(new g.Point(0, 100), new g.Point(6.25, 112.5), new g.Point(13.28125, 120.3125), new g.Point(20.8984375, 124.609375)),
+                        new g.Curve(new g.Point(20.8984375, 124.609375), new g.Point(28.515625, 128.90625), new g.Point(36.71875, 129.6875), new g.Point(45.3125, 128.125)),
+                        new g.Curve(new g.Point(45.3125, 128.125), new g.Point(53.90625, 126.5625), new g.Point(62.890625, 122.65625), new g.Point(72.0703125, 117.578125)),
+                        new g.Curve(new g.Point(72.0703125, 117.578125), new g.Point(81.25, 112.5), new g.Point(90.625, 106.25), new g.Point(100, 100)),
+                        new g.Curve(new g.Point(100, 100), new g.Point(109.375, 93.75), new g.Point(118.75, 87.5), new g.Point(127.9296875, 82.421875)),
+                        new g.Curve(new g.Point(127.9296875, 82.421875), new g.Point(137.109375, 77.34375), new g.Point(146.09375, 73.4375), new g.Point(154.6875, 71.875)),
+                        new g.Curve(new g.Point(154.6875, 71.875), new g.Point(163.28125, 70.3125), new g.Point(171.484375, 71.09375), new g.Point(179.1015625, 75.390625)),
+                        new g.Curve(new g.Point(179.1015625, 75.390625), new g.Point(186.71875, 79.6875), new g.Point(193.75, 87.5), new g.Point(200, 100))
                     ]
                 ]);
-                assert.deepEqual(g.Path('M 0 0 L 0 100 C 50 200 150 0 200 100').getSegmentSubdivisions({ precision: 2 }), [
+                assert.deepEqual(path.getSegmentSubdivisions({ precision: 2 }), [
                     [],
                     [],
                     [
-                        g.Curve(g.Point(0, 100), g.Point(3.125, 106.25), g.Point(6.4453125, 111.328125), g.Point(9.9365234375, 115.380859375)),
-                        g.Curve(g.Point(9.9365234375, 115.380859375), g.Point(13.427734375, 119.43359375), g.Point(17.08984375, 122.4609375), g.Point(20.8984375, 124.609375)),
-                        g.Curve(g.Point(20.8984375, 124.609375), g.Point(24.70703125, 126.7578125), g.Point(28.662109375, 128.02734375), g.Point(32.7392578125, 128.564453125)),
-                        g.Curve(g.Point(32.7392578125, 128.564453125), g.Point(36.81640625, 129.1015625), g.Point(41.015625, 128.90625), g.Point(45.3125, 128.125)),
-                        g.Curve(g.Point(45.3125, 128.125), g.Point(49.609375, 127.34375), g.Point(54.00390625, 125.9765625), g.Point(58.4716796875, 124.169921875)),
-                        g.Curve(g.Point(58.4716796875, 124.169921875), g.Point(62.939453125, 122.36328125), g.Point(67.48046875, 120.1171875), g.Point(72.0703125, 117.578125)),
-                        g.Curve(g.Point(72.0703125, 117.578125), g.Point(76.66015625, 115.0390625), g.Point(81.298828125, 112.20703125), g.Point(85.9619140625, 109.228515625)),
-                        g.Curve(g.Point(85.9619140625, 109.228515625), g.Point(90.625, 106.25), g.Point(95.3125, 103.125), g.Point(100, 100)),
-                        g.Curve(g.Point(100, 100), g.Point(104.6875, 96.875), g.Point(109.375, 93.75), g.Point(114.0380859375, 90.771484375)),
-                        g.Curve(g.Point(114.0380859375, 90.771484375), g.Point(118.701171875, 87.79296875), g.Point(123.33984375, 84.9609375), g.Point(127.9296875, 82.421875)),
-                        g.Curve(g.Point(127.9296875, 82.421875), g.Point(132.51953125, 79.8828125), g.Point(137.060546875, 77.63671875), g.Point(141.5283203125, 75.830078125)),
-                        g.Curve(g.Point(141.5283203125, 75.830078125), g.Point(145.99609375, 74.0234375), g.Point(150.390625, 72.65625), g.Point(154.6875, 71.875)),
-                        g.Curve(g.Point(154.6875, 71.875), g.Point(158.984375, 71.09375), g.Point(163.18359375, 70.8984375), g.Point(167.2607421875, 71.435546875)),
-                        g.Curve(g.Point(167.2607421875, 71.435546875), g.Point(171.337890625, 71.97265625), g.Point(175.29296875, 73.2421875), g.Point(179.1015625, 75.390625)),
-                        g.Curve(g.Point(179.1015625, 75.390625), g.Point(182.91015625, 77.5390625), g.Point(186.572265625, 80.56640625), g.Point(190.0634765625, 84.619140625)),
-                        g.Curve(g.Point(190.0634765625, 84.619140625), g.Point(193.5546875, 88.671875), g.Point(196.875, 93.75), g.Point(200, 100))
+                        new g.Curve(new g.Point(0, 100), new g.Point(3.125, 106.25), new g.Point(6.4453125, 111.328125), new g.Point(9.9365234375, 115.380859375)),
+                        new g.Curve(new g.Point(9.9365234375, 115.380859375), new g.Point(13.427734375, 119.43359375), new g.Point(17.08984375, 122.4609375), new g.Point(20.8984375, 124.609375)),
+                        new g.Curve(new g.Point(20.8984375, 124.609375), new g.Point(24.70703125, 126.7578125), new g.Point(28.662109375, 128.02734375), new g.Point(32.7392578125, 128.564453125)),
+                        new g.Curve(new g.Point(32.7392578125, 128.564453125), new g.Point(36.81640625, 129.1015625), new g.Point(41.015625, 128.90625), new g.Point(45.3125, 128.125)),
+                        new g.Curve(new g.Point(45.3125, 128.125), new g.Point(49.609375, 127.34375), new g.Point(54.00390625, 125.9765625), new g.Point(58.4716796875, 124.169921875)),
+                        new g.Curve(new g.Point(58.4716796875, 124.169921875), new g.Point(62.939453125, 122.36328125), new g.Point(67.48046875, 120.1171875), new g.Point(72.0703125, 117.578125)),
+                        new g.Curve(new g.Point(72.0703125, 117.578125), new g.Point(76.66015625, 115.0390625), new g.Point(81.298828125, 112.20703125), new g.Point(85.9619140625, 109.228515625)),
+                        new g.Curve(new g.Point(85.9619140625, 109.228515625), new g.Point(90.625, 106.25), new g.Point(95.3125, 103.125), new g.Point(100, 100)),
+                        new g.Curve(new g.Point(100, 100), new g.Point(104.6875, 96.875), new g.Point(109.375, 93.75), new g.Point(114.0380859375, 90.771484375)),
+                        new g.Curve(new g.Point(114.0380859375, 90.771484375), new g.Point(118.701171875, 87.79296875), new g.Point(123.33984375, 84.9609375), new g.Point(127.9296875, 82.421875)),
+                        new g.Curve(new g.Point(127.9296875, 82.421875), new g.Point(132.51953125, 79.8828125), new g.Point(137.060546875, 77.63671875), new g.Point(141.5283203125, 75.830078125)),
+                        new g.Curve(new g.Point(141.5283203125, 75.830078125), new g.Point(145.99609375, 74.0234375), new g.Point(150.390625, 72.65625), new g.Point(154.6875, 71.875)),
+                        new g.Curve(new g.Point(154.6875, 71.875), new g.Point(158.984375, 71.09375), new g.Point(163.18359375, 70.8984375), new g.Point(167.2607421875, 71.435546875)),
+                        new g.Curve(new g.Point(167.2607421875, 71.435546875), new g.Point(171.337890625, 71.97265625), new g.Point(175.29296875, 73.2421875), new g.Point(179.1015625, 75.390625)),
+                        new g.Curve(new g.Point(179.1015625, 75.390625), new g.Point(182.91015625, 77.5390625), new g.Point(186.572265625, 80.56640625), new g.Point(190.0634765625, 84.619140625)),
+                        new g.Curve(new g.Point(190.0634765625, 84.619140625), new g.Point(193.5546875, 88.671875), new g.Point(196.875, 93.75), new g.Point(200, 100))
                     ]
                 ]);
             });
@@ -1267,19 +1275,19 @@ QUnit.module('path', function(hooks) {
 
                 var path;
 
-                path = g.Path();
+                path = new g.Path();
                 assert.equal(typeof path.isValid(), 'boolean');
 
-                path = g.Path(g.Path.createSegment('M', 100, 100));
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
                 assert.equal(typeof path.isValid(), 'boolean');
 
-                path = g.Path(g.Path.createSegment('L', 100, 100));
+                path = new g.Path(g.Path.createSegment('L', 100, 100));
                 assert.equal(typeof path.isValid(), 'boolean');
 
-                path = g.Path(g.Path.createSegment('C', 100, 110, 110, 110, 110, 100));
+                path = new g.Path(g.Path.createSegment('C', 100, 110, 110, 110, 110, 100));
                 assert.equal(typeof path.isValid(), 'boolean');
 
-                path = g.Path(g.Path.createSegment('Z'));
+                path = new g.Path(g.Path.createSegment('Z'));
                 assert.equal(typeof path.isValid(), 'boolean');
             });
 
@@ -1287,19 +1295,19 @@ QUnit.module('path', function(hooks) {
 
                 var path;
 
-                path = g.Path();
+                path = new g.Path();
                 assert.equal(path.isValid(), true);
 
-                path = g.Path(g.Path.createSegment('M', 100, 100));
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
                 assert.equal(path.isValid(), true);
 
-                path = g.Path(g.Path.createSegment('L', 100, 100));
+                path = new g.Path(g.Path.createSegment('L', 100, 100));
                 assert.equal(path.isValid(), false);
 
-                path = g.Path(g.Path.createSegment('C', 100, 110, 110, 110, 110, 100));
+                path = new g.Path(g.Path.createSegment('C', 100, 110, 110, 110, 110, 100));
                 assert.equal(path.isValid(), false);
 
-                path = g.Path(g.Path.createSegment('Z'));
+                path = new g.Path(g.Path.createSegment('Z'));
                 assert.equal(path.isValid(), false);
             });
         });
@@ -1310,15 +1318,19 @@ QUnit.module('path', function(hooks) {
 
                 var path;
 
-                path = g.Path('M 0 0');
+                path = new g.Path();
                 assert.equal(typeof path.length(), 'number');
                 assert.equal(typeof path.length({ precision: 0 }), 'number');
 
-                path = g.Path('M 0 0 M 100 0');
+                path = new g.Path('M 0 0');
                 assert.equal(typeof path.length(), 'number');
                 assert.equal(typeof path.length({ precision: 0 }), 'number');
 
-                path = g.Path('M 0 0 C 0 200 200 200 200 0');
+                path = new g.Path('M 0 0 M 100 0');
+                assert.equal(typeof path.length(), 'number');
+                assert.equal(typeof path.length({ precision: 0 }), 'number');
+
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
                 assert.equal(typeof path.length(), 'number');
                 assert.equal(typeof path.length({ precision: 0 }), 'number');
                 assert.equal(typeof path.length({ precision: 1 }), 'number');
@@ -1327,15 +1339,15 @@ QUnit.module('path', function(hooks) {
                 assert.equal(typeof path.length({ precision: 4 }), 'number');
                 assert.equal(typeof path.length({ precision: 5 }), 'number');
 
-                path = g.Path('M 0 0 L 100 0');
+                path = new g.Path('M 0 0 L 100 0');
                 assert.equal(typeof path.length(), 'number');
                 assert.equal(typeof path.length({ precision: 0 }), 'number');
 
-                path = g.Path('M 0 0 L 100 0 Z');
+                path = new g.Path('M 0 0 L 100 0 Z');
                 assert.equal(typeof path.length(), 'number');
                 assert.equal(typeof path.length({ precision: 0 }), 'number');
 
-                path = g.Path('M 0 0 Z');
+                path = new g.Path('M 0 0 Z');
                 assert.equal(typeof path.length(), 'number');
                 assert.equal(typeof path.length({ precision: 0 }), 'number');
             });
@@ -1344,15 +1356,19 @@ QUnit.module('path', function(hooks) {
 
                 var path;
 
-                path = g.Path('M 0 0');
+                path = new g.Path();
                 assert.equal(path.length(), 0);
                 assert.equal(path.length({ precision: 0 }), 0);
 
-                path = g.Path('M 0 0 M 100 0');
+                path = new g.Path('M 0 0');
                 assert.equal(path.length(), 0);
                 assert.equal(path.length({ precision: 0 }), 0);
 
-                path = g.Path('M 0 0 C 0 200 200 200 200 0');
+                path = new g.Path('M 0 0 M 100 0');
+                assert.equal(path.length(), 0);
+                assert.equal(path.length({ precision: 0 }), 0);
+
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
                 assert.equal(path.length(), 399.96164987703463);
                 assert.equal(path.length({ precision: 0 }), 200);
                 assert.equal(path.length({ precision: 1 }), 390.1438222301384);
@@ -1361,15 +1377,15 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.length({ precision: 4 }), 399.99041258236997);
                 assert.equal(path.length({ precision: 5 }), 399.9994007886072);
 
-                path = g.Path('M 0 0 L 100 0');
+                path = new g.Path('M 0 0 L 100 0');
                 assert.equal(path.length(), 100);
                 assert.equal(path.length({ precision: 0 }), 100);
 
-                path = g.Path('M 0 0 L 100 0 Z');
+                path = new g.Path('M 0 0 L 100 0 Z');
                 assert.equal(path.length(), 200);
                 assert.equal(path.length({ precision: 0 }), 200);
 
-                path = g.Path('M 0 0 Z');
+                path = new g.Path('M 0 0 Z');
                 assert.equal(path.length(), 0);
                 assert.equal(path.length({ precision: 0 }), 0);
             });
@@ -1378,12 +1394,12 @@ QUnit.module('path', function(hooks) {
 
                 var path;
 
-                var curve = g.Curve('0 0', '0 200', '200 200', '200 0');
-                path = g.Path('M 0 0 C 0 200 200 200 200 0');
+                var curve = new g.Curve('0 0', '0 200', '200 200', '200 0');
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
                 assert.equal(path.length(), curve.length());
 
-                var line = g.Line('0 0', '100 0');
-                path = g.Path('M 0 0 L 100 0');
+                var line = new g.Line('0 0', '100 0');
+                path = new g.Path('M 0 0 L 100 0');
                 assert.equal(path.length(), line.length());
             });
 
@@ -1391,7 +1407,7 @@ QUnit.module('path', function(hooks) {
 
                 var svg = getSvg();
 
-                var gPath = g.Path('M 0 0 C 0 200 200 200 200 0');
+                var gPath = new g.Path('M 0 0 C 0 200 200 200 200 0');
                 var path = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
                 svg.append(path);
 
@@ -1407,21 +1423,25 @@ QUnit.module('path', function(hooks) {
 
                 var path;
 
-                path = g.Path('M 0 0');
+                path = new g.Path();
+                assert.equal(path.pointAt(0.4), null);
+                assert.equal(path.pointAt(0.4, { precision: 0 }), null);
+
+                path = new g.Path('M 0 0');
                 assert.ok(path.pointAt(0.4) instanceof g.Point);
                 assert.ok(path.pointAt(0.4, { precision: 0 }) instanceof g.Point);
 
                 assert.ok(path.pointAt(-1) instanceof g.Point);
                 assert.ok(path.pointAt(10) instanceof g.Point);
 
-                path = g.Path('M 0 0 M 100 0');
+                path = new g.Path('M 0 0 M 100 0');
                 assert.ok(path.pointAt(0.4) instanceof g.Point);
                 assert.ok(path.pointAt(0.4, { precision: 0 }) instanceof g.Point);
 
                 assert.ok(path.pointAt(-1) instanceof g.Point);
                 assert.ok(path.pointAt(10) instanceof g.Point);
 
-                path = g.Path('M 0 0 C 0 200 200 200 200 0');
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
                 assert.ok(path.pointAt(0.4) instanceof g.Point);
                 assert.ok(path.pointAt(0.4, { precision: 0 }) instanceof g.Point);
                 assert.ok(path.pointAt(0.4, { precision: 1 }) instanceof g.Point);
@@ -1433,21 +1453,21 @@ QUnit.module('path', function(hooks) {
                 assert.ok(path.pointAt(-1) instanceof g.Point);
                 assert.ok(path.pointAt(10) instanceof g.Point);
 
-                path = g.Path('M 0 0 L 100 0');
+                path = new g.Path('M 0 0 L 100 0');
                 assert.ok(path.pointAt(0.4) instanceof g.Point);
                 assert.ok(path.pointAt(0.4, { precision: 0 }) instanceof g.Point);
 
                 assert.ok(path.pointAt(-1) instanceof g.Point);
                 assert.ok(path.pointAt(10) instanceof g.Point);
 
-                path = g.Path('M 0 0 L 100 0 Z');
+                path = new g.Path('M 0 0 L 100 0 Z');
                 assert.ok(path.pointAt(0.4) instanceof g.Point);
                 assert.ok(path.pointAt(0.4, { precision: 0 }) instanceof g.Point);
 
                 assert.ok(path.pointAt(-1) instanceof g.Point);
                 assert.ok(path.pointAt(10) instanceof g.Point);
 
-                path = g.Path('M 0 0 Z');
+                path = new g.Path('M 0 0 Z');
                 assert.ok(path.pointAt(0.4) instanceof g.Point);
                 assert.ok(path.pointAt(0.4, { precision: 0 }) instanceof g.Point);
 
@@ -1459,21 +1479,21 @@ QUnit.module('path', function(hooks) {
 
                 var path;
 
-                path = g.Path('M 0 0');
+                path = new g.Path('M 0 0');
                 assert.equal(path.pointAt(0.4).toString(), '0@0');
                 assert.equal(path.pointAt(0.4, { precision: 0 }).toString(), '0@0');
 
                 assert.equal(path.pointAt(-1).toString(), '0@0');
                 assert.equal(path.pointAt(10).toString(), '0@0');
 
-                path = g.Path('M 0 0 M 100 0');
+                path = new g.Path('M 0 0 M 100 0');
                 assert.equal(path.pointAt(0.4).toString(), '100@0');
                 assert.equal(path.pointAt(0.4, { precision: 0 }).toString(), '100@0');
 
                 assert.equal(path.pointAt(-1).toString(), '100@0');
                 assert.equal(path.pointAt(10).toString(), '100@0');
 
-                path = g.Path('M 0 0 C 0 200 200 200 200 0');
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
                 assert.equal(path.pointAt(0.4).toString(), '61.63853108882904@139.72549438476562');
                 assert.equal(path.pointAt(0.4, { precision: 0 }).toString(), '0@0');
                 assert.equal(path.pointAt(0.4, { precision: 1 }).toString(), '100@150');
@@ -1485,21 +1505,21 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.pointAt(-1).toString(), '0@0');
                 assert.equal(path.pointAt(10).toString(), '200@0');
 
-                path = g.Path('M 0 0 L 100 0');
+                path = new g.Path('M 0 0 L 100 0');
                 assert.equal(path.pointAt(0.4).toString(), '40@0');
                 assert.equal(path.pointAt(0.4, { precision: 0 }).toString(), '40@0');
 
                 assert.equal(path.pointAt(-1).toString(), '0@0');
                 assert.equal(path.pointAt(10).toString(), '100@0');
 
-                path = g.Path('M 0 0 L 100 0 Z');
+                path = new g.Path('M 0 0 L 100 0 Z');
                 assert.equal(path.pointAt(0.6).toString(), '80@0');
                 assert.equal(path.pointAt(0.6, { precision: 0 }).toString(), '80@0');
 
                 assert.equal(path.pointAt(-1).toString(), '0@0');
                 assert.equal(path.pointAt(10).toString(), '0@0');
 
-                path = g.Path('M 0 0 Z');
+                path = new g.Path('M 0 0 Z');
                 assert.equal(path.pointAt(0.4).toString(), '0@0');
                 assert.equal(path.pointAt(0.4, { precision: 0 }).toString(), '0@0');
 
@@ -1511,8 +1531,8 @@ QUnit.module('path', function(hooks) {
 
                 var path;
 
-                var curve = g.Curve('0 0', '0 200', '200 200', '200 0');
-                path = g.Path('M 0 0 C 0 200 200 200 200 0');
+                var curve = new g.Curve('0 0', '0 200', '200 200', '200 0');
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
                 assert.equal(path.pointAt(0.4).toString(), curve.pointAt(0.4).toString());
                 assert.equal(path.pointAt(0.4, { precision: 0 }).toString(), curve.pointAt(0.4, { precision: 0 }).toString());
                 assert.equal(path.pointAt(0.4, { precision: 1 }).toString(), curve.pointAt(0.4, { precision: 1 }).toString());
@@ -1524,8 +1544,8 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.pointAt(-1).toString(), curve.pointAt(-1).toString());
                 assert.equal(path.pointAt(10).toString(), curve.pointAt(10).toString());
 
-                var line = g.Line('0 0', '100 0');
-                path = g.Path('M 0 0 L 100 0');
+                var line = new g.Line('0 0', '100 0');
+                path = new g.Path('M 0 0 L 100 0');
                 assert.equal(path.pointAt(0.4).toString(), line.pointAt(0.4).toString());
                 assert.equal(path.pointAt(0.4, { precision: 0 }).toString(), line.pointAt(0.4, { precision: 0 }).toString());
 
@@ -1538,9 +1558,9 @@ QUnit.module('path', function(hooks) {
 
             QUnit.test('sanity', function(assert) {
 
-                var path
+                var path;
 
-                path = g.Path('M 0 0');
+                path = new g.Path('M 0 0');
                 assert.ok(path.pointAtLength(40) instanceof g.Point);
                 assert.ok(path.pointAtLength(40, { precision: 0 }) instanceof g.Point);
                 assert.ok(path.pointAtLength(10000) instanceof g.Point);
@@ -1549,7 +1569,7 @@ QUnit.module('path', function(hooks) {
                 assert.ok(path.pointAtLength(-40, { precision: 0 }) instanceof g.Point);
                 assert.ok(path.pointAtLength(-10000) instanceof g.Point);
 
-                path = g.Path('M 0 0 M 100 0');
+                path = new g.Path('M 0 0 M 100 0');
                 assert.ok(path.pointAtLength(40) instanceof g.Point);
                 assert.ok(path.pointAtLength(40, { precision: 0 }) instanceof g.Point);
                 assert.ok(path.pointAtLength(10000) instanceof g.Point);
@@ -1558,7 +1578,7 @@ QUnit.module('path', function(hooks) {
                 assert.ok(path.pointAtLength(-40, { precision: 0 }) instanceof g.Point);
                 assert.ok(path.pointAtLength(-10000) instanceof g.Point);
 
-                path = g.Path('M 0 0 C 0 200 200 200 200 0');
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
                 assert.ok(path.pointAtLength(250) instanceof g.Point);
                 assert.ok(path.pointAtLength(250, { precision: 0 }) instanceof g.Point);
                 assert.ok(path.pointAtLength(250, { precision: 1 }) instanceof g.Point);
@@ -1577,7 +1597,7 @@ QUnit.module('path', function(hooks) {
                 assert.ok(path.pointAtLength(-250, { precision: 5 }) instanceof g.Point);
                 assert.ok(path.pointAtLength(-10000) instanceof g.Point);
 
-                path = g.Path('M 0 0 L 100 0');
+                path = new g.Path('M 0 0 L 100 0');
                 assert.ok(path.pointAtLength(40) instanceof g.Point);
                 assert.ok(path.pointAtLength(40, { precision: 0 }) instanceof g.Point);
                 assert.ok(path.pointAtLength(10000) instanceof g.Point);
@@ -1586,7 +1606,7 @@ QUnit.module('path', function(hooks) {
                 assert.ok(path.pointAtLength(-40, { precision: 0 }) instanceof g.Point);
                 assert.ok(path.pointAtLength(-10000) instanceof g.Point);
 
-                path = g.Path('M 0 0 L 100 0 Z');
+                path = new g.Path('M 0 0 L 100 0 Z');
                 assert.ok(path.pointAtLength(150) instanceof g.Point);
                 assert.ok(path.pointAtLength(150, { precision: 0 }) instanceof g.Point);
                 assert.ok(path.pointAtLength(10000) instanceof g.Point);
@@ -1595,7 +1615,7 @@ QUnit.module('path', function(hooks) {
                 assert.ok(path.pointAtLength(-150, { precision: 0 }) instanceof g.Point);
                 assert.ok(path.pointAtLength(-10000) instanceof g.Point);
 
-                path = g.Path('M 0 0 Z');
+                path = new g.Path('M 0 0 Z');
                 assert.ok(path.pointAtLength(40) instanceof g.Point);
                 assert.ok(path.pointAtLength(40, { precision: 0 }) instanceof g.Point);
                 assert.ok(path.pointAtLength(10000) instanceof g.Point);
@@ -1609,7 +1629,7 @@ QUnit.module('path', function(hooks) {
 
                 var path;
 
-                path = g.Path('M 0 0');
+                path = new g.Path('M 0 0');
                 assert.equal(path.pointAtLength(40).toString(), '0@0');
                 assert.equal(path.pointAtLength(40, { precision: 0 }).toString(), '0@0');
                 assert.equal(path.pointAtLength(10000).toString(), '0@0');
@@ -1618,7 +1638,7 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.pointAtLength(-40, { precision: 0 }).toString(), '0@0');
                 assert.equal(path.pointAtLength(-10000).toString(), '0@0');
 
-                path = g.Path('M 0 0 M 100 0');
+                path = new g.Path('M 0 0 M 100 0');
                 assert.equal(path.pointAtLength(40).toString(), '100@0');
                 assert.equal(path.pointAtLength(40, { precision: 0 }).toString(), '100@0');
                 assert.equal(path.pointAtLength(10000).toString(), '100@0');
@@ -1627,7 +1647,7 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.pointAtLength(-40, { precision: 0 }).toString(), '100@0');
                 assert.equal(path.pointAtLength(-10000).toString(), '100@0');
 
-                path = g.Path('M 0 0 C 0 200 200 200 200 0');
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
                 assert.equal(path.pointAtLength(250).toString(), '146.40367031097412@134.6099853515625');
                 assert.equal(path.pointAtLength(250, { precision: 0 }).toString(), '200@0');
                 assert.equal(path.pointAtLength(250, { precision: 1 }).toString(), '168.75@112.5');
@@ -1646,7 +1666,7 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.pointAtLength(-250, { precision: 5 }).toString(), '53.34180784956288@134.42763034254313');
                 assert.equal(path.pointAtLength(-10000).toString(), '0@0');
 
-                path = g.Path('M 0 0 L 100 0');
+                path = new g.Path('M 0 0 L 100 0');
                 assert.equal(path.pointAtLength(40).toString(), '40@0');
                 assert.equal(path.pointAtLength(40, { precision: 0 }).toString(), '40@0');
                 assert.equal(path.pointAtLength(10000).toString(), '100@0');
@@ -1655,7 +1675,7 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.pointAtLength(-40, { precision: 0 }).toString(), '60@0');
                 assert.equal(path.pointAtLength(-10000).toString(), '0@0');
 
-                path = g.Path('M 0 0 L 100 0 Z');
+                path = new g.Path('M 0 0 L 100 0 Z');
                 assert.equal(path.pointAtLength(150).toString(), '50@0');
                 assert.equal(path.pointAtLength(150, { precision: 0 }).toString(), '50@0');
                 assert.equal(path.pointAtLength(10000).toString(), '0@0');
@@ -1664,7 +1684,7 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.pointAtLength(-150, { precision: 0 }).toString(), '50@0');
                 assert.equal(path.pointAtLength(-10000).toString(), '0@0');
 
-                path = g.Path('M 0 0 Z');
+                path = new g.Path('M 0 0 Z');
                 assert.equal(path.pointAtLength(40).toString(), '0@0');
                 assert.equal(path.pointAtLength(40, { precision: 0 }).toString(), '0@0');
                 assert.equal(path.pointAtLength(10000).toString(), '0@0');
@@ -1678,8 +1698,8 @@ QUnit.module('path', function(hooks) {
 
                 var path;
 
-                var curve = g.Curve('0 0', '0 200', '200 200', '200 0');
-                path = g.Path('M 0 0 C 0 200 200 200 200 0');
+                var curve = new g.Curve('0 0', '0 200', '200 200', '200 0');
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
                 assert.equal(path.pointAtLength(250).toString(), curve.pointAtLength(250).toString());
                 assert.equal(path.pointAtLength(250, { precision: 0 }).toString(), curve.pointAtLength(250, { precision: 0 }).toString());
                 assert.equal(path.pointAtLength(250, { precision: 1 }).toString(), curve.pointAtLength(250, { precision: 1 }).toString());
@@ -1698,8 +1718,8 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.pointAtLength(-250, { precision: 5 }).toString(), curve.pointAtLength(-250, { precision: 5 }).toString());
                 assert.equal(path.pointAtLength(-10000).toString(), curve.pointAtLength(-10000).toString());
 
-                var line = g.Line('0 0', '100 0');
-                path = g.Path('M 0 0 L 100 0');
+                var line = new g.Line('0 0', '100 0');
+                path = new g.Path('M 0 0 L 100 0');
                 assert.equal(path.pointAtLength(40).toString(), line.pointAtLength(40).toString());
                 assert.equal(path.pointAtLength(40, { precision: 0 }).toString(), line.pointAtLength(40, { precision: 0 }).toString());
                 assert.equal(path.pointAtLength(10000).toString(), line.pointAtLength(10000).toString());
@@ -1722,7 +1742,7 @@ QUnit.module('path', function(hooks) {
 
                 var svg = getSvg();
 
-                gPath = g.Path('M 0 0 C 0 200 200 200 200 0');
+                gPath = new g.Path('M 0 0 C 0 200 200 200 200 0');
                 path = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
                 svg.append(path);
 
@@ -1749,7 +1769,7 @@ QUnit.module('path', function(hooks) {
 
                 assert.equal(x1 + '@' + y1, x2 + '@' + y2);*/
 
-                gPath = g.Path('M 0 0 C 0 200 200 200 200 0');
+                gPath = new g.Path('M 0 0 C 0 200 200 200 200 0');
                 path = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
                 svg.append(path);
 
@@ -2151,48 +2171,386 @@ QUnit.module('path', function(hooks) {
 
             QUnit.test('sanity', function(assert) {
 
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(0, 0) instanceof g.Path);
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(0, 0, g.Point('0 0')) instanceof g.Path);
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(0, 0, g.Point('10 10')) instanceof g.Path);
+                var path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
 
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(0, 1) instanceof g.Path);
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(0, 1, g.Point('0 0')) instanceof g.Path);
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(0, 1, g.Point('10 10')) instanceof g.Path);
+                assert.ok(path.clone().scale(0, 0) instanceof g.Path);
+                assert.ok(path.clone().scale(0, 0, new g.Point('0 0')) instanceof g.Path);
+                assert.ok(path.clone().scale(0, 0, new g.Point('10 10')) instanceof g.Path);
 
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(1, 0) instanceof g.Path);
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(1, 0, g.Point('0 0')) instanceof g.Path);
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(1, 0, g.Point('10 10')) instanceof g.Path);
+                assert.ok(path.clone().scale(0, 1) instanceof g.Path);
+                assert.ok(path.clone().scale(0, 1, new g.Point('0 0')) instanceof g.Path);
+                assert.ok(path.clone().scale(0, 1, new g.Point('10 10')) instanceof g.Path);
 
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(1, 1) instanceof g.Path);
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(1, 1, g.Point('0 0')) instanceof g.Path);
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(1, 1, g.Point('10 10')) instanceof g.Path);
+                assert.ok(path.clone().scale(1, 0) instanceof g.Path);
+                assert.ok(path.clone().scale(1, 0, new g.Point('0 0')) instanceof g.Path);
+                assert.ok(path.clone().scale(1, 0, new g.Point('10 10')) instanceof g.Path);
 
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(10, 10) instanceof g.Path);
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(10, 10, g.Point('0 0')) instanceof g.Path);
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(10, 10, g.Point('10 10')) instanceof g.Path);
+                assert.ok(path.clone().scale(1, 1) instanceof g.Path);
+                assert.ok(path.clone().scale(1, 1, new g.Point('0 0')) instanceof g.Path);
+                assert.ok(path.clone().scale(1, 1, new g.Point('10 10')) instanceof g.Path);
+
+                assert.ok(path.clone().scale(10, 10) instanceof g.Path);
+                assert.ok(path.clone().scale(10, 10, new g.Point('0 0')) instanceof g.Path);
+                assert.ok(path.clone().scale(10, 10, new g.Point('10 10')) instanceof g.Path);
             });
 
             QUnit.test('should return a scaled version of self', function(assert) {
 
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(0, 0).toString(), g.Path('M 0 0 L 0 0 C 0 0 0 0 0 0 Z').toString());
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(0, 0, g.Point('0 0')).toString(), g.Path('M 0 0 L 0 0 C 0 0 0 0 0 0 Z').toString());
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(0, 0, g.Point('10 10')).toString(), g.Path('M 10 10 L 10 10 C 10 10 10 10 10 10 Z').toString());
+                var path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
 
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(0, 1).toString(), g.Path('M 0 100 L 0 100 C 0 100 0 150 0 200 Z').toString());
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(0, 1, g.Point('0 0')).toString(), g.Path('M 0 100 L 0 100 C 0 100 0 150 0 200 Z').toString());
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(0, 1, g.Point('10 10')).toString(), g.Path('M 10 100 L 10 100 C 10 100 10 150 10 200 Z').toString());
+                assert.equal(path.clone().scale(0, 0).toString(), 'M 0 0 L 0 0 C 0 0 0 0 0 0 Z');
+                assert.equal(path.clone().scale(0, 0, new g.Point('0 0')).toString(), 'M 0 0 L 0 0 C 0 0 0 0 0 0 Z');
+                assert.equal(path.clone().scale(0, 0, new g.Point('10 10')).toString(), 'M 10 10 L 10 10 C 10 10 10 10 10 10 Z');
 
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(1, 0).toString(), g.Path('M 150 0 L 100 0 C 100 0 0 0 100 0 Z').toString());
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(1, 0, g.Point('0 0')).toString(), g.Path('M 150 0 L 100 0 C 100 0 0 0 100 0 Z').toString());
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(1, 0, g.Point('10 10')).toString(), g.Path('M 150 10 L 100 10 C 100 10 0 10 100 10 Z').toString());
+                assert.equal(path.clone().scale(0, 1).toString(), 'M 0 100 L 0 100 C 0 100 0 150 0 200 Z');
+                assert.equal(path.clone().scale(0, 1, new g.Point('0 0')).toString(), 'M 0 100 L 0 100 C 0 100 0 150 0 200 Z');
+                assert.equal(path.clone().scale(0, 1, new g.Point('10 10')).toString(), 'M 10 100 L 10 100 C 10 100 10 150 10 200 Z');
 
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(1, 1).toString(), g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').toString());
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(1, 1, g.Point('0 0')).toString(), g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').toString());
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(1, 1, g.Point('10 10')).toString(), g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').toString());
+                assert.equal(path.clone().scale(1, 0).toString(), 'M 150 0 L 100 0 C 100 0 0 0 100 0 Z');
+                assert.equal(path.clone().scale(1, 0, new g.Point('0 0')).toString(), 'M 150 0 L 100 0 C 100 0 0 0 100 0 Z');
+                assert.equal(path.clone().scale(1, 0, new g.Point('10 10')).toString(), 'M 150 10 L 100 10 C 100 10 0 10 100 10 Z');
 
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(10, 10).toString(), g.Path('M 1500 1000 L 1000 1000 C 1000 1000 0 1500 1000 2000 Z').toString());
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(10, 10, g.Point('0 0')).toString(), g.Path('M 1500 1000 L 1000 1000 C 1000 1000 0 1500 1000 2000 Z').toString());
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').scale(10, 10, g.Point('10 10')).toString(), g.Path('M 1410 910 L 910 910 C 910 910 -90 1410 910 1910 Z').toString());
+                assert.equal(path.clone().scale(1, 1).toString(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(path.clone().scale(1, 1, new g.Point('0 0')).toString(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(path.clone().scale(1, 1, new g.Point('10 10')).toString(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+
+                assert.equal(path.clone().scale(10, 10).toString(), 'M 1500 1000 L 1000 1000 C 1000 1000 0 1500 1000 2000 Z');
+                assert.equal(path.clone().scale(10, 10, new g.Point('0 0')).toString(), 'M 1500 1000 L 1000 1000 C 1000 1000 0 1500 1000 2000 Z');
+                assert.equal(path.clone().scale(10, 10, new g.Point('10 10')).toString(), 'M 1410 910 L 910 910 C 910 910 -90 1410 910 1910 Z');
+            });
+        });
+
+        QUnit.module('segmentAt()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+
+                path = new g.Path();
+                assert.equal(path.segmentAt(0), null);
+                assert.equal(path.segmentAt(0.4), null);
+                assert.equal(path.segmentAt(10), null);
+                assert.equal(path.segmentAt(-1), null);
+
+                path = new g.Path('M 0 0');
+                assert.equal(path.segmentAt(0), null);
+                assert.equal(path.segmentAt(0.4), null);
+                assert.equal(path.segmentAt(10), null);
+                assert.equal(path.segmentAt(-1), null);
+
+                path = new g.Path('M 0 0 M 100 0');
+                assert.equal(path.segmentAt(0), null);
+                assert.equal(path.segmentAt(0.4), null);
+                assert.equal(path.segmentAt(10), null);
+                assert.equal(path.segmentAt(-1), null);
+
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
+                assert.ok(path.segmentAt(0) instanceof g.Path.segmentTypes.C);
+                assert.ok(path.segmentAt(0.4) instanceof g.Path.segmentTypes.C);
+                assert.ok(path.segmentAt(10) instanceof g.Path.segmentTypes.C);
+                assert.ok(path.segmentAt(-1) instanceof g.Path.segmentTypes.C);
+
+                path = new g.Path('M 0 0 L 100 0');
+                assert.ok(path.segmentAt(0) instanceof g.Path.segmentTypes.L);
+                assert.ok(path.segmentAt(0.4) instanceof g.Path.segmentTypes.L);
+                assert.ok(path.segmentAt(10) instanceof g.Path.segmentTypes.L);
+                assert.ok(path.segmentAt(-1) instanceof g.Path.segmentTypes.L);
+
+                path = new g.Path('M 0 0 L 100 0 Z');
+                assert.ok(path.segmentAt(0) instanceof g.Path.segmentTypes.L);
+                assert.ok(path.segmentAt(0.4) instanceof g.Path.segmentTypes.L);
+                assert.ok(path.segmentAt(0.8) instanceof g.Path.segmentTypes.Z);
+                assert.ok(path.segmentAt(10) instanceof g.Path.segmentTypes.Z);
+                assert.ok(path.segmentAt(-1) instanceof g.Path.segmentTypes.L);
+
+                path = new g.Path('M 0 0 Z');
+                assert.ok(path.segmentAt(0) instanceof g.Path.segmentTypes.Z);
+                assert.ok(path.segmentAt(0.4) instanceof g.Path.segmentTypes.Z);
+                assert.ok(path.segmentAt(10) instanceof g.Path.segmentTypes.Z);
+                assert.ok(path.segmentAt(-1) instanceof g.Path.segmentTypes.Z);
+            });
+
+            QUnit.test('returns the index of a segment at given length up to precision', function(assert) {
+
+                var path;
+
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
+                assert.equal(path.segmentAt(0).toString(), 'C 0@0 0@200 200@200 200@0');
+                assert.equal(path.segmentAt(0.4).toString(), 'C 0@0 0@200 200@200 200@0');
+                assert.equal(path.segmentAt(10).toString(), 'C 0@0 0@200 200@200 200@0');
+                assert.equal(path.segmentAt(-1).toString(), 'C 0@0 0@200 200@200 200@0');
+
+                path = new g.Path('M 0 0 L 100 0');
+                assert.equal(path.segmentAt(0).toString(), 'L 0@0 100@0');
+                assert.equal(path.segmentAt(0.4).toString(), 'L 0@0 100@0');
+                assert.equal(path.segmentAt(10).toString(), 'L 0@0 100@0');
+                assert.equal(path.segmentAt(-1).toString(), 'L 0@0 100@0');
+
+                path = new g.Path('M 0 0 L 100 0 Z');
+                assert.equal(path.segmentAt(0).toString(), 'L 0@0 100@0');
+                assert.equal(path.segmentAt(0.4).toString(), 'L 0@0 100@0');
+                assert.equal(path.segmentAt(0.8).toString(), 'Z 100@0 0@0');
+                assert.equal(path.segmentAt(10).toString(), 'Z 100@0 0@0');
+                assert.equal(path.segmentAt(-1).toString(), 'L 0@0 100@0');
+
+                path = new g.Path('M 0 0 Z');
+                assert.equal(path.segmentAt(0).toString(), 'Z 0@0 0@0');
+                assert.equal(path.segmentAt(0.4).toString(), 'Z 0@0 0@0');
+                assert.equal(path.segmentAt(10).toString(), 'Z 0@0 0@0');
+                assert.equal(path.segmentAt(-1).toString(), 'Z 0@0 0@0');
+            });
+        });
+
+        QUnit.module('segmentAtLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+
+                path = new g.Path();
+                assert.equal(path.segmentAtLength(0), null);
+                assert.equal(path.segmentAtLength(40), null);
+                assert.equal(path.segmentAtLength(-40), null);
+
+                path = new g.Path('M 0 0');
+                assert.equal(path.segmentAtLength(0), null);
+                assert.equal(path.segmentAtLength(40), null);
+                assert.equal(path.segmentAtLength(-40), null);
+
+                path = new g.Path('M 0 0 M 100 0');
+                assert.equal(path.segmentAtLength(0), null);
+                assert.equal(path.segmentAtLength(40), null);
+                assert.equal(path.segmentAtLength(1000), null);
+                assert.equal(path.segmentAtLength(-40), null);
+                assert.equal(path.segmentAtLength(-1000), null);
+
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
+                assert.ok(path.segmentAtLength(0) instanceof g.Path.segmentTypes.C);
+                assert.ok(path.segmentAtLength(40) instanceof g.Path.segmentTypes.C);
+                assert.ok(path.segmentAtLength(1000) instanceof g.Path.segmentTypes.C);
+                assert.ok(path.segmentAtLength(-40) instanceof g.Path.segmentTypes.C);
+                assert.ok(path.segmentAtLength(-1000) instanceof g.Path.segmentTypes.C);
+
+                path = new g.Path('M 0 0 L 100 0');
+                assert.ok(path.segmentAtLength(0) instanceof g.Path.segmentTypes.L);
+                assert.ok(path.segmentAtLength(40) instanceof g.Path.segmentTypes.L);
+                assert.ok(path.segmentAtLength(1000) instanceof g.Path.segmentTypes.L);
+                assert.ok(path.segmentAtLength(-40) instanceof g.Path.segmentTypes.L);
+                assert.ok(path.segmentAtLength(-1000) instanceof g.Path.segmentTypes.L);
+
+                path = new g.Path('M 0 0 L 100 0 Z');
+                assert.ok(path.segmentAtLength(0) instanceof g.Path.segmentTypes.L);
+                assert.ok(path.segmentAtLength(40) instanceof g.Path.segmentTypes.L);
+                assert.ok(path.segmentAtLength(140) instanceof g.Path.segmentTypes.Z);
+                assert.ok(path.segmentAtLength(1000) instanceof g.Path.segmentTypes.Z);
+                assert.ok(path.segmentAtLength(-40) instanceof g.Path.segmentTypes.Z);
+                assert.ok(path.segmentAtLength(-140) instanceof g.Path.segmentTypes.L);
+                assert.ok(path.segmentAtLength(-1000) instanceof g.Path.segmentTypes.L);
+
+                path = new g.Path('M 0 0 Z');
+                assert.ok(path.segmentAtLength(0) instanceof g.Path.segmentTypes.Z);
+                assert.ok(path.segmentAtLength(40) instanceof g.Path.segmentTypes.Z);
+                assert.ok(path.segmentAtLength(-40) instanceof g.Path.segmentTypes.Z);
+            });
+
+            QUnit.test('returns the index of a segment at given length up to precision', function(assert) {
+
+                var path;
+
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
+                assert.equal(path.segmentAtLength(0).toString(), 'C 0@0 0@200 200@200 200@0');
+                assert.equal(path.segmentAtLength(250).toString(), 'C 0@0 0@200 200@200 200@0');
+                assert.equal(path.segmentAtLength(1000).toString(), 'C 0@0 0@200 200@200 200@0');
+                assert.equal(path.segmentAtLength(-250).toString(), 'C 0@0 0@200 200@200 200@0');
+                assert.equal(path.segmentAtLength(-1000).toString(), 'C 0@0 0@200 200@200 200@0');
+
+                path = new g.Path('M 0 0 L 100 0');
+                assert.equal(path.segmentAtLength(0).toString(), 'L 0@0 100@0');
+                assert.equal(path.segmentAtLength(40).toString(), 'L 0@0 100@0');
+                assert.equal(path.segmentAtLength(1000).toString(), 'L 0@0 100@0');
+                assert.equal(path.segmentAtLength(-40).toString(), 'L 0@0 100@0');
+                assert.equal(path.segmentAtLength(-1000).toString(), 'L 0@0 100@0');
+
+                path = new g.Path('M 0 0 L 100 0 Z');
+                assert.equal(path.segmentAtLength(0).toString(), 'L 0@0 100@0');
+                assert.equal(path.segmentAtLength(40).toString(), 'L 0@0 100@0');
+                assert.equal(path.segmentAtLength(140).toString(), 'Z 100@0 0@0');
+                assert.equal(path.segmentAtLength(1000).toString(), 'Z 100@0 0@0');
+                assert.equal(path.segmentAtLength(-40).toString(), 'Z 100@0 0@0');
+                assert.equal(path.segmentAtLength(-140).toString(), 'L 0@0 100@0');
+                assert.equal(path.segmentAtLength(-1000).toString(), 'L 0@0 100@0');
+
+                path = new g.Path('M 0 0 Z');
+                assert.equal(path.segmentAtLength(0).toString(), 'Z 0@0 0@0');
+                assert.equal(path.segmentAtLength(40).toString(), 'Z 0@0 0@0');
+                assert.equal(path.segmentAtLength(-40).toString(), 'Z 0@0 0@0');
+            });
+        });
+
+        QUnit.module('segmentIndexAt()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+
+                path = new g.Path();
+                assert.equal(path.segmentIndexAt(0), null);
+                assert.equal(path.segmentIndexAt(0.4), null);
+                assert.equal(path.segmentIndexAt(10), null);
+                assert.equal(path.segmentIndexAt(-1), null);
+
+                path = new g.Path('M 0 0');
+                assert.equal(path.segmentIndexAt(0), null);
+                assert.equal(path.segmentIndexAt(0.4), null);
+                assert.equal(path.segmentIndexAt(10), null);
+                assert.equal(path.segmentIndexAt(-1), null);
+
+                path = new g.Path('M 0 0 M 100 0');
+                assert.equal(path.segmentIndexAt(0), null);
+                assert.equal(path.segmentIndexAt(0.4), null);
+                assert.equal(path.segmentIndexAt(10), null);
+                assert.equal(path.segmentIndexAt(-1), null);
+
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
+                assert.equal(typeof path.segmentIndexAt(0), 'number');
+                assert.equal(typeof path.segmentIndexAt(0.4), 'number');
+                assert.equal(typeof path.segmentIndexAt(10), 'number');
+                assert.equal(typeof path.segmentIndexAt(-1), 'number');
+
+                path = new g.Path('M 0 0 L 100 0');
+                assert.equal(typeof path.segmentIndexAt(0), 'number');
+                assert.equal(typeof path.segmentIndexAt(0.4), 'number');
+                assert.equal(typeof path.segmentIndexAt(10), 'number');
+                assert.equal(typeof path.segmentIndexAt(-1), 'number');
+
+                path = new g.Path('M 0 0 L 100 0 Z');
+                assert.equal(typeof path.segmentIndexAt(0), 'number');
+                assert.equal(typeof path.segmentIndexAt(0.4), 'number');
+                assert.equal(typeof path.segmentIndexAt(0.8), 'number');
+                assert.equal(typeof path.segmentIndexAt(10), 'number');
+                assert.equal(typeof path.segmentIndexAt(-1), 'number');
+
+                path = new g.Path('M 0 0 Z');
+                assert.equal(typeof path.segmentIndexAt(0), 'number');
+                assert.equal(typeof path.segmentIndexAt(0.4), 'number');
+                assert.equal(typeof path.segmentIndexAt(10), 'number');
+                assert.equal(typeof path.segmentIndexAt(-1), 'number');
+            });
+
+            QUnit.test('returns the index of a segment at given length up to precision', function(assert) {
+
+                var path;
+
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
+                assert.equal(path.segmentIndexAt(0), 1);
+                assert.equal(path.segmentIndexAt(0.4), 1);
+                assert.equal(path.segmentIndexAt(10), 1);
+                assert.equal(path.segmentIndexAt(-1), 1);
+
+                path = new g.Path('M 0 0 L 100 0');
+                assert.equal(path.segmentIndexAt(0), 1);
+                assert.equal(path.segmentIndexAt(0.4), 1);
+                assert.equal(path.segmentIndexAt(10), 1);
+                assert.equal(path.segmentIndexAt(-1), 1);
+
+                path = new g.Path('M 0 0 L 100 0 Z');
+                assert.equal(path.segmentIndexAt(0), 1);
+                assert.equal(path.segmentIndexAt(0.4), 1);
+                assert.equal(path.segmentIndexAt(0.8), 2);
+                assert.equal(path.segmentIndexAt(10), 2);
+                assert.equal(path.segmentIndexAt(-1), 1);
+
+                path = new g.Path('M 0 0 Z');
+                assert.equal(path.segmentIndexAt(0), 1);
+                assert.equal(path.segmentIndexAt(0.4), 1);
+                assert.equal(path.segmentIndexAt(10), 1);
+                assert.equal(path.segmentIndexAt(-1), 1);
+            });
+        });
+
+        QUnit.module('segmentIndexAtLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+
+                path = new g.Path();
+                assert.equal(path.segmentIndexAtLength(0), null);
+                assert.equal(path.segmentIndexAtLength(40), null);
+                assert.equal(path.segmentIndexAtLength(-40), null);
+
+                path = new g.Path('M 0 0');
+                assert.equal(path.segmentIndexAtLength(0), null);
+                assert.equal(path.segmentIndexAtLength(40), null);
+                assert.equal(path.segmentIndexAtLength(-40), null);
+
+                path = new g.Path('M 0 0 M 100 0');
+                assert.equal(path.segmentIndexAtLength(0), null);
+                assert.equal(path.segmentIndexAtLength(40), null);
+                assert.equal(path.segmentIndexAtLength(1000), null);
+                assert.equal(path.segmentIndexAtLength(-40), null);
+                assert.equal(path.segmentIndexAtLength(-1000), null);
+
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
+                assert.equal(typeof path.segmentIndexAtLength(0), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(250), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(1000), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(-250), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(-1000), 'number');
+
+                path = new g.Path('M 0 0 L 100 0');
+                assert.equal(typeof path.segmentIndexAtLength(0), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(40), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(1000), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(-40), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(-1000), 'number');
+
+                path = new g.Path('M 0 0 L 100 0 Z');
+                assert.equal(typeof path.segmentIndexAtLength(0), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(40), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(140), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(1000), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(-40), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(-140), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(-1000), 'number');
+
+                path = new g.Path('M 0 0 Z');
+                assert.equal(typeof path.segmentIndexAtLength(0), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(40), 'number');
+                assert.equal(typeof path.segmentIndexAtLength(-40), 'number');
+            });
+
+            QUnit.test('returns the index of a segment at given length up to precision', function(assert) {
+
+                var path;
+
+                path = new g.Path('M 0 0 C 0 200 200 200 200 0');
+                assert.equal(path.segmentIndexAtLength(0), 1);
+                assert.equal(path.segmentIndexAtLength(250), 1);
+                assert.equal(path.segmentIndexAtLength(1000), 1);
+                assert.equal(path.segmentIndexAtLength(-250), 1);
+                assert.equal(path.segmentIndexAtLength(-1000), 1);
+
+                path = new g.Path('M 0 0 L 100 0');
+                assert.equal(path.segmentIndexAtLength(0), 1);
+                assert.equal(path.segmentIndexAtLength(40), 1);
+                assert.equal(path.segmentIndexAtLength(1000), 1);
+                assert.equal(path.segmentIndexAtLength(-40), 1);
+                assert.equal(path.segmentIndexAtLength(-1000), 1);
+
+                path = new g.Path('M 0 0 L 100 0 Z');
+                assert.equal(path.segmentIndexAtLength(0), 1);
+                assert.equal(path.segmentIndexAtLength(40), 1);
+                assert.equal(path.segmentIndexAtLength(140), 2);
+                assert.equal(path.segmentIndexAtLength(1000), 2);
+                assert.equal(path.segmentIndexAtLength(-40), 2);
+                assert.equal(path.segmentIndexAtLength(-140), 1);
+                assert.equal(path.segmentIndexAtLength(-1000), 1);
+
+                path = new g.Path('M 0 0 Z');
+                assert.equal(path.segmentIndexAtLength(0), 1);
+                assert.equal(path.segmentIndexAtLength(40), 1);
+                assert.equal(path.segmentIndexAtLength(-40), 1);
             });
         });
 
@@ -2202,20 +2560,27 @@ QUnit.module('path', function(hooks) {
 
                 var path;
 
-                path = g.Path('M 0 0 M 100 0');
+                path = new g.Path();
                 assert.equal(path.tangentAt(0.5), null);
                 assert.equal(path.tangentAt(0.5, { precision: 0 }), null);
 
                 assert.equal(path.tangentAt(-1), null);
                 assert.equal(path.tangentAt(10), null);
 
-                path = g.Path('M 0 0 L 0 0');
+                path = new g.Path('M 0 0 M 100 0');
+                assert.equal(path.tangentAt(0.5), null);
+                assert.equal(path.tangentAt(0.5, { precision: 0 }), null);
+
+                assert.equal(path.tangentAt(-1), null);
+                assert.equal(path.tangentAt(10), null);
+
+                path = new g.Path('M 0 0 L 0 0');
                 assert.equal(path.tangentAt(0.5), null);
                 assert.equal(path.tangentAt(0.5, { precision: 0 }), null);
                 assert.equal(path.tangentAt(-1), null);
                 assert.equal(path.tangentAt(10), null);
 
-                path = g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
+                path = new g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
                 // first lineto
                 assert.ok(path.tangentAt(0.1) instanceof g.Line);
                 assert.ok(path.tangentAt(0.1, { precision: 0 }) instanceof g.Line);
@@ -2269,7 +2634,7 @@ QUnit.module('path', function(hooks) {
 
                 var path;
 
-                path = g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
+                path = new g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
                 // first lineto
                 assert.equal(path.tangentAt(0.1).toString(), '0@100.00383501229652 0@-99.99616498770348');
                 assert.equal(path.tangentAt(0.1, { precision: 0 }).toString(), '0@120 0@-80');
@@ -2326,7 +2691,7 @@ QUnit.module('path', function(hooks) {
 
                 var path;
 
-                path = g.Path('M 0 0 M 100 0');
+                path = new g.Path('M 0 0 M 100 0');
                 assert.equal(path.tangentAtLength(40), null);
                 assert.equal(path.tangentAtLength(40, { precision: 0 }), null);
                 assert.equal(path.tangentAtLength(10000), null);
@@ -2335,11 +2700,11 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.tangentAtLength(-40, { precision: 0 }), null);
                 assert.equal(path.tangentAtLength(-10000), null);
 
-                path = g.Path('M 0 0 L 0 0');
+                path = new g.Path('M 0 0 L 0 0');
                 assert.equal(path.tangentAtLength(10000), null);
                 assert.equal(path.tangentAtLength(-10000), null);
 
-                path = g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
+                path = new g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
                 // first lineto
                 assert.ok(path.tangentAtLength(100) instanceof g.Line);
                 assert.ok(path.tangentAtLength(100, { precision: 0 }) instanceof g.Line);
@@ -2438,7 +2803,7 @@ QUnit.module('path', function(hooks) {
 
                 var path;
 
-                path = g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
+                path = new g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
                 // first lineto
                 assert.equal(path.tangentAtLength(100).toString(), '0@100 0@-100');
                 assert.equal(path.tangentAtLength(100, { precision: 0 }).toString(), '0@100 0@-100');
@@ -2538,18 +2903,20 @@ QUnit.module('path', function(hooks) {
 
             QUnit.test('sanity', function(assert) {
 
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').translate(0, 0) instanceof g.Path);
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').translate(0, 10) instanceof g.Path);
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').translate(10, 0) instanceof g.Path);
-                assert.ok(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').translate(10, 10) instanceof g.Path);
+                var path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.ok(path.clone().translate(0, 0) instanceof g.Path);
+                assert.ok(path.clone().translate(0, 10) instanceof g.Path);
+                assert.ok(path.clone().translate(10, 0) instanceof g.Path);
+                assert.ok(path.clone().translate(10, 10) instanceof g.Path);
             });
 
             QUnit.test('should return a translated version of self', function(assert) {
 
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').translate(0, 0).toString(), g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').toString());
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').translate(0, 10).toString(), g.Path('M 150 110 L 100 110 C 100 110 0 160 100 210 Z').toString());
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').translate(10, 0).toString(), g.Path('M 160 100 L 110 100 C 110 100 10 150 110 200 Z').toString());
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').translate(10, 10).toString(), g.Path('M 160 110 L 110 110 C 110 110 10 160 110 210 Z').toString());
+                var path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(path.clone().translate(0, 0).toString(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(path.clone().translate(0, 10).toString(), 'M 150 110 L 100 110 C 100 110 0 160 100 210 Z');
+                assert.equal(path.clone().translate(10, 0).toString(), 'M 160 100 L 110 100 C 110 100 10 150 110 200 Z');
+                assert.equal(path.clone().translate(10, 10).toString(), 'M 160 110 L 110 110 C 110 110 10 160 110 210 Z');
             });
         });
 
@@ -2557,7 +2924,65 @@ QUnit.module('path', function(hooks) {
 
             QUnit.test('sanity', function(assert) {
 
-                assert.equal(g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z').serialize(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                var path;
+
+                var error;
+
+                try {
+                    path = new g.Path(g.Path.createSegment('L', 100, 100));
+                    path.serialize();
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called on a path that does not start with a Moveto segment.');
+
+                path = new g.Path();
+                assert.equal(typeof path.toString(), 'string');
+
+                path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(typeof path.serialize(), 'string');
+            });
+
+            QUnit.test('toString with extra checks', function(assert) {
+
+                var path;
+
+                path = new g.Path();
+                assert.equal(path.toString(), '');
+
+                path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(path.serialize(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+            });
+        });
+
+        QUnit.module('toString()', function(assert) {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+
+                path = new g.Path(g.Path.createSegment('L', 100, 100));
+                assert.equal(typeof path.toString(), 'string');
+
+                path = new g.Path();
+                assert.equal(typeof path.toString(), 'string');
+
+                path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(typeof path.toString(), 'string');
+            });
+
+            QUnit.test('returns a string representation of the path', function(assert) {
+
+                var path;
+
+                path = new g.Path(g.Path.createSegment('L', 100, 100));
+                assert.equal(path.toString(), 'L 100 100');
+
+                path = new g.Path();
+                assert.equal(path.toString(), '');
+
+                path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(path.toString(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
             });
         });
     });

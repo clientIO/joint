@@ -440,35 +440,35 @@ QUnit.module('curve', function() {
 
                 var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
                 assert.deepEqual(curve.getSubdivisions({ precision: 0 }), [
-                    g.Curve(g.Point(0, 100), g.Point(50, 200), g.Point(150, 0), g.Point(200, 100))
+                    new g.Curve(new g.Point(0, 100), new g.Point(50, 200), new g.Point(150, 0), new g.Point(200, 100))
                 ]);
                 assert.deepEqual(curve.getSubdivisions({ precision: 1 }), [
-                    g.Curve(g.Point(0, 100), g.Point(6.25, 112.5), g.Point(13.28125, 120.3125), g.Point(20.8984375, 124.609375)),
-                    g.Curve(g.Point(20.8984375, 124.609375), g.Point(28.515625, 128.90625), g.Point(36.71875, 129.6875), g.Point(45.3125, 128.125)),
-                    g.Curve(g.Point(45.3125, 128.125), g.Point(53.90625, 126.5625), g.Point(62.890625, 122.65625), g.Point(72.0703125, 117.578125)),
-                    g.Curve(g.Point(72.0703125, 117.578125), g.Point(81.25, 112.5), g.Point(90.625, 106.25), g.Point(100, 100)),
-                    g.Curve(g.Point(100, 100), g.Point(109.375, 93.75), g.Point(118.75, 87.5), g.Point(127.9296875, 82.421875)),
-                    g.Curve(g.Point(127.9296875, 82.421875), g.Point(137.109375, 77.34375), g.Point(146.09375, 73.4375), g.Point(154.6875, 71.875)),
-                    g.Curve(g.Point(154.6875, 71.875), g.Point(163.28125, 70.3125), g.Point(171.484375, 71.09375), g.Point(179.1015625, 75.390625)),
-                    g.Curve(g.Point(179.1015625, 75.390625), g.Point(186.71875, 79.6875), g.Point(193.75, 87.5), g.Point(200, 100))
+                    new g.Curve(new g.Point(0, 100), new g.Point(6.25, 112.5), new g.Point(13.28125, 120.3125), new g.Point(20.8984375, 124.609375)),
+                    new g.Curve(new g.Point(20.8984375, 124.609375), new g.Point(28.515625, 128.90625), new g.Point(36.71875, 129.6875), new g.Point(45.3125, 128.125)),
+                    new g.Curve(new g.Point(45.3125, 128.125), new g.Point(53.90625, 126.5625), new g.Point(62.890625, 122.65625), new g.Point(72.0703125, 117.578125)),
+                    new g.Curve(new g.Point(72.0703125, 117.578125), new g.Point(81.25, 112.5), new g.Point(90.625, 106.25), new g.Point(100, 100)),
+                    new g.Curve(new g.Point(100, 100), new g.Point(109.375, 93.75), new g.Point(118.75, 87.5), new g.Point(127.9296875, 82.421875)),
+                    new g.Curve(new g.Point(127.9296875, 82.421875), new g.Point(137.109375, 77.34375), new g.Point(146.09375, 73.4375), new g.Point(154.6875, 71.875)),
+                    new g.Curve(new g.Point(154.6875, 71.875), new g.Point(163.28125, 70.3125), new g.Point(171.484375, 71.09375), new g.Point(179.1015625, 75.390625)),
+                    new g.Curve(new g.Point(179.1015625, 75.390625), new g.Point(186.71875, 79.6875), new g.Point(193.75, 87.5), new g.Point(200, 100))
                 ]);
                 assert.deepEqual(curve.getSubdivisions({ precision: 2 }), [
-                    g.Curve(g.Point(0, 100), g.Point(3.125, 106.25), g.Point(6.4453125, 111.328125), g.Point(9.9365234375, 115.380859375)),
-                    g.Curve(g.Point(9.9365234375, 115.380859375), g.Point(13.427734375, 119.43359375), g.Point(17.08984375, 122.4609375), g.Point(20.8984375, 124.609375)),
-                    g.Curve(g.Point(20.8984375, 124.609375), g.Point(24.70703125, 126.7578125), g.Point(28.662109375, 128.02734375), g.Point(32.7392578125, 128.564453125)),
-                    g.Curve(g.Point(32.7392578125, 128.564453125), g.Point(36.81640625, 129.1015625), g.Point(41.015625, 128.90625), g.Point(45.3125, 128.125)),
-                    g.Curve(g.Point(45.3125, 128.125), g.Point(49.609375, 127.34375), g.Point(54.00390625, 125.9765625), g.Point(58.4716796875, 124.169921875)),
-                    g.Curve(g.Point(58.4716796875, 124.169921875), g.Point(62.939453125, 122.36328125), g.Point(67.48046875, 120.1171875), g.Point(72.0703125, 117.578125)),
-                    g.Curve(g.Point(72.0703125, 117.578125), g.Point(76.66015625, 115.0390625), g.Point(81.298828125, 112.20703125), g.Point(85.9619140625, 109.228515625)),
-                    g.Curve(g.Point(85.9619140625, 109.228515625), g.Point(90.625, 106.25), g.Point(95.3125, 103.125), g.Point(100, 100)),
-                    g.Curve(g.Point(100, 100), g.Point(104.6875, 96.875), g.Point(109.375, 93.75), g.Point(114.0380859375, 90.771484375)),
-                    g.Curve(g.Point(114.0380859375, 90.771484375), g.Point(118.701171875, 87.79296875), g.Point(123.33984375, 84.9609375), g.Point(127.9296875, 82.421875)),
-                    g.Curve(g.Point(127.9296875, 82.421875), g.Point(132.51953125, 79.8828125), g.Point(137.060546875, 77.63671875), g.Point(141.5283203125, 75.830078125)),
-                    g.Curve(g.Point(141.5283203125, 75.830078125), g.Point(145.99609375, 74.0234375), g.Point(150.390625, 72.65625), g.Point(154.6875, 71.875)),
-                    g.Curve(g.Point(154.6875, 71.875), g.Point(158.984375, 71.09375), g.Point(163.18359375, 70.8984375), g.Point(167.2607421875, 71.435546875)),
-                    g.Curve(g.Point(167.2607421875, 71.435546875), g.Point(171.337890625, 71.97265625), g.Point(175.29296875, 73.2421875), g.Point(179.1015625, 75.390625)),
-                    g.Curve(g.Point(179.1015625, 75.390625), g.Point(182.91015625, 77.5390625), g.Point(186.572265625, 80.56640625), g.Point(190.0634765625, 84.619140625)),
-                    g.Curve(g.Point(190.0634765625, 84.619140625), g.Point(193.5546875, 88.671875), g.Point(196.875, 93.75), g.Point(200, 100))
+                    new g.Curve(new g.Point(0, 100), new g.Point(3.125, 106.25), new g.Point(6.4453125, 111.328125), new g.Point(9.9365234375, 115.380859375)),
+                    new g.Curve(new g.Point(9.9365234375, 115.380859375), new g.Point(13.427734375, 119.43359375), new g.Point(17.08984375, 122.4609375), new g.Point(20.8984375, 124.609375)),
+                    new g.Curve(new g.Point(20.8984375, 124.609375), new g.Point(24.70703125, 126.7578125), new g.Point(28.662109375, 128.02734375), new g.Point(32.7392578125, 128.564453125)),
+                    new g.Curve(new g.Point(32.7392578125, 128.564453125), new g.Point(36.81640625, 129.1015625), new g.Point(41.015625, 128.90625), new g.Point(45.3125, 128.125)),
+                    new g.Curve(new g.Point(45.3125, 128.125), new g.Point(49.609375, 127.34375), new g.Point(54.00390625, 125.9765625), new g.Point(58.4716796875, 124.169921875)),
+                    new g.Curve(new g.Point(58.4716796875, 124.169921875), new g.Point(62.939453125, 122.36328125), new g.Point(67.48046875, 120.1171875), new g.Point(72.0703125, 117.578125)),
+                    new g.Curve(new g.Point(72.0703125, 117.578125), new g.Point(76.66015625, 115.0390625), new g.Point(81.298828125, 112.20703125), new g.Point(85.9619140625, 109.228515625)),
+                    new g.Curve(new g.Point(85.9619140625, 109.228515625), new g.Point(90.625, 106.25), new g.Point(95.3125, 103.125), new g.Point(100, 100)),
+                    new g.Curve(new g.Point(100, 100), new g.Point(104.6875, 96.875), new g.Point(109.375, 93.75), new g.Point(114.0380859375, 90.771484375)),
+                    new g.Curve(new g.Point(114.0380859375, 90.771484375), new g.Point(118.701171875, 87.79296875), new g.Point(123.33984375, 84.9609375), new g.Point(127.9296875, 82.421875)),
+                    new g.Curve(new g.Point(127.9296875, 82.421875), new g.Point(132.51953125, 79.8828125), new g.Point(137.060546875, 77.63671875), new g.Point(141.5283203125, 75.830078125)),
+                    new g.Curve(new g.Point(141.5283203125, 75.830078125), new g.Point(145.99609375, 74.0234375), new g.Point(150.390625, 72.65625), new g.Point(154.6875, 71.875)),
+                    new g.Curve(new g.Point(154.6875, 71.875), new g.Point(158.984375, 71.09375), new g.Point(163.18359375, 70.8984375), new g.Point(167.2607421875, 71.435546875)),
+                    new g.Curve(new g.Point(167.2607421875, 71.435546875), new g.Point(171.337890625, 71.97265625), new g.Point(175.29296875, 73.2421875), new g.Point(179.1015625, 75.390625)),
+                    new g.Curve(new g.Point(179.1015625, 75.390625), new g.Point(182.91015625, 77.5390625), new g.Point(186.572265625, 80.56640625), new g.Point(190.0634765625, 84.619140625)),
+                    new g.Curve(new g.Point(190.0634765625, 84.619140625), new g.Point(193.5546875, 88.671875), new g.Point(196.875, 93.75), new g.Point(200, 100))
                 ]);
             });
         });
@@ -750,25 +750,25 @@ QUnit.module('curve', function() {
             QUnit.test('should return a scaled version of self', function(assert) {
 
                 var curve = new g.Curve('10 10', '10 40', '50 40', '50 10');
-                assert.equal(curve.clone().scale(0, 0).toString(), (new g.Curve('0 0', '0 0', '0 0', '0 0')).toString());
-                assert.equal(curve.clone().scale(0, 0, new g.Point('0 0')).toString(), (new g.Curve('0 0', '0 0', '0 0', '0 0')).toString());
-                assert.equal(curve.clone().scale(0, 0, new g.Point('10 10')).toString(), (new g.Curve('10 10', '10 10', '10 10', '10 10')).toString());
+                assert.equal(curve.clone().scale(0, 0).toString(), '0@0 0@0 0@0 0@0');
+                assert.equal(curve.clone().scale(0, 0, new g.Point('0 0')).toString(), '0@0 0@0 0@0 0@0');
+                assert.equal(curve.clone().scale(0, 0, new g.Point('10 10')).toString(), '10@10 10@10 10@10 10@10');
 
-                assert.equal(curve.clone().scale(0, 1).toString(), (new g.Curve('0 10', '0 40', '0 40', '0 10')).toString());
-                assert.equal(curve.clone().scale(0, 1, new g.Point('0 0')).toString(), (new g.Curve('0 10', '0 40', '0 40', '0 10')).toString());
-                assert.equal(curve.clone().scale(0, 1, new g.Point('10 10')).toString(), (new g.Curve('10 10', '10 40', '10 40', '10 10')).toString());
+                assert.equal(curve.clone().scale(0, 1).toString(), '0@10 0@40 0@40 0@10');
+                assert.equal(curve.clone().scale(0, 1, new g.Point('0 0')).toString(), '0@10 0@40 0@40 0@10');
+                assert.equal(curve.clone().scale(0, 1, new g.Point('10 10')).toString(), '10@10 10@40 10@40 10@10');
 
-                assert.equal(curve.clone().scale(1, 0).toString(), (new g.Curve('10 0', '10 0', '50 0', '50 0')).toString());
-                assert.equal(curve.clone().scale(1, 0, new g.Point('0 0')).toString(), (new g.Curve('10 0', '10 0', '50 0', '50 0')).toString());
-                assert.equal(curve.clone().scale(1, 0, new g.Point('10 10')).toString(), (new g.Curve('10 10', '10 10', '50 10', '50 10')).toString());
+                assert.equal(curve.clone().scale(1, 0).toString(), '10@0 10@0 50@0 50@0');
+                assert.equal(curve.clone().scale(1, 0, new g.Point('0 0')).toString(), '10@0 10@0 50@0 50@0');
+                assert.equal(curve.clone().scale(1, 0, new g.Point('10 10')).toString(), '10@10 10@10 50@10 50@10');
 
-                assert.equal(curve.clone().scale(1, 1).toString(), (new g.Curve('10 10', '10 40', '50 40', '50 10')).toString());
-                assert.equal(curve.clone().scale(1, 1, new g.Point('0 0')).toString(), (new g.Curve('10 10', '10 40', '50 40', '50 10')).toString());
-                assert.equal(curve.clone().scale(1, 1, new g.Point('10 10')).toString(), (new g.Curve('10 10', '10 40', '50 40', '50 10')).toString());
+                assert.equal(curve.clone().scale(1, 1).toString(), '10@10 10@40 50@40 50@10');
+                assert.equal(curve.clone().scale(1, 1, new g.Point('0 0')).toString(), '10@10 10@40 50@40 50@10');
+                assert.equal(curve.clone().scale(1, 1, new g.Point('10 10')).toString(), '10@10 10@40 50@40 50@10');
 
-                assert.equal(curve.clone().scale(10, 10).toString(), (new g.Curve('100 100', '100 400', '500 400', '500 100')).toString());
-                assert.equal(curve.clone().scale(10, 10, new g.Point('0 0')).toString(), (new g.Curve('100 100', '100 400', '500 400', '500 100')).toString());
-                assert.equal(curve.clone().scale(10, 10, new g.Point('10 10')).toString(), (new g.Curve('10 10', '10 310', '410 310', '410 10')).toString());
+                assert.equal(curve.clone().scale(10, 10).toString(), '100@100 100@400 500@400 500@100');
+                assert.equal(curve.clone().scale(10, 10, new g.Point('0 0')).toString(), '100@100 100@400 500@400 500@100');
+                assert.equal(curve.clone().scale(10, 10, new g.Point('10 10')).toString(), '10@10 10@310 410@310 410@10');
             });
         });
 
@@ -931,10 +931,10 @@ QUnit.module('curve', function() {
             QUnit.test('should return a translated version of self', function(assert) {
 
                 var curve = new g.Curve('10 10', '10 40', '50 40', '50 10');
-                assert.equal(curve.clone().translate(0, 0).toString(), g.Curve('10 10', '10 40', '50 40', '50 10').toString());
-                assert.equal(curve.clone().translate(0, 10).toString(), g.Curve('10 20', '10 50', '50 50', '50 20').toString());
-                assert.equal(curve.clone().translate(10, 0).toString(), g.Curve('20 10', '20 40', '60 40', '60 10').toString());
-                assert.equal(curve.clone().translate(10, 10).toString(), g.Curve('20 20', '20 50', '60 50', '60 20').toString());
+                assert.equal(curve.clone().translate(0, 0).toString(), '10@10 10@40 50@40 50@10');
+                assert.equal(curve.clone().translate(0, 10).toString(), '10@20 10@50 50@50 50@20');
+                assert.equal(curve.clone().translate(10, 0).toString(), '20@10 20@40 60@40 60@10');
+                assert.equal(curve.clone().translate(10, 10).toString(), '20@20 20@50 60@50 60@20');
             });
         });
 
@@ -956,38 +956,38 @@ QUnit.module('curve', function() {
 
                 var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
                 assert.deepEqual(curve.toPoints({ precision: 0 }), [
-                    g.Point(0, 100),
-                    g.Point(200, 100)
+                    new g.Point(0, 100),
+                    new g.Point(200, 100)
                 ]);
                 assert.deepEqual(curve.toPoints({ precision: 1 }), [
-                    g.Point(0, 100),
-                    g.Point(20.8984375, 124.609375),
-                    g.Point(45.3125, 128.125),
-                    g.Point(72.0703125, 117.578125),
-                    g.Point(100, 100),
-                    g.Point(127.9296875, 82.421875),
-                    g.Point(154.6875, 71.875),
-                    g.Point(179.1015625, 75.390625),
-                    g.Point(200, 100)
+                    new g.Point(0, 100),
+                    new g.Point(20.8984375, 124.609375),
+                    new g.Point(45.3125, 128.125),
+                    new g.Point(72.0703125, 117.578125),
+                    new g.Point(100, 100),
+                    new g.Point(127.9296875, 82.421875),
+                    new g.Point(154.6875, 71.875),
+                    new g.Point(179.1015625, 75.390625),
+                    new g.Point(200, 100)
                 ]);
                 assert.deepEqual(curve.toPoints({ precision: 2 }), [
-                    g.Point(0, 100),
-                    g.Point(9.9365234375, 115.380859375),
-                    g.Point(20.8984375, 124.609375),
-                    g.Point(32.7392578125, 128.564453125),
-                    g.Point(45.3125, 128.125),
-                    g.Point(58.4716796875, 124.169921875),
-                    g.Point(72.0703125, 117.578125),
-                    g.Point(85.9619140625, 109.228515625),
-                    g.Point(100, 100),
-                    g.Point(114.0380859375, 90.771484375),
-                    g.Point(127.9296875, 82.421875),
-                    g.Point(141.5283203125, 75.830078125),
-                    g.Point(154.6875, 71.875),
-                    g.Point(167.2607421875, 71.435546875),
-                    g.Point(179.1015625, 75.390625),
-                    g.Point(190.0634765625, 84.619140625),
-                    g.Point(200, 100)
+                    new g.Point(0, 100),
+                    new g.Point(9.9365234375, 115.380859375),
+                    new g.Point(20.8984375, 124.609375),
+                    new g.Point(32.7392578125, 128.564453125),
+                    new g.Point(45.3125, 128.125),
+                    new g.Point(58.4716796875, 124.169921875),
+                    new g.Point(72.0703125, 117.578125),
+                    new g.Point(85.9619140625, 109.228515625),
+                    new g.Point(100, 100),
+                    new g.Point(114.0380859375, 90.771484375),
+                    new g.Point(127.9296875, 82.421875),
+                    new g.Point(141.5283203125, 75.830078125),
+                    new g.Point(154.6875, 71.875),
+                    new g.Point(167.2607421875, 71.435546875),
+                    new g.Point(179.1015625, 75.390625),
+                    new g.Point(190.0634765625, 84.619140625),
+                    new g.Point(200, 100)
                 ]);
             });
         });
@@ -1015,8 +1015,19 @@ QUnit.module('curve', function() {
             });
         });
 
-        QUnit.module('toString()', function() {
+        QUnit.module('toString()', function(assert) {
 
+            QUnit.test('sanity', function(assert) {
+
+                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                assert.equal(typeof curve.toString(), 'string');
+            });
+
+            QUnit.test('returns a string representation of the curve', function(assert) {
+
+                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                assert.equal(curve.toString(), '0@100 50@200 150@0 200@100');
+            });
         });
     });
 });

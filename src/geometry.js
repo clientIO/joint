@@ -1828,13 +1828,16 @@ var g = (function() {
             var segments = this.segments;
             if (!segments) return 0; // if segments is undefined or null
 
+            var numSegments = segments.length;
+            if (numSegments === 0) return 0; // if segments is an empty array
+
             opt = opt || {};
             var precision = opt.precision;
             if (precision !== 0) precision = precision || this.PRECISION;
             var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
 
             var length = 0;
-            var n = segments.length;
+            var n = numSegments;
             for (var i = 0; i < n; i++) {
 
                 var segment = segments[i];
@@ -1850,6 +1853,9 @@ var g = (function() {
 
             var segments = this.segments;
             if (!segments) return null; // if segments is undefined or null
+
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
 
             if (ratio <= 0) return this.start;
             else if (ratio >= 1) return this.end;
@@ -1872,6 +1878,9 @@ var g = (function() {
             var segments = this.segments;
             if (!segments) return null; // if segments is undefined or null
 
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
             if (length === 0) return this.start;
 
             var fromStart = true;
@@ -1887,7 +1896,7 @@ var g = (function() {
 
             var lastVisibleSegment;
             var l = 0; // length so far
-            var n = segments.length;
+            var n = numSegments;
             for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
 
                 var segment = segments[i];
@@ -2056,7 +2065,10 @@ var g = (function() {
         segmentIndexAt: function(ratio, opt) {
 
             var segments = this.segments;
-            if (!segments || segments.length === 0) return null; // if segments is undefined or null
+            if (!segments) return null; // if segments is undefined or null
+
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
 
             if (ratio < 0) ratio = 0;
             else if (ratio > 1) ratio = 1;
@@ -2069,14 +2081,17 @@ var g = (function() {
             var pathLength = this.length({ segmentSubdivisions: segmentSubdivisions });
             var length = pathLength * ratio;
 
-            return this.segmentAtLength(length, { precision: precision, segmentSubdivisions: segmentSubdivisions });
+            return this.segmentIndexAtLength(length, { precision: precision, segmentSubdivisions: segmentSubdivisions });
         },
 
         // Accepts negative length.
         segmentIndexAtLength: function(length, opt) {
 
             var segments = this.segments;
-            if (!segments || segments.length === 0) return null; // if segments is undefined or null
+            if (!segments) return null; // if segments is undefined or null
+
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
 
             var fromStart = true;
             if (length < 0) {
@@ -2091,7 +2106,7 @@ var g = (function() {
 
             var lastVisibleSegmentIndex = null;
             var l = 0; // length so far
-            var n = segments.length;
+            var n = numSegments;
             for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
 
                 var segment = segments[i];
@@ -2120,6 +2135,9 @@ var g = (function() {
             var segments = this.segments;
             if (!segments) return null; // if segments is undefined or null
 
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
             if (ratio < 0) ratio = 0;
             else if (ratio > 1) ratio = 1;
 
@@ -2141,6 +2159,9 @@ var g = (function() {
             var segments = this.segments;
             if (!segments) return null; // if segments is undefined or null
 
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
             var fromStart = true;
             if (length < 0) {
                 fromStart = false; // negative lengths mean start calculation from end point
@@ -2154,7 +2175,7 @@ var g = (function() {
 
             var lastValidSegment; // visible AND differentiable (with a tangent)
             var l = 0; // length so far
-            var n = segments.length;
+            var n = numSegments;
             for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
 
                 var segment = segments[i];
