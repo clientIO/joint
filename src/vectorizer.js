@@ -1126,13 +1126,16 @@ V = Vectorizer = (function() {
     };
 
     V.toNode = function(el) {
+
         return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
     };
 
     V.ensureId = function(node) {
+
         node = V.toNode(node);
         return node.id || (node.id = V.uniqueId());
     };
+
     // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
     // IE would otherwise collapse all spaces into one. This is used in the text() method but it is
     // also exposed so that the programmer can use it in case he needs to. This is useful e.g. in tests

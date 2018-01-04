@@ -3,22 +3,12 @@ import './custom';
 import {V, g} from "../../build/joint";
 import * as $ from "jquery";
 
-const $body = $('body');
-const svg = joint.V('svg');
-const svgRect = V('rect').attr({fill: 'red', width: 80, height: 50});
-const svgEllipse = V('ellipse').attr({fill: 'green', rx: 100, ry: 50, cx: 200, cy: 80, x: 20, y: 30});
-
-svg.append(svgRect);
-svg.append(svgEllipse.node);
-
-$body.append($('<h3/>').text('Example SVG created by Vectorizer'));
-$body.append(svg.node);
-
+// Paper:
 const graph = new joint.dia.Graph;
 const paper = new joint.dia.Paper({
     el: $('#paper'),
-    width: 650,
-    height: 400,
+    width: 400,
+    height: 200,
     gridSize: 20,
     model: graph,
     markAvailable: true,
@@ -49,8 +39,124 @@ let customRect = new joint.shapes.app.CustomRect()
     .size(100, 100)
     .addTo(graph);
 
-
 customRect.test();
 joint.shapes.app.CustomRect.staticTest()
 
+// VECTORIZER DEMO:
+// Display all SVG shapes and convert them to paths.
+const $body = $('body');
 
+const svg = joint.V('svg');
+svg.attr('width', 500);
+svg.attr('height', 600);
+
+$body.append($('<h3/>').text('Example SVG created by Vectorizer'));
+$body.append(svg.node);
+
+// Line:
+let vLine = V('line', { x1: 25, y1: 25, x2: 75, y2: 55, stroke: 'blue', 'stroke-width': 2 });
+svg.append(vLine);
+
+let linePath = vLine.convertToPath();
+linePath.translate(100);
+svg.append(linePath);
+
+// Circle:
+let vCircle = V('circle', { cx: 50, cy: 100, r: 15, stroke: 'green', fill: 'none' });
+svg.append(vCircle);
+
+let circlePath = vCircle.convertToPath();
+circlePath.translate(100);
+svg.append(circlePath);
+
+// Ellipse:
+let vEllipse = V('ellipse', { cx: 50, cy: 160, rx: 25, ry: 15, stroke: 'green', fill: 'none' });
+svg.append(vEllipse);
+
+let ellipsePath = vEllipse.convertToPath();
+ellipsePath.translate(100);
+svg.append(ellipsePath);
+
+// Rounded rectangle:
+let vRect = V('rect', { x: 25, y: 205, width: 50, height: 30, rx: 10, ry: 6, stroke: 'green', fill: 'none' });
+svg.append(vRect);
+
+let rectPath = vRect.convertToPath();
+rectPath.translate(100);
+svg.append(rectPath);
+
+// Sharp rectangle:
+let vRectSharp = V('rect', { x: 25, y: 265, width: 50, height: 30, stroke: 'green', fill: 'none' });
+svg.append(vRectSharp);
+
+let rectSharpPath = vRectSharp.convertToPath();
+rectSharpPath.translate(100);
+svg.append(rectSharpPath);
+
+// Polygon:
+let vPolygon = V('polygon', { points: '25,335 30,345 50,325 75,355', stroke: 'green', fill: 'none' });
+svg.append(vPolygon);
+
+let polygonPath = vPolygon.convertToPath();
+polygonPath.translate(100);
+svg.append(polygonPath);
+
+// Polyline:
+let vPolyline = V('polyline', { points: '25,395 30,405 50,385 75,415', stroke: 'green', fill: 'none' });
+svg.append(vPolyline);
+
+let polylinePath = vPolyline.convertToPath();
+polylinePath.translate(100);
+svg.append(polylinePath);
+
+let i;
+let n;
+let t;
+let getColor = joint.util.interpolate.hexColor('#FF0000', '#008000');
+
+// Path:
+let gPath = new g.Path();
+gPath.appendSegment(g.Path.createSegment('M', 25, 445));
+gPath.appendSegment(g.Path.createSegment('C', 25, 475, 75, 475, 75, 445));
+
+n = 17;
+for (i = 0; i < n; i++) {
+
+    t = i / (n - 1);
+    let gPathPoint = gPath.pointAt(t);
+    let pathPoint = V('circle', { cx: gPathPoint.x, cy: gPathPoint.y, r: 1, fill: getColor(t) });
+    svg.append(pathPoint);
+}
+
+let vPath = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
+vPath.translate(100);
+svg.append(vPath);
+
+// Curve:
+let gCurve = new g.Curve('25 505', '37.5 490', '62.5 520', '75 505');
+
+let curvePoints = gCurve.toPoints({ precision: 2 });
+n = curvePoints.length;
+for (i = 0; i < n; i++) {
+
+    t = i / (n - 1);
+    let gCurvePoint = curvePoints[i];
+    let curvePoint = V('circle', { cx: gCurvePoint.x, cy: gCurvePoint.y, r: 1, fill: getColor(t) });
+    svg.append(curvePoint);
+}
+
+let gCurvePath = new g.Path(gCurve);
+let curvePath = V('path', { d: gCurvePath.serialize(), stroke: 'green', fill: 'none' });
+curvePath.translate(100);
+svg.append(curvePath);
+
+// Text
+let vText = V('text', { x: 250, y: 30, fill: 'black' });
+
+vText.text('This is a rich text.\nThis text goes to multiple lines.', { lineHeight: 'auto', annotations: [
+    { start: 5, end: 10, attrs: { fill: 'red', 'font-size': 30, rotate: '20' } },
+    { start: 7, end: 15, attrs: { fill: 'blue' } },
+    { start: 20, end: 30, attrs: { fill: 'blue', 'class': 'text-link', style: 'text-decoration: underline' } }
+], includeAnnotationIndices: true });
+
+svg.append(vText);
