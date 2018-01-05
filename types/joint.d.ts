@@ -249,7 +249,7 @@ export namespace dia {
             size?: Size;
             angle?: number;
             ports?: {
-                groups?: { [key: string]: Port },
+                groups?: { [key: string]: PortGroup},
                 items?: Port[]
             }
         }
@@ -258,18 +258,30 @@ export namespace dia {
             [key: string]: any
         }
 
+        type PositionType = string | {
+            name?: string,
+            args?: { [key: string]: any] }
+        }
+
+        interface PortGroup {
+            position?: PositionType,
+            markup?: string;
+            attrs?: Cell.Selectors;
+            label?: {
+                markup?: string;
+                position?: PositionType;
+            }
+        }
+
         interface Port {
             id?: string;
             markup?: string;
             group?: string;
             attrs?: Cell.Selectors;
             args?: { [key: string]: any };
-            size?: Size;
             label?: {
-                size?: Size;
                 markup?: string;
-                position?: any;
-                args?: any;
+                position?: PositionType;
             }
             z?: number | 'auto';
         }
