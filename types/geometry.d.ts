@@ -223,6 +223,8 @@ export namespace g {
 
         rotate(origin: PlainPoint, angle: number): this;
 
+        round(precision?: number): this;
+
         scale(sx: number, sy: number, origin?: PlainPoint): this;
 
         tangentAt(t: number): Line | null;
