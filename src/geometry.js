@@ -1356,6 +1356,16 @@ var g = (function() {
             return this;
         },
 
+        round: function(precision) {
+
+            var f = pow(10, precision || 0);
+            this.start.x = round(this.start.x * f) / f;
+            this.start.y = round(this.start.y * f) / f;
+            this.end.x = round(this.end.x * f) / f;
+            this.end.y = round(this.end.y * f) / f;
+            return this;
+        },
+
         scale: function(sx, sy, origin) {
 
             this.start.scale(sx, sy, origin);
