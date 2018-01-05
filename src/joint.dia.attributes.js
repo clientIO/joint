@@ -298,6 +298,32 @@
             }
         },
 
+        title: {
+            qualify: function(title, node) {
+                // HTMLElement title is specified via an attribute (i.e. not an element)
+                return node instanceof SVGElement;
+            },
+            set: function(title, refBBox, node) {
+                var $node = $(node);
+                var cacheName = 'joint-title';
+                var cache = $node.data(cacheName);
+                if (cache === undefined || cache !== title) {
+                    $node.data(cacheName, title);
+                    // Generally <title> element should be the first child element of its parent.
+                    var firstChild = node.firstChild;
+                    if (firstChild && firstChild.tagName.toUpperCase() === 'TITLE') {
+                        // Update an existing title
+                        firstChild.textContent = title;
+                    } else {
+                        // Create a new title
+                        var titleNode = document.createElementNS(node.namespaceURI, 'title');
+                        titleNode.textContent = title;
+                        node.insertBefore(titleNode, firstChild);
+                    }
+                }
+            }
+        },
+
         lineHeight: {
             qualify: function(lineHeight, node, attrs) {
                 return (attrs.text !== undefined);
