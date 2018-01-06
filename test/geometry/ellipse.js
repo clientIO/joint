@@ -8,35 +8,35 @@ QUnit.module('ellipse', function() {
 
         var rad = angle * Math.PI / 180;
 
-        return g.Point(ellipse.x + a * Math.cos(rad), ellipse.y + b * Math.sin(rad)).round();
+        return new g.Point(ellipse.x + a * Math.cos(rad), ellipse.y + b * Math.sin(rad)).round();
     };
 
     QUnit.test('validate helper boundaryOnAngle', function(assert) {
 
         var a = 150;
         var b = 50;
-        var c = g.Point(0, 0);
-        var ellipse = g.Ellipse(c, a, b);
+        var c = new g.Point(0, 0);
+        var ellipse = new g.Ellipse(c, a, b);
 
-        assert.propEqual(boundaryOnAngle(ellipse, 0), g.Point(150, 0));
-        assert.propEqual(boundaryOnAngle(ellipse, 90), (g.Point(0, 50)));
-        assert.propEqual(boundaryOnAngle(ellipse, 180), (g.Point(-150, 0)));
-        assert.propEqual(boundaryOnAngle(ellipse, 270), (g.Point(0, -50)));
+        assert.propEqual(boundaryOnAngle(ellipse, 0), new g.Point(150, 0));
+        assert.propEqual(boundaryOnAngle(ellipse, 90), new g.Point(0, 50));
+        assert.propEqual(boundaryOnAngle(ellipse, 180), new g.Point(-150, 0));
+        assert.propEqual(boundaryOnAngle(ellipse, 270), new g.Point(0, -50));
     });
 
     QUnit.module('constructor', function() {
 
         QUnit.test('creates a new Ellipse object', function(assert) {
 
-            assert.ok(g.ellipse() instanceof g.ellipse);
-            assert.ok(g.ellipse({ x: 1, y: 2 }, 3, 4) instanceof g.ellipse);
-            assert.equal(g.ellipse({ x: 1, y: 2 }, 3, 4).x, 1);
-            assert.equal(g.ellipse({ x: 1, y: 2 }, 3, 4).y, 2);
-            assert.equal(g.ellipse({ x: 1, y: 2 }, 3, 4).a, 3);
-            assert.equal(g.ellipse({ x: 1, y: 2 }, 3, 4).b, 4);
-            assert.ok(g.ellipse(g.ellipse({ x: 1, y: 2 }, 3, 4)).equals(g.ellipse({ x: 1, y: 2 }, 3, 4)));
+            assert.ok(new g.Ellipse() instanceof g.Ellipse);
+            assert.ok(new g.Ellipse({ x: 1, y: 2 }, 3, 4) instanceof g.Ellipse);
+            assert.equal((new g.Ellipse({ x: 1, y: 2 }, 3, 4)).x, 1);
+            assert.equal((new g.Ellipse({ x: 1, y: 2 }, 3, 4)).y, 2);
+            assert.equal((new g.Ellipse({ x: 1, y: 2 }, 3, 4)).a, 3);
+            assert.equal((new g.Ellipse({ x: 1, y: 2 }, 3, 4)).b, 4);
+            assert.ok((new g.Ellipse(new g.Ellipse({ x: 1, y: 2 }, 3, 4))).equals(new g.Ellipse({ x: 1, y: 2 }, 3, 4)));
             // default values
-            assert.ok(g.ellipse().equals(g.rect({ x: 0, y: 0 }, 0, 0)));
+            assert.ok((new g.Ellipse()).equals(new g.Rect({ x: 0, y: 0 }, 0, 0)));
         });
     });
 
@@ -44,9 +44,9 @@ QUnit.module('ellipse', function() {
 
         QUnit.test('creates a new Ellipse object', function(assert) {
 
-            assert.ok(g.ellipse.fromRect(g.rect()) instanceof g.ellipse);
-            var r = g.rect(100, 50, 150, 70);
-            assert.ok(g.rect.fromEllipse(g.ellipse.fromRect(r)).equals(r));
+            assert.ok(g.Ellipse.fromRect(new g.Rect()) instanceof g.Ellipse);
+            var r = new g.Rect(100, 50, 150, 70);
+            assert.ok(g.Rect.fromEllipse(g.Ellipse.fromRect(r)).equals(r));
         });
     });
 
@@ -62,8 +62,8 @@ QUnit.module('ellipse', function() {
 
             var a = 50;
             var b = 50;
-            var c = g.Point(0, 0);
-            var ellipse = g.Ellipse(c, a, b);
+            var c = new g.Point(0, 0);
+            var ellipse = new g.Ellipse(c, a, b);
 
             for (var angle = 0; angle <= 360; angle += 10) {
                 var tangentAngle = radiusTangentAngle(ellipse, angle);
@@ -87,8 +87,8 @@ QUnit.module('ellipse', function() {
                 }
             }
 
-            checkTangentThetaOnEllipse(g.Ellipse(g.Point(11, 22), 50, 100), 'wide ellipse');
-            checkTangentThetaOnEllipse(g.Ellipse(g.Point(11, 22), 100, 50), 'tall ellipse');
+            checkTangentThetaOnEllipse(new g.Ellipse(new g.Point(11, 22), 50, 100), 'wide ellipse');
+            checkTangentThetaOnEllipse(new g.Ellipse(new g.Point(11, 22), 100, 50), 'tall ellipse');
         });
 
     });
@@ -98,7 +98,7 @@ QUnit.module('ellipse', function() {
         QUnit.test('normalizedDistance', function(assert) {
 
             var tolerance = 0.009;
-            var ellipse = g.Ellipse(g.Point(111, 111), 150, 150);
+            var ellipse = new g.Ellipse(new g.Point(111, 111), 150, 150);
 
             var r1 = ellipse.normalizedDistance(ellipse.center());
             assert.ok(r1 < 1 && r1 >= 0);
@@ -118,13 +118,14 @@ QUnit.module('ellipse', function() {
 
         QUnit.test('inflate ellipse', function(assert) {
 
-            assert.ok(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate().equals(g.ellipse({ x: 0, y: 0 }, 1, 1)));
-            assert.ok(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate(2, 1).equals(g.ellipse({ x: 0, y: 0 }, 5, 3)));
-            assert.ok(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate(0, 1).equals(g.ellipse({ x: 0, y: 0 }, 1, 3)));
-            assert.ok(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate(2, 0).equals(g.ellipse({ x: 0, y: 0 }, 5, 1)));
-            assert.ok(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate(5).equals(g.ellipse({ x: 0, y: 0 }, 11, 11)));
-            assert.ok(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate(2).equals(
-                g.ellipse.fromRect(g.rect.fromEllipse(g.ellipse({ x: 0, y: 0 }, 1, 1).inflate(2)))
+            var ellipse = new g.Ellipse({ x: 0, y: 0 }, 1, 1);
+            assert.ok(ellipse.clone().inflate().equals(new g.Ellipse({ x: 0, y: 0 }, 1, 1)));
+            assert.ok(ellipse.clone().inflate(2, 1).equals(new g.Ellipse({ x: 0, y: 0 }, 5, 3)));
+            assert.ok(ellipse.clone().inflate(0, 1).equals(new g.Ellipse({ x: 0, y: 0 }, 1, 3)));
+            assert.ok(ellipse.clone().inflate(2, 0).equals(new g.Ellipse({ x: 0, y: 0 }, 5, 1)));
+            assert.ok(ellipse.clone().inflate(5).equals(new g.Ellipse({ x: 0, y: 0 }, 11, 11)));
+            assert.ok(ellipse.clone().inflate(2).equals(
+                g.Ellipse.fromRect(g.Rect.fromEllipse(new g.Ellipse({ x: 0, y: 0 }, 1, 1).inflate(2)))
             ));
         });
     });

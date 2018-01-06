@@ -13,8 +13,6 @@ joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
         // if we have no vertices, use a default cubic bezier curve
         // cubic bezier requires two control points
         // the control points have `x` midway between source and target
-        // sourceControlPoint.y is equal to sourcePoint.y
-        // targetControlPoint.Y being equal to targetPoint.Y
         // this produces an S-like curve
 
         path = new g.Path();

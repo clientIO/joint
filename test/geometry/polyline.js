@@ -139,65 +139,65 @@ QUnit.module('polyline', function() {
 
             QUnit.test('returns a convex hull', function(assert) {
 
-                assert.equal(new g.Polyline().convexHull().toString(), '');
-                assert.equal(new g.Polyline([new g.Point(100, 100)]).convexHull().toString(), '100@100');
-                assert.equal(new g.Polyline([
+                assert.equal((new g.Polyline()).convexHull().toString(), '');
+                assert.equal((new g.Polyline([new g.Point(100, 100)])).convexHull().toString(), '100@100');
+                assert.equal((new g.Polyline([
                     new g.Point(100, 100),
                     new g.Point(200, 100)
-                ]).convexHull().toString(), '100@100,200@100');
-                assert.equal(new g.Polyline([
+                ])).convexHull().toString(), '100@100,200@100');
+                assert.equal((new g.Polyline([
                     new g.Point(100, 100),
                     new g.Point(200, 100),
                     new g.Point(300, 100)
-                ]).convexHull().toString(), '100@100,300@100');
-                assert.equal(new g.Polyline([
+                ])).convexHull().toString(), '100@100,300@100');
+                assert.equal((new g.Polyline([
                     new g.Point(200, 100),
                     new g.Point(100, 100),
                     new g.Point(300, 100)
-                ]).convexHull().toString(), '100@100,300@100');
-                assert.equal(new g.Polyline([
+                ])).convexHull().toString(), '100@100,300@100');
+                assert.equal((new g.Polyline([
                     new g.Point(100, 100),
                     new g.Point(200, 100),
                     new g.Point(300, 100),
                     new g.Point(400, 100)
-                ]).convexHull().toString(), '100@100,400@100');
-                assert.equal(new g.Polyline([
+                ])).convexHull().toString(), '100@100,400@100');
+                assert.equal((new g.Polyline([
                     new g.Point(200, 100),
                     new g.Point(100, 100),
                     new g.Point(300, 100),
                     new g.Point(400, 100)
-                ]).convexHull().toString(), '100@100,400@100');
-                assert.equal(new g.Polyline([
+                ])).convexHull().toString(), '100@100,400@100');
+                assert.equal((new g.Polyline([
                     new g.Point(100, 100),
                     new g.Point(100, 500)
-                ]).convexHull().toString(), '100@100,100@500');
-                assert.equal(new g.Polyline([
+                ])).convexHull().toString(), '100@100,100@500');
+                assert.equal((new g.Polyline([
                     new g.Point(100, 100),
                     new g.Point(100, 500),
                     new g.Point(500, 500)
-                ]).convexHull().toString(), '100@100,500@500,100@500');
-                assert.equal(new g.Polyline([
+                ])).convexHull().toString(), '100@100,500@500,100@500');
+                assert.equal((new g.Polyline([
                     new g.Point(100, 100),
                     new g.Point(100, 500),
                     new g.Point(300, 300),
                     new g.Point(500, 500),
                     new g.Point(500, 100)
-                ]).convexHull().toString(), '100@100,500@100,500@500,100@500');
-                assert.equal(new g.Polyline([
+                ])).convexHull().toString(), '100@100,500@100,500@500,100@500');
+                assert.equal((new g.Polyline([
                     new g.Point(100, 100),
                     new g.Point(200, 100),
                     new g.Point(300, 200),
                     new g.Point(300, 200),
                     new g.Point(300, 300)
-                ]).convexHull().toString(), '100@100,200@100,300@200,300@300');
-                assert.equal(new g.Polyline([
+                ])).convexHull().toString(), '100@100,200@100,300@200,300@300');
+                assert.equal((new g.Polyline([
                     new g.Point(300, 200),
                     new g.Point(300, 200),
                     new g.Point(300, 300),
                     new g.Point(100, 100),
                     new g.Point(200, 100)
-                ]).convexHull().toString(), '300@200,300@300,100@100,200@100');
-                assert.equal(new g.Polyline([
+                ])).convexHull().toString(), '300@200,300@300,100@100,200@100');
+                assert.equal((new g.Polyline([
                     new g.Point(480, 80),
                     new g.Point(520, 80),
                     new g.Point(520, 120),
@@ -218,8 +218,8 @@ QUnit.module('polyline', function() {
                     new g.Point(120, 80),
                     new g.Point(120, 120),
                     new g.Point(80, 120)
-                ]).convexHull().toString(), '520@80,520@120,80@120,80@80');
-                assert.equal(new g.Polyline([
+                ])).convexHull().toString(), '520@80,520@120,80@120,80@80');
+                assert.equal((new g.Polyline([
                     new g.Point(180, 80),
                     new g.Point(220, 80),
                     new g.Point(220, 120),
@@ -240,8 +240,8 @@ QUnit.module('polyline', function() {
                     new g.Point(120, 380),
                     new g.Point(120, 420),
                     new g.Point(80, 420)
-                ]).convexHull().toString(), '180@80,220@80,220@420,80@420,80@380');
-                assert.equal(new g.Polyline([
+                ])).convexHull().toString(), '180@80,220@80,220@420,80@420,80@380');
+                assert.equal((new g.Polyline([
                     new g.Point(80, 80),
                     new g.Point(120, 80),
                     new g.Point(120, 120),
@@ -266,8 +266,8 @@ QUnit.module('polyline', function() {
                     new g.Point(120, 380),
                     new g.Point(120, 420),
                     new g.Point(80, 420)
-                ]).convexHull().toString(), '80@80,220@80,220@420,80@420');
-                assert.equal(new g.Polyline([
+                ])).convexHull().toString(), '80@80,220@80,220@420,80@420');
+                assert.equal((new g.Polyline([
                     new g.Point(280, 280),
                     new g.Point(320, 280),
                     new g.Point(320, 320),
@@ -296,7 +296,7 @@ QUnit.module('polyline', function() {
                     new g.Point(420, 80),
                     new g.Point(420, 120),
                     new g.Point(380, 120)
-                ]).convexHull().toString(), '320@320,180@320,80@220,80@80,420@80,420@120');
+                ])).convexHull().toString(), '320@320,180@320,80@220,80@80,420@80,420@120');
             });
         });
 
@@ -322,38 +322,6 @@ QUnit.module('polyline', function() {
                 polyline1 = new g.Polyline([]);
                 polyline2 = new g.Polyline([]);
                 assert.equal(polyline1.equals(polyline2), true);
-
-                polyline1 = new g.Polyline(['1 1']);
-                polyline1.points = null;
-                polyline2 = new g.Polyline(['1 1']);
-                assert.equal(polyline1.equals(polyline2), false);
-
-                polyline1 = new g.Polyline(['1 1']);
-                polyline2 = new g.Polyline(['1 1']);
-                polyline2.points = null;
-                assert.equal(polyline1.equals(polyline2), false);
-
-                polyline1 = new g.Polyline(['1 1']);
-                polyline1.points = null;
-                polyline2 = new g.Polyline(['1 1']);
-                polyline2.points = null;
-                assert.equal(polyline1.equals(polyline2), false);
-
-                polyline1 = new g.Polyline(['1 1']);
-                polyline1.points = undefined;
-                polyline2 = new g.Polyline(['1 1']);
-                assert.equal(polyline1.equals(polyline2), false);
-
-                polyline1 = new g.Polyline(['1 1']);
-                polyline2 = new g.Polyline(['1 1']);
-                polyline2.points = undefined;
-                assert.equal(polyline1.equals(polyline2), false);
-
-                polyline1 = new g.Polyline(['1 1']);
-                polyline1.points = undefined;
-                polyline2 = new g.Polyline(['1 1']);
-                polyline2.points = undefined;
-                assert.equal(polyline1.equals(polyline2), false);
             });
         });
 
@@ -444,24 +412,24 @@ QUnit.module('polyline', function() {
 
             QUnit.test('sanity', function(assert) {
 
-                assert.ok(g.Polyline(['10 0', '10 10', '20 10', '20 0', '10 0']).scale(10, 10) instanceof g.Polyline);
-                assert.ok(g.Polyline('10,0 10,10 20,10 20,0 10,0').scale(10, 10) instanceof g.Polyline);
-                assert.ok(g.Polyline().scale(10, 10) instanceof g.Polyline);
+                assert.ok((new g.Polyline(['10 0', '10 10', '20 10', '20 0', '10 0'])).scale(10, 10) instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,0 10,10 20,10 20,0 10,0')).scale(10, 10) instanceof g.Polyline);
+                assert.ok((new g.Polyline()).scale(10, 10) instanceof g.Polyline);
 
-                assert.ok(g.Polyline(['10 0', '10 10', '20 10', '20 0', '10 0']).scale(10, 10, g.Point('10 10')) instanceof g.Polyline);
-                assert.ok(g.Polyline('10,0 10,10 20,10 20,0 10,0').scale(10, 10, g.Point('10 10')) instanceof g.Polyline);
-                assert.ok(g.Polyline().scale(10, 10, g.Point('10 10')) instanceof g.Polyline);
+                assert.ok((new g.Polyline(['10 0', '10 10', '20 10', '20 0', '10 0'])).scale(10, 10, new g.Point('10 10')) instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,0 10,10 20,10 20,0 10,0')).scale(10, 10, new g.Point('10 10')) instanceof g.Polyline);
+                assert.ok((new g.Polyline()).scale(10, 10, new g.Point('10 10')) instanceof g.Polyline);
             });
 
             QUnit.test('should return a scaled version of self', function(assert) {
 
-                assert.equal(g.Polyline(['10 0', '10 10', '20 10', '20 0', '10 0']).scale(10, 10).serialize(), '100,0 100,100 200,100 200,0 100,0');
-                assert.equal(g.Polyline('10,0 10,10 20,10 20,0 10,0').scale(10, 10).serialize(), '100,0 100,100 200,100 200,0 100,0');
-                assert.equal(g.Polyline().scale(10, 10).serialize(), '');
+                assert.equal((new g.Polyline(['10 0', '10 10', '20 10', '20 0', '10 0'])).scale(10, 10).serialize(), '100,0 100,100 200,100 200,0 100,0');
+                assert.equal((new g.Polyline('10,0 10,10 20,10 20,0 10,0')).scale(10, 10).serialize(), '100,0 100,100 200,100 200,0 100,0');
+                assert.equal((new g.Polyline()).scale(10, 10).serialize(), '');
 
-                assert.equal(g.Polyline(['10 0', '10 10', '20 10', '20 0', '10 0']).scale(10, 10, g.Point('10 10')).serialize(), '10,-90 10,10 110,10 110,-90 10,-90');
-                assert.equal(g.Polyline('10,0 10,10 20,10 20,0 10,0').scale(10, 10, g.Point('10 10')).serialize(), '10,-90 10,10 110,10 110,-90 10,-90');
-                assert.equal(g.Polyline().scale(10, 10, g.Point('10 10')).serialize(), '');
+                assert.equal((new g.Polyline(['10 0', '10 10', '20 10', '20 0', '10 0'])).scale(10, 10, new g.Point('10 10')).serialize(), '10,-90 10,10 110,10 110,-90 10,-90');
+                assert.equal((new g.Polyline('10,0 10,10 20,10 20,0 10,0')).scale(10, 10, new g.Point('10 10')).serialize(), '10,-90 10,10 110,10 110,-90 10,-90');
+                assert.equal((new g.Polyline()).scale(10, 10, new g.Point('10 10')).serialize(), '');
             });
         });
 
@@ -536,16 +504,16 @@ QUnit.module('polyline', function() {
 
             QUnit.test('sanity', function(assert) {
 
-                assert.ok(g.Polyline(['10 0', '10 10', '20 10', '20 0', '10 0']).translate(10, 10) instanceof g.Polyline);
-                assert.ok(g.Polyline('10,0 10,10 20,10 20,0 10,0').translate(10, 10) instanceof g.Polyline);
-                assert.ok(g.Polyline().translate(10, 10) instanceof g.Polyline);
+                assert.ok((new g.Polyline(['10 0', '10 10', '20 10', '20 0', '10 0'])).translate(10, 10) instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,0 10,10 20,10 20,0 10,0')).translate(10, 10) instanceof g.Polyline);
+                assert.ok((new g.Polyline()).translate(10, 10) instanceof g.Polyline);
             });
 
             QUnit.test('should return a scaled version of self', function(assert) {
 
-                assert.equal(g.Polyline(['10 0', '10 10', '20 10', '20 0', '10 0']).translate(10, 10).serialize(), '20,10 20,20 30,20 30,10 20,10');
-                assert.equal(g.Polyline('10,0 10,10 20,10 20,0 10,0').translate(10, 10).serialize(), '20,10 20,20 30,20 30,10 20,10');
-                assert.equal(g.Polyline().translate(10, 10).serialize(), '');
+                assert.equal((new g.Polyline(['10 0', '10 10', '20 10', '20 0', '10 0'])).translate(10, 10).serialize(), '20,10 20,20 30,20 30,10 20,10');
+                assert.equal((new g.Polyline('10,0 10,10 20,10 20,0 10,0')).translate(10, 10).serialize(), '20,10 20,20 30,20 30,10 20,10');
+                assert.equal((new g.Polyline()).translate(10, 10).serialize(), '');
             });
         });
 

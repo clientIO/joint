@@ -14,7 +14,7 @@ export namespace g {
         height: number;
     }
 
-    export interface RectScaling {
+    export interface Scale {
 
         sx: number;
         sy: number;
@@ -253,16 +253,16 @@ export namespace g {
         end: Point | null; // getter
 
         constructor();
-        constructor(arg: string);
-        constructor(arg: Segment[]);
-        constructor(arg: (Line | Curve)[]);
-        constructor(arg: Segment);
-        constructor(arg: Line);
-        constructor(arg: Curve);
-        constructor(arg: Polyline);
+        constructor(pathData: string);
+        constructor(segments: Segment[]);
+        constructor(objects: (Line | Curve)[]);
+        constructor(segment: Segment);
+        constructor(line: Line);
+        constructor(curve: Curve);
+        constructor(polyline: Polyline);
 
-        appendSegment(arg: Segment): void;
-        appendSegment(arg: Segment[]): void;
+        appendSegment(segment: Segment): void;
+        appendSegment(segments: Segment[]): void;
 
         bbox(): Rect | null;
 
@@ -274,8 +274,8 @@ export namespace g {
 
         getSegmentSubdivisions(opt?: PrecisionOpt): Curve[][];
 
-        insertSegment(index: number, arg: Segment): void;
-        insertSegment(index: number, arg: Segment[]): void;
+        insertSegment(index: number, segment: Segment): void;
+        insertSegment(index: number, segments: Segment[]): void;
 
         isValid(): boolean;
 
@@ -287,8 +287,8 @@ export namespace g {
 
         removeSegment(index: number): void;
 
-        replaceSegment(index: number, arg: Segment): void;
-        replaceSegment(index: number, arg: Segment[]): void;
+        replaceSegment(index: number, segment: Segment): void;
+        replaceSegment(index: number, segments: Segment[]): void;
 
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
@@ -402,7 +402,7 @@ export namespace g {
         end: Point | null; // getter
 
         constructor();
-        constructor(points: string);
+        constructor(svgString: string);
         constructor(points: Point[]);
 
         bbox(): Rect | null;
@@ -457,6 +457,8 @@ export namespace g {
 
         bottomMiddle(): Point;
 
+        bottomRight(): Point;
+
         center(): Point;
 
         clone(): Rect;
@@ -498,13 +500,15 @@ export namespace g {
 
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
-        maxRectScaleToFit(rect: PlainRect, origin?: PlainPoint): RectScaling;
+        maxRectScaleToFit(rect: PlainRect, origin?: PlainPoint): Scale;
 
         maxRectUniformScaleToFit(rect: PlainRect, origin?: PlainPoint): number;
 
         sideNearestToPoint(point: PlainPoint | string): RectangleSide;
 
         snapToGrid(gx: number, gy?: number): this;
+
+        topLeft(): Point;
 
         topLine(): Line;
 

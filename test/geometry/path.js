@@ -876,38 +876,6 @@ QUnit.module('path', function(hooks) {
                 path1 = new g.Path();
                 path2 = new g.Path();
                 assert.equal(path1.equals(path2), true);
-
-                path1 = new g.Path('M 100 100');
-                path2 = new g.Path('M 0 0');
-                path2.segments = null;
-                assert.equal(path1.equals(path2), false);
-
-                path1 = new g.Path('M 0 0');
-                path1.segments = null;
-                path2 = new g.Path('M 100 100');
-                assert.equal(path1.equals(path2), false);
-
-                path1 = new g.Path('M 0 0');
-                path1.segments = null;
-                path2 = new g.Path('M 0 0');
-                path2.segments = null;
-                assert.equal(path1.equals(path2), false);
-
-                path1 = new g.Path('M 100 100');
-                path2 = new g.Path('M 0 0');
-                path2.segments = undefined;
-                assert.equal(path1.equals(path2), false);
-
-                path1 = new g.Path('M 0 0');
-                path1.segments = undefined;
-                path2 = new g.Path('M 100 100');
-                assert.equal(path1.equals(path2), false);
-
-                path1 = new g.Path('M 0 0');
-                path1.segments = undefined;
-                path2 = new g.Path('M 0 0');
-                path2.segments = undefined;
-                assert.equal(path1.equals(path2), false);
             });
         });
 
@@ -1291,7 +1259,7 @@ QUnit.module('path', function(hooks) {
                 assert.equal(typeof path.isValid(), 'boolean');
             });
 
-            QUnit.test('insert a segment', function(assert) {
+            QUnit.test('check if path is valid', function(assert) {
 
                 var path;
 
@@ -1756,7 +1724,7 @@ QUnit.module('path', function(hooks) {
                 assert.equal(x1 + '@' + y1, x2 + '@' + y2);
 
                 // browser implementation is wrong
-                /*gPath = g.Path('M 0 0 C 0 200 200 200 200 0');
+                /*gPath = new g.Path('M 0 0 C 0 200 200 200 200 0');
                 path = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
                 svg.append(path);
 
@@ -2680,8 +2648,8 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.tangentAt(0.9, { precision: 4 }).toString(), '99.99904125823696@200 -100.00095874176304@200');
                 assert.equal(path.tangentAt(0.9, { precision: 5 }).toString(), '99.99994007886073@200 -100.00005992113927@200');
 
-                assert.equal(path.tangentAt(-1).toString(), g.Line('0 200', '0 0').toString());
-                assert.equal(path.tangentAt(10).toString(), g.Line('0 200', '-200 200').toString());
+                assert.equal(path.tangentAt(-1).toString(), '0@200 0@0');
+                assert.equal(path.tangentAt(10).toString(), '0@200 -200@200');
             });
         });
 

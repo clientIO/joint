@@ -35,6 +35,16 @@ V = Vectorizer = (function() {
 
     var SVGversion = '1.1';
 
+    // Declare shorthands to the most used math functions.
+    var math = Math;
+    var PI = math.PI;
+    var atan2 = math.atan2;
+    var sqrt = math.sqrt;
+    var min = math.min;
+    var max = math.max;
+    var cos = math.cos;
+    var sin = math.sin;
+
     var V = function(el, attrs, children) {
 
         // This allows using V() without the new keyword.
@@ -216,7 +226,7 @@ V = Vectorizer = (function() {
         // If the element is not in the live DOM, it does not have a bounding box defined and
         // so fall back to 'zero' dimension element.
         if (!ownerSVGElement) {
-            return g.Rect(0, 0, 0, 0);
+            return new g.Rect(0, 0, 0, 0);
         }
 
         try {
@@ -235,7 +245,7 @@ V = Vectorizer = (function() {
         }
 
         if (withoutTransformations) {
-            return g.Rect(box);
+            return new g.Rect(box);
         }
 
         var matrix = this.getTransformToElement(target || ownerSVGElement);
@@ -260,7 +270,7 @@ V = Vectorizer = (function() {
         // If the element is not in the live DOM, it does not have a bounding box defined and
         // so fall back to 'zero' dimension element.
         if (!ownerSVGElement) {
-            return g.Rect(0, 0, 0, 0);
+            return new g.Rect(0, 0, 0, 0);
         }
 
         if (opt) {
@@ -287,7 +297,7 @@ V = Vectorizer = (function() {
 
             if (!options.target) {
                 // transform like this (that is, not at all)
-                return g.Rect(outputBBox);
+                return new g.Rect(outputBBox);
             } else {
                 // transform like target
                 var matrix = this.getTransformToElement(options.target);
@@ -828,12 +838,12 @@ V = Vectorizer = (function() {
 
         // 2. Rotate around origin.
         var rotateAroundOrigin = svg.createSVGTransform();
-        var angle = g.point(position).changeInAngle(position.x - reference.x, position.y - reference.y, reference);
+        var angle = (new g.Point(position)).changeInAngle(position.x - reference.x, position.y - reference.y, reference);
         rotateAroundOrigin.setRotate(angle, 0, 0);
 
         // 3. Translate to the `position` + the offset (half my width) towards the `reference` point.
         var translateFinal = svg.createSVGTransform();
-        var finalPosition = g.point(position).move(reference, bbox.width / 2);
+        var finalPosition = (new g.Point(position)).move(reference, bbox.width / 2);
         translateFinal.setTranslate(position.x + (position.x - finalPosition.x), position.y + (position.y - finalPosition.y));
 
         // 4. Apply transformations.
@@ -1018,7 +1028,7 @@ V = Vectorizer = (function() {
         // a transformed geometrical rectangle.
         if (tagName === 'RECT') {
 
-            var gRect = g.rect(
+            var gRect = new g.Rect(
                 parseFloat(this.attr('x') || 0),
                 parseFloat(this.attr('y') || 0),
                 parseFloat(this.attr('width')),
@@ -1033,7 +1043,7 @@ V = Vectorizer = (function() {
             var resetRotation = svg.createSVGTransform();
             resetRotation.setRotate(-rectMatrixComponents.rotation, center.x, center.y);
             var rect = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
-            spot = g.rect(rect).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
+            spot = (new g.Rect(rect)).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
 
         } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
 
@@ -1050,7 +1060,7 @@ V = Vectorizer = (function() {
                 // Convert the sample point in the local coordinate system to the global coordinate system.
                 gp = V.createSVGPoint(sample.x, sample.y);
                 gp = gp.matrixTransform(this.getTransformToElement(target));
-                sample = g.point(gp);
+                sample = new g.Point(gp);
                 centerDistance = sample.distance(center);
                 // Penalize a higher distance to the reference point by 10%.
                 // This gives better results. This is due to
@@ -1372,15 +1382,15 @@ V = Vectorizer = (function() {
         var py = V.deltaTransformPoint(matrix, { x: 1, y: 0 });
 
         // calculate skew
-        var skewX = ((180 / Math.PI) * Math.atan2(px.y, px.x) - 90);
-        var skewY = ((180 / Math.PI) * Math.atan2(py.y, py.x));
+        var skewX = ((180 / PI) * atan2(px.y, px.x) - 90);
+        var skewY = ((180 / PI) * atan2(py.y, py.x));
 
         return {
 
             translateX: matrix.e,
             translateY: matrix.f,
-            scaleX: Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b),
-            scaleY: Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d),
+            scaleX: sqrt(matrix.a * matrix.a + matrix.b * matrix.b),
+            scaleY: sqrt(matrix.c * matrix.c + matrix.d * matrix.d),
             skewX: skewX,
             skewY: skewY,
             rotation: skewX // rotation is the same as skew x
@@ -1401,8 +1411,8 @@ V = Vectorizer = (function() {
             a = d = 1;
         }
         return {
-            sx: b ? Math.sqrt(a * a + b * b) : a,
-            sy: c ? Math.sqrt(c * c + d * d) : d
+            sx: b ? sqrt(a * a + b * b) : a,
+            sy: c ? sqrt(c * c + d * d) : d
         };
     },
 
@@ -1416,7 +1426,7 @@ V = Vectorizer = (function() {
         }
 
         return {
-            angle: g.normalizeAngle(g.toDeg(Math.atan2(p.y, p.x)) - 90)
+            angle: g.normalizeAngle(g.toDeg(atan2(p.y, p.x)) - 90)
         };
     },
 
@@ -1492,17 +1502,17 @@ V = Vectorizer = (function() {
         p.y = r.y + r.height;
         var corner4 = p.matrixTransform(matrix);
 
-        var minX = Math.min(corner1.x, corner2.x, corner3.x, corner4.x);
-        var maxX = Math.max(corner1.x, corner2.x, corner3.x, corner4.x);
-        var minY = Math.min(corner1.y, corner2.y, corner3.y, corner4.y);
-        var maxY = Math.max(corner1.y, corner2.y, corner3.y, corner4.y);
+        var minX = min(corner1.x, corner2.x, corner3.x, corner4.x);
+        var maxX = max(corner1.x, corner2.x, corner3.x, corner4.x);
+        var minY = min(corner1.y, corner2.y, corner3.y, corner4.y);
+        var maxY = max(corner1.y, corner2.y, corner3.y, corner4.y);
 
-        return g.Rect(minX, minY, maxX - minX, maxY - minY);
+        return new g.Rect(minX, minY, maxX - minX, maxY - minY);
     };
 
     V.transformPoint = function(p, matrix) {
 
-        return g.Point(V.createSVGPoint(p.x, p.y).matrixTransform(matrix));
+        return new g.Point(V.createSVGPoint(p.x, p.y).matrixTransform(matrix));
     };
 
     // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
@@ -1521,17 +1531,17 @@ V = Vectorizer = (function() {
     // Inspired by d3.js https://github.com/mbostock/d3/blob/master/src/svg/arc.js
     V.createSlicePathData = function(innerRadius, outerRadius, startAngle, endAngle) {
 
-        var svgArcMax = 2 * Math.PI - 1e-6;
+        var svgArcMax = 2 * PI - 1e-6;
         var r0 = innerRadius;
         var r1 = outerRadius;
         var a0 = startAngle;
         var a1 = endAngle;
         var da = (a1 < a0 && (da = a0, a0 = a1, a1 = da), a1 - a0);
-        var df = da < Math.PI ? '0' : '1';
-        var c0 = Math.cos(a0);
-        var s0 = Math.sin(a0);
-        var c1 = Math.cos(a1);
-        var s1 = Math.sin(a1);
+        var df = da < PI ? '0' : '1';
+        var c0 = cos(a0);
+        var s0 = sin(a0);
+        var c1 = cos(a1);
+        var s1 = sin(a1);
 
         return (da >= svgArcMax)
             ? (r0
@@ -1841,10 +1851,10 @@ V = Vectorizer = (function() {
         var y = r.y;
         var width = r.width;
         var height = r.height;
-        var topRx = Math.min(r.rx || r['top-rx'] || 0, width / 2);
-        var bottomRx = Math.min(r.rx || r['bottom-rx'] || 0, width / 2);
-        var topRy = Math.min(r.ry || r['top-ry'] || 0, height / 2);
-        var bottomRy = Math.min(r.ry || r['bottom-ry'] || 0, height / 2);
+        var topRx = min(r.rx || r['top-rx'] || 0, width / 2);
+        var bottomRx = min(r.rx || r['bottom-rx'] || 0, width / 2);
+        var topRy = min(r.ry || r['top-ry'] || 0, height / 2);
+        var bottomRy = min(r.ry || r['bottom-ry'] || 0, height / 2);
 
         if (topRx || bottomRx || topRy || bottomRy) {
             d = [
