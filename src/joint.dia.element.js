@@ -473,7 +473,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.$el.empty();
 
         this.renderMarkup();
-        this.rotatableNode = this.vel.findOne('.rotatable');
+        var rotatable = this.rotatableNode = this.vel.findOne('.rotatable');
         var scalable = this.scalableNode = this.vel.findOne('.scalable');
         if (scalable) {
             // Double update is necessary for elements with the scalable group only
@@ -481,31 +481,78 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             this.update();
         }
         this.resize();
-        this.rotate();
-        this.translate();
-
+        if (rotatable) {
+            this.rotate();
+            this.translate();
+        } else {
+            this.updateTransformation();
+        }
         return this;
     },
 
-    resize: function(cell, changed, opt) {
+    resize: function() {
+        if (this.scalableNode) return this.sgResize.apply(this, arguments);
+        if (this.model.attributes.angle) this.rotate();
+        this.update();
+    },
+
+    translate: function() {
+        if (this.rotatableNode) return this.rgTranslate();
+        this.updateTransformation();
+    },
+
+    rotate: function() {
+        if (this.rotatableNode) return this.rgRotate();
+        this.updateTransformation();
+    },
+
+    updateTransformation: function() {
+        var transformation = this.getTranslateString();
+        var rotateString = this.getRotateString();
+        if (rotateString) transformation += ' ' + rotateString;
+        this.vel.attr('transform', transformation);
+    },
+
+    getTranslateString: function() {
+        var position = this.model.attributes.position;
+        return 'translate(' + position.x + ',' + position.y + ')';
+    },
+
+    getRotateString: function() {
+        var attributes = this.model.attributes;
+        var angle = attributes.angle;
+        if (!angle) return null;
+        var size = attributes.size;
+        return 'rotate(' + angle + ',' + (size.width / 2) + ',' + (size.height / 2) + ')';
+    },
+
+    getBBox: function (opt) {
+
+        if (opt && opt.useModelGeometry) {
+            var bbox = this.model.getBBox().bbox(this.model.get('angle'));
+            return this.paper.localToPaperRect(bbox);
+        }
+
+        return joint.dia.CellView.prototype.getBBox.apply(this, arguments);
+    },
+
+    // Rotatable & Scalable Group
+    // always slower, kept mainly for backwards compatibility
+
+    rgRotate: function() {
+        this.rotatableNode.attr('transform', this.getRotateString());
+    },
+
+    rgTranslate: function() {
+        this.vel.attr('transform', this.getTranslateString());
+    },
+
+    sgResize: function(cell, changed, opt) {
 
         var model = this.model;
-        var size = model.get('size') || { width: 1, height: 1 };
         var angle = model.get('angle') || 0;
-
+        var size = model.get('size') || { width: 1, height: 1 };
         var scalable = this.scalableNode;
-        if (!scalable) {
-
-            if (angle !== 0) {
-                // update the origin of the rotation
-                this.rotate();
-            }
-            // update the ref attributes
-            this.update();
-
-            // If there is no scalable elements, than there is nothing to scale.
-            return;
-        }
 
         // Getting scalable group's bbox.
         // Due to a bug in webkit's native SVG .getBBox implementation, the bbox of groups with path children includes the paths' control points.
@@ -535,7 +582,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Cancel the rotation but now around a different origin, which is the center of the scaled object.
         var rotatable = this.rotatableNode;
         var rotation = rotatable && rotatable.attr('transform');
-        if (rotation && rotation !== 'null') {
+        if (rotation && rotation !== null) {
 
             rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width / 2) + ',' + (size.height / 2) + ')');
             var rotatableBBox = scalable.getBBox({ target: this.paper.viewport });
@@ -548,44 +595,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Update must always be called on non-rotated element. Otherwise, relative positioning
         // would work with wrong (rotated) bounding boxes.
         this.update();
-    },
-
-    translate: function(model, changes, opt) {
-
-        var position = this.model.get('position') || { x: 0, y: 0 };
-
-        this.vel.attr('transform', 'translate(' + position.x + ',' + position.y + ')');
-    },
-
-    rotate: function() {
-
-        var rotatable = this.rotatableNode;
-        if (!rotatable) {
-            // If there is no rotatable elements, then there is nothing to rotate.
-            return;
-        }
-
-        var angle = this.model.get('angle') || 0;
-        var size = this.model.get('size') || { width: 1, height: 1 };
-
-        var ox = size.width / 2;
-        var oy = size.height / 2;
-
-        if (angle !== 0) {
-            rotatable.attr('transform', 'rotate(' + angle + ',' + ox + ',' + oy + ')');
-        } else {
-            rotatable.removeAttr('transform');
-        }
-    },
-
-    getBBox: function(opt) {
-
-        if (opt && opt.useModelGeometry) {
-            var bbox = this.model.getBBox().bbox(this.model.get('angle'));
-            return this.paper.localToPaperRect(bbox);
-        }
-
-        return joint.dia.CellView.prototype.getBBox.apply(this, arguments);
     },
 
     // Embedding mode methods
