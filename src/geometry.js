@@ -467,10 +467,6 @@ var g = (function() {
             var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
 
             // identify the subdivision that contains the point:
-            var currentSubdivision;
-            var startDist;
-            var endDist;
-            var sumDist;
             var investigatedSubdivision;
             var investigatedSubdivisionStartT; // assume that subdivisions are evenly spaced
             var investigatedSubdivisionEndT;
@@ -481,11 +477,11 @@ var g = (function() {
             var subdivisionSize = (n ? (1 / n) : 0);
             for (var i = 0; i < n; i++) {
 
-                currentSubdivision = subdivisions[i];
+                var currentSubdivision = subdivisions[i];
 
-                startDist = currentSubdivision.start.distance(p);
-                endDist = currentSubdivision.end.distance(p);
-                sumDist = startDist + endDist;
+                var startDist = currentSubdivision.start.distance(p);
+                var endDist = currentSubdivision.end.distance(p);
+                var sumDist = startDist + endDist;
 
                 // check that the point is closest to current subdivision and not any other
                 if (!minSumDist || (sumDist < minSumDist)) {
@@ -506,20 +502,11 @@ var g = (function() {
             // recursively divide investigated subdivision:
             // until distance between baselinePoint and closest path endpoint is within 10^(-precision)
             // then return the closest endpoint of that final subdivision
-            var startPrecisionRatio;
-            var endPrecisionRatio;
-            var divided;
-            var startDist1;
-            var endDist1;
-            var sumDist1;
-            var startDist2;
-            var endDist2;
-            var sumDist2;
             while (true) {
 
                 // check if we have reached required observed precision
-                startPrecisionRatio;
-                endPrecisionRatio;
+                var startPrecisionRatio;
+                var endPrecisionRatio;
 
                 startPrecisionRatio = (distFromStart ? (abs(distFromStart - distFromEnd) / distFromStart) : 0);
                 endPrecisionRatio = (distFromEnd ? (abs(distFromStart - distFromEnd) / distFromEnd) : 0);
@@ -528,16 +515,16 @@ var g = (function() {
                 }
 
                 // otherwise, set up for next iteration
-                divided = investigatedSubdivision.divide(0.5);
+                var divided = investigatedSubdivision.divide(0.5);
                 subdivisionSize /= 2;
 
-                startDist1 = divided[0].start.distance(p);
-                endDist1 = divided[0].end.distance(p);
-                sumDist1 = startDist1 + endDist1;
+                var startDist1 = divided[0].start.distance(p);
+                var endDist1 = divided[0].end.distance(p);
+                var sumDist1 = startDist1 + endDist1;
 
-                startDist2 = divided[1].start.distance(p);
-                endDist2 = divided[1].end.distance(p);
-                sumDist2 = startDist2 + endDist2;
+                var startDist2 = divided[1].start.distance(p);
+                var endDist2 = divided[1].end.distance(p);
+                var sumDist2 = startDist2 + endDist2;
 
                 if (sumDist1 <= sumDist2) {
                     investigatedSubdivision = divided[0];
@@ -693,35 +680,28 @@ var g = (function() {
 
             var precisionRatio = pow(10, -precision);
 
-            var numSubdivisions;
-            var newSubdivisions;
-            var i;
-            var currentSubdivision;
-            var divided;
-            var length;
-            var numNewSubdivisions;
-            var j;
-            var observedPrecisionRatio;
+            // recursively divide curve at `t = 0.5`
+            // until the difference between observed length at subsequent iterations is lower than precision
             while (true) {
                 iteration += 1;
 
                 // divide all subdivisions
-                newSubdivisions = [];
-                numSubdivisions = subdivisions.length;
-                for (i = 0; i < numSubdivisions; i++) {
+                var newSubdivisions = [];
+                var numSubdivisions = subdivisions.length;
+                for (var i = 0; i < numSubdivisions; i++) {
 
-                    currentSubdivision = subdivisions[i];
-                    divided = currentSubdivision.divide(0.5); // dividing at t = 0.5 (not at middle length!)
+                    var currentSubdivision = subdivisions[i];
+                    var divided = currentSubdivision.divide(0.5); // dividing at t = 0.5 (not at middle length!)
                     newSubdivisions.push(divided[0], divided[1]);
                 }
 
                 // measure new length
-                length = 0;
-                numNewSubdivisions = newSubdivisions.length;
-                for (j = 0; j < numNewSubdivisions; j++) {
+                var length = 0;
+                var numNewSubdivisions = newSubdivisions.length;
+                for (var j = 0; j < numNewSubdivisions; j++) {
 
-                    currentSubdivision = newSubdivisions[j];
-                    length += currentSubdivision.endpointDistance();
+                    var currentNewSubdivision = newSubdivisions[j];
+                    length += currentNewSubdivision.endpointDistance();
                 }
 
                 // check if we have reached required observed precision
@@ -729,7 +709,7 @@ var g = (function() {
                 // not a problem for further iterations because cubic curves cannot have more than two local extrema
                 // (i.e. cubic curves cannot intersect the baseline more than once)
                 // therefore two subsequent iterations cannot produce sampling with equal length
-                observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
+                var observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
                 if (iteration > 1 && observedPrecisionRatio < precisionRatio) {
                     return newSubdivisions;
                 }
@@ -749,11 +729,10 @@ var g = (function() {
             var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
 
             var length = 0;
-            var currentSubdivision;
             var n = subdivisions.length;
             for (var i = 0; i < n; i++) {
 
-                currentSubdivision = subdivisions[i];
+                var currentSubdivision = subdivisions[i];
                 length += currentSubdivision.endpointDistance();
             }
 
@@ -901,8 +880,6 @@ var g = (function() {
             var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
 
             // identify the subdivision that contains the point at requested `length`:
-            var currentSubdivision;
-            var d; // length of current subdivision
             var investigatedSubdivision;
             var investigatedSubdivisionStartT; // assume that subdivisions are evenly spaced
             var investigatedSubdivisionEndT;
@@ -915,8 +892,8 @@ var g = (function() {
             var subdivisionSize = 1 / n;
             for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
 
-                currentSubdivision = subdivisions[i];
-                d = currentSubdivision.endpointDistance();
+                var currentSubdivision = subdivisions[i];
+                var d = currentSubdivision.endpointDistance(); // length of current subdivision
 
                 if (length <= (l + d)) {
                     investigatedSubdivision = currentSubdivision;
@@ -945,16 +922,10 @@ var g = (function() {
             // recursively divide investigated subdivision:
             // until distance between baselinePoint and closest path endpoint is within 10^(-precision)
             // then return the closest endpoint of that final subdivision
-            var observedPrecisionRatio;
-            var newBaselinePointDistFromStart;
-            var newBaselinePointDistFromEnd;
-            var divided;
-            var baseline1Length;
-            var baseline2Length;
             while (true) {
 
                 // check if we have reached required observed precision
-                observedPrecisionRatio;
+                var observedPrecisionRatio;
 
                 observedPrecisionRatio = ((curveLength !== 0) ? (baselinePointDistFromStart / curveLength) : 0);
                 if (observedPrecisionRatio < precisionRatio) return investigatedSubdivisionStartT;
@@ -962,14 +933,14 @@ var g = (function() {
                 if (observedPrecisionRatio < precisionRatio) return investigatedSubdivisionEndT;
 
                 // otherwise, set up for next iteration
-                newBaselinePointDistFromStart;
-                newBaselinePointDistFromEnd;
+                var newBaselinePointDistFromStart;
+                var newBaselinePointDistFromEnd;
 
-                divided = investigatedSubdivision.divide(0.5);
+                var divided = investigatedSubdivision.divide(0.5);
                 subdivisionSize /= 2;
 
-                baseline1Length = divided[0].endpointDistance();
-                baseline2Length = divided[1].endpointDistance();
+                var baseline1Length = divided[0].endpointDistance();
+                var baseline2Length = divided[1].endpointDistance();
 
                 if (baselinePointDistFromStart <= baseline1Length) { // point at requested length is inside divided[0]
                     investigatedSubdivision = divided[0];
@@ -1011,11 +982,10 @@ var g = (function() {
             var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
 
             var points = [subdivisions[0].start.clone()];
-            var currentSubdivision;
             var n = subdivisions.length;
             for (var i = 0; i < n; i++) {
 
-                currentSubdivision = subdivisions[i];
+                var currentSubdivision = subdivisions[i];
                 points.push(currentSubdivision.end.clone());
             }
 
@@ -1515,11 +1485,10 @@ var g = (function() {
                 }
 
             } else { // create from an array of Curves and/or Lines
-                var obj;
                 var previousObj = null;
                 for (i = 0; i < n; i++) {
 
-                    obj = arg[i];
+                    var obj = arg[i];
 
                     if (!((obj instanceof Line) || (obj instanceof Curve))) {
                         throw new Error('Cannot construct a path segment from the provided object.');
@@ -1553,11 +1522,10 @@ var g = (function() {
             this.appendSegment(Path.createSegment('C', arg.controlPoint1, arg.controlPoint2, arg.end));
 
         } else if (arg instanceof Polyline && arg.points && arg.points.length !== 0) { // create from a Polyline
-            var point;
             n = arg.points.length;
             for (i = 0; i < n; i++) {
 
-                point = arg.points[i];
+                var point = arg.points[i];
 
                 if (i === 0) this.appendSegment(Path.createSegment('M', point));
                 else this.appendSegment(Path.createSegment('L', point));
@@ -1580,18 +1548,14 @@ var g = (function() {
         var commandRe = /(?:[a-zA-Z] *)(?:(?:-?\d+(?:\.\d+)? *,? *)|(?:-?\.\d+ *,? *))+|(?:[a-zA-Z] *)(?! |\d|-|\.)/g;
         var commands = pathData.match(commandRe);
 
-        var command;
-        var argRe;
-        var args;
-        var segment;
         var numCommands = commands.length;
         for (var i = 0; i < numCommands; i++) {
 
-            command = commands[i];
-            argRe = /(?:[a-zA-Z])|(?:(?:-?\d+(?:\.\d+)?))|(?:(?:-?\.\d+))/g;
-            args = command.match(argRe);
+            var command = commands[i];
+            var argRe = /(?:[a-zA-Z])|(?:(?:-?\d+(?:\.\d+)?))|(?:(?:-?\.\d+))/g;
+            var args = command.match(argRe);
 
-            segment = Path.createSegment.apply(this, args); // args = [type, coordinate1, coordinate2...]
+            var segment = Path.createSegment.apply(this, args); // args = [type, coordinate1, coordinate2...]
             path.appendSegment(segment);
         }
 
@@ -1625,10 +1589,9 @@ var g = (function() {
             var numSegments = segments.length;
             if (numSegments === 0) return null;
 
-            var segment;
             for (var i = 0; i < numSegments; i++) {
 
-                segment = segments[i];
+                var segment = segments[i];
                 if (!segment.isInvisible) return segment.start;
             }
 
@@ -1643,10 +1606,9 @@ var g = (function() {
             var numSegments = segments.length;
             if (numSegments === 0) return null;
 
-            var segment;
             for (var i = numSegments - 1; i >= 0; i--) {
 
-                segment = segments[i];
+                var segment = segments[i];
                 if (!segment.isInvisible) return segment.end;
             }
 
@@ -1662,7 +1624,6 @@ var g = (function() {
             var numSegments = segments.length;
             // works even if path has no segments
 
-            var currentArg;
             var currentSegment;
 
             var previousSegment = ((numSegments !== 0) ? this.getSegment(-1) : null); // if we are appending to an empty path, previousSegment is null
@@ -1680,7 +1641,7 @@ var g = (function() {
                 var n = arg.length;
                 for (var i = 0; i < n; i++) {
 
-                    currentArg = arg[i];
+                    var currentArg = arg[i];
                     currentSegment = this.prepareSegment(currentArg, previousSegment, nextSegment);
                     segments.push(currentSegment);
                     previousSegment = currentSegment;
@@ -1698,13 +1659,11 @@ var g = (function() {
             if (numSegments === 0) return null; // if segments is an empty array
 
             var bbox;
-            var segment;
-            var segmentBBox;
             for (var i = 0; i < numSegments; i++) {
 
-                segment = segments[i];
+                var segment = segments[i];
                 if (!segment.isInvisible) {
-                    segmentBBox = segment.bbox();
+                    var segmentBBox = segment.bbox();
                     bbox = bbox ? bbox.union(segmentBBox) : segmentBBox;
                 }
             }
@@ -1724,10 +1683,9 @@ var g = (function() {
             // works even if path has no segments
 
             var path = new Path();
-            var segment;
             for (var i = 0; i < numSegments; i++) {
 
-                segment = segments[i].clone();
+                var segment = segments[i].clone();
                 path.appendSegment(segment);
             }
 
@@ -1746,12 +1704,10 @@ var g = (function() {
             var numSegments = segments.length;
             if (otherSegments.length !== numSegments) return false; // if the two paths have different number of segments, they cannot be equal
 
-            var segment;
-            var otherSegment;
             for (var i = 0; i < numSegments; i++) {
 
-                segment = segments[i];
-                otherSegment = otherSegments[i];
+                var segment = segments[i];
+                var otherSegment = otherSegments[i];
 
                 // as soon as an inequality is found in segments, return false
                 if ((segment.type !== otherSegment.type) || (!segment.equals(otherSegment))) return false;
@@ -1784,12 +1740,10 @@ var g = (function() {
             // works even if path has no segments
 
             var segmentSubdivisions = [];
-            var segment;
-            var subdivisions;
             for (var i = 0; i < numSegments; i++) {
 
-                segment = segments[i];
-                subdivisions = segment.getSubdivisions(opt);
+                var segment = segments[i];
+                var subdivisions = segment.getSubdivisions(opt);
                 segmentSubdivisions.push(subdivisions);
             }
 
@@ -1814,11 +1768,11 @@ var g = (function() {
             if (index < 0) index = numSegments + index + 1; // convert negative indices to positive
             if (index > numSegments || index < 0) throw new Error('Index out of range.');
 
-            var currentArg;
             var currentSegment;
 
             var previousSegment = null;
             var nextSegment = null;
+
             if (numSegments !== 0) {
                 if (index >= 1) {
                     previousSegment = this.getSegment(index - 1);
@@ -1842,7 +1796,7 @@ var g = (function() {
                 var n = arg.length;
                 for (var i = 0; i < n; i++) {
 
-                    currentArg = arg[i];
+                    var currentArg = arg[i];
                     currentSegment = this.prepareSegment(currentArg, previousSegment, nextSegment);
                     segments.splice((index + i), 0, currentSegment); // incrementing index to insert subsequent segments after inserted segments
                     previousSegment = currentSegment;
@@ -1873,12 +1827,10 @@ var g = (function() {
             var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
 
             var length = 0;
-            var segment;
-            var subdivisions; // subdivisions of segment
             for (var i = 0; i < numSegments; i++) {
 
-                segment = segments[i];
-                subdivisions = segmentSubdivisions[i];
+                var segment = segments[i];
+                var subdivisions = segmentSubdivisions[i];
                 length += segment.length({ subdivisions: subdivisions });
             }
 
@@ -1929,14 +1881,11 @@ var g = (function() {
 
             var lastVisibleSegment;
             var l = 0; // length so far
-            var segment;
-            var subdivisions; // subdivisions of segment
-            var d; // length of segment
             for (var i = (fromStart ? 0 : (numSegments - 1)); (fromStart ? (i < numSegments) : (i >= 0)); (fromStart ? (i++) : (i--))) {
 
-                segment = segments[i];
-                subdivisions = segmentSubdivisions[i];
-                d = segment.length({ subdivisions: subdivisions });
+                var segment = segments[i];
+                var subdivisions = segmentSubdivisions[i];
+                var d = segment.length({ subdivisions: subdivisions });
 
                 if (!segment.isInvisible) {
                     if (length <= (l + d)) {
@@ -2021,7 +1970,6 @@ var g = (function() {
             if (index < 0) index = numSegments + index; // convert negative indices to positive
             if (index >= numSegments || index < 0) throw new Error('Index out of range.');
 
-            var currentArg;
             var currentSegment;
 
             var replacedSegment = this.getSegment(index);
@@ -2046,7 +1994,7 @@ var g = (function() {
                 var n = arg.length;
                 for (var i = 0; i < n; i++) {
 
-                    currentArg = arg[i];
+                    var currentArg = arg[i];
                     currentSegment = this.prepareSegment(currentArg, previousSegment, nextSegment);
                     segments.splice((index + i), 0, currentSegment); // incrementing index to insert subsequent segments after inserted segments
                     previousSegment = currentSegment;
@@ -2064,10 +2012,9 @@ var g = (function() {
             var segments = this.segments;
             var numSegments = segments.length;
 
-            var segment;
             for (var i = 0; i < numSegments; i++) {
 
-                segment = segments[i];
+                var segment = segments[i];
                 segment.scale(sx, sy, origin);
             }
 
@@ -2131,14 +2078,11 @@ var g = (function() {
 
             var lastVisibleSegmentIndex = null;
             var l = 0; // length so far
-            var segment;
-            var subdivisions; // subdivisions of segment
-            var d; // length of segment
             for (var i = (fromStart ? 0 : (numSegments - 1)); (fromStart ? (i < numSegments) : (i >= 0)); (fromStart ? (i++) : (i--))) {
 
-                segment = segments[i];
-                subdivisions = segmentSubdivisions[i];
-                d = segment.length({ subdivisions: subdivisions });
+                var segment = segments[i];
+                var subdivisions = segmentSubdivisions[i];
+                var d = segment.length({ subdivisions: subdivisions });
 
                 if (!segment.isInvisible) {
                     if (length <= (l + d)) return i;
@@ -2195,18 +2139,14 @@ var g = (function() {
 
             var lastValidSegment; // visible AND differentiable (with a tangent)
             var l = 0; // length so far
-            var segment;
-            var subdivisions; // subdivisions of segment
-            var d; // length of segment
-            var tangent;
             for (var i = (fromStart ? 0 : (numSegments - 1)); (fromStart ? (i < numSegments) : (i >= 0)); (fromStart ? (i++) : (i--))) {
 
-                segment = segments[i];
-                subdivisions = segmentSubdivisions[i];
-                d = segment.length({ subdivisions: subdivisions });
+                var segment = segments[i];
+                var subdivisions = segmentSubdivisions[i];
+                var d = segment.length({ subdivisions: subdivisions });
 
                 if (!segment.isInvisible) {
-                    tangent = segment.tangentAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
+                    var tangent = segment.tangentAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
 
                     if (tangent) { // has a tangent (segment length is not 0)
                         if (length <= (l + d)) return tangent;
@@ -2232,10 +2172,9 @@ var g = (function() {
             var segments = this.segments;
             var numSegments = segments.length;
 
-            var segment;
             for (var i = 0; i < numSegments; i++) {
 
-                segment = segments[i];
+                var segment = segments[i];
                 segment.translate(tx, ty);
             }
 
@@ -2272,10 +2211,9 @@ var g = (function() {
             var numSegments = segments.length;
 
             var pathData = '';
-            var segment;
             for (var i = 0; i < numSegments; i++) {
 
-                segment = segments[i];
+                var segment = segments[i];
                 pathData += segment.serialize() + ' ';
             }
 
@@ -3086,14 +3024,11 @@ var g = (function() {
             var numPoints = points.length;
             if (numPoints === 0) return null; // if points array is empty
 
-            var point;
-            var x;
-            var y;
             for (var i = 0; i < numPoints; i++) {
 
-                point = points[i];
-                x = point.x;
-                y = point.y;
+                var point = points[i];
+                var x = point.x;
+                var y = point.y;
 
                 if (x < x1) x1 = x;
                 if (x > x2) x2 = x;
@@ -3111,10 +3046,9 @@ var g = (function() {
             if (numPoints === 0) return new Polyline(); // if points array is empty
 
             var newPoints = [];
-            var point;
             for (var i = 0; i < numPoints; i++) {
 
-                point = points[i].clone();
+                var point = points[i].clone();
                 newPoints.push(point);
             }
 
@@ -3137,22 +3071,17 @@ var g = (function() {
 
             var minSqrDistance = Infinity;
             var length = 0;
-            var line;
-            var lineLength;
-            var cpNormalizedLength;
-            var cp;
-            var sqrDistance;
             var pointLength;
             var n = numPoints - 1;
             for (var i = 0; i < n; i++) {
 
-                line = new Line(points[i], points[i + 1]);
-                lineLength = line.length();
+                var line = new Line(points[i], points[i + 1]);
+                var lineLength = line.length();
 
-                cpNormalizedLength = line.closestPointNormalizedLength(p);
-                cp = line.pointAt(cpNormalizedLength);
+                var cpNormalizedLength = line.closestPointNormalizedLength(p);
+                var cp = line.pointAt(cpNormalizedLength);
 
-                sqrDistance = cp.squaredDistance(p);
+                var sqrDistance = cp.squaredDistance(p);
                 if (sqrDistance < minSqrDistance) {
                     minSqrDistance = sqrDistance;
                     pointLength = length + (cpNormalizedLength * lineLength);
@@ -3387,12 +3316,10 @@ var g = (function() {
             var numPoints = points.length;
             if (otherPoints.length !== numPoints) return false; // if the two polylines have different number of points, they cannot be equal
 
-            var point;
-            var otherPoint;
             for (var i = 0; i < numPoints; i++) {
 
-                point = points[i];
-                otherPoint = p.points[i];
+                var point = points[i];
+                var otherPoint = p.points[i];
 
                 // as soon as an inequality is found in points, return false
                 if (!point.equals(otherPoint)) return false;
@@ -3409,7 +3336,7 @@ var g = (function() {
             if (numPoints === 0) return 0; // if points array is empty
 
             var length = 0;
-            var n = numPoints - 1
+            var n = numPoints - 1;
             for (var i = 0; i < n; i++) {
                 length += points[i].distance(points[i + 1]);
             }
@@ -3450,17 +3377,13 @@ var g = (function() {
             if (length >= polylineLength) return (fromStart ? points[numPoints - 1].clone() : points[0].clone());
 
             var l = 0;
-            var a;
-            var b;
-            var line;
-            var d;
             var n = numPoints - 1;
             for (var i = (fromStart ? 0 : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
 
-                a = points[i];
-                b = points[i + 1];
-                line = new Line(a, b);
-                d = a.distance(b);
+                var a = points[i];
+                var b = points[i + 1];
+                var line = new Line(a, b);
+                var d = a.distance(b);
 
                 if (length <= (l + d)) {
                     return line.pointAtLength((fromStart ? 1 : -1) * (length - l));
@@ -3514,20 +3437,15 @@ var g = (function() {
 
             var lastValidLine; // differentiable (with a tangent)
             var l = 0; // length so far
-            var a;
-            var b;
-            var line;
-            var d;
-            var tangent;
             var n = numPoints - 1;
             for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
 
-                a = points[i];
-                b = points[i + 1];
-                line = new Line(a, b);
-                d = a.distance(b);
+                var a = points[i];
+                var b = points[i + 1];
+                var line = new Line(a, b);
+                var d = a.distance(b);
 
-                tangent = line.tangentAtLength((fromStart ? 1 : -1) * (length - l));
+                var tangent = line.tangentAtLength((fromStart ? 1 : -1) * (length - l));
 
                 if (tangent) { // has a tangent (line length is not 0)
                     if (length <= (l + d)) return tangent;
@@ -3568,9 +3486,9 @@ var g = (function() {
             if (numPoints === 0) return ''; // if points array is empty
 
             var output = '';
-            var point;
             for (var i = 0; i < numPoints; i++) {
-                point = points[i];
+
+                var point = points[i];
                 output += point.x + ',' + point.y + ' ';
             }
 
