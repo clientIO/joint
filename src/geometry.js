@@ -760,8 +760,8 @@ var g = (function() {
         // For a function that tracks `t`, use Curve.pointAtT().
         pointAt: function(ratio, opt) {
 
-            if (ratio <= 0) return this.start;
-            if (ratio >= 1) return this.end;
+            if (ratio <= 0) return this.start.clone();
+            if (ratio >= 1) return this.end.clone();
 
             var t = this.tAt(ratio, opt);
 
@@ -782,8 +782,8 @@ var g = (function() {
         // For linear length-based solution, use Curve.pointAt().
         pointAtT: function(t) {
 
-            if (t <= 0) return this.start;
-            if (t >= 1) return this.end;
+            if (t <= 0) return this.start.clone();
+            if (t >= 1) return this.end.clone();
 
             return this.getSkeletonPoints(t).divider;
         },
