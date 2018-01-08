@@ -629,7 +629,15 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var paper = opt.paper || this.paper;
 
         var paperOptions = paper.options;
-        var candidates = paper.model.findModelsUnderElement(model, { searchBy: paperOptions.findParentBy });
+
+        var candidates;
+        if (joint.util.isFunction(paperOptions.findParentBy)) {
+            candidates = paperOptions.findParentBy.call(paper.model, this).filter(function(el) {
+                return this.model.id !== el.id && !el.isEmbeddedIn(this.model);
+            }.bind(this));
+        } else {
+            candidates = paper.model.findModelsUnderElement(model, { searchBy: paperOptions.findParentBy });
+        }
 
         if (paperOptions.frontParentOnly) {
             // pick the element with the highest `z` index

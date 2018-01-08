@@ -1,0 +1,11 @@
+<code>findParentBy</code> - determines the way how a cell finds a suitable parent when it's dragged over the paper. The cell with the highest z-index (visually on the top) will be chosen.
+<code>findParentBy</code> option comes to play when the paper is in <a href="#dia.Paper.prototype.options.embeddingMode">embedding mode</a>. All possible values are
+
+<code>'bbox'</code> (default), <code>'center'</code>, <code>'origin'</code>, <code>'corner'</code>, <code>'topRight'</code>, <code>'bottomLeft'</code> and it also can be a <code>function</code>. The function accepts an <code>element</code> and it returns array of possible candidates.
+
+<pre><code>findParentBy: function(element) {
+    var bBox = element.getBBox();
+    return this.getElements().filter(function(el) {
+        return bBox.intersect(el.getBBox());
+    });
+}</code></pre>
